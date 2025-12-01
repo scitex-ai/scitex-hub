@@ -274,4 +274,16 @@ LOGGING.update(
     }
 )
 
+# ---------------------------------------
+# Celery Beat Schedule Override for Development
+# ---------------------------------------
+# Faster chart generation in development (10 seconds instead of 60)
+CELERY_BEAT_SCHEDULE['generate-status-charts'] = {
+    'task': 'apps.public_app.tasks.generate_status_charts',
+    'schedule': 10.0,  # Every 10 seconds in development
+    'options': {
+        'expires': 9.0,  # Expire after 9 seconds if not started
+    },
+}
+
 # EOF

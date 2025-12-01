@@ -33,6 +33,8 @@ export interface HistoricalDataResponse {
   }>;
 }
 
-// Declare Chart.js type
-declare const Chart: any;
-export { Chart };
+// Chart.js is loaded via CDN as a UMD script and available on window.Chart
+// We access it via the global object rather than re-exporting
+export function getChart(): any {
+  return (window as any).Chart;
+}

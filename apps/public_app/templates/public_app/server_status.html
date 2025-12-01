@@ -12,9 +12,7 @@ Check the current status of SciTeX Cloud services and infrastructure.
 {% endblock %}
 
 {% block extra_js %}
-<!-- Chart.js for time-series graphs -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<!-- Charts are pre-rendered by backend (matplotlib) -->
 {% endblock %}
 
 {% block content %}
@@ -28,34 +26,21 @@ Check the current status of SciTeX Cloud services and infrastructure.
             Real-time monitoring of SciTeX Cloud infrastructure and services
         </p>
 
-        <!-- Health Status Legend -->
-        <div class="health-legend">
-            <div class="has-tooltip health-legend-item" data-tooltip="Green = Service is running and passes its health check (e.g., HTTP 200, database query succeeds, port is open).">
-                <div class="health-indicator health-indicator-success"></div>
-                <span class="health-legend-text">
-                    <strong>Healthy:</strong> Running normally
-                </span>
-            </div>
-            <div class="has-tooltip health-legend-item" data-tooltip="Orange = Service is running but health check not yet passing (within start_period grace period).">
-                <div class="health-indicator health-indicator-warning"></div>
-                <span class="health-legend-text">
-                    <strong>Starting:</strong> Initializing
-                </span>
-            </div>
-            <div class="has-tooltip health-legend-item" data-tooltip="Red = Service is stopped, crashed, or health check failing (e.g., HTTP 500, database unreachable, port closed).">
-                <div class="health-indicator health-indicator-error"></div>
-                <span class="health-legend-text">
-                    <strong>Unhealthy:</strong> Service down
-                </span>
-            </div>
-        </div>
     </div>
 
     <!-- Unified System Metrics -->
     <div class="status-section">
-        <h2 class="section-title has-tooltip" id="metricsTitle" data-tooltip="Real-time metrics from the entire host computer (all processes, not just SciTeX). Charts update every 2 seconds.">
-            <i class="fas fa-chart-area"></i> System Metrics (Last 1 Hour)
-        </h2>
+        <div class="section-title-wrapper">
+            <h2 class="section-title has-tooltip" id="metricsTitle" data-tooltip="Real-time metrics from the entire host computer (all processes, not just SciTeX). Charts update every 2 seconds.">
+                <i class="fas fa-chart-area"></i> System Metrics
+            </h2>
+            <div class="time-span-selector" id="timeSpanSelector">
+                <button class="time-span-btn active" data-minutes="60">1 Hour</button>
+                <button class="time-span-btn" data-minutes="360">6 Hours</button>
+                <button class="time-span-btn" data-minutes="1440">24 Hours</button>
+            </div>
+            <!-- Chart mode selector removed - using matplotlib only -->
+        </div>
         <div class="services-grid metrics-grid">
             <!-- CPU Chart -->
             <div class="metric-card">
@@ -65,7 +50,7 @@ Check the current status of SciTeX Cloud services and infrastructure.
                     </span>
                     <span id="cpuCurrentValue" class="metric-current-value metric-current-value-cpu">--</span>
                 </div>
-                <canvas id="cpuChart" class="metric-chart"></canvas>
+                <img id="cpuChartImg" class="metric-chart matplotlib-chart" data-metric="cpu" src="/api/server-metrics/chart/cpu/?minutes=60" />
                 {% if status_data.system.cpu_cores %}
                 <div class="metric-info">
                     {{ status_data.system.cpu_cores }} cores ({{ status_data.system.cpu_cores_logical }} logical)
@@ -84,7 +69,7 @@ Check the current status of SciTeX Cloud services and infrastructure.
                     </span>
                     <span id="memoryCurrentValue" class="metric-current-value metric-current-value-memory">--</span>
                 </div>
-                <canvas id="memoryChart" class="metric-chart"></canvas>
+                <img id="memoryChartImg" class="metric-chart matplotlib-chart" data-metric="memory" src="/api/server-metrics/chart/memory/?minutes=60" />
                 {% if status_data.system.memory_total_gb %}
                 <div class="metric-info">
                     {{ status_data.system.memory_available_gb }} GB / {{ status_data.system.memory_total_gb }} GB available
@@ -100,7 +85,7 @@ Check the current status of SciTeX Cloud services and infrastructure.
                     </span>
                     <span id="diskCurrentValue" class="metric-current-value metric-current-value-disk">--</span>
                 </div>
-                <canvas id="diskChart" class="metric-chart"></canvas>
+                <img id="diskChartImg" class="metric-chart matplotlib-chart" data-metric="disk" src="/api/server-metrics/chart/disk/?minutes=60" />
                 {% if status_data.disk.total_tb %}
                 <div class="metric-info">
                     {{ status_data.disk.used_tb }} TB / {{ status_data.disk.total_tb }} TB used
@@ -116,7 +101,7 @@ Check the current status of SciTeX Cloud services and infrastructure.
                     </span>
                     <span id="gpuCurrentValue" class="metric-current-value metric-current-value-gpu">--</span>
                 </div>
-                <canvas id="gpuChart" class="metric-chart"></canvas>
+                <img id="gpuChartImg" class="metric-chart matplotlib-chart" data-metric="gpu" src="/api/server-metrics/chart/gpu/?minutes=60" />
                 <div id="gpuStatus" class="metric-info">
                     <i class="fas fa-circle-notch fa-spin"></i> Detecting GPU...
                 </div>
@@ -130,7 +115,7 @@ Check the current status of SciTeX Cloud services and infrastructure.
                     </span>
                     <span id="diskIoCurrentValue" class="metric-current-value metric-current-value-disk-io">--</span>
                 </div>
-                <canvas id="diskIoChart" class="metric-chart"></canvas>
+                <img id="diskIoChartImg" class="metric-chart matplotlib-chart" data-metric="disk_io" src="/api/server-metrics/chart/disk_io/?minutes=60" />
                 {% if status_data.system.disk_read_mb %}
                 <div class="metric-info">
                     Total: ↓{{ status_data.system.disk_read_mb }} MB read, ↑{{ status_data.system.disk_write_mb }} MB written
@@ -146,7 +131,7 @@ Check the current status of SciTeX Cloud services and infrastructure.
                     </span>
                     <span id="netIoCurrentValue" class="metric-current-value metric-current-value-network">--</span>
                 </div>
-                <canvas id="netIoChart" class="metric-chart"></canvas>
+                <img id="netIoChartImg" class="metric-chart matplotlib-chart" data-metric="net_io" src="/api/server-metrics/chart/net_io/?minutes=60" />
                 {% if status_data.system.net_sent_mb %}
                 <div class="metric-info">
                     Total: ↑{{ status_data.system.net_sent_mb }} MB sent, ↓{{ status_data.system.net_recv_mb }} MB received
@@ -162,7 +147,7 @@ Check the current status of SciTeX Cloud services and infrastructure.
                     </span>
                     <span id="visitorPoolCurrentValue" class="metric-current-value metric-current-value-visitor-pool">--</span>
                 </div>
-                <canvas id="visitorPoolChart" class="metric-chart"></canvas>
+                <img id="visitorPoolChartImg" class="metric-chart matplotlib-chart" data-metric="visitor_pool" src="/api/server-metrics/chart/visitor_pool/?minutes=60" />
                 <div class="metric-info">
                     Visitor visitor sessions (1h lifetime each)
                 </div>
@@ -176,7 +161,7 @@ Check the current status of SciTeX Cloud services and infrastructure.
                     </span>
                     <span id="activeUsersCurrentValue" class="metric-current-value metric-current-value-users">--</span>
                 </div>
-                <canvas id="activeUsersChart" class="metric-chart"></canvas>
+                <img id="activeUsersChartImg" class="metric-chart matplotlib-chart" data-metric="active_users" src="/api/server-metrics/chart/active_users/?minutes=60" />
                 <div class="metric-info">
                     Currently logged-in users with active sessions
                 </div>
@@ -492,5 +477,5 @@ Check the current status of SciTeX Cloud services and infrastructure.
     </div>
 </div>
 
-<script src="{% static 'public_app/js/server-status.js' %}"></script>
+<script type="module" src="{% static 'public_app/js/server-status.js' %}"></script>
 {% endblock %}

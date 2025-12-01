@@ -38,9 +38,60 @@
     color: var(--text-muted);
 }
 
-/* System Metrics Grid */
+/* Time Span Selector */
+.time-span-selector {
+    display: flex;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+
+.time-span-btn {
+    padding: 0.35rem 0.75rem;
+    border: 1px solid var(--border-default);
+    border-radius: 6px;
+    background: var(--bg-surface);
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.time-span-btn:hover {
+    border-color: var(--scitex-color-04);
+    color: var(--text-primary);
+}
+
+.time-span-btn.active {
+    background: var(--scitex-color-04);
+    border-color: var(--scitex-color-04);
+    color: white;
+}
+
+/* Section Title with Controls */
+.section-title-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.section-title-wrapper .section-title {
+    margin-bottom: 0;
+}
+
+/* System Metrics Grid - auto-fill with larger minimum for better readability */
 .metrics-grid {
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+}
+
+/* Metric Cards - larger and more readable */
+.metric-card {
+    min-height: 280px;
+}
+
+.metric-card canvas {
+    min-height: 180px;
 }
 
 /* Metric Cards */
@@ -49,6 +100,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    font-size: 1rem;
 }
 
 .metric-icon-cpu {
@@ -121,7 +173,7 @@
 }
 
 .metric-chart {
-    max-height: 200px;
+    min-height: 180px;
 }
 
 .metric-info {
@@ -210,18 +262,220 @@
     margin-right: 0.5rem;
 }
 
+/* How Visitor Mode Works Section */
+.visitor-pool-section {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-default);
+}
+
+.visitor-pool-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.visitor-pool-title i {
+    color: var(--scitex-color-04);
+}
+
+.visitor-pool-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+}
+
+.visitor-pool-card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.visitor-pool-card-text {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.visitor-pool-card-text code {
+    background: var(--bg-surface);
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.85em;
+}
+
+.visitor-pool-icon {
+    color: var(--scitex-color-04);
+}
+
+.visitor-pool-link {
+    color: var(--scitex-color-04);
+    text-decoration: none;
+}
+
+.visitor-pool-link:hover {
+    text-decoration: underline;
+}
+
+/* Info Card - shared style for visitor pool cards */
+.info-card {
+    background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(5, 150, 105, 0.08) 100%);
+    border: 1px solid var(--border-default);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+.info-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14);
+}
+
+/* Slots Grid */
+.slots-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.slot-card {
+    background: var(--bg-surface);
+    border: 2px solid var(--border-default);
+    border-radius: 12px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+.slot-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.14);
+}
+
+.slot-card.allocated {
+    border-color: var(--status-warning);
+    background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(255, 152, 0, 0.12) 100%);
+}
+
+.slot-card.free {
+    border-color: var(--status-success);
+    background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(76, 175, 80, 0.10) 100%);
+}
+
+.slot-card.current-user {
+    border-color: var(--workspace-icon-primary);
+    border-width: 3px;
+    background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(5, 150, 105, 0.20) 100%);
+    box-shadow: 0 6px 16px rgba(5, 150, 105, 0.35);
+}
+
+.slot-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.slot-number {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.slot-status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.slot-status-badge.allocated {
+    background: rgba(255, 152, 0, 0.2);
+    color: #ff9800;
+}
+
+.slot-status-badge.free {
+    background: rgba(76, 175, 80, 0.2);
+    color: #4caf50;
+}
+
+.slot-info {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.slot-time-remaining {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    background: rgba(255, 152, 0, 0.1);
+    border-radius: 8px;
+}
+
+.slot-time-remaining i {
+    color: #ff9800;
+}
+
 /* Responsive Design */
+@media (max-width: 1200px) {
+    .visitor-pool-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .slots-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 992px) {
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .section-title-wrapper {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .time-span-selector {
+        margin-left: 0;
+    }
+}
+
 @media (max-width: 768px) {
     .health-legend {
         gap: 1rem;
     }
 
-    .metrics-grid {
-        grid-template-columns: 1fr;
-    }
-
     .visitor-pool-grid {
         grid-template-columns: 1fr;
         gap: 1rem;
+    }
+
+    .slots-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .time-span-btn {
+        padding: 0.3rem 0.5rem;
+        font-size: 0.75rem;
     }
 }

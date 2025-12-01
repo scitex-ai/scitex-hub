@@ -76,6 +76,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     chromium \
     chromium-driver \
     fonts-liberation \
+    # Microsoft core fonts (Arial, Times New Roman, etc.) for scientific figures
+    fontconfig \
     # Playwright runtime dependencies
     libglib2.0-0t64 \
     libnspr4 \
@@ -100,6 +102,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-bibtexparser \
     # Munge for SLURM authentication
     munge \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Microsoft core fonts (Arial, Times New Roman, Courier New, etc.)
+# Required for high-quality scientific figures
+# ttf-mscorefonts-installer requires contrib repository in Debian
+RUN sed -i 's/main/main contrib/g' /etc/apt/sources.list.d/debian.sources \
+    && apt-get update \
+    && echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections \
+    && apt-get install -y --no-install-recommends ttf-mscorefonts-installer \
+    && fc-cache -fv \
     && rm -rf /var/lib/apt/lists/*
 
 # ============================================

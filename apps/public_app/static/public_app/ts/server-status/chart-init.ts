@@ -3,7 +3,7 @@
  * Creates and configures all Chart.js instances for server metrics
  */
 
-import { Chart } from './types.js';
+import { getChart } from './types.js';
 import { percentChartConfig, networkChartConfig } from './chart-configs.js';
 
 export interface ChartInstances {
@@ -18,6 +18,13 @@ export interface ChartInstances {
 }
 
 export function initializeCharts(): ChartInstances | null {
+  // Get Chart.js from window (loaded via CDN) - must be inside function, not at module level
+  const Chart = getChart();
+  if (!Chart) {
+    console.error('[chart-init] Chart.js not loaded');
+    return null;
+  }
+
   // Initialize CPU chart
   const cpuCtx = (document.getElementById('cpuChart') as HTMLCanvasElement)?.getContext('2d');
   if (!cpuCtx) return null;
@@ -30,7 +37,7 @@ export function initializeCharts(): ChartInstances | null {
         data: [],
         borderColor: 'rgb(54, 162, 235)',
         backgroundColor: 'rgba(54, 162, 235, 0.15)',
-        borderWidth: 3,
+        borderWidth: 1.5,
         tension: 0.3,
         fill: true,
         spanGaps: false,
@@ -56,7 +63,7 @@ export function initializeCharts(): ChartInstances | null {
         data: [],
         borderColor: 'rgb(255, 99, 132)',
         backgroundColor: 'rgba(255, 99, 132, 0.15)',
-        borderWidth: 3,
+        borderWidth: 1.5,
         tension: 0.3,
         fill: true,
         spanGaps: false,
@@ -82,7 +89,7 @@ export function initializeCharts(): ChartInstances | null {
         data: [],
         borderColor: 'rgb(75, 192, 192)',
         backgroundColor: 'rgba(75, 192, 192, 0.15)',
-        borderWidth: 3,
+        borderWidth: 1.5,
         tension: 0.3,
         fill: true,
         spanGaps: false,
@@ -108,7 +115,7 @@ export function initializeCharts(): ChartInstances | null {
         data: [],
         borderColor: 'rgb(153, 102, 255)',
         backgroundColor: 'rgba(153, 102, 255, 0.15)',
-        borderWidth: 3,
+        borderWidth: 1.5,
         tension: 0.3,
         fill: true,
         spanGaps: false,
@@ -135,7 +142,7 @@ export function initializeCharts(): ChartInstances | null {
           data: [],
           borderColor: 'rgb(75, 192, 192)',
           backgroundColor: 'rgba(75, 192, 192, 0.15)',
-          borderWidth: 2,
+          borderWidth: 1.5,
           tension: 0.3,
           fill: false,
           pointRadius: 0,
@@ -147,7 +154,7 @@ export function initializeCharts(): ChartInstances | null {
           data: [],
           borderColor: 'rgb(255, 159, 64)',
           backgroundColor: 'rgba(255, 159, 64, 0.15)',
-          borderWidth: 2,
+          borderWidth: 1.5,
           tension: 0.3,
           fill: false,
           pointRadius: 0,
@@ -171,7 +178,7 @@ export function initializeCharts(): ChartInstances | null {
           data: [],
           borderColor: 'rgb(255, 99, 132)',
           backgroundColor: 'rgba(255, 99, 132, 0.15)',
-          borderWidth: 2,
+          borderWidth: 1.5,
           tension: 0.3,
           fill: false,
           pointRadius: 0,
@@ -183,7 +190,7 @@ export function initializeCharts(): ChartInstances | null {
           data: [],
           borderColor: 'rgb(54, 162, 235)',
           backgroundColor: 'rgba(54, 162, 235, 0.15)',
-          borderWidth: 2,
+          borderWidth: 1.5,
           tension: 0.3,
           fill: false,
           pointRadius: 0,
@@ -206,7 +213,7 @@ export function initializeCharts(): ChartInstances | null {
         data: [],
         borderColor: 'rgb(201, 203, 207)',
         backgroundColor: 'rgba(201, 203, 207, 0.15)',
-        borderWidth: 3,
+        borderWidth: 1.5,
         tension: 0.3,
         fill: true,
         spanGaps: false,
@@ -227,8 +234,7 @@ export function initializeCharts(): ChartInstances | null {
           max: 4,
           title: {
             display: true,
-            text: 'Allocated Slots',
-            font: { size: 12, weight: 'bold' }
+            text: 'Allocated Slots'
           },
           ticks: {
             stepSize: 1,
@@ -253,7 +259,7 @@ export function initializeCharts(): ChartInstances | null {
         data: [],
         borderColor: 'rgb(75, 192, 192)',
         backgroundColor: 'rgba(75, 192, 192, 0.15)',
-        borderWidth: 3,
+        borderWidth: 1.5,
         tension: 0.3,
         fill: true,
         spanGaps: false,
@@ -273,8 +279,7 @@ export function initializeCharts(): ChartInstances | null {
           ...percentChartConfig.options.scales.y,
           title: {
             display: true,
-            text: 'Number of Users',
-            font: { size: 12, weight: 'bold' }
+            text: 'Number of Users'
           },
           ticks: {
             stepSize: 1,

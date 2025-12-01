@@ -379,6 +379,14 @@ CELERY_BEAT_SCHEDULE = {
             'expires': 3540.0,  # Expire after 59 minutes if not started
         },
     },
+    # Generate server status charts every 1 minute
+    'generate-status-charts': {
+        'task': 'apps.public_app.tasks.generate_status_charts',
+        'schedule': 60.0,  # Every 1 minute
+        'options': {
+            'expires': 55.0,  # Expire after 55 seconds if not started
+        },
+    },
 }
 
 # ---------------------------------------

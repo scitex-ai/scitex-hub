@@ -1,3 +1,5 @@
+/* Server Status Page Styles */
+
 .server-status-container {
     max-width: 1400px;
     margin: 0 auto;
@@ -41,10 +43,90 @@
     color: var(--scitex-color-04);
 }
 
+/* Time Span Selector */
+.section-title-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.section-title-wrapper .section-title {
+    margin-bottom: 0;
+}
+
+.time-span-selector {
+    display: flex;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+
+.time-span-btn {
+    padding: 0.4rem 0.85rem;
+    border: 1px solid var(--border-default);
+    border-radius: 6px;
+    background: var(--bg-surface);
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.time-span-btn:hover {
+    border-color: var(--scitex-color-04);
+    color: var(--text-primary);
+}
+
+.time-span-btn.active {
+    background: var(--scitex-color-04);
+    border-color: var(--scitex-color-04);
+    color: white;
+}
+
+/* Chart Mode Selector */
+.chart-mode-selector {
+    display: flex;
+    gap: 0.25rem;
+    margin-left: 0.5rem;
+}
+
+.chart-mode-btn {
+    padding: 0.4rem 0.7rem;
+    border: 1px solid var(--border-default);
+    border-radius: 6px;
+    background: var(--bg-surface);
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.chart-mode-btn:hover {
+    border-color: var(--scitex-color-02);
+    color: var(--text-primary);
+}
+
+.chart-mode-btn.active {
+    background: var(--scitex-color-02);
+    border-color: var(--scitex-color-02);
+    color: white;
+}
+
+.chart-mode-btn i {
+    margin-right: 0.25rem;
+}
+
+/* Services Grid */
 .services-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1.5rem;
+}
+
+/* System Metrics Grid - same as other service cards */
+.metrics-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 }
 
 .service-card {
@@ -127,6 +209,7 @@
     margin: 0.5rem 0;
 }
 
+/* Metric Cards */
 .metric-card {
     background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(54, 162, 235, 0.08) 100%);
     border: 1px solid var(--border-default);
@@ -135,6 +218,7 @@
     text-align: center;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
     transition: all 0.3s ease;
+    min-height: 300px;
 }
 
 .metric-card:hover {
@@ -150,10 +234,98 @@
 }
 
 .metric-label {
-    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1rem;
+}
+
+.metric-icon-cpu {
+    color: rgb(54, 162, 235);
+}
+
+.metric-icon-memory {
+    color: rgb(255, 99, 132);
+}
+
+.metric-icon-disk {
+    color: rgb(75, 192, 192);
+}
+
+.metric-icon-gpu {
+    color: rgb(153, 102, 255);
+}
+
+.metric-icon-disk-io {
+    color: rgb(255, 159, 64);
+}
+
+.metric-icon-network {
+    color: rgb(255, 205, 86);
+}
+
+.metric-icon-visitor-pool {
+    color: rgb(201, 203, 207);
+}
+
+.metric-icon-users {
+    color: rgb(75, 192, 192);
+}
+
+.metric-current-value {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.metric-current-value-cpu {
+    color: rgb(54, 162, 235);
+}
+
+.metric-current-value-memory {
+    color: rgb(255, 99, 132);
+}
+
+.metric-current-value-disk {
+    color: rgb(75, 192, 192);
+}
+
+.metric-current-value-gpu {
+    color: rgb(153, 102, 255);
+}
+
+.metric-current-value-disk-io {
+    color: rgb(255, 159, 64);
+}
+
+.metric-current-value-network {
+    color: rgb(255, 205, 86);
+}
+
+.metric-current-value-visitor-pool {
+    color: rgb(201, 203, 207);
+}
+
+.metric-current-value-users {
+    color: rgb(75, 192, 192);
+}
+
+.metric-chart {
+    min-height: 200px;
+    width: 100%;
+}
+
+.metric-chart.matplotlib-chart {
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+}
+
+.metric-info {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
     color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    text-align: center;
 }
 
 .progress-bar {
@@ -178,6 +350,7 @@
     background: var(--status-error);
 }
 
+/* Info Box */
 .info-box {
     background: var(--color-attention-subtle);
     border-left: 3px solid var(--scitex-color-04);
@@ -201,6 +374,20 @@
     text-decoration: underline;
 }
 
+.info-box-with-margin {
+    margin-top: 1.5rem;
+}
+
+/* Error/Warning Messages */
+.error-message {
+    color: var(--status-error);
+}
+
+.warning-message {
+    color: var(--status-warning);
+}
+
+/* Info Card */
 .info-card {
     background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(5, 150, 105, 0.08) 100%);
     border: 1px solid var(--border-default);
@@ -253,94 +440,276 @@
     z-index: 10001;
     pointer-events: none;
 }
-        .slots-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1.5rem;
-            margin-top: 1.5rem;
-        }
 
-        .slot-card {
-            background: var(--bg-surface);
-            border: 2px solid var(--border-default);
-            border-radius: 12px;
-            padding: 1.5rem;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s ease;
-        }
+/* Visitor Pool Section */
+.visitor-pool-status-count {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    font-weight: normal;
+    margin-left: 1rem;
+}
 
-        .slot-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.14);
-        }
+/* How Visitor Mode Works Section */
+.visitor-pool-section {
+    margin-top: 2.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-default);
+}
 
-        .slot-card.allocated {
-            border-color: var(--status-warning);
-            background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(255, 152, 0, 0.12) 100%);
-        }
+.visitor-pool-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
 
-        .slot-card.free {
-            border-color: var(--status-success);
-            background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(76, 175, 80, 0.10) 100%);
-        }
+.visitor-pool-title i {
+    color: var(--scitex-color-04);
+}
 
-        .slot-card.current-user {
-            border-color: var(--workspace-icon-primary);
-            border-width: 3px;
-            background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(5, 150, 105, 0.20) 100%);
-            box-shadow: 0 6px 16px rgba(5, 150, 105, 0.35);
-        }
+.visitor-pool-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+}
 
-        .slot-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
+.visitor-pool-card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
 
-        .slot-number {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
+.visitor-pool-card-text {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin: 0;
+}
 
-        .slot-status-badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+.visitor-pool-card-text code {
+    background: var(--bg-surface);
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.85em;
+}
 
-        .slot-status-badge.allocated {
-            background: rgba(255, 152, 0, 0.2);
-            color: #ff9800;
-        }
+.visitor-pool-icon {
+    color: var(--scitex-color-04);
+}
 
-        .slot-status-badge.free {
-            background: rgba(76, 175, 80, 0.2);
-            color: #4caf50;
-        }
+.visitor-pool-link {
+    color: var(--scitex-color-04);
+    text-decoration: none;
+}
 
-        .slot-info {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
+.visitor-pool-link:hover {
+    text-decoration: underline;
+}
 
-        .slot-time-remaining {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-top: 0.75rem;
-            padding: 0.75rem;
-            background: rgba(255, 152, 0, 0.1);
-            border-radius: 8px;
-        }
+/* Allocation Icons */
+.allocation-project-icon {
+    margin-right: 0.5rem;
+    color: var(--workspace-icon-primary);
+}
 
-        .slot-time-remaining i {
-            color: #ff9800;
-        }
-        </style>
+.allocation-visitor-icon {
+    color: #ff9800;
+    margin-right: 0.5rem;
+}
+
+.allocation-current-user {
+    color: var(--workspace-icon-primary);
+}
+
+.allocation-active-icon {
+    color: #4caf50;
+    margin-right: 0.5rem;
+}
+
+/* Slots Grid */
+.slots-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.slot-card {
+    background: var(--bg-surface);
+    border: 2px solid var(--border-default);
+    border-radius: 12px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+.slot-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.14);
+}
+
+.slot-card.allocated {
+    border-color: var(--status-warning);
+    background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(255, 152, 0, 0.12) 100%);
+}
+
+.slot-card.free {
+    border-color: var(--status-success);
+    background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(76, 175, 80, 0.10) 100%);
+}
+
+.slot-card.current-user {
+    border-color: var(--workspace-icon-primary);
+    border-width: 3px;
+    background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(5, 150, 105, 0.20) 100%);
+    box-shadow: 0 6px 16px rgba(5, 150, 105, 0.35);
+}
+
+.slot-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.slot-number {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.slot-status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.slot-status-badge.allocated {
+    background: rgba(255, 152, 0, 0.2);
+    color: #ff9800;
+}
+
+.slot-status-badge.free {
+    background: rgba(76, 175, 80, 0.2);
+    color: #4caf50;
+}
+
+.slot-info {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.slot-time-remaining {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    background: rgba(255, 152, 0, 0.1);
+    border-radius: 8px;
+}
+
+.slot-time-remaining i {
+    color: #ff9800;
+}
+
+/* Health Status Legend */
+.health-legend {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.health-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.health-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.health-indicator-success {
+    background: var(--status-success);
+}
+
+.health-indicator-warning {
+    background: var(--status-warning);
+}
+
+.health-indicator-error {
+    background: var(--status-error);
+}
+
+.health-legend-text {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .visitor-pool-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .slots-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 992px) {
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .section-title-wrapper {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .time-span-selector {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .health-legend {
+        gap: 1rem;
+    }
+
+    .visitor-pool-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .slots-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .time-span-btn {
+        padding: 0.3rem 0.5rem;
+        font-size: 0.75rem;
+    }
+}

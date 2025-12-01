@@ -25,6 +25,7 @@ from .visitor import (
     visitor_restart_session,
     visitor_expired,
 )
+from .charts import render_metric_chart
 
 __all__ = [
     "server_status",
@@ -34,6 +35,7 @@ __all__ = [
     "visitor_status",
     "visitor_restart_session",
     "visitor_expired",
+    "render_metric_chart",
 ]
 
 # EOF

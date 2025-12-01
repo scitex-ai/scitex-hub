@@ -32,6 +32,7 @@ from .status import (
     visitor_status,
     visitor_restart_session,
     visitor_expired,
+    render_metric_chart,
 )
 
 # API and developer pages
@@ -92,6 +93,7 @@ __all__ = [
     "visitor_status",
     "visitor_restart_session",
     "visitor_expired",
+    "render_metric_chart",
     # API
     "api_docs",
     "scitex_api_keys",
