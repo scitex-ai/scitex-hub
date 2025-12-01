@@ -1,5 +1,4 @@
 {% load static %}
-{% if debug %}{% load django_browser_reload %}{% endif %}
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -32,6 +31,5 @@
         {% include 'global_base_partials/global_footer.html' %}
         {% include 'global_base_partials/global_body_scripts.html' %}
         {% block extra_js %}{% endblock %}
-        {% if debug %}{% django_browser_reload_script %}{% endif %}
     </body>
 </html>
