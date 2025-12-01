@@ -11,14 +11,11 @@ import { DEFAULT_EXPAND_PATHS } from './types.js';
 import { TreeStateManager } from './TreeState.js';
 import { TreeFilter } from './TreeFilter.js';
 import { TreeRenderer } from './TreeRenderer.js';
-import { TreeNavigation } from './TreeNavigation.js';
 import { EventHandlers } from './handlers/EventHandlers.js';
 import { DragDropHandlers } from './handlers/DragDropHandlers.js';
 import { KeyboardHandlers } from './handlers/KeyboardHandlers.js';
 import { FileActions } from './handlers/FileActions.js';
 import { ResizeHandler } from './handlers/ResizeHandler.js';
-
-console.log('[DEBUG] WorkspaceFilesTree component loaded (orchestrator pattern)');
 
 export class WorkspaceFilesTree {
   private config: TreeConfig;
@@ -26,7 +23,6 @@ export class WorkspaceFilesTree {
   private stateManager: TreeStateManager;
   private filter: TreeFilter;
   private renderer: TreeRenderer;
-  private navigation: TreeNavigation | null = null;
   private eventHandlers: EventHandlers;
   private dragDropHandlers: DragDropHandlers;
   private keyboardHandlers: KeyboardHandlers | null = null;
@@ -82,11 +78,7 @@ export class WorkspaceFilesTree {
     );
 
     // Subscribe to state changes for cross-tab sync
-    this.stateManager.subscribe(() => {
-      this.rerender();
-    });
-
-    console.log(`[WorkspaceFilesTree] Initialized for mode: ${config.mode}`);
+    this.stateManager.subscribe(() => this.rerender());
   }
 
   async initialize(): Promise<void> {
@@ -118,31 +110,6 @@ export class WorkspaceFilesTree {
 
       if (data.success) {
         this.treeData = data.tree;
-        // Debug: Log raw data to verify symlinks
-        console.log('[WFT] Tree data received - checking first few items for is_symlink property:');
-        const debugSymlinks = (items: TreeItem[], prefix = '', depth = 0) => {
-          if (depth > 2) return; // Limit depth
-          for (const item of items.slice(0, 3)) {
-            console.log(`[WFT] ${prefix}${item.name}: is_symlink=${item.is_symlink}, symlink_target=${item.symlink_target || 'N/A'}`);
-            if (item.children) {
-              debugSymlinks(item.children, `${prefix}${item.name}/`, depth + 1);
-            }
-          }
-        };
-        debugSymlinks(this.treeData);
-        // Debug: Log symlinks in tree data
-        const logSymlinks = (items: TreeItem[], prefix = '') => {
-          for (const item of items) {
-            if (item.is_symlink) {
-              console.log(`[WFT] Symlink found: ${prefix}${item.name} -> ${item.symlink_target}`);
-            }
-            if (item.children) {
-              logSymlinks(item.children, `${prefix}${item.name}/`);
-            }
-          }
-        };
-        logSymlinks(this.treeData);
-        // Apply default expansion paths if no user state exists
         this.applyDefaultExpansion();
         this.render();
         await this.autoExpandFocusPath();
@@ -173,7 +140,6 @@ export class WorkspaceFilesTree {
           this.stateManager.expand(path);
         }
       });
-      console.log(`[WorkspaceFilesTree] Applied default expansion for ${this.config.mode}:`, defaultPaths);
     }
   }
 
@@ -210,10 +176,8 @@ export class WorkspaceFilesTree {
 
     if (directoryPath) {
       this.filteredTreeData = this.filterTreeByDirectory(this.treeData, directoryPath);
-      console.log(`[WorkspaceFilesTree] Directory filter set to: ${directoryPath}`);
     } else {
       this.filteredTreeData = [];
-      console.log('[WorkspaceFilesTree] Directory filter cleared');
     }
 
     this.rerender();
@@ -504,8 +468,6 @@ export class WorkspaceFilesTree {
    * @param collapseOthersAtLevel - If true, collapse sibling directories at the same level
    */
   async focusDirectory(targetPath: string, collapseOthersAtLevel: boolean = true): Promise<void> {
-    console.log(`[WorkspaceFilesTree] Focusing on directory: ${targetPath}`);
-
     // Expand parent paths to make target visible
     const parentPaths = this.getParentPaths(targetPath);
     parentPaths.forEach(parentPath => {
