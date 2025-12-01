@@ -5,6 +5,23 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.3-alpha] - 2025-12-02
+
+### Added
+- **Pre-rendered Matplotlib Charts**: Server status page now uses pre-rendered PNG charts
+  - Replace Chart.js with matplotlib for scientific-quality figures
+  - 48 chart combinations: 8 metrics × 3 time ranges × 2 themes
+  - Celery task for periodic chart generation (10s dev, 60s production)
+  - scipy.signal.resample for smooth 60-point downsampling
+  - Proper axis labels with units (%, MB/s, n) for scientific rigor
+  - Instant theme switching (dark/light mode)
+  - Parallel chart generation using Celery groups
+
+### Infrastructure
+- **Docker**: Added Microsoft TrueType core fonts (Arial) for scientific figures
+  - ttf-mscorefonts-installer from Debian contrib repository
+  - Font cache rebuild for matplotlib
+
 ## [0.4.2-alpha] - 2025-11-27
 
 ### Added
