@@ -1,0 +1,1349 @@
+% ==============================================================================
+% SciTeX Writer v2.0.0-rc3 (https://scitex.ai)
+% LaTeX compilation engine: auto
+% Compiled: 2025-12-02 13:57:41
+% Source: 01_manuscript/base.tex
+% ==============================================================================
+
+%% -*- coding: utf-8 -*-
+%% Timestamp: "2025-09-27 22:21:42 (ywatanabe)"
+%% File: "/ssh:sp:/home/ywatanabe/proj/neurovista/paper/01_manuscript/base.tex"
+\UseRawInputEncoding
+
+%% ----------------------------------------
+%% SETTINGS
+%% ----------------------------------------
+
+% ======================================================================
+% File: ./01_manuscript/contents/latex_styles/columns.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+%% Timestamp: "2025-09-30 18:04:38 (ywatanabe)"
+%% File: "/ssh:sp:/home/ywatanabe/proj/neurovista/paper/00_shared/latex_styles/columns.tex"
+
+%% --- Columns ---
+%% \documentclass[final,3p,times,twocolumn]{elsarticle} %% Use it for submission
+%% Use the options 1p,twocolumn; 3p; 3p,twocolumn; 5p; or 5p,twocolumn
+%% for a journal layout:
+%% \documentclass[final,1p,times]{elsarticle}
+%% \documentclass[final,1p,times,twocolumn]{elsarticle}
+%% \documentclass[final,3p,times]{elsarticle}
+%% \documentclass[final,3p,times,twocolumn]{elsarticle}
+%% \documentclass[final,5p,times]{elsarticle}
+%% \documentclass[final,5p,times,twocolumn]{elsarticle}
+\documentclass[preprint,review,12pt]{elsarticle}
+
+%%%% EOF
+
+
+% ======================================================================
+% File: ./01_manuscript/contents/latex_styles/packages.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+%% Timestamp: "2025-09-30 17:57:49 (ywatanabe)"
+%% File: "/ssh:sp:/home/ywatanabe/proj/neurovista/paper/00_shared/latex_styles/packages.tex"
+%% -*- coding: utf-8 -*-
+%% Timestamp: "2025-09-27 16:01:16 (ywatanabe)"
+
+%% Language and encoding
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+%% Colors (load early to avoid option clashes with tikz, pgfplots, tcolorbox)
+% Include all common color options: table (for colortbl), svgnames (for tcolorbox)
+\usepackage[table,svgnames]{xcolor}
+
+%% Mathematics
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{siunitx}
+\sisetup{round-mode=figures,round-precision=3}
+
+%% Graphics and figures
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{pgfplots, pgfplotstable}
+\usetikzlibrary{positioning,shapes,arrows,fit,calc,graphs,graphs.standard}
+
+%% Tables
+\usepackage{booktabs, colortbl, longtable, supertabular, tabularx, xltabular}
+\usepackage{csvsimple, makecell}
+
+%% Table formatting
+\renewcommand\theadfont{\bfseries}
+\renewcommand\theadalign{c}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}m{#1}}
+\renewcommand{\arraystretch}{1.5}
+\definecolor{lightgray}{gray}{0.95}
+
+%% Layout and geometry
+\usepackage[pass]{geometry}
+\usepackage{pdflscape, indentfirst, calc}
+\usepackage{titlesec}  % For custom section formatting
+
+%% Captions and references
+\usepackage[margin=10pt,font=small,labelfont=bf,labelsep=endash]{caption}
+\usepackage[numbers]{natbib}  % numbers: numeric citations [1], [2]
+\setcitestyle{sort=false}     % Preserve citation order as written
+\usepackage{hyperref}
+
+%% Document features
+\usepackage{accsupp, lineno, bashful, lipsum}
+
+%% Visual enhancements
+\usepackage[most]{tcolorbox}
+
+%% External references
+\usepackage{xr-hyper}
+
+%% EOF
+
+%%%% EOF
+
+
+% ======================================================================
+% File: ./01_manuscript/contents/latex_styles/linker.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+%% Timestamp: "2025-09-30 18:04:19 (ywatanabe)"
+%% File: "/ssh:sp:/home/ywatanabe/proj/neurovista/paper/00_shared/latex_styles/linker.tex"
+
+%% --- Linker for supplemtal material ---
+\usepackage{xr}
+\makeatletter
+\newcommand*{\addFileDependency}[1]{% argument=file name and extension
+  \typeout{(#1)}
+  \@addtofilelist{#1}
+  \IfFileExists{#1}{}{\typeout{No file #1.}}
+}
+\makeatother
+
+\newcommand*{\link}[2][]{%
+    \externaldocument[#1]{#2}%
+    \addFileDependency{#2.tex}%
+    \addFileDependency{#2.aux}%
+}
+
+%%%% EOF
+
+
+% ======================================================================
+% File: ./01_manuscript/contents/latex_styles/formatting.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+%% Timestamp: "2025-09-30 18:03:32 (ywatanabe)"
+%% File: "/ssh:sp:/home/ywatanabe/proj/neurovista/paper/00_shared/latex_styles/formatting.tex"
+
+%% --- Image width ---
+\newlength{\imagewidth}
+\newlength{\imagescale}
+
+%% --- Line numbers ---
+\linespread{1.2}
+\linenumbers
+
+%% --- Colors ---
+\definecolor{GreenBG}{rgb}{0,1,0}
+\definecolor{RedBG}{rgb}{1,0,0}
+
+%% --- Highlight boxes ---
+\newtcbox{\greenhighlight}[1][]{on line,colframe=GreenBG,colback=GreenBG!50!white,boxrule=0pt,arc=0pt,boxsep=0pt,left=1pt,right=1pt,top=2pt,bottom=2pt,tcbox raise base}
+\newtcbox{\redhighlight}[1][]{on line,colframe=RedBG,colback=RedBG!50!white,boxrule=0pt,arc=0pt,boxsep=0pt,left=1pt,right=1pt,top=2pt,bottom=2pt,tcbox raise base}
+
+\newcommand{\REDSTARTS}{\color{red}}
+\newcommand{\REDENDS}{\color{black}}
+\newcommand{\GREENSTARTS}{\color{green}}
+\newcommand{\GREENENDS}{\color{black}}
+
+%% --- Word count ---
+\newread\wordcount
+\newcommand\readwordcount[1]{%
+\openin\wordcount=#1
+\read\wordcount to \thewordcount
+\closein\wordcount
+\thewordcount
+}
+
+%% --- Text highlighting ---
+\usepackage{soul}
+\sethlcolor{yellow}
+
+%% --- Reference handling ---
+\usepackage{refcount}
+
+\let\oldref\ref
+\newcommand{\hlref}[1]{%
+  \ifnum\getrefnumber{#1}=0
+    \colorbox{yellow}{\ref*{#1}}%  % Use colorbox for references (no line break needed)
+  \else
+    \ref{#1}%
+  \fi
+}
+
+% To add an 'S' prefixes to a reference
+\newcommand*\sref[1]{S\hlref{#1}}
+\newcommand*\sfref[1]{Supplementary Figure S\hlref{#1}}
+\newcommand*\stref[1]{Supplementary Table S\hlref{#1}}
+\newcommand*\smref[1]{Supplementary Materials S\hlref{#1}}
+
+%%%% EOF
+
+\link[supple-]{./02_supplementary/supplementary}
+
+%% ----------------------------------------
+%% JOURNAL NAME
+%% ----------------------------------------
+
+% ======================================================================
+% File: ./01_manuscript/contents/journal_name.tex
+% ======================================================================
+\journal{Journal Name Here}
+
+
+
+%% ----------------------------------------
+%% START of DOCUMENT
+%% ----------------------------------------
+\begin{document}
+
+%% ----------------------------------------
+%% Frontmatter
+%% ----------------------------------------
+\begin{frontmatter}
+
+% ======================================================================
+% File: ./01_manuscript/contents/highlights.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+%% Patterns Resource Article - Highlights
+
+\begin{highlights}
+\pdfbookmark[1]{Highlights}{highlights}
+
+\item SciTeX integrates manuscript writing, figure generation, literature management, and computation in a unified platform
+
+\item Modular architecture enables independent use of each component while providing synergy through integration
+
+\item Containerized compilation ensures reproducible manuscript output across all operating systems
+
+\item Embedded metadata enables full provenance tracking from figures and results back to generating code
+
+\item AI-native design provides integration points for LLM-assisted research workflows
+
+\end{highlights}
+
+%%%% EOF
+
+
+
+% ======================================================================
+% File: ./01_manuscript/contents/title.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+\title{
+SciTeX: An AI-Native Modular Platform for Reproducible Scientific Research
+}
+
+%%%% EOF
+
+
+
+% ======================================================================
+% File: ./01_manuscript/contents/authors.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+\author[1]{Yusuke Watanabe\corref{cor1}}
+
+\address[1]{SciTeX.ai, Tokyo, Japan}
+
+\cortext[cor1]{Corresponding author. Email: ywatanabe@scitex.ai}
+
+%%%% EOF
+
+
+
+% ======================================================================
+% File: ./01_manuscript/contents/graphical_abstract.tex
+% ======================================================================
+%%Graphical abstract
+%\pdfbookmark[1]{Graphical Abstract}{graphicalabstract}        
+%\begin{graphicalabstract}
+%\includegraphics{grabs}
+%\end{graphicalabstract}
+
+
+
+% ======================================================================
+% File: ./01_manuscript/contents/abstract.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+%% Patterns Resource Article - Summary (150 words max)
+%% Note: Abstract/Summary sections typically do not include citations per journal guidelines
+
+\section*{Summary}
+
+Modern scientific research requires consistent document preparation, reproducible computation, unified data management, and transparent figure provenance---yet researchers rely on fragmented tools that increase cognitive load and introduce irreproducibility. We present SciTeX, an AI-native, modular research automation platform providing four integrated modules: Writer for structured LaTeX manuscript preparation with containerized builds; Scholar for literature management with automated metadata extraction; Viz for publication-quality figure generation with embedded provenance; and Code for reproducible computation with GPU and container support. Each module operates independently while sharing a unified project structure through lightweight symlinks and global identifiers, enabling cross-module traceability. SciTeX reduces the activation energy required for rigorous, reproducible science while maintaining compatibility with traditional workflows. The platform is open source and follows FAIR principles. This manuscript demonstrates SciTeX's self-descriptive capabilities by being prepared within the platform it documents.
+
+%%%% EOF
+
+
+
+% ======================================================================
+% File: ./01_manuscript/contents/keywords.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+%% Patterns Resource Article - Keywords
+\begin{keyword}
+reproducible research \sep scientific workflow automation \sep data science platform \sep AI-native tools \sep figure provenance \sep FAIR principles
+\end{keyword}
+
+%%%% EOF
+
+
+\end{frontmatter}
+
+%% ----------------------------------------
+%% Word Counter
+%% ----------------------------------------
+
+% ======================================================================
+% File: ./01_manuscript/contents/wordcount.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+%% Timestamp: "2025-09-26 18:17:20 (ywatanabe)"
+%% File: "/ssh:sp:/home/ywatanabe/proj/neurovista/paper/01_manuscript/src/wordcount.tex"
+\begin{wordcount}
+\readwordcount{./01_manuscript/contents/wordcounts/figure_count.txt} figures, \readwordcount{./01_manuscript/contents/wordcounts/table_count.txt} tables, \readwordcount{./01_manuscript/contents/wordcounts/abstract_count.txt} words for abstract, and \readwordcount{./01_manuscript/contents/wordcounts/imrd_count.txt} words for main text
+\end{wordcount}
+
+%% \begin{*wordcount}
+%% \readwordcount{./01_manuscript/contents/wordcounts/figure_count.txt} figures, \readwordcount{./01_manuscript/contents/wordcounts/table_count.txt} tables, \readwordcount{./01_manuscript/contents/wordcounts/abstract_count.txt} words for abstract, and \readwordcount{./01_manuscript/contents/wordcounts/imrd_count.txt} words for main text
+%% \end{*wordcount}
+
+%%%% EOF
+
+
+%% ----------------------------------------
+%% INTRODUCTION
+%% ----------------------------------------
+
+% ======================================================================
+% File: ./01_manuscript/contents/introduction.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+%% Patterns Resource Article - Introduction
+
+\section{Introduction}
+
+Scientific workflows increasingly span multiple heterogeneous environments: personal laptops, HPC systems, cloud servers, and containerized pipelines~\cite{wilson2017good,Barba2018PraxisORA}. Traditional manuscript preparation tools remain fragmented, requiring manual management of figures, references, code execution, and version control. These inconsistencies lead to irreproducible results, duplicated effort, and high cognitive load that distracts researchers from their primary scientific objectives~\cite{sandve2013ten}.
+
+The preparation of scientific manuscripts involves numerous technical challenges that extend beyond the intellectual task of communicating research findings. Researchers must navigate complex typesetting systems, manage multiple document versions, coordinate figures and tables across formats, and ensure reproducible compilation environments~\cite{Bar2020ReproducibleSWA}. Furthermore, maintaining consistency between computational analyses, their visual representations, and the manuscript text requires constant manual synchronization---a process prone to error and version drift~\cite{Jacobs2020ImprovingTRA}.
+
+Traditional approaches to manuscript preparation typically rely on local LaTeX installations, where specific versions of packages and compilation tools can vary significantly across machines and over time. This variability creates reproducibility challenges, particularly in collaborative environments where multiple authors work on different systems~\cite{Boettiger2020TSRWDDRDS,Canesche2023PreparingRSA}. Similarly, figure generation often occurs in isolation from the manuscript, with researchers using various plotting libraries without standardized metadata or provenance tracking. Literature management frequently depends on external tools that operate independently from the writing environment, leading to citation inconsistencies and manual bibliography maintenance.
+
+Existing solutions have addressed individual aspects of this problem. Cloud-based platforms such as Overleaf provide consistent compilation environments but require continuous internet connectivity and separate figure generation workflows. Zotero and Mendeley excel at citation management but lack integration with manuscript preparation and computational analysis. Jupyter notebooks and Binder enable reproducible computation but provide limited support for publication-quality figures or structured manuscript writing~\cite{binder2018jupyter}. Manubot pioneered open collaborative writing with automated citation processing~\cite{manubot2019open}, while Pandoc Scholar demonstrated agile multi-format document generation~\cite{Krewinkel2017FormattingOSA}. SigmaPlot and Origin offer sophisticated visualization capabilities but operate as standalone applications without provenance tracking or manuscript integration.
+
+The fundamental challenge lies in unifying these disparate tools while maintaining the flexibility that researchers require~\cite{Konkol2020PublishingCRA}. The solution must accommodate diverse content types, multiple output documents, and varying journal requirements while ensuring a single source of truth for shared elements. Additionally, modern research increasingly involves AI-assisted workflows for code generation, literature review, and manuscript revision---capabilities that require native integration rather than ad-hoc addition~\cite{Tie2025ASOA,Li2025BuildYPA}.
+
+Version control systems, particularly Git, have emerged as powerful tools for managing research workflows~\cite{Ram2013GitCFA,Braga2023NotJFA}, enabling transparent tracking of changes and facilitating collaboration~\cite{Chen2024GitHubIAA,OPIG2023AMMIHAWLAG}. However, effectively combining Git with LaTeX, figure generation, and literature management requires significant technical expertise that many researchers lack~\cite{Stanisic2015AnEGA}.
+
+Containerization technologies such as Docker have transformed software reproducibility~\cite{Boettiger2020TSRWDDRDS,Nst2020TheRPA,Wiebels2021LeveragingCFA}, and several frameworks have emerged to leverage containers for reproducible research~\cite{reprozip2018,GimnezAlventosa2020APRICOTAPA}. The Rockerverse ecosystem demonstrates how containers can support reproducible R-based workflows~\cite{Nst2020TheRPA}, while tools like CREDO simplify Docker configuration for bioinformatics~\cite{Alessandri2024CREDOAFA}. End-to-end templates for reproducible analysis and manuscript writing have been proposed~\cite{Mang2023ReproducibilityI2A,Dasgupta2025AnOFA}, yet comprehensive integration across all research activities remains elusive.
+
+SciTeX addresses these challenges through a unified, modular, AI-native platform that allows researchers to: write manuscripts in a structured LaTeX environment with containerized compilation; manage citations and PDFs with consistency and automated metadata extraction; generate publication-quality figures with embedded provenance metadata; and execute analyses in controlled environments with synchronized results~\cite{watanabe2025scitex}. Importantly, SciTeX maintains bidirectional low migration cost: each module functions independently, providing value without requiring adoption of the entire ecosystem, while synergy across modules enables a strictly superior integrated workflow.
+
+The platform follows principles articulated in seminal works on reproducible research~\cite{sandve2013ten,wilson2017good,turingway2022} while incorporating modern infrastructure for containerized compilation~\cite{tectonic,ghactions-latex}, workflow automation~\cite{Ariamajd2025PyPackITARA,Piccolo2021SimplifyingTDA}, and FAIR data practices~\cite{Balk2024AFAA}. By embedding reproducibility infrastructure into everyday research tools, SciTeX makes rigorous practices the path of least resistance rather than an additional burden~\cite{marwick2018computational,Peikert2021ReproducibleRIA}.
+
+Many researchers lack unified tools to integrate writing, computation, visualization, and literature management within a single, reproducible environment. Graduate students and early-career researchers often spend disproportionate time learning fragmented toolchains rather than conducting research. Computational scientists require reproducible pipelines that connect analysis code to manuscript figures without manual intervention~\cite{Krieger2019FacilitatingRPA}. AI-augmented research workflows demand native integration points for automated assistance. SciTeX provides this missing infrastructure, reducing the activation energy required for rigorous, reproducible science while democratizing access to advanced computational workflows for researchers unfamiliar with Linux, Git, or containers.
+
+This manuscript is prepared within SciTeX Writer, referencing figures generated in SciTeX Viz, bibliography managed in SciTeX Scholar, and computational environments controlled by SciTeX Code---thereby making the manuscript a live demonstration of the platform's integrated capabilities.
+
+%%%% EOF
+
+
+
+%% ----------------------------------------
+%% METHODS
+%% ----------------------------------------
+
+% ======================================================================
+% File: ./01_manuscript/contents/methods.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+
+\section{Methods}
+
+\subsection{System Architecture}
+
+SciTeX consists of a Django-based cloud platform (SciTeX Cloud) and a Python package (v2.4.1+) installable via \texttt{pip install scitex}. The architecture employs lazy module loading via a custom \texttt{\_LazyModule} wrapper, enabling fast imports while providing access to over 50 specialized modules. This modular design follows best practices for scientific Python applications~\cite{Ariamajd2025PyPackITARA,wilson2017good}:
+
+\begin{verbatim}
+import scitex as stx
+stx.plt      # Publication plotting
+stx.io       # Universal file I/O (30+ formats)
+stx.scholar  # Literature management
+stx.session  # Experiment lifecycle
+stx.vis      # Visual figure specifications
+stx.writer   # Manuscript preparation
+\end{verbatim}
+
+Each module operates independently while sharing a unified project structure through lightweight symlinks. Global identifiers (SHA256 hashes) ensure traceability between figures, code, bibliography entries, and manuscript content, enabling reverse lookup capabilities (e.g., ``which script generated this figure?''). This approach addresses concerns raised in discussions of figure provenance and data reproducibility~\cite{Jacobs2020ImprovingTRA,Schulz2018ReproducibleDCA}.
+
+\subsection{Session Decorator for Reproducible Experiments}
+
+The \texttt{@stx.session} decorator provides automatic experiment lifecycle management, implementing principles from reproducible research frameworks~\cite{sandve2013ten,Peikert2021ReproducibleRIA}:
+
+\begin{verbatim}
+import scitex as stx
+
+@stx.session
+def analyze(data_path: str, threshold: float = 0.5):
+    '''Analyze data file.'''
+    data = stx.io.load(data_path)
+    result = process(data, threshold)
+    stx.io.save(result, "output.csv")
+    return 0
+
+if __name__ == '__main__':
+    analyze()  # CLI: python script.py --data-path x --threshold 0.7
+\end{verbatim}
+
+The decorator automatically: (1) generates CLI argument parsers from function signatures with type hints, (2) initializes session directories with timestamped run IDs, (3) injects global variables (\texttt{CONFIG}, \texttt{plt}, \texttt{COLORS}, \texttt{rng\_manager}, \texttt{logger}), (4) manages random state for reproducibility, and (5) handles cleanup and optional notifications on completion. This design is informed by the ``good enough practices'' paradigm~\cite{wilson2017good} and project management tools for team science~\cite{Krieger2019FacilitatingRPA}.
+
+\subsection{Publication-Quality Plotting (stx.plt)}
+
+The \texttt{stx.plt} module wraps matplotlib with automatic configuration from \texttt{SCITEX\_STYLE.yaml}:
+
+\begin{verbatim}
+import scitex.plt as splt
+
+fig, ax = splt.subplots(axes_width_mm=40, axes_height_mm=28)
+ax.plot([1, 2, 3], [1, 4, 9])
+ax.set_xyt("Time", "Value", "Analysis Results")
+stx.io.save(fig, "figure.png")  # Exports PNG + JSON + CSV
+\end{verbatim}
+
+Key features include: (1) automatic style application on import (font sizes, line widths, spine visibility), (2) \texttt{FigWrapper} and \texttt{AxisWrapper} classes providing \texttt{set\_xyt()} for simultaneous x-label, y-label, and title setting, (3) automatic CSV export of underlying plot data alongside figures, (4) JSON sidecar metadata encoding axis bounds, tick locations, panel geometry, and color palettes, and (5) \texttt{stx.plt.load()} for figure reconstruction from saved metadata. This triple-export approach (image, metadata, data) addresses the reproducibility challenges identified in computational figure generation~\cite{Jacobs2020ImprovingTRA,Bar2020ReproducibleSWA}.
+
+Style values can be customized via YAML configuration, environment variables (\texttt{SCITEX\_PLT\_FONTS\_AXIS\_LABEL\_PT=8}), or direct function parameters.
+
+\subsection{Universal File I/O (stx.io)}
+
+The \texttt{stx.io} module provides format-agnostic file operations supporting over 30 formats, following the principle of unified interfaces for data management~\cite{marwick2018computational}:
+
+\begin{verbatim}
+import scitex as stx
+
+# Automatic format detection
+data = stx.io.load("data.csv")      # DataFrame
+config = stx.io.load("config.yaml") # Dict
+model = stx.io.load("model.pkl")    # Python object
+arrays = stx.io.load("data.h5")     # HDF5 exploration
+
+# Unified save interface
+stx.io.save(df, "output.csv")
+stx.io.save(fig, "figure.png")      # PNG + JSON + CSV
+stx.io.save(config, "config.yaml")
+\end{verbatim}
+
+Supported formats include: CSV, JSON, YAML, Pickle, HDF5, Zarr, NumPy arrays, PyTorch tensors, images (PNG, JPG, SVG, PDF), audio, video, and MATLAB files. The module includes \texttt{H5Explorer} and \texttt{ZarrExplorer} for interactive hierarchical data navigation, plus configurable caching for frequently accessed files.
+
+\subsection{Literature Management (stx.scholar)}
+
+The Scholar module provides multi-source literature search and management, integrating capabilities typically found in standalone reference managers:
+
+\begin{verbatim}
+from scitex.scholar import Scholar
+
+scholar = Scholar()
+papers = scholar.search("deep learning", year_min=2022)
+papers.save("bibliography.bib")
+\end{verbatim}
+
+The module integrates with multiple metadata engines (CrossRef, Semantic Scholar, OpenAlex) via the \texttt{ScholarEngine} interface. Features include: automatic DOI detection and metadata extraction from PDFs, \texttt{ScholarPDFDownloader} for paper acquisition, \texttt{ScholarLibrary} for local storage management, and \texttt{Paper}/\texttt{Papers} classes with filtering and export capabilities. This design complements tools like Manubot~\cite{manubot2019open} by providing direct integration with manuscript preparation.
+
+\subsection{Cloud Platform Architecture}
+
+The Django 5.1-based cloud platform provides web interfaces for all modules, following principles of continuous integration for scientific publishing~\cite{Espinosa2020ACIA}:
+
+\textbf{Code App:} Browser-based Python execution with real-time output streaming, file upload/download, and workspace management.
+
+\textbf{Viz App:} Canvas-based figure editor using Fabric.js 5.5.2 for interactive element manipulation, with JSON specification import/export for programmatic control.
+
+\textbf{Writer App:} Structured LaTeX manuscript preparation with containerized compilation (Docker/Apptainer), section-separated authoring, and automatic figure format conversion.
+
+\textbf{Scholar App:} Literature cards with abstract preview, PDF access, metadata editing, and direct citation insertion into Writer documents.
+
+The platform employs TypeScript for frontend logic, PostgreSQL for data persistence, and Docker for containerized compilation ensuring consistent output across environments.
+
+\subsection{Containerized Compilation}
+
+Writer module compilation leverages containerization for reproducibility, implementing guidelines for Docker-based scientific workflows~\cite{Boettiger2020TSRWDDRDS,Canesche2023PreparingRSA}:
+
+\textbf{Multi-Engine Support:} Tectonic~\cite{tectonic} for ultra-fast incremental builds (1--3 seconds), latexmk for reliable industry-standard compilation (3--6 seconds), and traditional 3-pass compilation for maximum compatibility.
+
+\textbf{Environment Isolation:} Docker and Apptainer/Singularity containers encapsulate specific TeX Live versions and all required packages, eliminating host system dependencies and guaranteeing identical PDF output across macOS, Linux, Windows, and HPC environments~\cite{Wiebels2021LeveragingCFA,Nst2020TheRPA}.
+
+\textbf{Version Tracking:} Git integration~\cite{Ram2013GitCFA} with automatic latexdiff generation facilitates peer review processes~\cite{Besser2025RRT}.
+
+\subsection{AI-Native Workflow Integration}
+
+SciTeX provides native integration points for AI-assisted workflows, anticipating the growing role of AI in scientific research~\cite{Tie2025ASOA,Li2025BuildYPA}:
+
+\textbf{Structured APIs:} JSON-based figure specifications, typed function signatures for CLI generation, and metadata formats amenable to automated analysis enable LLM-assisted code generation and figure improvement.
+
+\textbf{Workflow Hooks:} The session decorator and modular architecture provide hooks for AI-assisted revision, automated citation recommendation, and semantic search across analyses and literature.
+
+\textbf{Research Co-pilot Vision:} The architecture supports future development of automated analysis pipelines, figure generation, and manuscript drafting while maintaining researcher oversight and scientific integrity~\cite{OpenLens2025FAARAFHI}.
+
+\subsection{Implementation Details}
+
+The system supports deployment on local machines, cloud servers (AWS, GCP, Azure), and self-hosted NAS environments. Key technical specifications:
+
+\begin{itemize}
+  \item Python 3.12+ with GPU acceleration support (CUDA 11.x/12.x)
+  \item Django 5.1 with PostgreSQL backend
+  \item TypeScript frontend with webpack bundling
+  \item Docker/Apptainer containerization for reproducible execution~\cite{Boettiger2020TSRWDDRDS}
+  \item SLURM integration under active development for HPC workflows
+\end{itemize}
+
+The platform follows FAIR principles~\cite{Balk2024AFAA} and aligns with the Turing Way guidelines for reproducible research~\cite{turingway2022}.
+
+%%%% EOF
+
+
+
+%% ----------------------------------------
+%% RESULTS
+%% ----------------------------------------
+
+% ======================================================================
+% File: ./01_manuscript/contents/results.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+
+\section{Results}
+
+This section presents validation results and demonstrations rather than experimental findings, consistent with software paper conventions. SciTeX is validated through real-world deployment and systematic testing across multiple research scenarios.
+
+\subsection{Session Decorator Validation}
+
+The \texttt{@stx.session} decorator successfully automates experiment lifecycle management, implementing principles from reproducible research guidelines~\cite{sandve2013ten,wilson2017good}. Testing confirms:
+
+\begin{itemize}
+  \item Automatic CLI generation from function signatures with type hints correctly parses arguments and provides help text
+  \item Session directories are created with timestamped IDs (e.g., \texttt{2025Y-11M-18D-07h53m37s\_Z5MR}) enabling experiment organization
+  \item Injected globals (\texttt{CONFIG}, \texttt{plt}, \texttt{COLORS}, \texttt{rng\_manager}, \texttt{logger}) are accessible within decorated functions
+  \item Random state management via \texttt{rng\_manager} ensures reproducible results across runs
+  \item Session cleanup handles errors gracefully while preserving outputs
+\end{itemize}
+
+The decorator transforms research scripts into production-ready CLI tools without requiring manual argparse configuration, reducing boilerplate code by approximately 50--100 lines per script. This approach aligns with the ``good enough practices'' paradigm for scientific computing~\cite{wilson2017good}.
+
+\subsection{Publication Plotting (stx.plt)}
+
+The plotting module achieves publication-quality output with minimal configuration:
+
+\begin{itemize}
+  \item Automatic style configuration on import applies 300 DPI, Arial fonts, and consistent line widths
+  \item \texttt{FigWrapper} and \texttt{AxisWrapper} classes provide enhanced methods (\texttt{set\_xyt()}, \texttt{set\_meta()})
+  \item Style values configurable via YAML, environment variables, or function parameters
+  \item Figure dimensions specified in millimeters for journal compliance
+  \item Automatic margin calculation from axes dimensions
+\end{itemize}
+
+Critically, \texttt{stx.io.save(fig, "figure.png")} automatically exports three files: PNG image, JSON metadata (axis bounds, tick locations, color palettes), and CSV data (underlying plot values). This triple export enables figure reconstruction via \texttt{stx.plt.load()}, addressing the common problem of irreproducible figures in scientific publications~\cite{Jacobs2020ImprovingTRA,Bar2020ReproducibleSWA}.
+
+\subsection{Universal File I/O}
+
+The \texttt{stx.io} module demonstrates format-agnostic file operations following principles of unified data management~\cite{marwick2018computational}:
+
+\begin{itemize}
+  \item Automatic format detection based on file extension handles 30+ formats
+  \item \texttt{H5Explorer} and \texttt{ZarrExplorer} enable interactive navigation of hierarchical datasets
+  \item Configurable caching reduces repeated file access overhead
+  \item Unified \texttt{save()}/\texttt{load()} interface eliminates format-specific import statements
+\end{itemize}
+
+Testing confirms correct handling of CSV, JSON, YAML, Pickle, HDF5, Zarr, NumPy arrays, PyTorch tensors, and image formats across platforms.
+
+\subsection{Literature Management}
+
+The Scholar module provides multi-source literature search, complementing existing tools~\cite{manubot2019open} with direct manuscript integration:
+
+\begin{itemize}
+  \item \texttt{ScholarEngine} interface integrates CrossRef, Semantic Scholar, and OpenAlex
+  \item \texttt{Paper} and \texttt{Papers} classes enable filtering by year, journal, citations
+  \item \texttt{ScholarPDFDownloader} manages paper acquisition with rate limiting
+  \item \texttt{ScholarLibrary} organizes local PDF storage with DOI indexing
+  \item Bibliography export supports BibTeX and other formats
+\end{itemize}
+
+Integration with the Writer module ensures citation consistency: references added in Scholar automatically synchronize to manuscript \texttt{.bib} files.
+
+\subsection{Containerized Compilation}
+
+Writer module compilation achieves complete cross-platform reproducibility, implementing containerization best practices~\cite{Boettiger2020TSRWDDRDS,Wiebels2021LeveragingCFA}:
+
+\begin{itemize}
+  \item Testing across Linux (Ubuntu, Debian, CentOS), macOS, and Windows Subsystem for Linux confirmed byte-for-byte identical PDF outputs using the same container image
+  \item Multi-engine support: Tectonic~\cite{tectonic} (1--3s), latexmk (3--6s), traditional 3-pass (12--18s)
+  \item Apptainer/Singularity containers enable HPC environments without Docker~\cite{Nst2020TheRPA}
+  \item Automatic figure format conversion handles PNG, SVG, and PDF inputs
+\end{itemize}
+
+The elimination of environment-dependent compilation issues represents a significant improvement over traditional local LaTeX installations, consistent with findings on containerized workflows~\cite{Canesche2023PreparingRSA,Alessandri2024CREDOAFA}.
+
+\subsection{Cloud Platform Functionality}
+
+The Django-based cloud platform demonstrates effective web interfaces following continuous integration principles~\cite{Espinosa2020ACIA}:
+
+\textbf{Code App:} Browser-based Python execution with real-time stdout/stderr streaming, workspace file management, and session persistence.
+
+\textbf{Viz App:} Canvas-based figure editing using Fabric.js enables interactive element manipulation. JSON specification import/export bridges programmatic and visual workflows.
+
+\textbf{Writer App:} Section-separated LaTeX editing with live preview, containerized compilation, and Git integration~\cite{Ram2013GitCFA} for version control.
+
+\textbf{Scholar App:} Literature cards display abstract, PDF access, and metadata editing. Drag-and-drop citation insertion into Writer documents.
+
+\subsection{Cross-Module Integration}
+
+The symlink-based architecture demonstrates effective module coupling, addressing integration challenges identified in reproducibility research~\cite{Konkol2020PublishingCRA,Mang2023ReproducibilityI2A}:
+
+\begin{itemize}
+  \item Figures generated in Code appear in Writer via symlink without file duplication
+  \item Bibliography managed in Scholar synchronizes to Writer via shared \texttt{.bib} file
+  \item SHA256 hashes enable queries across modules (e.g., ``which script generated this figure?'')
+  \item JSON metadata format enables automated analysis and AI-assisted workflows~\cite{Tie2025ASOA}
+\end{itemize}
+
+\subsection{Self-Descriptive Validation}
+
+This manuscript validates SciTeX capabilities through direct demonstration, following the principle that reproducibility tools should be self-documenting~\cite{Peikert2021ReproducibleRIA,Dasgupta2025AnOFA}:
+
+\begin{itemize}
+  \item Authored in SciTeX Writer with section-separated LaTeX files
+  \item Compiled in containerized environment ensuring cross-platform reproducibility
+  \item Bibliography managed through SciTeX Scholar
+  \item Modular structure demonstrates the framework's organization principles
+\end{itemize}
+
+The manuscript is prepared within the platform it documents, ensuring accurate representation of system capabilities.
+
+%%%% EOF
+
+
+
+%% ----------------------------------------
+%% DISCUSSION
+%% ----------------------------------------
+
+% ======================================================================
+% File: ./01_manuscript/contents/discussion.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+%% Patterns Resource Article - Discussion
+
+\section{Discussion}
+
+SciTeX addresses fundamental challenges in modern scientific research by unifying manuscript preparation, figure generation, literature management, and reproducible computation into a cohesive, AI-native ecosystem~\cite{watanabe2025scitex}. The platform reflects principles derived from practical research frustrations: fragmented workflows, difficulty maintaining figure provenance~\cite{Jacobs2020ImprovingTRA}, unreliable manual versioning, and high cognitive cost of switching between tools~\cite{wilson2017good}.
+
+\subsection{Design Philosophy and Modularity}
+
+The modular architecture enables researchers to adopt individual components incrementally while benefiting from increasing integration as more modules are utilized. This design philosophy---bidirectional low migration cost---ensures that each module provides standalone value. A researcher using only Writer gains containerized reproducibility without committing to the full ecosystem~\cite{Boettiger2020TSRWDDRDS}. Adding Scholar provides integrated citation management. Incorporating Viz enables provenance-tracked figures. Finally, Code completes the pipeline with reproducible computation~\cite{sandve2013ten}. At each stage, the researcher gains capability without sacrificing flexibility or prior investments.
+
+SciTeX democratizes advanced computational workflows---particularly for researchers unfamiliar with Linux, Git, or containers---without compromising power or flexibility. Graduate students beginning their research careers can leverage containerized reproducibility without understanding Docker internals~\cite{Wiebels2021LeveragingCFA}. Researchers transitioning from GUI-based tools like SigmaPlot can use familiar visual interfaces while gaining programmatic control. Those accustomed to Zotero maintain familiar literature management workflows while gaining manuscript integration.
+
+\subsection{Comparison with Existing Tools}
+
+SciTeX occupies a unique position in the research tooling landscape, integrating capabilities that existing solutions provide in isolation~\cite{Konkol2020PublishingCRA}:
+
+\textbf{Overleaf} excels at collaborative LaTeX editing with consistent compilation but lacks integrated figure generation, computation, or literature management. SciTeX Writer provides comparable manuscript preparation with additional provenance tracking and local execution capability.
+
+\textbf{Zotero and Mendeley} provide sophisticated citation management but operate independently from manuscript preparation and computational analysis. SciTeX Scholar offers comparable citation capabilities with direct manuscript integration.
+
+\textbf{Jupyter notebooks and Binder}~\cite{binder2018jupyter} enable reproducible computation and analysis but provide limited support for publication-quality figures or structured manuscript writing. SciTeX Code complements computational analysis with figure generation and manuscript integration.
+
+\textbf{Manubot}~\cite{manubot2019open} pioneered open collaborative writing with automated citation processing, demonstrating the value of Git-based manuscript workflows. SciTeX extends this approach with containerized compilation, integrated figure generation, and multi-module traceability.
+
+\textbf{SigmaPlot and Origin} offer sophisticated visualization with GUI-based interfaces but lack provenance tracking, manuscript integration, or computational reproducibility. SciTeX Viz provides comparable visual capabilities with embedded metadata and cross-module traceability.
+
+\textbf{R-based workflows} including rrtools~\cite{boettiger2019rrtools}, the Rockerverse~\cite{Nst2020TheRPA}, and repro~\cite{Peikert2021ReproducibleRIA} provide excellent reproducibility infrastructure for R users. SciTeX offers comparable functionality for Python-centric workflows while maintaining language flexibility.
+
+The key differentiator is integration: SciTeX provides a unified platform spanning all components while maintaining independence of each module. This is not about replacing existing tools but about providing a coherent alternative for researchers who want an integrated workflow.
+
+\subsection{AI-Native Design}
+
+SciTeX is designed for an era where AI assistants are integral to research workflows~\cite{Tie2025ASOA,Li2025BuildYPA}. Rather than treating AI as an afterthought, the architecture provides native integration points: structured APIs for code generation, metadata formats amenable to automated analysis, and workflow hooks for AI-assisted revision. This design enables researchers to collaborate effectively with LLMs and agents while maintaining scientific control~\cite{OpenLens2025FAARAFHI}.
+
+\subsection{Implications for Reproducibility}
+
+The reproducibility crisis in science stems partly from inadequate infrastructure for capturing and communicating methodological details~\cite{Barba2018_Terminologies,Barba2018PraxisORA}. SciTeX addresses this through containerized compilation ensuring identical manuscript output across environments~\cite{Canesche2023PreparingRSA}, figure metadata preserving exact generation parameters~\cite{Bar2020ReproducibleSWA}, execution provenance linking results to code and data~\cite{Schulz2018ReproducibleDCA}, and global identifiers enabling cross-module traceability. By embedding reproducibility infrastructure into everyday research tools, SciTeX makes rigorous practices the path of least resistance rather than an additional burden~\cite{marwick2018computational,Peikert2021ReproducibleRIA}.
+
+The platform aligns with emerging frameworks for reproducible research~\cite{Mang2023ReproducibilityI2A,Dasgupta2025AnOFA,Costa2025AFFA} and the five pillars of computational reproducibility~\cite{Zehr2023TFPOTCRBAB}, while providing practical tools rather than abstract guidelines.
+
+\subsection{Limitations}
+
+Several limitations warrant acknowledgment:
+
+\textbf{HPC Integration:} SLURM and cluster computing support remains under active development. Current functionality focuses on local and containerized execution.
+
+\textbf{User Base:} The platform is in early deployment, with limited user data for quantitative productivity assessment.
+
+\textbf{Learning Curve:} While designed for accessibility, researchers unfamiliar with LaTeX face initial learning investment for Writer module features.
+
+\textbf{Mobile Support:} The platform targets desktop research workflows; mobile interfaces are not a development priority.
+
+\textbf{Advanced Statistics:} Complex statistical visualization beyond standard matplotlib/seaborn capabilities requires manual implementation.
+
+\subsection{Future Directions}
+
+Planned development includes automated figure revision using model-driven heuristic correction, integrated citation recommendation based on manuscript content, unified right-panel inspectors across all modules, HPC-native execution pipelines with SLURM integration, automated manuscript consistency checking, and complete provenance graph visualization.
+
+The long-term vision encompasses a research co-pilot capable of running analyses, generating figures, summarizing literature, and producing submission-ready manuscripts---all while maintaining researcher oversight and scientific integrity~\cite{Li2025BuildYPA,OpenLens2025FAARAFHI}.
+
+\section{Conclusions}
+
+SciTeX represents both a tool and a philosophy of scientific practice. By combining modular design, reproducibility~\cite{sandve2013ten,wilson2017good}, and AI-native workflows~\cite{Tie2025ASOA}, it provides an environment where researchers can think more, fight less with tooling, and create science that stands the test of time.
+
+The platform reduces the activation energy required to conduct rigorous, reproducible science~\cite{turingway2022}. Each module operates independently while integration across modules provides strictly superior workflows. This architecture---independence with optional integration---reflects realistic adoption patterns where researchers incorporate new tools incrementally.
+
+This manuscript demonstrates that SciTeX can describe itself using its own ecosystem: a self-consistent example of the platform's design goals prepared within the tools it documents.
+
+%%%% EOF
+
+
+
+%% ----------------------------------------
+%% REFERENCE STYLES
+%% ----------------------------------------
+\pdfbookmark[1]{References}{references}
+% Note: Path without ./ prefix allows bibtex to use BIBINPUTS search path
+\bibliography{01_manuscript/contents/bibliography}
+
+% ======================================================================
+% File: ./01_manuscript/contents/latex_styles/bibliography.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+%% Timestamp: "2025-09-30 17:40:26 (ywatanabe)"
+%% File: "/ssh:sp:/home/ywatanabe/proj/neurovista/paper/00_shared/latex_styles/bibliography.tex"
+
+%% ============================================================================
+%% BIBLIOGRAPHY STYLE CONFIGURATION
+%% ============================================================================
+
+%% ----------------------------------------------------------------------------
+%% OPTION 1: NUMBERED CITATIONS (Order of Appearance) - CURRENTLY ACTIVE
+%% ----------------------------------------------------------------------------
+%% Description: Citations numbered [1], [2], [3]... in the order they first
+%%              appear in the manuscript
+%% Sorting: By first citation order (NOT alphabetical)
+%% Example: \cite{Tort2010,Canolty2010} → [1, 2] (if these are first citations)
+%% Commands: \cite{key} → [1]
+%%           \cite{key1,key2} → [1, 2]
+%% Best for: Most scientific journals, clear citation tracking
+%% Compatible with: natbib package
+\bibliographystyle{unsrtnat}
+
+%% ----------------------------------------------------------------------------
+%% OPTION 2: NUMBERED CITATIONS (Alphabetical by Author)
+%% ----------------------------------------------------------------------------
+%% Description: Citations numbered [1], [2], [3]... sorted alphabetically by
+%%              first author's last name
+%% Sorting: Alphabetical by author (Canolty before Tort)
+%% Example: \cite{Tort2010,Canolty2010} → [2, 1] (C before T alphabetically)
+%% Commands: \cite{key} → [1]
+%% Best for: When you want bibliography sorted alphabetically
+%% Compatible with: elsarticle class
+% \bibliographystyle{elsarticle-num}
+
+%% Alternative alphabetical styles:
+% \bibliographystyle{plain}      % Basic alphabetical, no natbib features
+% \bibliographystyle{ieeetr}     % IEEE style, order of appearance
+% \bibliographystyle{siam}       % SIAM style, alphabetical
+
+%% ----------------------------------------------------------------------------
+%% OPTION 3: AUTHOR-YEAR CITATIONS
+%% ----------------------------------------------------------------------------
+%% Description: Citations show author name and year (Smith, 2020) or (Smith 2020)
+%% Format: (Author, Year) or Author (Year) depending on command
+%% Example: \cite{Tort2010} → (Tort et al., 2010)
+%%          \citet{Tort2010} → Tort et al. (2010) [textual]
+%%          \cite{Tort2010} → (Tort et al., 2010) [parenthetical]
+%% Commands:
+%%   - \citet{key}  → Author (Year)  [for text: "As shown by Author (2020)..."]
+%%   - \cite{key}  → (Author, Year) [for parentheses: "...as shown (Author, 2020)"]
+%%   - \cite{key}   → Same as \cite{key}
+%% Best for: Review papers, humanities, some social sciences
+%% Requires: natbib package (already loaded)
+% \bibliographystyle{plainnat}   % Author-year, alphabetical
+% \bibliographystyle{abbrvnat}   % Author-year, abbreviated names
+% \bibliographystyle{apalike}    % APA-like author-year style
+
+%% ----------------------------------------------------------------------------
+%% OPTION 4: JOURNAL-SPECIFIC STYLES
+%% ----------------------------------------------------------------------------
+%% Elsevier journals:
+% \bibliographystyle{elsarticle-num}        % Numbered, alphabetical
+% \bibliographystyle{elsarticle-num-names}  % Numbered, alphabetical, full names
+% \bibliographystyle{elsarticle-harv}       % Author-year (Harvard style)
+
+%% Nature family:
+% \bibliographystyle{naturemag}             % Nature magazine style
+
+%% IEEE:
+% \bibliographystyle{IEEEtran}              % IEEE Transactions style
+
+%% APA:
+% \bibliographystyle{apalike}               % APA-like style
+
+%% ----------------------------------------------------------------------------
+%% OPTION 5: ADDITIONAL CITATION STYLES
+%% ----------------------------------------------------------------------------
+%% Note: Many of these styles require biblatex instead of natbib.
+%% To use biblatex, you need to modify the preamble and use biber instead of bibtex.
+%% Basic conversion: Replace natbib package with biblatex, and use \printbibliography
+%% instead of \bibliographystyle + \bibliography commands.
+
+%% ----------------------------------------
+%% CHEMISTRY
+%% ----------------------------------------
+%% American Chemical Society (ACS):
+%% Installation: Download achemso.bst or use biblatex with style=chem-acs
+%% Format: Numbered, order of appearance, (1) Author, A. B. Title. Journal Year, Volume, Pages.
+%% BibTeX method:
+% \bibliographystyle{achemso}              % ACS style (requires achemso package)
+%% Biblatex method (recommended):
+% \usepackage[style=chem-acs]{biblatex}
+
+%% ----------------------------------------
+%% MEDICAL & HEALTH SCIENCES
+%% ----------------------------------------
+%% American Medical Association (AMA) 11th edition:
+%% Format: Numbered, order of appearance, superscript numbers
+%% Installation: Requires biblatex with biblatex-ama style
+%% Method:
+% \usepackage[style=ama]{biblatex}         % AMA 11th ed (requires biblatex-ama package)
+
+%% Vancouver style (ICMJE):
+%% Format: Numbered [1], order of appearance, commonly used in medical journals
+%% Note: unsrtnat (currently active) is very similar to Vancouver
+% \bibliographystyle{vancouver}            % Vancouver/ICMJE style (if .bst available)
+% \bibliographystyle{unsrtnat}             % Similar to Vancouver (currently active)
+
+%% ----------------------------------------
+%% SOCIAL SCIENCES
+%% ----------------------------------------
+%% American Psychological Association (APA) 7th edition:
+%% Format: Author-year, (Author, Year), alphabetical by author
+%% BibTeX method (APA-like, not full APA 7th):
+% \bibliographystyle{apalike}              % APA-like style (simplified)
+% \bibliographystyle{apacite}              % APA 6th/7th (requires apacite package)
+%% Biblatex method (recommended for full APA 7th compliance):
+% \usepackage[style=apa]{biblatex}         % Full APA 7th edition (requires biblatex-apa)
+
+%% American Sociological Association (ASA) 6th/7th edition:
+%% Format: Author-year, (Author Year), alphabetical, similar to Chicago author-date
+%% Method:
+% \bibliographystyle{asaetr}               % ASA-like style (if .bst available)
+%% Biblatex method:
+% \usepackage[style=authoryear]{biblatex} % Generic author-year (customizable to ASA)
+
+%% American Political Science Association (APSA):
+%% Format: Author-year, similar to Chicago author-date
+%% Method:
+% \usepackage[style=authoryear-comp]{biblatex}  % Compressed author-year for APSA
+
+%% ----------------------------------------
+%% HUMANITIES
+%% ----------------------------------------
+%% Chicago Manual of Style 18th edition (author-date):
+%% Format: Author-year, (Author Year), commonly used in social sciences and humanities
+% \bibliographystyle{chicago}              % Chicago author-date (if .bst available)
+%% Biblatex method (recommended):
+% \usepackage[style=chicago-authordate]{biblatex}  % Chicago 18th ed author-date
+
+%% Chicago Manual of Style 18th edition (notes and bibliography):
+%% Format: Footnote/endnote citations with full bibliography
+%% Method:
+% \usepackage[style=chicago-notes]{biblatex}  % Chicago 18th ed notes style
+
+%% Chicago Manual of Style 18th edition (shortened notes and bibliography):
+%% Format: Shortened footnote citations after first full citation
+%% Method:
+% \usepackage[style=chicago-notes]{biblatex}  % Use with ibidtracker option
+
+%% Modern Language Association (MLA) 9th edition:
+%% Format: Author-page, (Author Page), works cited list
+%% Method:
+% \usepackage[style=mla]{biblatex}         % MLA 9th edition (requires biblatex-mla)
+
+%% Modern Humanities Research Association (MHRA) 4th edition:
+%% Format: Footnote citations with bibliography
+%% Method:
+% \usepackage[style=mhra]{biblatex}        % MHRA 4th edition (requires biblatex-mhra)
+
+%% ----------------------------------------
+%% HARVARD STYLES
+%% ----------------------------------------
+%% Cite Them Right 12th edition - Harvard:
+%% Format: Author-year, (Author, Year), widely used in UK universities
+% \bibliographystyle{agsm}                 % Harvard style (Australian)
+% \bibliographystyle{dcu}                  % Harvard style (Dublin City University)
+%% Biblatex method:
+% \usepackage[style=authoryear]{biblatex} % Generic Harvard-style (author-year)
+
+%% Elsevier - Harvard (with titles):
+%% Format: Author-year with article titles included
+% \bibliographystyle{elsarticle-harv}      % Elsevier Harvard style (already listed above)
+
+%% ----------------------------------------
+%% ENGINEERING & COMPUTER SCIENCE
+%% ----------------------------------------
+%% IEEE (Institute of Electrical and Electronics Engineers):
+%% Format: Numbered [1], order of appearance, widely used in engineering
+% \bibliographystyle{IEEEtran}             % IEEE Transactions style (already listed above)
+
+%% ----------------------------------------
+%% NATURAL SCIENCES
+%% ----------------------------------------
+%% Nature:
+%% Format: Numbered, superscript, order of appearance
+% \bibliographystyle{naturemag}            % Nature magazine style (already listed above)
+% \bibliographystyle{naturemag-doi}        % Nature with DOIs
+
+%% ----------------------------------------------------------------------------
+%% BIBLATEX SETUP INSTRUCTIONS
+%% ----------------------------------------------------------------------------
+%% To switch from natbib to biblatex:
+%%
+%% 1. In packages.tex, replace:
+%%    \usepackage[numbers]{natbib}
+%%    with:
+%%    \usepackage[style=STYLENAME,backend=biber]{biblatex}
+%%    \addbibresource{path/to/bibliography.bib}
+%%
+%% 2. In this file (bibliography.tex), replace:
+%%    \bibliographystyle{...}
+%%    with:
+%%    % No \bibliographystyle needed with biblatex
+%%
+%% 3. In your main .tex file, replace:
+%%    \bibliography{path/to/bibliography}
+%%    with:
+%%    \printbibliography
+%%
+%% 4. Change compilation command:
+%%    pdflatex → biber → pdflatex → pdflatex
+%%    (instead of pdflatex → bibtex → pdflatex → pdflatex)
+%%
+%% Example biblatex styles:
+%%   style=numeric-comp     → Compressed numeric [1-3,5]
+%%   style=authoryear       → (Author, Year)
+%%   style=authoryear-comp  → (Author1, 2020; Author2, 2021)
+%%   style=apa              → APA 7th edition
+%%   style=chicago-authordate → Chicago author-date
+%%   style=ieee             → IEEE style
+%%   style=nature           → Nature style
+%%   style=mla              → MLA 9th edition
+
+%% ----------------------------------------------------------------------------
+%% CITATION COMMAND REFERENCE (with natbib)
+%% ----------------------------------------------------------------------------
+%% Basic commands:
+%%   \cite{key}              → [1] or (Author, Year) depending on style
+%%   \cite{key1,key2}        → [1, 2] or (Author1, Year1; Author2, Year2)
+%%
+%% Advanced natbib commands (only work with natbib-compatible styles):
+%%   \citet{key}             → Author (Year)  [textual citation]
+%%   \cite{key}             → (Author, Year) [parenthetical citation]
+%%   \citet*{key}            → Full author list (Year)
+%%   \cite*{key}            → (Full author list, Year)
+%%   \citealt{key}           → Author Year [no parentheses]
+%%   \citealp{key}           → Author, Year [no parentheses]
+%%   \citeauthor{key}        → Author [name only]
+%%   \citeyear{key}          → Year [year only]
+%%   \citeyearpar{key}       → (Year) [year in parentheses]
+%%
+%% Pre/post notes:
+%%   \cite[see][p.~10]{key} → (see Author, Year, p. 10)
+%%   \cite[p.~10]{key}      → (Author, Year, p. 10)
+%%
+%% Multiple citations:
+%%   \cite{key1,key2,key3}  → (Author1, Year1; Author2, Year2; Author3, Year3)
+%%
+%% Suppressing parts:
+%%   \cite[e.g.,][]{key}    → (e.g., Author, Year)
+%%   \cite[][see p.~10]{key}→ (Author, Year, see p. 10)
+%%
+%% ----------------------------------------------------------------------------
+%% TROUBLESHOOTING
+%% ----------------------------------------------------------------------------
+%% Problem: Citations appear as [?] or undefined
+%% Solution: Run compilation 3-4 times to resolve all references
+%%
+%% Problem: Citation numbers out of order [3, 1] instead of [1, 3]
+%% Solution: Use unsrtnat (order of appearance) instead of elsarticle-num
+%%
+%% Problem: "Undefined control sequence \citet"
+%% Solution: \citet only works with natbib-compatible styles (unsrtnat, plainnat)
+%%           Use \cite{} with non-natbib styles
+%%
+%% Problem: Bibliography not appearing
+%% Solution: Ensure \bibliography{path/to/bibfile} command exists in main file
+%%           Run: pdflatex → bibtex → pdflatex → pdflatex
+
+%%%% EOF
+
+
+%% ----------------------------------------
+%% DATA AVAILABILITY
+%% ----------------------------------------
+
+% ======================================================================
+% File: ./01_manuscript/contents/data_availability.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+%% Patterns Resource Article - Resource Availability
+
+\section{Resource Availability}
+
+\subsection{Lead Contact}
+
+Further information and requests for resources should be directed to and will be fulfilled by the lead contact, Yusuke Watanabe (ywatanabe@scitex.ai).
+
+\subsection{Materials Availability}
+
+This study did not generate new unique reagents.
+
+\subsection{Data and Code Availability}
+
+\begin{itemize}
+  \item All source code for SciTeX is publicly available on GitHub: \url{https://github.com/scitex-ai/scitex}
+  \item The SciTeX Python package is available via PyPI: \texttt{pip install scitex}
+  \item Documentation is available at: \url{https://docs.scitex.ai}
+  \item The cloud platform is accessible at: \url{https://scitex.ai}
+  \item This manuscript's source files are included in the SciTeX Writer repository as a demonstration
+  \item DOI for archived version: [Zenodo DOI to be assigned upon submission]
+\end{itemize}
+
+All code is released under the GNU General Public License v3.0 (GPL-3.0), ensuring open access and modification rights. The platform follows FAIR principles (Findable, Accessible, Interoperable, Reusable) for all data and code artifacts.
+
+Any additional information required to reanalyze the data reported in this paper is available from the lead contact upon request.
+
+\label{resource_availability}
+
+%%%% EOF
+
+
+
+%% ----------------------------------------
+%% ADDITIONAL INFORMATION
+%% ----------------------------------------
+
+% ======================================================================
+% File: ./01_manuscript/contents/additional_info.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+%% Timestamp: "2025-09-27 20:17:53 (ywatanabe)"
+%% File: "/ssh:sp:/home/ywatanabe/proj/neurovista/paper/01_manuscript/contents/additional_info.tex"
+
+\pdfbookmark[1]{Additional Information}{additional_information}
+
+\pdfbookmark[2]{Ethics Declarations}{ethics_declarations}                    
+\section*{Ethics Declarations}
+All study participants provided their written informed consent ...
+\label{ethics declarations}
+
+\pdfbookmark[2]{Contributors}{author_contributions}                    
+\section*{Author Contributions}
+Y.W., T.Y., and D.G. conceptualized the study ...
+\label{author contributions}
+
+\pdfbookmark[2]{Acknowledgments}{acknowledgments}                    
+\section*{Acknowledgments}
+This research was funded by \hl{funding bodies here}
+\label{acknowledgments}
+
+\pdfbookmark[2]{Declaration of Interests}{declaration_of_interest}           \section*{Declaration of Interests}
+The authors declare that they have no competing interests.
+\label{declaration of interests}
+
+\pdfbookmark[2]{Declaration of Generative AI in Scientific Writing}{declaration_of_generative_ai}
+\section*{Declaration of Generative AI in Scientific Writing}
+The authors employed large language models such as Claude (Anthropic Inc.) for code development and complementing manuscript's English language quality. After incorporating suggested improvements, the authors meticulously revised the content. Ultimate responsibility for the final content of this publication rests entirely with the authors.
+\label{declaration of generative ai in scientific writing}
+
+%%%% EOF
+
+
+%% ----------------------------------------
+%% TABLES
+%% ----------------------------------------
+\clearpage
+\section*{Tables}
+\label{tables}
+\pdfbookmark[1]{Tables}{tables}
+\vspace{1cm}
+
+% ======================================================================
+% File: ./01_manuscript/contents/tables/compiled/FINAL.tex
+% ======================================================================
+% Auto-generated file containing all table inputs
+% Generated by gather_table_tex_files()
+
+% Table from: 02_compilation_options.tex
+
+% ======================================================================
+% File: ./01_manuscript/contents/tables/compiled/02_compilation_options.tex
+% ======================================================================
+\pdfbookmark[2]{Table 2_compilation_options}{table_02_compilation_options}
+\begin{table}[htbp]
+\centering
+\footnotesize
+\begin{tabular}{|l|l|l|}
+\hline
+Option&Description&Example\\
+\hline
+--engine ENGINE&Force specific compilation engine&--engine tectonic\\
+\hline
+--draft&Draft mode (single-pass compilation)&--draft\\
+\hline
+--no-figs&Skip figure processing&--no-figs\\
+\hline
+--no-tables&Skip table processing&--no-tables\\
+\hline
+--no-diff&Skip difference generation&--no-diff\\
+\hline
+--watch&Enable hot-recompile file watching&--watch\\
+\hline
+--clean&Clean build (remove all cache)&--clean\\
+\hline
+--verbose&Verbose compilation output&--verbose\\
+\hline
+\end{tabular}
+%% Compilation Options Table
+\caption{\textbf{Compilation Command-Line Options.}
+Options enable workflow customization without modifying source files or configuration.
+The \texttt{--engine} option overrides auto-detection to force a specific compilation engine.
+Quick compilation modes (\texttt{--draft}, \texttt{--no-figs}, \texttt{--no-tables}) reduce build times from $\sim$15s to under 3s for rapid iteration.
+The \texttt{--watch} option monitors source files and automatically recompiles when changes are detected.
+Options can be combined (e.g., \texttt{./compile\_manuscript.sh --draft --no-figs}).}
+\label{tab:compilation_options}
+\label{tab:02_compilation_options}
+\end{table}
+
+
+
+% Table from: 03_environment_variables.tex
+
+% ======================================================================
+% File: ./01_manuscript/contents/tables/compiled/03_environment_variables.tex
+% ======================================================================
+\pdfbookmark[2]{Table 3_environment_variables}{table_03_environment_variables}
+\begin{table}[htbp]
+\centering
+\footnotesize
+\begin{tabular}{|l|l|l|l|}
+\hline
+Variable&Purpose&Values&Default\\
+\hline
+SCITEX\_ENGINE&Override engine selection&tectonic, latexmk, 3pass&From config\\
+\hline
+SCITEX\_VERBOSE&Control logging verbosity&true, false&false\\
+\hline
+SCITEX\_CITATION\_STYLE&Set bibliography style&unsrtnat, plainnat, apalike, etc.&unsrtnat\\
+\hline
+SCITEX\_PARALLEL\_JOBS&Parallel processing jobs&1-16&4\\
+\hline
+SCITEX\_CACHE\_DIR&Compilation cache location&Directory path&./.cache\\
+\hline
+\end{tabular}
+%% Environment Variables Table
+\caption{\textbf{Environment Variables for System Configuration.}
+Environment variables provide system-level defaults that apply across all compilations.
+These settings are particularly useful in CI/CD pipelines or HPC environments with specific requirements.
+The \texttt{SCITEX\_ENGINE} variable provides the highest priority override for engine selection, superseding both YAML configuration and command-line arguments.
+Variables can be set persistently in shell configuration (\texttt{.bashrc}, \texttt{.zshrc}) or temporarily for single runs (\texttt{SCITEX\_VERBOSE=true ./compile\_manuscript.sh}).}
+\label{tab:environment_variables}
+\label{tab:03_environment_variables}
+\end{table}
+
+
+
+% Table from: 04_compilation_engines.tex
+
+% ======================================================================
+% File: ./01_manuscript/contents/tables/compiled/04_compilation_engines.tex
+% ======================================================================
+\pdfbookmark[2]{Table 4_compilation_engines}{table_04_compilation_engines}
+\begin{table}[htbp]
+\centering
+\footnotesize
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+Engine&Incremental&Full Build&Key Advantages&Best Use Case\\
+\hline
+Tectonic&1-3s&10-15s&Ultra-fast + auto package mgmt&Active writing sessions\\
+\hline
+latexmk&3-6s&15-25s&Reliable + smart dependency tracking&Standard workflows\\
+\hline
+3-pass&N/A&12-18s&Maximum compatibility + guaranteed&Legacy systems\\
+\hline
+\end{tabular}
+%% Compilation Engines Table
+\caption{\textbf{Compilation Engine Performance Characteristics.}
+Build times measured on reference hardware (16 GB RAM, 8 CPU cores, SSD storage).
+Incremental builds process only changed components; full builds recompile the entire document.
+Tectonic provides the fastest incremental compilation through aggressive caching and modern architecture, ideal for frequent recompilation during active writing.
+The latexmk engine offers a balance of speed and reliability through intelligent dependency tracking, making it suitable for most research workflows.
+Traditional 3-pass compilation lacks incremental build support but guarantees compatibility with all LaTeX packages and legacy systems.}
+\label{tab:compilation_engines}
+\label{tab:04_compilation_engines}
+\end{table}
+
+
+
+
+
+
+%% ----------------------------------------
+%% FIGURES
+%% ----------------------------------------
+\clearpage
+\section*{Figures}
+\label{figures}
+\pdfbookmark[1]{Figures}{figures}
+\vspace{1cm}
+
+% ======================================================================
+% File: ./01_manuscript/contents/figures/compiled/FINAL.tex
+% ======================================================================
+% Generated by compile_figure_tex_files()
+% This file includes all figure files in order
+
+% Figure 01
+\begin{figure*}[h!]
+    \pdfbookmark[2]{Figure 01}{.01}
+    \centering
+    \includegraphics[width=0.9\textwidth]{./01_manuscript/contents/figures/caption_and_media/jpg_for_compilation/01_example_figure.jpg}
+    \caption{Example figure caption. This is a template showing how to include figures in your manuscript. Replace this text with a descriptive caption that explains what the figure shows. Include panel labels (A, B, C) if using multipanel figures. Explain abbreviations and symbols used in the figure. Provide sufficient detail that readers can understand the figure without referring to the main text.}
+\label{fig:example_figure_01}
+    \label{fig:01_example_figure}
+\end{figure*}
+
+% Figure 02
+\begin{figure*}[htbp]
+    \pdfbookmark[2]{Figure 02}{.02}
+    \centering
+    \includegraphics[width=0.9\textwidth]{./01_manuscript/contents/figures/caption_and_media/jpg_for_compilation/02_another_example.jpg}
+    \caption{Another example figure. Use this template to add additional figures to your manuscript. Each figure should be placed in a separate .tex file in this directory. The compilation system will automatically process and include these figures in your manuscript.}
+\label{fig:example_figure_02}
+    \label{fig:02_another_example}
+\end{figure*}
+
+% Figure 03
+\begin{figure*}[htbp]
+    \pdfbookmark[2]{Figure 03}{.03}
+    \centering
+    \includegraphics[width=0.9\textwidth]{./01_manuscript/contents/figures/caption_and_media/jpg_for_compilation/03_compilation_workflow.jpg}
+    \caption{\textbf{SciTeX Writer Compilation Workflow.}
+This flowchart illustrates the complete compilation pipeline from initial dependency checking through final PDF generation.
+The system automatically detects and uses the best available compilation engine (Tectonic for speed, latexmk for reliability, or 3-pass for maximum compatibility).
+Parallel processing of figures and tables significantly reduces compilation time.
+Optional features include automatic diff generation for revision tracking and file watching for hot-recompile mode.
+Color coding: green (start/end), orange (engine selection), blue (preprocessing), purple (parallel processing), gray (decision points).}
+\label{fig:compilation_workflow}
+    \label{fig:03_compilation_workflow}
+\end{figure*}
+
+% Figure 04
+\begin{figure*}[htbp]
+    \pdfbookmark[2]{Figure 04}{.04}
+    \centering
+    \includegraphics[width=0.9\textwidth]{./01_manuscript/contents/figures/caption_and_media/jpg_for_compilation/04_directory_structure.jpg}
+    \caption{\textbf{SciTeX Writer Directory Organization.}
+This diagram shows the hierarchical organization of the repository structure.
+The \texttt{00\_shared/} directory (green) contains resources used across all document types, including bibliography files and LaTeX styles, ensuring consistency without duplication.
+The three document directories (blue/purple) follow identical internal structures, facilitating familiarity and code reuse.
+Each document has its own \texttt{contents/} subdirectory with \texttt{figures/} and \texttt{tables/} organized into \texttt{caption\_and\_media/} (source files) and \texttt{compiled/} (generated LaTeX code).
+The modular structure minimizes merge conflicts during collaborative editing by isolating frequently-modified content files.
+Compilation scripts (orange) and configuration files (red) reside in dedicated directories for easy discovery and maintenance.
+Dotted lines indicate that supplementary materials follow the same organizational pattern as the main manuscript.}
+\label{fig:directory_structure}
+    \label{fig:04_directory_structure}
+\end{figure*}
+
+% Figure 05
+\begin{figure*}[htbp]
+    \pdfbookmark[2]{Figure 05}{.05}
+    \centering
+    \includegraphics[width=0.9\textwidth]{./01_manuscript/contents/figures/caption_and_media/jpg_for_compilation/05_system_architecture.jpg}
+    \caption{\textbf{SciTeX Writer System Architecture.}
+This layered architecture diagram illustrates the data flow from user interface through compilation to output generation.
+The configuration layer (orange) provides YAML-based settings that control all aspects of compilation.
+The preprocessing pipeline (blue) handles bibliography merging, figure format conversion, and CSV-to-LaTeX table generation in parallel.
+Engine selection (purple) automatically chooses the optimal compilation engine based on availability and performance requirements.
+Post-processing generates diff PDFs, counts words/figures/tables, and archives versions for reproducibility.
+Color coding: green (interface/output), orange (configuration), blue (preprocessing), purple (engine selection).}
+\label{fig:system_architecture}
+    \label{fig:05_system_architecture}
+\end{figure*}
+
+% Figure 06
+\begin{figure*}[htbp]
+    \pdfbookmark[2]{Figure 06}{.06}
+    \centering
+    \includegraphics[width=0.9\textwidth]{./01_manuscript/contents/figures/caption_and_media/jpg_for_compilation/06_engine_selection_logic.jpg}
+    \caption{\textbf{Compilation Engine Selection Decision Tree.}
+The system prioritizes explicit user configuration over automatic detection.
+Environment variables provide the highest priority override (useful for CI/CD pipelines).
+Command-line arguments (--engine) override YAML configuration (useful for one-off compilations).
+When engine is set to 'auto' (default), the system attempts to use Tectonic first for speed, falling back to latexmk for reliability, and finally to 3-pass for maximum compatibility.
+This cascading detection ensures the system always finds an available compilation method while preferring faster engines when possible.
+Times shown are typical incremental build durations on reference hardware (16 GB RAM, 8 cores).}
+\label{fig:engine_selection_logic}
+    \label{fig:06_engine_selection_logic}
+\end{figure*}
+
+% Figure 07
+\begin{figure*}[htbp]
+    \pdfbookmark[2]{Figure 07}{.07}
+    \centering
+    \includegraphics[width=0.9\textwidth]{./01_manuscript/contents/figures/caption_and_media/jpg_for_compilation/07_feature_overview.jpg}
+    \caption{\textbf{SciTeX Writer Feature Overview.}
+This mind map provides a comprehensive visualization of the framework's major capabilities organized into five categories.
+Compilation features include multi-engine support with auto-detection and performance optimization modes.
+Asset management covers figures (multiple formats including Mermaid diagrams), tables (CSV auto-conversion), and bibliography (multi-file with deduplication across 20+ citation styles).
+Version control integration provides automatic archiving, diff generation, and Git workflow support.
+Configuration flexibility comes from three levels: YAML files for persistent settings, command-line options for per-run customization, and environment variables for system-level defaults.
+Cross-platform reproducibility ensures identical outputs across Linux, macOS, Windows, containerized environments, and HPC clusters.}
+\label{fig:feature_overview}
+    \label{fig:07_feature_overview}
+\end{figure*}
+
+% Figure 08
+\begin{figure*}[htbp]
+    \pdfbookmark[2]{Figure 08}{.08}
+    \centering
+    \includegraphics[width=0.9\textwidth]{./01_manuscript/contents/figures/caption_and_media/jpg_for_compilation/08_bib_dedup.jpg}
+    \caption{\textbf{Multi-File Bibliography Processing and Deduplication.}
+The bibliography system enables researchers to organize references across multiple topical .bib files.
+All files in the \texttt{00\_shared/bib\_files/} directory are automatically merged during compilation.
+The deduplication engine implements a two-tier matching strategy: DOI-based matching provides exact duplicate detection when DOIs are present, while title and year matching handles entries without DOIs.
+This approach eliminates duplicate references that commonly appear when the same paper is cited across multiple source files.
+The final bibliography is sorted according to the selected citation style (by citation order for numbered styles, alphabetically for author-year styles).
+Color coding: blue (merging), purple (deduplication logic), green (output).}
+\label{fig:bibliography_deduplication}
+    \label{fig:08_bib_dedup}
+\end{figure*}
+
+
+
+
+%% ----------------------------------------
+%% END of DOCUMENT
+%% ----------------------------------------
+\end{document}
+
+%%%% EOF
