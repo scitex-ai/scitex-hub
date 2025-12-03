@@ -19,6 +19,7 @@ import { UIComponents } from "./ui/UIComponents.js";
 import { ModalManager } from "./ui/ModalManager.js";
 import { ShortcutsManager } from "./ui/ShortcutsManager.js";
 import { VisitorManager } from "./auth/VisitorManager.js";
+import { JobsPanelManager } from "./jobs/JobsPanelManager.js";
 import type { EditorConfig, OpenFile } from "./core/types.js";
 
 export class WorkspaceOrchestrator {
@@ -53,6 +54,7 @@ export class WorkspaceOrchestrator {
   private visitorManager: VisitorManager;
   private scratchManager: ScratchManager;
   private runManager: RunManager;
+  private jobsPanelManager: JobsPanelManager;
 
   constructor(config: EditorConfig) {
     this.config = config;
@@ -73,6 +75,7 @@ export class WorkspaceOrchestrator {
     this.scratchManager = new ScratchManager(config, this.monacoManager);
     this.runManager = new RunManager(config);
     this.shortcutsManager = new ShortcutsManager(this.modalManager);
+    this.jobsPanelManager = new JobsPanelManager();
 
     // Create shared openFiles map
     const openFilesMap = new Map<string, OpenFile>();

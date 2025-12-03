@@ -50,14 +50,18 @@ export interface TreeConfig {
 export interface TreeState {
   /** Expanded folder paths */
   expandedPaths: Set<string>;
-  /** Currently selected file path */
+  /** Currently selected file path (primary selection) */
   selectedPath: string | null;
+  /** All selected paths for multi-selection (includes selectedPath) */
+  selectedPaths: Set<string>;
   /** Target/active file paths (files currently loaded in editor) */
   targetPaths: Set<string>;
   /** Last scroll position */
   scrollTop: number;
   /** Last focused directory per mode (for restoration on next load) */
   focusPathPerMode: Record<WorkspaceMode, string | null>;
+  /** Last clicked path for shift+click range selection */
+  lastClickedPath: string | null;
 }
 
 export interface FilterConfig {

@@ -1,9 +1,10 @@
-<!-- File Browser - GitHub Style -->
+<!-- File Browser - GitHub Style with Git Status -->
 {% if directories or files %}
-    <div class="file-browser">
+    <div class="file-browser" data-username="{{ project.owner.username }}" data-slug="{{ project.slug }}">
         <table class="file-browser-table">
             <thead>
                 <tr>
+                    <th class="file-browser-header file-browser-status-col" style="width: 24px; padding: 8px 4px;" title="Git Status"></th>
                     <th class="file-browser-header file-browser-name-col">Name</th>
                     <th class="file-browser-header file-browser-message-col">Last commit message</th>
                     <th class="file-browser-header file-browser-time-col">Last commit date</th>
@@ -12,7 +13,11 @@
             <tbody>
                 {% for dir in directories %}
                     <tr class="file-browser-row"
-                        data-href="/{{ project.owner.username }}/{{ project.slug }}/{{ dir.path }}/">
+                        data-href="/{{ project.owner.username }}/{{ project.slug }}/{{ dir.path }}/"
+                        data-path="{{ dir.path }}">
+                        <td class="file-browser-cell file-browser-status-cell" style="width: 24px; padding: 4px; text-align: center;">
+                            <span class="git-gutter" data-path="{{ dir.path }}"></span>
+                        </td>
                         <td class="file-browser-cell file-browser-name-cell">
                             <a href="/{{ project.owner.username }}/{{ project.slug }}/{{ dir.path }}/"
                                class="file-browser-link">
@@ -55,7 +60,11 @@
                 {% endfor %}
                 {% for file in files %}
                     <tr class="file-browser-row"
-                        data-href="/{{ project.owner.username }}/{{ project.slug }}/blob/{{ file.path }}">
+                        data-href="/{{ project.owner.username }}/{{ project.slug }}/blob/{{ file.path }}"
+                        data-path="{{ file.path }}">
+                        <td class="file-browser-cell file-browser-status-cell" style="width: 24px; padding: 4px; text-align: center;">
+                            <span class="git-gutter" data-path="{{ file.path }}"></span>
+                        </td>
                         <td class="file-browser-cell file-browser-name-cell">
                             <a href="/{{ project.owner.username }}/{{ project.slug }}/blob/{{ file.path }}"
                                class="file-browser-link">

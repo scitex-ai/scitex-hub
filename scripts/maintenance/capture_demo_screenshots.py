@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Timestamp: "2025-11-26 14:20:28 (ywatanabe)"
+# Timestamp: "2025-12-03 02:08:27 (ywatanabe)"
 # File: /home/ywatanabe/proj/scitex-cloud/scripts/maintenance/capture_demo_screenshots.py
 
 
@@ -67,9 +67,9 @@ TEST_PASSWORD = os.getenv("SCITEX_CLOUD_TEST_USER_PASSWORD", "Password123!")
 # Standard viewport sizes for consistent screenshots
 VIEWPORT_PRESETS = {
     "desktop": {"width": 1920, "height": 1080},  # Full HD
-    "laptop": {"width": 1366, "height": 768},    # Common laptop
-    "tablet": {"width": 768, "height": 1024},    # iPad portrait
-    "mobile": {"width": 375, "height": 667},     # iPhone SE
+    "laptop": {"width": 1366, "height": 768},  # Common laptop
+    "tablet": {"width": 768, "height": 1024},  # iPad portrait
+    "mobile": {"width": 375, "height": 667},  # iPhone SE
 }
 
 # Default preset for screenshots
@@ -98,11 +98,11 @@ PAGES_TO_CAPTURE_REPO = [
     # "/social/explore/?tab=users",
     # Specific Repository
     f"/{TEST_USER}/default-project/",
-    f"/{TEST_USER}/default-project/issues/",
-    f"/{TEST_USER}/default-project/pulls/",
-    f"/{TEST_USER}/default-project/settings/",
-    f"/{TEST_USER}/default-project/scitex/writer/01_manuscript/",
-    f"/{TEST_USER}/settings/repositories/",
+    # f"/{TEST_USER}/default-project/issues/",
+    # f"/{TEST_USER}/default-project/pulls/",
+    # f"/{TEST_USER}/default-project/settings/",
+    # f"/{TEST_USER}/default-project/scitex/writer/01_manuscript/",
+    # f"/{TEST_USER}/settings/repositories/",
 ]
 
 PAGES_TO_CAPTURE_ACCOUNT = [
@@ -121,13 +121,13 @@ PAGES_TO_CAPTURE_MODULES = [
     "/code/",
     "/vis/",
     "/writer/",
-    "/tools/",
+    # "/tools/",
 ]
 PAGES_TO_CAPTURE = [
     # *PAGES_TO_CAPTURE_BASIC,
     # *PAGES_TO_CAPTURE_ACCOUNT,
     # *PAGES_TO_CAPTURE_DEV,
-    # *PAGES_TO_CAPTURE_REPO,
+    *PAGES_TO_CAPTURE_REPO,
     *PAGES_TO_CAPTURE_MODULES,
 ]
 
@@ -198,31 +198,16 @@ def normalize_path_to_filename(path: str) -> str:
 
 
 async def login_to_scitex(page: Page, username: str, password: str) -> bool:
-    """
-    Log in to SciTeX using provided credentials.
-
-    Args:
-        page: Playwright page object
-        username: Username for login
-        password: Password for login
-
-    Returns:
-        True if login successful, False otherwise
-    """
     logger.info(f"Attempting login as '{username}'")
-
     try:
-        # Navigate to login page
         login_url = f"{BASE_URL}/auth/signin/"
         logger.info(f"Navigating to {login_url}")
         await page.goto(login_url, wait_until="load", timeout=30_000)
         await asyncio.sleep(2)
 
-        # Check if already authenticated
         is_authenticated = await page.evaluate(
             "() => document.body.getAttribute('data-user-authenticated') === 'true'"
         )
-
         if is_authenticated:
             logger.info(
                 "Already logged in (detected via data-user-authenticated)"
@@ -230,45 +215,51 @@ async def login_to_scitex(page: Page, username: str, password: str) -> bool:
             await page.goto(BASE_URL, wait_until="load")
             return True
 
-        # Check if redirected (already logged in)
         if "/auth/signin" not in page.url:
             logger.info("Already logged in (redirected from signin page)")
             return True
 
-        # Wait for form
         logger.info("Waiting for login form")
         await page.wait_for_selector("form#login-form", timeout=5_000)
 
-        # Fill credentials
         logger.info("Entering credentials")
         await fill_with_fallbacks_async(
             page, "input#username", username, verbose=False
         )
         await asyncio.sleep(0.3)
-
         await fill_with_fallbacks_async(
             page, "input#password", password, verbose=False
         )
         await asyncio.sleep(0.3)
 
-        # Submit
+        # Check "Remember me" checkbox if not already checked
+        logger.info("Checking 'Remember me' checkbox")
+        remember_checkbox = page.locator("input#remember-me, input[name='remember']")
+        if await remember_checkbox.count() > 0:
+            is_checked = await remember_checkbox.is_checked()
+            if not is_checked:
+                await remember_checkbox.check()
+                await asyncio.sleep(0.2)
+
         logger.info("Submitting login form")
         await click_with_fallbacks_async(
             page, "button.btn-primary.w-100", verbose=False
         )
 
-        # Wait for navigation
+        # Wait for navigation after form submission (use 'load' instead of 'networkidle')
         try:
-            await page.wait_for_url(
-                lambda url: "/auth/signin" not in url, timeout=10_000
-            )
-            logger.info("Navigation detected after login")
-        except:
-            logger.warning("No navigation detected")
+            await page.wait_for_load_state("load", timeout=15_000)
+        except Exception:
+            pass  # Continue even if load state times out
+        await asyncio.sleep(3)  # Give time for redirect and page render
 
-        await asyncio.sleep(2)
+        is_authenticated = await page.evaluate(
+            "() => document.body.getAttribute('data-user-authenticated') === 'true'"
+        )
+        if is_authenticated:
+            logger.info(f"Login successful as '{username}'")
+            return True
 
-        # Verify
         if "/auth/signin" not in page.url:
             logger.info(f"Login successful as '{username}'")
             return True
@@ -322,20 +313,39 @@ async def capture_page_screenshot(
     logger.info(f"  Mode: {'full-page' if use_full_page else 'viewport-only'}")
 
     try:
+        # Check if page is still open
+        if page.is_closed():
+            logger.error(f"  ✗ Page is closed, cannot capture {page_name}")
+            return None
+
         # Navigate
         await page.goto(url, wait_until="load", timeout=30000)
         await asyncio.sleep(wait_sec)
 
-        # Capture
-        await page.screenshot(
-            path=str(screenshot_path), full_page=use_full_page, type="png"
-        )
+        # For full-page screenshots, try viewport first if it fails
+        try:
+            await page.screenshot(
+                path=str(screenshot_path), full_page=use_full_page, type="png"
+            )
+        except Exception as screenshot_err:
+            if use_full_page:
+                logger.warning(f"  Full-page screenshot failed, trying viewport-only: {screenshot_err}")
+                await page.screenshot(
+                    path=str(screenshot_path), full_page=False, type="png"
+                )
+            else:
+                raise
 
         logger.info(f"  ✓ Saved: {screenshot_filename}")
         return screenshot_path
 
     except Exception as e:
-        logger.error(f"  ✗ Failed to capture {page_name}: {str(e)}")
+        error_msg = str(e)
+        logger.error(f"  ✗ Failed to capture {page_name}: {error_msg}")
+        # Check if browser/page has been closed - this is fatal
+        if "closed" in error_msg.lower():
+            logger.error("  Browser or page has been closed - cannot continue")
+            raise  # Re-raise to stop the loop
         return None
 
 
@@ -404,13 +414,57 @@ async def run_capture_async(
             )
 
             if is_authenticated:
-                logger.info("✓ Already authenticated")
+                # Check if logged in as the correct user by visiting profile page
+                # The profile link in navbar contains the username
+                current_user = await page.evaluate(
+                    """() => {
+                        // Try to get username from navbar profile link
+                        const profileLink = document.querySelector('a[href^="/@"]');
+                        if (profileLink) {
+                            const href = profileLink.getAttribute('href');
+                            // Extract username from /@username/ pattern
+                            const match = href.match(/^\/@([^/]+)/);
+                            if (match) return match[1];
+                        }
+                        // Fallback: check for data-username attribute anywhere
+                        const elem = document.querySelector('[data-username]');
+                        if (elem) return elem.getAttribute('data-username');
+                        return null;
+                    }"""
+                )
+                if current_user == TEST_USER:
+                    logger.info(f"✓ Already authenticated as '{TEST_USER}'")
+                elif current_user is None:
+                    # Could not determine current user, assume we need to re-login
+                    logger.warning(
+                        f"Could not determine current user. Logging out and re-logging in as '{TEST_USER}'..."
+                    )
+                    logout_url = f"{BASE_URL}/auth/signout/"
+                    await page.goto(logout_url, wait_until="load")
+                    await asyncio.sleep(1)
+                    if not await login_to_scitex(page, TEST_USER, TEST_PASSWORD):
+                        logger.error("Cannot proceed without authentication")
+                        return 1
+                    logger.info(f"✓ Login successful as '{TEST_USER}'")
+                else:
+                    logger.warning(
+                        f"Logged in as '{current_user}', but need '{TEST_USER}'. Logging out..."
+                    )
+                    # Logout first
+                    logout_url = f"{BASE_URL}/auth/signout/"
+                    await page.goto(logout_url, wait_until="load")
+                    await asyncio.sleep(1)
+                    # Now login as correct user
+                    if not await login_to_scitex(page, TEST_USER, TEST_PASSWORD):
+                        logger.error("Cannot proceed without authentication")
+                        return 1
+                    logger.info(f"✓ Login successful as '{TEST_USER}'")
             else:
-                logger.info("Logging in...")
+                logger.info(f"Logging in as '{TEST_USER}'...")
                 if not await login_to_scitex(page, TEST_USER, TEST_PASSWORD):
                     logger.error("Cannot proceed without authentication")
                     return 1
-                logger.info("✓ Login successful")
+                logger.info(f"✓ Login successful as '{TEST_USER}'")
 
             # Step 2: Capture screenshots
             logger.info("\n=== Step 2: Capturing Screenshots ===")
@@ -419,16 +473,25 @@ async def run_capture_async(
             total = len(PAGES_TO_CAPTURE)
 
             for i, page_path in enumerate(PAGES_TO_CAPTURE, 1):
-                result = await capture_page_screenshot(
-                    page, page_path, output_dir, i, total
-                )
+                try:
+                    result = await capture_page_screenshot(
+                        page, page_path, output_dir, i, total
+                    )
 
-                if result:
-                    captured.append(result)
-                else:
+                    if result:
+                        captured.append(result)
+                    else:
+                        failed.append(normalize_path_to_filename(page_path))
+
+                    await asyncio.sleep(0.3)
+                except Exception as loop_err:
+                    # Browser closed or fatal error - stop the loop
+                    logger.error(f"Fatal error during capture: {loop_err}")
                     failed.append(normalize_path_to_filename(page_path))
-
-                await asyncio.sleep(0.3)
+                    # Add remaining pages to failed list
+                    for j, remaining_path in enumerate(PAGES_TO_CAPTURE[i:], i + 1):
+                        failed.append(normalize_path_to_filename(remaining_path))
+                    break
 
             # Step 3: Summary
             logger.info("\n=== Summary ===")

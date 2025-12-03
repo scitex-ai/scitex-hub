@@ -236,33 +236,56 @@ def api_user_jobs(request):
     GET /code/api/jobs/?state=running
 
     Query params:
-        - state: Filter by state (running/pending/completed)
-        - limit: Max number of jobs to return
+        - state: Filter by state (running/pending/all)
+        - user: Filter by user (default: all users visible)
 
     Returns:
         {
+            "success": true,
             "jobs": [
                 {"job_id": 42, "state": "RUNNING", ...},
-                {"job_id": 41, "state": "COMPLETED", ...}
+                {"job_id": 41, "state": "PENDING", ...}
             ],
-            "total": 2
+            "running": 1,
+            "pending": 1,
+            "total": 2,
+            "slurm_available": true
         }
     """
     try:
-        # TODO: Implement user job tracking in database
-        # For now, just return queue status
-        queue = get_slurm_manager().get_queue_status()
+        slurm = get_slurm_manager()
 
-        return JsonResponse({
-            'jobs': [],
-            'total': 0,
-            'queue_status': queue,
-            'message': 'User job tracking not yet implemented'
-        })
+        # Check if SLURM is available
+        if not slurm.is_available():
+            return JsonResponse({
+                'success': True,
+                'jobs': [],
+                'running': 0,
+                'pending': 0,
+                'total': 0,
+                'slurm_available': False,
+                'message': 'SLURM is not available on this system'
+            })
+
+        # Get filter parameters
+        state_filter = request.GET.get('state', 'all')
+        user_filter = request.GET.get('user')  # None means all users
+
+        # Get jobs from SLURM
+        result = slurm.list_jobs(user=user_filter, state=state_filter)
+        result['slurm_available'] = True
+
+        return JsonResponse(result)
+
     except Exception as e:
         logger.error(f"Error getting user jobs: {str(e)}", exc_info=True)
         return JsonResponse({
             'success': False,
+            'jobs': [],
+            'running': 0,
+            'pending': 0,
+            'total': 0,
+            'slurm_available': False,
             'message': f'Error: {str(e)}'
         }, status=500)
 

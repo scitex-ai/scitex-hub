@@ -230,22 +230,10 @@ def process_bibtex_job(job):
                         f"Bibliography regeneration had errors: {results['errors']}"
                     )
 
-                # Auto-commit
-                commit_message = f"Scholar: Added bibliography - {job.processed_papers}/{job.total_papers} papers enriched"
-                success, output = auto_commit_file(
-                    project_dir=Path(job.project.git_clone_path),
-                    filepath="scitex/",
-                    message=commit_message,
-                )
-
-                if success:
-                    logger.info(f"Auto-committed enriched .bib to Gitea")
-                    job.enrichment_summary["gitea_commit"] = True
-                    job.enrichment_summary["gitea_message"] = commit_message
-                else:
-                    logger.warning(f"Failed to auto-commit to Gitea: {output}")
-                    job.enrichment_summary["gitea_commit"] = False
-                    job.enrichment_summary["gitea_error"] = output
+                # Auto-commit disabled - users should commit manually when ready
+                # Changes will show in git gutter until committed
+                job.enrichment_summary["gitea_commit"] = False
+                job.enrichment_summary["gitea_message"] = "Auto-commit disabled - commit manually when ready"
 
             except Exception as gitea_error:
                 logger.error(f"Gitea integration error: {gitea_error}")

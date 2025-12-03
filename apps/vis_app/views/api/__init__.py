@@ -40,6 +40,22 @@ from .plots import (
     upload_plot_data,
 )
 
+# SciTeX Editor Views
+from .scitex_editor import (
+    load_figure_json,
+    update_preview,
+    save_manual_overrides,
+    export_figure,
+)
+
+# Gallery Views
+from .gallery import (
+    get_plot_galleries,
+    get_plot_thumbnail,
+    get_plot_template,
+    get_categories,
+)
+
 __all__ = [
     # Presets
     'get_journal_presets',
@@ -60,4 +76,14 @@ __all__ = [
     # Plots
     'render_plot',
     'upload_plot_data',
+    # SciTeX Editor
+    'load_figure_json',
+    'update_preview',
+    'save_manual_overrides',
+    'export_figure',
+    # Gallery
+    'get_plot_galleries',
+    'get_plot_thumbnail',
+    'get_plot_template',
+    'get_categories',
 ]

@@ -14,7 +14,7 @@
   <!-- Shared sidebar styles from project_app for consistency -->
   <link rel="stylesheet" href="{% static 'project_app/css/shared/sidebar.css' %}" />
   <!-- Shared workspace files tree component -->
-  <link rel="stylesheet" href="{% static 'shared/css/components/workspace-files-tree.css' %}" />
+  <link rel="stylesheet" href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d" />
 
   <!-- Code Workspace CSS Modules (refactored from monolithic workspace.css) -->
   <link rel="stylesheet" href="{% static 'code_app/css/workspace/00-workspace.css' %}" />
@@ -43,6 +43,7 @@
   <link rel="stylesheet" href="{% static 'code_app/css/workspace/23-git-gutter.css' %}" />
   <link rel="stylesheet" href="{% static 'code_app/css/workspace/24-git-status.css' %}" />
   <link rel="stylesheet" href="{% static 'code_app/css/workspace/25-modal.css' %}" />
+  <link rel="stylesheet" href="{% static 'code_app/css/workspace/26-jobs-panel.css' %}" />
 
   <link rel="stylesheet" href="{% static 'code_app/css/workspace-inline.css' %}" />
   <link rel="stylesheet" href="{% static 'code_app/css/context-menu.css' %}" />
@@ -301,25 +302,63 @@
 
     <!-- Right: Terminal Panel (PTY with xterm.js) -->
     <div id="code-terminal-panel" class="code-terminal-panel">
-      <!-- Terminal Header -->
-      <div class="terminal-header">
-        <div class="terminal-title">
-          <i class="fas fa-terminal" title="Terminal"></i>
-          <button id="btn-terminal-shortcuts" class="btn-code-action" title="Terminal Shortcuts">
-            <i class="fas fa-keyboard"></i>
+      <!-- Panel Tabs (Terminal / Jobs) -->
+      <div class="terminal-panel-tabs">
+        <button id="panel-tab-terminal" class="panel-tab active" data-panel="terminal">
+          <i class="fas fa-terminal"></i>
+          <span>Terminal</span>
+        </button>
+        <button id="panel-tab-jobs" class="panel-tab" data-panel="jobs">
+          <i class="fas fa-tasks"></i>
+          <span>Jobs</span>
+          <span id="jobs-badge" class="panel-tab-badge" style="display: none;">0</span>
+        </button>
+        <div class="panel-tab-spacer"></div>
+        <button id="btn-terminal-shortcuts" class="btn-code-action panel-header-btn" title="Terminal Shortcuts">
+          <i class="fas fa-keyboard"></i>
+        </button>
+      </div>
+
+      <!-- Terminal View -->
+      <div id="terminal-view" class="panel-view active">
+        <!-- Terminal Tabs -->
+        <div id="terminal-tabs-container" class="terminal-tabs-container">
+          <div id="terminal-tabs" class="terminal-tabs">
+            <!-- Tabs will be dynamically added here -->
+          </div>
+        </div>
+
+        <!-- PTY Terminal Container (xterm.js with inline image support) -->
+        <div id="pty-terminal" class="terminal-body"></div>
+      </div>
+
+      <!-- Jobs View -->
+      <div id="jobs-view" class="panel-view">
+        <!-- Jobs Toolbar -->
+        <div class="jobs-toolbar">
+          <button id="jobs-refresh" class="jobs-toolbar-btn" title="Refresh jobs">
+            <i class="fas fa-sync-alt"></i>
           </button>
+          <button id="jobs-cancel-pending" class="jobs-toolbar-btn" title="Cancel all pending">
+            <i class="fas fa-stop-circle"></i>
+            <span>Cancel Pending</span>
+          </button>
+          <div class="jobs-toolbar-spacer"></div>
+          <span id="jobs-status" class="jobs-status">
+            <span class="jobs-status-dot"></span>
+            <span id="jobs-status-text">Loading...</span>
+          </span>
+        </div>
+
+        <!-- Jobs List -->
+        <div id="jobs-list" class="jobs-list">
+          <!-- Jobs will be dynamically populated here -->
+          <div class="jobs-loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Loading jobs...</span>
+          </div>
         </div>
       </div>
-
-      <!-- Terminal Tabs -->
-      <div id="terminal-tabs-container" class="terminal-tabs-container">
-        <div id="terminal-tabs" class="terminal-tabs">
-          <!-- Tabs will be dynamically added here -->
-        </div>
-      </div>
-
-      <!-- PTY Terminal Container (xterm.js with inline image support) -->
-      <div id="pty-terminal" class="terminal-body"></div>
     </div>
   </div>
   {% endif %}

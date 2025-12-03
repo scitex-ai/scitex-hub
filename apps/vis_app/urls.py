@@ -107,4 +107,46 @@ urlpatterns = [
         api_views.upload_plot_data,
         name="api_upload_plot_data",
     ),
+    # SciTeX Editor API endpoints
+    path(
+        "api/editor/load/",
+        api_views.load_figure_json,
+        name="api_editor_load",
+    ),
+    path(
+        "api/editor/preview/",
+        api_views.update_preview,
+        name="api_editor_preview",
+    ),
+    path(
+        "api/editor/save/",
+        api_views.save_manual_overrides,
+        name="api_editor_save",
+    ),
+    path(
+        "api/editor/export/",
+        api_views.export_figure,
+        name="api_editor_export",
+    ),
+    # Gallery API endpoints (plot type thumbnails)
+    path(
+        "api/gallery/",
+        api_views.get_plot_galleries,
+        name="api_gallery",
+    ),
+    path(
+        "api/gallery/categories/",
+        api_views.get_categories,
+        name="api_gallery_categories",
+    ),
+    path(
+        "api/gallery/<str:gallery_id>/<str:plot_id>/thumbnail/",
+        api_views.get_plot_thumbnail,
+        name="api_gallery_thumbnail",
+    ),
+    path(
+        "api/gallery/<str:gallery_id>/<str:plot_id>/template/",
+        api_views.get_plot_template,
+        name="api_gallery_template",
+    ),
 ]

@@ -453,4 +453,120 @@ export class CanvasManager {
             this.statusBarCallback(`Canvas: ${Math.round(this.canvasZoomLevel * 100)}%`);
         }
     }
+
+    /**
+     * Add image to canvas from URL or data URL
+     */
+    public addImage(src: string, options: {
+        left?: number;
+        top?: number;
+        scaleToFit?: boolean;
+        maxWidth?: number;
+        maxHeight?: number;
+        selectable?: boolean;
+        name?: string;
+    } = {}): Promise<any> {
+        return new Promise((resolve, reject) => {
+            if (!this.canvas) {
+                reject(new Error('Canvas not initialized'));
+                return;
+            }
+
+            fabric.Image.fromURL(src, (img: any) => {
+                if (!img || !img.width) {
+                    reject(new Error('Failed to load image'));
+                    return;
+                }
+
+                // Scale to fit if requested
+                if (options.scaleToFit) {
+                    const maxW = options.maxWidth || CANVAS_CONSTANTS.MAX_CANVAS_WIDTH * 0.8;
+                    const maxH = options.maxHeight || CANVAS_CONSTANTS.MAX_CANVAS_HEIGHT * 0.8;
+
+                    const scaleX = maxW / img.width!;
+                    const scaleY = maxH / img.height!;
+                    const scale = Math.min(scaleX, scaleY, 1); // Don't upscale
+
+                    img.scale(scale);
+                }
+
+                // Position
+                img.set({
+                    left: options.left ?? (CANVAS_CONSTANTS.MAX_CANVAS_WIDTH - (img.width! * (img.scaleX || 1))) / 2,
+                    top: options.top ?? (CANVAS_CONSTANTS.MAX_CANVAS_HEIGHT - (img.height! * (img.scaleY || 1))) / 2,
+                    selectable: options.selectable !== false,
+                    name: options.name || 'figure',
+                });
+
+                this.canvas!.add(img);
+                this.canvas!.setActiveObject(img);
+                this.canvas!.renderAll();
+
+                if (this.statusBarCallback) {
+                    this.statusBarCallback(`Added image: ${options.name || 'figure'}`);
+                }
+
+                console.log(`[CanvasManager] Added image: ${options.name || 'figure'} (${img.width}×${img.height})`);
+                resolve(img);
+            }, { crossOrigin: 'anonymous' });
+        });
+    }
+
+    /**
+     * Add image from base64 data
+     */
+    public async addImageFromBase64(base64Data: string, options: Parameters<typeof this.addImage>[1] = {}): Promise<any> {
+        // Ensure it's a valid data URL
+        const dataUrl = base64Data.startsWith('data:')
+            ? base64Data
+            : `data:image/png;base64,${base64Data}`;
+
+        return this.addImage(dataUrl, options);
+    }
+
+    /**
+     * Clear all objects from canvas (except grid)
+     */
+    public clearCanvas(): void {
+        if (!this.canvas) return;
+
+        const objects = this.canvas.getObjects();
+        objects.forEach((obj: any) => {
+            // Don't remove grid-related objects
+            if (obj.id !== 'grid-line' && obj.id !== 'column-guide') {
+                this.canvas!.remove(obj);
+            }
+        });
+
+        this.canvas.renderAll();
+
+        if (this.statusBarCallback) {
+            this.statusBarCallback('Canvas cleared');
+        }
+        console.log('[CanvasManager] Canvas cleared');
+    }
+
+    /**
+     * Get active object
+     */
+    public getActiveObject(): any {
+        return this.canvas?.getActiveObject() || null;
+    }
+
+    /**
+     * Remove active object
+     */
+    public removeActiveObject(): void {
+        if (!this.canvas) return;
+
+        const active = this.canvas.getActiveObject();
+        if (active) {
+            this.canvas.remove(active);
+            this.canvas.renderAll();
+
+            if (this.statusBarCallback) {
+                this.statusBarCallback('Object removed');
+            }
+        }
+    }
 }

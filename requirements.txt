@@ -24,6 +24,7 @@ python-decouple==3.8
 # Authentication
 PyJWT==2.8.0
 cryptography==42.0.5
+django-allauth[socialaccount]==65.3.0
 
 # Integrations
 requests>=2.31.0

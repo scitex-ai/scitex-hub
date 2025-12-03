@@ -224,13 +224,9 @@ def bibtex_save_to_project(request, job_id):
                     f"Bibliography regeneration had errors: {results['errors']}"
                 )
 
-            # Commit
-            success, output = auto_commit_file(
-                project_dir=Path(project.git_clone_path),
-                filepath="scitex/",
-                message=f"Scholar: Added bibliography - {job.processed_papers}/{job.total_papers} papers",
-            )
-            committed = success
+            # Auto-commit disabled - users should commit manually when ready
+            # Changes will show in git gutter until committed
+            committed = False
 
         else:
             # Fallback: Save to media directory

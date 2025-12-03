@@ -164,6 +164,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # Browser runtime (Chromium for Mermaid/Playwright)
     chromium \
     fonts-liberation \
+    fontconfig \
     # Playwright runtime libraries (minimal set) - NAS compatible (no t64 suffix)
     libglib2.0-0 \
     libnspr4 \
@@ -186,6 +187,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpango-1.0-0 \
     libasound2 \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Microsoft core fonts (Arial, Times New Roman, etc.) for scientific figures
+RUN sed -i 's/main/main contrib/g' /etc/apt/sources.list.d/debian.sources 2>/dev/null || \
+        sed -i 's/main$/main contrib/' /etc/apt/sources.list && \
+    apt-get update && \
+    echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ttf-mscorefonts-installer && \
+    fc-cache -fv && \
+    rm -rf /var/lib/apt/lists/*
 
 # Copy Python packages from builder (avoids rebuilding)
 COPY --from=python-builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages

@@ -25,3 +25,133 @@
     transition: all 0.2s ease;
 }
 
+/* ========================================================================
+   CANVAS DROP ZONE (for figure JSON/CSV/PNG files)
+   ======================================================================== */
+
+.canvas-drop-zone {
+    position: relative;
+}
+
+.canvas-drop-zone.drag-over {
+    background: rgba(var(--accent-rgb), 0.05);
+}
+
+.canvas-drop-zone.drag-over::after {
+    content: 'Drop figure here';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 20px 40px;
+    background: var(--accent-primary);
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    z-index: 100;
+    pointer-events: none;
+    animation: pulse-drop 1s ease infinite;
+}
+
+@keyframes pulse-drop {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.05); }
+}
+
+/* Drop overlay for entire canvas area */
+.canvas-drop-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(var(--accent-rgb), 0.1);
+    border: 3px dashed var(--accent-primary);
+    border-radius: 8px;
+    display: none;
+    z-index: 99;
+    pointer-events: none;
+}
+
+.canvas-drop-zone.drag-over .canvas-drop-overlay {
+    display: block;
+}
+
+/* JSON/CSV file type indicators */
+.canvas-drop-zone.drag-json::after {
+    content: 'Drop JSON figure';
+    background: var(--status-info, #17a2b8);
+}
+
+.canvas-drop-zone.drag-csv::after {
+    content: 'Drop CSV data';
+    background: var(--status-success, #28a745);
+}
+
+.canvas-drop-zone.drag-image::after {
+    content: 'Drop image (PNG/SVG)';
+    background: var(--accent-secondary, #6f42c1);
+}
+
+/* ========================================================================
+   PASTE INDICATOR
+   ======================================================================== */
+
+.paste-indicator {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    padding: 16px 32px;
+    background: var(--accent-primary);
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+    opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.paste-indicator.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.paste-indicator i {
+    margin-right: 8px;
+}
+
+/* ========================================================================
+   FILE TYPE BADGES
+   ======================================================================== */
+
+.file-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+}
+
+.file-type-badge.json {
+    background: rgba(23, 162, 184, 0.15);
+    color: #17a2b8;
+}
+
+.file-type-badge.csv {
+    background: rgba(40, 167, 69, 0.15);
+    color: #28a745;
+}
+
+.file-type-badge.png,
+.file-type-badge.svg {
+    background: rgba(111, 66, 193, 0.15);
+    color: #6f42c1;
+}
+

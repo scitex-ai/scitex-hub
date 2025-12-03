@@ -13,7 +13,8 @@ export class FileActions {
     private treeData: TreeItem[],
     private getCsrfToken: () => string,
     private rerender: () => void,
-    private emitEvent: (type: string, detail: any) => void
+    private emitEvent: (type: string, detail: any) => void,
+    private refreshTree?: () => Promise<void>
   ) {}
 
   toggleFolder(path: string): void {
@@ -97,7 +98,12 @@ export class FileActions {
       const data = await response.json();
       if (data.success) {
         this.emitEvent('file-rename', { oldPath, newPath: data.new_path });
-        this.rerender();
+        // Trigger full tree reload to reflect changes from server
+        if (this.refreshTree) {
+          await this.refreshTree();
+        } else {
+          this.rerender();
+        }
       } else {
         console.error('[FileActions] Rename failed:', data.error);
       }
@@ -122,7 +128,12 @@ export class FileActions {
       if (data.success) {
         console.log('[FileActions] File deleted:', path);
         this.emitEvent('file-delete', { path });
-        this.rerender();
+        // Trigger full tree reload to reflect changes from server
+        if (this.refreshTree) {
+          await this.refreshTree();
+        } else {
+          this.rerender();
+        }
       } else {
         console.error('[FileActions] Delete failed:', data.error);
         alert(`Failed to delete file: ${data.error}`);
@@ -134,73 +145,177 @@ export class FileActions {
   }
 
   async createNewFile(folderPath: string): Promise<void> {
-    const fileName = prompt('Enter new file name:');
-    if (!fileName || !fileName.trim()) {
+    // Expand the folder first to show inline input
+    this.stateManager.expand(folderPath);
+    this.rerender();
+
+    // Wait for DOM update then insert inline input
+    requestAnimationFrame(() => {
+      this.insertInlineInput(folderPath, 'file');
+    });
+  }
+
+  private insertInlineInput(folderPath: string, type: 'file' | 'directory'): void {
+    // Find the folder's children container
+    const folderEl = document.querySelector(`.wft-folder[data-path="${folderPath}"]`);
+    if (!folderEl) return;
+
+    const childrenContainer = folderEl.nextElementSibling as HTMLElement;
+    if (!childrenContainer || !childrenContainer.classList.contains('wft-children')) {
+      // Folder has no children container, create one
+      const newContainer = document.createElement('div');
+      newContainer.className = 'wft-children expanded';
+      folderEl.after(newContainer);
+      this.createInlineInputElement(newContainer, folderPath, type);
       return;
     }
 
-    const newPath = folderPath ? `${folderPath}/${fileName.trim()}` : fileName.trim();
+    // Make sure children container is visible
+    childrenContainer.style.display = '';
+    childrenContainer.classList.add('expanded');
 
-    try {
-      const response = await fetch(`/${this.config.username}/${this.config.slug}/api/files/create/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': this.getCsrfToken(),
-        },
-        body: JSON.stringify({ path: newPath, type: 'file' }),
-      });
+    this.createInlineInputElement(childrenContainer, folderPath, type);
+  }
 
-      const data = await response.json();
-      if (data.success) {
-        console.log('[FileActions] File created:', newPath);
-        this.emitEvent('file-create', { path: newPath, type: 'file' });
-        // Expand the parent folder
-        this.stateManager.expand(folderPath);
-        this.rerender();
-      } else {
-        console.error('[FileActions] Create file failed:', data.error);
-        alert(`Failed to create file: ${data.error}`);
+  private createInlineInputElement(container: HTMLElement, folderPath: string, type: 'file' | 'directory'): void {
+    // Create inline input row - match sibling indentation
+    const inputRow = document.createElement('div');
+    inputRow.className = `wft-item wft-${type} wft-inline-create`;
+
+    // Match sibling padding - wft-children already provides the indentation via margin-left
+    // so we just need the standard item padding
+    inputRow.style.paddingLeft = '8px';
+
+    const icon = type === 'file'
+      ? '<i class="fas fa-file" style="color: var(--color-fg-muted);"></i>'
+      : '<i class="fas fa-folder" style="color: var(--workspace-icon-primary);"></i>';
+
+    inputRow.innerHTML = `
+      <span class="wft-spacer"></span>
+      <span class="wft-icon">${icon}</span>
+      <input type="text" class="wft-inline-input" placeholder="${type === 'file' ? 'filename.ext' : 'folder name'}" />
+    `;
+
+    // Insert at the beginning of children
+    container.insertBefore(inputRow, container.firstChild);
+
+    const input = inputRow.querySelector('.wft-inline-input') as HTMLInputElement;
+    if (!input) return;
+
+    input.focus();
+
+    let submitted = false;
+    const cleanup = () => {
+      inputRow.remove();
+    };
+
+    const submit = async () => {
+      if (submitted) return;
+      submitted = true;
+
+      const name = input.value.trim();
+      if (!name) {
+        cleanup();
+        return;
       }
-    } catch (error) {
-      console.error('[FileActions] Error creating file:', error);
-      alert('Error creating file. Please try again.');
+
+      await this.performCreate(folderPath, name, type);
+      cleanup();
+    };
+
+    input.addEventListener('blur', () => {
+      // Small delay to allow click events to fire first
+      setTimeout(() => submit(), 100);
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        input.blur();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        cleanup();
+      }
+    });
+  }
+
+  private async performCreate(folderPath: string, name: string, type: 'file' | 'directory'): Promise<void> {
+    const url = `/${this.config.username}/${this.config.slug}/api/files/create/`;
+    const csrfToken = this.getCsrfToken();
+
+    // Try to create, handling duplicates with suffix
+    let finalName = name;
+    let attempt = 0;
+    const maxAttempts = 100;
+
+    while (attempt < maxAttempts) {
+      const newPath = folderPath ? `${folderPath}/${finalName}` : finalName;
+
+      console.log(`[FileActions] Creating ${type} at:`, newPath, attempt > 0 ? `(attempt ${attempt + 1})` : '');
+
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+          },
+          body: JSON.stringify({ path: newPath, type: type === 'file' ? 'file' : 'directory' }),
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          console.log(`[FileActions] ${type} created:`, newPath);
+          this.emitEvent(type === 'file' ? 'file-create' : 'folder-create', { path: newPath, type });
+          this.stateManager.expand(folderPath);
+          // Trigger full tree reload to reflect changes from server
+          if (this.refreshTree) {
+            await this.refreshTree();
+          } else {
+            this.rerender();
+          }
+          return;
+        } else if (data.error && data.error.includes('already exists')) {
+          // File exists, try with suffix
+          attempt++;
+          finalName = this.getNameWithSuffix(name, attempt);
+          continue;
+        } else {
+          console.error(`[FileActions] Create ${type} failed:`, data.error);
+          alert(`Failed to create ${type}: ${data.error}`);
+          return;
+        }
+      } catch (error) {
+        console.error(`[FileActions] Error creating ${type}:`, error);
+        alert(`Error creating ${type}. Please try again.`);
+        return;
+      }
     }
+
+    alert(`Failed to create ${type}: too many files with similar names`);
+  }
+
+  private getNameWithSuffix(name: string, suffix: number): string {
+    // For files: test.txt -> test (1).txt, test (2).txt, etc.
+    // For folders/no extension: folder -> folder (1), folder (2), etc.
+    const dotIndex = name.lastIndexOf('.');
+    if (dotIndex > 0) {
+      const baseName = name.substring(0, dotIndex);
+      const ext = name.substring(dotIndex);
+      return `${baseName} (${suffix})${ext}`;
+    }
+    return `${name} (${suffix})`;
   }
 
   async createNewFolder(folderPath: string): Promise<void> {
-    const folderName = prompt('Enter new folder name:');
-    if (!folderName || !folderName.trim()) {
-      return;
-    }
+    // Expand the folder first to show inline input
+    this.stateManager.expand(folderPath);
+    this.rerender();
 
-    const newPath = folderPath ? `${folderPath}/${folderName.trim()}` : folderName.trim();
-
-    try {
-      const response = await fetch(`/${this.config.username}/${this.config.slug}/api/files/create/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': this.getCsrfToken(),
-        },
-        body: JSON.stringify({ path: newPath, type: 'directory' }),
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        console.log('[FileActions] Folder created:', newPath);
-        this.emitEvent('folder-create', { path: newPath, type: 'directory' });
-        // Expand the parent folder
-        this.stateManager.expand(folderPath);
-        this.rerender();
-      } else {
-        console.error('[FileActions] Create folder failed:', data.error);
-        alert(`Failed to create folder: ${data.error}`);
-      }
-    } catch (error) {
-      console.error('[FileActions] Error creating folder:', error);
-      alert('Error creating folder. Please try again.');
-    }
+    // Wait for DOM update then insert inline input
+    requestAnimationFrame(() => {
+      this.insertInlineInput(folderPath, 'directory');
+    });
   }
 
   async copyFile(path: string): Promise<void> {
@@ -242,7 +357,12 @@ export class FileActions {
       if (data.success) {
         console.log('[FileActions] File copied:', path, '->', newPath);
         this.emitEvent('file-copy', { sourcePath: path, destPath: newPath });
-        this.rerender();
+        // Trigger full tree reload to reflect changes from server
+        if (this.refreshTree) {
+          await this.refreshTree();
+        } else {
+          this.rerender();
+        }
       } else {
         console.error('[FileActions] Copy failed:', data.error);
         alert(`Failed to copy: ${data.error}`);

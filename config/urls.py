@@ -89,6 +89,7 @@ def get_reserved_paths():
             "explore",
             "trending",
             "discover",
+            "social",  # Social auth URLs
         ]
     )
 
@@ -109,6 +110,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("accounts/", include(("apps.accounts_app.urls", "accounts_app"))),
     path("auth/", include(("apps.auth_app.urls", "auth_app"))),
+    # Social authentication (Google, ORCID) via django-allauth
+    path("auth/social/", include("allauth.urls")),
     # Main Modules
     path("scholar/", include(("apps.scholar_app.urls", "scholar_app"))),
     path("code/", include(("apps.code_app.urls", "code_app"))),

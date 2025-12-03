@@ -334,6 +334,117 @@ exit $EXIT_CODE
             'cpu_allocation': cpu_info
         }
 
+    def list_jobs(self, user: str = None, state: str = None) -> Dict:
+        """
+        List SLURM jobs with detailed information.
+
+        Args:
+            user: Filter by username (None for all users)
+            state: Filter by state ('running', 'pending', 'all')
+
+        Returns:
+            Dict with keys:
+                - jobs (list): List of job dicts
+                - running (int): Count of running jobs
+                - pending (int): Count of pending jobs
+                - total (int): Total job count
+        """
+        # Build squeue command with detailed output
+        # Format: JobID|Name|User|State|TimeUsed|TimeLimit|CPUs|Memory|Partition|NodeList|Reason
+        fmt = "%i|%j|%u|%T|%M|%l|%C|%m|%P|%N|%r"
+        cmd = ["squeue", "-o", fmt, "--noheader"]
+
+        if user:
+            cmd.extend(["-u", user])
+
+        if state == "running":
+            cmd.extend(["-t", "RUNNING"])
+        elif state == "pending":
+            cmd.extend(["-t", "PENDING"])
+
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+            lines = result.stdout.strip().split('\n') if result.stdout.strip() else []
+
+            jobs = []
+            running_count = 0
+            pending_count = 0
+
+            for line in lines:
+                if not line.strip():
+                    continue
+
+                parts = line.split('|')
+                if len(parts) < 11:
+                    continue
+
+                job = {
+                    'job_id': int(parts[0]),
+                    'name': parts[1],
+                    'user': parts[2],
+                    'state': parts[3],
+                    'time_used': parts[4],
+                    'time_limit': parts[5],
+                    'cpus': parts[6],
+                    'memory': parts[7],
+                    'partition': parts[8],
+                    'node': parts[9] if parts[9] else None,
+                    'reason': parts[10] if parts[10] != 'None' else None,
+                }
+
+                jobs.append(job)
+
+                if job['state'] == 'RUNNING':
+                    running_count += 1
+                elif job['state'] == 'PENDING':
+                    pending_count += 1
+
+            return {
+                'success': True,
+                'jobs': jobs,
+                'running': running_count,
+                'pending': pending_count,
+                'total': len(jobs)
+            }
+
+        except subprocess.TimeoutExpired:
+            logger.error("SLURM squeue command timed out")
+            return {
+                'success': False,
+                'jobs': [],
+                'running': 0,
+                'pending': 0,
+                'total': 0,
+                'message': 'SLURM command timed out'
+            }
+        except Exception as e:
+            logger.error(f"Error listing jobs: {str(e)}")
+            return {
+                'success': False,
+                'jobs': [],
+                'running': 0,
+                'pending': 0,
+                'total': 0,
+                'message': str(e)
+            }
+
+    def is_available(self) -> bool:
+        """
+        Check if SLURM is available on this system.
+
+        Returns:
+            bool: True if SLURM commands are available
+        """
+        try:
+            result = subprocess.run(
+                ["squeue", "--version"],
+                capture_output=True,
+                timeout=5
+            )
+            return result.returncode == 0
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            return False
+
     def get_job_output(self, job_id: int, workspace: Path, tail_lines: int = 100) -> Dict:
         """
         Get job output logs.

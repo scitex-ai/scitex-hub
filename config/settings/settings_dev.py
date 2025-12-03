@@ -94,6 +94,10 @@ INTERNAL_IPS = [
     "172.20.0.1",  # Docker network gateway (for browser requests from host)
 ]
 
+# WhiteNoise: auto-refresh static files in development
+# This ensures changes to JS/CSS files are picked up immediately without restart
+WHITENOISE_AUTOREFRESH = True
+
 # django-browser-reload configuration
 # Note: Templates, CSS, and JS files are watched to trigger browser reload
 # Visitor pool initialization is now optimized with fast-path check

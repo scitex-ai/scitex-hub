@@ -128,37 +128,8 @@ def section_view(request, project_id, section_name):
                 success = writer_service.write_section(name, content, doc_type)
 
                 if success:
-                    # Git commit: Save to version control
-                    try:
-                        from apps.common.utils.git_operations import auto_commit
-
-                        # Get the file path that was just saved
-                        doc_dir_map = {
-                            "manuscript": "01_manuscript/contents",
-                            "supplementary": "02_supplementary/contents",
-                            "revision": "03_revision/contents",
-                            "shared": "shared",
-                        }
-                        section_dir = writer_service.writer_dir / doc_dir_map.get(
-                            doc_type, "01_manuscript/contents"
-                        )
-                        file_path = section_dir / f"{name}.tex"
-
-                        # Create meaningful commit message
-                        commit_msg = f"Updated manuscript: {name.replace('_', ' ').title()}"
-
-                        # Auto-commit (transparent to user)
-                        auto_commit(
-                            file_path=file_path,
-                            message=commit_msg,
-                            author_name=user.get_full_name() or user.username,
-                            author_email=user.email or f"{user.username}@scitex.local",
-                            push=True
-                        )
-                        logger.info(f"Git commit successful: {commit_msg}")
-                    except Exception as e:
-                        # Don't fail the save if Git commit fails
-                        logger.warning(f"Git commit failed (non-critical): {e}")
+                    # Auto-commit disabled - users should commit manually when ready
+                    # Changes will show in git gutter until committed
 
                     # Return a read response with the saved content
                     response = SectionReadResponse.create_success(

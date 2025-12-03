@@ -11,26 +11,42 @@ export class EventHandlers {
     private config: TreeConfig,
     private stateManager: TreeStateManager,
     private onToggleFolder: (path: string) => void,
-    private onSelectFile: (path: string) => void,
+    private onSelectFile: (path: string, event?: MouseEvent) => void,
     private onRename: (path: string, el: HTMLElement) => void,
     private onDelete?: (path: string) => void,
     private onNewFile?: (folderPath: string) => void,
     private onNewFolder?: (folderPath: string) => void,
-    private onCopy?: (path: string) => void
+    private onCopy?: (path: string) => void,
+    private onGitAction?: (action: string, path: string) => void
   ) {}
 
   attachEventListeners(container: HTMLElement): void {
     const treeEl = container.querySelector('.wft-tree');
-    console.log('[WFT EventHandlers] attachEventListeners called, treeEl:', treeEl);
-    if (!treeEl) {
-      console.warn('[WFT EventHandlers] .wft-tree not found in container');
-      return;
+    if (!treeEl) return;
+
+    // Git panel button clicks
+    const gitPanel = container.querySelector('.wft-git-panel');
+    if (gitPanel) {
+      gitPanel.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement;
+        const btn = target.closest('[data-action]') as HTMLElement;
+        if (btn && this.onGitAction) {
+          e.preventDefault();
+          e.stopPropagation();
+          const action = btn.getAttribute('data-action');
+          if (action) {
+            this.onGitAction(action, '');
+          }
+        }
+      });
     }
 
-    // File/folder click
-    treeEl.addEventListener('click', (e) => {
+    // File/folder click (ignore right-clicks - context menu handles those)
+    treeEl.addEventListener('click', (evt) => {
+      const e = evt as MouseEvent;
+      // Ignore right-click - context menu handles it
+      if (e.button !== 0) return;
       const target = e.target as HTMLElement;
-      console.log('[WFT EventHandlers] Click event, target:', target.className, target);
 
       // Action buttons (delete, new-file, new-folder)
       const actionBtn = target.closest('.wft-action-btn') as HTMLElement;
@@ -39,7 +55,6 @@ export class EventHandlers {
         e.stopPropagation();
         const action = actionBtn.getAttribute('data-action');
         const path = actionBtn.getAttribute('data-path');
-        console.log('[WFT EventHandlers] Action button clicked:', action, path);
 
         if (action === 'delete' && path && this.onDelete) {
           this.onDelete(path);
@@ -54,6 +69,9 @@ export class EventHandlers {
           }
         } else if (action === 'copy' && path && this.onCopy) {
           this.onCopy(path);
+        } else if (action?.startsWith('git-') && path && this.onGitAction) {
+          // Git actions: git-stage, git-unstage, git-discard, git-history, git-diff
+          this.onGitAction(action, path);
         }
         return;
       }
@@ -61,12 +79,10 @@ export class EventHandlers {
       // Folder toggle (chevron icon)
       const chevron = target.closest('.wft-folder-chevron');
       if (chevron) {
-        console.log('[WFT EventHandlers] Chevron clicked');
         e.preventDefault();
         const folderItem = chevron.closest('[data-path]');
         if (folderItem) {
           const path = folderItem.getAttribute('data-path')!;
-          console.log('[WFT EventHandlers] Toggle folder (chevron):', path);
           this.onToggleFolder(path);
         }
         return;
@@ -77,25 +93,20 @@ export class EventHandlers {
       if (fileItem && !fileItem.classList.contains('disabled')) {
         e.preventDefault();
         const path = fileItem.getAttribute('data-path')!;
-        console.log('[WFT EventHandlers] File selected:', path);
-        this.onSelectFile(path);
+        this.onSelectFile(path, e);
         return;
       }
 
       // Folder selection (click anywhere on folder row)
       const folderItem = target.closest('.wft-folder[data-path]');
-      console.log('[WFT EventHandlers] folderItem:', folderItem);
       if (folderItem && !folderItem.classList.contains('disabled')) {
         // Toggle folder when clicking anywhere on the folder row
         // Exclude clicks on action buttons
         const clickedOnAction = target.closest('.wft-action-btn');
 
-        console.log('[WFT EventHandlers] Folder click - excluding action:', !!clickedOnAction);
-
         if (!clickedOnAction) {
           e.preventDefault();
           const path = folderItem.getAttribute('data-path')!;
-          console.log('[WFT EventHandlers] Toggle folder:', path);
           this.onToggleFolder(path);
         }
       }

@@ -4,7 +4,7 @@
 {% block title %}SciTeX Vis{% if current_project %} - {{ current_project.name }}{% endif %}{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'shared/css/components/workspace-files-tree.css' %}">
+<link rel="stylesheet" href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d">
 <!-- Sigma Editor CSS Modules (refactored from monolithic sigma.css) -->
 <link rel="stylesheet" href="{% static 'vis_app/css/vis/variables.css' %}">
 <link rel="stylesheet" href="{% static 'vis_app/css/vis/layout.css' %}">
@@ -64,7 +64,13 @@
                 <!-- Left: Data Table -->
                 <div class="split-pane split-pane-left" id="data-pane">
                     <div class="pane-header">
-                        <h5><i class="fas fa-table"></i></h5>
+                        <!-- Tabs container -->
+                        <div class="data-tabs-bar" id="data-tabs-container">
+                            <!-- Tabs will be inserted here by DataTabManager -->
+                            <button class="data-tab-new" id="data-tab-new" title="New data table (Ctrl+T)">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
                         <div class="pane-header-buttons">
                             <button class="pane-header-btn" id="import-data-btn-small" title="Import data file (CSV, Excel) - Click to select or drag & drop">
                                 <i class="fas fa-file-import"></i>

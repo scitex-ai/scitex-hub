@@ -31,6 +31,7 @@ export class TreeStateManager {
         return {
           expandedPaths: new Set(parsed.expandedPaths || []),
           selectedPath: parsed.selectedPath || null,
+          selectedPaths: new Set(parsed.selectedPaths || []),
           targetPaths: new Set(parsed.targetPaths || []),
           scrollTop: parsed.scrollTop || 0,
           focusPathPerMode: parsed.focusPathPerMode || {
@@ -40,6 +41,7 @@ export class TreeStateManager {
             scholar: null,
             all: null,
           },
+          lastClickedPath: null, // Don't persist this
         };
       }
     } catch (err) {
@@ -48,6 +50,7 @@ export class TreeStateManager {
     return {
       expandedPaths: new Set(),
       selectedPath: null,
+      selectedPaths: new Set(),
       targetPaths: new Set(),
       scrollTop: 0,
       focusPathPerMode: {
@@ -57,6 +60,7 @@ export class TreeStateManager {
         scholar: null,
         all: null,
       },
+      lastClickedPath: null,
     };
   }
 
@@ -66,9 +70,11 @@ export class TreeStateManager {
       const serializable = {
         expandedPaths: Array.from(this.state.expandedPaths),
         selectedPath: this.state.selectedPath,
+        selectedPaths: Array.from(this.state.selectedPaths),
         targetPaths: Array.from(this.state.targetPaths),
         scrollTop: this.state.scrollTop,
         focusPathPerMode: this.state.focusPathPerMode,
+        // lastClickedPath is not persisted
       };
       localStorage.setItem(this.projectKey, JSON.stringify(serializable));
     } catch (err) {
@@ -85,6 +91,7 @@ export class TreeStateManager {
           this.state = {
             expandedPaths: new Set(parsed.expandedPaths || []),
             selectedPath: parsed.selectedPath,
+            selectedPaths: new Set(parsed.selectedPaths || []),
             targetPaths: new Set(parsed.targetPaths || []),
             scrollTop: parsed.scrollTop || 0,
             focusPathPerMode: parsed.focusPathPerMode || {
@@ -94,6 +101,7 @@ export class TreeStateManager {
               scholar: null,
               all: null,
             },
+            lastClickedPath: null,
           };
           this.notifyListeners();
         } catch (err) {
@@ -165,6 +173,83 @@ export class TreeStateManager {
   getSelected(): string | null {
     return this.state.selectedPath;
   }
+
+  // ===== Multi-Selection Methods =====
+
+  /** Check if a path is in the multi-selection */
+  isSelected(path: string): boolean {
+    return this.state.selectedPaths.has(path);
+  }
+
+  /** Add path to multi-selection */
+  addToSelection(path: string): void {
+    this.state.selectedPaths.add(path);
+    this.state.lastClickedPath = path;
+    this.saveState();
+    this.notifyListeners();
+  }
+
+  /** Remove path from multi-selection */
+  removeFromSelection(path: string): void {
+    this.state.selectedPaths.delete(path);
+    this.saveState();
+    this.notifyListeners();
+  }
+
+  /** Toggle path in multi-selection */
+  toggleSelection(path: string): void {
+    if (this.state.selectedPaths.has(path)) {
+      this.state.selectedPaths.delete(path);
+    } else {
+      this.state.selectedPaths.add(path);
+    }
+    this.state.lastClickedPath = path;
+    this.saveState();
+    this.notifyListeners();
+  }
+
+  /** Get all selected paths */
+  getSelectedPaths(): Set<string> {
+    return new Set(this.state.selectedPaths);
+  }
+
+  /** Set multiple selected paths (replaces current selection) */
+  setSelectedPaths(paths: string[]): void {
+    this.state.selectedPaths = new Set(paths);
+    this.saveState();
+    this.notifyListeners();
+  }
+
+  /** Clear all multi-selection */
+  clearSelection(): void {
+    this.state.selectedPaths.clear();
+    this.state.selectedPath = null;
+    this.state.lastClickedPath = null;
+    this.saveState();
+    this.notifyListeners();
+  }
+
+  /** Get last clicked path for shift-click range selection */
+  getLastClickedPath(): string | null {
+    return this.state.lastClickedPath;
+  }
+
+  /** Set last clicked path */
+  setLastClickedPath(path: string | null): void {
+    this.state.lastClickedPath = path;
+  }
+
+  /** Select single item (clears multi-selection and sets single selection) */
+  selectSingle(path: string): void {
+    this.state.selectedPaths.clear();
+    this.state.selectedPaths.add(path);
+    this.state.selectedPath = path;
+    this.state.lastClickedPath = path;
+    this.saveState();
+    this.notifyListeners();
+  }
+
+  // ===== End Multi-Selection Methods =====
 
   /** Update scroll position */
   setScrollTop(scrollTop: number): void {
@@ -245,6 +330,7 @@ export class TreeStateManager {
     this.state = {
       expandedPaths: new Set(),
       selectedPath: null,
+      selectedPaths: new Set(),
       targetPaths: new Set(),
       scrollTop: 0,
       focusPathPerMode: {
@@ -254,6 +340,7 @@ export class TreeStateManager {
         scholar: null,
         all: null,
       },
+      lastClickedPath: null,
     };
     localStorage.removeItem(this.projectKey);
     this.notifyListeners();

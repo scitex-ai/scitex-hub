@@ -15,12 +15,12 @@ import {
     UIManager,
     DataTabManager,
     CanvasTabManager,
+    FigureDropHandler,
+    SciTeXEditor,
+    PlotGallery,
 } from '../vis/index.js';
 
 import { setupGraphOperations } from './graph.js';
-import { setupLayoutAlgorithms } from './layout.js';
-import { setupInteractionHandlers } from './interactions.js';
-import { setupExportFunctionality } from './export.js';
 
 /**
  * SigmaEditor - Coordinator class that manages all editor components
@@ -34,6 +34,11 @@ export class SigmaEditor {
     private uiManager!: UIManager;
     private dataTabManager!: DataTabManager;
     private canvasTabManager!: CanvasTabManager;
+
+    // SciTeX integration
+    private figureDropHandler!: FigureDropHandler;
+    private scitexEditor!: SciTeXEditor;
+    private plotGallery!: PlotGallery;
 
     // Plot-related state
     private currentPlot: any = null;
@@ -173,6 +178,17 @@ export class SigmaEditor {
         this.rulersManager.initializeRulers();
         this.rulersManager.setupRulerDragging();
 
+        // Initialize FigureDropHandler with CanvasManager
+        this.figureDropHandler = new FigureDropHandler({
+            canvasSelector: '#canvas-container',
+            dataTableSelector: '.data-table-container',
+            canvasManager: this.canvasManager,
+            onCsvLoad: (data: string[][]) => {
+                console.log('[SigmaEditor] CSV loaded via drop:', data.length, 'rows');
+                // TODO: Load into data table
+            },
+        });
+
         setTimeout(() => {
             this.canvasManager.zoomToFit();
             this.updateRulersAreaTransform();
@@ -191,6 +207,10 @@ export class SigmaEditor {
         this.uiManager.setPropertiesManager(this.propertiesManager);
         this.uiManager.setDataTableManager(this.dataTableManager);
         this.uiManager.initializeTreeManager();
+
+        // Initialize PlotGallery for thumbnail dropdowns
+        this.initializePlotGallery();
+
         this.updateStatusBar('Ready');
 
         const phase4End = performance.now();
@@ -257,6 +277,57 @@ export class SigmaEditor {
     public updateCanvasTheme(isDark: boolean): void {
         this.canvasManager.updateCanvasTheme(isDark);
         this.rulersManager.updateRulerTheme(isDark);
+    }
+
+    /**
+     * Initialize PlotGallery and attach to plot type buttons
+     */
+    private initializePlotGallery(): void {
+        this.plotGallery = new PlotGallery({
+            onSelect: async (plot, gallery) => {
+                console.log(`[SigmaEditor] Plot selected: ${plot.name} from ${gallery.name}`);
+                this.updateStatusBar(`Loading template: ${plot.name}...`);
+
+                // Try to load the template and add to canvas
+                const plotId = plot.id.split('_').slice(1).join('_');
+                const thumbnailUrl = `/vis/api/gallery/${gallery.id}/${plotId}/thumbnail/?format=binary`;
+
+                try {
+                    await this.canvasManager.addImage(thumbnailUrl, {
+                        scaleToFit: true,
+                        name: plot.name,
+                    });
+                    this.updateStatusBar(`Added: ${plot.name}`);
+                } catch (err) {
+                    console.error('[SigmaEditor] Failed to add plot thumbnail:', err);
+                    this.updateStatusBar(`Failed to add: ${plot.name}`);
+                }
+            }
+        });
+
+        // Attach gallery dropdowns to plot type buttons
+        const plotTypeButtons = document.querySelectorAll('.pane-header-btn[data-plot-type]');
+        plotTypeButtons.forEach((btn) => {
+            const plotType = (btn as HTMLElement).dataset.plotType;
+            if (plotType) {
+                // Map button plot types to gallery categories
+                const categoryMap: Record<string, string> = {
+                    'scatter': 'scatter',
+                    'line': 'line',
+                    'bar': 'bar',
+                    'histogram': 'distribution',
+                    'box': 'statistical',
+                    '3d': 'other',
+                    'contour': 'contour',
+                    'heatmap': 'heatmap',
+                };
+                const category = categoryMap[plotType] || 'all';
+                this.plotGallery.attachToButton(btn as HTMLElement, category);
+                console.log(`[SigmaEditor] Attached gallery to ${plotType} button (category: ${category})`);
+            }
+        });
+
+        console.log('[SigmaEditor] PlotGallery initialized and attached to buttons');
     }
 
     /**

@@ -19,3 +19,8 @@ export { PlotDataManager } from './PlotDataManager.js';
 // UI modules
 export { DataTabManager } from './ui/DataTabManager.js';
 export { CanvasTabManager } from './ui/CanvasTabManager.js';
+
+// SciTeX integration modules
+export { SciTeXEditor } from './SciTeXEditor.js';
+export { FigureDropHandler } from './FigureDropHandler.js';
+export { PlotGallery } from './PlotGallery.js';

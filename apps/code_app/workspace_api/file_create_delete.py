@@ -69,19 +69,8 @@ def api_create_file(request):
         with open(file_full_path, "w", encoding="utf-8") as f:
             f.write(content)
 
-        # Git auto-commit (only for local projects)
-        if project.project_type == 'local':
-            try:
-                from apps.project_app.services.git_service import auto_commit_file
-
-                commit_message = f"Code: Created {Path(file_path).name}"
-                auto_commit_file(
-                    project_dir=project_path,
-                    filepath=file_path,
-                    message=commit_message,
-                )
-            except Exception as e:
-                logger.warning(f"Git commit failed (non-critical): {e}")
+        # Auto-commit disabled - users should commit manually when ready
+        # New files will show as "untracked" in git gutter
 
         return JsonResponse({
             "success": True,
@@ -145,19 +134,8 @@ def api_delete_file(request):
         else:
             file_full_path.unlink()
 
-        # Git auto-commit (only for local projects)
-        if project.project_type == 'local':
-            try:
-                from apps.project_app.services.git_service import auto_commit_file
-
-                commit_message = f"Code: Deleted {Path(file_path).name}"
-                auto_commit_file(
-                    project_dir=project_path,
-                    filepath=file_path,
-                    message=commit_message,
-                )
-            except Exception as e:
-                logger.warning(f"Git commit failed (non-critical): {e}")
+        # Auto-commit disabled - users should commit manually when ready
+        # Deleted files will show with strike-through in git gutter until committed
 
         return JsonResponse({
             "success": True,

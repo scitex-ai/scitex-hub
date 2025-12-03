@@ -34,6 +34,7 @@ source /app/deployment/docker/common/lib/logging.src
 source /app/deployment/docker/common/lib/database.src
 source /app/deployment/docker/common/lib/django.src
 source /app/deployment/docker/common/lib/scitex.src
+source /app/deployment/docker/common/lib/slurm.src
 
 MIGRATION_SENTINEL="/app/logs/.migrations_done"
 
@@ -42,6 +43,11 @@ if [ -f "$MIGRATION_SENTINEL" ]; then
 else
     echo "🔧 Development Environment (first start)"
 fi
+
+# ============================================
+# Sync SLURM UID with Host (Required for Terminal)
+# ============================================
+sync_slurm_uid || echo_warning "SLURM UID sync skipped - terminal may have issues"
 
 # ============================================
 # Install SciTeX in Editable Mode (Optional)

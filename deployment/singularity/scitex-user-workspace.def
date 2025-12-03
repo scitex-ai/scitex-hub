@@ -42,7 +42,18 @@ From: python:3.11-slim
         unzip \
         bzip2 \
         ca-certificates \
+        fontconfig \
         && rm -rf /var/lib/apt/lists/*
+
+    # Install Microsoft core fonts (Arial, Times New Roman, etc.) for scientific figures
+    echo "Installing Microsoft core fonts..."
+    sed -i 's/main/main contrib/g' /etc/apt/sources.list.d/debian.sources 2>/dev/null || \
+        sed -i 's/main$/main contrib/' /etc/apt/sources.list
+    apt-get update
+    echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ttf-mscorefonts-installer
+    fc-cache -fv
+    rm -rf /var/lib/apt/lists/*
 
     echo "Installing Python packages..."
     # Upgrade pip
@@ -78,6 +89,11 @@ From: python:3.11-slim
     # Install SciTeX with full extras from PyPI (latest version)
     echo "Installing SciTeX platform (full version, ~2-5 GB)..."
     pip install --no-cache-dir 'scitex[dl,ml,jupyter,neuro,web,scholar,writer]'
+
+    # Clear matplotlib font cache so it discovers new fonts
+    echo "Refreshing matplotlib font cache..."
+    python -c "import matplotlib.font_manager; matplotlib.font_manager._rebuild()" 2>/dev/null || true
+    rm -rf /root/.cache/matplotlib 2>/dev/null || true
 
     # Create workspace directory
     echo "Setting up workspace..."
@@ -122,6 +138,16 @@ From: python:3.11-slim
 
     echo "Testing installed packages..."
     python -c "import numpy, pandas, matplotlib; print('Core packages OK')"
+
+    echo "Testing Arial font availability..."
+    python -c "
+import matplotlib.font_manager as fm
+fonts = [f.name for f in fm.fontManager.ttflist]
+if 'Arial' in fonts:
+    print('Arial font OK')
+else:
+    print('WARNING: Arial font not found, available fonts:', sorted(set(fonts))[:10])
+"
 
     echo "Testing workspace..."
     ls -la /workspace

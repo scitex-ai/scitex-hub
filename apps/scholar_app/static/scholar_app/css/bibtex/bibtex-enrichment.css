@@ -81,7 +81,7 @@
     text-align: center;
     cursor: pointer;
     transition: all 0.2s ease;
-    background: var(--workspace-bg-monaco, #1e1e1e);  /* Match Monaco editor background */
+    background: var(--workspace-bg-monaco);  /* Uses CSS variable for theme support */
     position: relative;
     flex: 1;
     display: flex;
@@ -93,7 +93,7 @@
 
 .bibtex-dropzone:hover {
     border-color: var(--workspace-icon-hover, #7eb8aa);
-    background: var(--workspace-bg-tertiary, #1a1a1a);
+    background: var(--workspace-bg-tertiary);
 }
 
 .bibtex-dropzone.dragover {
@@ -532,11 +532,6 @@
 [data-theme="light"] .bibtex-tile {
     background: #ffffff;
     border-color: #d0d7de;
-}
-
-[data-theme="light"] .bibtex-dropzone {
-    background: var(--workspace-bg-monaco, #ffffff);  /* Match Monaco editor background */
-    border-color: var(--status-success, #2ea043);
 }
 
 [data-theme="light"] .bibtex-save-path {

@@ -7,7 +7,7 @@
     <!-- Hero gradients CSS -->
     <link rel="stylesheet" href="{% static 'shared/css/components/hero.css' %}" />
     <!-- Workspace files tree CSS -->
-    <link rel="stylesheet" href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251130b" />
+    <link rel="stylesheet" href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d" />
     <!-- Panel resizer CSS -->
     <link rel="stylesheet" href="{% static 'shared/css/components/panel-resizer.css' %}" />
     <!-- App-specific CSS - Modular common styles -->
@@ -142,7 +142,7 @@
 {% block extra_js %}
     {{ block.super }}
     <!-- Panel resizer manager -->
-    <script src="{% static 'scholar_app/js/scholar-resizer-manager.js' %}"></script>
+    <script type="module" src="{% static 'scholar_app/js/shared/panel-resizer.js' %}"></script>
     {% if current_project %}
     <script type="module">
         // Initialize WorkspaceFilesTree for scholar mode
@@ -155,7 +155,7 @@
                 username: '{{ current_project.owner.username }}',
                 slug: '{{ current_project.slug }}',
                 showFolderActions: true,
-                showGitStatus: false,
+                showGitStatus: true,
                 onFileSelect: (path, item) => {
                     console.log('[Scholar] File selected:', path);
                     // Handle file selection - e.g., open PDF viewer, load BibTeX

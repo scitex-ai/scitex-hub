@@ -59,6 +59,8 @@ services:
       - /etc/munge:/etc/munge:ro
       - /run/munge:/run/munge
       - /var/log/slurm:/var/log/slurm
+      # Mount host passwd for SLURM UID synchronization (prevents "Security violation" errors)
+      - /etc/passwd:/host/etc/passwd:ro
 
       # Explicitly exclude generated files from host mount (performance)
       - /app/staticfiles

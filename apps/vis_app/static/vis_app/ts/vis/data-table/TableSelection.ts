@@ -181,7 +181,7 @@ export class TableSelection {
     /**
      * Update visual selection
      */
-    private updateSelection(): void {
+    public updateSelection(): void {
         if (!this.selectionStart || !this.selectionEnd) return;
 
         // Clear previous selection
@@ -336,11 +336,17 @@ export class TableSelection {
      * Get selection state (for external use)
      */
     public getSelectionState(): {
+        start: { row: number, col: number } | null,
+        end: { row: number, col: number } | null,
+        selectedCell: HTMLElement | null,
         selectionStart: { row: number, col: number } | null,
         selectionEnd: { row: number, col: number } | null,
         isSelecting: boolean
     } {
         return {
+            start: this.selectionStart,
+            end: this.selectionEnd,
+            selectedCell: this.selectedCell,
             selectionStart: this.selectionStart,
             selectionEnd: this.selectionEnd,
             isSelecting: this.isSelecting

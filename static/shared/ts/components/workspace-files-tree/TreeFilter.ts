@@ -37,11 +37,13 @@ export class TreeFilter {
 
   /** Check if a file/folder should be hidden completely */
   isHidden(item: TreeItem): boolean {
-    const { name, path, type } = item;
+    const { name, type } = item;
 
     // ============================================
-    // FILTERING CRITERIA (Systematic Order)
+    // FILTERING CRITERIA - MINIMAL HIDING
     // ============================================
+    // With the new inactive/gray approach, we show almost everything.
+    // Only truly system files that add noise are hidden.
 
     // 0. ALWAYS VISIBLE FILES (highest priority - bypasses all filtering)
     //    Files like .gitkeep should always be shown
@@ -49,21 +51,46 @@ export class TreeFilter {
       return false;
     }
 
-    // 1. DIRECTORY WHITELIST (allowed directories)
-    //    If path is not within allowed directories, hide it
-    if (!this.isWithinAllowedDirectories(path)) {
+    // 1. Hide only system noise files (not directories)
+    //    .DS_Store, Thumbs.db, etc. - these have no value to show
+    const systemNoiseFiles = ['.DS_Store', 'Thumbs.db'];
+    if (type === 'file' && systemNoiseFiles.includes(name)) {
       return true;
     }
 
-    // 2. DIRECTORY BLACKLIST (hidden folders)
-    //    Common system folders to hide
+    // 2. DIRECTORY BLACKLIST - NO LONGER HIDES, just marks as inactive
+    //    Items in blacklist directories are now shown but grayed out
+    //    (handled by isInactive() method instead)
+
+    // 3. DIRECTORY WHITELIST - NO LONGER HIDES, just marks as inactive
+    //    Items outside allowed directories are shown but grayed out
+    //    (handled by isInactive() method instead)
+
+    // Everything else is shown (may be inactive/grayed but visible)
+    return false;
+  }
+
+  /** Check if a file/folder should be shown as inactive (grayed out) */
+  isInactive(item: TreeItem): boolean {
+    const { name, path, type } = item;
+
+    // 1. Items in blacklisted directories are shown but inactive
     for (const pattern of this.config.hiddenPatterns) {
-      if (name === pattern || path.includes(pattern)) {
+      if (name === pattern || path.includes(`/${pattern}/`) || path.includes(`/${pattern}`)) {
         return true;
       }
     }
 
-    // Files pass through (extension filtering done separately)
+    // 2. Items outside allowed directories are shown but inactive
+    if (!this.isWithinAllowedDirectories(path)) {
+      return true;
+    }
+
+    // 3. Files with non-allowed extensions are shown but inactive
+    if (type === 'file' && !this.isAllowed(item)) {
+      return true;
+    }
+
     return false;
   }
 
@@ -172,13 +199,7 @@ export class TreeFilter {
   filterTree(items: TreeItem[]): TreeItem[] {
     return items
       .filter((item) => !this.isHidden(item))
-      .filter((item) => {
-        // Apply extension filtering for files (not directories)
-        if (item.type === 'file') {
-          return this.isAllowed(item);
-        }
-        return true; // Keep all directories for now
-      })
+      // No longer filter by extension - show all files, mark non-allowed as inactive
       .map((item) => {
         if (item.type === 'directory' && item.children) {
           return {
@@ -189,11 +210,21 @@ export class TreeFilter {
         return item;
       })
       // Remove empty directories after filtering children
-      // UNLESS they are in PRESERVE_EMPTY_DIRECTORIES or match ALLOW_DIRECTORIES
+      // Keep inactive directories visible for consistent mental model
       .filter((item) => {
         if (item.type === 'directory' && item.children) {
           // Always keep if has children
           if (item.children.length > 0) {
+            return true;
+          }
+
+          // Keep inactive directories visible (grayed out but shown)
+          if (this.isInactive(item)) {
+            return true;
+          }
+
+          // In 'code' and 'all' modes, preserve all empty directories (user may create empty dirs)
+          if (this.config.mode === 'code' || this.config.mode === 'all') {
             return true;
           }
 

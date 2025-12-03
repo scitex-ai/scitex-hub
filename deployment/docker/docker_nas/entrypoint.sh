@@ -10,8 +10,14 @@ source /app/deployment/docker/common/lib/logging.src
 source /app/deployment/docker/common/lib/database.src
 source /app/deployment/docker/common/lib/django.src
 source /app/deployment/docker/common/lib/scitex.src
+source /app/deployment/docker/common/lib/slurm.src
 
 echo "🏭 NAS Environment"
+
+# ============================================
+# Sync SLURM UID with Host (Required for Terminal)
+# ============================================
+sync_slurm_uid || echo_warning "SLURM UID sync skipped - terminal may have issues"
 
 # ============================================
 # Verify SciTeX from PyPI

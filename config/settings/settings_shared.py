@@ -143,6 +143,13 @@ THIRD_PARTY_APPS = [
     # Celery (async task queue with fair scheduling)
     "django_celery_results",
     "django_celery_beat",
+    # Social authentication (Google, ORCID)
+    "django.contrib.sites",  # Required by allauth
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
+    "allauth.socialaccount.providers.orcid",
 ]
 
 # This installs all the apps (./apps/*_app)
@@ -157,11 +164,22 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "allauth.account.middleware.AccountMiddleware",  # Required by django-allauth
     "apps.project_app.middleware.VisitorAutoLoginMiddleware",  # Auto-login visitors from any page
     "apps.project_app.middleware.VisitorExpirationMiddleware",  # Redirect expired visitors to expiration page
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.project_app.middleware.GuestSessionMiddleware",
+]
+
+# ---------------------------------------
+# Authentication Backends
+# ---------------------------------------
+AUTHENTICATION_BACKENDS = [
+    # Django default authentication
+    "django.contrib.auth.backends.ModelBackend",
+    # django-allauth authentication (for social login)
+    "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
 WSGI_APPLICATION = "config.wsgi.application"
@@ -537,12 +555,64 @@ LOGGING = {
 # ---------------------------------------
 # Integration
 # ---------------------------------------
-# ORCID OAuth
+# ORCID OAuth (legacy - for profile linking)
 ORCID_CLIENT_ID = os.getenv("ORCID_CLIENT_ID", "")
 ORCID_CLIENT_SECRET = os.getenv("ORCID_CLIENT_SECRET", "")
 ORCID_REDIRECT_URI = os.getenv(
     "ORCID_REDIRECT_URI", "http://localhost:8000/integrations/orcid/callback/"
 )
+
+# ---------------------------------------
+# Django-Allauth Settings (Social Login)
+# ---------------------------------------
+# Required for django-allauth
+SITE_ID = 1
+
+# Allauth account settings
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+ACCOUNT_LOGOUT_ON_GET = True
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = True
+ACCOUNT_AUTHENTICATION_METHOD = "username_email"
+ACCOUNT_EMAIL_VERIFICATION = "optional"  # or "mandatory" for stricter verification
+ACCOUNT_SIGNUP_REDIRECT_URL = LOGIN_REDIRECT_URL
+ACCOUNT_LOGOUT_REDIRECT_URL = LOGOUT_REDIRECT_URL
+
+# Social account settings
+SOCIALACCOUNT_AUTO_SIGNUP = True  # Auto-create account on first social login
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True  # Allow login via email if account exists
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True  # Auto-connect social to existing account
+SOCIALACCOUNT_LOGIN_ON_GET = True  # Allow GET requests for social login (for buttons)
+SOCIALACCOUNT_QUERY_EMAIL = True  # Request email from providers
+
+# Provider-specific settings
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "SCOPE": [
+            "profile",
+            "email",
+        ],
+        "AUTH_PARAMS": {
+            "access_type": "online",
+        },
+        "OAUTH_PKCE_ENABLED": True,
+        "FETCH_USERINFO": True,
+    },
+    "orcid": {
+        # Use sandbox.orcid.org for development, orcid.org for production
+        "BASE_DOMAIN": os.getenv("ORCID_BASE_DOMAIN", "sandbox.orcid.org"),
+        "MEMBER_API": False,  # Set True if you have ORCID member API access
+    },
+}
+
+# Google OAuth credentials (from environment)
+GOOGLE_CLIENT_ID = os.getenv("SCITEX_GOOGLE_CLIENT_ID", "")
+GOOGLE_CLIENT_SECRET = os.getenv("SCITEX_GOOGLE_CLIENT_SECRET", "")
+
+# Custom adapters for SciTeX-specific user handling
+ACCOUNT_ADAPTER = "apps.auth_app.adapters.SciTexAccountAdapter"
+SOCIALACCOUNT_ADAPTER = "apps.auth_app.adapters.SciTexSocialAccountAdapter"
 
 # ---------------------------------------
 # SciTeX Scholar Search Settings

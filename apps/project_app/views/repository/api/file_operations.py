@@ -47,20 +47,12 @@ def _validate_path(project_path, file_path):
 
 
 def _git_auto_commit(project, project_path, file_path, action):
-    """Auto-commit changes to git if project is local."""
-    if project.project_type != 'local':
-        return
+    """Auto-commit disabled - users should commit manually when ready.
 
-    try:
-        from apps.project_app.services.git_service import auto_commit_file
-        commit_message = f"Tree: {action} {Path(file_path).name}"
-        auto_commit_file(
-            project_dir=project_path,
-            filepath=file_path,
-            message=commit_message,
-        )
-    except Exception as e:
-        logger.warning(f"Git commit failed (non-critical): {e}")
+    This function is kept as a no-op for backward compatibility.
+    Git tracks changes but doesn't auto-commit, so git gutter shows modifications.
+    """
+    pass  # Auto-commit disabled
 
 
 @require_http_methods(["POST"])
@@ -274,6 +266,225 @@ def api_file_copy(request, username, slug):
         return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
     except Exception as e:
         logger.error(f"Error copying file: {e}", exc_info=True)
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
+
+
+@require_http_methods(["POST"])
+def api_file_move(request, username, slug):
+    """Move a file or directory to a new location.
+
+    For symlinks: recalculates the relative path to maintain the link target.
+    """
+    import os
+
+    try:
+        user = get_object_or_404(User, username=username)
+        project = get_object_or_404(Project, slug=slug, owner=user)
+
+        if not check_project_write_access(request, project):
+            return JsonResponse({"success": False, "error": "Permission denied"}, status=403)
+
+        data = json.loads(request.body)
+        source_path = data.get("source_path", "").strip()
+        dest_path = data.get("dest_path", "").strip()
+
+        if not source_path or not dest_path:
+            return JsonResponse({"success": False, "error": "source_path and dest_path are required"}, status=400)
+
+        project_path = _get_project_path(project)
+        if not project_path or not project_path.exists():
+            return JsonResponse({"success": False, "error": "Project directory not found"}, status=404)
+
+        source_full = _validate_path(project_path, source_path)
+        dest_full = _validate_path(project_path, dest_path)
+
+        if not source_full or not dest_full:
+            return JsonResponse({"success": False, "error": "Invalid path"}, status=400)
+
+        if not source_full.exists() and not source_full.is_symlink():
+            return JsonResponse({"success": False, "error": "Source not found"}, status=404)
+
+        if dest_full.exists():
+            return JsonResponse({"success": False, "error": "Destination already exists"}, status=400)
+
+        # Prevent moving into itself
+        if str(dest_full).startswith(str(source_full) + "/"):
+            return JsonResponse({"success": False, "error": "Cannot move into itself"}, status=400)
+
+        # Handle symlinks specially - recalculate relative path
+        if source_full.is_symlink():
+            # Get the absolute target of the symlink
+            link_target = source_full.resolve()
+
+            # Create parent directories for destination
+            dest_full.parent.mkdir(parents=True, exist_ok=True)
+
+            # Calculate new relative path from destination to target
+            try:
+                new_relative = os.path.relpath(link_target, dest_full.parent)
+            except ValueError:
+                return JsonResponse(
+                    {"success": False, "error": "Cannot create relative path to symlink target"},
+                    status=400
+                )
+
+            # Remove old symlink and create new one
+            source_full.unlink()
+            dest_full.symlink_to(new_relative)
+
+            logger.info(f"Moved symlink: {source_path} -> {dest_path} (target: {new_relative})")
+        else:
+            # Regular move for non-symlinks
+            dest_full.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(source_full), str(dest_full))
+
+        _git_auto_commit(project, project_path, dest_path, "Moved")
+
+        return JsonResponse({
+            "success": True,
+            "message": "Moved successfully",
+            "source_path": source_path,
+            "dest_path": dest_path,
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
+    except Exception as e:
+        logger.error(f"Error moving file: {e}", exc_info=True)
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
+
+
+@require_http_methods(["POST"])
+def api_file_upload(request, username, slug):
+    """Upload a file to the project."""
+    try:
+        user = get_object_or_404(User, username=username)
+        project = get_object_or_404(Project, slug=slug, owner=user)
+
+        if not check_project_write_access(request, project):
+            return JsonResponse({"success": False, "error": "Permission denied"}, status=403)
+
+        uploaded_file = request.FILES.get("file")
+        file_path = request.POST.get("path", "").strip()
+
+        if not uploaded_file:
+            return JsonResponse({"success": False, "error": "No file uploaded"}, status=400)
+
+        if not file_path:
+            file_path = uploaded_file.name
+
+        project_path = _get_project_path(project)
+        if not project_path or not project_path.exists():
+            return JsonResponse({"success": False, "error": "Project directory not found"}, status=404)
+
+        dest_full = _validate_path(project_path, file_path)
+        if not dest_full:
+            return JsonResponse({"success": False, "error": "Invalid path"}, status=400)
+
+        # Create parent directories if needed
+        dest_full.parent.mkdir(parents=True, exist_ok=True)
+
+        # Write the file
+        with open(dest_full, "wb") as f:
+            for chunk in uploaded_file.chunks():
+                f.write(chunk)
+
+        _git_auto_commit(project, project_path, file_path, "Uploaded")
+
+        return JsonResponse({
+            "success": True,
+            "message": "File uploaded successfully",
+            "path": file_path,
+            "size": uploaded_file.size,
+        })
+
+    except Exception as e:
+        logger.error(f"Error uploading file: {e}", exc_info=True)
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
+
+
+@require_http_methods(["POST"])
+def api_file_upload_url(request, username, slug):
+    """Download a file from URL and save to project.
+
+    Useful for dragging images from web pages or Office products.
+    """
+    import requests
+    import mimetypes
+
+    try:
+        user = get_object_or_404(User, username=username)
+        project = get_object_or_404(Project, slug=slug, owner=user)
+
+        if not check_project_write_access(request, project):
+            return JsonResponse({"success": False, "error": "Permission denied"}, status=403)
+
+        data = json.loads(request.body)
+        url = data.get("url", "").strip()
+        file_path = data.get("path", "").strip()
+
+        if not url:
+            return JsonResponse({"success": False, "error": "URL is required"}, status=400)
+
+        # Security: only allow http/https
+        if not url.startswith(('http://', 'https://')):
+            return JsonResponse({"success": False, "error": "Invalid URL scheme"}, status=400)
+
+        project_path = _get_project_path(project)
+        if not project_path or not project_path.exists():
+            return JsonResponse({"success": False, "error": "Project directory not found"}, status=404)
+
+        # Download the file
+        try:
+            resp = requests.get(url, timeout=30, stream=True, headers={
+                'User-Agent': 'Mozilla/5.0 (compatible; SciTeX/1.0)'
+            })
+            resp.raise_for_status()
+        except requests.RequestException as e:
+            return JsonResponse({"success": False, "error": f"Failed to download: {str(e)}"}, status=400)
+
+        # Determine filename if not provided
+        if not file_path:
+            # Try to get from Content-Disposition header
+            cd = resp.headers.get('Content-Disposition', '')
+            if 'filename=' in cd:
+                file_path = cd.split('filename=')[-1].strip('"\'')
+            else:
+                # Extract from URL
+                file_path = url.split('/')[-1].split('?')[0] or 'download'
+
+            # Add extension based on content type if missing
+            if '.' not in file_path:
+                content_type = resp.headers.get('Content-Type', '').split(';')[0]
+                ext = mimetypes.guess_extension(content_type) or '.bin'
+                file_path += ext
+
+        dest_full = _validate_path(project_path, file_path)
+        if not dest_full:
+            return JsonResponse({"success": False, "error": "Invalid path"}, status=400)
+
+        # Create parent directories if needed
+        dest_full.parent.mkdir(parents=True, exist_ok=True)
+
+        # Write the file
+        with open(dest_full, "wb") as f:
+            for chunk in resp.iter_content(chunk_size=8192):
+                f.write(chunk)
+
+        file_size = dest_full.stat().st_size
+        _git_auto_commit(project, project_path, file_path, "Downloaded")
+
+        return JsonResponse({
+            "success": True,
+            "message": "File downloaded successfully",
+            "path": file_path,
+            "size": file_size,
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
+    except Exception as e:
+        logger.error(f"Error downloading file from URL: {e}", exc_info=True)
         return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 

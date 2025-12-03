@@ -6,8 +6,6 @@
   flex-direction: column;
   background: var(--code-toolbar-bg);
   border-left: 1px solid var(--code-border);
-  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
-  margin-bottom: 1px;
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.05);
   overflow: hidden; /* Prevent content overflow */
   min-height: 0; /* Allow proper flex sizing */

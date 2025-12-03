@@ -1,13 +1,12 @@
-/* ASTA Tooltip Component - Responsive Colors */
+/* ASTA Tooltip Component - Using Monaco/Terminal Background */
 
 .asta-tooltip-container {
-    background: var(--color-canvas-subtle, var(--workspace-bg-secondary));
+    background: var(--workspace-bg-monaco, var(--terminal-bg, #1e1e1e));
+    border: 1px solid var(--workspace-border-default, #3a3a3a);
     border-left: 4px solid var(--scitex-color-03, var(--workspace-icon-primary));
     border-radius: 0;
     padding: 1rem 1.25rem;
-    margin: 1.25rem;  /* Uniform margins on all sides */
-    border: 1px solid var(--color-border-default);
-    border-left: 4px solid var(--scitex-color-03, var(--workspace-icon-primary));
+    margin: 1.25rem;
 }
 
 .asta-tooltip-content {
@@ -26,7 +25,7 @@
 }
 
 .asta-tooltip-title {
-    color: var(--color-fg-default, var(--text-primary));
+    color: var(--text-primary, #d4e1e8);
     font-weight: 600;
     margin-bottom: 0.5rem;
     font-size: 0.95rem;
@@ -36,7 +35,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    color: var(--color-fg-muted, var(--text-muted));
+    color: var(--text-muted, #6c8ba0);
     font-size: 0.9rem;
 }
 
@@ -61,9 +60,9 @@
 .asta-tooltip-footer {
     margin-top: 0.75rem;
     padding-top: 0.75rem;
-    border-top: 1px solid var(--color-border-default);
+    border-top: 1px solid var(--workspace-border-default, #3a3a3a);
     font-size: 0.85rem;
-    color: var(--color-fg-muted, var(--text-muted));
+    color: var(--text-muted, #6c8ba0);
 }
 
 .asta-tooltip-footer a {

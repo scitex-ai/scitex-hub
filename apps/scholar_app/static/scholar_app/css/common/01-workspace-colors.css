@@ -94,14 +94,14 @@ body.scholar-page .bibtex-tile__content {
 }
 
 body.scholar-page .bibtex-dropzone {
-  background: #1e1e1e !important;
-  border-color: var(--color-border-default) !important;
-  border-radius: 0 !important;
+  background: var(--workspace-bg-monaco);
+  border-color: var(--color-border-default);
+  border-radius: 0;
 }
 
 body.scholar-page .bibtex-dropzone:hover {
-  background: var(--workspace-bg-tertiary, var(--color-canvas-inset)) !important;
-  border-color: var(--scitex-color-03, var(--workspace-icon-primary)) !important;
+  background: var(--workspace-bg-tertiary);
+  border-color: var(--scitex-color-03, var(--workspace-icon-primary));
 }
 
 body.scholar-page .bibtex-status-item {
@@ -146,4 +146,15 @@ body.scholar-page .scholar-main .pane-content {
   padding: 0 !important;
   margin: 0 !important;
   background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
+}
+
+/* ===============================================
+   LIGHT THEME OVERRIDES
+   data-theme is set on <html> element
+   =============================================== */
+
+:root[data-theme="light"] body.scholar-page .scholar-sidebar .sidebar-content,
+:root[data-theme="light"] body.scholar-page .scholar-sidebar #file-tree,
+:root[data-theme="light"] body.scholar-page .scholar-properties .properties-content {
+  background: #ffffff !important;
 }

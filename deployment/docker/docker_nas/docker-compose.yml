@@ -38,6 +38,8 @@ services:
       - /etc/munge:/etc/munge:ro
       - /run/munge:/run/munge
       - /var/log/slurm:/var/log/slurm
+      # Mount host passwd for SLURM UID synchronization (prevents "Security violation" errors)
+      - /etc/passwd:/host/etc/passwd:ro
 
     ports:
       - "${SCITEX_CLOUD_SSH_PORT_NAS:-2200}:2200"  # SSH gateway for user workspaces
@@ -136,6 +138,8 @@ services:
       - /etc/munge:/etc/munge:ro
       - /run/munge:/run/munge
       - /var/log/slurm:/var/log/slurm
+      # Mount host passwd for SLURM UID synchronization
+      - /etc/passwd:/host/etc/passwd:ro
 
     env_file:
       - .env

@@ -26,11 +26,23 @@ from ..views.api import (
 )
 from ..views.repository.api import (
     api_git_status,
+    api_git_stage,
+    api_git_unstage,
+    api_git_discard,
+    api_git_commit,
+    api_git_history,
+    api_git_diff,
+    api_git_stage_all,
+    api_git_unstage_all,
     api_initialize_scitex_structure,
     api_file_create,
     api_file_delete,
     api_file_rename,
     api_file_copy,
+    api_file_move,
+    api_file_upload,
+    api_file_upload_url,
+    api_create_symlink,
 )
 
 # Note: slug and username are passed via kwargs from parent URL pattern
@@ -43,6 +55,15 @@ urlpatterns = [
     path("api/file-tree/", api_file_tree, name="api_file_tree"),
     # API endpoint for git status (git gutter indicators)
     path("api/git/status/", api_git_status, name="api_git_status"),
+    # Git operations API
+    path("api/git/stage/", api_git_stage, name="api_git_stage"),
+    path("api/git/unstage/", api_git_unstage, name="api_git_unstage"),
+    path("api/git/discard/", api_git_discard, name="api_git_discard"),
+    path("api/git/commit/", api_git_commit, name="api_git_commit"),
+    path("api/git/history/", api_git_history, name="api_git_history"),
+    path("api/git/diff/", api_git_diff, name="api_git_diff"),
+    path("api/git/stage-all/", api_git_stage_all, name="api_git_stage_all"),
+    path("api/git/unstage-all/", api_git_unstage_all, name="api_git_unstage_all"),
     # API endpoint to initialize SciTeX structure (works for both local and remote projects)
     path("api/initialize-scitex/", api_initialize_scitex_structure, name="api_initialize_scitex"),
     # API endpoint to concatenate all files in a directory
@@ -57,6 +78,10 @@ urlpatterns = [
     path("api/files/delete/", api_file_delete, name="api_file_delete"),
     path("api/files/rename/", api_file_rename, name="api_file_rename"),
     path("api/files/copy/", api_file_copy, name="api_file_copy"),
+    path("api/files/move/", api_file_move, name="api_file_move"),
+    path("api/files/upload/", api_file_upload, name="api_file_upload"),
+    path("api/files/upload-url/", api_file_upload_url, name="api_file_upload_url"),
+    path("api/files/symlink/", api_create_symlink, name="api_create_symlink"),
     # File viewer - GitHub-style /blob/ for viewing files
     # /<username>/<slug>/blob/<file-path> - default view
     # /<username>/<slug>/blob/<file-path>?mode=edit - edit mode

@@ -63,22 +63,8 @@ def api_save_file(request):
         with open(file_full_path, "w", encoding="utf-8") as f:
             f.write(content)
 
-        # Git auto-commit (only for local projects)
-        if project.project_type == 'local':
-            try:
-                from apps.project_app.services.git_service import auto_commit_file
-
-                commit_message = f"Code: Updated {Path(file_path).name}"
-                success, output = auto_commit_file(
-                    project_dir=project_path,
-                    filepath=file_path,
-                    message=commit_message,
-                )
-
-                if success:
-                    logger.info(f"✓ Auto-committed: {file_path}")
-            except Exception as e:
-                logger.warning(f"Git commit failed (non-critical): {e}")
+        # Auto-commit disabled - users should commit manually when ready
+        # Git tracks changes but doesn't auto-commit, so git gutter shows modifications
 
         return JsonResponse({
             "success": True,

@@ -21,6 +21,18 @@ from .directory import api_concatenate_directory
 # Git status operations
 from .git_status import api_git_status
 
+# Git operations (stage, unstage, discard, commit, history, diff)
+from .git_operations import (
+    api_git_stage,
+    api_git_unstage,
+    api_git_discard,
+    api_git_commit,
+    api_git_history,
+    api_git_diff,
+    api_git_stage_all,
+    api_git_unstage_all,
+)
+
 # SciTeX initialization
 from .scitex import api_initialize_scitex_structure
 
@@ -30,6 +42,9 @@ from .file_operations import (
     api_file_delete,
     api_file_rename,
     api_file_copy,
+    api_file_move,
+    api_file_upload,
+    api_file_upload_url,
 )
 
 # Repository health management
@@ -59,6 +74,18 @@ __all__ = [
     "api_file_delete",
     "api_file_rename",
     "api_file_copy",
+    "api_file_move",
+    "api_file_upload",
+    "api_file_upload_url",
+    # Git operations
+    "api_git_stage",
+    "api_git_unstage",
+    "api_git_discard",
+    "api_git_commit",
+    "api_git_history",
+    "api_git_diff",
+    "api_git_stage_all",
+    "api_git_unstage_all",
     # Repository health
     "api_repository_health",
     "api_repository_cleanup",
