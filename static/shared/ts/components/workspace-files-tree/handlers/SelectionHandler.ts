@@ -174,7 +174,7 @@ export class SelectionHandler {
   }
 
   /**
-   * Handle click with modifier keys
+   * Handle click with modifier keys (supports both files and directories)
    */
   handleClick(path: string, e: MouseEvent): void {
     const item = TreeUtils.findItem(path, this.getTreeDataFn());
@@ -186,15 +186,15 @@ export class SelectionHandler {
     parentPaths.forEach(p => this.stateManager.expand(p));
 
     if (e.ctrlKey || e.metaKey) {
-      // Ctrl+click: toggle selection
+      // Ctrl+click: toggle selection (works for files and directories)
       this.stateManager.toggleSelection(path);
     } else if (e.shiftKey) {
-      // Shift+click: range selection
+      // Shift+click: range selection (works for files and directories)
       this.selectRange(path);
     } else {
       // Normal click: single selection
       this.stateManager.selectSingle(path);
-      // Also trigger file select callback for the primary selection
+      // Trigger file select callback only for files
       if (item.type === 'file') {
         this.selectFileFn(path);
       }
@@ -253,18 +253,19 @@ export class SelectionHandler {
   }
 
   /**
-   * Programmatically select a file (single selection)
+   * Programmatically select an item (file or directory)
    */
   select(path: string, skipCallback: boolean = false): void {
     const item = TreeUtils.findItem(path, this.getTreeDataFn());
-    if (item && item.type === 'file') {
+    if (item) {
       const parentPaths = TreeUtils.getParentPaths(path);
       const needsExpand = parentPaths.some(p => !this.stateManager.isExpanded(p));
       parentPaths.forEach(p => this.stateManager.expand(p));
 
       this.stateManager.selectSingle(path);
 
-      if (!skipCallback) {
+      // Only trigger file select callback for files
+      if (!skipCallback && item.type === 'file') {
         this.selectFileFn(path);
       }
 
@@ -282,7 +283,7 @@ export class SelectionHandler {
         }
       }, 100);
     } else {
-      console.warn(`[SelectionHandler] File not found: ${path}`);
+      console.warn(`[SelectionHandler] Item not found: ${path}`);
     }
   }
 

@@ -100,14 +100,21 @@ export class EventHandlers {
       // Folder selection (click anywhere on folder row)
       const folderItem = target.closest('.wft-folder[data-path]');
       if (folderItem && !folderItem.classList.contains('disabled')) {
-        // Toggle folder when clicking anywhere on the folder row
         // Exclude clicks on action buttons
         const clickedOnAction = target.closest('.wft-action-btn');
 
         if (!clickedOnAction) {
           e.preventDefault();
           const path = folderItem.getAttribute('data-path')!;
-          this.onToggleFolder(path);
+
+          // Check for multi-selection modifiers (Ctrl/Cmd or Shift)
+          if (e.ctrlKey || e.metaKey || e.shiftKey) {
+            // Multi-selection mode - handle via onSelectFile which routes to SelectionHandler
+            this.onSelectFile(path, e);
+          } else {
+            // Normal click - toggle folder expand/collapse
+            this.onToggleFolder(path);
+          }
         }
       }
     });
