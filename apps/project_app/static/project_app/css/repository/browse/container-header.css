@@ -11,9 +11,19 @@
   padding-left: 1rem;
   padding-right: 1rem;
   margin: 0 auto; /* Center the container */
-  /* Ensure container allows full content height and page scrolling */
-  min-height: auto;
-  overflow: visible;
+  padding-bottom: 2rem; /* Space at bottom for scrolling */
+}
+
+/* Ensure browse pages allow normal page-level scrolling (GitHub-like behavior) */
+body:has(.browse-container) {
+  height: auto !important;
+  max-height: none !important;
+  overflow: auto !important;
+}
+
+body:has(.browse-container) #main-content {
+  overflow: visible !important;
+  display: block !important;
 }
 
 /* GitHub-style repository header - Theme-aware */
