@@ -5,6 +5,7 @@
 
 import { handleDocTypeSwitch, populateSectionDropdownDirect } from "../../../utils/index.js";
 import { getDoctypeFolder } from "./TreeConfiguration.js";
+import { getWriterTreeSync } from "../../sync/index.js";
 
 console.log("[DEBUG] DoctypeChangeHandler.ts loaded");
 
@@ -57,10 +58,18 @@ export function setupDoctypeChangeWithTree(
       );
 
       // Focus on the selected doctype directory (expand it, collapse siblings)
-      const doctypeFolder = getDoctypeFolder(newDocType);
-      if (doctypeFolder && filesTree.focusDirectory) {
-        console.log("[DoctypeChangeHandler] Focusing on doctype folder:", doctypeFolder);
-        filesTree.focusDirectory(doctypeFolder);
+      // Use WriterTreeSync if available for consistent sync behavior
+      const treeSync = getWriterTreeSync();
+      if (treeSync) {
+        console.log("[DoctypeChangeHandler] Using WriterTreeSync to focus on doctype:", newDocType);
+        treeSync.syncTreeFromDoctype(newDocType);
+      } else {
+        // Fallback to direct tree method
+        const doctypeFolder = getDoctypeFolder(newDocType);
+        if (doctypeFolder && filesTree.focusDirectory) {
+          console.log("[DoctypeChangeHandler] Focusing on doctype folder:", doctypeFolder);
+          filesTree.focusDirectory(doctypeFolder);
+        }
       }
     }
   });

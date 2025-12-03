@@ -6,6 +6,7 @@
  * - FileSelectHandler: Handles file/section selection
  * - DoctypeChangeHandler: Handles doctype dropdown changes
  * - TreeConfiguration: Writer-specific tree config
+ * - WriterTreeSync: Bidirectional sync between dropdowns and tree
  */
 
 import { populateSectionDropdownDirect, syncDropdownsFromPath } from "../../utils/index.js";
@@ -18,6 +19,7 @@ import {
   getDoctypeFolder,
   createWriterTreeConfig,
 } from "./handlers/index.js";
+import { initWriterTreeSync, getWriterTreeSync } from "../sync/index.js";
 
 console.log("[DEBUG] FileTreeSetup.ts loaded (refactored with handlers)");
 
@@ -126,7 +128,14 @@ export class FileTreeSetup {
 
       // If it's a .tex file, sync dropdowns and update filter
       if (path.endsWith(".tex")) {
-        syncDropdownsFromPath(path);
+        // Use WriterTreeSync for bidirectional sync if available
+        const treeSync = getWriterTreeSync();
+        if (treeSync) {
+          treeSync.syncDropdownsFromTree(path);
+        } else {
+          // Fallback to legacy sync
+          syncDropdownsFromPath(path);
+        }
 
         const section = writerFilter.extractSectionFromPath(path);
         if (section) {
@@ -245,6 +254,21 @@ export class FileTreeSetup {
 
     await filesTree.initialize();
     (window as any).writerFileTree = filesTree;
+
+    // Initialize WriterTreeSync for bidirectional synchronization
+    const doctypeSelector = document.getElementById("doctype-selector") as HTMLSelectElement;
+    const sectionDropdown = document.getElementById("section-selector-dropdown") as HTMLElement;
+    const sectionText = document.getElementById("section-selector-text") as HTMLElement;
+
+    if (doctypeSelector && sectionDropdown && sectionText) {
+      initWriterTreeSync({
+        doctypeSelector,
+        sectionDropdown,
+        sectionText,
+        treeInstance: filesTree,
+      });
+      console.log("[FileTreeSetup] WriterTreeSync initialized");
+    }
 
     return filesTree;
   }
