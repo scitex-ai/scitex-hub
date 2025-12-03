@@ -611,6 +611,53 @@
 }
 
 /* ============================================
+ * Cut/Copy Visual Feedback
+ * Shows items marked for cut/copy operations
+ * ============================================ */
+
+/* Cut items - faded with dashed border (will be moved) */
+.wft-item.wft-cut {
+  opacity: 0.5;
+  border: 1px dashed var(--color-attention-fg, #d29922);
+  border-radius: 4px;
+  background-color: rgba(210, 153, 34, 0.1);
+}
+
+.wft-item.wft-cut .wft-icon,
+.wft-item.wft-cut .wft-name {
+  opacity: 0.7;
+}
+
+/* Copied items - subtle highlight with solid border */
+.wft-item.wft-copied {
+  border: 1px solid var(--color-accent-fg, #58a6ff);
+  border-radius: 4px;
+  background-color: rgba(88, 166, 255, 0.1);
+}
+
+/* Animation for copy feedback */
+@keyframes wft-copy-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(88, 166, 255, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(88, 166, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(88, 166, 255, 0); }
+}
+
+.wft-item.wft-copied {
+  animation: wft-copy-pulse 0.5s ease-out;
+}
+
+/* Animation for cut feedback */
+@keyframes wft-cut-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(210, 153, 34, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(210, 153, 34, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(210, 153, 34, 0); }
+}
+
+.wft-item.wft-cut {
+  animation: wft-cut-pulse 0.5s ease-out;
+}
+
+/* ============================================
  * Git Panel Header (Commit UI)
  * ============================================ */
 

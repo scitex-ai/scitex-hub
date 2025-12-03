@@ -270,6 +270,11 @@ export class WorkspaceFilesTree {
     // Make container focusable
     this.container.setAttribute('tabindex', '0');
 
+    // Focus container on click to enable keyboard shortcuts
+    this.container.addEventListener('click', () => {
+      this.container?.focus();
+    });
+
     this.container.addEventListener('keydown', (e) => {
       const ctrlOrMeta = e.ctrlKey || e.metaKey;
 
@@ -498,6 +503,9 @@ export class WorkspaceFilesTree {
     if (newTreeEl) {
       newTreeEl.scrollTop = scrollTop;
     }
+
+    // Re-apply clipboard visual classes after re-render
+    this.clipboardHandler.reapplyClasses();
   }
 
   private showError(message: string): void {

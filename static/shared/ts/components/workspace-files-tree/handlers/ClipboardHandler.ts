@@ -292,21 +292,26 @@ export class ClipboardHandler {
     return path.split('/').pop() || path;
   }
 
-  /** Update visual classes for cut items */
+  /** Update visual classes for cut/copy items */
   private updateCutCopyClasses(): void {
     // Remove all existing cut/copy classes
-    document.querySelectorAll('.wft-item.wft-cut').forEach(el => {
-      el.classList.remove('wft-cut');
+    document.querySelectorAll('.wft-item.wft-cut, .wft-item.wft-copied').forEach(el => {
+      el.classList.remove('wft-cut', 'wft-copied');
     });
 
-    // Add class to cut items
-    if (this.clipboard && this.clipboard.operation === 'cut') {
+    if (this.clipboard) {
+      const className = this.clipboard.operation === 'cut' ? 'wft-cut' : 'wft-copied';
       for (const path of this.clipboard.paths) {
         const el = document.querySelector(`.wft-item[data-path="${path}"]`);
         if (el) {
-          el.classList.add('wft-cut');
+          el.classList.add(className);
         }
       }
     }
+  }
+
+  /** Re-apply visual classes after tree re-render */
+  reapplyClasses(): void {
+    this.updateCutCopyClasses();
   }
 }
