@@ -187,14 +187,23 @@ def api_git_discard(request, username, slug):
         discarded = []
         errors = []
         for path in paths:
-            # First try to restore tracked file
-            success, stdout, stderr = _run_git_command(project_path, ["checkout", "HEAD", "--", path])
+            full_path = project_path / path
+
+            # Check if file exists in working tree
+            file_exists = full_path.exists()
+
+            # Try to restore from HEAD (works for modified and deleted tracked files)
+            # Use 'git restore' which is the modern way and handles deletions properly
+            success, stdout, stderr = _run_git_command(
+                project_path, ["restore", "--source=HEAD", "--", path]
+            )
+
             if success:
                 discarded.append(path)
             else:
-                # Check if it's an untracked file - need to remove it
-                full_path = project_path / path
-                if full_path.exists():
+                # 'git restore' failed - check if it's an untracked file
+                if file_exists:
+                    # Untracked file - need to remove it
                     try:
                         if full_path.is_dir():
                             import shutil
@@ -205,7 +214,15 @@ def api_git_discard(request, username, slug):
                     except Exception as e:
                         errors.append({"path": path, "error": str(e)})
                 else:
-                    errors.append({"path": path, "error": stderr.strip() or "File not found"})
+                    # File doesn't exist and restore failed
+                    # Try legacy checkout command as fallback
+                    success2, _, stderr2 = _run_git_command(
+                        project_path, ["checkout", "HEAD", "--", path]
+                    )
+                    if success2:
+                        discarded.append(path)
+                    else:
+                        errors.append({"path": path, "error": stderr.strip() or stderr2.strip() or "Cannot restore file"})
 
         return JsonResponse({
             "success": len(errors) == 0,

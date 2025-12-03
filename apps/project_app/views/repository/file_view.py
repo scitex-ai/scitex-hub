@@ -21,6 +21,7 @@ from django.http import HttpResponse, Http404
 
 from apps.project_app.models import Project
 from apps.project_app.services.syntax_highlighting import detect_language
+from .api.permissions import check_project_read_access
 
 logger = logging.getLogger(__name__)
 
@@ -46,12 +47,8 @@ def project_file_view(request, username, slug, file_path):
     user = get_object_or_404(User, username=username)
     project = get_object_or_404(Project, slug=slug, owner=user)
 
-    # Check access
-    has_access = (
-        project.owner == request.user
-        or project.collaborators.filter(id=request.user.id).exists()
-        or getattr(project, "visibility", None) == "public"
-    )
+    # Check access (includes visitor session check)
+    has_access = check_project_read_access(request, project)
 
     if not has_access:
         if mode in ("raw", "download"):

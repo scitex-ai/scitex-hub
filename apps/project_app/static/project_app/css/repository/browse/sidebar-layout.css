@@ -8,6 +8,8 @@
   width: 100%; /* Ensure full container width */
   /* Styling moved to central CSS - see static/css/common/layout.css */
   transition: grid-template-columns 0.3s ease;
+  /* Ensure layout doesn't constrain page scrolling */
+  min-height: 0;
 }
 
 .repo-layout.sidebar-collapsed {
@@ -20,6 +22,7 @@
 
 .repo-main {
   min-width: 0;
+  /* Allow content to expand naturally - page-level scrolling handles overflow */
 }
 
 .repo-sidebar {

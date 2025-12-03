@@ -11,6 +11,9 @@
   padding-left: 1rem;
   padding-right: 1rem;
   margin: 0 auto; /* Center the container */
+  /* Ensure container allows full content height and page scrolling */
+  min-height: auto;
+  overflow: visible;
 }
 
 /* GitHub-style repository header - Theme-aware */
