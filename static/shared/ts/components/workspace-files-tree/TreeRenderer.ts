@@ -20,9 +20,64 @@ export class TreeRenderer {
   }
 
   /** Render the entire tree */
-  render(items: TreeItem[]): string {
+  render(items: TreeItem[], gitSummary?: { staged: number; modified: number; untracked: number }): string {
     const filteredItems = this.filter.filterTree(items);
-    return `<div class="wft-tree">${this.renderItems(filteredItems, 0)}</div>`;
+    let html = '';
+
+    // Render tree first
+    html += `<div class="wft-tree">${this.renderItems(filteredItems, 0)}</div>`;
+
+    // Render git panel at bottom if git status is enabled
+    if (this.config.showGitStatus !== false && gitSummary) {
+      html += this.renderGitPanel(gitSummary);
+    }
+
+    return html;
+  }
+
+  /** Render git panel header with commit functionality */
+  private renderGitPanel(summary: { staged: number; modified: number; untracked: number }): string {
+    const hasStaged = summary.staged > 0;
+    const hasChanges = summary.staged > 0 || summary.modified > 0 || summary.untracked > 0;
+
+    if (!hasChanges) {
+      return ''; // Don't show panel if no changes
+    }
+
+    return `
+      <div class="wft-git-panel">
+        <div class="wft-git-panel-header">
+          <div class="wft-git-panel-title">
+            <i class="fab fa-git-alt"></i>
+            <span>Source Control</span>
+          </div>
+          <div class="wft-git-panel-actions">
+            <button class="wft-git-panel-btn secondary" data-action="git-stage-all" title="Stage all changes">
+              <i class="fas fa-plus"></i>
+            </button>
+            <button class="wft-git-panel-btn secondary" data-action="git-unstage-all" title="Unstage all changes">
+              <i class="fas fa-minus"></i>
+            </button>
+            <button class="wft-git-panel-btn secondary" data-action="git-refresh" title="Refresh git status">
+              <i class="fas fa-sync-alt"></i>
+            </button>
+          </div>
+        </div>
+        <div class="wft-git-status-summary">
+          ${summary.staged > 0 ? `<span class="staged" title="${summary.staged} file(s) staged for commit"><i class="fas fa-check"></i> ${summary.staged}</span>` : ''}
+          ${summary.modified > 0 ? `<span class="modified" title="${summary.modified} file(s) with unstaged changes"><i class="fas fa-pen"></i> ${summary.modified}</span>` : ''}
+          ${summary.untracked > 0 ? `<span class="untracked" title="${summary.untracked} untracked file(s)"><i class="fas fa-question"></i> ${summary.untracked}</span>` : ''}
+        </div>
+        <textarea class="wft-commit-input" placeholder="Commit message..." rows="1" ${!hasStaged ? 'disabled title="Stage files first to enable commit"' : 'title="Enter commit message"'}></textarea>
+        <div class="wft-git-panel-actions" style="justify-content: flex-end;">
+          <button class="wft-git-panel-btn primary" data-action="git-commit" title="Commit staged changes" ${!hasStaged ? 'disabled' : ''}>
+            <i class="fas fa-check"></i> Commit
+          </button>
+          <button class="wft-git-panel-btn primary" data-action="git-commit-push" title="Commit and push to remote" ${!hasStaged ? 'disabled' : ''}>
+            <i class="fas fa-upload"></i> Commit & Push
+          </button>
+        </div>
+      </div>`;
   }
 
   /** Render tree items recursively */
@@ -35,7 +90,7 @@ export class TreeRenderer {
       if (item.type === 'directory') {
         html += this.renderFolder(item, basePadding, level);
       } else {
-        html += this.renderFile(item, basePadding);
+        html += this.renderFile(item, basePadding, level);
       }
     }
 
@@ -47,15 +102,24 @@ export class TreeRenderer {
     const itemId = this.getItemId(item.path);
     const isExpanded = this.stateManager.isExpanded(item.path);
     const hasChildren = item.children && item.children.length > 0;
+    const isInactive = this.filter.isInactive(item);
     const icon = getFolderIcon();
+    const gitIconClass = this.getGitIconClass(item.git_status);
+    const gitTooltip = this.getGitTooltip(item.git_status);
 
-    let html = `<div class="wft-item wft-folder${isExpanded ? ' expanded' : ''}"
+    const classes = ['wft-item', 'wft-folder'];
+    if (isExpanded) classes.push('expanded');
+    if (isInactive) classes.push('inactive');
+
+    // Git status data attributes for git-gutter styling
+    const gitDataAttrs = this.getGitDataAttributes(item.git_status);
+    const gitTitleAttr = this.getGitTitleAttribute(item.git_status);
+
+    let html = `<div class="${classes.join(' ')}"
                      data-path="${this.escapeAttr(item.path)}"
                      draggable="true"
+                     ${gitDataAttrs}${gitTitleAttr}
                      style="padding-left: ${indent}px;">`;
-
-    // Git gutter (left-side indicator)
-    html += this.renderGitGutter(item.git_status);
 
     // Folder toggle button
     html += `<button type="button" class="wft-folder-toggle" data-action="toggle" data-path="${this.escapeAttr(item.path)}">`;
@@ -64,7 +128,8 @@ export class TreeRenderer {
     } else {
       html += `<span class="wft-spacer"></span>`;
     }
-    html += `<span class="wft-icon">${icon}</span>`;
+    // Icon with git status color
+    html += `<span class="wft-icon${gitIconClass}"${gitTooltip}>${icon}</span>`;
     html += `</button>`;
 
     // Folder name
@@ -73,16 +138,6 @@ export class TreeRenderer {
       html += `<span class="wft-symlink"> → ${this.escapeHtml(item.symlink_target)}</span>`;
     }
     html += `</span>`;
-
-    // Git status badge
-    if (this.config.showGitStatus && item.git_status) {
-      html += this.renderGitStatus(item.git_status);
-    }
-
-    // Folder actions (new file/folder buttons)
-    if (this.config.showFolderActions) {
-      html += this.renderFolderActions(item.path);
-    }
 
     html += `</div>`;
 
@@ -98,28 +153,35 @@ export class TreeRenderer {
   }
 
   /** Render a file item */
-  private renderFile(item: TreeItem, indent: number): string {
+  private renderFile(item: TreeItem, indent: number, level: number): string {
     const isDisabled = this.filter.isDisabled(item);
+    const isInactive = this.filter.isInactive(item);
     const isSelected = this.stateManager.getSelected() === item.path;
     const isTarget = this.stateManager.isTarget(item.path);
     const icon = getFileIcon(item.name);
+    const gitIconClass = this.getGitIconClass(item.git_status);
+    const gitTooltip = this.getGitTooltip(item.git_status);
 
     const classes = ['wft-item', 'wft-file'];
+    if (isInactive) classes.push('inactive');
     if (isDisabled) classes.push('disabled');
     if (isSelected) classes.push('selected');
     if (isTarget) classes.push('target');
+
+    // Git status data attributes for git-gutter styling
+    const gitDataAttrs = this.getGitDataAttributes(item.git_status);
+    const gitTitleAttr = this.getGitTitleAttribute(item.git_status);
 
     let html = `<div class="${classes.join(' ')}"
                      data-path="${this.escapeAttr(item.path)}"
                      data-action="select"
                      draggable="true"
+                     ${gitDataAttrs}${gitTitleAttr}
                      style="padding-left: ${indent}px;">`;
 
-    // Git gutter (left-side indicator)
-    html += this.renderGitGutter(item.git_status);
-
     html += `<span class="wft-spacer"></span>`;
-    html += `<span class="wft-icon">${icon}</span>`;
+    // Icon with git status color
+    html += `<span class="wft-icon${gitIconClass}"${gitTooltip}>${icon}</span>`;
     html += `<span class="wft-name">${this.escapeHtml(item.name)}`;
 
     if (item.is_symlink && item.symlink_target) {
@@ -127,19 +189,9 @@ export class TreeRenderer {
     }
     html += `</span>`;
 
-    // Target file indicator (appears before git status)
+    // Target file indicator
     if (isTarget) {
       html += `<span class="wft-target-badge" title="Active in editor">●</span>`;
-    }
-
-    // Git status badge
-    if (this.config.showGitStatus && item.git_status) {
-      html += this.renderGitStatus(item.git_status);
-    }
-
-    // File actions (delete button)
-    if (this.config.showFolderActions) {
-      html += this.renderFileActions(item.path);
     }
 
     html += `</div>`;
@@ -147,91 +199,71 @@ export class TreeRenderer {
     return html;
   }
 
-  /** Render file action buttons */
-  private renderFileActions(path: string): string {
-    return `<span class="wft-file-actions">
-      <button class="wft-action-btn wft-action-rename" data-action="rename" data-path="${this.escapeAttr(path)}" title="Rename">
-        <i class="fas fa-pen"></i>
-      </button>
-      <button class="wft-action-btn wft-action-copy" data-action="copy" data-path="${this.escapeAttr(path)}" title="Duplicate">
-        <i class="fas fa-copy"></i>
-      </button>
-      <button class="wft-action-btn wft-action-delete" data-action="delete" data-path="${this.escapeAttr(path)}" title="Delete">
-        <i class="fas fa-trash"></i>
-      </button>
-    </span>`;
+  /** Get CSS class for icon based on git status */
+  private getGitIconClass(status: { status: string; staged: boolean } | undefined): string {
+    if (!status) return '';
+
+    const classMap: Record<string, string> = {
+      'M': ' wft-icon-modified',
+      'A': ' wft-icon-added',
+      'D': ' wft-icon-deleted',
+      '??': ' wft-icon-untracked',
+      'R': ' wft-icon-added',
+      'C': ' wft-icon-added',
+    };
+
+    return classMap[status.status] || '';
   }
 
-  /** Render git gutter mark (left-side indicator like editor gutters) */
-  private renderGitGutter(status: { status: string; staged: boolean } | undefined): string {
-    if (!status || !this.config.showGitStatus) {
-      return '';
+  /** Get tooltip for git status */
+  private getGitTooltip(status: { status: string; staged: boolean } | undefined): string {
+    if (!status) return '';
+
+    const tooltipMap: Record<string, string> = {
+      'M': 'Modified: Changed since last save point',
+      'A': 'Added: New file ready to be saved',
+      'D': 'Deleted: File has been removed',
+      '??': 'Untracked: New file not yet tracked',
+      'R': 'Renamed: File has been renamed',
+      'C': 'Copied: Copy of another file',
+    };
+
+    const tooltip = tooltipMap[status.status];
+    if (!tooltip) return '';
+
+    const stagedNote = status.staged ? ' (staged)' : '';
+    return ` title="${tooltip}${stagedNote}"`;
+  }
+
+  /** Get data attributes for git gutter styling */
+  private getGitDataAttributes(status: { status: string; staged: boolean } | undefined): string {
+    if (!status) return '';
+
+    let attrs = `data-git-status="${this.escapeAttr(status.status)}"`;
+    if (status.staged) {
+      attrs += ' data-git-staged="true"';
     }
-
-    // Map git status to gutter class and symbol
-    const gutterConfig: Record<string, { class: string; symbol: string; title: string }> = {
-      'M': { class: 'git-modified', symbol: '~', title: 'Modified' },
-      'A': { class: 'git-added', symbol: '+', title: 'Added' },
-      'D': { class: 'git-deleted', symbol: '-', title: 'Deleted' },
-      '??': { class: 'git-untracked', symbol: '?', title: 'Untracked' },
-      'R': { class: 'git-added', symbol: '+', title: 'Renamed' },
-      'C': { class: 'git-added', symbol: '+', title: 'Copied' },
-    };
-
-    const config = gutterConfig[status.status];
-    if (!config) {
-      return '';
-    }
-
-    return `<span class="wft-git-gutter ${config.class}" title="${config.title}">${config.symbol}</span>`;
+    return attrs;
   }
 
-  /** Render git status badge */
-  private renderGitStatus(status: { status: string; staged: boolean }): string {
-    const colors: Record<string, string> = {
-      'M': '#e2c08d',   // Modified - orange/yellow
-      'A': '#73c991',   // Added - green
-      'D': '#f14c4c',   // Deleted - red
-      '??': '#73c991',  // Untracked - green
-      'R': '#73c991',   // Renamed - green
-      'C': '#89d185',   // Copied - green
+  /** Get title attribute for git status tooltip on the item */
+  private getGitTitleAttribute(status: { status: string; staged: boolean } | undefined): string {
+    if (!status) return '';
+
+    const tooltipMap: Record<string, string> = {
+      'M': 'Modified',
+      'A': 'Added',
+      'D': 'Deleted',
+      '??': 'Untracked',
+      'R': 'Renamed',
+      'C': 'Copied',
     };
 
-    const labels: Record<string, string> = {
-      'M': 'M',
-      'A': 'A',
-      'D': 'D',
-      '??': 'U',
-      'R': 'R',
-      'C': 'C',
-    };
+    const tooltip = tooltipMap[status.status];
+    if (!tooltip) return '';
 
-    const color = colors[status.status] || '#858585';
-    const label = labels[status.status] || status.status;
-    const title = status.staged ? 'Staged' : 'Modified';
-
-    return `<span class="wft-git-status" style="color: ${color};" title="${title}">${label}</span>`;
-  }
-
-  /** Render folder action buttons */
-  private renderFolderActions(path: string): string {
-    return `<span class="wft-folder-actions">
-      <button class="wft-action-btn" data-action="new-file" data-path="${this.escapeAttr(path)}" title="New file">
-        <i class="fas fa-file"></i><i class="fas fa-plus"></i>
-      </button>
-      <button class="wft-action-btn" data-action="new-folder" data-path="${this.escapeAttr(path)}" title="New folder">
-        <i class="fas fa-folder"></i><i class="fas fa-plus"></i>
-      </button>
-      <button class="wft-action-btn wft-action-rename" data-action="rename" data-path="${this.escapeAttr(path)}" title="Rename">
-        <i class="fas fa-pen"></i>
-      </button>
-      <button class="wft-action-btn wft-action-copy" data-action="copy" data-path="${this.escapeAttr(path)}" title="Duplicate">
-        <i class="fas fa-copy"></i>
-      </button>
-      <button class="wft-action-btn wft-action-delete" data-action="delete" data-path="${this.escapeAttr(path)}" title="Delete">
-        <i class="fas fa-trash"></i>
-      </button>
-    </span>`;
+    const stagedNote = status.staged ? ' (staged)' : '';
+    return ` title="${tooltip}${stagedNote}"`;
   }
 
   /** Generate unique ID for tree item */

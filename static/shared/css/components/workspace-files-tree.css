@@ -9,67 +9,179 @@
   font-family: var(--font-mono, 'JetBrains Mono', 'Monaco', 'Menlo', 'Consolas', monospace);
   font-size: 13px;
   line-height: 1.4;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden; /* Children handle scrolling */
   height: 100%;
   user-select: none;
   background-color: var(--workspace-bg-monaco, #1e1e1e);
   border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
   margin-bottom: 1px;
+  position: relative;  /* For absolute positioning of git gutter */
+  display: flex;
+  flex-direction: column;
 }
 
 /* Prevent flash during tree updates by using content-visibility */
 .wft-tree {
   contain: layout style;
+  position: relative;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0; /* Allow shrinking in flex container */
 }
 
 /* Tree Item Base */
 .wft-item {
   display: flex;
   align-items: center;
-  padding: 4px 8px 4px 14px;  /* Extra left padding for git gutter */
+  padding: 4px 8px 4px 4px;
   cursor: pointer;
   border-radius: 4px;
   transition: background-color 0.1s ease;
   gap: 4px;
   min-height: 26px;
-  position: relative;
+  position: relative;  /* Needed for action buttons positioning */
 }
 
-/* Git Gutter - Left side indicator with symbols */
+/* Git Status - Git Gutter Style (colored left-side bar like Emacs git-gutter)
+ * This creates a vertical colored bar on the left side of each item to indicate git status
+ * Two approaches supported: CSS pseudo-elements (::after) and HTML elements (.wft-git-gutter)
+ */
+
+/* ========== Element-based git gutter (.wft-git-gutter span) ========== */
 .wft-git-gutter {
   position: absolute;
   left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 12px;
-  height: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 700;
-  font-family: var(--font-mono, monospace);
+  top: 2px;
+  bottom: 2px;
+  width: 3px;
+  border-radius: 1px;
+  z-index: 2;
+  pointer-events: none;
+  font-size: 0;  /* Hide text content, show only colored bar */
+  overflow: hidden;
 }
 
-/* Added - Green (+) */
-.wft-git-gutter.git-added {
-  color: var(--color-success-fg, #3fb950);
-}
-
-/* Modified - Yellow/Orange (~) */
+/* Modified files - yellow/orange bar */
 .wft-git-gutter.git-modified {
-  color: var(--color-attention-fg, #d29922);
+  background-color: var(--color-attention-fg, #d29922);
 }
 
-/* Deleted - Red (-) */
+/* Added files - green bar */
+.wft-git-gutter.git-added {
+  background-color: var(--color-success-fg, #3fb950);
+}
+
+/* Deleted files - red bar */
 .wft-git-gutter.git-deleted {
+  background-color: var(--color-danger-fg, #f85149);
+}
+
+/* Untracked files - gray dashed bar */
+.wft-git-gutter.git-untracked {
+  background: repeating-linear-gradient(
+    180deg,
+    var(--color-fg-muted, #768390) 0,
+    var(--color-fg-muted, #768390) 3px,
+    transparent 3px,
+    transparent 6px
+  );
+}
+
+/* Hide git gutter on expanded folders - only show on collapsed folders */
+.wft-folder.expanded .wft-git-gutter {
+  display: none;
+}
+
+/* ========== CSS pseudo-element based git gutter (data-git-status attribute) ========== */
+/* Base git gutter - uses ::after to avoid conflict with tree connectors */
+.wft-item[data-git-status]::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 2px;
+  bottom: 2px;
+  width: 3px;
+  border-radius: 1px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Modified files - yellow/orange bar */
+.wft-item[data-git-status="M"]::after {
+  background-color: var(--color-attention-fg, #d29922);
+}
+
+/* Added files - green bar */
+.wft-item[data-git-status="A"]::after {
+  background-color: var(--color-success-fg, #3fb950);
+}
+
+/* Deleted files - red bar + strike-through text */
+.wft-item[data-git-status="D"]::after {
+  background-color: var(--color-danger-fg, #f85149);
+}
+
+.wft-item[data-git-status="D"] .wft-name {
+  text-decoration: line-through;
+  opacity: 0.7;
   color: var(--color-danger-fg, #f85149);
 }
 
-/* Untracked - Gray (?) */
-.wft-git-gutter.git-untracked {
-  color: var(--color-fg-muted, #768390);
+/* Renamed files - purple bar */
+.wft-item[data-git-status="R"]::after {
+  background-color: var(--color-done-fg, #a371f7);
+}
+
+/* Copied files - purple bar */
+.wft-item[data-git-status="C"]::after {
+  background-color: var(--color-done-fg, #a371f7);
+}
+
+/* Untracked files - gray dashed bar */
+.wft-item[data-git-status="??"]::after {
+  background: repeating-linear-gradient(
+    180deg,
+    var(--color-fg-muted, #768390) 0,
+    var(--color-fg-muted, #768390) 3px,
+    transparent 3px,
+    transparent 6px
+  );
+}
+
+/* Staged indicator - brighter version with slight glow */
+.wft-item[data-git-staged="true"]::after {
+  box-shadow: 0 0 4px currentColor;
+}
+
+/* Hide git gutter on expanded folders - only show on collapsed folders and files
+ * This shows git status only on the "visibly leaf" items (deepest visible level)
+ */
+.wft-folder.expanded[data-git-status]::after {
+  display: none;
+}
+
+/* Git Status - Icon color only (no underline, using git gutter vertical bar instead) */
+.wft-icon.wft-icon-modified {
+  color: var(--color-attention-fg, #d29922) !important;
+}
+
+.wft-icon.wft-icon-added {
+  color: var(--color-success-fg, #3fb950) !important;
+}
+
+.wft-icon.wft-icon-deleted {
+  color: var(--color-danger-fg, #f85149) !important;
+}
+
+/* Deleted files - strikethrough name (fallback via icon class) */
+.wft-item:has(.wft-icon-deleted) .wft-name {
+  text-decoration: line-through;
+  opacity: 0.7;
+  color: var(--color-danger-fg, #f85149);
+}
+
+.wft-icon.wft-icon-untracked {
+  color: var(--color-fg-muted, #768390) !important;
 }
 
 .wft-item:hover {
@@ -115,19 +227,32 @@
 }
 
 .wft-file.disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  pointer-events: none;  /* Prevent clicking */
-  filter: grayscale(70%);  /* Make it more obviously disabled */
-}
-
-.wft-file.disabled:hover {
-  background-color: transparent;
+  opacity: 0.5;
+  filter: grayscale(50%);
 }
 
 .wft-file.disabled .wft-name {
-  text-decoration: line-through;
   color: var(--color-fg-muted, #768390);
+}
+
+/* Inactive items (outside current module's scope but still visible and accessible) */
+.wft-item.inactive {
+  opacity: 0.6;
+  transition: opacity 0.15s ease;
+}
+
+.wft-item.inactive:hover {
+  opacity: 1;
+  background-color: var(--color-canvas-subtle, rgba(127, 127, 127, 0.1));
+}
+
+.wft-item.inactive .wft-name {
+  color: var(--color-fg-muted, #768390);
+  transition: color 0.15s ease;
+}
+
+.wft-item.inactive:hover .wft-name {
+  color: var(--color-fg-default, #e6edf3);
 }
 
 /* Folder toggle button */
@@ -198,14 +323,6 @@
   color: var(--color-fg-muted, #768390);
   font-size: 11px;
   margin-left: 4px;
-}
-
-/* Git status badge */
-.wft-git-status {
-  font-weight: 600;
-  font-size: 11px;
-  margin-left: 6px;
-  flex-shrink: 0;
 }
 
 /* Target file indicator badge - hidden for cleaner UI */
@@ -298,165 +415,7 @@
   border-left-color: rgba(150, 150, 150, 0.45);
 }
 
-/* Folder action buttons - positioned at right side of the row */
-.wft-folder-actions {
-  display: none;
-  gap: 4px;
-  position: absolute;
-  right: 4px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 10;
-  background: var(--workspace-bg-monaco, #1e1e1e);
-  padding: 2px 4px;
-  border-radius: 3px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--workspace-border-default, #3a3a3a);
-}
-
-.wft-folder:hover .wft-folder-actions {
-  display: flex;
-}
-
-/* File action buttons - positioned at right side of the row */
-.wft-file-actions {
-  display: none;
-  gap: 4px;
-  position: absolute;
-  right: 4px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 10;
-  background: var(--workspace-bg-monaco, #1e1e1e);
-  padding: 2px 4px;
-  border-radius: 3px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--workspace-border-default, #3a3a3a);
-}
-
-.wft-file:hover .wft-file-actions {
-  display: flex;
-}
-
-.wft-action-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  background: none;
-  border: none;
-  border-radius: 3px;
-  cursor: pointer;
-  color: var(--color-fg-muted, #768390);
-  transition: all 0.1s ease;
-  position: relative;
-}
-
-.wft-action-btn:hover {
-  background-color: var(--color-canvas-subtle, rgba(127, 127, 127, 0.2));
-  color: var(--color-fg-default, #e6edf3);
-}
-
-/* Delete button - larger size and danger color */
-.wft-action-btn.wft-action-delete {
-  width: 24px;
-  height: 24px;
-  color: var(--color-danger-fg, #f85149);
-}
-
-.wft-action-btn.wft-action-delete i,
-.wft-action-btn.wft-action-delete i:first-child {
-  font-size: 14px !important;
-}
-
-/* Delete button - stronger red on hover */
-.wft-action-btn.wft-action-delete:hover {
-  background-color: rgba(248, 81, 73, 0.2);
-  color: var(--color-danger-emphasis, #da3633);
-}
-
-/* Folder action buttons - larger size */
-.wft-folder-actions .wft-action-btn {
-  width: 22px;
-  height: 22px;
-}
-
-.wft-folder-actions .wft-action-btn i:first-child {
-  font-size: 12px !important;
-}
-
-.wft-folder-actions .wft-action-btn i:last-child {
-  font-size: 7px;
-  position: absolute;
-  bottom: 2px;
-  right: 2px;
-}
-
-/* File action buttons - consistent size */
-.wft-file-actions .wft-action-btn {
-  width: 20px;
-  height: 20px;
-}
-
-.wft-file-actions .wft-action-btn i {
-  font-size: 11px !important;
-}
-
-/* CRUD operation colors for folder actions */
-/* New file - Blue (document creation) */
-.wft-action-btn[data-action="new-file"],
-.wft-action-btn[title="New file"] {
-  color: var(--color-accent-fg, #58a6ff);
-}
-
-.wft-action-btn[data-action="new-file"]:hover,
-.wft-action-btn[title="New file"]:hover {
-  background-color: rgba(88, 166, 255, 0.2);
-  color: var(--color-accent-emphasis, #1f6feb);
-}
-
-/* New folder - Green (folder creation) */
-.wft-action-btn[data-action="new-folder"],
-.wft-action-btn[title="New folder"] {
-  color: var(--color-success-fg, #3fb950);
-}
-
-.wft-action-btn[data-action="new-folder"]:hover,
-.wft-action-btn[title="New folder"]:hover {
-  background-color: rgba(63, 185, 80, 0.2);
-  color: var(--color-success-emphasis, #2ea043);
-}
-
-/* Copy/Duplicate - Cyan */
-.wft-action-btn.wft-action-copy,
-.wft-action-btn[title*="Copy"],
-.wft-action-btn[title*="Duplicate"] {
-  color: var(--color-done-fg, #a371f7);
-}
-
-.wft-action-btn.wft-action-copy:hover,
-.wft-action-btn[title*="Copy"]:hover,
-.wft-action-btn[title*="Duplicate"]:hover {
-  background-color: rgba(163, 113, 247, 0.2);
-  color: var(--color-done-emphasis, #8957e5);
-}
-
-/* Rename/Edit - Yellow/Orange */
-.wft-action-btn.wft-action-rename,
-.wft-action-btn.wft-action-edit,
-.wft-action-btn[title*="Rename"],
-.wft-action-btn[title*="Edit"] {
-  color: var(--color-attention-fg, #d29922);
-}
-
-.wft-action-btn.wft-action-rename:hover,
-.wft-action-btn.wft-action-edit:hover,
-.wft-action-btn[title*="Rename"]:hover,
-.wft-action-btn[title*="Edit"]:hover {
-  background-color: rgba(210, 153, 34, 0.2);
-  color: var(--color-attention-emphasis, #bf8700);
-}
+/* Hover action buttons removed - all actions now in context menu */
 
 /* Error state */
 .wft-error {
@@ -481,15 +440,6 @@
 }
 
 /* Light mode overrides */
-[data-theme="light"] .wft-folder-actions,
-[data-theme="light"] .wft-file-actions,
-.light .wft-folder-actions,
-.light .wft-file-actions {
-  background: var(--workspace-bg-monaco, #ffffff);
-  border-color: var(--workspace-border-default, #d0d7de);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
 [data-theme="light"] .wft-name,
 .light .wft-name {
   color: var(--color-fg-default, #1f2328);
@@ -573,4 +523,663 @@
   color: var(--color-fg-muted, rgba(127, 127, 127, 0.7));
   font-style: italic;
   margin-left: 4px;
+}
+
+/* Inline create input (VS Code-like new file/folder input) */
+.wft-inline-create {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px !important;
+  margin: 0;
+  background: var(--workspace-bg-secondary, var(--color-canvas-subtle, #1e1e1e));
+}
+
+.wft-inline-input-wrapper {
+  padding: 2px 8px 2px 24px;
+}
+
+/* Symlink source indicator */
+.wft-symlink-source {
+  background: var(--color-accent-subtle, rgba(47, 129, 247, 0.15)) !important;
+  outline: 1px dashed var(--color-accent-fg, #58a6ff);
+  outline-offset: -1px;
+}
+
+.wft-inline-input {
+  flex: 1;
+  width: 100%;
+  background: var(--workspace-bg-monaco, #1e1e1e);
+  border: 1px solid var(--color-accent-fg, #58a6ff);
+  border-radius: 3px;
+  color: var(--color-fg-default, #f0f3f6);
+  font-family: inherit;
+  font-size: 13px;
+  padding: 2px 6px;
+  outline: none;
+  min-width: 0;
+}
+
+.wft-inline-input:focus {
+  border-color: var(--color-accent-emphasis, #1f6feb);
+  box-shadow: 0 0 0 2px var(--color-accent-subtle, rgba(88, 166, 255, 0.3));
+}
+
+.wft-inline-input::placeholder {
+  color: var(--color-fg-muted, #768390);
+  opacity: 0.6;
+}
+
+/* Light mode overrides for inline input */
+[data-theme="light"] .wft-inline-input,
+.light .wft-inline-input {
+  background: var(--workspace-bg-monaco, #ffffff);
+  border-color: var(--color-accent-fg, #0969da);
+  color: var(--color-fg-default, #1f2328);
+}
+
+[data-theme="light"] .wft-inline-create,
+.light .wft-inline-create {
+  background: var(--workspace-bg-secondary, #f6f8fa);
+}
+
+/* Git action button styles removed - actions now in context menu */
+
+/* ============================================
+ * Multi-Selection Support
+ * Ctrl+click, Shift+click selection
+ * ============================================ */
+
+/* Multi-selected items */
+.wft-item.multi-selected {
+  background-color: var(--color-accent-subtle, rgba(47, 129, 247, 0.2));
+  outline: 1px solid var(--color-accent-muted, rgba(47, 129, 247, 0.3));
+  outline-offset: -1px;
+}
+
+.wft-item.multi-selected:hover {
+  background-color: var(--color-accent-subtle, rgba(47, 129, 247, 0.3));
+}
+
+/* Selection rectangle (for drag selection) */
+.wft-selection-rect {
+  position: absolute;
+  border: 1px dashed var(--color-accent-fg, #58a6ff);
+  background-color: var(--color-accent-subtle, rgba(47, 129, 247, 0.1));
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* ============================================
+ * Git Panel Header (Commit UI)
+ * ============================================ */
+
+.wft-git-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px 8px;
+  border-top: 1px solid var(--workspace-border-default, #3a3a3a);
+  background: var(--workspace-bg-secondary, #252526);
+  flex-shrink: 0; /* Don't shrink git panel */
+}
+
+.wft-git-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.wft-git-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-fg-muted, #768390);
+}
+
+.wft-git-panel-title i {
+  font-size: 12px;
+  color: var(--color-danger-fg, #f85149);
+}
+
+.wft-git-panel-actions {
+  display: flex;
+  gap: 2px;
+}
+
+.wft-git-panel-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 3px 6px;
+  font-size: 10px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+/* Primary buttons - use subtle accent color instead of vivid green */
+.wft-git-panel-btn.primary {
+  background: var(--color-canvas-subtle, #2a2a2a);
+  color: var(--color-fg-default, #e6edf3);
+  border: 1px solid var(--workspace-border-default, #3a3a3a);
+}
+
+.wft-git-panel-btn.primary:hover {
+  background: var(--color-accent-subtle, rgba(47, 129, 247, 0.15));
+  border-color: var(--color-accent-muted, rgba(47, 129, 247, 0.4));
+  color: var(--color-accent-fg, #58a6ff);
+}
+
+.wft-git-panel-btn.primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.wft-git-panel-btn.primary:disabled:hover {
+  background: var(--color-canvas-subtle, #2a2a2a);
+  border-color: var(--workspace-border-default, #3a3a3a);
+  color: var(--color-fg-default, #e6edf3);
+}
+
+.wft-git-panel-btn.secondary {
+  background: transparent;
+  color: var(--color-fg-muted, #768390);
+  border: none;
+  padding: 3px 5px;
+}
+
+.wft-git-panel-btn.secondary:hover {
+  background: var(--color-canvas-subtle, rgba(127, 127, 127, 0.15));
+  color: var(--color-fg-default, #e6edf3);
+}
+
+/* Commit message input - compact single line appearance */
+.wft-commit-input {
+  width: 100%;
+  padding: 4px 6px;
+  font-size: 11px;
+  font-family: inherit;
+  background: var(--workspace-bg-monaco, #1e1e1e);
+  border: 1px solid var(--workspace-border-default, #3a3a3a);
+  border-radius: 3px;
+  color: var(--color-fg-default, #e6edf3);
+  resize: none;
+  min-height: 24px;
+  max-height: 60px;
+}
+
+.wft-commit-input:focus {
+  outline: none;
+  border-color: var(--color-accent-fg, #58a6ff);
+}
+
+.wft-commit-input::placeholder {
+  color: var(--color-fg-muted, #768390);
+  font-size: 11px;
+}
+
+/* Git status summary */
+.wft-git-status-summary {
+  display: flex;
+  gap: 8px;
+  font-size: 10px;
+  color: var(--color-fg-muted, #768390);
+}
+
+.wft-git-status-summary span {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.wft-git-status-summary i {
+  font-size: 9px;
+}
+
+.wft-git-status-summary .staged {
+  color: var(--color-success-fg, #3fb950);
+}
+
+.wft-git-status-summary .modified {
+  color: var(--color-attention-fg, #d29922);
+}
+
+.wft-git-status-summary .untracked {
+  color: var(--color-fg-muted, #768390);
+}
+
+/* ============================================
+ * Git Modals (History / Diff)
+ * ============================================ */
+
+/* Modal overlay */
+.wft-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 9998;
+  backdrop-filter: blur(2px);
+}
+
+/* Modal base */
+.wft-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--workspace-bg-monaco, #1e1e1e);
+  border: 1px solid var(--workspace-border-default, #3a3a3a);
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  max-width: 90vw;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  min-width: 500px;
+}
+
+/* Modal header */
+.wft-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
+  background: var(--workspace-bg-secondary, #252526);
+  border-radius: 8px 8px 0 0;
+}
+
+.wft-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-fg-default, #e6edf3);
+}
+
+.wft-modal-title i {
+  font-size: 16px;
+  color: var(--color-accent-fg, #58a6ff);
+}
+
+.wft-modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--color-fg-muted, #768390);
+  transition: all 0.15s ease;
+}
+
+.wft-modal-close:hover {
+  background: var(--color-canvas-subtle, rgba(127, 127, 127, 0.2));
+  color: var(--color-fg-default, #e6edf3);
+}
+
+/* Modal body */
+.wft-modal-body {
+  padding: 16px;
+  overflow: auto;
+  flex: 1;
+}
+
+/* History Modal Styles */
+.wft-history-modal {
+  width: 700px;
+}
+
+.wft-history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.wft-history-table th {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
+  color: var(--color-fg-muted, #768390);
+  font-weight: 500;
+}
+
+.wft-history-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--workspace-border-default, rgba(58, 58, 58, 0.5));
+  color: var(--color-fg-default, #e6edf3);
+}
+
+.wft-history-row:hover {
+  background: var(--color-canvas-subtle, rgba(127, 127, 127, 0.1));
+}
+
+.wft-history-hash code {
+  font-family: var(--font-mono, monospace);
+  background: var(--color-canvas-subtle, #2a2a2a);
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: var(--color-accent-fg, #58a6ff);
+  font-size: 11px;
+}
+
+.wft-history-message {
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wft-history-author {
+  color: var(--color-fg-muted, #768390);
+}
+
+.wft-history-date {
+  color: var(--color-fg-muted, #768390);
+  white-space: nowrap;
+}
+
+/* Diff Modal Styles */
+.wft-diff-modal {
+  width: 800px;
+  max-height: 80vh;
+}
+
+.wft-diff-stat {
+  padding: 8px 12px;
+  background: var(--workspace-bg-secondary, #252526);
+  border-radius: 4px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: var(--color-fg-muted, #768390);
+  font-family: var(--font-mono, monospace);
+}
+
+.wft-diff-content {
+  background: var(--workspace-bg-monaco, #1e1e1e);
+  border: 1px solid var(--workspace-border-default, #3a3a3a);
+  border-radius: 4px;
+  overflow: auto;
+  max-height: 60vh;
+}
+
+.wft-diff-content pre {
+  margin: 0;
+  padding: 12px;
+  font-family: var(--font-mono, 'JetBrains Mono', 'Monaco', monospace);
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+.wft-diff-header {
+  color: var(--color-fg-muted, #768390);
+  font-weight: 600;
+  display: block;
+}
+
+.wft-diff-hunk {
+  color: var(--color-done-fg, #a371f7);
+  background: rgba(163, 113, 247, 0.1);
+  display: block;
+  margin: 8px 0 4px 0;
+  padding: 2px 4px;
+  border-radius: 2px;
+}
+
+.wft-diff-add {
+  color: var(--color-success-fg, #3fb950);
+  background: rgba(63, 185, 80, 0.15);
+  display: block;
+}
+
+.wft-diff-del {
+  color: var(--color-danger-fg, #f85149);
+  background: rgba(248, 81, 73, 0.15);
+  display: block;
+}
+
+.wft-diff-context {
+  color: var(--color-fg-default, #e6edf3);
+  display: block;
+}
+
+.wft-diff-empty {
+  color: var(--color-fg-muted, #768390);
+  font-style: italic;
+}
+
+
+/* ========== Multi-Selection Styles ========== */
+
+/* Rectangle selection box */
+.wft-selection-rect {
+  border: 1px dashed var(--color-accent-fg, #58a6ff);
+  background: rgba(88, 166, 255, 0.1);
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* Multi-selected items - slightly different from single selection */
+.wft-item.selected {
+  background: var(--color-accent-subtle, rgba(47, 129, 247, 0.15));
+}
+
+/* Multi-selection count indicator (shown when multiple items selected) */
+.wft-selection-count {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--color-canvas-overlay, #2d333b);
+  color: var(--color-fg-default, #e6edf3);
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.wft-selection-count strong {
+  color: var(--color-accent-fg, #58a6ff);
+}
+
+/* Keyboard shortcuts hint */
+.wft-tree:focus-visible {
+  outline: 2px solid var(--color-accent-fg, #58a6ff);
+  outline-offset: -2px;
+}
+
+/* ========== Cut/Copy Visual Feedback ========== */
+
+/* Items that are cut (marked for move) */
+.wft-item.wft-cut {
+  opacity: 0.5;
+}
+
+.wft-item.wft-cut .wft-name {
+  color: var(--color-fg-muted, #768390);
+  font-style: italic;
+}
+
+/* ========== Drop Zone Styles ========== */
+
+/* Drop zone active state (when dragging files over the tree) */
+.workspace-files-tree.wft-drop-zone-active {
+  background: var(--color-accent-subtle, rgba(47, 129, 247, 0.1));
+  outline: 2px dashed var(--color-accent-fg, #58a6ff);
+  outline-offset: -4px;
+}
+
+.workspace-files-tree.wft-drop-zone-active::after {
+  content: 'Drop files here to upload';
+  position: absolute;
+  bottom: 50%;
+  left: 50%;
+  transform: translate(-50%, 50%);
+  padding: 12px 24px;
+  background: var(--color-canvas-overlay, #2d333b);
+  border: 1px solid var(--color-accent-fg, #58a6ff);
+  border-radius: 6px;
+  color: var(--color-accent-fg, #58a6ff);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  z-index: 100;
+  pointer-events: none;
+}
+
+/* Drop target folder highlight */
+.wft-item.wft-drop-target {
+  background: var(--color-accent-subtle, rgba(47, 129, 247, 0.15)) !important;
+  outline: 1px solid var(--color-accent-fg, #58a6ff);
+}
+
+/* Dragging item visual */
+.wft-item.wft-dragging {
+  opacity: 0.6;
+}
+
+/* ========== Context Menu Styles ========== */
+
+.wft-context-menu {
+  background: var(--color-canvas-overlay, #2d333b);
+  border: 1px solid var(--workspace-border-default, #3a3a3a);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  padding: 4px 0;
+  min-width: 180px;
+  z-index: 10000;
+  font-size: 12px;
+}
+
+.wft-context-item {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  cursor: pointer;
+  color: var(--color-fg-default, #e6edf3);
+  transition: background-color 0.1s ease;
+}
+
+.wft-context-item:hover {
+  background: var(--color-accent-subtle, rgba(47, 129, 247, 0.15));
+}
+
+.wft-context-item.disabled {
+  color: var(--color-fg-muted, #768390);
+  cursor: not-allowed;
+}
+
+.wft-context-item.disabled:hover {
+  background: transparent;
+}
+
+.wft-context-icon {
+  width: 20px;
+  text-align: center;
+  margin-right: 8px;
+  color: var(--color-fg-muted, #768390);
+}
+
+.wft-context-item:hover .wft-context-icon {
+  color: var(--color-accent-fg, #58a6ff);
+}
+
+.wft-context-label {
+  flex: 1;
+}
+
+.wft-context-shortcut {
+  color: var(--color-fg-muted, #768390);
+  font-size: 11px;
+  margin-left: 16px;
+}
+
+.wft-context-separator {
+  height: 1px;
+  background: var(--workspace-border-default, #3a3a3a);
+  margin: 4px 8px;
+}
+
+/* ========== Context Menu Item Colors ========== */
+/* Match the hover icon colors for consistency */
+
+/* New file - Blue */
+.wft-context-item.context-new-file .wft-context-icon {
+  color: var(--color-accent-fg, #58a6ff);
+}
+
+/* New folder - Green */
+.wft-context-item.context-new-folder .wft-context-icon {
+  color: var(--color-success-fg, #3fb950);
+}
+
+/* Rename - Yellow/Orange */
+.wft-context-item.context-rename .wft-context-icon {
+  color: var(--color-attention-fg, #d29922);
+}
+
+/* Duplicate - Purple */
+.wft-context-item.context-duplicate .wft-context-icon {
+  color: var(--color-done-fg, #a371f7);
+}
+
+/* Delete - Red */
+.wft-context-item.context-delete .wft-context-icon {
+  color: var(--color-danger-fg, #f85149);
+}
+
+/* Git Stage - Green */
+.wft-context-item.context-git-stage .wft-context-icon {
+  color: var(--color-success-fg, #3fb950);
+}
+
+/* Git Unstage - Yellow/Orange */
+.wft-context-item.context-git-unstage .wft-context-icon {
+  color: var(--color-attention-fg, #d29922);
+}
+
+/* Git Discard - Red */
+.wft-context-item.context-git-discard .wft-context-icon {
+  color: var(--color-danger-fg, #f85149);
+}
+
+/* Git History - Blue */
+.wft-context-item.context-git-history .wft-context-icon {
+  color: var(--color-accent-fg, #58a6ff);
+}
+
+/* Git Diff - Purple */
+.wft-context-item.context-git-diff .wft-context-icon {
+  color: var(--color-done-fg, #a371f7);
+}
+
+/* Hover states - maintain icon colors */
+.wft-context-item.context-new-file:hover .wft-context-icon,
+.wft-context-item.context-new-folder:hover .wft-context-icon,
+.wft-context-item.context-rename:hover .wft-context-icon,
+.wft-context-item.context-duplicate:hover .wft-context-icon,
+.wft-context-item.context-delete:hover .wft-context-icon,
+.wft-context-item.context-git-stage:hover .wft-context-icon,
+.wft-context-item.context-git-unstage:hover .wft-context-icon,
+.wft-context-item.context-git-discard:hover .wft-context-icon,
+.wft-context-item.context-git-history:hover .wft-context-icon,
+.wft-context-item.context-git-diff:hover .wft-context-icon {
+  /* Keep the same color on hover - don't override to accent color */
 }
