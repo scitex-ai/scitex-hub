@@ -20,6 +20,7 @@ export class ClipboardHandler {
   private refresh: () => Promise<void>;
   private showMessage: (message: string, type: 'success' | 'error' | 'info') => void;
   private getSelectedPaths: () => string[];
+  private isPathDirectory: (path: string) => boolean;
 
   // Clipboard state (persisted in memory for now)
   private clipboard: ClipboardState | null = null;
@@ -29,13 +30,15 @@ export class ClipboardHandler {
     getCsrfToken: () => string,
     refresh: () => Promise<void>,
     showMessage: (message: string, type: 'success' | 'error' | 'info') => void,
-    getSelectedPaths: () => string[]
+    getSelectedPaths: () => string[],
+    isPathDirectory: (path: string) => boolean
   ) {
     this.config = config;
     this.getCsrfToken = getCsrfToken;
     this.refresh = refresh;
     this.showMessage = showMessage;
     this.getSelectedPaths = getSelectedPaths;
+    this.isPathDirectory = isPathDirectory;
   }
 
   /** Get the base API URL for file operations */
@@ -168,10 +171,23 @@ export class ClipboardHandler {
 
       for (const sourcePath of paths) {
         const fileName = this.getFileName(sourcePath);
-        const destPath = destDir ? `${destDir}/${fileName}` : fileName;
+        let destPath = destDir ? `${destDir}/${fileName}` : fileName;
 
-        // Don't allow pasting into itself
-        if (sourcePath === destPath || destPath.startsWith(sourcePath + '/')) {
+        // For copy: if source equals destination, start with suffix
+        // For cut/move: can't move to same location
+        if (sourcePath === destPath) {
+          if (operation === 'copy') {
+            // Start with suffix (1) for same-location copy
+            destPath = this.getPathWithSuffix(destPath, 1);
+          } else {
+            // Can't move to same location
+            errors.push(`Cannot move '${fileName}' to same location`);
+            continue;
+          }
+        }
+
+        // Don't allow pasting into a subdirectory of itself
+        if (destPath.startsWith(sourcePath + '/')) {
           errors.push(`Cannot ${operation} '${fileName}' into itself`);
           continue;
         }
@@ -239,45 +255,98 @@ export class ClipboardHandler {
     this.updateCutCopyClasses();
   }
 
-  /** Perform copy operation */
+  /** Perform copy operation with automatic suffix on conflict */
   private async performCopy(sourcePath: string, destPath: string): Promise<void> {
-    const response = await fetch(this.getApiUrl('copy'), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': this.getCsrfToken(),
-      },
-      body: JSON.stringify({ source_path: sourcePath, dest_path: destPath }),
-    });
+    let finalDestPath = destPath;
+    let attempt = 0;
+    const maxAttempts = 100;
 
-    const data = await response.json();
-    if (!data.success) {
+    while (attempt < maxAttempts) {
+      const response = await fetch(this.getApiUrl('copy'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': this.getCsrfToken(),
+        },
+        body: JSON.stringify({ source_path: sourcePath, dest_path: finalDestPath }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        return;
+      }
+
+      // If destination exists, try with suffix
+      if (data.error && data.error.includes('already exists')) {
+        attempt++;
+        finalDestPath = this.getPathWithSuffix(destPath, attempt);
+        continue;
+      }
+
       throw new Error(data.error || 'Copy failed');
     }
+
+    throw new Error('Too many files with similar names');
   }
 
-  /** Perform move operation */
+  /** Perform move operation with automatic suffix on conflict */
   private async performMove(sourcePath: string, destPath: string): Promise<void> {
-    const response = await fetch(this.getApiUrl('move'), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': this.getCsrfToken(),
-      },
-      body: JSON.stringify({ source_path: sourcePath, dest_path: destPath }),
-    });
+    let finalDestPath = destPath;
+    let attempt = 0;
+    const maxAttempts = 100;
 
-    const data = await response.json();
-    if (!data.success) {
+    while (attempt < maxAttempts) {
+      const response = await fetch(this.getApiUrl('move'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': this.getCsrfToken(),
+        },
+        body: JSON.stringify({ source_path: sourcePath, dest_path: finalDestPath }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        return;
+      }
+
+      // If destination exists, try with suffix
+      if (data.error && data.error.includes('already exists')) {
+        attempt++;
+        finalDestPath = this.getPathWithSuffix(destPath, attempt);
+        continue;
+      }
+
       throw new Error(data.error || 'Move failed');
     }
+
+    throw new Error('Too many files with similar names');
   }
 
-  /** Check if path is a directory */
+  /** Get path with numbered suffix: file.txt -> file (1).txt */
+  private getPathWithSuffix(path: string, suffix: number): string {
+    const parts = path.split('/');
+    const fileName = parts.pop() || path;
+    const parentPath = parts.join('/');
+
+    // Handle extension
+    const dotIndex = fileName.lastIndexOf('.');
+    let newName: string;
+    if (dotIndex > 0) {
+      const baseName = fileName.substring(0, dotIndex);
+      const ext = fileName.substring(dotIndex);
+      newName = `${baseName} (${suffix})${ext}`;
+    } else {
+      newName = `${fileName} (${suffix})`;
+    }
+
+    return parentPath ? `${parentPath}/${newName}` : newName;
+  }
+
+  /** Check if path is a directory using tree data */
   private async isDirectory(path: string): Promise<boolean> {
-    // For now, assume paths without extensions are directories
-    // A more robust approach would be to check the actual tree data
-    return !path.includes('.') || path.endsWith('/');
+    // Use the provided function to check tree data
+    return this.isPathDirectory(path);
   }
 
   /** Get parent path */

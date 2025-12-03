@@ -19,6 +19,8 @@ import { SelectionHandler } from './handlers/SelectionHandler.js';
 import { GitActions } from './handlers/GitActions.js';
 import { ClipboardHandler } from './handlers/ClipboardHandler.js';
 import { ContextMenuHandler } from './handlers/ContextMenuHandler.js';
+import { UndoRedoHandler } from './handlers/UndoRedoHandler.js';
+import { SearchHandler } from './handlers/SearchHandler.js';
 // Import modals to auto-initialize them
 import './modals/index.js';
 
@@ -39,6 +41,8 @@ export class WorkspaceFilesTree {
   private gitActions: GitActions;
   private clipboardHandler: ClipboardHandler;
   private contextMenuHandler: ContextMenuHandler;
+  private undoRedoHandler: UndoRedoHandler;
+  private searchHandler: SearchHandler;
   private treeData: TreeItem[] = [];
   private gitSummary: { staged: number; modified: number; untracked: number } = { staged: 0, modified: 0, untracked: 0 };
   private isLoading = false;
@@ -85,12 +89,6 @@ export class WorkspaceFilesTree {
       (action, path) => this.handleGitAction(action, path)
     );
 
-    this.dragDropHandlers = new DragDropHandlers(
-      this.config,
-      () => this.getCsrfToken(),
-      () => this.refresh(),
-      (message, type) => this.showMessage(message, type)
-    );
     this.directoryFilterHandler = new DirectoryFilterHandler(() => this.rerender());
     this.selectionHandler = new SelectionHandler(
       this.stateManager, () => this.container, () => this.treeData,
@@ -100,6 +98,14 @@ export class WorkspaceFilesTree {
       this.stateManager, () => this.container, () => this.rerender(),
       () => this.treeData, (path) => this.selectionHandler.updateClasses(path)
     );
+    this.dragDropHandlers = new DragDropHandlers(
+      this.config,
+      () => this.getCsrfToken(),
+      () => this.refresh(),
+      (message, type) => this.showMessage(message, type),
+      () => this.selectionHandler.getSelectedPaths(),
+      (path) => this.stateManager.isSelected(path)
+    );
 
     // Initialize clipboard handler
     this.clipboardHandler = new ClipboardHandler(
@@ -107,14 +113,31 @@ export class WorkspaceFilesTree {
       () => this.getCsrfToken(),
       () => this.refresh(),
       (message, type) => this.showMessage(message, type),
-      () => this.selectionHandler.getSelectedPaths()
+      () => this.selectionHandler.getSelectedPaths(),
+      (path) => this.isItemDirectory(path)
+    );
+
+    // Initialize undo/redo handler (before context menu so it can reference it)
+    this.undoRedoHandler = new UndoRedoHandler(
+      this.config,
+      () => this.getCsrfToken(),
+      () => this.refresh(),
+      (message, type) => this.showMessage(message, type)
     );
 
     // Initialize context menu handler
     this.contextMenuHandler = new ContextMenuHandler(
       (action, path) => this.handleContextMenuAction(action, path),
       () => this.clipboardHandler.hasClipboard(),
-      (path) => this.isItemDirectory(path)
+      (path) => this.isItemDirectory(path),
+      () => this.undoRedoHandler.canUndo(),
+      () => this.undoRedoHandler.canRedo()
+    );
+
+    // Initialize search handler
+    this.searchHandler = new SearchHandler(
+      () => this.rerender(),
+      () => this.treeData
     );
 
     this.stateManager.subscribe(() => this.rerender());
@@ -128,8 +151,8 @@ export class WorkspaceFilesTree {
 
   /** Handle context menu action */
   private async handleContextMenuAction(action: string, path: string): Promise<void> {
-    // For cut/copy, use selection if path is in it, otherwise use just the path
-    const getPathsForClipboard = (): string[] => {
+    // For multi-selection operations, use selection if path is in it, otherwise use just the path
+    const getPathsForOperation = (): string[] => {
       const selectedPaths = this.selectionHandler.getSelectedPaths();
       if (selectedPaths.includes(path)) {
         return selectedPaths;
@@ -140,22 +163,46 @@ export class WorkspaceFilesTree {
     switch (action) {
       case 'cut':
         console.log('[WorkspaceFilesTree] Context menu cut:', path);
-        this.clipboardHandler.cut(getPathsForClipboard());
+        this.clipboardHandler.cut(getPathsForOperation());
         break;
       case 'copy':
         console.log('[WorkspaceFilesTree] Context menu copy:', path);
-        this.clipboardHandler.copy(getPathsForClipboard());
+        this.clipboardHandler.copy(getPathsForOperation());
         break;
       case 'paste':
         console.log('[WorkspaceFilesTree] Context menu paste to:', path);
         await this.clipboardHandler.paste(path);
         break;
-      case 'delete':
-        await this.fileActions.deleteFile(path);
+      case 'delete': {
+        const pathsToDelete = getPathsForOperation();
+        console.log('[WorkspaceFilesTree] Context menu delete:', pathsToDelete);
+        // Confirm if multiple files
+        if (pathsToDelete.length > 1) {
+          if (!confirm(`Delete ${pathsToDelete.length} items? (Ctrl+Z to undo)`)) {
+            return;
+          }
+        }
+        // Record for undo before deleting
+        for (const p of pathsToDelete) {
+          this.undoRedoHandler.recordOperation({
+            type: 'delete',
+            timestamp: Date.now(),
+            originalPath: p,
+            isDirectory: this.isItemDirectory(p),
+          });
+          await this.fileActions.deleteFile(p);
+        }
         break;
+      }
       case 'rename':
+        console.log('[WorkspaceFilesTree] Context menu rename:', path);
         const el = this.container?.querySelector(`[data-path="${path}"]`) as HTMLElement;
-        if (el) await this.fileActions.startRename(path, el);
+        if (el) {
+          console.log('[WorkspaceFilesTree] Found element for rename:', el);
+          await this.fileActions.startRename(path, el);
+        } else {
+          console.error('[WorkspaceFilesTree] Element not found for path:', path);
+        }
         break;
       case 'duplicate':
         await this.fileActions.copyFile(path);
@@ -166,27 +213,45 @@ export class WorkspaceFilesTree {
       case 'new-folder':
         await this.fileActions.createNewFolder(path);
         break;
-      case 'create-symlink':
-        await this.promptCreateSymlink(path);
+      case 'create-symlink': {
+        const pathsForSymlink = getPathsForOperation();
+        for (const p of pathsForSymlink) {
+          await this.promptCreateSymlink(p);
+        }
         break;
-      case 'download':
-        this.downloadFile(path);
+      }
+      case 'download': {
+        const pathsToDownload = getPathsForOperation();
+        for (const p of pathsToDownload) {
+          this.downloadFile(p);
+        }
         break;
-      // Git actions
+      }
+      // Git actions - support multi-selection
       case 'git-stage':
-        await this.gitActions.stage(path);
+        await this.gitActions.stage(getPathsForOperation());
         break;
       case 'git-unstage':
-        await this.gitActions.unstage(path);
+        await this.gitActions.unstage(getPathsForOperation());
         break;
       case 'git-discard':
-        await this.gitActions.discard(path);
+        await this.gitActions.discard(getPathsForOperation());
         break;
       case 'git-history':
         await this.gitActions.showHistory(path);
         break;
       case 'git-diff':
         await this.gitActions.showDiff(path);
+        break;
+      // Tree operations
+      case 'refresh':
+        await this.refresh();
+        break;
+      case 'undo':
+        await this.undoRedoHandler.undo();
+        break;
+      case 'redo':
+        await this.undoRedoHandler.redo();
         break;
     }
   }
@@ -271,6 +336,12 @@ export class WorkspaceFilesTree {
         const gitStatus = gitStatusCode ? { status: gitStatusCode, staged: gitStaged } : undefined;
 
         this.contextMenuHandler.show(e.clientX, e.clientY, path, isDir, gitStatus);
+      } else {
+        // Right-click on empty space - show root context menu
+        const treeArea = target.closest('.wft-tree, .workspace-files-tree');
+        if (treeArea) {
+          this.contextMenuHandler.showForRoot(e.clientX, e.clientY);
+        }
       }
     });
   }
@@ -282,17 +353,25 @@ export class WorkspaceFilesTree {
     // Make container focusable
     this.container.setAttribute('tabindex', '0');
 
-    // Focus container on click to enable keyboard shortcuts
-    this.container.addEventListener('click', () => {
+    // Focus container on click, but not when clicking on input/button elements
+    this.container.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      // Don't steal focus from input elements or buttons
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' ||
+          target.tagName === 'BUTTON' || target.closest('button') ||
+          target.isContentEditable) {
+        return;
+      }
       this.container?.focus();
     });
 
-    // Use document-level listener to catch shortcuts even when focus is elsewhere
-    // but only act when we have selection in this tree
+    // Use document-level listener to catch shortcuts
     document.addEventListener('keydown', (e) => {
-      // Only handle if we have selected items in this tree
-      const selectedPaths = this.selectionHandler.getSelectedPaths();
-      if (selectedPaths.length === 0) return;
+      // Skip if user is typing in an input/textarea
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return;
+      }
 
       // Check if the event target is inside our container or if container has focus
       const isOurTree = this.container?.contains(e.target as Node) ||
@@ -301,6 +380,28 @@ export class WorkspaceFilesTree {
       if (!isOurTree) return;
 
       const ctrlOrMeta = e.ctrlKey || e.metaKey;
+      const selectedPaths = this.selectionHandler.getSelectedPaths();
+      const selected = this.stateManager.getSelected();
+
+      // Ctrl+Z: Undo (works even without selection)
+      if (ctrlOrMeta && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('[WorkspaceFilesTree] Ctrl+Z pressed, undoing');
+        this.undoRedoHandler.undo();
+        return;
+      }
+      // Ctrl+Y or Ctrl+Shift+Z: Redo (works even without selection)
+      if ((ctrlOrMeta && e.key === 'y') || (ctrlOrMeta && e.shiftKey && e.key === 'Z')) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('[WorkspaceFilesTree] Ctrl+Y/Ctrl+Shift+Z pressed, redoing');
+        this.undoRedoHandler.redo();
+        return;
+      }
+
+      // Following shortcuts require selection
+      if (selectedPaths.length === 0 && !selected) return;
 
       // Ctrl+C: Copy
       if (ctrlOrMeta && e.key === 'c') {
@@ -320,25 +421,48 @@ export class WorkspaceFilesTree {
       else if (ctrlOrMeta && e.key === 'v') {
         e.preventDefault();
         e.stopPropagation();
-        const selected = this.stateManager.getSelected();
         if (selected) {
           const targetPath = this.isItemDirectory(selected) ? selected : this.getParentPath(selected);
           console.log('[WorkspaceFilesTree] Ctrl+V pressed, pasting to:', targetPath);
           this.clipboardHandler.paste(targetPath);
+        } else {
+          // Paste to root if no selection
+          console.log('[WorkspaceFilesTree] Ctrl+V pressed, pasting to root');
+          this.clipboardHandler.paste('');
         }
       }
       // Delete: Delete selected files
       else if (e.key === 'Delete') {
         e.preventDefault();
         if (selectedPaths.length > 0) {
+          // Filter out files that are already deleted (git status "D")
+          const existingPaths = selectedPaths.filter(path => {
+            const item = this.container?.querySelector(`[data-path="${path}"]`);
+            if (!item) return false;
+            const gitStatus = item.getAttribute('data-git-status');
+            // Skip files already marked as deleted
+            return gitStatus !== 'D';
+          });
+
+          if (existingPaths.length === 0) {
+            console.log('[WorkspaceFilesTree] No existing files to delete (all already deleted)');
+            return;
+          }
+
           // Confirm if multiple files
-          if (selectedPaths.length > 1) {
-            if (!confirm(`Delete ${selectedPaths.length} items? This cannot be undone.`)) {
+          if (existingPaths.length > 1) {
+            if (!confirm(`Delete ${existingPaths.length} items? (Ctrl+Z to undo)`)) {
               return;
             }
           }
-          // Delete each file
-          for (const path of selectedPaths) {
+          // Record and delete each existing file
+          for (const path of existingPaths) {
+            this.undoRedoHandler.recordOperation({
+              type: 'delete',
+              timestamp: Date.now(),
+              originalPath: path,
+              isDirectory: this.isItemDirectory(path),
+            });
             this.fileActions.deleteFile(path);
           }
         }
@@ -346,7 +470,6 @@ export class WorkspaceFilesTree {
       // F2: Rename
       else if (e.key === 'F2') {
         e.preventDefault();
-        const selected = this.stateManager.getSelected();
         if (selected) {
           const el = this.container?.querySelector(`[data-path="${selected}"]`) as HTMLElement;
           if (el) this.fileActions.startRename(selected, el);
@@ -391,6 +514,10 @@ export class WorkspaceFilesTree {
     if (this.isLoading) return;
     this.isLoading = true;
 
+    // Preserve scroll position before loading
+    const treeEl = this.container?.querySelector('.wft-tree');
+    const scrollTop = treeEl?.scrollTop || 0;
+
     try {
       // Git status is enabled by default (can be disabled via showGitStatus: false)
       const showGitStatus = this.config.showGitStatus !== false;
@@ -423,8 +550,21 @@ export class WorkspaceFilesTree {
 
         this.applyDefaultExpansion();
         this.render();
+
+        // Restore scroll position after render
+        const newTreeEl = this.container?.querySelector('.wft-tree');
+        if (newTreeEl && scrollTop > 0) {
+          newTreeEl.scrollTop = scrollTop;
+        }
+
         await this.autoExpandFocusPath();
         this.attachEventListeners();
+
+        // Re-apply selection classes after reload (state is preserved in stateManager)
+        this.selectionHandler.updateAllSelectionClasses();
+
+        // Re-apply clipboard visual classes after reload
+        this.clipboardHandler.reapplyClasses();
       } else {
         this.showError(treeData.error || 'Failed to load file tree');
       }
@@ -496,7 +636,11 @@ export class WorkspaceFilesTree {
 
   private render(): void {
     if (!this.container) return;
-    const data = this.directoryFilterHandler.isActive() ? this.directoryFilterHandler.getFilteredData() : this.treeData;
+    let data = this.directoryFilterHandler.isActive() ? this.directoryFilterHandler.getFilteredData() : this.treeData;
+    // Apply search filter if active
+    if (this.searchHandler.isActive()) {
+      data = this.searchHandler.filterTree(data);
+    }
     this.container.innerHTML = this.renderer.render(data, this.gitSummary);
   }
 
@@ -534,6 +678,9 @@ export class WorkspaceFilesTree {
       newTreeEl.scrollTop = scrollTop;
     }
 
+    // Re-apply selection classes after re-render (state is preserved in stateManager)
+    this.selectionHandler.updateAllSelectionClasses();
+
     // Re-apply clipboard visual classes after re-render
     this.clipboardHandler.reapplyClasses();
   }
@@ -545,15 +692,24 @@ export class WorkspaceFilesTree {
 
   private async autoExpandFocusPath(): Promise<void> { await this.pathNavigator.autoExpandFocusPath(this.config.mode); }
 
+  // Bound keyboard handler for proper removal
+  private boundKeyboardHandler: ((e: KeyboardEvent) => void) | null = null;
+
   private attachEventListeners(): void {
     if (!this.container) return;
     this.eventHandlers.attachEventListeners(this.container);
     this.dragDropHandlers.attachDragDropListeners(this.container);
-    this.keyboardHandlers = new KeyboardHandlers(
-      this.config, this.stateManager, this.container,
-      (path) => this.fileActions.toggleFolder(path), (path) => this.fileActions.selectFile(path)
-    );
-    this.container.addEventListener('keydown', (e) => this.keyboardHandlers?.handleKeyboard(e));
+
+    // Only create keyboard handlers once, and reuse them
+    if (!this.keyboardHandlers) {
+      this.keyboardHandlers = new KeyboardHandlers(
+        this.config, this.stateManager, this.container,
+        (path) => this.fileActions.toggleFolder(path), (path) => this.fileActions.selectFile(path)
+      );
+      // Create bound handler and add listener only once
+      this.boundKeyboardHandler = (e: KeyboardEvent) => this.keyboardHandlers?.handleKeyboard(e);
+      this.container.addEventListener('keydown', this.boundKeyboardHandler);
+    }
   }
 
   private getCsrfToken(): string {
@@ -586,6 +742,48 @@ export class WorkspaceFilesTree {
   async refreshAndExpandPath(path: string): Promise<void> { await this.pathNavigator.refreshAndExpandPath(path, () => this.loadTree()); }
   async expandPath(path: string): Promise<void> { await this.pathNavigator.expandPath(path); }
   async focusDirectory(targetPath: string, collapseOthersAtLevel = true): Promise<void> { await this.pathNavigator.focusDirectory(targetPath, collapseOthersAtLevel); }
+
+  /** Search/filter tree by text query */
+  setSearchQuery(query: string): void {
+    this.searchHandler.setQuery(query);
+    // Expand all directories when searching to show matches
+    if (query) {
+      this.expandAllForSearch();
+    }
+  }
+
+  /** Clear search query */
+  clearSearch(): void {
+    this.searchHandler.clear();
+  }
+
+  /** Get current search query */
+  getSearchQuery(): string {
+    return this.searchHandler.getQuery();
+  }
+
+  /** Check if search is active */
+  isSearchActive(): boolean {
+    return this.searchHandler.isActive();
+  }
+
+  /** Expand all directories to show search results */
+  private expandAllForSearch(): void {
+    const expandRecursive = (items: TreeItem[]) => {
+      for (const item of items) {
+        if (item.type === 'directory') {
+          this.stateManager.expand(item.path);
+          if (item.children) {
+            expandRecursive(item.children);
+          }
+        }
+      }
+    };
+    expandRecursive(this.treeData);
+  }
+
+  /** Get the search handler for external use */
+  getSearchHandler(): SearchHandler { return this.searchHandler; }
 
   /** Handle git actions from event handlers */
   private async handleGitAction(action: string, path: string): Promise<void> {
@@ -666,6 +864,9 @@ export class WorkspaceFilesTree {
   /** Get the GitActions instance for external use */
   getGitActions(): GitActions { return this.gitActions; }
 
+  /** Get the UndoRedoHandler instance for external use */
+  getUndoRedoHandler(): UndoRedoHandler { return this.undoRedoHandler; }
+
   /** Get all currently selected paths (for multi-selection) */
   getSelectedPaths(): string[] { return this.selectionHandler.getSelectedPaths(); }
 
@@ -674,4 +875,10 @@ export class WorkspaceFilesTree {
 
   /** Select all visible items */
   selectAll(): void { this.selectionHandler.selectAll(); }
+
+  /** Undo the last file operation */
+  async undo(): Promise<boolean> { return this.undoRedoHandler.undo(); }
+
+  /** Redo the last undone operation */
+  async redo(): Promise<boolean> { return this.undoRedoHandler.redo(); }
 }

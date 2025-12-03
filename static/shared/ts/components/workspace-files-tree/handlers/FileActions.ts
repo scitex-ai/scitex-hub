@@ -48,10 +48,17 @@ export class FileActions {
 
   async startRename(path: string, itemEl: HTMLElement): Promise<void> {
     const item = this.findItem(path);
-    if (!item) return;
+    if (!item) {
+      console.error('[FileActions] startRename: item not found for path:', path);
+      return;
+    }
 
-    const nameEl = itemEl.querySelector('.wft-file-name, .wft-folder-name') as HTMLElement;
-    if (!nameEl) return;
+    // Try multiple selector patterns for the name element
+    const nameEl = itemEl.querySelector('.wft-name, .wft-file-name, .wft-folder-name') as HTMLElement;
+    if (!nameEl) {
+      console.error('[FileActions] startRename: name element not found in:', itemEl);
+      return;
+    }
 
     const originalName = item.name;
     const input = document.createElement('input');

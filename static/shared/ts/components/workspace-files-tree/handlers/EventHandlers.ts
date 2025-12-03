@@ -20,20 +20,38 @@ export class EventHandlers {
     private onGitAction?: (action: string, path: string) => void
   ) {}
 
+  private gitPanelListenerAttached = false;
+
   attachEventListeners(container: HTMLElement): void {
     const treeEl = container.querySelector('.wft-tree');
     if (!treeEl) return;
 
-    // Git panel button clicks
-    const gitPanel = container.querySelector('.wft-git-panel');
-    if (gitPanel) {
-      gitPanel.addEventListener('click', (e) => {
+    // Git panel button clicks - use container-level delegation for reliability
+    // Only attach once since we use event delegation on container
+    if (!this.gitPanelListenerAttached) {
+      this.gitPanelListenerAttached = true;
+      console.log('[EventHandlers] Attaching container-level git panel listener');
+
+      container.addEventListener('click', (e) => {
         const target = e.target as HTMLElement;
+
+        // Check if click is within git panel
+        const gitPanel = target.closest('.wft-git-panel');
+        if (!gitPanel) return;
+
         const btn = target.closest('[data-action]') as HTMLElement;
-        if (btn && this.onGitAction) {
+        console.log('[EventHandlers] Git panel click:', {
+          target: target.tagName,
+          targetClass: target.className,
+          action: btn?.getAttribute('data-action'),
+          disabled: btn?.hasAttribute('disabled')
+        });
+
+        if (btn && !btn.hasAttribute('disabled') && this.onGitAction) {
           e.preventDefault();
           e.stopPropagation();
           const action = btn.getAttribute('data-action');
+          console.log('[EventHandlers] Triggering git action:', action);
           if (action) {
             this.onGitAction(action, '');
           }

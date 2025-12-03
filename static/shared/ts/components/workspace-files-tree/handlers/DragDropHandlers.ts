@@ -1,20 +1,29 @@
 /**
  * Drag and Drop Handlers for WorkspaceFilesTree
  * Handles file/folder drag and drop operations including external file uploads
+ * Supports multi-selection: when dragging a selected item, all selected items move together
  */
 
 import type { TreeConfig } from '../types.js';
 
 export class DragDropHandlers {
   private showMessage: (message: string, type: 'success' | 'error' | 'info') => void;
+  private getSelectedPaths: () => string[];
+  private isItemSelected: (path: string) => boolean;
+  // Store paths being dragged for multi-selection
+  private draggedPaths: string[] = [];
 
   constructor(
     private config: TreeConfig,
     private getCsrfToken: () => string,
     private refresh: () => Promise<void>,
-    showMessage?: (message: string, type: 'success' | 'error' | 'info') => void
+    showMessage?: (message: string, type: 'success' | 'error' | 'info') => void,
+    getSelectedPaths?: () => string[],
+    isItemSelected?: (path: string) => boolean
   ) {
     this.showMessage = showMessage || ((msg, type) => console.log(`[DragDrop] ${type}: ${msg}`));
+    this.getSelectedPaths = getSelectedPaths || (() => []);
+    this.isItemSelected = isItemSelected || (() => false);
   }
 
   attachDragDropListeners(container: HTMLElement): void {
@@ -24,17 +33,56 @@ export class DragDropHandlers {
     // Make the entire tree container a drop zone for external files
     this.attachContainerDropZone(container);
 
-    // Make items draggable (internal drag)
+    // Make items draggable (internal drag) - supports multi-selection
     treeEl.addEventListener('dragstart', (e) => {
       const dragEvent = e as DragEvent;
       const target = dragEvent.target as HTMLElement;
       const item = target.closest('[data-path]');
       if (item && dragEvent.dataTransfer) {
         const path = item.getAttribute('data-path')!;
-        dragEvent.dataTransfer.setData('text/plain', path);
+
+        // Check if this item is part of multi-selection
+        if (this.isItemSelected(path)) {
+          // Drag all selected items
+          this.draggedPaths = this.getSelectedPaths();
+        } else {
+          // Drag only this item
+          this.draggedPaths = [path];
+        }
+
+        // Store all paths in dataTransfer (semicolon-separated for multiple)
+        dragEvent.dataTransfer.setData('text/plain', this.draggedPaths.join(';'));
         dragEvent.dataTransfer.setData('application/x-wft-internal', 'true');
+        dragEvent.dataTransfer.setData('application/x-wft-count', String(this.draggedPaths.length));
         dragEvent.dataTransfer.effectAllowed = 'move';
-        item.classList.add('wft-dragging');
+
+        // Mark all dragged items visually
+        this.draggedPaths.forEach(p => {
+          const el = container.querySelector(`[data-path="${p}"]`);
+          el?.classList.add('wft-dragging');
+        });
+
+        // Show count badge if multiple items
+        if (this.draggedPaths.length > 1) {
+          const badge = document.createElement('div');
+          badge.className = 'wft-drag-count';
+          badge.textContent = String(this.draggedPaths.length);
+          badge.style.cssText = 'position:fixed;pointer-events:none;background:#007bff;color:white;padding:2px 6px;border-radius:10px;font-size:12px;z-index:10000;';
+          document.body.appendChild(badge);
+
+          const updateBadge = (ev: MouseEvent) => {
+            badge.style.left = `${ev.clientX + 15}px`;
+            badge.style.top = `${ev.clientY + 15}px`;
+          };
+          document.addEventListener('dragover', updateBadge as any);
+
+          const removeBadge = () => {
+            badge.remove();
+            document.removeEventListener('dragover', updateBadge as any);
+            document.removeEventListener('dragend', removeBadge);
+          };
+          document.addEventListener('dragend', removeBadge);
+        }
       }
     });
 
@@ -79,17 +127,19 @@ export class DragDropHandlers {
           const targetPath = folderItem?.getAttribute('data-path') || '';
           await this.uploadFiles(files, targetPath);
         } else if (folderItem && isInternal) {
-          // Internal move (symlink creation)
-          const sourcePath = dragEvent.dataTransfer.getData('text/plain');
+          // Internal move - supports multiple files
+          const sourceData = dragEvent.dataTransfer.getData('text/plain');
           const targetPath = folderItem.getAttribute('data-path')!;
+          const sourcePaths = sourceData.split(';').filter(p => p && p !== targetPath);
 
-          if (sourcePath && targetPath && sourcePath !== targetPath) {
-            await this.moveFile(sourcePath, targetPath);
+          if (sourcePaths.length > 0) {
+            await this.moveFiles(sourcePaths, targetPath);
           }
         }
       }
 
       // Clean up
+      this.draggedPaths = [];
       this.cleanupDragState(container);
     });
 
@@ -221,31 +271,72 @@ export class DragDropHandlers {
     }
   }
 
-  /** Move file/folder to a new location (inside target folder) */
-  private async moveFile(sourcePath: string, targetFolderPath: string): Promise<void> {
-    try {
-      const fileName = sourcePath.split('/').pop() || sourcePath;
-      const destPath = targetFolderPath ? `${targetFolderPath}/${fileName}` : fileName;
+  /** Move multiple files/folders to a new location (inside target folder) */
+  private async moveFiles(sourcePaths: string[], targetFolderPath: string): Promise<void> {
+    if (sourcePaths.length === 0) return;
 
-      const response = await fetch(`/${this.config.username}/${this.config.slug}/api/files/move/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': this.getCsrfToken(),
-        },
-        body: JSON.stringify({ source_path: sourcePath, dest_path: destPath }),
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        this.showMessage(`Moved to ${targetFolderPath || 'root'}`, 'success');
-        await this.refresh();
-      } else {
-        this.showMessage(`Failed to move: ${data.error}`, 'error');
+    // Filter out paths that would be moved into themselves or their children
+    const validPaths = sourcePaths.filter(src => {
+      // Don't move a folder into itself or its children
+      if (targetFolderPath.startsWith(src + '/') || targetFolderPath === src) {
+        return false;
       }
-    } catch (error) {
-      this.showMessage('Failed to move file', 'error');
+      return true;
+    });
+
+    if (validPaths.length === 0) {
+      this.showMessage('Cannot move folder into itself', 'error');
+      return;
     }
+
+    const count = validPaths.length;
+    this.showMessage(`Moving ${count} item${count > 1 ? 's' : ''}...`, 'info');
+
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const sourcePath of validPaths) {
+      try {
+        const fileName = sourcePath.split('/').pop() || sourcePath;
+        const destPath = targetFolderPath ? `${targetFolderPath}/${fileName}` : fileName;
+
+        const response = await fetch(`/${this.config.username}/${this.config.slug}/api/files/move/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': this.getCsrfToken(),
+          },
+          body: JSON.stringify({ source_path: sourcePath, dest_path: destPath }),
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          successCount++;
+        } else {
+          console.error(`[DragDrop] Failed to move ${sourcePath}:`, data.error);
+          errorCount++;
+        }
+      } catch (error) {
+        console.error(`[DragDrop] Error moving ${sourcePath}:`, error);
+        errorCount++;
+      }
+    }
+
+    if (successCount > 0) {
+      await this.refresh();
+      if (errorCount > 0) {
+        this.showMessage(`Moved ${successCount} item${successCount > 1 ? 's' : ''} (${errorCount} failed)`, 'info');
+      } else {
+        this.showMessage(`Moved ${successCount} item${successCount > 1 ? 's' : ''} to ${targetFolderPath || 'root'}`, 'success');
+      }
+    } else {
+      this.showMessage('Failed to move items', 'error');
+    }
+  }
+
+  /** Move single file/folder to a new location (inside target folder) - legacy single-file method */
+  private async moveFile(sourcePath: string, targetFolderPath: string): Promise<void> {
+    await this.moveFiles([sourcePath], targetFolderPath);
   }
 
   /** Check if URL looks like a downloadable resource */

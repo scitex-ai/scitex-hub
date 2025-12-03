@@ -249,6 +249,30 @@ export class TreeStateManager {
     this.notifyListeners();
   }
 
+  /** Select single item without notifying listeners (for keyboard navigation) */
+  selectSingleSilent(path: string): void {
+    this.state.selectedPaths.clear();
+    this.state.selectedPaths.add(path);
+    this.state.selectedPath = path;
+    this.state.lastClickedPath = path;
+    this.saveState();
+    // Do NOT notify listeners - caller will update UI directly
+  }
+
+  /** Set selected paths without notifying listeners (for keyboard navigation) */
+  setSelectedPathsSilent(paths: string[]): void {
+    this.state.selectedPaths = new Set(paths);
+    this.saveState();
+    // Do NOT notify listeners - caller will update UI directly
+  }
+
+  /** Set selected path without notifying listeners (for keyboard navigation) */
+  setSelectedSilent(path: string | null): void {
+    this.state.selectedPath = path;
+    this.saveState();
+    // Do NOT notify listeners - caller will update UI directly
+  }
+
   // ===== End Multi-Selection Methods =====
 
   /** Update scroll position */

@@ -27,6 +27,8 @@
   flex: 1 1 auto;
   overflow-y: auto;
   min-height: 0; /* Allow shrinking in flex container */
+  /* Add padding at bottom for right-click on empty space */
+  padding-bottom: 100px;
 }
 
 /* Tree Item Base */
@@ -486,10 +488,10 @@
   background-color: var(--color-border-default, rgba(127, 127, 127, 0.5));
 }
 
-/* Focus styles for keyboard navigation */
+/* Focus styles for keyboard navigation - disabled to avoid distracting visual changes */
+.wft-item:focus,
 .wft-item:focus-visible {
-  outline: 2px solid var(--color-accent-fg, #2f81f7);
-  outline-offset: -2px;
+  outline: none;
 }
 
 /* Highlight animation for focus target - completely disabled for smoother UX */
@@ -1046,10 +1048,14 @@
   color: var(--color-accent-fg, #58a6ff);
 }
 
-/* Keyboard shortcuts hint */
+/* Keyboard focus - disabled to avoid distracting border changes during tree actions */
+.workspace-files-tree:focus,
+.workspace-files-tree:focus-visible,
+.workspace-files-tree *:focus,
+.workspace-files-tree *:focus-visible,
+.wft-tree:focus,
 .wft-tree:focus-visible {
-  outline: 2px solid var(--color-accent-fg, #58a6ff);
-  outline-offset: -2px;
+  outline: none;
 }
 
 /* ========== Cut/Copy Visual Feedback ========== */

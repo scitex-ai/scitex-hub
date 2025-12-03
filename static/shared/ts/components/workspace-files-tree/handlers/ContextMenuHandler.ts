@@ -27,16 +27,22 @@ export class ContextMenuHandler {
   private onAction: (action: string, path: string) => void;
   private hasClipboard: () => boolean;
   private isDirectory: (path: string) => boolean;
+  private canUndo: () => boolean;
+  private canRedo: () => boolean;
   private showTimestamp: number = 0;
 
   constructor(
     onAction: (action: string, path: string) => void,
     hasClipboard: () => boolean,
-    isDirectory: (path: string) => boolean
+    isDirectory: (path: string) => boolean,
+    canUndo: () => boolean = () => false,
+    canRedo: () => boolean = () => false
   ) {
     this.onAction = onAction;
     this.hasClipboard = hasClipboard;
     this.isDirectory = isDirectory;
+    this.canUndo = canUndo;
+    this.canRedo = canRedo;
 
     // Close menu on click outside (but not on menu itself)
     // Use mousedown instead of click to catch it earlier
@@ -69,7 +75,7 @@ export class ContextMenuHandler {
     this.currentGitStatus = gitStatus || null;
     this.showTimestamp = Date.now(); // Record when menu was shown
 
-    const items = this.getMenuItems(isDir, gitStatus);
+    const items = this.getMenuItems(isDir, gitStatus, path === '');
     this.menuElement = this.createMenu(items);
 
     // Position the menu
@@ -93,6 +99,11 @@ export class ContextMenuHandler {
     }
   }
 
+  /** Show context menu for root/empty space */
+  showForRoot(x: number, y: number): void {
+    this.show(x, y, '', true, undefined);
+  }
+
   /** Hide context menu */
   hide(): void {
     if (this.menuElement) {
@@ -103,8 +114,34 @@ export class ContextMenuHandler {
   }
 
   /** Get menu items based on context */
-  private getMenuItems(isDir: boolean, gitStatus?: GitStatus): ContextMenuItem[] {
+  private getMenuItems(isDir: boolean, gitStatus?: GitStatus, isRoot: boolean = false): ContextMenuItem[] {
     const items: ContextMenuItem[] = [];
+
+    // Root-level context menu (right-click on empty space)
+    if (isRoot) {
+      items.push(
+        { label: 'New File', icon: 'fa-file', action: 'new-file', cssClass: 'context-new-file' },
+        { label: 'New Folder', icon: 'fa-folder', action: 'new-folder', cssClass: 'context-new-folder' }
+      );
+      items.push({ label: '', action: '', separator: true });
+      items.push({
+        label: 'Paste',
+        icon: 'fa-paste',
+        action: 'paste',
+        shortcut: 'Ctrl+V',
+        disabled: !this.hasClipboard(),
+      });
+      items.push({ label: '', action: '', separator: true });
+      items.push(
+        { label: 'Undo', icon: 'fa-undo', action: 'undo', shortcut: 'Ctrl+Z', disabled: !this.canUndo() },
+        { label: 'Redo', icon: 'fa-redo', action: 'redo', shortcut: 'Ctrl+Y', disabled: !this.canRedo() }
+      );
+      items.push({ label: '', action: '', separator: true });
+      items.push(
+        { label: 'Refresh', icon: 'fa-refresh', action: 'refresh' }
+      );
+      return items;
+    }
 
     // Folder-specific operations (at top for quick access)
     if (isDir) {
@@ -130,11 +167,18 @@ export class ContextMenuHandler {
 
     items.push({ label: '', action: '', separator: true });
 
-    // File operations (matching hover icons)
+    // File operations
     items.push(
       { label: 'Rename', icon: 'fa-pen', action: 'rename', shortcut: 'F2', cssClass: 'context-rename' },
-      { label: 'Duplicate', icon: 'fa-copy', action: 'duplicate', cssClass: 'context-duplicate' },
       { label: 'Delete', icon: 'fa-trash', action: 'delete', shortcut: 'Del', cssClass: 'context-delete' }
+    );
+
+    items.push({ label: '', action: '', separator: true });
+
+    // Undo/Redo
+    items.push(
+      { label: 'Undo', icon: 'fa-undo', action: 'undo', shortcut: 'Ctrl+Z', disabled: !this.canUndo() },
+      { label: 'Redo', icon: 'fa-redo', action: 'redo', shortcut: 'Ctrl+Y', disabled: !this.canRedo() }
     );
 
     items.push({ label: '', action: '', separator: true });
