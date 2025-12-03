@@ -381,8 +381,9 @@ export class WorkspaceFilesTree {
       // Multi-selection mode
       this.selectionHandler.handleClick(path, event);
     } else {
-      // Single selection - traditional behavior
-      this.fileActions.selectFile(path);
+      // Single selection - use selectionHandler to properly update selectedPaths
+      // This ensures Ctrl+C/X work even after normal clicks
+      this.selectionHandler.handleClick(path, event || new MouseEvent('click'));
     }
   }
 
