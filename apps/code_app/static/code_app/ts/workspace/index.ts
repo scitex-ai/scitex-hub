@@ -137,6 +137,7 @@ export class WorkspaceOrchestrator {
 
     // Synchronous DOM setup
     this.attachEventListeners();
+    this.setupFileSearch();
     this.uiComponents.initializeAll();
 
     // Parallel async initialization
@@ -310,7 +311,69 @@ export class WorkspaceOrchestrator {
         e.preventDefault();
         this.ptyManager.switchToPrevTab();
       }
+
+      // Ctrl+K: Focus file search input
+      if (e.ctrlKey && e.key === "k") {
+        e.preventDefault();
+        this.focusFileSearch();
+      }
     }, true); // Capture phase to intercept before Monaco
+  }
+
+  /** Focus the file search input */
+  private focusFileSearch(): void {
+    const searchInput = document.getElementById("file-search-input") as HTMLInputElement;
+    if (searchInput) {
+      searchInput.focus();
+      searchInput.select();
+    }
+  }
+
+  /** Setup file search functionality */
+  private setupFileSearch(): void {
+    const searchInput = document.getElementById("file-search-input") as HTMLInputElement;
+    const clearBtn = document.getElementById("file-search-clear") as HTMLButtonElement;
+
+    if (!searchInput) return;
+
+    // Debounce search input
+    let debounceTimer: number | null = null;
+    searchInput.addEventListener("input", () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = window.setTimeout(() => {
+        const query = searchInput.value;
+        this.fileTreeManager.setSearchQuery(query);
+      }, 150);
+    });
+
+    // Clear button
+    clearBtn?.addEventListener("click", () => {
+      searchInput.value = "";
+      this.fileTreeManager.clearSearch();
+      searchInput.focus();
+    });
+
+    // Escape to clear and blur
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        searchInput.value = "";
+        this.fileTreeManager.clearSearch();
+        searchInput.blur();
+      }
+      // Enter to select first match (if any)
+      if (e.key === "Enter") {
+        e.preventDefault();
+        // Focus tree for keyboard navigation
+        const treeContainer = document.getElementById("file-tree");
+        if (treeContainer) {
+          const firstItem = treeContainer.querySelector(".wft-item") as HTMLElement;
+          if (firstItem) {
+            firstItem.click();
+            searchInput.blur();
+          }
+        }
+      }
+    });
   }
 
   private startEmacsChord(): void {

@@ -28,6 +28,7 @@ import logging
 import os
 import pty
 import select
+import signal
 import termios
 
 from channels.generic.websocket import AsyncWebsocketConsumer
@@ -123,17 +124,32 @@ class TerminalConsumer(AsyncWebsocketConsumer):
         # Check if SLURM is available
         use_slurm = await asyncio.to_thread(is_slurm_available)
 
-        # Create PTY
-        self.pid, self.fd = pty.fork()
+        # Block signals during PTY fork to prevent "Interrupted system call" errors
+        # This is a known SLURM issue (SchedMD Bug #3979) where signals can
+        # interrupt the accept() call during PTY setup
+        old_mask = signal.pthread_sigmask(
+            signal.SIG_BLOCK,
+            {signal.SIGCHLD, signal.SIGWINCH, signal.SIGINT, signal.SIGTERM}
+        )
 
-        if self.pid == 0:
-            # Child process
-            if use_slurm:
-                exec_slurm_shell(username, user_data_dir, project_dir, container_path, project_slug)
-            else:
-                exec_direct_shell(username, user_data_dir, project_dir, container_path, project_slug)
-        else:
-            # Parent process - read from PTY
+        try:
+            # Create PTY
+            self.pid, self.fd = pty.fork()
+
+            if self.pid == 0:
+                # Child process - restore signal mask before exec
+                signal.pthread_sigmask(signal.SIG_SETMASK, old_mask)
+                if use_slurm:
+                    exec_slurm_shell(username, user_data_dir, project_dir, container_path, project_slug)
+                else:
+                    exec_direct_shell(username, user_data_dir, project_dir, container_path, project_slug)
+        finally:
+            # Parent process - restore signal mask
+            if self.pid != 0:
+                signal.pthread_sigmask(signal.SIG_SETMASK, old_mask)
+
+        # Parent process - read from PTY
+        if self.pid != 0:
             self.reader_task = asyncio.create_task(self.read_pty())
 
     async def read_pty(self):

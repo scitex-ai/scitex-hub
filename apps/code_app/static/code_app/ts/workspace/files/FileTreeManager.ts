@@ -29,6 +29,10 @@ interface WorkspaceFilesTree {
   expandToFile(path: string): void;
   getTreeData(): TreeItem[];
   destroy(): void;
+  setSearchQuery(query: string): void;
+  clearSearch(): void;
+  getSearchQuery(): string;
+  isSearchActive(): boolean;
 }
 
 // Dynamically import the shared WorkspaceFilesTree component at runtime
@@ -168,5 +172,29 @@ export class FileTreeManager {
     if (this.tree) {
       this.tree.expandToFile(path);
     }
+  }
+
+  /** Set search query to filter the tree */
+  setSearchQuery(query: string): void {
+    if (this.tree) {
+      this.tree.setSearchQuery(query);
+    }
+  }
+
+  /** Clear search query */
+  clearSearch(): void {
+    if (this.tree) {
+      this.tree.clearSearch();
+    }
+  }
+
+  /** Get current search query */
+  getSearchQuery(): string {
+    return this.tree?.getSearchQuery() ?? '';
+  }
+
+  /** Check if search is active */
+  isSearchActive(): boolean {
+    return this.tree?.isSearchActive() ?? false;
   }
 }

@@ -1,16 +1,20 @@
 /**
  * File State Manager
  * Manages open files, current file state, and file switching
+ * Supports both text files (Monaco editor) and media files (MediaViewer)
  */
 
-import type { OpenFile } from "../core/types.js";
+import type { OpenFile, FileType } from "../core/types.js";
+import { detectFileType } from "../core/types.js";
 import { MonacoManager } from "../editor/MonacoManager.js";
+import { MediaViewerManager } from "../editor/MediaViewerManager.js";
 import { FileOperations } from "./FileOperations.js";
 import { FileTabManager } from "./FileTabManager.js";
 import { GitStatusManager } from "../git/GitStatusManager.js";
 
 export class FileStateManager {
   private currentFile: string | null = null;
+  private mediaViewerManager: MediaViewerManager;
 
   constructor(
     private monacoManager: MonacoManager,
@@ -18,7 +22,9 @@ export class FileStateManager {
     private fileTabManager: FileTabManager,
     private gitStatusManager: GitStatusManager,
     private openFiles: Map<string, OpenFile> = new Map()
-  ) {}
+  ) {
+    this.mediaViewerManager = new MediaViewerManager();
+  }
 
   /**
    * Set the shared openFiles map (used when FileTabManager provides the map)
@@ -44,7 +50,25 @@ export class FileStateManager {
       return;
     }
 
-    // Load from server
+    // Detect file type
+    const fileType = detectFileType(filePath);
+
+    // For media files (image, pdf, csv), we don't need to load content into Monaco
+    if (fileType !== 'text') {
+      // Add to open files with media type
+      this.openFiles.set(filePath, {
+        path: filePath,
+        content: '', // Media files don't store text content
+        language: '',
+        fileType: fileType,
+      });
+
+      // Switch to the file
+      await this.switchToFile(filePath);
+      return;
+    }
+
+    // Load text file from server
     const result = await this.fileOperations.loadFile(filePath);
     if (!result.success) {
       console.error(`[FileStateManager] Failed to load file: ${filePath}`);
@@ -58,6 +82,7 @@ export class FileStateManager {
       path: filePath,
       content: result.content,
       language: language,
+      fileType: 'text',
     });
 
     // Switch to the file
@@ -72,26 +97,57 @@ export class FileStateManager {
     if (!fileData) return;
 
     const editor = this.monacoManager.getEditor();
-    if (!editor) return;
 
-    // Save current file content before switching
-    if (this.currentFile && this.currentFile !== filePath) {
+    // Save current file content before switching (only for text files)
+    if (this.currentFile && this.currentFile !== filePath && editor) {
       const currentData = this.openFiles.get(this.currentFile);
-      if (currentData) {
+      if (currentData && currentData.fileType === 'text') {
         currentData.content = editor.getValue();
       }
     }
 
     // Switch to new file
     this.currentFile = filePath;
-    editor.setValue(fileData.content);
 
-    // Update Monaco language
-    const monaco = (window as any).monaco;
-    if (monaco) {
-      const model = editor.getModel();
-      if (model) {
-        monaco.editor.setModelLanguage(model, fileData.language);
+    // Handle media files vs text files
+    const fileType = fileData.fileType || 'text';
+
+    if (fileType !== 'text') {
+      // Show media viewer, hide Monaco
+      this.mediaViewerManager.displayFile(filePath, fileType, fileData.blobUrl);
+
+      // Disable save/run buttons for media files
+      const btnSave = document.getElementById("btn-save") as HTMLButtonElement;
+      const btnRun = document.getElementById("btn-run") as HTMLButtonElement;
+      if (btnSave) btnSave.disabled = true;
+      if (btnRun) btnRun.disabled = true;
+    } else {
+      // Hide media viewer, show Monaco
+      this.mediaViewerManager.hide();
+
+      if (editor) {
+        editor.setValue(fileData.content);
+
+        // Update Monaco language
+        const monaco = (window as any).monaco;
+        if (monaco) {
+          const model = editor.getModel();
+          if (model) {
+            monaco.editor.setModelLanguage(model, fileData.language);
+          }
+        }
+      }
+
+      // Enable save/run buttons for text files
+      const btnSave = document.getElementById("btn-save") as HTMLButtonElement;
+      const btnRun = document.getElementById("btn-run") as HTMLButtonElement;
+      if (btnSave) btnSave.disabled = false;
+      // Run only for Python files
+      if (btnRun) btnRun.disabled = !filePath.endsWith('.py');
+
+      // Update git decorations (only for text files)
+      if (editor) {
+        await this.gitStatusManager.updateGitDecorations(filePath, editor);
       }
     }
 
@@ -111,10 +167,7 @@ export class FileStateManager {
     // Update tabs
     this.fileTabManager.setCurrentFile(filePath);
 
-    // Update git decorations
-    await this.gitStatusManager.updateGitDecorations(filePath, editor);
-
-    console.log(`[FileStateManager] Switched to file: ${filePath}`);
+    console.log(`[FileStateManager] Switched to file: ${filePath} (${fileType})`);
   }
 
   /**

@@ -48,6 +48,13 @@
   <link rel="stylesheet" href="{% static 'code_app/css/workspace-inline.css' %}" />
   <link rel="stylesheet" href="{% static 'code_app/css/context-menu.css' %}" />
   <link rel="stylesheet" href="{% static 'code_app/css/file-modal.css' %}" />
+  <!-- Media viewer styles (PDF, Image, CSV) -->
+  <link rel="stylesheet" href="{% static 'code_app/css/media-viewer.css' %}" />
+  <!-- Shared data table styles -->
+  <link rel="stylesheet" href="{% static 'shared/css/components/data-table/base.css' %}" />
+  <link rel="stylesheet" href="{% static 'shared/css/components/data-table/selection.css' %}" />
+  <link rel="stylesheet" href="{% static 'shared/css/components/data-table/editing.css' %}" />
+  <link rel="stylesheet" href="{% static 'shared/css/components/data-table/resize.css' %}" />
   <!-- Monaco Editor CSS - Use cdnjs like writer app -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/editor/editor.main.min.css" />
   <!-- xterm.js for real PTY terminal -->
@@ -173,9 +180,17 @@
       <aside id="code-sidebar" class="code-sidebar repo-sidebar">
         <div class="sidebar-header">
           <h5><i class="fas fa-folder-open"></i> Files</h5>
-          <button class="sidebar-toggle" id="sidebar-toggle" title="Toggle sidebar">
-            <i class="fas fa-chevron-left"></i>
-          </button>
+          <div class="sidebar-header-actions">
+            <div class="file-search-container" id="file-search-container">
+              <input type="text" id="file-search-input" class="file-search-input" placeholder="Search files... (Ctrl+K)" />
+              <button class="file-search-clear" id="file-search-clear" title="Clear search">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <button class="sidebar-toggle" id="sidebar-toggle" title="Toggle sidebar">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+          </div>
         </div>
       <div id="file-tree" class="file-tree-container">
         <div class="tree-loading">

@@ -1,10 +1,17 @@
 """
 Shell Execution Strategies
 Handles different execution modes: SLURM, direct Apptainer, and fallback bash
+
+Note on SLURM PTY errors:
+    The error "srun: error: pty: accept failure: Interrupted system call" is
+    a known SLURM issue (SchedMD Bug #3979). It occurs when signals interrupt
+    the accept() call during PTY setup. This is typically harmless - the terminal
+    still works. Signal handling in consumer.py mitigates this issue.
 """
 
 import logging
 import os
+import signal
 import shutil
 import subprocess
 from pathlib import Path
@@ -114,6 +121,15 @@ def exec_slurm_shell(
     }
 
     logger.info(f"Spawning SLURM terminal for {username}: srun → {container_cmd}")
+
+    # Reset signal handlers to default before exec to avoid EINTR in srun
+    # This helps prevent "pty: accept failure: Interrupted system call" errors
+    for sig in (signal.SIGCHLD, signal.SIGWINCH, signal.SIGPIPE):
+        try:
+            signal.signal(sig, signal.SIG_DFL)
+        except (OSError, ValueError):
+            pass
+
     os.execvpe("srun", cmd, env)
 
 
