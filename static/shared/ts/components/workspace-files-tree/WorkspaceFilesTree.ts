@@ -383,6 +383,15 @@ export class WorkspaceFilesTree {
       const selectedPaths = this.selectionHandler.getSelectedPaths();
       const selected = this.stateManager.getSelected();
 
+      // Ctrl+K: Search/Filter (works even without selection)
+      if (ctrlOrMeta && e.key === 'k') {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('[WorkspaceFilesTree] Ctrl+K pressed, opening search');
+        this.showSearchInput();
+        return;
+      }
+
       // Ctrl+Z: Undo (works even without selection)
       if (ctrlOrMeta && e.key === 'z' && !e.shiftKey) {
         e.preventDefault();
@@ -784,6 +793,93 @@ export class WorkspaceFilesTree {
 
   /** Get the search handler for external use */
   getSearchHandler(): SearchHandler { return this.searchHandler; }
+
+  /** Show search input box (triggered by Ctrl+K) */
+  private showSearchInput(): void {
+    if (!this.container) return;
+
+    // Check if search input already exists
+    let searchBox = this.container.querySelector('.wft-search-box') as HTMLDivElement;
+    if (searchBox) {
+      // Focus existing input
+      const input = searchBox.querySelector('input');
+      input?.focus();
+      input?.select();
+      return;
+    }
+
+    // Create search box
+    searchBox = document.createElement('div');
+    searchBox.className = 'wft-search-box';
+    searchBox.innerHTML = `
+      <div class="wft-search-input-wrapper">
+        <i class="fas fa-search wft-search-icon"></i>
+        <input type="text" class="wft-search-input" placeholder="Search files... (Esc to close)" autofocus />
+        <button class="wft-search-clear" title="Clear search (Esc)">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    `;
+
+    // Insert at top of container
+    this.container.insertBefore(searchBox, this.container.firstChild);
+
+    const input = searchBox.querySelector('input') as HTMLInputElement;
+    const clearBtn = searchBox.querySelector('.wft-search-clear') as HTMLButtonElement;
+
+    // Focus and select existing query if any
+    input.value = this.searchHandler.getQuery();
+    input.focus();
+    input.select();
+
+    // Handle input changes
+    let debounceTimer: number | null = null;
+    input.addEventListener('input', () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = window.setTimeout(() => {
+        this.setSearchQuery(input.value);
+      }, 150);
+    });
+
+    // Handle keyboard events
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        this.hideSearchInput();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        // Navigate to first match
+        const matches = this.searchHandler.getMatchingItems();
+        if (matches.length > 0) {
+          this.selectFile(matches[0].path);
+          this.hideSearchInput();
+        }
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        // Focus the tree for navigation
+        this.container?.focus();
+      }
+    });
+
+    // Clear button
+    clearBtn.addEventListener('click', () => {
+      input.value = '';
+      this.clearSearch();
+      input.focus();
+    });
+  }
+
+  /** Hide search input box */
+  private hideSearchInput(): void {
+    if (!this.container) return;
+    const searchBox = this.container.querySelector('.wft-search-box');
+    if (searchBox) {
+      searchBox.remove();
+      this.clearSearch();
+      this.container.focus();
+    }
+  }
 
   /** Handle git actions from event handlers */
   private async handleGitAction(action: string, path: string): Promise<void> {
