@@ -48,8 +48,62 @@
         </div>
         <div class="release-month">
             <div class="month-header">
-                <h2>December 2025 — v0.4.4-alpha</h2>
+                <h2>December 2025 — v0.4.5-alpha</h2>
                 <span class="month-badge">Latest Release</span>
+            </div>
+            <ul class="feature-list">
+                <li class="feature-item">
+                    <h3>🔍 CrossRef Local Database Integration</h3>
+                    <p>
+                        Added local CrossRef database support for offline scholarly metadata queries.
+                        Docker-based deployment with FastAPI server providing REST API access to
+                        150M+ academic publication records. Enables citation lookups without rate limits.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>📊 DataTable Component Extraction</h3>
+                    <p>
+                        Extracted DataTable functionality from vis_app to shared component library.
+                        Modular architecture with TableData, TableRendering, TableSelection, TableEditing,
+                        TableClipboard, and TableFillHandle modules for reuse across applications.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>🔎 File Tree Search (Ctrl+K)</h3>
+                    <p>
+                        Added Ctrl+K search input for file tree filtering with debounced search,
+                        keyboard navigation (Enter to select, Escape to close), and visual search box UI.
+                        Enhanced SearchHandler and UndoRedoHandler for file operations.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>🖼️ Media Viewer for Code Workspace</h3>
+                    <p>
+                        New MediaViewerManager for viewing images and media files directly in the
+                        code workspace sidebar. Supports image preview with zoom and pan controls.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>✂️ Enhanced File Tree Multi-Selection</h3>
+                    <p>
+                        Improved cut/copy/paste operations with visual feedback for clipboard state.
+                        Multi-selection support for directories, better drag-and-drop handling,
+                        and comprehensive keyboard shortcuts throughout the file tree.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>🧪 Jest Unit Testing Setup</h3>
+                    <p>
+                        Added Jest configuration for JavaScript/TypeScript unit testing.
+                        Initial test coverage for workspace-files-tree SearchHandler and TreeState.
+                    </p>
+                </li>
+            </ul>
+        </div>
+        <div class="release-month">
+            <div class="month-header">
+                <h2>December 2025 — v0.4.4-alpha</h2>
+                <span class="month-badge">File Tree Enhancements</span>
             </div>
             <ul class="feature-list">
                 <li class="feature-item">

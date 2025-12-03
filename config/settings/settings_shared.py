@@ -75,7 +75,7 @@ def discover_local_apps():
 # ---------------------------------------
 # Metadata
 # ---------------------------------------
-SCITEX_CLOUD_VERSION = "0.4.4-alpha"
+SCITEX_CLOUD_VERSION = "0.4.5-alpha"
 
 # ---------------------------------------
 # Visitor Pool Configuration
