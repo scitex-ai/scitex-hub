@@ -41,6 +41,9 @@ services:
       # Mount host passwd for SLURM UID synchronization (prevents "Security violation" errors)
       - /etc/passwd:/host/etc/passwd:ro
 
+      # TypeScript compiled JS output - Docker only, never syncs to host
+      - /app/.jsbuild
+
     ports:
       - "${SCITEX_CLOUD_SSH_PORT_NAS:-2200}:2200"  # SSH gateway for user workspaces
 
@@ -238,6 +241,30 @@ services:
       timeout: 10s
       retries: 3
       start_period: 180s
+
+  # CrossRef API - Fast local paper metadata search
+  crossref:
+    build:
+      context: ../crossref_local
+      dockerfile: Dockerfile
+    image: scitex-crossref-nas:latest
+    ports:
+      - "3333:3333"
+    volumes:
+      # Mount CrossRef database from NAS (read-only)
+      - /home/ywatanabe/proj/crossref_local/data:/data:ro
+    environment:
+      - CROSSREF_DB_PATH=/data/crossref.db
+      - LOG_LEVEL=INFO
+    restart: always
+    networks:
+      - scitex-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3333/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   # Gitea - Git server (core feature)
   gitea:
