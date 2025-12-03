@@ -128,14 +128,26 @@ export class WorkspaceFilesTree {
 
   /** Handle context menu action */
   private async handleContextMenuAction(action: string, path: string): Promise<void> {
+    // For cut/copy, use selection if path is in it, otherwise use just the path
+    const getPathsForClipboard = (): string[] => {
+      const selectedPaths = this.selectionHandler.getSelectedPaths();
+      if (selectedPaths.includes(path)) {
+        return selectedPaths;
+      }
+      return [path];
+    };
+
     switch (action) {
       case 'cut':
-        this.clipboardHandler.cut();
+        console.log('[WorkspaceFilesTree] Context menu cut:', path);
+        this.clipboardHandler.cut(getPathsForClipboard());
         break;
       case 'copy':
-        this.clipboardHandler.copy();
+        console.log('[WorkspaceFilesTree] Context menu copy:', path);
+        this.clipboardHandler.copy(getPathsForClipboard());
         break;
       case 'paste':
+        console.log('[WorkspaceFilesTree] Context menu paste to:', path);
         await this.clipboardHandler.paste(path);
         break;
       case 'delete':
@@ -275,32 +287,49 @@ export class WorkspaceFilesTree {
       this.container?.focus();
     });
 
-    this.container.addEventListener('keydown', (e) => {
+    // Use document-level listener to catch shortcuts even when focus is elsewhere
+    // but only act when we have selection in this tree
+    document.addEventListener('keydown', (e) => {
+      // Only handle if we have selected items in this tree
+      const selectedPaths = this.selectionHandler.getSelectedPaths();
+      if (selectedPaths.length === 0) return;
+
+      // Check if the event target is inside our container or if container has focus
+      const isOurTree = this.container?.contains(e.target as Node) ||
+                        document.activeElement === this.container ||
+                        this.container?.contains(document.activeElement);
+      if (!isOurTree) return;
+
       const ctrlOrMeta = e.ctrlKey || e.metaKey;
 
       // Ctrl+C: Copy
       if (ctrlOrMeta && e.key === 'c') {
         e.preventDefault();
+        e.stopPropagation();
+        console.log('[WorkspaceFilesTree] Ctrl+C pressed, copying:', selectedPaths);
         this.clipboardHandler.copy();
       }
       // Ctrl+X: Cut
       else if (ctrlOrMeta && e.key === 'x') {
         e.preventDefault();
+        e.stopPropagation();
+        console.log('[WorkspaceFilesTree] Ctrl+X pressed, cutting:', selectedPaths);
         this.clipboardHandler.cut();
       }
       // Ctrl+V: Paste
       else if (ctrlOrMeta && e.key === 'v') {
         e.preventDefault();
+        e.stopPropagation();
         const selected = this.stateManager.getSelected();
         if (selected) {
           const targetPath = this.isItemDirectory(selected) ? selected : this.getParentPath(selected);
+          console.log('[WorkspaceFilesTree] Ctrl+V pressed, pasting to:', targetPath);
           this.clipboardHandler.paste(targetPath);
         }
       }
       // Delete: Delete selected files
       else if (e.key === 'Delete') {
         e.preventDefault();
-        const selectedPaths = this.selectionHandler.getSelectedPaths();
         if (selectedPaths.length > 0) {
           // Confirm if multiple files
           if (selectedPaths.length > 1) {
