@@ -1,0 +1,52 @@
+/* ========================================================================
+   DATA TABLE SELECTION STYLES
+   ======================================================================== */
+
+/* Selected cells */
+.data-table td.selected,
+.data-table th.selected {
+    background-color: rgba(74, 155, 126, 0.08) !important;
+    z-index: 1;
+}
+
+/* Selection border overlay (dashed animated border) */
+.selection-border-overlay {
+    position: absolute;
+    pointer-events: none;
+    border: 2px dashed var(--status-success, #4a9b7e);
+    z-index: 100;
+    animation: marching-ants 0.5s linear infinite;
+}
+
+@keyframes marching-ants {
+    0% {
+        border-offset: 0;
+    }
+    100% {
+        border-offset: 8px;
+    }
+}
+
+/* Fill handle (small square at bottom-right) */
+.fill-handle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: var(--status-success, #4a9b7e);
+    border: 1px solid white;
+    cursor: crosshair;
+    z-index: 101;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Fill preview (during drag-to-fill) */
+.data-table td.fill-preview {
+    background-color: rgba(74, 155, 126, 0.15) !important;
+    border: 1px dashed var(--status-success, #4a9b7e) !important;
+}
+
+/* Highlighted headers (row numbers and column headers when selection active) */
+.data-table th.header-highlighted,
+.data-table td.header-highlighted {
+    background-color: rgba(74, 155, 126, 0.2) !important;
+}

@@ -1,0 +1,95 @@
+/* ========================================================================
+   DATA TABLE BASE STYLES
+   ======================================================================== */
+
+/* Data table container */
+.data-table-container {
+    overflow: auto;
+    height: 100%;
+    position: relative;
+}
+
+/* Main data table */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    table-layout: fixed;
+}
+
+/* Table cells with borders */
+.data-table th,
+.data-table td {
+    border: 1px solid var(--workspace-border-default, #e0e0e0);
+    padding: 6px 8px;
+    text-align: left;
+    white-space: nowrap;
+    color: var(--text-primary, #333);
+    outline: none;
+    position: relative;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 80px;
+    max-width: 300px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* Header cells */
+.data-table th {
+    background: var(--vis-bg-secondary, #f5f5f5);
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+/* Data cells hover */
+.data-table td:hover {
+    background: var(--vis-bg-hover, rgba(0, 0, 0, 0.04));
+}
+
+/* Row hover */
+.data-table tbody tr:hover {
+    background: rgba(74, 155, 126, 0.05);
+}
+
+/* Alternating row colors */
+.data-table tbody tr:nth-child(even) {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+[data-theme="dark"] .data-table tbody tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* Row and column numbers */
+.data-table .row-number,
+.data-table .row-number-header {
+    font-weight: 600;
+    font-size: 13px;
+    text-align: center;
+    cursor: default;
+    user-select: none;
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    background: var(--vis-bg-secondary, #f5f5f5);
+    min-width: 50px;
+    max-width: 50px;
+}
+
+.data-table .row-number-header {
+    z-index: 11 !important;
+}
+
+.data-table .row-number:hover {
+    background: var(--vis-bg-hover, rgba(0, 0, 0, 0.08)) !important;
+}
+
+.data-table th[data-col] {
+    text-align: center;
+    font-size: 12px;
+}
