@@ -3,7 +3,7 @@
  * Handles file CRUD operations (Create, Read, Update, Delete)
  */
 
-import type { EditorConfig, OpenFile } from "../core/types.js";
+import type { EditorConfig, OpenFile } from "../core/types.ts";
 
 export class FileOperations {
   private config: EditorConfig;

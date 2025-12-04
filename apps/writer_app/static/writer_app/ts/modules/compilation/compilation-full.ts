@@ -3,12 +3,12 @@
  * Handles full manuscript compilation from workspace
  */
 
-import { CompilationAPI } from "./compilation-api.js";
-import { CompilationState } from "./compilation-state.js";
-import { CompilationUI } from "./compilation-ui.js";
-import { CompilationQueue } from "./compilation-queue.js";
-import { CompilationOptions, CompilationJob } from "./types.js";
-import { statusLamp } from "../status-lamp.js";
+import { CompilationAPI } from "./compilation-api.ts";
+import { CompilationState } from "./compilation-state.ts";
+import { CompilationUI } from "./compilation-ui.ts";
+import { CompilationQueue } from "./compilation-queue.ts";
+import { CompilationOptions, CompilationJob } from "./types.ts";
+import { statusLamp } from "../status-lamp.ts";
 
 export class CompilationFull {
   private api: CompilationAPI;

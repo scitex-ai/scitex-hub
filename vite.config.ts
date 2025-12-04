@@ -74,9 +74,36 @@ export default defineConfig({
       input: {
         // Code app
         'code_app/workspace': resolve(__dirname, 'apps/code_app/static/code_app/ts/workspace.ts'),
+
         // Vis app
         'vis_app/vis-editor': resolve(__dirname, 'apps/vis_app/static/vis_app/ts/vis-editor.ts'),
         'vis_app/editor-inline': resolve(__dirname, 'apps/vis_app/static/vis_app/ts/editor-inline.ts'),
+
+        // Writer app
+        'writer_app/index': resolve(__dirname, 'apps/writer_app/static/writer_app/ts/index.ts'),
+        'writer_app/collaboration-panel': resolve(__dirname, 'apps/writer_app/static/writer_app/ts/collaboration-panel.ts'),
+
+        // Project app
+        'project_app/clone_button': resolve(__dirname, 'apps/project_app/static/project_app/ts/clone_button.ts'),
+        'project_app/create_project_type': resolve(__dirname, 'apps/project_app/static/project_app/ts/create_project_type.ts'),
+        'project_app/init-git-gutter': resolve(__dirname, 'apps/project_app/static/project_app/ts/init-git-gutter.ts'),
+
+        // Scholar app
+        'scholar_app/scholar-config': resolve(__dirname, 'apps/scholar_app/static/scholar_app/ts/scholar-config.ts'),
+
+        // Public app
+        'public_app/visitor-status': resolve(__dirname, 'apps/public_app/static/public_app/ts/visitor-status.ts'),
+        'public_app/server-status': resolve(__dirname, 'apps/public_app/static/public_app/ts/server-status.ts'),
+        'public_app/landing-demos-inline': resolve(__dirname, 'apps/public_app/static/public_app/ts/landing-demos-inline.ts'),
+
+        // Accounts app
+        'accounts_app/profile': resolve(__dirname, 'apps/accounts_app/static/accounts_app/ts/profile.ts'),
+        'accounts_app/account-settings': resolve(__dirname, 'apps/accounts_app/static/accounts_app/ts/account-settings.ts'),
+        'accounts_app/ssh_keys': resolve(__dirname, 'apps/accounts_app/static/accounts_app/ts/ssh_keys.ts'),
+        'accounts_app/remote_credentials': resolve(__dirname, 'apps/accounts_app/static/accounts_app/ts/remote_credentials.ts'),
+
+        // Social app
+        'social_app/explore-inline': resolve(__dirname, 'apps/social_app/static/social_app/ts/explore-inline.ts'),
       },
       output: {
         entryFileNames: '[name]-[hash].js',

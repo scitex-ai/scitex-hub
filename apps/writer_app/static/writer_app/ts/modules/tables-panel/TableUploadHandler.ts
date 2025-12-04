@@ -3,7 +3,7 @@
  * Manages file uploads via drag-and-drop or file input
  */
 
-import { getCsrfToken } from "../../shared/utils.js";
+import { getCsrfToken } from "../../shared/utils.ts";
 
 export class TableUploadHandler {
   private dragCounter: number = 0;

@@ -9,17 +9,17 @@
  * - WriterTreeSync: Bidirectional sync between dropdowns and tree
  */
 
-import { populateSectionDropdownDirect, syncDropdownsFromPath } from "../../utils/index.js";
-import { initializeWriterFilter } from "../../modules/writer-file-filter.js";
-import { PanelSwitcher } from "../ui/PanelSwitcher.js";
+import { populateSectionDropdownDirect, syncDropdownsFromPath } from "../../utils/index.ts";
+import { initializeWriterFilter } from "../../modules/writer-file-filter.ts";
+import { PanelSwitcher } from "../ui/PanelSwitcher.ts";
 import {
   createFileSelectHandler,
   setupDoctypeChangeWithTree,
   setupDoctypeChangeWithoutTree,
   getDoctypeFolder,
   createWriterTreeConfig,
-} from "./handlers/index.js";
-import { initWriterTreeSync, getWriterTreeSync } from "../sync/index.js";
+} from "./handlers/index.ts";
+import { initWriterTreeSync, getWriterTreeSync } from "../sync/index.ts";
 
 console.log("[DEBUG] FileTreeSetup.ts loaded (refactored with handlers)");
 

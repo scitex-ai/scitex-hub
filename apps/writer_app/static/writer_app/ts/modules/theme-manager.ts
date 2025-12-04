@@ -3,7 +3,7 @@
  * Handles code editor theme switching and synchronization with page theme
  */
 
-import { writerStorage } from "@/utils/storage.js";
+import { writerStorage } from "@/utils/storage.ts";
 
 /**
  * Get current page theme

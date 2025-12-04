@@ -3,7 +3,7 @@
  * Handles PDF viewing and rendering logic
  */
 
-import { PDFJSViewer } from "../pdf-viewer-pdfjs.js";
+import { PDFJSViewer } from "../pdf-viewer-pdfjs.ts";
 
 export interface ViewerState {
   currentPdfUrl: string | null;

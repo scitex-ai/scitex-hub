@@ -3,8 +3,8 @@
  * Handles toggling section inclusion/exclusion from compilation
  */
 
-import { getCsrfToken } from "@/utils/csrf.js";
-import { showToast } from "../ui.js";
+import { getCsrfToken } from "@/utils/csrf.ts";
+import { showToast } from "../ui.ts";
 
 /**
  * Setup Toggle Include/Exclude Section button

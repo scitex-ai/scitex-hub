@@ -3,7 +3,7 @@
  * Handles git commands: commit, push, diff, etc.
  */
 
-import type { EditorConfig } from "../core/types.js";
+import type { EditorConfig } from "../core/types.ts";
 
 export class GitOperations {
   private config: EditorConfig;

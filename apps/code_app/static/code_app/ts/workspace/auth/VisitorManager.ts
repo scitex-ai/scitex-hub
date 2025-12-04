@@ -3,7 +3,7 @@
  * Handles visitor detection, permissions, and warnings
  */
 
-import type { EditorConfig } from "../core/types.js";
+import type { EditorConfig } from "../core/types.ts";
 
 export class VisitorManager {
   private config: EditorConfig;

@@ -3,7 +3,7 @@
  * Handles visual rendering of the seekbar
  */
 
-import type { CompleteSeekbarOptions, SeekbarValues, SeekbarElements, HandleType } from "./types.js";
+import type { CompleteSeekbarOptions, SeekbarValues, SeekbarElements, HandleType } from "./types.ts";
 
 export class SeekbarRenderer {
   private options: CompleteSeekbarOptions;

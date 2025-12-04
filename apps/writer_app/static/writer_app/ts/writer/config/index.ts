@@ -17,4 +17,4 @@ export {
   isNonEditableFile,
   getDoctypePath,
   getDoctypeFromPath,
-} from "./doctype-config.js";
+} from "./doctype-config.ts";

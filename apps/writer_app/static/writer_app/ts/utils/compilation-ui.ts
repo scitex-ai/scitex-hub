@@ -13,7 +13,7 @@ export {
   updateCompilationProgress,
   updateSlimProgress,
   toggleCompilationDetails,
-} from "./compilation-ui/CompilationProgress.js";
+} from "./compilation-ui/CompilationProgress.ts";
 
 // Log Management
 export {
@@ -26,23 +26,23 @@ export {
   handleCompilationLogStop,
   handleCompilationLogClose,
   compilationLogs,
-} from "./compilation-ui/CompilationLogs.js";
+} from "./compilation-ui/CompilationLogs.ts";
 
 // Status Management
 export {
   showCompilationSuccess,
   showCompilationError,
   updateStatusLamp,
-} from "./compilation-ui/CompilationStatus.js";
+} from "./compilation-ui/CompilationStatus.ts";
 
 // Panel Management
 export {
   minimizeCompilationOutput,
   restoreCompilationOutput,
   updateMinimizedStatus,
-} from "./compilation-ui/CompilationPanel.js";
+} from "./compilation-ui/CompilationPanel.ts";
 
 // Storage Management
 export {
   restoreCompilationStatus,
-} from "./compilation-ui/CompilationStorage.js";
+} from "./compilation-ui/CompilationStorage.ts";

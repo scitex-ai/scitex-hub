@@ -3,8 +3,8 @@
  * Handles file/section selection from dropdown or tree
  */
 
-import { switchSection } from "../../../utils/index.js";
-import { loadTexFile } from "../../files/FileLoader.js";
+import { switchSection } from "../../../utils/index.ts";
+import { loadTexFile } from "../../files/FileLoader.ts";
 
 console.log("[DEBUG] FileSelectHandler.ts loaded");
 

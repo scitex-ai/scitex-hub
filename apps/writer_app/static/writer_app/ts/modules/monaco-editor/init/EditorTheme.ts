@@ -8,7 +8,7 @@
 
 console.log("[DEBUG] EditorTheme.ts loaded");
 
-// Re-export from shared Monaco theme (compiled JS in /static/shared/js/monaco/)
+// Re-export from shared Monaco theme (compiled JS in /static/shared/ts/monaco/)
 export {
   defineScitexDarkTheme as defineScitexTheme,
   defineScitexLightTheme,
@@ -18,6 +18,6 @@ export {
   MONACO_COLORS,
   getThemeForMode,
   getCurrentThemeMode,
-} from "/static/shared/js/monaco/MonacoTheme.js";
+} from "/static/shared/ts/monaco/MonacoTheme.ts";
 
 // EOF

@@ -7,7 +7,7 @@ console.log(
   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/writer/sections/section-extraction.ts loaded"
 );
 
-import { doctypeToDirectory, skipFiles } from "../config/index.js";
+import { doctypeToDirectory, skipFiles } from "../config/index.ts";
 
 export interface Section {
   id: string;

@@ -6,7 +6,7 @@
  * @module recent-jobs
  */
 
-import { getCsrfToken, showAlert } from "./ui-utils.js";
+import { getCsrfToken, showAlert } from "./ui-utils.ts";
 
 /**
  * Recent job interface

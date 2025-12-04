@@ -3,7 +3,7 @@
  * Handles data loading, state management, and API interactions
  */
 
-import { Table } from "./types.js";
+import { Table } from "./types.ts";
 
 export class TableDataManager {
   private tables: Table[] = [];

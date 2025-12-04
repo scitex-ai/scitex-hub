@@ -3,8 +3,8 @@
  * Handles search, sort, and filter functionality
  */
 
-import type { Figure } from "./figures-list.js";
-import { statePersistence } from "../state-persistence.js";
+import type { Figure } from "./figures-list.ts";
+import { statePersistence } from "../state-persistence.ts";
 
 export class FigureSearch {
   private onSearchChange?: (filteredFigures: Figure[]) => void;

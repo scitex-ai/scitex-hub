@@ -7,9 +7,9 @@ console.log(
   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/pdf-scroll-zoom/pdf-viewer-observer.ts loaded",
 );
 
-import type { PDFZoomControl } from "./pdf-zoom-control.js";
-import type { PDFColorThemeManager } from "./pdf-color-theme.js";
-import type { PDFScrollManager } from "./pdf-scroll-manager.js";
+import type { PDFZoomControl } from "./pdf-zoom-control.ts";
+import type { PDFColorThemeManager } from "./pdf-color-theme.ts";
+import type { PDFScrollManager } from "./pdf-scroll-manager.ts";
 
 export class PDFViewerObserver {
   private container: HTMLElement | null;

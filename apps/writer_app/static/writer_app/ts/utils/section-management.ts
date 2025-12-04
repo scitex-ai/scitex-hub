@@ -18,4 +18,4 @@ export {
   clearCompileTimeout,
   // Section Management
   setupSectionManagementButtons,
-} from "./section-management/index.js";
+} from "./section-management/index.ts";

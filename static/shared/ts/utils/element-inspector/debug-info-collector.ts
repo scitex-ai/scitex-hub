@@ -3,7 +3,7 @@
  * Gathers comprehensive debugging information about elements
  */
 
-import type { ElementDebugInfo, CSSRuleInfo } from "./types.js";
+import type { ElementDebugInfo, CSSRuleInfo } from "./types.ts";
 
 export class DebugInfoCollector {
   public gatherElementDebugInfo(element: Element): string {

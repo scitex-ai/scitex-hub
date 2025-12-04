@@ -3,7 +3,7 @@
  * Handles scroll position saving, restoring, and management
  */
 
-import { statePersistence } from "../state-persistence.js";
+import { statePersistence } from "../state-persistence.ts";
 
 console.log("[DEBUG] PDFScrollState.ts loaded");
 

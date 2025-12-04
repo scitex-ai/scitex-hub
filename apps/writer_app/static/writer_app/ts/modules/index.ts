@@ -6,74 +6,74 @@
 console.log(
   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/index.ts loaded",
 );
-export { WriterEditor, type EditorConfig } from "./editor.js";
-export { EnhancedEditor, type MonacoEditorConfig } from "./monaco-editor.js";
-export { SectionsManager, type Section } from "./sections.js";
-export { CompilationManager, type CompilationOptions } from "./compilation.js";
+export { WriterEditor, type EditorConfig } from "./editor.ts";
+export { EnhancedEditor, type MonacoEditorConfig } from "./monaco-editor.ts";
+export { SectionsManager, type Section } from "./sections.ts";
+export { CompilationManager, type CompilationOptions } from "./compilation.ts";
 export {
   FileTreeManager,
   type FileTreeNode,
   type FileTreeOptions,
-} from "./file_tree/index.js";
-export { LatexWrapper, type LatexWrapperOptions } from "./latex-wrapper.js";
-export { PDFPreviewManager, type PDFPreviewOptions } from "./pdf-preview/index.js";
-export { PanelResizer } from "./panel-resizer.js";
+} from "./file_tree/index.ts";
+export { LatexWrapper, type LatexWrapperOptions } from "./latex-wrapper.ts";
+export { PDFPreviewManager, type PDFPreviewOptions } from "./pdf-preview/index.ts";
+export { PanelResizer } from "./panel-resizer.ts";
 export {
   EditorControls,
   type EditorControlsOptions,
-} from "./editor-controls/index.js";
-export { CitationsPanel, type Citation } from "./citations-panel.js";
-export { FiguresPanel, type Figure } from "./figures-panel.js";
-export { TablesPanel, type Table } from "./tables-panel.js";
-export { TablePreviewModalOrchestrator } from "./table-preview-modal.js";
+} from "./editor-controls/index.ts";
+export { CitationsPanel, type Citation } from "./citations-panel.ts";
+export { FiguresPanel, type Figure } from "./figures-panel.ts";
+export { TablesPanel, type Table } from "./tables-panel.ts";
+export { TablePreviewModalOrchestrator } from "./table-preview-modal.ts";
 export {
   StatusLampManager,
   statusLamp,
   type CompileStatus,
-} from "./status-lamp.js";
+} from "./status-lamp.ts";
 export {
   CompilationSettingsManager,
   compilationSettings,
   type CompilationSettings,
-} from "./compilation-settings.js";
+} from "./compilation-settings.ts";
 export {
   StatePersistenceManager,
   statePersistence,
-} from "./state-persistence.js";
+} from "./state-persistence.ts";
 export {
   PDFScrollZoomHandler,
   type PDFScrollZoomOptions,
   type PDFColorMode,
   type PDFColorTheme,
-} from "./pdf-scroll-zoom.js";
-export { GitHistoryManager } from "./git-history.js";
+} from "./pdf-scroll-zoom.ts";
+export { GitHistoryManager } from "./git-history.ts";
 
 // New modular exports
 export {
   setupDragAndDrop,
   setupPDFScrollPriority,
-} from "./drag-drop.js";
+} from "./drag-drop.ts";
 export {
   getPageTheme,
   filterThemeOptions,
   applyCodeEditorTheme,
   setupThemeListener,
   setupKeybindingListener,
-} from "./theme-manager.js";
+} from "./theme-manager.ts";
 export {
   scheduleSave,
   scheduleAutoCompile,
   saveSections,
   setLoadingContent,
   getLoadingContent,
-} from "./auto-save.js";
+} from "./auto-save.ts";
 export {
   showCommitModal,
   closeCommitModal,
   handleGitCommit,
   showCompilationOptionsModal,
-} from "./modals.js";
+} from "./modals.ts";
 export {
   setupWorkspaceInitialization,
   waitForMonaco,
-} from "./workspace-init.js";
+} from "./workspace-init.ts";

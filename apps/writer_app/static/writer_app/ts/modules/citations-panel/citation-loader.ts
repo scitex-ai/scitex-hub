@@ -3,7 +3,7 @@
  * Handles loading citations from API
  */
 
-import { Citation } from "./types.js";
+import { Citation } from "./types.ts";
 
 export interface CitationsLoadResult {
   success: boolean;

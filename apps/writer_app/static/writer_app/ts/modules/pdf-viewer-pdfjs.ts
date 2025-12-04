@@ -4,13 +4,13 @@
  * Provides full control over scrollbars, themes, and rendering
  */
 
-import { PDFLoader } from "./pdf-viewer/PDFLoader.js";
-import { PDFRenderer } from "./pdf-viewer/PDFRenderer.js";
-import { PDFNavigation } from "./pdf-viewer/PDFNavigation.js";
-import { PDFZoom } from "./pdf-viewer/PDFZoom.js";
-import { PDFScrollState } from "./pdf-viewer/PDFScrollState.js";
-import { PDFMouseHandler } from "./pdf-viewer/PDFMouseHandler.js";
-import { PDFTheme } from "./pdf-viewer/PDFTheme.js";
+import { PDFLoader } from "./pdf-viewer/PDFLoader.ts";
+import { PDFRenderer } from "./pdf-viewer/PDFRenderer.ts";
+import { PDFNavigation } from "./pdf-viewer/PDFNavigation.ts";
+import { PDFZoom } from "./pdf-viewer/PDFZoom.ts";
+import { PDFScrollState } from "./pdf-viewer/PDFScrollState.ts";
+import { PDFMouseHandler } from "./pdf-viewer/PDFMouseHandler.ts";
+import { PDFTheme } from "./pdf-viewer/PDFTheme.ts";
 
 console.log("[DEBUG] pdf-viewer-pdfjs.ts loaded");
 

@@ -3,7 +3,7 @@
  * Handles UI updates for compilation operations
  */
 
-import { CompilationResult } from "./types.js";
+import { CompilationResult } from "./types.ts";
 
 export class CompilationUI {
   /**

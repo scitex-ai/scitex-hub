@@ -10,10 +10,10 @@ console.log(
   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/editor/collaborative/manager.ts loaded",
 );
 
-import type { ManuscriptConfig } from "./types.js";
-import { ChangeTracker } from "./changes.js";
-import { CursorManager } from "./cursors.js";
-import { SyncManager } from "./sync.js";
+import type { ManuscriptConfig } from "./types.ts";
+import { ChangeTracker } from "./changes.ts";
+import { CursorManager } from "./cursors.ts";
+import { SyncManager } from "./sync.ts";
 
 export class CollaborativeEditorManager {
   private changeTracker: ChangeTracker;

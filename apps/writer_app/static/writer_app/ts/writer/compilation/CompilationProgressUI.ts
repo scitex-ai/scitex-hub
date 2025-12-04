@@ -8,7 +8,7 @@ import {
   updateMinimizedStatus,
   updateStatusLamp,
   updateSlimProgress,
-} from "./CompilationStatusDisplay.js";
+} from "./CompilationStatusDisplay.ts";
 
 /**
  * Show compilation progress modal

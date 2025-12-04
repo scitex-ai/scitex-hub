@@ -6,17 +6,17 @@
  * @author SciTeX Development Team
  */
 
-export { CollaborativeEditorManager } from "./manager.js";
-export { ChangeTracker } from "./changes.js";
-export { CursorManager } from "./cursors.js";
-export { SyncManager } from "./sync.js";
+export { CollaborativeEditorManager } from "./manager.ts";
+export { ChangeTracker } from "./changes.ts";
+export { CursorManager } from "./cursors.ts";
+export { SyncManager } from "./sync.ts";
 export type {
   ManuscriptConfig,
   ManuscriptData,
   VersionData,
   VersionResponse,
   ExportData,
-} from "./types.js";
+} from "./types.ts";
 
 // Global Export
 declare global {
@@ -27,5 +27,5 @@ declare global {
 }
 
 // Export to window for access from templates
-import { CollaborativeEditorManager } from "./manager.js";
+import { CollaborativeEditorManager } from "./manager.ts";
 window.CollaborativeEditorManager = CollaborativeEditorManager;

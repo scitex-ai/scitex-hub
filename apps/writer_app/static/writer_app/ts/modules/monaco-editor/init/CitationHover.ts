@@ -3,7 +3,7 @@
  * Provides tooltip information when hovering over citations
  */
 
-import { fetchCitations } from "./CitationUtils.js";
+import { fetchCitations } from "./CitationUtils.ts";
 
 console.log("[DEBUG] CitationHover.ts loaded");
 

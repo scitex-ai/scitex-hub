@@ -3,9 +3,9 @@
  * Handles all event binding and handling (mouse, touch, keyboard)
  */
 
-import type { CompleteSeekbarOptions, HandleType, SeekbarValues, SeekbarElements } from "./types.js";
-import type { ValueCalculator } from "./value-calculator.js";
-import type { SeekbarRenderer } from "./renderer.js";
+import type { CompleteSeekbarOptions, HandleType, SeekbarValues, SeekbarElements } from "./types.ts";
+import type { ValueCalculator } from "./value-calculator.ts";
+import type { SeekbarRenderer } from "./renderer.ts";
 
 export class EventHandlers {
   private options: CompleteSeekbarOptions;

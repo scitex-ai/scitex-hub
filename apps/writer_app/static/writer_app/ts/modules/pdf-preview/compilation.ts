@@ -3,8 +3,8 @@
  * Handles compilation logic for PDF preview
  */
 
-import { CompilationManager, CompilationOptions } from "../compilation.js";
-import { LatexWrapper } from "../latex-wrapper.js";
+import { CompilationManager, CompilationOptions } from "../compilation.ts";
+import { LatexWrapper } from "../latex-wrapper.ts";
 
 export class CompilationHandler {
   private compilationManager: CompilationManager;

@@ -5,7 +5,7 @@
  */
 
 import type { FileType } from "../core/types.js";
-import { DataTableManager, Dataset } from "../../../../../../static/shared/js/components/data-table/index.js";
+import { DataTableManager, Dataset } from "@/components/data-table/index.js";
 
 export class MediaViewerManager {
   private container: HTMLElement | null = null;

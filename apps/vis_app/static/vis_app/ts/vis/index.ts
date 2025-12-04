@@ -11,7 +11,7 @@ export * from './types.js';
 export { RulersManager } from './RulersManager.js';
 export { CanvasManager } from './CanvasManager.js';
 // DataTableManager from shared module
-export { DataTableManager } from '../../../../../../static/shared/js/components/data-table/DataTableManager.js';
+export { DataTableManager } from '../../../../../../static/shared/ts/components/data-table/DataTableManager.js';
 export { PropertiesManager } from './PropertiesManager.js';
 export { UIManager } from './UIManager.js';
 export { ResizerManager } from './ResizerManager.js';

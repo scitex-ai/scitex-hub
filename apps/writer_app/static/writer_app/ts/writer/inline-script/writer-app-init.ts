@@ -11,12 +11,12 @@ console.log(
 import {
   doctypeToDirectory,
   isNonEditableFile,
-} from "../config/index.js";
+} from "../config/index.ts";
 import {
   updateDoctypeSectionsFromTree,
   getSectionsForDoctype,
   Section,
-} from "../sections/section-extraction.js";
+} from "../sections/section-extraction.ts";
 import {
   getCurrentDoctype,
   setCurrentDoctype,
@@ -25,9 +25,9 @@ import {
   filterFileTreeDOM,
   handleFileSelect,
   setupTreeFilterObserver,
-} from "../tree/index.js";
-import { initSidebarResizer } from "../ui/sidebar-resizer.js";
-import { WriterTabManager } from "../tabs/WriterTabManager.js";
+} from "../tree/index.ts";
+import { initSidebarResizer } from "../ui/sidebar-resizer.ts";
+import { WriterTabManager } from "../tabs/WriterTabManager.ts";
 
 // Get WRITER_CONFIG from window
 declare global {

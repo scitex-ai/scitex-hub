@@ -3,8 +3,8 @@
  * Handles rendering of tree nodes and directories
  */
 
-import { FileTreeNode } from "./types.js";
-import { WriterFileFilter } from "../writer-file-filter.js";
+import { FileTreeNode } from "./types.ts";
+import { WriterFileFilter } from "../writer-file-filter.ts";
 
 export class TreeRenderer {
   private filter: WriterFileFilter;

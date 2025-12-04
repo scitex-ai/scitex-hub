@@ -5,11 +5,11 @@
 
 console.log("[DEBUG] table-preview-modal/orchestrator.ts loaded");
 
-import { TableStateManager } from "./table-state.js";
-import { TableRenderer } from "./table-renderer.js";
-import { TableAPIClient } from "./table-api.js";
-import { TableEventManager } from "./table-events.js";
-import { TableExporter } from "./table-export.js";
+import { TableStateManager } from "./table-state.ts";
+import { TableRenderer } from "./table-renderer.ts";
+import { TableAPIClient } from "./table-api.ts";
+import { TableEventManager } from "./table-events.ts";
+import { TableExporter } from "./table-export.ts";
 
 export class TablePreviewModalOrchestrator {
   private stateManager: TableStateManager;

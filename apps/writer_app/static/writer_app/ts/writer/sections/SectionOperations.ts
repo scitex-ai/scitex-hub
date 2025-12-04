@@ -6,7 +6,7 @@
 import {
   WriterEditor,
   setLoadingContent,
-} from "../../modules/index.js";
+} from "../../modules/index.ts";
 import {
   showToast,
   getUserContext,
@@ -14,8 +14,8 @@ import {
   updatePDFPreviewTitle,
   updateCommitButtonVisibility,
   syncDropdownToSection,
-} from "../../utils/index.js";
-import { getWriterConfig } from "../../helpers.js";
+} from "../../utils/index.ts";
+import { getWriterConfig } from "../../helpers.ts";
 
 let modulePdfPreviewManager: any = null;
 let compileTimeout: ReturnType<typeof setTimeout> | null = null;

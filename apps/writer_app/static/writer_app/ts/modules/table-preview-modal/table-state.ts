@@ -5,7 +5,7 @@
 
 console.log("[DEBUG] table-preview-modal/table-state.ts loaded");
 
-import { TableData, TableState } from "./types.js";
+import { TableData, TableState } from "./types.ts";
 
 export class TableStateManager {
   private state: TableState;

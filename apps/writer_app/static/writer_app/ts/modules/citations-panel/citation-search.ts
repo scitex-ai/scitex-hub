@@ -3,7 +3,7 @@
  * Handles search and filtering of citations
  */
 
-import { Citation, CitationWithScore } from "./types.js";
+import { Citation, CitationWithScore } from "./types.ts";
 
 export class CitationSearch {
   /**

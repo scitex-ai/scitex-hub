@@ -4,7 +4,7 @@
  * Uses the shared WorkspaceFilesTree component for consistency across modules
  */
 
-import type { EditorConfig } from "../core/types.js";
+import type { EditorConfig } from "../core/types.ts";
 
 // TreeItem type definition (matches shared component)
 interface TreeItem {

@@ -3,13 +3,13 @@
  * Main class coordinating PDF preview functionality
  */
 
-import { CompilationManager } from "../compilation.js";
-import { LatexWrapper } from "../latex-wrapper.js";
-import { PDFViewer } from "./viewer.js";
-import { ZoomController } from "./zoom.js";
-import { EventHandler } from "./events.js";
-import { CompilationHandler } from "./compilation.js";
-import { ColorModeManager } from "./color-mode.js";
+import { CompilationManager } from "../compilation.ts";
+import { LatexWrapper } from "../latex-wrapper.ts";
+import { PDFViewer } from "./viewer.ts";
+import { ZoomController } from "./zoom.ts";
+import { EventHandler } from "./events.ts";
+import { CompilationHandler } from "./compilation.ts";
+import { ColorModeManager } from "./color-mode.ts";
 
 export interface PDFPreviewOptions {
   containerId: string;

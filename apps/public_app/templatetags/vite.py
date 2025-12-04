@@ -28,20 +28,14 @@ def is_vite_server_running(port: int = 5173) -> bool:
     """Check if Vite dev server is running and responsive."""
     if not settings.DEBUG:
         return False
-
-    # Disable Vite HMR - current codebase uses .js imports which causes
-    # Vite to load pre-compiled JS files (slow, sourcemap warnings).
-    # TODO: Enable when imports are changed to .ts extensions
-    return False
-
-    # try:
-    #     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    #     sock.settimeout(0.5)
-    #     result = sock.connect_ex(('127.0.0.1', port))
-    #     sock.close()
-    #     return result == 0
-    # except Exception:
-    #     return False
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(0.5)
+        result = sock.connect_ex(('127.0.0.1', port))
+        sock.close()
+        return result == 0
+    except Exception:
+        return False
 
 
 def get_manifest() -> dict:

@@ -3,7 +3,7 @@
  * Manages spell checking functionality
  */
 
-import { SpellChecker } from "../spell-checker.js";
+import { SpellChecker } from "../spell-checker.ts";
 
 console.log(
   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/monaco-editor/spell-check-integration.ts loaded",

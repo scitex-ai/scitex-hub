@@ -5,17 +5,17 @@
  */
 
 import { ApiClient } from "@/utils/api";
-import { CompilationAPI } from "./compilation/compilation-api.js";
-import { CompilationState } from "./compilation/compilation-state.js";
-import { CompilationUI } from "./compilation/compilation-ui.js";
-import { CompilationQueue } from "./compilation/compilation-queue.js";
-import { CompilationPreview } from "./compilation/compilation-preview.js";
-import { CompilationFull } from "./compilation/compilation-full.js";
+import { CompilationAPI } from "./compilation/compilation-api.ts";
+import { CompilationState } from "./compilation/compilation-state.ts";
+import { CompilationUI } from "./compilation/compilation-ui.ts";
+import { CompilationQueue } from "./compilation/compilation-queue.ts";
+import { CompilationPreview } from "./compilation/compilation-preview.ts";
+import { CompilationFull } from "./compilation/compilation-full.ts";
 import {
   CompilationOptions,
   CompilationJob,
   CompilationCallbacks,
-} from "./compilation/types.js";
+} from "./compilation/types.ts";
 
 console.log(
   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/compilation.ts loaded",

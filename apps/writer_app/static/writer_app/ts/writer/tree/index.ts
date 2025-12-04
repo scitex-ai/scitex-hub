@@ -17,4 +17,4 @@ export {
   handleDoctypeChange,
   handleFileSelect,
   setupTreeFilterObserver,
-} from "./file-tree-integration.js";
+} from "./file-tree-integration.ts";

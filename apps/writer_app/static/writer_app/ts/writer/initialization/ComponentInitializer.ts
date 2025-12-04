@@ -18,12 +18,12 @@ import {
   PDFScrollZoomHandler,
   EditorControls,
   GitHistoryManager,
-} from "../../modules/index.js";
-import { showToast } from "../../utils/index.js";
+} from "../../modules/index.ts";
+import { showToast } from "../../utils/index.ts";
 import {
   setSectionOpsPdfPreviewManager,
   setDownloadPdfPreviewManager,
-} from "../index.js";
+} from "../index.ts";
 
 export interface InitializedComponents {
   editor: any;

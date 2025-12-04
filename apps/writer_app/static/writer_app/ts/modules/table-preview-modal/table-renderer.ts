@@ -5,8 +5,8 @@
 
 console.log("[DEBUG] table-preview-modal/table-renderer.ts loaded");
 
-import { TableData } from "./types.js";
-import { TableStateManager } from "./table-state.js";
+import { TableData } from "./types.ts";
+import { TableStateManager } from "./table-state.ts";
 
 export class TableRenderer {
   constructor(private stateManager: TableStateManager) {}
