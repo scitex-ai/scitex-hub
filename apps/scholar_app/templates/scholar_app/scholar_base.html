@@ -1,5 +1,5 @@
 {% extends 'global_base.html' %}
-{% load static %}
+{% load static vite %}
 {% block meta_description %}Advanced semantic search for scientific literature{% endblock %}
 {% block extra_css %}
     <!-- Workspace colors CSS for consistent theming -->
@@ -58,9 +58,21 @@
         border-color: var(--color-border-default) !important;
     }
     .bibtex-dropzone {
-        background: #1e1e1e !important;
+        background: var(--workspace-bg-monaco, #1e1e1e) !important;
         border-color: var(--color-border-default) !important;
         border-radius: 0 !important;
+    }
+    .bibtex-dropzone:hover {
+        background: var(--workspace-bg-tertiary, #2a2a2a) !important;
+        border-color: var(--workspace-icon-hover, #7eb8aa) !important;
+    }
+    [data-theme="light"] .bibtex-dropzone {
+        background: #f6f8fa !important;
+        border-color: #2ea043 !important;
+    }
+    [data-theme="light"] .bibtex-dropzone:hover {
+        background: #e6ebf0 !important;
+        border-color: #238636 !important;
     }
     .bibtex-tile__title i,
     .bibtex-card__title i,
@@ -142,58 +154,15 @@
 {% block extra_js %}
     {{ block.super }}
     <!-- Panel resizer manager -->
-    <script type="module" src="{% static 'scholar_app/js/shared/panel-resizer.js' %}"></script>
+    {% vite_script 'scholar_app/shared/panel-resizer' %}
     {% if current_project %}
-    <script type="module">
-        // Initialize WorkspaceFilesTree for scholar mode
-        import { WorkspaceFilesTree } from '{% static "shared/js/components/workspace-files-tree/WorkspaceFilesTree.js" %}';
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            const tree = new WorkspaceFilesTree({
-                mode: 'scholar',
-                containerId: 'file-tree',
-                username: '{{ current_project.owner.username }}',
-                slug: '{{ current_project.slug }}',
-                showFolderActions: true,
-                showGitStatus: true,
-                onFileSelect: (path, item) => {
-                    console.log('[Scholar] File selected:', path);
-                    // Handle file selection - e.g., open PDF viewer, load BibTeX
-                    if (path.endsWith('.pdf')) {
-                        window.open(`/{{ current_project.owner.username }}/{{ current_project.slug }}/files/${path}`, '_blank');
-                    } else if (path.endsWith('.bib')) {
-                        // Could trigger BibTeX import
-                        console.log('BibTeX file selected:', path);
-                    }
-                }
-            });
-            await tree.initialize();
-
-            // Expose tree globally for BibTeX enrichment to trigger refresh
-            window.scholarWorkspaceTree = tree;
-
-            // Sidebar toggle
-            const toggleBtn = document.getElementById('sidebar-toggle');
-            const sidebar = document.getElementById('scholar-sidebar');
-            if (toggleBtn && sidebar) {
-                toggleBtn.addEventListener('click', () => {
-                    sidebar.classList.toggle('collapsed');
-                    toggleBtn.querySelector('i').classList.toggle('fa-chevron-left');
-                    toggleBtn.querySelector('i').classList.toggle('fa-chevron-right');
-                });
-            }
-
-            // Properties panel toggle
-            const propsToggleBtn = document.getElementById('properties-toggle');
-            const propsPanel = document.getElementById('scholar-properties');
-            if (propsToggleBtn && propsPanel) {
-                propsToggleBtn.addEventListener('click', () => {
-                    propsPanel.classList.toggle('collapsed');
-                    propsToggleBtn.querySelector('i').classList.toggle('fa-chevron-right');
-                    propsToggleBtn.querySelector('i').classList.toggle('fa-chevron-left');
-                });
-            }
-        });
+    <!-- Scholar workspace initialization with project context -->
+    <script id="scholar-project-config" type="application/json">
+        {
+            "username": "{{ current_project.owner.username|escapejs }}",
+            "slug": "{{ current_project.slug|escapejs }}"
+        }
     </script>
+    {% vite_script 'scholar_app/scholar-workspace-init' %}
     {% endif %}
 {% endblock %}

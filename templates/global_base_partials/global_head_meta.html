@@ -1,4 +1,4 @@
-{% load static %}
+{% load static vite %}
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="description"
@@ -17,7 +17,7 @@
   })();
 </script>
 <!-- Console Logger (Development Only) - Captures browser console to ./logs/console.log -->
-<script src="{% static 'shared/js/utils/console-interceptor.js' %}"></script>
+{% vite_script 'shared/utils/console-interceptor' %}
 <!-- Favicon -->
 <link rel="icon"
       type="image/png"

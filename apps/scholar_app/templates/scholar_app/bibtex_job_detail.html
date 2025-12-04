@@ -1,5 +1,5 @@
 {% extends 'scholar_app/scholar_base.html' %}
-{% load static %}
+{% load static vite %}
 {% block title %}BibTeX Job #{{ job.id }} - SciTeX Scholar{% endblock %}
 {% block extra_css %}
     <style>
@@ -376,6 +376,5 @@
     {% endif %}
 </div>
 <!-- Job Detail UI Script -->
-<script type="module"
-        src="{% static 'scholar_app/js/bibtex/job-detail-ui.js' %}"></script>
+{% vite_script 'scholar_app/bibtex/job-detail-ui' %}
 {% endblock %}

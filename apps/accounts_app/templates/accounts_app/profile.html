@@ -1,5 +1,5 @@
 {% extends "global_base.html" %}
-{% load static %}
+{% load static vite %}
 {% block title %}
     My Profile -
     SciTeX
@@ -280,5 +280,5 @@
                 </div>
             {% endblock %}
             {% block extra_js %}
-                <script src="{% static 'accounts_app/ts/profile.js' %}"></script>
+                {% vite_script 'accounts_app/profile' %}
             {% endblock %}

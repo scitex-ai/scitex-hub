@@ -1,5 +1,5 @@
 {% extends "global_base.html" %}
-{% load static %}
+{% load static vite %}
 {% block title %}
     Account
     Settings
@@ -228,5 +228,5 @@
     </div>
 {% endblock %}
 {% block extra_js %}
-    <script src="{% static 'accounts_app/js/account-settings.js' %}"></script>
+    {% vite_script 'accounts_app/account-settings' %}
 {% endblock %}

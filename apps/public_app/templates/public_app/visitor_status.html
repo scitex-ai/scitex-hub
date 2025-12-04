@@ -1,5 +1,5 @@
 {% extends "global_base.html" %}
-{% load static %}
+{% load static vite %}
 
 {% block title %}Visitor Mode Status - SciTeX{% endblock %}
 
@@ -118,5 +118,5 @@ Check the current status of SciTeX visitor mode slots and availability.
 {% endblock %}
 
 {% block extra_js %}
-<script type="module" src="{% static 'public_app/js/visitor-status.js' %}"></script>
+{% vite_script 'public_app/visitor-status' %}
 {% endblock %}

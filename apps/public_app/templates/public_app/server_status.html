@@ -1,5 +1,5 @@
 {% extends "global_base.html" %}
-{% load static %}
+{% load static vite %}
 
 {% block title %}Server Status - SciTeX Cloud{% endblock %}
 
@@ -477,5 +477,5 @@ Check the current status of SciTeX Cloud services and infrastructure.
     </div>
 </div>
 
-<script type="module" src="{% static 'public_app/js/server-status.js' %}"></script>
+{% vite_script 'public_app/server-status' %}
 {% endblock %}

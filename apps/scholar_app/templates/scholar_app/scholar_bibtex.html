@@ -1,5 +1,5 @@
 {% extends "scholar_app/scholar_base.html" %}
-{% load static %}
+{% load static vite %}
 {% block title %}SciTeX Scholar - BibTeX Tools{% endblock %}
 {% block extra_css %}
     {{ block.super }}
@@ -42,72 +42,10 @@
 {% block extra_js %}
     {{ block.super }}
     <!-- Common Scripts -->
-    <script type="module" src="{% static 'scholar_app/js/common/project-selector.js' %}"></script>
+    {% vite_script 'scholar_app/common/project-selector' %}
     <!-- BibTeX scripts are loaded from bibtex_partials/enrich.html -->
     <!-- AI2 Prompt Integration -->
     {% if current_project %}
-        <script type="module">
-  // Import AI2 prompt functions from writer app
-  import {
-    openAI2PromptModal,
-    closeAI2PromptModal,
-    copyAI2PromptToClipboard,
-    generateAI2Prompt,
-  } from "/static/writer_app/js/modules/ai2-prompt.js";
-
-  // Make functions globally available for the modal
-  window.closeAI2PromptModal = closeAI2PromptModal;
-
-  // Wait for DOM to load
-  document.addEventListener("DOMContentLoaded", () => {
-    const projectId = window.SCHOLAR_CONFIG?.projectId;
-    if (!projectId) {
-      console.error("[Scholar AI2] No project ID available");
-      return;
-    }
-
-    // Initialize button click handler
-    const scholarAI2Btn = document.getElementById("generate-ai2-prompt-scholar-btn");
-    if (scholarAI2Btn) {
-      scholarAI2Btn.addEventListener("click", () => {
-        console.log("[Scholar AI2] Opening AI2 prompt modal");
-        openAI2PromptModal(projectId);
-      });
-    }
-
-    // Initialize modal buttons
-    const copyButton = document.getElementById("copyAI2PromptBtn");
-    if (copyButton) {
-      copyButton.addEventListener("click", () => {
-        copyAI2PromptToClipboard();
-      });
-    }
-
-    const regenerateButton = document.getElementById("regenerateAI2PromptBtn");
-    if (regenerateButton) {
-      regenerateButton.addEventListener("click", () => {
-        const searchTypeInputs = document.getElementsByName("ai2SearchType");
-        let searchType = "related";
-        for (const input of searchTypeInputs) {
-          if (input.checked) {
-            searchType = input.value;
-            break;
-          }
-        }
-        generateAI2Prompt(projectId, searchType);
-      });
-    }
-
-    // Handle search type radio button changes
-    const searchTypeInputs = document.getElementsByName("ai2SearchType");
-    for (const input of searchTypeInputs) {
-      input.addEventListener("change", () => {
-        generateAI2Prompt(projectId, input.value);
-      });
-    }
-
-    console.log("[Scholar AI2] AI2 prompt integration initialized");
-  });
-        </script>
+        {% vite_script 'scholar_app/bibtex/scholar-ai2-integration' %}
     {% endif %}
 {% endblock %}

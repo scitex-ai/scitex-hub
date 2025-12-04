@@ -192,19 +192,7 @@
         {% include "writer_app/index_partials/table_preview_modal.html" %}
     {% endif %}
     {% if not needs_project_creation and not pool_error and not pool_exhausted %}
-        <!-- Editor Loader (TypeScript-compiled) - Handles CodeMirror and Monaco initialization -->
-        <script type="module">
-  import { editorLoader } from '{% static "writer_app/js/loaders/editor-loader.js" %}';
-
-  // Initialize editors (CodeMirror + Monaco) before anything else
-  (async () => {
-    try {
-      await editorLoader.initialize();
-    } catch (error) {
-      console.error("[Writer] Failed to initialize editors:", error);
-    }
-  })();
-        </script>
+        <!-- Editor loading is now handled in writer_app/index.ts -->
         <!-- Initialize global variables for writer app -->
         <script>
   // Pass Django context to JavaScript (must use window. to make it globally accessible)
