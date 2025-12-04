@@ -392,6 +392,32 @@ body.resizing-column {
 }
 
 /* ========================================================================
+   LIGHT THEME - SOFTER BORDERS
+   ======================================================================== */
+
+[data-theme="light"] .data-table th,
+[data-theme="light"] .data-table td,
+[data-theme="light"] .editable-table th,
+[data-theme="light"] .editable-table td {
+    border-color: #e0e0e0;
+}
+
+[data-theme="light"] .data-table th,
+[data-theme="light"] .editable-table th {
+    background: #f8f9fa;
+}
+
+[data-theme="light"] .editable-table .row-number,
+[data-theme="light"] .editable-table .row-number-header {
+    background: #f8f9fa;
+    color: #666;
+}
+
+[data-theme="light"] .data-table tbody tr:nth-child(even) {
+    background: rgba(0, 0, 0, 0.015);
+}
+
+/* ========================================================================
    DARK THEME OVERRIDES
    ======================================================================== */
 

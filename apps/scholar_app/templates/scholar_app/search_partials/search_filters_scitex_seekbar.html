@@ -1,11 +1,11 @@
-{% load static %}
+{% load static vite %}
 <!-- Alternative implementation using SciTeX Seekbar component instead of noUiSlider -->
 <!-- To use this version, replace the filters section in search.html with this partial -->
 <!-- Include SciTeX Seekbar Component -->
 <link rel="stylesheet"
       href="{% static 'shared/css/components/seekbar.css' %}" />
-<script src="{% static 'shared/js/components/seekbar.js' %}"></script>
-<script src="{% static 'scholar_app/js/seekbar-integration.js' %}"></script>
+{% vite_script 'shared/components/seekbar' %}
+{% vite_script 'scholar_app/search/seekbar-integration' %}
 <!-- Mark this page to use SciTeX Seekbar -->
 <div data-use-scitex-seekbar="true" style="display: none"></div>
 <!-- Row 2: Filters (Collapsed by default) -->

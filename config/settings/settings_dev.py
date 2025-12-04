@@ -100,6 +100,14 @@ WHITENOISE_AUTOREFRESH = True
 # Disable browser caching of static files in development to ensure fresh JS/CSS
 WHITENOISE_MAX_AGE = 0
 
+# Override STATICFILES_DIRS for dev - exclude .jsbuild since Vite handles TypeScript
+# In dev mode, Vite serves TypeScript directly via dev server (port 5173)
+# .jsbuild contains stale compiled JS that interferes with Vite HMR
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+    # Note: .jsbuild is excluded in dev mode - Vite handles TypeScript transpilation
+]
+
 # django-browser-reload configuration
 # Note: Templates, CSS, and JS files are watched to trigger browser reload
 # Visitor pool initialization is now optimized with fast-path check

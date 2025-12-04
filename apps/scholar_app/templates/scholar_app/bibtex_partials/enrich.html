@@ -1,4 +1,4 @@
-{% load static %}
+{% load static vite %}
 <link rel="stylesheet" href="{% static 'scholar_app/css/bibtex/bibtex-enrichment.css' %}?v={{ request.timestamp|default:'1' }}" />
 <!-- BibTeX Enrichment - Single Column for Main Panel -->
 <div class="bibtex-enrichment-container">
@@ -116,11 +116,11 @@
     </div>
 </div>
 
-<!-- Scripts -->
-<script type="module" src="{% static 'shared/js/components/confirm-modal.js' %}"></script>
-<script type="module" src="{% static 'scholar_app/js/shared/collapsible-panels.js' %}"></script>
-<script type="module" src="{% static 'scholar_app/js/bibtex/bibtex-enrichment.js' %}"></script>
-<script type="module" src="{% static 'scholar_app/js/bibtex/queue-management.js' %}"></script>
+<!-- Scripts loaded via Vite -->
+{% vite_script 'shared/components/confirm-modal' %}
+{% vite_script 'scholar_app/shared/collapsible-panels' %}
+{% vite_script 'scholar_app/bibtex/bibtex-enrichment' %}
+{% vite_script 'scholar_app/bibtex/queue-management' %}
 
 <script>
 // Toggle panel function for tiles

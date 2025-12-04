@@ -114,54 +114,195 @@
    CSV/DATA TABLE VIEWER
    ======================================== */
 
-.csv-viewer {
+.csv-viewer,
+.media-viewer-csv-wrapper {
     width: 100%;
     height: 100%;
     display: flex;
     flex-direction: column;
-    background: var(--vis-bg-primary, #fff);
+    background: var(--workspace-bg-primary, #1e1e1e);
 }
 
-.csv-viewer-toolbar {
+.csv-viewer-toolbar,
+.media-viewer-toolbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 8px 12px;
-    background: var(--vis-bg-secondary, #f5f5f5);
-    border-bottom: 1px solid var(--workspace-border-default, #e0e0e0);
+    background: var(--workspace-bg-secondary, #252526);
+    border-bottom: 1px solid var(--workspace-border-muted, #3c3c3c);
     flex-shrink: 0;
+    gap: 8px;
 }
 
 .csv-viewer-info {
     font-size: 12px;
-    color: var(--text-muted, #666);
+    color: var(--text-muted, #888);
 }
 
-.csv-viewer-actions {
+.csv-viewer-actions,
+.media-viewer-csv-controls {
     display: flex;
-    gap: 8px;
+    gap: 6px;
+    align-items: center;
 }
 
-.csv-viewer-actions button {
-    padding: 4px 12px;
+.csv-viewer-actions button,
+.csv-control-btn {
+    padding: 4px 10px;
     font-size: 12px;
-    border: 1px solid var(--workspace-border-default, #e0e0e0);
-    background: var(--vis-bg-primary, #fff);
-    color: var(--text-primary, #333);
+    border: 1px solid var(--workspace-border-default, #555);
+    background: var(--workspace-bg-tertiary, #2d2d2d);
+    color: var(--text-primary, #e0e0e0);
     border-radius: 4px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 
-.csv-viewer-actions button:hover {
-    background: var(--status-success-bg, rgba(74, 155, 126, 0.1));
+.csv-viewer-actions button:hover,
+.csv-control-btn:hover {
+    background: var(--workspace-bg-secondary, #3c3c3c);
     border-color: var(--status-success, #4a9b7e);
     color: var(--status-success, #4a9b7e);
 }
 
-.csv-viewer-table {
+.csv-control-btn i {
+    font-size: 11px;
+}
+
+/* Media viewer toolbar buttons (download, open in new tab) */
+.media-viewer-btn {
+    padding: 4px 8px;
+    font-size: 12px;
+    border: 1px solid var(--workspace-border-default, #555);
+    background: var(--workspace-bg-tertiary, #2d2d2d);
+    color: var(--text-primary, #e0e0e0);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.media-viewer-btn:hover {
+    background: var(--workspace-bg-secondary, #3c3c3c);
+    border-color: var(--status-info, #3b82f6);
+    color: var(--status-info, #3b82f6);
+}
+
+.media-viewer-btn i {
+    font-size: 12px;
+}
+
+.media-viewer-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-primary, #e0e0e0);
+}
+
+.media-viewer-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.media-viewer-icon {
+    color: var(--text-muted, #888);
+}
+
+.media-viewer-filename {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.toolbar-separator {
+    width: 1px;
+    height: 20px;
+    background: var(--workspace-border-muted, #3c3c3c);
+    margin: 0 4px;
+}
+
+.csv-viewer-table,
+.media-viewer-csv-container {
     flex: 1;
     overflow: auto;
+}
+
+/* CSV Table in Media Viewer */
+.csv-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.csv-table th,
+.csv-table td {
+    border: 1px solid var(--workspace-border-muted, #3c3c3c);
+    padding: 6px 10px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+/* Light theme - softer borders */
+[data-theme="light"] .csv-table th,
+[data-theme="light"] .csv-table td {
+    border-color: #e0e0e0;
+    color: #333;
+}
+
+[data-theme="light"] .csv-table th {
+    background: #f5f7f9;
+    color: #555;
+}
+
+[data-theme="light"] .csv-table td {
+    background: #fff;
+}
+
+[data-theme="light"] .csv-table tbody tr:hover td {
+    background: #f0f4f8;
+}
+
+/* Dark theme */
+[data-theme="dark"] .csv-table th,
+[data-theme="dark"] .csv-table td {
+    border-color: var(--workspace-border-muted, #3c3c3c);
+    color: var(--text-primary, #e0e0e0);
+}
+
+[data-theme="dark"] .csv-table th {
+    background: var(--workspace-bg-secondary, #252526);
+}
+
+[data-theme="dark"] .csv-table td {
+    background: var(--workspace-bg-primary, #1e1e1e);
+}
+
+[data-theme="dark"] .csv-table tbody tr:hover td {
+    background: rgba(74, 155, 126, 0.1);
+}
+
+/* Dark theme is default for code workspace - these ensure consistency */
+.media-viewer-csv-wrapper .data-table th,
+.media-viewer-csv-wrapper .data-table td {
+    border-color: var(--workspace-border-muted, #3c3c3c);
+    color: var(--text-primary, #e0e0e0);
+    background: var(--workspace-bg-primary, #1e1e1e);
+}
+
+.media-viewer-csv-wrapper .data-table th {
+    background: var(--workspace-bg-secondary, #252526);
+}
+
+.media-viewer-csv-wrapper .data-table .row-number,
+.media-viewer-csv-wrapper .data-table .row-number-header {
+    background: var(--workspace-bg-secondary, #252526);
+    color: var(--text-muted, #888);
 }
 
 /* Override data-table styles for dark theme in code workspace */
