@@ -1,5 +1,5 @@
 {% extends "writer_app/writer_base.html" %}
-{% load static %}
+{% load static vite %}
 {% block title %}SciTeX Writer{% if project %} - {{ project.name }}{% endif %}{% endblock %}
 {% block extra_css %}
     <!-- Critical CSS - loaded immediately (editor, PDF, core UI) -->
@@ -272,9 +272,9 @@
     }
   }
         </script>
-        <!-- TypeScript-compiled Writer Application Bundle -->
-        <script type="module"
-                src="{% static 'writer_app/js/index.js' %}?v={{ build_id|default:'dev' }}"></script>
+        <!-- Writer Application Bundle (Vite) -->
+        {% vite_hmr_client %}
+        {% vite_script 'writer_app/index' %}
         <!-- Real-Time Collaboration Script - temporarily disabled (file not found)
         <script type="module"
                 src="{% static 'shared/js/collaboration/writer/index.js' %}?v={{ build_id|default:'dev' }}"></script>

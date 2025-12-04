@@ -1,5 +1,5 @@
 {% extends "writer_app/base/app_base.html" %}
-{% load static %}
+{% load static vite %}
 {% comment %}
 Main editor template for SciTeX Writer Provides modular LaTeX editing interface
 with live preview {% endcomment %}
@@ -45,6 +45,6 @@ with live preview {% endcomment %}
     </div>
 {% endblock %}
 {% block writer_js %}
-    <script type="module"
-            src="{% static 'writer_app/js/index.js' %}?v={{ build_id|default:'dev' }}"></script>
+    {% vite_hmr_client %}
+    {% vite_script 'writer_app/index' %}
 {% endblock %}

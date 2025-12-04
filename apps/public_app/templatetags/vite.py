@@ -126,9 +126,32 @@ def _entry_to_ts_path(entry_name: str) -> str:
     """Convert entry name to TypeScript file path (for Vite)."""
     # Map entry names to actual TS file locations
     mappings = {
+        # Code app
         'code_app/workspace': 'apps/code_app/static/code_app/ts/workspace.ts',
+        # Vis app
         'vis_app/vis-editor': 'apps/vis_app/static/vis_app/ts/vis-editor.ts',
         'vis_app/editor-inline': 'apps/vis_app/static/vis_app/ts/editor-inline.ts',
+        # Writer app
+        'writer_app/index': 'apps/writer_app/static/writer_app/ts/index.ts',
+        'writer_app/collaboration-panel': 'apps/writer_app/static/writer_app/ts/collaboration-panel.ts',
+        # Project app
+        'project_app/clone_button': 'apps/project_app/static/project_app/ts/clone_button.ts',
+        'project_app/create_project_type': 'apps/project_app/static/project_app/ts/create_project_type.ts',
+        'project_app/init-git-gutter': 'apps/project_app/static/project_app/ts/init-git-gutter.ts',
+        # Scholar app
+        'scholar_app/scholar-config': 'apps/scholar_app/static/scholar_app/ts/scholar-config.ts',
+        # Public app
+        'public_app/visitor-status': 'apps/public_app/static/public_app/ts/visitor-status.ts',
+        'public_app/server-status': 'apps/public_app/static/public_app/ts/server-status.ts',
+        'public_app/landing-demos-inline': 'apps/public_app/static/public_app/ts/landing-demos-inline.ts',
+        # Accounts app
+        'accounts_app/profile': 'apps/accounts_app/static/accounts_app/ts/profile.ts',
+        'accounts_app/account-settings': 'apps/accounts_app/static/accounts_app/ts/account-settings.ts',
+        'accounts_app/ssh_keys': 'apps/accounts_app/static/accounts_app/ts/ssh_keys.ts',
+        'accounts_app/remote_credentials': 'apps/accounts_app/static/accounts_app/ts/remote_credentials.ts',
+        # Social app
+        'social_app/explore-inline': 'apps/social_app/static/social_app/ts/explore-inline.ts',
+        # Shared
         'shared/utils/theme-switcher': 'static/shared/ts/utils/theme-switcher.ts',
         'shared/utils/element-inspector': 'static/shared/ts/utils/element-inspector.ts',
         'shared/components/confirm-modal': 'static/shared/ts/components/confirm-modal.ts',
