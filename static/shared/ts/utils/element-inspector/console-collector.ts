@@ -238,132 +238,109 @@ export class ConsoleCollector {
   }
 
   public async captureDebugSnapshot(): Promise<void> {
-    // Generate console logs text
-    const textSnapshot = this.generateDebugSnapshot();
-
     // Show flash
     this.notificationManager.showCameraFlash();
-    await new Promise((resolve) => setTimeout(resolve, 150));
 
-    // Capture screenshot
-    const screenshotBlob = await this.captureScreenshot();
+    // Run screenshot and console log capture in parallel
+    const [screenshotResult, logsResult] = await Promise.all([
+      this.captureScreenshot(),
+      this.captureConsoleLogs(),
+    ]);
 
-    // Step 1: Copy screenshot
-    let screenshotCopied = false;
-    if (screenshotBlob) {
-      try {
-        await navigator.clipboard.write([
-          new ClipboardItem({ "image/png": screenshotBlob }),
-        ]);
-        screenshotCopied = true;
-        this.notificationManager.showNotification("1/3 ✓ Screenshot copied", "success");
-      } catch (e) {
-        this.notificationManager.showNotification("1/3 ✗ Screenshot failed", "error");
-      }
+    // Report results
+    const results: string[] = [];
+    if (screenshotResult) results.push("screenshot");
+    if (logsResult) results.push("logs");
+
+    if (results.length === 2) {
+      this.notificationManager.showNotification("✓ Screenshot + logs copied", "success");
+    } else if (results.length === 1) {
+      this.notificationManager.showNotification(`✓ ${results[0]} copied`, "success");
     } else {
-      this.notificationManager.showNotification("1/3 ✗ Screenshot failed", "error");
-    }
-
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    // Step 2: Copy console logs
-    let logsCopied = false;
-    try {
-      await navigator.clipboard.writeText(textSnapshot);
-      logsCopied = true;
-      this.notificationManager.showNotification("2/3 ✓ Console logs copied", "success");
-    } catch (e) {
-      this.originalConsole.error("[ConsoleCollector] Failed to copy text:", e);
-      this.notificationManager.showNotification("2/3 ✗ Console logs failed", "error");
-    }
-
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    // Step 3: Final summary
-    if (screenshotCopied && logsCopied) {
-      this.notificationManager.showNotification("3/3 ✓ Both copied!", "success");
-    } else if (logsCopied) {
-      this.notificationManager.showNotification("3/3 ✓ Logs only", "success");
-    } else if (screenshotCopied) {
-      this.notificationManager.showNotification("3/3 ✓ Screenshot only", "success");
-    } else {
-      this.notificationManager.showNotification("3/3 ✗ Copy failed", "error");
+      this.notificationManager.showNotification("✗ Capture failed", "error");
     }
 
     this.notificationManager.triggerCopyCallback();
   }
 
-  private async captureScreenshot(): Promise<Blob | null> {
-    // Use modern-screenshot library which supports oklch colors
+  /**
+   * Capture screenshot using getDisplayMedia (OS-level capture)
+   * Returns true if successful
+   */
+  private async captureScreenshot(): Promise<boolean> {
     try {
-      const domToImage = await this.loadDomToImage();
-      if (!domToImage) {
-        this.originalConsole.log("[ConsoleCollector] dom-to-image not available");
-        return null;
+      // Use getDisplayMedia with preferCurrentTab for auto-selection
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: {
+          displaySurface: "browser",
+        } as MediaTrackConstraints,
+        preferCurrentTab: true,
+        selfBrowserSurface: "include",
+        systemAudio: "exclude",
+      } as DisplayMediaStreamOptions);
+
+      const video = document.createElement("video");
+      video.srcObject = stream;
+      video.muted = true;
+
+      await new Promise<void>((resolve, reject) => {
+        video.onloadedmetadata = () => {
+          video.play().then(() => resolve()).catch(reject);
+        };
+        video.onerror = reject;
+        setTimeout(() => reject(new Error("Video load timeout")), 3000);
+      });
+
+      // Small delay to ensure frame is rendered
+      await new Promise((r) => setTimeout(r, 100));
+
+      // Capture frame to canvas
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        stream.getTracks().forEach((t) => t.stop());
+        return false;
       }
 
-      // Temporarily suppress console.error to hide cross-origin CSS errors from dom-to-image
-      const originalError = console.error;
-      console.error = (...args: any[]) => {
-        const msg = args[0]?.toString() || "";
-        // Suppress known dom-to-image cross-origin CSS errors
-        if (msg.includes("domtoimage") && msg.includes("CSS rules")) {
-          return;
-        }
-        originalError.apply(console, args);
-      };
+      ctx.drawImage(video, 0, 0);
+      stream.getTracks().forEach((t) => t.stop());
 
-      try {
-        const blob = await domToImage.toBlob(document.documentElement, {
-          width: window.innerWidth,
-          height: window.innerHeight,
-          style: {
-            transform: `translate(-${window.scrollX}px, -${window.scrollY}px)`,
-          },
-          filter: (node: Node) => {
-            // Filter out inspector overlay
-            if (node instanceof Element && node.id === "element-inspector-overlay") {
-              return false;
-            }
-            return true;
-          },
-        });
+      // Convert to blob and copy to clipboard
+      const blob = await new Promise<Blob | null>((resolve) => {
+        canvas.toBlob((b) => resolve(b), "image/png");
+      });
 
-        return blob;
-      } finally {
-        // Restore console.error
-        console.error = originalError;
-      }
+      if (!blob) return false;
+
+      await navigator.clipboard.write([
+        new ClipboardItem({ "image/png": blob }),
+      ]);
+
+      return true;
     } catch (err) {
-      this.originalConsole.error("[ConsoleCollector] Screenshot failed:", err);
-      return null;
+      // User cancelled or permission denied
+      if ((err as Error).name !== "NotAllowedError") {
+        this.originalConsole.error("[ConsoleCollector] Screenshot failed:", err);
+      }
+      return false;
     }
   }
 
-  private loadDomToImage(): Promise<any> {
-    return new Promise((resolve) => {
-      // Already loaded
-      if ((window as any).domtoimage) {
-        resolve((window as any).domtoimage);
-        return;
-      }
-
-      // Load dom-to-image-more from CDN (better modern CSS support)
-      const script = document.createElement("script");
-      script.src =
-        "https://cdnjs.cloudflare.com/ajax/libs/dom-to-image-more/3.3.0/dom-to-image-more.min.js";
-      script.onload = () => resolve((window as any).domtoimage);
-      script.onerror = () => {
-        this.originalConsole.error("[ConsoleCollector] Failed to load dom-to-image");
-        resolve(null);
-      };
-      document.head.appendChild(script);
-    });
-  }
-
-  private generateDebugSnapshot(): string {
-    // Just return the console logs in DevTools format - exactly like F12 console
-    return this.getConsoleLogs();
+  /**
+   * Capture console logs and copy to clipboard
+   * Returns true if successful
+   */
+  private async captureConsoleLogs(): Promise<boolean> {
+    try {
+      const textSnapshot = this.getConsoleLogs();
+      await navigator.clipboard.writeText(textSnapshot);
+      return true;
+    } catch (e) {
+      this.originalConsole.error("[ConsoleCollector] Failed to copy logs:", e);
+      return false;
+    }
   }
 
   public clearLogs(): void {
