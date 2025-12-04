@@ -5,7 +5,7 @@
  */
 
 import type { FileType } from "../core/types.js";
-import { DataTableManager, Dataset } from "../../../../../../static/shared/ts/components/data-table/index.js";
+import { DataTableManager, Dataset } from "../../../../../../static/shared/js/components/data-table/index.js";
 
 export class MediaViewerManager {
   private container: HTMLElement | null = null;
@@ -464,17 +464,24 @@ export class MediaViewerManager {
         }
       );
 
-      // Load CSV content into the DataTableManager
-      this.dataTableManager.loadFromCSVContent(content, filePath);
+      // First initialize a large blank table (like /vis/ does for Excel-like spreadsheet)
+      this.dataTableManager.initializeBlankTable();
+
+      // Then load the CSV data - this will populate the data into the blank table
+      // Parse CSV and place in upper-left corner while keeping the large table size
+      this.loadCsvIntoBlankTable(content, filePath);
+
       this.dataTableManager.renderEditableDataTable();
       this.dataTableManager.setupColumnResizing();
       this.dataTableManager.setupVirtualScrolling();
 
-      // Update info
-      const currentData = this.dataTableManager.getCurrentData();
+      // Update info with actual CSV data dimensions
       const infoEl = document.getElementById("csv-info");
-      if (infoEl && currentData) {
-        infoEl.textContent = `${currentData.rows.length} rows × ${currentData.columns.length} columns`;
+      if (infoEl) {
+        // Count non-empty rows and columns from the CSV
+        const csvRowCount = content.trim().split('\n').length;
+        const csvColCount = content.trim().split('\n')[0]?.split(',').length || 0;
+        infoEl.textContent = `CSV: ${csvRowCount} rows × ${csvColCount} columns`;
       }
 
       // Setup toggle raw view button
@@ -958,6 +965,89 @@ export class MediaViewerManager {
    */
   getCurrentFilePath(): string | null {
     return this.currentFilePath;
+  }
+
+  /**
+   * Load CSV content into an already-initialized blank table
+   * Places the CSV data in the upper-left corner while keeping the large table size
+   */
+  private loadCsvIntoBlankTable(content: string, filename: string): void {
+    if (!this.dataTableManager) return;
+
+    const currentData = this.dataTableManager.getCurrentData();
+    if (!currentData) return;
+
+    // Parse CSV content
+    const delimiter = filename.toLowerCase().endsWith('.tsv') ? '\t' : ',';
+    const lines = content.trim().split('\n');
+    if (lines.length === 0) return;
+
+    // Parse header row
+    const csvHeaders = this.parseCSVLine(lines[0], delimiter);
+
+    // Update column headers (only the columns that have CSV data)
+    csvHeaders.forEach((header, colIndex) => {
+      if (colIndex < currentData.columns.length) {
+        currentData.columns[colIndex] = header.trim() || `${colIndex + 1}`;
+      }
+    });
+
+    // Parse and place data rows
+    for (let rowIndex = 1; rowIndex < lines.length && rowIndex <= currentData.rows.length; rowIndex++) {
+      const csvRow = this.parseCSVLine(lines[rowIndex], delimiter);
+      const dataRow = currentData.rows[rowIndex - 1];
+
+      csvRow.forEach((value, colIndex) => {
+        const colName = currentData.columns[colIndex];
+        if (colName) {
+          // Try to parse as number
+          const trimmedValue = value.trim();
+          const numValue = parseFloat(trimmedValue);
+          dataRow[colName] = isNaN(numValue) || trimmedValue === '' ? trimmedValue : numValue;
+        }
+      });
+    }
+
+    // Update the data in the manager
+    this.dataTableManager.setCurrentData(currentData);
+    console.log(`[MediaViewerManager] CSV data loaded into blank table: ${lines.length} rows × ${csvHeaders.length} columns`);
+  }
+
+  /**
+   * Parse a single CSV line handling quoted fields
+   */
+  private parseCSVLine(line: string, delimiter: string): string[] {
+    const result: string[] = [];
+    let currentValue = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      const nextChar = line[i + 1];
+
+      if (inQuotes) {
+        if (char === '"' && nextChar === '"') {
+          currentValue += '"';
+          i++;
+        } else if (char === '"') {
+          inQuotes = false;
+        } else {
+          currentValue += char;
+        }
+      } else {
+        if (char === '"') {
+          inQuotes = true;
+        } else if (char === delimiter) {
+          result.push(currentValue);
+          currentValue = '';
+        } else {
+          currentValue += char;
+        }
+      }
+    }
+    result.push(currentValue);
+
+    return result;
   }
 
   /**

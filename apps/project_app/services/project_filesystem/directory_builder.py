@@ -16,16 +16,11 @@ class DirectoryBuilderManager:
     # Standardized scientific research project structure
     PROJECT_STRUCTURE = {
         "config": [],
-        "data": {
-            "raw": [],
-            "processed": [],
-            "figures": [],
-            "models": [],
-        },
+        "data": [],
         "scripts": [],
-        "docs": ["manuscripts", "notes", "references"],
-        "results": ["outputs", "reports", "analysis"],
-        "temp": ["cache", "logs", "tmp"],
+        "docs": [],
+        "results": [],
+        "temp": [],
     }
 
     def __init__(self, filesystem_manager):
@@ -43,14 +38,6 @@ class DirectoryBuilderManager:
             main_path = project_path / main_dir
             if not self.manager._ensure_directory(main_path):
                 raise RuntimeError(f"Failed to create directory: {main_path}")
-
-            if main_dir == "scripts":
-                for subdir in ["analysis", "preprocessing", "modeling",
-                              "visualization", "utils"]:
-                    if not self.manager._ensure_directory(main_path / subdir):
-                        raise RuntimeError(
-                            f"Failed to create directory: {main_path / subdir}"
-                        )
 
             self._build_subdirectories(main_path, sub_structure)
 

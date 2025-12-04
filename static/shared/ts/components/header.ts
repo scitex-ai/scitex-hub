@@ -145,7 +145,10 @@ function initializeHeader(): void {
       }
 
       // Hard refresh (bypass cache) like Ctrl+Shift+R
-      window.location.reload();
+      // Use cache-busting URL parameter to force fresh load of all resources
+      const url = new URL(window.location.href);
+      url.searchParams.set('_cache_bust', Date.now().toString());
+      window.location.href = url.toString();
     });
   }
 
@@ -275,6 +278,105 @@ function initializeHeader(): void {
     setInterval(updateServerStatus, 30000);
   }
 }
+
+// Get CSRF token from cookie
+function getCsrfToken(): string {
+  const name = 'csrftoken';
+  let cookieValue = '';
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+// Initialize Visitor Pool function (Dev only)
+// Makes API call to reset and initialize the visitor pool
+async function initVisitorPool(): Promise<void> {
+  const btn = document.getElementById('init-visitor-pool-btn') as HTMLButtonElement | null;
+  const originalIcon = 'fa-users-cog';
+
+  if (btn) {
+    btn.disabled = true;
+    btn.style.opacity = '0.6';
+    const icon = btn.querySelector('i');
+    if (icon) {
+      icon.className = 'fas fa-spinner fa-spin';
+    }
+  }
+
+  try {
+    // Get CSRF token from cookie
+    const csrfToken = getCsrfToken();
+
+    const response = await fetch('/api/visitor-pool/initialize/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken,
+      },
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      // Show success with checkmark briefly
+      if (btn) {
+        const icon = btn.querySelector('i');
+        if (icon) {
+          icon.className = 'fas fa-check';
+          icon.style.color = '#22c55e';
+        }
+      }
+      alert(`Visitor Pool Initialized!\n\nReset: ${data.reset || 0} directories\nCreated: ${data.created} visitors\nTotal: ${data.total} slots\nFree: ${data.free} available`);
+      // Reload to pick up new visitor allocation
+      window.location.reload();
+    } else {
+      // Show error with X icon
+      if (btn) {
+        const icon = btn.querySelector('i');
+        if (icon) {
+          icon.className = 'fas fa-times';
+          icon.style.color = '#ef4444';
+        }
+      }
+      alert(`Failed to initialize visitor pool: ${data.error || 'Unknown error'}`);
+    }
+  } catch (error) {
+    console.error('Failed to initialize visitor pool:', error);
+    // Show error with X icon
+    if (btn) {
+      const icon = btn.querySelector('i');
+      if (icon) {
+        icon.className = 'fas fa-times';
+        icon.style.color = '#ef4444';
+      }
+    }
+    alert('Failed to initialize visitor pool. Check console for details.');
+  } finally {
+    // Restore button after delay (unless page reloads)
+    setTimeout(() => {
+      if (btn) {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        const icon = btn.querySelector('i');
+        if (icon) {
+          icon.className = `fas ${originalIcon}`;
+          icon.style.color = '';
+        }
+      }
+    }, 2000);
+  }
+}
+
+// Make initVisitorPool available globally for onclick handler
+(window as any).initVisitorPool = initVisitorPool;
 
 // Initialize immediately if DOM is ready, otherwise wait
 if (document.readyState === 'loading') {

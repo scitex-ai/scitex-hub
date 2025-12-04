@@ -48,13 +48,10 @@
   <link rel="stylesheet" href="{% static 'code_app/css/workspace-inline.css' %}" />
   <link rel="stylesheet" href="{% static 'code_app/css/context-menu.css' %}" />
   <link rel="stylesheet" href="{% static 'code_app/css/file-modal.css' %}" />
-  <!-- Media viewer styles (PDF, Image, CSV) -->
-  <link rel="stylesheet" href="{% static 'code_app/css/media-viewer.css' %}" />
-  <!-- Shared data table styles -->
-  <link rel="stylesheet" href="{% static 'shared/css/components/data-table/base.css' %}" />
-  <link rel="stylesheet" href="{% static 'shared/css/components/data-table/selection.css' %}" />
-  <link rel="stylesheet" href="{% static 'shared/css/components/data-table/editing.css' %}" />
-  <link rel="stylesheet" href="{% static 'shared/css/components/data-table/resize.css' %}" />
+  <!-- Shared Media viewer styles (PDF, Image, CSV) -->
+  <link rel="stylesheet" href="{% static 'shared/css/components/media-viewer.css' %}" />
+  <!-- Shared data table styles (comprehensive module from vis_app) -->
+  <link rel="stylesheet" href="{% static 'shared/css/components/data-table/data-table.css' %}" />
   <!-- Monaco Editor CSS - Use cdnjs like writer app -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/editor/editor.main.min.css" />
   <!-- xterm.js for real PTY terminal -->
@@ -145,33 +142,22 @@
   </div>
   <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
 
-  {% if pool_exhausted %}
-    <!-- Visitor pool exhausted message -->
+  {% if needs_project_creation %}
+    <!-- No project available - prompt to create or select -->
     <div class="code-workspace pool-message-wrapper">
       <div class="pool-message-content">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="pool-message-icon">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+          <path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/>
         </svg>
-        <h2 class="pool-message-title">Visitor Slots Full</h2>
+        <h2 class="pool-message-title">No Project Selected</h2>
         <p class="pool-message-text">
-          All visitor demo slots are currently in use. Please try again in a few minutes, or <a href="/accounts/signup/" class="pool-message-link">sign up for a free account</a> to get full access.
+          Create a new project or select an existing one from the header dropdown to start coding.
         </p>
-      </div>
-    </div>
-  {% elif pool_error %}
-    <!-- Visitor pool error message -->
-    <div class="code-workspace pool-message-wrapper">
-      <div class="pool-message-content">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="pool-message-icon">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-        </svg>
-        <h2 class="pool-message-title">Service Temporarily Unavailable</h2>
-        <p class="pool-message-text">
-          {{ pool_error_message }}
-        </p>
-        <p class="pool-message-text">
-          Please <a href="/accounts/signup/" class="pool-message-link">sign up for a free account</a> to access the code workspace.
-        </p>
+        <div class="pool-message-actions">
+          <a href="/projects/new/" class="pool-message-link btn-primary-link">
+            <i class="fas fa-plus"></i> Create New Project
+          </a>
+        </div>
       </div>
     </div>
   {% else %}
@@ -545,16 +531,11 @@
   <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xterm-addon-image@0.6.0/lib/xterm-addon-image.js"></script>
 
-  <!-- Panel Resizer for sidebar/editor/terminal -->
-  <script src="{% static 'code_app/js/resizer-manager.js' %}?v=2.1.4"></script>
-
   <!-- Load compiled TypeScript with cache-busting -->
-  <script>
-    // Force reload JS module by appending timestamp
-    const timestamp = new Date().getTime();
-    const script = document.createElement('script');
-    script.type = 'module';
-    script.src = '{% static "code_app/js/workspace.js" %}?v=2.1.5&t=' + timestamp;
-    document.currentScript.parentNode.insertBefore(script, document.currentScript.nextSibling);
+  <script type="module">
+    // Import workspace module with cache-bust timestamp
+    // The module self-initializes on import
+    const t = Date.now();
+    await import('{% static "code_app/js/workspace.js" %}?v=2.1.9&t=' + t);
   </script>
 {% endblock %}

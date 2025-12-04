@@ -44,14 +44,18 @@ export class FileStateManager {
    * Load a file from the server and open it
    */
   async loadFile(filePath: string): Promise<void> {
+    console.log(`[FileStateManager] Loading file: ${filePath}`);
+
     // Check if already open
     if (this.openFiles.has(filePath)) {
+      console.log(`[FileStateManager] File already open, switching to it`);
       this.switchToFile(filePath);
       return;
     }
 
     // Detect file type
     const fileType = detectFileType(filePath);
+    console.log(`[FileStateManager] Detected file type: ${fileType}`);
 
     // For media files (image, pdf, csv), we don't need to load content into Monaco
     if (fileType !== 'text') {
@@ -253,6 +257,7 @@ export class FileStateManager {
       path: "*scratch*",
       content: content,
       language: "python",
+      fileType: "text",
     });
     this.fileTabManager.setCurrentFile(this.currentFile);
     this.fileTabManager.updateTabs();
