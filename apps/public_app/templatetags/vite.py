@@ -151,10 +151,20 @@ def _entry_to_ts_path(entry_name: str) -> str:
         'accounts_app/remote_credentials': 'apps/accounts_app/static/accounts_app/ts/remote_credentials.ts',
         # Social app
         'social_app/explore-inline': 'apps/social_app/static/social_app/ts/explore-inline.ts',
-        # Shared
+        # Scholar app - additional
+        'scholar_app/bibtex/status-tiles': 'apps/scholar_app/static/scholar_app/ts/bibtex/status-tiles.ts',
+        # Project app - additional
+        'project_app/projects/settings': 'apps/project_app/static/project_app/ts/projects/settings.ts',
+        # Shared utilities
         'shared/utils/theme-switcher': 'static/shared/ts/utils/theme-switcher.ts',
+        'shared/utils/tooltip-auto-position': 'static/shared/ts/utils/tooltip-auto-position.ts',
+        'shared/utils/main': 'static/shared/ts/utils/main.ts',
+        'shared/utils/dropdown': 'static/shared/ts/utils/dropdown.ts',
+        'shared/utils/django-messages': 'static/shared/ts/utils/django-messages.ts',
         'shared/utils/element-inspector': 'static/shared/ts/utils/element-inspector.ts',
+        'shared/code-blocks': 'static/shared/ts/code-blocks.ts',
         'shared/components/confirm-modal': 'static/shared/ts/components/confirm-modal.ts',
+        'shared/components/header': 'static/shared/ts/components/header.ts',
     }
     return mappings.get(entry_name, f'{entry_name}.ts')
 

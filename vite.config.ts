@@ -104,6 +104,23 @@ export default defineConfig({
 
         // Social app
         'social_app/explore-inline': resolve(__dirname, 'apps/social_app/static/social_app/ts/explore-inline.ts'),
+
+        // Scholar app - additional
+        'scholar_app/bibtex/status-tiles': resolve(__dirname, 'apps/scholar_app/static/scholar_app/ts/bibtex/status-tiles.ts'),
+
+        // Project app - additional
+        'project_app/projects/settings': resolve(__dirname, 'apps/project_app/static/project_app/ts/projects/settings.ts'),
+
+        // Shared utilities (global)
+        'shared/utils/theme-switcher': resolve(__dirname, 'static/shared/ts/utils/theme-switcher.ts'),
+        'shared/utils/tooltip-auto-position': resolve(__dirname, 'static/shared/ts/utils/tooltip-auto-position.ts'),
+        'shared/utils/main': resolve(__dirname, 'static/shared/ts/utils/main.ts'),
+        'shared/utils/dropdown': resolve(__dirname, 'static/shared/ts/utils/dropdown.ts'),
+        'shared/utils/django-messages': resolve(__dirname, 'static/shared/ts/utils/django-messages.ts'),
+        'shared/utils/element-inspector': resolve(__dirname, 'static/shared/ts/utils/element-inspector.ts'),
+        'shared/code-blocks': resolve(__dirname, 'static/shared/ts/code-blocks.ts'),
+        'shared/components/confirm-modal': resolve(__dirname, 'static/shared/ts/components/confirm-modal.ts'),
+        'shared/components/header': resolve(__dirname, 'static/shared/ts/components/header.ts'),
       },
       output: {
         entryFileNames: '[name]-[hash].js',

@@ -1,4 +1,4 @@
-{% load static %}
+{% load static vite %}
 <!-- Bootstrap 5 JavaScript Bundle (includes Popper) -->
 <!-- Wrapped to prevent AMD conflicts with Monaco Editor's RequireJS loader -->
 <script>
@@ -112,29 +112,28 @@
     }
   })();
 </script>
-<!-- Theme Switcher - TypeScript compiled as ES module -->
-<script type="module"
-        src="{% static 'shared/js/utils/theme-switcher.js' %}?v={{ build_id }}"></script>
+<!-- Vite HMR client (dev only) -->
+{% vite_hmr_client %}
+
+<!-- Theme Switcher (Vite) -->
+{% vite_script 'shared/utils/theme-switcher' %}
+
 <!-- Highlight.js for syntax highlighting and line numbers -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
-<!-- Tooltip Auto-Positioning System - TypeScript compiled as ES module -->
-<script type="module"
-        src="{% static 'shared/js/utils/tooltip-auto-position.js' %}?v={{ build_id }}"></script>
-<!-- Global utility scripts - TypeScript compiled -->
-<script src="{% static 'shared/js/utils/main.js' %}?v={{ build_id }}"></script>
-<script src="{% static 'shared/js/utils/dropdown.js' %}?v={{ build_id }}"></script>
-<script src="{% static 'shared/js/code-blocks.js' %}?v={{ build_id }}"></script>
-<!-- Django Messages Handler - TypeScript compiled as ES module -->
-<script type="module"
-        src="{% static 'shared/js/utils/django-messages.js' %}?v={{ build_id }}"></script>
-<!-- Modern Confirmation Modal - TypeScript compiled as ES module -->
-<script type="module"
-        src="{% static 'shared/js/components/confirm-modal.js' %}?v={{ build_id }}"></script>
+
+<!-- Global utility scripts (Vite) -->
+{% vite_script 'shared/utils/tooltip-auto-position' %}
+{% vite_script 'shared/utils/main' %}
+{% vite_script 'shared/utils/dropdown' %}
+{% vite_script 'shared/code-blocks' %}
+{% vite_script 'shared/utils/django-messages' %}
+{% vite_script 'shared/components/confirm-modal' %}
+
 <!-- Development Tools (only in DEBUG mode) -->
 {% if DEBUG %}
-    <script type="module"
-            src="{% static 'shared/js/utils/element-inspector.js' %}?v={{ build_id }}"></script>
+    {% vite_script 'shared/utils/element-inspector' %}
 {% endif %}
-<!-- Global Header Scripts (project selector, search, account switcher, visitor pool init) -->
-<script src="{% static 'shared/js/components/header.js' %}?v={{ build_id }}"></script>
+
+<!-- Global Header Scripts (Vite) -->
+{% vite_script 'shared/components/header' %}

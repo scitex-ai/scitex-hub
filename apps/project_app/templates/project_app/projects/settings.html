@@ -1,5 +1,5 @@
 {% extends "global_base.html" %}
-{% load static %}
+{% load static vite %}
 {% block title %}
     Settings -
     {{ project.name }} - SciTeX
@@ -99,5 +99,5 @@
     {% include 'project_app/projects/settings_partials/settings_delete_modal.html' %}
 {% endblock %}
 {% block extra_js %}
-    <script src="{% static 'project_app/js/projects/settings.js' %}?v={{ cache_buster_value }}"></script>
+    {% vite_script 'project_app/projects/settings' %}
 {% endblock %}

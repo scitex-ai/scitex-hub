@@ -1,4 +1,4 @@
-{% load static %}
+{% load static vite %}
 <link rel="stylesheet" href="{% static 'scholar_app/css/bibtex/bibtex-status-tiles.css' %}?v={{ request.timestamp|default:'1' }}" />
 <!-- BibTeX Status Tiles - For Right Panel -->
 <div class="bibtex-status-tiles">
@@ -44,4 +44,4 @@ Upload a .bib file to start enrichment.</div>
         </div>
     </div>
 </div>
-<script type="module" src="{% static 'scholar_app/js/bibtex/status-tiles.js' %}?v={{ request.timestamp|default:'1' }}"></script>
+{% vite_script 'scholar_app/bibtex/status-tiles' %}
