@@ -6,7 +6,7 @@
  * @module diff-display
  */
 
-import { updateElementHTML } from "./ui-utils.ts";
+import { updateElementHTML } from "./ui-utils.js";
 
 /**
  * Show BibTeX diff modal

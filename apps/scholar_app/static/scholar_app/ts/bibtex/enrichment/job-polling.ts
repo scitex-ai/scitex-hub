@@ -11,7 +11,7 @@ import {
   setElementVisibility,
   scrollToBottom,
   setButtonState,
-} from "./ui-utils.ts";
+} from "./ui-utils.js";
 
 /**
  * Job status response interface

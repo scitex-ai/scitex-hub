@@ -3,8 +3,8 @@
  * Handles progress bars, percentages, and status updates
  */
 
-import { updateStatusLamp } from "./CompilationStatus.ts";
-import { updateMinimizedStatus } from "./CompilationPanel.ts";
+import { updateStatusLamp } from "./CompilationStatus.js";
+import { updateMinimizedStatus } from "./CompilationPanel.js";
 
 /**
  * Show compilation progress UI

@@ -4,8 +4,8 @@
  * Includes lazy CSS loading for better performance
  */
 
-import { statePersistence } from "../../modules/state-persistence.ts";
-import { initializeCollaboratorsPanel } from "../../collaboration-panel.ts";
+import { statePersistence } from "../../modules/state-persistence.js";
+import { initializeCollaboratorsPanel } from "../../collaboration-panel.js";
 
 export class PanelSwitcher {
   private loadedCSS: Set<string> = new Set();

@@ -4,7 +4,7 @@
  * Used by Code and Writer apps
  */
 
-import type { OpenFile, FileTabsOptions, TabInfo } from "./types.ts";
+import type { OpenFile, FileTabsOptions, TabInfo } from "./types.js";
 
 export class FileTabManager {
   private container: HTMLElement | null = null;

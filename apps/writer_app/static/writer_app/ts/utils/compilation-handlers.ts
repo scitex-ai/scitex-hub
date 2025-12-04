@@ -10,12 +10,12 @@
  * to provide compilation functionality with progress feedback.
  */
 
-import { CompilationManager } from "../modules/index.ts";
-import { PDFPreviewManager } from "../modules/index.ts";
-import { WriterEditor } from "../modules/index.ts";
-import { SectionsManager } from "../modules/index.ts";
-import { showToast } from "./ui.ts";
-import { showCompilationOptionsModal } from "../modules/index.ts";
+import { CompilationManager } from "../modules/index.js";
+import { PDFPreviewManager } from "../modules/index.js";
+import { WriterEditor } from "../modules/index.js";
+import { SectionsManager } from "../modules/index.js";
+import { showToast } from "./ui.js";
+import { showCompilationOptionsModal } from "../modules/index.js";
 
 /**
  * Setup compilation event listeners

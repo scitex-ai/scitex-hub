@@ -3,13 +3,13 @@
  * Core interface for the custom section dropdown
  */
 
-import { showToast } from "../ui.ts";
-import { getWriterConfig } from "../../helpers.ts";
-import { setupDragAndDrop } from "../../modules/index.ts";
-import { statePersistence } from "../../modules/state-persistence.ts";
-import type { CompilationManager } from "../../modules/index.ts";
-import { renderSectionDropdown } from "./rendering.ts";
-import { setupSectionEvents } from "./events.ts";
+import { showToast } from "../ui.js";
+import { getWriterConfig } from "../../helpers.js";
+import { setupDragAndDrop } from "../../modules/index.js";
+import { statePersistence } from "../../modules/state-persistence.js";
+import type { CompilationManager } from "../../modules/index.js";
+import { renderSectionDropdown } from "./rendering.js";
+import { setupSectionEvents } from "./events.js";
 
 console.log(
   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/utils/section-dropdown/SectionDropdown.ts loaded",

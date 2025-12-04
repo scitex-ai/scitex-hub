@@ -5,24 +5,24 @@
  */
 
 import { ApiClient } from "@/utils/api";
-import { CompilationAPI } from "./compilation/compilation-api.ts";
-import { CompilationState } from "./compilation/compilation-state.ts";
-import { CompilationUI } from "./compilation/compilation-ui.ts";
-import { CompilationQueue } from "./compilation/compilation-queue.ts";
-import { CompilationPreview } from "./compilation/compilation-preview.ts";
-import { CompilationFull } from "./compilation/compilation-full.ts";
-import {
+import { CompilationAPI } from "./compilation/compilation-api.js";
+import { CompilationState } from "./compilation/compilation-state.js";
+import { CompilationUI } from "./compilation/compilation-ui.js";
+import { CompilationQueue } from "./compilation/compilation-queue.js";
+import { CompilationPreview } from "./compilation/compilation-preview.js";
+import { CompilationFull } from "./compilation/compilation-full.js";
+import type {
   CompilationOptions,
   CompilationJob,
   CompilationCallbacks,
-} from "./compilation/types.ts";
+} from "./compilation/types.js";
 
 console.log(
   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/compilation.ts loaded",
 );
 
 // Re-export types for backward compatibility
-export { CompilationOptions };
+export type { CompilationOptions };
 
 /**
  * CompilationManager - Orchestrator

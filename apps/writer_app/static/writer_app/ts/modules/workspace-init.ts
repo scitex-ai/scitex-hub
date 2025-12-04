@@ -3,8 +3,8 @@
  * Handles workspace setup for new projects
  */
 
-import { getCsrfToken } from "@/utils/csrf.ts";
-import { showToast } from "../utils/ui.ts";
+import { getCsrfToken } from "@/utils/csrf.js";
+import { showToast } from "../utils/ui.js";
 
 /**
  * Setup workspace initialization button

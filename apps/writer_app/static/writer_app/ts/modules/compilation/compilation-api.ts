@@ -4,7 +4,7 @@
  */
 
 import { getCsrfToken } from "@/utils/csrf";
-import { CompilationOptions, CompilationResult } from "./types.ts";
+import { CompilationOptions, CompilationResult } from "./types.js";
 
 export class CompilationAPI {
   /**

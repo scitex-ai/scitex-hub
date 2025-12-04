@@ -3,12 +3,12 @@
  * Handles section creation, deletion, reordering, and inclusion/exclusion
  */
 
-import { getCsrfToken } from "@/utils/csrf.ts";
+import { getCsrfToken } from "@/utils/csrf.js";
 import {
   showToast,
   populateSectionDropdownDirect,
   handleDocTypeSwitch,
-} from "../../utils/index.ts";
+} from "../../utils/index.js";
 
 export class SectionManagement {
   private config: any;

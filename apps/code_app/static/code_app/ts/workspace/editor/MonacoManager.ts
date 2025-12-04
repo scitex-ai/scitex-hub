@@ -3,7 +3,7 @@
  * Handles Monaco editor initialization, keybindings, and language detection
  */
 
-import { LANGUAGE_MAP, type EditorConfig, type OpenFile } from "../core/types.ts";
+import { LANGUAGE_MAP, type EditorConfig, type OpenFile } from "../core/types.js";
 
 // MonacoTheme functions are loaded at runtime from shared components
 // Declare their types here for TypeScript

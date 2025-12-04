@@ -3,7 +3,7 @@
  * Exports all initialization-related modules
  */
 
-export { ComponentInitializer } from "./ComponentInitializer.ts";
-export type { InitializedComponents } from "./ComponentInitializer.ts";
-export { EventHandlerSetup } from "./EventHandlerSetup.ts";
-export { FileTreeSetup } from "./FileTreeSetup.ts";
+export { ComponentInitializer } from "./ComponentInitializer.js";
+export type { InitializedComponents } from "./ComponentInitializer.js";
+export { EventHandlerSetup } from "./EventHandlerSetup.js";
+export { FileTreeSetup } from "./FileTreeSetup.js";

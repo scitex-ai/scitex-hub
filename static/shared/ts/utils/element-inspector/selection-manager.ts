@@ -3,9 +3,9 @@
  * Handles rectangle selection mode and element selection
  */
 
-import type { SelectionRect } from "./types.ts";
-import { DebugInfoCollector } from "./debug-info-collector.ts";
-import { NotificationManager } from "./notification-manager.ts";
+import type { SelectionRect } from "./types.js";
+import { DebugInfoCollector } from "./debug-info-collector.js";
+import { NotificationManager } from "./notification-manager.js";
 
 export class SelectionManager {
   private selectionMode: boolean = false;

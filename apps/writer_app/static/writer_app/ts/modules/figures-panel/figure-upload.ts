@@ -3,7 +3,7 @@
  * Handles file upload and drag-drop functionality
  */
 
-import { getCsrfToken } from "../../shared/utils.ts";
+import { getCsrfToken } from "../../shared/utils.js";
 
 export class FigureUpload {
   private projectId: string | null = null;

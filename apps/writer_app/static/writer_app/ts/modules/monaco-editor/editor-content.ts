@@ -3,8 +3,8 @@
  * Manages editor content operations (get, set, append, clear)
  */
 
-import { SpellChecker } from "../spell-checker.ts";
-import { EditorHistory } from "./editor-history.ts";
+import { SpellChecker } from "../spell-checker.js";
+import { EditorHistory } from "./editor-history.js";
 
 console.log(
   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/monaco-editor/editor-content.ts loaded",

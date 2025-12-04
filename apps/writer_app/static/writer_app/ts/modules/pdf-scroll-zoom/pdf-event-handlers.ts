@@ -7,8 +7,8 @@ console.log(
   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/pdf-scroll-zoom/pdf-event-handlers.ts loaded",
 );
 
-import type { PDFZoomControl } from "./pdf-zoom-control.ts";
-import type { PDFModeManager } from "./pdf-mode-manager.ts";
+import type { PDFZoomControl } from "./pdf-zoom-control.js";
+import type { PDFModeManager } from "./pdf-mode-manager.js";
 
 export class PDFEventHandlers {
   private container: HTMLElement | null;

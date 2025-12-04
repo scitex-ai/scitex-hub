@@ -5,14 +5,14 @@
  * @author SciTeX Development Team
  */
 
-import { getCsrfToken } from "@/utils/csrf.ts";
+import { getCsrfToken } from "@/utils/csrf.js";
 import type {
   ManuscriptConfig,
   ManuscriptData,
   VersionData,
   VersionResponse,
   ExportData,
-} from "./types.ts";
+} from "./types.js";
 
 export class SyncManager {
   private autoSaveInterval: ReturnType<typeof setInterval> | null = null;

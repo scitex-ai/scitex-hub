@@ -3,8 +3,8 @@
  * Handles file execution (Python, Shell, JS) via PTY terminal
  */
 
-import type { EditorConfig } from "../core/types.ts";
-import type { PTYTerminal } from "../../pty-terminal.ts";
+import type { EditorConfig } from "../core/types.js";
+import type { PTYTerminal } from "../../pty-terminal.js";
 
 export class RunManager {
   constructor(private config: EditorConfig) {}

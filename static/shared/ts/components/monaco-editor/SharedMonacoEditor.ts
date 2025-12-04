@@ -4,7 +4,7 @@
  * Ensures consistent theming and behavior across the application
  */
 
-import { MonacoEditorConfig, LANGUAGE_MAP } from "./types.ts";
+import { MonacoEditorConfig, LANGUAGE_MAP } from "./types.js";
 
 export class SharedMonacoEditor {
   private editor: any = null;

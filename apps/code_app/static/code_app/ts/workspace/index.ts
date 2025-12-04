@@ -3,24 +3,24 @@
  * Main coordinator for the Code Workspace - wires all managers together
  */
 
-import { MonacoManager } from "./editor/MonacoManager.ts";
-import { ScratchManager } from "./editor/ScratchManager.ts";
-import { PTYManager } from "./terminal/PTYManager.ts";
-import { RunManager } from "./terminal/RunManager.ts";
-import { FileTreeManager } from "./files/FileTreeManager.ts";
-import { FileOperations } from "./files/FileOperations.ts";
-import { FileTabManager } from "./files/FileTabManager.ts";
-import { FileStateManager } from "./files/FileStateManager.ts";
-import { FileCommandHandler } from "./files/FileCommandHandler.ts";
-import { GitStatusManager } from "./git/GitStatusManager.ts";
-import { GitOperations } from "./git/GitOperations.ts";
-import { CommitManager } from "./git/CommitManager.ts";
-import { UIComponents } from "./ui/UIComponents.ts";
-import { ModalManager } from "./ui/ModalManager.ts";
-import { ShortcutsManager } from "./ui/ShortcutsManager.ts";
-import { VisitorManager } from "./auth/VisitorManager.ts";
-import { JobsPanelManager } from "./jobs/JobsPanelManager.ts";
-import type { EditorConfig, OpenFile } from "./core/types.ts";
+import { MonacoManager } from "./editor/MonacoManager.js";
+import { ScratchManager } from "./editor/ScratchManager.js";
+import { PTYManager } from "./terminal/PTYManager.js";
+import { RunManager } from "./terminal/RunManager.js";
+import { FileTreeManager } from "./files/FileTreeManager.js";
+import { FileOperations } from "./files/FileOperations.js";
+import { FileTabManager } from "./files/FileTabManager.js";
+import { FileStateManager } from "./files/FileStateManager.js";
+import { FileCommandHandler } from "./files/FileCommandHandler.js";
+import { GitStatusManager } from "./git/GitStatusManager.js";
+import { GitOperations } from "./git/GitOperations.js";
+import { CommitManager } from "./git/CommitManager.js";
+import { UIComponents } from "./ui/UIComponents.js";
+import { ModalManager } from "./ui/ModalManager.js";
+import { ShortcutsManager } from "./ui/ShortcutsManager.js";
+import { VisitorManager } from "./auth/VisitorManager.js";
+import { JobsPanelManager } from "./jobs/JobsPanelManager.js";
+import type { EditorConfig, OpenFile } from "./core/types.js";
 
 export class WorkspaceOrchestrator {
   private config: EditorConfig;

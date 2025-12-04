@@ -3,7 +3,7 @@
  * Handles creation of figure cards for the figures panel
  */
 
-import type { Figure } from "../figures-panel.ts";
+import type { Figure } from "../figures-panel.js";
 
 export class FigureCardBuilder {
   /**

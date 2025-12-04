@@ -18,6 +18,6 @@ export {
   MONACO_COLORS,
   getThemeForMode,
   getCurrentThemeMode,
-} from "/static/shared/ts/monaco/MonacoTheme.ts";
+} from "/static/shared/ts/monaco/MonacoTheme.js";
 
 // EOF

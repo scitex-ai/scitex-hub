@@ -3,9 +3,9 @@
  * Handles moving sections up and down in the section order
  */
 
-import { getCsrfToken } from "@/utils/csrf.ts";
-import { showToast } from "../ui.ts";
-import { populateSectionDropdownDirect } from "../section-dropdown/index.ts";
+import { getCsrfToken } from "@/utils/csrf.js";
+import { showToast } from "../ui.js";
+import { populateSectionDropdownDirect } from "../section-dropdown/index.js";
 
 /**
  * Setup Move Section Up/Down buttons

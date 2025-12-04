@@ -3,7 +3,7 @@
  * Handles status indicators, success/error states, and alert banners
  */
 
-import { updateCompilationProgress } from "./CompilationProgress.ts";
+import { updateCompilationProgress } from "./CompilationProgress.js";
 
 /**
  * Show compilation success

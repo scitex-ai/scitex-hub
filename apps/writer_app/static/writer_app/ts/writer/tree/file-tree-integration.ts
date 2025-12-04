@@ -13,8 +13,8 @@ import {
   systemDirs,
   isNonEditableFile,
   getDoctypeFromPath,
-} from "../config/index.ts";
-import { getSectionsForDoctype, Section } from "../sections/section-extraction.ts";
+} from "../config/index.js";
+import { getSectionsForDoctype, Section } from "../sections/section-extraction.js";
 
 // State
 let currentDoctype = "manuscript";

@@ -51,4 +51,4 @@ export interface CompilationCallbacks {
   onError?: (error: string) => void;
 }
 
-export { CompilationJob };
+export type { CompilationJob };

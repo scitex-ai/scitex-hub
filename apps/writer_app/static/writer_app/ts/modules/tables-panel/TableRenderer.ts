@@ -3,7 +3,7 @@
  * Handles rendering of table cards and UI elements
  */
 
-import { Table } from "./types.ts";
+import { Table } from "./types.js";
 
 export class TableRenderer {
   private selectedCards: Set<string> = new Set();

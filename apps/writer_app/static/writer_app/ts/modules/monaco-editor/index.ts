@@ -15,17 +15,17 @@ export {
   defineScitexTheme,
   createMonacoEditor,
   setupThemeObserver,
-} from "./monaco-init.ts";
+} from "./monaco-init.js";
 
 export {
   setupMonacoEditorListeners,
   setupCitationDropZone,
   setupCitationProtection,
   setupSuggestionWidgetObserver,
-} from "./monaco-features.ts";
+} from "./monaco-features.js";
 
-export { EditorHistory } from "./editor-history.ts";
-export { CursorManager } from "./cursor-manager.ts";
-export { EditorContent } from "./editor-content.ts";
-export { EditorConfig } from "./editor-config.ts";
-export { SpellCheckIntegration } from "./spell-check-integration.ts";
+export { EditorHistory } from "./editor-history.js";
+export { CursorManager } from "./cursor-manager.js";
+export { EditorContent } from "./editor-content.js";
+export { EditorConfig } from "./editor-config.js";
+export { SpellCheckIntegration } from "./spell-check-integration.js";

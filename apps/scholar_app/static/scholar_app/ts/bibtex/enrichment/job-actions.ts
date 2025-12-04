@@ -6,8 +6,8 @@
  * @module job-actions
  */
 
-import { showConfirm } from "../../../../../../../static/shared/ts/components/confirm-modal.ts";
-import { showAlert, getCsrfToken, formatFileSize } from "./ui-utils.ts";
+import { showConfirm } from "../../../../../../../static/shared/ts/components/confirm-modal.js";
+import { showAlert, getCsrfToken, formatFileSize } from "./ui-utils.js";
 
 /**
  * Auto-download BibTeX file when enrichment completes

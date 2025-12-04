@@ -6,9 +6,9 @@
  * This is now a thin wrapper around the modular workspace implementation
  */
 
-import { toggleCodeFolder } from "./file-tree-builder.ts";
-import { WorkspaceOrchestrator } from "./workspace/index.ts";
-import type { EditorConfig, Project } from "./workspace/core/types.ts";
+import { toggleCodeFolder } from "./file-tree-builder.js";
+import { WorkspaceOrchestrator } from "./workspace/index.js";
+import type { EditorConfig, Project } from "./workspace/core/types.js";
 
 console.log("[DEBUG] apps/code_app/static/code_app/ts/workspace.ts loaded");
 

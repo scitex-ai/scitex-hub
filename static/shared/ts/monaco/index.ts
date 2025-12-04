@@ -12,6 +12,6 @@ export {
   getCurrentThemeMode,
   setupMonacoThemeObserver,
   setupMonacoTheme,
-} from "./MonacoTheme.ts";
+} from "./MonacoTheme.js";
 
 // EOF

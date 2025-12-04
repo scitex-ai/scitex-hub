@@ -3,9 +3,9 @@
  * Handles scratch buffer initialization and content generation
  */
 
-import type { EditorConfig } from "../core/types.ts";
-import type { MonacoManager } from "./MonacoManager.ts";
-import type { FileStateManager } from "../files/FileStateManager.ts";
+import type { EditorConfig } from "../core/types.js";
+import type { MonacoManager } from "./MonacoManager.js";
+import type { FileStateManager } from "../files/FileStateManager.js";
 
 export class ScratchManager {
   constructor(

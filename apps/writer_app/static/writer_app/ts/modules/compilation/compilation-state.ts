@@ -3,7 +3,7 @@
  * Manages compilation state and current job tracking
  */
 
-import { CompilationJob, CompilationCallbacks } from "./types.ts";
+import { CompilationJob, CompilationCallbacks } from "./types.js";
 
 export class CompilationState {
   private currentJob: CompilationJob | null = null;

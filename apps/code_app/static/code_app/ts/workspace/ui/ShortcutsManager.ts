@@ -3,7 +3,7 @@
  * Handles keyboard shortcuts help modals
  */
 
-import type { ModalManager } from "./ModalManager.ts";
+import type { ModalManager } from "./ModalManager.js";
 
 export class ShortcutsManager {
   constructor(private modalManager: ModalManager) {}

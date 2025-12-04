@@ -3,8 +3,8 @@
  * Registers LaTeX language with Monaco Editor
  */
 
-import { LatexCompletions } from "./LatexCompletions.ts";
-import { CitationProvider } from "./CitationProvider.ts";
+import { LatexCompletions } from "./LatexCompletions.js";
+import { CitationProvider } from "./CitationProvider.js";
 
 export class LatexLanguage {
   private static citationProvider: CitationProvider;

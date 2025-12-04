@@ -5,7 +5,7 @@
  * @author SciTeX Development Team
  */
 
-import type { ManuscriptConfig } from "./types.ts";
+import type { ManuscriptConfig } from "./types.js";
 
 export class ChangeTracker {
   constructor(private manuscriptConfig: ManuscriptConfig) {}
