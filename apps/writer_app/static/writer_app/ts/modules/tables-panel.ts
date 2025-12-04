@@ -5,7 +5,7 @@
 
 console.log("[DEBUG] tables-panel.ts loaded");
 
-import { Table } from "./tables-panel/types.js";
+import type { Table } from "./tables-panel/types.js";
 import { TableDataManager } from "./tables-panel/TableDataManager.js";
 import { TableRenderer } from "./tables-panel/TableRenderer.js";
 import { TableUploadHandler } from "./tables-panel/TableUploadHandler.js";

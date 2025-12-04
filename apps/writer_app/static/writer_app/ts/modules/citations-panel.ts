@@ -6,7 +6,7 @@
 console.log("[DEBUG] citations-panel.ts loaded");
 
 import { statePersistence } from "./state-persistence.js";
-import { Citation } from "./citations-panel/types.js";
+import type { Citation } from "./citations-panel/types.js";
 import { CitationSearch } from "./citations-panel/citation-search.js";
 import { CitationSorting } from "./citations-panel/citation-sorting.js";
 import { CitationRenderer } from "./citations-panel/citation-renderer.js";
@@ -14,7 +14,7 @@ import { CitationActions } from "./citations-panel/citation-actions.js";
 import { CitationLoader } from "./citations-panel/citation-loader.js";
 import { UIState } from "./citations-panel/ui-state.js";
 
-export { Citation } from "./citations-panel/types.js";
+export type { Citation } from "./citations-panel/types.js";
 
 export class CitationsPanel {
   private citations: Citation[] = [];
