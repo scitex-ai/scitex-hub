@@ -1,5 +1,5 @@
 {% extends "global_base.html" %}
-{% load static %}
+{% load static vite %}
 
 {% block title %}SciTeX Vis{% if current_project %} - {{ current_project.name }}{% endif %}{% endblock %}
 
@@ -649,9 +649,13 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- Vite HMR client (dev only) -->
+{% vite_hmr_client %}
 
-<!-- Fabric.js for canvas manipulation (like vis app) -->
-<script type="module" src="{% static 'vis_app/js/editor-inline.js' %}?v={{ build_id }}"></script>
+<!-- Fabric.js for canvas manipulation -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
-<script type="module" src="{% static 'vis_app/js/vis-editor.js' %}?v={{ build_id }}"></script>
+
+<!-- Vis app modules (Vite) -->
+{% vite_script 'vis_app/editor-inline' %}
+{% vite_script 'vis_app/vis-editor' %}
 {% endblock %}
