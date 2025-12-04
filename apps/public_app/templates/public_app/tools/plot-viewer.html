@@ -6,14 +6,14 @@
     Interactive plot viewer for SciTeX matplotlib exports. Upload CSV files and view them with publication-quality rendering.
 {% endblock %}
 {% block head_extra %}
-    {% load static %}
+    {% load static vite %}
     <link rel="icon"
           type="image/png"
           sizes="192x192"
           href="{% static 'images/vectorstock_38853699/vectorstock_38853699-navy-inverted-192x192.png' %}?v=3" />
 {% endblock %}
 {% block extra_css %}
-    {% load static %}
+    {% load static vite %}
     <link rel="stylesheet" href="{% static 'public_app/css/tools/plot-viewer.css' %}">
 {% endblock %}
 {% block content %}
@@ -256,6 +256,6 @@
     </div>
 {% endblock %}
 {% block extra_js %}
-    {% load static %}
-    <script type="module" src="{% static 'public_app/js/tools/plot-viewer/index.js' %}"></script>
+    {% load static vite %}
+    {% vite_script 'public_app/tools/plot-viewer/index' %}
 {% endblock %}

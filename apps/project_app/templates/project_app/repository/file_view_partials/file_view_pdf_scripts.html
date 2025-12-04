@@ -1,4 +1,4 @@
-{% load static %}
+{% load static vite %}
 <!-- PDF.js rendering with navigation -->
 {% if render_type == 'pdf' %}
     <!-- Pass Django template variables to JavaScript via data attributes -->
@@ -10,6 +10,6 @@
   };
   window.SCITEX_FILE_PATH = "{{ file_path }}";
     </script>
-    <!-- Load external JavaScript file -->
-    <script src="{% static 'project_app/js/shared/pdf_viewer.js' %}"></script>
+    <!-- Load PDF viewer via Vite -->
+    {% vite_script 'project_app/shared/pdf_viewer' %}
 {% endif %}

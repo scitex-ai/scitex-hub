@@ -1,27 +1,6 @@
-<!-- Collaborative Editor Manager (TypeScript-compiled) -->
-<script type="module">
-  import { CollaborativeEditorManager } from '{% static "writer_app/js/editor/collaborative/index.js" %}';
-
-  // Server-rendered manuscript configuration
-  const manuscriptConfig = {
-      id: {{ manuscript.id }},
-      sections: ['abstract', 'introduction', 'methods', 'results', 'discussion', 'conclusion']
-  };
-
-  // Initialize collaborative editor when DOM is ready
-  document.addEventListener('DOMContentLoaded', function() {
-      const editorManager = new CollaborativeEditorManager(manuscriptConfig);
-      editorManager.initialize();
-      editorManager.setupCollaborationToggle();
-
-      // Store globally for access from HTML onclick handlers
-      window.collaborativeEditorManager = editorManager;
-
-      // Expose methods for HTML onclick attributes
-      window.exportJSON = () => editorManager.exportJSON();
-      window.showLatexView = () => editorManager.showLatexView();
-      window.compileManuscript = () => editorManager.compileManuscript();
-      window.openVersionControl = () => editorManager.openVersionControl();
-      window.createVersion = () => editorManager.createVersion();
-  });
-</script>
+{% load vite %}
+<!-- Collaborative Editor Manager configuration and script -->
+<div id="manuscript-config" style="display: none"
+     data-manuscript-id="{{ manuscript.id }}"
+     data-sections="abstract,introduction,methods,results,discussion,conclusion"></div>
+{% vite_script 'writer_app/editor/collaborative/index' %}

@@ -1,5 +1,5 @@
 {% extends "global_base.html" %}
-{% load static %}
+{% load static vite %}
 {% block title %}
     SciTeX -
     Scientific Research Platform
@@ -44,7 +44,6 @@
         {% include 'public_app/landing_partials/landing_commitment.html' %}
     {% endblock %}
     {% block extra_js %}
-        <!-- Module cards - TypeScript compiled as ES module -->
-        <script type="module"
-                src="{% static 'public_app/js/landing/module-cards.js' %}"></script>
+        <!-- Module cards via Vite -->
+        {% vite_script 'public_app/landing/module-cards' %}
     {% endblock %}

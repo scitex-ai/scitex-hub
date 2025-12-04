@@ -3,7 +3,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
 <!-- Custom Language Definitions for Highlight.js -->
-<script src="{% static 'shared/js/utils/highlight-js-bibtex.js' %}"></script>
+{% vite_script 'shared/utils/highlight-js-bibtex' %}
 <!-- Pass Django template variables to JavaScript via data attributes -->
 <script>
   // Make project and file data available globally for JS modules

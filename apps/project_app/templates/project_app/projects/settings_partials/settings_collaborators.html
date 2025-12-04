@@ -167,7 +167,7 @@
         Type to search for users. Examples: test-user, ywatanabe
     </p>
 </div>
-{% load static %}
+{% load static vite %}
 <!-- Autocomplete Script (TypeScript-compiled) -->
-<script src="{% static 'project_app/js/projects/settings_collaborators.js' %}"></script>
+{% vite_script 'project_app/projects/settings_collaborators' %}
 </div>

@@ -1,28 +1,11 @@
-{% load static %}
-<!-- Project Data (for TypeScript modules) -->
+{% load static vite %}
+<!-- Project Data (for TypeScript modules - auto-read by file-tree.ts) -->
 <div id="project-data"
      style="display: none"
      data-project-owner="{{ project.owner.username }}"
      data-project-slug="{{ project.slug }}"
      data-breadcrumb-path="{{ breadcrumb_path|default:'' }}"></div>
-<!-- Load shared file-tree module (compiled from TypeScript) -->
-<script type="module">
-  import {
-    loadFileTree as loadFileTreeShared,
-    toggleFolder as toggleFolderShared,
-  } from '{% static "project_app/js/shared/file-tree.js" %}';
-
-  // Make functions globally available for onclick handlers
-  window.toggleFolder = toggleFolderShared;
-
-  // Load file tree on page load
-  window.addEventListener("DOMContentLoaded", function () {
-    loadFileTreeShared(
-      "{{ project.owner.username }}",
-      "{{ project.slug }}",
-      "file-tree",
-    );
-  });
-</script>
-<!-- Load browse toolbar functionality (compiled from TypeScript) -->
-<script src="{% static 'project_app/js/repository/browse_toolbar.js' %}"></script>
+<!-- Load shared file-tree module via Vite (auto-initializes from project-data) -->
+{% vite_script 'project_app/shared/file-tree' %}
+<!-- Load browse toolbar functionality via Vite -->
+{% vite_script 'project_app/repository/browse_toolbar' %}

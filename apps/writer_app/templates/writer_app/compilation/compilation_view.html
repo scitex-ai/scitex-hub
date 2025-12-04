@@ -1,5 +1,5 @@
 {% extends "writer_app/base/app_base.html" %}
-{% load static %}
+{% load static vite %}
 {% comment %}
 Compilation history and status view {% endcomment %}
 {% block writer_css %}
@@ -39,5 +39,5 @@ Compilation history and status view {% endcomment %}
     </div>
 {% endblock %}
 {% block writer_js %}
-    <script src="{% static 'writer_app/js/compilation/compilation.js' %}"></script>
+    {% vite_script 'writer_app/compilation/compilation' %}
 {% endblock %}

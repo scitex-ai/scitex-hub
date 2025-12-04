@@ -2,11 +2,21 @@
  * Shared File Tree Module
  * Provides reusable file tree building and interaction functionality with colorful icons
  * Corresponds to: Used across multiple pages with file tree sidebars
+ *
+ * Auto-initializes if #project-data element exists with data-project-owner/slug attributes
  */
 
 console.log(
   "[DEBUG] apps/project_app/static/project_app/ts/shared/file-tree.ts loaded",
 );
+
+// Declare window extensions for TypeScript
+declare global {
+  interface Window {
+    toggleFolder: typeof toggleFolder;
+    loadFileTree: typeof loadFileTree;
+  }
+}
 
 export interface TreeItem {
   name: string;
@@ -299,3 +309,20 @@ export async function loadFileTree(
     }
   }
 }
+
+
+// Expose functions globally for onclick handlers
+window.toggleFolder = toggleFolder;
+window.loadFileTree = loadFileTree;
+
+// Auto-initialize if project-data element exists
+document.addEventListener("DOMContentLoaded", () => {
+  const projectData = document.getElementById("project-data");
+  if (projectData) {
+    const owner = projectData.dataset.projectOwner;
+    const slug = projectData.dataset.projectSlug;
+    if (owner && slug) {
+      loadFileTree(owner, slug, "file-tree");
+    }
+  }
+});

@@ -1,4 +1,4 @@
-{% load static %}
+{% load static vite %}
 <!-- Git Clone Button Component - GitHub Style -->
 <div class="git-clone-button-container">
     <div class="btn-group">
@@ -187,4 +187,4 @@
 </div>
 
 <link rel="stylesheet" href="{% static 'project_app/css/clone_button.css' %}">
-<script type="module" src="{% static 'project_app/ts/clone_button.js' %}"></script>
+{% vite_script 'project_app/clone_button' %}

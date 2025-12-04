@@ -121,11 +121,23 @@ def _entry_to_ts_path(entry_name: str) -> str:
         'writer_app/index': 'apps/writer_app/static/writer_app/ts/index.ts',
         'writer_app/collaboration-panel': 'apps/writer_app/static/writer_app/ts/collaboration-panel.ts',
         'writer_app/modules/ai2-prompt': 'apps/writer_app/static/writer_app/ts/modules/ai2-prompt.ts',
+        'writer_app/arxiv/submission': 'apps/writer_app/static/writer_app/ts/arxiv/submission.ts',
+        'writer_app/collaboration/session': 'apps/writer_app/static/writer_app/ts/collaboration/session.ts',
+        'writer_app/version_control/index': 'apps/writer_app/static/writer_app/ts/version_control/index.ts',
+        'writer_app/compilation/compilation': 'apps/writer_app/static/writer_app/ts/compilation/compilation.ts',
+        'writer_app/shared/utils': 'apps/writer_app/static/writer_app/ts/shared/utils.ts',
+        'writer_app/editor/preview-panel/index': 'apps/writer_app/static/writer_app/ts/editor/preview-panel/index.ts',
+        'writer_app/editor/collaborative/index': 'apps/writer_app/static/writer_app/ts/editor/collaborative/index.ts',
         # Project app
         'project_app/clone_button': 'apps/project_app/static/project_app/ts/clone_button.ts',
         'project_app/create_project_type': 'apps/project_app/static/project_app/ts/create_project_type.ts',
         'project_app/init-git-gutter': 'apps/project_app/static/project_app/ts/init-git-gutter.ts',
         'project_app/shared/project_app': 'apps/project_app/static/project_app/ts/shared/project_app.ts',
+        'project_app/shared/file-tree': 'apps/project_app/static/project_app/ts/shared/file-tree.ts',
+        'project_app/shared/pdf_viewer': 'apps/project_app/static/project_app/ts/shared/pdf_viewer.ts',
+        'project_app/projects/create': 'apps/project_app/static/project_app/ts/projects/create.ts',
+        'project_app/projects/delete_confirmation': 'apps/project_app/static/project_app/ts/projects/delete_confirmation.ts',
+        'project_app/projects/settings_collaborators': 'apps/project_app/static/project_app/ts/projects/settings_collaborators.ts',
         'project_app/repository/browse': 'apps/project_app/static/project_app/ts/repository/browse.ts',
         'project_app/repository/browse_toolbar': 'apps/project_app/static/project_app/ts/repository/browse_toolbar.ts',
         'project_app/repository/colorful-icons': 'apps/project_app/static/project_app/ts/repository/colorful-icons.ts',
@@ -152,6 +164,8 @@ def _entry_to_ts_path(entry_name: str) -> str:
         'public_app/visitor-status': 'apps/public_app/static/public_app/ts/visitor-status.ts',
         'public_app/server-status': 'apps/public_app/static/public_app/ts/server-status.ts',
         'public_app/landing-demos-inline': 'apps/public_app/static/public_app/ts/landing-demos-inline.ts',
+        'public_app/landing/module-cards': 'apps/public_app/static/public_app/ts/landing/module-cards.ts',
+        'public_app/tools/plot-viewer/index': 'apps/public_app/static/public_app/ts/tools/plot-viewer/index.ts',
         # Accounts app
         'accounts_app/profile': 'apps/accounts_app/static/accounts_app/ts/profile.ts',
         'accounts_app/account-settings': 'apps/accounts_app/static/accounts_app/ts/account-settings.ts',
@@ -195,6 +209,7 @@ def _entry_to_ts_path(entry_name: str) -> str:
         'shared/components/header': 'static/shared/ts/components/header.ts',
         'shared/components/workspace-files-tree': 'static/shared/ts/components/workspace-files-tree/WorkspaceFilesTree.ts',
         'shared/components/seekbar': 'static/shared/ts/components/seekbar.ts',
+        'shared/utils/highlight-js-bibtex': 'static/shared/ts/utils/highlight-js-bibtex.ts',
     }
     return mappings.get(entry_name, f'{entry_name}.ts')
 

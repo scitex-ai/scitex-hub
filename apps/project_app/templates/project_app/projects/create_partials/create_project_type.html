@@ -1,4 +1,4 @@
-{% load static %}
+{% load static vite %}
 <!-- Project Type Selection: Local vs Remote -->
 <div class="form-group project-type-container">
     <label class="form-label">
@@ -103,4 +103,4 @@
 </div>
 
 <link rel="stylesheet" href="{% static 'project_app/css/create_project_type.css' %}">
-<script type="module" src="{% static 'project_app/ts/create_project_type.js' %}"></script>
+{% vite_script 'project_app/create_project_type' %}

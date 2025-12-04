@@ -1,4 +1,4 @@
-{% load static %}
+{% load static vite %}
 
 <!-- External TypeScript module (automatically compiled to JavaScript) -->
-<script src="{% static 'public_app/js/server-status.js' %}"></script>
+{% vite_script 'public_app/server-status' %}

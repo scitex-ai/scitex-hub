@@ -1,6 +1,6 @@
-{% load static %}
+{% load static vite %}
 <link rel="stylesheet" href="{% static 'public_app/css/landing-demos-inline.css' %}">
-<script type="module" src="{% static 'public_app/js/landing-demos-inline.js' %}" defer></script>
+{% vite_script 'public_app/landing-demos-inline' %}
 <!-- Unified Ecosystem & Demonstrations Section -->
 <section class="landing-section section-ecosystem-demos bg-pattern bg-pattern-dots-scattered bg-pattern-subtle"
          id="ecosystem">

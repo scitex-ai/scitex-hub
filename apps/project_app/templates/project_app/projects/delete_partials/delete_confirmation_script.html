@@ -1,3 +1,3 @@
-{% load static %}
+{% load static vite %}
 <!-- Delete Confirmation Script (TypeScript-compiled) -->
-<script src="{% static 'project_app/js/projects/delete_confirmation.js' %}"></script>
+{% vite_script 'project_app/projects/delete_confirmation' %}

@@ -39,3 +39,20 @@ import { PreviewPanelManager } from "./manager";
 
 // Export to window for access from templates
 window.PreviewPanelManager = PreviewPanelManager;
+
+// Auto-initialize from data attributes if config element exists
+document.addEventListener("DOMContentLoaded", () => {
+  const configEl = document.getElementById("preview-panel-config");
+  if (configEl) {
+    const config = {
+      quickCompileUrl: configEl.dataset.quickCompileUrl || "",
+      compilationStatusUrl: configEl.dataset.compilationStatusUrl || "",
+      csrfToken:
+        document.querySelector<HTMLInputElement>("[name=csrfmiddlewaretoken]")
+          ?.value || "",
+    };
+    const previewPanel = new PreviewPanelManager(config);
+    previewPanel.initialize();
+    window.previewPanelManager = previewPanel;
+  }
+});

@@ -122,6 +122,14 @@ export default defineConfig({
         // Writer app
         'writer_app/index': resolve(__dirname, 'apps/writer_app/static/writer_app/ts/index.ts'),
         'writer_app/collaboration-panel': resolve(__dirname, 'apps/writer_app/static/writer_app/ts/collaboration-panel.ts'),
+        'writer_app/arxiv/submission': resolve(__dirname, 'apps/writer_app/static/writer_app/ts/arxiv/submission.ts'),
+        'writer_app/collaboration/session': resolve(__dirname, 'apps/writer_app/static/writer_app/ts/collaboration/session.ts'),
+        'writer_app/version_control/index': resolve(__dirname, 'apps/writer_app/static/writer_app/ts/version_control/index.ts'),
+        'writer_app/compilation/compilation': resolve(__dirname, 'apps/writer_app/static/writer_app/ts/compilation/compilation.ts'),
+        'writer_app/shared/utils': resolve(__dirname, 'apps/writer_app/static/writer_app/ts/shared/utils.ts'),
+        'writer_app/editor/preview-panel/index': resolve(__dirname, 'apps/writer_app/static/writer_app/ts/editor/preview-panel/index.ts'),
+        'writer_app/editor/collaborative/index': resolve(__dirname, 'apps/writer_app/static/writer_app/ts/editor/collaborative/index.ts'),
+        'writer_app/modules/ai2-prompt': resolve(__dirname, 'apps/writer_app/static/writer_app/ts/modules/ai2-prompt.ts'),
 
         // Project app
         'project_app/clone_button': resolve(__dirname, 'apps/project_app/static/project_app/ts/clone_button.ts'),
@@ -135,6 +143,8 @@ export default defineConfig({
         'public_app/visitor-status': resolve(__dirname, 'apps/public_app/static/public_app/ts/visitor-status.ts'),
         'public_app/server-status': resolve(__dirname, 'apps/public_app/static/public_app/ts/server-status.ts'),
         'public_app/landing-demos-inline': resolve(__dirname, 'apps/public_app/static/public_app/ts/landing-demos-inline.ts'),
+        'public_app/landing/module-cards': resolve(__dirname, 'apps/public_app/static/public_app/ts/landing/module-cards.ts'),
+        'public_app/tools/plot-viewer/index': resolve(__dirname, 'apps/public_app/static/public_app/ts/tools/plot-viewer/index.ts'),
 
         // Accounts app
         'accounts_app/profile': resolve(__dirname, 'apps/accounts_app/static/accounts_app/ts/profile.ts'),
@@ -151,6 +161,11 @@ export default defineConfig({
         // Project app - additional
         'project_app/projects/settings': resolve(__dirname, 'apps/project_app/static/project_app/ts/projects/settings.ts'),
         'project_app/shared/project_app': resolve(__dirname, 'apps/project_app/static/project_app/ts/shared/project_app.ts'),
+        'project_app/shared/file-tree': resolve(__dirname, 'apps/project_app/static/project_app/ts/shared/file-tree.ts'),
+        'project_app/shared/pdf_viewer': resolve(__dirname, 'apps/project_app/static/project_app/ts/shared/pdf_viewer.ts'),
+        'project_app/projects/create': resolve(__dirname, 'apps/project_app/static/project_app/ts/projects/create.ts'),
+        'project_app/projects/delete_confirmation': resolve(__dirname, 'apps/project_app/static/project_app/ts/projects/delete_confirmation.ts'),
+        'project_app/projects/settings_collaborators': resolve(__dirname, 'apps/project_app/static/project_app/ts/projects/settings_collaborators.ts'),
         'project_app/repository/browse': resolve(__dirname, 'apps/project_app/static/project_app/ts/repository/browse.ts'),
         'project_app/repository/browse_toolbar': resolve(__dirname, 'apps/project_app/static/project_app/ts/repository/browse_toolbar.ts'),
         'project_app/repository/colorful-icons': resolve(__dirname, 'apps/project_app/static/project_app/ts/repository/colorful-icons.ts'),
@@ -183,6 +198,7 @@ export default defineConfig({
         'shared/code-blocks': resolve(__dirname, 'static/shared/ts/code-blocks.ts'),
         'shared/components/confirm-modal': resolve(__dirname, 'static/shared/ts/components/confirm-modal.ts'),
         'shared/components/header': resolve(__dirname, 'static/shared/ts/components/header.ts'),
+        'shared/utils/highlight-js-bibtex': resolve(__dirname, 'static/shared/ts/utils/highlight-js-bibtex.ts'),
       },
       output: {
         entryFileNames: '[name]-[hash].js',
