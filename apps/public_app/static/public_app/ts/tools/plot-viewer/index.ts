@@ -1,16 +1,16 @@
 // Plot Viewer - Barrel Export
 
-import { PlotViewer } from './PlotViewer.js';
+import { PlotViewer } from './PlotViewer.ts';
 
-export { PlotViewer } from './PlotViewer.js';
-export { PlotRenderer } from './renderers.js';
-export { ControlsManager } from './controls.js';
-export { ExportManager } from './export.js';
-export { parseCSV, detectPlots, getDemoData } from './data.js';
-export { generateNiceTicks, formatNumber, updateInfoPanel } from './utils.js';
-export { drawLine, drawScatter, drawBar } from './plot-drawers.js';
-export type { PlotSettings, PlotData, Plot, PlotArea, Scale, Margin } from './types.js';
-export { NATURE_COLORS, DEFAULT_SETTINGS } from './types.js';
+export { PlotViewer } from './PlotViewer.ts';
+export { PlotRenderer } from './renderers.ts';
+export { ControlsManager } from './controls.ts';
+export { ExportManager } from './export.ts';
+export { parseCSV, detectPlots, getDemoData } from './data.ts';
+export { generateNiceTicks, formatNumber, updateInfoPanel } from './utils.ts';
+export { drawLine, drawScatter, drawBar } from './plot-drawers.ts';
+export type { PlotSettings, PlotData, Plot, PlotArea, Scale, Margin } from './types.ts';
+export { NATURE_COLORS, DEFAULT_SETTINGS } from './types.ts';
 
 // Initialize global instance when DOM is ready
 let plotViewerInstance: PlotViewer | null = null;

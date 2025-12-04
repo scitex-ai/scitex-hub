@@ -6,8 +6,8 @@
  * @author SciTeX Development Team
  */
 
-import { Collaborator, RemoteCursor } from '../websocket-client.js';
-import { RemoteCursorManager } from './cursors.js';
+import { Collaborator, RemoteCursor } from '../websocket-client.ts';
+import { RemoteCursorManager } from './cursors.ts';
 
 /**
  * Event handlers for collaboration events

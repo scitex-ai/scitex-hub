@@ -4,26 +4,26 @@
  */
 
 // Import all modules
-import * as SidebarManager from "./sidebar-manager.js";
-import * as FileTreeManager from "./file-tree-manager.js";
-import * as ProjectActions from "./project-actions.js";
-import * as ProjectForms from "./project-forms.js";
-import * as FileManager from "./file-manager.js";
-import * as DirectoryOps from "./directory-ops.js";
-import * as UserProfile from "./user-profile.js";
-import * as Utils from "./utils.js";
+import * as SidebarManager from "./sidebar-manager.ts";
+import * as FileTreeManager from "./file-tree-manager.ts";
+import * as ProjectActions from "./project-actions.ts";
+import * as ProjectForms from "./project-forms.ts";
+import * as FileManager from "./file-manager.ts";
+import * as DirectoryOps from "./directory-ops.ts";
+import * as UserProfile from "./user-profile.ts";
+import * as Utils from "./utils.ts";
 
 console.log("[DEBUG] project_app orchestrator loaded");
 
 // Re-export all public functions for use in other modules
-export * from "./sidebar-manager.js";
-export * from "./file-tree-manager.js";
-export * from "./project-actions.js";
-export * from "./project-forms.js";
-export * from "./file-manager.js";
-export * from "./directory-ops.js";
-export * from "./user-profile.js";
-export * from "./utils.js";
+export * from "./sidebar-manager.ts";
+export * from "./file-tree-manager.ts";
+export * from "./project-actions.ts";
+export * from "./project-forms.ts";
+export * from "./file-manager.ts";
+export * from "./directory-ops.ts";
+export * from "./user-profile.ts";
+export * from "./utils.ts";
 
 // Initialize on DOM ready
 document.addEventListener("DOMContentLoaded", function () {

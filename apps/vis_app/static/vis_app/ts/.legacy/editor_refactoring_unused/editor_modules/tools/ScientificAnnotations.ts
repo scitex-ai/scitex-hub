@@ -4,8 +4,8 @@
  */
 
 import { JournalPreset } from '../types';
-import { BasicAnnotations } from './BasicAnnotations.js';
-import { AdvancedAnnotations } from './AdvancedAnnotations.js';
+import { BasicAnnotations } from './BasicAnnotations.ts';
+import { AdvancedAnnotations } from './AdvancedAnnotations.ts';
 
 export class ScientificAnnotations {
     private basicAnnotations: BasicAnnotations;

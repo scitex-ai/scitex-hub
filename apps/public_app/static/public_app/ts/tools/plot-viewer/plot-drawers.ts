@@ -1,6 +1,6 @@
 // Plot Drawing Functions
 
-import { PlotData, PlotArea, Scale, PlotSettings } from './types.js';
+import { PlotData, PlotArea, Scale, PlotSettings } from './types.ts';
 
 const DPI = 300;
 const MM_TO_PX = DPI / 25.4;

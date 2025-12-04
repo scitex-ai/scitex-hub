@@ -11,7 +11,7 @@
  * - code: Full development - all files
  */
 
-import type { TreeItem, WorkspaceMode } from '../types.js';
+import type { TreeItem, WorkspaceMode } from '../types.ts';
 
 /**
  * Configuration for file extensions visible in each mode

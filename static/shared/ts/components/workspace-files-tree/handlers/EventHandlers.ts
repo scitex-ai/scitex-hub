@@ -3,8 +3,8 @@
  * Handles file/folder click events
  */
 
-import type { TreeItem, TreeConfig } from '../types.js';
-import type { TreeStateManager } from '../TreeState.js';
+import type { TreeItem, TreeConfig } from '../types.ts';
+import type { TreeStateManager } from '../TreeState.ts';
 
 export class EventHandlers {
   constructor(

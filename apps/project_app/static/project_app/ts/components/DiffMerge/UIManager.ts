@@ -2,7 +2,7 @@
  * DiffMerge UI Manager
  */
 
-import { Side } from "./types.js";
+import { Side } from "./types.ts";
 
 export class UIManager {
   private onClear: (side: Side) => void;

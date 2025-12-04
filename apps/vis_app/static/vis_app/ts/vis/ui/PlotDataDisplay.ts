@@ -8,8 +8,8 @@
  * - Synchronize edited data back to plot manager
  */
 
-import { PlotDataManager } from '../PlotDataManager.js';
-import type { DataTableManager } from '../DataTableManager.js';
+import { PlotDataManager } from '../PlotDataManager.ts';
+import type { DataTableManager } from '../DataTableManager.ts';
 
 export class PlotDataDisplay {
     private currentSelectedPlotId: string | null = null;

@@ -9,7 +9,7 @@
  * - F2 to toggle edit mode
  */
 
-import { Dataset, DataRow } from './types.js';
+import { Dataset, DataRow } from './types.ts';
 
 export interface TableEditingCallbacks {
     getCurrentData: () => Dataset | null;

@@ -3,8 +3,8 @@
  * Auto-initializes when imported
  */
 
-export { GitHistoryModal, gitHistoryModal } from './GitHistoryModal.js';
-export { GitDiffModal, gitDiffModal } from './GitDiffModal.js';
+export { GitHistoryModal, gitHistoryModal } from './GitHistoryModal.ts';
+export { GitDiffModal, gitDiffModal } from './GitDiffModal.ts';
 
 // Initialize both modals when this module is loaded
 import './GitHistoryModal.js';

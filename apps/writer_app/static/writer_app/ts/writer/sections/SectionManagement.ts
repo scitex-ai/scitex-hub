@@ -8,7 +8,7 @@ import {
   showToast,
   populateSectionDropdownDirect,
   handleDocTypeSwitch,
-} from "../../utils/index.js";
+} from "../../utils/index.ts";
 
 export class SectionManagement {
   private config: any;

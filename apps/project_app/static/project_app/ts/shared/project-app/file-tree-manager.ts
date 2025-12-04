@@ -6,7 +6,7 @@
 import {
   loadFileTree as loadFileTreeShared,
   toggleFolder as toggleFolderShared,
-} from "../file-tree.js";
+} from "../file-tree.ts";
 
 /**
  * Load file tree from API and render it in sidebar - uses shared module

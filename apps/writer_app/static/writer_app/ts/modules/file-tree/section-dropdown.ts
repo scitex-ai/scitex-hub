@@ -3,7 +3,7 @@
  * Handles population and management of section dropdowns for different document types
  */
 
-import { FileTreeNode } from "../file_tree.js";
+import { FileTreeNode } from "../file_tree.ts";
 
 export interface SectionConfig {
   id: string;

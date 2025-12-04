@@ -2,7 +2,7 @@
  * ImageViewer - Handles image file rendering with zoom and pan
  */
 
-import type { MediaViewerConfig } from './types.js';
+import type { MediaViewerConfig } from './types.ts';
 
 export class ImageViewer {
   private config: MediaViewerConfig;

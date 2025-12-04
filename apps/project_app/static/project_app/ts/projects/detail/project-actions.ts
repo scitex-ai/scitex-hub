@@ -3,8 +3,8 @@
  * Handles user interactions with project engagement features
  */
 
-import { getCsrfToken } from "../../utils/csrf.js";
-import { showNotification } from "./notifications.js";
+import { getCsrfToken } from "../../utils/csrf.ts";
+import { showNotification } from "./notifications.ts";
 
 export async function loadProjectStats(): Promise<void> {
   const projectData = (window as any).SCITEX_PROJECT_DATA;

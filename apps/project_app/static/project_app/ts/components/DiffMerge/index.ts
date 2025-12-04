@@ -12,13 +12,13 @@
  * Original: DiffMerge_backup.ts
  */
 
-import { DiffMergeConfig, Side } from "./types.js";
-import { DragDropHandler } from "./DragDropHandler.js";
-import { FileOperations } from "./FileOperations.js";
-import { FileBrowser } from "./FileBrowser.js";
-import { DiffRenderer } from "./DiffRenderer.js";
-import { MergeHandler } from "./MergeHandler.js";
-import { UIManager } from "./UIManager.js";
+import { DiffMergeConfig, Side } from "./types.ts";
+import { DragDropHandler } from "./DragDropHandler.ts";
+import { FileOperations } from "./FileOperations.ts";
+import { FileBrowser } from "./FileBrowser.ts";
+import { DiffRenderer } from "./DiffRenderer.ts";
+import { MergeHandler } from "./MergeHandler.ts";
+import { UIManager } from "./UIManager.ts";
 
 class DiffMerge {
   private config: DiffMergeConfig;

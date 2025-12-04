@@ -3,11 +3,11 @@
  * Manages all event listeners for section dropdown interactions
  */
 
-import { showToast } from "../ui.js";
+import { showToast } from "../ui.ts";
 import { getCsrfToken } from "@/utils/csrf.js";
-import { getWriterConfig } from "../../helpers.js";
-import { statePersistence } from "../../modules/state-persistence.js";
-import type { CompilationManager } from "../../modules/index.js";
+import { getWriterConfig } from "../../helpers.ts";
+import { statePersistence } from "../../modules/state-persistence.ts";
+import type { CompilationManager } from "../../modules/index.ts";
 
 console.log(
   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/utils/section-dropdown/events.ts loaded",

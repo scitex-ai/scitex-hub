@@ -3,7 +3,7 @@
  * Handles tab display, switching, and closing for open files
  */
 
-import type { OpenFile } from "../core/types.js";
+import type { OpenFile } from "../core/types.ts";
 
 export class FileTabManager {
   private openFiles: Map<string, OpenFile>;
@@ -13,6 +13,7 @@ export class FileTabManager {
   private onNewFile: ((fileName: string) => Promise<void>) | null = null;
   private existingFiles: string[] = [];
   private draggedTabPath: string | null = null;
+  private projectId: string | null = null;
 
   constructor(
     openFiles: Map<string, OpenFile>,
@@ -22,6 +23,97 @@ export class FileTabManager {
     this.openFiles = openFiles;
     this.onTabSwitch = onTabSwitch;
     this.onTabClose = onTabClose;
+  }
+
+  /**
+   * Initialize project ID for storage (call after DOM is ready)
+   */
+  initializeProjectId(): void {
+    const projectDataEl = document.getElementById("project-data");
+    if (projectDataEl) {
+      this.projectId = projectDataEl.getAttribute("data-project-id");
+      console.log("[FileTabManager] Project ID:", this.projectId);
+    } else {
+      // Fallback: try to get from URL or use default
+      const urlMatch = window.location.pathname.match(/\/visitor-\d+\/([^\/]+)/);
+      if (urlMatch) {
+        this.projectId = urlMatch[1];
+      } else {
+        this.projectId = "default";
+      }
+      console.log("[FileTabManager] Project ID (fallback):", this.projectId);
+    }
+  }
+
+  /**
+   * Get localStorage key for this project's tabs
+   */
+  private getStorageKey(): string {
+    return `scitex_code_tabs_${this.projectId || "default"}`;
+  }
+
+  /**
+   * Save current tab state to localStorage
+   */
+  saveTabState(): void {
+    console.log("[FileTabManager] saveTabState called, projectId:", this.projectId);
+    if (!this.projectId) {
+      console.log("[FileTabManager] No projectId, skipping save");
+      return;
+    }
+
+    const tabState = {
+      openFiles: Array.from(this.openFiles.keys()).filter(p => p !== "*scratch*"),
+      currentFile: this.currentFile,
+      timestamp: Date.now()
+    };
+
+    try {
+      const key = this.getStorageKey();
+      console.log("[FileTabManager] Saving to key:", key, "files:", tabState.openFiles);
+      localStorage.setItem(key, JSON.stringify(tabState));
+      console.log("[FileTabManager] Saved tab state:", tabState.openFiles.length, "files");
+    } catch (e) {
+      console.warn("[FileTabManager] Failed to save tab state:", e);
+    }
+  }
+
+  /**
+   * Get saved tab state from localStorage
+   */
+  getSavedTabState(): { openFiles: string[]; currentFile: string | null } | null {
+    if (!this.projectId) return null;
+
+    try {
+      const saved = localStorage.getItem(this.getStorageKey());
+      if (saved) {
+        const state = JSON.parse(saved);
+        // Only restore if saved within the last 7 days
+        const maxAge = 7 * 24 * 60 * 60 * 1000;
+        if (state.timestamp && Date.now() - state.timestamp < maxAge) {
+          console.log("[FileTabManager] Found saved tab state:", state.openFiles?.length || 0, "files");
+          return {
+            openFiles: state.openFiles || [],
+            currentFile: state.currentFile || null
+          };
+        }
+      }
+    } catch (e) {
+      console.warn("[FileTabManager] Failed to load tab state:", e);
+    }
+    return null;
+  }
+
+  /**
+   * Clear saved tab state
+   */
+  clearSavedTabState(): void {
+    if (!this.projectId) return;
+    try {
+      localStorage.removeItem(this.getStorageKey());
+    } catch (e) {
+      // Ignore
+    }
   }
 
   /**
@@ -53,6 +145,7 @@ export class FileTabManager {
   setCurrentFile(filePath: string | null): void {
     this.currentFile = filePath;
     this.updateTabs();
+    this.saveTabState();
   }
 
   getCurrentFile(): string | null {
@@ -204,6 +297,7 @@ export class FileTabManager {
     }
 
     this.updateTabs();
+    this.saveTabState();
   }
 
   hasOpenFiles(): boolean {

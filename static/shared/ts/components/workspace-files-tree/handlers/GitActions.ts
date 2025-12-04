@@ -3,7 +3,7 @@
  * Handles git operations: stage, unstage, discard, history, diff
  */
 
-import type { TreeConfig } from '../types.js';
+import type { TreeConfig } from '../types.ts';
 
 export class GitActions {
   constructor(

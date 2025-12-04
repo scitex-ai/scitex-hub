@@ -3,7 +3,7 @@
  * Handles DOM construction for the seekbar component
  */
 
-import type { CompleteSeekbarOptions, HandleType, SeekbarElements, SeekbarValues } from "./types.js";
+import type { CompleteSeekbarOptions, HandleType, SeekbarElements, SeekbarValues } from "./types.ts";
 
 export class DOMBuilder {
   private container: HTMLElement;

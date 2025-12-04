@@ -34,14 +34,14 @@
  * ```
  */
 
-export { DataTableManager } from './DataTableManager.js';
-export { TableData } from './TableData.js';
-export { TableRendering } from './TableRendering.js';
-export { TableSelection } from './TableSelection.js';
-export { TableEditing } from './TableEditing.js';
-export { TableClipboard } from './TableClipboard.js';
-export { TableFillHandle } from './TableFillHandle.js';
-export { TableColumnRow } from './TableColumnRow.js';
+export { DataTableManager } from './DataTableManager.ts';
+export { TableData } from './TableData.ts';
+export { TableRendering } from './TableRendering.ts';
+export { TableSelection } from './TableSelection.ts';
+export { TableEditing } from './TableEditing.ts';
+export { TableClipboard } from './TableClipboard.ts';
+export { TableFillHandle } from './TableFillHandle.ts';
+export { TableColumnRow } from './TableColumnRow.ts';
 
 export type {
     Dataset,
@@ -49,6 +49,6 @@ export type {
     CellPosition,
     SelectionState,
     DataTableConfig,
-} from './types.js';
+} from './types.ts';
 
-export { TABLE_CONSTANTS } from './types.js';
+export { TABLE_CONSTANTS } from './types.ts';

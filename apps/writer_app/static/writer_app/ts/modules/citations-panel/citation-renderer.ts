@@ -3,7 +3,7 @@
  * Handles rendering of citation cards in the DOM
  */
 
-import { Citation } from "./types.js";
+import { Citation } from "./types.ts";
 
 export class CitationRenderer {
   private selectedCards: Set<string> = new Set();

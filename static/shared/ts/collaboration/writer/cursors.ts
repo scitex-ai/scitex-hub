@@ -6,7 +6,7 @@
  * @author SciTeX Development Team
  */
 
-import { RemoteCursor } from '../websocket-client.js';
+import { RemoteCursor } from '../websocket-client.ts';
 
 declare global {
   interface Window {

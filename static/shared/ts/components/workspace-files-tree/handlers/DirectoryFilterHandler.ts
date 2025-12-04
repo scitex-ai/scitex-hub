@@ -4,7 +4,7 @@
  * Extracted from WorkspaceFilesTree.ts for better code organization.
  */
 
-import type { TreeItem } from '../types.js';
+import type { TreeItem } from '../types.ts';
 
 export class DirectoryFilterHandler {
   private directoryFilter: string | null = null;

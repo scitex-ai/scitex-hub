@@ -13,14 +13,14 @@
  * This shared component can be used across multiple apps (vis_app, code_app).
  */
 
-import { Dataset, DataTableConfig } from './types.js';
-import { TableData } from './TableData.js';
-import { TableRendering } from './TableRendering.js';
-import { TableSelection } from './TableSelection.js';
-import { TableEditing } from './TableEditing.js';
-import { TableClipboard } from './TableClipboard.js';
-import { TableFillHandle } from './TableFillHandle.js';
-import { TableColumnRow } from './TableColumnRow.js';
+import { Dataset, DataTableConfig } from './types.ts';
+import { TableData } from './TableData.ts';
+import { TableRendering } from './TableRendering.ts';
+import { TableSelection } from './TableSelection.ts';
+import { TableEditing } from './TableEditing.ts';
+import { TableClipboard } from './TableClipboard.ts';
+import { TableFillHandle } from './TableFillHandle.ts';
+import { TableColumnRow } from './TableColumnRow.ts';
 
 export class DataTableManager {
     // Module instances

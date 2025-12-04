@@ -7,7 +7,7 @@ console.log(
   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/pdf-scroll-zoom/pdf-zoom-control.ts loaded",
 );
 
-import { statePersistence } from "../state-persistence.js";
+import { statePersistence } from "../state-persistence.ts";
 
 export interface ZoomOptions {
   minZoom: number;

@@ -8,8 +8,8 @@
  * @version 1.0.0
  */
 
-import { getCsrfToken } from './utilities.js';
-import { updateActiveFilterCount } from './filters.js';
+import { getCsrfToken } from './utilities.ts';
+import { updateActiveFilterCount } from './filters.ts';
 
 /**
  * Save source preferences to database (authenticated users) or localStorage (visitor users)

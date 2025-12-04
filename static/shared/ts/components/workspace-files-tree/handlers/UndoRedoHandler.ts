@@ -5,7 +5,7 @@
  * Uses git commands under the hood where possible.
  */
 
-import type { TreeConfig } from '../types.js';
+import type { TreeConfig } from '../types.ts';
 
 export type OperationType = 'create' | 'delete' | 'rename' | 'move' | 'copy';
 

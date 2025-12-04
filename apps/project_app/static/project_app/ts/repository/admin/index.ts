@@ -11,7 +11,7 @@ export type {
   HealthData,
   PendingAction,
   FilterType,
-} from "./types.js";
+} from "./types.ts";
 
 // Export rendering functions
 export {
@@ -20,7 +20,7 @@ export {
   renderIssue,
   renderIssues,
   applyFilter,
-} from "./rendering.js";
+} from "./rendering.ts";
 
 // Export UI interaction functions
 export {
@@ -28,23 +28,23 @@ export {
   closeDialog,
   showError,
   getCSRFToken,
-} from "./ui.js";
+} from "./ui.ts";
 
 // Export cleanup operations
-export { confirmDelete, deleteRepository } from "./cleanup.js";
+export { confirmDelete, deleteRepository } from "./cleanup.ts";
 
 // Export backup/restore operations
 export {
   confirmRestore,
   getRestoreProjectName,
   restoreRepository,
-} from "./backup.js";
+} from "./backup.ts";
 
 // Export main maintenance functionality
-export { initializeRepositoryMaintenance } from "./maintenance.js";
+export { initializeRepositoryMaintenance } from "./maintenance.ts";
 
 // Re-export for backwards compatibility
-import { initializeRepositoryMaintenance } from "./maintenance.js";
+import { initializeRepositoryMaintenance } from "./maintenance.ts";
 
 // Auto-initialize when imported
 initializeRepositoryMaintenance();

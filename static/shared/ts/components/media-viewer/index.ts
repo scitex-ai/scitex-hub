@@ -10,17 +10,17 @@
  * @module @scitex/media-viewer
  */
 
-export { MediaViewer, detectFileType } from './MediaViewer.js';
-export type { FileType, ViewerFileType, MediaViewerConfig } from './types.js';
-export { ImageViewer } from './ImageViewer.js';
-export { PdfViewer } from './PdfViewer.js';
-export { BinaryPlaceholder } from './BinaryPlaceholder.js';
+export { MediaViewer, detectFileType } from './MediaViewer.ts';
+export type { FileType, ViewerFileType, MediaViewerConfig } from './types.ts';
+export { ImageViewer } from './ImageViewer.ts';
+export { PdfViewer } from './PdfViewer.ts';
+export { BinaryPlaceholder } from './BinaryPlaceholder.ts';
 export {
   IMAGE_EXTENSIONS,
   PDF_EXTENSIONS,
   CSV_EXTENSIONS,
   BINARY_EXTENSIONS
-} from './types.js';
+} from './types.ts';
 
 // Re-export CsvEditor for direct use
-export { CsvEditor } from '../media-editor/CsvEditor.js';
+export { CsvEditor } from '../media-editor/CsvEditor.ts';

@@ -4,8 +4,8 @@
  * Extracted from WorkspaceFilesTree.ts for better code organization.
  */
 
-import type { TreeItem, WorkspaceMode } from '../types.js';
-import { TreeStateManager } from '../TreeState.js';
+import type { TreeItem, WorkspaceMode } from '../types.ts';
+import { TreeStateManager } from '../TreeState.ts';
 
 export class PathNavigator {
   private stateManager: TreeStateManager;

@@ -4,8 +4,8 @@
  */
 
 import { getCsrfToken } from "@/utils/csrf.js";
-import { showToast } from "../ui.js";
-import { populateSectionDropdownDirect } from "../section-dropdown/index.js";
+import { showToast } from "../ui.ts";
+import { populateSectionDropdownDirect } from "../section-dropdown/index.ts";
 
 /**
  * Setup Move Section Up/Down buttons

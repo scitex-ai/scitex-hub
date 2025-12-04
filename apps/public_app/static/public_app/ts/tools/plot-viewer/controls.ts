@@ -1,6 +1,6 @@
 // UI Controls Management
 
-import { PlotSettings } from './types.js';
+import { PlotSettings } from './types.ts';
 
 export class ControlsManager {
     private settings: PlotSettings;

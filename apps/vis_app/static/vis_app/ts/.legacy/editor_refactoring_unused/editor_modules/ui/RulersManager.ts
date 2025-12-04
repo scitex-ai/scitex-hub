@@ -8,7 +8,7 @@
  * - Coordinate with RulerRenderer for drawing
  */
 
-import { RulerRenderer, RulerUnit } from './RulerRenderer.js';
+import { RulerRenderer, RulerUnit } from './RulerRenderer.ts';
 
 export class RulersManager {
     private renderer: RulerRenderer;

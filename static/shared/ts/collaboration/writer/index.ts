@@ -19,10 +19,10 @@ console.log("[DEBUG] Writer Collaboration Integration loaded");
 // Re-exports
 // ============================================================================
 
-export { RemoteCursorManager } from './cursors.js';
-export { CollaborationEventHandlers, updateCollaborationUI } from './events.js';
-export { WriterCollaboration } from './manager.js';
-export { monacoChangeToOTOperation, applyRemoteOperation, sendCurrentCursorPosition } from './sync.js';
+export { RemoteCursorManager } from './cursors.ts';
+export { CollaborationEventHandlers, updateCollaborationUI } from './events.ts';
+export { WriterCollaboration } from './manager.ts';
+export { monacoChangeToOTOperation, applyRemoteOperation, sendCurrentCursorPosition } from './sync.ts';
 
 // ============================================================================
 // Global Type Declarations
@@ -45,7 +45,7 @@ declare global {
 // Initialization
 // ============================================================================
 
-import { WriterCollaboration } from './manager.js';
+import { WriterCollaboration } from './manager.ts';
 
 // Create global instance
 window.writerCollaboration = new WriterCollaboration();

@@ -3,7 +3,7 @@
  * Extracts checkable regions from LaTeX content, skipping commands, math mode, etc.
  */
 
-import type { CheckableRegion, ExtractedWord, TextRange } from './types.js';
+import type { CheckableRegion, ExtractedWord, TextRange } from './types.ts';
 
 export class LaTeXParser {
   // LaTeX patterns to skip

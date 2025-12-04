@@ -11,7 +11,7 @@
  * @author SciTeX Development Team
  */
 
-import { TextOperation, transform } from './operations.js';
+import { TextOperation, transform } from './operations.ts';
 
 console.log("[DEBUG] OT Client loaded");
 

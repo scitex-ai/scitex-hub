@@ -4,7 +4,7 @@
  * Uses the shared WorkspaceFilesTree component for consistency across modules
  */
 
-import type { EditorConfig } from "../core/types.js";
+import type { EditorConfig } from "../core/types.ts";
 
 // TreeItem type definition (matches shared component)
 interface TreeItem {
@@ -40,7 +40,7 @@ interface WorkspaceFilesTree {
 async function loadWorkspaceFilesTree(): Promise<{ WorkspaceFilesTree: new (config: any) => WorkspaceFilesTree }> {
   // Import the shared WorkspaceFilesTree component from static path
   // @ts-ignore - Runtime dynamic import
-  const module = await (Function('return import("/static/shared/js/components/workspace-files-tree/WorkspaceFilesTree.js")')());
+  const module = await (Function('return import("/static/shared/ts/components/workspace-files-tree/WorkspaceFilesTree.ts")')());
   return module;
 }
 

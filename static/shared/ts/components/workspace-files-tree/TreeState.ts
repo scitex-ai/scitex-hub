@@ -4,7 +4,7 @@
  * Syncs state across browser tabs
  */
 
-import type { TreeState, WorkspaceMode } from './types.js';
+import type { TreeState, WorkspaceMode } from './types.ts';
 
 const STORAGE_KEY_PREFIX = 'scitex_workspace_tree_';
 

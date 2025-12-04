@@ -2,8 +2,8 @@
  * DiffMerge Diff Renderer
  */
 
-import { DiffMergeConfig, DiffResult } from "./types.js";
-import { getCSRFToken, escapeHtml } from "./utils.js";
+import { DiffMergeConfig, DiffResult } from "./types.ts";
+import { getCSRFToken, escapeHtml } from "./utils.ts";
 
 export class DiffRenderer {
   private config: DiffMergeConfig;

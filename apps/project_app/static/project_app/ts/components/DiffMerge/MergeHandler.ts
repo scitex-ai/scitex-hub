@@ -2,8 +2,8 @@
  * DiffMerge Merge Handler
  */
 
-import { DiffMergeConfig, MergeResult } from "./types.js";
-import { getCSRFToken } from "./utils.js";
+import { DiffMergeConfig, MergeResult } from "./types.ts";
+import { getCSRFToken } from "./utils.ts";
 
 export class MergeHandler {
   private config: DiffMergeConfig;

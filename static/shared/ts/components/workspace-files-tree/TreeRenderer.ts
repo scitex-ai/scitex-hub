@@ -3,10 +3,10 @@
  * Renders tree items as HTML with icons, status indicators, and actions
  */
 
-import type { TreeItem, TreeConfig } from './types.js';
-import type { TreeStateManager } from './TreeState.js';
-import type { TreeFilter } from './TreeFilter.js';
-import { getFileIcon, getFolderIcon } from '../../utils/file-icons.js';
+import type { TreeItem, TreeConfig } from './types.ts';
+import type { TreeStateManager } from './TreeState.ts';
+import type { TreeFilter } from './TreeFilter.ts';
+import { getFileIcon, getFolderIcon } from '../../utils/file-icons.ts';
 
 export class TreeRenderer {
   private config: TreeConfig;

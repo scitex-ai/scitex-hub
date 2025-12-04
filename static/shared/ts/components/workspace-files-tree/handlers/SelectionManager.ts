@@ -4,8 +4,8 @@
  * Extracted from WorkspaceFilesTree.ts for better code organization.
  */
 
-import type { TreeItem } from '../types.js';
-import { TreeStateManager } from '../TreeState.js';
+import type { TreeItem } from '../types.ts';
+import { TreeStateManager } from '../TreeState.ts';
 
 export class SelectionManager {
   private container: HTMLElement;

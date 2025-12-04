@@ -5,15 +5,15 @@
  * Uses centralized configuration from FilteringCriteria.ts
  */
 
-import type { TreeItem, FilterConfig, WorkspaceMode } from './types.js';
-import { MODE_FILTERS } from './types.js';
+import type { TreeItem, FilterConfig, WorkspaceMode } from './types.ts';
+import { MODE_FILTERS } from './types.ts';
 import {
   ALLOW_EXTENSIONS,
   DENY_DIRECTORIES,
   ALLOW_DIRECTORIES,
   PRESERVE_EMPTY_DIRECTORIES,
   ALWAYS_VISIBLE_FILENAMES,
-} from './FilteringCriteria.js';
+} from './FilteringCriteria.ts';
 
 export class TreeFilter {
   private config: FilterConfig;

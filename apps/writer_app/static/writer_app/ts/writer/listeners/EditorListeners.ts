@@ -12,7 +12,7 @@ import {
   showCommitModal,
   handleGitCommit,
   statusLamp,
-} from "../../modules/index.js";
+} from "../../modules/index.ts";
 import {
   showToast,
   updateWordCountDisplay,
@@ -20,7 +20,7 @@ import {
   minimizeCompilationOutput,
   restoreCompilationOutput,
   restoreCompilationStatus,
-} from "../../utils/index.js";
+} from "../../utils/index.ts";
 
 export class EditorListeners {
   private editor: WriterEditor | null;

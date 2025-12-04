@@ -3,7 +3,7 @@
  * Handles Monaco editor initialization, keybindings, and language detection
  */
 
-import { LANGUAGE_MAP, type EditorConfig, type OpenFile } from "../core/types.js";
+import { LANGUAGE_MAP, type EditorConfig, type OpenFile } from "../core/types.ts";
 
 // MonacoTheme functions are loaded at runtime from shared components
 // Declare their types here for TypeScript
@@ -20,7 +20,7 @@ async function loadMonacoTheme(): Promise<{
   getCurrentThemeMode: typeof getCurrentThemeMode;
 }> {
   // @ts-ignore - Runtime dynamic import
-  return await (Function('return import("/static/shared/js/monaco/MonacoTheme.js")')());
+  return await (Function('return import("/static/shared/ts/monaco/MonacoTheme.ts")')());
 }
 
 // Cached module reference

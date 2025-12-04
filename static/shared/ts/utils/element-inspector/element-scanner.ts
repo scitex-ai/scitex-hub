@@ -3,9 +3,9 @@
  * Scans and visualizes all elements on the page
  */
 
-import type { LabelPosition, OccupiedPosition } from "./types.js";
-import { DebugInfoCollector } from "./debug-info-collector.js";
-import { NotificationManager } from "./notification-manager.js";
+import type { LabelPosition, OccupiedPosition } from "./types.ts";
+import { DebugInfoCollector } from "./debug-info-collector.ts";
+import { NotificationManager } from "./notification-manager.ts";
 
 export class ElementScanner {
   private elementBoxMap: Map<HTMLDivElement, Element> = new Map();

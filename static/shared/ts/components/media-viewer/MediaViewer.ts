@@ -19,13 +19,13 @@
  * ```
  */
 
-import type { MediaViewerConfig, FileType } from './types.js';
-import { detectFileType } from './types.js';
-import { ImageViewer } from './ImageViewer.js';
-import { PdfViewer } from './PdfViewer.js';
-import { BinaryPlaceholder } from './BinaryPlaceholder.js';
+import type { MediaViewerConfig, FileType } from './types.ts';
+import { detectFileType } from './types.ts';
+import { ImageViewer } from './ImageViewer.ts';
+import { PdfViewer } from './PdfViewer.ts';
+import { BinaryPlaceholder } from './BinaryPlaceholder.ts';
 // CsvEditor from media-editor module
-import { CsvEditor } from '../media-editor/CsvEditor.js';
+import { CsvEditor } from '../media-editor/CsvEditor.ts';
 
 export class MediaViewer {
   private config: MediaViewerConfig;
@@ -186,5 +186,5 @@ export class MediaViewer {
 }
 
 // Re-export types and utilities
-export { detectFileType } from './types.js';
-export type { FileType, MediaViewerConfig } from './types.js';
+export { detectFileType } from './types.ts';
+export type { FileType, MediaViewerConfig } from './types.ts';

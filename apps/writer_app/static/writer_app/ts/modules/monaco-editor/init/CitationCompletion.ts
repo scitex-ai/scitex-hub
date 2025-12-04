@@ -3,7 +3,7 @@
  * Handles citation autocomplete for LaTeX \cite commands
  */
 
-import { fetchCitations } from "./CitationUtils.js";
+import { fetchCitations } from "./CitationUtils.ts";
 
 console.log("[DEBUG] CitationCompletion.ts loaded");
 

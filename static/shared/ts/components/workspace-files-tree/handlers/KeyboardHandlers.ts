@@ -12,8 +12,8 @@
  * - End: Select last item
  */
 
-import type { TreeConfig } from '../types.js';
-import type { TreeStateManager } from '../TreeState.js';
+import type { TreeConfig } from '../types.ts';
+import type { TreeStateManager } from '../TreeState.ts';
 
 export class KeyboardHandlers {
   private anchorPath: string | null = null; // For shift+arrow range selection

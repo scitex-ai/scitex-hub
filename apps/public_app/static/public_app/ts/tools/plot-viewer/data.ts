@@ -1,6 +1,6 @@
 // Data Handling and Parsing
 
-import { PlotData, Plot } from './types.js';
+import { PlotData, Plot } from './types.ts';
 
 export function parseCSV(csvText: string): { data: PlotData; headers: string[] } {
     const lines = csvText.trim().split('\n');

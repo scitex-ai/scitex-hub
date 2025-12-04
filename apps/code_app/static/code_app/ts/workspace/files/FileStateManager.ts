@@ -4,13 +4,13 @@
  * Supports both text files (Monaco editor) and media files (MediaViewer)
  */
 
-import type { OpenFile, FileType } from "../core/types.js";
-import { detectFileType } from "../core/types.js";
-import { MonacoManager } from "../editor/MonacoManager.js";
-import { MediaViewerManager } from "../editor/MediaViewerManager.js";
-import { FileOperations } from "./FileOperations.js";
-import { FileTabManager } from "./FileTabManager.js";
-import { GitStatusManager } from "../git/GitStatusManager.js";
+import type { OpenFile, FileType } from "../core/types.ts";
+import { detectFileType } from "../core/types.ts";
+import { MonacoManager } from "../editor/MonacoManager.ts";
+import { MediaViewerManager } from "../editor/MediaViewerManager.ts";
+import { FileOperations } from "./FileOperations.ts";
+import { FileTabManager } from "./FileTabManager.ts";
+import { GitStatusManager } from "../git/GitStatusManager.ts";
 
 export class FileStateManager {
   private currentFile: string | null = null;
@@ -67,8 +67,10 @@ export class FileStateManager {
         fileType: fileType,
       });
 
-      // Switch to the file
+      // Switch to the file (this also saves tab state)
       await this.switchToFile(filePath);
+      // Explicitly save tab state after opening new file
+      this.fileTabManager.saveTabState();
       return;
     }
 
@@ -89,8 +91,10 @@ export class FileStateManager {
       fileType: 'text',
     });
 
-    // Switch to the file
+    // Switch to the file (this also saves tab state)
     await this.switchToFile(filePath);
+    // Explicitly save tab state after opening new file
+    this.fileTabManager.saveTabState();
   }
 
   /**
@@ -113,11 +117,19 @@ export class FileStateManager {
     // Switch to new file
     this.currentFile = filePath;
 
-    // Handle media files vs text files
-    const fileType = fileData.fileType || 'text';
+    // Re-detect file type (in case fileType was not set correctly before)
+    const fileType = detectFileType(filePath);
+    // Update the stored fileType if it was wrong
+    if (fileData.fileType !== fileType) {
+      console.log(`[FileStateManager] Correcting fileType: ${fileData.fileType} -> ${fileType}`);
+      fileData.fileType = fileType;
+    }
+
+    console.log(`[FileStateManager] File type for ${filePath}: ${fileType}`);
 
     if (fileType !== 'text') {
       // Show media viewer, hide Monaco
+      console.log(`[FileStateManager] Displaying ${fileType} file in media viewer`);
       this.mediaViewerManager.displayFile(filePath, fileType, fileData.blobUrl);
 
       // Disable save/run buttons for media files

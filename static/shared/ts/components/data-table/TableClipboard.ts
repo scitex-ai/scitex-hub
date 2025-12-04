@@ -8,7 +8,7 @@
  * - Tab-separated value formatting
  */
 
-import { Dataset, DataRow, TABLE_CONSTANTS } from './types.js';
+import { Dataset, DataRow, TABLE_CONSTANTS } from './types.ts';
 
 export class TableClipboard {
     private readonly maxRows: number = TABLE_CONSTANTS.MAX_ROWS;

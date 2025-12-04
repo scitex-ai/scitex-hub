@@ -2,8 +2,8 @@
  * DiffMerge File Browser Handler
  */
 
-import { DiffMergeConfig, Side } from "./types.js";
-import { getCSRFToken } from "./utils.js";
+import { DiffMergeConfig, Side } from "./types.ts";
+import { getCSRFToken } from "./utils.ts";
 
 export class FileBrowser {
   private config: DiffMergeConfig;

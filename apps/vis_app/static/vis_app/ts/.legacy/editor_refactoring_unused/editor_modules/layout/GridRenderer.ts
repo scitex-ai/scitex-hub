@@ -4,7 +4,7 @@
  */
 
 import { RulerUnit, JournalPreset } from '../types';
-import { RulerDrawer } from './RulerDrawer.js';
+import { RulerDrawer } from './RulerDrawer.ts';
 
 export class GridRenderer {
     private canvas: any;

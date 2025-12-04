@@ -8,7 +8,7 @@
  * - Dynamic column width management
  */
 
-import { Dataset, DataRow, TABLE_CONSTANTS } from './types.js';
+import { Dataset, DataRow, TABLE_CONSTANTS } from './types.ts';
 
 export class TableRendering {
     // Table dimensions

@@ -1,8 +1,8 @@
 // Plot Rendering Logic
 
-import { PlotData, Plot, PlotSettings, PlotArea, Scale, NATURE_COLORS } from './types.js';
-import { generateNiceTicks, formatNumber } from './utils.js';
-import { drawLine, drawScatter, drawBar } from './plot-drawers.js';
+import { PlotData, Plot, PlotSettings, PlotArea, Scale, NATURE_COLORS } from './types.ts';
+import { generateNiceTicks, formatNumber } from './utils.ts';
+import { drawLine, drawScatter, drawBar } from './plot-drawers.ts';
 
 const DPI = 300;
 const MM_TO_PX = DPI / 25.4;

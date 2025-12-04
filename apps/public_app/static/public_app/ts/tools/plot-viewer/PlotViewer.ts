@@ -1,11 +1,11 @@
 // Main PlotViewer Class
 
-import { PlotSettings, PlotData, Plot, DEFAULT_SETTINGS } from './types.js';
-import { parseCSV, detectPlots, getDemoData } from './data.js';
-import { PlotRenderer } from './renderers.js';
-import { ControlsManager } from './controls.js';
-import { ExportManager } from './export.js';
-import { updateInfoPanel } from './utils.js';
+import { PlotSettings, PlotData, Plot, DEFAULT_SETTINGS } from './types.ts';
+import { parseCSV, detectPlots, getDemoData } from './data.ts';
+import { PlotRenderer } from './renderers.ts';
+import { ControlsManager } from './controls.ts';
+import { ExportManager } from './export.ts';
+import { updateInfoPanel } from './utils.ts';
 
 export class PlotViewer {
     private canvas: HTMLCanvasElement;

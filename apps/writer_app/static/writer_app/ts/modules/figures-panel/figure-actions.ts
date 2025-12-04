@@ -3,7 +3,7 @@
  * Handles drag-drop to editor and other figure actions
  */
 
-import type { Figure } from "./figures-list.js";
+import type { Figure } from "./figures-list.ts";
 
 export class FigureActions {
   constructor() {

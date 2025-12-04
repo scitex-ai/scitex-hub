@@ -2,7 +2,7 @@
  * PdfViewer - Handles PDF file rendering using PDF.js
  */
 
-import type { MediaViewerConfig } from './types.js';
+import type { MediaViewerConfig } from './types.ts';
 
 export class PdfViewer {
   private config: MediaViewerConfig;

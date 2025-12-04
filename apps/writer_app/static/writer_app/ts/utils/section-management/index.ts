@@ -3,25 +3,25 @@
  * Lightweight orchestrator that delegates to focused modules
  */
 
-import type { WriterEditor, SectionsManager, PDFPreviewManager } from "../../modules/index.js";
+import type { WriterEditor, SectionsManager, PDFPreviewManager } from "../../modules/index.ts";
 
 // Import focused modules
 import {
   loadSectionContent,
   switchSection,
   setupSectionListeners,
-} from "./SectionLoading.js";
+} from "./SectionLoading.ts";
 
 import {
   updateSectionUI,
   loadCompiledPDF,
   clearCompileTimeout,
-} from "./SectionUI.js";
+} from "./SectionUI.ts";
 
-import { setupAddSectionButton } from "./SectionCreation.js";
-import { setupDeleteSectionButton } from "./SectionDeletion.js";
-import { setupToggleIncludeButton } from "./SectionToggle.js";
-import { setupReorderButtons } from "./SectionReordering.js";
+import { setupAddSectionButton } from "./SectionCreation.ts";
+import { setupDeleteSectionButton } from "./SectionDeletion.ts";
+import { setupToggleIncludeButton } from "./SectionToggle.ts";
+import { setupReorderButtons } from "./SectionReordering.ts";
 
 /**
  * Re-export all public functions for backward compatibility

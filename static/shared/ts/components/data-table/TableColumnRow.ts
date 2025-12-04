@@ -9,7 +9,7 @@
  * - Table dimension management
  */
 
-import { Dataset, DataRow, TABLE_CONSTANTS } from './types.js';
+import { Dataset, DataRow, TABLE_CONSTANTS } from './types.ts';
 
 export class TableColumnRow {
     // Table dimensions

@@ -3,10 +3,10 @@
  * Handles deleting sections via modal interface
  */
 
-import type { WriterEditor, SectionsManager } from "../../modules/index.js";
+import type { WriterEditor, SectionsManager } from "../../modules/index.ts";
 import { getCsrfToken } from "@/utils/csrf.js";
-import { showToast } from "../ui.js";
-import { populateSectionDropdownDirect, handleDocTypeSwitch } from "../section-dropdown/index.js";
+import { showToast } from "../ui.ts";
+import { populateSectionDropdownDirect, handleDocTypeSwitch } from "../section-dropdown/index.ts";
 
 /**
  * Core sections that cannot be deleted

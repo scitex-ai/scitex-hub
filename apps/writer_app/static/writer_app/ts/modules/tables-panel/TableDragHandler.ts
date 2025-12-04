@@ -3,7 +3,7 @@
  * Manages drag-and-drop functionality for inserting tables into editor
  */
 
-import { Table } from "./types.js";
+import { Table } from "./types.ts";
 
 export class TableDragHandler {
   /**

@@ -75,7 +75,7 @@ export interface FilterConfig {
  * DEPRECATED: Mode-specific filters are now centralized in FilteringCriteria.ts
  * Import from there for better maintainability:
  *
- * import { ALLOW_EXTENSIONS, DENY_DIRECTORIES, ALLOW_DIRECTORIES, PRESERVE_EMPTY_DIRECTORIES } from './FilteringCriteria.js';
+ * import { ALLOW_EXTENSIONS, DENY_DIRECTORIES, ALLOW_DIRECTORIES, PRESERVE_EMPTY_DIRECTORIES } from './FilteringCriteria.ts';
  *
  * This object is kept for backward compatibility but will be removed in future versions.
  */

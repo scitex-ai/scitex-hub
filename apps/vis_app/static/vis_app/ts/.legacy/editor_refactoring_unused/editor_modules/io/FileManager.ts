@@ -3,8 +3,8 @@
  * Coordinates file export and save operations
  */
 
-import { FileExport } from './FileExport.js';
-import { FileSave } from './FileSave.js';
+import { FileExport } from './FileExport.ts';
+import { FileSave } from './FileSave.ts';
 
 export class FileManager {
     private fileExport: FileExport;

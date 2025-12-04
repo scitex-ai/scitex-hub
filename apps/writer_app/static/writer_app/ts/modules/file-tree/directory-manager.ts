@@ -3,7 +3,7 @@
  * Handles directory expansion state and navigation within the file tree
  */
 
-import { FileTreeNode } from './types.js';
+import { FileTreeNode } from './types.ts';
 
 export class DirectoryManager {
   private expandedDirs: Set<string> = new Set();

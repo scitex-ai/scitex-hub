@@ -4,7 +4,7 @@
  * Works with both single and multi-selection
  */
 
-import type { TreeConfig } from '../types.js';
+import type { TreeConfig } from '../types.ts';
 
 export type ClipboardOperation = 'cut' | 'copy';
 

@@ -13,7 +13,7 @@
  * 7. Empty Directory Preservation (PRESERVE_EMPTY_DIRECTORIES)
  */
 
-import type { WorkspaceMode } from './types.js';
+import type { WorkspaceMode } from './types.ts';
 
 // ============================================================================
 // 1. DIRECTORY WHITELIST - Only show these directories

@@ -7,7 +7,7 @@
  * - Apply fill operation (copy values down/right)
  */
 
-import { Dataset } from './types.js';
+import { Dataset } from './types.ts';
 
 interface FillHandleCallbacks {
     getCurrentData: () => Dataset | null;

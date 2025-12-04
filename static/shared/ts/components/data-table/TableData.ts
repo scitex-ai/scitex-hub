@@ -10,7 +10,7 @@
  * - Data state management
  */
 
-import { Dataset, DataRow, TABLE_CONSTANTS } from './types.js';
+import { Dataset, DataRow, TABLE_CONSTANTS } from './types.ts';
 
 export class TableData {
     private currentData: Dataset | null = null;

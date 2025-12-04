@@ -4,7 +4,7 @@
  * Supports multi-selection: when dragging a selected item, all selected items move together
  */
 
-import type { TreeConfig } from '../types.js';
+import type { TreeConfig } from '../types.ts';
 
 export class DragDropHandlers {
   private showMessage: (message: string, type: 'success' | 'error' | 'info') => void;

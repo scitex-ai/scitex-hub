@@ -2,8 +2,8 @@
  * DiffMerge File Operations Handler
  */
 
-import { Side } from "./types.js";
-import { readFileAsText, formatFileSize } from "./utils.js";
+import { Side } from "./types.ts";
+import { readFileAsText, formatFileSize } from "./utils.ts";
 
 export class FileOperations {
   private leftContent: string = "";

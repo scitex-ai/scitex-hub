@@ -4,7 +4,7 @@
  * Provides fuzzy text search across file and folder names
  */
 
-import type { TreeItem } from '../types.js';
+import type { TreeItem } from '../types.ts';
 
 export class SearchHandler {
   private searchQuery: string = '';

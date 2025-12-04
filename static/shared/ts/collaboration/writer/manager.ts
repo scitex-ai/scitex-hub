@@ -6,11 +6,11 @@
  * @author SciTeX Development Team
  */
 
-import { WebSocketCollaborationClient } from '../websocket-client.js';
-import { TextOperation } from '../ot/operations.js';
-import { RemoteCursorManager } from './cursors.js';
-import { CollaborationEventHandlers, updateCollaborationUI } from './events.js';
-import { monacoChangeToOTOperation, sendCurrentCursorPosition } from './sync.js';
+import { WebSocketCollaborationClient } from '../websocket-client.ts';
+import { TextOperation } from '../ot/operations.ts';
+import { RemoteCursorManager } from './cursors.ts';
+import { CollaborationEventHandlers, updateCollaborationUI } from './events.ts';
+import { monacoChangeToOTOperation, sendCurrentCursorPosition } from './sync.ts';
 
 declare global {
   interface Window {

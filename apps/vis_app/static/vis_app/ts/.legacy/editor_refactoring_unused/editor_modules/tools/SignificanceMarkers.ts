@@ -3,7 +3,7 @@
  * Tools for adding statistical significance and scientific notation markers
  */
 
-import { JournalPreset } from '../types.js';
+import { JournalPreset } from '../types.ts';
 
 export class SignificanceMarkers {
     private canvas: any;

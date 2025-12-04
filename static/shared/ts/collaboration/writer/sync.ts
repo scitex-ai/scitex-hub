@@ -6,7 +6,7 @@
  * @author SciTeX Development Team
  */
 
-import { TextOperation } from '../ot/operations.js';
+import { TextOperation } from '../ot/operations.ts';
 
 declare global {
   interface Window {

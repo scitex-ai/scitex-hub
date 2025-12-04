@@ -8,9 +8,9 @@
  * - Rectangle drag: select all items within drag region
  */
 
-import type { TreeItem } from '../types.js';
-import { TreeStateManager } from '../TreeState.js';
-import { TreeUtils } from './TreeUtils.js';
+import type { TreeItem } from '../types.ts';
+import { TreeStateManager } from '../TreeState.ts';
+import { TreeUtils } from './TreeUtils.ts';
 
 export class SelectionHandler {
   private stateManager: TreeStateManager;

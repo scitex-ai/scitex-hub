@@ -2,7 +2,7 @@
  * Tree Builder - Handles HTML tree structure creation
  */
 
-import type { Figure, Axis, Plot, Guide, Annotation } from '../types.js';
+import type { Figure, Axis, Plot, Guide, Annotation } from '../types.ts';
 
 export class TreeBuilder {
     private treeContainer: HTMLElement;

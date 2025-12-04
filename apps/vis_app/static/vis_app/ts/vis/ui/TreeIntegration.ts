@@ -12,11 +12,11 @@
  * This module implements the 3-pane responsive sync: Tree ↔ Data ↔ Properties
  */
 
-import { TreeManager } from '../tree-manager.js';
-import type { Figure } from '../types.js';
-import type { PlotDataManager } from '../PlotDataManager.js';
-import type { PropertiesManager } from '../PropertiesManager.js';
-import type { DataTableManager } from '../DataTableManager.js';
+import { TreeManager } from '../tree-manager.ts';
+import type { Figure } from '../types.ts';
+import type { PlotDataManager } from '../PlotDataManager.ts';
+import type { PropertiesManager } from '../PropertiesManager.ts';
+import type { DataTableManager } from '../DataTableManager.ts';
 
 export class TreeIntegration {
     private treeManager: TreeManager | null = null;

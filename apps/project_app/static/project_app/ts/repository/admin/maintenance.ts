@@ -9,25 +9,25 @@ import {
   PendingAction,
   FilterType,
   RepositoryIssue,
-} from "./types.js";
+} from "./types.ts";
 import {
   renderHealthStatus,
   renderIssues,
   applyFilter,
   escapeHtml,
-} from "./rendering.js";
+} from "./rendering.ts";
 import {
   showDialog,
   closeDialog,
   showError,
   getCSRFToken,
-} from "./ui.js";
+} from "./ui.ts";
 import {
   confirmRestore,
   restoreRepository,
   getRestoreProjectName,
-} from "./backup.js";
-import { confirmDelete, deleteRepository } from "./cleanup.js";
+} from "./backup.ts";
+import { confirmDelete, deleteRepository } from "./cleanup.ts";
 
 console.log(
   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/project_app/static/project_app/ts/repository/admin/maintenance.ts loaded",

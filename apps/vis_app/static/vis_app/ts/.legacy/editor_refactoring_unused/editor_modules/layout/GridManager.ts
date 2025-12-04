@@ -4,7 +4,7 @@
  */
 
 import { RulerUnit, JournalPreset } from '../types';
-import { GridRenderer } from './GridRenderer.js';
+import { GridRenderer } from './GridRenderer.ts';
 
 export class GridManager {
     private canvas: any;

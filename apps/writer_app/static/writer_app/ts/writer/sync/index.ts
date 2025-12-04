@@ -7,4 +7,4 @@ export {
   initWriterTreeSync,
   getWriterTreeSync,
   type WriterTreeSyncConfig,
-} from "./WriterTreeSync.js";
+} from "./WriterTreeSync.ts";

@@ -3,7 +3,7 @@
  * Handles localStorage persistence and status restoration
  */
 
-import { updateStatusLamp } from "./CompilationStatus.js";
+import { updateStatusLamp } from "./CompilationStatus.ts";
 
 /**
  * Restore last compilation status from localStorage

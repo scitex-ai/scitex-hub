@@ -9,9 +9,9 @@
  * - LaTeX table export
  */
 
-import type { MediaEditorConfig } from './types.js';
-import { DataTableManager } from '../data-table/index.js';
-import type { Dataset, DataRow } from '../data-table/types.js';
+import type { MediaEditorConfig } from './types.ts';
+import { DataTableManager } from '../data-table/index.ts';
+import type { Dataset, DataRow } from '../data-table/types.ts';
 
 /** Plot configuration for vis_app integration */
 interface PlotSpec {

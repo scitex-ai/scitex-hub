@@ -2,25 +2,25 @@
  * Workspace Files Tree - Orchestrator component for file tree
  */
 
-import type { TreeItem, TreeConfig } from './types.js';
-import { DEFAULT_EXPAND_PATHS } from './types.js';
-import { TreeStateManager } from './TreeState.js';
-import { TreeFilter } from './TreeFilter.js';
-import { TreeRenderer } from './TreeRenderer.js';
-import { EventHandlers } from './handlers/EventHandlers.js';
-import { DragDropHandlers } from './handlers/DragDropHandlers.js';
-import { KeyboardHandlers } from './handlers/KeyboardHandlers.js';
-import { FileActions } from './handlers/FileActions.js';
-import { ResizeHandler } from './handlers/ResizeHandler.js';
-import { DirectoryFilterHandler } from './handlers/DirectoryFilterHandler.js';
-import { PathNavigator } from './handlers/PathNavigator.js';
-import { TreeUtils } from './handlers/TreeUtils.js';
-import { SelectionHandler } from './handlers/SelectionHandler.js';
-import { GitActions } from './handlers/GitActions.js';
-import { ClipboardHandler } from './handlers/ClipboardHandler.js';
-import { ContextMenuHandler } from './handlers/ContextMenuHandler.js';
-import { UndoRedoHandler } from './handlers/UndoRedoHandler.js';
-import { SearchHandler } from './handlers/SearchHandler.js';
+import type { TreeItem, TreeConfig } from './types.ts';
+import { DEFAULT_EXPAND_PATHS } from './types.ts';
+import { TreeStateManager } from './TreeState.ts';
+import { TreeFilter } from './TreeFilter.ts';
+import { TreeRenderer } from './TreeRenderer.ts';
+import { EventHandlers } from './handlers/EventHandlers.ts';
+import { DragDropHandlers } from './handlers/DragDropHandlers.ts';
+import { KeyboardHandlers } from './handlers/KeyboardHandlers.ts';
+import { FileActions } from './handlers/FileActions.ts';
+import { ResizeHandler } from './handlers/ResizeHandler.ts';
+import { DirectoryFilterHandler } from './handlers/DirectoryFilterHandler.ts';
+import { PathNavigator } from './handlers/PathNavigator.ts';
+import { TreeUtils } from './handlers/TreeUtils.ts';
+import { SelectionHandler } from './handlers/SelectionHandler.ts';
+import { GitActions } from './handlers/GitActions.ts';
+import { ClipboardHandler } from './handlers/ClipboardHandler.ts';
+import { ContextMenuHandler } from './handlers/ContextMenuHandler.ts';
+import { UndoRedoHandler } from './handlers/UndoRedoHandler.ts';
+import { SearchHandler } from './handlers/SearchHandler.ts';
 // Import modals to auto-initialize them
 import './modals/index.js';
 

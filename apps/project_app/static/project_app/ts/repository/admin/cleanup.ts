@@ -3,9 +3,9 @@
  * @module repository/admin/cleanup
  */
 
-import { PendingAction } from "./types.js";
-import { escapeHtml } from "./rendering.js";
-import { showDialog, getCSRFToken, showError } from "./ui.js";
+import { PendingAction } from "./types.ts";
+import { escapeHtml } from "./rendering.ts";
+import { showDialog, getCSRFToken, showError } from "./ui.ts";
 
 /**
  * Shows confirmation dialog for repository deletion

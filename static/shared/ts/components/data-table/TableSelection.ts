@@ -10,7 +10,7 @@
  * - Selection state management
  */
 
-import { DataRow, TABLE_CONSTANTS } from './types.js';
+import { DataRow, TABLE_CONSTANTS } from './types.ts';
 
 export class TableSelection {
     // Selection state

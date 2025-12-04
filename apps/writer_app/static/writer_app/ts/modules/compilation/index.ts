@@ -3,10 +3,10 @@
  * Central export point for all compilation modules
  */
 
-export * from "./types.js";
-export { CompilationAPI } from "./compilation-api.js";
-export { CompilationState } from "./compilation-state.js";
-export { CompilationUI } from "./compilation-ui.js";
-export { CompilationQueue } from "./compilation-queue.js";
-export { CompilationPreview } from "./compilation-preview.js";
-export { CompilationFull } from "./compilation-full.js";
+export * from "./types.ts";
+export { CompilationAPI } from "./compilation-api.ts";
+export { CompilationState } from "./compilation-state.ts";
+export { CompilationUI } from "./compilation-ui.ts";
+export { CompilationQueue } from "./compilation-queue.ts";
+export { CompilationPreview } from "./compilation-preview.ts";
+export { CompilationFull } from "./compilation-full.ts";
