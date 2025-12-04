@@ -2,7 +2,7 @@
 // User Profile Functions
 // =============================================================================
 
-import { getCsrfToken } from "../utils/csrf.js";
+import { getCsrfToken } from "../utils/csrf.ts";
 
 // Type definitions
 interface ApiResponse {

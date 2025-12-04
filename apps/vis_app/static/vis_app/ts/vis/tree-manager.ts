@@ -7,10 +7,10 @@
  * - TreeBuilder: HTML element creation for tree structure
  */
 
-import type { Figure } from './types.js';
-import { TreeState } from './tree/TreeState.js';
-import { TreeInteraction } from './tree/TreeInteraction.js';
-import { TreeBuilder } from './tree/TreeBuilder.js';
+import type { Figure } from './types.ts';
+import { TreeState } from './tree/TreeState.ts';
+import { TreeInteraction } from './tree/TreeInteraction.ts';
+import { TreeBuilder } from './tree/TreeBuilder.ts';
 
 export class TreeManager {
     private treeContainer: HTMLElement | null = null;

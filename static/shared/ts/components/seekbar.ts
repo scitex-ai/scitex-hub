@@ -35,13 +35,13 @@ import type {
   SeekbarValues,
   CompleteSeekbarOptions,
   SeekbarElements,
-} from "./seekbar/types.js";
-import { DOMBuilder } from "./seekbar/dom-builder.js";
-import { ValueCalculator } from "./seekbar/value-calculator.js";
-import { SeekbarRenderer } from "./seekbar/renderer.js";
-import { EventHandlers } from "./seekbar/event-handlers.js";
+} from "./seekbar/types.ts";
+import { DOMBuilder } from "./seekbar/dom-builder.ts";
+import { ValueCalculator } from "./seekbar/value-calculator.ts";
+import { SeekbarRenderer } from "./seekbar/renderer.ts";
+import { EventHandlers } from "./seekbar/event-handlers.ts";
 
-export type { SeekbarOptions, SeekbarValues } from "./seekbar/types.js";
+export type { SeekbarOptions, SeekbarValues } from "./seekbar/types.ts";
 
 export class ScitexSeekbar {
   private container: HTMLElement;

@@ -3,24 +3,24 @@
  * Main coordinator for the Code Workspace - wires all managers together
  */
 
-import { MonacoManager } from "./editor/MonacoManager.js";
-import { ScratchManager } from "./editor/ScratchManager.js";
-import { PTYManager } from "./terminal/PTYManager.js";
-import { RunManager } from "./terminal/RunManager.js";
-import { FileTreeManager } from "./files/FileTreeManager.js";
-import { FileOperations } from "./files/FileOperations.js";
-import { FileTabManager } from "./files/FileTabManager.js";
-import { FileStateManager } from "./files/FileStateManager.js";
-import { FileCommandHandler } from "./files/FileCommandHandler.js";
-import { GitStatusManager } from "./git/GitStatusManager.js";
-import { GitOperations } from "./git/GitOperations.js";
-import { CommitManager } from "./git/CommitManager.js";
-import { UIComponents } from "./ui/UIComponents.js";
-import { ModalManager } from "./ui/ModalManager.js";
-import { ShortcutsManager } from "./ui/ShortcutsManager.js";
-import { VisitorManager } from "./auth/VisitorManager.js";
-import { JobsPanelManager } from "./jobs/JobsPanelManager.js";
-import type { EditorConfig, OpenFile } from "./core/types.js";
+import { MonacoManager } from "./editor/MonacoManager.ts";
+import { ScratchManager } from "./editor/ScratchManager.ts";
+import { PTYManager } from "./terminal/PTYManager.ts";
+import { RunManager } from "./terminal/RunManager.ts";
+import { FileTreeManager } from "./files/FileTreeManager.ts";
+import { FileOperations } from "./files/FileOperations.ts";
+import { FileTabManager } from "./files/FileTabManager.ts";
+import { FileStateManager } from "./files/FileStateManager.ts";
+import { FileCommandHandler } from "./files/FileCommandHandler.ts";
+import { GitStatusManager } from "./git/GitStatusManager.ts";
+import { GitOperations } from "./git/GitOperations.ts";
+import { CommitManager } from "./git/CommitManager.ts";
+import { UIComponents } from "./ui/UIComponents.ts";
+import { ModalManager } from "./ui/ModalManager.ts";
+import { ShortcutsManager } from "./ui/ShortcutsManager.ts";
+import { VisitorManager } from "./auth/VisitorManager.ts";
+import { JobsPanelManager } from "./jobs/JobsPanelManager.ts";
+import type { EditorConfig, OpenFile } from "./core/types.ts";
 
 export class WorkspaceOrchestrator {
   private config: EditorConfig;
@@ -140,6 +140,9 @@ export class WorkspaceOrchestrator {
     this.setupFileSearch();
     this.uiComponents.initializeAll();
 
+    // Initialize project ID for tab persistence
+    this.fileTabManager.initializeProjectId();
+
     // Parallel async initialization
     const startTime = performance.now();
 
@@ -156,12 +159,41 @@ export class WorkspaceOrchestrator {
         }),
       ]);
 
+      // Restore previously opened tabs from localStorage
+      await this.restoreSavedTabs();
+
       const endTime = performance.now();
       console.log(`[WorkspaceOrchestrator] Initialized in ${Math.round(endTime - startTime)}ms`);
 
       this.setupThemeListeners();
     } catch (err) {
       console.error("[WorkspaceOrchestrator] Critical error:", err);
+    }
+  }
+
+  /**
+   * Restore previously opened tabs from localStorage
+   */
+  private async restoreSavedTabs(): Promise<void> {
+    const savedState = this.fileTabManager.getSavedTabState();
+    if (!savedState || savedState.openFiles.length === 0) {
+      return;
+    }
+
+    console.log("[WorkspaceOrchestrator] Restoring", savedState.openFiles.length, "tabs");
+
+    // Load each saved file
+    for (const filePath of savedState.openFiles) {
+      try {
+        await this.fileStateManager.loadFile(filePath);
+      } catch (err) {
+        console.warn(`[WorkspaceOrchestrator] Failed to restore tab: ${filePath}`, err);
+      }
+    }
+
+    // Switch to the last active file if it was restored
+    if (savedState.currentFile && this.fileStateManager.isFileOpen(savedState.currentFile)) {
+      await this.fileStateManager.switchToFile(savedState.currentFile);
     }
   }
 

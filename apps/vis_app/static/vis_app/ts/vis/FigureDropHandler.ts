@@ -7,8 +7,8 @@
  * - File path detection from workspace tree drops
  */
 
-import { SciTeXEditor } from './SciTeXEditor.js';
-import { CanvasManager } from './CanvasManager.js';
+import { SciTeXEditor } from './SciTeXEditor.ts';
+import { CanvasManager } from './CanvasManager.ts';
 
 export interface DropHandlerOptions {
     canvasSelector?: string;

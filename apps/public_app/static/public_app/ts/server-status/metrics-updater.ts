@@ -5,7 +5,7 @@
  * Charts are pre-rendered by backend - this only updates the numeric values.
  */
 
-import type { ServerMetrics } from './types.js';
+import type { ServerMetrics } from './types.ts';
 
 // State for rate calculations
 let lastDiskRead: number | null = null;

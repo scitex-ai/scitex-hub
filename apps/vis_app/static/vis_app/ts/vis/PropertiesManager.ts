@@ -8,7 +8,7 @@
  * - Manage properties panel state
  */
 
-import { Dataset } from './types.js';
+import { Dataset } from './types.ts';
 
 export class PropertiesManager {
     private currentPropertiesTab: string = 'plot';

@@ -4,15 +4,15 @@
  * Re-exports all modules for easy importing
  */
 
-export { SigmaEditor } from './SigmaEditor.js';
-export { setupGraphOperations } from './graph.js';
-export type { GraphOperations } from './graph.js';
-export { setupLayoutAlgorithms } from './layout.js';
-export type { LayoutOptions, LayoutAlgorithms } from './layout.js';
-export { setupInteractionHandlers } from './interactions.js';
-export type { InteractionHandlers } from './interactions.js';
-export { setupExportFunctionality } from './export.js';
-export type { ExportOptions, ExportFunctionality } from './export.js';
+export { SigmaEditor } from './SigmaEditor.ts';
+export { setupGraphOperations } from './graph.ts';
+export type { GraphOperations } from './graph.ts';
+export { setupLayoutAlgorithms } from './layout.ts';
+export type { LayoutOptions, LayoutAlgorithms } from './layout.ts';
+export { setupInteractionHandlers } from './interactions.ts';
+export type { InteractionHandlers } from './interactions.ts';
+export { setupExportFunctionality } from './export.ts';
+export type { ExportOptions, ExportFunctionality } from './export.ts';
 
 /**
  * Initialize SigmaEditor when DOM is ready

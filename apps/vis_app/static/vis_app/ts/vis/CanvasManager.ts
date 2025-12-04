@@ -9,7 +9,7 @@
  * - Coordinate with rulers for unified transform
  */
 
-import { CANVAS_CONSTANTS } from './types.js';
+import { CANVAS_CONSTANTS } from './types.ts';
 
 export class CanvasManager {
     public canvas: any | null = null; // Fabric.js canvas instance

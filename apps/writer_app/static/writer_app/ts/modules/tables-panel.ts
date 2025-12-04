@@ -5,14 +5,14 @@
 
 console.log("[DEBUG] tables-panel.ts loaded");
 
-import type { Table } from "./tables-panel/types.js";
-import { TableDataManager } from "./tables-panel/TableDataManager.js";
-import { TableRenderer } from "./tables-panel/TableRenderer.js";
-import { TableUploadHandler } from "./tables-panel/TableUploadHandler.js";
-import { TableDragHandler } from "./tables-panel/TableDragHandler.js";
-import { TableUIManager } from "./tables-panel/TableUIManager.js";
-import { TableEventHandler } from "./tables-panel/TableEventHandler.js";
-import { statePersistence } from "./state-persistence.js";
+import type { Table } from "./tables-panel/types.ts";
+import { TableDataManager } from "./tables-panel/TableDataManager.ts";
+import { TableRenderer } from "./tables-panel/TableRenderer.ts";
+import { TableUploadHandler } from "./tables-panel/TableUploadHandler.ts";
+import { TableDragHandler } from "./tables-panel/TableDragHandler.ts";
+import { TableUIManager } from "./tables-panel/TableUIManager.ts";
+import { TableEventHandler } from "./tables-panel/TableEventHandler.ts";
+import { statePersistence } from "./state-persistence.ts";
 
 // Re-export Table type for external use
 export type { Table };

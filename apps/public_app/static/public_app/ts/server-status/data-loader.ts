@@ -3,8 +3,8 @@
  * Handles historical data fetching and chart population
  */
 
-import type { HistoricalDataResponse } from './types.js';
-import type { ChartInstances } from './chart-init.js';
+import type { HistoricalDataResponse } from './types.ts';
+import type { ChartInstances } from './chart-init.ts';
 
 export interface LoaderState {
   lastDiskRead: number | null;

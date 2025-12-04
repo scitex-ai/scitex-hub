@@ -10,7 +10,7 @@
  * - Maintain data synchronization with tree selection
  */
 
-import type { Dataset, DataRow } from './types.js';
+import type { Dataset, DataRow } from './types.ts';
 
 /**
  * Plot-specific data structure

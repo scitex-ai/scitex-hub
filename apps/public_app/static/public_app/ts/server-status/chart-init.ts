@@ -3,8 +3,8 @@
  * Creates and configures all Chart.js instances for server metrics
  */
 
-import { getChart } from './types.js';
-import { percentChartConfig, networkChartConfig } from './chart-configs.js';
+import { getChart } from './types.ts';
+import { percentChartConfig, networkChartConfig } from './chart-configs.ts';
 
 export interface ChartInstances {
   cpuChart: any;

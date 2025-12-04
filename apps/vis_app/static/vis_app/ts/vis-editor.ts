@@ -5,7 +5,7 @@
  * REFACTORED: Modular structure with separate concerns
  */
 
-import { initializeSigmaEditor } from './vis-editor/index.js';
+import { initializeSigmaEditor } from './vis-editor/index.ts';
 
 // Initialize the editor
 initializeSigmaEditor();

@@ -18,9 +18,9 @@ import {
     FigureDropHandler,
     SciTeXEditor,
     PlotGallery,
-} from '../vis/index.js';
+} from '../vis/index.ts';
 
-import { setupGraphOperations } from './graph.js';
+import { setupGraphOperations } from './graph.ts';
 
 /**
  * SigmaEditor - Coordinator class that manages all editor components

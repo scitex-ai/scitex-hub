@@ -4,7 +4,7 @@
  */
 
 import { getCsrfToken } from "@/utils/csrf.js";
-import { showToast } from "../utils/ui.js";
+import { showToast } from "../utils/ui.ts";
 
 /**
  * Setup workspace initialization button

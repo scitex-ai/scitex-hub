@@ -9,8 +9,8 @@
  * - Visitor countdown timers
  */
 
-import { updateMetrics } from './server-status/metrics-updater.js';
-import { updateVisitorCountdowns } from './server-status/visitor-countdown.js';
+import { updateMetrics } from './server-status/metrics-updater.ts';
+import { updateVisitorCountdowns } from './server-status/visitor-countdown.ts';
 
 console.log('[DEBUG] server-status.ts loaded');
 

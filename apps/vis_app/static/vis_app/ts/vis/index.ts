@@ -5,23 +5,23 @@
  */
 
 // Type definitions and constants
-export * from './types.js';
+export * from './types.ts';
 
 // Manager modules
-export { RulersManager } from './RulersManager.js';
-export { CanvasManager } from './CanvasManager.js';
+export { RulersManager } from './RulersManager.ts';
+export { CanvasManager } from './CanvasManager.ts';
 // DataTableManager from shared module
-export { DataTableManager } from '../../../../../../static/shared/ts/components/data-table/DataTableManager.js';
-export { PropertiesManager } from './PropertiesManager.js';
-export { UIManager } from './UIManager.js';
-export { ResizerManager } from './ResizerManager.js';
-export { PlotDataManager } from './PlotDataManager.js';
+export { DataTableManager } from '../../../../../../static/shared/ts/components/data-table/DataTableManager.ts';
+export { PropertiesManager } from './PropertiesManager.ts';
+export { UIManager } from './UIManager.ts';
+export { ResizerManager } from './ResizerManager.ts';
+export { PlotDataManager } from './PlotDataManager.ts';
 
 // UI modules
-export { DataTabManager } from './ui/DataTabManager.js';
-export { CanvasTabManager } from './ui/CanvasTabManager.js';
+export { DataTabManager } from './ui/DataTabManager.ts';
+export { CanvasTabManager } from './ui/CanvasTabManager.ts';
 
 // SciTeX integration modules
-export { SciTeXEditor } from './SciTeXEditor.js';
-export { FigureDropHandler } from './FigureDropHandler.js';
-export { PlotGallery } from './PlotGallery.js';
+export { SciTeXEditor } from './SciTeXEditor.ts';
+export { FigureDropHandler } from './FigureDropHandler.ts';
+export { PlotGallery } from './PlotGallery.ts';

@@ -5,7 +5,7 @@
 
 console.log("[DEBUG] ai2-prompt.ts loaded");
 
-import { getCsrfToken, showToast } from "../shared/utils.js";
+import { getCsrfToken, showToast } from "../shared/utils.ts";
 
 interface AI2PromptResponse {
   success: boolean;

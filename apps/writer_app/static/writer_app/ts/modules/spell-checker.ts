@@ -5,15 +5,15 @@
  * Uses modular components for parsing, dictionary management, word checking, and decorations.
  */
 
-import type { SpellCheckConfig } from './spell-checker/types.js';
-import { LaTeXParser } from './spell-checker/latex-parser.js';
-import { DictionaryManager } from './spell-checker/dictionary-manager.js';
-import { WordChecker } from './spell-checker/word-checker.js';
-import { DecorationsManager, injectSpellCheckStyles } from './spell-checker/decorations-manager.js';
+import type { SpellCheckConfig } from './spell-checker/types.ts';
+import { LaTeXParser } from './spell-checker/latex-parser.ts';
+import { DictionaryManager } from './spell-checker/dictionary-manager.ts';
+import { WordChecker } from './spell-checker/word-checker.ts';
+import { DecorationsManager, injectSpellCheckStyles } from './spell-checker/decorations-manager.ts';
 
 // Re-export types and utility functions
-export type { SpellCheckConfig } from './spell-checker/types.js';
-export { injectSpellCheckStyles } from './spell-checker/decorations-manager.js';
+export type { SpellCheckConfig } from './spell-checker/types.ts';
+export { injectSpellCheckStyles } from './spell-checker/decorations-manager.ts';
 
 export class SpellChecker {
   private monaco: any;

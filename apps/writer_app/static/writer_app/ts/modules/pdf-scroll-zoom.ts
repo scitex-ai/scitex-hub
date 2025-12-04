@@ -17,14 +17,14 @@ import {
   PDFModeManager,
   PDFEventHandlers,
   PDFViewerObserver,
-} from "./pdf-scroll-zoom/index.js";
+} from "./pdf-scroll-zoom/index.ts";
 
 import type {
   ZoomOptions,
   PDFColorMode,
   PDFColorTheme,
   PDFInteractionMode,
-} from "./pdf-scroll-zoom/index.js";
+} from "./pdf-scroll-zoom/index.ts";
 
 export interface PDFScrollZoomOptions {
   containerId: string;

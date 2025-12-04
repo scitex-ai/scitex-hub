@@ -9,7 +9,7 @@
  * - Synchronize ruler transform with canvas zoom/pan
  */
 
-import { RulerUnit, CANVAS_CONSTANTS } from './types.js';
+import { RulerUnit, CANVAS_CONSTANTS } from './types.ts';
 
 export class RulersManager {
     private rulerUnit: RulerUnit = 'mm';

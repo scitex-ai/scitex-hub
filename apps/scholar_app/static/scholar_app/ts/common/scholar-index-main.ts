@@ -7,11 +7,11 @@
  */
 
 import './utilities.js';
-import { initializeFilters } from './scholar-index/filters.js';
+import { initializeFilters } from './scholar-index/filters.ts';
 import {
   initializeSourceToggles,
   loadSourcePreferences
-} from './scholar-index/source-preferences.js';
+} from './scholar-index/source-preferences.ts';
 import './scholar-index/bibtex-management.js';
 import './scholar-index/abstract-toggle.js';
 import './scholar-index/paper-actions.js';

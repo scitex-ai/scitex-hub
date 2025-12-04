@@ -10,19 +10,19 @@
  * - PlotDataDisplay: Plot data table display and export
  */
 
-import { TreeManager } from './tree-manager.js';
-import { ResizerManager } from './ResizerManager.js';
-import { PlotDataManager } from './PlotDataManager.js';
-import type { PropertiesManager } from './PropertiesManager.js';
-import type { DataTableManager } from './DataTableManager.js';
+import { TreeManager } from './tree-manager.ts';
+import { ResizerManager } from './ResizerManager.ts';
+import { PlotDataManager } from './PlotDataManager.ts';
+import type { PropertiesManager } from './PropertiesManager.ts';
+import type { DataTableManager } from './DataTableManager.ts';
 
 // Import UI modules
-import { PanelControls } from './ui/PanelControls.js';
-import { RibbonButtons } from './ui/RibbonButtons.js';
-import { Modals } from './ui/Modals.js';
-import { KeyboardShortcuts } from './ui/KeyboardShortcuts.js';
-import { TreeIntegration } from './ui/TreeIntegration.js';
-import { PlotDataDisplay } from './ui/PlotDataDisplay.js';
+import { PanelControls } from './ui/PanelControls.ts';
+import { RibbonButtons } from './ui/RibbonButtons.ts';
+import { Modals } from './ui/Modals.ts';
+import { KeyboardShortcuts } from './ui/KeyboardShortcuts.ts';
+import { TreeIntegration } from './ui/TreeIntegration.ts';
+import { PlotDataDisplay } from './ui/PlotDataDisplay.ts';
 
 export class UIManager {
     // Module instances

@@ -7,7 +7,7 @@
  * - Data preparation for plots
  */
 
-import type { DataTableManager, PropertiesManager } from '../vis/index.js';
+import type { DataTableManager, PropertiesManager } from '../vis/index.ts';
 
 export interface GraphOperations {
     renderPlot(plotType: string): any;

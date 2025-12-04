@@ -12,8 +12,8 @@
  * between different views with lazy resource loading.
  */
 
-import { statePersistence } from "../modules/state-persistence.js";
-import { initializeCollaboratorsPanel } from "../collaboration-panel.js";
+import { statePersistence } from "../modules/state-persistence.ts";
+import { initializeCollaboratorsPanel } from "../collaboration-panel.ts";
 
 /**
  * Setup sidebar button listeners

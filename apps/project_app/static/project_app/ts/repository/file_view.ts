@@ -2,7 +2,7 @@
 // File View - IIFE wrapper for TypeScript
 // =============================================================================
 
-import { getCsrfToken } from "../utils/csrf.js";
+import { getCsrfToken } from "../utils/csrf.ts";
 
 // Local type declarations (Window interface is defined in global.d.ts)
 
