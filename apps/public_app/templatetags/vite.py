@@ -3,16 +3,18 @@
 """
 Vite integration for Django.
 
-In development: Serves JS from Vite dev server with HMR
-In production: Uses built files from staticfiles/vite
+In development (DEBUG=True): Serves JS from Vite dev server with HMR
+In production (DEBUG=False): Uses built files from staticfiles/vite manifest
 
 Usage in templates:
   {% load vite %}
   {% vite_script 'code_app/workspace' %}
+
+Note: In development, Vite dev server must be running (npm run dev).
+      No fallback to tsc-compiled JS - keeps the system simple and predictable.
 """
 
 import json
-import socket
 from pathlib import Path
 from django import template
 from django.conf import settings
@@ -22,20 +24,6 @@ register = template.Library()
 
 # Cache manifest in production
 _manifest_cache = None
-
-
-def is_vite_server_running(port: int = 5173) -> bool:
-    """Check if Vite dev server is running and responsive."""
-    if not settings.DEBUG:
-        return False
-    try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(0.5)
-        result = sock.connect_ex(('127.0.0.1', port))
-        sock.close()
-        return result == 0
-    except Exception:
-        return False
 
 
 def get_manifest() -> dict:
@@ -60,7 +48,7 @@ def vite_hmr_client():
     Include Vite HMR client in development.
     Returns empty string in production.
     """
-    if is_vite_server_running():
+    if settings.DEBUG:
         return mark_safe(
             '<script type="module" src="http://127.0.0.1:5173/@vite/client"></script>'
         )
@@ -72,21 +60,20 @@ def vite_script(entry_name: str):
     """
     Load a Vite entry point script.
 
-    In development with Vite: Load from Vite dev server (HMR)
-    In development without Vite: Load from tsc-compiled JS files
-    In production: Load from Vite-built manifest
+    In development (DEBUG=True): Load from Vite dev server (HMR)
+    In production (DEBUG=False): Load from Vite-built manifest
 
     Args:
         entry_name: Entry name like 'code_app/workspace'
     """
-    if is_vite_server_running():
-        # Development with Vite: Load from Vite server (HMR enabled)
+    if settings.DEBUG:
+        # Development: Load from Vite dev server (HMR enabled)
         ts_path = _entry_to_ts_path(entry_name)
         return mark_safe(
             f'<script type="module" src="http://127.0.0.1:5173/{ts_path}"></script>'
         )
     else:
-        # Check Vite manifest first (production)
+        # Production: Load from Vite manifest
         manifest = get_manifest()
         ts_path = _entry_to_ts_path(entry_name)
 
@@ -96,11 +83,10 @@ def vite_script(entry_name: str):
                 f'<script type="module" src="{settings.STATIC_URL}vite/{js_file}"></script>'
             )
         else:
-            # Fallback: Load from tsc-compiled JS files (development without Vite)
-            js_path = _entry_to_js_path(entry_name)
-            return mark_safe(
-                f'<script type="module" src="{settings.STATIC_URL}{js_path}"></script>'
-            )
+            # Entry not in manifest - log error in production
+            import logging
+            logging.getLogger(__name__).error(f"Vite entry '{entry_name}' not found in manifest")
+            return ''
 
 
 @register.simple_tag
@@ -134,6 +120,7 @@ def _entry_to_ts_path(entry_name: str) -> str:
         # Writer app
         'writer_app/index': 'apps/writer_app/static/writer_app/ts/index.ts',
         'writer_app/collaboration-panel': 'apps/writer_app/static/writer_app/ts/collaboration-panel.ts',
+        'writer_app/modules/ai2-prompt': 'apps/writer_app/static/writer_app/ts/modules/ai2-prompt.ts',
         # Project app
         'project_app/clone_button': 'apps/project_app/static/project_app/ts/clone_button.ts',
         'project_app/create_project_type': 'apps/project_app/static/project_app/ts/create_project_type.ts',
@@ -153,6 +140,25 @@ def _entry_to_ts_path(entry_name: str) -> str:
         'social_app/explore-inline': 'apps/social_app/static/social_app/ts/explore-inline.ts',
         # Scholar app - additional
         'scholar_app/bibtex/status-tiles': 'apps/scholar_app/static/scholar_app/ts/bibtex/status-tiles.ts',
+        'scholar_app/bibtex/bibtex-enrichment': 'apps/scholar_app/static/scholar_app/ts/bibtex/bibtex-enrichment.ts',
+        'scholar_app/bibtex/queue-management': 'apps/scholar_app/static/scholar_app/ts/bibtex/queue-management.ts',
+        'scholar_app/shared/collapsible-panels': 'apps/scholar_app/static/scholar_app/ts/shared/collapsible-panels.ts',
+        'scholar_app/shared/panel-resizer': 'apps/scholar_app/static/scholar_app/ts/shared/panel-resizer.ts',
+        'scholar_app/common/project-selector': 'apps/scholar_app/static/scholar_app/ts/common/project-selector.ts',
+        'scholar_app/scholar-workspace-init': 'apps/scholar_app/static/scholar_app/ts/scholar-workspace-init.ts',
+        'scholar_app/bibtex/job-detail-ui': 'apps/scholar_app/static/scholar_app/ts/bibtex/job-detail-ui.ts',
+        'scholar_app/bibtex/scholar-ai2-integration': 'apps/scholar_app/static/scholar_app/ts/bibtex/scholar-ai2-integration.ts',
+        'scholar_app/common/init-tabs': 'apps/scholar_app/static/scholar_app/ts/common/init-tabs.ts',
+        'scholar_app/common/scholar-index-main': 'apps/scholar_app/static/scholar_app/ts/common/scholar-index-main.ts',
+        'scholar_app/search/nouislider-init': 'apps/scholar_app/static/scholar_app/ts/search/nouislider-init.ts',
+        'scholar_app/search/panel-toggle': 'apps/scholar_app/static/scholar_app/ts/search/panel-toggle.ts',
+        'scholar_app/search/scitex-search': 'apps/scholar_app/static/scholar_app/ts/search/scitex-search.ts',
+        'scholar_app/search/advanced-sorting': 'apps/scholar_app/static/scholar_app/ts/search/advanced-sorting.ts',
+        'scholar_app/search/drag-sort': 'apps/scholar_app/static/scholar_app/ts/search/drag-sort.ts',
+        'scholar_app/search/swarm-plots': 'apps/scholar_app/static/scholar_app/ts/search/swarm-plots.ts',
+        'scholar_app/search/seekbar-integration': 'apps/scholar_app/static/scholar_app/ts/search/seekbar-integration.ts',
+        'scholar_app/search/search-ui': 'apps/scholar_app/static/scholar_app/ts/search/search-ui.ts',
+        'scholar_app/init/swarm-plots-init': 'apps/scholar_app/static/scholar_app/ts/init/swarm-plots-init.ts',
         # Project app - additional
         'project_app/projects/settings': 'apps/project_app/static/project_app/ts/projects/settings.ts',
         # Shared utilities
@@ -162,22 +168,13 @@ def _entry_to_ts_path(entry_name: str) -> str:
         'shared/utils/dropdown': 'static/shared/ts/utils/dropdown.ts',
         'shared/utils/django-messages': 'static/shared/ts/utils/django-messages.ts',
         'shared/utils/element-inspector': 'static/shared/ts/utils/element-inspector.ts',
+        'shared/utils/console-interceptor': 'static/shared/ts/utils/console-interceptor.ts',
         'shared/code-blocks': 'static/shared/ts/code-blocks.ts',
         'shared/components/confirm-modal': 'static/shared/ts/components/confirm-modal.ts',
         'shared/components/header': 'static/shared/ts/components/header.ts',
+        'shared/components/workspace-files-tree': 'static/shared/ts/components/workspace-files-tree/WorkspaceFilesTree.ts',
+        'shared/components/seekbar': 'static/shared/ts/components/seekbar.ts',
     }
     return mappings.get(entry_name, f'{entry_name}.ts')
 
 
-def _entry_to_js_path(entry_name: str) -> str:
-    """Convert entry name to compiled JS path (for tsc fallback)."""
-    # Map entry names to compiled JS file locations
-    mappings = {
-        'code_app/workspace': 'code_app/js/workspace.js',
-        'vis_app/vis-editor': 'vis_app/js/vis-editor.js',
-        'vis_app/editor-inline': 'vis_app/js/editor-inline.js',
-        'shared/utils/theme-switcher': 'shared/js/utils/theme-switcher.js',
-        'shared/utils/element-inspector': 'shared/js/utils/element-inspector.js',
-        'shared/components/confirm-modal': 'shared/js/components/confirm-modal.js',
-    }
-    return mappings.get(entry_name, f'{entry_name}.js')

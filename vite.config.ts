@@ -1,7 +1,47 @@
-import { defineConfig } from 'vite';
+import { defineConfig, Plugin } from 'vite';
 import { resolve } from 'path';
+import * as fs from 'fs';
+
+/**
+ * Plugin to resolve /static/ absolute paths to actual file locations
+ */
+function resolveStaticPaths(): Plugin {
+  return {
+    name: 'resolve-static-paths',
+    enforce: 'pre',
+    resolveId(source) {
+      // Skip node_modules and external URLs
+      if (source.includes('node_modules') || source.startsWith('http')) return null;
+
+      // Handle absolute paths starting with /static/
+      if (source.startsWith('/static/')) {
+        // Map /static/ to project root static/ directory
+        const mappedPath = source.replace('/static/', 'static/');
+        const fullPath = resolve(__dirname, mappedPath);
+        if (fs.existsSync(fullPath)) {
+          return fullPath;
+        }
+        // Map /static/{app_name}/ to apps/{app_name}/static/{app_name}/
+        const match = source.match(/^\/static\/(\w+_app)\/(.*)/);
+        if (match) {
+          const [, appName, rest] = match;
+          const appPath = `apps/${appName}/static/${appName}/${rest}`;
+          const appFullPath = resolve(__dirname, appPath);
+          if (fs.existsSync(appFullPath)) {
+            return appFullPath;
+          }
+        }
+      }
+
+      return null;
+    },
+  };
+}
 
 export default defineConfig({
+  // Plugin to resolve /static/ absolute paths
+  plugins: [resolveStaticPaths()],
+
   // Base public path
   base: '/',
 
@@ -118,6 +158,7 @@ export default defineConfig({
         'shared/utils/dropdown': resolve(__dirname, 'static/shared/ts/utils/dropdown.ts'),
         'shared/utils/django-messages': resolve(__dirname, 'static/shared/ts/utils/django-messages.ts'),
         'shared/utils/element-inspector': resolve(__dirname, 'static/shared/ts/utils/element-inspector.ts'),
+        'shared/utils/console-interceptor': resolve(__dirname, 'static/shared/ts/utils/console-interceptor.ts'),
         'shared/code-blocks': resolve(__dirname, 'static/shared/ts/code-blocks.ts'),
         'shared/components/confirm-modal': resolve(__dirname, 'static/shared/ts/components/confirm-modal.ts'),
         'shared/components/header': resolve(__dirname, 'static/shared/ts/components/header.ts'),
