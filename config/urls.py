@@ -60,6 +60,7 @@ def get_reserved_paths():
             "media",
             "accounts",
             "auth",
+            "files",
             "favicon.ico",
             "robots.txt",
             "sitemap.xml",
@@ -165,6 +166,11 @@ if settings.DEBUG:
         urlpatterns += [
             path("__reload__/", include("django_browser_reload.urls")),
         ]
+
+# Explicit /files/ prefix for development clarity (redundant with /<username>/)
+urlpatterns += [
+    path("files/<str:username>/", include("apps.project_app.urls")),
+]
 
 # GitHub-style username/project URLs (MUST be last to avoid conflicts)
 urlpatterns += [
