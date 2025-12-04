@@ -10,7 +10,8 @@ export * from './types.js';
 // Manager modules
 export { RulersManager } from './RulersManager.js';
 export { CanvasManager } from './CanvasManager.js';
-export { DataTableManager } from './DataTableManager.js';
+// DataTableManager from shared module
+export { DataTableManager } from '../../../../../../static/shared/js/components/data-table/DataTableManager.js';
 export { PropertiesManager } from './PropertiesManager.js';
 export { UIManager } from './UIManager.js';
 export { ResizerManager } from './ResizerManager.js';

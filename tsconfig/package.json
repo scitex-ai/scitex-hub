@@ -10,8 +10,8 @@
     "force-build": "tsc",
     "build": "node check-build-environment.js && tsc",
     "build:watch": "node check-build-environment.js && tsc --watch",
-    "build:all": "node check-build-environment.js && tsc -p tsconfig.all.json && node post-build.js",
-    "build:all:watch": "tsc -p tsconfig.all.json --watch --preserveWatchOutput & node watch-and-move.js",
+    "build:all": "node check-build-environment.js && (tsc -p tsconfig.all.json 2>&1 | tee ../TYPESCRIPT_ERRORS.log; exit 0) && node post-build.js",
+    "build:all:watch": "(tsc -p tsconfig.all.json --watch --preserveWatchOutput 2>&1 | tee ../TYPESCRIPT_ERRORS.log) & node watch-and-move.js",
     "build:writer": "node check-build-environment.js && tsc -p tsconfig.writer.json && rm -rf ../apps/writer_app/static/writer_app/js/apps ../apps/writer_app/static/writer_app/js/static",
     "build:project": "node check-build-environment.js && tsc -p tsconfig.project.json && node -e \"const fs=require('fs');const path=require('path');const src='../apps/project_app/static/project_app/js/apps/project_app/static/project_app/ts';const dst='../apps/project_app/static/project_app/js';if(fs.existsSync(src)){const cp=require('child_process');cp.execSync('cp -r '+src+'/* '+dst+'/');cp.execSync('rm -rf ../apps/project_app/static/project_app/js/apps ../apps/project_app/static/project_app/js/static');}\"",
     "build:scholar": "tsc --rootDir static/shared/ts/scholar --outDir apps/scholar_app/static/scholar_app/js",
@@ -21,7 +21,9 @@
     "format": "prettier --write static/shared/ts/**/*.ts apps/**/static/**/ts/**/*.ts",
     "clean:writer": "rm -rf ../apps/writer_app/static/writer_app/js/apps ../apps/writer_app/static/writer_app/js/static",
     "clean:project": "rm -rf ../apps/project_app/static/project_app/js/apps ../apps/project_app/static/project_app/js/static",
-    "clean:all": "npm run clean:writer && npm run clean:project"
+    "clean:js": "find ../apps -path '*/static/*/js' -type d -exec sh -c 'rm -rf \"$1\"/*.js \"$1\"/*.js.map \"$1\"/*.d.ts \"$1\"/*.d.ts.map 2>/dev/null; find \"$1\" -name \"*.js\" -delete; find \"$1\" -name \"*.js.map\" -delete; find \"$1\" -name \"*.d.ts\" -delete; find \"$1\" -name \"*.d.ts.map\" -delete' _ {} \\; && find ../static -path '*/js/*' -name '*.js' -delete && find ../static -path '*/js/*' -name '*.js.map' -delete && find ../static -path '*/js/*' -name '*.d.ts' -delete && find ../static -path '*/js/*' -name '*.d.ts.map' -delete",
+    "clean:all": "npm run clean:writer && npm run clean:project && npm run clean:js",
+    "rebuild": "npm run clean:js && npm run build:all"
   },
   "dependencies": {
     "fabric": "^5.3.0",
