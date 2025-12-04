@@ -151,5 +151,5 @@
             </form>
         </div>
     {% endif %}
-    {% load static %}
-    <script src="{% static 'project_app/js/pull_requests/conversation.js' %}"></script>
+    {% load static vite %}
+    {% vite_script 'project_app/pull_requests/conversation' %}

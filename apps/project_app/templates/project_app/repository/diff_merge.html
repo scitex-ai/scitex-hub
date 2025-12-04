@@ -1,5 +1,5 @@
 {% extends 'global_base.html' %}
-{% load static %}
+{% load static vite %}
 {% block title %}
     Diff & Merge - {{ project.name }}
 {% endblock %}
@@ -285,7 +285,7 @@
     </div>
 {% endblock %}
 {% block extra_js %}
-    <script src="{% static 'project_app/js/components/DiffMerge/index.js' %}" type="module"></script>
+    {% vite_script 'project_app/components/DiffMerge/index' %}
     <script type="module">
     // Initialize DiffMerge component
     document.addEventListener('DOMContentLoaded', function() {

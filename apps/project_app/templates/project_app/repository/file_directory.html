@@ -1,5 +1,5 @@
 {% extends "global_base.html" %}
-{% load static %}
+{% load static vite %}
 {% block title %}
     {{ breadcrumb_path }} - {{ project.name }}
 {% endblock %}
@@ -30,6 +30,5 @@
     </div>
     {% include
     "project_app/repository/file_directory_partials/file_directory_scripts.html" %}
-    <script type="module"
-            src="{% static 'project_app/js/shared/project_app.js' %}"></script>
+    {% vite_script 'project_app/shared/project_app' %}
 {% endblock %}

@@ -150,6 +150,27 @@ export default defineConfig({
 
         // Project app - additional
         'project_app/projects/settings': resolve(__dirname, 'apps/project_app/static/project_app/ts/projects/settings.ts'),
+        'project_app/shared/project_app': resolve(__dirname, 'apps/project_app/static/project_app/ts/shared/project_app.ts'),
+        'project_app/repository/browse': resolve(__dirname, 'apps/project_app/static/project_app/ts/repository/browse.ts'),
+        'project_app/repository/browse_toolbar': resolve(__dirname, 'apps/project_app/static/project_app/ts/repository/browse_toolbar.ts'),
+        'project_app/repository/colorful-icons': resolve(__dirname, 'apps/project_app/static/project_app/ts/repository/colorful-icons.ts'),
+        'project_app/repository/file_browser_git_status': resolve(__dirname, 'apps/project_app/static/project_app/ts/repository/file_browser_git_status.ts'),
+        'project_app/repository/file_view': resolve(__dirname, 'apps/project_app/static/project_app/ts/repository/file_view.ts'),
+        'project_app/repository/file_edit': resolve(__dirname, 'apps/project_app/static/project_app/ts/repository/file_edit.ts'),
+        'project_app/repository/file_history': resolve(__dirname, 'apps/project_app/static/project_app/ts/repository/file_history.ts'),
+        'project_app/repository/admin/index': resolve(__dirname, 'apps/project_app/static/project_app/ts/repository/admin/index.ts'),
+        'project_app/components/DiffMerge/index': resolve(__dirname, 'apps/project_app/static/project_app/ts/components/DiffMerge/index.ts'),
+        'project_app/issues/detail': resolve(__dirname, 'apps/project_app/static/project_app/ts/issues/detail.ts'),
+        'project_app/projects/detail': resolve(__dirname, 'apps/project_app/static/project_app/ts/projects/detail.ts'),
+        'project_app/pull_requests/conversation': resolve(__dirname, 'apps/project_app/static/project_app/ts/pull_requests/conversation.ts'),
+        'project_app/pull_requests/detail': resolve(__dirname, 'apps/project_app/static/project_app/ts/pull_requests/detail.ts'),
+        'project_app/pull_requests/form': resolve(__dirname, 'apps/project_app/static/project_app/ts/pull_requests/form.ts'),
+        'project_app/security/scan': resolve(__dirname, 'apps/project_app/static/project_app/ts/security/scan.ts'),
+        'project_app/security/alert_detail': resolve(__dirname, 'apps/project_app/static/project_app/ts/security/alert_detail.ts'),
+        'project_app/users/profile': resolve(__dirname, 'apps/project_app/static/project_app/ts/users/profile.ts'),
+        'project_app/workflows/detail': resolve(__dirname, 'apps/project_app/static/project_app/ts/workflows/detail.ts'),
+        'project_app/workflows/editor': resolve(__dirname, 'apps/project_app/static/project_app/ts/workflows/editor.ts'),
+        'project_app/workflows/run_detail': resolve(__dirname, 'apps/project_app/static/project_app/ts/workflows/run_detail.ts'),
 
         // Shared utilities (global)
         'shared/utils/theme-switcher': resolve(__dirname, 'static/shared/ts/utils/theme-switcher.ts'),

@@ -1,5 +1,5 @@
 {% extends 'global_base.html' %}
-{% load static %}
+{% load static vite %}
 {% block extra_css %}
     <link rel="stylesheet"
           href="{% static 'project_app/css/project_app.css' %}" />
@@ -147,5 +147,5 @@
     </div>
 {% endblock %}
 {% block extra_js %}
-    <script src="{% static 'project_app/js/repository/browse.js' %}"></script>
+    {% vite_script 'project_app/repository/browse' %}
 {% endblock %}

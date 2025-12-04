@@ -1,5 +1,5 @@
 {% extends 'global_base.html' %}
-{% load static %}
+{% load static vite %}
 {% block title %}
     #{{ issue.number }}: {{ issue.title }} - {{ project.name }} - SciTeX Cloud
 {% endblock %}
@@ -114,5 +114,5 @@
         </div>
     {% endblock %}
     {% block extra_js %}
-        <script src="{% static 'project_app/js/issues/detail.js' %}"></script>
+        {% vite_script 'project_app/issues/detail' %}
     {% endblock %}
