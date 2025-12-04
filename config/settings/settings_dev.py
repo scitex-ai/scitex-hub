@@ -97,6 +97,8 @@ INTERNAL_IPS = [
 # WhiteNoise: auto-refresh static files in development
 # This ensures changes to JS/CSS files are picked up immediately without restart
 WHITENOISE_AUTOREFRESH = True
+# Disable browser caching of static files in development to ensure fresh JS/CSS
+WHITENOISE_MAX_AGE = 0
 
 # django-browser-reload configuration
 # Note: Templates, CSS, and JS files are watched to trigger browser reload
@@ -132,6 +134,7 @@ INSTALLED_APPS = DEVELOPMENT_APPS + INSTALLED_APPS  # Daphne must be before djan
 ASGI_APPLICATION = "config.asgi.application"
 MIDDLEWARE += [
     "django_browser_reload.middleware.BrowserReloadMiddleware",
+    "config.middleware.JSNoCacheMiddleware",  # Prevent browser caching of JS modules
 ]
 
 

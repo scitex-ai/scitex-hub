@@ -403,12 +403,21 @@ export class MediaViewerManager {
     const csvControls = document.createElement("div");
     csvControls.className = "media-viewer-csv-controls";
     csvControls.innerHTML = `
-      <span class="csv-info" id="csv-info">Loading...</span>
       <button class="csv-control-btn" id="csv-toggle-raw" title="Toggle raw view">
         <i class="fas fa-code"></i> Raw
       </button>
       <button class="csv-control-btn" id="csv-save-btn" title="Save changes">
         <i class="fas fa-save"></i> Save
+      </button>
+      <span class="toolbar-separator"></span>
+      <button class="csv-control-btn" id="csv-plot-btn" title="Generate plot from data">
+        <i class="fas fa-chart-line"></i> Plot
+      </button>
+      <button class="csv-control-btn" id="csv-stats-btn" title="Calculate statistics">
+        <i class="fas fa-calculator"></i> Stats
+      </button>
+      <button class="csv-control-btn" id="csv-latex-btn" title="Export as LaTeX table">
+        <i class="fas fa-file-code"></i> LaTeX
       </button>
     `;
     toolbar.appendChild(csvControls);
@@ -454,10 +463,6 @@ export class MediaViewerManager {
         {
           container: container,
           readOnly: false, // Allow editing
-          onStatusUpdate: (msg) => {
-            const infoEl = document.getElementById("csv-info");
-            if (infoEl) infoEl.textContent = msg;
-          },
           onDataChange: (data) => {
             console.log('[MediaViewerManager] CSV data changed');
           }
@@ -475,14 +480,8 @@ export class MediaViewerManager {
       this.dataTableManager.setupColumnResizing();
       this.dataTableManager.setupVirtualScrolling();
 
-      // Update info with actual CSV data dimensions
-      const infoEl = document.getElementById("csv-info");
-      if (infoEl) {
-        // Count non-empty rows and columns from the CSV
-        const csvRowCount = content.trim().split('\n').length;
-        const csvColCount = content.trim().split('\n')[0]?.split(',').length || 0;
-        infoEl.textContent = `CSV: ${csvRowCount} rows × ${csvColCount} columns`;
-      }
+      // Setup Plot, Stats, LaTeX buttons
+      this.setupCsvFeatureButtons(content, filePath);
 
       // Setup toggle raw view button
       const toggleRawBtn = document.getElementById("csv-toggle-raw");
@@ -970,6 +969,7 @@ export class MediaViewerManager {
   /**
    * Load CSV content into an already-initialized blank table
    * Places the CSV data in the upper-left corner while keeping the large table size
+   * All rows are treated as data (no header detection)
    */
   private loadCsvIntoBlankTable(content: string, filename: string): void {
     if (!this.dataTableManager) return;
@@ -982,25 +982,18 @@ export class MediaViewerManager {
     const lines = content.trim().split('\n');
     if (lines.length === 0) return;
 
-    // Parse header row
-    const csvHeaders = this.parseCSVLine(lines[0], delimiter);
+    // Determine column count from first line
+    const firstRow = this.parseCSVLine(lines[0], delimiter);
+    const colCount = firstRow.length;
 
-    // Update column headers (only the columns that have CSV data)
-    csvHeaders.forEach((header, colIndex) => {
-      if (colIndex < currentData.columns.length) {
-        currentData.columns[colIndex] = header.trim() || `${colIndex + 1}`;
-      }
-    });
-
-    // Parse and place data rows
-    for (let rowIndex = 1; rowIndex < lines.length && rowIndex <= currentData.rows.length; rowIndex++) {
+    // Parse and place ALL rows as data (no header row detection)
+    for (let rowIndex = 0; rowIndex < lines.length && rowIndex < currentData.rows.length; rowIndex++) {
       const csvRow = this.parseCSVLine(lines[rowIndex], delimiter);
-      const dataRow = currentData.rows[rowIndex - 1];
+      const dataRow = currentData.rows[rowIndex];
 
       csvRow.forEach((value, colIndex) => {
         const colName = currentData.columns[colIndex];
         if (colName) {
-          // Try to parse as number
           const trimmedValue = value.trim();
           const numValue = parseFloat(trimmedValue);
           dataRow[colName] = isNaN(numValue) || trimmedValue === '' ? trimmedValue : numValue;
@@ -1010,7 +1003,205 @@ export class MediaViewerManager {
 
     // Update the data in the manager
     this.dataTableManager.setCurrentData(currentData);
-    console.log(`[MediaViewerManager] CSV data loaded into blank table: ${lines.length} rows × ${csvHeaders.length} columns`);
+    console.log(`[MediaViewerManager] CSV loaded: ${lines.length} rows × ${colCount} columns`);
+  }
+
+  /**
+   * Setup Plot, Stats, and LaTeX feature buttons
+   */
+  private setupCsvFeatureButtons(content: string, filePath: string): void {
+    // Plot button
+    const plotBtn = document.getElementById("csv-plot-btn");
+    plotBtn?.addEventListener("click", () => {
+      this.showPlotPanel(content, filePath);
+    });
+
+    // Stats button
+    const statsBtn = document.getElementById("csv-stats-btn");
+    statsBtn?.addEventListener("click", () => {
+      this.showStatsPanel(content, filePath);
+    });
+
+    // LaTeX button
+    const latexBtn = document.getElementById("csv-latex-btn");
+    latexBtn?.addEventListener("click", () => {
+      this.showLatexPanel(content, filePath);
+    });
+  }
+
+  /**
+   * Show plot generation panel
+   */
+  private showPlotPanel(content: string, filePath: string): void {
+    // TODO: Implement plot panel with options (line, scatter, bar, etc.)
+    // Will use the /api/vis/plot/ endpoint
+    console.log("[MediaViewerManager] Plot panel - coming soon");
+    alert("Plot feature coming soon! Will integrate with /vis/ app.");
+  }
+
+  /**
+   * Show statistics panel
+   */
+  private showStatsPanel(content: string, filePath: string): void {
+    // TODO: Implement stats panel showing mean, std, min, max, etc.
+    // Will use scitex.stats module
+    console.log("[MediaViewerManager] Stats panel - coming soon");
+    alert("Stats feature coming soon! Will integrate with scitex.stats.");
+  }
+
+  /**
+   * Show LaTeX export panel
+   */
+  private showLatexPanel(content: string, filePath: string): void {
+    // Generate LaTeX table from current data
+    if (!this.dataTableManager) {
+      alert("No data table available");
+      return;
+    }
+
+    const latexCode = this.generateLatexTable(content, filePath);
+
+    // Show in a modal or copy to clipboard
+    this.showLatexModal(latexCode);
+  }
+
+  /**
+   * Generate LaTeX table code from CSV content
+   * All rows are treated as data (no header detection)
+   */
+  private generateLatexTable(content: string, filePath: string): string {
+    const delimiter = filePath.toLowerCase().endsWith('.tsv') ? '\t' : ',';
+    const lines = content.trim().split('\n');
+    if (lines.length === 0) return '';
+
+    const firstRow = this.parseCSVLine(lines[0], delimiter);
+    const colCount = firstRow.length;
+
+    // Generate column alignment (right-aligned for numbers)
+    const colAlign = Array(colCount).fill('r').join('');
+
+    let latex = `\\begin{table}[htbp]\n`;
+    latex += `  \\centering\n`;
+    latex += `  \\caption{${filePath.split('/').pop()?.replace('.csv', '').replace('.tsv', '') || 'Data'}}\n`;
+    latex += `  \\begin{tabular}{${colAlign}}\n`;
+    latex += `    \\toprule\n`;
+
+    // All rows are data (no header row)
+    for (let i = 0; i < lines.length; i++) {
+      const row = this.parseCSVLine(lines[i], delimiter);
+      latex += `    ${row.map(v => v.trim()).join(' & ')} \\\\\n`;
+    }
+
+    latex += `    \\bottomrule\n`;
+    latex += `  \\end{tabular}\n`;
+    latex += `\\end{table}`;
+
+    return latex;
+  }
+
+  /**
+   * Show LaTeX code in a modal with copy functionality
+   */
+  private showLatexModal(latexCode: string): void {
+    // Create modal overlay
+    const overlay = document.createElement("div");
+    overlay.className = "latex-modal-overlay";
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+    `;
+
+    const modal = document.createElement("div");
+    modal.className = "latex-modal";
+    modal.style.cssText = `
+      background: var(--workspace-bg-secondary, #1e2228);
+      border: 1px solid var(--color-border-default, #30363d);
+      border-radius: 8px;
+      padding: 16px;
+      width: 600px;
+      max-width: 90vw;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+    `;
+
+    modal.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h3 style="margin: 0; font-size: 16px; color: var(--color-fg-default, #c9d1d9);">
+          <i class="fas fa-file-code"></i> LaTeX Table
+        </h3>
+        <button id="latex-modal-close" style="background: transparent; border: none; color: var(--color-fg-muted, #8b949e); cursor: pointer; font-size: 18px;">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <textarea id="latex-code-textarea" style="
+        flex: 1;
+        min-height: 300px;
+        padding: 12px;
+        background: var(--workspace-bg-tertiary, #161b22);
+        border: 1px solid var(--color-border-default, #30363d);
+        border-radius: 4px;
+        color: var(--color-fg-default, #c9d1d9);
+        font-family: var(--font-mono, 'JetBrains Mono', Monaco, monospace);
+        font-size: 12px;
+        resize: none;
+      ">${this.escapeHtml(latexCode)}</textarea>
+      <div style="display: flex; gap: 8px; margin-top: 12px; justify-content: flex-end;">
+        <button id="latex-copy-btn" class="csv-control-btn" style="background: var(--color-accent, #238636); border-color: var(--color-accent, #238636); color: #fff;">
+          <i class="fas fa-copy"></i> Copy to Clipboard
+        </button>
+      </div>
+    `;
+
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    // Close button
+    document.getElementById("latex-modal-close")?.addEventListener("click", () => {
+      overlay.remove();
+    });
+
+    // Click outside to close
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) {
+        overlay.remove();
+      }
+    });
+
+    // Copy button
+    document.getElementById("latex-copy-btn")?.addEventListener("click", async () => {
+      const textarea = document.getElementById("latex-code-textarea") as HTMLTextAreaElement;
+      try {
+        await navigator.clipboard.writeText(textarea.value);
+        const btn = document.getElementById("latex-copy-btn");
+        if (btn) {
+          btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+          setTimeout(() => {
+            btn.innerHTML = '<i class="fas fa-copy"></i> Copy to Clipboard';
+          }, 2000);
+        }
+      } catch (err) {
+        textarea.select();
+        document.execCommand("copy");
+      }
+    });
+
+    // Escape to close
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        overlay.remove();
+        document.removeEventListener("keydown", handleEscape);
+      }
+    };
+    document.addEventListener("keydown", handleEscape);
   }
 
   /**

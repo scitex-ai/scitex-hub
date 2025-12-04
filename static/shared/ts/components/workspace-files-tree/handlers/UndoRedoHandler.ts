@@ -157,9 +157,9 @@ export class UndoRedoHandler {
           break;
 
         case 'create':
-          // Re-create the file (may need content from backup)
+          // Re-create the file/directory
           if (operation.newPath) {
-            success = await this.restoreFile(operation.newPath);
+            success = await this.createFile(operation.newPath, operation.isDirectory);
           }
           break;
 
@@ -274,6 +274,29 @@ export class UndoRedoHandler {
       return data.success;
     } catch (error) {
       console.error('[UndoRedoHandler] Copy error:', error);
+      return false;
+    }
+  }
+
+  /** Create a file or directory */
+  private async createFile(path: string, isDirectory?: boolean): Promise<boolean> {
+    try {
+      const response = await fetch(this.getApiUrl('create'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': this.getCsrfToken(),
+        },
+        body: JSON.stringify({
+          path,
+          type: isDirectory ? 'directory' : 'file'
+        }),
+      });
+
+      const data = await response.json();
+      return data.success;
+    } catch (error) {
+      console.error('[UndoRedoHandler] Create error:', error);
       return false;
     }
   }

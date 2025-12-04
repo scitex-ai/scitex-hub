@@ -44,6 +44,8 @@ urlpatterns = [
     path("visitor-status/", views.visitor_status, name="visitor_status"),
     path("visitor-expired/", views.visitor_expired, name="visitor_expired"),
     path("visitor-restart/", views.visitor_restart_session, name="visitor_restart"),
+    path("visitor-pool-full/", views.visitor_pool_full, name="visitor_pool_full"),
+    path("api/visitor-pool/initialize/", views.visitor_pool_initialize_api, name="visitor_pool_initialize_api"),
     # API Documentation
     path("api-docs/", views.api_docs, name="api-docs"),
     # SciTeX API Key Management

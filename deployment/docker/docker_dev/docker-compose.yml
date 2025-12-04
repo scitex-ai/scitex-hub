@@ -73,6 +73,7 @@ services:
       - "${SCITEX_CLOUD_HTTP_PORT_DEV:-8000}:8000"
       - "${SCITEX_CLOUD_SSH_PORT_DEV:-2200}:2200"  # SSH gateway for user workspaces
       - "5678:5678"  # debugpy/pdb port for remote debugging
+      - "5173:5173"  # Vite dev server (HMR)
     
     # Environment
     env_file:

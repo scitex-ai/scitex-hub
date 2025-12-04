@@ -22,6 +22,8 @@ interface ConsoleLogEntry {
 
 class ConsoleInterceptor {
   private buffer: ConsoleLogEntry[] = [];
+  private history: ConsoleLogEntry[] = []; // Full history for debug snapshots
+  private maxHistory: number = 2000;
   private batchInterval: number = 1000; // 1 second
   private maxBatchSize: number = 50;
   private apiEndpoint: string = "/dev/api/console/";
@@ -50,10 +52,60 @@ class ConsoleInterceptor {
 
   private init(): void {
     this.interceptConsoleMethods();
+    this.interceptErrors();
     this.startBatchSender();
     console.info(
       "[Console Interceptor] Active - logs will be saved to ./logs/console.log",
     );
+  }
+
+  /**
+   * Capture unhandled errors and failed resource loads
+   */
+  private interceptErrors(): void {
+    // Capture unhandled JavaScript errors
+    window.addEventListener("error", (event) => {
+      if (event.target && (event.target as any).tagName) {
+        // This is a resource loading error (img, script, link, etc.)
+        const target = event.target as HTMLElement;
+        const src = (target as any).src || (target as any).href || "";
+        if (src) {
+          const entry: ConsoleLogEntry = {
+            level: "error",
+            message: `Failed to load resource: the server responded with a status of 404 (Not Found)\n${src}`,
+            source: src.split("/").pop() || "",
+            timestamp: Date.now(),
+            url: window.location.href,
+          };
+          this.history.push(entry);
+          this.buffer.push(entry);
+        }
+      } else {
+        // This is a JavaScript error
+        const entry: ConsoleLogEntry = {
+          level: "error",
+          message: `${event.message}`,
+          source: `${event.filename}:${event.lineno}:${event.colno}`,
+          timestamp: Date.now(),
+          url: window.location.href,
+        };
+        this.history.push(entry);
+        this.buffer.push(entry);
+      }
+    }, true);
+
+    // Capture unhandled promise rejections
+    window.addEventListener("unhandledrejection", (event) => {
+      const entry: ConsoleLogEntry = {
+        level: "error",
+        message: `Uncaught (in promise): ${event.reason}`,
+        source: "",
+        timestamp: Date.now(),
+        url: window.location.href,
+      };
+      this.history.push(entry);
+      this.buffer.push(entry);
+    });
   }
 
   private interceptConsoleMethods(): void {
@@ -104,10 +156,70 @@ class ConsoleInterceptor {
 
     this.buffer.push(entry);
 
+    // Also keep in history for debug snapshots
+    this.history.push(entry);
+    if (this.history.length > this.maxHistory) {
+      this.history.shift();
+    }
+
     // Send immediately if buffer is full
     if (this.buffer.length >= this.maxBatchSize) {
       this.sendBatch();
     }
+  }
+
+  /**
+   * Get all captured console logs as formatted text (like browser DevTools)
+   */
+  public getFormattedLogs(): string {
+    if (this.history.length === 0) {
+      return "No console logs captured.";
+    }
+
+    let output = "";
+    this.history.forEach((entry) => {
+      const levelIcon = this.getLevelIcon(entry.level);
+      const source = entry.source ? ` ${entry.source}` : "";
+      output += `${entry.source}${source ? "" : ""} ${entry.message}\n`;
+    });
+
+    return output;
+  }
+
+  /**
+   * Get logs in DevTools-like format
+   */
+  public getDevToolsFormat(): string {
+    if (this.history.length === 0) {
+      return "No console logs captured.";
+    }
+
+    let output = "";
+    this.history.forEach((entry) => {
+      // Format: source:line message
+      // e.g., console-interceptor.ts:64 [ElementInspector] Initialized
+      const source = entry.source || "unknown";
+      output += `${source} ${entry.message}\n`;
+    });
+
+    return output;
+  }
+
+  private getLevelIcon(level: string): string {
+    switch (level) {
+      case "error": return "❌";
+      case "warn": return "⚠️";
+      case "info": return "ℹ️";
+      case "debug": return "🔍";
+      default: return "📝";
+    }
+  }
+
+  /**
+   * Get the history array directly
+   */
+  public getHistory(): ConsoleLogEntry[] {
+    return [...this.history];
   }
 
   private formatMessage(args: any[]): string {
@@ -185,7 +297,9 @@ class ConsoleInterceptor {
   }
 }
 
-// Auto-initialize when script loads
+// Auto-initialize when script loads and expose globally
 if (typeof window !== "undefined") {
-  new ConsoleInterceptor();
+  const interceptor = new ConsoleInterceptor();
+  // Expose globally for Element Inspector to access
+  (window as any).__consoleInterceptor = interceptor;
 }

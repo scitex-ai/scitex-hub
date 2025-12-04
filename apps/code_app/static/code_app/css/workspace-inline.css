@@ -41,7 +41,35 @@
 }
 
 .pool-message-link {
-  color: var(--workspace-border-active);
+  color: var(--scitex-color-04, #58a6ff);
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.pool-message-link:hover {
+  color: var(--scitex-color-05, #79c0ff);
+}
+
+.pool-message-actions {
+  margin-top: 1.5rem;
+}
+
+.pool-message-link.btn-primary-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--workspace-border-active);
+  color: #fff;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+.pool-message-link.btn-primary-link:hover {
+  background: var(--scitex-color-04);
+  color: #fff;
 }
 
 /* ============================================================================

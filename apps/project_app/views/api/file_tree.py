@@ -101,7 +101,7 @@ def api_file_tree(request, username, slug):
                 return {"status": "??", "staged": False}
         return None
 
-    def build_tree(path, max_depth=5, current_depth=0):
+    def build_tree(path, max_depth=10, current_depth=0):
         """Build file tree recursively (deeper for full navigation)"""
         items = []
         try:

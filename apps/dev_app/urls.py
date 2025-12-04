@@ -13,13 +13,14 @@ __DIR__ = os.path.dirname(__FILE__)
 from django.urls import path
 
 from . import views
-from apps.core_app.views.console_logger import log_console
+from apps.core_app.views.console_logger import log_console, get_console_logs
 
 app_name = "dev_app"
 
 urlpatterns = [
     path("", views.index, name="index"),
     path("api/console/", log_console, name="console_log"),
+    path("api/console/logs/", get_console_logs, name="console_logs_get"),
     path("design/", views.DesignGuidelinesView.as_view(), name="design"),
     path(
         "design/typography/",

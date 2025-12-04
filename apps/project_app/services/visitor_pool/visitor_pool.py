@@ -122,6 +122,19 @@ class VisitorPool:
         """
         return PoolAllocator.get_pool_status(cls.POOL_SIZE)
 
+    @classmethod
+    def reset_all_project_directories(cls) -> int:
+        """
+        Reset all visitor project directories to default template state.
+
+        This removes existing directories and re-copies the template.
+        Used when re-initializing the pool in development.
+
+        Returns:
+            int: Number of directories reset
+        """
+        return PoolInitializer.reset_all_project_directories(cls.POOL_SIZE)
+
 
 # For backward compatibility during migration
 DemoProjectPool = VisitorPool

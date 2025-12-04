@@ -40,6 +40,9 @@ class VisitorAutoLoginMiddleware:
             '/admin/',
             '/health/',
             '/__debug__/',
+            '/visitor-pool-full/',  # Don't auto-allocate on pool-full page
+            '/visitor-expired/',  # Don't auto-allocate on expired page
+            '/visitor-restart/',  # Don't auto-allocate on restart page
         )
 
         if any(path.startswith(p) for p in skip_paths):
@@ -98,12 +101,14 @@ class VisitorExpirationMiddleware:
         skip_paths = (
             '/visitor-expired/',  # The expiration page itself
             '/visitor-restart/',  # Restart session flow
+            '/visitor-pool-full/',  # Pool exhausted page
             '/static/',
             '/media/',
             '/favicon.ico',
             '/logout/',
             '/signup/',
             '/login/',
+            '/auth/',  # All auth pages
             '/api/',
             '/__debug__/',
         )

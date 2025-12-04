@@ -24,6 +24,8 @@ from .visitor import (
     visitor_status,
     visitor_restart_session,
     visitor_expired,
+    visitor_pool_full,
+    visitor_pool_initialize_api,
 )
 from .charts import render_metric_chart
 
@@ -35,6 +37,8 @@ __all__ = [
     "visitor_status",
     "visitor_restart_session",
     "visitor_expired",
+    "visitor_pool_full",
+    "visitor_pool_initialize_api",
     "render_metric_chart",
 ]
 

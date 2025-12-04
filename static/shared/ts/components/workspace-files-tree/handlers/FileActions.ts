@@ -46,18 +46,18 @@ export class FileActions {
     return search(this.treeData);
   }
 
-  async startRename(path: string, itemEl: HTMLElement): Promise<void> {
+  async startRename(path: string, itemEl: HTMLElement): Promise<{ newPath: string } | null> {
     const item = this.findItem(path);
     if (!item) {
       console.error('[FileActions] startRename: item not found for path:', path);
-      return;
+      return null;
     }
 
     // Try multiple selector patterns for the name element
     const nameEl = itemEl.querySelector('.wft-name, .wft-file-name, .wft-folder-name') as HTMLElement;
     if (!nameEl) {
       console.error('[FileActions] startRename: name element not found in:', itemEl);
-      return;
+      return null;
     }
 
     const originalName = item.name;
@@ -70,28 +70,39 @@ export class FileActions {
     input.focus();
     input.select();
 
-    const finishRename = async (save: boolean) => {
-      const newName = input.value.trim();
-      input.replaceWith(nameEl);
+    // Return a promise that resolves when rename completes
+    return new Promise((resolve) => {
+      let resolved = false;
 
-      if (save && newName && newName !== originalName) {
-        await this.performRename(path, newName);
-      }
-    };
+      const finishRename = async (save: boolean) => {
+        if (resolved) return;
+        resolved = true;
 
-    input.addEventListener('blur', () => finishRename(true));
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        finishRename(true);
-      } else if (e.key === 'Escape') {
-        e.preventDefault();
-        finishRename(false);
-      }
+        const newName = input.value.trim();
+        input.replaceWith(nameEl);
+
+        if (save && newName && newName !== originalName) {
+          const newPath = await this.performRename(path, newName);
+          resolve(newPath ? { newPath } : null);
+        } else {
+          resolve(null);
+        }
+      };
+
+      input.addEventListener('blur', () => finishRename(true));
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          finishRename(true);
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          finishRename(false);
+        }
+      });
     });
   }
 
-  private async performRename(oldPath: string, newName: string): Promise<void> {
+  private async performRename(oldPath: string, newName: string): Promise<string | null> {
     try {
       const response = await fetch(`/${this.config.username}/${this.config.slug}/api/files/rename/`, {
         method: 'POST',
@@ -111,11 +122,14 @@ export class FileActions {
         } else {
           this.rerender();
         }
+        return data.new_path;
       } else {
         console.error('[FileActions] Rename failed:', data.error);
+        return null;
       }
     } catch (error) {
       console.error('[FileActions] Error renaming file:', error);
+      return null;
     }
   }
 
@@ -325,9 +339,9 @@ export class FileActions {
     });
   }
 
-  async copyFile(path: string): Promise<void> {
+  async copyFile(path: string): Promise<{ sourcePath: string; destPath: string } | null> {
     const item = this.findItem(path);
-    if (!item) return;
+    if (!item) return null;
 
     // Generate copy name: file.txt -> file_copy.txt or folder -> folder_copy
     const parts = item.name.split('.');
@@ -341,7 +355,7 @@ export class FileActions {
 
     const newName = prompt('Enter name for copy:', copyName);
     if (!newName || !newName.trim()) {
-      return;
+      return null;
     }
 
     // Get parent directory
@@ -370,13 +384,16 @@ export class FileActions {
         } else {
           this.rerender();
         }
+        return { sourcePath: path, destPath: newPath };
       } else {
         console.error('[FileActions] Copy failed:', data.error);
         alert(`Failed to copy: ${data.error}`);
+        return null;
       }
     } catch (error) {
       console.error('[FileActions] Error copying file:', error);
       alert('Error copying file. Please try again.');
+      return null;
     }
   }
 }

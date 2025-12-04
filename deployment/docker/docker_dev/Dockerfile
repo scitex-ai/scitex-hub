@@ -186,10 +186,10 @@ RUN APPTAINER_VERSION=1.3.4 && \
     && rm /tmp/apptainer.deb \
     && apptainer --version
 
-# Install Node.js and Mermaid CLI
+# Install Node.js, Mermaid CLI, and TypeScript tools
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs && \
-    npm install -g @mermaid-js/mermaid-cli && \
+    npm install -g @mermaid-js/mermaid-cli typescript && \
     rm -rf /var/lib/apt/lists/*
 
 # Configure ImageMagick (remove PDF security restrictions)
@@ -225,6 +225,10 @@ RUN python -m playwright install chromium
 
 # Copy application code
 COPY . .
+
+# Install Node.js project dependencies (Vite for HMR, TypeScript tools)
+RUN cd /app && npm install && \
+    cd /app/tsconfig && npm install
 
 # Copy dev-specific entrypoint and helper scripts
 COPY deployment/docker/docker_dev/entrypoint.sh /entrypoint.sh

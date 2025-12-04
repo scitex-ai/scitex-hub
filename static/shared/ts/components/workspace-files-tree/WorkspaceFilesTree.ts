@@ -194,19 +194,41 @@ export class WorkspaceFilesTree {
         }
         break;
       }
-      case 'rename':
+      case 'rename': {
         console.log('[WorkspaceFilesTree] Context menu rename:', path);
         const el = this.container?.querySelector(`[data-path="${path}"]`) as HTMLElement;
         if (el) {
           console.log('[WorkspaceFilesTree] Found element for rename:', el);
-          await this.fileActions.startRename(path, el);
+          const result = await this.fileActions.startRename(path, el);
+          // Record rename for undo if successful
+          if (result && result.newPath) {
+            this.undoRedoHandler.recordOperation({
+              type: 'rename',
+              timestamp: Date.now(),
+              originalPath: path,
+              newPath: result.newPath,
+              isDirectory: this.isItemDirectory(path),
+            });
+          }
         } else {
           console.error('[WorkspaceFilesTree] Element not found for path:', path);
         }
         break;
-      case 'duplicate':
-        await this.fileActions.copyFile(path);
+      }
+      case 'duplicate': {
+        const copyResult = await this.fileActions.copyFile(path);
+        // Record copy for undo if successful
+        if (copyResult) {
+          this.undoRedoHandler.recordOperation({
+            type: 'copy',
+            timestamp: Date.now(),
+            originalPath: copyResult.sourcePath,
+            newPath: copyResult.destPath,
+            isDirectory: this.isItemDirectory(path),
+          });
+        }
         break;
+      }
       case 'new-file':
         await this.fileActions.createNewFile(path);
         break;

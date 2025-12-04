@@ -1,5 +1,5 @@
 {% extends "global_base.html" %}
-{% load static %}
+{% load static vite %}
 
 {% block title %}SciTeX Code{% if current_project %} - {{ current_project.name }}{% endif %}{% endblock %}
 
@@ -531,11 +531,9 @@
   <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xterm-addon-image@0.6.0/lib/xterm-addon-image.js"></script>
 
-  <!-- Load compiled TypeScript with cache-busting -->
-  <script type="module">
-    // Import workspace module with cache-bust timestamp
-    // The module self-initializes on import
-    const t = Date.now();
-    await import('{% static "code_app/js/workspace.js" %}?v=2.1.9&t=' + t);
-  </script>
+  <!-- Vite HMR client (only in dev when Vite server is running) -->
+  {% vite_hmr_client %}
+
+  <!-- Load workspace module via Vite (HMR in dev, bundled in prod) -->
+  {% vite_script 'code_app/workspace' %}
 {% endblock %}

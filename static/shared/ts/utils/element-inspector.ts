@@ -11,6 +11,7 @@ import { DebugInfoCollector } from "./element-inspector/debug-info-collector.js"
 import { SelectionManager } from "./element-inspector/selection-manager.js";
 import { NotificationManager } from "./element-inspector/notification-manager.js";
 import { PageStructureExporter } from "./element-inspector/page-structure-exporter.js";
+import { ConsoleCollector } from "./element-inspector/console-collector.js";
 
 console.log(
   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/static/shared/ts/utils/element-inspector.ts loaded",
@@ -24,6 +25,7 @@ class ElementInspector {
   private selectionManager: SelectionManager;
   private notificationManager: NotificationManager;
   private pageStructureExporter: PageStructureExporter;
+  private consoleCollector: ConsoleCollector;
 
   constructor() {
     // Initialize managers with dependency injection
@@ -49,33 +51,51 @@ class ElementInspector {
       this.notificationManager,
     );
 
+    // Console collector for debug snapshots
+    this.consoleCollector = new ConsoleCollector(this.notificationManager);
+
+    // Set up auto-dismiss callback - deactivate after successful copy
+    this.notificationManager.setOnCopyCallback(() => {
+      this.deactivate();
+    });
+
     this.init();
   }
 
   private init(): void {
     // Add keyboard shortcuts
     document.addEventListener("keydown", (e: KeyboardEvent) => {
-      // Alt+I: Toggle inspector
-      if (e.altKey && !e.shiftKey && !e.ctrlKey && e.key === "i") {
-        e.preventDefault();
-        this.toggle();
-      }
+      const key = e.key.toLowerCase();
 
-      // Alt+C: Copy full page structure
-      if (
-        e.altKey &&
-        !e.shiftKey &&
-        !e.ctrlKey &&
-        (e.key === "c" || e.key === "C")
-      ) {
+      // Ctrl+Shift+I: Capture debug snapshot (screenshot + console logs)
+      // Check this FIRST before other "i" handlers
+      if (e.ctrlKey && e.shiftKey && !e.altKey && key === "i") {
         e.preventDefault();
-        this.pageStructureExporter.copyPageStructure();
+        e.stopPropagation();
+        console.log("[ElementInspector] Ctrl+Shift+I pressed - capturing debug snapshot");
+        this.consoleCollector.captureDebugSnapshot();
+        return;
       }
 
       // Ctrl+Alt+I: Start rectangle selection mode
-      if (e.ctrlKey && e.altKey && !e.shiftKey && e.key === "i") {
+      if (e.ctrlKey && e.altKey && !e.shiftKey && key === "i") {
         e.preventDefault();
         this.startSelectionMode();
+        return;
+      }
+
+      // Alt+I: Toggle inspector (no Ctrl, no Shift)
+      if (e.altKey && !e.shiftKey && !e.ctrlKey && key === "i") {
+        e.preventDefault();
+        this.toggle();
+        return;
+      }
+
+      // Alt+C: Copy full page structure
+      if (e.altKey && !e.shiftKey && !e.ctrlKey && key === "c") {
+        e.preventDefault();
+        this.pageStructureExporter.copyPageStructure();
+        return;
       }
 
       // Escape: Deactivate inspector and cancel selection mode
@@ -87,6 +107,7 @@ class ElementInspector {
         } else if (this.isActive) {
           this.deactivate();
         }
+        return;
       }
     });
 
@@ -94,6 +115,7 @@ class ElementInspector {
     console.log("  Alt+I: Toggle inspector overlay");
     console.log("  Alt+C: Copy full page structure");
     console.log("  Ctrl+Alt+I: Rectangle selection mode");
+    console.log("  Ctrl+Shift+I: Debug snapshot (console logs + page info)");
     console.log("  Escape: Deactivate inspector / Cancel selection");
   }
 

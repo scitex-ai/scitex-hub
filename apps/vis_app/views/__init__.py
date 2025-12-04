@@ -2,6 +2,7 @@
 Scientific Figure Editor - Views Package
 """
 
+import logging
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -11,22 +12,61 @@ from django.contrib import messages
 from ..models import ScientificFigure, JournalPreset
 from apps.project_app.services.project_utils import get_current_project
 
+logger = logging.getLogger(__name__)
+
 
 def figure_editor(request):
-    """Main figure editor view - Sigma (SigmaPlot-inspired)"""
-    # Allow visitor access with limited functionality
-    if request.user.is_authenticated:
-        figures = ScientificFigure.objects.filter(owner=request.user).order_by("-updated_at")
-        current_project = get_current_project(request, user=request.user)
-    else:
-        figures = []
-        current_project = None
+    """Main figure editor view - Sigma (SigmaPlot-inspired)
+
+    If visitor pool is exhausted, redirect to visitor-pool-full page.
+    """
+    # Check if user is not authenticated (visitor allocation may have failed)
+    if not request.user.is_authenticated:
+        # Check if this is a browser request (has typical browser User-Agent)
+        user_agent = request.META.get('HTTP_USER_AGENT', '')
+        is_browser = any(
+            browser in user_agent
+            for browser in ['Mozilla', 'Chrome', 'Safari', 'Firefox', 'Edge', 'Opera']
+        )
+
+        if is_browser:
+            # Browser request but not authenticated - visitor pool likely exhausted
+            logger.info("[Vis] Browser request not authenticated - redirecting to visitor-pool-full")
+            return redirect('public_app:visitor_pool_full')
+
+        # Non-browser request - return empty page
+        return render(request, "vis_app/editor.html", {
+            "is_visitor": True,
+            "figures": [],
+            "journal_presets": JournalPreset.objects.filter(is_active=True),
+        })
 
     context = {
-        "figures": figures,
-        "journal_presets": JournalPreset.objects.filter(is_active=True),
-        "current_project": current_project,
+        "is_visitor": False,
+        "module_name": "Vis",
+        "module_icon": "fa-chart-line",
     }
+
+    # Get user's figures
+    figures = ScientificFigure.objects.filter(owner=request.user).order_by("-updated_at")
+    context["figures"] = figures
+
+    # Mark as demo if visitor
+    if request.user.username.startswith("visitor-"):
+        context["is_demo"] = True
+        context["visitor_username"] = request.user.username
+
+    # Get current project from header dropdown
+    current_project = get_current_project(request, user=request.user)
+
+    if current_project:
+        context["current_project"] = current_project
+        context["project"] = current_project
+        logger.info(f"[Vis] User {request.user.username} viewing project: {current_project.slug}")
+    else:
+        context["needs_project_creation"] = True
+
+    context["journal_presets"] = JournalPreset.objects.filter(is_active=True)
 
     return render(request, "vis_app/editor.html", context)
 

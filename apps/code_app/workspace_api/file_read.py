@@ -4,10 +4,11 @@ Code Workspace API Views - File operations for the simple editor.
 
 import json
 import logging
+import mimetypes
 import subprocess
 from pathlib import Path
 
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse, FileResponse
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from apps.project_app.models import Project
@@ -19,8 +20,16 @@ logger = logging.getLogger(__name__)
 
 @require_http_methods(["GET"])
 def api_get_file_content(request, file_path):
-    """Get file content for editing (supports both local and remote projects)."""
+    """Get file content for editing (supports both local and remote projects).
+
+    Query parameters:
+    - project_id: Required. The project ID.
+    - raw: Optional. If 'true', returns raw file content (for images, PDFs, etc.)
+    - download: Optional. If 'true', adds Content-Disposition header for download.
+    """
     project_id = request.GET.get("project_id")
+    raw = request.GET.get("raw", "").lower() == "true"
+    download = request.GET.get("download", "").lower() == "true"
 
     if not project_id:
         return JsonResponse({"error": "project_id required"}, status=400)
@@ -58,6 +67,11 @@ def api_get_file_content(request, file_path):
         if not file_full_path.is_file():
             return JsonResponse({"error": "Not a file"}, status=400)
 
+        # Raw mode: return the file directly (for images, PDFs, etc.)
+        if raw:
+            return _serve_raw_file(file_full_path, file_path, download)
+
+        # Text mode: return as JSON for Monaco editor
         with open(file_full_path, "r", encoding="utf-8") as f:
             content = f.read()
 
@@ -76,6 +90,29 @@ def api_get_file_content(request, file_path):
     except Exception as e:
         logger.error(f"Error reading file {file_path}: {e}", exc_info=True)
         return JsonResponse({"error": str(e)}, status=500)
+
+
+def _serve_raw_file(file_path: Path, original_path: str, download: bool = False):
+    """Serve a file as raw content (for images, PDFs, etc.)."""
+    # Detect MIME type
+    content_type, _ = mimetypes.guess_type(str(file_path))
+    if content_type is None:
+        content_type = "application/octet-stream"
+
+    # Use FileResponse for efficient file serving
+    response = FileResponse(
+        open(file_path, "rb"),
+        content_type=content_type,
+    )
+
+    # Set filename for download
+    filename = file_path.name
+    if download:
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    else:
+        response["Content-Disposition"] = f'inline; filename="{filename}"'
+
+    return response
 
 
 def _detect_language(file_path):

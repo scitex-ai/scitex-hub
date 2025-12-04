@@ -139,3 +139,46 @@
     font-style: italic;
 }
 
+/* Empty state for file tree */
+.tree-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.tree-empty-state i {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.tree-empty-state p {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.tree-empty-state small {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.4;
+    max-width: 200px;
+}
+
+.tree-empty-state .empty-state-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.tree-empty-state .empty-state-actions .btn {
+    font-size: 12px;
+    padding: 6px 12px;
+}
+

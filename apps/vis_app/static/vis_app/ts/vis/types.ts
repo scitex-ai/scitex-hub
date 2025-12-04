@@ -1,21 +1,20 @@
 /**
  * Type definitions for Sigma Editor
- *
- * Re-exports common table types from the shared data-table component
- * and adds vis-specific types.
  */
 
-// Re-export common table types from shared module
-export type {
-    Dataset,
-    DataRow,
-    CellPosition,
-    SelectionState,
-} from '../../../../../../static/shared/ts/components/data-table/types.js';
+export interface Dataset {
+    columns: string[];
+    rows: DataRow[];
+}
 
-export { TABLE_CONSTANTS } from '../../../../../../static/shared/ts/components/data-table/types.js';
+export interface DataRow {
+    [key: string]: string | number;
+}
 
-// Vis-specific types
+export interface CellPosition {
+    row: number;
+    col: number;
+}
 
 export interface Point {
     x: number;
@@ -25,6 +24,15 @@ export interface Point {
 export interface ZoomState {
     level: number;
     offset: Point;
+}
+
+export interface SelectionState {
+    start: CellPosition | null;
+    end: CellPosition | null;
+    isSelecting: boolean;
+    isResizingTable: boolean;
+    selectedColumns: Set<number>;
+    selectedRows: Set<number>;
 }
 
 export type WorkspaceMode = 'data' | 'plot' | 'canvas';
@@ -83,4 +91,16 @@ export const CANVAS_CONSTANTS = {
     DPI: 300,
     MM_TO_PX: 11.811,         // 1mm @ 300 DPI
     GRID_SIZE: 11.811,        // 1mm @ 300dpi
+} as const;
+
+/**
+ * Table constants
+ */
+export const TABLE_CONSTANTS = {
+    ROW_HEIGHT: 33,           // Approximate row height in pixels
+    COL_WIDTH: 80,            // Approximate column width in pixels
+    MAX_ROWS: 32767,          // Maximum rows (int16 max)
+    MAX_COLS: 32767,          // Maximum columns (int16 max)
+    DEFAULT_ROWS: 1000,       // Default rows (virtual scrolling handles performance)
+    DEFAULT_COLS: 32,         // Default columns (A-AF)
 } as const;

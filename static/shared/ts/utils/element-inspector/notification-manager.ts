@@ -1,60 +1,96 @@
 /**
  * Notification Manager for Element Inspector
- * Handles notifications and visual effects
+ * Handles notifications and visual effects (minimal style)
  */
 
 export class NotificationManager {
+  private onCopyCallback: (() => void) | null = null;
+
+  /**
+   * Set callback to be called after successful copy
+   * Used to trigger ESC/deactivate after copy
+   */
+  public setOnCopyCallback(callback: () => void): void {
+    this.onCopyCallback = callback;
+  }
+
+  /**
+   * Trigger the copy callback (called after successful copy)
+   */
+  public triggerCopyCallback(): void {
+    if (this.onCopyCallback) {
+      // Small delay to let notification show briefly
+      setTimeout(() => {
+        this.onCopyCallback?.();
+      }, 400);
+    }
+  }
+
   public showNotification(
     message: string,
     type: "success" | "error",
   ): void {
     const notification = document.createElement("div");
     notification.textContent = message;
+    // Visible but compact style
     notification.style.cssText = `
             position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 12px 24px;
+            top: 16px;
+            right: 16px;
+            padding: 10px 20px;
             background: ${type === "success" ? "rgba(16, 185, 129, 0.95)" : "rgba(239, 68, 68, 0.95)"};
             color: white;
             border-radius: 6px;
-            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
-            font-size: 14px;
-            font-weight: bold;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
             z-index: 10000000;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            animation: slideIn 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            opacity: 0;
+            transform: translateY(-10px) scale(0.95);
+            transition: opacity 0.2s ease, transform 0.2s ease;
         `;
 
     document.body.appendChild(notification);
 
+    // Animate in
+    requestAnimationFrame(() => {
+      notification.style.opacity = "1";
+      notification.style.transform = "translateY(0) scale(1)";
+    });
+
+    // Show for 1 second
     setTimeout(() => {
-      notification.style.animation = "slideOut 0.3s ease";
-      setTimeout(() => notification.remove(), 300);
-    }, 2000);
+      notification.style.opacity = "0";
+      notification.style.transform = "translateY(-10px) scale(0.95)";
+      setTimeout(() => notification.remove(), 200);
+    }, 1000);
   }
 
   public showCameraFlash(): void {
+    // Brief flash overlay
     const flash = document.createElement("div");
-    flash.className = "camera-flash";
+    flash.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.4);
+            z-index: 9999999;
+            pointer-events: none;
+            opacity: 1;
+            transition: opacity 0.1s ease;
+        `;
     document.body.appendChild(flash);
 
-    // Play camera shutter sound if available (optional)
-    try {
-      const audio = new Audio(
-        "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGnuTvuWkcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGnuTvuWkcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGnuTvuWkcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGnuTvuWkcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGnuTvuWkcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGnuTvuWkcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGnuTvuWkcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGnuTvuWkcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGnuTvuQ==",
-      );
-      audio.volume = 0.3;
-      audio.play().catch(() => {
-        // Ignore if audio play fails (autoplay policy)
-      });
-    } catch (e) {
-      // Silently ignore audio errors
-    }
+    // Fade out quickly
+    setTimeout(() => {
+      flash.style.opacity = "0";
+    }, 30);
 
-    // Remove flash element after animation
     setTimeout(() => {
       flash.remove();
-    }, 500);
+    }, 130);
   }
 }

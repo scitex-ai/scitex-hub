@@ -8,20 +8,46 @@ Template rendering views for main scholar pages.
 Extracted from monolithic views.py for better modularity.
 """
 
-from django.shortcuts import render
+import logging
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from ...models import UserLibrary, Collection
 from .search_core import simple_search_with_tab
 from apps.project_app.services import get_current_project
 
+logger = logging.getLogger(__name__)
+
+
+def _check_visitor_pool_redirect(request):
+    """Check if unauthenticated browser request should redirect to visitor-pool-full."""
+    if not request.user.is_authenticated:
+        user_agent = request.META.get('HTTP_USER_AGENT', '')
+        is_browser = any(
+            browser in user_agent
+            for browser in ['Mozilla', 'Chrome', 'Safari', 'Firefox', 'Edge', 'Opera']
+        )
+        if is_browser:
+            logger.info("[Scholar] Browser request not authenticated - redirecting to visitor-pool-full")
+            return redirect('public_app:visitor_pool_full')
+    return None
+
 
 def simple_search(request):
     """Advanced search interface with comprehensive filtering."""
+    # Check for visitor pool redirect
+    pool_redirect = _check_visitor_pool_redirect(request)
+    if pool_redirect:
+        return pool_redirect
     return simple_search_with_tab(request, active_tab="search")
 
 
 def index(request):
     """Scholar app index/landing page."""
+    # Check for visitor pool redirect
+    pool_redirect = _check_visitor_pool_redirect(request)
+    if pool_redirect:
+        return pool_redirect
+
     # Simple landing page that shows both features
     context = {
         "active_tab": "overview",
@@ -31,6 +57,11 @@ def index(request):
 
 def scholar_bibtex(request):
     """Dedicated BibTeX enrichment page."""
+    # Check for visitor pool redirect
+    pool_redirect = _check_visitor_pool_redirect(request)
+    if pool_redirect:
+        return pool_redirect
+
     from . import bibtex_enrichment_view
 
     return bibtex_enrichment_view(
@@ -40,6 +71,11 @@ def scholar_bibtex(request):
 
 def scholar_search(request):
     """Dedicated literature search page."""
+    # Check for visitor pool redirect
+    pool_redirect = _check_visitor_pool_redirect(request)
+    if pool_redirect:
+        return pool_redirect
+
     from . import simple_search_with_tab
 
     return simple_search_with_tab(

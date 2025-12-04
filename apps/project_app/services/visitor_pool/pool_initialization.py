@@ -197,6 +197,122 @@ class PoolInitializer:
         return True
 
     @classmethod
+    def reset_all_project_directories(cls, pool_size: int) -> int:
+        """
+        Reset all visitor project directories to default template state.
+
+        This removes existing directories and re-copies the template.
+        Used when re-initializing the pool in development.
+
+        Args:
+            pool_size: Number of visitor accounts in pool
+
+        Returns:
+            int: Number of directories reset
+        """
+        reset_count = 0
+
+        for i in range(1, pool_size + 1):
+            visitor_num = f"{i:03d}"
+            username = f"{cls.VISITOR_USER_PREFIX}{visitor_num}"
+            project_slug = "default-project"
+
+            try:
+                user = User.objects.get(username=username)
+                project = Project.objects.get(slug=project_slug, owner=user)
+
+                from apps.project_app.services.project_filesystem import (
+                    get_project_filesystem_manager,
+                )
+                manager = get_project_filesystem_manager(user)
+                project_root = manager.get_project_root_path(project)
+
+                if project_root and project_root.exists():
+                    # Remove existing directory
+                    shutil.rmtree(project_root)
+                    logger.info(f"[VisitorPool] Removed directory for {username}")
+
+                    # Re-copy template
+                    success = cls._copy_template(project_root)
+                    if success:
+                        reset_count += 1
+                        logger.info(f"[VisitorPool] Reset directory for {username}")
+
+                        # Re-initialize git repository (clean state)
+                        cls._init_git_repo(project_root, username)
+
+                        # Re-initialize writer workspace
+                        from .workspace_manager import WorkspaceManager
+                        WorkspaceManager.initialize_visitor_writer_workspace(project, project_root)
+                    else:
+                        logger.error(f"[VisitorPool] Failed to reset directory for {username}")
+
+            except (User.DoesNotExist, Project.DoesNotExist) as e:
+                logger.warning(f"[VisitorPool] Skipping reset for {username}: {e}")
+            except Exception as e:
+                logger.error(f"[VisitorPool] Error resetting {username}: {e}")
+
+        logger.info(f"[VisitorPool] Reset {reset_count} project directories")
+        return reset_count
+
+    @classmethod
+    def _init_git_repo(cls, project_path: Path, username: str) -> bool:
+        """Initialize a clean git repository for the project."""
+        import subprocess
+
+        try:
+            # Remove existing .git if any (shouldn't exist after rmtree, but be safe)
+            git_dir = project_path / '.git'
+            if git_dir.exists():
+                shutil.rmtree(git_dir)
+
+            # Initialize new git repo
+            subprocess.run(
+                ['git', 'init'],
+                cwd=project_path,
+                capture_output=True,
+                check=True
+            )
+
+            # Configure git user for this repo
+            subprocess.run(
+                ['git', 'config', 'user.email', f'{username}@visitor.scitex.local'],
+                cwd=project_path,
+                capture_output=True,
+                check=True
+            )
+            subprocess.run(
+                ['git', 'config', 'user.name', username],
+                cwd=project_path,
+                capture_output=True,
+                check=True
+            )
+
+            # Add all files and create initial commit
+            subprocess.run(
+                ['git', 'add', '-A'],
+                cwd=project_path,
+                capture_output=True,
+                check=True
+            )
+            subprocess.run(
+                ['git', 'commit', '-m', 'Initial project setup'],
+                cwd=project_path,
+                capture_output=True,
+                check=True
+            )
+
+            logger.info(f"[VisitorPool] Initialized git repo for {username}")
+            return True
+
+        except subprocess.CalledProcessError as e:
+            logger.error(f"[VisitorPool] Git init failed for {username}: {e.stderr}")
+            return False
+        except Exception as e:
+            logger.error(f"[VisitorPool] Git init error for {username}: {e}")
+            return False
+
+    @classmethod
     def _copy_template(cls, project_path: Path) -> bool:
         """Copy master template to project directory."""
         template_master = Path(getattr(

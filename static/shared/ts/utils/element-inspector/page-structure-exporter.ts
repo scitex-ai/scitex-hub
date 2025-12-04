@@ -24,12 +24,13 @@ export class PageStructureExporter {
       await navigator.clipboard.writeText(structure);
       console.log("[ElementInspector] Page structure copied to clipboard!");
 
-      setTimeout(() => {
-        this.notificationManager.showNotification(
-          "📸 Page Structure Captured & Copied!",
-          "success",
-        );
-      }, 300);
+      this.notificationManager.showNotification(
+        "✓ Page structure copied!",
+        "success",
+      );
+
+      // Trigger auto-dismiss (ESC) after copy
+      this.notificationManager.triggerCopyCallback();
     } catch (err) {
       console.error("[ElementInspector] Failed to copy page structure:", err);
       this.notificationManager.showNotification("✗ Copy Failed", "error");
@@ -85,6 +86,10 @@ export class PageStructureExporter {
       "value",
       "data-*",
       "aria-*",
+      "title",
+      "alt",
+      "placeholder",
+      "role",
     ];
     const attrs: any = {};
     for (let i = 0; i < element.attributes.length; i++) {
@@ -104,6 +109,12 @@ export class PageStructureExporter {
       node.attributes = attrs;
     }
 
+    // Capture direct text content (not from children)
+    const textContent = this.getDirectTextContent(element);
+    if (textContent) {
+      node.text = textContent;
+    }
+
     const children: any[] = [];
     for (let i = 0; i < element.children.length; i++) {
       const child = element.children[i];
@@ -116,6 +127,27 @@ export class PageStructureExporter {
     }
 
     return node;
+  }
+
+  /**
+   * Get direct text content of an element (excluding child element text)
+   */
+  private getDirectTextContent(element: Element): string | undefined {
+    let text = "";
+    for (let i = 0; i < element.childNodes.length; i++) {
+      const node = element.childNodes[i];
+      if (node.nodeType === Node.TEXT_NODE) {
+        const trimmed = (node.textContent || "").trim();
+        if (trimmed) {
+          text += (text ? " " : "") + trimmed;
+        }
+      }
+    }
+    // Truncate very long text
+    if (text.length > 200) {
+      text = text.substring(0, 200) + "...";
+    }
+    return text || undefined;
   }
 
   private getAllStylesheets(): any[] {

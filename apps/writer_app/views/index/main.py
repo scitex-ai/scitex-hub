@@ -12,7 +12,7 @@ __DIR__ = os.path.dirname(__FILE__)
 
 """Main index view for SciTeX Writer - Simple editor/PDF viewer layout."""
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from ...models import Manuscript
 from apps.project_app.models import Project
@@ -36,7 +36,28 @@ def index_view(request):
 
     For authenticated users: loads their project
     For visitor users: provides demo workspace
+    If visitor pool is exhausted: redirect to visitor-pool-full page
     """
+    # Check if user is not authenticated (visitor allocation may have failed)
+    if not request.user.is_authenticated:
+        # Check if this is a browser request (has typical browser User-Agent)
+        user_agent = request.META.get('HTTP_USER_AGENT', '')
+        is_browser = any(
+            browser in user_agent
+            for browser in ['Mozilla', 'Chrome', 'Safari', 'Firefox', 'Edge', 'Opera']
+        )
+
+        if is_browser:
+            # Browser request but not authenticated - visitor pool likely exhausted
+            logger.info("[Writer] Browser request not authenticated - redirecting to visitor-pool-full")
+            return redirect('public_app:visitor_pool_full')
+
+        # Non-browser request - return empty page
+        return render(request, "writer_app/index.html", {
+            "is_visitor": True,
+            "writer_initialized": False,
+        })
+
     # Get document type from URL parameter or default to manuscript
     document_type = request.GET.get("doc_type", "manuscript")
 
@@ -50,8 +71,6 @@ def index_view(request):
         "writer_initialized": False,
         "document_type": document_type,
     }
-
-    # Visitor auto-login is handled by VisitorAutoLoginMiddleware
 
     if request.user.is_authenticated:
         # Mark as demo if visitor

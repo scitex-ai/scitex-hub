@@ -90,52 +90,52 @@
 /* Success Button - Dark Mode */
 [data-theme="dark"] .btn-success {
   background-color: #2d5a3d;
-  color: #7fb09d;
+  color: #fff;
 }
 
 [data-theme="dark"] .btn-success:hover,
 [data-theme="dark"] .btn-success:focus {
-  background-color: #1f4a2f;
-  color: #9ac4b0;
+  background-color: #3d6a4d;
+  color: #fff;
 }
 
 /* Warning Button - Dark Mode */
 [data-theme="dark"] .btn-warning {
   background-color: #5a4a2d;
-  color: #d4b891;
+  color: #fff;
 }
 
 [data-theme="dark"] .btn-warning:hover,
 [data-theme="dark"] .btn-warning:focus {
-  background-color: #4a3a1f;
-  color: #e0c4a3;
+  background-color: #6a5a3d;
+  color: #fff;
 }
 
 /* Danger/Error Button - Dark Mode */
 [data-theme="dark"] .btn-danger,
 [data-theme="dark"] .btn-error {
   background-color: #5a2d2d;
-  color: #d49191;
+  color: #fff;
 }
 
 [data-theme="dark"] .btn-danger:hover,
 [data-theme="dark"] .btn-danger:focus,
 [data-theme="dark"] .btn-error:hover,
 [data-theme="dark"] .btn-error:focus {
-  background-color: #4a1f1f;
-  color: #e0a5a5;
+  background-color: #6a3d3d;
+  color: #fff;
 }
 
 /* Info Button - Dark Mode */
 [data-theme="dark"] .btn-info {
   background-color: #2d4a5a;
-  color: #8db4d4;
+  color: #fff;
 }
 
 [data-theme="dark"] .btn-info:hover,
 [data-theme="dark"] .btn-info:focus {
-  background-color: #1f3a4a;
-  color: #a7c8e0;
+  background-color: #3d5a6a;
+  color: #fff;
 }
 
 /* =========================================

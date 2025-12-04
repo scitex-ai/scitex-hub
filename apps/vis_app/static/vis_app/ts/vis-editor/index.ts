@@ -31,8 +31,10 @@ export function initializeSigmaEditor(): void {
         interactionHandlers.setupThemeToggle();
 
         // Setup files tree if project context exists
-        const projectOwner = (window as any).projectOwner;
-        const projectSlug = (window as any).projectSlug;
+        // Read directly from data attributes to avoid race condition with editor-inline.js
+        const editorContainer = document.querySelector('.vis-editor-container');
+        const projectOwner = editorContainer?.getAttribute('data-project-owner') || (window as any).projectOwner;
+        const projectSlug = editorContainer?.getAttribute('data-project-slug') || (window as any).projectSlug;
         if (projectOwner && projectSlug) {
             await interactionHandlers.setupFilesTree(projectOwner, projectSlug);
         }

@@ -803,6 +803,11 @@
   color: var(--color-fg-muted, #768390);
 }
 
+.wft-git-status-summary .clean {
+  color: var(--color-success-fg, #3fb950);
+  opacity: 0.8;
+}
+
 /* ============================================
  * Git Modals (History / Diff)
  * ============================================ */

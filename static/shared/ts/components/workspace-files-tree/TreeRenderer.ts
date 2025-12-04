@@ -40,10 +40,6 @@ export class TreeRenderer {
     const hasStaged = summary.staged > 0;
     const hasChanges = summary.staged > 0 || summary.modified > 0 || summary.untracked > 0;
 
-    if (!hasChanges) {
-      return ''; // Don't show panel if no changes
-    }
-
     return `
       <div class="wft-git-panel">
         <div class="wft-git-panel-header">
@@ -64,9 +60,11 @@ export class TreeRenderer {
           </div>
         </div>
         <div class="wft-git-status-summary">
-          ${summary.staged > 0 ? `<span class="staged" title="${summary.staged} file(s) staged for commit"><i class="fas fa-check"></i> ${summary.staged}</span>` : ''}
-          ${summary.modified > 0 ? `<span class="modified" title="${summary.modified} file(s) with unstaged changes"><i class="fas fa-pen"></i> ${summary.modified}</span>` : ''}
-          ${summary.untracked > 0 ? `<span class="untracked" title="${summary.untracked} untracked file(s)"><i class="fas fa-question"></i> ${summary.untracked}</span>` : ''}
+          ${hasChanges ? `
+            ${summary.staged > 0 ? `<span class="staged" title="${summary.staged} file(s) staged for commit"><i class="fas fa-check"></i> ${summary.staged}</span>` : ''}
+            ${summary.modified > 0 ? `<span class="modified" title="${summary.modified} file(s) with unstaged changes"><i class="fas fa-pen"></i> ${summary.modified}</span>` : ''}
+            ${summary.untracked > 0 ? `<span class="untracked" title="${summary.untracked} untracked file(s)"><i class="fas fa-question"></i> ${summary.untracked}</span>` : ''}
+          ` : `<span class="clean" title="Working tree clean"><i class="fas fa-check-circle"></i> Clean</span>`}
         </div>
         <textarea class="wft-commit-input" placeholder="Commit message..." rows="1" ${!hasStaged ? 'disabled title="Stage files first to enable commit"' : 'title="Enter commit message"'}></textarea>
         <div class="wft-git-panel-actions" style="justify-content: flex-end;">

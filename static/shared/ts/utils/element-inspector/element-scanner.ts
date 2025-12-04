@@ -116,14 +116,13 @@ export class ElementScanner {
         try {
           await navigator.clipboard.writeText(debugInfo);
           this.notificationManager.showNotification(
-            "✓ Element Info Copied!",
+            "✓ Copied!",
             "success",
           );
           console.log("[ElementInspector] Copied:", debugInfo);
 
-          setTimeout(() => {
-            selectedBox.classList.remove("highlighted");
-          }, 2000);
+          // Trigger auto-dismiss (ESC) after copy
+          this.notificationManager.triggerCopyCallback();
         } catch (err) {
           console.error("[ElementInspector] Copy failed:", err);
           this.notificationManager.showNotification("✗ Copy Failed", "error");
@@ -386,32 +385,18 @@ export class ElementScanner {
       e.stopPropagation();
       e.preventDefault();
 
-      const originalText = label.innerHTML;
       const debugInfo = this.debugCollector.gatherElementDebugInfo(element);
 
       try {
         await navigator.clipboard.writeText(debugInfo);
-
-        label.classList.add("copied");
-        label.innerHTML = "✓ Copied Debug Info!";
-
-        setTimeout(() => {
-          label.classList.remove("copied");
-          label.innerHTML = originalText;
-        }, 1500);
-
+        this.notificationManager.showNotification("✓ Copied!", "success");
         console.log("[ElementInspector] Copied debug info to clipboard");
-        console.log(debugInfo);
+
+        // Trigger auto-dismiss (ESC) after copy
+        this.notificationManager.triggerCopyCallback();
       } catch (err) {
         console.error("[ElementInspector] Failed to copy:", err);
-
-        const originalBg = label.style.background;
-        label.style.background = "rgba(239, 68, 68, 0.9)";
-        label.innerHTML = "✗ Copy Failed";
-        setTimeout(() => {
-          label.style.background = originalBg;
-          label.innerHTML = originalText;
-        }, 1000);
+        this.notificationManager.showNotification("✗ Copy Failed", "error");
       }
     });
   }

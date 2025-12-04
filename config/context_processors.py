@@ -19,7 +19,7 @@ def cache_buster(request):
     Add a cache-busting parameter for static files in development.
     In production, use proper static file versioning.
 
-    In development, this checks the modification time of key JavaScript files
+    In development, this checks the modification time of JS directories
     and updates when they change.
     """
     global _cached_build_id, _last_check_time
@@ -31,13 +31,21 @@ def cache_buster(request):
         # Check files every 2 seconds to avoid excessive file system calls
         if current_time - _last_check_time > 2:
             try:
-                # Check modification time of main writer JS file
-                writer_js = Path(settings.BASE_DIR) / 'apps/writer_app/static/writer_app/js/index.js'
-                if writer_js.exists():
-                    mtime = int(writer_js.stat().st_mtime)
-                    _cached_build_id = str(mtime)
-                else:
-                    _cached_build_id = str(int(current_time))
+                # Check modification time of all key JS directories
+                js_dirs = [
+                    Path(settings.BASE_DIR) / 'apps/code_app/static/code_app/js',
+                    Path(settings.BASE_DIR) / 'apps/vis_app/static/vis_app/js',
+                    Path(settings.BASE_DIR) / 'apps/writer_app/static/writer_app/js',
+                    Path(settings.BASE_DIR) / 'static/shared/js',
+                ]
+                max_mtime = 0
+                for js_dir in js_dirs:
+                    if js_dir.exists():
+                        for js_file in js_dir.rglob('*.js'):
+                            mtime = js_file.stat().st_mtime
+                            if mtime > max_mtime:
+                                max_mtime = mtime
+                _cached_build_id = str(int(max_mtime)) if max_mtime else str(int(current_time))
             except Exception:
                 _cached_build_id = str(int(current_time))
 

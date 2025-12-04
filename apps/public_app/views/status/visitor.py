@@ -14,12 +14,19 @@ Visitor Status Views
 Views for visitor session management and status.
 """
 
+import logging
+
+from django.conf import settings
 from django.contrib.auth import logout
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from apps.project_app.models import VisitorAllocation
 from apps.project_app.services.visitor_pool import VisitorPool
+
+logger = logging.getLogger(__name__)
 
 
 def visitor_status(request):
@@ -49,6 +56,28 @@ def visitor_restart_session(request):
 
     # Redirect to landing page where VisitorAutoLoginMiddleware will allocate a new slot
     return redirect('public_app:index')
+
+
+def visitor_pool_full(request):
+    """
+    Visitor pool full page.
+
+    Shown when all visitor demo slots are currently in use.
+    Provides clear explanation and options to sign up or wait.
+    """
+    from django.conf import settings
+
+    # Get pool status
+    pool_status = VisitorPool.get_pool_status()
+
+    context = {
+        'pool_size': pool_status.get('total', 4),
+        'allocated': pool_status.get('allocated', 0),
+        'free': pool_status.get('free', 0),
+        'DEBUG': settings.DEBUG,
+    }
+
+    return render(request, 'public_app/visitor_pool_full.html', context)
 
 
 def visitor_expired(request):
@@ -97,6 +126,54 @@ def visitor_expired(request):
     }
 
     return render(request, 'public_app/visitor_expired.html', context)
+
+
+@require_POST
+def visitor_pool_initialize_api(request):
+    """
+    API endpoint to initialize/reset visitor pool (Dev only).
+
+    POST /api/visitor-pool/initialize/
+
+    This clears all allocations and re-initializes the visitor pool.
+    Only available in DEBUG mode for development purposes.
+    """
+    # Only allow in DEBUG mode
+    if not settings.DEBUG:
+        return JsonResponse({
+            'error': 'This endpoint is only available in development mode'
+        }, status=403)
+
+    try:
+        # Clear all existing allocations
+        VisitorAllocation.objects.all().delete()
+        logger.info("[VisitorPool] Cleared all existing allocations")
+
+        # Reset all project directories to default template
+        reset_count = VisitorPool.reset_all_project_directories()
+        logger.info(f"[VisitorPool] Reset {reset_count} project directories")
+
+        # Initialize the pool (creates any missing users/projects)
+        created = VisitorPool.initialize_pool()
+        logger.info(f"[VisitorPool] Initialized pool with {created} visitors")
+
+        # Get updated status
+        pool_status = VisitorPool.get_pool_status()
+
+        return JsonResponse({
+            'success': True,
+            'created': created,
+            'reset': reset_count,
+            'total': pool_status.get('total', 0),
+            'allocated': pool_status.get('allocated', 0),
+            'free': pool_status.get('free', 0),
+        })
+
+    except Exception as e:
+        logger.error(f"[VisitorPool] Failed to initialize pool: {e}")
+        return JsonResponse({
+            'error': str(e)
+        }, status=500)
 
 
 # EOF

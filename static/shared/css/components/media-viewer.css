@@ -1,0 +1,829 @@
+/**
+ * MediaViewer Shared Component Styles
+ *
+ * Styles for displaying non-text files (images, PDFs, CSVs, binaries)
+ * Used across /code/, /project/ Files, and /writer/ apps
+ */
+
+/* ============================================
+   Container
+   ============================================ */
+
+.media-viewer-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: var(--workspace-bg-primary);
+  overflow: hidden;
+}
+
+/* ============================================
+   Toolbar
+   ============================================ */
+
+.media-viewer-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--workspace-bg-secondary);
+  border-bottom: 1px solid var(--color-border-default, #30363d);
+  min-height: 40px;
+  flex-shrink: 0;
+}
+
+.media-viewer-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.media-viewer-toolbar-center {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.media-viewer-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.media-viewer-icon {
+  color: var(--color-fg-muted, #8b949e);
+  font-size: 14px;
+}
+
+.media-viewer-filename {
+  font-size: 13px;
+  color: var(--color-fg-default, #c9d1d9);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.media-viewer-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--color-fg-muted, #8b949e);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.media-viewer-btn:hover {
+  background: var(--workspace-bg-tertiary);
+  color: var(--color-fg-default, #c9d1d9);
+}
+
+/* ============================================
+   Image Viewer
+   ============================================ */
+
+.media-viewer-image-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.media-viewer-image-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--workspace-bg-primary);
+  /* Checkered background for transparency */
+  background-image:
+    linear-gradient(45deg, #1a1f26 25%, transparent 25%),
+    linear-gradient(-45deg, #1a1f26 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #1a1f26 75%),
+    linear-gradient(-45deg, transparent 75%, #1a1f26 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+}
+
+.media-viewer-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: transform 0.1s ease;
+  user-select: none;
+}
+
+/* ============================================
+   PDF Viewer
+   ============================================ */
+
+.media-viewer-pdf-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.media-viewer-pdf-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pdf-control-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--color-fg-muted, #8b949e);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pdf-control-btn:hover {
+  background: var(--workspace-bg-tertiary);
+  color: var(--color-fg-default, #c9d1d9);
+}
+
+.pdf-page-info {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--color-fg-muted, #8b949e);
+}
+
+.pdf-page-input {
+  width: 40px;
+  height: 24px;
+  padding: 0 4px;
+  background: var(--workspace-bg-tertiary);
+  border: 1px solid var(--color-border-default, #30363d);
+  border-radius: 4px;
+  color: var(--color-fg-default, #c9d1d9);
+  font-size: 12px;
+  text-align: center;
+}
+
+.pdf-page-input:focus {
+  outline: none;
+  border-color: var(--color-accent, #58a6ff);
+}
+
+.pdf-control-separator {
+  width: 1px;
+  height: 20px;
+  background: var(--color-border-default, #30363d);
+  margin: 0 8px;
+}
+
+.pdf-zoom-level {
+  font-size: 12px;
+  color: var(--color-fg-muted, #8b949e);
+  min-width: 40px;
+  text-align: center;
+}
+
+.media-viewer-pdf-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  background: var(--workspace-bg-primary);
+  padding: 20px;
+}
+
+.media-viewer-pdf-canvas {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================
+   CSV Viewer
+   ============================================ */
+
+.media-viewer-csv-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.csv-info {
+  font-size: 12px;
+  color: var(--color-fg-muted, #8b949e);
+}
+
+.csv-control-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: transparent;
+  border: 1px solid var(--color-border-default, #30363d);
+  border-radius: 4px;
+  color: var(--color-fg-muted, #8b949e);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.csv-control-btn:hover {
+  background: var(--workspace-bg-tertiary);
+  color: var(--color-fg-default, #c9d1d9);
+}
+
+.csv-control-btn.active {
+  background: var(--color-accent-emphasis, #238636);
+  border-color: var(--color-accent-emphasis, #238636);
+  color: var(--color-fg-on-emphasis, #ffffff);
+}
+
+.csv-control-btn.active:hover {
+  background: var(--color-accent-fg, #3fb950);
+  border-color: var(--color-accent-fg, #3fb950);
+}
+
+.toolbar-separator {
+  width: 1px;
+  height: 20px;
+  background: var(--color-border-default, #30363d);
+  margin: 0 4px;
+}
+
+/* Context menu for CSV operations */
+.csv-context-menu {
+  position: fixed;
+  background: var(--workspace-bg-secondary, #1e2228);
+  border: 1px solid var(--color-border-default, #30363d);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  padding: 4px 0;
+  min-width: 200px;
+  z-index: 10000;
+}
+
+.csv-context-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  color: var(--color-fg-default, #c9d1d9);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.csv-context-menu-item:hover {
+  background: var(--workspace-bg-tertiary, #2d333b);
+}
+
+.csv-context-menu-item i {
+  width: 16px;
+  color: var(--color-fg-muted, #8b949e);
+}
+
+.csv-context-menu-divider {
+  height: 1px;
+  background: var(--color-border-default, #30363d);
+  margin: 4px 0;
+}
+
+.media-viewer-csv-container {
+  flex: 1;
+  overflow: auto;
+  padding: 0;
+}
+
+.csv-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-family: var(--font-mono, 'JetBrains Mono', Monaco, monospace);
+}
+
+.csv-table th,
+.csv-table td {
+  padding: 6px 10px;
+  text-align: left;
+  border: 1px solid var(--color-border-default, #30363d);
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.csv-table th {
+  background: var(--workspace-bg-secondary);
+  color: var(--color-fg-default, #c9d1d9);
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.csv-table td {
+  background: var(--workspace-bg-primary);
+  color: var(--color-fg-default, #c9d1d9);
+}
+
+.csv-table tbody tr:hover td {
+  background: var(--workspace-bg-secondary);
+}
+
+.csv-row-num {
+  width: 50px;
+  min-width: 50px;
+  text-align: right !important;
+  color: var(--color-fg-muted, #8b949e) !important;
+  background: var(--workspace-bg-secondary) !important;
+  font-size: 11px;
+  padding-right: 12px !important;
+}
+
+.csv-raw-content {
+  padding: 16px;
+  margin: 0;
+  font-family: var(--font-mono, 'JetBrains Mono', Monaco, monospace);
+  font-size: 13px;
+  color: var(--color-fg-default, #c9d1d9);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.csv-truncation-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--workspace-bg-secondary);
+  border-top: 1px solid var(--color-border-default, #30363d);
+  font-size: 12px;
+  color: var(--color-fg-muted, #8b949e);
+}
+
+.csv-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 40px;
+  color: var(--color-fg-muted, #8b949e);
+}
+
+/* ============================================
+   Binary Placeholder
+   ============================================ */
+
+.media-viewer-binary-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 40px;
+}
+
+.media-viewer-binary-content {
+  text-align: center;
+  max-width: 400px;
+}
+
+.media-viewer-binary-icon {
+  font-size: 64px;
+  color: var(--color-fg-muted, #8b949e);
+  margin-bottom: 16px;
+}
+
+.media-viewer-binary-content h3 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  color: var(--color-fg-default, #c9d1d9);
+}
+
+.media-viewer-binary-filename {
+  font-family: var(--font-mono, 'JetBrains Mono', Monaco, monospace);
+  font-size: 14px;
+  color: var(--color-fg-muted, #8b949e);
+  margin: 0 0 8px 0;
+  word-break: break-all;
+}
+
+.media-viewer-binary-info {
+  font-size: 13px;
+  color: var(--color-fg-muted, #8b949e);
+  margin: 0 0 16px 0;
+}
+
+.media-viewer-download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--color-accent, #238636);
+  border: none;
+  border-radius: 6px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.media-viewer-download-btn:hover {
+  background: var(--color-accent-hover, #2ea043);
+}
+
+/* ============================================
+   Error State
+   ============================================ */
+
+.media-viewer-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+  color: var(--color-fg-muted, #8b949e);
+}
+
+.media-viewer-error i {
+  font-size: 48px;
+  color: var(--color-danger, #f85149);
+  margin-bottom: 16px;
+}
+
+.media-viewer-error p {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  color: var(--color-fg-default, #c9d1d9);
+}
+
+.media-viewer-error small {
+  font-size: 12px;
+  color: var(--color-fg-muted, #8b949e);
+  word-break: break-all;
+}
+
+/* ============================================
+   CSV Editor - Panel Tabs
+   ============================================ */
+
+.csv-content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.csv-panel {
+  flex: 1;
+  overflow: auto;
+}
+
+.csv-panel-tabs {
+  display: flex;
+  gap: 2px;
+  background: var(--workspace-bg-tertiary);
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.csv-panel-tab {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--color-fg-muted, #8b949e);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.csv-panel-tab:hover {
+  color: var(--color-fg-default, #c9d1d9);
+}
+
+.csv-panel-tab.active {
+  background: var(--workspace-bg-secondary);
+  color: var(--color-fg-default, #c9d1d9);
+}
+
+.csv-panel-tab i {
+  font-size: 11px;
+}
+
+/* ============================================
+   CSV Editor - Plot Panel
+   ============================================ */
+
+.csv-plot-panel {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  height: 100%;
+}
+
+.csv-plot-config {
+  width: 240px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.csv-plot-config h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-fg-default, #c9d1d9);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.plot-config-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.plot-config-row label {
+  font-size: 12px;
+  color: var(--color-fg-muted, #8b949e);
+}
+
+.plot-config-row select {
+  padding: 6px 10px;
+  background: var(--workspace-bg-tertiary);
+  border: 1px solid var(--color-border-default, #30363d);
+  border-radius: 4px;
+  color: var(--color-fg-default, #c9d1d9);
+  font-size: 13px;
+}
+
+.plot-config-row select:focus {
+  outline: none;
+  border-color: var(--color-accent, #58a6ff);
+}
+
+.plot-generate-btn {
+  margin-top: 8px;
+  background: var(--color-accent, #238636) !important;
+  border-color: var(--color-accent, #238636) !important;
+  color: #fff !important;
+}
+
+.plot-generate-btn:hover {
+  background: var(--color-accent-hover, #2ea043) !important;
+}
+
+.csv-plot-preview {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--workspace-bg-secondary);
+  border: 1px solid var(--color-border-default, #30363d);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.plot-placeholder {
+  text-align: center;
+  color: var(--color-fg-muted, #8b949e);
+}
+
+.plot-placeholder i {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.plot-placeholder p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.plot-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-fg-muted, #8b949e);
+}
+
+.plot-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+}
+
+.plot-result svg {
+  max-width: 100%;
+  max-height: 400px;
+}
+
+.plot-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.plot-error {
+  text-align: center;
+  color: var(--color-fg-muted, #8b949e);
+}
+
+.plot-error i {
+  font-size: 32px;
+  color: var(--color-danger, #f85149);
+  margin-bottom: 8px;
+}
+
+/* ============================================
+   CSV Editor - Statistics Panel
+   ============================================ */
+
+.csv-stats-panel {
+  padding: 16px;
+  height: 100%;
+  overflow: auto;
+}
+
+.csv-stats-panel h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-fg-default, #c9d1d9);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stats-summary {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.stats-badge {
+  padding: 4px 10px;
+  background: var(--workspace-bg-tertiary);
+  border-radius: 12px;
+  font-size: 12px;
+  color: var(--color-fg-muted, #8b949e);
+}
+
+.stats-table-wrapper {
+  overflow-x: auto;
+  margin-bottom: 16px;
+}
+
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-family: var(--font-mono, 'JetBrains Mono', Monaco, monospace);
+}
+
+.stats-table th,
+.stats-table td {
+  padding: 8px 12px;
+  text-align: right;
+  border: 1px solid var(--color-border-default, #30363d);
+}
+
+.stats-table th {
+  background: var(--workspace-bg-secondary);
+  color: var(--color-fg-default, #c9d1d9);
+  font-weight: 600;
+}
+
+.stats-table td {
+  background: var(--workspace-bg-primary);
+  color: var(--color-fg-default, #c9d1d9);
+}
+
+.stats-col-name {
+  text-align: left !important;
+  font-weight: 500;
+  color: var(--color-accent, #58a6ff) !important;
+}
+
+.stats-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.csv-stats-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--color-fg-muted, #8b949e);
+}
+
+.csv-stats-empty i {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+/* ============================================
+   CSV Editor - LaTeX Panel
+   ============================================ */
+
+.csv-latex-panel {
+  padding: 16px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.csv-latex-panel h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-fg-default, #c9d1d9);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.latex-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.latex-options label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-fg-muted, #8b949e);
+  cursor: pointer;
+}
+
+.latex-options input[type="checkbox"] {
+  accent-color: var(--color-accent, #58a6ff);
+}
+
+.latex-preview-wrapper {
+  flex: 1;
+  min-height: 0;
+}
+
+.latex-preview {
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+  padding: 12px;
+  background: var(--workspace-bg-tertiary);
+  border: 1px solid var(--color-border-default, #30363d);
+  border-radius: 6px;
+  color: var(--color-fg-default, #c9d1d9);
+  font-family: var(--font-mono, 'JetBrains Mono', Monaco, monospace);
+  font-size: 12px;
+  line-height: 1.5;
+  resize: none;
+}
+
+.latex-preview:focus {
+  outline: none;
+  border-color: var(--color-accent, #58a6ff);
+}
+
+.latex-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.csv-latex-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--color-fg-muted, #8b949e);
+}
+
+.csv-latex-empty i {
+  font-size: 48px;
+  margin-bottom: 12px;
+}

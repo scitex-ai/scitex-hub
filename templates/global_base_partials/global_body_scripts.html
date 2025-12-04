@@ -114,25 +114,27 @@
 </script>
 <!-- Theme Switcher - TypeScript compiled as ES module -->
 <script type="module"
-        src="{% static 'shared/js/utils/theme-switcher.js' %}?v=5"></script>
+        src="{% static 'shared/js/utils/theme-switcher.js' %}?v={{ build_id }}"></script>
 <!-- Highlight.js for syntax highlighting and line numbers -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
 <!-- Tooltip Auto-Positioning System - TypeScript compiled as ES module -->
 <script type="module"
-        src="{% static 'shared/js/utils/tooltip-auto-position.js' %}?v=5"></script>
+        src="{% static 'shared/js/utils/tooltip-auto-position.js' %}?v={{ build_id }}"></script>
 <!-- Global utility scripts - TypeScript compiled -->
-<script src="{% static 'shared/js/utils/main.js' %}?v=5"></script>
-<script src="{% static 'shared/js/utils/dropdown.js' %}?v=5"></script>
-<script src="{% static 'shared/js/code-blocks.js' %}"></script>
+<script src="{% static 'shared/js/utils/main.js' %}?v={{ build_id }}"></script>
+<script src="{% static 'shared/js/utils/dropdown.js' %}?v={{ build_id }}"></script>
+<script src="{% static 'shared/js/code-blocks.js' %}?v={{ build_id }}"></script>
 <!-- Django Messages Handler - TypeScript compiled as ES module -->
 <script type="module"
-        src="{% static 'shared/js/utils/django-messages.js' %}?v=1"></script>
+        src="{% static 'shared/js/utils/django-messages.js' %}?v={{ build_id }}"></script>
 <!-- Modern Confirmation Modal - TypeScript compiled as ES module -->
 <script type="module"
-        src="{% static 'shared/js/components/confirm-modal.js' %}?v=5"></script>
+        src="{% static 'shared/js/components/confirm-modal.js' %}?v={{ build_id }}"></script>
 <!-- Development Tools (only in DEBUG mode) -->
 {% if DEBUG %}
     <script type="module"
-            src="{% static 'shared/js/utils/element-inspector.js' %}"></script>
+            src="{% static 'shared/js/utils/element-inspector.js' %}?v={{ build_id }}"></script>
 {% endif %}
+<!-- Global Header Scripts (project selector, search, account switcher, visitor pool init) -->
+<script src="{% static 'shared/js/components/header.js' %}?v={{ build_id }}"></script>

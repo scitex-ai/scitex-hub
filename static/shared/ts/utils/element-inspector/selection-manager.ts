@@ -41,7 +41,7 @@ export class SelectionManager {
     document.body.appendChild(this.selectionOverlay);
 
     this.notificationManager.showNotification(
-      "🔲 Selection Mode: Click and drag to select area (Esc to cancel)",
+      "Drag to select area",
       "success",
     );
 
@@ -133,7 +133,7 @@ export class SelectionManager {
     if (width < 5 || height < 5) {
       this.cancelSelectionMode();
       this.notificationManager.showNotification(
-        "⚠ Selection too small",
+        "Selection too small",
         "error",
       );
       return;
@@ -160,10 +160,13 @@ export class SelectionManager {
     try {
       await navigator.clipboard.writeText(selectionInfo);
       this.notificationManager.showNotification(
-        `✓ Copied info for ${selectedElements.length} elements!`,
+        `✓ ${selectedElements.length} elements copied!`,
         "success",
       );
       console.log("[ElementInspector] Selection info copied to clipboard");
+
+      // Trigger auto-dismiss (ESC) after copy
+      this.notificationManager.triggerCopyCallback();
     } catch (err) {
       console.error("[ElementInspector] Failed to copy:", err);
       this.notificationManager.showNotification("✗ Copy Failed", "error");

@@ -33,6 +33,41 @@ console_logger.addHandler(file_handler)
 console_logger.propagate = False
 
 
+@require_http_methods(["GET"])
+def get_console_logs(request):
+    """
+    Return the console logs file content for debug snapshots.
+    Only available in DEBUG mode.
+    """
+    if not settings.DEBUG:
+        return JsonResponse({"error": "Only available in DEBUG mode"}, status=403)
+
+    try:
+        if console_log_file.exists():
+            # Read last N lines (default 500)
+            max_lines = int(request.GET.get("lines", 500))
+            with open(console_log_file, "r") as f:
+                lines = f.readlines()
+                # Get last N lines
+                recent_lines = lines[-max_lines:]
+                content = "".join(recent_lines)
+                return JsonResponse({
+                    "success": True,
+                    "logs": content,
+                    "total_lines": len(lines),
+                    "returned_lines": len(recent_lines),
+                })
+        else:
+            return JsonResponse({
+                "success": True,
+                "logs": "No console logs file found.",
+                "total_lines": 0,
+                "returned_lines": 0,
+            })
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
+
+
 @csrf_exempt  # Allow from dev frontend without CSRF
 @require_http_methods(["POST"])
 def log_console(request):

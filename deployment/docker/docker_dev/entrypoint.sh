@@ -83,11 +83,47 @@ add_insufficient_python_packages() {
 add_insufficient_python_packages
 
 # ============================================
-# TypeScript Watch Mode (Always ensure running)
+# Vite Dev Server (HMR - Hot Module Replacement)
 # ============================================
-# TypeScript watcher must be started/restarted on every container start
-# because nohup processes don't survive container restarts
-start_typescript_build_watcher() {
+# Vite serves TypeScript directly and provides HMR for instant updates
+start_vite_dev_server() {
+    if [ -f "/app/package.json" ] && [ -f "/app/vite.config.ts" ]; then
+        # Check if Vite is already running
+        if pgrep -f "vite" > /dev/null 2>&1; then
+            echo_info "Vite dev server already running"
+            return 0
+        fi
+
+        echo_info "Starting Vite dev server (HMR)..."
+        cd /app || return 0
+
+        # Check if node_modules exists
+        if [ ! -d "node_modules" ]; then
+            echo_warning "Installing Node dependencies..."
+            npm install --silent 2>&1 | grep -v "npm WARN" || true
+        fi
+
+        # Start Vite dev server in background
+        nohup npm run dev \
+            > /app/logs/vite-dev.log 2>&1 &
+        VITE_PID=$!
+        echo_success "Vite dev server started (PID: $VITE_PID)"
+        echo "   URL: http://127.0.0.1:5173"
+        echo "   HMR: Enabled (instant module updates)"
+        echo "   Log: tail -f /app/logs/vite-dev.log"
+
+        cd /app || return 0
+    else
+        echo_warning "Vite config not found - using TypeScript watch fallback"
+        # Fall back to TypeScript watch mode
+        start_typescript_build_watcher_fallback
+    fi
+}
+
+# ============================================
+# TypeScript Watch Mode (Fallback when Vite not available)
+# ============================================
+start_typescript_build_watcher_fallback() {
     if [ -d "/app/tsconfig" ] && [ -f "/app/tsconfig/package.json" ]; then
         # Check if tsc is already running
         if pgrep -f "tsc.*--watch" > /dev/null 2>&1; then
@@ -117,7 +153,9 @@ start_typescript_build_watcher() {
         echo_warning "/app/tsconfig not found - skipping TypeScript watch mode"
     fi
 }
-start_typescript_build_watcher
+
+# Start Vite (with fallback to tsc --watch)
+start_vite_dev_server
 
 # ============================================
 # Database & Django Setup

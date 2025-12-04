@@ -4,12 +4,27 @@
  */
 
 import { LANGUAGE_MAP, type EditorConfig, type OpenFile } from "../core/types.js";
-import {
-  initializeMonacoThemes,
-  setupMonacoThemeObserver,
-  getThemeForMode,
-  getCurrentThemeMode,
-} from "/static/shared/js/monaco/MonacoTheme.js";
+
+// MonacoTheme functions are loaded at runtime from shared components
+// Declare their types here for TypeScript
+declare function initializeMonacoThemes(monaco: any): void;
+declare function setupMonacoThemeObserver(callback: (theme: string) => void): void;
+declare function getThemeForMode(mode: "dark" | "light"): string;
+declare function getCurrentThemeMode(): "dark" | "light";
+
+// Dynamic loader for MonacoTheme
+async function loadMonacoTheme(): Promise<{
+  initializeMonacoThemes: typeof initializeMonacoThemes;
+  setupMonacoThemeObserver: typeof setupMonacoThemeObserver;
+  getThemeForMode: typeof getThemeForMode;
+  getCurrentThemeMode: typeof getCurrentThemeMode;
+}> {
+  // @ts-ignore - Runtime dynamic import
+  return await (Function('return import("/static/shared/js/monaco/MonacoTheme.js")')());
+}
+
+// Cached module reference
+let monacoThemeModule: Awaited<ReturnType<typeof loadMonacoTheme>> | null = null;
 
 export class MonacoManager {
   private editor: any = null;
@@ -33,7 +48,7 @@ export class MonacoManager {
    * Update Monaco editor theme when global theme changes
    * This syncs Monaco with the global site theme using shared SciTeX themes
    */
-  updateTheme(theme: string): void {
+  async updateTheme(theme: string): Promise<void> {
     if (!this.editor) {
       console.warn("[MonacoManager] Cannot update theme - editor not initialized");
       return;
@@ -45,8 +60,13 @@ export class MonacoManager {
       return;
     }
 
+    // Load theme module if not cached
+    if (!monacoThemeModule) {
+      monacoThemeModule = await loadMonacoTheme();
+    }
+
     // Use SciTeX themes for consistency across modules
-    const monacoTheme = getThemeForMode(theme as "dark" | "light");
+    const monacoTheme = monacoThemeModule.getThemeForMode(theme as "dark" | "light");
     this.editor.updateOptions({ theme: monacoTheme });
 
     // Sync localStorage to match global theme
@@ -156,12 +176,17 @@ export class MonacoManager {
       welcomeScreen.style.display = "none";
     }
 
+    // Load theme module if not cached
+    if (!monacoThemeModule) {
+      monacoThemeModule = await loadMonacoTheme();
+    }
+
     // Initialize shared SciTeX themes
-    initializeMonacoThemes(monaco);
+    monacoThemeModule.initializeMonacoThemes(monaco);
 
     // Load saved theme preference or use SciTeX theme based on site theme
     const savedTheme = localStorage.getItem("monaco-editor-theme");
-    const initialTheme = savedTheme || getThemeForMode(getCurrentThemeMode());
+    const initialTheme = savedTheme || monacoThemeModule.getThemeForMode(monacoThemeModule.getCurrentThemeMode());
 
     // Create Monaco editor
     this.editor = monaco.editor.create(container, {

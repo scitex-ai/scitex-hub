@@ -1,113 +1,57 @@
 <!-- ---
-!-- Timestamp: 2025-11-29 04:54:30
+!-- Timestamp: 2025-12-04
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/scitex-cloud/CLAUDE.md
 !-- --- -->
 
-## AGENTS DO NEVER EDIT THIS FILE
-## THE USER IS ONLY ALLOWED TO EDIT THIS FILE. DO NOT MODIFY THIS FILE UNLESS EXPLICITLY ASKED.
-## GITIGNORE THIS FILE. NEVER UPLOAD TO GITHUB.
-## IN DEVELOPMENT (127.0.0.1:8000), DO NOT RUNSERVER. IT IS HANDLED BY `make ENV=dev restart` and we confirmed auto-hot-reloading enabled.
+## DO NOT EDIT
+Agents: Never edit this file. Only user may modify.
 
-## Keep it simple
-I have significant challenges with memory and reading comprehension, so please keep things simple and well-organized. Write document files, README.md or docs/ii_XXX.md, with necessary and sufficient contents. Structure (project, directory, file) and names (directory name, file name, class/function name, variable name) are part of documents. Code themselves must be readable document as well. All scripts are expected to run from project root.
-
-## Be explicity
-Do not use hard coding
-Do not prepare unexpected fallbacks
-Insetad handle errors explicitly
-Error with guidance is much better than silent success
-
-## Development and NAS
-Now, NAS is the first production environment.
-Current _prod settings are old ones for VPS.
-We decided to use home NAS for service deployment and not to use VPS servers due to high cost and low computational powers
-Hide current prod and use only dev and prod
-Key files are:
-  ./deployment
-  ./SECRET/.env.{dev,nas}
-  ./config/settings/settings_{shared,dev,nas}.py
-  
-Keep consistency across deployment environments for stability, testability, and future expansibility.
-
-## Developmental Environment
-We are using docker containers for developmental server as well. Please check ./deployment/docker/docker_dev/ for detals. Makefiles would be also useful. Also, we are not accepting direct call of `python manage.py` to avoid confusion. Please use docker.
+## Skills Available
+Detailed guidelines via skills (use `Skill` tool):
+- `scitex-cloud` - Dev environment, Django organization, TypeScript, debugging
+- `development-philosophy` - Cycles, naming, architecture, multi-agent coordination
+- `programming-common` - Clean code, testing, refactoring
 
 ---
 
-## Subagents
-When time can be shortened, launch and delegate your tasks to subagents up to 32 instances in parallel, under your supervision. Agents have -{HAIKU,SONNET,OPUS} suffixes so that please specify these model variants based on the difficulty of the task to delegate. HAIKU is faster, SONNET is balanced, and OPUS is more intelligent.
-## Autonomous Development
-Based on the following conditions, please proceed development autonomously
-### Test user
-Create and use this user for testing purposes as you want:
-- Username: test-user, Password: Password123!
-### Playwright
-- MCP available
-- Screenshot available
-- However, since this consumes lots of tokens, please use this only when critical
-## No fake data
-When error raised, show them as alert on the website. Fake operations will raise critical issues.
-## No comprehensive
-- When you say comprehensive, it can be translated into "I will create xxx which is really hard for humans to undersntad"
-- Keep documents necessary and sufficient. Too much information may do more harm than good.
+## Project Essentials
+
+### SciTeX Principle
+- Works everywhere: local, cloud, self-hosting
+- `scitex` package = core logic + simple APIs
+- Django = cloud interface
+- Project-centric: all apps link to user/group projects
+
+### Development
+- Docker only: `make env=dev start|stop|restart`
+- No direct `python manage.py` - use Docker
+- Hot-reload enabled for Python, TypeScript, templates
+- Test user: `test-user` / `Password123!`
+
+### Deployment Environments
+- dev: Development (127.0.0.1:8000)
+- nas: Production (home NAS, not VPS)
+- Key files: `SECRET/.env.{dev,nas}`, `config/settings/settings_{shared,dev,nas}.py`
 
 ---
 
-## SciTeX principal
-SciTeX is designed to work everywhere; local, cloud, and self-hosting
-So, scitex python package should implement core logics and provide simple APIs while django should concentrate on cloud
-`scitex` is installed via editable mode via pip from .venv
-Especially, ~/proj/scitex-code/{cli,cloud,scholar,writer,project,template} will be highly related
-It would be better to place .env file in project root and load it to specify SCITEX_ environment variables
+## Philosophy
+- Keep it simple - necessary and sufficient only
+- Be explicit - no hidden fallbacks, errors with guidance
+- No fake data - show real errors on website
+- Intuitive UX - no learning curve needed
 
-## Research proposal for this project, SciTeX
-`./docs/BOOST_応募済み申請書_26151429_oubo_20250626.pdf`
-`./docs/MONETIZATION_STRATEGY_IMPLEMENTATION.md`
-
-## Project-centric application
-The SciTeX ecosystem is project-centric; scholar, code, viz, writer should be linked to a project of the user or a group. However, basic functionalities should be offered to visitor users or users with no projects associated.
-
-## Environmental Variables
-`./SECRETS/.env.{dev,prod}` will be useful
-`env | grep SCITEX_`
-
-## Python Env
-`/home/ywatanabe/proj/scitex-cloud/.venv`
-When change directory from `.`, deactivate automatically called.
-
-## Django Directory Structure
-STRICTLY FOLLOW `./RULES/00_DJANGO_ORGANIZATION_FULLSTACK.md`.
-
-
-## Design Theme of the website
-See `./apps/dev_app`
-See `/dev/design/`
-
-## Debugging Javascripts
-Add console.log for debugging
-
-## Strict Typescript over javascript
-./GITIGNORED/RULES/02_TYPESCRIPT_HOT_BUILDING_IN_DEVELOPMENT.md
-./GITIGNORED/RULES/03_TYPESCRIPT_WATCH_MECHANISM.md
-./GITIGNORED/RULES/JAVASCRIPT_MIGRATION_STEPS.md
-./GITIGNORED/RULES/JAVASCRIPT_TYPESCRIPT_MIGRATION_STATUS.md
+## File Size & Refactoring
+- TS/PY: 256 lines, CSS: 512, HTML: 1024 - refactor proactively
+- Check: `./scripts/check_file_sizes.sh --verbose`
+- See `scitex-cloud` skill for full guidelines
 
 ---
 
-## Overleaf Source Code
-Available at ./externals/overleaf/
-Please learn from them and add additional values to our platform
-
-## SciTeX MUST be EASY.
-- Intuitive
-  - No need to learn
-- Bidirectional low migration cost 
-- Simplicity
-- Synergy between modules is our advantage
-  - However, modules MUST be able to work independently as well
-Details can be read in ./docs/PHILOSOPHY.md
-
-# Requests
+## Reference Docs
+- `./docs/PHILOSOPHY.md` - Full philosophy
+- `./docs/MONETIZATION_STRATEGY_IMPLEMENTATION.md` - Business strategy
+- `./externals/overleaf/` - Learn from Overleaf source
 
 <!-- EOF -->

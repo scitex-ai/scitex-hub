@@ -29,17 +29,17 @@
    PRIMARY VARIANTS
    ========================================= */
 
-/* Primary Button - Main action (blue) */
+/* Primary Button - Main action (bright blue) */
 .btn-primary {
-  background-color: var(--scitex-color-04);
-  color: white;
-  border: none;
+  background-color: var(--color-btn-primary-bg, #3b82f6);
+  color: var(--color-btn-primary-text, white);
+  border: 1px solid var(--color-btn-primary-border, #3b82f6);
 }
 
 .btn-primary:hover,
 .btn-primary:focus {
-  background-color: var(--scitex-color-05);
-  color: white;
+  background-color: var(--color-btn-primary-hover-bg, #60a5fa);
+  color: var(--color-btn-primary-text, white);
 }
 
 /* Secondary Button - Alternative action (slate) */
@@ -89,7 +89,7 @@
 /* Success Button */
 .btn-success {
   background-color: var(--success-color);
-  color: var(--text-inverse);
+  color: #fff;
   border: none;
 }
 
@@ -97,13 +97,13 @@
 .btn-success:focus {
   background-color: var(--_success);
   filter: brightness(0.85);
-  color: var(--text-inverse);
+  color: #fff;
 }
 
 /* Warning Button */
 .btn-warning {
   background-color: var(--warning-color);
-  color: var(--text-inverse);
+  color: #fff;
   border: none;
 }
 
@@ -111,14 +111,14 @@
 .btn-warning:focus {
   background-color: var(--warning-color);
   filter: brightness(0.85);
-  color: var(--text-inverse);
+  color: #fff;
 }
 
 /* Danger/Error Button */
 .btn-error,
 .btn-danger {
   background-color: var(--error-color);
-  color: var(--text-inverse);
+  color: #fff;
   border: none;
 }
 
@@ -128,13 +128,13 @@
 .btn-danger:focus {
   background-color: var(--error-color);
   filter: brightness(0.85);
-  color: var(--text-inverse);
+  color: #fff;
 }
 
 /* Info Button */
 .btn-info {
   background-color: var(--info-color);
-  color: var(--text-inverse);
+  color: #fff;
   border: none;
 }
 
@@ -142,7 +142,7 @@
 .btn-info:focus {
   background-color: var(--info-color);
   filter: brightness(0.85);
-  color: var(--text-inverse);
+  color: #fff;
 }
 
 /* =========================================
