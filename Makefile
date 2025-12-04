@@ -45,7 +45,6 @@
 	exec-gitea \
 	gitea-token \
 	recreate-testuser \
-	build-ts \
 	collectstatic \
 	makemigrations \
 	createsuperuser \
@@ -66,6 +65,7 @@
 	test-e2e-headed \
 	test-e2e-specific \
 	clean-python \
+	clean-js \
 	format \
 	format-python \
 	format-web \
@@ -172,8 +172,7 @@ help:
 	@echo "$(CYAN)🐍 Django:$(NC)"
 	@echo "  make ENV=<env> migrate            # Run migrations"
 	@echo "  make ENV=<env> shell              # Django shell"
-	@echo "  make ENV=<env> build-ts           # Compile TypeScript to JavaScript"
-	@echo "  make ENV=<env> collectstatic      # Collect static files (auto-builds TS)"
+	@echo "  make ENV=<env> collectstatic      # Collect static files"
 	@echo ""
 	@echo "$(CYAN)🔄 Reset & Fresh Start:$(NC)"
 	@echo "  make ENV=dev fresh-start          # Complete reset: DB + Gitea + Files (dev only)"
@@ -203,6 +202,7 @@ help:
 	@echo "  make format-python                # Format & lint Python with Ruff"
 	@echo "  make format-web                   # Format & lint web (⚠️  MODIFIES FILES)"
 	@echo "  make format-shell                 # Format & lint shell scripts"
+	@echo "  make clean-js                     # Remove stale compiled JS from TS directories"
 	@echo ""
 
 # ============================================
@@ -431,10 +431,6 @@ shell: validate
 createsuperuser: validate
 	@echo "$(CYAN)👤 Creating superuser ($(ENV))...$(NC)"
 	@cd $(DOCKER_DIR) && $(MAKE) -f Makefile createsuperuser
-
-build-ts: validate
-	@echo "$(CYAN)🔨 Building TypeScript ($(ENV))...$(NC)"
-	@cd $(DOCKER_DIR) && $(MAKE) -f Makefile build-ts
 
 collectstatic: validate
 	@echo "$(CYAN)📦 Collecting static files ($(ENV))...$(NC)"
@@ -703,6 +699,11 @@ verify-health: validate
 # ============================================
 clean-python:
 	@cd $(DOCKER_DIR) && $(MAKE) -f Makefile clean-python
+
+clean-js:
+	@echo "$(CYAN)🧹 Cleaning stale JS files from TypeScript directories...$(NC)"
+	@./scripts/maintenance/clean_stale_js.sh
+	@echo "$(GREEN)✅ Done! Run 'make env=dev restart' to apply changes$(NC)"
 
 # ============================================
 # Code Quality (Format + Lint)

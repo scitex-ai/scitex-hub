@@ -7,7 +7,6 @@
 	help \
 	setup \
 	build \
-	build-ts \
 	start \
 	restart \
 	stop \
@@ -93,8 +92,7 @@ help:
 	@echo "  make makemigrations     - Create new migrations"
 	@echo "  make shell              - Open Django shell"
 	@echo "  make createsuperuser    - Create superuser account"
-	@echo "  make build-ts           - Compile TypeScript to JavaScript"
-	@echo "  make collectstatic      - Collect static files (includes compiled JS)"
+	@echo "  make collectstatic      - Collect static files"
 	@echo "  make test               - Run test suite"
 	@echo ""
 	@echo "$(CYAN)🗄️  Database:$(NC)"
@@ -131,7 +129,7 @@ help:
 # ============================================
 # Setup & Build Commands
 # ============================================
-setup: start migrate build-ts collectstatic
+setup: start migrate collectstatic
 	@echo "$(GREEN)✅ Development setup complete!$(NC)"
 
 start:
@@ -171,7 +169,7 @@ ps:
 	@echo "$(CYAN)📊 Service Status:$(NC)"
 	$(COMPOSE) ps
 
-rebuild: down build up migrate build-ts collectstatic
+rebuild: down build up migrate collectstatic
 	@echo "$(GREEN)✅ Rebuild complete!$(NC)"
 
 clean:
@@ -214,10 +212,7 @@ createsuperuser: docker-check-health
 	@echo "$(CYAN)👤 Creating superuser...$(NC)"
 	$(COMPOSE) exec django python manage.py createsuperuser
 
-build-ts:
-	@echo "$(CYAN)🔨 Building TypeScript...$(NC)"
-	@cd ../../.. && cd tsconfig && npm install --silent && npm run build:all
-	@echo "$(GREEN)✅ TypeScript compiled$(NC)"
+# build-ts removed - Vite handles TypeScript directly
 
 collectstatic: docker-check-health
 	@echo "$(CYAN)📦 Collecting static files...$(NC)"
