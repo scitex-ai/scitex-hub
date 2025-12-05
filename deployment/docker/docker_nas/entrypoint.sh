@@ -46,6 +46,18 @@ python manage.py create_visitor_pool --verbosity 0 2>&1 | grep -v "ERRO\|WARN" |
 echo_success "Visitor pool ready"
 
 # ============================================
+# Conditional NPM Install
+# ============================================
+if [ ! -d "node_modules" ] || [ "package.json" -nt "node_modules/.install-timestamp" ]; then
+    echo_info "Installing npm dependencies..."
+    npm install --production
+    touch node_modules/.install-timestamp
+    echo_success "npm dependencies installed"
+else
+    echo_info "npm dependencies already up to date"
+fi
+
+# ============================================
 # Start Application
 # ============================================
 echo -e "🚀 Starting production server..."
