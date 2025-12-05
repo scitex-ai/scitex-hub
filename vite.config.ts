@@ -156,6 +156,7 @@ export default defineConfig({
         'social_app/explore-inline': resolve(__dirname, 'apps/social_app/static/social_app/ts/explore-inline.ts'),
 
         // Scholar app - additional
+        'scholar_app/scholar-workspace-init': resolve(__dirname, 'apps/scholar_app/static/scholar_app/ts/scholar-workspace-init.ts'),
         'scholar_app/bibtex/status-tiles': resolve(__dirname, 'apps/scholar_app/static/scholar_app/ts/bibtex/status-tiles.ts'),
 
         // Project app - additional
