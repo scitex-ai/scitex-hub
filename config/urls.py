@@ -143,6 +143,8 @@ urlpatterns = [
     path("api/users/search/", api_search_users, name="api_search_users"),
     path("project/api/check-name/", api_check_name_availability, name="api_check_name"),
     path("api/project/switch/", api_switch_active_project, name="api_switch_active_project"),
+    # Scholar API endpoints (global /api/scholar/ prefix)
+    path("api/scholar/citation-graph/", include("apps.scholar_app.api.citation_graph_urls")),
     # GitHub-like operations
     # /new - Create new project
     path("new/", project_create, name="project_create"),
