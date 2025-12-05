@@ -1,0 +1,80 @@
+#!/bin/bash
+# SLURM UID Synchronization Library
+# Dynamically syncs container's slurm user UID/GID with host system
+
+sync_slurm_uid() {
+    # Read host slurm UID from mounted /etc/slurm/slurm.conf or /etc/passwd
+    # The host's /etc/slurm is mounted read-only into the container
+
+    local HOST_SLURM_UID=""
+    local HOST_SLURM_GID=""
+
+    # Method 1: Check if host passwd is accessible via environment variable
+    if [ -n "$SCITEX_SLURM_UID" ] && [ -n "$SCITEX_SLURM_GID" ]; then
+        HOST_SLURM_UID="$SCITEX_SLURM_UID"
+        HOST_SLURM_GID="$SCITEX_SLURM_GID"
+        echo_info "Using SLURM UID/GID from environment: $HOST_SLURM_UID:$HOST_SLURM_GID"
+
+    # Method 2: Read from mounted host passwd file (if available)
+    elif [ -f "/host/etc/passwd" ]; then
+        local slurm_entry=$(grep "^slurm:" /host/etc/passwd 2>/dev/null || true)
+        if [ -n "$slurm_entry" ]; then
+            HOST_SLURM_UID=$(echo "$slurm_entry" | cut -d: -f3)
+            HOST_SLURM_GID=$(echo "$slurm_entry" | cut -d: -f4)
+            echo_info "Using SLURM UID/GID from host passwd: $HOST_SLURM_UID:$HOST_SLURM_GID"
+        fi
+
+    # Method 3: Parse SlurmUser from slurm.conf and lookup in host passwd
+    elif [ -f "/etc/slurm/slurm.conf" ]; then
+        # slurm.conf is mounted from host, check SlurmUser directive
+        local slurm_user=$(grep "^SlurmUser=" /etc/slurm/slurm.conf 2>/dev/null | cut -d= -f2 || echo "slurm")
+        echo_info "SlurmUser from config: $slurm_user"
+        # We can't directly get UID from config, will use fallback
+    fi
+
+    # If we couldn't determine host UID, skip sync
+    if [ -z "$HOST_SLURM_UID" ] || [ -z "$HOST_SLURM_GID" ]; then
+        echo_warning "Could not determine host SLURM UID/GID"
+        echo_warning "Set SCITEX_SLURM_UID and SCITEX_SLURM_GID env vars, or mount /host/etc/passwd"
+        echo_warning "Terminal SLURM integration may fail with 'Security violation' error"
+        return 1
+    fi
+
+    # Get current container slurm UID
+    local CONTAINER_SLURM_UID=$(id -u slurm 2>/dev/null || echo "")
+    local CONTAINER_SLURM_GID=$(getent group slurm 2>/dev/null | cut -d: -f3 || echo "")
+
+    # Check if slurm user exists in container
+    if [ -z "$CONTAINER_SLURM_UID" ]; then
+        echo_info "Creating slurm user with UID:GID = $HOST_SLURM_UID:$HOST_SLURM_GID"
+        groupadd -g "$HOST_SLURM_GID" slurm 2>/dev/null || groupmod -g "$HOST_SLURM_GID" slurm 2>/dev/null || true
+        useradd -u "$HOST_SLURM_UID" -g "$HOST_SLURM_GID" -r -s /bin/false slurm 2>/dev/null || true
+        echo_success "SLURM user created"
+        return 0
+    fi
+
+    # Check if UIDs already match
+    if [ "$CONTAINER_SLURM_UID" = "$HOST_SLURM_UID" ] && [ "$CONTAINER_SLURM_GID" = "$HOST_SLURM_GID" ]; then
+        echo_success "SLURM UID/GID already synced ($HOST_SLURM_UID:$HOST_SLURM_GID)"
+        return 0
+    fi
+
+    # UIDs don't match - need to modify
+    echo_info "Syncing SLURM UID: container=$CONTAINER_SLURM_UID:$CONTAINER_SLURM_GID -> host=$HOST_SLURM_UID:$HOST_SLURM_GID"
+
+    # Modify group first, then user
+    groupmod -g "$HOST_SLURM_GID" slurm 2>/dev/null || true
+    usermod -u "$HOST_SLURM_UID" -g "$HOST_SLURM_GID" slurm 2>/dev/null || true
+
+    # Verify
+    local NEW_UID=$(id -u slurm 2>/dev/null || echo "failed")
+    if [ "$NEW_UID" = "$HOST_SLURM_UID" ]; then
+        echo_success "SLURM UID synced successfully"
+        return 0
+    else
+        echo_error "Failed to sync SLURM UID (got $NEW_UID, expected $HOST_SLURM_UID)"
+        return 1
+    fi
+}
+
+# EOF

@@ -188,7 +188,7 @@ dist/
 # downloads/ - removed, too broad (matches ts/writer/downloads/)
 eggs/
 .eggs/
-lib/
+# lib/ - removed, too broad (matches deployment/docker/common/lib/)
 lib64/
 parts/
 sdist/
