@@ -1,0 +1,37 @@
+flowchart TD
+
+    %% Positions
+    WriterTop["Writer"]:::mod
+    ScholarLeft["Scholar"]:::mod
+    VisRight["Vis"]:::mod
+    CodeBottom["Code"]:::mod
+    FilesCenter["Files"]:::core
+
+    %% Diamond Layout
+    WriterTop --> FilesCenter
+    ScholarLeft --> FilesCenter
+    VisRight --> FilesCenter
+    CodeBottom --> FilesCenter
+
+    FilesCenter --> WriterTop
+    FilesCenter --> ScholarLeft
+    FilesCenter --> VisRight
+    FilesCenter --> CodeBottom
+
+    %% Cross-module synergy
+    ScholarLeft --> WriterTop
+    WriterTop  --> CodeBottom
+    CodeBottom --> VisRight
+    VisRight   --> WriterTop
+
+    %% AI links
+    AI["AI Engine"]:::ai
+    AI --> WriterTop
+    AI --> ScholarLeft
+    AI --> VisRight
+    AI --> CodeBottom
+
+    %% Styles
+    classDef core fill:#1f2a40,stroke:#88aaff,color:#ffffff,stroke-width:2px;
+    classDef mod fill:#2e3b55,stroke:#aac7ff,color:#ffffff,stroke-width:1.5px;
+    classDef ai fill:#3c4f6b,stroke:#ffcc66,color:#ffffff,stroke-width:1.5px;

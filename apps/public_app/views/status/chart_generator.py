@@ -22,6 +22,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
+from django.conf import settings
 from django.utils import timezone
 
 logger = logging.getLogger("scitex")
@@ -106,7 +107,7 @@ CHART_CONFIGS = {
     },
     "visitor_pool": {
         "color": "#C9CBCF",
-        "y_max": 4,
+        "y_max": int(getattr(settings, "SCITEX_CLOUD_VISITOR_POOL_SIZE", 4) * 1.1),
         "fill": True,
         "field": "visitor_pool_allocated",
         "ylabel": "Slots (n)",
@@ -181,11 +182,11 @@ def generate_single_chart(metric_type: str, minutes: int, theme: str) -> bool:
                     timestamps,
                     y,
                     color=chart_colors[i % len(chart_colors)],
-                    linewidth=1.5,
+                    linewidth=1.0,
                     label=labels[i] if i < len(labels) else key,
                 )
             ax.legend(
-                fontsize=11,
+                fontsize=13,
                 loc="lower right",
                 bbox_to_anchor=(1, 1.02),  # Above axes, right-aligned
                 frameon=False,
@@ -214,13 +215,13 @@ def generate_single_chart(metric_type: str, minutes: int, theme: str) -> bool:
         # Set axis labels with units (scientific rigor)
         xlabel = config.get("xlabel", "Time")
         ylabel = config.get("ylabel", "Value")
-        ax.set_xlabel(xlabel, fontsize=10)
-        ax.set_ylabel(ylabel, fontsize=10)
+        ax.set_xlabel(xlabel, fontsize=12)
+        ax.set_ylabel(ylabel, fontsize=12)
 
         # Apply theme colors for visibility
         ax.spines["bottom"].set_color(colors["axis"])
         ax.spines["left"].set_color(colors["axis"])
-        ax.tick_params(axis="both", colors=colors["tick"], labelsize=9)
+        ax.tick_params(axis="both", colors=colors["tick"], labelsize=11)
         ax.xaxis.label.set_color(colors["tick"])
         ax.yaxis.label.set_color(colors["tick"])
 
