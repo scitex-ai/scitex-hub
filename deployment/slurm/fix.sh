@@ -2,11 +2,11 @@
 # SLURM Fix Script - Run when things break
 # Usage: sudo ./fix.sh
 
-[[ $EUID -ne 0 ]] && { echo "Run with sudo"; exit 1; }
+[[ $EUID -ne 0 ]] && { echo -e "Run with sudo"; exit 1; }
 
 NODE=$(hostname -s)
 
-echo "Fixing SLURM..."
+echo -e "Fixing SLURM..."
 
 # Stop and kill everything
 systemctl stop slurmctld slurmd 2>/dev/null
@@ -29,11 +29,11 @@ sleep 2
 scontrol update nodename=$NODE state=idle 2>/dev/null
 
 # Verify
-echo ""
+echo -e ""
 sinfo
-echo ""
+echo -e ""
 if srun --partition=express hostname 2>/dev/null; then
-    echo "SLURM OK"
+    echo -e "SLURM OK"
 else
-    echo "Still broken. Check: journalctl -u slurmd -n 20"
+    echo -e "Still broken. Check: journalctl -u slurmd -n 20"
 fi

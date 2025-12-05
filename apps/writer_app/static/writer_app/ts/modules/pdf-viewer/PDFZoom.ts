@@ -3,7 +3,7 @@
  * Handles zoom controls, scale management, and persistence
  */
 
-import { statePersistence } from "../state-persistence.ts";
+import { statePersistence } from "../state-persistence";
 
 console.log("[DEBUG] PDFZoom.ts loaded");
 

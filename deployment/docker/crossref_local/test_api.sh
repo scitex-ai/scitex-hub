@@ -6,11 +6,11 @@ set -e
 API_URL="${1:-http://localhost:3333}"
 TEST_DOI="10.1038/nature12345"
 
-echo "=========================================="
-echo "Testing CrossRef Local API"
-echo "API URL: $API_URL"
-echo "=========================================="
-echo ""
+echo -e "=========================================="
+echo -e "Testing CrossRef Local API"
+echo -e "API URL: $API_URL"
+echo -e "=========================================="
+echo -e ""
 
 # Function to test endpoint
 test_endpoint() {
@@ -18,24 +18,24 @@ test_endpoint() {
     local endpoint="$2"
     local expected_status="${3:-200}"
 
-    echo "Testing: $name"
-    echo "URL: $API_URL$endpoint"
+    echo -e "Testing: $name"
+    echo -e "URL: $API_URL$endpoint"
 
     response=$(curl -s -w "\n%{http_code}" "$API_URL$endpoint")
-    body=$(echo "$response" | head -n -1)
-    status=$(echo "$response" | tail -n 1)
+    body=$(echo -e "$response" | head -n -1)
+    status=$(echo -e "$response" | tail -n 1)
 
     if [ "$status" -eq "$expected_status" ]; then
-        echo "✓ Status: $status (expected $expected_status)"
-        echo "Response preview:"
-        echo "$body" | head -c 200
-        echo "..."
-        echo ""
+        echo -e "✓ Status: $status (expected $expected_status)"
+        echo -e "Response preview:"
+        echo -e "$body" | head -c 200
+        echo -e "..."
+        echo -e ""
     else
-        echo "✗ Status: $status (expected $expected_status)"
-        echo "Response:"
-        echo "$body"
-        echo ""
+        echo -e "✗ Status: $status (expected $expected_status)"
+        echo -e "Response:"
+        echo -e "$body"
+        echo -e ""
         exit 1
     fi
 }
@@ -64,12 +64,12 @@ test_endpoint "Citation Graph" "/api/citations/?doi=$TEST_DOI&depth=1" 200
 # 8. Swagger docs
 test_endpoint "Swagger Docs" "/docs" 200
 
-echo "=========================================="
-echo "All tests passed! ✓"
-echo "=========================================="
-echo ""
-echo "API is ready to use:"
-echo "  - Documentation: $API_URL/docs"
-echo "  - Health: $API_URL/health"
-echo "  - Search: $API_URL/api/search/"
-echo ""
+echo -e "=========================================="
+echo -e "All tests passed! ✓"
+echo -e "=========================================="
+echo -e ""
+echo -e "API is ready to use:"
+echo -e "  - Documentation: $API_URL/docs"
+echo -e "  - Health: $API_URL/health"
+echo -e "  - Search: $API_URL/api/search/"
+echo -e ""

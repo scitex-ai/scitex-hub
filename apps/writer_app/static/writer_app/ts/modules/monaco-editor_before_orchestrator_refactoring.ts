@@ -4,7 +4,7 @@
  * Falls back to CodeMirror if Monaco is not available
  */
 
-import { SpellChecker, injectSpellCheckStyles } from "./spell-checker.ts";
+import { SpellChecker, injectSpellCheckStyles } from "./spell-checker";
 import {
   registerLatexLanguage,
   registerLatexCompletionProvider,
@@ -13,15 +13,15 @@ import {
   defineScitexTheme,
   createMonacoEditor,
   setupThemeObserver,
-} from "./monaco-editor/monaco-init.ts";
+} from "./monaco-editor/monaco-init";
 import {
   setupMonacoEditorListeners,
   setupCitationDropZone,
   setupCitationProtection,
   setupSuggestionWidgetObserver,
-} from "./monaco-editor/monaco-features.ts";
-import { EditorHistory } from "./monaco-editor/editor-history.ts";
-import { CursorManager } from "./monaco-editor/cursor-manager.ts";
+} from "./monaco-editor/monaco-features";
+import { EditorHistory } from "./monaco-editor/editor-history";
+import { CursorManager } from "./monaco-editor/cursor-manager";
 
 console.log(
   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/monaco-editor.ts loaded",

@@ -3,12 +3,12 @@
  * Handles UI updates for sections including title labels, PDF preview, and compiled PDF display
  */
 
-import { getWriterConfig } from "../../helpers.ts";
+import { getWriterConfig } from "../../helpers";
 import {
   updateSectionTitleLabel,
   updatePDFPreviewTitle,
   updateCommitButtonVisibility,
-} from "../ui.ts";
+} from "../ui";
 
 // Module-level variables
 let compileTimeout: ReturnType<typeof setTimeout> | null = null;

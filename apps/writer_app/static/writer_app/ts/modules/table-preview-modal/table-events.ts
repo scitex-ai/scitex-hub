@@ -5,8 +5,8 @@
 
 console.log("[DEBUG] table-preview-modal/table-events.ts loaded");
 
-import { TableStateManager } from "./table-state.ts";
-import { TableRenderer } from "./table-renderer.ts";
+import { TableStateManager } from "./table-state";
+import { TableRenderer } from "./table-renderer";
 
 export class TableEventManager {
   constructor(

@@ -67,113 +67,113 @@ NC := \033[0m
 # Help (default target)
 # ============================================
 help:
-	@echo ""
-	@echo "$(GREEN)╔═══════════════════════════════════════════════════════╗$(NC)"
-	@echo "$(GREEN)║          SciTeX Cloud - Development Mode              ║$(NC)"
-	@echo "$(GREEN)╚═══════════════════════════════════════════════════════╝$(NC)"
-	@echo ""
-	@echo "$(CYAN)🚀 Quick Start:$(NC)"
-	@echo "  make start              - Full setup from scratch (recommended)"
-	@echo "  make restart            - Quick restart of web container"
-	@echo "  make reload             - Super quick reload (for scitex changes)"
-	@echo "  make logs               - View all service logs"
-	@echo "  make stop               - Stop all services"
-	@echo ""
-	@echo "$(CYAN)🐳 Docker Services:$(NC)"
-	@echo "  make build              - Build Docker images"
-	@echo "  make up                 - Start all services (no rebuild)"
-	@echo "  make down               - Stop and remove containers"
-	@echo "  make ps                 - Show service status"
-	@echo "  make rebuild            - Clean rebuild (stops, builds, starts)"
-	@echo "  make clean              - Remove containers and volumes (⚠️  DANGEROUS)"
-	@echo ""
-	@echo "$(CYAN)🐍 Django Management:$(NC)"
-	@echo "  make migrate            - Run database migrations"
-	@echo "  make makemigrations     - Create new migrations"
-	@echo "  make shell              - Open Django shell"
-	@echo "  make createsuperuser    - Create superuser account"
-	@echo "  make collectstatic      - Collect static files"
-	@echo "  make test               - Run test suite"
-	@echo ""
-	@echo "$(CYAN)🗄️  Database:$(NC)"
-	@echo "  make db-shell           - PostgreSQL shell"
-	@echo "  make db-reset           - Reset database (⚠️  DELETES ALL DATA)"
-	@echo ""
-	@echo "$(CYAN)📋 Logs & Monitoring:$(NC)"
-	@echo "  make logs               - View all service logs"
-	@echo "  make logs-django        - View Django container logs"
-	@echo "  make logs-db            - View database logs"
-	@echo "  make logs-gitea         - View Gitea logs"
-	@echo "  make logs-redis         - View Redis logs"
-	@echo ""
-	@echo "$(CYAN)🔧 Shell Access:$(NC)"
-	@echo "  make exec-django        - Shell into Django container"
-	@echo "  make exec-db            - Shell into database container"
-	@echo "  make exec-gitea         - Shell into Gitea container"
-	@echo ""
-	@echo "$(CYAN)🔑 Gitea Management:$(NC)"
-	@echo "  make gitea-token        - Generate/verify Gitea API token"
-	@echo "  make verify-gitea       - Verify Gitea API access"
-	@echo "  make recreate-testuser  - Recreate test user"
-	@echo ""
-	@echo "$(CYAN)🧪 Development Shortcuts:$(NC)"
-	@echo "  make dev                - Full dev cycle (start + migrate + collectstatic)"
-	@echo "  make update             - Quick update (restart)"
-	@echo "  make reset              - Full reset (down + clean + start)"
-	@echo ""
-	@echo "$(YELLOW)Access URLs:$(NC)"
-	@echo "  📍 Django: http://localhost:8000"
-	@echo "  📍 Gitea:  http://localhost:3000"
-	@echo ""
+	@echo -e ""
+	@echo -e "$(GREEN)╔═══════════════════════════════════════════════════════╗$(NC)"
+	@echo -e "$(GREEN)║          SciTeX Cloud - Development Mode              ║$(NC)"
+	@echo -e "$(GREEN)╚═══════════════════════════════════════════════════════╝$(NC)"
+	@echo -e ""
+	@echo -e "$(CYAN)🚀 Quick Start:$(NC)"
+	@echo -e "  make start              - Full setup from scratch (recommended)"
+	@echo -e "  make restart            - Quick restart of web container"
+	@echo -e "  make reload             - Super quick reload (for scitex changes)"
+	@echo -e "  make logs               - View all service logs"
+	@echo -e "  make stop               - Stop all services"
+	@echo -e ""
+	@echo -e "$(CYAN)🐳 Docker Services:$(NC)"
+	@echo -e "  make build              - Build Docker images"
+	@echo -e "  make up                 - Start all services (no rebuild)"
+	@echo -e "  make down               - Stop and remove containers"
+	@echo -e "  make ps                 - Show service status"
+	@echo -e "  make rebuild            - Clean rebuild (stops, builds, starts)"
+	@echo -e "  make clean              - Remove containers and volumes (⚠️  DANGEROUS)"
+	@echo -e ""
+	@echo -e "$(CYAN)🐍 Django Management:$(NC)"
+	@echo -e "  make migrate            - Run database migrations"
+	@echo -e "  make makemigrations     - Create new migrations"
+	@echo -e "  make shell              - Open Django shell"
+	@echo -e "  make createsuperuser    - Create superuser account"
+	@echo -e "  make collectstatic      - Collect static files"
+	@echo -e "  make test               - Run test suite"
+	@echo -e ""
+	@echo -e "$(CYAN)🗄️  Database:$(NC)"
+	@echo -e "  make db-shell           - PostgreSQL shell"
+	@echo -e "  make db-reset           - Reset database (⚠️  DELETES ALL DATA)"
+	@echo -e ""
+	@echo -e "$(CYAN)📋 Logs & Monitoring:$(NC)"
+	@echo -e "  make logs               - View all service logs"
+	@echo -e "  make logs-django        - View Django container logs"
+	@echo -e "  make logs-db            - View database logs"
+	@echo -e "  make logs-gitea         - View Gitea logs"
+	@echo -e "  make logs-redis         - View Redis logs"
+	@echo -e ""
+	@echo -e "$(CYAN)🔧 Shell Access:$(NC)"
+	@echo -e "  make exec-django        - Shell into Django container"
+	@echo -e "  make exec-db            - Shell into database container"
+	@echo -e "  make exec-gitea         - Shell into Gitea container"
+	@echo -e ""
+	@echo -e "$(CYAN)🔑 Gitea Management:$(NC)"
+	@echo -e "  make gitea-token        - Generate/verify Gitea API token"
+	@echo -e "  make verify-gitea       - Verify Gitea API access"
+	@echo -e "  make recreate-testuser  - Recreate test user"
+	@echo -e ""
+	@echo -e "$(CYAN)🧪 Development Shortcuts:$(NC)"
+	@echo -e "  make dev                - Full dev cycle (start + migrate + collectstatic)"
+	@echo -e "  make update             - Quick update (restart)"
+	@echo -e "  make reset              - Full reset (down + clean + start)"
+	@echo -e ""
+	@echo -e "$(YELLOW)Access URLs:$(NC)"
+	@echo -e "  📍 Django: http://localhost:8000"
+	@echo -e "  📍 Gitea:  http://localhost:3000"
+	@echo -e ""
 
 # ============================================
 # Setup & Build Commands
 # ============================================
 setup: start migrate collectstatic
-	@echo "$(GREEN)✅ Development setup complete!$(NC)"
+	@echo -e "$(GREEN)✅ Development setup complete!$(NC)"
 
 start:
-	@echo "$(CYAN)🚀 Starting development environment...$(NC)"
+	@echo -e "$(CYAN)🚀 Starting development environment...$(NC)"
 	cd $(CURDIR) && bash $(CURDIR)/server.sh -a start
 
 restart:
-	@echo "$(CYAN)🔄 Restarting web container...$(NC)"
+	@echo -e "$(CYAN)🔄 Restarting web container...$(NC)"
 	cd $(CURDIR) && bash $(CURDIR)/server.sh -a restart
 
 reload:
-	@echo "$(CYAN)⚡ Quick reload (for scitex code changes)...$(NC)"
+	@echo -e "$(CYAN)⚡ Quick reload (for scitex code changes)...$(NC)"
 	$(COMPOSE) restart django
-	@echo "$(GREEN)✅ Reloaded!$(NC)"
+	@echo -e "$(GREEN)✅ Reloaded!$(NC)"
 
 build:
-	@echo "$(CYAN)🏗️  Building Docker images...$(NC)"
+	@echo -e "$(CYAN)🏗️  Building Docker images...$(NC)"
 	DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 $(COMPOSE) build --parallel
 
 build-no-cache:
-	@echo "$(CYAN)🏗️  Building Docker images (without cache)...$(NC)"
+	@echo -e "$(CYAN)🏗️  Building Docker images (without cache)...$(NC)"
 	DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 $(COMPOSE) build --parallel --no-cache
 
 up:
-	@echo "$(CYAN)⬆️  Starting services...$(NC)"
+	@echo -e "$(CYAN)⬆️  Starting services...$(NC)"
 	$(COMPOSE) up -d
-	@echo "$(GREEN)✅ Services started$(NC)"
+	@echo -e "$(GREEN)✅ Services started$(NC)"
 
 down:
-	@echo "$(YELLOW)⬇️  Stopping services...$(NC)"
+	@echo -e "$(YELLOW)⬇️  Stopping services...$(NC)"
 	$(COMPOSE) down
-	@echo "$(GREEN)✅ Services stopped$(NC)"
+	@echo -e "$(GREEN)✅ Services stopped$(NC)"
 
 stop: down
 
 ps:
-	@echo "$(CYAN)📊 Service Status:$(NC)"
+	@echo -e "$(CYAN)📊 Service Status:$(NC)"
 	$(COMPOSE) ps
 
 rebuild: down build up migrate collectstatic
-	@echo "$(GREEN)✅ Rebuild complete!$(NC)"
+	@echo -e "$(GREEN)✅ Rebuild complete!$(NC)"
 
 clean:
-	@echo "$(RED)⚠️  WARNING: This will remove ALL containers and volumes!$(NC)"
+	@echo -e "$(RED)⚠️  WARNING: This will remove ALL containers and volumes!$(NC)"
 	@read -p "Are you absolutely sure? Type 'yes' to confirm: " confirm && \
 	[ "$$confirm" = "yes" ] && \
 	(echo "$(RED)🗑️  Removing containers and volumes...$(NC)" && \
@@ -195,46 +195,46 @@ docker-check-health:
 # Django Management Commands
 # ============================================
 migrate: docker-check-health
-	@echo "$(CYAN)🔄 Running migrations...$(NC)"
+	@echo -e "$(CYAN)🔄 Running migrations...$(NC)"
 	$(COMPOSE) exec -T django python manage.py migrate
-	@echo "$(GREEN)✅ Migrations applied$(NC)"
+	@echo -e "$(GREEN)✅ Migrations applied$(NC)"
 
 makemigrations: docker-check-health
-	@echo "$(CYAN)📝 Creating migrations...$(NC)"
+	@echo -e "$(CYAN)📝 Creating migrations...$(NC)"
 	$(COMPOSE) exec -T django python manage.py makemigrations
-	@echo "$(GREEN)✅ Migrations created$(NC)"
+	@echo -e "$(GREEN)✅ Migrations created$(NC)"
 
 shell: docker-check-health
-	@echo "$(CYAN)🐍 Opening Django shell...$(NC)"
+	@echo -e "$(CYAN)🐍 Opening Django shell...$(NC)"
 	$(COMPOSE) exec django python manage.py shell
 
 createsuperuser: docker-check-health
-	@echo "$(CYAN)👤 Creating superuser...$(NC)"
+	@echo -e "$(CYAN)👤 Creating superuser...$(NC)"
 	$(COMPOSE) exec django python manage.py createsuperuser
 
 # build-ts removed - Vite handles TypeScript directly
 
 collectstatic: docker-check-health
-	@echo "$(CYAN)📦 Collecting static files...$(NC)"
+	@echo -e "$(CYAN)📦 Collecting static files...$(NC)"
 	$(COMPOSE) exec -T django python manage.py collectstatic --noinput
-	@echo "$(GREEN)✅ Static files collected$(NC)"
+	@echo -e "$(GREEN)✅ Static files collected$(NC)"
 
 test: docker-check-health
-	@echo "$(CYAN)🧪 Running tests...$(NC)"
+	@echo -e "$(CYAN)🧪 Running tests...$(NC)"
 	$(COMPOSE) exec -T django python manage.py test
-	@echo "$(GREEN)✅ Tests completed$(NC)"
+	@echo -e "$(GREEN)✅ Tests completed$(NC)"
 
 # E2E Testing with Playwright
 test-e2e: docker-check-health
-	@echo "$(CYAN)🎭 Running E2E tests (headless)...$(NC)"
+	@echo -e "$(CYAN)🎭 Running E2E tests (headless)...$(NC)"
 	$(COMPOSE) exec -T django pytest tests/e2e/ -v -p no:zarr
-	@echo "$(GREEN)✅ E2E tests completed$(NC)"
+	@echo -e "$(GREEN)✅ E2E tests completed$(NC)"
 
 test-e2e-headed: docker-check-health
-	@echo "$(CYAN)🎭 Running E2E tests (with browser)...$(NC)"
-	@echo "$(YELLOW)⚠️  Note: Headed mode requires X11 forwarding in Docker$(NC)"
+	@echo -e "$(CYAN)🎭 Running E2E tests (with browser)...$(NC)"
+	@echo -e "$(YELLOW)⚠️  Note: Headed mode requires X11 forwarding in Docker$(NC)"
 	$(COMPOSE) exec -T -e DISPLAY=$(DISPLAY) django pytest tests/e2e/ -v --headed --browser chromium
-	@echo "$(GREEN)✅ E2E tests completed$(NC)"
+	@echo -e "$(GREEN)✅ E2E tests completed$(NC)"
 
 test-e2e-specific: docker-check-health
 	@if [ -z "$(TEST)" ]; then \
@@ -242,19 +242,19 @@ test-e2e-specific: docker-check-health
 		echo "$(YELLOW)Usage: make test-e2e-specific TEST=tests/e2e/test_user_creation.py$(NC)"; \
 		exit 1; \
 	fi
-	@echo "$(CYAN)🎭 Running specific E2E test: $(TEST)...$(NC)"
+	@echo -e "$(CYAN)🎭 Running specific E2E test: $(TEST)...$(NC)"
 	$(COMPOSE) exec -T django pytest $(TEST) -v -p no:zarr
-	@echo "$(GREEN)✅ E2E test completed$(NC)"
+	@echo -e "$(GREEN)✅ E2E test completed$(NC)"
 
 # ============================================
 # Database Commands
 # ============================================
 db-shell: docker-check-health
-	@echo "$(CYAN)🗄️  Opening PostgreSQL shell...$(NC)"
+	@echo -e "$(CYAN)🗄️  Opening PostgreSQL shell...$(NC)"
 	@$(COMPOSE) exec db psql -U $${SCITEX_CLOUD_POSTGRES_USER:-scitex_dev} -d $${SCITEX_CLOUD_POSTGRES_DB:-scitex_cloud_dev}
 
 db-reset: docker-check-health
-	@echo "$(RED)⚠️  WARNING: This will DELETE ALL DATA in the database!$(NC)"
+	@echo -e "$(RED)⚠️  WARNING: This will DELETE ALL DATA in the database!$(NC)"
 	@read -p "Are you absolutely sure? Type 'yes' to confirm: " confirm && \
 	[ "$$confirm" = "yes" ] && \
 	(echo "$(RED)🔄 Resetting database...$(NC)" && \
@@ -267,85 +267,85 @@ db-reset: docker-check-health
 # Logs & Monitoring
 # ============================================
 logs:
-	@echo "$(CYAN)📋 Showing all service logs (Ctrl+C to exit)...$(NC)"
+	@echo -e "$(CYAN)📋 Showing all service logs (Ctrl+C to exit)...$(NC)"
 	$(COMPOSE) logs -f
 
 logs-django:
-	@echo "$(CYAN)📋 Showing Django container logs...$(NC)"
+	@echo -e "$(CYAN)📋 Showing Django container logs...$(NC)"
 	$(COMPOSE) logs -f django
 
 logs-db:
-	@echo "$(CYAN)📋 Showing database logs...$(NC)"
+	@echo -e "$(CYAN)📋 Showing database logs...$(NC)"
 	$(COMPOSE) logs -f db
 
 logs-gitea:
-	@echo "$(CYAN)📋 Showing Gitea logs...$(NC)"
+	@echo -e "$(CYAN)📋 Showing Gitea logs...$(NC)"
 	$(COMPOSE) logs -f gitea
 
 logs-redis:
-	@echo "$(CYAN)📋 Showing Redis logs...$(NC)"
+	@echo -e "$(CYAN)📋 Showing Redis logs...$(NC)"
 	$(COMPOSE) logs -f redis
 
 # ============================================
 # Shell Access
 # ============================================
 exec-django: docker-check-health
-	@echo "$(CYAN)🐳 Opening shell in Django container...$(NC)"
+	@echo -e "$(CYAN)🐳 Opening shell in Django container...$(NC)"
 	$(COMPOSE) exec django /bin/bash
 
 exec-db: docker-check-health
-	@echo "$(CYAN)🐳 Opening shell in database container...$(NC)"
+	@echo -e "$(CYAN)🐳 Opening shell in database container...$(NC)"
 	$(COMPOSE) exec db /bin/sh
 
 exec-gitea: docker-check-health
-	@echo "$(CYAN)🐳 Opening shell in Gitea container...$(NC)"
+	@echo -e "$(CYAN)🐳 Opening shell in Gitea container...$(NC)"
 	$(COMPOSE) exec gitea /bin/sh
 
 # ============================================
 # Gitea Management
 # ============================================
 gitea-token: docker-check-health
-	@echo "$(CYAN)🔑 Setting up Gitea API token...$(NC)"
+	@echo -e "$(CYAN)🔑 Setting up Gitea API token...$(NC)"
 	cd $(CURDIR) && bash $(CURDIR)/server.sh -a setup_gitea_token
 
 verify-gitea: docker-check-health
-	@echo "$(CYAN)🔍 Verifying Gitea API access...$(NC)"
+	@echo -e "$(CYAN)🔍 Verifying Gitea API access...$(NC)"
 	cd $(CURDIR) && bash $(CURDIR)/server.sh -a verify_gitea_api
 
 recreate-testuser: docker-check-health
-	@echo "$(CYAN)👤 Recreating test user...$(NC)"
+	@echo -e "$(CYAN)👤 Recreating test user...$(NC)"
 	cd $(CURDIR) && bash $(CURDIR)/server.sh -a recreate_test_user
 
 # ============================================
 # Environment & Utilities
 # ============================================
 verify-env:
-	@echo "$(CYAN)🔍 Verifying environment setup...$(NC)"
+	@echo -e "$(CYAN)🔍 Verifying environment setup...$(NC)"
 	cd $(CURDIR) && bash $(CURDIR)/server.sh -a verify_env_setup
 
 list-env:
-	@echo "$(CYAN)📝 Environment Variables:$(NC)"
+	@echo -e "$(CYAN)📝 Environment Variables:$(NC)"
 	cd $(CURDIR) && bash $(CURDIR)/server.sh -a list_env
 
 clean-python:
-	@echo "$(CYAN)🧹 Cleaning Python cache files...$(NC)"
+	@echo -e "$(CYAN)🧹 Cleaning Python cache files...$(NC)"
 	find ../../ -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 	find ../../ -type f -name "*.pyc" -delete
 	find ../../ -type d -name .pytest_cache -exec rm -rf {} + 2>/dev/null || true
-	@echo "$(GREEN)✅ Python cache cleaned$(NC)"
+	@echo -e "$(GREEN)✅ Python cache cleaned$(NC)"
 
 # ============================================
 # Development Workflow Shortcuts
 # ============================================
 dev: start migrate collectstatic
-	@echo "$(GREEN)✅ Development environment ready!$(NC)"
-	@echo "$(GREEN)📍 Django: http://localhost:8000$(NC)"
-	@echo "$(GREEN)📍 Gitea:  http://localhost:3000$(NC)"
+	@echo -e "$(GREEN)✅ Development environment ready!$(NC)"
+	@echo -e "$(GREEN)📍 Django: http://localhost:8000$(NC)"
+	@echo -e "$(GREEN)📍 Gitea:  http://localhost:3000$(NC)"
 
 update: restart
-	@echo "$(GREEN)✅ Services updated$(NC)"
+	@echo -e "$(GREEN)✅ Services updated$(NC)"
 
 reset: down clean start migrate collectstatic
-	@echo "$(GREEN)✅ Environment reset complete$(NC)"
+	@echo -e "$(GREEN)✅ Environment reset complete$(NC)"
 
 # EOF

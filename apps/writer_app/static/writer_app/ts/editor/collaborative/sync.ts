@@ -12,7 +12,7 @@ import type {
   VersionData,
   VersionResponse,
   ExportData,
-} from "./types.ts";
+} from "./types";
 
 export class SyncManager {
   private autoSaveInterval: ReturnType<typeof setInterval> | null = null;

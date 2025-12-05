@@ -3,9 +3,9 @@
  * @module repository/admin/backup
  */
 
-import { PendingAction } from "./types.ts";
-import { escapeHtml } from "./rendering.ts";
-import { showDialog, getCSRFToken, showError } from "./ui.ts";
+import { PendingAction } from "./types";
+import { escapeHtml } from "./rendering";
+import { showDialog, getCSRFToken, showError } from "./ui";
 
 /**
  * Shows confirmation dialog for repository restoration

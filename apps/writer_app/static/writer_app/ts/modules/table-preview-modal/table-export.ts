@@ -5,7 +5,7 @@
 
 console.log("[DEBUG] table-preview-modal/table-export.ts loaded");
 
-import { TableData } from "./types.ts";
+import { TableData } from "./types";
 
 export class TableExporter {
   exportToCSV(table: TableData): void {

@@ -18,15 +18,15 @@ From: python:3.11-slim
     SciTeX Latest from PyPI with all extras (dl,ml,jupyter,neuro,web,scholar,writer)
 
 %post
-    echo "============================================"
-    echo "Building SciTeX User Workspace Container"
-    echo "============================================"
+    echo -e "============================================"
+    echo -e "Building SciTeX User Workspace Container"
+    echo -e "============================================"
 
     # Update package lists
     apt-get update
 
     # Install system dependencies
-    echo "Installing system dependencies..."
+    echo -e "Installing system dependencies..."
     apt-get install -y --no-install-recommends \
         build-essential \
         git \
@@ -46,16 +46,16 @@ From: python:3.11-slim
         && rm -rf /var/lib/apt/lists/*
 
     # Install Microsoft core fonts (Arial, Times New Roman, etc.) for scientific figures
-    echo "Installing Microsoft core fonts..."
+    echo -e "Installing Microsoft core fonts..."
     sed -i 's/main/main contrib/g' /etc/apt/sources.list.d/debian.sources 2>/dev/null || \
         sed -i 's/main$/main contrib/' /etc/apt/sources.list
     apt-get update
-    echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections
+    echo -e "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ttf-mscorefonts-installer
     fc-cache -fv
     rm -rf /var/lib/apt/lists/*
 
-    echo "Installing Python packages..."
+    echo -e "Installing Python packages..."
     # Upgrade pip
     pip install --no-cache-dir --upgrade pip setuptools wheel
 
@@ -87,16 +87,16 @@ From: python:3.11-slim
         icecream==2.1.3
 
     # Install SciTeX with full extras from PyPI (latest version)
-    echo "Installing SciTeX platform (full version, ~2-5 GB)..."
+    echo -e "Installing SciTeX platform (full version, ~2-5 GB)..."
     pip install --no-cache-dir 'scitex[dl,ml,jupyter,neuro,web,scholar,writer]'
 
     # Clear matplotlib font cache so it discovers new fonts
-    echo "Refreshing matplotlib font cache..."
+    echo -e "Refreshing matplotlib font cache..."
     python -c "import matplotlib.font_manager; matplotlib.font_manager._rebuild()" 2>/dev/null || true
     rm -rf /root/.cache/matplotlib 2>/dev/null || true
 
     # Create workspace directory
-    echo "Setting up workspace..."
+    echo -e "Setting up workspace..."
     mkdir -p /workspace
     chmod 755 /workspace
 
@@ -104,7 +104,7 @@ From: python:3.11-slim
     mkdir -p /logs
     chmod 755 /logs
 
-    echo "Build complete!"
+    echo -e "Build complete!"
 
 %environment
     # Set locale
@@ -128,18 +128,18 @@ From: python:3.11-slim
 
 %startscript
     # For instance mode (if needed)
-    echo "SciTeX User Workspace container started"
+    echo -e "SciTeX User Workspace container started"
     exec /bin/bash
 
 %test
     # Test the installation
-    echo "Testing Python installation..."
+    echo -e "Testing Python installation..."
     python --version
 
-    echo "Testing installed packages..."
+    echo -e "Testing installed packages..."
     python -c "import numpy, pandas, matplotlib; print('Core packages OK')"
 
-    echo "Testing Arial font availability..."
+    echo -e "Testing Arial font availability..."
     python -c "
 import matplotlib.font_manager as fm
 fonts = [f.name for f in fm.fontManager.ttflist]
@@ -149,10 +149,10 @@ else:
     print('WARNING: Arial font not found, available fonts:', sorted(set(fonts))[:10])
 "
 
-    echo "Testing workspace..."
+    echo -e "Testing workspace..."
     ls -la /workspace
 
-    echo "All tests passed!"
+    echo -e "All tests passed!"
 
 %help
     ========================================

@@ -6,7 +6,7 @@
 ORIG_DIR="$(pwd)"
 THIS_DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
 LOG_PATH="$THIS_DIR/.$(basename $0).log"
-echo > "$LOG_PATH"
+echo -e > "$LOG_PATH"
 
 GIT_ROOT="$(git rev-parse --show-toplevel 2> /dev/null)"
 
@@ -57,7 +57,7 @@ install_docker_official() {
         | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 
     echo_info "Setting up Docker repository..."
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
+    echo -e "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
         | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
     echo_info "Installing Docker Engine..."
@@ -182,8 +182,8 @@ main() {
         fi
     else
         echo_info "Choose installation method:"
-        echo "  1) Official Docker repository (recommended)"
-        echo "  2) Ubuntu repository (simpler)"
+        echo -e "  1) Official Docker repository (recommended)"
+        echo -e "  2) Ubuntu repository (simpler)"
         read -p "Enter choice [1-2]: " choice_
 
         case $choice_ in

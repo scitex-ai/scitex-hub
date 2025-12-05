@@ -3,8 +3,8 @@
  * Manages user interactions and event coordination
  */
 
-import { Table } from "./types.ts";
-import { statePersistence } from "../state-persistence.ts";
+import { Table } from "./types";
+import { statePersistence } from "../state-persistence";
 
 export class TableEventHandler {
   private onSearch?: (query: string) => void;

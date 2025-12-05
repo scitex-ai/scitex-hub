@@ -7,16 +7,16 @@ export {
   populateSectionDropdownDirect,
   syncDropdownToSection,
   syncDropdownsFromPath,
-} from "./SectionDropdown.ts";
+} from "./SectionDropdown";
 
-export { handleDocTypeSwitch } from "./navigation.ts";
+export { handleDocTypeSwitch } from "./navigation";
 
-export { renderSectionDropdown } from "./rendering.ts";
+export { renderSectionDropdown } from "./rendering";
 
 export {
   toggleSectionVisibility,
   setupSectionEvents,
-} from "./events.ts";
+} from "./events";
 
 console.log(
   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/utils/section-dropdown/index.ts loaded",

@@ -5,12 +5,12 @@
  * Toggle with Alt+I (I for Inspector)
  */
 
-import { OverlayManager } from "./element-inspector/overlay-manager.ts";
-import { ElementScanner } from "./element-inspector/element-scanner.ts";
-import { DebugInfoCollector } from "./element-inspector/debug-info-collector.ts";
-import { SelectionManager } from "./element-inspector/selection-manager.ts";
-import { NotificationManager } from "./element-inspector/notification-manager.ts";
-import { PageStructureExporter } from "./element-inspector/page-structure-exporter.ts";
+import { OverlayManager } from "./element-inspector/overlay-manager";
+import { ElementScanner } from "./element-inspector/element-scanner";
+import { DebugInfoCollector } from "./element-inspector/debug-info-collector";
+import { SelectionManager } from "./element-inspector/selection-manager";
+import { NotificationManager } from "./element-inspector/notification-manager";
+import { PageStructureExporter } from "./element-inspector/page-structure-exporter";
 
 console.log(
   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/static/shared/ts/utils/element-inspector.ts loaded",

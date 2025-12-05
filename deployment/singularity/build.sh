@@ -20,19 +20,19 @@ NC='\033[0m' # No Color
 echo -e "${GREEN}============================================${NC}"
 echo -e "${GREEN}Building SciTeX User Workspace Container${NC}"
 echo -e "${GREEN}============================================${NC}"
-echo ""
+echo -e ""
 
 # Check if running as root
 if [ "$EUID" -ne 0 ]; then
     echo -e "${RED}Error: This script must be run as root (sudo)${NC}"
-    echo "Usage: sudo ./build.sh"
+    echo -e "Usage: sudo ./build.sh"
     exit 1
 fi
 
 # Check if Singularity is installed
 if ! command -v singularity &> /dev/null; then
     echo -e "${RED}Error: Singularity is not installed${NC}"
-    echo "Install with: sudo apt-get install singularity-container"
+    echo -e "Install with: sudo apt-get install singularity-container"
     exit 1
 fi
 
@@ -66,10 +66,10 @@ if [ "$FREE_SPACE" -lt 2 ]; then
     fi
 fi
 
-echo ""
+echo -e ""
 echo -e "${GREEN}Starting build...${NC}"
-echo "This will take 5-10 minutes depending on network speed."
-echo ""
+echo -e "This will take 5-10 minutes depending on network speed."
+echo -e ""
 
 # Build the container
 START_TIME=$(date +%s)
@@ -80,24 +80,24 @@ if singularity build "$SIF_FILE" "$DEF_FILE"; then
     BUILD_MINUTES=$((BUILD_TIME / 60))
     BUILD_SECONDS=$((BUILD_TIME % 60))
 
-    echo ""
+    echo -e ""
     echo -e "${GREEN}============================================${NC}"
     echo -e "${GREEN}Build completed successfully!${NC}"
     echo -e "${GREEN}============================================${NC}"
-    echo ""
+    echo -e ""
     echo -e "Image file: ${GREEN}$SIF_FILE${NC}"
     echo -e "Image size: ${GREEN}$(du -h "$SIF_FILE" | cut -f1)${NC}"
     echo -e "Build time: ${GREEN}${BUILD_MINUTES}m ${BUILD_SECONDS}s${NC}"
-    echo ""
+    echo -e ""
     echo -e "${GREEN}Next steps:${NC}"
-    echo "1. Test the container: ./test.sh"
-    echo "2. Copy to production: sudo cp $SIF_FILE /app/deployment/singularity/"
-    echo "3. Update Django settings: SINGULARITY_IMAGE_PATH=/app/deployment/singularity/scitex-user-workspace.sif"
-    echo ""
+    echo -e "1. Test the container: ./test.sh"
+    echo -e "2. Copy to production: sudo cp $SIF_FILE /app/deployment/singularity/"
+    echo -e "3. Update Django settings: SINGULARITY_IMAGE_PATH=/app/deployment/singularity/scitex-user-workspace.sif"
+    echo -e ""
 else
-    echo ""
+    echo -e ""
     echo -e "${RED}Build failed!${NC}"
-    echo "Check the error messages above for details."
+    echo -e "Check the error messages above for details."
     exit 1
 fi
 

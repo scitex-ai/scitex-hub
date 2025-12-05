@@ -66,7 +66,7 @@ export function setupInteractionHandlers(editor: SigmaEditor): InteractionHandle
             console.log(`[InteractionHandlers] Initializing WorkspaceFilesTree for ${projectOwner}/${projectSlug}`);
 
             // Import the shared WorkspaceFilesTree component from static path
-            const module = await (Function('return import("/static/shared/ts/components/workspace-files-tree/WorkspaceFilesTree.ts")')()) as any;
+            const module = await (Function('return import("/static/shared/ts/components/workspace-files-tree/WorkspaceFilesTree")')()) as any;
             const { WorkspaceFilesTree } = module;
 
             // Initialize the tree

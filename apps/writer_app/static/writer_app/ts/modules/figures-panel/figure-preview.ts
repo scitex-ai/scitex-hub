@@ -3,7 +3,7 @@
  * Handles expanded view and preview functionality
  */
 
-import type { Figure } from "./figures-list.ts";
+import type { Figure } from "./figures-list";
 
 export class FigurePreview {
   constructor() {

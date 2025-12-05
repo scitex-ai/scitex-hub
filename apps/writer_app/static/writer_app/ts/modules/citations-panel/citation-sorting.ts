@@ -3,7 +3,7 @@
  * Handles sorting of citations by various criteria
  */
 
-import { Citation } from "./types.ts";
+import { Citation } from "./types";
 
 export class CitationSorting {
   /**

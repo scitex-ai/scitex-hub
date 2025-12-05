@@ -3,11 +3,11 @@
  * Manages polling and status updates for async compilation jobs
  */
 
-import { CompilationAPI } from "./compilation-api.ts";
-import { CompilationState } from "./compilation-state.ts";
-import { CompilationUI } from "./compilation-ui.ts";
-import { CompilationStatusData } from "./types.ts";
-import { statusLamp } from "../status-lamp.ts";
+import { CompilationAPI } from "./compilation-api";
+import { CompilationState } from "./compilation-state";
+import { CompilationUI } from "./compilation-ui";
+import { CompilationStatusData } from "./types";
+import { statusLamp } from "../status-lamp";
 
 export class CompilationQueue {
   private api: CompilationAPI;

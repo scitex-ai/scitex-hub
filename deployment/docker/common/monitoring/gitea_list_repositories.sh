@@ -8,7 +8,7 @@
 ORIG_DIR="$(pwd)"
 THIS_DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
 LOG_PATH="$THIS_DIR/.$(basename $0).log"
-echo > "$LOG_PATH"
+echo -e > "$LOG_PATH"
 
 GIT_ROOT="$(git rev-parse --show-toplevel 2> /dev/null)"
 
@@ -90,7 +90,7 @@ show_repo_details() {
     response=$(curl -s -H "Authorization: token $GITEA_TOKEN" \
         "$GITEA_URL/api/v1/repos/$owner/$repo" 2> /dev/null)
 
-    echo "$response" | python3 << 'EOF'
+    echo -e "$response" | python3 << 'EOF'
 import sys
 import json
 from datetime import datetime
@@ -141,21 +141,21 @@ EOF
 
 # Usage
 usage() {
-    echo "Usage: $0 [OPTIONS]"
+    echo -e "Usage: $0 [OPTIONS]"
     echo
-    echo "List repositories in Gitea (Docker deployment)"
+    echo -e "List repositories in Gitea (Docker deployment)"
     echo
-    echo "Options:"
-    echo "  -u, --user USERNAME    List repositories for a specific user"
-    echo "  -d, --detail OWNER/REPO Show detailed info for a repository"
-    echo "  -p, --private          Show only private repositories"
-    echo "  -h, --help             Show this help message"
+    echo -e "Options:"
+    echo -e "  -u, --user USERNAME    List repositories for a specific user"
+    echo -e "  -d, --detail OWNER/REPO Show detailed info for a repository"
+    echo -e "  -p, --private          Show only private repositories"
+    echo -e "  -h, --help             Show this help message"
     echo
-    echo "Examples:"
-    echo "  $0                     # List all accessible repositories"
-    echo "  $0 -u scitex           # List repositories for user 'scitex'"
-    echo "  $0 -d scitex/test-repo # Show details for repository"
-    echo "  $0 -p                  # List only private repositories"
+    echo -e "Examples:"
+    echo -e "  $0                     # List all accessible repositories"
+    echo -e "  $0 -u scitex           # List repositories for user 'scitex'"
+    echo -e "  $0 -d scitex/test-repo # Show details for repository"
+    echo -e "  $0 -p                  # List only private repositories"
 }
 
 # Main
@@ -205,7 +205,7 @@ main() {
     test_response=$(curl -s -H "Authorization: token $GITEA_TOKEN" \
         "$GITEA_URL/api/v1/user" 2> /dev/null)
 
-    if ! echo "$test_response" | grep -q '"login"'; then
+    if ! echo -e "$test_response" | grep -q '"login"'; then
         echo_error "Invalid or expired token"
         echo_info "Check SCITEX_CLOUD_GITEA_TOKEN_DEV in .env"
         exit 1
@@ -216,8 +216,8 @@ main() {
 
     # Show detail for specific repository
     if [ -n "$detail_repo" ]; then
-        owner=$(echo "$detail_repo" | cut -d'/' -f1)
-        repo=$(echo "$detail_repo" | cut -d'/' -f2)
+        owner=$(echo -e "$detail_repo" | cut -d'/' -f1)
+        repo=$(echo -e "$detail_repo" | cut -d'/' -f2)
         show_repo_details "$owner" "$repo"
         exit 0
     fi
@@ -235,7 +235,7 @@ main() {
 
     # Filter private repos if requested
     if [ "$private_only" = true ]; then
-        response=$(echo "$response" | python3 -c "
+        response=$(echo -e "$response" | python3 -c "
 import sys, json
 repos = json.load(sys.stdin)
 private = [r for r in repos if r.get('private', False)]
@@ -243,7 +243,7 @@ print(json.dumps(private))
 ")
     fi
 
-    echo "$response" | format_repo_list
+    echo -e "$response" | format_repo_list
 }
 
 main "$@" 2>&1 | tee -a "$LOG_PATH"

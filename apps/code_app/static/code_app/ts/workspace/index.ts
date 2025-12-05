@@ -3,24 +3,24 @@
  * Main coordinator for the Code Workspace - wires all managers together
  */
 
-import { MonacoManager } from "./editor/MonacoManager.ts";
-import { ScratchManager } from "./editor/ScratchManager.ts";
-import { PTYManager } from "./terminal/PTYManager.ts";
-import { RunManager } from "./terminal/RunManager.ts";
-import { FileTreeManager } from "./files/FileTreeManager.ts";
-import { FileOperations } from "./files/FileOperations.ts";
-import { FileTabManager } from "./files/FileTabManager.ts";
-import { FileStateManager } from "./files/FileStateManager.ts";
-import { FileCommandHandler } from "./files/FileCommandHandler.ts";
-import { GitStatusManager } from "./git/GitStatusManager.ts";
-import { GitOperations } from "./git/GitOperations.ts";
-import { CommitManager } from "./git/CommitManager.ts";
-import { UIComponents } from "./ui/UIComponents.ts";
-import { ModalManager } from "./ui/ModalManager.ts";
-import { ShortcutsManager } from "./ui/ShortcutsManager.ts";
-import { VisitorManager } from "./auth/VisitorManager.ts";
-import { JobsPanelManager } from "./jobs/JobsPanelManager.ts";
-import type { EditorConfig, OpenFile } from "./core/types.ts";
+import { MonacoManager } from "./editor/MonacoManager";
+import { ScratchManager } from "./editor/ScratchManager";
+import { PTYManager } from "./terminal/PTYManager";
+import { RunManager } from "./terminal/RunManager";
+import { FileTreeManager } from "./files/FileTreeManager";
+import { FileOperations } from "./files/FileOperations";
+import { FileTabManager } from "./files/FileTabManager";
+import { FileStateManager } from "./files/FileStateManager";
+import { FileCommandHandler } from "./files/FileCommandHandler";
+import { GitStatusManager } from "./git/GitStatusManager";
+import { GitOperations } from "./git/GitOperations";
+import { CommitManager } from "./git/CommitManager";
+import { UIComponents } from "./ui/UIComponents";
+import { ModalManager } from "./ui/ModalManager";
+import { ShortcutsManager } from "./ui/ShortcutsManager";
+import { VisitorManager } from "./auth/VisitorManager";
+import { JobsPanelManager } from "./jobs/JobsPanelManager";
+import type { EditorConfig, OpenFile } from "./core/types";
 
 export class WorkspaceOrchestrator {
   private config: EditorConfig;

@@ -4,7 +4,7 @@
  * Uses the shared DataTableManager for full-featured CSV editing
  */
 
-import type { FileType } from "../core/types.ts";
+import type { FileType } from "../core/types";
 import { DataTableManager, Dataset } from "@/components/data-table/index.js";
 
 export class MediaViewerManager {

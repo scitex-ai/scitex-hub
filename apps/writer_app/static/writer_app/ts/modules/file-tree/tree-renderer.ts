@@ -3,7 +3,7 @@
  * Handles HTML generation and rendering of file tree structures
  */
 
-import { WriterFileFilter } from "../writer-file-filter.ts";
+import { WriterFileFilter } from "../writer-file-filter";
 
 export interface FileTreeNode {
   name: string;

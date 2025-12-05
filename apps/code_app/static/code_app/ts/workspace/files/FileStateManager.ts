@@ -4,13 +4,13 @@
  * Supports both text files (Monaco editor) and media files (MediaViewer)
  */
 
-import type { OpenFile, FileType } from "../core/types.ts";
-import { detectFileType } from "../core/types.ts";
-import { MonacoManager } from "../editor/MonacoManager.ts";
-import { MediaViewerManager } from "../editor/MediaViewerManager.ts";
-import { FileOperations } from "./FileOperations.ts";
-import { FileTabManager } from "./FileTabManager.ts";
-import { GitStatusManager } from "../git/GitStatusManager.ts";
+import type { OpenFile, FileType } from "../core/types";
+import { detectFileType } from "../core/types";
+import { MonacoManager } from "../editor/MonacoManager";
+import { MediaViewerManager } from "../editor/MediaViewerManager";
+import { FileOperations } from "./FileOperations";
+import { FileTabManager } from "./FileTabManager";
+import { GitStatusManager } from "../git/GitStatusManager";
 
 export class FileStateManager {
   private currentFile: string | null = null;

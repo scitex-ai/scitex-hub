@@ -19,4 +19,4 @@ export {
   setupThemeObserver,
   createMonacoEditor,
   initializeMonacoEditor,
-} from "./init/index.ts";
+} from "./init/index";

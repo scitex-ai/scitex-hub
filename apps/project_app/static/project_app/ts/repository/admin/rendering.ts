@@ -7,7 +7,7 @@ import {
   HealthData,
   RepositoryIssue,
   FilterType,
-} from "./types.ts";
+} from "./types";
 
 /**
  * Escapes HTML special characters

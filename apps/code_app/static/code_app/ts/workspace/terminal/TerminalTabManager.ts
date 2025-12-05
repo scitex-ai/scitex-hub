@@ -3,8 +3,8 @@
  * Manages multiple terminal tabs similar to file tabs
  */
 
-import { PTYTerminal } from "../../pty-terminal.ts";
-import type { EditorConfig } from "../core/types.ts";
+import { PTYTerminal } from "../../pty-terminal";
+import type { EditorConfig } from "../core/types";
 
 interface TerminalTab {
   id: string;

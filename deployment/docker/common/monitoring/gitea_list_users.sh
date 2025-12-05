@@ -8,7 +8,7 @@
 ORIG_DIR="$(pwd)"
 THIS_DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
 LOG_PATH="$THIS_DIR/.$(basename $0).log"
-echo > "$LOG_PATH"
+echo -e > "$LOG_PATH"
 
 GIT_ROOT="$(git rev-parse --show-toplevel 2> /dev/null)"
 
@@ -89,7 +89,7 @@ show_user_details() {
     response=$(curl -s -H "Authorization: token $GITEA_TOKEN" \
         "$GITEA_URL/api/v1/users/$username" 2> /dev/null)
 
-    echo "$response" | python3 << 'EOF'
+    echo -e "$response" | python3 << 'EOF'
 import sys
 import json
 from datetime import datetime
@@ -128,21 +128,21 @@ EOF
 
 # Usage
 usage() {
-    echo "Usage: $0 [OPTIONS]"
+    echo -e "Usage: $0 [OPTIONS]"
     echo
-    echo "List users in Gitea (Docker deployment)"
+    echo -e "List users in Gitea (Docker deployment)"
     echo
-    echo "Options:"
-    echo "  -s, --search QUERY     Search users by username"
-    echo "  -d, --detail USERNAME  Show detailed info for a user"
-    echo "  -a, --admins           Show only administrators"
-    echo "  -h, --help             Show this help message"
+    echo -e "Options:"
+    echo -e "  -s, --search QUERY     Search users by username"
+    echo -e "  -d, --detail USERNAME  Show detailed info for a user"
+    echo -e "  -a, --admins           Show only administrators"
+    echo -e "  -h, --help             Show this help message"
     echo
-    echo "Examples:"
-    echo "  $0                    # List all users"
-    echo "  $0 -s john            # Search for users matching 'john'"
-    echo "  $0 -d scitex          # Show details for user 'scitex'"
-    echo "  $0 -a                 # List only administrators"
+    echo -e "Examples:"
+    echo -e "  $0                    # List all users"
+    echo -e "  $0 -s john            # Search for users matching 'john'"
+    echo -e "  $0 -d scitex          # Show details for user 'scitex'"
+    echo -e "  $0 -a                 # List only administrators"
 }
 
 # Main
@@ -192,7 +192,7 @@ main() {
     test_response=$(curl -s -H "Authorization: token $GITEA_TOKEN" \
         "$GITEA_URL/api/v1/user" 2> /dev/null)
 
-    if ! echo "$test_response" | grep -q '"login"'; then
+    if ! echo -e "$test_response" | grep -q '"login"'; then
         echo_error "Invalid or expired token"
         echo_info "Check SCITEX_CLOUD_GITEA_TOKEN_DEV in .env"
         exit 1
@@ -219,7 +219,7 @@ main() {
             "$GITEA_URL/api/v1/admin/users" 2> /dev/null)
 
         # Fallback to search if not admin
-        if echo "$response" | grep -q "error\|message" || [ -z "$response" ]; then
+        if echo -e "$response" | grep -q "error\|message" || [ -z "$response" ]; then
             echo_info "Using search API (admin access not available)"
             response=$(curl -s -H "Authorization: token $GITEA_TOKEN" \
                 "$GITEA_URL/api/v1/users/search" 2> /dev/null \
@@ -229,7 +229,7 @@ main() {
 
     # Filter admins if requested
     if [ "$admins_only" = true ]; then
-        response=$(echo "$response" | python3 -c "
+        response=$(echo -e "$response" | python3 -c "
 import sys, json
 users = json.load(sys.stdin)
 admins = [u for u in users if u.get('is_admin', False)]
@@ -237,7 +237,7 @@ print(json.dumps(admins))
 ")
     fi
 
-    echo "$response" | format_user_list
+    echo -e "$response" | format_user_list
 }
 
 main "$@" 2>&1 | tee -a "$LOG_PATH"

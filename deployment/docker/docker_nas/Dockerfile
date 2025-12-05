@@ -192,7 +192,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN sed -i 's/main/main contrib/g' /etc/apt/sources.list.d/debian.sources 2>/dev/null || \
         sed -i 's/main$/main contrib/' /etc/apt/sources.list && \
     apt-get update && \
-    echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections && \
+    echo -e "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ttf-mscorefonts-installer && \
     fc-cache -fv && \
     rm -rf /var/lib/apt/lists/*
@@ -253,8 +253,8 @@ RUN useradd -m -u 1000 scitex && \
     mkdir -p /app/staticfiles /app/media /app/logs /app/run /app/.cache/containers && \
     chown -R scitex:scitex /app && \
     # Setup subuid/subgid for apptainer fakeroot (required for newuidmap/newgidmap)
-    echo "scitex:100000:65536" >> /etc/subuid && \
-    echo "scitex:100000:65536" >> /etc/subgid
+    echo -e "scitex:100000:65536" >> /etc/subuid && \
+    echo -e "scitex:100000:65536" >> /etc/subgid
 
 # Copy application code (last - changes most frequently)
 COPY --chown=scitex:scitex . .
@@ -273,7 +273,7 @@ RUN pdflatex --version && \
     convert --version && \
     yq --version && \
     python --version && \
-    echo "✅ Production image verified"
+    echo -e "✅ Production image verified"
 
 # ============================================
 # Runtime Configuration

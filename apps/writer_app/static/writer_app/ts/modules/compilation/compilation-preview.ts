@@ -3,11 +3,11 @@
  * Handles preview compilation (live editing with content)
  */
 
-import { CompilationAPI } from "./compilation-api.ts";
-import { CompilationState } from "./compilation-state.ts";
-import { CompilationUI } from "./compilation-ui.ts";
-import { CompilationOptions, CompilationJob } from "./types.ts";
-import { statusLamp } from "../status-lamp.ts";
+import { CompilationAPI } from "./compilation-api";
+import { CompilationState } from "./compilation-state";
+import { CompilationUI } from "./compilation-ui";
+import { CompilationOptions, CompilationJob } from "./types";
+import { statusLamp } from "../status-lamp";
 
 export class CompilationPreview {
   private api: CompilationAPI;

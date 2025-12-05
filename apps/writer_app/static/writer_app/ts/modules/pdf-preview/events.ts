@@ -3,8 +3,8 @@
  * Handles event listeners and callbacks
  */
 
-import { CompilationManager } from "../compilation.ts";
-import { PDFViewer } from "./viewer.ts";
+import { CompilationManager } from "../compilation";
+import { PDFViewer } from "./viewer";
 
 export class EventHandler {
   private compilationManager: CompilationManager;

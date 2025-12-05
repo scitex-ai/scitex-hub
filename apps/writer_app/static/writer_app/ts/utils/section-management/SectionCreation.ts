@@ -3,11 +3,11 @@
  * Handles creating new sections via modal interface
  */
 
-import type { WriterEditor, SectionsManager } from "../../modules/index.ts";
+import type { WriterEditor, SectionsManager } from "../../modules/index";
 import { getCsrfToken } from "@/utils/csrf.js";
-import { showToast } from "../ui.ts";
-import { populateSectionDropdownDirect } from "../section-dropdown/index.ts";
-import { switchSection } from "./SectionLoading.ts";
+import { showToast } from "../ui";
+import { populateSectionDropdownDirect } from "../section-dropdown/index";
+import { switchSection } from "./SectionLoading";
 
 /**
  * Setup Add Section button and modal handlers

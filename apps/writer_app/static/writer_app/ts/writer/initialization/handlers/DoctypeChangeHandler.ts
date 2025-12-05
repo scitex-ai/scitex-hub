@@ -3,9 +3,9 @@
  * Handles document type dropdown changes
  */
 
-import { handleDocTypeSwitch, populateSectionDropdownDirect } from "../../../utils/index.ts";
-import { getDoctypeFolder } from "./TreeConfiguration.ts";
-import { getWriterTreeSync } from "../../sync/index.ts";
+import { handleDocTypeSwitch, populateSectionDropdownDirect } from "../../../utils/index";
+import { getDoctypeFolder } from "./TreeConfiguration";
+import { getWriterTreeSync } from "../../sync/index";
 
 console.log("[DEBUG] DoctypeChangeHandler.ts loaded");
 

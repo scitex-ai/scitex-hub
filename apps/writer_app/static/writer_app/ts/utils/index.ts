@@ -24,7 +24,7 @@ export {
   scrollIntoView,
   getScrollPosition,
   setScrollPosition,
-} from "./dom.utils.ts";
+} from "./dom.utils";
 
 // Keyboard utilities
 export {
@@ -33,7 +33,7 @@ export {
   formatShortcut,
   isInputElement,
   type KeyboardShortcut,
-} from "./keyboard.utils.ts";
+} from "./keyboard.utils";
 
 // LaTeX utilities
 export {
@@ -42,7 +42,7 @@ export {
   extractTextFromLatex,
   isLatexContent,
   validateLatexSyntax,
-} from "./latex.utils.ts";
+} from "./latex.utils";
 
 // Timer and timing utilities
 export {
@@ -52,7 +52,7 @@ export {
   SimpleTimer,
   wait,
   createTimeout,
-} from "./timer.utils.ts";
+} from "./timer.utils";
 
 // UI utilities
 export {
@@ -62,7 +62,7 @@ export {
   updateSectionTitleLabel,
   updatePDFPreviewTitle,
   updateCommitButtonVisibility,
-} from "./ui.ts";
+} from "./ui";
 
 // Compilation UI utilities
 export {
@@ -87,7 +87,7 @@ export {
   updateSlimProgress,
   toggleCompilationDetails,
   restoreCompilationStatus,
-} from "./compilation-ui.ts";
+} from "./compilation-ui";
 
 // Section dropdown utilities
 export {
@@ -96,7 +96,7 @@ export {
   syncDropdownsFromPath,
   handleDocTypeSwitch,
   toggleSectionVisibility,
-} from "./section-dropdown/index.ts";
+} from "./section-dropdown/index";
 
 // Section management utilities
 export {
@@ -107,14 +107,14 @@ export {
   loadCompiledPDF,
   setupSectionManagementButtons,
   clearCompileTimeout,
-} from "./section-management.ts";
+} from "./section-management";
 
 // Compilation handler utilities
 export {
   setupCompilationListeners,
   handleCompileFull,
   handleCompile,
-} from "./compilation-handlers.ts";
+} from "./compilation-handlers";
 
 // Panel management utilities
 export {
@@ -123,4 +123,4 @@ export {
   openPDF,
   loadPanelCSS,
   switchRightPanel,
-} from "./panel-management.ts";
+} from "./panel-management";

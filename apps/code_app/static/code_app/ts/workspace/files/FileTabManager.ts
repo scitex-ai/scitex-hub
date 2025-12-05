@@ -3,7 +3,7 @@
  * Handles tab display, switching, and closing for open files
  */
 
-import type { OpenFile } from "../core/types.ts";
+import type { OpenFile } from "../core/types";
 
 export class FileTabManager {
   private openFiles: Map<string, OpenFile>;

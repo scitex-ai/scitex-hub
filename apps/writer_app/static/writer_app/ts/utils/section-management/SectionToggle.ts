@@ -4,7 +4,7 @@
  */
 
 import { getCsrfToken } from "@/utils/csrf.js";
-import { showToast } from "../ui.ts";
+import { showToast } from "../ui";
 
 /**
  * Setup Toggle Include/Exclude Section button

@@ -660,6 +660,14 @@ for location in _WRITER_TEMPLATE_LOCATIONS:
         break
 
 # ---------------------------------------
+# CrossRef Local API
+# ---------------------------------------
+CROSSREF_INTERNAL_URL = os.getenv(
+    "CROSSREF_INTERNAL_URL",
+    "http://crossref:3333"
+)
+
+# ---------------------------------------
 # REST Framework
 # ---------------------------------------
 REST_FRAMEWORK = {

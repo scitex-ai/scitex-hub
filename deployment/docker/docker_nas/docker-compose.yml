@@ -255,7 +255,7 @@ services:
       - /home/ywatanabe/proj/crossref_local/data:/data:ro
     environment:
       - CROSSREF_DB_PATH=/data/crossref.db
-      - LOG_LEVEL=INFO
+      - LOG_LEVEL=info
     restart: always
     networks:
       - scitex-network

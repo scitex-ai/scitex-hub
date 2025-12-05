@@ -10,7 +10,7 @@ export {
   updateCompilationProgress,
   showCompilationSuccess,
   showCompilationError,
-} from "./CompilationProgressUI.ts";
+} from "./CompilationProgressUI";
 
 // Status Display
 export {
@@ -21,7 +21,7 @@ export {
   minimizeCompilationOutput,
   restoreCompilationOutput,
   toggleCompilationPanel,
-} from "./CompilationStatusDisplay.ts";
+} from "./CompilationStatusDisplay";
 
 // Log Management
 export {
@@ -31,4 +31,4 @@ export {
   handleCompilationLogStop,
   handleCompilationLogClose,
   toggleCompilationDetails,
-} from "./CompilationLogManager.ts";
+} from "./CompilationLogManager";

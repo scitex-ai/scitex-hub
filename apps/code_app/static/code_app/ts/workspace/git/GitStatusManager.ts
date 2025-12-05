@@ -3,7 +3,7 @@
  * Handles git status caching and git decorations in the editor
  */
 
-import type { EditorConfig, GitFileStatus, GitDiff } from "../core/types.ts";
+import type { EditorConfig, GitFileStatus, GitDiff } from "../core/types";
 
 export class GitStatusManager {
   private config: EditorConfig;

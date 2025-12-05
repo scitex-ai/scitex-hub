@@ -30,15 +30,15 @@ err()  { echo -e "${RED}[ERROR]${NC} $1"; exit 1; }
 
 [[ $EUID -ne 0 ]] && err "Run with: sudo $0"
 
-echo "=============================================="
-echo " SLURM ${SLURM_VERSION} Installation"
-echo "=============================================="
-echo ""
-echo " Node:     $NODE_NAME"
-echo " CPUs:     $NODE_CPUS"
-echo " Memory:   ${NODE_MEMORY} MB"
-echo " Build:    ~10 minutes"
-echo ""
+echo -e "=============================================="
+echo -e " SLURM ${SLURM_VERSION} Installation"
+echo -e "=============================================="
+echo -e ""
+echo -e " Node:     $NODE_NAME"
+echo -e " CPUs:     $NODE_CPUS"
+echo -e " Memory:   ${NODE_MEMORY} MB"
+echo -e " Build:    ~10 minutes"
+echo -e ""
 
 # =============================================================================
 # Step 1: Remove old SLURM
@@ -202,17 +202,17 @@ scontrol update nodename=${NODE_NAME} state=idle 2>/dev/null || true
 # =============================================================================
 # Verify
 # =============================================================================
-echo ""
+echo -e ""
 log "Verifying..."
 sinfo --version
-echo ""
+echo -e ""
 sinfo
 
-echo ""
+echo -e ""
 if srun --partition=express hostname 2>/dev/null; then
     echo -e "${GREEN}=============================================="
-    echo " SLURM ${SLURM_VERSION} Installation Complete!"
-    echo "==============================================${NC}"
+    echo -e " SLURM ${SLURM_VERSION} Installation Complete!"
+    echo -e "==============================================${NC}"
 else
     warn "srun test failed. Run: sudo ./fix.sh"
 fi

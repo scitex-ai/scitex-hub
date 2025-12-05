@@ -12,7 +12,7 @@ source /app/deployment/docker/common/lib/django.src
 source /app/deployment/docker/common/lib/scitex.src
 source /app/deployment/docker/common/lib/slurm.src
 
-echo "🏭 NAS Environment"
+echo -e "🏭 NAS Environment"
 
 # ============================================
 # Sync SLURM UID with Host (Required for Terminal)
@@ -26,9 +26,9 @@ verify_scitex_package
 
 # Ensure we're NOT using editable install
 if [ -d "/scitex-code" ]; then
-    echo "⚠️  WARNING: /scitex-code detected in production!"
-    echo "   This should not be mounted in prod/nas environments."
-    echo "   Using PyPI version anyway..."
+    echo -e "⚠️  WARNING: /scitex-code detected in production!"
+    echo -e "   This should not be mounted in prod/nas environments."
+    echo -e "   Using PyPI version anyway..."
 fi
 
 # ============================================
@@ -48,7 +48,7 @@ echo_success "Visitor pool ready"
 # ============================================
 # Start Application
 # ============================================
-echo "🚀 Starting production server..."
+echo -e "🚀 Starting production server..."
 exec "$@"
 
 # EOF

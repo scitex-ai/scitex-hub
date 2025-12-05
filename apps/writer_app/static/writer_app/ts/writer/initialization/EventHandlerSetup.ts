@@ -3,8 +3,8 @@
  * Handles setup of global event handlers and window functions
  */
 
-import { statusLamp } from "../../modules/index.ts";
-import { handleCompileFull } from "../../utils/index.ts";
+import { statusLamp } from "../../modules/index";
+import { handleCompileFull } from "../../utils/index";
 
 export class EventHandlerSetup {
   private state: any;

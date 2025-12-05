@@ -4,11 +4,11 @@
  * Orchestrates: visitor checks, UI modals, file operations, tree refresh, state updates
  */
 
-import type { FileOperations } from "./FileOperations.ts";
-import type { FileTreeManager } from "./FileTreeManager.ts";
-import type { FileStateManager } from "./FileStateManager.ts";
-import type { UIComponents } from "../ui/UIComponents.ts";
-import type { VisitorManager } from "../auth/VisitorManager.ts";
+import type { FileOperations } from "./FileOperations";
+import type { FileTreeManager } from "./FileTreeManager";
+import type { FileStateManager } from "./FileStateManager";
+import type { UIComponents } from "../ui/UIComponents";
+import type { VisitorManager } from "../auth/VisitorManager";
 
 export class FileCommandHandler {
   constructor(

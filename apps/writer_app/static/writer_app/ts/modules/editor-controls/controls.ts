@@ -7,9 +7,9 @@ console.log(
   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/editor-controls/controls.ts loaded",
 );
 
-import { FontSizeFormatter } from "./formatting.ts";
-import { ToolbarHandler } from "./toolbar.ts";
-import { ShortcutsHandler } from "./shortcuts.ts";
+import { FontSizeFormatter } from "./formatting";
+import { ToolbarHandler } from "./toolbar";
+import { ShortcutsHandler } from "./shortcuts";
 
 export interface EditorControlsOptions {
   pdfPreviewManager?: any;

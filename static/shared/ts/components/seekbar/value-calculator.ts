@@ -3,7 +3,7 @@
  * Handles value calculations, clamping, and snapping
  */
 
-import type { CompleteSeekbarOptions, HandleType, SeekbarValues, SeekbarElements } from "./types.ts";
+import type { CompleteSeekbarOptions, HandleType, SeekbarValues, SeekbarElements } from "./types";
 
 export class ValueCalculator {
   private options: CompleteSeekbarOptions;

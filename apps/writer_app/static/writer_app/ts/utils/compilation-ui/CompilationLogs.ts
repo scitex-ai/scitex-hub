@@ -3,7 +3,7 @@
  * Handles log display, formatting, and message appending
  */
 
-import { showToast } from "../ui.ts";
+import { showToast } from "../ui";
 
 // Store separate logs for preview and full compilation
 export const compilationLogs = {

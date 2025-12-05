@@ -38,7 +38,7 @@ export class WriterTabManager {
     if (this.initialized) return;
 
     // Dynamic import for FileTabManager (using absolute URL path)
-    const { FileTabManager } = await import("/static/shared/ts/components/file-tabs/FileTabManager.ts");
+    const { FileTabManager } = await import("/static/shared/ts/components/file-tabs/FileTabManager");
 
     this.tabManager = new FileTabManager({
       containerId: this.options.containerId,

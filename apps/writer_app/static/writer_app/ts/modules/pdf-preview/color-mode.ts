@@ -3,8 +3,8 @@
  * Handles color mode initialization and switching
  */
 
-import { PDFViewer } from "./viewer.ts";
-import { CompilationHandler } from "./compilation.ts";
+import { PDFViewer } from "./viewer";
+import { CompilationHandler } from "./compilation";
 
 export class ColorModeManager {
   private viewer: PDFViewer;

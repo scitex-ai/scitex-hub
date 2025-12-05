@@ -3,7 +3,7 @@
  * Handles modal dialogs for git commits and compilation options
  */
 
-import { showToast, getUserContext } from "../utils/ui.ts";
+import { showToast, getUserContext } from "../utils/ui";
 
 /**
  * Show compilation options modal

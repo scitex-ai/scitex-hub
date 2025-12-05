@@ -5,8 +5,8 @@
 WATCH_DIRS="/app/apps/*/templates /app/templates"
 LOG_FILE="/app/logs/template-watch.log"
 
-echo "[$(date '+%Y-%m-%d %H:%M:%S')] Template watcher started" > "$LOG_FILE"
-echo "   Watching: $WATCH_DIRS" >> "$LOG_FILE"
+echo -e "[$(date '+%Y-%m-%d %H:%M:%S')] Template watcher started" > "$LOG_FILE"
+echo -e "   Watching: $WATCH_DIRS" >> "$LOG_FILE"
 
 # Find Daphne PID and send SIGHUP when templates change
 while true; do
@@ -17,15 +17,15 @@ while true; do
         $WATCH_DIRS 2>> "$LOG_FILE" | \
     while read file; do
         if [[ "$file" =~ \.html$ ]]; then
-            echo "[$(date '+%Y-%m-%d %H:%M:%S')] Template changed: $file" >> "$LOG_FILE"
+            echo -e "[$(date '+%Y-%m-%d %H:%M:%S')] Template changed: $file" >> "$LOG_FILE"
 
             # Find Daphne process and send reload signal
             DAPHNE_PID=$(pgrep -f "daphne.*config.asgi:application" | head -1)
             if [ -n "$DAPHNE_PID" ]; then
-                echo "   Sending reload signal to Daphne (PID: $DAPHNE_PID)" >> "$LOG_FILE"
+                echo -e "   Sending reload signal to Daphne (PID: $DAPHNE_PID)" >> "$LOG_FILE"
                 kill -HUP "$DAPHNE_PID" 2>> "$LOG_FILE" || true
             else
-                echo "   Warning: Daphne process not found" >> "$LOG_FILE"
+                echo -e "   Warning: Daphne process not found" >> "$LOG_FILE"
             fi
         fi
     done
