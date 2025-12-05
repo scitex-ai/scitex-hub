@@ -23,21 +23,87 @@ logger = logging.getLogger("scitex")
 
 
 def check_slurm_status(status_data):
-    """Check SLURM cluster status."""
+    """
+    Check SLURM cluster status with comprehensive terminal functionality test.
+
+    Tests:
+    1. sinfo responds (SLURM services running)
+    2. scitex user (UID 1000) exists on host
+    3. SLURM can actually execute jobs as scitex user
+    """
+    checks = {
+        "sinfo": False,
+        "scitex_user": False,
+        "job_execution": False,
+    }
+
     try:
-        # Use sinfo to check if SLURM is responding - this is more reliable
+        # Test 1: Use sinfo to check if SLURM is responding
         result = subprocess.run(
             ['sinfo', '--noheader', '-o', '%P %a %D %t'],
             capture_output=True, text=True, timeout=5
         )
-        is_up = result.returncode == 0 and result.stdout.strip()
+        checks["sinfo"] = result.returncode == 0 and result.stdout.strip()
+
+        # Test 2: Check if scitex user (UID 1000) exists on host
+        try:
+            uid_check = subprocess.run(
+                ['id', '-u', 'scitex'],
+                capture_output=True, text=True, timeout=2
+            )
+            checks["scitex_user"] = uid_check.returncode == 0 and uid_check.stdout.strip() == "1000"
+        except Exception:
+            pass
+
+        # Test 3: Actually test SLURM job execution as scitex user
+        # This tests the EXACT same command that real terminals use (with --pty)
+        # This catches issues like: SLURM restart needed, accounting problems, PTY issues
+        if checks["sinfo"] and checks["scitex_user"]:
+            try:
+                # Test with --pty like real terminals do
+                # Note: We use 'true' as the command since we're not in an interactive shell
+                job_test = subprocess.run(
+                    ['docker', 'exec', 'scitex-cloud-nas-django-1', 'su', 'scitex', '-c',
+                     'timeout 3 srun --partition=express --time=00:01:00 --cpus-per-task=1 --mem=1G --pty /bin/true'],
+                    capture_output=True, text=True, timeout=5
+                )
+                # Check stderr for common errors (PTY warnings are OK, but other errors are not)
+                stderr = job_test.stderr.lower() if job_test.stderr else ""
+                has_fatal_error = any(err in stderr for err in ['error generating job credential', 'invalid account', 'unable to allocate'])
+                checks["job_execution"] = job_test.returncode == 0 and not has_fatal_error
+            except Exception:
+                pass
+
+        # Determine overall health
+        all_checks_pass = all(checks.values())
+        is_up = checks["sinfo"]  # At minimum, sinfo must work
+
+        # Build detailed message
+        details = []
+        if checks["sinfo"]:
+            details.append("✓ SLURM services responding")
+        else:
+            details.append("✗ SLURM services not responding")
+
+        if checks["scitex_user"]:
+            details.append("✓ scitex user (UID 1000) exists")
+        else:
+            details.append("✗ scitex user (UID 1000) missing")
+
+        if checks["job_execution"]:
+            details.append("✓ Terminal functionality verified")
+        elif checks["sinfo"] and checks["scitex_user"]:
+            details.append("✗ Job execution failed (SLURM may need restart)")
+
         status_data["slurm"] = {
             "is_running": is_up,
             "status": "running" if is_up else "down",
-            "health_class": "healthy" if is_up else "unhealthy",
-            "message": "SLURM cluster is operational" if is_up else result.stderr.strip() or "SLURM not responding",
-            "partitions": result.stdout.strip() if is_up else None,
+            "health_class": "healthy" if all_checks_pass else ("warning" if is_up else "unhealthy"),
+            "message": " | ".join(details),
+            "partitions": result.stdout.strip() if checks["sinfo"] else None,
+            "checks": checks,  # For detailed tooltip
         }
+
         # Get job queue info if SLURM is up
         if is_up:
             try:
@@ -48,12 +114,14 @@ def check_slurm_status(status_data):
                 status_data["slurm"]["jobs"] = squeue_result.stdout.strip() or "No jobs running"
             except Exception:
                 pass
+
     except FileNotFoundError:
         status_data["slurm"] = {
             "is_running": False,
             "status": "not installed",
             "health_class": "down",
             "error": "SLURM not installed",
+            "checks": checks,
         }
     except Exception as e:
         status_data["slurm"] = {
@@ -61,16 +129,27 @@ def check_slurm_status(status_data):
             "status": "error",
             "health_class": "unhealthy",
             "error": str(e),
+            "checks": checks,
         }
 
 
 def check_container_runtime_status(status_data):
-    """Check Apptainer/Singularity container runtime status."""
+    """
+    Check Apptainer/Singularity container runtime status through SLURM.
+
+    Tests:
+    1. Container command exists (apptainer or singularity)
+    2. Can actually execute a container through SLURM (how it's really used)
+    """
     try:
         # Try apptainer first, then singularity
         container_cmd = None
+        version = None
+        can_execute = False
+
         for cmd in ['apptainer', 'singularity']:
             try:
+                # Test 1: Check version
                 result = subprocess.run(
                     [cmd, '--version'],
                     capture_output=True, text=True, timeout=5
@@ -78,6 +157,19 @@ def check_container_runtime_status(status_data):
                 if result.returncode == 0:
                     container_cmd = cmd
                     version = result.stdout.strip()
+
+                    # Test 2: Test through SLURM (how it's actually used)
+                    # This tests: SLURM → scitex user → Apptainer → Container
+                    try:
+                        exec_test = subprocess.run(
+                            ['docker', 'exec', 'scitex-cloud-nas-django-1', 'su', 'scitex', '-c',
+                             f'timeout 5 srun --partition=express {cmd} --version'],
+                            capture_output=True, text=True, timeout=8
+                        )
+                        can_execute = exec_test.returncode == 0 and version.split()[1] in exec_test.stdout
+                    except Exception:
+                        can_execute = False  # Execution test failed, but command exists
+
                     break
             except FileNotFoundError:
                 continue
@@ -85,10 +177,12 @@ def check_container_runtime_status(status_data):
         if container_cmd:
             status_data["apptainer"] = {
                 "is_running": True,
-                "status": "available",
-                "health_class": "healthy",
+                "status": "available" if can_execute else "limited",
+                "health_class": "healthy" if can_execute else "warning",
                 "command": container_cmd,
                 "version": version,
+                "can_execute": can_execute,
+                "message": "✓ Container runtime functional via SLURM" if can_execute else "⚠ Runtime installed but SLURM execution untested",
             }
         else:
             status_data["apptainer"] = {

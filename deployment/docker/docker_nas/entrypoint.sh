@@ -12,7 +12,7 @@ source /app/deployment/docker/common/lib/django.src
 source /app/deployment/docker/common/lib/scitex.src
 source /app/deployment/docker/common/lib/slurm.src
 
-echo "🏭 NAS Environment"
+echo -e "🏭 NAS Environment"
 
 # ============================================
 # Sync SLURM UID with Host (Required for Terminal)
@@ -26,9 +26,9 @@ verify_scitex_package
 
 # Ensure we're NOT using editable install
 if [ -d "/scitex-code" ]; then
-    echo "⚠️  WARNING: /scitex-code detected in production!"
-    echo "   This should not be mounted in prod/nas environments."
-    echo "   Using PyPI version anyway..."
+    echo -e "⚠️  WARNING: /scitex-code detected in production!"
+    echo -e "   This should not be mounted in prod/nas environments."
+    echo -e "   Using PyPI version anyway..."
 fi
 
 # ============================================
@@ -46,9 +46,32 @@ python manage.py create_visitor_pool --verbosity 0 2>&1 | grep -v "ERRO\|WARN" |
 echo_success "Visitor pool ready"
 
 # ============================================
+# Conditional NPM Install & TypeScript Build
+# ============================================
+if [ ! -d "node_modules" ] || [ "package.json" -nt "node_modules/.install-timestamp" ]; then
+    echo_info "Installing npm dependencies (including dev for Vite build)..."
+    npm install
+    touch node_modules/.install-timestamp
+    echo_success "npm dependencies installed"
+else
+    echo_info "npm dependencies already up to date"
+fi
+
+# Build TypeScript files with Vite (production build)
+# Check if build is needed by comparing source files vs build output
+if [ ! -d "staticfiles/vite" ] || [ "vite.config.ts" -nt "staticfiles/vite/.build-timestamp" ]; then
+    echo_info "Building TypeScript files with Vite..."
+    npm run build
+    touch staticfiles/vite/.build-timestamp
+    echo_success "TypeScript build complete"
+else
+    echo_info "TypeScript build already up to date"
+fi
+
+# ============================================
 # Start Application
 # ============================================
-echo "🚀 Starting production server..."
+echo -e "🚀 Starting production server..."
 exec "$@"
 
 # EOF

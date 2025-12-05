@@ -7,5 +7,5 @@ console.log(
   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/editor-controls/index.ts loaded",
 );
 
-export { EditorControls } from "./controls.ts";
-export type { EditorControlsOptions } from "./controls.ts";
+export { EditorControls } from "./controls";
+export type { EditorControlsOptions } from "./controls";

@@ -3,7 +3,7 @@
  * Handles file upload and operations
  */
 
-import { getCsrfToken } from "../../utils/csrf.ts";
+import { getCsrfToken } from "../../utils/csrf";
 
 // =============================================================================
 

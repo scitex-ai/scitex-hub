@@ -80,7 +80,7 @@ SCITEX_CLOUD_VERSION = "0.4.5-alpha"
 # ---------------------------------------
 # Visitor Pool Configuration
 # ---------------------------------------
-SCITEX_VISITOR_POOL_SIZE = int(os.environ.get("SCITEX_VISITOR_POOL_SIZE", 4))
+SCITEX_CLOUD_VISITOR_POOL_SIZE = int(os.environ.get("SCITEX_CLOUD_VISITOR_POOL_SIZE", 4))
 
 # ---------------------------------------
 # Paths
@@ -658,6 +658,14 @@ for location in _WRITER_TEMPLATE_LOCATIONS:
         SCITEX_WRITER_TEMPLATE_PATH = location
         # Template found
         break
+
+# ---------------------------------------
+# CrossRef Local API
+# ---------------------------------------
+CROSSREF_INTERNAL_URL = os.getenv(
+    "CROSSREF_INTERNAL_URL",
+    "http://crossref:3333"
+)
 
 # ---------------------------------------
 # REST Framework

@@ -7,7 +7,7 @@
  * 3. Tree selection -> Dropdown updates (update both dropdowns)
  */
 
-import { doctypeToDirectory, getDoctypeFromPath } from "../config/doctype-config.ts";
+import { doctypeToDirectory, getDoctypeFromPath } from "../config/doctype-config";
 
 console.log("[DEBUG] WriterTreeSync.ts loaded");
 

@@ -3,12 +3,12 @@
  * Handles loading section content from API and switching between sections
  */
 
-import type { WriterEditor, SectionsManager, PDFPreviewManager } from "../../modules/index.ts";
-import { setLoadingContent } from "../../modules/index.ts";
-import { getWriterConfig } from "../../helpers.ts";
-import { getUserContext } from "../ui.ts";
-import { syncDropdownToSection } from "../section-dropdown/index.ts";
-import { updateSectionUI } from "./SectionUI.ts";
+import type { WriterEditor, SectionsManager, PDFPreviewManager } from "../../modules/index";
+import { setLoadingContent } from "../../modules/index";
+import { getWriterConfig } from "../../helpers";
+import { getUserContext } from "../ui";
+import { syncDropdownToSection } from "../section-dropdown/index";
+import { updateSectionUI } from "./SectionUI";
 
 /**
  * Load section content from API

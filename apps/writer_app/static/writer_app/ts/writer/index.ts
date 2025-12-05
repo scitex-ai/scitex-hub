@@ -13,18 +13,18 @@
  */
 
 // Compilation module
-export * from "./compilation/index.ts";
+export * from "./compilation/index";
 
 // Initialization modules
 export {
   ComponentInitializer,
   EventHandlerSetup,
   FileTreeSetup,
-} from "./initialization/index.ts";
-export type { InitializedComponents } from "./initialization/index.ts";
+} from "./initialization/index";
+export type { InitializedComponents } from "./initialization/index";
 
 // Section modules
-export { SectionManagement } from "./sections/SectionManagement.ts";
+export { SectionManagement } from "./sections/SectionManagement";
 export {
   loadSectionContent,
   switchSection,
@@ -32,16 +32,16 @@ export {
   loadCompiledPDF,
   setPdfPreviewManager as setSectionOpsPdfPreviewManager,
   clearCompileTimeout,
-} from "./sections/SectionOperations.ts";
+} from "./sections/SectionOperations";
 
 // UI modules
-export { PanelSwitcher } from "./ui/PanelSwitcher.ts";
+export { PanelSwitcher } from "./ui/PanelSwitcher";
 
 // Listener modules
-export { EditorListeners } from "./listeners/EditorListeners.ts";
+export { EditorListeners } from "./listeners/EditorListeners";
 
 // File modules
-export { loadTexFile } from "./files/FileLoader.ts";
+export { loadTexFile } from "./files/FileLoader";
 
 // Download modules
 export {
@@ -50,13 +50,13 @@ export {
   handleDownloadCitationsBibTeX,
   handleDownloadSectionPDF,
   setPdfPreviewManager as setDownloadPdfPreviewManager,
-} from "./downloads/DownloadHandlers.ts";
+} from "./downloads/DownloadHandlers";
 
 // Config modules
-export * from "./config/index.ts";
+export * from "./config/index";
 
 // Tree integration modules
-export * from "./tree/index.ts";
+export * from "./tree/index";
 
 // Section extraction
 export {
@@ -64,15 +64,15 @@ export {
   updateDoctypeSectionsFromTree,
   getSectionsForDoctype,
   setSectionsForDoctype,
-} from "./sections/section-extraction.ts";
-export type { Section } from "./sections/section-extraction.ts";
+} from "./sections/section-extraction";
+export type { Section } from "./sections/section-extraction";
 
 // Inline script replacement (writer app init)
-export { initWriterApp } from "./inline-script/index.ts";
+export { initWriterApp } from "./inline-script/index";
 
 // Sidebar resizer
-export { initSidebarResizer, getSidebarWidth, setSidebarWidth } from "./ui/sidebar-resizer.ts";
+export { initSidebarResizer, getSidebarWidth, setSidebarWidth } from "./ui/sidebar-resizer";
 
 // Tab management
-export { WriterTabManager } from "./tabs/index.ts";
-export type { WriterTabManagerOptions } from "./tabs/index.ts";
+export { WriterTabManager } from "./tabs/index";
+export type { WriterTabManagerOptions } from "./tabs/index";

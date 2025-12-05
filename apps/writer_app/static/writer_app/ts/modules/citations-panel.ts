@@ -5,16 +5,16 @@
 
 console.log("[DEBUG] citations-panel.ts loaded");
 
-import { statePersistence } from "./state-persistence.ts";
-import type { Citation } from "./citations-panel/types.ts";
-import { CitationSearch } from "./citations-panel/citation-search.ts";
-import { CitationSorting } from "./citations-panel/citation-sorting.ts";
-import { CitationRenderer } from "./citations-panel/citation-renderer.ts";
-import { CitationActions } from "./citations-panel/citation-actions.ts";
-import { CitationLoader } from "./citations-panel/citation-loader.ts";
-import { UIState } from "./citations-panel/ui-state.ts";
+import { statePersistence } from "./state-persistence";
+import type { Citation } from "./citations-panel/types";
+import { CitationSearch } from "./citations-panel/citation-search";
+import { CitationSorting } from "./citations-panel/citation-sorting";
+import { CitationRenderer } from "./citations-panel/citation-renderer";
+import { CitationActions } from "./citations-panel/citation-actions";
+import { CitationLoader } from "./citations-panel/citation-loader";
+import { UIState } from "./citations-panel/ui-state";
 
-export type { Citation } from "./citations-panel/types.ts";
+export type { Citation } from "./citations-panel/types";
 
 export class CitationsPanel {
   private citations: Citation[] = [];

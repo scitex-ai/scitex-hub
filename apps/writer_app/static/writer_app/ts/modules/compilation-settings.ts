@@ -7,7 +7,7 @@ console.log(
   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/compilation-settings.ts loaded",
 );
 
-import { statePersistence } from "./state-persistence.ts";
+import { statePersistence } from "./state-persistence";
 
 export interface CompilationSettings {
   autoPreview: boolean;

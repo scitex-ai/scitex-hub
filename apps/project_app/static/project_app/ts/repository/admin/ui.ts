@@ -57,4 +57,4 @@ export {
   renderIssue,
   renderIssues,
   applyFilter,
-} from "./rendering.ts";
+} from "./rendering";

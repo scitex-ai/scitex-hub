@@ -6,7 +6,7 @@
 ORIG_DIR="$(pwd)"
 THIS_DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
 LOG_PATH="$THIS_DIR/.$(basename $0).log"
-echo > "$LOG_PATH"
+echo -e > "$LOG_PATH"
 
 GIT_ROOT="$(git rev-parse --show-toplevel 2> /dev/null)"
 
@@ -39,9 +39,9 @@ source /app/deployment/docker/common/lib/slurm.src
 MIGRATION_SENTINEL="/app/logs/.migrations_done"
 
 if [ -f "$MIGRATION_SENTINEL" ]; then
-    echo "🔄 Hot-Reload Restart (fast path)"
+    echo -e "🔄 Hot-Reload Restart (fast path)"
 else
-    echo "🔧 Development Environment (first start)"
+    echo -e "🔧 Development Environment (first start)"
 fi
 
 # ============================================
@@ -66,13 +66,13 @@ try_scitex_installation_in_editable_mode() {
             fi
             verify_scitex_package
         else
-            echo "⚠️  WARNING: /scitex-code exists but is not a valid Python package"
-            echo "   (missing pyproject.toml or setup.py at root)"
-            echo "   Skipping scitex package installation..."
+            echo -e "⚠️  WARNING: /scitex-code exists but is not a valid Python package"
+            echo -e "   (missing pyproject.toml or setup.py at root)"
+            echo -e "   Skipping scitex package installation..."
         fi
     else
-        echo "⚠️  WARNING: /scitex-code not mounted!"
-        echo "   Skipping scitex package installation..."
+        echo -e "⚠️  WARNING: /scitex-code not mounted!"
+        echo -e "   Skipping scitex package installation..."
     fi
 }
 try_scitex_installation_in_editable_mode
@@ -145,8 +145,8 @@ start_typescript_build_watcher_fallback() {
             > /app/logs/tsc-watch-all.log 2>&1 &
         TSC_ALL_PID=$!
         echo_success "TypeScript watch (ALL apps) started (PID: $TSC_ALL_PID)"
-        echo "   Watching: static/ts/**, apps/*/static/*/ts/**"
-        echo "   Log: tail -f /app/logs/tsc-watch-all.log"
+        echo -e "   Watching: static/ts/**, apps/*/static/*/ts/**"
+        echo -e "   Log: tail -f /app/logs/tsc-watch-all.log"
 
         cd /app || return 0
     else
@@ -210,8 +210,8 @@ if [ ! -f "$MIGRATION_SENTINEL" ]; then
             > /app/logs/ssh-gateway.log 2>&1 &
         SSH_GATEWAY_PID=$!
         echo_success "SSH gateway started (PID: $SSH_GATEWAY_PID)"
-        echo "   Port: 2200"
-        echo "   Log: tail -f /app/logs/ssh-gateway.log"
+        echo -e "   Port: 2200"
+        echo -e "   Log: tail -f /app/logs/ssh-gateway.log"
     }
     start_ssh_gateway
 
@@ -224,8 +224,8 @@ if [ ! -f "$MIGRATION_SENTINEL" ]; then
             > /app/logs/auto-sync.log 2>&1 &
         AUTO_SYNC_PID=$!
         echo_success "Auto-sync daemon started (PID: $AUTO_SYNC_PID)"
-        echo "   Interval: 15 minutes (900s)"
-        echo "   Log: tail -f /app/logs/auto-sync.log"
+        echo -e "   Interval: 15 minutes (900s)"
+        echo -e "   Log: tail -f /app/logs/auto-sync.log"
     }
     start_gitea_auto_sync
 else
@@ -235,7 +235,7 @@ fi
 # ============================================
 # Start Application
 # ============================================
-echo "🚀 Starting development server..."
+echo -e "🚀 Starting development server..."
 exec "$@"
 
 # EOF

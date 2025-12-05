@@ -3,9 +3,9 @@
  * Handles PTY terminal initialization and management with tab support
  */
 
-import { PTYTerminal } from "../../pty-terminal.ts";
-import { TerminalTabManager } from "./TerminalTabManager.ts";
-import type { EditorConfig } from "../core/types.ts";
+import { PTYTerminal } from "../../pty-terminal";
+import { TerminalTabManager } from "./TerminalTabManager";
+import type { EditorConfig } from "../core/types";
 
 export class PTYManager {
   private terminalTabManager: TerminalTabManager;

@@ -3,8 +3,8 @@
  * Handles all download-related functionality for PDFs and citations
  */
 
-import { showToast } from "../../utils/index.ts";
-import { getWriterConfig } from "../../helpers.ts";
+import { showToast } from "../../utils/index";
+import { getWriterConfig } from "../../helpers";
 
 let modulePdfPreviewManager: any = null;
 

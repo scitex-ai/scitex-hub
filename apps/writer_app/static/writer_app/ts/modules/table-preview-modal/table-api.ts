@@ -5,8 +5,8 @@
 
 console.log("[DEBUG] table-preview-modal/table-api.ts loaded");
 
-import { getCsrfToken } from "../../shared/utils.ts";
-import { TableData } from "./types.ts";
+import { getCsrfToken } from "../../shared/utils";
+import { TableData } from "./types";
 
 export class TableAPIClient {
   constructor(private projectId: string) {}

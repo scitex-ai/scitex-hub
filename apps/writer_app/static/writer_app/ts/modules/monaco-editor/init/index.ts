@@ -6,12 +6,12 @@
 console.log("[DEBUG] monaco-editor/init/index.ts (orchestrator) loaded");
 
 // Import all modules
-import { registerLatexLanguage } from "./LanguageRegistration.ts";
-import { registerLatexCompletionProvider } from "./CompletionProvider.ts";
-import { registerCitationCompletionProvider } from "./CitationCompletion.ts";
-import { registerCitationHoverProvider } from "./CitationHover.ts";
-import { defineScitexTheme, defineScitexLightTheme, setupThemeObserver } from "./EditorTheme.ts";
-import { createMonacoEditor } from "./EditorFactory.ts";
+import { registerLatexLanguage } from "./LanguageRegistration";
+import { registerLatexCompletionProvider } from "./CompletionProvider";
+import { registerCitationCompletionProvider } from "./CitationCompletion";
+import { registerCitationHoverProvider } from "./CitationHover";
+import { defineScitexTheme, defineScitexLightTheme, setupThemeObserver } from "./EditorTheme";
+import { createMonacoEditor } from "./EditorFactory";
 
 // Re-export all functions for backward compatibility
 export {

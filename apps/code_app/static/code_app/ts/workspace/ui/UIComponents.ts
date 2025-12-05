@@ -3,7 +3,7 @@
  * Handles modals, context menus, resizers, and other UI interactions
  */
 
-import type { EditorConfig } from "../core/types.ts";
+import type { EditorConfig } from "../core/types";
 
 export class UIComponents {
   private config: EditorConfig;

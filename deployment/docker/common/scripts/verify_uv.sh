@@ -16,7 +16,7 @@ YELLOW='\033[0;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-echo "Verifying UV installation in Docker container..."
+echo -e "Verifying UV installation in Docker container..."
 echo
 
 # Check if container is running
@@ -45,14 +45,14 @@ docker-compose -f docker-compose.dev.yml exec -T web which uv
 echo
 echo -e "${GREEN}4. Quick benchmark (installing a small package):${NC}"
 
-echo "  Testing pip..."
+echo -e "  Testing pip..."
 time docker-compose -f docker-compose.dev.yml exec -T web pip --version > /dev/null 2>&1
 
-echo "  Testing uv..."
+echo -e "  Testing uv..."
 time docker-compose -f docker-compose.dev.yml exec -T web uv pip --version > /dev/null 2>&1
 
 echo
 echo -e "${GREEN}✓ UV verification complete!${NC}"
 echo
-echo "UV is installed and working correctly."
-echo "Package installation should be significantly faster now."
+echo -e "UV is installed and working correctly."
+echo -e "Package installation should be significantly faster now."

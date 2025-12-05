@@ -143,7 +143,7 @@ Check the current status of SciTeX Cloud services and infrastructure.
             <div class="metric-card">
                 <div class="metric-label">
                     <span class="has-tooltip" data-tooltip="Shows how many visitor slots are currently allocated. When full, new visitor users must wait for a slot to free up (sessions expire after 60 minutes).">
-                        <i class="fas fa-users metric-icon-visitor-pool"></i> Visitor Pool Status
+                        <i class="fas fa-users metric-icon-visitor-pool"></i> Visitor Pool
                     </span>
                     <span id="visitorPoolCurrentValue" class="metric-current-value metric-current-value-visitor-pool">--</span>
                 </div>
@@ -311,7 +311,7 @@ Check the current status of SciTeX Cloud services and infrastructure.
         <div class="services-grid">
             <!-- SLURM -->
             <div class="service-card {{ status_data.slurm.health_class }} has-tooltip"
-                 data-tooltip="Health Check: Executes 'sinfo' command. Returns healthy if command succeeds and returns partition information.">
+                 data-tooltip="Health Checks: {{ status_data.slurm.message|default:'SLURM status check' }}. Tests: 1) SLURM services (sinfo command), 2) scitex user exists (UID 1000), 3) Job execution (actual SLURM job test). All must pass for HEALTHY status.">
                 <div class="service-header">
                     <div class="service-name">
                         <i class="fas fa-tasks"></i> Slurm
@@ -370,8 +370,8 @@ Check the current status of SciTeX Cloud services and infrastructure.
 
     <!-- Visitor Pool Slots -->
     <div class="status-section">
-        <h2 class="section-title has-tooltip" data-tooltip="Visitor users get temporary visitor slots (visitor-001, visitor-002, etc.) with 60-minute sessions. Pool size configured via SCITEX_VISITOR_POOL_SIZE in .env file.">
-            <i class="fas fa-users"></i> Visitor Pool Status
+        <h2 class="section-title has-tooltip" data-tooltip="Visitor users get temporary visitor slots (visitor-001, visitor-002, etc.) with 60-minute sessions. Pool size configured via SCITEX_CLOUD_VISITOR_POOL_SIZE in .env file.">
+            <i class="fas fa-users"></i> Visitor Pool
             {% if status_data.visitor_pool.pool_status %}
             <span class="visitor-pool-status-count">
                 {{ status_data.visitor_pool.pool_status.allocated }}/{{ status_data.visitor_pool.pool_status.total }} slots allocated
@@ -473,6 +473,52 @@ Check the current status of SciTeX Cloud services and infrastructure.
                     </p>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Architecture Diagrams -->
+    <div class="status-section">
+        <h2 class="section-title">
+            <i class="fas fa-sitemap"></i> System Architecture
+        </h2>
+
+        <!-- Module Integration -->
+        <div class="architecture-card">
+            <h3 class="architecture-title">
+                <i class="fas fa-puzzle-piece"></i> Module Integration
+            </h3>
+            <p class="architecture-description">
+                SciTeX Cloud modules (Writer, Scholar, Code, Vis) with central Files hub and AI Engine integration
+            </p>
+            <div class="architecture-diagram-container">
+                <object type="image/svg+xml" data="{% static 'public_app/images/architecture/ARCHITECTURE_01.svg' %}" class="architecture-svg architecture-svg-module">
+                    <img src="{% static 'public_app/images/architecture/ARCHITECTURE_01.svg' %}" alt="Module Integration Architecture" />
+                </object>
+            </div>
+        </div>
+
+        <!-- Infrastructure Diagram -->
+        <div class="architecture-card">
+            <h3 class="architecture-title">
+                <i class="fas fa-network-wired"></i> Infrastructure Deployment
+            </h3>
+            <p class="architecture-description">
+                Complete infrastructure stack showing Docker services, host services (SLURM, Munge, Apptainer), and network architecture
+            </p>
+            <div class="architecture-diagram-container">
+                <object type="image/svg+xml" data="{% static 'public_app/images/architecture/ARCHITECTURE_02.svg' %}" class="architecture-svg architecture-svg-infra">
+                    <img src="{% static 'public_app/images/architecture/ARCHITECTURE_02.svg' %}" alt="Infrastructure Architecture" />
+                </object>
+            </div>
+        </div>
+
+        <!-- Architecture Info -->
+        <div class="info-box info-box-with-margin">
+            <p>
+                <i class="fas fa-info-circle"></i>
+                <strong>Documentation:</strong> Detailed architecture documentation available at
+                <a href="/docs/ARCHITECTURE.md" target="_blank">ARCHITECTURE.md</a>
+            </p>
         </div>
     </div>
 </div>

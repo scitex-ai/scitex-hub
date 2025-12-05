@@ -3,7 +3,7 @@
  * Captures console logs and provides debug snapshot functionality
  */
 
-import { NotificationManager } from "./notification-manager.ts";
+import { NotificationManager } from "./notification-manager";
 
 interface ConsoleEntry {
   type: "log" | "warn" | "error" | "info" | "debug";

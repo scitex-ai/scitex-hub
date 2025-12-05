@@ -21,7 +21,7 @@ run_timed() {
     local description="$1"
     shift
     local start_time=$(date +%s)
-    local log_file="$LOG_DIR/$(date +%Y%m%d_%H%M%S)_$(echo "$description" | tr ' ' '_' | tr '[:upper:]' '[:lower:]').log"
+    local log_file="$LOG_DIR/$(date +%Y%m%d_%H%M%S)_$(echo -e "$description" | tr ' ' '_' | tr '[:upper:]' '[:lower:]').log"
 
     echo -e "${CYAN}⏳ $description...${NC}"
 
@@ -48,7 +48,7 @@ run_timed() {
 run_quiet() {
     local description="$1"
     shift
-    local log_file="$LOG_DIR/$(date +%Y%m%d_%H%M%S)_$(echo "$description" | tr ' ' '_' | tr '[:upper:]' '[:lower:]').log"
+    local log_file="$LOG_DIR/$(date +%Y%m%d_%H%M%S)_$(echo -e "$description" | tr ' ' '_' | tr '[:upper:]' '[:lower:]').log"
 
     echo -en "${CYAN}⏳ $description...${NC}"
 
@@ -68,13 +68,13 @@ run_quiet() {
 
 # Show step header
 step() {
-    echo ""
+    echo -e ""
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "${CYAN}$1${NC}"
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 }
 
-# Simple echo functions with colors
+# Simple echo -e functions with colors
 echo_info() {
     echo -e "${CYAN}$1${NC}"
 }

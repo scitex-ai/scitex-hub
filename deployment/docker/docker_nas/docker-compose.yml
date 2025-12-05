@@ -17,7 +17,7 @@ services:
       args:
         BUILDKIT_INLINE_CACHE: 1
     image: scitex-cloud-nas-django:latest
-    entrypoint: ["/entrypoint.sh"]
+    entrypoint: ["/root-init.sh", "/entrypoint.sh"]
     command: ["daphne", "-b", "0.0.0.0", "-p", "8000", "--access-log", "-", "--verbosity", "1", "config.asgi:application"]
     volumes:
       - static_volume:/app/staticfiles
@@ -38,6 +38,7 @@ services:
       - /etc/munge:/etc/munge:ro
       - /run/munge:/run/munge
       - /var/log/slurm:/var/log/slurm
+      - /var/spool/slurmctld:/var/spool/slurmctld:ro
       # Mount host passwd for SLURM UID synchronization (prevents "Security violation" errors)
       - /etc/passwd:/host/etc/passwd:ro
 
@@ -255,7 +256,7 @@ services:
       - /home/ywatanabe/proj/crossref_local/data:/data:ro
     environment:
       - CROSSREF_DB_PATH=/data/crossref.db
-      - LOG_LEVEL=INFO
+      - LOG_LEVEL=info
     restart: always
     networks:
       - scitex-network
@@ -304,6 +305,7 @@ services:
     image: nginx:alpine
     volumes:
       - ../common/nginx/nginx_nas.conf:/etc/nginx/nginx.conf:ro
+      - ../common/nginx/error-pages:/etc/nginx/error-pages:ro
       - static_volume:/app/staticfiles:ro
       - media_volume:/app/media:ro
     depends_on:

@@ -9,17 +9,17 @@
  * - WriterTreeSync: Bidirectional sync between dropdowns and tree
  */
 
-import { populateSectionDropdownDirect, syncDropdownsFromPath } from "../../utils/index.ts";
-import { initializeWriterFilter } from "../../modules/writer-file-filter.ts";
-import { PanelSwitcher } from "../ui/PanelSwitcher.ts";
+import { populateSectionDropdownDirect, syncDropdownsFromPath } from "../../utils/index";
+import { initializeWriterFilter } from "../../modules/writer-file-filter";
+import { PanelSwitcher } from "../ui/PanelSwitcher";
 import {
   createFileSelectHandler,
   setupDoctypeChangeWithTree,
   setupDoctypeChangeWithoutTree,
   getDoctypeFolder,
   createWriterTreeConfig,
-} from "./handlers/index.ts";
-import { initWriterTreeSync, getWriterTreeSync } from "../sync/index.ts";
+} from "./handlers/index";
+import { initWriterTreeSync, getWriterTreeSync } from "../sync/index";
 
 console.log("[DEBUG] FileTreeSetup.ts loaded (refactored with handlers)");
 
@@ -246,7 +246,7 @@ export class FileTreeSetup {
     projectSlug: string,
     onFileSelect: (path: string, item: any) => void
   ): Promise<any> {
-    const module = await import("/static/shared/ts/components/workspace-files-tree/WorkspaceFilesTree.ts") as any;
+    const module = await import("@/components/workspace-files-tree/WorkspaceFilesTree") as any;
     const WorkspaceFilesTree: WorkspaceFilesTreeType = module.WorkspaceFilesTree;
 
     const treeConfig = createWriterTreeConfig(projectOwner, projectSlug, onFileSelect);

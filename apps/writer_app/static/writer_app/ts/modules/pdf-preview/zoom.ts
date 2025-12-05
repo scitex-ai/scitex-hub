@@ -3,7 +3,7 @@
  * Handles zoom controls and zoom level management
  */
 
-import { PDFJSViewer } from "../pdf-viewer-pdfjs.ts";
+import { PDFJSViewer } from "../pdf-viewer-pdfjs";
 
 export class ZoomController {
   private pdfZoom: number = 100;

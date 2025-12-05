@@ -5,13 +5,13 @@
 
 console.log("[DEBUG] figures-panel.ts loaded");
 
-import type { Figure } from "./figures-panel/figures-list.ts";
-import { FiguresList } from "./figures-panel/figures-list.ts";
-import { FigureUpload } from "./figures-panel/figure-upload.ts";
-import { FigurePreview } from "./figures-panel/figure-preview.ts";
-import { FigureActions } from "./figures-panel/figure-actions.ts";
-import { FigureSearch } from "./figures-panel/figure-search.ts";
-import { FigureState } from "./figures-panel/figure-state.ts";
+import type { Figure } from "./figures-panel/figures-list";
+import { FiguresList } from "./figures-panel/figures-list";
+import { FigureUpload } from "./figures-panel/figure-upload";
+import { FigurePreview } from "./figures-panel/figure-preview";
+import { FigureActions } from "./figures-panel/figure-actions";
+import { FigureSearch } from "./figures-panel/figure-search";
+import { FigureState } from "./figures-panel/figure-state";
 
 // Re-export Figure type for backward compatibility
 export type { Figure };

@@ -39,7 +39,6 @@ from .execution import (
     is_slurm_available,
     select_container,
     exec_slurm_shell,
-    exec_direct_shell,
 )
 from .workspace import ensure_workspace
 
@@ -142,7 +141,9 @@ class TerminalConsumer(AsyncWebsocketConsumer):
                 if use_slurm:
                     exec_slurm_shell(username, user_data_dir, project_dir, container_path, project_slug)
                 else:
-                    exec_direct_shell(username, user_data_dir, project_dir, container_path, project_slug)
+                    # SECURITY: No fallback - SLURM is required for all terminals
+                    logger.error("SLURM not available - terminals disabled for security")
+                    os._exit(1)
         finally:
             # Parent process - restore signal mask
             if self.pid != 0:

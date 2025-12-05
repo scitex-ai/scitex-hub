@@ -9,10 +9,10 @@
 import {
   loadFileTree as loadFileTreeShared,
   toggleFolder as toggleFolderShared,
-} from "../shared/file-tree.ts";
-import { initializeSidebar, toggleSidebar, toggleSidebarSection } from "./detail/sidebar.ts";
-import { copyProjectToClipboard, downloadProjectAsFile } from "./detail/project-concatenation.ts";
-import { loadProjectStats, toggleWatch, toggleStar, forkProject } from "./detail/project-actions.ts";
+} from "../shared/file-tree";
+import { initializeSidebar, toggleSidebar, toggleSidebarSection } from "./detail/sidebar";
+import { copyProjectToClipboard, downloadProjectAsFile } from "./detail/project-concatenation";
+import { loadProjectStats, toggleWatch, toggleStar, forkProject } from "./detail/project-actions";
 import {
   toggleBranchDropdown,
   switchBranch,
@@ -20,8 +20,8 @@ import {
   toggleCodeDropdown,
   toggleCopyDropdown,
   closeAllDropdowns,
-} from "./detail/toolbar-dropdowns.ts";
-import { copyCloneUrl, downloadProjectZip } from "./detail/clone-download.ts";
+} from "./detail/toolbar-dropdowns";
+import { copyCloneUrl, downloadProjectZip } from "./detail/clone-download";
 
 console.log("[DEBUG] apps/project_app/static/project_app/ts/projects/detail.ts loaded");
 

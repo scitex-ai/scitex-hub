@@ -2,7 +2,7 @@
  * DiffMerge Drag and Drop Handler
  */
 
-import { Side } from "./types.ts";
+import { Side } from "./types";
 
 export class DragDropHandler {
   private onFileDropped: (file: File, side: Side) => void;

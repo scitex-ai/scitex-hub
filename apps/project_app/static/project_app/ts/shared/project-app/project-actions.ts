@@ -3,7 +3,7 @@
  * Handles watch/star/fork actions
  */
 
-import { getCsrfToken } from "../../utils/csrf.ts";
+import { getCsrfToken } from "../../utils/csrf";
 
 // =============================================================================
 

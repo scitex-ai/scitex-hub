@@ -12,7 +12,8 @@ FROM python:3.11-slim AS python-builder
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
-    UV_SYSTEM_PYTHON=1
+    UV_SYSTEM_PYTHON=1 \
+    UV_HTTP_TIMEOUT=600
 
 WORKDIR /build
 
@@ -136,6 +137,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     netcat-openbsd \
     jq \
     git \
+    gosu \
     # Docker client (for status checks and workspace management)
     docker.io \
     # Apptainer runtime dependencies (for fakeroot/user namespaces)
@@ -157,6 +159,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     texlive-plain-generic \
     # bibtex is included in texlive-bibtex-extra
     latexdiff \
+    latexmk \
     ghostscript \
     poppler-utils \
     # Image processing runtime
@@ -192,7 +195,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN sed -i 's/main/main contrib/g' /etc/apt/sources.list.d/debian.sources 2>/dev/null || \
         sed -i 's/main$/main contrib/' /etc/apt/sources.list && \
     apt-get update && \
-    echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections && \
+    echo -e "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ttf-mscorefonts-installer && \
     fc-cache -fv && \
     rm -rf /var/lib/apt/lists/*
@@ -253,27 +256,29 @@ RUN useradd -m -u 1000 scitex && \
     mkdir -p /app/staticfiles /app/media /app/logs /app/run /app/.cache/containers && \
     chown -R scitex:scitex /app && \
     # Setup subuid/subgid for apptainer fakeroot (required for newuidmap/newgidmap)
-    echo "scitex:100000:65536" >> /etc/subuid && \
-    echo "scitex:100000:65536" >> /etc/subgid
+    echo -e "scitex:100000:65536" >> /etc/subuid && \
+    echo -e "scitex:100000:65536" >> /etc/subgid
 
 # Copy application code (last - changes most frequently)
 COPY --chown=scitex:scitex . .
 
 
-# Copy NAS-specific entrypoint
-COPY --chown=scitex:scitex deployment/docker/docker_nas/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+# Copy NAS-specific entrypoint scripts
+COPY deployment/docker/docker_nas/root-init.sh /root-init.sh
+COPY deployment/docker/docker_nas/entrypoint.sh /entrypoint.sh
+RUN chmod +x /root-init.sh /entrypoint.sh
 
-# Switch to non-root user for security
+# Verify critical tools as scitex user (fail fast)
 USER scitex
-
-# Verify critical tools (fail fast)
 RUN pdflatex --version && \
     bibtex --version && \
     convert --version && \
     yq --version && \
     python --version && \
-    echo "✅ Production image verified"
+    echo -e "✅ Production image verified"
+
+# Switch back to root for runtime initialization (root-init.sh will drop to scitex)
+USER root
 
 # ============================================
 # Runtime Configuration
@@ -284,7 +289,8 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
 
 EXPOSE 8000
 
-ENTRYPOINT ["/entrypoint.sh"]
+# Root-level initialization (fixes SLURM UID, munge group, then drops to scitex user)
+ENTRYPOINT ["/root-init.sh", "/entrypoint.sh"]
 # Use Daphne (ASGI) for WebSocket support (PTY terminal, collaborative editing)
 CMD ["daphne", \
      "-b", "0.0.0.0", \

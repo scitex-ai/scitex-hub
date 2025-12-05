@@ -6,19 +6,19 @@
 export {
   createFileSelectHandler,
   type FileSelectDependencies,
-} from "./FileSelectHandler.ts";
+} from "./FileSelectHandler";
 
 export {
   setupDoctypeChangeWithTree,
   setupDoctypeChangeWithoutTree,
   type DoctypeChangeDependencies,
-} from "./DoctypeChangeHandler.ts";
+} from "./DoctypeChangeHandler";
 
 export {
   WRITER_ALLOWED_EXTENSIONS,
   DOCTYPE_FOLDER_MAP,
   getDoctypeFolder,
   createWriterTreeConfig,
-} from "./TreeConfiguration.ts";
+} from "./TreeConfiguration";
 
 console.log("[DEBUG] FileTreeSetup handlers index loaded");

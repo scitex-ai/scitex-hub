@@ -7,12 +7,12 @@
  */
 
 import { ApiClient } from "@/utils/api";
-import { getWriterFilter, WriterFileFilter } from "./writer-file-filter.ts";
-import { FileTreeNode, FileTreeOptions } from "./file-tree/types.ts";
-import { TreeRenderer } from "./file-tree/tree-renderer.ts";
-import { DirectoryManager } from "./file-tree/directory-manager.ts";
-import { FileSelector } from "./file-tree/file-selector.ts";
-import { SectionDropdownManager } from "./file-tree/section-dropdown.ts";
+import { getWriterFilter, WriterFileFilter } from "./writer-file-filter";
+import { FileTreeNode, FileTreeOptions } from "./file-tree/types";
+import { TreeRenderer } from "./file-tree/tree-renderer";
+import { DirectoryManager } from "./file-tree/directory-manager";
+import { FileSelector } from "./file-tree/file-selector";
+import { SectionDropdownManager } from "./file-tree/section-dropdown";
 
 console.log(
   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/file_tree.ts loaded",

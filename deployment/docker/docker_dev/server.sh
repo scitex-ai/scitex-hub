@@ -8,14 +8,14 @@ THIS_DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
 
 GIT_ROOT="$(git rev-parse --show-toplevel 2> /dev/null)"
 if [ -z "$GIT_ROOT" ]; then
-    echo "ERROR: Not in a git repository. Please run from within scitex-cloud directory."
+    echo -e "ERROR: Not in a git repository. Please run from within scitex-cloud directory."
     exit 1
 fi
 
 DOCKER_DIR="$GIT_ROOT/deployment/docker/docker_dev"
 if [ ! -d "$DOCKER_DIR" ]; then
-    echo "ERROR: Docker directory not found: $DOCKER_DIR"
-    echo "Expected structure: <project-root>/deployment/docker/docker_dev/"
+    echo -e "ERROR: Docker directory not found: $DOCKER_DIR"
+    echo -e "Expected structure: <project-root>/deployment/docker/docker_dev/"
     exit 1
 fi
 
@@ -177,9 +177,9 @@ list_env_dev() {
         done
 
         if $is_sensitive; then
-            echo "  ${var_name}=***"
+            echo -e "  ${var_name}=***"
         else
-            echo "  ${var_name}=${var_value:-[not set]}"
+            echo -e "  ${var_name}=${var_value:-[not set]}"
         fi
     done
 }
@@ -472,7 +472,7 @@ cleanup_corrupted_containers() {
 
     if [ -n "$bad_containers" ]; then
         echo_warning "Found corrupted containers, removing: $bad_containers"
-        echo "$bad_containers" | xargs -r docker rm -f
+        echo -e "$bad_containers" | xargs -r docker rm -f
         echo_success "Corrupted containers removed"
     fi
 
@@ -517,11 +517,11 @@ verify_and_test_endpoints() {
     curl -I \
         http://localhost:${SCITEX_CLOUD_GITEA_HTTP_PORT_DEV:-3000}
 
-    echo ""
+    echo -e ""
     echo_success "Access Information:"
     echo_success "Django:  http://localhost:${SCITEX_CLOUD_HTTP_PORT_DEV:-8000}"
     echo_success "Gitea:   http://localhost:${SCITEX_CLOUD_GITEA_HTTP_PORT_DEV:-3000}"
-    echo ""
+    echo -e ""
     echo_success "Gitea Admin Login:"
     echo_success "  Username: ${SCITEX_CLOUD_GITEA_ADMIN_USERNAME:-scitex_admin}"
     echo_success "  Password: ${SCITEX_CLOUD_GITEA_ADMIN_PASSWORD:-scitex_admin_2025}"
@@ -580,7 +580,7 @@ setup_gitea_token() {
         if grep -q "SCITEX_CLOUD_GITEA_TOKEN_DEV=" "$GIT_ROOT/SECRET/.env.dev"; then
             sed -i "s|SCITEX_CLOUD_GITEA_TOKEN_DEV=.*|SCITEX_CLOUD_GITEA_TOKEN_DEV=$NEW_TOKEN|" "$GIT_ROOT/SECRET/.env.dev"
         else
-            echo "SCITEX_CLOUD_GITEA_TOKEN_DEV=$NEW_TOKEN" >> "$GIT_ROOT/SECRET/.env.dev"
+            echo -e "SCITEX_CLOUD_GITEA_TOKEN_DEV=$NEW_TOKEN" >> "$GIT_ROOT/SECRET/.env.dev"
         fi
         echo_success "Token saved to SECRET/.env.dev"
 
@@ -612,8 +612,8 @@ verify_gitea_api() {
     AUTH_RESPONSE=$(curl -s -H "Authorization: token ${GITEA_TOKEN}" \
         "${GITEA_URL}/api/v1/user" 2> /dev/null)
 
-    if echo "$AUTH_RESPONSE" | grep -q '"login"'; then
-        GITEA_USER=$(echo "$AUTH_RESPONSE" | grep -o '"login":"[^"]*"' | cut -d'"' -f4)
+    if echo -e "$AUTH_RESPONSE" | grep -q '"login"'; then
+        GITEA_USER=$(echo -e "$AUTH_RESPONSE" | grep -o '"login":"[^"]*"' | cut -d'"' -f4)
         echo_success "Authenticated to Gitea as: $GITEA_USER"
     else
         echo_error "Failed to authenticate to Gitea"
@@ -654,7 +654,7 @@ EOH
     GITEA_CHECK=$(curl -s -H "Authorization: token ${GITEA_TOKEN}" \
         "${GITEA_URL}/api/v1/users/${USERNAME}" 2> /dev/null)
 
-    if echo "$GITEA_CHECK" | grep -q '"message"'; then
+    if echo -e "$GITEA_CHECK" | grep -q '"message"'; then
         echo_success "✓ User deleted from Gitea"
     else
         echo_warning "User may still exist in Gitea, continuing anyway..."
@@ -673,7 +673,7 @@ EOH
     sleep 3
 
     # Step 5: Verify user exists in both Django and Gitea
-    echo ""
+    echo -e ""
     verify_test_user
 }
 
@@ -710,9 +710,9 @@ except User.DoesNotExist:
 EOH
     )
 
-    if echo "$django_check" | grep -q '"exists": true'; then
+    if echo -e "$django_check" | grep -q '"exists": true'; then
         echo_success "✓ Django user exists: $USERNAME"
-        local django_email=$(echo "$django_check" | grep -o '"email": "[^"]*"' | cut -d'"' -f4)
+        local django_email=$(echo -e "$django_check" | grep -o '"email": "[^"]*"' | cut -d'"' -f4)
         echo_info "  Email: $django_email"
         django_ok=true
     else
@@ -725,9 +725,9 @@ EOH
         local gitea_check=$(curl -s -H "Authorization: token ${GITEA_TOKEN}" \
             "${GITEA_URL}/api/v1/users/${USERNAME}" 2> /dev/null)
 
-        if echo "$gitea_check" | grep -q '"login"'; then
+        if echo -e "$gitea_check" | grep -q '"login"'; then
             echo_success "✓ Gitea user exists: $USERNAME"
-            local gitea_email=$(echo "$gitea_check" | grep -o '"email":"[^"]*"' | cut -d'"' -f4)
+            local gitea_email=$(echo -e "$gitea_check" | grep -o '"email":"[^"]*"' | cut -d'"' -f4)
             echo_info "  Email: $gitea_email"
             gitea_ok=true
         else
@@ -738,7 +738,7 @@ EOH
     fi
 
     # Summary
-    echo ""
+    echo -e ""
     if $django_ok && $gitea_ok; then
         echo_success "Test user verified in both Django and Gitea!"
         return 0
@@ -765,7 +765,7 @@ wait_for_web_healthy() {
         if docker compose -f docker-compose.yml ps \
             | grep scitex-cloud-dev-django-1 \
             | grep -q "(healthy)"; then
-            echo ""
+            echo -e ""
             echo_success \
                 "Web container is healthy! " \
                 "(took $((SECONDS - START_TIME))s)"
@@ -774,7 +774,7 @@ wait_for_web_healthy() {
 
         # Stream all new logs from container since last check
         docker logs scitex-cloud-dev-django-1 2>&1 | tail -n +$((LAST_LOG_LINE + 1)) | while IFS= read -r line; do
-            echo "  $line"
+            echo -e "  $line"
         done
 
         # Update line count for next iteration
@@ -784,7 +784,7 @@ wait_for_web_healthy() {
     done
 
     # Timeout reached
-    echo ""
+    echo -e ""
     echo_warning "Timeout after ${TIMEOUT}s"
     echo_info "Check logs: docker compose -f docker-compose.yml logs web"
     return 1
@@ -857,23 +857,23 @@ restart_dev() {
 }
 
 usage() {
-    echo "Usage: $0 [-a|--action <start|restart|list_env>] [-l|--list-env] [-h|--help]"
+    echo -e "Usage: $0 [-a|--action <start|restart|list_env>] [-l|--list-env] [-h|--help]"
     echo
-    echo "Actions:"
-    echo "  start      Full setup from scratch with cleanup and rebuild"
-    echo "  restart    Quick restart of web container only"
-    echo "  list_env   Display environment variables"
+    echo -e "Actions:"
+    echo -e "  start      Full setup from scratch with cleanup and rebuild"
+    echo -e "  restart    Quick restart of web container only"
+    echo -e "  list_env   Display environment variables"
     echo
-    echo "Options:"
-    echo "  -a, --action     Action to perform: start, restart, or list_env"
-    echo "                   (default: restart)"
-    echo "  -l, --list-env   Shortcut for list_env action"
-    echo "  -h, --help       Display this help message"
+    echo -e "Options:"
+    echo -e "  -a, --action     Action to perform: start, restart, or list_env"
+    echo -e "                   (default: restart)"
+    echo -e "  -l, --list-env   Shortcut for list_env action"
+    echo -e "  -h, --help       Display this help message"
     echo
-    echo "Example:"
-    echo "  $0 -a start"
-    echo "  $0 --action restart"
-    echo "  $0 -l"
+    echo -e "Example:"
+    echo -e "  $0 -a start"
+    echo -e "  $0 --action restart"
+    echo -e "  $0 -l"
     exit 1
 }
 
@@ -912,7 +912,7 @@ main() {
                 usage
                 ;;
             *)
-                echo "Unknown option: $1"
+                echo -e "Unknown option: $1"
                 usage
                 ;;
         esac
@@ -929,7 +929,7 @@ main() {
             list_env_dev
             ;;
         *)
-            echo "Invalid action: $ACTION"
+            echo -e "Invalid action: $ACTION"
             usage
             ;;
     esac

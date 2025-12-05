@@ -3,7 +3,7 @@
  * Handles Light/Dark mode switching with localStorage persistence and database sync
  */
 
-import { getCsrfToken } from "./csrf.ts";
+import { getCsrfToken } from "./csrf";
 
 console.log(
   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/static/ts/utils/theme-switcher.ts loaded",

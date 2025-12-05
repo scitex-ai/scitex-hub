@@ -3,7 +3,7 @@
  * Handles section dropdown population and management
  */
 
-import { FileTreeNode, TeXSection } from "./types.ts";
+import { FileTreeNode, TeXSection } from "./types";
 
 export class TexFileDropdown {
   private dropdownId?: string;

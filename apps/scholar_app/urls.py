@@ -17,6 +17,7 @@ from .views.annotation import views as annotation_views
 from .views.trending import views as trending_views
 from .views import repository as repository_views
 from .integrations import scitex as scitex_search
+from .api import crossref_proxy
 
 app_name = "scholar_app"
 
@@ -382,6 +383,27 @@ urlpatterns = [
         "api/repository-connections/create/",
         repository_views.create_repository_connection,
         name="create_repository_connection",
+    ),
+    # CrossRef Local API (Public Access)
+    path(
+        "api/crossref/search/",
+        crossref_proxy.search,
+        name="crossref_api_search",
+    ),
+    path(
+        "api/crossref/citations/",
+        crossref_proxy.citations,
+        name="crossref_api_citations",
+    ),
+    path(
+        "api/crossref/health/",
+        crossref_proxy.health,
+        name="crossref_api_health",
+    ),
+    path(
+        "api/crossref/stats/",
+        crossref_proxy.stats,
+        name="crossref_api_stats",
     ),
     # Advanced features (for future implementation)
     # path('advanced/dashboard/', views.search_dashboard, name='search_dashboard'),

@@ -7,9 +7,9 @@ run_migrations() {
     if type run_timed &>/dev/null; then
         run_timed "Running migrations" python manage.py migrate --noinput
     else
-        echo "🔄 Running migrations..."
+        echo -e "🔄 Running migrations..."
         python manage.py migrate --noinput
-        echo "✅ Migrations complete!"
+        echo -e "✅ Migrations complete!"
     fi
 }
 
@@ -17,9 +17,9 @@ collect_static_files() {
     if type run_timed &>/dev/null; then
         run_timed "Collecting static files" python manage.py collectstatic --noinput
     else
-        echo "📦 Collecting static files..."
+        echo -e "📦 Collecting static files..."
         python manage.py collectstatic --noinput
-        echo "✅ Static files collected!"
+        echo -e "✅ Static files collected!"
     fi
 }
 

@@ -3,9 +3,9 @@
  * Handles git commit modal and operations
  */
 
-import type { EditorConfig } from "../core/types.ts";
-import type { GitOperations } from "./GitOperations.ts";
-import type { GitStatusManager } from "./GitStatusManager.ts";
+import type { EditorConfig } from "../core/types";
+import type { GitOperations } from "./GitOperations";
+import type { GitStatusManager } from "./GitStatusManager";
 
 export class CommitManager {
   constructor(

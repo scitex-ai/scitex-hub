@@ -11,12 +11,12 @@ console.log(
 import {
   doctypeToDirectory,
   isNonEditableFile,
-} from "../config/index.ts";
+} from "../config/index";
 import {
   updateDoctypeSectionsFromTree,
   getSectionsForDoctype,
   Section,
-} from "../sections/section-extraction.ts";
+} from "../sections/section-extraction";
 import {
   getCurrentDoctype,
   setCurrentDoctype,
@@ -25,9 +25,9 @@ import {
   filterFileTreeDOM,
   handleFileSelect,
   setupTreeFilterObserver,
-} from "../tree/index.ts";
-import { initSidebarResizer } from "../ui/sidebar-resizer.ts";
-import { WriterTabManager } from "../tabs/WriterTabManager.ts";
+} from "../tree/index";
+import { initSidebarResizer } from "../ui/sidebar-resizer";
+import { WriterTabManager } from "../tabs/WriterTabManager";
 
 // Get WRITER_CONFIG from window
 declare global {
@@ -265,8 +265,8 @@ export const initWriterApp = async (): Promise<void> => {
     return;
   }
 
-  // Dynamic import for WorkspaceFilesTree (using absolute URL path)
-  const { WorkspaceFilesTree } = await import("/static/shared/ts/components/workspace-files-tree/WorkspaceFilesTree.ts");
+  // Dynamic import for WorkspaceFilesTree (using @ alias)
+  const { WorkspaceFilesTree } = await import("@/components/workspace-files-tree/WorkspaceFilesTree");
 
   // Initialize file tree
   writerFileTree = new WorkspaceFilesTree({

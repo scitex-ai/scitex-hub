@@ -38,7 +38,7 @@ import {
   showCompilationOptionsModal,
   setupWorkspaceInitialization,
   waitForMonaco,
-} from "./modules/index.ts";
+} from "./modules/index";
 import {
   SectionManagement,
   setSectionOpsPdfPreviewManager,
@@ -53,14 +53,14 @@ import {
   ComponentInitializer,
   EventHandlerSetup,
   FileTreeSetup,
-} from "./writer/index.ts";
-import { PDFScrollZoomHandler } from "./modules/pdf-scroll-zoom.ts";
-import { statePersistence } from "./modules/state-persistence.ts";
+} from "./writer/index";
+import { PDFScrollZoomHandler } from "./modules/pdf-scroll-zoom";
+import { statePersistence } from "./modules/state-persistence";
 import { getCsrfToken } from "@/utils/csrf.js";
 import { writerStorage } from "@/utils/storage.js";
-import { getWriterConfig, createDefaultEditorState } from "./helpers.ts";
-import { GitHistoryManager } from "./modules/git-history.ts";
-import { initializeCollaboratorsPanel } from "./collaboration-panel.ts";
+import { getWriterConfig, createDefaultEditorState } from "./helpers";
+import { GitHistoryManager } from "./modules/git-history";
+import { initializeCollaboratorsPanel } from "./collaboration-panel";
 import {
   SaveSectionsResponse,
   SectionReadResponse,
@@ -68,7 +68,7 @@ import {
   validateSectionReadResponse,
   isSaveSectionsResponse,
   isSectionReadResponse,
-} from "./types/api-responses.ts";
+} from "./types/api-responses";
 import {
   showToast,
   getUserContext,
@@ -116,14 +116,14 @@ import {
   openPDF,
   loadPanelCSS,
   switchRightPanel,
-} from "./utils/index.ts";
+} from "./utils/index";
 
 console.log(
   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/index.ts loaded",
 );
 
 // Import and initialize editor loader (must happen before DOMContentLoaded)
-import { editorLoader } from "./loaders/editor-loader.ts";
+import { editorLoader } from "./loaders/editor-loader";
 
 // Initialize editors immediately (before DOM ready)
 (async () => {

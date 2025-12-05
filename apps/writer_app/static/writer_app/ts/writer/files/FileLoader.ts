@@ -3,8 +3,8 @@
  * Handles loading .tex files from the server
  */
 
-import { showToast } from "../../utils/index.ts";
-import { getWriterConfig } from "../../helpers.ts";
+import { showToast } from "../../utils/index";
+import { getWriterConfig } from "../../helpers";
 
 /**
  * Load .tex file content from server

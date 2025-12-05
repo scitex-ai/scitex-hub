@@ -8,7 +8,7 @@
 ORIG_DIR="$(pwd)"
 THIS_DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
 LOG_PATH="$THIS_DIR/.$(basename $0).log"
-echo > "$LOG_PATH"
+echo -e > "$LOG_PATH"
 
 GIT_ROOT="$(git rev-parse --show-toplevel 2> /dev/null)"
 DOCKER_DIR="$GIT_ROOT/deployment/docker/docker_dev"
@@ -45,11 +45,11 @@ check_postgres_status() {
     if docker-compose -f docker-compose.dev.yml ps | grep -q "docker_db_1"; then
         STATUS=$(docker-compose -f docker-compose.dev.yml ps docker_db_1 2> /dev/null | grep docker_db_1 | awk '{print $4}')
 
-        if echo "$STATUS" | grep -q "Up"; then
+        if echo -e "$STATUS" | grep -q "Up"; then
             echo_success "  ✓ Container running"
 
             # Check health status
-            if echo "$STATUS" | grep -q "healthy"; then
+            if echo -e "$STATUS" | grep -q "healthy"; then
                 echo_success "  ✓ Health check passed"
             else
                 echo_warning "  ⚠ Health check pending or failing"
@@ -152,7 +152,7 @@ check_postgres_status() {
 
         VOLUME_MOUNTPOINT=$(docker volume inspect docker_postgres_data --format '{{.Mountpoint}}' 2> /dev/null)
         if [ -n "$VOLUME_MOUNTPOINT" ] && [ -d "$VOLUME_MOUNTPOINT" ]; then
-            VOLUME_SIZE=$(sudo du -sh "$VOLUME_MOUNTPOINT" 2> /dev/null | cut -f1 || echo "N/A")
+            VOLUME_SIZE=$(sudo du -sh "$VOLUME_MOUNTPOINT" 2> /dev/null | cut -f1 || echo -e "N/A")
             echo_info "  Size: $VOLUME_SIZE"
         fi
         echo_info "  Mountpoint: $VOLUME_MOUNTPOINT"

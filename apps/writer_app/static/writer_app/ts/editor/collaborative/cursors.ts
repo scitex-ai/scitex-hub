@@ -5,8 +5,8 @@
  * @author SciTeX Development Team
  */
 
-import type { ManuscriptConfig } from "./types.ts";
-import { ChangeTracker } from "./changes.ts";
+import type { ManuscriptConfig } from "./types";
+import { ChangeTracker } from "./changes";
 
 export class CursorManager {
   private isCollaborationEnabled: boolean = false;

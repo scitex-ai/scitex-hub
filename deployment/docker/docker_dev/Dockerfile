@@ -109,7 +109,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # ttf-mscorefonts-installer requires contrib repository in Debian
 RUN sed -i 's/main/main contrib/g' /etc/apt/sources.list.d/debian.sources \
     && apt-get update \
-    && echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections \
+    && echo -e "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections \
     && apt-get install -y --no-install-recommends ttf-mscorefonts-installer \
     && fc-cache -fv \
     && rm -rf /var/lib/apt/lists/*
@@ -177,7 +177,7 @@ RUN APPTAINER_VERSION=1.3.4 && \
     && rm -rf /var/lib/apt/lists/* \
     && curl -L -o /tmp/apptainer.deb \
         "https://github.com/apptainer/apptainer/releases/download/v${APPTAINER_VERSION}/apptainer_${APPTAINER_VERSION}_amd64.deb" \
-    && echo "Creating libfuse3-3 compatibility package..." \
+    && echo -e "Creating libfuse3-3 compatibility package..." \
     && printf "Section: misc\nPriority: optional\nStandards-Version: 3.9.2\nPackage: libfuse3-3\nVersion: 3.17.2\nProvides: libfuse3-3\nDepends: libfuse3-4\nDescription: Compatibility package for libfuse3-3\n This is a transitional package for Debian Trixie.\n" > /tmp/libfuse3-3-compat \
     && equivs-build /tmp/libfuse3-3-compat \
     && dpkg -i libfuse3-3_3.17.2_all.deb \
@@ -198,7 +198,7 @@ RUN if [ -f /etc/ImageMagick-6/policy.xml ]; then \
     elif [ -f /etc/ImageMagick-7/policy.xml ]; then \
         sed -i 's/<policy domain="coder" rights="none" pattern="PDF" \/>/<policy domain="coder" rights="read|write" pattern="PDF" \/>/g' /etc/ImageMagick-7/policy.xml; \
     else \
-        echo "⚠️  ImageMagick policy.xml not found, skipping PDF policy update"; \
+        echo -e "⚠️  ImageMagick policy.xml not found, skipping PDF policy update"; \
     fi
 
 # ============================================
@@ -250,7 +250,7 @@ RUN pdflatex --version && \
     mmdc --version && \
     yq --version && \
     which srun && \
-    echo "✅ All scitex.writer dependencies verified (SLURM client installed, config at runtime)"
+    echo -e "✅ All scitex.writer dependencies verified (SLURM client installed, config at runtime)"
 
 # ============================================
 # Runtime Configuration

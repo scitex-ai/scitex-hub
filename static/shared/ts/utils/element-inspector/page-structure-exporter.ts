@@ -3,8 +3,8 @@
  * Exports complete page structure for AI analysis
  */
 
-import type { PageStructureInfo } from "./types.ts";
-import { NotificationManager } from "./notification-manager.ts";
+import type { PageStructureInfo } from "./types";
+import { NotificationManager } from "./notification-manager";
 
 export class PageStructureExporter {
   private notificationManager: NotificationManager;

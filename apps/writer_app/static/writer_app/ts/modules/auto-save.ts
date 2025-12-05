@@ -3,16 +3,16 @@
  * Handles automatic saving and compilation scheduling
  */
 
-import type { WriterEditor } from "./editor.ts";
-import type { SectionsManager } from "./sections.ts";
-import type { PDFPreviewManager } from "./pdf-preview/index.ts";
+import type { WriterEditor } from "./editor";
+import type { SectionsManager } from "./sections";
+import type { PDFPreviewManager } from "./pdf-preview/index";
 import { getCsrfToken } from "@/utils/csrf.js";
-import { getWriterConfig } from "../helpers.ts";
-import { getUserContext } from "../utils/ui.ts";
+import { getWriterConfig } from "../helpers";
+import { getUserContext } from "../utils/ui";
 import {
   validateSaveSectionsResponse,
   isSaveSectionsResponse,
-} from "../types/api-responses.ts";
+} from "../types/api-responses";
 
 let saveTimeout: ReturnType<typeof setTimeout>;
 let compileTimeout: ReturnType<typeof setTimeout>;

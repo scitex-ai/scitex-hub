@@ -27,6 +27,7 @@ from .legal import contact, privacy_policy, terms_of_use, cookie_policy
 from .status import (
     server_status,
     server_status_api,
+    server_health_status_api,
     server_metrics_history_api,
     server_metrics_export_csv,
     visitor_status,
@@ -90,6 +91,7 @@ __all__ = [
     # Status
     "server_status",
     "server_status_api",
+    "server_health_status_api",
     "server_metrics_history_api",
     "server_metrics_export_csv",
     "visitor_status",

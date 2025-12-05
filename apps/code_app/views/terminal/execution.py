@@ -1,6 +1,8 @@
 """
-Shell Execution Strategies
-Handles different execution modes: SLURM, direct Apptainer, and fallback bash
+Shell Execution via SLURM Only
+SECURITY CRITICAL: All interactive terminals MUST go through SLURM for resource control.
+
+No fallback to direct Apptainer - this is a security requirement for multi-user systems.
 
 Note on SLURM PTY errors:
     The error "srun: error: pty: accept failure: Interrupted system call" is
@@ -12,12 +14,10 @@ Note on SLURM PTY errors:
 import logging
 import os
 import signal
-import shutil
 import subprocess
 from pathlib import Path
 
 from .config import (
-    BASE_CONTAINER_PATH,
     SLURM_PARTITION,
     SLURM_TIME_LIMIT,
     SLURM_CPUS,
@@ -29,20 +29,61 @@ from .config import (
 logger = logging.getLogger(__name__)
 
 
+class SlurmUnavailableError(Exception):
+    """Raised when SLURM is not available but required"""
+    pass
+
+
 def is_slurm_available() -> bool:
-    """Check if SLURM is available on this system"""
+    """
+    Check if SLURM controller is available and responsive.
+
+    SECURITY: This system requires SLURM for all terminal sessions.
+    If SLURM is not available, terminals will be disabled.
+    """
     try:
+        # First check if srun exists
         result = subprocess.run(
             ["srun", "--version"],
             capture_output=True,
             timeout=5
         )
-        available = result.returncode == 0
-        if available:
-            logger.info("SLURM available - using srun for terminal")
-        return available
-    except (FileNotFoundError, subprocess.TimeoutExpired):
-        logger.info("SLURM not available - using direct Apptainer")
+        if result.returncode != 0:
+            logger.error("SLURM binary not found - terminals DISABLED for security")
+            return False
+
+        # Verify controller connectivity with actual partition and resources
+        # Note: Don't use --pty here as Django doesn't have a TTY
+        test_result = subprocess.run(
+            ["timeout", "2", "srun",
+             f"--partition={SLURM_PARTITION}",
+             f"--cpus-per-task=1",
+             f"--mem=1G",
+             "true"],
+            capture_output=True,
+            timeout=5
+        )
+
+        if test_result.returncode == 0:
+            # Check if the job actually ran or if it was just queued
+            stderr = test_result.stderr.decode('utf-8', errors='replace')
+            if 'queued and waiting for resources' in stderr or 'Requested partition configuration not available' in stderr:
+                logger.error(f"SLURM partition '{SLURM_PARTITION}' unavailable - check SLURM configuration")
+                return False
+            logger.info(f"SLURM operational - terminals enabled (partition: {SLURM_PARTITION})")
+            return True
+        elif test_result.returncode == 124:
+            logger.error("SLURM controller timeout - terminals DISABLED")
+            return False
+        else:
+            logger.error(f"SLURM controller not responding (exit {test_result.returncode}) - terminals DISABLED")
+            return False
+
+    except subprocess.TimeoutExpired:
+        logger.error("SLURM controller connection timeout - terminals DISABLED")
+        return False
+    except FileNotFoundError:
+        logger.error("SLURM not installed - terminals DISABLED for security")
         return False
 
 
@@ -51,7 +92,7 @@ def select_container(user_data_dir: Path, project_dir: Path) -> str:
     Select container with priority:
     1. Project-specific: ~/proj/{project}/.singularity/custom.sif
     2. User default: ~/.singularity/default.sif
-    3. Base image: /app/singularity/scitex-user-workspace.sif
+    3. Base image: (from SLURM_CONTAINER_PATH config)
     """
     # Project-specific container
     project_sif = project_dir / ".singularity" / "custom.sif"
@@ -66,8 +107,8 @@ def select_container(user_data_dir: Path, project_dir: Path) -> str:
         return str(user_sif)
 
     # Base container
-    logger.info(f"Using base container: {BASE_CONTAINER_PATH}")
-    return BASE_CONTAINER_PATH
+    logger.info(f"Using base container: {SLURM_CONTAINER_PATH}")
+    return SLURM_CONTAINER_PATH
 
 
 def exec_slurm_shell(
@@ -77,10 +118,13 @@ def exec_slurm_shell(
     container_path: str,
     project_slug: str
 ):
-    """Execute shell via SLURM (production mode)"""
-    # Detect apptainer or singularity on host (SLURM runs on compute nodes)
-    # Most HPC systems have apptainer/singularity in standard paths
-    container_cmd = "apptainer"  # Assume host has apptainer
+    """
+    Execute shell via SLURM (REQUIRED for all users).
+
+    SECURITY: This is the ONLY way to spawn terminals. No fallbacks allowed.
+    """
+    # Container command on SLURM compute nodes
+    container_cmd = "apptainer"
 
     # Convert Docker paths to host paths for SLURM
     # SLURM jobs run on compute nodes, not inside Docker
@@ -96,7 +140,7 @@ def exec_slurm_shell(
         f"--cpus-per-task={SLURM_CPUS}",
         f"--mem={SLURM_MEMORY_GB}G",
         f"--job-name=terminal_{username}",
-        f"--account=user_{username}",
+        # Note: --account not used (SLURM accounting not configured)
         # Container execution (using host paths)
         container_cmd, "shell",
         "--containall",
@@ -106,7 +150,7 @@ def exec_slurm_shell(
         "--home", f"{host_user_dir}:/home/{username}",
         "--bind", f"{host_project_dir}:/home/{username}/proj/{project_slug}:rw",
         "--pwd", f"/home/{username}/proj/{project_slug}",
-        SLURM_CONTAINER_PATH,  # Use host path to SIF
+        container_path,  # Use host path to SIF
     ]
 
     # Environment
@@ -120,7 +164,11 @@ def exec_slurm_shell(
         "SCITEX_USER": username,
     }
 
-    logger.info(f"Spawning SLURM terminal for {username}: srun → {container_cmd}")
+    logger.info(f"Spawning SLURM terminal: user={username} partition={SLURM_PARTITION} time={SLURM_TIME_LIMIT}")
+
+    # Change to a directory that exists on the host (srun inherits cwd)
+    # The Django container runs from /app which doesn't exist on the host
+    os.chdir("/tmp")
 
     # Reset signal handlers to default before exec to avoid EINTR in srun
     # This helps prevent "pty: accept failure: Interrupted system call" errors
@@ -130,67 +178,9 @@ def exec_slurm_shell(
         except (OSError, ValueError):
             pass
 
+    # exec replaces this process with srun
     os.execvpe("srun", cmd, env)
-
-
-def exec_direct_shell(
-    username: str,
-    user_data_dir: Path,
-    project_dir: Path,
-    container_path: str,
-    project_slug: str
-):
-    """Execute shell directly via Apptainer (dev fallback)"""
-    container_cmd = "apptainer" if shutil.which("apptainer") else "singularity"
-
-    if not shutil.which(container_cmd):
-        # Ultimate fallback: plain bash (only for development)
-        logger.warning("No container runtime - using plain bash (DEV ONLY)")
-        exec_plain_bash(username, project_dir, project_slug)
-        return
-
-    # Check if container image exists and is accessible
-    if not Path(container_path).exists():
-        logger.warning(f"Container image not found: {container_path} - using plain bash")
-        exec_plain_bash(username, project_dir, project_slug)
-        return
-
-    # Build container command
-    # Note: --fakeroot requires /etc/subuid mappings, which don't exist in Docker
-    # For Docker environments, run without fakeroot (Docker already provides isolation)
-    cmd = [
-        container_cmd, "shell",
-        "--writable-tmpfs",
-        "--hostname", "scitex-cloud",
-        "--home", f"{user_data_dir}:/home/{username}",
-        "--bind", f"{project_dir}:/home/{username}/proj/{project_slug}:rw",
-        "--pwd", f"/home/{username}/proj/{project_slug}",
-        container_path,
-    ]
-
-    env = {
-        "TERM": "xterm-256color",
-        "PATH": "/usr/local/bin:/usr/bin:/bin",
-        "LANG": "C.UTF-8",
-        "LC_ALL": "C.UTF-8",
-        "SCITEX_CLOUD": "true",
-        "SCITEX_PROJECT": project_slug,
-        "SCITEX_USER": username,
-    }
-
-    logger.info(f"Spawning direct terminal for {username}: {container_cmd} shell")
-    os.execvpe(container_cmd, cmd, env)
-
-
-def exec_plain_bash(username: str, project_dir: Path, project_slug: str):
-    """Fallback to plain bash when container execution fails"""
-    logger.warning(f"Falling back to plain bash for {username}")
-    os.chdir(str(project_dir))
-    env = os.environ.copy()
-    env["TERM"] = "xterm-256color"
-    env["SCITEX_CLOUD"] = "true"
-    env["SCITEX_PROJECT"] = project_slug
-    os.execvpe("/bin/bash", ["bash", "--login"], env)
+    # Never returns on success
 
 
 # EOF

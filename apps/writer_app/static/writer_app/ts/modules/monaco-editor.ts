@@ -11,7 +11,7 @@
  * - SpellCheckIntegration: Spell checking
  */
 
-import { SpellChecker, injectSpellCheckStyles } from "./spell-checker.ts";
+import { SpellChecker, injectSpellCheckStyles } from "./spell-checker";
 import {
   registerLatexLanguage,
   registerLatexCompletionProvider,
@@ -20,18 +20,18 @@ import {
   defineScitexTheme,
   createMonacoEditor,
   setupThemeObserver,
-} from "./monaco-editor/monaco-init.ts";
+} from "./monaco-editor/monaco-init";
 import {
   setupMonacoEditorListeners,
   setupCitationDropZone,
   setupCitationProtection,
   setupSuggestionWidgetObserver,
-} from "./monaco-editor/monaco-features.ts";
-import { EditorHistory } from "./monaco-editor/editor-history.ts";
-import { CursorManager } from "./monaco-editor/cursor-manager.ts";
-import { EditorContent } from "./monaco-editor/editor-content.ts";
-import { EditorConfig } from "./monaco-editor/editor-config.ts";
-import { SpellCheckIntegration } from "./monaco-editor/spell-check-integration.ts";
+} from "./monaco-editor/monaco-features";
+import { EditorHistory } from "./monaco-editor/editor-history";
+import { CursorManager } from "./monaco-editor/cursor-manager";
+import { EditorContent } from "./monaco-editor/editor-content";
+import { EditorConfig } from "./monaco-editor/editor-config";
+import { SpellCheckIntegration } from "./monaco-editor/spell-check-integration";
 
 console.log(
   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/monaco-editor.ts loaded",

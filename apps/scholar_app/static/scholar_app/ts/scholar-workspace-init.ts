@@ -3,7 +3,7 @@
  * Initializes the WorkspaceFilesTree and panel toggles for scholar mode
  */
 
-import { WorkspaceFilesTree } from "/static/shared/ts/components/workspace-files-tree/WorkspaceFilesTree.ts";
+import { WorkspaceFilesTree } from "/static/shared/ts/components/workspace-files-tree/WorkspaceFilesTree";
 
 declare global {
   interface Window {
