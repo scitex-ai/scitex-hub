@@ -17,7 +17,7 @@ services:
       args:
         BUILDKIT_INLINE_CACHE: 1
     image: scitex-cloud-nas-django:latest
-    entrypoint: ["/entrypoint.sh"]
+    entrypoint: ["/root-init.sh", "/entrypoint.sh"]
     command: ["daphne", "-b", "0.0.0.0", "-p", "8000", "--access-log", "-", "--verbosity", "1", "config.asgi:application"]
     volumes:
       - static_volume:/app/staticfiles
