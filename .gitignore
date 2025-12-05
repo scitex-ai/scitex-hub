@@ -34,9 +34,11 @@ SCITEX_CLOUD_DJANGO_SETTINGS_MODULE
 # SSH keys directory (user-specific)
 ssh_keys/
 
-# old directories as trash bin
-*old*
-**/*old*
+# old directories as trash bin (use _old suffix, not *old* which matches "folder")
+*_old
+*_old/
+**/*_old
+**/*_old/
 .old
 **/.old
 
@@ -183,7 +185,7 @@ __pycache__/
 build/
 develop-eggs/
 dist/
-downloads/
+# downloads/ - removed, too broad (matches ts/writer/downloads/)
 eggs/
 .eggs/
 lib/
