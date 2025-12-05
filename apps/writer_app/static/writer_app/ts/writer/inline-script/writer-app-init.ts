@@ -265,8 +265,8 @@ export const initWriterApp = async (): Promise<void> => {
     return;
   }
 
-  // Dynamic import for WorkspaceFilesTree (using absolute URL path)
-  const { WorkspaceFilesTree } = await import("/static/shared/ts/components/workspace-files-tree/WorkspaceFilesTree");
+  // Dynamic import for WorkspaceFilesTree (using @ alias)
+  const { WorkspaceFilesTree } = await import("@/components/workspace-files-tree/WorkspaceFilesTree");
 
   // Initialize file tree
   writerFileTree = new WorkspaceFilesTree({

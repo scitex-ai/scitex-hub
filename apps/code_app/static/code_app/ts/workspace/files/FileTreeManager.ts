@@ -36,11 +36,10 @@ interface WorkspaceFilesTree {
 }
 
 // Dynamically import the shared WorkspaceFilesTree component at runtime
-// Using Function constructor to avoid TypeScript module resolution issues
 async function loadWorkspaceFilesTree(): Promise<{ WorkspaceFilesTree: new (config: any) => WorkspaceFilesTree }> {
-  // Import the shared WorkspaceFilesTree component from static path
+  // Import the shared WorkspaceFilesTree component using @ alias
   // @ts-ignore - Runtime dynamic import
-  const module = await (Function('return import("/static/shared/ts/components/workspace-files-tree/WorkspaceFilesTree")')());
+  const module = await import("@/components/workspace-files-tree/WorkspaceFilesTree");
   return module;
 }
 

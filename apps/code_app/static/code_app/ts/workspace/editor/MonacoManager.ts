@@ -20,7 +20,7 @@ async function loadMonacoTheme(): Promise<{
   getCurrentThemeMode: typeof getCurrentThemeMode;
 }> {
   // @ts-ignore - Runtime dynamic import
-  return await (Function('return import("/static/shared/ts/monaco/MonacoTheme")')());
+  return await import("@/monaco/MonacoTheme");
 }
 
 // Cached module reference

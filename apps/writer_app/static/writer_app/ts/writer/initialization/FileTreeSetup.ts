@@ -246,7 +246,7 @@ export class FileTreeSetup {
     projectSlug: string,
     onFileSelect: (path: string, item: any) => void
   ): Promise<any> {
-    const module = await import("/static/shared/ts/components/workspace-files-tree/WorkspaceFilesTree") as any;
+    const module = await import("@/components/workspace-files-tree/WorkspaceFilesTree") as any;
     const WorkspaceFilesTree: WorkspaceFilesTreeType = module.WorkspaceFilesTree;
 
     const treeConfig = createWriterTreeConfig(projectOwner, projectSlug, onFileSelect);
