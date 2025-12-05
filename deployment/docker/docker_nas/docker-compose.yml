@@ -66,7 +66,7 @@ services:
     # Allow access to host SLURM
     extra_hosts:
       - "host.docker.internal:host-gateway"
-      - "${SCITEX_CLOUD_SLURM_HOST:-DXP480TPLUS-994}:192.168.64.1"
+      - "${SCITEX_CLOUD_SLURM_HOST:-DXP480TPLUS-994}:host-gateway"
 
     # Security settings for Apptainer (nested containers)
     # Privileged mode required for mounting proc/sys inside nested containers
@@ -305,6 +305,7 @@ services:
     image: nginx:alpine
     volumes:
       - ../common/nginx/nginx_nas.conf:/etc/nginx/nginx.conf:ro
+      - ../common/nginx/error-pages:/etc/nginx/error-pages:ro
       - static_volume:/app/staticfiles:ro
       - media_volume:/app/media:ro
     depends_on:

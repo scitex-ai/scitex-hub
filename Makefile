@@ -20,6 +20,7 @@
 .PHONY: \
 	help \
 	status \
+	status-live \
 	validate-docker \
 	validate \
 	switch \
@@ -57,6 +58,7 @@
 	logs-db \
 	logs-gitea \
 	build \
+	build-no-cache \
 	rebuild \
 	rebuild-no-cache \
 	setup \
@@ -73,6 +75,7 @@
 	lint \
 	lint-web \
 	check-file-sizes \
+	check-host \
 	info
 
 .DEFAULT_GOAL := help
@@ -108,7 +111,7 @@ ifdef ENV
 else
   # ENV not specified - only allow non-operational commands
   ifneq ($(MAKECMDGOALS),)
-    ifneq ($(filter-out help status validate-docker stop-all force-stop-all format format-python format-web format-shell lint lint-web check-file-sizes slurm-start slurm-stop slurm-restart slurm-status slurm-fix slurm-resume slurm-reset info,$(MAKECMDGOALS)),)
+    ifneq ($(filter-out help status validate-docker stop-all force-stop-all format format-python format-web format-shell lint lint-web check-file-sizes check-host slurm-start slurm-stop slurm-restart slurm-status slurm-fix slurm-resume slurm-reset info,$(MAKECMDGOALS)),)
       $(error ❌ ENV not specified! Use: make ENV=<dev|nas> <command>)
     endif
   endif
@@ -128,17 +131,17 @@ validate-docker:
 	@RUNNING=$$(docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-cloud-(dev|prod|nas)-' | sed 's/scitex-cloud-//' | sed 's/-//' | sort -u); \
 	COUNT=$$(echo "$$RUNNING" | wc -w); \
 	if [ $$COUNT -gt 1 ]; then \
-		echo "$(RED)❌ CONFLICT: Multiple environments running:$(NC)"; \
+		echo -e "$(RED)❌ CONFLICT: Multiple environments running:$(NC)"; \
 		for env in $$RUNNING; do \
 			echo "  - $$env"; \
 		done; \
-		echo "$(YELLOW)   Run 'make stop-all' to clean up$(NC)"; \
+		echo -e "$(YELLOW)   Run 'make stop-all' to clean up$(NC)"; \
 		exit 1; \
 	fi; \
 	if [ $$COUNT -eq 0 ]; then \
-		echo "$(GREEN)✅ No containers running$(NC)"; \
+		echo -e "$(GREEN)✅ No containers running$(NC)"; \
 	else \
-		echo "$(GREEN)✅ Only $$RUNNING is running$(NC)"; \
+		echo -e "$(GREEN)✅ Only $$RUNNING is running$(NC)"; \
 	fi
 
 # Validation alias
@@ -198,6 +201,7 @@ help:
 	@echo -e "  make lint                         # Check code without changes (SAFE - read-only)"
 	@echo -e "  make lint-web                     # Check web files without changes (SAFE)"
 	@echo -e "  make check-file-sizes             # Check for files >300 lines (detailed report)"
+	@echo -e "  make check-host                   # Check host requirements (users, SLURM)"
 	@echo -e "  make format                       # Format & lint all code (⚠️  MODIFIES FILES)"
 	@echo -e "  make format-python                # Format & lint Python with Ruff"
 	@echo -e "  make format-web                   # Format & lint web (⚠️  MODIFIES FILES)"
@@ -218,29 +222,37 @@ status:
 		tr '\n' ' ' | \
 		xargs); \
 	if [ -n "$$RUNNING" ]; then \
-		echo "  $(CYAN)Active environment:$(NC) $$RUNNING"; \
+		echo -e "  $(CYAN)Active environment:$(NC) $$RUNNING"; \
 	else \
-		echo "  $(YELLOW)⚠️  No active environment$(NC)"; \
+		echo -e "  $(YELLOW)⚠️  No active environment$(NC)"; \
 	fi
 	@echo -e ""
 	@echo -e "$(CYAN)🐳 Running Containers:$(NC)"
 	@docker ps --format "table {{.Names}}\t{{.Status}}" 2>/dev/null | \
 		grep -E "scitex-cloud-(dev|prod|nas)-" | xargs -I{} echo "  "{} || \
-		echo "  $(YELLOW)No scitex-cloud containers running$(NC)"
+		echo -e "  $(YELLOW)No scitex-cloud containers running$(NC)"
 	@echo -e ""
 	@echo -e "$(CYAN)🖥️  SLURM Status:$(NC)"
 	@if command -v sinfo >/dev/null 2>&1; then \
 		SLURM_STATUS=$$(sinfo --noheader 2>&1); \
 		if [ -n "$$SLURM_STATUS" ] && ! echo "$$SLURM_STATUS" | grep -q "error"; then \
-			echo "  $(GREEN)✅ SLURM Cluster: OPERATIONAL$(NC)"; \
+			echo -e "  $(GREEN)✅ SLURM Cluster: OPERATIONAL$(NC)"; \
 			sinfo --noheader 2>/dev/null | while read line; do echo "    $$line"; done; \
 		else \
-			echo "  $(RED)❌ SLURM Cluster: NOT RESPONDING$(NC)"; \
-			echo "  $(YELLOW)💡 To start: make slurm-start$(NC)"; \
+			echo -e "  $(RED)❌ SLURM Cluster: NOT RESPONDING$(NC)"; \
+			echo -e "  $(YELLOW)💡 To start: make slurm-start$(NC)"; \
 		fi; \
 	else \
-		echo "  $(YELLOW)⚠️  SLURM not installed$(NC)"; \
+		echo -e "  $(YELLOW)⚠️  SLURM not installed$(NC)"; \
 	fi
+	@echo -e ""
+	@$(MAKE) --no-print-directory check-host
+	@./scripts/check_file_sizes.sh
+
+# Live status with spinners and animations
+status-live:
+	@./scripts/check_status_live.sh $(ENV)
+	@echo -e ""
 	@./scripts/check_file_sizes.sh
 
 # ============================================
@@ -250,13 +262,13 @@ stop-all:
 	@echo -e "$(YELLOW)⬇️  Stopping all environments...$(NC)"
 	@echo -e ""
 	@for env in $(VALID_ENVS); do \
-		echo "$(CYAN)Checking $$env...$(NC)"; \
+		echo -e "$(CYAN)Checking $$env...$(NC)"; \
 		cd deployment/docker/docker_$$env && \
 		if docker compose ps -q 2>/dev/null | grep -q .; then \
-			echo "  $(YELLOW)Stopping $$env containers...$(NC)"; \
+			echo -e "  $(YELLOW)Stopping $$env containers...$(NC)"; \
 			$(MAKE) -f Makefile down 2>/dev/null || docker compose down 2>/dev/null || true; \
 		else \
-			echo "  $(GREEN)✓ $$env already stopped$(NC)"; \
+			echo -e "  $(GREEN)✓ $$env already stopped$(NC)"; \
 		fi; \
 		cd ../../..; \
 	done
@@ -287,16 +299,35 @@ start:
 
 	@echo -e "$(CYAN)🚀 Starting $(ENV) environment (exclusive mode)...$(NC)"
 	@echo -e ""
+	@# Check host requirements for NAS environment
+	@if [ "$(ENV)" = "nas" ]; then \
+		echo -e "$(CYAN)Checking NAS host requirements...$(NC)"; \
+		echo ""; \
+		if ! deployment/host-setup/checks/check-users.sh; then \
+			echo ""; \
+			echo -e "$(RED)❌ Host requirements not met!$(NC)"; \
+			echo -e "$(YELLOW)   Run: sudo deployment/host-setup/scripts/create-scitex-user.sh$(NC)"; \
+			exit 1; \
+		fi; \
+		if ! deployment/host-setup/checks/check-slurm.sh; then \
+			echo ""; \
+			echo -e "$(RED)❌ SLURM configuration issues detected!$(NC)"; \
+			echo -e "$(YELLOW)   Fix SLURM issues before starting$(NC)"; \
+			exit 1; \
+		fi; \
+		echo -e "$(GREEN)✓ Host requirements OK$(NC)"; \
+		echo ""; \
+	fi
 	@# Stop all other environments to ensure exclusivity
 	@for env in $(VALID_ENVS); do \
 		if [ "$$env" != "$(ENV)" ]; then \
-			echo "$(CYAN)Checking $$env...$(NC)"; \
+			echo -e "$(CYAN)Checking $$env...$(NC)"; \
 			cd deployment/docker/docker_$$env && \
 			if docker compose ps -q 2>/dev/null | grep -q .; then \
-				echo "  $(YELLOW)Stopping $$env containers...$(NC)"; \
+				echo -e "  $(YELLOW)Stopping $$env containers...$(NC)"; \
 				$(MAKE) -f Makefile down 2>/dev/null || docker compose down 2>/dev/null || true; \
 			else \
-				echo "  $(GREEN)✓ $$env already stopped$(NC)"; \
+				echo -e "  $(GREEN)✓ $$env already stopped$(NC)"; \
 			fi; \
 			cd ../../..; \
 		fi; \
@@ -314,11 +345,11 @@ restart: validate
 
 	@RUNNING=$$(docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-cloud-(dev|prod|nas)-' | sed 's/scitex-cloud-//' | sed 's/-//' | sort -u); \
 	if [ "$$RUNNING" != "$(ENV)" ]; then \
-		echo "$(RED)❌ $(ENV) is not running ($$RUNNING is active)$(NC)"; \
-		echo "$(YELLOW)   Options:$(NC)"; \
-		echo "$(YELLOW)   • make env=$(ENV) start          # Start $(ENV) (stops $$RUNNING)$(NC)"; \
-		echo "$(YELLOW)   • make env=$(ENV) switch         # Clean switch to $(ENV)$(NC)"; \
-		echo "$(YELLOW)   • make env=$$RUNNING restart     # Restart current $$RUNNING$(NC)"; \
+		echo -e "$(RED)❌ $(ENV) is not running ($$RUNNING is active)$(NC)"; \
+		echo -e "$(YELLOW)   Options:$(NC)"; \
+		echo -e "$(YELLOW)   • make env=$(ENV) start          # Start $(ENV) (stops $$RUNNING)$(NC)"; \
+		echo -e "$(YELLOW)   • make env=$(ENV) switch         # Clean switch to $(ENV)$(NC)"; \
+		echo -e "$(YELLOW)   • make env=$$RUNNING restart     # Restart current $$RUNNING$(NC)"; \
 		exit 1; \
 	fi
 	@echo -e "$(CYAN)🔄 Restarting $(ENV) environment...$(NC)"
@@ -330,11 +361,11 @@ reload: validate
 
 	@RUNNING=$$(docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-cloud-(dev|prod|nas)-' | sed 's/scitex-cloud-//' | sed 's/-//' | sort -u); \
 	if [ "$$RUNNING" != "$(ENV)" ]; then \
-		echo "$(RED)❌ $(ENV) is not running ($$RUNNING is active)$(NC)"; \
-		echo "$(YELLOW)   Options:$(NC)"; \
-		echo "$(YELLOW)   • make env=$(ENV) start          # Start $(ENV) (stops $$RUNNING)$(NC)"; \
-		echo "$(YELLOW)   • make env=$(ENV) switch         # Clean switch to $(ENV)$(NC)"; \
-		echo "$(YELLOW)   • make env=$$RUNNING reload      # Reload current $$RUNNING$(NC)"; \
+		echo -e "$(RED)❌ $(ENV) is not running ($$RUNNING is active)$(NC)"; \
+		echo -e "$(YELLOW)   Options:$(NC)"; \
+		echo -e "$(YELLOW)   • make env=$(ENV) start          # Start $(ENV) (stops $$RUNNING)$(NC)"; \
+		echo -e "$(YELLOW)   • make env=$(ENV) switch         # Clean switch to $(ENV)$(NC)"; \
+		echo -e "$(YELLOW)   • make env=$$RUNNING reload      # Reload current $$RUNNING$(NC)"; \
 		exit 1; \
 	fi
 	@echo -e "$(CYAN)⚡ Quick reload (no scitex reinstall)...$(NC)"
@@ -353,20 +384,46 @@ down: stop
 # ============================================
 build:
 	@echo -e "$(CYAN)🏗️  Building $(ENV) images...$(NC)"
+	@# Check host requirements for NAS (informational)
+	@if [ "$(ENV)" = "nas" ]; then \
+		echo ""; \
+		echo -e "$(CYAN)Checking NAS host requirements...$(NC)"; \
+		echo ""; \
+		deployment/host-setup/checks/check-users.sh || true; \
+		echo ""; \
+		deployment/host-setup/checks/check-slurm.sh || true; \
+		echo ""; \
+	fi
 	@cd $(DOCKER_DIR) && $(MAKE) -f Makefile build
+	@echo -e "$(GREEN)✅ Build complete for $(ENV)$(NC)"
+
+build-no-cache:
+	@echo -e "$(CYAN)🏗️  Building $(ENV) images (no cache)...$(NC)"
+	@echo -e "$(YELLOW)⚠️  This will rebuild from scratch and may take longer.$(NC)"
+	@# Check host requirements for NAS (informational)
+	@if [ "$(ENV)" = "nas" ]; then \
+		echo ""; \
+		echo -e "$(CYAN)Checking NAS host requirements...$(NC)"; \
+		echo ""; \
+		deployment/host-setup/checks/check-users.sh || true; \
+		echo ""; \
+		deployment/host-setup/checks/check-slurm.sh || true; \
+		echo ""; \
+	fi
+	@cd $(DOCKER_DIR) && $(MAKE) -f Makefile build-no-cache
 	@echo -e "$(GREEN)✅ Build complete for $(ENV)$(NC)"
 
 rebuild: validate-docker
 	@# NAS safety check
 	@if [ "$(ENV)" = "nas" ]; then \
 		echo ""; \
-		echo "$(RED)⚠️  WARNING: NAS rebuild!$(NC)"; \
-		echo "$(YELLOW)   This will cause downtime.$(NC)"; \
+		echo -e "$(RED)⚠️  WARNING: NAS rebuild!$(NC)"; \
+		echo -e "$(YELLOW)   This will cause downtime.$(NC)"; \
 		echo ""; \
 		printf "Type 'yes' to confirm: "; \
 		read confirm; \
 		if [ "$$confirm" != "yes" ]; then \
-			echo "$(YELLOW)❌ Rebuild cancelled$(NC)"; \
+			echo -e "$(YELLOW)❌ Rebuild cancelled$(NC)"; \
 			exit 1; \
 		fi; \
 	fi
@@ -386,13 +443,13 @@ rebuild-no-cache: validate-docker
 	@# NAS safety check
 	@if [ "$(ENV)" = "nas" ]; then \
 		echo ""; \
-		echo "$(RED)⚠️  WARNING: NAS rebuild without cache!$(NC)"; \
-		echo "$(YELLOW)   This will cause downtime and take longer.$(NC)"; \
+		echo -e "$(RED)⚠️  WARNING: NAS rebuild without cache!$(NC)"; \
+		echo -e "$(YELLOW)   This will cause downtime and take longer.$(NC)"; \
 		echo ""; \
 		printf "Type 'yes' to confirm: "; \
 		read confirm; \
 		if [ "$$confirm" != "yes" ]; then \
-			echo "$(YELLOW)❌ Rebuild cancelled$(NC)"; \
+			echo -e "$(YELLOW)❌ Rebuild cancelled$(NC)"; \
 			exit 1; \
 		fi; \
 	fi
@@ -451,7 +508,7 @@ test-e2e-headed: validate
 
 test-e2e-specific: validate
 	@if [ -z "$(TEST)" ]; then \
-		echo "$(RED)❌ TEST not specified! Use: make ENV=$(ENV) test-e2e-specific TEST=tests/e2e/test_user_creation.py$(NC)"; \
+		echo -e "$(RED)❌ TEST not specified! Use: make ENV=$(ENV) test-e2e-specific TEST=tests/e2e/test_user_creation.py$(NC)"; \
 		exit 1; \
 	fi
 	@echo -e "$(CYAN)🎭 Running specific E2E test: $(TEST) ($(ENV))...$(NC)"
@@ -470,7 +527,7 @@ db-backup: validate
 
 db-reset: validate
 	@if [ "$(ENV)" != "dev" ]; then \
-		echo "$(RED)❌ db-reset only available in dev environment$(NC)"; \
+		echo -e "$(RED)❌ db-reset only available in dev environment$(NC)"; \
 		exit 1; \
 	fi
 	@echo -e "$(YELLOW)⚠️  Resetting database (dev only)...$(NC)"
@@ -481,8 +538,8 @@ db-reset: validate
 # ============================================
 fresh-start: validate
 	@if [ "$(ENV)" != "dev" ]; then \
-		echo "$(RED)❌ fresh-start only available in dev environment$(NC)"; \
-		echo "$(YELLOW)   This is a destructive operation meant for development$(NC)"; \
+		echo -e "$(RED)❌ fresh-start only available in dev environment$(NC)"; \
+		echo -e "$(YELLOW)   This is a destructive operation meant for development$(NC)"; \
 		exit 1; \
 	fi
 	@echo -e ""
@@ -500,19 +557,19 @@ fresh-start: validate
 	DB_SIZE=$$(docker exec scitex-cloud-dev-db-1 du -sh /var/lib/postgresql/data 2>/dev/null | cut -f1); \
 	GITEA_SIZE=$$(docker exec scitex-cloud-dev-gitea-1 du -sh /data 2>/dev/null | cut -f1); \
 	USER_SIZE=$$(du -sh ./data/users/ 2>/dev/null | cut -f1); \
-	echo "  $(YELLOW)Database:$(NC)"; \
+	echo -e "  $(YELLOW)Database:$(NC)"; \
 	echo "    • Users: $$USERS"; \
 	echo "    • Projects: $$PROJECTS"; \
 	echo "    • Manuscripts: $$MANUSCRIPTS"; \
 	echo "    • Size: $$DB_SIZE"; \
 	echo ""; \
-	echo "  $(YELLOW)Gitea:$(NC)"; \
+	echo -e "  $(YELLOW)Gitea:$(NC)"; \
 	echo "    • Repositories: $$REPOS"; \
 	echo "    • Size: $$GITEA_SIZE"; \
 	echo ""; \
-	echo "  $(YELLOW)User Files:$(NC)"; \
+	echo -e "  $(YELLOW)User Files:$(NC)"; \
 	echo "    • Total Size: $$USER_SIZE"; \
-	echo "    • Directories: $$(ls -1 ./data/users/ 2>/dev/null | wc -l)"; \
+	echo -e "    • Directories: $$(ls -1 ./data/users/ 2>/dev/null | wc -l)"; \
 	echo ""
 	@echo -e "$(RED)⚠️  THIS WILL DELETE:$(NC)"
 	@echo -e "  • All database tables (Django + Gitea)"
@@ -537,7 +594,7 @@ fresh-start: validate
 	@printf "$(YELLOW)Type 'DELETE EVERYTHING' to confirm: $(NC)"; \
 	read confirm; \
 	if [ "$$confirm" != "DELETE EVERYTHING" ]; then \
-		echo "$(GREEN)✅ Cancelled - no changes made$(NC)"; \
+		echo -e "$(GREEN)✅ Cancelled - no changes made$(NC)"; \
 		exit 0; \
 	fi
 	@echo -e ""
@@ -557,7 +614,7 @@ fresh-start: validate
 	@echo -e "  Removing ./data/users/* (requires sudo for Docker-created files)..."
 	@if [ -d ./data/users ] && [ "$$(ls -A ./data/users 2>/dev/null)" ]; then \
 		sudo rm -rf ./data/users/* || { \
-			echo "$(RED)❌ Failed to remove user directories. Try: sudo rm -rf ./data/users/*$(NC)"; \
+			echo -e "$(RED)❌ Failed to remove user directories. Try: sudo rm -rf ./data/users/*$(NC)"; \
 			exit 1; \
 		}; \
 	fi
@@ -598,7 +655,7 @@ fresh-start: validate
 # Quick fresh start without confirmation (for scripts/automation)
 fresh-start-confirm: validate
 	@if [ "$(ENV)" != "dev" ]; then \
-		echo "$(RED)❌ fresh-start-confirm only available in dev environment$(NC)"; \
+		echo -e "$(RED)❌ fresh-start-confirm only available in dev environment$(NC)"; \
 		exit 1; \
 	fi
 	@echo -e "$(YELLOW)⚠️  Running fresh start without confirmation...$(NC)"
@@ -644,10 +701,10 @@ exec-db: validate
 # Usage: make ENV=dev exec CMD="ls -la" or make ENV=dev exec ls -la
 exec: validate
 	@if [ -z "$(CMD)" ]; then \
-		echo "$(YELLOW)⚠️  No CMD specified, using remaining args: $(filter-out $@,$(MAKECMDGOALS))$(NC)"; \
+		echo -e "$(YELLOW)⚠️  No CMD specified, using remaining args: $(filter-out $@,$(MAKECMDGOALS))$(NC)"; \
 		cd $(DOCKER_DIR) && docker compose exec web $(filter-out $@,$(MAKECMDGOALS)); \
 	else \
-		echo "$(CYAN)🐳 Executing command in web container ($(ENV)): $(CMD)$(NC)"; \
+		echo -e "$(CYAN)🐳 Executing command in web container ($(ENV)): $(CMD)$(NC)"; \
 		cd $(DOCKER_DIR) && docker compose exec web $(CMD); \
 	fi
 
@@ -689,7 +746,7 @@ endif
 # ============================================
 verify-health: validate
 	@if [ "$(ENV)" = "dev" ]; then \
-		echo "$(YELLOW)❌ verify-health only available in nas$(NC)"; \
+		echo -e "$(YELLOW)❌ verify-health only available in nas$(NC)"; \
 		exit 1; \
 	fi
 	@cd $(DOCKER_DIR) && $(MAKE) -f Makefile verify-health
@@ -717,9 +774,9 @@ format-python:
 	@if command -v ruff >/dev/null 2>&1; then \
 		ruff format apps/ --respect-gitignore --quiet || echo "$(YELLOW)⚠️  Ruff formatting completed with warnings$(NC)"; \
 		ruff check --fix apps/ --exclude migrations --respect-gitignore --quiet || echo "$(RED)❌ Ruff found errors$(NC)"; \
-		echo "$(GREEN)✅ Python formatting and linting complete!$(NC)"; \
+		echo -e "$(GREEN)✅ Python formatting and linting complete!$(NC)"; \
 	else \
-		echo "$(RED)❌ Ruff not found. Install with: pip install ruff$(NC)"; \
+		echo -e "$(RED)❌ Ruff not found. Install with: pip install ruff$(NC)"; \
 		exit 1; \
 	fi
 
@@ -735,7 +792,7 @@ format-web:
 	@printf "$(YELLOW)Type 'yes' to continue with formatting: $(NC)"; \
 	read confirm; \
 	if [ "$$confirm" != "yes" ]; then \
-		echo "$(GREEN)✅ Cancelled - no changes made$(NC)"; \
+		echo -e "$(GREEN)✅ Cancelled - no changes made$(NC)"; \
 		exit 0; \
 	fi
 	@echo -e ""
@@ -745,10 +802,10 @@ format-web:
 		djlint --reformat --quiet \
 			apps/ templates/ \
 			2>&1 || echo "$(YELLOW)⚠️  djLint formatting completed with warnings$(NC)"; \
-		echo "$(GREEN)✅ Django template formatting complete!$(NC)"; \
+		echo -e "$(GREEN)✅ Django template formatting complete!$(NC)"; \
 	else \
-		echo "$(YELLOW)⚠️  djLint not found. Install with: pip install djlint$(NC)"; \
-		echo "$(YELLOW)   Skipping Django template formatting...$(NC)"; \
+		echo -e "$(YELLOW)⚠️  djLint not found. Install with: pip install djlint$(NC)"; \
+		echo -e "$(YELLOW)   Skipping Django template formatting...$(NC)"; \
 	fi
 	@echo -e "$(CYAN)💅 Formatting JS/TS/CSS with Prettier...$(NC)"
 	@if command -v prettier >/dev/null 2>&1; then \
@@ -758,9 +815,9 @@ format-web:
 			--ignore-path .gitignore \
 			--log-level warn \
 			2>&1 || echo "$(YELLOW)⚠️  Prettier formatting completed with warnings$(NC)"; \
-		echo "$(GREEN)✅ Prettier formatting complete!$(NC)"; \
+		echo -e "$(GREEN)✅ Prettier formatting complete!$(NC)"; \
 	else \
-		echo "$(RED)❌ Prettier not found. Install with: npm install -g prettier$(NC)"; \
+		echo -e "$(RED)❌ Prettier not found. Install with: npm install -g prettier$(NC)"; \
 		exit 1; \
 	fi
 	@echo -e "$(CYAN)🔍 Linting TS/JS with ESLint --fix...$(NC)"
@@ -771,9 +828,9 @@ format-web:
 			--ignore-path .gitignore \
 			--quiet \
 			2>&1 || echo "$(RED)❌ ESLint found errors$(NC)"; \
-		echo "$(GREEN)✅ ESLint linting complete!$(NC)"; \
+		echo -e "$(GREEN)✅ ESLint linting complete!$(NC)"; \
 	else \
-		echo "$(RED)❌ ESLint not found. Install with: npm install -g eslint$(NC)"; \
+		echo -e "$(RED)❌ ESLint not found. Install with: npm install -g eslint$(NC)"; \
 		exit 1; \
 	fi
 
@@ -786,10 +843,10 @@ format-shell:
 			! -path "*/.venv/*" \
 			-exec shfmt -w -i 4 -bn -ci -sr {} + \
 			2>&1 || echo "$(YELLOW)⚠️  shfmt formatting completed with warnings$(NC)"; \
-		echo "$(GREEN)✅ Shell formatting complete!$(NC)"; \
+		echo -e "$(GREEN)✅ Shell formatting complete!$(NC)"; \
 	else \
-		echo "$(YELLOW)⚠️  shfmt not found. Install with: go install mvdan.cc/sh/v3/cmd/shfmt@latest$(NC)"; \
-		echo "$(YELLOW)   Skipping shell formatting...$(NC)"; \
+		echo -e "$(YELLOW)⚠️  shfmt not found. Install with: go install mvdan.cc/sh/v3/cmd/shfmt@latest$(NC)"; \
+		echo -e "$(YELLOW)   Skipping shell formatting...$(NC)"; \
 	fi
 	@if command -v shellcheck >/dev/null 2>&1; then \
 		find scripts/ deployment/ apps/ -name "*.sh" \
@@ -798,10 +855,10 @@ format-shell:
 			! -path "*/.venv/*" \
 			-exec shellcheck --severity=error {} + \
 			2>&1 || echo "$(RED)❌ ShellCheck found errors$(NC)"; \
-		echo "$(GREEN)✅ Shell linting complete!$(NC)"; \
+		echo -e "$(GREEN)✅ Shell linting complete!$(NC)"; \
 	else \
-		echo "$(YELLOW)⚠️  shellcheck not found. Install with: sudo apt-get install shellcheck$(NC)"; \
-		echo "$(YELLOW)   Skipping shell linting...$(NC)"; \
+		echo -e "$(YELLOW)⚠️  shellcheck not found. Install with: sudo apt-get install shellcheck$(NC)"; \
+		echo -e "$(YELLOW)   Skipping shell linting...$(NC)"; \
 	fi
 
 # ============================================
@@ -821,10 +878,10 @@ lint-web:
 			"static/**/*.{ts,js}" \
 			2>&1 | head -100 || true; \
 		echo ""; \
-		echo "$(GREEN)✅ ESLint check complete!$(NC)"; \
-		echo "$(CYAN)💡 To auto-fix issues: make format-web$(NC)"; \
+		echo -e "$(GREEN)✅ ESLint check complete!$(NC)"; \
+		echo -e "$(CYAN)💡 To auto-fix issues: make format-web$(NC)"; \
 	else \
-		echo "$(RED)❌ ESLint not found. Install with: npm install -g eslint$(NC)"; \
+		echo -e "$(RED)❌ ESLint not found. Install with: npm install -g eslint$(NC)"; \
 		exit 1; \
 	fi
 	@echo -e ""
@@ -837,9 +894,9 @@ lint-web:
 			--log-level warn \
 			2>&1 | head -50 || true; \
 		echo ""; \
-		echo "$(GREEN)✅ Prettier check complete!$(NC)"; \
+		echo -e "$(GREEN)✅ Prettier check complete!$(NC)"; \
 	else \
-		echo "$(RED)❌ Prettier not found. Install with: npm install -g prettier$(NC)"; \
+		echo -e "$(RED)❌ Prettier not found. Install with: npm install -g prettier$(NC)"; \
 		exit 1; \
 	fi
 
@@ -849,6 +906,20 @@ lint-web:
 check-file-sizes:
 	@echo -e "$(CYAN)📏 Checking file sizes (>300 line threshold)...$(NC)"
 	@./scripts/check_file_sizes.sh --verbose
+
+# ============================================
+# Host Requirements Checks
+# ============================================
+check-host:
+	@echo -e "$(CYAN)🔍 Checking host requirements...$(NC)"
+	@echo -e ""
+	@deployment/host-setup/checks/check-users.sh || true
+	@echo -e ""
+	@deployment/host-setup/checks/check-slurm.sh || true
+	@echo -e ""
+	@echo -e "$(CYAN)🖥️  Terminal Functionality:$(NC)"
+	@deployment/host-setup/checks/check-terminal-ready.sh $(ENV) || true
+	@echo -e ""
 
 # ============================================
 # Info
@@ -877,7 +948,7 @@ slurm-stop:
 	@echo -e "$(YELLOW)⏹️  Stopping SLURM services...$(NC)"
 	@sudo systemctl stop slurmd slurmctld 2>/dev/null || \
 		(sudo service slurmd stop && sudo service slurmctld stop) 2>/dev/null || \
-		echo "$(RED)❌ Failed to stop SLURM$(NC)"
+		echo -e "$(RED)❌ Failed to stop SLURM$(NC)"
 	@$(MAKE) slurm-status
 
 slurm-restart:
@@ -891,7 +962,7 @@ slurm-status:
 	@if command -v sinfo >/dev/null 2>&1; then \
 		SLURM_STATUS=$$(sinfo --noheader 2>&1); \
 		if [ -n "$$SLURM_STATUS" ] && ! echo "$$SLURM_STATUS" | grep -q "error"; then \
-			echo "  $(GREEN)✅ SLURM Cluster: OPERATIONAL$(NC)"; \
+			echo -e "  $(GREEN)✅ SLURM Cluster: OPERATIONAL$(NC)"; \
 			echo ""; \
 			echo "  Partitions:"; \
 			sinfo 2>/dev/null | head -10 | while read line; do echo "    $$line"; done; \
@@ -899,11 +970,11 @@ slurm-status:
 			echo "  Jobs:"; \
 			squeue 2>/dev/null | head -10 | while read line; do echo "    $$line"; done; \
 		else \
-			echo "  $(RED)❌ SLURM Cluster: NOT RESPONDING$(NC)"; \
-			echo "  $(YELLOW)💡 To fix: make slurm-fix$(NC)"; \
+			echo -e "  $(RED)❌ SLURM Cluster: NOT RESPONDING$(NC)"; \
+			echo -e "  $(YELLOW)💡 To fix: make slurm-fix$(NC)"; \
 		fi; \
 	else \
-		echo "  $(YELLOW)⚠️  SLURM not installed$(NC)"; \
+		echo -e "  $(YELLOW)⚠️  SLURM not installed$(NC)"; \
 	fi
 
 slurm-fix:

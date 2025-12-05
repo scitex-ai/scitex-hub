@@ -207,75 +207,110 @@ function initializeHeader(): void {
     setInterval(updateCountdown, 1000);
   }
 
-  // Server Status Live Indicator
+  // Server Health Status Live Indicator
   const serverStatusIndicator = document.getElementById('server-status-indicator') as HTMLElement;
   const serverStatusBtn = document.getElementById('server-status-btn');
 
   if (serverStatusIndicator && serverStatusBtn) {
     let lastStatus = 'healthy';
 
-    async function updateServerStatus(): Promise<void> {
+    async function updateServerHealth(): Promise<void> {
       try {
-        const response = await fetch('/api/server-status/');
+        const response = await fetch('/api/server-health/');
         const data = await response.json();
 
-        // Determine overall health status
-        let status = 'healthy';
-        let statusColor = '#4caf50';
-        let statusShadow = 'rgba(76, 175, 80, 0.6)';
+        const status = data.status; // "healthy" | "warning" | "error" | "starting"
+        const statusColor = data.color; // Hex color from API
+
+        // Determine tooltip based on status
         let statusTooltip = 'All systems operational';
-
-        // Check critical services
-        const criticalServices = [
-          data.cpu_percent > 90,
-          data.memory_percent > 90,
-          data.disk_percent > 90
-        ];
-
-        const degradedServices = [
-          data.cpu_percent > 70,
-          data.memory_percent > 70,
-          data.disk_percent > 70
-        ];
-
-        if (criticalServices.some(s => s)) {
-          status = 'critical';
-          statusColor = '#f44336';
-          statusShadow = 'rgba(244, 67, 54, 0.6)';
-          statusTooltip = 'System critical - High resource usage';
-        } else if (degradedServices.some(s => s)) {
-          status = 'degraded';
-          statusColor = '#ff9800';
-          statusShadow = 'rgba(255, 152, 0, 0.6)';
-          statusTooltip = 'System degraded - Elevated resource usage';
+        if (status === 'starting') {
+          statusTooltip = 'Services starting up...';
+        } else if (status === 'warning') {
+          statusTooltip = 'Some services have warnings';
+        } else if (status === 'error') {
+          statusTooltip = 'Service errors detected';
         }
 
-        // Update indicator
+        // Add service details to tooltip if available
+        if (data.services) {
+          const serviceDetails: string[] = [];
+          // Infrastructure services
+          if (data.services.database !== 'healthy') {
+            serviceDetails.push(`Database: ${data.services.database}`);
+          }
+          if (data.services.redis !== 'healthy') {
+            serviceDetails.push(`Redis: ${data.services.redis}`);
+          }
+          if (data.services.slurm !== 'healthy') {
+            serviceDetails.push(`SLURM: ${data.services.slurm}`);
+          }
+          if (data.services.apptainer !== 'healthy') {
+            serviceDetails.push(`Apptainer: ${data.services.apptainer}`);
+          }
+          // Docker containers
+          if (data.services.flower && data.services.flower !== 'healthy') {
+            serviceDetails.push(`Flower: ${data.services.flower}`);
+          }
+          if (data.services.celery_worker && data.services.celery_worker !== 'healthy') {
+            serviceDetails.push(`Celery Worker: ${data.services.celery_worker}`);
+          }
+          if (data.services.celery_beat && data.services.celery_beat !== 'healthy') {
+            serviceDetails.push(`Celery Beat: ${data.services.celery_beat}`);
+          }
+          if (data.services.gitea && data.services.gitea !== 'healthy') {
+            serviceDetails.push(`Gitea: ${data.services.gitea}`);
+          }
+          if (data.services.nginx && data.services.nginx !== 'healthy') {
+            serviceDetails.push(`Nginx: ${data.services.nginx}`);
+          }
+          if (serviceDetails.length > 0) {
+            statusTooltip += ' - ' + serviceDetails.join(', ');
+          }
+        }
+
+        // Update indicator color
         serverStatusIndicator.style.background = statusColor;
-        serverStatusIndicator.style.boxShadow = `0 0 4px ${statusShadow}`;
+
+        // Calculate shadow color (semi-transparent version of status color)
+        const shadowColor = statusColor.replace('#', '');
+        const r = parseInt(shadowColor.substring(0, 2), 16);
+        const g = parseInt(shadowColor.substring(2, 4), 16);
+        const b = parseInt(shadowColor.substring(4, 6), 16);
+        serverStatusIndicator.style.boxShadow = `0 0 4px rgba(${r}, ${g}, ${b}, 0.6)`;
+
         serverStatusBtn.setAttribute('data-tooltip', statusTooltip);
+
+        // Remove any existing animation class
+        serverStatusIndicator.classList.remove('status-flash');
+
+        // Add flashing animation for "starting" state
+        if (status === 'starting') {
+          serverStatusIndicator.classList.add('status-flash');
+        }
 
         // If status changed, add pulse animation
         if (lastStatus !== status) {
-          serverStatusIndicator.style.animation = 'pulse 1s ease-in-out';
+          serverStatusIndicator.style.animation = 'pulse 0.5s ease-in-out';
           setTimeout(() => {
             serverStatusIndicator.style.animation = '';
-          }, 1000);
+          }, 500);
           lastStatus = status;
         }
 
       } catch (error) {
-        console.error('Failed to fetch server status:', error);
+        console.error('Failed to fetch server health:', error);
         // Show offline indicator
         serverStatusIndicator.style.background = '#9e9e9e';
         serverStatusIndicator.style.boxShadow = '0 0 4px rgba(158, 158, 158, 0.6)';
-        serverStatusBtn.setAttribute('data-tooltip', 'Status check failed');
+        serverStatusBtn.setAttribute('data-tooltip', 'Health check failed');
+        serverStatusIndicator.classList.remove('status-flash');
       }
     }
 
-    // Update immediately and then every 30 seconds
-    updateServerStatus();
-    setInterval(updateServerStatus, 30000);
+    // Update immediately and then every 15 seconds
+    updateServerHealth();
+    setInterval(updateServerHealth, 15000);
   }
 }
 

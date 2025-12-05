@@ -80,7 +80,7 @@ SCITEX_CLOUD_VERSION = "0.4.5-alpha"
 # ---------------------------------------
 # Visitor Pool Configuration
 # ---------------------------------------
-SCITEX_VISITOR_POOL_SIZE = int(os.environ.get("SCITEX_VISITOR_POOL_SIZE", 4))
+SCITEX_CLOUD_VISITOR_POOL_SIZE = int(os.environ.get("SCITEX_CLOUD_VISITOR_POOL_SIZE", 4))
 
 # ---------------------------------------
 # Paths

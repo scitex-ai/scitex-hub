@@ -144,7 +144,7 @@ SlurmUser=slurm
 NodeName=${NODE_NAME} CPUs=${NODE_CPUS} RealMemory=${NODE_MEMORY} State=UNKNOWN
 
 PartitionName=normal  Nodes=${NODE_NAME} Default=YES MaxTime=24:00:00 State=UP
-PartitionName=express Nodes=${NODE_NAME} MaxTime=01:00:00 State=UP Priority=100
+PartitionName=express Nodes=${NODE_NAME} MaxTime=04:00:00 State=UP Priority=100
 PartitionName=long    Nodes=${NODE_NAME} MaxTime=7-00:00:00 State=UP
 
 SchedulerType=sched/backfill

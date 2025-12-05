@@ -38,6 +38,7 @@ urlpatterns = [
     # Status pages
     path("server-status/", views.server_status, name="server_status"),
     path("api/server-status/", views.server_status_api, name="server_status_api"),
+    path("api/server-health/", views.server_health_status_api, name="server_health_status_api"),
     path("api/server-metrics/history/", views.server_metrics_history_api, name="server_metrics_history"),
     path("api/server-metrics/export/", views.server_metrics_export_csv, name="server_metrics_export"),
     path("api/server-metrics/chart/<str:metric_type>/", views.render_metric_chart, name="server_metrics_chart"),

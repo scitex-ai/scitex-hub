@@ -14,7 +14,7 @@ Single source of truth: `SECRET/.env.{ENV}`
 
 | Variable                            | Description             |
 |-------------------------------------|-------------------------|
-| `SCITEX_VISITOR_POOL_SIZE`          | Number of visitor slots |
+| `SCITEX_CLOUD_VISITOR_POOL_SIZE`          | Number of visitor slots |
 | `SCITEX_CLOUD_SSH_PORT_{ENV}`       | SSH gateway port        |
 | `SCITEX_CLOUD_GITEA_SSH_PORT_{ENV}` | Gitea SSH port          |
 
@@ -42,7 +42,7 @@ Host computer metrics (all processes, not just SciTeX).
 | GPU          | Graphics load (if available)                      |
 | Disk I/O     | Read/write speed                                  |
 | Network I/O  | Upload/download speed                             |
-| Visitor Pool | Available slots (X / `$SCITEX_VISITOR_POOL_SIZE`) |
+| Visitor Pool | Available slots (X / `$SCITEX_CLOUD_VISITOR_POOL_SIZE`) |
 | Active Users | Logged-in users                                   |
 
 ### 2. Docker Services (9 containers)

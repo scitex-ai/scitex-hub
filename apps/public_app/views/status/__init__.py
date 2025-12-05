@@ -17,6 +17,7 @@ Server and visitor status monitoring.
 from .server import server_status
 from .api import (
     server_status_api,
+    server_health_status_api,
     server_metrics_history_api,
     server_metrics_export_csv,
 )
@@ -32,6 +33,7 @@ from .charts import render_metric_chart
 __all__ = [
     "server_status",
     "server_status_api",
+    "server_health_status_api",
     "server_metrics_history_api",
     "server_metrics_export_csv",
     "visitor_status",

@@ -3,7 +3,7 @@
 # ============================================
 # Location: /containers/docker_nas/Makefile.nas
 
-.PHONY: help setup build start restart stop down logs ps status rebuild migrate makemigrations shell collectstatic db-shell db-backup verify-health logs-django logs-db logs-redis exec-django exec-db clean-python
+.PHONY: help setup build build-no-cache start restart stop down logs ps status rebuild migrate makemigrations shell collectstatic db-shell db-backup verify-health logs-django logs-db logs-redis exec-django exec-db clean-python
 
 .DEFAULT_GOAL := help
 
@@ -41,6 +41,7 @@ help:
 	@echo -e ""
 	@echo -e "$(CYAN)🐳 Docker Management:$(NC)"
 	@echo -e "  make build              - Build Docker images"
+	@echo -e "  make build-no-cache     - Build images without cache (full rebuild)"
 	@echo -e "  make up                 - Start services (no rebuild)"
 	@echo -e "  make down               - Stop and remove containers"
 	@echo -e "  make ps                 - Show container status"
@@ -101,6 +102,12 @@ stop: down
 build:
 	@echo -e "$(CYAN)🏗️  Building NAS images...$(NC)"
 	$(COMPOSE) build
+	@echo -e "$(GREEN)✅ Build complete$(NC)"
+
+build-no-cache:
+	@echo -e "$(CYAN)🏗️  Building NAS images (no cache)...$(NC)"
+	@echo -e "$(YELLOW)⚠️  This will rebuild from scratch and may take longer.$(NC)"
+	$(COMPOSE) build --no-cache
 	@echo -e "$(GREEN)✅ Build complete$(NC)"
 
 up:

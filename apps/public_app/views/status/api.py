@@ -65,8 +65,12 @@ def server_status_api(request):
             data["visitor_pool_allocated"] = None
             data["visitor_pool_total"] = None
 
-        # Active users count
+        # Active users count and total users
         try:
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+
+            # Count active users from sessions
             active_sessions = Session.objects.filter(expire_date__gte=timezone.now())
             user_ids = set()
             for session in active_sessions:
@@ -75,13 +79,121 @@ def server_status_api(request):
                 if user_id:
                     user_ids.add(user_id)
             data["active_users_count"] = len(user_ids)
+
+            # Count total registered users (excluding visitor accounts)
+            data["total_users_count"] = User.objects.exclude(username__startswith="visitor-").count()
         except Exception as e:
-            logger.debug(f"Could not get active users count: {e}")
+            logger.debug(f"Could not get users count: {e}")
             data["active_users_count"] = None
+            data["total_users_count"] = None
 
         return JsonResponse(data)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
+
+def server_health_status_api(request):
+    """
+    API endpoint for overall server health status (for header indicator).
+
+    Returns:
+        - status: "healthy" | "warning" | "error" | "starting"
+        - color: hex color code for indicator
+        - services: dict of service statuses
+    """
+    try:
+        from .health_checks import check_docker_containers, check_database, check_redis
+        from .compute_resources import check_slurm_status, check_container_runtime_status
+
+        status_data = {"services": []}
+
+        # Check critical services
+        check_docker_containers(status_data)
+        check_database(status_data)
+        check_redis(status_data)
+        check_slurm_status(status_data)
+        check_container_runtime_status(status_data)
+
+        # Determine overall health
+        has_errors = False
+        has_warnings = False
+        has_starting = False
+
+        # Check database
+        if status_data.get('database', {}).get('health_class') in ['unhealthy', 'down']:
+            has_errors = True
+
+        # Check redis
+        if status_data.get('redis', {}).get('health_class') in ['unhealthy', 'down']:
+            has_errors = True
+
+        # Check SLURM
+        slurm = status_data.get('slurm', {})
+        if slurm.get('health_class') == 'unhealthy':
+            has_errors = True
+        elif slurm.get('health_class') == 'warning':
+            has_warnings = True
+
+        # Check Apptainer
+        apptainer = status_data.get('apptainer', {})
+        if apptainer.get('health_class') == 'unhealthy':
+            has_errors = True
+        elif apptainer.get('health_class') == 'warning':
+            has_warnings = True
+
+        # Check Docker containers
+        services = status_data.get('services', [])
+        for service in services:
+            if service.get('status') in ['starting', 'created']:
+                has_starting = True
+            elif service.get('status') not in ['running', 'healthy']:
+                has_errors = True
+
+        # Determine final status and color
+        if has_errors:
+            overall_status = "error"
+            color = "#ef4444"  # Red
+        elif has_starting:
+            overall_status = "starting"
+            color = "#22c55e"  # Green (will flash)
+        elif has_warnings:
+            overall_status = "warning"
+            color = "#eab308"  # Yellow
+        else:
+            overall_status = "healthy"
+            color = "#22c55e"  # Green
+
+        # Build container status dict for easy lookup
+        containers = {}
+        for service in services:
+            # Extract service name (e.g., "flower" from "scitex-cloud-nas-flower-1")
+            name = service.get('name', '').lower()
+            containers[name] = service.get('health_class', 'unknown')
+
+        return JsonResponse({
+            "status": overall_status,
+            "color": color,
+            "services": {
+                "database": status_data.get('database', {}).get('health_class', 'unknown'),
+                "redis": status_data.get('redis', {}).get('health_class', 'unknown'),
+                "slurm": status_data.get('slurm', {}).get('health_class', 'unknown'),
+                "apptainer": status_data.get('apptainer', {}).get('health_class', 'unknown'),
+                # Docker containers
+                "flower": containers.get('flower', 'unknown'),
+                "celery_worker": containers.get('celery_worker', 'unknown'),
+                "celery_beat": containers.get('celery_beat', 'unknown'),
+                "gitea": containers.get('gitea', 'unknown'),
+                "nginx": containers.get('nginx', 'unknown'),
+                "postgres": containers.get('postgres', 'unknown'),
+            }
+        })
+    except Exception as e:
+        logger.exception(f"Error in server_health_status_api: {e}")
+        return JsonResponse({
+            "status": "error",
+            "color": "#ef4444",
+            "error": str(e)
+        }, status=500)
 
 
 def server_metrics_history_api(request):

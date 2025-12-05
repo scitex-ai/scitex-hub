@@ -108,10 +108,11 @@ export async function updateMetrics(): Promise<void> {
     // Update Active Users
     const activeUsersEl = document.getElementById('activeUsersCurrentValue');
     if (activeUsersEl) {
-      const activeUsersValue = data.active_users_count;
-      activeUsersEl.textContent = (activeUsersValue !== null && !isNaN(activeUsersValue))
-        ? String(activeUsersValue)
-        : 'N/A';
+      if (data.active_users_count !== null && data.total_users_count !== null) {
+        activeUsersEl.textContent = `${data.active_users_count}/${data.total_users_count}`;
+      } else {
+        activeUsersEl.textContent = 'N/A';
+      }
     }
 
     // Store values for next rate calculation
