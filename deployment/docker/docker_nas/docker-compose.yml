@@ -38,6 +38,7 @@ services:
       - /etc/munge:/etc/munge:ro
       - /run/munge:/run/munge
       - /var/log/slurm:/var/log/slurm
+      - /var/spool/slurmctld:/var/spool/slurmctld:ro
       # Mount host passwd for SLURM UID synchronization (prevents "Security violation" errors)
       - /etc/passwd:/host/etc/passwd:ro
 
@@ -65,7 +66,7 @@ services:
     # Allow access to host SLURM
     extra_hosts:
       - "host.docker.internal:host-gateway"
-      - "${SCITEX_CLOUD_SLURM_HOST:-DXP480TPLUS-994}:host-gateway"
+      - "${SCITEX_CLOUD_SLURM_HOST:-DXP480TPLUS-994}:192.168.64.1"
 
     # Security settings for Apptainer (nested containers)
     # Privileged mode required for mounting proc/sys inside nested containers

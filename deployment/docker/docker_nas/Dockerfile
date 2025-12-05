@@ -136,6 +136,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     netcat-openbsd \
     jq \
     git \
+    gosu \
     # Docker client (for status checks and workspace management)
     docker.io \
     # Apptainer runtime dependencies (for fakeroot/user namespaces)
@@ -261,20 +262,22 @@ RUN useradd -m -u 1000 scitex && \
 COPY --chown=scitex:scitex . .
 
 
-# Copy NAS-specific entrypoint
-COPY --chown=scitex:scitex deployment/docker/docker_nas/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+# Copy NAS-specific entrypoint scripts
+COPY deployment/docker/docker_nas/root-init.sh /root-init.sh
+COPY deployment/docker/docker_nas/entrypoint.sh /entrypoint.sh
+RUN chmod +x /root-init.sh /entrypoint.sh
 
-# Switch to non-root user for security
+# Verify critical tools as scitex user (fail fast)
 USER scitex
-
-# Verify critical tools (fail fast)
 RUN pdflatex --version && \
     bibtex --version && \
     convert --version && \
     yq --version && \
     python --version && \
     echo -e "✅ Production image verified"
+
+# Switch back to root for runtime initialization (root-init.sh will drop to scitex)
+USER root
 
 # ============================================
 # Runtime Configuration
@@ -285,7 +288,8 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
 
 EXPOSE 8000
 
-ENTRYPOINT ["/entrypoint.sh"]
+# Root-level initialization (fixes SLURM UID, munge group, then drops to scitex user)
+ENTRYPOINT ["/root-init.sh", "/entrypoint.sh"]
 # Use Daphne (ASGI) for WebSocket support (PTY terminal, collaborative editing)
 CMD ["daphne", \
      "-b", "0.0.0.0", \

@@ -1274,15 +1274,18 @@
   flex: 1;
   background: transparent;
   border: none;
-  color: var(--color-fg-default, #e6edf3);
+  color: var(--color-fg-default, #e6edf3) !important;
   font-size: 13px;
   font-family: inherit;
   outline: none;
   min-width: 0;
+  /* Ensure text is visible in both light and dark themes */
+  -webkit-text-fill-color: var(--color-fg-default, #e6edf3);
 }
 
 .wft-search-input::placeholder {
-  color: var(--color-fg-muted, #768390);
+  color: var(--color-fg-muted, #768390) !important;
+  opacity: 1;
 }
 
 .wft-search-clear {
