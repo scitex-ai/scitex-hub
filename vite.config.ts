@@ -198,6 +198,8 @@ export default defineConfig({
         'shared/code-blocks': resolve(__dirname, 'static/shared/ts/code-blocks.ts'),
         'shared/components/confirm-modal': resolve(__dirname, 'static/shared/ts/components/confirm-modal.ts'),
         'shared/components/header': resolve(__dirname, 'static/shared/ts/components/header.ts'),
+        'shared/components/workspace-files-tree/WorkspaceFilesTree': resolve(__dirname, 'static/shared/ts/components/workspace-files-tree/WorkspaceFilesTree.ts'),
+        'shared/monaco/MonacoTheme': resolve(__dirname, 'static/shared/ts/monaco/MonacoTheme.ts'),
         'shared/utils/highlight-js-bibtex': resolve(__dirname, 'static/shared/ts/utils/highlight-js-bibtex.ts'),
       },
       output: {
