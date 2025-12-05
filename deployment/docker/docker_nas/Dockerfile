@@ -157,6 +157,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     texlive-plain-generic \
     # bibtex is included in texlive-bibtex-extra
     latexdiff \
+    latexmk \
     ghostscript \
     poppler-utils \
     # Image processing runtime
