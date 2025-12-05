@@ -16,6 +16,9 @@ psycopg2-binary==2.9.9
 gunicorn==21.2.0
 daphne==4.1.2  # ASGI server for WebSocket support (PTY terminal)
 # uwsgi==2.0.25  # Install separately with system packages
+fastapi>=0.109.0  # For citation graph microservice (port 3334)
+uvicorn[standard]>=0.27.0  # ASGI server for FastAPI
+python-multipart>=0.0.6  # FastAPI multipart form support
 
 # Security
 django-axes==6.3.0

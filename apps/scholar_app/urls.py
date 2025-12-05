@@ -18,6 +18,7 @@ from .views.trending import views as trending_views
 from .views import repository as repository_views
 from .integrations import scitex as scitex_search
 from .api import crossref_proxy
+from .api import citation_graph
 
 app_name = "scholar_app"
 
@@ -404,6 +405,27 @@ urlpatterns = [
         "api/crossref/stats/",
         crossref_proxy.stats,
         name="crossref_api_stats",
+    ),
+    # Citation Graph API (Network Analysis)
+    path(
+        "api/citation-graph/network/",
+        citation_graph.build_network,
+        name="citation_graph_network",
+    ),
+    path(
+        "api/citation-graph/related/",
+        citation_graph.get_related_papers,
+        name="citation_graph_related",
+    ),
+    path(
+        "api/citation-graph/paper/",
+        citation_graph.paper_summary,
+        name="citation_graph_paper",
+    ),
+    path(
+        "api/citation-graph/health/",
+        citation_graph.health,
+        name="citation_graph_health",
     ),
     # Advanced features (for future implementation)
     # path('advanced/dashboard/', views.search_dashboard, name='search_dashboard'),

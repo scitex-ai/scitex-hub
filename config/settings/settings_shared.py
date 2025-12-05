@@ -667,6 +667,12 @@ CROSSREF_INTERNAL_URL = os.getenv(
     "http://crossref:3333"
 )
 
+# CrossRef database path for citation graph service
+CROSSREF_DB_PATH = os.getenv(
+    "CROSSREF_DB_PATH",
+    str(Path.home() / "proj/crossref_local/data/crossref.db")
+)
+
 # ---------------------------------------
 # REST Framework
 # ---------------------------------------

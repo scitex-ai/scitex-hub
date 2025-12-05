@@ -105,11 +105,25 @@ class CrossRefDatabase:
                     row = cursor.fetchone()
                     if row:
                         result = self._row_to_dict(row)
-                        # Parse JSON fields if present
-                        if "authors" in result:
+
+                        # If metadata JSON column exists, extract useful fields
+                        if "metadata" in result:
+                            metadata = self._parse_json_field(result["metadata"])
+                            if isinstance(metadata, dict):
+                                # Extract commonly used fields from JSON
+                                result["title"] = metadata.get("title", [""])[0] if metadata.get("title") else ""
+                                result["authors"] = metadata.get("author", [])
+                                date_parts = metadata.get("published", {}).get("date-parts", [[]])
+                                result["year"] = date_parts[0][0] if date_parts and date_parts[0] else None
+                                result["abstract"] = metadata.get("abstract", "")
+                                result["container_title"] = metadata.get("container-title", [""])[0] if metadata.get("container-title") else ""
+
+                        # Parse JSON fields if they exist as separate columns (legacy support)
+                        if "authors" in result and isinstance(result["authors"], str):
                             result["authors"] = self._parse_json_field(result["authors"])
-                        if "references" in result:
+                        if "references" in result and isinstance(result["references"], str):
                             result["references"] = self._parse_json_field(result["references"])
+
                         return result
                 except sqlite3.OperationalError:
                     continue
@@ -124,7 +138,7 @@ class CrossRefDatabase:
         limit: int = 10,
     ) -> List[Dict]:
         """
-        Search papers by metadata
+        Search papers by metadata stored in JSON column
 
         Args:
             title: Title search term
@@ -142,15 +156,18 @@ class CrossRefDatabase:
         params = []
 
         if title:
-            query += " AND title LIKE ?"
+            # Search within JSON title array: $.title[0]
+            query += " AND json_extract(metadata, '$.title[0]') LIKE ?"
             params.append(f"%{title}%")
 
         if year:
-            query += " AND year = ?"
+            # Extract year from nested date array: $.published.date-parts[0][0]
+            query += " AND json_extract(metadata, '$.published.date-parts[0][0]') = ?"
             params.append(year)
 
         if authors:
-            query += " AND authors LIKE ?"
+            # Search within JSON author array (search in serialized JSON)
+            query += " AND json_extract(metadata, '$.author') LIKE ?"
             params.append(f"%{authors}%")
 
         query += f" LIMIT {limit}"
@@ -164,8 +181,15 @@ class CrossRefDatabase:
                 results = []
                 for row in rows:
                     result = self._row_to_dict(row)
-                    if "authors" in result:
-                        result["authors"] = self._parse_json_field(result["authors"])
+                    # Parse metadata JSON if present
+                    if "metadata" in result:
+                        metadata = self._parse_json_field(result["metadata"])
+                        if isinstance(metadata, dict):
+                            # Extract commonly used fields from JSON
+                            result["title"] = metadata.get("title", [""])[0] if metadata.get("title") else ""
+                            result["authors"] = metadata.get("author", [])
+                            date_parts = metadata.get("published", {}).get("date-parts", [[]])
+                            result["year"] = date_parts[0][0] if date_parts and date_parts[0] else None
                     results.append(result)
 
                 return results
