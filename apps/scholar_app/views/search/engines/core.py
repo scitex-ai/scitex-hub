@@ -32,9 +32,18 @@ except ImportError:
     SCITEX_SCHOLAR_AVAILABLE = False
 
 def search_papers_online(
-    query, max_results=200, sources="all", filters=None, user_preferences=None
+    query, max_results=200, sources="all", filters=None, user_preferences=None, user=None
 ):
-    """Search for papers using multiple online sources with user API keys and impact factor integration."""
+    """Search for papers using multiple online sources with user API keys and impact factor integration.
+
+    Args:
+        query: Search query string
+        max_results: Maximum number of results
+        sources: Sources to search ("all" or comma-separated list)
+        filters: Search filters dict
+        user_preferences: User preferences object
+        user: Django User object (for email-based rate limit benefits)
+    """
     # Disable caching for fresh results and debugging
     logger.info(f"Scholar search: fresh search (no cache) for query: '{query}'")
 
@@ -98,6 +107,7 @@ def search_papers_online(
             max_results=30,
             filters=filters,
             user_preferences=user_preferences,
+            user=user,
         )
         results.extend(external_results)
         logger.info(f"SciTeX-Scholar returned {len(external_results)} real results")
@@ -140,23 +150,38 @@ def search_papers_online(
 
 
 def search_with_scitex_scholar(
-    query, sources, max_results=30, filters=None, user_preferences=None
+    query, sources, max_results=30, filters=None, user_preferences=None, user=None
 ):
     """
     Use SciTeX-Scholar parallel search pipeline for real external API searches.
     Searches all engines in parallel and returns deduplicated, enriched results.
+
+    Args:
+        query: Search query string
+        sources: List of sources to search
+        max_results: Maximum number of results
+        filters: Search filters dict
+        user_preferences: User preferences object
+        user: Django User object (for email-based rate limit benefits)
     """
     if not SCITEX_SCHOLAR_AVAILABLE:
         return []
 
     try:
-        logger.info(f"🚀 Using SciTeX-Scholar parallel search pipeline")
+        # Extract user email for API rate limit benefits
+        user_email = None
+        if user and hasattr(user, 'email') and user.email:
+            user_email = user.email
+            logger.info(f"🚀 Using SciTeX-Scholar with user email for rate limits")
+        else:
+            logger.info(f"🚀 Using SciTeX-Scholar parallel search pipeline")
+
         logger.info(f"   Query: '{query}'")
         logger.info(f"   Sources requested: {sources}")
 
-        # Create search pipeline
+        # Create search pipeline with user email for rate limit benefits
         pipeline = ScholarPipelineSearchParallel(
-            max_workers=5, timeout_per_engine=30.0, use_cache=True
+            max_workers=5, timeout_per_engine=30.0, use_cache=True, email=user_email
         )
 
         # Prepare filters for the pipeline

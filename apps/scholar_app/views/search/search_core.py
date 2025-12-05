@@ -89,7 +89,11 @@ def simple_search_with_tab(
             user_prefs = UserPreference.get_or_create_for_user(request.user)
 
         web_results = search_papers_online(
-            query, sources=sources, filters=filters, user_preferences=user_prefs
+            query,
+            sources=sources,
+            filters=filters,
+            user_preferences=user_prefs,
+            user=request.user if request.user.is_authenticated else None,
         )
 
         # Combine and store results
