@@ -45,8 +45,9 @@ urlpatterns = [
         workspace_views.user_default_workspace,
         name="user_default_workspace",
     ),
-    # MVP Simple Interface - Tab-based navigation
-    path("", search_views.scholar_bibtex, name="index"),
+    # Unified scholar page with hash-based tabs (#search, #bibtex, #graph)
+    path("", search_views.scholar_unified, name="index"),
+    # Legacy URL redirects (for backwards compatibility)
     path("bibtex/", search_views.scholar_bibtex, name="scholar_bibtex"),
     path("search/", search_views.scholar_search, name="scholar_search"),
     path("graph/", search_views.scholar_graph, name="scholar_graph"),

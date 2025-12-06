@@ -56,35 +56,25 @@ def index(request):
 
 
 def scholar_bibtex(request):
-    """Dedicated BibTeX enrichment page."""
-    # Check for visitor pool redirect
-    pool_redirect = _check_visitor_pool_redirect(request)
-    if pool_redirect:
-        return pool_redirect
-
-    from . import bibtex_enrichment_view
-
-    return bibtex_enrichment_view(
-        request, template_name="scholar_app/scholar_bibtex.html"
-    )
+    """Dedicated BibTeX enrichment page - redirects to unified page."""
+    # Redirect to unified page with bibtex hash
+    return redirect('/scholar/#bibtex')
 
 
 def scholar_search(request):
-    """Dedicated literature search page."""
-    # Check for visitor pool redirect
-    pool_redirect = _check_visitor_pool_redirect(request)
-    if pool_redirect:
-        return pool_redirect
-
-    from . import simple_search_with_tab
-
-    return simple_search_with_tab(
-        request, active_tab="search", template_name="scholar_app/scholar_search.html"
-    )
+    """Dedicated literature search page - redirects to unified page."""
+    # Redirect to unified page with search hash
+    return redirect('/scholar/#search')
 
 
 def scholar_graph(request):
     """Citation graph visualization page."""
+    # Redirect to unified page with graph hash
+    return redirect('/scholar/#graph')
+
+
+def scholar_unified(request):
+    """Unified scholar page with all tabs (search, bibtex, graph)."""
     # Check for visitor pool redirect
     pool_redirect = _check_visitor_pool_redirect(request)
     if pool_redirect:
@@ -92,23 +82,54 @@ def scholar_graph(request):
 
     from apps.project_app.models import Project
     from apps.project_app.services import get_current_project
+    from ...models import BibTeXEnrichmentJob
 
     # Get user projects and current project
     user_projects = []
     current_project = None
+    recent_jobs = []
+
     if request.user.is_authenticated:
         user_projects = Project.objects.filter(owner=request.user).order_by(
             "-created_at"
         )
         current_project = get_current_project(request, user=request.user)
+        # Get user's recent enrichment jobs
+        recent_jobs = (
+            BibTeXEnrichmentJob.objects.filter(user=request.user)
+            .select_related("project")
+            .order_by("-created_at")[:10]
+        )
+    else:
+        # For visitor users, get jobs by session key
+        if request.session.session_key:
+            recent_jobs = (
+                BibTeXEnrichmentJob.objects.filter(
+                    session_key=request.session.session_key
+                ).order_by("-created_at")[:10]
+            )
 
-    context = {
-        "active_tab": "graph",
-        "user_projects": user_projects,
-        "current_project": current_project,
+    # Default filter ranges (used when no search results)
+    filter_ranges = {
+        "year_min": 1900,
+        "year_max": 2025,
+        "citations_min": 0,
+        "citations_max": 128,
+        "impact_factor_min": 0,
+        "impact_factor_max": 50.0,
     }
 
-    return render(request, "scholar_app/scholar_graph.html", context)
+    context = {
+        "query": "",
+        "results": [],
+        "has_results": False,
+        "user_projects": user_projects,
+        "current_project": current_project,
+        "recent_jobs": recent_jobs,
+        "filter_ranges": filter_ranges,
+    }
+
+    return render(request, "scholar_app/scholar_unified.html", context)
 
 
 def bibtex_enrichment_view(request, template_name="scholar_app/index.html"):
