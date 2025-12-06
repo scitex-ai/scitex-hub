@@ -1,0 +1,111 @@
+/**
+ * Page Header Component
+ * Gradient hero-style header for main pages
+ * Used by: Design System, Explore, Contributors, Pricing, Terms, Privacy, Cookies, Releases
+ */
+
+.page-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    padding: 2.5rem 0;
+    background: linear-gradient(
+        135deg,
+        var(--scitex-color-01) 0%,
+        var(--scitex-color-03) 100%
+    );
+    border-radius: 12px;
+    color: white;
+}
+
+.page-header--full-width {
+    border-radius: 0;
+    margin-bottom: 0;
+}
+
+.page-header h1,
+.page-header .page-header__title {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    color: white;
+    font-weight: 600;
+}
+
+.page-header h1 i,
+.page-header .page-header__title i {
+    margin-right: 0.5rem;
+}
+
+.page-header p,
+.page-header .page-header__subtitle {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    margin: 0;
+    color: white;
+}
+
+/* Variant: Extended gradient with middle color */
+.page-header--extended {
+    background: linear-gradient(
+        135deg,
+        var(--scitex-color-01) 0%,
+        var(--scitex-color-02) 50%,
+        var(--scitex-color-03) 100%
+    );
+    padding: 4rem 0;
+}
+
+/* Variant: Hero style (larger) */
+.page-header--hero {
+    padding: 4rem 0;
+}
+
+.page-header--hero h1,
+.page-header--hero .page-header__title {
+    font-size: 3rem;
+}
+
+.page-header--hero p,
+.page-header--hero .page-header__subtitle {
+    font-size: 1.3rem;
+}
+
+/* Container inside page header */
+.page-header .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+/* Icon styling */
+.page-header__icon {
+    display: inline-block;
+    margin-bottom: 1rem;
+}
+
+.page-header__icon svg {
+    width: 48px;
+    height: 48px;
+    fill: currentColor;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .page-header {
+        padding: 2rem 1rem;
+    }
+
+    .page-header h1,
+    .page-header .page-header__title {
+        font-size: 1.75rem;
+    }
+
+    .page-header p,
+    .page-header .page-header__subtitle {
+        font-size: 1rem;
+    }
+
+    .page-header--hero h1,
+    .page-header--hero .page-header__title {
+        font-size: 2rem;
+    }
+}

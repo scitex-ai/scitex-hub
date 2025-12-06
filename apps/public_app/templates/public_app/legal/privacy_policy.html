@@ -5,6 +5,7 @@
     Policy - SciTeX
 {% endblock %}
 {% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/components/page-header.css' %}">
     <style>
   .policy-section {
     padding: var(--spacing-xxl) 0;
@@ -89,14 +90,12 @@
     </style>
 {% endblock %}
 {% block content %}
-    <section class="hero">
-        <div class="container">
-            <div class="hero-content">
-                <h1 class="hero-title">Privacy Policy</h1>
-                <p class="hero-description">Learn how we collect, use, and protect your information</p>
-            </div>
-        </div>
-    </section>
+    <div class="container pt-4">
+        <section class="page-header">
+            <h1><i class="fas fa-shield-alt"></i> Privacy Policy</h1>
+            <p>Learn how we collect, use, and protect your information</p>
+        </section>
+    </div>
     <section class="policy-section">
         <div class="container policy-container">
             <div class="policy-content">

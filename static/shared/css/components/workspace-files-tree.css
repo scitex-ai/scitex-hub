@@ -585,6 +585,21 @@
   background: var(--workspace-bg-secondary, #f6f8fa);
 }
 
+/* Inline rename input (same style as inline create) */
+.wft-inline-rename {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px !important;
+  margin: 0;
+  background: var(--workspace-bg-secondary, var(--color-canvas-subtle, #1e1e1e));
+}
+
+[data-theme="light"] .wft-inline-rename,
+.light .wft-inline-rename {
+  background: var(--workspace-bg-secondary, #f6f8fa);
+}
+
 /* Git action button styles removed - actions now in context menu */
 
 /* ============================================

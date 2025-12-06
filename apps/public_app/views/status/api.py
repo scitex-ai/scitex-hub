@@ -102,7 +102,7 @@ def server_health_status_api(request):
         - services: dict of service statuses
     """
     try:
-        from .health_checks import check_docker_containers, check_database, check_redis
+        from .health_checks import check_docker_containers, check_database, check_redis, check_citation_graph
         from .compute_resources import check_slurm_status, check_container_runtime_status
 
         status_data = {"services": []}
@@ -113,6 +113,7 @@ def server_health_status_api(request):
         check_redis(status_data)
         check_slurm_status(status_data)
         check_container_runtime_status(status_data)
+        check_citation_graph(status_data)
 
         # Determine overall health
         has_errors = False
@@ -170,6 +171,9 @@ def server_health_status_api(request):
             name = service.get('name', '').lower()
             containers[name] = service.get('health_class', 'unknown')
 
+        # Citation graph status (non-critical - don't affect overall health)
+        citation_graph = status_data.get('citation_graph', {})
+
         return JsonResponse({
             "status": overall_status,
             "color": color,
@@ -185,6 +189,9 @@ def server_health_status_api(request):
                 "gitea": containers.get('gitea', 'unknown'),
                 "nginx": containers.get('nginx', 'unknown'),
                 "postgres": containers.get('postgres', 'unknown'),
+                # Scholar services
+                "citation_graph": citation_graph.get('health_class', 'unknown'),
+                "citation_graph_mode": citation_graph.get('mode', 'unknown'),
             }
         })
     except Exception as e:

@@ -227,8 +227,7 @@ RUN python -m playwright install chromium
 COPY . .
 
 # Install Node.js project dependencies (Vite for HMR, TypeScript tools)
-RUN cd /app && npm install && \
-    cd /app/tsconfig && npm install
+RUN cd /app && npm install
 
 # Copy dev-specific entrypoint and helper scripts
 COPY deployment/docker/docker_dev/entrypoint.sh /entrypoint.sh

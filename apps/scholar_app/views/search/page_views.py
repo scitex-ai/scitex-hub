@@ -83,6 +83,34 @@ def scholar_search(request):
     )
 
 
+def scholar_graph(request):
+    """Citation graph visualization page."""
+    # Check for visitor pool redirect
+    pool_redirect = _check_visitor_pool_redirect(request)
+    if pool_redirect:
+        return pool_redirect
+
+    from apps.project_app.models import Project
+    from apps.project_app.services import get_current_project
+
+    # Get user projects and current project
+    user_projects = []
+    current_project = None
+    if request.user.is_authenticated:
+        user_projects = Project.objects.filter(owner=request.user).order_by(
+            "-created_at"
+        )
+        current_project = get_current_project(request, user=request.user)
+
+    context = {
+        "active_tab": "graph",
+        "user_projects": user_projects,
+        "current_project": current_project,
+    }
+
+    return render(request, "scholar_app/scholar_graph.html", context)
+
+
 def bibtex_enrichment_view(request, template_name="scholar_app/index.html"):
     """BibTeX Enrichment tab view."""
     from apps.scholar_app.models import BibTeXEnrichmentJob
@@ -120,7 +148,7 @@ def bibtex_enrichment_view(request, template_name="scholar_app/index.html"):
         "year_min": 1900,
         "year_max": 2025,
         "citations_min": 0,
-        "citations_max": 12000,
+        "citations_max": 128,
         "impact_factor_min": 0,
         "impact_factor_max": 50.0,
     }

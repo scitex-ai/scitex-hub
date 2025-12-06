@@ -2,6 +2,7 @@
 # Terminal Readiness Checker
 # Tests if terminals will actually work (not just if components exist)
 # This catches issues like SLURM needing restart after user creation
+# Environment-aware: dev uses root, NAS uses scitex user
 
 set -euo pipefail
 
@@ -11,18 +12,39 @@ source "${SCRIPT_DIR}/../scripts/lib/colors.sh" 2>/dev/null || {
     BLUE='\033[0;36m'; NC='\033[0m'
 }
 
-SCITEX_USER="scitex"
-ENV="${1:-nas}"
+ENV="${1:-}"
+if [ -z "$ENV" ]; then
+    # Auto-detect from running containers
+    RUNNING=$(docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-cloud-(dev|nas)-' | head -1 | sed 's/scitex-cloud-//' | sed 's/-//' || echo "")
+    ENV="${RUNNING:-dev}"
+fi
+
 CONTAINER_NAME="scitex-cloud-${ENV}-django-1"
+
+# Determine which user to test as based on environment
+if [ "$ENV" = "nas" ]; then
+    TEST_USER="scitex"
+    USER_CMD="su ${TEST_USER} -c"
+else
+    # Dev runs as root - test directly
+    TEST_USER="root"
+    USER_CMD=""
+fi
 
 check_status=0
 
-# Quick test: Can SLURM actually execute jobs as scitex user?
+# Quick test: Can SLURM actually execute jobs?
 # This catches the "SLURM needs restart" issue
 if docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$" 2>/dev/null; then
     # Container is running, test SLURM job execution
-    if timeout 3 docker exec "${CONTAINER_NAME}" su "${SCITEX_USER}" -c "srun --partition=express true" >/dev/null 2>&1; then
-        echo -e "${GREEN}✓ Terminals ready (SLURM job execution verified)${NC}"
+    if [ -n "$USER_CMD" ]; then
+        TEST_CMD="timeout 3 docker exec ${CONTAINER_NAME} ${USER_CMD} \"srun --partition=express true\""
+    else
+        TEST_CMD="timeout 3 docker exec ${CONTAINER_NAME} srun --partition=express true"
+    fi
+
+    if eval "$TEST_CMD" >/dev/null 2>&1; then
+        echo -e "${GREEN}✓ Terminals ready (SLURM job execution verified as ${TEST_USER})${NC}"
     else
         echo -e "${RED}✗ Terminals NOT ready (SLURM job execution failed)${NC}"
         echo -e "${YELLOW}  Cause: SLURM services likely need restart after user creation${NC}"

@@ -9,19 +9,8 @@
     contributors behind the SciTeX scientific research platform
 {% endblock %}
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'shared/css/components/page-header.css' %}">
 <style>
-  .contributors-hero {
-    background: linear-gradient(
-      135deg,
-      var(--scitex-color-01) 0%,
-      var(--scitex-color-02) 50%,
-      var(--scitex-color-03) 100%
-    );
-    color: white;
-    padding: 4rem 0;
-    text-align: center;
-  }
-
   .contributor-card {
     background: var(--color-canvas-default);
     border: 1px solid var(--color-border-default);
@@ -105,14 +94,12 @@
 {% endblock %}
 {% block content %}
     <!-- Hero Section -->
-    <section class="contributors-hero">
-        <div class="container">
-            <h1 class="display-4 mb-3">
-                <i class="fas fa-users"></i> Contributors
-            </h1>
-            <p class="lead">The people behind SciTeX</p>
-        </div>
-    </section>
+    <div class="container pt-4">
+        <section class="page-header page-header--extended">
+            <h1><i class="fas fa-users"></i> Contributors</h1>
+            <p>The people behind SciTeX</p>
+        </section>
+    </div>
     <!-- Contributors Content -->
     <div class="container py-5">
         <!-- Core Team -->

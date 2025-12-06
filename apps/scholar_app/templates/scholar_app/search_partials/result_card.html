@@ -1,4 +1,4 @@
-<div class="result-card"
+<div class="result-card result-card-compact"
      data-paper-id="{{ result.id }}"
      data-title="{{ result.title }}"
      data-authors="{{ result.authors }}"
@@ -11,94 +11,47 @@
      data-arxiv-id="{{ result.arxiv_id|default:'' }}"
      data-external-url="{{ result.external_url|default:'' }}"
      data-source="{{ result.source|default:'' }}">
-    <div class="d-flex align-items-start gap-2">
-        <div class="form-check mt-1">
-            <input class="form-check-input paper-select-checkbox"
-                   type="checkbox"
-                   id="select_{{ result.id }}"
-                   data-paper-id="{{ result.id }}"
-                   data-doi="{{ result.doi|default:'' }}"
-                   data-title="{{ result.title }}" />
-            <label class="form-check-label" for="select_{{ result.id }}"></label>
-        </div>
-        <div class="flex-grow-1">
-            <h6 class="result-title mb-0">
-                <a href="{% if result.doi %}https://doi.org/{{ result.doi }}{% elif result.external_url %}{{ result.external_url }}{% elif result.pmid %}https://pubmed.ncbi.nlm.nih.gov/{{ result.pmid }}/{% elif result.arxiv_id %}https://arxiv.org/abs/{{ result.arxiv_id }}{% else %}https://scholar.google.com/scholar?q={{ result.title|urlencode }}{% endif %}"
-                   class="text-decoration-none"
-                   target="_blank"
-                   onclick="return viewOnWeb(this, event)">{{ result.title }}</a>
-            </h6>
-        </div>
+    <!-- Row 1: Checkbox + Title + Year -->
+    <div class="result-header">
+        <input class="form-check-input paper-select-checkbox"
+               type="checkbox"
+               id="select_{{ result.id }}"
+               data-paper-id="{{ result.id }}"
+               data-doi="{{ result.doi|default:'' }}"
+               data-title="{{ result.title }}" />
+        <a href="{% if result.doi %}https://doi.org/{{ result.doi }}{% elif result.external_url %}{{ result.external_url }}{% elif result.pmid %}https://pubmed.ncbi.nlm.nih.gov/{{ result.pmid }}/{% elif result.arxiv_id %}https://arxiv.org/abs/{{ result.arxiv_id }}{% else %}https://scholar.google.com/scholar?q={{ result.title|urlencode }}{% endif %}"
+           class="result-title-link"
+           target="_blank"
+           onclick="return viewOnWeb(this, event)">{{ result.title }}</a>
+        <span class="result-year">{{ result.year }}</span>
     </div>
-    <div class="result-authors">{{ result.authors }}</div>
-    <!-- Metadata Row: Year, Journal, Citations -->
-    <div class="result-metadata mt-2">
-        <span class="year-badge">{{ result.year }}</span>
-        <em class="journal-name">{{ result.journal|default:"Unknown Journal" }}</em>
+    <!-- Row 2: Authors + Journal + Metadata inline -->
+    <div class="result-meta-line">
+        <span class="result-authors-inline">{{ result.authors|truncatewords:12 }}</span>
+        <span class="meta-separator">·</span>
+        <em class="result-journal">{{ result.journal|default:"Unknown Journal"|truncatechars:40 }}</em>
         {% if result.citation_count and result.citation_count > 0 %}
-            <span class="citation-badge"><span class="citation-count" data-count="{{ result.citation_count }}">{{ result.citation_count|stringformat:"d" }}</span>
-        citations</span>
-    {% elif result.citation_count == 0 %}
-        <span class="citation-badge">0 citations</span>
-    {% endif %}
-</div>
-<!-- Badge Row: Action & Source Badges -->
-<div class="result-badges-row mt-2">
-    <!-- Cite Button -->
-    <button type="button"
-            class="badge-chip badge-action"
-            onclick="copyCitation(this, '{{ result.id }}')"
-            title="Copy citation to clipboard">
-        <i class="fas fa-quote-left"></i> Cite
-    </button>
-    <!-- Save Button -->
-    {% if user.is_authenticated %}
-        <button type="button"
-                class="badge-chip badge-action"
-                onclick="saveToProject(this, '{{ result.id }}')"
-                title="Save to project">
-            <i class="fas fa-bookmark"></i> Save
-        </button>
-    {% endif %}
-    {% if result.is_open_access %}
-        <span class="badge-chip badge-success">
-            <i class="fas fa-lock-open"></i> Open Access
-        </span>
-    {% endif %}
-    {% if result.impact_factor %}
-        <span class="badge-chip badge-info">
-            <i class="fas fa-chart-line"></i> IF: {{ result.impact_factor }}
-        </span>
-    {% endif %}
-    {% if result.doi %}
-        <span class="badge-chip badge-secondary">
-            <i class="fas fa-link"></i> DOI
-        </span>
-    {% endif %}
-    {% if result.source_engines %}
-        {% for engine in result.source_engines %}
-            <span class="badge-chip badge-muted" title="Found by {{ engine }}">
-                <i class="fas fa-search"></i> {{ engine|upper }}
-            </span>
-        {% endfor %}
-    {% elif result.source %}
-        <span class="badge-chip badge-muted" title="Source">
-            <i class="fas fa-search"></i> {{ result.source|upper }}
-        </span>
-    {% endif %}
-</div>
-<!-- Abstract Section -->
-<div class="result-snippet mt-2">
-    <div class="abstract-preview mode-truncated"
-         data-abstract-id="{{ result.id }}"
-         data-mode="truncated">
-        {% if result.full_abstract %}
-            <span class="abstract-full">{{ result.full_abstract }}</span>
-            <span class="abstract-short">{{ result.snippet|default:"No abstract available." }}</span>
-        {% else %}
-            <span class="abstract-full">No abstract available.</span>
-            <span class="abstract-short">No abstract available.</span>
+            <span class="meta-separator">·</span>
+            <span class="result-citations"><i class="fas fa-quote-right"></i> {{ result.citation_count }}</span>
+        {% endif %}
+        {% if result.impact_factor %}
+            <span class="meta-separator">·</span>
+            <span class="result-if">IF {{ result.impact_factor }}</span>
+        {% endif %}
+        {% if result.is_open_access %}
+            <span class="meta-separator">·</span>
+            <span class="result-oa"><i class="fas fa-lock-open"></i> OA</span>
         {% endif %}
     </div>
-</div>
+    <!-- Row 3: Abstract (truncated) + Actions -->
+    <div class="result-content-row">
+        <div class="result-abstract" data-abstract-id="{{ result.id }}">
+            {% if result.snippet %}{{ result.snippet|truncatechars:200 }}{% elif result.full_abstract %}{{ result.full_abstract|truncatechars:200 }}{% endif %}
+        </div>
+        <div class="result-actions">
+            <button type="button" class="action-btn" onclick="copyCitation(this, '{{ result.id }}')" title="Copy citation"><i class="fas fa-quote-left"></i></button>
+            {% if user.is_authenticated %}<button type="button" class="action-btn" onclick="saveToProject(this, '{{ result.id }}')" title="Save"><i class="fas fa-bookmark"></i></button>{% endif %}
+            {% if result.doi %}<a href="https://doi.org/{{ result.doi }}" target="_blank" class="action-btn" title="DOI"><i class="fas fa-external-link-alt"></i></a>{% endif %}
+        </div>
+    </div>
 </div>

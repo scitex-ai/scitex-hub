@@ -170,6 +170,28 @@ a.disabled {
   color: var(--scitex-color-02);
 }
 
+/* Dark mode compact result card styles */
+[data-theme="dark"] .result-title-link {
+  color: var(--white);
+}
+
+[data-theme="dark"] .result-title-link:hover {
+  color: var(--scitex-color-02);
+}
+
+[data-theme="dark"] .result-card-compact {
+  border-bottom-color: var(--border-muted);
+}
+
+[data-theme="dark"] .result-year {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .action-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
 [data-theme="dark"] .badge.bg-warning {
   background-color: #ffc107 !important;
   color: #000 !important;

@@ -8,16 +8,17 @@
     Where Research Happens.
 {% endblock %}
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'shared/css/components/page-header.css' %}">
 <link rel="stylesheet" href="{% static 'public_app/css/pricing.css' %}">
 {% endblock %}
 {% block content %}
     <!-- Hero Section -->
-    <section class="pricing-hero">
-        <div class="container">
-            <h1 class="display-4 mb-3">SciTeX Pricing</h1>
-            <p class="lead">Where Research Happens.</p>
-        </div>
-    </section>
+    <div class="container pt-4">
+        <section class="page-header page-header--extended">
+            <h1><i class="fas fa-tags"></i> SciTeX Pricing</h1>
+            <p>Where Research Happens.</p>
+        </section>
+    </div>
 
     <!-- Pricing Cards -->
     <div class="container py-5">

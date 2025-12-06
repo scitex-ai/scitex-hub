@@ -247,18 +247,36 @@ class CitationGraphService:
             }
 
 
-# Singleton instance
-_service_instance = None
+# Service mode tracking (not singleton - create fresh per request for DB connections)
+_use_proxy = None
 
 
-def get_citation_graph_service() -> CitationGraphService:
+def get_citation_graph_service():
     """
-    Get or create the singleton service instance.
+    Get citation graph service instance.
+
+    Creates fresh service per call to avoid stale database connections.
+    Falls back to proxy service when local database is unavailable.
 
     Returns:
-        CitationGraphService instance
+        CitationGraphService or CitationGraphProxyService instance
     """
-    global _service_instance
-    if _service_instance is None:
-        _service_instance = CitationGraphService()
-    return _service_instance
+    global _use_proxy
+
+    # If we already know to use proxy, use it
+    if _use_proxy is True:
+        from .proxy import CitationGraphProxyService
+        return CitationGraphProxyService()
+
+    # Try local service first
+    try:
+        service = CitationGraphService()
+        _use_proxy = False
+        logger.info("Using local citation graph service")
+        return service
+    except (FileNotFoundError, ImportError) as e:
+        # Fall back to proxy
+        logger.warning(f"Local service unavailable ({e}), using NAS proxy")
+        from .proxy import CitationGraphProxyService
+        _use_proxy = True
+        return CitationGraphProxyService()

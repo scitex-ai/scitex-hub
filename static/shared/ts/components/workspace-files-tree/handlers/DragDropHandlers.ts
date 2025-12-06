@@ -5,11 +5,13 @@
  */
 
 import type { TreeConfig } from '../types.ts';
+import type { FileOperation } from './UndoRedoHandler.ts';
 
 export class DragDropHandlers {
   private showMessage: (message: string, type: 'success' | 'error' | 'info') => void;
   private getSelectedPaths: () => string[];
   private isItemSelected: (path: string) => boolean;
+  private recordOperation: ((op: FileOperation) => void) | null = null;
   // Store paths being dragged for multi-selection
   private draggedPaths: string[] = [];
 
@@ -24,6 +26,11 @@ export class DragDropHandlers {
     this.showMessage = showMessage || ((msg, type) => console.log(`[DragDrop] ${type}: ${msg}`));
     this.getSelectedPaths = getSelectedPaths || (() => []);
     this.isItemSelected = isItemSelected || (() => false);
+  }
+
+  /** Set callback to record operations for undo/redo */
+  setRecordOperation(callback: (op: FileOperation) => void): void {
+    this.recordOperation = callback;
   }
 
   attachDragDropListeners(container: HTMLElement): void {
@@ -312,6 +319,16 @@ export class DragDropHandlers {
         const data = await response.json();
         if (data.success) {
           successCount++;
+          // Record for undo
+          if (this.recordOperation) {
+            this.recordOperation({
+              type: 'move',
+              timestamp: Date.now(),
+              originalPath: sourcePath,
+              newPath: destPath,
+              isDirectory: sourcePath.endsWith('/') || !sourcePath.includes('.'),
+            });
+          }
         } else {
           console.error(`[DragDrop] Failed to move ${sourcePath}:`, data.error);
           errorCount++;
@@ -327,7 +344,7 @@ export class DragDropHandlers {
       if (errorCount > 0) {
         this.showMessage(`Moved ${successCount} item${successCount > 1 ? 's' : ''} (${errorCount} failed)`, 'info');
       } else {
-        this.showMessage(`Moved ${successCount} item${successCount > 1 ? 's' : ''} to ${targetFolderPath || 'root'}`, 'success');
+        this.showMessage(`Moved ${successCount} item${successCount > 1 ? 's' : ''} (Ctrl+Z to undo)`, 'success');
       }
     } else {
       this.showMessage('Failed to move items', 'error');

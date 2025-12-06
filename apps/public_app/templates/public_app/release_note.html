@@ -12,22 +12,22 @@
     <!-- Currently inline due to permission issues on js/ directory (owned by root) -->
 {% endblock %}
 {% block extra_css %}
-    <link rel="stylesheet"
-          href="{% static 'public_app/css/release-notes.css' %}" />
+    <link rel="stylesheet" href="{% static 'shared/css/components/page-header.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/release-notes.css' %}" />
 {% endblock %}
 {% block content %}
     <div class="release-notes-container">
-        <div class="release-header">
-            <h1>SciTeX Cloud Release Notes</h1>
+        <div class="page-header">
+            <h1><i class="fas fa-rocket"></i> SciTeX Cloud Release Notes</h1>
             <p>Building the future of scientific research collaboration</p>
         </div>
         <div class="stats-box">
             <div class="stat-item">
-                <span class="stat-number">1470+</span>
+                <span class="stat-number">1559</span>
                 <span class="stat-label">Total Commits</span>
             </div>
             <div class="stat-item">
-                <span class="stat-number">7</span>
+                <span class="stat-number">6</span>
                 <span class="stat-label">Months of Development</span>
             </div>
             <div class="stat-item">
@@ -48,8 +48,35 @@
         </div>
         <div class="release-month">
             <div class="month-header">
-                <h2>December 2025 — v0.4.5-alpha</h2>
+                <h2>December 2025 — v0.4.6-alpha</h2>
                 <span class="month-badge">Latest Release</span>
+            </div>
+            <ul class="feature-list">
+                <li class="feature-item">
+                    <h3>🔎 Scholar Search UI Enhancements</h3>
+                    <p>
+                        Complete redesign of Scholar search with multi-criteria sorting, search operators,
+                        and improved filter panel. New sort toggles for Year/Citations/Impact Factor with
+                        priority-based multi-criteria sorting (most recent click = highest priority).
+                        Search operators (t=, a=, j=, ys=, ye=, cl=, ch=, ifl=, ifh=) enable advanced
+                        query syntax. Enabled Semantic Scholar API integration. Filter panel spacing
+                        improvements for better visual hierarchy and breathing room.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>📊 Citation Graph Visualization</h3>
+                    <p>
+                        New citation network analysis with graph visualization for exploring paper
+                        relationships. Database management utilities for CrossRef metadata search
+                        and import error fixes for improved stability.
+                    </p>
+                </li>
+            </ul>
+        </div>
+        <div class="release-month">
+            <div class="month-header">
+                <h2>December 2025 — v0.4.5-alpha</h2>
+                <span class="month-badge">CrossRef Integration</span>
             </div>
             <ul class="feature-list">
                 <li class="feature-item">
@@ -639,6 +666,18 @@
         commits: 6,
         cumulative: 1001,
         milestone: "File Tree Zoom (v0.4.4-alpha)",
+      },
+      {
+        date: "2025-12-03",
+        commits: 35,
+        cumulative: 1036,
+        milestone: "CrossRef Integration (v0.4.5-alpha)",
+      },
+      {
+        date: "2025-12-06",
+        commits: 89,
+        cumulative: 1559,
+        milestone: "Scholar Search UI (v0.4.6-alpha)",
       },
     ];
 

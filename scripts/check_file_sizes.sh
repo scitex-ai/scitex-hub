@@ -118,8 +118,6 @@ count_by_severity() {
 
 # Main check
 check_files() {
-    date
-
     # Count large files by type
     ts_count=$(count_large_files "ts" $THRESHOLD_TS)
     py_count=$(count_large_files "py" $THRESHOLD_PY)

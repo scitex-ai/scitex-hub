@@ -177,6 +177,14 @@ export class SelectionHandler {
    * Handle click with modifier keys (supports both files and directories)
    */
   handleClick(path: string, e: MouseEvent): void {
+    // Special case: empty path means root (clicking on empty space)
+    if (path === '') {
+      this.stateManager.clearSelection();
+      this.stateManager.setLastClickedPath('');
+      this.updateAllSelectionClasses();
+      return;
+    }
+
     const item = TreeUtils.findItem(path, this.getTreeDataFn());
     if (!item) return;
 

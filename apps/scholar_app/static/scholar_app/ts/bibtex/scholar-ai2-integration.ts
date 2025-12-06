@@ -8,7 +8,7 @@ import {
   closeAI2PromptModal,
   copyAI2PromptToClipboard,
   generateAI2Prompt,
-} from "/static/writer_app/ts/modules/ai2-prompt";
+} from "../../../../../writer_app/static/writer_app/ts/modules/ai2-prompt";
 
 declare global {
   interface Window {

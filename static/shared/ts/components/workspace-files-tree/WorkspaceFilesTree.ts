@@ -61,7 +61,7 @@ export class WorkspaceFilesTree {
     this.fileActions = new FileActions(
       this.config,
       this.stateManager,
-      this.treeData,
+      () => this.treeData,
       () => this.getCsrfToken(),
       () => this.rerender(),
       (type, detail) => this.emitEvent(type, detail),
@@ -98,6 +98,14 @@ export class WorkspaceFilesTree {
       this.stateManager, () => this.container, () => this.rerender(),
       () => this.treeData, (path) => this.selectionHandler.updateClasses(path)
     );
+    // Initialize undo/redo handler first (so other handlers can reference it)
+    this.undoRedoHandler = new UndoRedoHandler(
+      this.config,
+      () => this.getCsrfToken(),
+      () => this.refresh(),
+      (message, type) => this.showMessage(message, type)
+    );
+
     this.dragDropHandlers = new DragDropHandlers(
       this.config,
       () => this.getCsrfToken(),
@@ -106,6 +114,8 @@ export class WorkspaceFilesTree {
       () => this.selectionHandler.getSelectedPaths(),
       (path) => this.stateManager.isSelected(path)
     );
+    // Connect drag-drop to undo/redo
+    this.dragDropHandlers.setRecordOperation((op) => this.undoRedoHandler.recordOperation(op));
 
     // Initialize clipboard handler
     this.clipboardHandler = new ClipboardHandler(
@@ -116,14 +126,8 @@ export class WorkspaceFilesTree {
       () => this.selectionHandler.getSelectedPaths(),
       (path) => this.isItemDirectory(path)
     );
-
-    // Initialize undo/redo handler (before context menu so it can reference it)
-    this.undoRedoHandler = new UndoRedoHandler(
-      this.config,
-      () => this.getCsrfToken(),
-      () => this.refresh(),
-      (message, type) => this.showMessage(message, type)
-    );
+    // Connect clipboard to undo/redo
+    this.clipboardHandler.setRecordOperation((op) => this.undoRedoHandler.recordOperation(op));
 
     // Initialize context menu handler
     this.contextMenuHandler = new ContextMenuHandler(
@@ -145,6 +149,8 @@ export class WorkspaceFilesTree {
 
   /** Check if an item is a directory */
   private isItemDirectory(path: string): boolean {
+    // Empty path is root directory
+    if (path === '') return true;
     const item = TreeUtils.findItem(path, this.treeData);
     return item?.type === 'directory';
   }
@@ -395,11 +401,28 @@ export class WorkspaceFilesTree {
         return;
       }
 
+      // Skip if focus is in Monaco editor or Terminal (xterm)
+      const activeElement = document.activeElement as HTMLElement;
+      const inMonacoOrTerminal = activeElement?.closest('.monaco-editor, .xterm, .terminal-container, #editor-container');
+      if (inMonacoOrTerminal) {
+        // Only log for relevant keys
+        if (e.key === 'v' || e.key === 'x' || e.key === 'c') {
+          console.log('[WorkspaceFilesTree] Skipping key', e.key, '- focus in Monaco/Terminal:', inMonacoOrTerminal?.className);
+        }
+        return;
+      }
+
       // Check if the event target is inside our container or if container has focus
       const isOurTree = this.container?.contains(e.target as Node) ||
                         document.activeElement === this.container ||
                         this.container?.contains(document.activeElement);
-      if (!isOurTree) return;
+      if (!isOurTree) {
+        // Only log for relevant keys
+        if (e.key === 'v' || e.key === 'x' || e.key === 'c') {
+          console.log('[WorkspaceFilesTree] Skipping key', e.key, '- not in our tree. activeElement:', activeElement?.className);
+        }
+        return;
+      }
 
       const ctrlOrMeta = e.ctrlKey || e.metaKey;
       const selectedPaths = this.selectionHandler.getSelectedPaths();
@@ -428,6 +451,21 @@ export class WorkspaceFilesTree {
         e.stopPropagation();
         console.log('[WorkspaceFilesTree] Ctrl+Y/Ctrl+Shift+Z pressed, redoing');
         this.undoRedoHandler.redo();
+        return;
+      }
+
+      // Escape: Clear selection and cancel cut operation (works without selection)
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        console.log('[WorkspaceFilesTree] Escape pressed, hasClipboard:', this.clipboardHandler.hasClipboard());
+        this.selectionHandler.clearSelection();
+        this.contextMenuHandler.hide();
+        // Cancel cut operation if active
+        if (this.clipboardHandler.hasClipboard()) {
+          console.log('[WorkspaceFilesTree] Clearing clipboard');
+          this.clipboardHandler.clearClipboard();
+          this.showMessage('Cut cancelled', 'info');
+        }
         return;
       }
 
@@ -510,11 +548,6 @@ export class WorkspaceFilesTree {
       else if (ctrlOrMeta && e.key === 'a') {
         e.preventDefault();
         this.selectionHandler.selectAll();
-      }
-      // Escape: Clear selection
-      else if (e.key === 'Escape') {
-        this.selectionHandler.clearSelection();
-        this.contextMenuHandler.hide();
       }
     });
   }

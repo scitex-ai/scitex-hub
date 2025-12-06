@@ -3,15 +3,18 @@
 {% block title %}SciTeX Exploration{% endblock %}
 
 {% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/components/page-header.css' %}">
     <link rel="stylesheet" href="{% static 'social_app/css/explore-inline.css' %}">
 {% endblock %}
 
 {% block content %}
-    <div class="container explore-container">
-        <div class="explore-header">
-            <h1>Explore SciTeX</h1>
+    <div class="container pt-4">
+        <div class="page-header">
+            <h1><i class="fas fa-compass"></i> Explore SciTeX</h1>
             <p>Discover trending repositories and active researchers</p>
         </div>
+    </div>
+    <div class="container explore-container">
         <!-- Tabs -->
         <nav class="explore-tabs">
             <a href="?tab=repositories"

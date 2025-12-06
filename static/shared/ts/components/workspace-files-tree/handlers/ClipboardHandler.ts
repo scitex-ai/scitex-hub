@@ -5,6 +5,7 @@
  */
 
 import type { TreeConfig } from '../types.ts';
+import type { FileOperation } from './UndoRedoHandler.ts';
 
 export type ClipboardOperation = 'cut' | 'copy';
 
@@ -21,6 +22,7 @@ export class ClipboardHandler {
   private showMessage: (message: string, type: 'success' | 'error' | 'info') => void;
   private getSelectedPaths: () => string[];
   private isPathDirectory: (path: string) => boolean;
+  private recordOperation: ((op: FileOperation) => void) | null = null;
 
   // Clipboard state (persisted in memory for now)
   private clipboard: ClipboardState | null = null;
@@ -39,6 +41,11 @@ export class ClipboardHandler {
     this.showMessage = showMessage;
     this.getSelectedPaths = getSelectedPaths;
     this.isPathDirectory = isPathDirectory;
+  }
+
+  /** Set callback to record operations for undo/redo */
+  setRecordOperation(callback: (op: FileOperation) => void): void {
+    this.recordOperation = callback;
   }
 
   /** Get the base API URL for file operations */
@@ -154,17 +161,21 @@ export class ClipboardHandler {
 
   /** Paste clipboard contents to target directory */
   async paste(targetPath: string): Promise<boolean> {
+    console.log('[ClipboardHandler] paste() called with targetPath:', JSON.stringify(targetPath));
+
     if (!this.clipboard) {
       this.showMessage('Nothing to paste', 'info');
       return false;
     }
 
     const { operation, paths } = this.clipboard;
+    console.log('[ClipboardHandler] operation:', operation, 'paths:', paths);
 
     try {
       // Determine if target is a directory
       const isDirectory = await this.isDirectory(targetPath);
       const destDir = isDirectory ? targetPath : this.getParentPath(targetPath);
+      console.log('[ClipboardHandler] isDirectory:', isDirectory, 'destDir:', JSON.stringify(destDir));
 
       let successCount = 0;
       let errors: string[] = [];
@@ -172,6 +183,7 @@ export class ClipboardHandler {
       for (const sourcePath of paths) {
         const fileName = this.getFileName(sourcePath);
         let destPath = destDir ? `${destDir}/${fileName}` : fileName;
+        console.log('[ClipboardHandler] sourcePath:', sourcePath, 'destPath:', destPath);
 
         // For copy: if source equals destination, start with suffix
         // For cut/move: can't move to same location
@@ -193,10 +205,32 @@ export class ClipboardHandler {
         }
 
         try {
+          let finalDestPath: string;
+          const isDir = this.isPathDirectory(sourcePath);
           if (operation === 'copy') {
-            await this.performCopy(sourcePath, destPath);
+            finalDestPath = await this.performCopy(sourcePath, destPath);
+            // Record for undo
+            if (this.recordOperation) {
+              this.recordOperation({
+                type: 'copy',
+                timestamp: Date.now(),
+                originalPath: sourcePath,
+                newPath: finalDestPath,
+                isDirectory: isDir,
+              });
+            }
           } else {
-            await this.performMove(sourcePath, destPath);
+            finalDestPath = await this.performMove(sourcePath, destPath);
+            // Record for undo (move is like rename)
+            if (this.recordOperation) {
+              this.recordOperation({
+                type: 'move',
+                timestamp: Date.now(),
+                originalPath: sourcePath,
+                newPath: finalDestPath,
+                isDirectory: isDir,
+              });
+            }
           }
           successCount++;
         } catch (error: any) {
@@ -217,7 +251,7 @@ export class ClipboardHandler {
       if (successCount > 0) {
         const verb = operation === 'cut' ? 'Moved' : 'Copied';
         this.showMessage(
-          `${verb} ${successCount} item${successCount > 1 ? 's' : ''}`,
+          `${verb} ${successCount} item${successCount > 1 ? 's' : ''} (Ctrl+Z to undo)`,
           'success'
         );
       }
@@ -255,8 +289,8 @@ export class ClipboardHandler {
     this.updateCutCopyClasses();
   }
 
-  /** Perform copy operation with automatic suffix on conflict */
-  private async performCopy(sourcePath: string, destPath: string): Promise<void> {
+  /** Perform copy operation with automatic suffix on conflict. Returns actual dest path. */
+  private async performCopy(sourcePath: string, destPath: string): Promise<string> {
     let finalDestPath = destPath;
     let attempt = 0;
     const maxAttempts = 100;
@@ -273,7 +307,7 @@ export class ClipboardHandler {
 
       const data = await response.json();
       if (data.success) {
-        return;
+        return finalDestPath;
       }
 
       // If destination exists, try with suffix
@@ -289,8 +323,8 @@ export class ClipboardHandler {
     throw new Error('Too many files with similar names');
   }
 
-  /** Perform move operation with automatic suffix on conflict */
-  private async performMove(sourcePath: string, destPath: string): Promise<void> {
+  /** Perform move operation with automatic suffix on conflict. Returns actual dest path. */
+  private async performMove(sourcePath: string, destPath: string): Promise<string> {
     let finalDestPath = destPath;
     let attempt = 0;
     const maxAttempts = 100;
@@ -307,7 +341,7 @@ export class ClipboardHandler {
 
       const data = await response.json();
       if (data.success) {
-        return;
+        return finalDestPath;
       }
 
       // If destination exists, try with suffix
@@ -345,6 +379,8 @@ export class ClipboardHandler {
 
   /** Check if path is a directory using tree data */
   private async isDirectory(path: string): Promise<boolean> {
+    // Empty path is root directory
+    if (path === '') return true;
     // Use the provided function to check tree data
     return this.isPathDirectory(path);
   }
@@ -364,7 +400,9 @@ export class ClipboardHandler {
   /** Update visual classes for cut/copy items */
   private updateCutCopyClasses(): void {
     // Remove all existing cut/copy classes
-    document.querySelectorAll('.wft-item.wft-cut, .wft-item.wft-copied').forEach(el => {
+    const cutItems = document.querySelectorAll('.wft-item.wft-cut, .wft-item.wft-copied');
+    console.log('[ClipboardHandler] Removing cut/copy classes from', cutItems.length, 'items');
+    cutItems.forEach(el => {
       el.classList.remove('wft-cut', 'wft-copied');
     });
 
@@ -376,6 +414,9 @@ export class ClipboardHandler {
           el.classList.add(className);
         }
       }
+      console.log('[ClipboardHandler] Added', className, 'class to', this.clipboard.paths.length, 'items');
+    } else {
+      console.log('[ClipboardHandler] Clipboard cleared, no classes to add');
     }
   }
 

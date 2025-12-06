@@ -6,7 +6,7 @@
  * Original: scholar-index-main_backup.ts
  */
 
-import './utilities.js';
+import './scholar-index/utilities.ts';
 import { initializeFilters } from './scholar-index/filters.ts';
 import {
   initializeSourceToggles,

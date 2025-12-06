@@ -12,40 +12,8 @@
           rel="stylesheet" />
 {% endblock %}
 {% block search_content %}
-    <div class="container scholar-search-container">
-        <div class="row">
-            <!-- Main Content -->
-            <div class="col-12">
-                <!-- Page Header -->
-                <div class="page-header mb-4">
-                    <div class="scholar-search-header-flex">
-                        <div>
-                            <h1 class="h3 mb-3">Literature Search</h1>
-                            <p class="text-muted">
-                                Search across multiple academic databases to find relevant
-                                research papers
-                            </p>
-                        </div>
-                        <a href="{% url 'scholar_app:scholar_bibtex' %}"
-                           class="btn btn-outline-primary scholar-bibtex-btn">
-                            <svg width="14"
-                                 height="14"
-                                 viewBox="0 0 16 16"
-                                 fill="currentColor">
-                                <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.71l-5.223 2.206A.5.5 0 0 1 2 15.5V2zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1H4z" />
-                            </svg>
-                            BibTeX Enrichment
-                        </a>
-                    </div>
-                </div>
-                <!-- Literature Search Content -->
-                <div class="card">
-                    <div class="card-body">
-                        {% include "scholar_app/search_partials/search.html" with show_results=True %}
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="scholar-search-container">
+        {% include "scholar_app/search_partials/search.html" with show_results=True %}
     </div>
     <!-- Configuration for JavaScript -->
     <div id="scholar-config-data"
@@ -61,7 +29,25 @@
          {% endif %}>
     </div>
     {% vite_script 'scholar_app/scholar-config' %}
+    <script>
+    // Initialize SCHOLAR_SEARCH_RESULTS from data attribute
+    (function() {
+        const configEl = document.getElementById('scholar-config-data');
+        if (configEl && configEl.dataset.searchResults) {
+            try {
+                window.SCHOLAR_SEARCH_RESULTS = JSON.parse(configEl.dataset.searchResults);
+                console.log('[Scholar Config] Loaded', window.SCHOLAR_SEARCH_RESULTS.length, 'search results');
+            } catch (e) {
+                console.warn('[Scholar Config] Failed to parse search results:', e);
+            }
+        }
+    })();
+    </script>
 {% endblock %}
+{% block details_content %}
+    {% include "scholar_app/search_partials/search_controls.html" %}
+{% endblock %}
+
 {% block extra_js %}
     {{ block.super }}
     <!-- Common Scripts -->

@@ -122,7 +122,20 @@
         <!-- Main content area -->
         <main class="scholar-main">
             <div class="pane-header">
-                <h5><i class="fas fa-file-code"></i> BibTeX Enrichment</h5>
+                <nav class="scholar-tabs">
+                    <a href="{% url 'scholar_app:index' %}"
+                       class="scholar-tab {% if active_tab == 'bibtex' or not active_tab %}active{% endif %}">
+                        <i class="fas fa-file-code"></i> BibTeX Enrichment
+                    </a>
+                    <a href="{% url 'scholar_app:scholar_search' %}"
+                       class="scholar-tab {% if active_tab == 'search' %}active{% endif %}">
+                        <i class="fas fa-search"></i> Search
+                    </a>
+                    <a href="{% url 'scholar_app:scholar_graph' %}"
+                       class="scholar-tab {% if active_tab == 'graph' %}active{% endif %}">
+                        <i class="fas fa-project-diagram"></i> Graph
+                    </a>
+                </nav>
                 <div class="pane-header-actions">
                     {% block pane_header_actions %}{% endblock %}
                 </div>
@@ -133,18 +146,18 @@
         </main>
         <!-- Main resizer -->
         <div class="panel-resizer" id="main-resizer"></div>
-        <!-- Right properties panel -->
+        <!-- Right details panel -->
         <aside class="scholar-properties" id="scholar-properties">
             <div class="properties-header">
-                <h5><i class="fas fa-tasks"></i> Status</h5>
-                <button class="properties-toggle" id="properties-toggle" title="Toggle properties">
+                <h5><i class="fas fa-sliders-h"></i> Details</h5>
+                <button class="properties-toggle" id="properties-toggle" title="Toggle details">
                     <i class="fas fa-chevron-right"></i>
                 </button>
             </div>
-            <div class="properties-content" id="scholar-status-panel">
-                {% block status_content %}
-                <!-- Default status content - can be overridden -->
-                <p class="text-muted">Status information</p>
+            <div class="properties-content" id="scholar-details-panel">
+                {% block details_content %}
+                <!-- Default details content - can be overridden -->
+                <p class="text-muted">Details information</p>
                 {% endblock %}
             </div>
         </aside>

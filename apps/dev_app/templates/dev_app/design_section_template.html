@@ -10,6 +10,7 @@
 {% block extra_css %}
     {% load static %}
     <link rel="stylesheet" href="{% static 'shared/css/common.css' %}" />
+    <link rel="stylesheet" href="{% static 'shared/css/components/page-header.css' %}" />
     <link rel="stylesheet"
           href="{% static 'shared/css/components/code-blocks.css' %}" />
     <link rel="stylesheet"
@@ -102,8 +103,10 @@
           disabled />
 {% endblock %}
 {% block content %}
-    {% include 'dev_app/design_partial/hero.html' %}
-    <div class="container py-5">
+    <div class="container pt-4">
+        {% include 'dev_app/design_partial/hero.html' %}
+    </div>
+    <div class="container py-4">
         <div style="display: flex; gap: 2rem">
             {% include 'dev_app/design_partial/sidebar.html' %}
             <main style="flex: 1; min-width: 0">

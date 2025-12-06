@@ -158,6 +158,8 @@ export default defineConfig({
         // Scholar app - additional
         'scholar_app/scholar-workspace-init': resolve(__dirname, 'apps/scholar_app/static/scholar_app/ts/scholar-workspace-init.ts'),
         'scholar_app/bibtex/status-tiles': resolve(__dirname, 'apps/scholar_app/static/scholar_app/ts/bibtex/status-tiles.ts'),
+        'scholar_app/graph/citation-graph': resolve(__dirname, 'apps/scholar_app/static/scholar_app/ts/graph/citation-graph.ts'),
+        'scholar_app/search/search-controls': resolve(__dirname, 'apps/scholar_app/static/scholar_app/ts/search/search-controls.ts'),
 
         // Project app - additional
         'project_app/projects/settings': resolve(__dirname, 'apps/project_app/static/project_app/ts/projects/settings.ts'),

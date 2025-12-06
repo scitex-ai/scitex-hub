@@ -10,7 +10,7 @@ export class FileActions {
   constructor(
     private config: TreeConfig,
     private stateManager: TreeStateManager,
-    private treeData: TreeItem[],
+    private getTreeData: () => TreeItem[],
     private getCsrfToken: () => string,
     private rerender: () => void,
     private emitEvent: (type: string, detail: any) => void,
@@ -43,7 +43,7 @@ export class FileActions {
       }
       return null;
     };
-    return search(this.treeData);
+    return search(this.getTreeData());
   }
 
   async startRename(path: string, itemEl: HTMLElement): Promise<{ newPath: string } | null> {
@@ -53,7 +53,7 @@ export class FileActions {
       return null;
     }
 
-    // Try multiple selector patterns for the name element
+    // Find the name element within the item
     const nameEl = itemEl.querySelector('.wft-name, .wft-file-name, .wft-folder-name') as HTMLElement;
     if (!nameEl) {
       console.error('[FileActions] startRename: name element not found in:', itemEl);
@@ -61,25 +61,40 @@ export class FileActions {
     }
 
     const originalName = item.name;
+    const isDirectory = item.type === 'directory';
+
+    // Create input to replace the name text only (keep icon as is)
     const input = document.createElement('input');
     input.type = 'text';
     input.value = originalName;
-    input.className = 'wft-rename-input';
+    input.className = 'wft-inline-input';
 
+    // Replace name element with input
     nameEl.replaceWith(input);
+
     input.focus();
-    input.select();
+    // Select filename without extension for files
+    if (!isDirectory && originalName.includes('.')) {
+      const extIndex = originalName.lastIndexOf('.');
+      input.setSelectionRange(0, extIndex);
+    } else {
+      input.select();
+    }
 
     // Return a promise that resolves when rename completes
     return new Promise((resolve) => {
       let resolved = false;
+
+      const cleanup = () => {
+        input.replaceWith(nameEl);
+      };
 
       const finishRename = async (save: boolean) => {
         if (resolved) return;
         resolved = true;
 
         const newName = input.value.trim();
-        input.replaceWith(nameEl);
+        cleanup();
 
         if (save && newName && newName !== originalName) {
           const newPath = await this.performRename(path, newName);
@@ -89,7 +104,10 @@ export class FileActions {
         }
       };
 
-      input.addEventListener('blur', () => finishRename(true));
+      input.addEventListener('blur', () => {
+        // Small delay to allow click events to fire first
+        setTimeout(() => finishRename(true), 100);
+      });
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();

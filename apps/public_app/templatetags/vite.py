@@ -194,6 +194,8 @@ def _entry_to_ts_path(entry_name: str) -> str:
         'scholar_app/search/seekbar-integration': 'apps/scholar_app/static/scholar_app/ts/search/seekbar-integration.ts',
         'scholar_app/search/search-ui': 'apps/scholar_app/static/scholar_app/ts/search/search-ui.ts',
         'scholar_app/init/swarm-plots-init': 'apps/scholar_app/static/scholar_app/ts/init/swarm-plots-init.ts',
+        'scholar_app/graph/citation-graph': 'apps/scholar_app/static/scholar_app/ts/graph/citation-graph.ts',
+        'scholar_app/search/search-controls': 'apps/scholar_app/static/scholar_app/ts/search/search-controls.ts',
         # Project app - additional
         'project_app/projects/settings': 'apps/project_app/static/project_app/ts/projects/settings.ts',
         # Shared utilities

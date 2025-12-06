@@ -192,4 +192,39 @@ def check_disk(status_data):
         }
 
 
+def check_citation_graph(status_data):
+    """
+    Check Citation Graph service availability.
+
+    Reports mode (local/proxy) and health status.
+    """
+    try:
+        from apps.scholar_app.services.citation_graph import get_citation_graph_service
+        service = get_citation_graph_service()
+        health = service.health_check()
+
+        # Determine mode and health
+        mode = health.get('mode', 'local')
+        is_healthy = health.get('status') == 'healthy'
+        proxy_target = health.get('proxy_target', None)
+
+        status_data["citation_graph"] = {
+            "is_running": is_healthy,
+            "status": health.get('status', 'unknown'),
+            "health_class": "healthy" if is_healthy else "unhealthy",
+            "mode": mode,
+            "proxy_target": proxy_target,
+            "database": health.get('database', 'unknown'),
+        }
+    except Exception as e:
+        logger.warning(f"Could not check citation graph service: {e}")
+        status_data["citation_graph"] = {
+            "is_running": False,
+            "status": "unavailable",
+            "health_class": "unhealthy",
+            "mode": "unknown",
+            "error": str(e),
+        }
+
+
 # EOF

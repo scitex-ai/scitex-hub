@@ -1,11 +1,22 @@
 <!-- ---
-!-- Timestamp: 2025-12-04
+!-- Timestamp: 2025-12-06 20:55:32
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/scitex-cloud/CLAUDE.md
 !-- --- -->
 
 ## DO NOT EDIT
 Agents: Never edit this file. Only user may modify.
+
+
+## Automated Setup
+1. Never include, or minimize, manual steps in installation as much as possible.
+2. No workaround. SciTeX must be a reliable and reproducible infrastructure.
+3. Organize installation scripts
+4. Makefile should be a thin dispatcher and delegate actual logics to downstream scripts.
+5. Show appropriate warning and error with guidance and hints
+6. Switch environment using SECRET/.env.{dev,nas} and deployment scripts
+7. /server-status/ page should show actual functionality
+8. In short, administrator does not need to use their long-term memory capabilities. Problems, notifications, and so on must be shwon in `make status` - this must be a reliable device for loading necessary information to administrator's short-term memory.
 
 ## Skills Available
 Detailed guidelines via skills (use `Skill` tool):
@@ -51,7 +62,5 @@ Detailed guidelines via skills (use `Skill` tool):
 
 ## Reference Docs
 - `./docs/PHILOSOPHY.md` - Full philosophy
-- `./docs/MONETIZATION_STRATEGY_IMPLEMENTATION.md` - Business strategy
-- `./externals/overleaf/` - Learn from Overleaf source
 
 <!-- EOF -->

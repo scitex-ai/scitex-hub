@@ -154,6 +154,11 @@ urlpatterns = [
         views.DesignIconsView.as_view(),
         name="design_icons",
     ),
+    path(
+        "design/all/",
+        views.DesignAllView.as_view(),
+        name="design_all",
+    ),
 ]
 
 # EOF

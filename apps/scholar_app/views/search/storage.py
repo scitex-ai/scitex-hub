@@ -32,6 +32,7 @@ from ...models import (
 )
 from apps.project_app.services import get_current_project
 from ...models import AuthorPaper
+from .citations import validate_citation_count
 
 logger = logging.getLogger(__name__)
 
@@ -192,16 +193,21 @@ def store_search_result(result):
         return paper
 
     except Exception as e:
-        print(f"Error storing search result: {e}")
+        logger.error(f"Error storing search result: {e}")
         # Return a minimal paper object if storage fails
-        return SearchIndex.objects.create(
-            title=result.get("title", "Unknown Title"),
-            abstract=result.get("abstract", ""),
-            doi=None,  # Ensure unique constraint compliance
-            pmid=None,  # Ensure unique constraint compliance
-            arxiv_id=None,  # Ensure unique constraint compliance
-            relevance_score=1.0,
-        )
+        try:
+            return SearchIndex.objects.create(
+                title=result.get("title", "Unknown Title"),
+                abstract=result.get("abstract", ""),
+                doi=None,  # Ensure unique constraint compliance
+                pmid=None,  # Ensure unique constraint compliance
+                arxiv_id=None,  # Ensure unique constraint compliance
+                relevance_score=1.0,
+            )
+        except Exception as inner_e:
+            logger.error(f"Failed to create fallback paper: {inner_e}")
+            # Return None and let caller handle it
+            return None
 
 
 

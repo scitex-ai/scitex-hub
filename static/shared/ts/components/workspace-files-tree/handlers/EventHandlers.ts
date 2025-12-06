@@ -112,6 +112,7 @@ export class EventHandlers {
         e.preventDefault();
         const path = fileItem.getAttribute('data-path')!;
         this.onSelectFile(path, e);
+        container.focus();  // Focus container for keyboard shortcuts
         return;
       }
 
@@ -133,7 +134,20 @@ export class EventHandlers {
             // Normal click - toggle folder expand/collapse
             this.onToggleFolder(path);
           }
+          container.focus();  // Focus container for keyboard shortcuts
         }
+        return;
+      }
+
+      // Click on empty space (tree area but not on any item) - select root
+      const treeArea = target.closest('.wft-tree');
+      if (treeArea) {
+        // Clicked on tree but not on any item - select project root
+        e.preventDefault();
+        this.stateManager.clearSelection();
+        this.onSelectFile('', e);  // Empty path = root
+        // Focus the container for keyboard shortcuts
+        container.focus();
       }
     });
 

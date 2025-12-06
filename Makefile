@@ -17,6 +17,9 @@
 #   make ENV=nas switch            # Switch to NAS
 #   make ENV=nas rebuild           # Rebuild NAS (with confirmation)
 
+# Use bash for proper echo -e support (dash/sh don't support -e flag)
+SHELL := /bin/bash
+
 .PHONY: \
 	help \
 	status \
@@ -219,41 +222,7 @@ help:
 # Status & Information
 # ============================================
 status:
-	@echo -e "$(CYAN)📊 Environment Status:$(NC)"
-	@RUNNING=$$(docker ps --format '{{.Names}}' 2>/dev/null | \
-		grep -oE 'scitex-cloud-(dev|prod|nas)-' | \
-		sed 's/scitex-cloud-//' | \
-		sed 's/-//' | \
-		sort -u | \
-		tr '\n' ' ' | \
-		xargs); \
-	if [ -n "$$RUNNING" ]; then \
-		echo -e "  $(CYAN)Active environment:$(NC) $$RUNNING"; \
-	else \
-		echo -e "  $(YELLOW)⚠️  No active environment$(NC)"; \
-	fi
-	@echo -e ""
-	@echo -e "$(CYAN)🐳 Running Containers:$(NC)"
-	@docker ps --format "table {{.Names}}\t{{.Status}}" 2>/dev/null | \
-		grep -E "scitex-cloud-(dev|prod|nas)-" | xargs -I{} echo "  "{} || \
-		echo -e "  $(YELLOW)No scitex-cloud containers running$(NC)"
-	@echo -e ""
-	@echo -e "$(CYAN)🖥️  SLURM Status:$(NC)"
-	@if command -v sinfo >/dev/null 2>&1; then \
-		SLURM_STATUS=$$(sinfo --noheader 2>&1); \
-		if [ -n "$$SLURM_STATUS" ] && ! echo "$$SLURM_STATUS" | grep -q "error"; then \
-			echo -e "  $(GREEN)✅ SLURM Cluster: OPERATIONAL$(NC)"; \
-			sinfo --noheader 2>/dev/null | while read line; do echo "    $$line"; done; \
-		else \
-			echo -e "  $(RED)❌ SLURM Cluster: NOT RESPONDING$(NC)"; \
-			echo -e "  $(YELLOW)💡 To start: make slurm-start$(NC)"; \
-		fi; \
-	else \
-		echo -e "  $(YELLOW)⚠️  SLURM not installed$(NC)"; \
-	fi
-	@echo -e ""
-	@$(MAKE) --no-print-directory check-host
-	@./scripts/check_file_sizes.sh
+	@./deployment/host-setup/checks/check-status.sh
 
 # Live status with spinners and animations
 status-live:
@@ -919,7 +888,8 @@ check-file-sizes:
 check-host:
 	@echo -e "$(CYAN)🔍 Checking host requirements...$(NC)"
 	@echo -e ""
-	@deployment/host-setup/checks/check-users.sh || true
+	@# Pass ENV if set, otherwise script auto-detects from running containers
+	@deployment/host-setup/checks/check-users.sh $(ENV) || true
 	@echo -e ""
 	@deployment/host-setup/checks/check-slurm.sh || true
 	@echo -e ""

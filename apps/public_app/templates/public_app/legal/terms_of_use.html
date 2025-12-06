@@ -5,6 +5,7 @@
     - SciTeX
 {% endblock %}
 {% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/components/page-header.css' %}">
     <style>
   .policy-section {
     padding: var(--spacing-xxl) 0;
@@ -89,14 +90,12 @@
     </style>
 {% endblock %}
 {% block content %}
-    <section class="hero">
-        <div class="container">
-            <div class="hero-content">
-                <h1 class="hero-title">Terms of Use</h1>
-                <p class="hero-description">Please read these terms carefully before using our platform</p>
-            </div>
-        </div>
-    </section>
+    <div class="container pt-4">
+        <section class="page-header">
+            <h1><i class="fas fa-file-contract"></i> Terms of Use</h1>
+            <p>Please read these terms carefully before using our platform</p>
+        </section>
+    </div>
     <section class="policy-section">
         <div class="container policy-container">
             <div class="policy-content">
