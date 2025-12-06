@@ -116,6 +116,15 @@ export class EventHandlers {
         return;
       }
 
+      // Root item selection (project root)
+      const rootItem = target.closest('.wft-root[data-path=""]');
+      if (rootItem) {
+        e.preventDefault();
+        this.onSelectFile('', e);  // Empty path = root
+        container.focus();
+        return;
+      }
+
       // Folder selection (click anywhere on folder row)
       const folderItem = target.closest('.wft-folder[data-path]');
       if (folderItem && !folderItem.classList.contains('disabled')) {
@@ -126,12 +135,11 @@ export class EventHandlers {
           e.preventDefault();
           const path = folderItem.getAttribute('data-path')!;
 
-          // Check for multi-selection modifiers (Ctrl/Cmd or Shift)
-          if (e.ctrlKey || e.metaKey || e.shiftKey) {
-            // Multi-selection mode - handle via onSelectFile which routes to SelectionHandler
-            this.onSelectFile(path, e);
-          } else {
-            // Normal click - toggle folder expand/collapse
+          // Always select the folder first
+          this.onSelectFile(path, e);
+
+          // For normal clicks (no modifier), also toggle expand/collapse
+          if (!e.ctrlKey && !e.metaKey && !e.shiftKey) {
             this.onToggleFolder(path);
           }
           container.focus();  // Focus container for keyboard shortcuts

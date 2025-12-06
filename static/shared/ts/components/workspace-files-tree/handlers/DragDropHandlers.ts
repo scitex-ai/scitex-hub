@@ -14,6 +14,8 @@ export class DragDropHandlers {
   private recordOperation: ((op: FileOperation) => void) | null = null;
   // Store paths being dragged for multi-selection
   private draggedPaths: string[] = [];
+  // Track modifier keys during drag
+  private dragModifiers: { alt: boolean; ctrl: boolean } = { alt: false, ctrl: false };
 
   constructor(
     private config: TreeConfig,
@@ -48,22 +50,39 @@ export class DragDropHandlers {
       if (item && dragEvent.dataTransfer) {
         const path = item.getAttribute('data-path')!;
 
+        // Don't allow dragging root
+        if (path === '') {
+          console.log('[DragDrop] Cannot drag root item');
+          dragEvent.preventDefault();
+          return;
+        }
+
+        // Track modifier keys at drag start
+        this.dragModifiers = {
+          alt: dragEvent.altKey,
+          ctrl: dragEvent.ctrlKey || dragEvent.metaKey
+        };
+
         // Check if this item is part of multi-selection
         if (this.isItemSelected(path)) {
           // Drag all selected items
-          this.draggedPaths = this.getSelectedPaths();
+          this.draggedPaths = this.getSelectedPaths().filter(p => p !== '');  // Exclude root
         } else {
           // Drag only this item
           this.draggedPaths = [path];
         }
 
+        const operation = this.dragModifiers.alt ? 'symlink' : (this.dragModifiers.ctrl ? 'copy' : 'move');
+        console.log('[DragDrop] dragstart - paths:', this.draggedPaths, 'operation:', operation);
+
         // Store all paths in dataTransfer (semicolon-separated for multiple)
         dragEvent.dataTransfer.setData('text/plain', this.draggedPaths.join(';'));
         dragEvent.dataTransfer.setData('application/x-wft-internal', 'true');
         dragEvent.dataTransfer.setData('application/x-wft-count', String(this.draggedPaths.length));
-        dragEvent.dataTransfer.effectAllowed = 'move';
+        dragEvent.dataTransfer.setData('application/x-wft-operation', operation);
+        dragEvent.dataTransfer.effectAllowed = this.dragModifiers.ctrl ? 'copy' : 'move';
 
-        // Mark all dragged items visually
+        // Mark all dragged items visually (source items)
         this.draggedPaths.forEach(p => {
           const el = container.querySelector(`[data-path="${p}"]`);
           el?.classList.add('wft-dragging');
@@ -93,15 +112,33 @@ export class DragDropHandlers {
       }
     });
 
-    // Drag over folder (for internal moves)
+    // Drag over folder or root (for internal moves)
     treeEl.addEventListener('dragover', (e) => {
       const dragEvent = e as DragEvent;
       dragEvent.preventDefault();
       const target = dragEvent.target as HTMLElement;
-      const folderItem = target.closest('.wft-folder[data-path]');
-      if (folderItem && dragEvent.dataTransfer) {
-        dragEvent.dataTransfer.dropEffect = 'move';
-        folderItem.classList.add('wft-drop-target');
+      // Allow drop on folders AND root item
+      const dropTarget = target.closest('.wft-folder[data-path], .wft-root[data-path]');
+
+      // Clear previous drop targets first
+      treeEl.querySelectorAll('.wft-drop-target').forEach(el => {
+        if (el !== dropTarget) {
+          el.classList.remove('wft-drop-target');
+        }
+      });
+
+      if (dropTarget && dragEvent.dataTransfer) {
+        // Don't allow dropping on itself or its children
+        const targetPath = dropTarget.getAttribute('data-path') || '';
+        const isValidTarget = !this.draggedPaths.some(p => targetPath === p || targetPath.startsWith(p + '/'));
+
+        if (isValidTarget) {
+          dragEvent.dataTransfer.dropEffect = 'move';
+          dropTarget.classList.add('wft-drop-target');
+        } else {
+          dragEvent.dataTransfer.dropEffect = 'none';
+          dropTarget.classList.remove('wft-drop-target');
+        }
       }
     });
 
@@ -109,39 +146,63 @@ export class DragDropHandlers {
     treeEl.addEventListener('dragleave', (e) => {
       const dragEvent = e as DragEvent;
       const target = dragEvent.target as HTMLElement;
-      const folderItem = target.closest('.wft-folder[data-path]');
-      if (folderItem) {
-        folderItem.classList.remove('wft-drop-target');
+      const dropTarget = target.closest('.wft-folder[data-path], .wft-root[data-path]');
+      if (dropTarget) {
+        // Small delay to prevent flicker when moving between elements
+        setTimeout(() => {
+          if (!dropTarget.matches(':hover')) {
+            dropTarget.classList.remove('wft-drop-target');
+          }
+        }, 50);
       }
     });
 
-    // Drop on folder (internal move or external file upload to specific folder)
+    // Drop on folder or root (internal move or external file upload)
     treeEl.addEventListener('drop', async (e) => {
       const dragEvent = e as DragEvent;
       dragEvent.preventDefault();
       dragEvent.stopPropagation();
 
       const target = dragEvent.target as HTMLElement;
-      const folderItem = target.closest('.wft-folder[data-path]');
+      // Allow drop on folders AND root item
+      const dropTarget = target.closest('.wft-folder[data-path], .wft-root[data-path]');
+
+      console.log('[DragDrop] drop event - dropTarget:', dropTarget?.getAttribute('data-path'), 'target element:', target.className);
 
       if (dragEvent.dataTransfer) {
         // Check if this is an external file drop
         const files = dragEvent.dataTransfer.files;
         const isInternal = dragEvent.dataTransfer.types.includes('application/x-wft-internal');
 
+        console.log('[DragDrop] drop - isInternal:', isInternal, 'files:', files.length, 'types:', Array.from(dragEvent.dataTransfer.types));
+
         if (files.length > 0 && !isInternal) {
-          // External file upload to specific folder
-          const targetPath = folderItem?.getAttribute('data-path') || '';
+          // External file upload to specific folder (or root if no folder)
+          const targetPath = dropTarget?.getAttribute('data-path') || '';
+          console.log('[DragDrop] External file upload to:', targetPath);
           await this.uploadFiles(files, targetPath);
-        } else if (folderItem && isInternal) {
-          // Internal move - supports multiple files
+        } else if (dropTarget && isInternal) {
+          // Internal operation - supports multiple files
           const sourceData = dragEvent.dataTransfer.getData('text/plain');
-          const targetPath = folderItem.getAttribute('data-path')!;
+          const targetPath = dropTarget.getAttribute('data-path') || '';
           const sourcePaths = sourceData.split(';').filter(p => p && p !== targetPath);
+          const operation = dragEvent.dataTransfer.getData('application/x-wft-operation') || 'move';
+
+          console.log('[DragDrop] Internal', operation, '- sourcePaths:', sourcePaths, 'to targetPath:', targetPath);
 
           if (sourcePaths.length > 0) {
-            await this.moveFiles(sourcePaths, targetPath);
+            if (operation === 'symlink') {
+              await this.createSymlinks(sourcePaths, targetPath);
+            } else if (operation === 'copy') {
+              await this.copyFiles(sourcePaths, targetPath);
+            } else {
+              await this.moveFiles(sourcePaths, targetPath);
+            }
+          } else {
+            console.log('[DragDrop] No valid source paths for operation');
           }
+        } else {
+          console.log('[DragDrop] Drop ignored - no valid drop target or not internal');
         }
       }
 
@@ -199,12 +260,13 @@ export class DragDropHandlers {
         const isInternal = dragEvent.dataTransfer.types.includes('application/x-wft-internal');
 
         const target = dragEvent.target as HTMLElement;
-        const folderEl = target.closest('.wft-folder[data-path]');
-        const targetPath = folderEl?.getAttribute('data-path') || '';
+        // Check for folder or root as drop target
+        const dropTarget = target.closest('.wft-folder[data-path], .wft-root[data-path]');
+        const targetPath = dropTarget?.getAttribute('data-path') || '';
 
         // Handle file drop
         if (files.length > 0 && !isInternal) {
-          if (!folderEl) {
+          if (!dropTarget) {
             await this.uploadFiles(files, '');
           }
           return;
@@ -354,6 +416,105 @@ export class DragDropHandlers {
   /** Move single file/folder to a new location (inside target folder) - legacy single-file method */
   private async moveFile(sourcePath: string, targetFolderPath: string): Promise<void> {
     await this.moveFiles([sourcePath], targetFolderPath);
+  }
+
+  /** Copy multiple files/folders to a new location (Ctrl+drag) */
+  private async copyFiles(sourcePaths: string[], targetFolderPath: string): Promise<void> {
+    if (sourcePaths.length === 0) return;
+
+    const count = sourcePaths.length;
+    this.showMessage(`Copying ${count} item${count > 1 ? 's' : ''}...`, 'info');
+
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const sourcePath of sourcePaths) {
+      try {
+        const fileName = sourcePath.split('/').pop() || sourcePath;
+        const destPath = targetFolderPath ? `${targetFolderPath}/${fileName}` : fileName;
+
+        const response = await fetch(`/${this.config.username}/${this.config.slug}/api/files/copy/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': this.getCsrfToken(),
+          },
+          body: JSON.stringify({ source_path: sourcePath, dest_path: destPath }),
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          successCount++;
+          if (this.recordOperation) {
+            this.recordOperation({
+              type: 'copy',
+              timestamp: Date.now(),
+              originalPath: sourcePath,
+              newPath: destPath,
+              isDirectory: sourcePath.endsWith('/') || !sourcePath.includes('.'),
+            });
+          }
+        } else {
+          console.error(`[DragDrop] Failed to copy ${sourcePath}:`, data.error);
+          errorCount++;
+        }
+      } catch (error) {
+        console.error(`[DragDrop] Error copying ${sourcePath}:`, error);
+        errorCount++;
+      }
+    }
+
+    if (successCount > 0) {
+      await this.refresh();
+      this.showMessage(`Copied ${successCount} item${successCount > 1 ? 's' : ''} (Ctrl+Z to undo)`, 'success');
+    } else {
+      this.showMessage('Failed to copy items', 'error');
+    }
+  }
+
+  /** Create symlinks for multiple files/folders (Alt+drag) */
+  private async createSymlinks(sourcePaths: string[], targetFolderPath: string): Promise<void> {
+    if (sourcePaths.length === 0) return;
+
+    const count = sourcePaths.length;
+    this.showMessage(`Creating ${count} symlink${count > 1 ? 's' : ''}...`, 'info');
+
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const sourcePath of sourcePaths) {
+      try {
+        const fileName = sourcePath.split('/').pop() || sourcePath;
+        const linkPath = targetFolderPath ? `${targetFolderPath}/${fileName}` : fileName;
+
+        const response = await fetch(`/${this.config.username}/${this.config.slug}/api/files/symlink/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': this.getCsrfToken(),
+          },
+          body: JSON.stringify({ source: sourcePath, target: linkPath }),
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          successCount++;
+        } else {
+          console.error(`[DragDrop] Failed to create symlink for ${sourcePath}:`, data.error);
+          errorCount++;
+        }
+      } catch (error) {
+        console.error(`[DragDrop] Error creating symlink for ${sourcePath}:`, error);
+        errorCount++;
+      }
+    }
+
+    if (successCount > 0) {
+      await this.refresh();
+      this.showMessage(`Created ${successCount} symlink${successCount > 1 ? 's' : ''}`, 'success');
+    } else {
+      this.showMessage('Failed to create symlinks', 'error');
+    }
   }
 
   /** Check if URL looks like a downloadable resource */

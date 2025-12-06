@@ -177,10 +177,11 @@ export class SelectionHandler {
    * Handle click with modifier keys (supports both files and directories)
    */
   handleClick(path: string, e: MouseEvent): void {
-    // Special case: empty path means root (clicking on empty space)
+    // Special case: empty path means root (clicking on root item or empty space)
     if (path === '') {
       this.stateManager.clearSelection();
       this.stateManager.setLastClickedPath('');
+      this.stateManager.setSelected('');  // Set root as selected
       this.updateAllSelectionClasses();
       return;
     }
@@ -303,10 +304,18 @@ export class SelectionHandler {
     if (!container) return;
 
     const selectedPaths = this.stateManager.getSelectedPaths();
+    const selectedPath = this.stateManager.getSelected();
 
     container.querySelectorAll('.wft-item').forEach(el => {
       const path = el.getAttribute('data-path');
-      if (path && selectedPaths.has(path)) {
+      // Handle root item (empty path)
+      if (path === '') {
+        if (selectedPath === '') {
+          el.classList.add('selected');
+        } else {
+          el.classList.remove('selected');
+        }
+      } else if (path && selectedPaths.has(path)) {
         el.classList.add('selected');
       } else {
         el.classList.remove('selected');

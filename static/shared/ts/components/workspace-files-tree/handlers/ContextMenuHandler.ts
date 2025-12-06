@@ -287,7 +287,8 @@ export class ContextMenuHandler {
       if (!item.disabled) {
         menuItem.addEventListener('click', (e) => {
           e.stopPropagation();
-          if (this.currentPath) {
+          // Use !== null to allow empty string (root path)
+          if (this.currentPath !== null) {
             this.onAction(item.action, this.currentPath);
           }
           this.hide();

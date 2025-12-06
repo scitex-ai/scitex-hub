@@ -184,8 +184,10 @@ export class FileActions {
   }
 
   async createNewFile(folderPath: string): Promise<void> {
-    // Expand the folder first to show inline input
-    this.stateManager.expand(folderPath);
+    // Expand the folder first to show inline input (not needed for root)
+    if (folderPath) {
+      this.stateManager.expand(folderPath);
+    }
     this.rerender();
 
     // Wait for DOM update then insert inline input
@@ -195,6 +197,16 @@ export class FileActions {
   }
 
   private insertInlineInput(folderPath: string, type: 'file' | 'directory'): void {
+    // Handle root (empty path) - insert after root item in .wft-tree
+    if (folderPath === '') {
+      const treeEl = document.querySelector('.wft-tree');
+      const rootItem = treeEl?.querySelector('.wft-root');
+      if (treeEl && rootItem) {
+        this.createInlineInputElementForRoot(treeEl as HTMLElement, rootItem as HTMLElement, type);
+      }
+      return;
+    }
+
     // Find the folder's children container
     const folderEl = document.querySelector(`.wft-folder[data-path="${folderPath}"]`);
     if (!folderEl) return;
@@ -214,6 +226,65 @@ export class FileActions {
     childrenContainer.classList.add('expanded');
 
     this.createInlineInputElement(childrenContainer, folderPath, type);
+  }
+
+  /** Create inline input for root level (after root item) */
+  private createInlineInputElementForRoot(treeEl: HTMLElement, rootItem: HTMLElement, type: 'file' | 'directory'): void {
+    // Create inline input row
+    const inputRow = document.createElement('div');
+    inputRow.className = `wft-item wft-${type} wft-inline-create`;
+    inputRow.style.paddingLeft = '8px';
+
+    const icon = type === 'file'
+      ? '<i class="fas fa-file" style="color: var(--color-fg-muted);"></i>'
+      : '<i class="fas fa-folder" style="color: var(--workspace-icon-primary);"></i>';
+
+    inputRow.innerHTML = `
+      <span class="wft-spacer"></span>
+      <span class="wft-icon">${icon}</span>
+      <input type="text" class="wft-inline-input" placeholder="${type === 'file' ? 'filename.ext' : 'folder name'}" />
+    `;
+
+    // Insert after root item
+    rootItem.after(inputRow);
+
+    const input = inputRow.querySelector('.wft-inline-input') as HTMLInputElement;
+    if (!input) return;
+
+    input.focus();
+
+    let submitted = false;
+    const cleanup = () => {
+      inputRow.remove();
+    };
+
+    const submit = async () => {
+      if (submitted) return;
+      submitted = true;
+
+      const name = input.value.trim();
+      if (!name) {
+        cleanup();
+        return;
+      }
+
+      await this.performCreate('', name, type);  // Empty path = root
+      cleanup();
+    };
+
+    input.addEventListener('blur', () => {
+      setTimeout(() => submit(), 100);
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        input.blur();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        cleanup();
+      }
+    });
   }
 
   private createInlineInputElement(container: HTMLElement, folderPath: string, type: 'file' | 'directory'): void {
@@ -347,8 +418,10 @@ export class FileActions {
   }
 
   async createNewFolder(folderPath: string): Promise<void> {
-    // Expand the folder first to show inline input
-    this.stateManager.expand(folderPath);
+    // Expand the folder first to show inline input (not needed for root)
+    if (folderPath) {
+      this.stateManager.expand(folderPath);
+    }
     this.rerender();
 
     // Wait for DOM update then insert inline input

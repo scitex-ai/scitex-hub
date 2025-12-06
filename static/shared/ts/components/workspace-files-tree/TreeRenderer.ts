@@ -24,8 +24,12 @@ export class TreeRenderer {
     const filteredItems = this.filter.filterTree(items);
     let html = '';
 
-    // Render tree first
-    html += `<div class="wft-tree">${this.renderItems(filteredItems, 0)}</div>`;
+    // Render tree with root header
+    html += `<div class="wft-tree">`;
+    // Root item (project root) - clickable to select root for operations
+    html += this.renderRootItem();
+    html += this.renderItems(filteredItems, 0);
+    html += `</div>`;
 
     // Render git panel at bottom if git status is enabled
     if (this.config.showGitStatus !== false && gitSummary) {
@@ -33,6 +37,18 @@ export class TreeRenderer {
     }
 
     return html;
+  }
+
+  /** Render the root item (project root) */
+  private renderRootItem(): string {
+    const isRootSelected = this.stateManager.getSelected() === '';
+    const classes = ['wft-item', 'wft-root'];
+    if (isRootSelected) classes.push('selected');
+
+    return `<div class="${classes.join(' ')}" data-path="" data-action="select-root" style="padding-left: 8px;">
+      <span class="wft-icon"><i class="fas fa-folder-tree"></i></span>
+      <span class="wft-name wft-root-name">${this.escapeHtml(this.config.slug || 'Project')}</span>
+    </div>`;
   }
 
   /** Render git panel header with commit functionality */

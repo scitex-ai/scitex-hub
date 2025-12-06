@@ -355,15 +355,17 @@ export class WorkspaceFilesTree {
       const item = target.closest('.wft-item[data-path]');
 
       if (item) {
-        const path = item.getAttribute('data-path')!;
-        const isDir = item.classList.contains('wft-folder');
+        const path = item.getAttribute('data-path');
+        // Root item (empty path) or folder - treat as directory
+        const isDir = item.classList.contains('wft-folder') || item.classList.contains('wft-root') || path === '';
 
         // Get git status from data attributes
         const gitStatusCode = item.getAttribute('data-git-status');
         const gitStaged = item.getAttribute('data-git-staged') === 'true';
         const gitStatus = gitStatusCode ? { status: gitStatusCode, staged: gitStaged } : undefined;
 
-        this.contextMenuHandler.show(e.clientX, e.clientY, path, isDir, gitStatus);
+        // Use empty string for root path (path attribute is "")
+        this.contextMenuHandler.show(e.clientX, e.clientY, path || '', isDir, gitStatus);
       } else {
         // Right-click on empty space - show root context menu
         const treeArea = target.closest('.wft-tree, .workspace-files-tree');
@@ -395,9 +397,17 @@ export class WorkspaceFilesTree {
 
     // Use document-level listener to catch shortcuts
     document.addEventListener('keydown', (e) => {
+      // Log all keydown events for debugging
+      if (e.key === 'Delete' || e.key === 'Backspace' || e.key === 'Del') {
+        console.log('[WorkspaceFilesTree] Key pressed:', e.key, 'target:', (e.target as HTMLElement).tagName, 'activeElement:', document.activeElement?.tagName);
+      }
+
       // Skip if user is typing in an input/textarea
       const target = e.target as HTMLElement;
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        if (e.key === 'Delete' || e.key === 'Backspace') {
+          console.log('[WorkspaceFilesTree] Skipping Delete/Backspace - user typing in input');
+        }
         return;
       }
 
@@ -406,7 +416,7 @@ export class WorkspaceFilesTree {
       const inMonacoOrTerminal = activeElement?.closest('.monaco-editor, .xterm, .terminal-container, #editor-container');
       if (inMonacoOrTerminal) {
         // Only log for relevant keys
-        if (e.key === 'v' || e.key === 'x' || e.key === 'c') {
+        if (e.key === 'v' || e.key === 'x' || e.key === 'c' || e.key === 'Delete' || e.key === 'Backspace') {
           console.log('[WorkspaceFilesTree] Skipping key', e.key, '- focus in Monaco/Terminal:', inMonacoOrTerminal?.className);
         }
         return;
@@ -418,10 +428,15 @@ export class WorkspaceFilesTree {
                         this.container?.contains(document.activeElement);
       if (!isOurTree) {
         // Only log for relevant keys
-        if (e.key === 'v' || e.key === 'x' || e.key === 'c') {
-          console.log('[WorkspaceFilesTree] Skipping key', e.key, '- not in our tree. activeElement:', activeElement?.className);
+        if (e.key === 'v' || e.key === 'x' || e.key === 'c' || e.key === 'Delete' || e.key === 'Backspace') {
+          console.log('[WorkspaceFilesTree] Skipping key', e.key, '- not in our tree. activeElement:', activeElement?.tagName, activeElement?.className);
         }
         return;
+      }
+
+      // Only log non-modifier keys to avoid spam from key repeat
+      if (!['Control', 'Shift', 'Alt', 'Meta'].includes(e.key)) {
+        console.log('[WorkspaceFilesTree] Processing key:', e.key, 'in our tree');
       }
 
       const ctrlOrMeta = e.ctrlKey || e.metaKey;
@@ -469,8 +484,36 @@ export class WorkspaceFilesTree {
         return;
       }
 
+      // Ctrl+Shift+N: New Folder (works with or without selection)
+      if (ctrlOrMeta && e.shiftKey && (e.key === 'N' || e.key === 'n')) {
+        e.preventDefault();
+        e.stopPropagation();
+        // Create in selected folder, or root if no selection or file selected
+        const targetPath = selected && this.isItemDirectory(selected) ? selected : (selected ? this.getParentPath(selected) : '');
+        console.log('[WorkspaceFilesTree] Ctrl+Shift+N pressed, creating folder in:', targetPath || 'root');
+        this.fileActions.createNewFolder(targetPath);
+        return;
+      }
+
+      // Ctrl+N: New File (works with or without selection)
+      if (ctrlOrMeta && !e.shiftKey && (e.key === 'N' || e.key === 'n')) {
+        e.preventDefault();
+        e.stopPropagation();
+        // Create in selected folder, or root if no selection or file selected
+        const targetPath = selected && this.isItemDirectory(selected) ? selected : (selected ? this.getParentPath(selected) : '');
+        console.log('[WorkspaceFilesTree] Ctrl+N pressed, creating file in:', targetPath || 'root');
+        this.fileActions.createNewFile(targetPath);
+        return;
+      }
+
       // Following shortcuts require selection
-      if (selectedPaths.length === 0 && !selected) return;
+      if (selectedPaths.length === 0 && !selected) {
+        // Only log for relevant keys to avoid spam
+        if (['Delete', 'Backspace', 'F2', 'c', 'x', 'v'].includes(e.key)) {
+          console.log('[WorkspaceFilesTree] No selection - key', e.key, 'ignored. selectedPaths:', selectedPaths, 'selected:', selected);
+        }
+        return;
+      }
 
       // Ctrl+C: Copy
       if (ctrlOrMeta && e.key === 'c') {
@@ -500,54 +543,71 @@ export class WorkspaceFilesTree {
           this.clipboardHandler.paste('');
         }
       }
-      // Delete: Delete selected files
-      else if (e.key === 'Delete') {
+      // Delete or Backspace: Delete selected files (use same logic as context menu)
+      else if (e.key === 'Delete' || e.key === 'Backspace') {
         e.preventDefault();
-        if (selectedPaths.length > 0) {
-          // Filter out files that are already deleted (git status "D")
-          const existingPaths = selectedPaths.filter(path => {
-            const item = this.container?.querySelector(`[data-path="${path}"]`);
-            if (!item) return false;
-            const gitStatus = item.getAttribute('data-git-status');
-            // Skip files already marked as deleted
-            return gitStatus !== 'D';
-          });
+        e.stopPropagation();  // Stop propagation to prevent Vis app handler
+        // Use selectedPaths if available, otherwise fall back to single selected item
+        const pathsToDelete = selectedPaths.length > 0 ? selectedPaths : (selected && selected !== '' ? [selected] : []);
+        console.log('[WorkspaceFilesTree] Delete/Backspace pressed, pathsToDelete:', pathsToDelete);
 
-          if (existingPaths.length === 0) {
-            console.log('[WorkspaceFilesTree] No existing files to delete (all already deleted)');
-            return;
-          }
-
-          // Confirm if multiple files
-          if (existingPaths.length > 1) {
-            if (!confirm(`Delete ${existingPaths.length} items? (Ctrl+Z to undo)`)) {
-              return;
-            }
-          }
-          // Record and delete each existing file
-          for (const path of existingPaths) {
-            this.undoRedoHandler.recordOperation({
-              type: 'delete',
-              timestamp: Date.now(),
-              originalPath: path,
-              isDirectory: this.isItemDirectory(path),
-            });
-            this.fileActions.deleteFile(path);
-          }
+        if (pathsToDelete.length > 0) {
+          // Trigger the same delete action as context menu
+          this.handleContextMenuAction('delete', pathsToDelete[0]);
         }
       }
       // F2: Rename
       else if (e.key === 'F2') {
         e.preventDefault();
-        if (selected) {
-          const el = this.container?.querySelector(`[data-path="${selected}"]`) as HTMLElement;
-          if (el) this.fileActions.startRename(selected, el);
+        e.stopPropagation();
+        console.log('[WorkspaceFilesTree] F2 pressed, selected:', selected, 'selectedPaths:', selectedPaths);
+        // Use first selected path from multi-selection, or single selection
+        const pathToRename = selectedPaths.length > 0 ? selectedPaths[0] : selected;
+        if (pathToRename && pathToRename !== '') {
+          const el = this.container?.querySelector(`[data-path="${pathToRename}"]`) as HTMLElement;
+          console.log('[WorkspaceFilesTree] F2 element found:', !!el);
+          if (el) this.fileActions.startRename(pathToRename, el);
         }
       }
       // Ctrl+A: Select all
       else if (ctrlOrMeta && e.key === 'a') {
         e.preventDefault();
         this.selectionHandler.selectAll();
+      }
+      // F5: Refresh tree
+      else if (e.key === 'F5') {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('[WorkspaceFilesTree] F5 pressed, refreshing tree');
+        this.refresh();
+      }
+      // Alt+ArrowUp: Navigate to parent folder
+      else if (e.altKey && e.key === 'ArrowUp') {
+        e.preventDefault();
+        e.stopPropagation();
+        if (selected) {
+          const parentPath = this.getParentPath(selected);
+          console.log('[WorkspaceFilesTree] Alt+Up pressed, navigating to parent:', parentPath);
+          if (parentPath !== selected) {
+            this.selectionHandler.select(parentPath, false);
+          }
+        }
+      }
+      // Alt+ArrowRight: Navigate to first child (if folder) or next sibling
+      else if (e.altKey && e.key === 'ArrowRight') {
+        e.preventDefault();
+        e.stopPropagation();
+        if (selected && this.isItemDirectory(selected)) {
+          // Expand folder and select first child
+          if (!this.stateManager.isExpanded(selected)) {
+            this.fileActions.toggleFolder(selected);
+          }
+          const item = TreeUtils.findItem(selected, this.treeData);
+          if (item?.children && item.children.length > 0) {
+            console.log('[WorkspaceFilesTree] Alt+Right pressed, selecting first child');
+            this.selectionHandler.select(item.children[0].path, false);
+          }
+        }
       }
     });
   }
@@ -561,6 +621,7 @@ export class WorkspaceFilesTree {
 
   /** Handle file click with modifier key support for multi-selection */
   private handleFileClick(path: string, event?: MouseEvent): void {
+    console.log('[WorkspaceFilesTree] handleFileClick:', path);
     // Focus the container to enable keyboard shortcuts
     this.container?.focus();
 
@@ -572,6 +633,11 @@ export class WorkspaceFilesTree {
       // This ensures Ctrl+C/X work even after normal clicks
       this.selectionHandler.handleClick(path, event || new MouseEvent('click'));
     }
+
+    // Log selection state after click
+    const selectedPaths = this.selectionHandler.getSelectedPaths();
+    const selected = this.stateManager.getSelected();
+    console.log('[WorkspaceFilesTree] After click - selectedPaths:', selectedPaths, 'selected:', selected);
   }
 
   async loadTree(): Promise<void> {
