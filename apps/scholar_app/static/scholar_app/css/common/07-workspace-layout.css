@@ -46,6 +46,11 @@
   background: var(--workspace-bg-secondary, #151515);
 }
 
+.scholar-sidebar.collapsed .sidebar-header {
+  padding: 0 4px; /* Reduce padding when collapsed */
+  justify-content: center;
+}
+
 .scholar-sidebar .sidebar-header h5 {
   margin: 0;
   font-size: 14px;
