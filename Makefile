@@ -79,6 +79,7 @@ SHELL := /bin/bash
 	lint-web \
 	check-file-sizes \
 	check-host \
+	ensure-executable \
 	info
 
 .DEFAULT_GOAL := help
@@ -114,7 +115,7 @@ ifdef ENV
 else
   # ENV not specified - only allow non-operational commands
   ifneq ($(MAKECMDGOALS),)
-    ifneq ($(filter-out help status validate-docker stop-all force-stop-all format format-python format-web format-shell lint lint-web check-file-sizes check-host slurm-start slurm-stop slurm-restart slurm-status slurm-fix slurm-resume slurm-reset crossref-status crossref-check crossref-rebuild-check crossref-next-steps crossref-create-title-index crossref-create-author-index info,$(MAKECMDGOALS)),)
+    ifneq ($(filter-out help status validate-docker stop-all force-stop-all format format-python format-web format-shell lint lint-web check-file-sizes check-assets check-host ensure-executable slurm-start slurm-stop slurm-restart slurm-status slurm-fix slurm-resume slurm-reset crossref-status crossref-check crossref-rebuild-check crossref-next-steps crossref-create-title-index crossref-create-author-index info,$(MAKECMDGOALS)),)
       $(error ❌ ENV not specified! Use: make ENV=<dev|nas> <command>)
     endif
   endif
@@ -205,6 +206,7 @@ help:
 	@echo -e "  make ENV=<env> exec-db            # Shell into database container"
 	@echo -e "  make ENV=<env> exec <cmd>         # Execute command in web container"
 	@echo -e "  make ENV=<env> list-envs          # List environment variables"
+	@echo -e "  make ensure-executable            # Ensure all scripts have +x permission"
 	@echo -e ""
 	@echo -e "$(CYAN)✨ Code Quality:$(NC)"
 	@echo -e "  make lint                         # Check code without changes (SAFE - read-only)"
@@ -737,6 +739,9 @@ clean-js:
 	@./scripts/maintenance/clean_stale_js.sh
 	@echo -e "$(GREEN)✅ Done! Run 'make env=dev restart' to apply changes$(NC)"
 
+ensure-executable:
+	@./scripts/maintenance/ensure_executable.sh
+
 # ============================================
 # Code Quality (Format + Lint)
 # ============================================
@@ -881,6 +886,12 @@ lint-web:
 check-file-sizes:
 	@echo -e "$(CYAN)📏 Checking file sizes (>300 line threshold)...$(NC)"
 	@./scripts/check_file_sizes.sh --verbose
+
+# ============================================
+# Asset Tracking Checks
+# ============================================
+check-assets:
+	@./scripts/check_untracked_assets.sh
 
 # ============================================
 # Host Requirements Checks
