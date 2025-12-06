@@ -26,3 +26,9 @@
   object-fit: contain;
 }
 
+.header-logo-icon {
+  height: 36px;
+  width: 36px;
+  object-fit: contain;
+}
+

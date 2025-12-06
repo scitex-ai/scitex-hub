@@ -149,3 +149,29 @@
   animation: none;
 }
 
+/* Hero Logo Container */
+.hero-landing .hero-logo-container {
+  margin: var(--spacing-xl) 0;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.hero-landing .hero-logo {
+  max-width: 480px;
+  height: auto;
+  opacity: 0.95;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.hero-landing .hero-logo:hover {
+  opacity: 1;
+  transform: scale(1.02);
+}
+
+/* Dark theme - invert or adjust logo visibility */
+[data-theme="dark"] .hero-landing .hero-logo {
+  opacity: 0.95;
+  filter: drop-shadow(0 2px 12px rgba(0, 0, 0, 0.3));
+}
+
