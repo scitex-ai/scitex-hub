@@ -840,7 +840,10 @@
                 sidebarToggle.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('[Panel Toggle] Sidebar toggle clicked');
+
+                    const beforeWidth = sidebar.offsetWidth;
+                    const beforeBounds = sidebar.getBoundingClientRect();
+
                     const isCollapsed = sidebar.classList.toggle('collapsed');
 
                     // Update icon
@@ -852,9 +855,24 @@
                         sidebarIcon.classList.add('fa-chevron-left');
                     }
 
+                    // Get coordinates after toggle
+                    setTimeout(() => {
+                        const afterWidth = sidebar.offsetWidth;
+                        const afterBounds = sidebar.getBoundingClientRect();
+
+                        console.log('[Panel Toggle] Sidebar toggled:', {
+                            collapsed: isCollapsed,
+                            width: { before: beforeWidth, after: afterWidth },
+                            coordinates: {
+                                before: { left: beforeBounds.left, right: beforeBounds.right, width: beforeBounds.width },
+                                after: { left: afterBounds.left, right: afterBounds.right, width: afterBounds.width }
+                            },
+                            saved: { collapsed: isCollapsed }
+                        });
+                    }, 250); // Wait for CSS transition
+
                     // Save state
                     localStorage.setItem(STORAGE_KEY_SIDEBAR, isCollapsed.toString());
-                    console.log('[Panel Toggle] Sidebar collapsed:', isCollapsed);
                 });
             } else {
                 console.warn('[Panel Toggle] Sidebar toggle not initialized:', {
@@ -869,7 +887,10 @@
                 propertiesToggle.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('[Panel Toggle] Properties toggle clicked');
+
+                    const beforeWidth = properties.offsetWidth;
+                    const beforeBounds = properties.getBoundingClientRect();
+
                     const isCollapsed = properties.classList.toggle('collapsed');
 
                     // Update icon
@@ -881,9 +902,24 @@
                         propertiesIcon.classList.add('fa-chevron-right');
                     }
 
+                    // Get coordinates after toggle
+                    setTimeout(() => {
+                        const afterWidth = properties.offsetWidth;
+                        const afterBounds = properties.getBoundingClientRect();
+
+                        console.log('[Panel Toggle] Properties toggled:', {
+                            collapsed: isCollapsed,
+                            width: { before: beforeWidth, after: afterWidth },
+                            coordinates: {
+                                before: { left: beforeBounds.left, right: beforeBounds.right, width: beforeBounds.width },
+                                after: { left: afterBounds.left, right: afterBounds.right, width: afterBounds.width }
+                            },
+                            saved: { collapsed: isCollapsed }
+                        });
+                    }, 250); // Wait for CSS transition
+
                     // Save state
                     localStorage.setItem(STORAGE_KEY_PROPERTIES, isCollapsed.toString());
-                    console.log('[Panel Toggle] Properties collapsed:', isCollapsed);
                 });
             } else {
                 console.warn('[Panel Toggle] Properties toggle not initialized:', {
