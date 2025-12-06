@@ -22,7 +22,9 @@ services:
     volumes:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
-      # No scitex-code mount - installed from PyPI in Dockerfile
+
+      # scitex-code for citation_graph module (until published to PyPI)
+      - /home/ywatanabe/proj/scitex-code/src/scitex/scholar/citation_graph:/usr/local/lib/python3.11/site-packages/scitex/scholar/citation_graph:ro
 
       # User workspace data directory
       - ../../../data/users:/app/data/users
@@ -148,6 +150,8 @@ services:
       - /var/log/slurm:/var/log/slurm
       # Mount host passwd for SLURM UID synchronization
       - /etc/passwd:/host/etc/passwd:ro
+      # scitex-code for citation_graph module (until published to PyPI)
+      - /home/ywatanabe/proj/scitex-code/src/scitex/scholar/citation_graph:/usr/local/lib/python3.11/site-packages/scitex/scholar/citation_graph:ro
 
     env_file:
       - .env
