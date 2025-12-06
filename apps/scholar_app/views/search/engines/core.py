@@ -52,12 +52,12 @@ def search_papers_online(
     # Parse sources parameter (can be comma-separated list or single source)
     source_list = []
     if sources == "all":
-        source_list = ["arxiv", "pubmed"]
+        source_list = ["arxiv", "pubmed", "semantic"]
     else:
         # Handle comma-separated sources from frontend checkboxes
         source_list = [s.strip() for s in sources.split(",") if s.strip()]
         if not source_list:
-            source_list = ["arxiv", "pubmed"]  # Default fallback
+            source_list = ["arxiv", "pubmed", "semantic"]  # Default fallback
 
     logger.info(f"📚 EXTERNAL API SEARCH:")
     logger.info(f"   Sources to search: {source_list}")
@@ -125,17 +125,23 @@ def search_papers_online(
             logger.debug(
                 "   External search features not available (scitex.scholar not found)"
             )
-        for source in source_list:
-            if source == "arxiv":
-                logger.debug("   arXiv search using database only")
-            elif source == "pubmed":
-                logger.debug("   PubMed search using database only")
-            elif source == "google_scholar":
-                logger.warning("   ⚠️ Google Scholar search disabled (not implemented)")
-            elif source == "semantic":
-                logger.warning(
-                    "   ⚠️ Semantic Scholar search disabled (not implemented)"
-                )
+            # Fallback: Use direct API calls for sources that have implementations
+            from .semantic import search_semantic_scholar
+
+            for source in source_list:
+                if source == "arxiv":
+                    logger.debug("   arXiv search using database only")
+                elif source == "pubmed":
+                    logger.debug("   PubMed search using database only")
+                elif source == "semantic":
+                    try:
+                        semantic_results = search_semantic_scholar(query, max_results=20, filters=filters)
+                        results.extend(semantic_results)
+                        logger.info(f"   ✓ Semantic Scholar returned {len(semantic_results)} results")
+                    except Exception as e:
+                        logger.warning(f"   ⚠️ Semantic Scholar search failed: {e}")
+                elif source == "google_scholar":
+                    logger.warning("   ⚠️ Google Scholar search disabled (not implemented)")
 
     # Return fresh results without caching
     final_results = results[:max_results]

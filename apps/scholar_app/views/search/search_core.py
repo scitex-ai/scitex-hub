@@ -66,7 +66,8 @@ def simple_search_with_tab(
     if request.GET.get("source_semantic"):
         selected_sources.append("semantic")
     sources = ",".join(selected_sources) if selected_sources else "all"
-    sort_by = request.GET.get("sort_by", "relevance")
+    sort_by = request.GET.get("sort_by", "")
+    sort_dir = request.GET.get("sort_dir", "desc")  # desc = highest first, asc = lowest first
 
     # Check for API key alerts if user is authenticated
     missing_api_keys = []
@@ -138,6 +139,10 @@ def simple_search_with_tab(
         for result in web_results:
             # Store in database for future searches
             stored_paper = store_search_result(result)
+            # Skip if storage failed
+            if stored_paper is None:
+                logger.warning(f"Skipping result that failed to store: {result.get('title', 'Unknown')[:50]}")
+                continue
             all_results.append(
                 {
                     "id": str(stored_paper.id),
@@ -167,14 +172,15 @@ def simple_search_with_tab(
         # Apply advanced filters to results
         all_results = apply_advanced_filters(all_results, filters)
 
-        # Apply sorting
-        if sort_by == "date":
-            all_results.sort(key=lambda x: int(x.get("year", 0)), reverse=True)
+        # Apply sorting (reverse=True for desc, False for asc)
+        is_desc = sort_dir == "desc"
+        if sort_by == "year":
+            all_results.sort(key=lambda x: int(x.get("year", 0) or 0), reverse=is_desc)
         elif sort_by == "citations":
-            all_results.sort(key=lambda x: int(x.get("citations", 0)), reverse=True)
-        elif sort_by == "relevance":
-            # Keep original order (already sorted by relevance from APIs)
-            pass
+            all_results.sort(key=lambda x: int(x.get("citation_count", 0) or x.get("citations", 0) or 0), reverse=is_desc)
+        elif sort_by == "impact_factor":
+            all_results.sort(key=lambda x: float(x.get("impact_factor", 0) or 0), reverse=is_desc)
+        # else: Keep original order (relevance from APIs)
 
         results = all_results[:10000]  # Return up to 10k results
 
@@ -183,7 +189,7 @@ def simple_search_with_tab(
         "year_min": 1900,
         "year_max": 2025,
         "citations_min": 0,
-        "citations_max": 12000,  # Default fallback
+        "citations_max": 128,  # Default fallback
         "impact_factor_min": 0,
         "impact_factor_max": 50.0,  # Default fallback
     }
@@ -195,21 +201,38 @@ def simple_search_with_tab(
             filter_ranges["year_min"] = min(years)
             filter_ranges["year_max"] = max(years)
 
-        # Extract citation counts (filter out None values)
+        # Extract citation counts and smart round to nice values
         citation_counts = [
             r.get("citations", 0) for r in results if r.get("citations") is not None
         ]
         if citation_counts:
-            filter_ranges["citations_max"] = max(citation_counts)
+            max_cit = max(citation_counts)
+            # Smart rounding for better UX:
+            # <100 -> round to nearest 10, <1000 -> nearest 100, etc.
+            if max_cit < 100:
+                filter_ranges["citations_max"] = ((max_cit // 10) + 1) * 10
+            elif max_cit < 1000:
+                filter_ranges["citations_max"] = ((max_cit // 100) + 1) * 100
+            elif max_cit < 10000:
+                filter_ranges["citations_max"] = ((max_cit // 1000) + 1) * 1000
+            else:
+                filter_ranges["citations_max"] = ((max_cit // 5000) + 1) * 5000
 
-        # Extract impact factors (filter out None values)
+        # Extract impact factors and smart round
         impact_factors = [
             r.get("impact_factor", 0)
             for r in results
             if r.get("impact_factor") is not None
         ]
         if impact_factors:
-            filter_ranges["impact_factor_max"] = max(impact_factors)
+            max_if = max(impact_factors)
+            # Round IF to nice values: <10 -> nearest 5, <50 -> nearest 10, etc.
+            if max_if < 10:
+                filter_ranges["impact_factor_max"] = ((max_if // 5) + 1) * 5
+            elif max_if < 50:
+                filter_ranges["impact_factor_max"] = ((max_if // 10) + 1) * 10
+            else:
+                filter_ranges["impact_factor_max"] = ((max_if // 25) + 1) * 25
 
     # Get user projects for BibTeX enrichment form and determine current project
     user_projects = []
