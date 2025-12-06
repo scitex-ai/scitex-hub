@@ -45,6 +45,9 @@ services:
       # TypeScript compiled JS output - Docker only, never syncs to host
       - /app/.jsbuild
 
+      # CrossRef database for citation graph service (read-only)
+      - /home/ywatanabe/proj/crossref_local/data:/data/crossref:ro
+
     ports:
       - "${SCITEX_CLOUD_SSH_PORT_NAS:-2200}:2200"  # SSH gateway for user workspaces
 
@@ -57,6 +60,7 @@ services:
       - SCITEX_CLOUD_DJANGO_SETTINGS_MODULE=config.settings.settings_nas
       - SCITEX_CLOUD_ENV=nas
       - PYTHONPATH=/home/scitex/.local/lib/python3.11/site-packages:/app
+      - CROSSREF_DB_PATH=/data/crossref/crossref.db
     depends_on:
       postgres:
         condition: service_healthy
