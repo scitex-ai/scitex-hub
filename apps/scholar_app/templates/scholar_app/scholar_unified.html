@@ -104,15 +104,232 @@
     /* Tab content visibility */
     .scholar-tab-content {
         display: none;
+        height: 100%;
     }
     .scholar-tab-content.active {
-        display: block;
+        display: flex;
+        flex-direction: column;
     }
     .scholar-details-content {
         display: none;
     }
     .scholar-details-content.active {
         display: block;
+    }
+
+    /* ========================================
+       UNIFIED TAB CONTAINER STYLES
+       Ensures all three tabs have consistent styling
+       with blacky background and green accents
+       ======================================== */
+
+    /* Common container styles for all tabs */
+    .scholar-tab-content > div:first-child {
+        padding: 16px;
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        background: var(--workspace-bg-primary, #0d0d0d);
+    }
+
+    /* Unified card styles across all tabs */
+    .scholar-tab-content .graph-card,
+    .scholar-tab-content .bibtex-card,
+    .scholar-tab-content .search-card {
+        background: var(--workspace-bg-secondary, #151515);
+        border: 1px solid var(--workspace-border-default, #3a3a3a);
+        border-radius: 0;
+    }
+
+    .scholar-tab-content .graph-card__header,
+    .scholar-tab-content .bibtex-card__header,
+    .scholar-tab-content .search-card__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
+        background: var(--workspace-bg-tertiary, #1a1a1a);
+    }
+
+    .scholar-tab-content .graph-card__title,
+    .scholar-tab-content .bibtex-card__title,
+    .scholar-tab-content .search-card__title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary, #d4e1e8);
+    }
+
+    /* Unified icon color - green accent */
+    .scholar-tab-content .graph-card__title i,
+    .scholar-tab-content .bibtex-card__title i,
+    .scholar-tab-content .search-card__title i,
+    .scholar-tab-content .graph-card__header i,
+    .scholar-tab-content .bibtex-dropzone__icon,
+    .scholar-tab-content .sidebar-section__title i {
+        color: var(--workspace-icon-primary, #059669) !important;
+    }
+
+    /* Unified form input styles */
+    .scholar-tab-content .form-input,
+    .scholar-tab-content .form-select,
+    .scholar-tab-content .form-control,
+    .scholar-tab-content .search-input {
+        background: var(--workspace-bg-primary, #0d0d0d) !important;
+        border: 1px solid var(--workspace-border-default, #3a3a3a) !important;
+        color: var(--text-primary, #d4e1e8) !important;
+        padding: 10px 12px;
+        font-size: 14px;
+        border-radius: 0 !important;
+        transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .scholar-tab-content .form-input:focus,
+    .scholar-tab-content .form-select:focus,
+    .scholar-tab-content .form-control:focus,
+    .scholar-tab-content .search-input:focus {
+        outline: none;
+        border-color: var(--workspace-icon-primary, #059669) !important;
+        box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15) !important;
+    }
+
+    .scholar-tab-content .form-input::placeholder,
+    .scholar-tab-content .form-control::placeholder,
+    .scholar-tab-content .search-input::placeholder {
+        color: var(--text-muted, #6c8ba0) !important;
+    }
+
+    /* Unified button styles - green accent */
+    .scholar-tab-content .btn-build,
+    .scholar-tab-content .search-btn,
+    .scholar-tab-content .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        background: var(--workspace-icon-primary, #059669);
+        border: none;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.15s, transform 0.1s;
+        white-space: nowrap;
+        border-radius: 0;
+    }
+
+    .scholar-tab-content .btn-build:hover,
+    .scholar-tab-content .search-btn:hover,
+    .scholar-tab-content .btn-primary:hover {
+        background: #047857;
+    }
+
+    /* Unified empty state styling */
+    .scholar-tab-content .search-empty-state,
+    .scholar-tab-content .bibtex-empty-state,
+    .scholar-tab-content .graph-empty-state {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 300px;
+        text-align: center;
+        color: var(--text-muted, #6c8ba0);
+        padding: 48px;
+    }
+
+    .scholar-tab-content .search-empty-state i,
+    .scholar-tab-content .bibtex-empty-state i,
+    .scholar-tab-content .graph-empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1.5rem;
+        opacity: 0.4;
+        color: var(--workspace-icon-primary, #059669);
+    }
+
+    .scholar-tab-content .search-empty-state h5,
+    .scholar-tab-content .bibtex-empty-state h5,
+    .scholar-tab-content .graph-empty-state h5 {
+        color: var(--text-primary, #d4e1e8);
+        margin-bottom: 0.5rem;
+    }
+
+    /* Details panel consistent styling */
+    .scholar-details-content .sidebar-section,
+    .scholar-details-content .bibtex-tile,
+    .scholar-details-content .accordion-row {
+        background: var(--workspace-bg-secondary, #151515);
+        border: 1px solid var(--workspace-border-default, #3a3a3a);
+        border-radius: 0;
+        margin-bottom: 8px;
+    }
+
+    .scholar-details-content .sidebar-section__header,
+    .scholar-details-content .bibtex-tile__header,
+    .scholar-details-content .accordion-row-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 12px;
+        cursor: pointer;
+        transition: background 0.15s;
+        background: var(--workspace-bg-tertiary, #1a1a1a);
+    }
+
+    .scholar-details-content .sidebar-section__header:hover,
+    .scholar-details-content .bibtex-tile__header:hover,
+    .scholar-details-content .accordion-row-header:hover {
+        background: var(--workspace-bg-secondary, #151515);
+    }
+
+    .scholar-details-content .sidebar-section__title,
+    .scholar-details-content .bibtex-tile__title {
+        margin: 0;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-primary, #d4e1e8);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .scholar-details-content .sidebar-section__title i,
+    .scholar-details-content .bibtex-tile__title i {
+        color: var(--workspace-icon-primary, #059669) !important;
+        font-size: 11px;
+    }
+
+    .scholar-details-content .sidebar-section__content,
+    .scholar-details-content .bibtex-tile__content,
+    .scholar-details-content .accordion-row-content {
+        padding: 12px;
+        border-top: 1px solid var(--workspace-border-default, #3a3a3a);
+        background: var(--workspace-bg-secondary, #151515);
+    }
+
+    /* Light mode unified overrides */
+    [data-theme="light"] .scholar-tab-content > div:first-child {
+        background: var(--workspace-bg-primary, #f3f4f6);
+    }
+
+    [data-theme="light"] .scholar-tab-content .graph-card,
+    [data-theme="light"] .scholar-tab-content .bibtex-card,
+    [data-theme="light"] .scholar-tab-content .search-card,
+    [data-theme="light"] .scholar-details-content .sidebar-section,
+    [data-theme="light"] .scholar-details-content .bibtex-tile {
+        background: var(--workspace-bg-secondary, #ebedef);
+    }
+
+    [data-theme="light"] .scholar-tab-content .form-input,
+    [data-theme="light"] .scholar-tab-content .form-select,
+    [data-theme="light"] .scholar-tab-content .form-control,
+    [data-theme="light"] .scholar-tab-content .search-input {
+        background: var(--workspace-bg-primary, #f3f4f6) !important;
     }
     </style>
 {% endblock %}
