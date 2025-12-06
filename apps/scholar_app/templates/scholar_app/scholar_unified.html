@@ -789,5 +789,82 @@
             init();
         }
     })();
+
+    // Panel Toggle with localStorage persistence
+    (function() {
+        const STORAGE_KEY_SIDEBAR = 'scholar-sidebar-collapsed';
+        const STORAGE_KEY_PROPERTIES = 'scholar-properties-collapsed';
+
+        const sidebar = document.getElementById('scholar-sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const sidebarIcon = sidebarToggle?.querySelector('i');
+
+        const properties = document.getElementById('scholar-properties');
+        const propertiesToggle = document.getElementById('properties-toggle');
+        const propertiesIcon = propertiesToggle?.querySelector('i');
+
+        // Restore saved states from localStorage
+        function restoreSavedStates() {
+            const sidebarCollapsed = localStorage.getItem(STORAGE_KEY_SIDEBAR) === 'true';
+            const propertiesCollapsed = localStorage.getItem(STORAGE_KEY_PROPERTIES) === 'true';
+
+            if (sidebarCollapsed && sidebar) {
+                sidebar.classList.add('collapsed');
+                if (sidebarIcon) {
+                    sidebarIcon.classList.remove('fa-chevron-left');
+                    sidebarIcon.classList.add('fa-chevron-right');
+                }
+            }
+
+            if (propertiesCollapsed && properties) {
+                properties.classList.add('collapsed');
+                if (propertiesIcon) {
+                    propertiesIcon.classList.remove('fa-chevron-right');
+                    propertiesIcon.classList.add('fa-chevron-left');
+                }
+            }
+        }
+
+        // Toggle sidebar
+        if (sidebarToggle && sidebar && sidebarIcon) {
+            sidebarToggle.addEventListener('click', function() {
+                const isCollapsed = sidebar.classList.toggle('collapsed');
+
+                // Update icon
+                if (isCollapsed) {
+                    sidebarIcon.classList.remove('fa-chevron-left');
+                    sidebarIcon.classList.add('fa-chevron-right');
+                } else {
+                    sidebarIcon.classList.remove('fa-chevron-right');
+                    sidebarIcon.classList.add('fa-chevron-left');
+                }
+
+                // Save state
+                localStorage.setItem(STORAGE_KEY_SIDEBAR, isCollapsed.toString());
+            });
+        }
+
+        // Toggle properties panel
+        if (propertiesToggle && properties && propertiesIcon) {
+            propertiesToggle.addEventListener('click', function() {
+                const isCollapsed = properties.classList.toggle('collapsed');
+
+                // Update icon
+                if (isCollapsed) {
+                    propertiesIcon.classList.remove('fa-chevron-right');
+                    propertiesIcon.classList.add('fa-chevron-left');
+                } else {
+                    propertiesIcon.classList.remove('fa-chevron-left');
+                    propertiesIcon.classList.add('fa-chevron-right');
+                }
+
+                // Save state
+                localStorage.setItem(STORAGE_KEY_PROPERTIES, isCollapsed.toString());
+            });
+        }
+
+        // Initialize on page load
+        restoreSavedStates();
+    })();
     </script>
 {% endblock %}

@@ -64,6 +64,15 @@
   display: none;
 }
 
+.scholar-sidebar.collapsed .sidebar-toggle {
+  /* Keep toggle button visible when collapsed */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 4px;
+}
+
 .scholar-sidebar .sidebar-toggle {
   background: none;
   border: none;
@@ -256,6 +265,19 @@
 
 .scholar-properties .properties-header h5 i {
   color: var(--workspace-icon-primary, #059669);
+}
+
+.scholar-properties.collapsed .properties-header h5 {
+  display: none;
+}
+
+.scholar-properties.collapsed .properties-toggle {
+  /* Keep toggle button visible when collapsed */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 4px;
 }
 
 .scholar-properties .properties-toggle {
