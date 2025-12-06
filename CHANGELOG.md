@@ -5,6 +5,39 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.7-alpha] - 2025-12-07
+
+### Added
+- **SciTeX Branding**: Complete visual identity update
+  - Full logo in hero section of landing page
+  - Navy inverted icon (40x40) in global header
+  - Logo and icon assets in multiple formats (PNG, SVG, PDF, ICO)
+  - Updated footer with SciTeX icon
+  - Clean, minimal design with hover effects
+
+- **Scholar App Improvements**: Unified tabbed interface
+  - Single page with tabs: Search, BibTeX, Citation Graph
+  - Panel toggle persistence with localStorage
+  - Icon rotation animation for collapsed panels
+  - Unified tab styling with workspace theme
+  - Improved collapsed panel styling
+
+- **File Tree Enhancements**: Keyboard shortcuts and drag-drop
+  - Keyboard navigation shortcuts
+  - Enhanced drag-and-drop functionality
+  - Improved user experience for file management
+
+- **Development Tools**: Asset tracking automation
+  - `check-assets` make target for CI/CD integration
+  - Automated checker for untracked CSS and TypeScript files
+  - Reports untracked, unstaged, and staged files separately
+  - Color-coded output for easy scanning
+
+### Infrastructure
+- Added 84 logo/icon asset files to git tracking
+- Created `scripts/check_untracked_assets.sh` for asset verification
+- Updated Makefile with ENV-independent targets list
+
 ## [0.4.3-alpha] - 2025-12-02
 
 ### Added
