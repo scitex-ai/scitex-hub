@@ -74,6 +74,18 @@
 /* Progressive results container */
 .progressive-results {
     display: none;
+    margin-top: 0;
+    padding-top: 0;
+}
+
+/* Hide empty state completely when searching */
+.search-empty-state.u-hidden,
+.search-empty-state[style*="display: none"] {
+    display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
 }
 
 .progressive-results .result-card {
@@ -211,6 +223,12 @@
 .progressive-results .result-actions button:hover {
     opacity: 1;
     color: var(--scitex-color-04, #4a8eb0);
+}
+
+/* Results container - collapse when empty */
+#scitex-results-container:empty,
+#scitex-results-container:has(.search-empty-state[style*="display: none"]) {
+    display: none;
 }
 
 .search-empty-state {

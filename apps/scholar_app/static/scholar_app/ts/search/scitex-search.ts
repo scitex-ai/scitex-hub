@@ -210,7 +210,9 @@ document.addEventListener("DOMContentLoaded", function () {
       (window as any).saveSourcePreferences();
     }
 
-    // Hide regular results and empty state
+    // Hide regular results container entirely
+    const resultsContainer = document.getElementById("scitex-results-container");
+    if (resultsContainer) resultsContainer.style.display = "none";
     document.querySelectorAll(".result-card").forEach((card) => {
       (card as HTMLElement).style.display = "none";
     });
