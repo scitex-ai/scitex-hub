@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Timestamp: "2025-12-03 02:08:27 (ywatanabe)"
+# Timestamp: "2025-12-08 08:41:24 (ywatanabe)"
 # File: /home/ywatanabe/proj/scitex-cloud/scripts/maintenance/capture_demo_screenshots.py
 
 
@@ -49,9 +49,10 @@ logger = getLogger(__name__)
 # ============================================================================
 
 # Load environment variables from .env file
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 ENV_FILE = PROJECT_ROOT / "SECRET" / ".env.dev"
 
+__import__("ipdb").set_trace()
 if ENV_FILE.exists():
     load_dotenv(ENV_FILE)
     logger.info(f"Loaded environment variables from {ENV_FILE}")
@@ -66,10 +67,10 @@ TEST_PASSWORD = os.getenv("SCITEX_CLOUD_TEST_USER_PASSWORD", "Password123!")
 
 # Standard viewport sizes for consistent screenshots
 VIEWPORT_PRESETS = {
-    "desktop": {"width": 1920, "height": 1080},  # Full HD
-    "laptop": {"width": 1366, "height": 768},  # Common laptop
-    "tablet": {"width": 768, "height": 1024},  # iPad portrait
-    "mobile": {"width": 375, "height": 667},  # iPhone SE
+    "desktop": {"width": 1920, "height": 1080},
+    "laptop": {"width": 1366, "height": 768},
+    "tablet": {"width": 768, "height": 1024},
+    "mobile": {"width": 375, "height": 667},
 }
 
 # Default preset for screenshots
@@ -117,10 +118,14 @@ PAGES_TO_CAPTURE_ACCOUNT = [
 
 PAGES_TO_CAPTURE_MODULES = [
     # Modules
-    "/scholar/",
-    "/code/",
-    "/vis/",
-    "/writer/",
+    "/scholar/#normal",
+    "/scholar/#zen",
+    "/code/#normal",
+    "/code/#zen",
+    "/vis/#normal",
+    "/vis/#zen",
+    "/writer/#normal",
+    "/writer/#zen",
     # "/tools/",
 ]
 PAGES_TO_CAPTURE = [
@@ -234,7 +239,9 @@ async def login_to_scitex(page: Page, username: str, password: str) -> bool:
 
         # Check "Remember me" checkbox if not already checked
         logger.info("Checking 'Remember me' checkbox")
-        remember_checkbox = page.locator("input#remember-me, input[name='remember']")
+        remember_checkbox = page.locator(
+            "input#remember-me, input[name='remember']"
+        )
         if await remember_checkbox.count() > 0:
             is_checked = await remember_checkbox.is_checked()
             if not is_checked:
@@ -250,8 +257,8 @@ async def login_to_scitex(page: Page, username: str, password: str) -> bool:
         try:
             await page.wait_for_load_state("load", timeout=15_000)
         except Exception:
-            pass  # Continue even if load state times out
-        await asyncio.sleep(3)  # Give time for redirect and page render
+            pass
+        await asyncio.sleep(3)
 
         is_authenticated = await page.evaluate(
             "() => document.body.getAttribute('data-user-authenticated') === 'true'"
@@ -329,7 +336,9 @@ async def capture_page_screenshot(
             )
         except Exception as screenshot_err:
             if use_full_page:
-                logger.warning(f"  Full-page screenshot failed, trying viewport-only: {screenshot_err}")
+                logger.warning(
+                    f"  Full-page screenshot failed, trying viewport-only: {screenshot_err}"
+                )
                 await page.screenshot(
                     path=str(screenshot_path), full_page=False, type="png"
                 )
@@ -345,7 +354,7 @@ async def capture_page_screenshot(
         # Check if browser/page has been closed - this is fatal
         if "closed" in error_msg.lower():
             logger.error("  Browser or page has been closed - cannot continue")
-            raise  # Re-raise to stop the loop
+            raise
         return None
 
 
@@ -383,7 +392,7 @@ async def run_capture_async(
     logger.info(f"Pages to capture: {len(PAGES_TO_CAPTURE)}")
     logger.info(f"Viewport: {width}x{height} ({viewport_name})")
     logger.info(f"Headless: {headless}")
-    logger.info(f"Device pixel ratio: 1.0 (standard)")  # For reproducibility
+    logger.info(f"Device pixel ratio: 1.0 (standard)")
 
     try:
         async with async_playwright() as p:
@@ -393,7 +402,7 @@ async def run_capture_async(
                 user_data_dir=str(session_dir),
                 headless=headless,
                 viewport={"width": width, "height": height},
-                device_scale_factor=1.0,  # Standard DPI for consistent rendering
+                device_scale_factor=1.0,
                 args=["--start-maximized"] if not headless else [],
                 ignore_https_errors=True,
             )
@@ -442,7 +451,9 @@ async def run_capture_async(
                     logout_url = f"{BASE_URL}/auth/signout/"
                     await page.goto(logout_url, wait_until="load")
                     await asyncio.sleep(1)
-                    if not await login_to_scitex(page, TEST_USER, TEST_PASSWORD):
+                    if not await login_to_scitex(
+                        page, TEST_USER, TEST_PASSWORD
+                    ):
                         logger.error("Cannot proceed without authentication")
                         return 1
                     logger.info(f"✓ Login successful as '{TEST_USER}'")
@@ -455,7 +466,9 @@ async def run_capture_async(
                     await page.goto(logout_url, wait_until="load")
                     await asyncio.sleep(1)
                     # Now login as correct user
-                    if not await login_to_scitex(page, TEST_USER, TEST_PASSWORD):
+                    if not await login_to_scitex(
+                        page, TEST_USER, TEST_PASSWORD
+                    ):
                         logger.error("Cannot proceed without authentication")
                         return 1
                     logger.info(f"✓ Login successful as '{TEST_USER}'")
@@ -489,8 +502,12 @@ async def run_capture_async(
                     logger.error(f"Fatal error during capture: {loop_err}")
                     failed.append(normalize_path_to_filename(page_path))
                     # Add remaining pages to failed list
-                    for j, remaining_path in enumerate(PAGES_TO_CAPTURE[i:], i + 1):
-                        failed.append(normalize_path_to_filename(remaining_path))
+                    for j, remaining_path in enumerate(
+                        PAGES_TO_CAPTURE[i:], i + 1
+                    ):
+                        failed.append(
+                            normalize_path_to_filename(remaining_path)
+                        )
                     break
 
             # Step 3: Summary
