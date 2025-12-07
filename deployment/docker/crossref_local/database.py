@@ -78,6 +78,34 @@ class CrossRefDatabase:
                 return field
         return field
 
+    def _format_authors(self, authors: Any) -> List[str]:
+        """
+        Convert CrossRef author objects to list of strings.
+
+        CrossRef stores authors as:
+        [{"family": "Smith", "given": "John", "sequence": "first", ...}, ...]
+
+        Returns:
+            List of author names as strings: ["John Smith", "Jane Doe", ...]
+        """
+        if not authors:
+            return []
+        if isinstance(authors, str):
+            return [authors]
+        if isinstance(authors, list):
+            result = []
+            for author in authors:
+                if isinstance(author, str):
+                    result.append(author)
+                elif isinstance(author, dict):
+                    given = author.get("given", "")
+                    family = author.get("family", "")
+                    name = f"{given} {family}".strip()
+                    if name:
+                        result.append(name)
+            return result
+        return []
+
     def get_by_doi(self, doi: str) -> Optional[Dict]:
         """
         Get paper metadata by DOI
@@ -112,7 +140,7 @@ class CrossRefDatabase:
                             if isinstance(metadata, dict):
                                 # Extract commonly used fields from JSON
                                 result["title"] = metadata.get("title", [""])[0] if metadata.get("title") else ""
-                                result["authors"] = metadata.get("author", [])
+                                result["authors"] = self._format_authors(metadata.get("author", []))
                                 date_parts = metadata.get("published", {}).get("date-parts", [[]])
                                 result["year"] = date_parts[0][0] if date_parts and date_parts[0] else None
                                 result["abstract"] = metadata.get("abstract", "")
@@ -187,7 +215,7 @@ class CrossRefDatabase:
                         if isinstance(metadata, dict):
                             # Extract commonly used fields from JSON
                             result["title"] = metadata.get("title", [""])[0] if metadata.get("title") else ""
-                            result["authors"] = metadata.get("author", [])
+                            result["authors"] = self._format_authors(metadata.get("author", []))
                             date_parts = metadata.get("published", {}).get("date-parts", [[]])
                             result["year"] = date_parts[0][0] if date_parts and date_parts[0] else None
                     results.append(result)
