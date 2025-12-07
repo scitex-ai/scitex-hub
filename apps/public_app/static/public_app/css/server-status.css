@@ -527,8 +527,9 @@
 
 /* Module Integration Diagram - Smaller */
 .architecture-svg-module {
-    width: 200px;
-    max-width: 90%;
+    width: 200px !important;
+    max-width: 200px !important;
+    height: auto !important;
 }
 
 /* Infrastructure Diagram - Larger */

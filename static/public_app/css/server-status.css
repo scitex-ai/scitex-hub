@@ -713,3 +713,36 @@
         font-size: 0.75rem;
     }
 }
+
+/* Architecture Diagrams */
+.architecture-card {
+    margin-bottom: 2rem;
+}
+
+.architecture-diagram-container {
+    display: flex;
+    justify-content: center;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.architecture-svg {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Module Integration Diagram - Smaller */
+.architecture-svg-module {
+    width: 200px !important;
+    max-width: 200px !important;
+    height: auto !important;
+}
+
+/* Infrastructure Diagram - Larger */
+.architecture-svg-infra {
+    width: 1000px;
+    max-width: 95%;
+}
