@@ -99,5 +99,49 @@
   gap: 16px;
   padding: 0 16px;
   height: 64px;
+  transition: height 0.3s ease, opacity 0.3s ease;
 }
 
+/* Header Collapse Toggle Button - position only, uses shared panel-toggle-btn style */
+.header-collapse-toggle {
+  position: fixed;
+  top: 58px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1002;
+  transition: top 0.3s ease, background 0.15s ease, color 0.15s ease;
+  background: var(--color-bg-tertiary, #e5e7eb);
+  border-radius: 0 0 6px 6px;
+  padding: 6px 12px;
+}
+
+.header-collapse-toggle i {
+  transition: transform 0.3s ease;
+}
+
+/* Collapsed Header State */
+.global-header.collapsed {
+  height: 6px;
+  min-height: 6px;
+}
+
+.global-header.collapsed .global-header-inner {
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Toggle button when header is collapsed - using SIBLING selector (~) */
+.global-header.collapsed ~ .header-collapse-toggle {
+  top: 6px;
+  opacity: 0.85;
+}
+
+.global-header.collapsed ~ .header-collapse-toggle i {
+  transform: rotate(180deg);
+}
+
+/* Dark mode background for header toggle */
+[data-theme="dark"] .header-collapse-toggle {
+  background: var(--workspace-bg-tertiary, #2a2a2a);
+}

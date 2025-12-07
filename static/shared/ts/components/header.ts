@@ -3,7 +3,13 @@
  * Handles dropdown menus, search, visitor mode, and other header functionality
  */
 
+// Storage key for header collapse state
+const HEADER_COLLAPSE_STORAGE_KEY = 'scitex-header-collapsed';
+
 function initializeHeader(): void {
+  // Initialize header collapse toggle
+  initializeHeaderCollapse();
+
   // Generic dropdown functionality for all header nav dropdowns
   const dropdownGroups = document.querySelectorAll(".header-dropdown-group");
 
@@ -412,6 +418,37 @@ async function initVisitorPool(): Promise<void> {
 
 // Make initVisitorPool available globally for onclick handler
 (window as any).initVisitorPool = initVisitorPool;
+
+/**
+ * Initialize header collapse/expand functionality
+ * Button is OUTSIDE header (sibling element) so it remains visible when header collapses
+ */
+function initializeHeaderCollapse(): void {
+  const header = document.querySelector('.global-header') as HTMLElement;
+  const toggleBtn = document.getElementById('header-collapse-toggle') as HTMLButtonElement;
+
+  if (!header || !toggleBtn) return;
+
+  // Restore saved state
+  const isCollapsed = localStorage.getItem(HEADER_COLLAPSE_STORAGE_KEY) === 'true';
+  if (isCollapsed) {
+    header.classList.add('collapsed');
+  }
+
+  // Toggle on click
+  toggleBtn.addEventListener('click', () => {
+    const willCollapse = !header.classList.contains('collapsed');
+    header.classList.toggle('collapsed');
+
+    // Save state
+    localStorage.setItem(HEADER_COLLAPSE_STORAGE_KEY, willCollapse.toString());
+
+    // Dispatch custom event for panel synchronization
+    window.dispatchEvent(new CustomEvent('header-collapse-changed', {
+      detail: { collapsed: willCollapse }
+    }));
+  });
+}
 
 // Initialize immediately if DOM is ready, otherwise wait
 if (document.readyState === 'loading') {

@@ -44,6 +44,17 @@
   position: relative;  /* Needed for action buttons positioning */
 }
 
+/* Hide project root - show children directly */
+.wft-item.wft-root {
+  display: none;
+}
+
+.wft-item.wft-root + .wft-children {
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+  border-left: none !important;
+}
+
 /* Git Status - Git Gutter Style (colored left-side bar like Emacs git-gutter)
  * This creates a vertical colored bar on the left side of each item to indicate git status
  * Two approaches supported: CSS pseudo-elements (::after) and HTML elements (.wft-git-gutter)

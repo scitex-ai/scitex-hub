@@ -11,6 +11,13 @@
     <body data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}"
           class="{% if request.path == '/' %}workspace-page landing-page{% elif '/code/' in request.path %}workspace-page code-workspace{% elif '/vis/' in request.path %}workspace-page vis-workspace{% elif '/writer/' in request.path %}workspace-page writer-page{% elif '/scholar/' in request.path %}workspace-page scholar-page{% endif %}">
         {% include 'global_base_partials/global_header.html' %}
+        <!-- Header Collapse Toggle (OUTSIDE header for CSS sibling selector) -->
+        <button id="header-collapse-toggle"
+                class="header-collapse-toggle panel-toggle-btn"
+                data-tooltip="Toggle header"
+                aria-label="Toggle header collapse">
+            <i class="fas fa-chevron-up"></i>
+        </button>
         <!-- Django Messages -->
         {% if messages %}
             <div class="container django-messages-container">
