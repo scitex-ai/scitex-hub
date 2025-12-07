@@ -237,3 +237,211 @@ def api_search_plos(request):
             {"status": "error", "source": "plos", "error": str(e)}, status=500
         )
 
+
+@require_http_methods(["GET"])
+def api_search_crossref(request):
+    """API endpoint for CrossRef remote API search."""
+    query = request.GET.get("q", "").strip()
+    max_results = min(int(request.GET.get("max_results", 50)), 100)
+
+    if not query:
+        return JsonResponse({"error": "Query parameter required"}, status=400)
+
+    try:
+        # CrossRef API: https://api.crossref.org/works
+        url = "https://api.crossref.org/works"
+        params = {
+            "query": query,
+            "rows": max_results,
+            "select": "DOI,title,author,published-print,published-online,container-title,is-referenced-by-count,abstract,URL",
+        }
+        headers = {
+            "User-Agent": "SciTeX/1.0 (https://scitex.ai; mailto:contact@scitex.ai)"
+        }
+
+        response = requests.get(url, params=params, headers=headers, timeout=30)
+        response.raise_for_status()
+        data = response.json()
+
+        results = []
+        for item in data.get("message", {}).get("items", []):
+            # Extract year from published date
+            year = None
+            for date_field in ["published-print", "published-online"]:
+                if item.get(date_field, {}).get("date-parts"):
+                    date_parts = item[date_field]["date-parts"][0]
+                    if date_parts:
+                        year = date_parts[0]
+                        break
+
+            # Format authors
+            authors = []
+            for author in item.get("author", []):
+                name = f"{author.get('given', '')} {author.get('family', '')}".strip()
+                if name:
+                    authors.append(name)
+
+            results.append({
+                "title": item.get("title", [""])[0] if item.get("title") else "",
+                "authors": ", ".join(authors),
+                "year": year,
+                "journal": item.get("container-title", [""])[0] if item.get("container-title") else "",
+                "doi": item.get("DOI", ""),
+                "citations": item.get("is-referenced-by-count", 0),
+                "abstract": item.get("abstract", ""),
+                "externalUrl": item.get("URL", ""),
+                "source": "crossref",
+            })
+
+        return JsonResponse(
+            {
+                "status": "success",
+                "source": "crossref",
+                "query": query,
+                "count": len(results),
+                "results": results,
+            }
+        )
+    except Exception as e:
+        logger.error(f"CrossRef API search failed: {e}")
+        return JsonResponse(
+            {"status": "error", "source": "crossref", "error": str(e)}, status=500
+        )
+
+
+@require_http_methods(["GET"])
+def api_search_crossref_local(request):
+    """API endpoint for CrossRef Local (NAS SQLite database) search."""
+    query = request.GET.get("q", "").strip()
+    max_results = min(int(request.GET.get("max_results", 100)), 1000)
+
+    if not query:
+        return JsonResponse({"error": "Query parameter required"}, status=400)
+
+    try:
+        from django.conf import settings
+
+        # Proxy to internal CrossRef service
+        crossref_url = getattr(settings, 'CROSSREF_INTERNAL_URL', 'http://crossref:3333')
+        url = f"{crossref_url}/api/search/"
+        params = {"title": query, "limit": max_results}
+
+        response = requests.get(url, params=params, timeout=30)
+        response.raise_for_status()
+        data = response.json()
+
+        # Convert to standard format
+        results = []
+        for item in data.get("results", []):
+            results.append({
+                "title": item.get("title", ""),
+                "authors": item.get("authors", ""),
+                "year": item.get("year"),
+                "journal": item.get("journal", ""),
+                "doi": item.get("doi", ""),
+                "citations": item.get("citation_count", 0),
+                "abstract": "",
+                "externalUrl": f"https://doi.org/{item.get('doi', '')}" if item.get("doi") else "",
+                "source": "crossref_local",
+            })
+
+        return JsonResponse(
+            {
+                "status": "success",
+                "source": "crossref_local",
+                "query": query,
+                "count": len(results),
+                "results": results,
+            }
+        )
+    except Exception as e:
+        logger.error(f"CrossRef Local search failed: {e}")
+        return JsonResponse(
+            {"status": "error", "source": "crossref_local", "error": str(e)}, status=500
+        )
+
+
+@require_http_methods(["GET"])
+def api_search_openalex(request):
+    """API endpoint for OpenAlex search."""
+    query = request.GET.get("q", "").strip()
+    max_results = min(int(request.GET.get("max_results", 50)), 100)
+
+    if not query:
+        return JsonResponse({"error": "Query parameter required"}, status=400)
+
+    try:
+        # OpenAlex API: https://api.openalex.org/works
+        url = "https://api.openalex.org/works"
+        params = {
+            "search": query,
+            "per-page": max_results,
+            "select": "id,doi,title,authorships,publication_year,primary_location,cited_by_count,abstract_inverted_index,open_access",
+        }
+        headers = {
+            "User-Agent": "SciTeX/1.0 (https://scitex.ai; mailto:contact@scitex.ai)"
+        }
+
+        response = requests.get(url, params=params, headers=headers, timeout=30)
+        response.raise_for_status()
+        data = response.json()
+
+        results = []
+        for item in data.get("results", []):
+            # Format authors
+            authors = []
+            for authorship in item.get("authorships", []):
+                author = authorship.get("author", {})
+                name = author.get("display_name", "")
+                if name:
+                    authors.append(name)
+
+            # Reconstruct abstract from inverted index
+            abstract = ""
+            abstract_idx = item.get("abstract_inverted_index")
+            if abstract_idx:
+                words = [""] * (max(max(positions) for positions in abstract_idx.values()) + 1)
+                for word, positions in abstract_idx.items():
+                    for pos in positions:
+                        words[pos] = word
+                abstract = " ".join(words)
+
+            # Get journal from primary location
+            journal = ""
+            primary_loc = item.get("primary_location", {})
+            if primary_loc and primary_loc.get("source"):
+                journal = primary_loc["source"].get("display_name", "")
+
+            # Clean DOI
+            doi = item.get("doi", "") or ""
+            if doi.startswith("https://doi.org/"):
+                doi = doi.replace("https://doi.org/", "")
+
+            results.append({
+                "title": item.get("title", ""),
+                "authors": ", ".join(authors[:5]) + ("..." if len(authors) > 5 else ""),
+                "year": item.get("publication_year"),
+                "journal": journal,
+                "doi": doi,
+                "citations": item.get("cited_by_count", 0),
+                "abstract": abstract[:500] + "..." if len(abstract) > 500 else abstract,
+                "is_open_access": item.get("open_access", {}).get("is_oa", False),
+                "externalUrl": f"https://doi.org/{doi}" if doi else "",
+                "source": "openalex",
+            })
+
+        return JsonResponse(
+            {
+                "status": "success",
+                "source": "openalex",
+                "query": query,
+                "count": len(results),
+                "results": results,
+            }
+        )
+    except Exception as e:
+        logger.error(f"OpenAlex API search failed: {e}")
+        return JsonResponse(
+            {"status": "error", "source": "openalex", "error": str(e)}, status=500
+        )
+

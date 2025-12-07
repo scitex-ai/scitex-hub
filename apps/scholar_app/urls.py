@@ -144,6 +144,21 @@ urlpatterns = [
         search_views.api_search_plos,
         name="api_search_plos",
     ),
+    path(
+        "api/search/crossref/",
+        search_views.api_search_crossref,
+        name="api_search_crossref",
+    ),
+    path(
+        "api/search/crossref-local/",
+        search_views.api_search_crossref_local,
+        name="api_search_crossref_local",
+    ),
+    path(
+        "api/search/openalex/",
+        search_views.api_search_openalex,
+        name="api_search_openalex",
+    ),
     # SciTeX integrated search endpoints
     path(
         "api/search/scitex/",

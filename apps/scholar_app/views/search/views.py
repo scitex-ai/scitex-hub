@@ -52,6 +52,9 @@ from .api_search import (
     api_search_doaj,
     api_search_biorxiv,
     api_search_plos,
+    api_search_crossref,
+    api_search_crossref_local,
+    api_search_openalex,
 )
 
 from .saved_searches import (
@@ -154,6 +157,9 @@ __all__ = [
     'api_search_doaj',
     'api_search_biorxiv',
     'api_search_plos',
+    'api_search_crossref',
+    'api_search_crossref_local',
+    'api_search_openalex',
     # Saved Searches
     'save_search',
     'get_saved_searches',
