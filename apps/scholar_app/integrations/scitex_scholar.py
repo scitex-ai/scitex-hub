@@ -16,8 +16,11 @@ The scitex.scholar package provides:
 
 import logging
 import asyncio
+from pathlib import Path
 from typing import Dict, Any, List, Optional
 from functools import lru_cache
+
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -25,10 +28,82 @@ logger = logging.getLogger(__name__)
 try:
     from scitex.scholar.pipelines.SearchQueryParser import SearchQueryParser
     from scitex.scholar.search_engines.ScholarSearchEngine import ScholarSearchEngine
+    from scitex.scholar import ScholarConfig
     SCITEX_SCHOLAR_AVAILABLE = True
 except ImportError:
     SCITEX_SCHOLAR_AVAILABLE = False
+    ScholarConfig = None
     logger.warning("scitex.scholar package not available, falling back to Django-only search")
+
+
+def get_user_scitex_dir(user, session_key: Optional[str] = None) -> Path:
+    """
+    Get the user-specific SCITEX directory path.
+
+    Resolution order:
+    1. SCITEX_USER_DATA_ROOT env var (for containerized per-user setups)
+    2. USER_DATA_ROOT Django setting
+    3. Default: {BASE_DIR}/data/users/{username}/.scitex
+
+    This provides thread-safe, per-user isolation for scitex.scholar operations.
+    NEVER use os.environ["SCITEX_DIR"] directly in multi-user Django - it's not thread-safe.
+
+    Args:
+        user: Django User instance or None for anonymous
+        session_key: Session key for anonymous users
+
+    Returns:
+        Path to user's .scitex directory
+    """
+    import os
+
+    base_dir = getattr(settings, 'BASE_DIR', Path.cwd())
+
+    # Check for containerized setup with per-user $HOME
+    user_data_root = os.environ.get('SCITEX_USER_DATA_ROOT')
+    if user_data_root:
+        # Containerized environment - use the provided root directly
+        # Assumes $HOME or similar is already set per-user
+        user_scitex_dir = Path(user_data_root) / ".scitex"
+    else:
+        # Shared process - use explicit user directory
+        user_data_root_setting = getattr(settings, 'USER_DATA_ROOT', None)
+        if user_data_root_setting:
+            base_path = Path(user_data_root_setting)
+        else:
+            base_path = Path(base_dir) / "data" / "users"
+
+        if user and user.is_authenticated:
+            user_scitex_dir = base_path / user.username / ".scitex"
+        elif session_key:
+            # Anonymous user with session
+            user_scitex_dir = Path(base_dir) / "data" / "visitor" / session_key / ".scitex"
+        else:
+            # Fallback for anonymous without session
+            user_scitex_dir = Path(base_dir) / "data" / "visitor" / "shared" / ".scitex"
+
+    user_scitex_dir.mkdir(parents=True, exist_ok=True)
+    return user_scitex_dir
+
+
+def get_scholar_config(user=None) -> Optional['ScholarConfig']:
+    """
+    Get a ScholarConfig instance with user-specific paths.
+
+    This is the SAFE way to get ScholarConfig in Django - it passes
+    the scholar_dir directly instead of using environment variables.
+
+    Args:
+        user: Django User instance or None
+
+    Returns:
+        ScholarConfig instance or None if not available
+    """
+    if not SCITEX_SCHOLAR_AVAILABLE or ScholarConfig is None:
+        return None
+
+    user_scitex_dir = get_user_scitex_dir(user)
+    return ScholarConfig(scholar_dir=user_scitex_dir)
 
 
 @lru_cache(maxsize=1)

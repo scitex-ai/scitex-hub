@@ -64,26 +64,15 @@ def process_bibtex_job(job):
             asyncio.run(update_job())
 
     try:
-        # Set user-specific SCITEX_DIR
-        import os
+        # Get user-specific SCITEX directory (thread-safe approach)
+        from apps.scholar_app.integrations.scitex_scholar import get_user_scitex_dir
 
-        if job.user:
-            user_scitex_dir = (
-                Path(settings.BASE_DIR)
-                / "data"
-                / "users"
-                / job.user.username
-                / ".scitex"
-            )
-        else:
-            session_key = job.session_key or "visitor"
-            user_scitex_dir = (
-                Path(settings.BASE_DIR) / "data" / "visitor" / session_key / ".scitex"
-            )
+        session_key = getattr(job, 'session_key', None)
+        user_scitex_dir = get_user_scitex_dir(job.user, session_key=session_key)
+        logger.info(f"Using SCITEX_DIR: {user_scitex_dir} for job {job.id}")
 
-        user_scitex_dir.mkdir(parents=True, exist_ok=True)
-        os.environ["SCITEX_DIR"] = str(user_scitex_dir)
-        logger.info(f"Set SCITEX_DIR to {user_scitex_dir} for job {job.id}")
+        # NOTE: We no longer set os.environ["SCITEX_DIR"] as it's not thread-safe.
+        # Instead, pass scholar_dir directly to ScholarConfig when needed.
 
         # Check if job was cancelled before starting
         try:
@@ -104,13 +93,17 @@ def process_bibtex_job(job):
         # Import scholar components
         from scitex.scholar.pipelines import ScholarPipelineMetadataParallel
         from scitex.scholar.storage import BibTeXHandler
+        from scitex.scholar import ScholarConfig
+
+        # Create user-specific config (thread-safe)
+        scholar_config = ScholarConfig(scholar_dir=user_scitex_dir)
 
         # Get input file path
         input_path = Path(settings.MEDIA_ROOT) / job.input_file.name
         logger.info(f"Input file path: {input_path}")
 
         # Load papers from BibTeX
-        bibtex_handler = BibTeXHandler(project=job.project_name)
+        bibtex_handler = BibTeXHandler(project=job.project_name, config=scholar_config)
         papers = bibtex_handler.papers_from_bibtex(input_path)
         logger.info(f"Loaded {len(papers) if papers else 0} papers")
 
@@ -121,8 +114,11 @@ def process_bibtex_job(job):
         job.processing_log += f"\nFound {len(papers)} papers in BibTeX file"
         job.save(update_fields=["total_papers", "processing_log"])
 
-        # Create metadata enrichment pipeline
-        pipeline = ScholarPipelineMetadataParallel(num_workers=job.num_workers)
+        # Create metadata enrichment pipeline with user-specific config
+        pipeline = ScholarPipelineMetadataParallel(
+            num_workers=job.num_workers,
+            config=scholar_config,
+        )
 
         # Enrich papers with timeout
         async def enrich_with_timeout():
