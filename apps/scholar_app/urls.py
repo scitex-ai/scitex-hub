@@ -19,6 +19,7 @@ from .views import repository as repository_views
 from .integrations import scitex as scitex_search
 from .api import crossref_proxy
 from .api import citation_graph
+from .api import api_keys
 
 app_name = "scholar_app"
 
@@ -454,6 +455,32 @@ urlpatterns = [
         "api/citation-graph/health/",
         citation_graph.health,
         name="citation_graph_health",
+    ),
+    # API Key Management (RESTful)
+    path(
+        "api/keys/",
+        api_keys.list_api_keys,
+        name="api_keys_list",
+    ),
+    path(
+        "api/keys/create/",
+        api_keys.create_api_key,
+        name="api_keys_create",
+    ),
+    path(
+        "api/keys/<uuid:key_id>/",
+        api_keys.update_api_key,
+        name="api_keys_update",
+    ),
+    path(
+        "api/keys/<uuid:key_id>/delete/",
+        api_keys.delete_api_key,
+        name="api_keys_delete",
+    ),
+    path(
+        "api/keys/info/",
+        api_keys.api_key_info,
+        name="api_keys_info",
     ),
     # Advanced features (for future implementation)
     # path('advanced/dashboard/', views.search_dashboard, name='search_dashboard'),

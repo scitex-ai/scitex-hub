@@ -499,8 +499,12 @@ def api_search_openalex(request):
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from .search_helpers import parse_query_operators, apply_advanced_filters
+from ...middleware.rate_limit import rate_limit, rate_limit_status
+from ...api_auth import api_key_optional
 
 
+@api_key_optional
+@rate_limit("api_search_unified")
 @require_http_methods(["GET"])
 def api_search_unified(request):
     """
@@ -664,6 +668,7 @@ def api_search_unified(request):
         "total_count": len(filtered_results),
         "results": formatted_results,
         "errors": errors if errors else None,
+        "rate_limit": rate_limit_status(request, "api_search_unified"),
     })
 
 
