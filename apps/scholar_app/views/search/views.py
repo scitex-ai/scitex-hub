@@ -55,6 +55,8 @@ from .api_search import (
     api_search_crossref,
     api_search_crossref_local,
     api_search_openalex,
+    api_search_unified,
+    api_search_syntax_help,
 )
 
 from .saved_searches import (

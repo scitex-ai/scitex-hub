@@ -159,6 +159,17 @@ urlpatterns = [
         search_views.api_search_openalex,
         name="api_search_openalex",
     ),
+    # Unified RESTful Search API (with command syntax support)
+    path(
+        "api/search/",
+        search_views.api_search_unified,
+        name="api_search_unified",
+    ),
+    path(
+        "api/search/syntax/",
+        search_views.api_search_syntax_help,
+        name="api_search_syntax_help",
+    ),
     # SciTeX integrated search endpoints
     path(
         "api/search/scitex/",

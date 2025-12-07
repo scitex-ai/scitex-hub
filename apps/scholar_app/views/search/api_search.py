@@ -492,3 +492,276 @@ def api_search_openalex(request):
             {"status": "error", "source": "openalex", "error": str(e)}, status=500
         )
 
+
+# =============================================================================
+# Unified RESTful Search API with Command Syntax Support
+# =============================================================================
+
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from .search_helpers import parse_query_operators, apply_advanced_filters
+
+
+@require_http_methods(["GET"])
+def api_search_unified(request):
+    """
+    Unified RESTful API for academic literature search.
+
+    Supports shell-style command syntax for filtering:
+    - `-t VALUE` or `--title VALUE`: Title filter (include)
+    - `-t -VALUE`: Title filter (exclude)
+    - `-a VALUE` or `--author VALUE`: Author filter
+    - `-j VALUE` or `--journal VALUE`: Journal filter
+    - `-ymin YYYY` or `--year-min`: Minimum year
+    - `-ymax YYYY` or `--year-max`: Maximum year
+    - `-cmin N` or `--citations-min`: Minimum citations
+    - `-cmax N` or `--citations-max`: Maximum citations
+    - `-ifmin N` or `--if-min`: Minimum impact factor
+    - `-ifmax N` or `--if-max`: Maximum impact factor
+
+    Query Parameters:
+    - q (required): Search query with optional command syntax
+    - sources: Comma-separated list of sources (default: all available)
+               Options: pubmed,arxiv,semantic,crossref,openalex,pmc,doaj,biorxiv,plos
+    - max_results: Maximum results per source (default: 20, max: 100)
+    - format: Response format - 'full' or 'compact' (default: full)
+
+    Example:
+        GET /scholar/api/search/?q=neural network -t deep learning -a Smith -ymin 2020 -cmin 50
+        GET /scholar/api/search/?q=CRISPR&sources=pubmed,arxiv&max_results=50
+
+    Returns:
+        JSON response with aggregated search results from all sources.
+    """
+    query = request.GET.get("q", "").strip()
+    if not query:
+        return JsonResponse({
+            "status": "error",
+            "error": "Query parameter 'q' is required",
+            "syntax_help": {
+                "title_filter": "-t VALUE (include) or -t -VALUE (exclude)",
+                "author_filter": "-a VALUE or --author VALUE",
+                "journal_filter": "-j VALUE or --journal VALUE",
+                "year_range": "-ymin YYYY -ymax YYYY",
+                "citations_min": "-cmin N",
+                "impact_factor_min": "-ifmin N",
+                "example": "neural network -t deep learning -a Smith -ymin 2020"
+            }
+        }, status=400)
+
+    # Parse command syntax from query
+    parsed = parse_query_operators(query)
+    clean_query = parsed.get("query", query)
+
+    # Get sources to search
+    sources_param = request.GET.get("sources", "").strip()
+    available_sources = {
+        "pubmed": search_pubmed,
+        "arxiv": search_arxiv,
+        "semantic": search_semantic_scholar,
+        "pmc": search_pubmed_central,
+        "doaj": search_doaj,
+        "biorxiv": search_biorxiv,
+        "plos": search_plos,
+    }
+
+    if sources_param:
+        requested_sources = [s.strip().lower() for s in sources_param.split(",")]
+        sources_to_search = {k: v for k, v in available_sources.items() if k in requested_sources}
+    else:
+        # Default to main sources for performance
+        sources_to_search = {
+            "pubmed": search_pubmed,
+            "arxiv": search_arxiv,
+            "semantic": search_semantic_scholar,
+        }
+
+    # Get max results per source
+    try:
+        max_results = min(int(request.GET.get("max_results", 20)), 100)
+    except ValueError:
+        max_results = 20
+
+    # Response format
+    response_format = request.GET.get("format", "full").lower()
+
+    # Search all sources in parallel
+    all_results = []
+    source_stats = {}
+    errors = []
+
+    def search_source(name, search_func):
+        try:
+            results = search_func(clean_query, max_results=max_results)
+            return name, results, None
+        except Exception as e:
+            return name, [], str(e)
+
+    with ThreadPoolExecutor(max_workers=len(sources_to_search)) as executor:
+        futures = {
+            executor.submit(search_source, name, func): name
+            for name, func in sources_to_search.items()
+        }
+
+        for future in as_completed(futures):
+            source_name, results, error = future.result()
+            if error:
+                errors.append({"source": source_name, "error": error})
+                source_stats[source_name] = {"count": 0, "status": "error"}
+            else:
+                source_stats[source_name] = {"count": len(results), "status": "success"}
+                all_results.extend(results)
+
+    # Apply filters from parsed operators
+    filtered_results = apply_advanced_filters(all_results, None, parsed)
+
+    # Sort by citations (descending), then by year (descending)
+    filtered_results.sort(
+        key=lambda x: (
+            -(x.get("citations") or 0),
+            -(int(x.get("year") or 0))
+        )
+    )
+
+    # Format response
+    if response_format == "compact":
+        # Compact format - only essential fields
+        formatted_results = [
+            {
+                "title": r.get("title"),
+                "authors": r.get("authors"),
+                "year": r.get("year"),
+                "journal": r.get("journal"),
+                "doi": r.get("doi"),
+                "citations": r.get("citations"),
+                "source": r.get("source"),
+            }
+            for r in filtered_results
+        ]
+    else:
+        formatted_results = filtered_results
+
+    return JsonResponse({
+        "status": "success",
+        "query": {
+            "original": query,
+            "parsed": clean_query,
+            "filters": {
+                "title_includes": parsed.get("title_includes", []),
+                "title_excludes": parsed.get("title_excludes", []),
+                "author_includes": parsed.get("author_includes", []),
+                "author_excludes": parsed.get("author_excludes", []),
+                "journal_includes": parsed.get("journal_includes", []),
+                "journal_excludes": parsed.get("journal_excludes", []),
+                "year_min": parsed.get("year_min"),
+                "year_max": parsed.get("year_max"),
+                "citations_min": parsed.get("citations_min"),
+                "citations_max": parsed.get("citations_max"),
+                "impact_factor_min": parsed.get("impact_factor_min"),
+                "impact_factor_max": parsed.get("impact_factor_max"),
+            }
+        },
+        "sources": source_stats,
+        "total_count": len(filtered_results),
+        "results": formatted_results,
+        "errors": errors if errors else None,
+    })
+
+
+@require_http_methods(["GET"])
+def api_search_syntax_help(request):
+    """
+    API endpoint to get search syntax documentation.
+
+    Returns detailed documentation on available search operators and examples.
+    """
+    return JsonResponse({
+        "status": "success",
+        "syntax": {
+            "title_filter": {
+                "short": "-t",
+                "long": "--title",
+                "description": "Filter by title content",
+                "include_example": "-t neural",
+                "exclude_example": "-t -mouse",
+            },
+            "author_filter": {
+                "short": "-a",
+                "long": "--author",
+                "description": "Filter by author name",
+                "include_example": "-a Smith",
+                "exclude_example": "-a -Jones",
+            },
+            "journal_filter": {
+                "short": "-j",
+                "long": "--journal",
+                "description": "Filter by journal name",
+                "include_example": "-j Nature",
+                "exclude_example": "-j -arXiv",
+            },
+            "year_min": {
+                "short": "-ymin",
+                "long": "--year-min",
+                "description": "Minimum publication year",
+                "example": "-ymin 2020",
+            },
+            "year_max": {
+                "short": "-ymax",
+                "long": "--year-max",
+                "description": "Maximum publication year",
+                "example": "-ymax 2024",
+            },
+            "citations_min": {
+                "short": "-cmin",
+                "long": "--citations-min",
+                "description": "Minimum citation count",
+                "example": "-cmin 100",
+            },
+            "citations_max": {
+                "short": "-cmax",
+                "long": "--citations-max",
+                "description": "Maximum citation count",
+                "example": "-cmax 1000",
+            },
+            "impact_factor_min": {
+                "short": "-ifmin",
+                "long": "--if-min",
+                "description": "Minimum journal impact factor",
+                "example": "-ifmin 5",
+            },
+            "impact_factor_max": {
+                "short": "-ifmax",
+                "long": "--if-max",
+                "description": "Maximum journal impact factor",
+                "example": "-ifmax 50",
+            },
+        },
+        "examples": [
+            {
+                "query": "neural network -t deep learning -ymin 2020",
+                "description": "Search for 'neural network', title must contain 'deep learning', published since 2020"
+            },
+            {
+                "query": "CRISPR -a Doudna -j Nature -cmin 100",
+                "description": "Search for 'CRISPR' by author Doudna in Nature journal with at least 100 citations"
+            },
+            {
+                "query": "cancer treatment -t -mouse -t -rat -ymin 2022",
+                "description": "Search for 'cancer treatment', exclude mouse and rat studies, since 2022"
+            },
+            {
+                "query": "machine learning -ifmin 10 -cmin 50",
+                "description": "Search 'machine learning' in journals with IF ≥ 10 and papers with ≥ 50 citations"
+            },
+        ],
+        "available_sources": [
+            "pubmed", "arxiv", "semantic", "crossref", "openalex",
+            "pmc", "doaj", "biorxiv", "plos"
+        ],
+        "query_parameters": {
+            "q": "Search query with optional command syntax (required)",
+            "sources": "Comma-separated list of sources to search (optional)",
+            "max_results": "Maximum results per source, 1-100 (default: 20)",
+            "format": "'full' or 'compact' response format (default: full)",
+        }
+    })
+
