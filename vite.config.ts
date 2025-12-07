@@ -136,6 +136,9 @@ export default defineConfig({
         'project_app/create_project_type': resolve(__dirname, 'apps/project_app/static/project_app/ts/create_project_type.ts'),
         'project_app/init-git-gutter': resolve(__dirname, 'apps/project_app/static/project_app/ts/init-git-gutter.ts'),
 
+        // Shared components
+        'shared/workspace-panel-resizer': resolve(__dirname, 'static/shared/ts/components/workspace-panel-resizer.ts'),
+
         // Scholar app
         'scholar_app/scholar-config': resolve(__dirname, 'apps/scholar_app/static/scholar_app/ts/scholar-config.ts'),
 

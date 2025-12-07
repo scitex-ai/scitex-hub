@@ -356,8 +356,17 @@
                 {% endif %}
             </div>
         </aside>
-        <!-- Sidebar resizer -->
-        <div class="panel-resizer" id="sidebar-resizer"></div>
+        <!-- Sidebar resizer (auto-initialized via data attributes) -->
+        <div class="panel-resizer" id="sidebar-resizer"
+             data-panel-resizer
+             data-storage-prefix="scitex-scholar-"
+             data-target=".scholar-sidebar"
+             data-direction="left"
+             data-min-width="40"
+             data-default-width="250"
+             data-storage-key="sidebar-width"
+             data-collapse-key="scholar-sidebar-collapsed"
+             data-toggle-btn="sidebar-toggle"></div>
         <!-- Main content area -->
         <main class="scholar-main">
             <div class="pane-header">
@@ -524,8 +533,17 @@
                 </div>
             </div>
         </main>
-        <!-- Main resizer -->
-        <div class="panel-resizer" id="main-resizer"></div>
+        <!-- Properties resizer (auto-initialized via data attributes) -->
+        <div class="panel-resizer" id="main-resizer"
+             data-panel-resizer
+             data-storage-prefix="scitex-scholar-"
+             data-target=".scholar-properties"
+             data-direction="right"
+             data-min-width="40"
+             data-default-width="320"
+             data-storage-key="properties-width"
+             data-collapse-key="scholar-properties-collapsed"
+             data-toggle-btn="properties-toggle"></div>
         <!-- Right details panel -->
         <aside class="scholar-properties" id="scholar-properties">
             <div class="properties-header">
@@ -636,8 +654,8 @@
 
 {% block extra_js %}
     {{ block.super }}
-    <!-- Panel resizer manager -->
-    {% vite_script 'scholar_app/shared/panel-resizer' %}
+    <!-- Panel resizer (auto-initializes from data attributes) -->
+    {% vite_script 'shared/workspace-panel-resizer' %}
     {% if current_project %}
     <!-- Scholar workspace initialization with project context -->
     <script id="scholar-project-config" type="application/json">
@@ -792,171 +810,9 @@
         }
     })();
 
-    // Panel Toggle with localStorage persistence
-    (function() {
-        function initPanelToggle() {
-            const STORAGE_KEY_SIDEBAR = 'scholar-sidebar-collapsed';
-            const STORAGE_KEY_PROPERTIES = 'scholar-properties-collapsed';
-
-            const sidebar = document.getElementById('scholar-sidebar');
-            const sidebarToggle = document.getElementById('sidebar-toggle');
-            const sidebarIcon = sidebarToggle?.querySelector('i');
-
-            const properties = document.getElementById('scholar-properties');
-            const propertiesToggle = document.getElementById('properties-toggle');
-            const propertiesIcon = propertiesToggle?.querySelector('i');
-
-            console.log('[Panel Toggle] Initializing...', {
-                sidebar: !!sidebar,
-                sidebarToggle: !!sidebarToggle,
-                sidebarIcon: !!sidebarIcon,
-                properties: !!properties,
-                propertiesToggle: !!propertiesToggle,
-                propertiesIcon: !!propertiesIcon
-            });
-
-            // Restore saved states from localStorage
-            function restoreSavedStates() {
-                const sidebarCollapsed = localStorage.getItem(STORAGE_KEY_SIDEBAR) === 'true';
-                const propertiesCollapsed = localStorage.getItem(STORAGE_KEY_PROPERTIES) === 'true';
-
-                if (sidebarCollapsed && sidebar) {
-                    sidebar.classList.add('collapsed');
-                    if (sidebarIcon) {
-                        sidebarIcon.classList.remove('fa-chevron-left');
-                        sidebarIcon.classList.add('fa-chevron-right');
-                    }
-                }
-
-                if (propertiesCollapsed && properties) {
-                    properties.classList.add('collapsed');
-                    if (propertiesIcon) {
-                        propertiesIcon.classList.remove('fa-chevron-right');
-                        propertiesIcon.classList.add('fa-chevron-left');
-                    }
-                }
-            }
-
-            // Toggle sidebar - attach even if icon is missing
-            if (sidebarToggle && sidebar) {
-                sidebarToggle.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    const beforeWidth = sidebar.offsetWidth;
-                    const isCollapsed = sidebar.classList.toggle('collapsed');
-
-                    if (isCollapsed) {
-                        // Clear inline width when collapsing so CSS 40px takes effect
-                        sidebar.style.width = '';
-                        sidebar.style.flexShrink = '';
-                        sidebar.style.flexGrow = '';
-                    } else {
-                        // Restore saved width when expanding
-                        const savedWidth = localStorage.getItem('scitex-scholar-panel-sidebar-width');
-                        if (savedWidth) {
-                            const width = parseInt(savedWidth, 10);
-                            if (width >= 40) {
-                                sidebar.style.width = `${width}px`;
-                                sidebar.style.flexShrink = '0';
-                                sidebar.style.flexGrow = '0';
-                            }
-                        }
-                    }
-
-                    // Update icon if present
-                    const icon = sidebarToggle.querySelector('i');
-                    if (icon) {
-                        if (isCollapsed) {
-                            icon.classList.remove('fa-chevron-left');
-                            icon.classList.add('fa-chevron-right');
-                        } else {
-                            icon.classList.remove('fa-chevron-right');
-                            icon.classList.add('fa-chevron-left');
-                        }
-                    }
-
-                    console.log('[Panel Toggle] Sidebar toggled:', {
-                        collapsed: isCollapsed,
-                        width: { before: beforeWidth, after: sidebar.offsetWidth }
-                    });
-
-                    // Save state
-                    localStorage.setItem(STORAGE_KEY_SIDEBAR, isCollapsed.toString());
-                });
-                console.log('[Panel Toggle] Sidebar toggle attached');
-            } else {
-                console.warn('[Panel Toggle] Sidebar toggle not initialized:', {
-                    sidebarToggle: !!sidebarToggle,
-                    sidebar: !!sidebar
-                });
-            }
-
-            // Toggle properties panel - attach even if icon is missing
-            if (propertiesToggle && properties) {
-                propertiesToggle.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    const beforeWidth = properties.offsetWidth;
-                    const isCollapsed = properties.classList.toggle('collapsed');
-
-                    if (isCollapsed) {
-                        // Clear inline width when collapsing so CSS 40px takes effect
-                        properties.style.width = '';
-                        properties.style.flexShrink = '';
-                        properties.style.flexGrow = '';
-                    } else {
-                        // Restore saved width when expanding
-                        const savedWidth = localStorage.getItem('scitex-scholar-panel-properties-width');
-                        if (savedWidth) {
-                            const width = parseInt(savedWidth, 10);
-                            if (width >= 40) {
-                                properties.style.width = `${width}px`;
-                                properties.style.flexShrink = '0';
-                                properties.style.flexGrow = '0';
-                            }
-                        }
-                    }
-
-                    // Update icon if present
-                    const icon = propertiesToggle.querySelector('i');
-                    if (icon) {
-                        if (isCollapsed) {
-                            icon.classList.remove('fa-chevron-right');
-                            icon.classList.add('fa-chevron-left');
-                        } else {
-                            icon.classList.remove('fa-chevron-left');
-                            icon.classList.add('fa-chevron-right');
-                        }
-                    }
-
-                    console.log('[Panel Toggle] Properties toggled:', {
-                        collapsed: isCollapsed,
-                        width: { before: beforeWidth, after: properties.offsetWidth }
-                    });
-
-                    // Save state
-                    localStorage.setItem(STORAGE_KEY_PROPERTIES, isCollapsed.toString());
-                });
-                console.log('[Panel Toggle] Properties toggle attached');
-            } else {
-                console.warn('[Panel Toggle] Properties toggle not initialized:', {
-                    propertiesToggle: !!propertiesToggle,
-                    properties: !!properties
-                });
-            }
-
-            // Initialize on page load
-            restoreSavedStates();
-        }
-
-        // Initialize when DOM is ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initPanelToggle);
-        } else {
-            initPanelToggle();
-        }
-    })();
+    // Panel Toggle - REMOVED: Now handled by WorkspacePanelResizer
+    // The sidebar-toggle and properties-toggle buttons are managed by
+    // static/shared/ts/components/workspace-panel-resizer.ts
+    // which provides unified panel resizing and collapse functionality.
     </script>
 {% endblock %}

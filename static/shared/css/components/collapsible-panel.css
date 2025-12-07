@@ -1,0 +1,211 @@
+/* ============================================================================
+ * Shared Collapsible Panel Component
+ * ============================================================================
+ * Reusable CSS for collapsible sidebar/properties panels
+ * Used by: Code, Vis, Writer, Scholar workspaces
+ * ========================================================================== */
+
+/* ===========================================================================
+   BASE PANEL STYLES
+   These define the common structure for collapsible panels
+   =========================================================================== */
+
+/* Collapsible panel base */
+.collapsible-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: width 0.2s ease, min-width 0.2s ease;
+    flex-shrink: 0;
+}
+
+/* Collapsed state - 40px width */
+.collapsible-panel.collapsed {
+    width: 40px !important;
+    min-width: 40px !important;
+}
+
+/* Hide content when collapsed */
+.collapsible-panel.collapsed .panel-content,
+.collapsible-panel.collapsed .sidebar-content,
+.collapsible-panel.collapsed .properties-content {
+    display: none;
+}
+
+/* ===========================================================================
+   PANEL HEADER STYLES
+   =========================================================================== */
+
+.collapsible-panel .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    height: 50px;
+    min-height: 50px;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
+    background: var(--workspace-bg-secondary, #151515);
+}
+
+/* Collapsed header - centered toggle button */
+.collapsible-panel.collapsed .panel-header {
+    padding: 0 4px;
+    justify-content: center;
+}
+
+/* Header title */
+.collapsible-panel .panel-header h4,
+.collapsible-panel .panel-header h5 {
+    margin: 0;
+    padding: 0;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--text-primary, #d4e1e8);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Header icon */
+.collapsible-panel .panel-header h4 i,
+.collapsible-panel .panel-header h5 i {
+    color: var(--workspace-icon-primary, #059669);
+}
+
+/* Hide title when collapsed */
+.collapsible-panel.collapsed .panel-header h4,
+.collapsible-panel.collapsed .panel-header h5 {
+    display: none;
+}
+
+/* ===========================================================================
+   TOGGLE BUTTON STYLES
+   =========================================================================== */
+
+.panel-toggle-btn {
+    background: none;
+    border: none;
+    padding: 4px 8px;
+    cursor: pointer;
+    color: var(--text-muted, #6c8ba0);
+    border-radius: 4px;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.panel-toggle-btn:hover {
+    background: var(--workspace-bg-tertiary, #1a1a1a);
+    color: var(--workspace-icon-primary, #059669);
+}
+
+/* Toggle button in collapsed state - full width centered */
+.collapsible-panel.collapsed .panel-toggle-btn {
+    width: 100%;
+    padding: 4px;
+}
+
+/* ===========================================================================
+   PANEL CONTENT STYLES
+   =========================================================================== */
+
+.collapsible-panel .panel-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* ===========================================================================
+   SIDEBAR PANEL (LEFT)
+   =========================================================================== */
+
+.collapsible-panel.sidebar-panel {
+    width: 250px;
+    min-width: 10px;
+    border-right: none; /* Resizer handles visual separation */
+}
+
+/* ===========================================================================
+   PROPERTIES PANEL (RIGHT)
+   =========================================================================== */
+
+.collapsible-panel.properties-panel {
+    width: 320px;
+    min-width: 10px;
+    border-left: none; /* Resizer handles visual separation */
+}
+
+/* ===========================================================================
+   LIGHT THEME OVERRIDES
+   =========================================================================== */
+
+[data-theme="light"] .collapsible-panel .panel-header {
+    background: var(--workspace-bg-secondary, #ebedef);
+    border-bottom-color: var(--workspace-border-default, #b5c7d1);
+}
+
+[data-theme="light"] .collapsible-panel .panel-header h4,
+[data-theme="light"] .collapsible-panel .panel-header h5 {
+    color: var(--text-primary, #1a2a40);
+}
+
+[data-theme="light"] .panel-toggle-btn:hover {
+    background: var(--workspace-bg-tertiary, #d8dee4);
+}
+
+/* ===========================================================================
+   BACKWARD COMPATIBILITY
+   Aliases for existing class names used in apps
+   =========================================================================== */
+
+/* Sidebar toggle aliases */
+.sidebar-toggle,
+.sidebar-toggle-btn {
+    background: none;
+    border: none;
+    padding: 4px 8px;
+    cursor: pointer;
+    color: var(--text-muted, #6c8ba0);
+    border-radius: 4px;
+    transition: all 0.15s ease;
+}
+
+.sidebar-toggle:hover,
+.sidebar-toggle-btn:hover {
+    background: var(--workspace-bg-tertiary, #1a1a1a);
+    color: var(--workspace-icon-primary, #059669);
+}
+
+/* Properties toggle aliases */
+.properties-toggle,
+.properties-toggle-btn {
+    background: none;
+    border: none;
+    padding: 4px 8px;
+    cursor: pointer;
+    color: var(--text-muted, #6c8ba0);
+    border-radius: 4px;
+    transition: all 0.15s ease;
+}
+
+.properties-toggle:hover,
+.properties-toggle-btn:hover {
+    background: var(--workspace-bg-tertiary, #1a1a1a);
+    color: var(--workspace-icon-primary, #059669);
+}
+
+/* Collapsed state for aliased toggle buttons */
+.collapsed .sidebar-toggle,
+.collapsed .sidebar-toggle-btn,
+.collapsed .properties-toggle,
+.collapsed .properties-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 4px;
+}

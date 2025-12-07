@@ -8,6 +8,13 @@
                 <div class="latex-panel">
                     <div class="panel-header">
                         <div class="header-left">
+                            <!-- Editor Toggle Button -->
+                            <button id="editor-toggle-btn"
+                                    class="panel-toggle-btn"
+                                    onclick="toggleWriterPanel('editor')"
+                                    title="Maximize editor (Ctrl+Shift+E)">
+                                <i class="fas fa-expand-alt"></i>
+                            </button>
                             <!-- Current File Display - hidden since file tree shows selection -->
                             <div class="current-file-display hidden" id="current-file-display">
                                 <i class="fas fa-file-alt"></i>
@@ -108,7 +115,16 @@
                 <div class="preview-panel">
                     <!-- Shared Right Panel Header (changes content based on active panel) -->
                     <div class="panel-header" id="right-panel-header">
-                        <!-- Header content will be dynamically updated by switchRightPanel() -->
+                        <!-- Preview Toggle Button -->
+                        <div class="header-left">
+                            <button id="preview-toggle-btn"
+                                    class="panel-toggle-btn"
+                                    onclick="toggleWriterPanel('preview')"
+                                    title="Maximize preview (Ctrl+Shift+P)">
+                                <i class="fas fa-expand-alt"></i>
+                            </button>
+                        </div>
+                        <!-- Rest of header content will be dynamically updated by switchRightPanel() -->
                     </div>
 
                     <!-- PDF View (default visible) -->

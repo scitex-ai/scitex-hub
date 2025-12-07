@@ -117,8 +117,17 @@
                 {% endif %}
             </div>
         </aside>
-        <!-- Sidebar resizer -->
-        <div class="panel-resizer" id="sidebar-resizer"></div>
+        <!-- Sidebar resizer (auto-initialized via data attributes) -->
+        <div class="panel-resizer" id="sidebar-resizer"
+             data-panel-resizer
+             data-storage-prefix="scitex-scholar-"
+             data-target=".scholar-sidebar"
+             data-direction="left"
+             data-min-width="40"
+             data-default-width="250"
+             data-storage-key="sidebar-width"
+             data-collapse-key="scholar-sidebar-collapsed"
+             data-toggle-btn="sidebar-toggle"></div>
         <!-- Main content area -->
         <main class="scholar-main">
             <div class="pane-header">
@@ -144,8 +153,17 @@
                 {% block search_content %}{% endblock %}
             </div>
         </main>
-        <!-- Main resizer -->
-        <div class="panel-resizer" id="main-resizer"></div>
+        <!-- Properties resizer (auto-initialized via data attributes) -->
+        <div class="panel-resizer" id="main-resizer"
+             data-panel-resizer
+             data-storage-prefix="scitex-scholar-"
+             data-target=".scholar-properties"
+             data-direction="right"
+             data-min-width="40"
+             data-default-width="320"
+             data-storage-key="properties-width"
+             data-collapse-key="scholar-properties-collapsed"
+             data-toggle-btn="properties-toggle"></div>
         <!-- Right details panel -->
         <aside class="scholar-properties" id="scholar-properties">
             <div class="properties-header">
@@ -166,8 +184,8 @@
 
 {% block extra_js %}
     {{ block.super }}
-    <!-- Panel resizer manager -->
-    {% vite_script 'scholar_app/shared/panel-resizer' %}
+    <!-- Panel resizer (auto-initializes from data attributes) -->
+    {% vite_script 'shared/workspace-panel-resizer' %}
     {% if current_project %}
     <!-- Scholar workspace initialization with project context -->
     <script id="scholar-project-config" type="application/json">

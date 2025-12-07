@@ -33,6 +33,24 @@
   display: none;
 }
 
+.writer-sidebar.collapsed .sidebar-header {
+  writing-mode: vertical-lr;
+  text-orientation: mixed;
+  height: 100%;
+  padding: 1rem 0.5rem;
+  justify-content: flex-start;
+  border-bottom: none;
+  flex-direction: column;
+}
+
+.writer-sidebar.collapsed .sidebar-header-content {
+  display: none;
+}
+
+.writer-sidebar.collapsed .panel-toggle-btn {
+  writing-mode: horizontal-tb;
+}
+
 .writer-sidebar .sidebar-header {
   display: flex;
   align-items: center;

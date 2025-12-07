@@ -73,6 +73,9 @@ export { initWriterApp } from "./inline-script/index";
 // Sidebar resizer
 export { initSidebarResizer, getSidebarWidth, setSidebarWidth } from "./ui/sidebar-resizer";
 
+// Panel toggle (expand/collapse)
+export { togglePanel as toggleWriterPanel, initPanelToggle, restorePanelStates } from "./ui/panel-toggle";
+
 // Tab management
 export { WriterTabManager } from "./tabs/index";
 export type { WriterTabManagerOptions } from "./tabs/index";

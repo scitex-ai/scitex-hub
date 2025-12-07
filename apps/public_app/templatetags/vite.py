@@ -212,6 +212,7 @@ def _entry_to_ts_path(entry_name: str) -> str:
         'shared/components/workspace-files-tree': 'static/shared/ts/components/workspace-files-tree/WorkspaceFilesTree.ts',
         'shared/components/seekbar': 'static/shared/ts/components/seekbar.ts',
         'shared/utils/highlight-js-bibtex': 'static/shared/ts/utils/highlight-js-bibtex.ts',
+        'shared/workspace-panel-resizer': 'static/shared/ts/components/workspace-panel-resizer.ts',
     }
     return mappings.get(entry_name, f'{entry_name}.ts')
 

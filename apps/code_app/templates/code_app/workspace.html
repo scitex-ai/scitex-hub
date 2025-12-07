@@ -185,8 +185,17 @@
       </div>
     </aside>
 
-    <!-- Resizer between sidebar and editor -->
-    <div class="panel-resizer" id="sidebar-resizer"></div>
+    <!-- Resizer between sidebar and editor (auto-initialized via data attributes) -->
+    <div class="panel-resizer" id="sidebar-resizer"
+         data-panel-resizer
+         data-storage-prefix="scitex-code-"
+         data-target=".code-sidebar"
+         data-direction="left"
+         data-min-width="40"
+         data-default-width="280"
+         data-storage-key="sidebar-width"
+         data-collapse-key="code-sidebar-collapsed"
+         data-toggle-btn="sidebar-toggle"></div>
 
     <!-- Center: Editor Area -->
     <div class="code-editor-area">
@@ -298,11 +307,27 @@
       </div>
     </div>
 
-    <!-- Resizer between editor and terminal -->
-    <div class="panel-resizer" id="editor-resizer"></div>
+    <!-- Resizer between editor and terminal (auto-initialized via data attributes) -->
+    <div class="panel-resizer" id="editor-resizer"
+         data-panel-resizer
+         data-storage-prefix="scitex-code-"
+         data-target=".code-terminal-panel"
+         data-direction="right"
+         data-min-width="40"
+         data-default-width="400"
+         data-storage-key="terminal-width"
+         data-collapse-key="code-terminal-collapsed"
+         data-toggle-btn="terminal-toggle"></div>
 
-    <!-- Right: Terminal Panel (PTY with xterm.js) -->
+    <!-- Right: Details Panel (Terminal / Jobs) -->
     <div id="code-terminal-panel" class="code-terminal-panel">
+      <!-- Panel Header with Toggle -->
+      <div class="terminal-panel-header">
+        <h5><i class="fas fa-sliders-h"></i> Details</h5>
+        <button class="terminal-toggle panel-toggle-btn" id="terminal-toggle" title="Toggle details">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
       <!-- Panel Tabs (Terminal / Jobs) -->
       <div class="terminal-panel-tabs">
         <button id="panel-tab-terminal" class="panel-tab active" data-panel="terminal">
@@ -533,6 +558,9 @@
 
   <!-- Vite HMR client (only in dev when Vite server is running) -->
   {% vite_hmr_client %}
+
+  <!-- Panel resizer (auto-initializes from data attributes) -->
+  {% vite_script 'shared/workspace-panel-resizer' %}
 
   <!-- Load workspace module via Vite (HMR in dev, bundled in prod) -->
   {% vite_script 'code_app/workspace' %}

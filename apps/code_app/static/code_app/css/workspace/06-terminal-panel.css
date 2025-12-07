@@ -1,6 +1,7 @@
 /* Right: Terminal panel - professional styling */
 .code-terminal-panel {
   width: 400px;
+  min-width: 10px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -9,11 +10,55 @@
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.05);
   overflow: hidden; /* Prevent content overflow */
   min-height: 0; /* Allow proper flex sizing */
+  transition: width 0.2s ease, min-width 0.2s ease;
 }
 
 [data-theme="dark"] .code-terminal-panel {
   background: var(--workspace-bg-secondary) !important;
   border-left-color: var(--workspace-border-default);
   box-shadow: -2px 0 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Collapsed state for terminal panel */
+.code-terminal-panel.collapsed {
+  width: 40px;
+  min-width: 40px;
+}
+
+.code-terminal-panel.collapsed .panel-view,
+.code-terminal-panel.collapsed .terminal-tabs-container,
+.code-terminal-panel.collapsed .panel-tab span,
+.code-terminal-panel.collapsed .panel-tab-badge,
+.code-terminal-panel.collapsed .panel-header-btn,
+.code-terminal-panel.collapsed .panel-tab-spacer {
+  display: none;
+}
+
+.code-terminal-panel.collapsed .terminal-panel-tabs {
+  flex-direction: column;
+  padding: 8px 4px;
+  gap: 4px;
+}
+
+.code-terminal-panel.collapsed .panel-tab {
+  padding: 8px;
+  justify-content: center;
+}
+
+.code-terminal-panel.collapsed .terminal-panel-header {
+  padding: 0 4px;
+  justify-content: center;
+}
+
+.code-terminal-panel.collapsed .terminal-panel-header h5 {
+  display: none;
+}
+
+.code-terminal-panel.collapsed .terminal-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 4px;
 }
 

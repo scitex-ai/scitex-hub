@@ -8,10 +8,39 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    transition: all 0.3s ease;
+    transition: width 0.2s ease, min-width 0.2s ease;
     width: 320px;
     min-width: 10px;
     flex-shrink: 0;
+}
+
+/* Collapsed state */
+.vis-properties.collapsed {
+    width: 40px;
+    min-width: 40px;
+}
+
+.vis-properties.collapsed .properties-content,
+.vis-properties.collapsed .selected-item-info,
+.vis-properties.collapsed .pane-header-buttons {
+    display: none;
+}
+
+.vis-properties.collapsed .properties-header {
+    padding: 0 4px;
+    justify-content: center;
+}
+
+.vis-properties.collapsed .properties-header h4 {
+    display: none;
+}
+
+.vis-properties.collapsed .properties-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 4px;
 }
 
 /* Dark mode: unified background with workspace modules */

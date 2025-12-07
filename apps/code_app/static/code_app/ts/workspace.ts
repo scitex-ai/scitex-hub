@@ -8,6 +8,7 @@
 
 import { toggleCodeFolder } from "./file-tree-builder";
 import { WorkspaceOrchestrator } from "./workspace/index";
+// Panel resizing: Auto-initialized via data attributes in HTML template
 import type { EditorConfig, Project } from "./workspace/core/types";
 
 console.log("[DEBUG] apps/code_app/static/code_app/ts/workspace.ts loaded");

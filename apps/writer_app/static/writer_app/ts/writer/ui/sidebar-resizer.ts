@@ -2,9 +2,10 @@
  * Sidebar Resizer Module
  * Handles the resizable sidebar functionality
  *
- * Supports two resize methods:
+ * Supports:
  * 1. Dragging the dedicated resizer handle
  * 2. Ctrl+drag anywhere in the file tree area
+ * 3. Toggle collapse/expand via button
  */
 
 console.log(
@@ -12,9 +13,11 @@ console.log(
 );
 
 const STORAGE_KEY = "scitex-writer-sidebar-width";
-const MIN_WIDTH = 200;
+const COLLAPSE_KEY = "scitex-writer-sidebar-collapsed";
+const MIN_WIDTH = 40;  // Collapsed state width
 const MAX_WIDTH = 600;
 const DEFAULT_WIDTH = 280;
+const COLLAPSED_WIDTH = 40;
 
 // Module-level state for resize operations
 let isResizing = false;
@@ -24,8 +27,14 @@ let sidebarElement: HTMLElement | null = null;
 
 /**
  * Start resize operation
+ * Auto-expands if sidebar is collapsed
  */
 const startResize = (e: MouseEvent, sidebar: HTMLElement): void => {
+  // Auto-expand if collapsed
+  if (sidebar.classList.contains('collapsed')) {
+    expandSidebar(sidebar);
+  }
+
   isResizing = true;
   sidebarElement = sidebar;
   startX = e.clientX;
@@ -33,6 +42,75 @@ const startResize = (e: MouseEvent, sidebar: HTMLElement): void => {
   document.body.style.cursor = "col-resize";
   document.body.style.userSelect = "none";
   e.preventDefault();
+};
+
+/**
+ * Expand sidebar and sync toggle icon
+ */
+const expandSidebar = (sidebar: HTMLElement): void => {
+  sidebar.classList.remove('collapsed');
+
+  // Restore saved width
+  const savedWidth = localStorage.getItem(STORAGE_KEY);
+  if (savedWidth) {
+    const width = parseInt(savedWidth, 10);
+    if (width > COLLAPSED_WIDTH && width <= MAX_WIDTH) {
+      sidebar.style.width = `${width}px`;
+      sidebar.style.flexShrink = '0';
+      sidebar.style.flexGrow = '0';
+    } else {
+      sidebar.style.width = `${DEFAULT_WIDTH}px`;
+    }
+  } else {
+    sidebar.style.width = `${DEFAULT_WIDTH}px`;
+  }
+
+  // Update toggle icon
+  updateToggleIcon(false);
+
+  // Save collapse state
+  localStorage.setItem(COLLAPSE_KEY, 'false');
+
+  console.log("[SidebarResizer] Expanded sidebar");
+};
+
+/**
+ * Collapse sidebar and sync toggle icon
+ */
+const collapseSidebar = (sidebar: HTMLElement): void => {
+  sidebar.classList.add('collapsed');
+
+  // Clear inline width so CSS takes over
+  sidebar.style.width = '';
+  sidebar.style.flexShrink = '';
+  sidebar.style.flexGrow = '';
+
+  // Update toggle icon
+  updateToggleIcon(true);
+
+  // Save collapse state
+  localStorage.setItem(COLLAPSE_KEY, 'true');
+
+  console.log("[SidebarResizer] Collapsed sidebar");
+};
+
+/**
+ * Update toggle button icon based on collapse state
+ */
+const updateToggleIcon = (isCollapsed: boolean): void => {
+  const toggleBtn = document.getElementById('sidebar-toggle');
+  if (!toggleBtn) return;
+
+  const icon = toggleBtn.querySelector('i');
+  if (!icon) return;
+
+  if (isCollapsed) {
+    icon.classList.remove('fa-chevron-left');
+    icon.classList.add('fa-chevron-right');
+  } else {
+    icon.classList.remove('fa-chevron-right');
+    icon.classList.add('fa-chevron-left');
+  }
 };
 
 /**
@@ -71,16 +149,42 @@ export const initSidebarResizer = (): void => {
   const resizer = document.getElementById("sidebar-resizer");
   const sidebar = document.getElementById("writer-sidebar");
   const fileTree = document.getElementById("writer-file-tree");
+  const toggleBtn = document.getElementById("sidebar-toggle");
+  const collapsedHeader = sidebar?.querySelector(".sidebar-collapsed-header");
 
   console.log("[SidebarResizer] Elements found:", {
     resizer: !!resizer,
     sidebar: !!sidebar,
-    fileTree: !!fileTree
+    fileTree: !!fileTree,
+    toggleBtn: !!toggleBtn
   });
 
   if (!sidebar) {
     console.warn("[SidebarResizer] Sidebar not found, skipping initialization");
     return;
+  }
+
+  // Restore collapse state first
+  const isCollapsed = localStorage.getItem(COLLAPSE_KEY) === 'true';
+  if (isCollapsed) {
+    sidebar.classList.add('collapsed');
+    sidebar.style.width = '';
+    sidebar.style.flexShrink = '';
+    sidebar.style.flexGrow = '';
+    updateToggleIcon(true);
+    console.log("[SidebarResizer] Restored collapsed state");
+  } else {
+    // Restore saved width only if not collapsed
+    const savedWidth = localStorage.getItem(STORAGE_KEY);
+    if (savedWidth) {
+      const width = parseInt(savedWidth, 10);
+      if (width > COLLAPSED_WIDTH && width <= MAX_WIDTH) {
+        sidebar.style.width = `${width}px`;
+        sidebar.style.flexShrink = '0';
+        sidebar.style.flexGrow = '0';
+        console.log("[SidebarResizer] Restored width:", width);
+      }
+    }
   }
 
   // Method 1: Dedicated resizer handle
@@ -115,19 +219,32 @@ export const initSidebarResizer = (): void => {
     });
   }
 
+  // Method 3: Toggle button (click to collapse/expand)
+  if (toggleBtn) {
+    toggleBtn.addEventListener("click", (e: MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (sidebar.classList.contains('collapsed')) {
+        expandSidebar(sidebar);
+      } else {
+        collapseSidebar(sidebar);
+      }
+    });
+  }
+
+  // Method 4: Click on collapsed header to expand
+  if (collapsedHeader) {
+    collapsedHeader.addEventListener("click", (e: MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      expandSidebar(sidebar);
+    });
+  }
+
   // Global mouse move and up handlers
   document.addEventListener("mousemove", handleMouseMove);
   document.addEventListener("mouseup", handleMouseUp);
-
-  // Restore saved width
-  const savedWidth = localStorage.getItem(STORAGE_KEY);
-  if (savedWidth) {
-    const width = parseInt(savedWidth, 10);
-    if (width >= MIN_WIDTH && width <= MAX_WIDTH) {
-      sidebar.style.width = `${width}px`;
-      console.log("[SidebarResizer] Restored width:", width);
-    }
-  }
 };
 
 /**

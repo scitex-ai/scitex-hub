@@ -61,3 +61,37 @@
   gap: 0.5rem;
 }
 
+/* =========================================
+   PANEL TOGGLE BUTTONS
+   ========================================= */
+
+.panel-toggle-btn {
+  background: none;
+  border: 1px solid var(--workspace-border-default, #3a3a3a);
+  border-radius: 4px;
+  color: var(--text-muted, #888);
+  font-size: 0.75rem;
+  padding: 4px 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+}
+
+.panel-toggle-btn:hover {
+  color: var(--workspace-icon-primary, #059669);
+  border-color: var(--workspace-icon-primary, #059669);
+  background: rgba(5, 150, 105, 0.1);
+}
+
+.panel-toggle-btn:active {
+  transform: scale(0.95);
+}
+
+.panel-toggle-btn i {
+  font-size: 0.7rem;
+}
+

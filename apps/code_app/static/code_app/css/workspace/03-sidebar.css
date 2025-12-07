@@ -1,6 +1,7 @@
 /* Left Sidebar - unified background with editor and terminal */
 .code-sidebar {
   width: 280px;
+  min-width: 10px;
   flex-shrink: 0;
   background-color: var(--code-bg) !important;
   border-right: 1px solid var(--code-border);
@@ -12,6 +13,36 @@
   overflow: hidden; /* Children handle overflow */
   display: flex;
   flex-direction: column;
+  transition: width 0.2s ease, min-width 0.2s ease;
+}
+
+/* Collapsed state for sidebar */
+.code-sidebar.collapsed {
+  width: 40px;
+  min-width: 40px;
+}
+
+.code-sidebar.collapsed .sidebar-content,
+.code-sidebar.collapsed .file-tree-container,
+.code-sidebar.collapsed .file-search-container {
+  display: none;
+}
+
+.code-sidebar.collapsed .sidebar-header {
+  padding: 0 4px;
+  justify-content: center;
+}
+
+.code-sidebar.collapsed .sidebar-header h5 {
+  display: none;
+}
+
+.code-sidebar.collapsed .sidebar-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 4px;
 }
 
 /* Dark mode: unified background with editor and terminal */
