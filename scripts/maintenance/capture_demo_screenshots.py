@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Timestamp: "2025-12-08 08:43:03 (ywatanabe)"
+# Timestamp: "2025-12-08 08:52:18 (ywatanabe)"
 # File: /home/ywatanabe/proj/scitex-cloud/scripts/maintenance/capture_demo_screenshots.py
 
 
@@ -116,23 +116,26 @@ PAGES_TO_CAPTURE_ACCOUNT = [
 ]
 
 PAGES_TO_CAPTURE_MODULES = [
-    # Modules - #default expands all panels, #zen collapses all panels
-    "/scholar/#default",
-    "/scholar/#zen",
-    "/code/#default",
-    "/code/#zen",
-    "/vis/#default",
-    "/vis/#zen",
-    "/writer/#default",
-    "/writer/#zen",
+    # Modules
+    "/scholar/",
+    "/code/",
+    "/vis/",
+    "/writer/",
     # "/tools/",
+]
+PAGES_TO_CAPTURE_MODULES_DEFAULT = [
+    f"{module}#default" for module in PAGES_TO_CAPTURE_MODULES
+]
+PAGES_TO_CAPTURE_MODULES_ZEN = [
+    f"{module}#zen" for module in PAGES_TO_CAPTURE_MODULES
 ]
 PAGES_TO_CAPTURE = [
     # *PAGES_TO_CAPTURE_BASIC,
     # *PAGES_TO_CAPTURE_ACCOUNT,
     # *PAGES_TO_CAPTURE_DEV,
     *PAGES_TO_CAPTURE_REPO,
-    *PAGES_TO_CAPTURE_MODULES,
+    *PAGES_TO_CAPTURE_MODULES_DEFAULT,
+    *PAGES_TO_CAPTURE_MODULES_ZEN,
 ]
 
 # ============================================================================
@@ -158,10 +161,11 @@ def normalize_path_to_filename(path: str) -> str:
     Returns:
         Normalized filename (without extension)
     """
-    # Parse URL to separate path and query
+    # Parse URL to separate path, query, and fragment
     parsed = urlparse(path)
     clean_path = parsed.path
     query = parsed.query
+    fragment = parsed.fragment  # URL hash (e.g., #zen, #default)
 
     # Handle root path
     if clean_path == "/" or clean_path == "":
@@ -172,6 +176,11 @@ def normalize_path_to_filename(path: str) -> str:
 
         # Replace slashes with hyphens
         name = clean_path.replace("/", "-")
+
+    # Add URL fragment (hash) to filename if present
+    if fragment:
+        safe_fragment = re.sub(r"[^\w-]", "-", fragment)
+        name += f"-{safe_fragment}"
 
     # Add query parameters to filename if present
     if query:
