@@ -1,5 +1,5 @@
 <!-- ---
-!-- Timestamp: 2025-12-06 20:55:32
+!-- Timestamp: 2025-12-08 04:10:00
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/scitex-cloud/CLAUDE.md
 !-- --- -->
@@ -7,6 +7,10 @@
 ## DO NOT EDIT
 Agents: Never edit this file. Only user may modify.
 
+
+## E2E Test
+1. Use ~/proj/scitex-code/src/scitex/browser to show what is happening ongoingly with "message and visual feedback in the browser"
+2. No stealth mode for e2e tests
 
 ## Automated Setup
 1. Never include, or minimize, manual steps in installation as much as possible.

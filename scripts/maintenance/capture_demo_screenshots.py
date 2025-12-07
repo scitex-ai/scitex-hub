@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Timestamp: "2025-12-08 08:52:18 (ywatanabe)"
+# Timestamp: "2025-12-08 09:16:53 (ywatanabe)"
 # File: /home/ywatanabe/proj/scitex-cloud/scripts/maintenance/capture_demo_screenshots.py
 
 
@@ -314,11 +314,19 @@ async def capture_page_screenshot(
     # Generate filename automatically from path
     page_name = normalize_path_to_filename(page_path)
     url = f"{BASE_URL}{page_path}"
-    wait_sec = 3.0 if page_path in PAGES_TO_CAPTURE_MODULES else 1.0
+    wait_sec = (
+        3.0
+        if page_path
+        in PAGES_TO_CAPTURE_MODULES_DEFAULT + PAGES_TO_CAPTURE_MODULES_ZEN
+        else 1.0
+    )
 
     # Code pages have wide horizontal scroll - capture viewport only
     # Other pages can use full_page for vertical scroll
-    use_full_page = page_path not in ["/code/"]
+    use_full_page = (
+        page_path
+        not in PAGES_TO_CAPTURE_MODULES_DEFAULT + PAGES_TO_CAPTURE_MODULES_ZEN
+    )
 
     screenshot_filename = f"{index:02d}_{page_name}.png"
     screenshot_path = output_dir / screenshot_filename
