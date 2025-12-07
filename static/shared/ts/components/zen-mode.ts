@@ -51,6 +51,11 @@ type ZenState = 'normal' | 'zen' | 'fullscreen';
 const ZEN_MODE_STORAGE_KEY = 'scitex-zen-mode-active';
 const ZEN_SAVED_STATES_KEY = 'scitex-zen-saved-states';
 
+// URL hash values for direct access (useful for screenshots/testing)
+// e.g., /writer/#zen, /code/#fullscreen
+const HASH_ZEN = 'zen';
+const HASH_FULLSCREEN = 'fullscreen';
+
 export class ZenMode {
   private config: ZenModeConfig;
   private currentState: ZenState = 'normal';
@@ -445,8 +450,33 @@ export class ZenMode {
 
   /**
    * Restore zen state on page load
+   * Priority: URL hash > localStorage
    */
   private restoreZenState(): void {
+    // Check URL hash first (e.g., /writer/#zen, /code/#fullscreen)
+    const hash = window.location.hash.slice(1).toLowerCase();
+
+    if (hash === HASH_ZEN || hash === HASH_FULLSCREEN) {
+      // Save current states before entering zen (for later restoration)
+      this.savedStates = this.captureCurrentStates();
+      this.persistSavedStates();
+
+      // Enter zen mode from URL hash
+      document.body.classList.add('zen-mode');
+      this.collapseAllPanels();
+      this.currentState = 'zen';
+      localStorage.setItem(ZEN_MODE_STORAGE_KEY, 'zen');
+
+      if (hash === HASH_FULLSCREEN) {
+        // Note: Can't auto-enter fullscreen on page load due to browser restrictions
+        console.log('[ZenMode] Entered zen mode from URL hash (fullscreen requires user action)');
+      } else {
+        console.log('[ZenMode] Entered zen mode from URL hash');
+      }
+      return;
+    }
+
+    // Fall back to localStorage
     const savedZenState = localStorage.getItem(ZEN_MODE_STORAGE_KEY);
     const savedStatesJson = localStorage.getItem(ZEN_SAVED_STATES_KEY);
 
@@ -471,6 +501,35 @@ export class ZenMode {
           console.log('[ZenMode] Restored zen mode');
         }
       }
+    }
+  }
+
+  /**
+   * Set zen state programmatically (useful for testing/screenshots)
+   * @param state - Target state: 'normal', 'zen', or 'fullscreen'
+   */
+  public setState(state: ZenState): void {
+    switch (state) {
+      case 'normal':
+        if (this.currentState !== 'normal') {
+          this.exitToNormal();
+        }
+        break;
+      case 'zen':
+        if (this.currentState === 'normal') {
+          this.enterZenMode();
+        } else if (this.currentState === 'fullscreen') {
+          // Exit fullscreen but stay in zen
+          if (document.fullscreenElement) {
+            document.exitFullscreen().catch(() => {});
+          }
+          this.currentState = 'zen';
+          document.body.classList.remove('zen-fullscreen');
+        }
+        break;
+      case 'fullscreen':
+        this.enterFullscreen();
+        break;
     }
   }
 
@@ -556,4 +615,9 @@ export function initZenMode(config?: Partial<ZenModeConfig>): ZenMode {
 if (typeof window !== 'undefined') {
   (window as any).ZenMode = ZenMode;
   (window as any).initZenMode = initZenMode;
+  // Expose getter for current instance (useful for testing/screenshots)
+  Object.defineProperty(window, 'zenMode', {
+    get: () => zenModeInstance,
+    configurable: true,
+  });
 }
