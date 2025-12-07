@@ -105,6 +105,12 @@ class SearchLogManager {
     const spinner = item.querySelector(".spinner-border") as HTMLElement | null;
     const countEl = item.querySelector(".count") as HTMLElement | null;
 
+    // Update LED indicator
+    const led = document.querySelector(
+      `.search-led[data-source="${sourceName}"]`,
+    ) as HTMLElement | null;
+    if (led) led.dataset.status = status;
+
     // Reset classes
     item.classList.remove("searching", "success", "error");
 
@@ -140,6 +146,12 @@ class SearchLogManager {
       const count = el.querySelector(".count") as HTMLElement | null;
       if (spinner) spinner.style.display = "none";
       if (count) count.textContent = "-";
+    });
+
+    // Reset all LED indicators
+    const leds = document.querySelectorAll(".search-led");
+    leds.forEach((led) => {
+      (led as HTMLElement).dataset.status = "idle";
     });
   }
 }

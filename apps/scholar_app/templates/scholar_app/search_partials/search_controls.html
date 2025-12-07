@@ -5,9 +5,16 @@
     <div class="ctrl-section search-status-section expanded">
         <div class="ctrl-header">
             <span class="ctrl-title">
-                <span id="searchPulseDot" class="green-pulse-dot" style="display: none;"></span>
                 <i class="fas fa-search"></i> Search Status
             </span>
+            <div class="search-status-leds">
+                <span class="search-led" id="ledPubmed" data-source="pubmed" data-status="idle" title="PubMed"></span>
+                <span class="search-led" id="ledArxiv" data-source="arxiv" data-status="idle" title="arXiv"></span>
+                <span class="search-led" id="ledSemantic" data-source="semantic" data-status="idle" title="Semantic"></span>
+                <span class="search-led" id="ledCrossref" data-source="crossref" data-status="idle" title="Crossref"></span>
+                <span class="search-led" id="ledCrossrefLocal" data-source="crossref_local" data-status="idle" title="Crossref Local"></span>
+                <span class="search-led" id="ledOpenalex" data-source="openalex" data-status="idle" title="OpenAlex"></span>
+            </div>
             <i class="fas fa-chevron-down ctrl-chevron"></i>
         </div>
         <div class="ctrl-content">
@@ -334,20 +341,46 @@ Enter a query and press Enter to start.</div>
     max-height: 180px;
 }
 
-/* Green pulsing dot for active search */
-.green-pulse-dot {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--workspace-icon-primary, #059669);
-    animation: pulse-green 1.5s ease-in-out infinite;
-    margin-right: 0.35rem;
+/* Search Status LED indicators */
+.search-status-leds {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+    margin-right: 0.5rem;
 }
 
-@keyframes pulse-green {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(0.85); }
+.search-led {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-muted, #6c757d);
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+    cursor: default;
+}
+
+.search-led[data-status="idle"] {
+    background: var(--text-muted, #6c757d);
+    opacity: 0.5;
+}
+
+.search-led[data-status="searching"] {
+    background: #28a745;
+    animation: led-pulse 1s ease-in-out infinite;
+}
+
+.search-led[data-status="success"] {
+    background: #28a745;
+    box-shadow: 0 0 4px rgba(40, 167, 69, 0.5);
+}
+
+.search-led[data-status="error"] {
+    background: #dc3545;
+}
+
+@keyframes led-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
 }
 
 [data-theme="light"] .source-progress-item {
