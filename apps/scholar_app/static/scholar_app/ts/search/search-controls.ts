@@ -22,13 +22,16 @@ interface SearchPreferences {
     journal: string;
     docType: string;
     language: string;
+    sectionStates: Record<string, boolean>; // section id -> expanded state
 }
 
 // Toggle collapsible section
 function toggleSection(header: HTMLElement): void {
-    const section = header.closest('.ctrl-section');
+    const section = header.closest('.ctrl-section') as HTMLElement | null;
     if (section) {
         section.classList.toggle('expanded');
+        // Save section states after toggle
+        savePreferences();
     }
 }
 
@@ -99,6 +102,7 @@ function savePreferences(): void {
         journal: (document.querySelector('input[name="journal"]') as HTMLInputElement)?.value || '',
         docType: (document.querySelector('select[name="doc_type"]') as HTMLSelectElement)?.value || '',
         language: (document.querySelector('select[name="language"]') as HTMLSelectElement)?.value || '',
+        sectionStates: {},
     };
 
     // Collect source states
@@ -111,6 +115,11 @@ function savePreferences(): void {
         if (item.dataset.field) {
             prefs.sortDirections[item.dataset.field] = item.dataset.direction || 'none';
         }
+    });
+
+    // Collect section expanded states (for sections with IDs)
+    document.querySelectorAll<HTMLElement>('.ctrl-section[id]').forEach(section => {
+        prefs.sectionStates[section.id] = section.classList.contains('expanded');
     });
 
     localStorage.setItem(SEARCH_PREFS_KEY, JSON.stringify(prefs));
@@ -168,6 +177,20 @@ function loadPreferences(): SearchPreferences | null {
         if (prefs.language) {
             const el = document.querySelector<HTMLSelectElement>('select[name="language"]');
             if (el) el.value = prefs.language;
+        }
+
+        // Restore section expanded states
+        if (prefs.sectionStates) {
+            Object.entries(prefs.sectionStates).forEach(([sectionId, isExpanded]) => {
+                const section = document.getElementById(sectionId);
+                if (section) {
+                    if (isExpanded) {
+                        section.classList.add('expanded');
+                    } else {
+                        section.classList.remove('expanded');
+                    }
+                }
+            });
         }
 
         return prefs;

@@ -281,15 +281,23 @@ def api_search_crossref(request):
                 if name:
                     authors.append(name)
 
+            # Extract title safely (CrossRef returns title as list)
+            title_list = item.get("title") or []
+            title = title_list[0] if title_list else ""
+
+            # Extract journal safely
+            journal_list = item.get("container-title") or []
+            journal = journal_list[0] if journal_list else ""
+
             results.append({
-                "title": item.get("title", [""])[0] if item.get("title") else "",
+                "title": title,
                 "authors": ", ".join(authors),
                 "year": year,
-                "journal": item.get("container-title", [""])[0] if item.get("container-title") else "",
-                "doi": item.get("DOI", ""),
+                "journal": journal,
+                "doi": item.get("DOI") or "",
                 "citations": item.get("is-referenced-by-count", 0),
-                "abstract": item.get("abstract", ""),
-                "externalUrl": item.get("URL", ""),
+                "abstract": item.get("abstract") or "",
+                "externalUrl": item.get("URL") or "",
                 "source": "crossref",
             })
 
@@ -351,15 +359,17 @@ def api_search_crossref_local(request):
         # Convert to standard format
         results = []
         for item in data.get("results", []):
+            title = item.get("title") or ""
+            doi = item.get("doi") or ""
             results.append({
-                "title": item.get("title", ""),
-                "authors": item.get("authors", ""),
+                "title": title,
+                "authors": item.get("authors") or "",
                 "year": item.get("year"),
-                "journal": item.get("journal", ""),
-                "doi": item.get("doi", ""),
+                "journal": item.get("journal") or "",
+                "doi": doi,
                 "citations": item.get("citation_count", 0),
                 "abstract": "",
-                "externalUrl": f"https://doi.org/{item.get('doi', '')}" if item.get("doi") else "",
+                "externalUrl": f"https://doi.org/{doi}" if doi else "",
                 "source": "crossref_local",
             })
 
@@ -431,25 +441,31 @@ def api_search_openalex(request):
             abstract = ""
             abstract_idx = item.get("abstract_inverted_index")
             if abstract_idx:
-                words = [""] * (max(max(positions) for positions in abstract_idx.values()) + 1)
-                for word, positions in abstract_idx.items():
-                    for pos in positions:
-                        words[pos] = word
-                abstract = " ".join(words)
+                try:
+                    words = [""] * (max(max(positions) for positions in abstract_idx.values()) + 1)
+                    for word, positions in abstract_idx.items():
+                        for pos in positions:
+                            words[pos] = word
+                    abstract = " ".join(words)
+                except (ValueError, TypeError):
+                    abstract = ""
 
             # Get journal from primary location
             journal = ""
-            primary_loc = item.get("primary_location", {})
+            primary_loc = item.get("primary_location") or {}
             if primary_loc and primary_loc.get("source"):
-                journal = primary_loc["source"].get("display_name", "")
+                journal = primary_loc["source"].get("display_name", "") or ""
 
             # Clean DOI
-            doi = item.get("doi", "") or ""
+            doi = item.get("doi") or ""
             if doi.startswith("https://doi.org/"):
                 doi = doi.replace("https://doi.org/", "")
 
+            # Handle title - ensure it's never None
+            title = item.get("title") or ""
+
             results.append({
-                "title": item.get("title", ""),
+                "title": title,
                 "authors": ", ".join(authors[:5]) + ("..." if len(authors) > 5 else ""),
                 "year": item.get("publication_year"),
                 "journal": journal,

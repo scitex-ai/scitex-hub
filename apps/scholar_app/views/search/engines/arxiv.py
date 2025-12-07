@@ -79,7 +79,8 @@ def search_arxiv_real(query, max_results=15, filters=None):
                     continue
 
                 # Clean up title (remove extra whitespace/newlines)
-                title = " ".join(title_elem.text.strip().split())
+                title_text = title_elem.text if title_elem.text else ""
+                title = " ".join(title_text.strip().split()) if title_text else "Unknown Title"
 
                 # Extract author names
                 author_names = []
@@ -201,24 +202,27 @@ def search_arxiv(query, max_results=50, filters=None):
                 author_names = []
                 for author in authors:
                     name = author.find("atom:name", namespace)
-                    if name is not None:
+                    if name is not None and name.text:
                         author_names.append(name.text)
 
                 year = "2024"
                 if published is not None:
                     try:
-                        year = published.text[:4]
+                        year = published.text[:4] if published.text else "2024"
                     except (IndexError, AttributeError, TypeError):
                         # Failed to extract year from published element, use default
                         pass
 
+                # Safely extract title text
+                title_text = title.text.strip() if title.text else "Unknown Title"
+
                 results.append(
                     {
-                        "title": title.text.strip(),
+                        "title": title_text,
                         "authors": ", ".join(author_names[:3]),  # Limit to 3 authors
                         "year": year,
                         "journal": "arXiv preprint",
-                        "abstract": summary.text.strip() if summary is not None else "",
+                        "abstract": summary.text.strip() if summary is not None and summary.text else "",
                         "pdf_url": pdf_link,
                         "is_open_access": True,
                         "citations": 0,

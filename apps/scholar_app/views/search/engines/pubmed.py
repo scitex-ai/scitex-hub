@@ -129,7 +129,7 @@ def search_pubmed(query, max_results=50, filters=None):
             try:
                 # Extract title
                 title_elem = article.find(".//ArticleTitle")
-                title = title_elem.text if title_elem is not None else "Unknown Title"
+                title = (title_elem.text if title_elem is not None and title_elem.text else "") or "Unknown Title"
 
                 # Extract authors
                 authors = []

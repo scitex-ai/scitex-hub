@@ -20,29 +20,32 @@
                 <i class="fas fa-question-circle"></i>
             </button>
             <div class="search-help-popup" id="searchHelpPopup">
-                <div class="search-help-title">Search Operators</div>
+                <div class="search-help-title">Search Operators <span class="search-help-hint">(click to insert)</span></div>
                 <div class="search-help-content">
                     <div class="search-help-section">
                         <div class="search-help-label">Filter by field</div>
-                        <div class="search-help-example"><code>-t neural</code> → title contains "neural"</div>
-                        <div class="search-help-example"><code>-a Smith</code> → author is "Smith"</div>
-                        <div class="search-help-example"><code>-j Nature</code> → journal is "Nature"</div>
+                        <div class="search-help-example"><code class="search-chip" data-insert="-t ">-t neural</code> → title contains "neural"</div>
+                        <div class="search-help-example"><code class="search-chip" data-insert="-a ">-a Smith</code> → author is "Smith"</div>
+                        <div class="search-help-example"><code class="search-chip" data-insert="-j ">-j Nature</code> → journal is "Nature"</div>
                     </div>
                     <div class="search-help-section">
                         <div class="search-help-label">Exclude with minus prefix</div>
-                        <div class="search-help-example"><code>-t -mouse</code> → title excludes "mouse"</div>
-                        <div class="search-help-example"><code>-a -Jones</code> → author is not "Jones"</div>
+                        <div class="search-help-example"><code class="search-chip" data-insert="-t -">-t -mouse</code> → title excludes "mouse"</div>
+                        <div class="search-help-example"><code class="search-chip" data-insert="-a -">-a -Jones</code> → author is not "Jones"</div>
                     </div>
                     <div class="search-help-section">
                         <div class="search-help-label">Year & metrics range</div>
-                        <div class="search-help-example"><code>-ymin 2020 -ymax 2024</code> → published 2020-2024</div>
-                        <div class="search-help-example"><code>-cmin 100</code> → at least 100 citations</div>
-                        <div class="search-help-example"><code>-ifmin 10</code> → impact factor ≥ 10</div>
+                        <div class="search-help-example"><code class="search-chip" data-insert="-ymin ">-ymin 2020</code> <code class="search-chip" data-insert="-ymax ">-ymax 2024</code> → year range</div>
+                        <div class="search-help-example"><code class="search-chip" data-insert="-cmin ">-cmin 100</code> → at least 100 citations</div>
+                        <div class="search-help-example"><code class="search-chip" data-insert="-ifmin ">-ifmin 10</code> → impact factor ≥ 10</div>
                     </div>
                     <div class="search-help-section">
-                        <div class="search-help-label">Full example</div>
-                        <div class="search-help-example"><code>hippocampus -t human -t -mouse -a Smith -ymin 2020</code></div>
-                        <div class="search-help-meaning">→ Search "hippocampus", title has "human" but not "mouse", by Smith, since 2020</div>
+                        <div class="search-help-label">Quick filters</div>
+                        <div class="search-help-chips">
+                            <code class="search-chip" data-insert="-ymin 2020 ">Since 2020</code>
+                            <code class="search-chip" data-insert="-cmin 50 ">50+ citations</code>
+                            <code class="search-chip" data-insert="-ifmin 5 ">IF ≥ 5</code>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -65,17 +68,181 @@
                 </div>
             {% endif %}
         </div>
+        <!-- Fixed Selection Action Bar -->
+        <div id="selectionActionBar" class="selection-action-bar">
+            <span class="selection-count"><span id="selectedCount">0</span> selected</span>
+            <div class="selection-actions">
+                <button type="button" class="action-btn" id="actionSaveSelected" title="Save to project">
+                    <i class="fas fa-save"></i> Save
+                </button>
+                <button type="button" class="action-btn" id="actionExportBibtex" title="Export BibTeX">
+                    <i class="fas fa-download"></i> BibTeX
+                </button>
+                <button type="button" class="action-btn" id="actionOpenUrls" title="Open URLs">
+                    <i class="fas fa-external-link-alt"></i> Open URLs
+                </button>
+                <button type="button" class="action-btn action-btn--clear" id="actionClearSelection" title="Clear selection">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
         <!-- Progressive Results Container (JavaScript populates this) -->
         <div id="progressiveResults" class="progressive-results"></div>
     </form>
 </div>
 
 <style>
+/* Selection Action Bar - Fixed at top when items selected */
+.selection-action-bar {
+    display: none;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg-secondary, #1a1a1a);
+    border: 1px solid var(--scitex-color-04, #4a8eb0);
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    margin-bottom: 0.75rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.selection-action-bar.visible {
+    display: flex;
+}
+
+.selection-count {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--scitex-color-04, #4a8eb0);
+}
+
+.selection-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-primary, #d4e1e8);
+    background: var(--bg-tertiary, #252525);
+    border: 1px solid var(--border-color, #3a3a3a);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.action-btn:hover {
+    background: var(--scitex-color-04, #4a8eb0);
+    border-color: var(--scitex-color-04, #4a8eb0);
+    color: #fff;
+}
+
+.action-btn i {
+    font-size: 0.75rem;
+}
+
+.action-btn--clear {
+    padding: 0.4rem 0.5rem;
+    color: var(--text-muted, #6c8ba0);
+    background: transparent;
+    border-color: transparent;
+}
+
+.action-btn--clear:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    border-color: transparent;
+}
+
+[data-theme="light"] .selection-action-bar {
+    background: var(--bg-secondary, #f8f9fa);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .action-btn {
+    background: var(--bg-tertiary, #e9ecef);
+    color: var(--text-primary, #1a2a40);
+}
+
 /* Progressive results container */
 .progressive-results {
     display: none;
     margin-top: 0;
     padding-top: 0;
+}
+
+/* Results header toolbar */
+.progressive-results .results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-muted, #3a3a3a);
+}
+.progressive-results .results-info {
+    font-size: 0.85rem;
+    color: var(--text-secondary, #9ca3af);
+}
+.progressive-results .results-count {
+    font-weight: 500;
+}
+.progressive-results .results-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.toolbar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-secondary, #9ca3af);
+    background: var(--bg-secondary, #1a1a1a);
+    border: 1px solid var(--border-color, #3a3a3a);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.toolbar-btn:hover:not(:disabled) {
+    color: var(--text-primary, #d4e1e8);
+    border-color: var(--scitex-color-04, #6c8ba0);
+    background: var(--bg-tertiary, #252525);
+}
+.toolbar-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+.toolbar-btn--primary {
+    color: var(--workspace-icon-primary, #059669);
+    border-color: var(--workspace-icon-primary, #059669);
+}
+.toolbar-btn--primary:hover:not(:disabled) {
+    background: rgba(5, 150, 105, 0.15);
+    color: var(--workspace-icon-primary, #059669);
+}
+.toolbar-btn i {
+    font-size: 0.7rem;
+}
+[data-theme="light"] .toolbar-btn {
+    background: var(--bg-secondary, #f3f4f6);
+    border-color: var(--border-color, #d0d7de);
+    color: var(--text-secondary, #586069);
+}
+[data-theme="light"] .toolbar-btn:hover:not(:disabled) {
+    background: var(--bg-tertiary, #e9ecef);
+    color: var(--text-primary, #1a2a40);
 }
 
 /* Hide empty state completely when searching */
@@ -197,9 +364,36 @@
     font-size: 0.75rem;
     color: var(--text-muted, #6c8ba0);
     line-height: 1.4;
-    max-height: 2.8em;
+    /* Truncated by default - single line */
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
+    max-height: 1.4em;
+    transition: max-height 0.2s ease;
+}
+
+.progressive-results .result-snippet.expandable {
+    cursor: pointer;
+}
+
+.progressive-results .result-snippet.expandable:hover {
+    color: var(--text-secondary, #9ca3af);
+}
+
+.progressive-results .result-snippet.expanded {
+    /* Expanded - show full abstract */
+    -webkit-line-clamp: unset;
+    max-height: none;
+    overflow: visible;
+}
+
+.progressive-results .result-rank-hint {
+    font-size: 0.65rem;
+    color: var(--text-muted, #6c8ba0);
+    margin-top: 0.35rem;
+    opacity: 0.7;
 }
 
 .progressive-results .result-right {
@@ -396,12 +590,48 @@
 [data-theme="light"] .search-help-content code {
     background: var(--bg-muted, #e9ecef);
 }
+
+/* Clickable search chips */
+.search-help-hint {
+    font-size: 0.65rem;
+    font-weight: 400;
+    color: var(--text-muted, #6c8ba0);
+}
+
+.search-chip {
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+}
+
+.search-chip:hover {
+    background: var(--scitex-color-04, #4a8eb0) !important;
+    color: #fff !important;
+    border-color: var(--scitex-color-04, #4a8eb0);
+}
+
+.search-chip:active {
+    transform: scale(0.95);
+}
+
+.search-help-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.35rem;
+}
+
+.search-help-chips .search-chip {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+}
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const helpBtn = document.getElementById('searchHelpBtn');
     const helpPopup = document.getElementById('searchHelpPopup');
+    const searchInput = document.querySelector('.search-input');
 
     if (helpBtn && helpPopup) {
         helpBtn.addEventListener('click', function(e) {
@@ -414,6 +644,32 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!helpPopup.contains(e.target) && e.target !== helpBtn) {
                 helpPopup.classList.remove('show');
             }
+        });
+
+        // Handle chip clicks - insert command into search input
+        helpPopup.querySelectorAll('.search-chip').forEach(function(chip) {
+            chip.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const insertText = this.dataset.insert;
+                if (insertText && searchInput) {
+                    // Insert at cursor position or end
+                    const cursorPos = searchInput.selectionStart || searchInput.value.length;
+                    const currentValue = searchInput.value;
+                    const needsSpace = cursorPos > 0 && currentValue[cursorPos - 1] !== ' ';
+                    const prefix = needsSpace ? ' ' : '';
+
+                    searchInput.value = currentValue.slice(0, cursorPos) + prefix + insertText + currentValue.slice(cursorPos);
+
+                    // Focus and move cursor to end of inserted text
+                    searchInput.focus();
+                    const newPos = cursorPos + prefix.length + insertText.length;
+                    searchInput.setSelectionRange(newPos, newPos);
+
+                    // Flash feedback
+                    this.style.background = 'var(--workspace-icon-primary, #059669)';
+                    setTimeout(() => { this.style.background = ''; }, 150);
+                }
+            });
         });
     }
 });

@@ -97,8 +97,9 @@ class SearchLogManager {
     status: "searching" | "success" | "error" | "idle",
     count?: number | string,
   ): void {
+    // Find source item (now integrated into source-item elements)
     const item = document.querySelector(
-      `.source-progress-item[data-source="${sourceName}"]`,
+      `.source-item[data-source="${sourceName}"]`,
     ) as HTMLElement | null;
     if (!item) return;
 
@@ -132,20 +133,21 @@ class SearchLogManager {
         break;
       case "idle":
         if (spinner) spinner.style.display = "none";
-        if (countEl) countEl.textContent = "-";
+        if (countEl) countEl.textContent = "";
         break;
     }
   }
 
   resetAllSources(): void {
-    const items = document.querySelectorAll(".source-progress-item");
+    // Reset source items (integrated status)
+    const items = document.querySelectorAll(".source-item[data-source]");
     items.forEach((item) => {
       const el = item as HTMLElement;
       el.classList.remove("searching", "success", "error");
       const spinner = el.querySelector(".spinner-border") as HTMLElement | null;
       const count = el.querySelector(".count") as HTMLElement | null;
       if (spinner) spinner.style.display = "none";
-      if (count) count.textContent = "-";
+      if (count) count.textContent = "";
     });
 
     // Reset all LED indicators
@@ -186,6 +188,330 @@ interface SourceConfig {
   name: string;
   endpoint: string;
   maxResults: number;
+}
+
+/**
+ * Create results header with toolbar buttons
+ */
+function createResultsHeader(query: string): string {
+  return `
+    <div class="results-header" id="progressiveResultsHeader">
+      <div class="results-info">
+        <span class="results-count" id="progressiveResultsText">Searching for "${query}"...</span>
+      </div>
+      <div class="results-toolbar">
+        <button type="button" class="toolbar-btn" id="abstractToggleBtn" data-mode="truncated" title="Toggle abstract display">
+          Abstract: truncated
+        </button>
+        <button type="button" class="toolbar-btn" id="saveSelectedBtn" title="Save selected to library" disabled>
+          <i class="fas fa-save"></i> Save
+        </button>
+        <button type="button" class="toolbar-btn" id="openUrlsBtn" title="Open selected in new tabs" disabled>
+          <i class="fas fa-external-link-alt"></i> Open URLs
+        </button>
+        <button type="button" class="toolbar-btn toolbar-btn--primary" id="exportSelectedBibtex" title="Download BibTeX for selected" disabled>
+          <i class="fas fa-download"></i> BibTeX
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Update results count in header
+ */
+function updateResultsCount(count: number, query: string, sourcesInfo?: string): void {
+  const textEl = document.getElementById("progressiveResultsText");
+  if (textEl) {
+    const sourceText = sourcesInfo ? ` from ${sourcesInfo}` : "";
+    textEl.textContent = `${count} result${count !== 1 ? "s" : ""} for "${query}"${sourceText}`;
+  }
+}
+
+/**
+ * Get selected papers data from result cards
+ */
+function getSelectedPapers(): Array<{
+  title: string;
+  url: string;
+  authors: string;
+  journal: string;
+  year: string;
+  abstract: string;
+  doi: string;
+  source: string;
+}> {
+  const selected: Array<{
+    title: string;
+    url: string;
+    authors: string;
+    journal: string;
+    year: string;
+    abstract: string;
+    doi: string;
+    source: string;
+  }> = [];
+
+  document.querySelectorAll(".result-card").forEach((card) => {
+    const checkbox = card.querySelector(".paper-select") as HTMLInputElement | null;
+    if (checkbox && checkbox.checked) {
+      const titleEl = card.querySelector(".result-title a") as HTMLAnchorElement | null;
+      const metaEl = card.querySelector(".result-meta") as HTMLElement | null;
+      const snippetEl = card.querySelector(".result-snippet") as HTMLElement | null;
+      const yearEl = card.querySelector(".year-badge") as HTMLElement | null;
+      const cardEl = card as HTMLElement;
+
+      selected.push({
+        title: titleEl?.textContent?.trim() || "Unknown",
+        url: titleEl?.href || "",
+        authors: metaEl?.querySelector(".authors")?.textContent?.trim() || "",
+        journal: metaEl?.querySelector(".journal-badge")?.textContent?.trim() || "",
+        year: yearEl?.textContent?.trim() || "",
+        abstract: snippetEl?.dataset?.fullAbstract || snippetEl?.textContent?.trim() || "",
+        doi: cardEl.dataset?.doi || "",
+        source: metaEl?.querySelector(".source-badge")?.textContent?.trim() || "",
+      });
+    }
+  });
+  return selected;
+}
+
+/**
+ * Generate BibTeX key from paper data
+ */
+function generateBibtexKey(paper: { authors: string; year: string; title: string }): string {
+  const firstAuthor = (paper.authors || "unknown").split(",")[0].split(" ").pop() || "unknown";
+  const year = paper.year || "XXXX";
+  const titleWord = (paper.title || "untitled").split(" ")[0].toLowerCase().replace(/[^a-z]/g, "");
+  return `${firstAuthor.toLowerCase()}${year}${titleWord}`;
+}
+
+/**
+ * Update toolbar button states based on selection
+ */
+function updateToolbarState(): void {
+  const selectedCount = document.querySelectorAll(".result-card .paper-select:checked").length;
+
+  // Update legacy toolbar buttons
+  const buttons = ["saveSelectedBtn", "openUrlsBtn", "exportSelectedBibtex"];
+  buttons.forEach((id) => {
+    const btn = document.getElementById(id) as HTMLButtonElement | null;
+    if (btn) btn.disabled = selectedCount === 0;
+  });
+
+  // Update fixed selection action bar
+  const actionBar = document.getElementById("selectionActionBar");
+  const countEl = document.getElementById("selectedCount");
+  if (actionBar) {
+    if (selectedCount > 0) {
+      actionBar.classList.add("visible");
+      if (countEl) countEl.textContent = String(selectedCount);
+    } else {
+      actionBar.classList.remove("visible");
+    }
+  }
+}
+
+/**
+ * Select or deselect all result cards
+ */
+function toggleSelectAll(selectAll: boolean): void {
+  document.querySelectorAll(".result-card").forEach((card) => {
+    const checkbox = card.querySelector(".paper-select") as HTMLInputElement | null;
+    if (checkbox) {
+      checkbox.checked = selectAll;
+      updateCardSelectedState(card as HTMLElement, selectAll);
+    }
+  });
+  updateToolbarState();
+}
+
+/**
+ * Setup keyboard shortcuts for search results
+ */
+function setupKeyboardShortcuts(): void {
+  document.addEventListener("keydown", (e: KeyboardEvent) => {
+    // Ctrl+A / Cmd+A to select all cards (only when not in input/textarea)
+    if ((e.ctrlKey || e.metaKey) && e.key === "a") {
+      const activeEl = document.activeElement;
+      const isInInput = activeEl?.tagName === "INPUT" || activeEl?.tagName === "TEXTAREA";
+
+      // Only handle if we have results and not focused on input
+      const hasResults = document.querySelectorAll(".result-card").length > 0;
+      if (hasResults && !isInInput) {
+        e.preventDefault();
+
+        // Toggle: if all selected, deselect all; otherwise select all
+        const allCards = document.querySelectorAll(".result-card");
+        const selectedCards = document.querySelectorAll(".result-card .paper-select:checked");
+        const allSelected = allCards.length === selectedCards.length && allCards.length > 0;
+
+        toggleSelectAll(!allSelected);
+      }
+    }
+  });
+}
+
+/**
+ * Setup toolbar button handlers
+ */
+function setupToolbarHandlers(): void {
+  // Abstract toggle button
+  document.getElementById("abstractToggleBtn")?.addEventListener("click", function (this: HTMLElement) {
+    const modes = ["truncated", "full", "none"];
+    const currentMode = this.dataset.mode || "truncated";
+    const nextIndex = (modes.indexOf(currentMode) + 1) % modes.length;
+    const nextMode = modes[nextIndex];
+    this.dataset.mode = nextMode;
+    this.textContent = "Abstract: " + (nextMode === "none" ? "no" : nextMode);
+
+    document.querySelectorAll(".result-snippet").forEach((el) => {
+      const snippetEl = el as HTMLElement;
+      if (nextMode === "none") {
+        snippetEl.style.display = "none";
+      } else if (nextMode === "full") {
+        snippetEl.style.display = "block";
+        snippetEl.classList.add("expanded");
+        snippetEl.dataset.expanded = "true";
+      } else {
+        snippetEl.style.display = "block";
+        snippetEl.classList.remove("expanded");
+        snippetEl.dataset.expanded = "false";
+      }
+    });
+  });
+
+  // Save Selected button
+  document.getElementById("saveSelectedBtn")?.addEventListener("click", function () {
+    const papers = getSelectedPapers();
+    if (papers.length === 0) {
+      alert("No papers selected. Click on papers to select them.");
+      return;
+    }
+    const saved = JSON.parse(localStorage.getItem("scitex_saved_papers") || "[]");
+    const newPapers = papers.filter((p) => !saved.some((s: { title: string }) => s.title === p.title));
+    saved.push(...newPapers);
+    localStorage.setItem("scitex_saved_papers", JSON.stringify(saved));
+    alert(`Saved ${newPapers.length} paper(s) to library. (${papers.length - newPapers.length} already saved)`);
+  });
+
+  // Open URLs button
+  document.getElementById("openUrlsBtn")?.addEventListener("click", function () {
+    const papers = getSelectedPapers();
+    if (papers.length === 0) {
+      alert("No papers selected. Click on papers to select them.");
+      return;
+    }
+    if (papers.length > 10) {
+      if (!confirm(`Open ${papers.length} URLs? This may be blocked by your browser.`)) return;
+    }
+    papers.forEach((paper, i) => {
+      if (paper.url && paper.url !== "#") {
+        setTimeout(() => window.open(paper.url, "_blank"), i * 100);
+      }
+    });
+  });
+
+  // BibTeX export button
+  document.getElementById("exportSelectedBibtex")?.addEventListener("click", function () {
+    const papers = getSelectedPapers();
+    if (papers.length === 0) {
+      alert("No papers selected. Click on papers to select them.");
+      return;
+    }
+
+    const bibtexEntries = papers.map((paper) => {
+      const key = generateBibtexKey(paper);
+      const authors = paper.authors || "Unknown";
+      const title = paper.title || "Unknown";
+      const journal = paper.journal?.replace(/\s*\(IF.*\)/, "") || "";
+      const year = paper.year || "";
+      const doi = paper.doi || "";
+      const abstract = paper.abstract || "";
+
+      let entry = `@article{${key},\n`;
+      entry += `  author = {${authors}},\n`;
+      entry += `  title = {${title}},\n`;
+      if (journal) entry += `  journal = {${journal}},\n`;
+      if (year) entry += `  year = {${year}},\n`;
+      if (doi) entry += `  doi = {${doi}},\n`;
+      if (abstract) entry += `  abstract = {${abstract.substring(0, 500)}${abstract.length > 500 ? "..." : ""}},\n`;
+      entry += `}`;
+      return entry;
+    });
+
+    const bibtexContent = bibtexEntries.join("\n\n");
+    const blob = new Blob([bibtexContent], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `scitex_export_${new Date().toISOString().slice(0, 10)}.bib`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  // === Fixed Selection Action Bar Handlers ===
+
+  // Action bar: Save Selected
+  document.getElementById("actionSaveSelected")?.addEventListener("click", function () {
+    const papers = getSelectedPapers();
+    if (papers.length === 0) return;
+    const saved = JSON.parse(localStorage.getItem("scitex_saved_papers") || "[]");
+    const newPapers = papers.filter((p) => !saved.some((s: { title: string }) => s.title === p.title));
+    saved.push(...newPapers);
+    localStorage.setItem("scitex_saved_papers", JSON.stringify(saved));
+    alert(`Saved ${newPapers.length} paper(s) to library. (${papers.length - newPapers.length} already saved)`);
+  });
+
+  // Action bar: Export BibTeX
+  document.getElementById("actionExportBibtex")?.addEventListener("click", function () {
+    const papers = getSelectedPapers();
+    if (papers.length === 0) return;
+
+    const bibtexEntries = papers.map((paper) => {
+      const key = generateBibtexKey(paper);
+      let entry = `@article{${key},\n`;
+      entry += `  author = {${paper.authors || "Unknown"}},\n`;
+      entry += `  title = {${paper.title || "Unknown"}},\n`;
+      if (paper.journal) entry += `  journal = {${paper.journal.replace(/\s*\(IF.*\)/, "")}},\n`;
+      if (paper.year) entry += `  year = {${paper.year}},\n`;
+      if (paper.doi) entry += `  doi = {${paper.doi}},\n`;
+      entry += `}`;
+      return entry;
+    });
+
+    const bibtexContent = bibtexEntries.join("\n\n");
+    const blob = new Blob([bibtexContent], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `scitex_export_${new Date().toISOString().slice(0, 10)}.bib`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  // Action bar: Open URLs
+  document.getElementById("actionOpenUrls")?.addEventListener("click", function () {
+    const papers = getSelectedPapers();
+    if (papers.length === 0) return;
+    if (papers.length > 10) {
+      if (!confirm(`Open ${papers.length} URLs? This may be blocked by your browser.`)) return;
+    }
+    papers.forEach((paper, i) => {
+      if (paper.url && paper.url !== "#") {
+        setTimeout(() => window.open(paper.url, "_blank"), i * 100);
+      }
+    });
+  });
+
+  // Action bar: Clear Selection
+  document.getElementById("actionClearSelection")?.addEventListener("click", function () {
+    toggleSelectAll(false);
+  });
 }
 
 // Initialize on DOM ready
@@ -241,6 +567,11 @@ document.addEventListener("DOMContentLoaded", function () {
     if (progressiveResults) {
       progressiveResults.style.display = "block";
       progressiveResults.innerHTML = "";
+      // Add dynamic results header with toolbar
+      const headerHtml = createResultsHeader(query);
+      progressiveResults.insertAdjacentHTML("beforeend", headerHtml);
+      // Setup toolbar handlers after header is created
+      setupToolbarHandlers();
     }
 
     // Reset progress indicators
@@ -260,18 +591,25 @@ document.addEventListener("DOMContentLoaded", function () {
     startUnifiedSearch(query);
   });
 
+  // Setup keyboard shortcuts (Ctrl+A for select all)
+  setupKeyboardShortcuts();
+
   console.log("[SciTeX Search] Initialization complete");
 });
 
 // Track active searches for completion detection
 let activeSearches = 0;
 let totalResults = 0;
+let currentSearchQuery = "";
 
 /**
  * Start unified search across all sources
  */
 function startUnifiedSearch(query: string): void {
   console.log("[SciTeX Search] Starting unified search for:", query);
+
+  // Store query for results count update
+  currentSearchQuery = query;
 
   // Initialize search log
   searchLog.clear();
@@ -349,6 +687,8 @@ function startUnifiedSearch(query: string): void {
  */
 function checkSearchCompletion(): void {
   activeSearches--;
+  // Update results count header as results come in
+  updateResultsCount(totalResults, currentSearchQuery);
   if (activeSearches <= 0) {
     searchLog.hideSearching();
     searchLog.log(`✓ Search complete. Total: ${totalResults} results`);
@@ -415,6 +755,9 @@ function addResultToProgressive(result: SearchResult): void {
 
   // Setup selection handlers
   setupCardSelectionHandlers(resultCard);
+
+  // Update toolbar state (buttons become enabled when results are available)
+  updateToolbarState();
 
   // Animate
   resultCard.style.opacity = "0";
@@ -483,6 +826,8 @@ function updateCardSelectedState(card: HTMLElement, selected: boolean): void {
   } else {
     card.classList.remove("selected");
   }
+  // Update toolbar button states
+  updateToolbarState();
 }
 
 /**
@@ -509,22 +854,40 @@ function createResultCard(result: SearchResult): HTMLElement {
     metaParts.push(`<span class="journal-badge">${result.journal}${ifText}</span>`);
   }
   if (result.citations && result.citations > 0) {
-    metaParts.push(`<span class="citations">${result.citations}</span>`);
+    const formattedCitations = result.citations.toLocaleString();
+    metaParts.push(`<span class="citations">${formattedCitations}</span>`);
   }
   // Source badge
   if (result.source) {
     metaParts.push(`<span class="source-badge">${result.source.toUpperCase()}</span>`);
   }
 
-  // Truncate abstract
-  let snippet = result.abstract || "";
-  if (snippet.length > 150) {
-    snippet = snippet.substring(0, 150) + "...";
-  }
-  if (!snippet) snippet = "...";
+  // Abstract - store full text for expansion
+  const fullAbstract = result.abstract || "";
+  const hasAbstract = fullAbstract.length > 0;
 
   // External URL
   const externalUrl = result.externalUrl || (result.doi ? `https://doi.org/${result.doi}` : "#");
+
+  // Escape HTML in abstract to prevent XSS
+  const escapeHtml = (text: string): string => {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  };
+
+  // Build ranking reasons for "why this rank?" hint
+  const rankReasons: string[] = [];
+  if (result.title) rankReasons.push("title");
+  if (hasAbstract) rankReasons.push("abstract");
+  if (result.citations && result.citations >= 100) rankReasons.push("high citations");
+  else if (result.citations && result.citations >= 10) rankReasons.push("citations");
+  const currentYear = new Date().getFullYear();
+  const resultYear = parseInt(String(result.year)) || 0;
+  if (resultYear >= currentYear - 2) rankReasons.push("recent");
+  if (result.impact_factor && parseFloat(String(result.impact_factor)) >= 5) rankReasons.push("high IF");
+
+  const rankHint = rankReasons.length > 0 ? `Matches: ${rankReasons.join(" • ")}` : "";
 
   cardDiv.innerHTML = `
     <div class="result-checkbox">
@@ -537,7 +900,8 @@ function createResultCard(result: SearchResult): HTMLElement {
       <div class="result-meta">
         ${metaParts.join(" · ")}
       </div>
-      <div class="result-snippet">${snippet}</div>
+      <div class="result-snippet ${hasAbstract ? 'expandable' : ''}" data-full-abstract="${escapeHtml(fullAbstract)}" data-expanded="false">${hasAbstract ? escapeHtml(fullAbstract) : '...'}</div>
+      ${rankHint ? `<div class="result-rank-hint">${rankHint}</div>` : ''}
     </div>
     <div class="result-right">
       <span class="year-badge">${result.year || "—"}</span>
@@ -548,6 +912,17 @@ function createResultCard(result: SearchResult): HTMLElement {
       </div>
     </div>
   `;
+
+  // Setup abstract expansion handler
+  const snippetEl = cardDiv.querySelector('.result-snippet.expandable') as HTMLElement | null;
+  if (snippetEl) {
+    snippetEl.addEventListener('click', (e: MouseEvent) => {
+      e.stopPropagation(); // Prevent card selection
+      const isExpanded = snippetEl.dataset.expanded === 'true';
+      snippetEl.dataset.expanded = isExpanded ? 'false' : 'true';
+      snippetEl.classList.toggle('expanded', !isExpanded);
+    });
+  }
 
   return cardDiv;
 }

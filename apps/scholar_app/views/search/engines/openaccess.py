@@ -64,13 +64,11 @@ def search_doaj(query, max_results=50, filters=None):
 
                 results.append(
                     {
-                        "title": bibjson.get("title", f"DOAJ Article {i + 1}"),
+                        "title": bibjson.get("title") or f"DOAJ Article {i + 1}",
                         "authors": ", ".join(authors) if authors else "DOAJ Authors",
-                        "year": str(bibjson.get("year", 2024)),
-                        "journal": journal_name,
-                        "abstract": bibjson.get(
-                            "abstract", f"Open access article about {query} from DOAJ"
-                        ),
+                        "year": str(bibjson.get("year") or 2024),
+                        "journal": journal_name or "DOAJ Journal",
+                        "abstract": bibjson.get("abstract") or f"Open access article about {query} from DOAJ",
                         "pdf_url": "",  # DOAJ doesn't always provide direct PDF links
                         "is_open_access": True,
                         "citations": 0,  # DOAJ doesn't provide citation counts
@@ -121,14 +119,12 @@ def search_biorxiv(query, max_results=50, filters=None):
             for i, paper in enumerate(filtered_papers):
                 results.append(
                     {
-                        "title": paper.get("title", f"bioRxiv Preprint {i + 1}"),
-                        "authors": paper.get("authors", "bioRxiv Authors"),
-                        "year": paper.get("date", "2024")[:4],
+                        "title": paper.get("title") or f"bioRxiv Preprint {i + 1}",
+                        "authors": paper.get("authors") or "bioRxiv Authors",
+                        "year": (paper.get("date") or "2024")[:4],
                         "journal": "bioRxiv",
-                        "abstract": paper.get(
-                            "abstract", f"bioRxiv preprint about {query}"
-                        ),
-                        "pdf_url": f"https://www.biorxiv.org/content/{paper.get('doi', '')}.full.pdf",
+                        "abstract": paper.get("abstract") or f"bioRxiv preprint about {query}",
+                        "pdf_url": f"https://www.biorxiv.org/content/{paper.get('doi') or ''}.full.pdf",
                         "is_open_access": True,
                         "citations": 0,
                         "source": "biorxiv",
@@ -176,20 +172,32 @@ def search_plos(query, max_results=50, filters=None):
                 pub_date = doc.get("publication_date", "2024-01-01T00:00:00Z")
                 year = pub_date[:4] if pub_date else "2024"
 
+                # Extract title safely (can be list or string or None)
+                title_raw = doc.get("title")
+                if isinstance(title_raw, list) and title_raw:
+                    title = title_raw[0]
+                elif title_raw:
+                    title = title_raw
+                else:
+                    title = f"PLOS Article {i + 1}"
+
+                # Extract abstract safely (can be list or string or None)
+                abstract_raw = doc.get("abstract")
+                if isinstance(abstract_raw, list) and abstract_raw:
+                    abstract = abstract_raw[0]
+                elif abstract_raw:
+                    abstract = abstract_raw
+                else:
+                    abstract = f"PLOS article about {query}"
+
                 results.append(
                     {
-                        "title": doc.get("title", [f"PLOS Article {i + 1}"])[0]
-                        if isinstance(doc.get("title"), list)
-                        else doc.get("title", f"PLOS Article {i + 1}"),
+                        "title": title,
                         "authors": ", ".join(authors) if authors else "PLOS Authors",
                         "year": year,
-                        "journal": doc.get("journal", "PLOS Journal"),
-                        "abstract": doc.get(
-                            "abstract", [f"PLOS article about {query}"]
-                        )[0]
-                        if isinstance(doc.get("abstract"), list)
-                        else doc.get("abstract", f"PLOS article about {query}"),
-                        "pdf_url": f"https://journals.plos.org/plosone/article/file?id={doc.get('id', '')}&type=printable",
+                        "journal": doc.get("journal") or "PLOS Journal",
+                        "abstract": abstract,
+                        "pdf_url": f"https://journals.plos.org/plosone/article/file?id={doc.get('id') or ''}&type=printable",
                         "is_open_access": True,
                         "citations": 0,  # PLOS API doesn't provide citation counts directly
                         "source": "plos",

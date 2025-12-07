@@ -235,31 +235,28 @@ def search_with_scitex_scholar(
                     ", ".join(authors) if isinstance(authors, list) else str(authors)
                 )
 
+                abstract = paper.get("abstract") or ""
                 result = {
-                    "title": paper.get("title", "Unknown Title"),
+                    "title": paper.get("title") or "Unknown Title",
                     "authors": authors_str,
-                    "year": paper.get("year", "2024"),
-                    "journal": paper.get("journal", "Unknown Journal"),
-                    "abstract": paper.get("abstract", "No abstract available."),
-                    "full_abstract": paper.get("abstract", ""),
-                    "snippet": (
-                        paper.get("abstract", "No abstract available.")[:200] + "..."
-                    )
-                    if paper.get("abstract")
-                    else "No abstract available.",
-                    "external_url": paper.get("external_url", ""),
-                    "pdf_url": paper.get("pdf_url", ""),
-                    "doi": paper.get("doi", ""),
-                    "pmid": paper.get("pmid", ""),
-                    "arxiv_id": paper.get("arxiv_id", ""),
-                    "citations": paper.get("citation_count", 0),
-                    "citation_count": paper.get("citation_count", 0),
+                    "year": paper.get("year") or "2024",
+                    "journal": paper.get("journal") or "Unknown Journal",
+                    "abstract": abstract or "No abstract available.",
+                    "full_abstract": abstract,
+                    "snippet": (abstract[:200] + "...") if abstract else "No abstract available.",
+                    "external_url": paper.get("external_url") or "",
+                    "pdf_url": paper.get("pdf_url") or "",
+                    "doi": paper.get("doi") or "",
+                    "pmid": paper.get("pmid") or "",
+                    "arxiv_id": paper.get("arxiv_id") or "",
+                    "citations": paper.get("citation_count") or 0,
+                    "citation_count": paper.get("citation_count") or 0,
                     "citation_source": paper.get("source_engines", ["scitex"])[0]
                     if paper.get("source_engines")
                     else "scitex",
                     "is_open_access": paper.get("is_open_access", False),
                     "source": "scitex_parallel",
-                    "source_engines": paper.get("source_engines", []),
+                    "source_engines": paper.get("source_engines") or [],
                     "impact_factor": paper.get("impact_factor"),
                 }
                 results.append(result)

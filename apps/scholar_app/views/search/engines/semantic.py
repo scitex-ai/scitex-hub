@@ -69,14 +69,14 @@ def search_semantic_scholar(query, max_results=100, filters=None):
 
                 results.append(
                     {
-                        "title": paper.get("title", "Unknown Title"),
+                        "title": paper.get("title") or "Unknown Title",
                         "authors": ", ".join(authors),
-                        "year": str(paper.get("year", "2024")),
+                        "year": str(paper.get("year") or "2024"),
                         "journal": journal_name,
-                        "abstract": paper.get("abstract", ""),
+                        "abstract": paper.get("abstract") or "",
                         "pdf_url": pdf_url,
                         "is_open_access": bool(pdf_url),
-                        "citations": paper.get("citationCount", 0),
+                        "citations": paper.get("citationCount") or 0,
                         "source": "semantic_scholar",
                     }
                 )

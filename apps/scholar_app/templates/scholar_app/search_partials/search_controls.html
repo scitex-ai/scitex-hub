@@ -1,11 +1,11 @@
 {% load static vite %}
 <!-- Search Controls for Right Panel -->
 <div class="search-controls-panel">
-    <!-- Search Status -->
-    <div class="ctrl-section search-status-section expanded">
+    <!-- Sources & Status (combined) -->
+    <div class="ctrl-section search-status-section expanded" id="section-sources">
         <div class="ctrl-header">
             <span class="ctrl-title">
-                <i class="fas fa-search"></i> Search Status
+                <i class="fas fa-database"></i> Sources
             </span>
             <div class="search-status-leds">
                 <span class="search-led" id="ledPubmed" data-source="pubmed" data-status="idle" title="PubMed"></span>
@@ -18,32 +18,49 @@
             <i class="fas fa-chevron-down ctrl-chevron"></i>
         </div>
         <div class="ctrl-content">
-            <!-- Per-source progress -->
-            <div id="sourceProgressList" class="source-progress-list">
-                <div class="source-progress-item" data-source="pubmed">
-                    <span class="source-name">PubMed</span>
-                    <span class="source-status"><span class="spinner-border spinner-border-sm" style="display: none;"></span><span class="count">-</span></span>
-                </div>
-                <div class="source-progress-item" data-source="arxiv">
-                    <span class="source-name">arXiv</span>
-                    <span class="source-status"><span class="spinner-border spinner-border-sm" style="display: none;"></span><span class="count">-</span></span>
-                </div>
-                <div class="source-progress-item" data-source="semantic">
-                    <span class="source-name">Semantic</span>
-                    <span class="source-status"><span class="spinner-border spinner-border-sm" style="display: none;"></span><span class="count">-</span></span>
-                </div>
-                <div class="source-progress-item" data-source="crossref">
-                    <span class="source-name">Crossref</span>
-                    <span class="source-status"><span class="spinner-border spinner-border-sm" style="display: none;"></span><span class="count">-</span></span>
-                </div>
-                <div class="source-progress-item" data-source="crossref_local">
-                    <span class="source-name">Crossref (SciTeX)</span>
-                    <span class="source-status"><span class="spinner-border spinner-border-sm" style="display: none;"></span><span class="count">-</span></span>
-                </div>
-                <div class="source-progress-item" data-source="openalex">
-                    <span class="source-name">OpenAlex</span>
-                    <span class="source-status"><span class="spinner-border spinner-border-sm" style="display: none;"></span><span class="count">-</span></span>
-                </div>
+            <!-- Source toggles with inline status -->
+            <div class="source-grid" id="sourceProgressList">
+                <label class="source-item"><input type="checkbox" class="all-sources-toggle" id="source_all_toggle" form="literatureSearchForm" checked /><span>All</span></label>
+                <label class="source-item source-active" data-source="pubmed" title="NCBI PubMed - biomedical literature">
+                    <input type="checkbox" class="source-toggle" name="source_pubmed" form="literatureSearchForm" value="pubmed" checked />
+                    <span>PubMed</span>
+                    <small class="rate-limit">3/s</small>
+                    <span class="source-status"><span class="spinner-border spinner-border-sm"></span><span class="count"></span></span>
+                </label>
+                <label class="source-item source-active" data-source="arxiv" title="arXiv - physics, math, CS preprints">
+                    <input type="checkbox" class="source-toggle" name="source_arxiv" form="literatureSearchForm" value="arxiv" checked />
+                    <span>arXiv</span>
+                    <small class="rate-limit">3/s</small>
+                    <span class="source-status"><span class="spinner-border spinner-border-sm"></span><span class="count"></span></span>
+                </label>
+                <label class="source-item source-active" data-source="semantic" title="Semantic Scholar - AI-powered academic search">
+                    <input type="checkbox" class="source-toggle" name="source_semantic" form="literatureSearchForm" value="semantic" checked />
+                    <span>Semantic</span>
+                    <small class="rate-limit">1/s</small>
+                    <span class="source-status"><span class="spinner-border spinner-border-sm"></span><span class="count"></span></span>
+                </label>
+                <label class="source-item source-active" data-source="crossref" title="Crossref - DOI metadata registry">
+                    <input type="checkbox" class="source-toggle" name="source_crossref" form="literatureSearchForm" value="crossref" checked />
+                    <span>Crossref</span>
+                    <small class="rate-limit">50/s</small>
+                    <span class="source-status"><span class="spinner-border spinner-border-sm"></span><span class="count"></span></span>
+                </label>
+                <label class="source-item source-active" data-source="crossref_local" title="CrossRef database running locally on SciTeX server - unlimited, fast">
+                    <input type="checkbox" class="source-toggle" name="source_crossref_local" form="literatureSearchForm" value="crossref_local" checked />
+                    <span>Crossref (SciTeX)</span>
+                    <small class="rate-limit">∞</small>
+                    <span class="source-status"><span class="spinner-border spinner-border-sm"></span><span class="count"></span></span>
+                </label>
+                <label class="source-item source-active" data-source="openalex" title="OpenAlex - open catalog of scholarly works">
+                    <input type="checkbox" class="source-toggle" name="source_openalex" form="literatureSearchForm" value="openalex" checked />
+                    <span>OpenAlex</span>
+                    <small class="rate-limit">10/s</small>
+                    <span class="source-status"><span class="spinner-border spinner-border-sm"></span><span class="count"></span></span>
+                </label>
+            </div>
+            <div class="source-notice">
+                <i class="fas fa-info-circle"></i>
+                <span>Rate limits shown per source. Your email is used for API requests to receive higher rate limits.</span>
             </div>
             <!-- Log output -->
             <div id="searchLog" class="terminal-log terminal-log--compact">Ready to search.
@@ -51,31 +68,8 @@ Enter a query and press Enter to start.</div>
         </div>
     </div>
 
-    <!-- Sources -->
-    <div class="ctrl-section expanded">
-        <div class="ctrl-header">
-            <span class="ctrl-title"><i class="fas fa-database"></i> Sources</span>
-            <i class="fas fa-chevron-down ctrl-chevron"></i>
-        </div>
-        <div class="ctrl-content">
-            <div class="source-grid">
-                <label class="source-item"><input type="checkbox" class="all-sources-toggle" id="source_all_toggle" form="literatureSearchForm" checked /><span>All</span></label>
-                <label class="source-item source-active" title="NCBI PubMed - biomedical literature"><input type="checkbox" class="source-toggle" name="source_pubmed" form="literatureSearchForm" value="pubmed" checked /><span>PubMed <small class="rate-limit">3/s</small></span></label>
-                <label class="source-item source-active" title="arXiv - physics, math, CS preprints"><input type="checkbox" class="source-toggle" name="source_arxiv" form="literatureSearchForm" value="arxiv" checked /><span>arXiv <small class="rate-limit">3/s</small></span></label>
-                <label class="source-item source-active" title="Semantic Scholar - AI-powered academic search"><input type="checkbox" class="source-toggle" name="source_semantic" form="literatureSearchForm" value="semantic" checked /><span>Semantic <small class="rate-limit">1/s</small></span></label>
-                <label class="source-item source-active" title="Crossref - DOI metadata registry"><input type="checkbox" class="source-toggle" name="source_crossref" form="literatureSearchForm" value="crossref" checked /><span>Crossref <small class="rate-limit">50/s</small></span></label>
-                <label class="source-item source-active" title="CrossRef database running locally on SciTeX server - unlimited, fast"><input type="checkbox" class="source-toggle" name="source_crossref_local" form="literatureSearchForm" value="crossref_local" checked /><span>Crossref (SciTeX) <small class="rate-limit">∞</small></span></label>
-                <label class="source-item source-active" title="OpenAlex - open catalog of scholarly works"><input type="checkbox" class="source-toggle" name="source_openalex" form="literatureSearchForm" value="openalex" checked /><span>OpenAlex <small class="rate-limit">10/s</small></span></label>
-            </div>
-            <div class="source-notice">
-                <i class="fas fa-info-circle"></i>
-                <span>Rate limits shown per source. Your email is used for API requests to receive higher rate limits.</span>
-            </div>
-        </div>
-    </div>
-
     <!-- Sort -->
-    <div class="ctrl-section expanded">
+    <div class="ctrl-section expanded" id="section-sort">
         <div class="ctrl-header">
             <span class="ctrl-title"><i class="fas fa-sort"></i> Sort By</span>
             <i class="fas fa-chevron-down ctrl-chevron"></i>
@@ -101,7 +95,7 @@ Enter a query and press Enter to start.</div>
     </div>
 
     <!-- Filters -->
-    <div class="ctrl-section expanded">
+    <div class="ctrl-section expanded" id="section-filters">
         <div class="ctrl-header">
             <span class="ctrl-title"><i class="fas fa-sliders-h"></i> Filters</span>
             <i class="fas fa-chevron-down ctrl-chevron"></i>
@@ -245,7 +239,45 @@ Enter a query and press Enter to start.</div>
     accent-color: var(--workspace-icon-primary, #059669);
 }
 
-/* Source status indicators - no border, just checkbox state */
+/* Source status indicators - inline with checkbox */
+.source-item .source-status {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-left: auto;
+    font-family: ui-monospace, monospace;
+    font-size: 0.65rem;
+    color: var(--text-muted, #6c8ba0);
+}
+
+.source-item .source-status .spinner-border-sm {
+    display: none;
+    width: 10px;
+    height: 10px;
+    border-width: 1px;
+    color: var(--workspace-icon-primary, #059669);
+}
+
+.source-item .source-status .count:empty {
+    display: none;
+}
+
+.source-item.searching .source-status .spinner-border-sm {
+    display: inline-block;
+}
+
+.source-item.searching {
+    color: var(--text-primary, #d4e1e8);
+    background: rgba(5, 150, 105, 0.1);
+}
+
+.source-item.success .source-status .count {
+    color: var(--workspace-icon-primary, #059669);
+}
+
+.source-item.error .source-status .count {
+    color: var(--color-error, #ef4444);
+}
 
 .source-item.source-coming {
     opacity: 0.5;
@@ -287,60 +319,6 @@ Enter a query and press Enter to start.</div>
     flex-shrink: 0;
 }
 
-/* Search Status Panel */
-.source-progress-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    margin-bottom: 0.75rem;
-}
-
-.source-progress-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.25rem 0.4rem;
-    font-size: 0.7rem;
-    color: var(--text-secondary, #6c8ba0);
-    background: var(--workspace-bg-primary, #0d0d0d);
-    border-radius: 2px;
-}
-
-.source-progress-item.searching {
-    color: var(--text-primary, #d4e1e8);
-    background: rgba(5, 150, 105, 0.1);
-}
-
-.source-progress-item.success {
-    color: var(--workspace-icon-primary, #059669);
-}
-
-.source-progress-item.error {
-    color: var(--color-error, #ef4444);
-}
-
-.source-name {
-    font-weight: 500;
-}
-
-.source-status {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-}
-
-.source-status .spinner-border-sm {
-    width: 10px;
-    height: 10px;
-    border-width: 1px;
-    color: var(--workspace-icon-primary, #059669);
-}
-
-.source-status .count {
-    font-family: ui-monospace, monospace;
-    min-width: 2rem;
-    text-align: right;
-}
 
 /* Terminal log for search */
 .terminal-log {
@@ -405,10 +383,6 @@ Enter a query and press Enter to start.</div>
 @keyframes led-pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.4; }
-}
-
-[data-theme="light"] .source-progress-item {
-    background: var(--workspace-bg-primary, #f3f4f6);
 }
 
 [data-theme="light"] .terminal-log {
