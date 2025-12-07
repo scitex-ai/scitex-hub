@@ -9,7 +9,7 @@
             <input type="text"
                    name="q"
                    class="form-control search-input"
-                   placeholder='e.g., hippocampus t="neural" a="Smith" j="Nature" ys=2020 ye=2024 cl=10 ch=1000'
+                   placeholder='e.g., hippocampus -t human -t -mouse -a Smith -j Nature -ymin 2020'
                    value="{{ query }}"
                    autofocus />
             <kbd class="search-shortcut-badge">Ctrl+K</kbd>
@@ -22,10 +22,28 @@
             <div class="search-help-popup" id="searchHelpPopup">
                 <div class="search-help-title">Search Operators</div>
                 <div class="search-help-content">
-                    <code>t=</code> title &nbsp; <code>a=</code> author &nbsp; <code>j=</code> journal<br>
-                    <code>ys=</code> year start &nbsp; <code>ye=</code> year end<br>
-                    <code>cl=</code> citations min &nbsp; <code>ch=</code> citations max<br>
-                    <code>ifl=</code> IF min &nbsp; <code>ifh=</code> IF max
+                    <div class="search-help-section">
+                        <div class="search-help-label">Filter by field</div>
+                        <div class="search-help-example"><code>-t neural</code> → title contains "neural"</div>
+                        <div class="search-help-example"><code>-a Smith</code> → author is "Smith"</div>
+                        <div class="search-help-example"><code>-j Nature</code> → journal is "Nature"</div>
+                    </div>
+                    <div class="search-help-section">
+                        <div class="search-help-label">Exclude with minus prefix</div>
+                        <div class="search-help-example"><code>-t -mouse</code> → title excludes "mouse"</div>
+                        <div class="search-help-example"><code>-a -Jones</code> → author is not "Jones"</div>
+                    </div>
+                    <div class="search-help-section">
+                        <div class="search-help-label">Year & metrics range</div>
+                        <div class="search-help-example"><code>-ymin 2020 -ymax 2024</code> → published 2020-2024</div>
+                        <div class="search-help-example"><code>-cmin 100</code> → at least 100 citations</div>
+                        <div class="search-help-example"><code>-ifmin 10</code> → impact factor ≥ 10</div>
+                    </div>
+                    <div class="search-help-section">
+                        <div class="search-help-label">Full example</div>
+                        <div class="search-help-example"><code>hippocampus -t human -t -mouse -a Smith -ymin 2020</code></div>
+                        <div class="search-help-meaning">→ Search "hippocampus", title has "human" but not "mouse", by Smith, since 2020</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -129,7 +147,7 @@
     border-radius: 6px;
     padding: 0.75rem 1rem;
     z-index: 1000;
-    min-width: 280px;
+    min-width: 340px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
@@ -147,17 +165,49 @@
 }
 
 .search-help-content {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     color: var(--text-secondary, #6c8ba0);
-    line-height: 1.6;
+    line-height: 1.5;
 }
 
 .search-help-content code {
     background: var(--bg-muted, #0d0d0d);
-    padding: 0.1rem 0.3rem;
+    padding: 0.15rem 0.4rem;
     border-radius: 3px;
     font-family: ui-monospace, monospace;
-    color: var(--scitex-color-04, #6c8ba0);
+    color: var(--text-primary, #d4e1e8);
+}
+
+.search-help-section {
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-muted, #2a2a2a);
+}
+
+.search-help-section:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.search-help-label {
+    font-weight: 600;
+    color: var(--text-primary, #d4e1e8);
+    font-size: 0.75rem;
+    margin-bottom: 0.35rem;
+}
+
+.search-help-example {
+    font-size: 0.75rem;
+    margin-bottom: 0.2rem;
+    color: var(--text-secondary, #9ca3af);
+}
+
+.search-help-meaning {
+    font-size: 0.7rem;
+    color: var(--text-muted, #6c8ba0);
+    font-style: italic;
+    margin-top: 0.25rem;
 }
 
 [data-theme="light"] .search-help-popup {

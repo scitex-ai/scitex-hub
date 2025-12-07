@@ -42,6 +42,91 @@ except ImportError:
     SCITEX_SCHOLAR_AVAILABLE = False
 
 
+def parse_query_operators(query):
+    """
+    Parse shell-style operators from query string.
+
+    Syntax:
+    -t VALUE or --title VALUE: Title filter (include)
+    -t -VALUE: Title filter (exclude, - prefix on value)
+    -a VALUE or --author VALUE: Author filter
+    -j VALUE or --journal VALUE: Journal filter
+    -ymin YYYY or --year-min: Minimum year
+    -ymax YYYY or --year-max: Maximum year
+    -cmin N or --citations-min: Minimum citations
+    -cmax N or --citations-max: Maximum citations
+    -ifmin N or --if-min: Minimum impact factor
+    -ifmax N or --if-max: Maximum impact factor
+
+    Returns:
+        dict with parsed operators and clean query
+    """
+    import re
+
+    result = {
+        'query': query,
+        'title_includes': [],
+        'title_excludes': [],
+        'author_includes': [],
+        'author_excludes': [],
+        'journal_includes': [],
+        'journal_excludes': [],
+        'year_min': None,
+        'year_max': None,
+        'citations_min': None,
+        'citations_max': None,
+        'impact_factor_min': None,
+        'impact_factor_max': None,
+    }
+
+    if not query:
+        return result
+
+    remaining = query
+
+    # Pattern for text filters: -t/-a/-j with optional - prefix on value
+    text_patterns = [
+        (r'(?:-t|--title)\s+(-?)([^\s]+|"[^"]+"|\'[^\']+\')', 'title'),
+        (r'(?:-a|--author)\s+(-?)([^\s]+|"[^"]+"|\'[^\']+\')', 'author'),
+        (r'(?:-j|--journal)\s+(-?)([^\s]+|"[^"]+"|\'[^\']+\')', 'journal'),
+    ]
+
+    for pattern, field_name in text_patterns:
+        for match in re.finditer(pattern, remaining, re.IGNORECASE):
+            is_exclude = match.group(1) == '-'
+            value = match.group(2).strip('"\'')
+            if is_exclude:
+                result[f'{field_name}_excludes'].append(value)
+            else:
+                result[f'{field_name}_includes'].append(value)
+            remaining = remaining.replace(match.group(0), '', 1)
+
+    # Pattern for numeric filters
+    numeric_patterns = [
+        (r'(?:-ymin|--year-min)\s+(\d{4})', 'year_min'),
+        (r'(?:-ymax|--year-max)\s+(\d{4})', 'year_max'),
+        (r'(?:-cmin|--citations-min)\s+(\d+)', 'citations_min'),
+        (r'(?:-cmax|--citations-max)\s+(\d+)', 'citations_max'),
+        (r'(?:-ifmin|--if-min)\s+(\d+(?:\.\d+)?)', 'impact_factor_min'),
+        (r'(?:-ifmax|--if-max)\s+(\d+(?:\.\d+)?)', 'impact_factor_max'),
+    ]
+
+    for pattern, field_name in numeric_patterns:
+        match = re.search(pattern, remaining, re.IGNORECASE)
+        if match:
+            value = match.group(1)
+            if 'impact_factor' in field_name:
+                result[field_name] = float(value)
+            else:
+                result[field_name] = int(value)
+            remaining = remaining.replace(match.group(0), '', 1)
+
+    # Clean up remaining query
+    result['query'] = ' '.join(remaining.split())
+
+    return result
+
+
 def extract_search_filters(request):
     """Extract all advanced search filters from request."""
     filters = {}
@@ -176,45 +261,106 @@ def search_database_papers(query, filters):
 
 
 
-def apply_advanced_filters(results, filters):
+def apply_advanced_filters(results, filters, parsed_operators=None):
     """Apply advanced filters to search results."""
-    if not filters:
+    if not filters and not parsed_operators:
         return results
 
     filtered_results = []
 
     for result in results:
-        # Year range filter
-        if filters.get("year_from") or filters.get("year_to"):
+        # Title includes/excludes from parsed operators
+        if parsed_operators:
+            title = result.get("title", "").lower()
+
+            # Title must include all specified terms
+            if parsed_operators.get("title_includes"):
+                if not all(term.lower() in title for term in parsed_operators["title_includes"]):
+                    continue
+
+            # Title must NOT include any excluded terms
+            if parsed_operators.get("title_excludes"):
+                if any(term.lower() in title for term in parsed_operators["title_excludes"]):
+                    continue
+
+            # Author includes/excludes
+            authors_text = " ".join(result.get("authors", [])).lower()
+
+            if parsed_operators.get("author_includes"):
+                if not all(term.lower() in authors_text for term in parsed_operators["author_includes"]):
+                    continue
+
+            if parsed_operators.get("author_excludes"):
+                if any(term.lower() in authors_text for term in parsed_operators["author_excludes"]):
+                    continue
+
+            # Journal includes/excludes
+            journal_name = result.get("journal", "").lower()
+
+            if parsed_operators.get("journal_includes"):
+                if not all(term.lower() in journal_name for term in parsed_operators["journal_includes"]):
+                    continue
+
+            if parsed_operators.get("journal_excludes"):
+                if any(term.lower() in journal_name for term in parsed_operators["journal_excludes"]):
+                    continue
+
+        # Year range filter (from filters or parsed operators)
+        year_from = filters.get("year_from") if filters else None
+        year_to = filters.get("year_to") if filters else None
+
+        if parsed_operators:
+            year_from = parsed_operators.get("year_min") or year_from
+            year_to = parsed_operators.get("year_max") or year_to
+
+        if year_from or year_to:
             try:
                 year = int(result.get("year", 0))
-                if filters.get("year_from") and year < filters["year_from"]:
+                if year_from and year < year_from:
                     continue
-                if filters.get("year_to") and year > filters["year_to"]:
+                if year_to and year > year_to:
                     continue
             except (ValueError, TypeError):
                 continue
 
         # Citation count filter
-        if filters.get("min_citations"):
+        min_citations = filters.get("min_citations") if filters else None
+        max_citations = filters.get("max_citations") if filters else None
+
+        if parsed_operators:
+            min_citations = parsed_operators.get("citations_min") or min_citations
+            max_citations = parsed_operators.get("citations_max") or max_citations
+
+        if min_citations or max_citations:
             try:
                 citations = int(result.get("citations", 0))
-                if citations < filters["min_citations"]:
+                if min_citations and citations < min_citations:
+                    continue
+                if max_citations and citations > max_citations:
                     continue
             except (ValueError, TypeError):
                 continue
 
         # Impact factor filter
-        if filters.get("min_impact_factor"):
+        min_if = filters.get("min_impact_factor") if filters else None
+        max_if = filters.get("max_impact_factor") if filters else None
+
+        if parsed_operators:
+            min_if = parsed_operators.get("impact_factor_min") or min_if
+            max_if = parsed_operators.get("impact_factor_max") or max_if
+
+        if min_if or max_if:
             try:
                 impact_factor = float(result.get("impact_factor", 0) or 0)
-                if impact_factor < filters["min_impact_factor"]:
+                if min_if and impact_factor < min_if:
+                    continue
+                if max_if and impact_factor > max_if:
                     continue
             except (ValueError, TypeError):
                 continue
 
-        # Author filter
-        if filters.get("authors"):
+        # Author filter from form (legacy)
+        if filters and filters.get("authors"):
             authors_text = " ".join(result.get("authors", [])).lower()
             author_match = False
             for author_name in filters["authors"]:
@@ -224,25 +370,23 @@ def apply_advanced_filters(results, filters):
             if not author_match:
                 continue
 
-        # Journal filter
-        if filters.get("journal"):
+        # Journal filter from form (legacy)
+        if filters and filters.get("journal"):
             journal_name = result.get("journal", "").lower()
             if filters["journal"].lower() not in journal_name:
                 continue
 
         # Open access filter
-        if filters.get("open_access") and not result.get("is_open_access"):
+        if filters and filters.get("open_access") and not result.get("is_open_access"):
             continue
 
         # Document type filter (basic implementation)
-        if filters.get("doc_type"):
-            # This would need to be enhanced with better document type detection
+        if filters and filters.get("doc_type"):
             title_and_abstract = (
                 result.get("title", "") + " " + result.get("snippet", "")
             ).lower()
             doc_type = filters["doc_type"].lower()
 
-            # Simple heuristic matching
             if doc_type == "review" and "review" not in title_and_abstract:
                 continue
             elif (
@@ -252,10 +396,8 @@ def apply_advanced_filters(results, filters):
                 continue
 
         # Language filter (basic implementation)
-        if filters.get("language"):
-            # Would need language detection for better implementation
+        if filters and filters.get("language"):
             if filters["language"].lower() != "english":
-                # For now, assume most papers are English unless specified
                 continue
 
         filtered_results.append(result)

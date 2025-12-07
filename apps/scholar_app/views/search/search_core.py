@@ -33,7 +33,7 @@ from ...models import (
 from apps.project_app.services import get_current_project
 
 # Import from other search modules
-from .search_helpers import extract_search_filters, search_database_papers, apply_advanced_filters, get_paper_authors
+from .search_helpers import extract_search_filters, search_database_papers, apply_advanced_filters, get_paper_authors, parse_query_operators
 from .engines import search_papers_online
 from .storage import store_search_result
 
@@ -79,10 +79,21 @@ def simple_search_with_tab(
     filters = extract_search_filters(request)
     results = []
 
+    # Parse shell-style operators from query
+    parsed_operators = parse_query_operators(query) if query else None
+    search_query = parsed_operators['query'] if parsed_operators else query
+
     # If there's a query, search for papers
-    if query:
+    if search_query or (parsed_operators and any([
+        parsed_operators.get('title_includes'),
+        parsed_operators.get('author_includes'),
+        parsed_operators.get('journal_includes'),
+    ])):
+        # Use clean query (without operators) for API search
+        effective_query = search_query or query
+
         # First check existing papers in our database with filters applied
-        existing_papers = search_database_papers(query, filters)
+        existing_papers = search_database_papers(effective_query, filters)
 
         # Perform web search for additional results with filters
         user_prefs = None
@@ -90,7 +101,7 @@ def simple_search_with_tab(
             user_prefs = UserPreference.get_or_create_for_user(request.user)
 
         web_results = search_papers_online(
-            query,
+            effective_query,
             sources=sources,
             filters=filters,
             user_preferences=user_prefs,
@@ -169,8 +180,8 @@ def simple_search_with_tab(
                 }
             )
 
-        # Apply advanced filters to results
-        all_results = apply_advanced_filters(all_results, filters)
+        # Apply advanced filters to results (including parsed operators)
+        all_results = apply_advanced_filters(all_results, filters, parsed_operators)
 
         # Apply sorting (reverse=True for desc, False for asc)
         is_desc = sort_dir == "desc"

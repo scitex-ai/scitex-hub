@@ -1,10 +1,47 @@
 {% load static vite %}
 <!-- Search Controls for Right Panel -->
 <div class="search-controls-panel">
-    <!-- Info Badge -->
-    <div class="ctrl-info-badge">
-        <i class="fas fa-info-circle"></i>
-        <span>Currently searching: <strong>arXiv</strong>, <strong>PubMed</strong>, <strong>Semantic Scholar</strong>, and <strong>SciTeX Index</strong></span>
+    <!-- Search Status -->
+    <div class="ctrl-section search-status-section expanded">
+        <div class="ctrl-header">
+            <span class="ctrl-title">
+                <span id="searchPulseDot" class="green-pulse-dot" style="display: none;"></span>
+                <i class="fas fa-search"></i> Search Status
+            </span>
+            <i class="fas fa-chevron-down ctrl-chevron"></i>
+        </div>
+        <div class="ctrl-content">
+            <!-- Per-source progress -->
+            <div id="sourceProgressList" class="source-progress-list">
+                <div class="source-progress-item" data-source="pubmed">
+                    <span class="source-name">PubMed</span>
+                    <span class="source-status"><span class="spinner-border spinner-border-sm" style="display: none;"></span><span class="count">-</span></span>
+                </div>
+                <div class="source-progress-item" data-source="arxiv">
+                    <span class="source-name">arXiv</span>
+                    <span class="source-status"><span class="spinner-border spinner-border-sm" style="display: none;"></span><span class="count">-</span></span>
+                </div>
+                <div class="source-progress-item" data-source="semantic">
+                    <span class="source-name">Semantic</span>
+                    <span class="source-status"><span class="spinner-border spinner-border-sm" style="display: none;"></span><span class="count">-</span></span>
+                </div>
+                <div class="source-progress-item" data-source="crossref">
+                    <span class="source-name">Crossref</span>
+                    <span class="source-status"><span class="spinner-border spinner-border-sm" style="display: none;"></span><span class="count">-</span></span>
+                </div>
+                <div class="source-progress-item" data-source="crossref_local">
+                    <span class="source-name">Crossref Local</span>
+                    <span class="source-status"><span class="spinner-border spinner-border-sm" style="display: none;"></span><span class="count">-</span></span>
+                </div>
+                <div class="source-progress-item" data-source="openalex">
+                    <span class="source-name">OpenAlex</span>
+                    <span class="source-status"><span class="spinner-border spinner-border-sm" style="display: none;"></span><span class="count">-</span></span>
+                </div>
+            </div>
+            <!-- Log output -->
+            <div id="searchLog" class="terminal-log terminal-log--small">Ready to search.
+Enter a query and press Enter to start.</div>
+        </div>
     </div>
 
     <!-- Sources -->
@@ -16,11 +53,12 @@
         <div class="ctrl-content">
             <div class="source-grid">
                 <label class="source-item"><input type="checkbox" class="all-sources-toggle" id="source_all_toggle" form="literatureSearchForm" checked /><span>All</span></label>
-                <label class="source-item source-active"><input type="checkbox" class="source-toggle" name="source_pubmed" form="literatureSearchForm" value="pubmed" checked /><span>PubMed</span></label>
-                <label class="source-item source-active"><input type="checkbox" class="source-toggle" name="source_arxiv" form="literatureSearchForm" value="arxiv" checked /><span>arXiv</span></label>
-                <label class="source-item source-active"><input type="checkbox" class="source-toggle" name="source_semantic" form="literatureSearchForm" value="semantic" checked /><span>Semantic</span></label>
-                <label class="source-item source-coming" title="Coming soon"><input type="checkbox" class="source-toggle" name="source_crossref" form="literatureSearchForm" value="crossref" disabled /><span>Crossref</span></label>
-                <label class="source-item source-coming" title="Coming soon"><input type="checkbox" class="source-toggle" name="source_openalex" form="literatureSearchForm" value="openalex" disabled /><span>OpenAlex</span></label>
+                <label class="source-item source-active"><input type="checkbox" class="source-toggle" name="source_pubmed" form="literatureSearchForm" value="pubmed" checked /><span>PubMed <small class="rate-limit">3/s</small></span></label>
+                <label class="source-item source-active"><input type="checkbox" class="source-toggle" name="source_arxiv" form="literatureSearchForm" value="arxiv" checked /><span>arXiv <small class="rate-limit">3/s</small></span></label>
+                <label class="source-item source-active"><input type="checkbox" class="source-toggle" name="source_semantic" form="literatureSearchForm" value="semantic" checked /><span>Semantic <small class="rate-limit">1/s</small></span></label>
+                <label class="source-item source-active"><input type="checkbox" class="source-toggle" name="source_crossref" form="literatureSearchForm" value="crossref" checked /><span>Crossref <small class="rate-limit">50/s</small></span></label>
+                <label class="source-item source-active"><input type="checkbox" class="source-toggle" name="source_crossref_local" form="literatureSearchForm" value="crossref_local" checked /><span>Crossref Local <small class="rate-limit">∞</small></span></label>
+                <label class="source-item source-active"><input type="checkbox" class="source-toggle" name="source_openalex" form="literatureSearchForm" value="openalex" checked /><span>OpenAlex <small class="rate-limit">10/s</small></span></label>
             </div>
         </div>
     </div>
@@ -92,42 +130,6 @@
                 <div id="impactFactorSlider" class="filter-slider" data-max="{{ filter_ranges.impact_factor_max|default:'50.0' }}"></div>
                 <input type="hidden" id="impactFactorMinInput" name="min_impact_factor" form="literatureSearchForm" value="{{ request.GET.min_impact_factor|default:'0' }}" />
                 <input type="hidden" id="impactFactorMaxInput" name="max_impact_factor" form="literatureSearchForm" value="{{ request.GET.max_impact_factor|default:filter_ranges.impact_factor_max|default:'50' }}" />
-            </div>
-        </div>
-    </div>
-
-    <!-- Advanced -->
-    <div class="ctrl-section">
-        <div class="ctrl-header">
-            <span class="ctrl-title"><i class="fas fa-cog"></i> Advanced</span>
-            <i class="fas fa-chevron-down ctrl-chevron"></i>
-        </div>
-        <div class="ctrl-content">
-            <div class="adv-field">
-                <label>Author(s)</label>
-                <input type="text" name="author" form="literatureSearchForm" placeholder="Smith, Johnson" value="{{ request.GET.author }}" />
-            </div>
-            <div class="adv-field">
-                <label>Journal</label>
-                <input type="text" name="journal" form="literatureSearchForm" placeholder="Nature, Science" value="{{ request.GET.journal }}" />
-            </div>
-            <div class="adv-field">
-                <label>Doc Type</label>
-                <select name="doc_type" form="literatureSearchForm">
-                    <option value="">All</option>
-                    <option value="article" {% if request.GET.doc_type == "article" %}selected{% endif %}>Article</option>
-                    <option value="review" {% if request.GET.doc_type == "review" %}selected{% endif %}>Review</option>
-                    <option value="preprint" {% if request.GET.doc_type == "preprint" %}selected{% endif %}>Preprint</option>
-                </select>
-            </div>
-            <div class="adv-field">
-                <label>Language</label>
-                <select name="language" form="literatureSearchForm">
-                    <option value="">Any</option>
-                    <option value="en" {% if request.GET.language == "en" %}selected{% endif %}>English</option>
-                    <option value="ja" {% if request.GET.language == "ja" %}selected{% endif %}>Japanese</option>
-                    <option value="zh" {% if request.GET.language == "zh" %}selected{% endif %}>Chinese</option>
-                </select>
             </div>
         </div>
     </div>
@@ -203,8 +205,8 @@
 
 /* Source grid */
 .source-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    display: flex;
+    flex-direction: column;
     gap: 0.25rem;
 }
 
@@ -213,8 +215,8 @@
     align-items: center;
     gap: 0.35rem;
     padding: 0.3rem 0.4rem;
-    background: var(--workspace-bg-primary, #0d0d0d);
-    border: 1px solid var(--workspace-border-default, #3a3a3a);
+    background: transparent;
+    border: none;
     cursor: pointer;
     font-size: 0.7rem;
     color: var(--text-primary, #d4e1e8);
@@ -223,7 +225,6 @@
 
 .source-item:hover {
     background: var(--workspace-bg-tertiary, #1a1a1a);
-    border-color: var(--workspace-border-hover, #4a4a4a);
 }
 
 .source-item input[type="checkbox"] {
@@ -233,10 +234,7 @@
     accent-color: var(--workspace-icon-primary, #059669);
 }
 
-/* Source status indicators */
-.source-item.source-active {
-    border-color: var(--workspace-icon-primary, #059669);
-}
+/* Source status indicators - no border, just checkbox state */
 
 .source-item.source-coming {
     opacity: 0.5;
@@ -250,42 +248,114 @@
     margin-left: 2px;
 }
 
-/* Info badge */
-.ctrl-info-badge {
+/* Rate limit indicator */
+.rate-limit {
+    color: var(--text-primary, #d4e1e8);
+    font-size: 0.6rem;
+    font-weight: 500;
+    margin-left: 4px;
+}
+
+/* Search Status Panel */
+.source-progress-list {
     display: flex;
-    align-items: flex-start;
-    gap: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    background: rgba(59, 130, 246, 0.1);
-    border: 1px solid rgba(59, 130, 246, 0.3);
-    border-radius: 4px;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.source-progress-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.25rem 0.4rem;
     font-size: 0.7rem;
     color: var(--text-secondary, #6c8ba0);
-    line-height: 1.4;
+    background: var(--workspace-bg-primary, #0d0d0d);
+    border-radius: 2px;
 }
 
-.ctrl-info-badge i {
-    color: #3b82f6;
-    font-size: 0.75rem;
-    flex-shrink: 0;
-    margin-top: 1px;
-}
-
-.ctrl-info-badge strong {
+.source-progress-item.searching {
     color: var(--text-primary, #d4e1e8);
+    background: rgba(5, 150, 105, 0.1);
 }
 
-[data-theme="light"] .ctrl-info-badge {
-    background: rgba(37, 99, 235, 0.08);
-    border-color: rgba(37, 99, 235, 0.25);
+.source-progress-item.success {
+    color: var(--workspace-icon-primary, #059669);
 }
 
-[data-theme="light"] .ctrl-info-badge i {
-    color: #2563eb;
+.source-progress-item.error {
+    color: var(--color-error, #ef4444);
 }
 
-[data-theme="light"] .ctrl-info-badge strong {
-    color: var(--text-primary, #1a2a40);
+.source-name {
+    font-weight: 500;
+}
+
+.source-status {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.source-status .spinner-border-sm {
+    width: 10px;
+    height: 10px;
+    border-width: 1px;
+    color: var(--workspace-icon-primary, #059669);
+}
+
+.source-status .count {
+    font-family: ui-monospace, monospace;
+    min-width: 2rem;
+    text-align: right;
+}
+
+/* Terminal log for search */
+.terminal-log {
+    background: var(--workspace-bg-primary, #0d0d0d);
+    border: 1px solid var(--workspace-border-default, #3a3a3a);
+    border-radius: 2px;
+    padding: 0.5rem;
+    font-family: ui-monospace, "Cascadia Code", monospace;
+    font-size: 0.65rem;
+    line-height: 1.4;
+    color: var(--text-secondary, #6c8ba0);
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.terminal-log--small {
+    max-height: 100px;
+}
+
+.terminal-log--medium {
+    max-height: 180px;
+}
+
+/* Green pulsing dot for active search */
+.green-pulse-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--workspace-icon-primary, #059669);
+    animation: pulse-green 1.5s ease-in-out infinite;
+    margin-right: 0.35rem;
+}
+
+@keyframes pulse-green {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+}
+
+[data-theme="light"] .source-progress-item {
+    background: var(--workspace-bg-primary, #f3f4f6);
+}
+
+[data-theme="light"] .terminal-log {
+    background: var(--workspace-bg-primary, #f3f4f6);
 }
 
 /* Filter blocks - add spacing between Year/Citations/IF */

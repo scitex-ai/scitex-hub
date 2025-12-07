@@ -49,41 +49,13 @@ async function initializeWorkspaceTree(config: ProjectConfig): Promise<void> {
   window.scholarWorkspaceTree = tree;
 }
 
-function initializePanelToggles(): void {
-  // Sidebar toggle
-  const toggleBtn = document.getElementById("sidebar-toggle");
-  const sidebar = document.getElementById("scholar-sidebar");
-  if (toggleBtn && sidebar) {
-    toggleBtn.addEventListener("click", () => {
-      sidebar.classList.toggle("collapsed");
-      const icon = toggleBtn.querySelector("i");
-      if (icon) {
-        icon.classList.toggle("fa-chevron-left");
-        icon.classList.toggle("fa-chevron-right");
-      }
-    });
-  }
-
-  // Properties panel toggle
-  const propsToggleBtn = document.getElementById("properties-toggle");
-  const propsPanel = document.getElementById("scholar-properties");
-  if (propsToggleBtn && propsPanel) {
-    propsToggleBtn.addEventListener("click", () => {
-      propsPanel.classList.toggle("collapsed");
-      const icon = propsToggleBtn.querySelector("i");
-      if (icon) {
-        icon.classList.toggle("fa-chevron-right");
-        icon.classList.toggle("fa-chevron-left");
-      }
-    });
-  }
-}
+// Panel toggles are handled by inline JS in scholar_unified.html
+// which includes localStorage persistence for state
 
 document.addEventListener("DOMContentLoaded", async () => {
   const config = getProjectConfig();
   if (config) {
     await initializeWorkspaceTree(config);
   }
-  initializePanelToggles();
   console.log("[Scholar] Workspace initialized");
 });

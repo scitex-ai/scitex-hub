@@ -319,40 +319,71 @@ export function initSearchControls(): void {
     });
 }
 
-// Keyboard shortcut: Ctrl+K to focus search input
+// Keyboard shortcut: Ctrl+K to toggle search input focus, Esc to blur, Enter to search
 function initKeyboardShortcuts(): void {
+    const searchInput = document.querySelector<HTMLInputElement>('input[name="q"], .search-input');
+    const searchForm = document.getElementById('literatureSearchForm') as HTMLFormElement | null;
+
     document.addEventListener('keydown', (e: KeyboardEvent) => {
-        // Ctrl+K or Cmd+K (Mac)
+        // Ctrl+K or Cmd+K (Mac) - toggle search input focus
         if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
             e.preventDefault();
-            const searchInput = document.querySelector<HTMLInputElement>('input[name="q"], .search-input');
             if (searchInput) {
-                searchInput.focus();
-                searchInput.select();
+                if (document.activeElement === searchInput) {
+                    // Already focused - blur it
+                    searchInput.blur();
+                } else {
+                    // Not focused - focus and select
+                    searchInput.focus();
+                    searchInput.select();
+                }
+            }
+        }
+
+        // Esc - blur search input if focused
+        if (e.key === 'Escape' && searchInput && document.activeElement === searchInput) {
+            e.preventDefault();
+            searchInput.blur();
+        }
+
+        // Enter - submit search form if search input is focused
+        if (e.key === 'Enter' && searchInput && document.activeElement === searchInput) {
+            e.preventDefault();
+            if (searchForm) {
+                searchForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
             }
         }
     });
 }
 
 /**
- * Search operators for advanced filtering via query string
- * Supported operators:
- * - t=term - Search in title
- * - a=name - Filter by author
- * - j=name - Filter by journal
- * - ys=YYYY - Year start
- * - ye=YYYY - Year end
- * - cl=N - Citations low (minimum)
- * - ch=N - Citations high (maximum)
- * - ifl=N - Impact factor low (minimum)
- * - ifh=N - Impact factor high (maximum)
- * Example: 'hippocampus t="memory" a="smith" ys=2020 ye=2024 cl=10 ch=1000'
+ * Search operators for advanced filtering via query string (shell-style)
+ *
+ * Syntax: -OPTION VALUE or --LONG-OPTION VALUE
+ * For include/exclude: -OPTION VALUE (include) or -OPTION -VALUE (exclude with - prefix)
+ *
+ * Options:
+ * -t | --title     Title filter (-t human = include, -t -mouse = exclude)
+ * -a | --author    Author filter (-a smith = include, -a -jones = exclude)
+ * -j | --journal   Journal filter (-j nature = include, -j -plos = exclude)
+ * -ymin | --year-min   Minimum publication year
+ * -ymax | --year-max   Maximum publication year
+ * -cmin | --citations-min   Minimum citations
+ * -cmax | --citations-max   Maximum citations
+ * -ifmin | --if-min   Minimum impact factor
+ * -ifmax | --if-max   Maximum impact factor
+ *
+ * Example: hippocampus -t human -t -mouse -a "john smith" -j nature -ymin 2020 -ymax 2024 -cmin 10 -ifmin 5
+ * Means: Search "hippocampus", title includes "human", title excludes "mouse", author includes "john smith"
  */
 interface ParsedOperators {
     query: string;
-    title?: string;
-    author?: string;
-    journal?: string;
+    titleIncludes: string[];
+    titleExcludes: string[];
+    authorIncludes: string[];
+    authorExcludes: string[];
+    journalIncludes: string[];
+    journalExcludes: string[];
     yearFrom?: number;
     yearTo?: number;
     citationsLow?: number;
@@ -362,93 +393,73 @@ interface ParsedOperators {
 }
 
 function parseSearchOperators(input: string): ParsedOperators {
-    const result: ParsedOperators = { query: '' };
+    const result: ParsedOperators = {
+        query: '',
+        titleIncludes: [],
+        titleExcludes: [],
+        authorIncludes: [],
+        authorExcludes: [],
+        journalIncludes: [],
+        journalExcludes: []
+    };
 
-    // Regular expressions for operators (using = instead of :)
+    // Shell-style patterns: -OPTION VALUE or --LONG-OPTION VALUE
+    // For text filters: value without - prefix = include, value with - prefix = exclude
     const patterns = {
-        title: /\bt=([^\s]+|"[^"]+"|'[^']+')/gi,
-        author: /\ba=([^\s]+|"[^"]+"|'[^']+')/gi,
-        journal: /\bj=([^\s]+|"[^"]+"|'[^']+')/gi,
-        yearStart: /\bys=(\d{4})/gi,
-        yearEnd: /\bye=(\d{4})/gi,
-        citationsLow: /\bcl=(\d+)/gi,
-        citationsHigh: /\bch=(\d+)/gi,
-        impactFactorLow: /\bifl=(\d+(?:\.\d+)?)/gi,
-        impactFactorHigh: /\bifh=(\d+(?:\.\d+)?)/gi,
+        // Text filters: -t/-a/-j can have include (value) or exclude (-value)
+        title: /(?:-t|--title)\s+(-?)([^\s]+|"[^"]+"|'[^']+')/gi,
+        author: /(?:-a|--author)\s+(-?)([^\s]+|"[^"]+"|'[^']+')/gi,
+        journal: /(?:-j|--journal)\s+(-?)([^\s]+|"[^"]+"|'[^']+')/gi,
+        // Numeric filters (single value)
+        yearMin: /(?:-ymin|--year-min)\s+(\d{4})/gi,
+        yearMax: /(?:-ymax|--year-max)\s+(\d{4})/gi,
+        citationsMin: /(?:-cmin|--citations-min)\s+(\d+)/gi,
+        citationsMax: /(?:-cmax|--citations-max)\s+(\d+)/gi,
+        impactFactorMin: /(?:-ifmin|--if-min)\s+(\d+(?:\.\d+)?)/gi,
+        impactFactorMax: /(?:-ifmax|--if-max)\s+(\d+(?:\.\d+)?)/gi,
     };
 
     let remaining = input;
 
-    // Extract title operator
-    const titleMatch = patterns.title.exec(input);
-    if (titleMatch) {
-        result.title = titleMatch[1].replace(/["']/g, '');
-        remaining = remaining.replace(titleMatch[0], '');
-    }
+    // Helper to extract text filter matches (include vs exclude based on - prefix)
+    const extractTextFilter = (pattern: RegExp, includes: string[], excludes: string[]) => {
+        let match;
+        pattern.lastIndex = 0;
+        while ((match = pattern.exec(input)) !== null) {
+            const isExclude = match[1] === '-';
+            const value = match[2].replace(/["']/g, '');
+            if (isExclude) {
+                excludes.push(value);
+            } else {
+                includes.push(value);
+            }
+            remaining = remaining.replace(match[0], '');
+        }
+    };
 
-    // Extract author operator
-    patterns.author.lastIndex = 0;
-    const authorMatch = patterns.author.exec(input);
-    if (authorMatch) {
-        result.author = authorMatch[1].replace(/["']/g, '');
-        remaining = remaining.replace(authorMatch[0], '');
-    }
+    // Helper to extract single numeric value
+    const extractSingle = (pattern: RegExp): number | undefined => {
+        pattern.lastIndex = 0;
+        const match = pattern.exec(input);
+        if (match) {
+            remaining = remaining.replace(match[0], '');
+            return parseFloat(match[1]);
+        }
+        return undefined;
+    };
 
-    // Extract journal operator
-    patterns.journal.lastIndex = 0;
-    const journalMatch = patterns.journal.exec(input);
-    if (journalMatch) {
-        result.journal = journalMatch[1].replace(/["']/g, '');
-        remaining = remaining.replace(journalMatch[0], '');
-    }
+    // Extract text filters (include/exclude based on - prefix on value)
+    extractTextFilter(patterns.title, result.titleIncludes, result.titleExcludes);
+    extractTextFilter(patterns.author, result.authorIncludes, result.authorExcludes);
+    extractTextFilter(patterns.journal, result.journalIncludes, result.journalExcludes);
 
-    // Extract year start
-    patterns.yearStart.lastIndex = 0;
-    const ysMatch = patterns.yearStart.exec(input);
-    if (ysMatch) {
-        result.yearFrom = parseInt(ysMatch[1]);
-        remaining = remaining.replace(ysMatch[0], '');
-    }
-
-    // Extract year end
-    patterns.yearEnd.lastIndex = 0;
-    const yeMatch = patterns.yearEnd.exec(input);
-    if (yeMatch) {
-        result.yearTo = parseInt(yeMatch[1]);
-        remaining = remaining.replace(yeMatch[0], '');
-    }
-
-    // Extract citations low
-    patterns.citationsLow.lastIndex = 0;
-    const clMatch = patterns.citationsLow.exec(input);
-    if (clMatch) {
-        result.citationsLow = parseInt(clMatch[1]);
-        remaining = remaining.replace(clMatch[0], '');
-    }
-
-    // Extract citations high
-    patterns.citationsHigh.lastIndex = 0;
-    const chMatch = patterns.citationsHigh.exec(input);
-    if (chMatch) {
-        result.citationsHigh = parseInt(chMatch[1]);
-        remaining = remaining.replace(chMatch[0], '');
-    }
-
-    // Extract impact factor low
-    patterns.impactFactorLow.lastIndex = 0;
-    const iflMatch = patterns.impactFactorLow.exec(input);
-    if (iflMatch) {
-        result.impactFactorLow = parseFloat(iflMatch[1]);
-        remaining = remaining.replace(iflMatch[0], '');
-    }
-
-    // Extract impact factor high
-    patterns.impactFactorHigh.lastIndex = 0;
-    const ifhMatch = patterns.impactFactorHigh.exec(input);
-    if (ifhMatch) {
-        result.impactFactorHigh = parseFloat(ifhMatch[1]);
-        remaining = remaining.replace(ifhMatch[0], '');
-    }
+    // Extract numeric filters
+    result.yearFrom = extractSingle(patterns.yearMin);
+    result.yearTo = extractSingle(patterns.yearMax);
+    result.citationsLow = extractSingle(patterns.citationsMin);
+    result.citationsHigh = extractSingle(patterns.citationsMax);
+    result.impactFactorLow = extractSingle(patterns.impactFactorMin);
+    result.impactFactorHigh = extractSingle(patterns.impactFactorMax);
 
     // Clean up remaining query
     result.query = remaining.trim().replace(/\s+/g, ' ');
@@ -460,16 +471,16 @@ function parseSearchOperators(input: string): ParsedOperators {
  * Apply parsed operators to form fields before search
  */
 function applyOperatorsToForm(operators: ParsedOperators): void {
-    // Author field
-    if (operators.author) {
+    // Author field (join multiple includes with comma)
+    if (operators.authorIncludes.length > 0) {
         const authorInput = document.querySelector<HTMLInputElement>('input[name="author"]');
-        if (authorInput) authorInput.value = operators.author;
+        if (authorInput) authorInput.value = operators.authorIncludes.join(', ');
     }
 
-    // Journal field
-    if (operators.journal) {
+    // Journal field (join multiple includes with comma)
+    if (operators.journalIncludes.length > 0) {
         const journalInput = document.querySelector<HTMLInputElement>('input[name="journal"]');
-        if (journalInput) journalInput.value = operators.journal;
+        if (journalInput) journalInput.value = operators.journalIncludes.join(', ');
     }
 
     // Year range sliders

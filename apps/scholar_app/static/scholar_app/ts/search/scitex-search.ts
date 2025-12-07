@@ -29,6 +29,99 @@ declare global {
 export {};
 
 /**
+ * Search log manager for status panel
+ */
+class SearchLogManager {
+  private logElement: HTMLElement | null = null;
+  private pulseDot: HTMLElement | null = null;
+
+  constructor() {
+    this.logElement = document.getElementById("searchLog");
+    this.pulseDot = document.getElementById("searchPulseDot");
+  }
+
+  clear(): void {
+    if (this.logElement) {
+      this.logElement.textContent = "";
+    }
+  }
+
+  log(message: string): void {
+    if (this.logElement) {
+      const timestamp = new Date().toLocaleTimeString("en-US", {
+        hour12: false,
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
+      this.logElement.textContent += `[${timestamp}] ${message}\n`;
+      this.logElement.scrollTop = this.logElement.scrollHeight;
+    }
+  }
+
+  showSearching(): void {
+    if (this.pulseDot) this.pulseDot.style.display = "inline-block";
+  }
+
+  hideSearching(): void {
+    if (this.pulseDot) this.pulseDot.style.display = "none";
+  }
+
+  updateSourceStatus(
+    sourceName: string,
+    status: "searching" | "success" | "error" | "idle",
+    count?: number | string,
+  ): void {
+    const item = document.querySelector(
+      `.source-progress-item[data-source="${sourceName}"]`,
+    ) as HTMLElement | null;
+    if (!item) return;
+
+    const spinner = item.querySelector(".spinner-border") as HTMLElement | null;
+    const countEl = item.querySelector(".count") as HTMLElement | null;
+
+    // Reset classes
+    item.classList.remove("searching", "success", "error");
+
+    switch (status) {
+      case "searching":
+        item.classList.add("searching");
+        if (spinner) spinner.style.display = "inline-block";
+        if (countEl) countEl.textContent = "...";
+        break;
+      case "success":
+        item.classList.add("success");
+        if (spinner) spinner.style.display = "none";
+        if (countEl) countEl.textContent = count?.toString() || "0";
+        break;
+      case "error":
+        item.classList.add("error");
+        if (spinner) spinner.style.display = "none";
+        if (countEl) countEl.textContent = "ERR";
+        break;
+      case "idle":
+        if (spinner) spinner.style.display = "none";
+        if (countEl) countEl.textContent = "-";
+        break;
+    }
+  }
+
+  resetAllSources(): void {
+    const items = document.querySelectorAll(".source-progress-item");
+    items.forEach((item) => {
+      const el = item as HTMLElement;
+      el.classList.remove("searching", "success", "error");
+      const spinner = el.querySelector(".spinner-border") as HTMLElement | null;
+      const count = el.querySelector(".count") as HTMLElement | null;
+      if (spinner) spinner.style.display = "none";
+      if (count) count.textContent = "-";
+    });
+  }
+}
+
+const searchLog = new SearchLogManager();
+
+/**
  * Search result interface
  */
 interface SearchResult {
@@ -129,11 +222,22 @@ document.addEventListener("DOMContentLoaded", function () {
   console.log("[SciTeX Search] Initialization complete");
 });
 
+// Track active searches for completion detection
+let activeSearches = 0;
+let totalResults = 0;
+
 /**
  * Start unified search across all sources
  */
 function startUnifiedSearch(query: string): void {
   console.log("[SciTeX Search] Starting unified search for:", query);
+
+  // Initialize search log
+  searchLog.clear();
+  searchLog.resetAllSources();
+  searchLog.showSearching();
+  searchLog.log(`Starting search: "${query}"`);
+  totalResults = 0;
 
   // Get selected sources
   const selectedCheckboxes = document.querySelectorAll(
@@ -146,16 +250,26 @@ function startUnifiedSearch(query: string): void {
   // All source configurations
   const allSources: SourceConfig[] = [
     { name: "pubmed", endpoint: "/scholar/api/search/pubmed/", maxResults: 50 },
-    {
-      name: "google_scholar",
-      endpoint: "/scholar/api/search/google-scholar/",
-      maxResults: 50,
-    },
     { name: "arxiv", endpoint: "/scholar/api/search/arxiv/", maxResults: 50 },
     {
       name: "semantic",
       endpoint: "/scholar/api/search/semantic/",
       maxResults: 25,
+    },
+    {
+      name: "crossref",
+      endpoint: "/scholar/api/search/crossref/",
+      maxResults: 50,
+    },
+    {
+      name: "crossref_local",
+      endpoint: "/scholar/api/search/crossref-local/",
+      maxResults: 100,
+    },
+    {
+      name: "openalex",
+      endpoint: "/scholar/api/search/openalex/",
+      maxResults: 50,
     },
   ];
 
@@ -165,39 +279,39 @@ function startUnifiedSearch(query: string): void {
   );
 
   if (sourcesToSearch.length === 0) {
+    searchLog.log("✗ No sources selected");
+    searchLog.hideSearching();
     alert("Please select at least one search source.");
     resetProgressIndicators();
     return;
   }
 
+  searchLog.log(`Querying ${sourcesToSearch.length} sources in parallel...`);
+  activeSearches = sourcesToSearch.length;
+
   // Search each source in parallel
   sourcesToSearch.forEach((source) => {
+    searchLog.updateSourceStatus(source.name, "searching");
     searchSource(source, query);
   });
 
-  // Reset unselected sources
+  // Mark unselected sources as idle
   allSources.forEach((source) => {
     if (!selectedSourceValues.includes(source.name)) {
-      const progressSource = document.querySelector(
-        `[data-source="${source.name}"]`,
-      ) as HTMLElement | null;
-      if (progressSource) {
-        const badge = progressSource.querySelector(
-          ".badge",
-        ) as HTMLElement | null;
-        const spinner = progressSource.querySelector(
-          ".spinner-border",
-        ) as HTMLElement | null;
-        const count = progressSource.querySelector(
-          ".count",
-        ) as HTMLElement | null;
-
-        if (badge) badge.className = "badge bg-light";
-        if (spinner) spinner.style.display = "none";
-        if (count) count.textContent = "-";
-      }
+      searchLog.updateSourceStatus(source.name, "idle");
     }
   });
+}
+
+/**
+ * Check if all searches completed
+ */
+function checkSearchCompletion(): void {
+  activeSearches--;
+  if (activeSearches <= 0) {
+    searchLog.hideSearching();
+    searchLog.log(`✓ Search complete. Total: ${totalResults} results`);
+  }
 }
 
 /**
@@ -205,30 +319,22 @@ function startUnifiedSearch(query: string): void {
  */
 function searchSource(source: SourceConfig, query: string): void {
   const url = `${source.endpoint}?q=${encodeURIComponent(query)}&max_results=${source.maxResults}`;
-  const progressSource = document.querySelector(
-    `[data-source="${source.name}"]`,
-  ) as HTMLElement | null;
+  const startTime = Date.now();
+
+  searchLog.log(`→ ${source.name}: Fetching...`);
 
   fetch(url)
     .then((response) => response.json())
     .then((data: any) => {
-      if (data.status === "success") {
-        // Update progress indicator
-        if (progressSource) {
-          const badge = progressSource.querySelector(
-            ".badge",
-          ) as HTMLElement | null;
-          const spinner = progressSource.querySelector(
-            ".spinner-border",
-          ) as HTMLElement | null;
-          const count = progressSource.querySelector(
-            ".count",
-          ) as HTMLElement | null;
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
 
-          if (badge) badge.className = "badge bg-success";
-          if (spinner) spinner.style.display = "none";
-          if (count) count.textContent = data.count || "0";
-        }
+      if (data.status === "success") {
+        const count = data.count || (data.results ? data.results.length : 0);
+        totalResults += count;
+
+        // Update status panel
+        searchLog.updateSourceStatus(source.name, "success", count);
+        searchLog.log(`✓ ${source.name}: ${count} results (${elapsed}s)`);
 
         // Add results
         if (data.results && Array.isArray(data.results)) {
@@ -237,11 +343,17 @@ function searchSource(source: SourceConfig, query: string): void {
           });
         }
       } else {
-        handleSearchError(source.name, data.error || "Unknown error");
+        searchLog.updateSourceStatus(source.name, "error");
+        searchLog.log(`✗ ${source.name}: ${data.error || "Unknown error"}`);
       }
+
+      checkSearchCompletion();
     })
     .catch((error: Error) => {
-      handleSearchError(source.name, error.message);
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+      searchLog.updateSourceStatus(source.name, "error");
+      searchLog.log(`✗ ${source.name}: ${error.message} (${elapsed}s)`);
+      checkSearchCompletion();
     });
 }
 
@@ -305,31 +417,13 @@ function createResultCard(result: SearchResult): HTMLElement {
 }
 
 /**
- * Handle search error
- */
-function handleSearchError(sourceName: string, errorMessage: string): void {
-  const progressSource = document.querySelector(
-    `[data-source="${sourceName}"]`,
-  ) as HTMLElement | null;
-  if (progressSource) {
-    const badge = progressSource.querySelector(".badge") as HTMLElement | null;
-    const spinner = progressSource.querySelector(
-      ".spinner-border",
-    ) as HTMLElement | null;
-    const count = progressSource.querySelector(".count") as HTMLElement | null;
-
-    if (badge) badge.className = "badge bg-danger";
-    if (spinner) spinner.style.display = "none";
-    if (count) count.textContent = "Error";
-  }
-
-  console.error(`[SciTeX Search] ${sourceName} search failed:`, errorMessage);
-}
-
-/**
  * Reset progress indicators
  */
 function resetProgressIndicators(): void {
+  searchLog.resetAllSources();
+  searchLog.hideSearching();
+
+  // Legacy support for old progress-source elements
   document.querySelectorAll(".progress-source").forEach((source) => {
     const badge = source.querySelector(".badge") as HTMLElement | null;
     const spinner = source.querySelector(

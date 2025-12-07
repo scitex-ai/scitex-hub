@@ -11,6 +11,8 @@ interface ResizerConfig {
     minWidth: number;
     storageKey: string;
     resizeDirection: 'left' | 'right';  // 'left' = target panel is on left, 'right' = target panel is on right
+    toggleButtonId?: string;  // Optional toggle button to sync icon state
+    collapseStorageKey?: string;  // localStorage key for collapse state
 }
 
 class ScholarPanelResizer {
@@ -39,6 +41,11 @@ class ScholarPanelResizer {
         let startWidth = 0;
 
         const handleMouseDown = (e: MouseEvent) => {
+            // Auto-expand if panel is collapsed
+            if (targetPanel.classList.contains('collapsed')) {
+                this.expandPanel(targetPanel, config);
+            }
+
             isResizing = true;
             startX = e.clientX;
             startWidth = targetPanel.offsetWidth;
@@ -91,6 +98,37 @@ class ScholarPanelResizer {
     }
 
     /**
+     * Expand a collapsed panel and sync toggle button state
+     */
+    private expandPanel(panel: HTMLElement, config: ResizerConfig): void {
+        panel.classList.remove('collapsed');
+
+        // Update toggle button icon
+        if (config.toggleButtonId) {
+            const toggleBtn = document.getElementById(config.toggleButtonId);
+            const icon = toggleBtn?.querySelector('i');
+            if (icon) {
+                // Sidebar: collapsed shows right arrow, expanded shows left
+                // Properties: collapsed shows left arrow, expanded shows right
+                if (config.resizeDirection === 'left') {
+                    icon.classList.remove('fa-chevron-right');
+                    icon.classList.add('fa-chevron-left');
+                } else {
+                    icon.classList.remove('fa-chevron-left');
+                    icon.classList.add('fa-chevron-right');
+                }
+            }
+        }
+
+        // Update localStorage collapse state
+        if (config.collapseStorageKey) {
+            localStorage.setItem(config.collapseStorageKey, 'false');
+        }
+
+        console.log(`[ScholarPanelResizer] Auto-expanded ${config.targetPanel}`);
+    }
+
+    /**
      * Save panel width to localStorage
      */
     private saveWidth(config: ResizerConfig, width: number): void {
@@ -106,9 +144,20 @@ class ScholarPanelResizer {
 
     /**
      * Restore panel width from localStorage
+     * Only restore if panel is NOT collapsed (collapsed state uses CSS width)
      */
     private restoreWidth(config: ResizerConfig, panel: HTMLElement): void {
         try {
+            // Don't restore inline width if panel is collapsed - let CSS handle it
+            if (panel.classList.contains('collapsed')) {
+                // Clear any inline width so CSS .collapsed rule takes effect
+                panel.style.width = '';
+                panel.style.flexShrink = '';
+                panel.style.flexGrow = '';
+                console.log(`[ScholarPanelResizer] Panel ${config.storageKey} is collapsed, using CSS width`);
+                return;
+            }
+
             const savedWidth = localStorage.getItem(
                 ScholarPanelResizer.STORAGE_PREFIX + config.storageKey
             );
@@ -137,7 +186,9 @@ class ScholarPanelResizer {
             targetPanel: '.scholar-sidebar',
             minWidth: 40,
             storageKey: 'sidebar-width',
-            resizeDirection: 'left'
+            resizeDirection: 'left',
+            toggleButtonId: 'sidebar-toggle',
+            collapseStorageKey: 'scholar-sidebar-collapsed'
         });
 
         // Main resizer (Main content ↔ Properties panel)
@@ -147,7 +198,9 @@ class ScholarPanelResizer {
             targetPanel: '.scholar-properties',
             minWidth: 40,
             storageKey: 'properties-width',
-            resizeDirection: 'right'
+            resizeDirection: 'right',
+            toggleButtonId: 'properties-toggle',
+            collapseStorageKey: 'scholar-properties-collapsed'
         });
 
         console.log('[ScholarPanelResizer] All resizers initialized');
@@ -158,6 +211,24 @@ class ScholarPanelResizer {
 document.addEventListener('DOMContentLoaded', () => {
     const resizer = new ScholarPanelResizer();
     resizer.initializeAll();
+
+    // Listen for header collapse changes to synchronize panel states
+    window.addEventListener('header-collapse-changed', ((event: CustomEvent) => {
+        const { collapsed } = event.detail;
+        console.log(`[ScholarPanelResizer] Header collapse changed: ${collapsed}`);
+
+        // When header collapses, optionally collapse panels too for more screen space
+        // This provides synchronized expand/shrink behavior
+        const sidebar = document.querySelector('.scholar-sidebar') as HTMLElement;
+        const properties = document.querySelector('.scholar-properties') as HTMLElement;
+
+        if (sidebar && properties) {
+            // Dispatch panel state changed events for any listeners
+            window.dispatchEvent(new CustomEvent('panel-state-changed', {
+                detail: { headerCollapsed: collapsed }
+            }));
+        }
+    }) as EventListener);
 });
 
 // Export for module usage
