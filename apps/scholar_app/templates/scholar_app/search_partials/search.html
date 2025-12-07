@@ -58,17 +58,78 @@
                 {% endfor %}
             {% elif show_results %}
                 <!-- Empty state when no query -->
-                <div class="search-empty-state">
+                <div class="search-empty-state" id="searchEmptyState">
                     <i class="fas fa-search"></i>
                     <h5>Enter a search query to find literature</h5>
                     <p class="text-muted">Use the controls in the right panel to filter and sort results</p>
                 </div>
             {% endif %}
         </div>
+        <!-- Progressive Results Container (JavaScript populates this) -->
+        <div id="progressiveResults" class="progressive-results"></div>
     </form>
 </div>
 
 <style>
+/* Progressive results container */
+.progressive-results {
+    display: none;
+}
+
+.progressive-results .result-card {
+    background: var(--bg-card, #1a2634);
+    border: 1px solid var(--border-color, #2d3e4f);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.progressive-results .result-card:hover {
+    border-color: var(--scitex-color-04, #4a8eb0);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.progressive-results .result-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.progressive-results .result-title a {
+    color: var(--text-primary, #d4e1e8);
+}
+
+.progressive-results .result-authors {
+    font-size: 0.85rem;
+    color: var(--text-secondary, #9ca3af);
+    margin-bottom: 0.5rem;
+}
+
+.progressive-results .result-snippet {
+    font-size: 0.8rem;
+    color: var(--text-muted, #6c8ba0);
+    line-height: 1.4;
+    max-height: 4.2em;
+    overflow: hidden;
+}
+
+.progressive-results .year-badge {
+    background: var(--scitex-color-04, #4a8eb0);
+    color: white;
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.75rem;
+}
+
+.progressive-results .open-access {
+    background: #28a745;
+    color: white;
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.7rem;
+}
+
 .search-empty-state {
     display: flex;
     flex-direction: column;

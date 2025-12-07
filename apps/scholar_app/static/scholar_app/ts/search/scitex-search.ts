@@ -38,6 +38,31 @@ class SearchLogManager {
   constructor() {
     this.logElement = document.getElementById("searchLog");
     this.pulseDot = document.getElementById("searchPulseDot");
+    this.setupKeyboardShortcuts();
+  }
+
+  private setupKeyboardShortcuts(): void {
+    if (!this.logElement) return;
+
+    // Make log element focusable
+    this.logElement.setAttribute("tabindex", "0");
+
+    // Ctrl+A to select all text in log when focused
+    this.logElement.addEventListener("keydown", (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "a") {
+        e.preventDefault();
+        this.selectAllText();
+      }
+    });
+  }
+
+  selectAllText(): void {
+    if (!this.logElement) return;
+    const selection = window.getSelection();
+    const range = document.createRange();
+    range.selectNodeContents(this.logElement);
+    selection?.removeAllRanges();
+    selection?.addRange(range);
   }
 
   clear(): void {
@@ -185,10 +210,12 @@ document.addEventListener("DOMContentLoaded", function () {
       (window as any).saveSourcePreferences();
     }
 
-    // Hide regular results
+    // Hide regular results and empty state
     document.querySelectorAll(".result-card").forEach((card) => {
       (card as HTMLElement).style.display = "none";
     });
+    const emptyState = document.getElementById("searchEmptyState");
+    if (emptyState) emptyState.style.display = "none";
 
     // Show progressive interface
     const progressiveLoadingStatus = document.getElementById(

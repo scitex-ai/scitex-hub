@@ -320,13 +320,31 @@ def api_search_crossref_local(request):
 
     try:
         from django.conf import settings
+        import os
+
+        # Check if CrossRef Local is available
+        crossref_url = getattr(settings, 'CROSSREF_INTERNAL_URL', None)
+        if not crossref_url:
+            crossref_url = os.environ.get('CROSSREF_INTERNAL_URL')
+
+        if not crossref_url:
+            # Service not configured - return gracefully
+            return JsonResponse(
+                {
+                    "status": "success",
+                    "source": "crossref_local",
+                    "query": query,
+                    "count": 0,
+                    "results": [],
+                    "note": "CrossRef Local database not available in this environment",
+                }
+            )
 
         # Proxy to internal CrossRef service
-        crossref_url = getattr(settings, 'CROSSREF_INTERNAL_URL', 'http://crossref:3333')
         url = f"{crossref_url}/api/search/"
         params = {"title": query, "limit": max_results}
 
-        response = requests.get(url, params=params, timeout=30)
+        response = requests.get(url, params=params, timeout=10)
         response.raise_for_status()
         data = response.json()
 
@@ -352,6 +370,19 @@ def api_search_crossref_local(request):
                 "query": query,
                 "count": len(results),
                 "results": results,
+            }
+        )
+    except requests.exceptions.ConnectionError:
+        # Service not running - return gracefully
+        logger.warning("CrossRef Local service not available")
+        return JsonResponse(
+            {
+                "status": "success",
+                "source": "crossref_local",
+                "query": query,
+                "count": 0,
+                "results": [],
+                "note": "CrossRef Local service not running",
             }
         )
     except Exception as e:
