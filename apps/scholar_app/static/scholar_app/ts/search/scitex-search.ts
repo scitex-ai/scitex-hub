@@ -410,7 +410,7 @@ function addResultToProgressive(result: SearchResult): void {
 }
 
 /**
- * Create a result card element
+ * Create a result card element matching the existing UI style
  */
 function createResultCard(result: SearchResult): HTMLElement {
   const cardDiv = document.createElement("div");
@@ -419,26 +419,56 @@ function createResultCard(result: SearchResult): HTMLElement {
   cardDiv.setAttribute("data-title", result.title || "");
   cardDiv.setAttribute("data-authors", result.authors || "");
   cardDiv.setAttribute("data-year", (result.year || "").toString());
-  cardDiv.setAttribute("data-journal", result.journal || "Unknown Journal");
+  cardDiv.setAttribute("data-journal", result.journal || "");
+  cardDiv.setAttribute("data-doi", result.doi || "");
+
+  // Build meta info
+  const metaParts: string[] = [];
+  if (result.authors) {
+    metaParts.push(`<span class="authors">${result.authors}</span>`);
+  }
+  if (result.journal) {
+    metaParts.push(`<span class="journal">${result.journal}</span>`);
+  }
+  if (result.citations && result.citations > 0) {
+    metaParts.push(`<span class="citations">${result.citations}</span>`);
+  }
+  if (result.impact_factor) {
+    metaParts.push(`<span class="if-badge">IF ${result.impact_factor}</span>`);
+  }
+
+  // Truncate abstract
+  let snippet = result.abstract || "";
+  if (snippet.length > 150) {
+    snippet = snippet.substring(0, 150) + "...";
+  }
+  if (!snippet) snippet = "...";
+
+  // External URL
+  const externalUrl = result.externalUrl || (result.doi ? `https://doi.org/${result.doi}` : "#");
 
   cardDiv.innerHTML = `
-        <h6 class="result-title">
-            <a href="#" class="text-decoration-none">${result.title || "Unknown Title"}</a>
-        </h6>
-        <div class="result-authors">${result.authors || "Unknown Authors"}</div>
-        <div class="d-flex align-items-center mt-2 flex-wrap">
-            <span class="year-badge me-2">${result.year || "2024"}</span>
-            ${result.is_open_access ? '<span class="open-access me-2">Open Access</span>' : ""}
-            ${result.impact_factor ? `<span class="badge bg-warning text-dark me-2" style="font-size: 0.7rem;">IF: ${result.impact_factor}</span>` : ""}
-            <small class="text-muted">
-                ${result.journal || "Unknown Journal"}
-                ${result.citations && result.citations > 0 ? ` • <strong>${result.citations} citations</strong>` : ""}
-                ${result.pmid ? ` • PMID: ${result.pmid}` : ""}
-            </small>
-            ${result.source ? `<span class="badge bg-info ms-2" style="font-size: 0.7rem;">${result.source.toUpperCase()}</span>` : ""}
-        </div>
-        <div class="result-snippet mt-2">${result.abstract || "No abstract available."}</div>
-    `;
+    <div class="result-checkbox">
+      <input type="checkbox" class="paper-select" />
+    </div>
+    <div class="result-content">
+      <div class="result-title">
+        <a href="${externalUrl}" target="_blank" rel="noopener">${result.title || "Unknown Title"}</a>
+      </div>
+      <div class="result-meta">
+        ${metaParts.join(" · ")}
+      </div>
+      <div class="result-snippet">${snippet}</div>
+    </div>
+    <div class="result-right">
+      <span class="year-badge">${result.year || "—"}</span>
+      <div class="result-actions">
+        <button type="button" title="Copy citation" class="cite-btn"><i class="fas fa-quote-left"></i></button>
+        <button type="button" title="Save to library" class="save-btn"><i class="fas fa-bookmark"></i></button>
+        <button type="button" title="Open external" class="external-btn" onclick="window.open('${externalUrl}', '_blank')"><i class="fas fa-external-link-alt"></i></button>
+      </div>
+    </div>
+  `;
 
   return cardDiv;
 }
