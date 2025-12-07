@@ -502,6 +502,9 @@ from .search_helpers import parse_query_operators, apply_advanced_filters
 from ...middleware.rate_limit import rate_limit, rate_limit_status
 from ...api_auth import api_key_optional
 
+# Import scitex.scholar integration (preferred for core logic)
+from ...integrations import scitex_scholar as scitex_integration
+
 
 @api_key_optional
 @rate_limit("api_search_unified")
@@ -552,6 +555,64 @@ def api_search_unified(request):
             }
         }, status=400)
 
+    # Get max results and format options
+    try:
+        max_results = min(int(request.GET.get("max_results", 20)), 100)
+    except ValueError:
+        max_results = 20
+    response_format = request.GET.get("format", "full").lower()
+    use_scitex = request.GET.get("engine", "auto").lower() != "django"
+
+    # Try to use scitex.scholar if available (preferred - reuses local logic)
+    if use_scitex and scitex_integration.is_available():
+        try:
+            # Use scitex.scholar's advanced query parser and search engine
+            scitex_results = scitex_integration.search_sync(
+                query=query,
+                mode='parallel',
+                max_results=max_results,
+                email=getattr(request.user, 'email', None) if request.user.is_authenticated else None,
+            )
+
+            # Convert to Django-compatible format
+            formatted_results = scitex_integration.convert_scitex_results_to_django(scitex_results)
+
+            # Get parsed filters from scitex
+            parsed = scitex_integration.parse_query_scitex(query)
+
+            return JsonResponse({
+                "status": "success",
+                "engine": "scitex.scholar",
+                "query": {
+                    "original": query,
+                    "parsed": parsed.get("keyword_query", query),
+                    "filters": {
+                        "positive_keywords": parsed.get("positive_keywords", []),
+                        "negative_keywords": parsed.get("negative_keywords", []),
+                        "year_start": parsed.get("year_start"),
+                        "year_end": parsed.get("year_end"),
+                        "min_citations": parsed.get("min_citations"),
+                        "max_citations": parsed.get("max_citations"),
+                        "min_impact_factor": parsed.get("min_impact_factor"),
+                        "max_impact_factor": parsed.get("max_impact_factor"),
+                        "open_access": parsed.get("open_access"),
+                    }
+                },
+                "sources": scitex_results.get("metadata", {}).get("sources", {}),
+                "total_count": len(formatted_results),
+                "results": formatted_results if response_format == "full" else [
+                    {k: r[k] for k in ["title", "authors", "year", "journal", "doi", "citations", "source"] if k in r}
+                    for r in formatted_results
+                ],
+                "stats": scitex_results.get("stats", {}),
+                "rate_limit": rate_limit_status(request, "api_search_unified"),
+            })
+
+        except Exception as e:
+            logger.warning(f"scitex.scholar search failed, falling back to Django: {e}")
+            # Fall through to Django implementation
+
+    # Fallback: Django-only implementation
     # Parse command syntax from query
     parsed = parse_query_operators(query)
     clean_query = parsed.get("query", query)
@@ -578,15 +639,6 @@ def api_search_unified(request):
             "arxiv": search_arxiv,
             "semantic": search_semantic_scholar,
         }
-
-    # Get max results per source
-    try:
-        max_results = min(int(request.GET.get("max_results", 20)), 100)
-    except ValueError:
-        max_results = 20
-
-    # Response format
-    response_format = request.GET.get("format", "full").lower()
 
     # Search all sources in parallel
     all_results = []
@@ -646,6 +698,7 @@ def api_search_unified(request):
 
     return JsonResponse({
         "status": "success",
+        "engine": "django",
         "query": {
             "original": query,
             "parsed": clean_query,
