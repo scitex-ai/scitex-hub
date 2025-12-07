@@ -427,14 +427,17 @@ function createResultCard(result: SearchResult): HTMLElement {
   if (result.authors) {
     metaParts.push(`<span class="authors">${result.authors}</span>`);
   }
+  // Journal + IF as single warning badge
   if (result.journal) {
-    metaParts.push(`<span class="journal">${result.journal}</span>`);
+    const ifText = result.impact_factor ? ` (IF ${result.impact_factor})` : "";
+    metaParts.push(`<span class="journal-badge">${result.journal}${ifText}</span>`);
   }
   if (result.citations && result.citations > 0) {
     metaParts.push(`<span class="citations">${result.citations}</span>`);
   }
-  if (result.impact_factor) {
-    metaParts.push(`<span class="if-badge">IF ${result.impact_factor}</span>`);
+  // Source badge
+  if (result.source) {
+    metaParts.push(`<span class="source-badge">${result.source.toUpperCase()}</span>`);
   }
 
   // Truncate abstract

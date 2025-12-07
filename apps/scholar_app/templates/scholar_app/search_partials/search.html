@@ -139,8 +139,13 @@
     color: var(--text-muted, #6c8ba0);
 }
 
-.progressive-results .result-meta .journal {
-    color: var(--scitex-color-04, #4a8eb0);
+.progressive-results .result-meta .journal-badge {
+    background: #d4a855;
+    color: #1a1a1a;
+    padding: 0.15rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    font-weight: 500;
 }
 
 .progressive-results .result-meta .citations {
@@ -151,13 +156,14 @@
     content: "🔗 ";
 }
 
-.progressive-results .result-meta .if-badge {
-    background: #d4a855;
-    color: #1a1a1a;
-    padding: 0.1rem 0.35rem;
+.progressive-results .result-meta .source-badge {
+    border: 1px solid var(--border-color, #3a5a6a);
+    color: var(--text-muted, #6c8ba0);
+    padding: 0.1rem 0.4rem;
     border-radius: 3px;
-    font-size: 0.7rem;
-    font-weight: 600;
+    font-size: 0.65rem;
+    font-weight: 500;
+    text-transform: uppercase;
 }
 
 .progressive-results .result-snippet {
