@@ -52,9 +52,10 @@ const ZEN_MODE_STORAGE_KEY = 'scitex-zen-mode-active';
 const ZEN_SAVED_STATES_KEY = 'scitex-zen-saved-states';
 
 // URL hash values for direct access (useful for screenshots/testing)
-// e.g., /writer/#zen, /code/#fullscreen
+// e.g., /writer/#zen, /code/#fullscreen, /writer/#default
 const HASH_ZEN = 'zen';
 const HASH_FULLSCREEN = 'fullscreen';
+const HASH_DEFAULT = 'default';
 
 export class ZenMode {
   private config: ZenModeConfig;
@@ -320,6 +321,78 @@ export class ZenMode {
   }
 
   /**
+   * Expand all panels (for #default hash - useful for screenshots)
+   */
+  private expandAllPanels(): void {
+    // Expand header
+    const header = document.querySelector(this.config.headerSelector) as HTMLElement;
+    if (header) {
+      header.classList.remove('collapsed');
+      localStorage.setItem('scitex-header-collapsed', 'false');
+    }
+
+    // Expand sidebar
+    if (this.config.sidebarSelector) {
+      const sidebar = document.querySelector(this.config.sidebarSelector) as HTMLElement;
+      if (sidebar) {
+        sidebar.classList.remove('collapsed');
+        // Set a reasonable default width if not set
+        const savedWidth = localStorage.getItem(`${this.config.storagePrefix}sidebar-width`);
+        if (savedWidth) {
+          const width = parseInt(savedWidth, 10);
+          if (width > 40) {
+            sidebar.style.width = `${width}px`;
+            sidebar.style.flexShrink = '0';
+            sidebar.style.flexGrow = '0';
+          }
+        }
+
+        // Update toggle icon
+        if (this.config.sidebarToggleId) {
+          const toggleBtn = document.getElementById(this.config.sidebarToggleId);
+          if (toggleBtn) {
+            this.updateToggleIcon(toggleBtn, 'left', false);
+          }
+        }
+
+        // Update localStorage
+        const sidebarCollapseKey = `${this.config.storagePrefix}sidebar-collapsed`;
+        localStorage.setItem(sidebarCollapseKey, 'false');
+      }
+    }
+
+    // Expand details panel
+    if (this.config.detailsSelector) {
+      const details = document.querySelector(this.config.detailsSelector) as HTMLElement;
+      if (details) {
+        details.classList.remove('collapsed');
+        // Set a reasonable default width if not set
+        const savedWidth = localStorage.getItem(`${this.config.storagePrefix}details-width`);
+        if (savedWidth) {
+          const width = parseInt(savedWidth, 10);
+          if (width > 40) {
+            details.style.width = `${width}px`;
+            details.style.flexShrink = '0';
+            details.style.flexGrow = '0';
+          }
+        }
+
+        // Update toggle icon
+        if (this.config.detailsToggleId) {
+          const toggleBtn = document.getElementById(this.config.detailsToggleId);
+          if (toggleBtn) {
+            this.updateToggleIcon(toggleBtn, 'right', false);
+          }
+        }
+
+        // Update localStorage
+        const detailsCollapseKey = `${this.config.storagePrefix}details-collapsed`;
+        localStorage.setItem(detailsCollapseKey, 'false');
+      }
+    }
+  }
+
+  /**
    * Restore panel states from saved states
    */
   private restorePanelStates(states: SavedPanelStates): void {
@@ -453,8 +526,23 @@ export class ZenMode {
    * Priority: URL hash > localStorage
    */
   private restoreZenState(): void {
-    // Check URL hash first (e.g., /writer/#zen, /code/#fullscreen)
+    // Check URL hash first (e.g., /writer/#zen, /code/#fullscreen, /writer/#default)
     const hash = window.location.hash.slice(1).toLowerCase();
+
+    // Handle #default hash - expand all panels, clear zen state
+    if (hash === HASH_DEFAULT) {
+      // Clear any zen mode state
+      document.body.classList.remove('zen-mode', 'zen-fullscreen');
+      localStorage.removeItem(ZEN_MODE_STORAGE_KEY);
+      localStorage.removeItem(ZEN_SAVED_STATES_KEY);
+      this.currentState = 'normal';
+      this.savedStates = null;
+
+      // Expand all panels
+      this.expandAllPanels();
+      console.log('[ZenMode] Expanded all panels from URL hash #default');
+      return;
+    }
 
     if (hash === HASH_ZEN || hash === HASH_FULLSCREEN) {
       // Save current states before entering zen (for later restoration)

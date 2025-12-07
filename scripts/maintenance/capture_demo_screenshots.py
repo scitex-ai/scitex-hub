@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Timestamp: "2025-12-08 08:41:24 (ywatanabe)"
+# Timestamp: "2025-12-08 08:43:03 (ywatanabe)"
 # File: /home/ywatanabe/proj/scitex-cloud/scripts/maintenance/capture_demo_screenshots.py
 
 
@@ -49,10 +49,9 @@ logger = getLogger(__name__)
 # ============================================================================
 
 # Load environment variables from .env file
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 ENV_FILE = PROJECT_ROOT / "SECRET" / ".env.dev"
 
-__import__("ipdb").set_trace()
 if ENV_FILE.exists():
     load_dotenv(ENV_FILE)
     logger.info(f"Loaded environment variables from {ENV_FILE}")
@@ -117,14 +116,14 @@ PAGES_TO_CAPTURE_ACCOUNT = [
 ]
 
 PAGES_TO_CAPTURE_MODULES = [
-    # Modules
-    "/scholar/#normal",
+    # Modules - #default expands all panels, #zen collapses all panels
+    "/scholar/#default",
     "/scholar/#zen",
-    "/code/#normal",
+    "/code/#default",
     "/code/#zen",
-    "/vis/#normal",
+    "/vis/#default",
     "/vis/#zen",
-    "/writer/#normal",
+    "/writer/#default",
     "/writer/#zen",
     # "/tools/",
 ]
