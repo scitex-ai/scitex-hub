@@ -123,11 +123,26 @@ class PoolAllocator:
 
     @classmethod
     def _try_allocate_slot(cls, visitor_num: int, session, pool_size: int) -> Tuple[Optional[Project], Optional[User]]:
-        """Try to allocate a specific visitor slot."""
-        # Check if slot is free or expired
+        """Try to allocate a specific visitor slot using atomic operations."""
+        from django.db import IntegrityError
+
+        # First verify the visitor user and project exist
+        username = f"{cls.VISITOR_USER_PREFIX}{visitor_num:03d}"
+        project_slug = "default-project"
+
+        try:
+            user = User.objects.get(username=username)
+            project = Project.objects.get(slug=project_slug, owner=user)
+        except (User.DoesNotExist, Project.DoesNotExist):
+            logger.error(
+                f"[VisitorPool] Visitor slot {visitor_num} user/project not found"
+            )
+            return None, None
+
+        # Use select_for_update with skip_locked to avoid race conditions
         allocation = VisitorAllocation.objects.filter(
             visitor_number=visitor_num
-        ).first()
+        ).select_for_update(skip_locked=True).first()
 
         # Slot is free if: no allocation, expired, or inactive
         if (
@@ -135,32 +150,28 @@ class PoolAllocator:
             or not allocation.is_active
             or allocation.expires_at < timezone.now()
         ):
-            # Allocate this slot
             allocation_token = secrets.token_hex(32)
             expires_at = timezone.now() + timedelta(
                 hours=cls.SESSION_LIFETIME_HOURS
             )
 
-            # Delete old allocation if exists
-            if allocation:
-                allocation.delete()
-
-            # Create new allocation
-            VisitorAllocation.objects.create(
-                visitor_number=visitor_num,
-                session_key=session.session_key or "",
-                allocation_token=allocation_token,
-                expires_at=expires_at,
-                is_active=True,
-            )
-
-            # Get visitor user and project
-            username = f"{cls.VISITOR_USER_PREFIX}{visitor_num:03d}"
-            project_slug = "default-project"
-
             try:
-                user = User.objects.get(username=username)
-                project = Project.objects.get(slug=project_slug, owner=user)
+                if allocation:
+                    # Update existing allocation atomically (no delete/create race)
+                    allocation.session_key = session.session_key or ""
+                    allocation.allocation_token = allocation_token
+                    allocation.expires_at = expires_at
+                    allocation.is_active = True
+                    allocation.save()
+                else:
+                    # Create new allocation
+                    VisitorAllocation.objects.create(
+                        visitor_number=visitor_num,
+                        session_key=session.session_key or "",
+                        allocation_token=allocation_token,
+                        expires_at=expires_at,
+                        is_active=True,
+                    )
 
                 # Store in session
                 session[cls.SESSION_KEY_PROJECT_ID] = project.id
@@ -173,9 +184,10 @@ class PoolAllocator:
                 )
                 return project, user
 
-            except (User.DoesNotExist, Project.DoesNotExist):
-                logger.error(
-                    f"[VisitorPool] Visitor slot {visitor_num} exists in allocations but user/project not found"
+            except IntegrityError:
+                # Race condition - another request allocated this slot
+                logger.debug(
+                    f"[VisitorPool] Slot {visitor_num} taken by concurrent request"
                 )
                 return None, None
 

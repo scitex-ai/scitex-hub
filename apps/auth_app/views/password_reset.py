@@ -96,7 +96,7 @@ The SciTeX Team
 
                 <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; color: #666; font-size: 14px;">
                     <div style="text-align: center; margin-bottom: 15px;">
-                        <img src="{site_url}/static/shared/images/scitex_logos/vectorstock/vectorstock_38853699-navy-inverted-48x48.png" alt="SciTeX" style="height: 32px; opacity: 0.6;">
+                        <img src="{site_url}/static/shared/images/scitex_logos/scitex-icon/scitex-icon-navy-inverted-48x48.png" alt="SciTeX" style="height: 32px; opacity: 0.6;">
                     </div>
                     <p>If you didn't request this password reset, please ignore this email or contact support if you have concerns.</p>
                     <p>Best regards,<br>The SciTeX Team</p>

@@ -56,6 +56,12 @@ echo ""
 "${SCRIPT_DIR}/check-migrations.sh" || true
 
 # ============================================
+# Visitor Pool Status
+# ============================================
+"${SCRIPT_DIR}/check-visitor-pool.sh" || true
+echo ""
+
+# ============================================
 # SLURM Status
 # ============================================
 echo -e "${BLUE}🖥️  SLURM Status:${NC}"
