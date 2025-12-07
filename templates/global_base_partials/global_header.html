@@ -16,29 +16,12 @@
     <div class="global-header-inner">
         <!-- Left: Logo + Main Navigation -->
         <div class="header-left">
-            <!-- <\!-- Logo -\->
-             !-- <a href="/" class="header-logo" data-tooltip="Go to home page">
-             !--     <img src="{% static 'shared/images/scitex_logos/scitex-icon/scitex-icon-navy-inverted-192x192.png' %}"
-             !--          alt="SciTeX"
-             !--          width="32"
-             !--          height="32" />
-             !-- </a>
-              -->
-                <div style="display: flex;
-                            align-items: center;
-                            gap: 10px;
-                            padding: 12px 16px;
-                            background-color: transparent;
-                            border-radius: 8px;
-                            margin-bottom: var(--spacing-sm);
-                            margin-right: var(--spacing-lg);
-                            width: fit-content">
-                    <a href="/" title="Home">
-                        <img src="{% static 'shared/images/scitex_logos/scitex-icon/scitex-icon-navy-inverted-48x48.png' %}"
-                             alt="SciTeX Logo"
-                             width="40"
-                             height="40" />
-                    </a>             
+            <!-- Logo -->
+            <a href="/" class="header-logo" title="Home">
+                <img src="{% static 'shared/images/scitex_logos/scitex-icon/scitex-icon-navy-inverted.svg' %}"
+                     alt="SciTeX"
+                     class="header-logo-icon" />
+            </a>             
             <!-- Project Selector (moved here for better visibility) -->
             <div class="header-project-selector-inline">
                 <button id="project-selector-toggle"

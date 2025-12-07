@@ -30,5 +30,11 @@
   height: 36px;
   width: 36px;
   object-fit: contain;
+  flex-shrink: 0;
+}
+
+/* Ensure logo link has proper spacing */
+.header-left .header-logo {
+  margin-right: var(--spacing-md, 12px);
 }
 

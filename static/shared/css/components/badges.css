@@ -47,13 +47,12 @@
 
 .badge-primary {
   color: var(--text-inverse);
-  background-color: var(--workspace-icon-primary);
+  background-color: var(--_scitex-02); /* Navy: #34495e */
 }
 
 .badge-secondary {
-  color: var(--text-primary);
-  background-color: var(--bg-muted);
-  border: 1px solid var(--border-default);
+  color: var(--text-inverse);
+  background-color: var(--_scitex-04); /* Blue-gray: #6c8ba0 */
 }
 
 .badge-light {
@@ -87,14 +86,13 @@
    ========================= */
 
 [data-theme="dark"] .badge-primary {
-  color: var(--_scitex-01);
-  background-color: var(--workspace-icon-primary);
+  color: var(--_scitex-07);
+  background-color: var(--_scitex-02); /* Navy: #34495e */
 }
 
 [data-theme="dark"] .badge-secondary {
-  color: var(--text-primary);
-  background-color: var(--workspace-bg-tertiary);
-  border-color: var(--workspace-border-default);
+  color: var(--_scitex-07);
+  background-color: var(--_scitex-04); /* Blue-gray: #6c8ba0 */
 }
 
 [data-theme="dark"] .badge-light {
