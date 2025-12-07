@@ -111,9 +111,13 @@ class CitationGraphProxyService:
         return result.get('related', [])
 
     def health_check(self) -> Dict:
-        """Check NAS service health."""
+        """Check NAS service health with short timeout."""
         try:
-            result = self._make_request('health', {})
+            # Use short timeout for health checks (not the 60s default)
+            url = f"{self.base_url}/api/scholar/citation-graph/health/"
+            response = requests.get(url, timeout=3)
+            response.raise_for_status()
+            result = response.json()
             result['mode'] = 'proxy'
             result['proxy_target'] = self.base_url
             return result

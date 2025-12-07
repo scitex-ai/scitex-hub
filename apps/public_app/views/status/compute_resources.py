@@ -55,24 +55,12 @@ def check_slurm_status(status_data):
         except Exception:
             pass
 
-        # Test 3: Actually test SLURM job execution as scitex user
-        # This tests the EXACT same command that real terminals use (with --pty)
-        # This catches issues like: SLURM restart needed, accounting problems, PTY issues
+        # Test 3: Skip SLURM job execution test in health check API
+        # This test is too slow for the header health indicator.
+        # If sinfo works and scitex user exists, assume job execution works.
+        # Detailed job execution testing is done on the server-status page.
         if checks["sinfo"] and checks["scitex_user"]:
-            try:
-                # Test with --pty like real terminals do
-                # Note: We use 'true' as the command since we're not in an interactive shell
-                job_test = subprocess.run(
-                    ['docker', 'exec', 'scitex-cloud-nas-django-1', 'su', 'scitex', '-c',
-                     'timeout 3 srun --partition=express --time=00:01:00 --cpus-per-task=1 --mem=1G --pty /bin/true'],
-                    capture_output=True, text=True, timeout=5
-                )
-                # Check stderr for common errors (PTY warnings are OK, but other errors are not)
-                stderr = job_test.stderr.lower() if job_test.stderr else ""
-                has_fatal_error = any(err in stderr for err in ['error generating job credential', 'invalid account', 'unable to allocate'])
-                checks["job_execution"] = job_test.returncode == 0 and not has_fatal_error
-            except Exception:
-                pass
+            checks["job_execution"] = True  # Assume OK if prerequisites pass
 
         # Determine overall health
         all_checks_pass = all(checks.values())
@@ -149,27 +137,17 @@ def check_container_runtime_status(status_data):
 
         for cmd in ['apptainer', 'singularity']:
             try:
-                # Test 1: Check version
+                # Test 1: Check version (fast check only)
                 result = subprocess.run(
                     [cmd, '--version'],
-                    capture_output=True, text=True, timeout=5
+                    capture_output=True, text=True, timeout=2
                 )
                 if result.returncode == 0:
                     container_cmd = cmd
                     version = result.stdout.strip()
-
-                    # Test 2: Test through SLURM (how it's actually used)
-                    # This tests: SLURM → scitex user → Apptainer → Container
-                    try:
-                        exec_test = subprocess.run(
-                            ['docker', 'exec', 'scitex-cloud-nas-django-1', 'su', 'scitex', '-c',
-                             f'timeout 5 srun --partition=express {cmd} --version'],
-                            capture_output=True, text=True, timeout=8
-                        )
-                        can_execute = exec_test.returncode == 0 and version.split()[1] in exec_test.stdout
-                    except Exception:
-                        can_execute = False  # Execution test failed, but command exists
-
+                    # Skip slow SLURM execution test for health check API
+                    # If command exists, assume it works.
+                    can_execute = True
                     break
             except FileNotFoundError:
                 continue

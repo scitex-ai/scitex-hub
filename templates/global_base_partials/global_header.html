@@ -31,12 +31,14 @@
                             background-color: transparent;
                             border-radius: 8px;
                             margin-bottom: var(--spacing-sm);
-                            margin-right: var(--spacing-lg);                            
+                            margin-right: var(--spacing-lg);
                             width: fit-content">
-                    <img src="{% static 'shared/images/scitex_logos/scitex-icon/scitex-icon-navy-inverted-192x192.png' %}"
-                         alt="SciTeX Logo"
-                         style="width: 40px;
-                                height: 40px" />             
+                    <a href="/" title="Home">
+                        <img src="{% static 'shared/images/scitex_logos/scitex-icon/scitex-icon-navy-inverted-48x48.png' %}"
+                             alt="SciTeX Logo"
+                             width="40"
+                             height="40" />
+                    </a>             
             <!-- Project Selector (moved here for better visibility) -->
             <div class="header-project-selector-inline">
                 <button id="project-selector-toggle"
@@ -669,7 +671,7 @@
                         <a href="https://github.com/SciTeX-AI"
                            class="dropdown-item"
                            target="_blank">
-                            <img src="{% static 'shared/images/scitex_logos/vectorstock/scitex-icon-navy-inverted.svg' %}"
+                            <img src="{% static 'shared/images/scitex_logos/scitex-icon/scitex-icon-navy-inverted.svg' %}"
                                  alt=""
                                  style="display: inline-block;
                                         vertical-align: text-bottom;
