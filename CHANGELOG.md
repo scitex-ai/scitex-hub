@@ -5,6 +5,31 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.8-alpha] - 2025-12-08
+
+### Added
+- **Scholar Search Refactoring**: Extracted inline CSS/JS to external modules
+  - `search-main.ts` for search help popup, toolbar, and BibTeX export
+  - `pdf-download.ts` for PDF download functionality
+  - `search-main.css` and `results-header.css` for search styling
+  - Ctrl+C keyboard shortcut to copy BibTeX for selected papers
+  - Tooltip explaining search result count deduplication
+
+- **API Documentation**: Enhanced API docs page with improved layout and styling
+  - Added `api-docs.css` for dedicated styling
+
+- **UI Improvements**: Header/footer styling updates
+  - Updated badge components
+  - Refreshed footer design
+
+### Fixed
+- **CrossRef Local Service**: Fixed Pydantic validation error for author fields
+  - Added `_format_authors()` method to convert CrossRef author objects to strings
+  - CrossRef stores authors as `{"family": "Smith", "given": "John"}` but Pydantic expects `List[str]`
+
+### Infrastructure
+- Updated Python dependencies in requirements.txt
+
 ## [0.4.7-alpha] - 2025-12-07
 
 ### Added
