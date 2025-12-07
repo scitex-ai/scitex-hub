@@ -8,6 +8,119 @@
         <span class="badge badge-secondary badge-file-path">/static/shared/css/components/header.css</span>
     </div>
     <p class="text-intro">Icon system using FontAwesome icons with warm yellowish color scheme and consistent alignment.</p>
+
+    <!-- SciTeX Icon Generator -->
+    <div class="demo-box mt-4" id="scitex-icon-generator">
+        <h3 class="mb-3">
+            <i class="fas fa-magic"></i>
+            SciTeX Icon Generator
+        </h3>
+        <p>Interactive tool to create custom SciTeX logo variants with different colors, backgrounds, and effects.</p>
+
+        <div class="scitex-icon-gen-container">
+            <!-- Controls Panel -->
+            <div class="scitex-icon-gen-controls">
+                <!-- Snake Settings -->
+                <div class="scitex-icon-gen-section">
+                    <h4 class="scitex-icon-gen-section-title">Snake</h4>
+                    <div class="scitex-icon-gen-row">
+                        <label>Color:</label>
+                        <div class="scitex-icon-gen-colors" id="snake-colors"></div>
+                    </div>
+                    <div class="scitex-icon-gen-row">
+                        <label>
+                            <input type="checkbox" id="snake-camo-toggle"> Use Camo Pattern
+                        </label>
+                        <select id="snake-camo-style" disabled>
+                            <option value="Forest">Forest</option>
+                            <option value="Navy">Navy</option>
+                            <option value="Desert">Desert</option>
+                            <option value="Arctic">Arctic</option>
+                            <option value="Urban">Urban</option>
+                            <option value="Gray">Gray</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Background Settings -->
+                <div class="scitex-icon-gen-section">
+                    <h4 class="scitex-icon-gen-section-title">Background</h4>
+                    <div class="scitex-icon-gen-row">
+                        <label>
+                            <input type="checkbox" id="bg-transparent-toggle"> Transparent
+                        </label>
+                    </div>
+                    <div class="scitex-icon-gen-row">
+                        <label>Color:</label>
+                        <div class="scitex-icon-gen-colors" id="bg-colors"></div>
+                    </div>
+                    <div class="scitex-icon-gen-row">
+                        <label>
+                            <input type="checkbox" id="bg-camo-toggle"> Use Camo Pattern
+                        </label>
+                        <select id="bg-camo-style" disabled>
+                            <option value="Forest">Forest</option>
+                            <option value="Navy">Navy</option>
+                            <option value="Desert">Desert</option>
+                            <option value="Arctic">Arctic</option>
+                            <option value="Urban">Urban</option>
+                            <option value="Gray">Gray</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Text Settings -->
+                <div class="scitex-icon-gen-section">
+                    <h4 class="scitex-icon-gen-section-title">Text (Optional)</h4>
+                    <div class="scitex-icon-gen-row">
+                        <label>
+                            <input type="checkbox" id="text-toggle"> Add Text
+                        </label>
+                    </div>
+                    <div class="scitex-icon-gen-row">
+                        <label>Content:</label>
+                        <input type="text" id="text-content" value="scitex.ai" disabled>
+                    </div>
+                    <div class="scitex-icon-gen-row">
+                        <label>Position:</label>
+                        <select id="text-position" disabled>
+                            <option value="bottom">Bottom</option>
+                            <option value="center">Center</option>
+                            <option value="top">Top</option>
+                        </select>
+                    </div>
+                    <div class="scitex-icon-gen-row">
+                        <label>Text Color:</label>
+                        <div class="scitex-icon-gen-colors" id="text-colors"></div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="scitex-icon-gen-section">
+                    <h4 class="scitex-icon-gen-section-title">Actions</h4>
+                    <div class="scitex-icon-gen-actions">
+                        <button class="btn btn-primary" id="download-svg-btn">
+                            <i class="fas fa-download"></i> Download SVG
+                        </button>
+                        <button class="btn btn-secondary" id="copy-svg-btn">
+                            <i class="fas fa-copy"></i> Copy SVG
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview Panel -->
+            <div class="scitex-icon-gen-preview">
+                <h4 class="scitex-icon-gen-section-title">Preview</h4>
+                <div class="scitex-icon-gen-preview-container" id="icon-preview">
+                    <!-- SVG will be rendered here -->
+                </div>
+                <div class="scitex-icon-gen-filename" id="icon-filename">
+                    scitex-icon-white-bg-navy.svg
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- Navigation Icons -->
     <div class="demo-box mt-4">
         <h3 class="mb-3">Navigation Icons</h3>
