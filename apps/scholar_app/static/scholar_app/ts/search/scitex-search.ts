@@ -22,11 +22,138 @@ declare global {
       };
     };
     saveSourcePreferences?: () => void;
+    pdfDownloadManager?: {
+      downloadSelected: () => Promise<{ success: number; failed: number }>;
+      initializeBadge: (badge: HTMLElement) => Promise<void>;
+    };
   }
 }
 
 // Export to make this an ES module
 export {};
+
+/**
+ * Search history manager with arrow key navigation
+ */
+class SearchHistoryManager {
+  private history: string[] = [];
+  private historyIndex: number = -1;
+  private currentInput: string = "";
+  private maxHistory: number = 50;
+  private storageKey: string = "scitex_search_history";
+  private inputElement: HTMLInputElement | null = null;
+
+  constructor() {
+    this.loadFromStorage();
+  }
+
+  private loadFromStorage(): void {
+    try {
+      const stored = localStorage.getItem(this.storageKey);
+      if (stored) {
+        this.history = JSON.parse(stored);
+      }
+    } catch (e) {
+      console.warn("[SearchHistory] Failed to load history:", e);
+      this.history = [];
+    }
+  }
+
+  private saveToStorage(): void {
+    try {
+      localStorage.setItem(this.storageKey, JSON.stringify(this.history));
+    } catch (e) {
+      console.warn("[SearchHistory] Failed to save history:", e);
+    }
+  }
+
+  addQuery(query: string): void {
+    if (!query.trim()) return;
+
+    // Remove duplicates
+    const index = this.history.indexOf(query);
+    if (index !== -1) {
+      this.history.splice(index, 1);
+    }
+
+    // Add to front
+    this.history.unshift(query);
+
+    // Limit history size
+    if (this.history.length > this.maxHistory) {
+      this.history = this.history.slice(0, this.maxHistory);
+    }
+
+    this.saveToStorage();
+    this.historyIndex = -1;
+  }
+
+  attachToInput(input: HTMLInputElement): void {
+    this.inputElement = input;
+
+    input.addEventListener("keydown", (e: KeyboardEvent) => {
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        this.navigateHistory(1);
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        this.navigateHistory(-1);
+      } else if (e.key !== "Enter") {
+        // Reset index when typing (not Enter)
+        this.historyIndex = -1;
+        this.currentInput = input.value;
+      }
+    });
+  }
+
+  private navigateHistory(direction: number): void {
+    if (!this.inputElement || this.history.length === 0) return;
+
+    // Save current input if starting navigation
+    if (this.historyIndex === -1) {
+      this.currentInput = this.inputElement.value;
+    }
+
+    // Calculate new index
+    const newIndex = this.historyIndex + direction;
+
+    if (newIndex < -1) {
+      // Below history, show current input
+      this.historyIndex = -1;
+      this.inputElement.value = this.currentInput;
+    } else if (newIndex >= this.history.length) {
+      // At end of history, stay there
+      return;
+    } else if (newIndex === -1) {
+      // Back to current input
+      this.historyIndex = -1;
+      this.inputElement.value = this.currentInput;
+    } else {
+      // Navigate in history
+      this.historyIndex = newIndex;
+      this.inputElement.value = this.history[this.historyIndex];
+    }
+
+    // Move cursor to end
+    this.inputElement.setSelectionRange(
+      this.inputElement.value.length,
+      this.inputElement.value.length
+    );
+  }
+
+  getHistory(): string[] {
+    return [...this.history];
+  }
+
+  clearHistory(): void {
+    this.history = [];
+    this.historyIndex = -1;
+    this.saveToStorage();
+  }
+}
+
+// Global search history instance
+const searchHistory = new SearchHistoryManager();
 
 /**
  * Search log manager for status panel
@@ -212,6 +339,9 @@ function createResultsHeader(query: string): string {
         <button type="button" class="toolbar-btn toolbar-btn--primary" id="exportSelectedBibtex" title="Download BibTeX for selected" disabled>
           <i class="fas fa-download"></i> BibTeX
         </button>
+        <button type="button" class="toolbar-btn toolbar-btn--pdf" id="downloadSelectedPdfs" title="Download PDFs for selected (Open Access only)" disabled>
+          <i class="fas fa-file-pdf"></i> PDFs
+        </button>
       </div>
     </div>
   `;
@@ -221,7 +351,8 @@ function createResultsHeader(query: string): string {
  * Update results count in header
  */
 function updateResultsCount(count: number, query: string, sourcesInfo?: string): void {
-  const textEl = document.getElementById("progressiveResultsText");
+  // Try progressive header first (used during search), then static header
+  const textEl = document.getElementById("progressiveResultsText") || document.getElementById("searchResultsText");
   if (textEl) {
     const sourceText = sourcesInfo ? ` from ${sourcesInfo}` : "";
     textEl.textContent = `${count} result${count !== 1 ? "s" : ""} for "${query}"${sourceText}`;
@@ -293,7 +424,7 @@ function updateToolbarState(): void {
   const selectedCount = document.querySelectorAll(".result-card .paper-select:checked").length;
 
   // Update legacy toolbar buttons
-  const buttons = ["saveSelectedBtn", "openUrlsBtn", "exportSelectedBibtex"];
+  const buttons = ["saveSelectedBtn", "openUrlsBtn", "exportSelectedBibtex", "downloadSelectedPdfs"];
   buttons.forEach((id) => {
     const btn = document.getElementById(id) as HTMLButtonElement | null;
     if (btn) btn.disabled = selectedCount === 0;
@@ -512,6 +643,42 @@ function setupToolbarHandlers(): void {
   document.getElementById("actionClearSelection")?.addEventListener("click", function () {
     toggleSelectAll(false);
   });
+
+  // Action bar: Download PDFs button
+  document.getElementById("actionDownloadPdfs")?.addEventListener("click", async function () {
+    if (window.pdfDownloadManager) {
+      const btn = this as HTMLButtonElement;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
+
+      const result = await window.pdfDownloadManager.downloadSelected();
+
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-file-pdf"></i> PDFs';
+
+      alert(`Downloaded: ${result.success}, Failed: ${result.failed}`);
+    } else {
+      alert("PDF download not available");
+    }
+  });
+
+  // Toolbar: Download PDFs button
+  document.getElementById("downloadSelectedPdfs")?.addEventListener("click", async function () {
+    if (window.pdfDownloadManager) {
+      const btn = this as HTMLButtonElement;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
+
+      const result = await window.pdfDownloadManager.downloadSelected();
+
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-file-pdf"></i> PDFs';
+
+      alert(`Downloaded: ${result.success}, Failed: ${result.failed}`);
+    } else {
+      alert("PDF download not available");
+    }
+  });
 }
 
 // Initialize on DOM ready
@@ -538,10 +705,18 @@ document.addEventListener("DOMContentLoaded", function () {
     return;
   }
 
+  // Attach search history to input for arrow key navigation
+  searchHistory.attachToInput(searchInput);
+
   // Intercept form submission
   searchForm.addEventListener("submit", function (e: Event) {
     e.preventDefault();
     const query = searchInput.value.trim();
+
+    // Add to search history
+    if (query) {
+      searchHistory.addQuery(query);
+    }
 
     // Save current source preferences (defined in scholar-index-main.ts)
     if (typeof (window as any).saveSourcePreferences === "function") {
@@ -567,7 +742,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (progressiveResults) {
       progressiveResults.style.display = "block";
       progressiveResults.innerHTML = "";
-      // Add dynamic results header with toolbar
+      // Add results header with toolbar to progressive results
       const headerHtml = createResultsHeader(query);
       progressiveResults.insertAdjacentHTML("beforeend", headerHtml);
       // Setup toolbar handlers after header is created
@@ -699,10 +874,15 @@ function checkSearchCompletion(): void {
  * Search a single source
  */
 function searchSource(source: SourceConfig, query: string): void {
-  const url = `${source.endpoint}?q=${encodeURIComponent(query)}&max_results=${source.maxResults}`;
+  // Check if ignore cache is enabled
+  const ignoreCacheToggle = document.getElementById("ignoreCacheToggle") as HTMLInputElement | null;
+  const ignoreCache = ignoreCacheToggle?.checked ? "&ignore_cache=true" : "";
+  const cacheNote = ignoreCacheToggle?.checked ? " (no cache)" : "";
+
+  const url = `${source.endpoint}?q=${encodeURIComponent(query)}&max_results=${source.maxResults}${ignoreCache}`;
   const startTime = Date.now();
 
-  searchLog.log(`→ ${source.name}: Fetching...`);
+  searchLog.log(`→ ${source.name}: Fetching${cacheNote}...`);
 
   fetch(url)
     .then((response) => response.json())
@@ -712,10 +892,11 @@ function searchSource(source: SourceConfig, query: string): void {
       if (data.status === "success") {
         const count = data.count || (data.results ? data.results.length : 0);
         totalResults += count;
+        const cachedNote = data.cached ? " [cached]" : "";
 
         // Update status panel
         searchLog.updateSourceStatus(source.name, "success", count);
-        searchLog.log(`✓ ${source.name}: ${count} results (${elapsed}s)`);
+        searchLog.log(`✓ ${source.name}: ${count} results (${elapsed}s)${cachedNote}`);
 
         // Add results
         if (data.results && Array.isArray(data.results)) {
@@ -861,6 +1042,11 @@ function createResultCard(result: SearchResult): HTMLElement {
   if (result.source) {
     metaParts.push(`<span class="source-badge">${result.source.toUpperCase()}</span>`);
   }
+
+  // PDF status badge - include is_open_access and source for better detection
+  const isOpenAccess = result.is_open_access || result.source === 'arxiv' || result.source === 'pmc' || result.source === 'biorxiv' || result.source === 'doaj' || result.source === 'plos';
+  const pdfBadgeData = `data-status="unknown" data-doi="${result.doi || ''}" data-arxiv-id="${result.arxivId || ''}" data-pmid="${result.pmid || ''}" data-is-open-access="${isOpenAccess}" data-source="${result.source || ''}" data-pdf-url="${result.pdf_url || ''}"`;
+  metaParts.push(`<span class="pdf-status-badge" ${pdfBadgeData} title="PDF status"><i class="fas fa-file-pdf"></i><span class="pdf-status-text">PDF</span></span>`);
 
   // Abstract - store full text for expansion
   const fullAbstract = result.abstract || "";

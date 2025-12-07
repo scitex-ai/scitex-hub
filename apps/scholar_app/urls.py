@@ -8,6 +8,7 @@ from django.urls import path
 from django.urls import include
 from rest_framework.routers import DefaultRouter
 from .views.search import views as search_views
+from .views.search import pdf_download as pdf_views
 from .views import bibtex as bibtex_views
 from .views.workspace import api_key_views
 from .views.workspace import views as workspace_views
@@ -455,6 +456,27 @@ urlpatterns = [
         "api/citation-graph/health/",
         citation_graph.health,
         name="citation_graph_health",
+    ),
+    # PDF Download API endpoints
+    path(
+        "api/pdf/download/",
+        pdf_views.api_download_pdf,
+        name="api_download_pdf",
+    ),
+    path(
+        "api/pdf/status/",
+        pdf_views.api_check_pdf_status,
+        name="api_check_pdf_status",
+    ),
+    path(
+        "api/pdf/download-bulk/",
+        pdf_views.api_download_pdf_bulk,
+        name="api_download_pdf_bulk",
+    ),
+    path(
+        "api/pdf/serve/",
+        pdf_views.api_serve_pdf,
+        name="api_serve_pdf",
     ),
     # API Key Management (RESTful)
     path(

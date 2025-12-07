@@ -1,0 +1,109 @@
+/* Results Header Styles */
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-muted, #3a3a3a);
+}
+
+.results-info {
+    font-size: 0.85rem;
+    color: var(--text-secondary, #9ca3af);
+}
+
+.results-count {
+    font-weight: 500;
+}
+
+.results-source {
+    color: var(--text-muted, #6c8ba0);
+}
+
+.results-info-icon {
+    font-size: 0.7rem;
+    opacity: 0.6;
+    cursor: help;
+    margin-left: 0.25rem;
+}
+
+.results-info-icon:hover {
+    opacity: 1;
+}
+
+/* Toolbar */
+.results-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.toolbar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-secondary, #9ca3af);
+    background: var(--bg-secondary, #1a1a1a);
+    border: 1px solid var(--border-color, #3a3a3a);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.toolbar-btn:hover {
+    color: var(--text-primary, #d4e1e8);
+    border-color: var(--scitex-color-04, #6c8ba0);
+    background: var(--bg-tertiary, #252525);
+}
+
+.toolbar-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.toolbar-btn--primary {
+    color: var(--workspace-icon-primary, #059669);
+    border-color: var(--workspace-icon-primary, #059669);
+}
+
+.toolbar-btn--primary:hover {
+    background: rgba(5, 150, 105, 0.15);
+    color: var(--workspace-icon-primary, #059669);
+}
+
+.toolbar-btn i {
+    font-size: 0.7rem;
+}
+
+/* Light theme overrides */
+[data-theme="light"] .toolbar-btn {
+    background: var(--bg-secondary, #f3f4f6);
+    border-color: var(--border-color, #d0d7de);
+    color: var(--text-secondary, #586069);
+}
+
+[data-theme="light"] .toolbar-btn:hover {
+    background: var(--bg-tertiary, #e9ecef);
+    color: var(--text-primary, #1a2a40);
+}
+
+/* BibTeX copy feedback toast */
+.bibtex-copy-feedback {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--workspace-icon-primary, #059669);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    z-index: 10000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: opacity 0.3s ease;
+}

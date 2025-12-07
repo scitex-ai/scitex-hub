@@ -42,6 +42,18 @@
             <span class="meta-separator">·</span>
             <span class="result-oa"><i class="fas fa-lock-open"></i> OA</span>
         {% endif %}
+        <span class="pdf-status-badge"
+              data-status="unknown"
+              data-doi="{{ result.doi|default:'' }}"
+              data-arxiv-id="{{ result.arxiv_id|default:'' }}"
+              data-pmid="{{ result.pmid|default:'' }}"
+              data-is-open-access="{{ result.is_open_access|default:'false'|lower }}"
+              data-source="{{ result.source|default:'' }}"
+              data-pdf-url="{{ result.pdf_url|default:'' }}"
+              title="PDF status">
+            <i class="fas fa-file-pdf"></i>
+            <span class="pdf-status-text">PDF</span>
+        </span>
     </div>
     <!-- Row 3: Abstract (truncated) + Actions -->
     <div class="result-content-row">

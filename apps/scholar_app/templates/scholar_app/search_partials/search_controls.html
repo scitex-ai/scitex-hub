@@ -58,6 +58,13 @@
                     <span class="source-status"><span class="spinner-border spinner-border-sm"></span><span class="count"></span></span>
                 </label>
             </div>
+            <div class="source-options">
+                <label class="source-option" title="Bypass cached results and fetch fresh data from all sources">
+                    <input type="checkbox" id="ignoreCacheToggle" name="ignore_cache" form="literatureSearchForm" value="true" />
+                    <i class="fas fa-sync-alt"></i>
+                    <span>Ignore cache</span>
+                </label>
+            </div>
             <div class="source-notice">
                 <i class="fas fa-info-circle"></i>
                 <span>Rate limits shown per source. Your email is used for API requests to receive higher rate limits.</span>
@@ -297,6 +304,46 @@ Enter a query and press Enter to start.</div>
     font-size: 0.6rem;
     font-weight: 500;
     margin-left: 4px;
+}
+
+/* Source options (cache toggle, etc.) */
+.source-options {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--workspace-border-default, #2a2a2a);
+}
+
+.source-option {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    cursor: pointer;
+    font-size: 0.7rem;
+    color: var(--text-muted, #6c8ba0);
+    transition: color 0.15s ease;
+}
+
+.source-option:hover {
+    color: var(--text-primary, #d4e1e8);
+}
+
+.source-option input[type="checkbox"] {
+    width: 12px;
+    height: 12px;
+    margin: 0;
+    accent-color: var(--scitex-color-04, #6c8ba0);
+}
+
+.source-option input[type="checkbox"]:checked + i {
+    color: var(--scitex-color-04, #6c8ba0);
+}
+
+.source-option i {
+    font-size: 0.65rem;
+    color: var(--text-muted, #6c8ba0);
 }
 
 /* Source notice */

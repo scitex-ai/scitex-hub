@@ -67,6 +67,9 @@ def search_semantic_scholar(query, max_results=100, filters=None):
                 if paper.get("journal") and paper["journal"].get("name"):
                     journal_name = paper["journal"]["name"]
 
+                # Get impact factor for journal
+                impact_factor = get_journal_impact_factor(journal_name) if journal_name != "Unknown Journal" else None
+
                 results.append(
                     {
                         "title": paper.get("title") or "Unknown Title",
@@ -78,6 +81,7 @@ def search_semantic_scholar(query, max_results=100, filters=None):
                         "is_open_access": bool(pdf_url),
                         "citations": paper.get("citationCount") or 0,
                         "source": "semantic_scholar",
+                        "impact_factor": impact_factor,
                     }
                 )
 

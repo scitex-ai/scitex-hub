@@ -12,6 +12,8 @@
     flex-direction: column;
     overflow-y: auto;
     background: var(--workspace-bg-primary, #0d0d0d);
+    /* Ensure sticky children work properly */
+    overflow-x: visible;
 }
 
 /* Full width search container */

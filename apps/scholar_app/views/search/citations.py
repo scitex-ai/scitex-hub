@@ -94,25 +94,32 @@ def get_journal_impact_factor(journal_name):
 
 
 def is_open_access_journal(journal_name):
-    """Check if journal is typically open access."""
-    open_access_journals = [
-        "plos one",
-        "plos biology",
-        "plos medicine",
-        "plos genetics",
-        "elife",
-        "scientific reports",
-        "nature communications",
-        "frontiers in",
-        "bmc",
-        "journal of medical internet research",
-        "nucleic acids research",
-        "bioinformatics",
-        "genome biology",
-    ]
+    """Check if journal is typically open access.
 
-    journal_lower = journal_name.lower()
-    return any(oa_journal in journal_lower for oa_journal in open_access_journals)
+    Uses scitex.scholar.core.open_access for consistent OA detection.
+    """
+    try:
+        from scitex.scholar.core import is_open_access_journal as scitex_is_oa_journal
+        return scitex_is_oa_journal(journal_name)
+    except ImportError:
+        # Fallback if scitex not available
+        open_access_journals = [
+            "plos one",
+            "plos biology",
+            "plos medicine",
+            "plos genetics",
+            "elife",
+            "scientific reports",
+            "nature communications",
+            "frontiers in",
+            "bmc",
+            "journal of medical internet research",
+            "nucleic acids research",
+            "bioinformatics",
+            "genome biology",
+        ]
+        journal_lower = journal_name.lower()
+        return any(oa_journal in journal_lower for oa_journal in open_access_journals)
 
 
 def get_pubmed_citations(pmid):

@@ -5,6 +5,12 @@
 
 import { WorkspaceFilesTree } from "/static/shared/ts/components/workspace-files-tree/WorkspaceFilesTree";
 
+// Import PDF download handler (auto-initializes on DOM ready)
+import "./search/pdf-download";
+
+// Import search main functionality (auto-initializes on DOM ready)
+import "./search/search-main";
+
 declare global {
   interface Window {
     scholarWorkspaceTree?: WorkspaceFilesTree;

@@ -206,15 +206,16 @@ def extract_search_filters(request):
 
 
 
-def search_database_papers(query, filters):
+def search_database_papers(query, filters, ignore_cache=False):
     """Optimized database search with reduced complexity."""
     # Cache database results for better performance
     cache_key = (
         f"db_search_{hashlib.md5(f'{query}_{str(filters)}'.encode()).hexdigest()}"
     )
-    cached_results = cache.get(cache_key)
-    if cached_results is not None:
-        return cached_results
+    if not ignore_cache:
+        cached_results = cache.get(cache_key)
+        if cached_results is not None:
+            return cached_results
 
     # Start with optimized text search - only essential fields
     queryset = (

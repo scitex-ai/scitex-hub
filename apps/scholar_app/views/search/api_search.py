@@ -37,8 +37,57 @@ from .engines import (
     search_arxiv, search_pubmed, search_semantic_scholar,
     search_pubmed_central, search_doaj, search_biorxiv, search_plos
 )
+from .citations import get_journal_impact_factor
 
 logger = logging.getLogger(__name__)
+
+
+def cached_search(request, source_name, search_func, max_results, cache_ttl=1800):
+    """
+    Helper for cached API searches with ignore_cache support.
+
+    Args:
+        request: Django request object
+        source_name: Name of the source (e.g., 'arxiv', 'pubmed')
+        search_func: Function to call for search (takes query and max_results)
+        max_results: Maximum results to return
+        cache_ttl: Cache time-to-live in seconds (default 30 minutes)
+
+    Returns:
+        JsonResponse with search results or error
+    """
+    query = request.GET.get("q", "").strip()
+    ignore_cache = request.GET.get("ignore_cache", "").lower() == "true"
+
+    if not query:
+        return JsonResponse({"error": "Query parameter required"}, status=400)
+
+    # Check cache unless ignore_cache is set
+    cache_key = f"{source_name}_search_{hashlib.md5(f'{query}_{max_results}'.encode()).hexdigest()}"
+    if not ignore_cache:
+        cached = cache.get(cache_key)
+        if cached:
+            cached["cached"] = True
+            return JsonResponse(cached)
+
+    try:
+        results = search_func(query, max_results=max_results)
+        response_data = {
+            "status": "success",
+            "source": source_name,
+            "query": query,
+            "count": len(results),
+            "results": results,
+        }
+        # Cache the results
+        cache.set(cache_key, response_data, cache_ttl)
+        return JsonResponse(response_data)
+    except Exception as e:
+        logger.error(f"{source_name} API search failed: {e}")
+        return JsonResponse(
+            {"status": "error", "source": source_name, "error": str(e)}, status=500
+        )
+
 
 # Import scitex.scholar if available
 try:
@@ -51,191 +100,50 @@ except ImportError:
 @require_http_methods(["GET"])
 def api_search_arxiv(request):
     """API endpoint for arXiv search only."""
-    query = request.GET.get("q", "").strip()
     max_results = min(int(request.GET.get("max_results", 50)), 100)
-
-    if not query:
-        return JsonResponse({"error": "Query parameter required"}, status=400)
-
-    try:
-        results = search_arxiv(query, max_results=max_results)
-        return JsonResponse(
-            {
-                "status": "success",
-                "source": "arxiv",
-                "query": query,
-                "count": len(results),
-                "results": results,
-            }
-        )
-    except Exception as e:
-        logger.error(f"arXiv API search failed: {e}")
-        return JsonResponse(
-            {"status": "error", "source": "arxiv", "error": str(e)}, status=500
-        )
+    return cached_search(request, "arxiv", search_arxiv, max_results)
 
 
 @require_http_methods(["GET"])
 def api_search_pubmed(request):
     """API endpoint for PubMed search only."""
-    query = request.GET.get("q", "").strip()
     max_results = min(int(request.GET.get("max_results", 50)), 100)
-
-    if not query:
-        return JsonResponse({"error": "Query parameter required"}, status=400)
-
-    try:
-        results = search_pubmed(query, max_results=max_results)
-        return JsonResponse(
-            {
-                "status": "success",
-                "source": "pubmed",
-                "query": query,
-                "count": len(results),
-                "results": results,
-            }
-        )
-    except Exception as e:
-        logger.error(f"PubMed API search failed: {e}")
-        return JsonResponse(
-            {"status": "error", "source": "pubmed", "error": str(e)}, status=500
-        )
+    return cached_search(request, "pubmed", search_pubmed, max_results)
 
 
 @require_http_methods(["GET"])
 def api_search_semantic(request):
     """API endpoint for Semantic Scholar search only."""
-    query = request.GET.get("q", "").strip()
     max_results = min(int(request.GET.get("max_results", 10)), 20)
-
-    if not query:
-        return JsonResponse({"error": "Query parameter required"}, status=400)
-
-    try:
-        results = search_semantic_scholar(query, max_results=max_results)
-        return JsonResponse(
-            {
-                "status": "success",
-                "source": "semantic_scholar",
-                "query": query,
-                "count": len(results),
-                "results": results,
-            }
-        )
-    except Exception as e:
-        logger.error(f"Semantic Scholar API search failed: {e}")
-        return JsonResponse(
-            {"status": "error", "source": "semantic_scholar", "error": str(e)},
-            status=500,
-        )
+    return cached_search(request, "semantic_scholar", search_semantic_scholar, max_results)
 
 
 @require_http_methods(["GET"])
 def api_search_pmc(request):
     """API endpoint for PMC search only."""
-    query = request.GET.get("q", "").strip()
     max_results = min(int(request.GET.get("max_results", 50)), 100)
-
-    if not query:
-        return JsonResponse({"error": "Query parameter required"}, status=400)
-
-    try:
-        results = search_pubmed_central(query, max_results=max_results)
-        return JsonResponse(
-            {
-                "status": "success",
-                "source": "pmc",
-                "query": query,
-                "count": len(results),
-                "results": results,
-            }
-        )
-    except Exception as e:
-        logger.error(f"PMC API search failed: {e}")
-        return JsonResponse(
-            {"status": "error", "source": "pmc", "error": str(e)}, status=500
-        )
+    return cached_search(request, "pmc", search_pubmed_central, max_results)
 
 
 @require_http_methods(["GET"])
 def api_search_doaj(request):
     """API endpoint for DOAJ search only."""
-    query = request.GET.get("q", "").strip()
     max_results = min(int(request.GET.get("max_results", 25)), 50)
-
-    if not query:
-        return JsonResponse({"error": "Query parameter required"}, status=400)
-
-    try:
-        results = search_doaj(query, max_results=max_results)
-        return JsonResponse(
-            {
-                "status": "success",
-                "source": "doaj",
-                "query": query,
-                "count": len(results),
-                "results": results,
-            }
-        )
-    except Exception as e:
-        logger.error(f"DOAJ API search failed: {e}")
-        return JsonResponse(
-            {"status": "error", "source": "doaj", "error": str(e)}, status=500
-        )
+    return cached_search(request, "doaj", search_doaj, max_results)
 
 
 @require_http_methods(["GET"])
 def api_search_biorxiv(request):
     """API endpoint for bioRxiv search only."""
-    query = request.GET.get("q", "").strip()
     max_results = min(int(request.GET.get("max_results", 25)), 50)
-
-    if not query:
-        return JsonResponse({"error": "Query parameter required"}, status=400)
-
-    try:
-        results = search_biorxiv(query, max_results=max_results)
-        return JsonResponse(
-            {
-                "status": "success",
-                "source": "biorxiv",
-                "query": query,
-                "count": len(results),
-                "results": results,
-            }
-        )
-    except Exception as e:
-        logger.error(f"bioRxiv API search failed: {e}")
-        return JsonResponse(
-            {"status": "error", "source": "biorxiv", "error": str(e)}, status=500
-        )
+    return cached_search(request, "biorxiv", search_biorxiv, max_results)
 
 
 @require_http_methods(["GET"])
 def api_search_plos(request):
     """API endpoint for PLOS search only."""
-    query = request.GET.get("q", "").strip()
     max_results = min(int(request.GET.get("max_results", 25)), 50)
-
-    if not query:
-        return JsonResponse({"error": "Query parameter required"}, status=400)
-
-    try:
-        results = search_plos(query, max_results=max_results)
-        return JsonResponse(
-            {
-                "status": "success",
-                "source": "plos",
-                "query": query,
-                "count": len(results),
-                "results": results,
-            }
-        )
-    except Exception as e:
-        logger.error(f"PLOS API search failed: {e}")
-        return JsonResponse(
-            {"status": "error", "source": "plos", "error": str(e)}, status=500
-        )
+    return cached_search(request, "plos", search_plos, max_results)
 
 
 @require_http_methods(["GET"])
@@ -243,9 +151,18 @@ def api_search_crossref(request):
     """API endpoint for CrossRef remote API search."""
     query = request.GET.get("q", "").strip()
     max_results = min(int(request.GET.get("max_results", 50)), 100)
+    ignore_cache = request.GET.get("ignore_cache", "").lower() == "true"
 
     if not query:
         return JsonResponse({"error": "Query parameter required"}, status=400)
+
+    # Check cache
+    cache_key = f"crossref_search_{hashlib.md5(f'{query}_{max_results}'.encode()).hexdigest()}"
+    if not ignore_cache:
+        cached = cache.get(cache_key)
+        if cached:
+            cached["cached"] = True
+            return JsonResponse(cached)
 
     try:
         # CrossRef API: https://api.crossref.org/works
@@ -253,7 +170,7 @@ def api_search_crossref(request):
         params = {
             "query": query,
             "rows": max_results,
-            "select": "DOI,title,author,published-print,published-online,container-title,is-referenced-by-count,abstract,URL",
+            "select": "DOI,title,author,published-print,published-online,container-title,is-referenced-by-count,abstract,URL,license,link",
         }
         headers = {
             "User-Agent": "SciTeX/1.0 (https://scitex.ai; mailto:contact@scitex.ai)"
@@ -283,11 +200,40 @@ def api_search_crossref(request):
 
             # Extract title safely (CrossRef returns title as list)
             title_list = item.get("title") or []
-            title = title_list[0] if title_list else ""
+            title = title_list[0].strip() if title_list and title_list[0] else ""
+
+            # Skip papers without titles - they are not useful for users
+            if not title:
+                continue
 
             # Extract journal safely
             journal_list = item.get("container-title") or []
             journal = journal_list[0] if journal_list else ""
+
+            # Detect open access from license info
+            is_open_access = False
+            pdf_url = ""
+            licenses = item.get("license") or []
+            for lic in licenses:
+                lic_url = lic.get("URL", "").lower()
+                # Check for Creative Commons or open licenses
+                if any(oa in lic_url for oa in ["creativecommons.org", "cc-by", "open-access", "public-domain"]):
+                    is_open_access = True
+                    break
+
+            # Also check for PDF links
+            links = item.get("link") or []
+            for link in links:
+                content_type = link.get("content-type", "")
+                if "pdf" in content_type.lower():
+                    pdf_url = link.get("URL", "")
+                    # Vor publishers often provide free PDF links
+                    if pdf_url:
+                        is_open_access = True
+                    break
+
+            # Get impact factor for journal
+            impact_factor = get_journal_impact_factor(journal) if journal else None
 
             results.append({
                 "title": title,
@@ -299,17 +245,20 @@ def api_search_crossref(request):
                 "abstract": item.get("abstract") or "",
                 "externalUrl": item.get("URL") or "",
                 "source": "crossref",
+                "is_open_access": is_open_access,
+                "pdf_url": pdf_url,
+                "impact_factor": impact_factor,
             })
 
-        return JsonResponse(
-            {
-                "status": "success",
-                "source": "crossref",
-                "query": query,
-                "count": len(results),
-                "results": results,
-            }
-        )
+        response_data = {
+            "status": "success",
+            "source": "crossref",
+            "query": query,
+            "count": len(results),
+            "results": results,
+        }
+        cache.set(cache_key, response_data, 1800)
+        return JsonResponse(response_data)
     except Exception as e:
         logger.error(f"CrossRef API search failed: {e}")
         return JsonResponse(
@@ -322,9 +271,18 @@ def api_search_crossref_local(request):
     """API endpoint for CrossRef Local (NAS SQLite database) search."""
     query = request.GET.get("q", "").strip()
     max_results = min(int(request.GET.get("max_results", 100)), 1000)
+    ignore_cache = request.GET.get("ignore_cache", "").lower() == "true"
 
     if not query:
         return JsonResponse({"error": "Query parameter required"}, status=400)
+
+    # Check cache (shorter TTL for local service)
+    cache_key = f"crossref_local_search_{hashlib.md5(f'{query}_{max_results}'.encode()).hexdigest()}"
+    if not ignore_cache:
+        cached = cache.get(cache_key)
+        if cached:
+            cached["cached"] = True
+            return JsonResponse(cached)
 
     try:
         from django.conf import settings
@@ -358,30 +316,59 @@ def api_search_crossref_local(request):
 
         # Convert to standard format
         results = []
+
+        # Import OA detection if available
+        try:
+            from scitex.scholar.core import detect_oa_from_identifiers
+            oa_detect_available = True
+        except ImportError:
+            oa_detect_available = False
+
         for item in data.get("results", []):
-            title = item.get("title") or ""
+            title = (item.get("title") or "").strip()
+            # Skip papers without titles
+            if not title:
+                continue
             doi = item.get("doi") or ""
+            journal = item.get("journal") or ""
+
+            # Use stored is_open_access if available from local DB
+            is_open_access = item.get("is_open_access", False)
+
+            # If not set, try to detect from journal name or doi
+            if not is_open_access and oa_detect_available:
+                try:
+                    oa_result = detect_oa_from_identifiers(doi=doi, journal=journal)
+                    is_open_access = oa_result.is_open_access
+                except Exception:
+                    pass
+
+            # Get impact factor for journal
+            impact_factor = item.get("impact_factor") or (get_journal_impact_factor(journal) if journal else None)
+
             results.append({
                 "title": title,
                 "authors": item.get("authors") or "",
                 "year": item.get("year"),
-                "journal": item.get("journal") or "",
+                "journal": journal,
                 "doi": doi,
                 "citations": item.get("citation_count", 0),
                 "abstract": "",
                 "externalUrl": f"https://doi.org/{doi}" if doi else "",
                 "source": "crossref_local",
+                "is_open_access": is_open_access,
+                "impact_factor": impact_factor,
             })
 
-        return JsonResponse(
-            {
-                "status": "success",
-                "source": "crossref_local",
-                "query": query,
-                "count": len(results),
-                "results": results,
-            }
-        )
+        response_data = {
+            "status": "success",
+            "source": "crossref_local",
+            "query": query,
+            "count": len(results),
+            "results": results,
+        }
+        cache.set(cache_key, response_data, 600)  # 10 min cache for local service
+        return JsonResponse(response_data)
     except requests.exceptions.ConnectionError:
         # Service not running - return gracefully
         logger.warning("CrossRef Local service not available")
@@ -407,9 +394,18 @@ def api_search_openalex(request):
     """API endpoint for OpenAlex search."""
     query = request.GET.get("q", "").strip()
     max_results = min(int(request.GET.get("max_results", 50)), 100)
+    ignore_cache = request.GET.get("ignore_cache", "").lower() == "true"
 
     if not query:
         return JsonResponse({"error": "Query parameter required"}, status=400)
+
+    # Check cache
+    cache_key = f"openalex_search_{hashlib.md5(f'{query}_{max_results}'.encode()).hexdigest()}"
+    if not ignore_cache:
+        cached = cache.get(cache_key)
+        if cached:
+            cached["cached"] = True
+            return JsonResponse(cached)
 
     try:
         # OpenAlex API: https://api.openalex.org/works
@@ -461,8 +457,13 @@ def api_search_openalex(request):
             if doi.startswith("https://doi.org/"):
                 doi = doi.replace("https://doi.org/", "")
 
-            # Handle title - ensure it's never None
-            title = item.get("title") or ""
+            # Handle title - ensure it's never None and skip papers without titles
+            title = (item.get("title") or "").strip()
+            if not title:
+                continue
+
+            # Get impact factor for journal
+            impact_factor = get_journal_impact_factor(journal) if journal else None
 
             results.append({
                 "title": title,
@@ -475,17 +476,18 @@ def api_search_openalex(request):
                 "is_open_access": item.get("open_access", {}).get("is_oa", False),
                 "externalUrl": f"https://doi.org/{doi}" if doi else "",
                 "source": "openalex",
+                "impact_factor": impact_factor,
             })
 
-        return JsonResponse(
-            {
-                "status": "success",
-                "source": "openalex",
-                "query": query,
-                "count": len(results),
-                "results": results,
-            }
-        )
+        response_data = {
+            "status": "success",
+            "source": "openalex",
+            "query": query,
+            "count": len(results),
+            "results": results,
+        }
+        cache.set(cache_key, response_data, 1800)
+        return JsonResponse(response_data)
     except Exception as e:
         logger.error(f"OpenAlex API search failed: {e}")
         return JsonResponse(

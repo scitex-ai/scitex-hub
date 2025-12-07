@@ -303,9 +303,13 @@ def convert_scitex_results_to_django(scitex_results: Dict[str, Any]) -> List[Dic
 
     django_results = []
     for paper in scitex_results['results']:
+        # Skip papers without titles
+        title = (paper.get('title') or '').strip()
+        if not title:
+            continue
         django_results.append({
             'id': paper.get('id'),
-            'title': paper.get('title', 'Unknown Title'),
+            'title': title,
             'authors': paper.get('authors', ''),
             'abstract': paper.get('abstract', ''),
             'journal': paper.get('journal', ''),

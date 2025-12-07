@@ -35,6 +35,13 @@ from .recommendations import (
     user_recommendations,
 )
 
+from .pdf_download import (
+    api_download_pdf,
+    api_check_pdf_status,
+    api_download_pdf_bulk,
+    api_serve_pdf,
+)
+
 # Make all imports available at package level
 __all__ = [
     # Page views
@@ -60,4 +67,9 @@ __all__ = [
     # Recommendations
     "paper_recommendations",
     "user_recommendations",
+    # PDF Download
+    "api_download_pdf",
+    "api_check_pdf_status",
+    "api_download_pdf_bulk",
+    "api_serve_pdf",
 ]

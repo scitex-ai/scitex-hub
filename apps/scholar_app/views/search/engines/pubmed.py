@@ -19,7 +19,7 @@ from scitex import logging
 import asyncio
 from datetime import datetime, timedelta
 from ....models import SearchIndex, Journal, Author
-from ..citations import get_journal_impact_factor, get_pubmed_citations, validate_citation_count
+from ..citations import get_journal_impact_factor, get_pubmed_citations, validate_citation_count, is_open_access_journal
 from ..search_helpers import search_database_papers, get_paper_authors
 from ..storage import store_search_result
 
