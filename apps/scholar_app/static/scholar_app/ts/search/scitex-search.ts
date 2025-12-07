@@ -413,6 +413,9 @@ function addResultToProgressive(result: SearchResult): void {
   const resultCard = createResultCard(result);
   progressiveResults.appendChild(resultCard);
 
+  // Setup selection handlers
+  setupCardSelectionHandlers(resultCard);
+
   // Animate
   resultCard.style.opacity = "0";
   resultCard.style.transform = "translateY(20px)";
@@ -421,6 +424,65 @@ function addResultToProgressive(result: SearchResult): void {
     resultCard.style.opacity = "1";
     resultCard.style.transform = "translateY(0)";
   }, 50);
+}
+
+/**
+ * Setup selection handlers for a result card
+ */
+function setupCardSelectionHandlers(card: HTMLElement): void {
+  const checkbox = card.querySelector(".paper-select") as HTMLInputElement | null;
+
+  // Click on card body toggles selection (not on checkbox or links)
+  card.addEventListener("click", (e: MouseEvent) => {
+    const target = e.target as HTMLElement;
+    // Ignore clicks on checkbox, links, and buttons
+    if (
+      target.matches("input, a, button") ||
+      target.closest("a, button, .result-actions")
+    ) {
+      return;
+    }
+
+    if (checkbox) {
+      // Ctrl+click for multi-select, otherwise toggle
+      if (!e.ctrlKey && !e.metaKey) {
+        // Single click without ctrl - just toggle this card
+        checkbox.checked = !checkbox.checked;
+      } else {
+        // Ctrl+click - toggle without deselecting others
+        checkbox.checked = !checkbox.checked;
+      }
+      updateCardSelectedState(card, checkbox.checked);
+    }
+  });
+
+  // Right-click to deselect
+  card.addEventListener("contextmenu", (e: MouseEvent) => {
+    // Only handle right-click if card is selected
+    if (checkbox && checkbox.checked) {
+      e.preventDefault();
+      checkbox.checked = false;
+      updateCardSelectedState(card, false);
+    }
+  });
+
+  // Checkbox change handler
+  if (checkbox) {
+    checkbox.addEventListener("change", () => {
+      updateCardSelectedState(card, checkbox.checked);
+    });
+  }
+}
+
+/**
+ * Update card visual state based on selection
+ */
+function updateCardSelectedState(card: HTMLElement, selected: boolean): void {
+  if (selected) {
+    card.classList.add("selected");
+  } else {
+    card.classList.remove("selected");
+  }
 }
 
 /**

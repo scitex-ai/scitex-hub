@@ -105,6 +105,21 @@
     background: var(--bg-card-hover, #1e2d3d);
 }
 
+.progressive-results .result-card.selected {
+    border-color: var(--scitex-color-04, #4a8eb0);
+    background: rgba(74, 142, 176, 0.15);
+    box-shadow: 0 0 0 1px var(--scitex-color-04, #4a8eb0);
+}
+
+.progressive-results .result-card.selected:hover {
+    background: rgba(74, 142, 176, 0.2);
+}
+
+.progressive-results .result-card {
+    cursor: pointer;
+    user-select: none;
+}
+
 .progressive-results .result-checkbox {
     flex-shrink: 0;
     margin-top: 0.15rem;
