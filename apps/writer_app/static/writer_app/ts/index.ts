@@ -39,6 +39,7 @@ import {
   setupWorkspaceInitialization,
   waitForMonaco,
 } from "./modules/index";
+// Zen mode is now initialized globally in main.ts
 import {
   SectionManagement,
   setSectionOpsPdfPreviewManager,
@@ -164,6 +165,9 @@ async function initializeEditor(config: any): Promise<void> {
   const componentInitializer = new ComponentInitializer(config);
   const components = await componentInitializer.initialize();
   componentInitializer.setupGitHistoryManager();
+
+  // Zen Mode is initialized globally in main.ts with auto-detection
+  console.log('[Writer] Zen Mode available (F11 or Alt+Z to toggle, ESC to exit)');
 
   // Setup state management
   const state = createDefaultEditorState(config);

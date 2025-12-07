@@ -21,19 +21,19 @@
   max-width: 40px;
 }
 
+/* Hide all content except toggle button when collapsed */
 .writer-details.collapsed .details-header h5,
 .writer-details.collapsed .details-content {
   display: none;
 }
 
-/* Collapsed state - show vertical text */
+/* Collapsed state - only show toggle button */
 .writer-details.collapsed .details-header {
-  writing-mode: vertical-lr;
-  text-orientation: mixed;
-  height: 100%;
-  padding: 1rem 0.5rem;
+  padding: 0;
   justify-content: center;
-  flex-direction: row;
+  align-items: center;
+  height: 50px;
+  min-height: 50px;
 }
 
 .writer-details.collapsed .details-header h5 {
@@ -41,21 +41,26 @@
 }
 
 .writer-details.collapsed .details-toggle {
-  margin: 0;
+  width: 100%;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.writer-details.collapsed .details-toggle i {
-  transform: rotate(180deg);
-}
+/* Icon direction is managed by WorkspacePanelResizer - no CSS transform needed */
 
-/* Header */
+/* Header - match Scholar properties-header styling */
 .details-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 1rem;
+  padding: 0 16px;
+  height: 50px;
+  min-height: 50px;
   border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
-  background: var(--workspace-bg-secondary, #1e1e1e);
+  flex-shrink: 0;
+  background: var(--workspace-bg-secondary, #151515);
 }
 
 .details-header h5 {
@@ -75,22 +80,20 @@
 
 .details-toggle {
   background: none;
-  border: 1px solid var(--workspace-border-default, #3a3a3a);
-  border-radius: 4px;
-  color: var(--text-muted, #888);
-  font-size: 0.75rem;
-  padding: 4px 6px;
+  border: none;
+  padding: 4px 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  color: var(--text-muted, #6c8ba0);
+  border-radius: 4px;
+  transition: all 0.15s ease;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .details-toggle:hover {
+  background: var(--workspace-bg-tertiary, #1a1a1a);
   color: var(--workspace-icon-primary, #059669);
-  border-color: var(--workspace-icon-primary, #059669);
-  background: rgba(5, 150, 105, 0.1);
 }
 
 /* Content */

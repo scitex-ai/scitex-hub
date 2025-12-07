@@ -1,5 +1,5 @@
 <!-- ---
-!-- Timestamp: 2025-12-08 05:09:27
+!-- Timestamp: 2025-12-08 05:33:43
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/scitex-cloud/tests/e2e/README.md
 !-- --- -->
@@ -19,6 +19,8 @@
 5. Format each test file with pytest
 6. Problems are not "unlucky situation". Similar situations will be repeated in the future. Thus, seriously consider how to prevent, how to detect in an systematic manner.
 7. Logics should be implemented in ~/scitex-code/src/scitex/{browser,capture} and so on for reuse
+8. Use 8 chrome instances in parallel
+9. Do not wait for long time - You can run tests in background and check results periodically.
 
 pytest tests/e2e/shared/panel_resizer/
 

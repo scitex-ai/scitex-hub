@@ -54,6 +54,7 @@ from scitex.browser import (
     collect_console_logs,
     save_failure_artifacts,
     TestMonitor,
+    SyncBrowserSession,
 )
 
 # Re-export for use in test files
@@ -70,9 +71,9 @@ __all__ = [
 # Workspace configurations
 WORKSPACE_APPS = [
     {"name": "scholar", "url": "/scholar/", "sidebar": ".scholar-sidebar", "resizer": "#sidebar-resizer"},
-    {"name": "code", "url": "/{username}/default-project/code/", "sidebar": ".sidebar", "resizer": "#sidebar-resizer"},
-    {"name": "vis", "url": "/{username}/default-project/vis/", "sidebar": ".vis-sidebar", "resizer": "#sidebar-resizer"},
-    {"name": "writer", "url": "/{username}/default-project/writer/", "sidebar": ".writer-sidebar", "resizer": "#sidebar-resizer"},
+    {"name": "code", "url": "/code/", "sidebar": ".code-sidebar", "resizer": "#sidebar-resizer"},
+    {"name": "vis", "url": "/vis/", "sidebar": ".vis-sidebar", "resizer": "#sidebar-resizer"},
+    {"name": "writer", "url": "/writer/", "sidebar": ".writer-sidebar", "resizer": "#sidebar-resizer"},
 ]
 
 
@@ -196,6 +197,22 @@ def visual_drag(page: Page, start_x: float, start_y: float, end_x: float, end_y:
 # Fixtures
 # ============================================================================
 
+@pytest.fixture(scope="session", autouse=True)
+def cleanup_zombie_browsers():
+    """Kill any zombie browsers from previous test runs at session start."""
+    SyncBrowserSession.kill_zombie_browsers()
+    yield
+    # Also cleanup at session end
+    SyncBrowserSession.kill_zombie_browsers()
+
+
+@pytest.fixture
+def browser_session(page: Page):
+    """Browser session with automatic cleanup on failure."""
+    with SyncBrowserSession(page) as session:
+        yield session
+
+
 @pytest.fixture(scope="session")
 def base_url():
     return BASE_URL
@@ -209,6 +226,27 @@ def test_credentials():
 @pytest.fixture
 def scholar_app():
     return WORKSPACE_APPS[0]
+
+
+@pytest.fixture
+def code_app():
+    return WORKSPACE_APPS[1]
+
+
+@pytest.fixture
+def vis_app():
+    return WORKSPACE_APPS[2]
+
+
+@pytest.fixture
+def writer_app():
+    return WORKSPACE_APPS[3]
+
+
+@pytest.fixture(params=WORKSPACE_APPS, ids=[app["name"] for app in WORKSPACE_APPS])
+def workspace_app(request):
+    """Parameterized fixture that runs tests for all 4 workspace apps."""
+    return request.param
 
 
 @pytest.fixture(autouse=True)

@@ -29,6 +29,8 @@
   background: var(--workspace-bg-secondary, #151515);
   border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
   flex-shrink: 0;
+  overflow: hidden; /* Prevent content from forcing width */
+  min-width: 0; /* Allow flex shrinking */
 }
 
 .terminal-panel-header h5 {
@@ -39,6 +41,10 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0; /* Allow flex shrinking */
 }
 
 .terminal-panel-header h5 i {

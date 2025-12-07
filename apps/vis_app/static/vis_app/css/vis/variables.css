@@ -59,7 +59,8 @@ body.workspace-page.vis-workspace #main-content {
     display: grid;
     grid-template-rows: auto minmax(0, 1fr) auto;  /* minmax(0, 1fr) prevents content from expanding grid */
     height: 100%; /* Fill parent container (flex: 1 from global-base.css) */
-    max-height: calc(100vh - 65px); /* Constrain to viewport minus header */
+    /* Note: max-height removed - parent #main-content with flex:1 handles dynamic sizing */
+    /* This allows content to properly expand when header collapses */
     background: var(--vis-bg-primary);
     color: var(--vis-text-primary);
     overflow: hidden;

@@ -76,3 +76,124 @@
 [data-theme="dark"] .split-resizer.active {
   background: var(--workspace-border-active, #4a4a4a);
 }
+
+/* ============================================================================
+ * Panel Toggle Button - Overlay Style
+ * ============================================================================
+ * Toggle button overlays on the resizer line for clean semantic separation
+ * Positioned at header height on the resizer, visually integrated with border
+ * ========================================================================== */
+
+/* Container for resizer with toggle button */
+.panel-resizer {
+  position: relative;
+}
+
+/* Toggle button overlaid on resizer - positioned at header level */
+.panel-resizer .resizer-toggle-btn {
+  position: absolute;
+  top: 12px; /* Align with header area */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+
+  /* Visual style - circular button on the border */
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: var(--workspace-bg-secondary, #151515);
+  border: 1px solid var(--workspace-border-default, #3a3a3a);
+  border-radius: 50%;
+  cursor: pointer;
+
+  /* Icon styling */
+  color: var(--text-muted, #6c8ba0);
+  font-size: 10px;
+
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Transitions */
+  transition: all 0.15s ease;
+  opacity: 0.7;
+}
+
+.panel-resizer .resizer-toggle-btn:hover {
+  background: var(--workspace-bg-tertiary, #1a1a1a);
+  border-color: var(--workspace-icon-primary, #059669);
+  color: var(--workspace-icon-primary, #059669);
+  opacity: 1;
+}
+
+/* Light mode */
+[data-theme="light"] .panel-resizer .resizer-toggle-btn {
+  background: var(--workspace-bg-secondary, #ebedef);
+  border-color: var(--workspace-border-default, #b5c7d1);
+}
+
+[data-theme="light"] .panel-resizer .resizer-toggle-btn:hover {
+  background: var(--workspace-bg-tertiary, #d8dee4);
+  border-color: var(--workspace-icon-primary, #059669);
+}
+
+/* ============================================================================
+ * Panel Toggle Button - Header Style (Fallback/Alternative)
+ * ============================================================================
+ * For use inside panel headers when resizer overlay isn't suitable
+ * ========================================================================== */
+
+.panel-toggle-btn {
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+  color: var(--text-muted, #6c8ba0);
+  border-radius: 4px;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.panel-toggle-btn:hover {
+  background: var(--workspace-bg-tertiary, #1a1a1a);
+  color: var(--workspace-icon-primary, #059669);
+}
+
+/* Right panel toggle - button on LEFT with right border separator */
+.panel-toggle-btn.right-panel-toggle {
+  border-right: 1px solid var(--workspace-border-default, #3a3a3a);
+  padding-right: 12px;
+  margin-right: 12px;
+}
+
+/* Left panel toggle - button on RIGHT with left border separator */
+.panel-toggle-btn.left-panel-toggle {
+  border-left: 1px solid var(--workspace-border-default, #3a3a3a);
+  padding-left: 12px;
+  margin-left: 12px;
+}
+
+/* Light mode adjustments */
+[data-theme="light"] .panel-toggle-btn:hover {
+  background: var(--workspace-bg-tertiary, #d8dee4);
+}
+
+[data-theme="light"] .panel-toggle-btn.right-panel-toggle,
+[data-theme="light"] .panel-toggle-btn.left-panel-toggle {
+  border-color: var(--workspace-border-default, #b5c7d1);
+}
+
+/* Reset toggle button styling when inside collapsed panel */
+.collapsed .panel-toggle-btn.right-panel-toggle,
+.collapsed .panel-toggle-btn.left-panel-toggle {
+  border-left: none;
+  border-right: none;
+  padding-left: 4px;
+  padding-right: 4px;
+  margin-left: 0;
+  margin-right: 0;
+}

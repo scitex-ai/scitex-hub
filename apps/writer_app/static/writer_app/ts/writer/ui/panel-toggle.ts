@@ -1,7 +1,10 @@
 /**
  * Panel Toggle Functionality for Writer
- * Handles the four-panel (sidebar, editor, preview, details) expand/collapse behavior
- * Similar to Scholar's panel-toggle.ts pattern
+ * Handles the editor/preview panel expand/collapse behavior
+ *
+ * NOTE: Sidebar and Details panel toggle is now handled by shared/workspace-panel-resizer.ts
+ * via data-panel-resizer attributes. This module only handles the editor/preview split
+ * which has unique three-state behavior (normal, expanded, collapsed).
  */
 
 console.log(
@@ -59,59 +62,14 @@ function saveState(state: Partial<PanelState>): void {
  * For editor and preview: three-state system (normal, expanded, collapsed)
  */
 export function togglePanel(panelType: PanelType): void {
-  const sidebar = document.getElementById("writer-sidebar");
-  const sidebarResizer = document.getElementById("sidebar-resizer");
-  const details = document.getElementById("writer-details");
-  const detailsResizer = document.getElementById("details-resizer");
   const editorPanel = document.querySelector(".latex-panel") as HTMLElement;
   const previewPanel = document.querySelector(".preview-panel") as HTMLElement;
   const panelResizer = document.getElementById("panel-resizer");
 
-  if (panelType === "sidebar") {
-    if (!sidebar) {
-      console.warn("[Panel Toggle] Sidebar not found");
-      return;
-    }
-
-    // Toggle sidebar collapsed state
-    if (sidebar.classList.contains("collapsed")) {
-      // Expand sidebar
-      sidebar.classList.remove("collapsed");
-      if (sidebarResizer) sidebarResizer.style.display = "";
-      saveState({ sidebarCollapsed: false });
-      console.log("[Panel Toggle] Sidebar expanded");
-    } else {
-      // Collapse sidebar
-      sidebar.classList.add("collapsed");
-      if (sidebarResizer) sidebarResizer.style.display = "none";
-      saveState({ sidebarCollapsed: true });
-      console.log("[Panel Toggle] Sidebar collapsed");
-    }
-    updateToggleButtonIcons();
-    return;
-  }
-
-  if (panelType === "details") {
-    if (!details) {
-      console.warn("[Panel Toggle] Details panel not found");
-      return;
-    }
-
-    // Toggle details collapsed state
-    if (details.classList.contains("collapsed")) {
-      // Expand details
-      details.classList.remove("collapsed");
-      if (detailsResizer) detailsResizer.style.display = "";
-      saveState({ detailsCollapsed: false });
-      console.log("[Panel Toggle] Details expanded");
-    } else {
-      // Collapse details
-      details.classList.add("collapsed");
-      if (detailsResizer) detailsResizer.style.display = "none";
-      saveState({ detailsCollapsed: true });
-      console.log("[Panel Toggle] Details collapsed");
-    }
-    updateToggleButtonIcons();
+  // NOTE: Sidebar and Details toggle is handled by shared/workspace-panel-resizer.ts
+  // This function only handles editor/preview toggle for the unique three-state behavior
+  if (panelType === "sidebar" || panelType === "details") {
+    console.log(`[Panel Toggle] ${panelType} is now handled by WorkspacePanelResizer`);
     return;
   }
 
@@ -254,30 +212,17 @@ function updateToggleButtonIcons(): void {
 
 /**
  * Restore panel states from localStorage on page load
+ * NOTE: Only restores editor/preview states. Sidebar/details are restored by WorkspacePanelResizer.
  */
 export function restorePanelStates(): void {
   const state = getStoredState();
-  const sidebar = document.getElementById("writer-sidebar");
-  const sidebarResizer = document.getElementById("sidebar-resizer");
-  const details = document.getElementById("writer-details");
-  const detailsResizer = document.getElementById("details-resizer");
   const editorPanel = document.querySelector(".latex-panel") as HTMLElement;
   const previewPanel = document.querySelector(".preview-panel") as HTMLElement;
   const panelResizer = document.getElementById("panel-resizer");
 
-  // Restore sidebar state
-  if (sidebar && state.sidebarCollapsed) {
-    sidebar.classList.add("collapsed");
-    if (sidebarResizer) sidebarResizer.style.display = "none";
-  }
+  // NOTE: Sidebar and details state restoration is handled by WorkspacePanelResizer
 
-  // Restore details state
-  if (details && state.detailsCollapsed) {
-    details.classList.add("collapsed");
-    if (detailsResizer) detailsResizer.style.display = "none";
-  }
-
-  // Restore editor/preview states
+  // Restore editor/preview states only
   if (editorPanel && previewPanel) {
     if (state.editorExpanded) {
       editorPanel.classList.add("expanded");
@@ -291,52 +236,27 @@ export function restorePanelStates(): void {
   }
 
   updateToggleButtonIcons();
-  console.log("[Panel Toggle] Panel states restored:", state);
+  console.log("[Panel Toggle] Editor/preview states restored:", state);
 }
 
 /**
  * Initialize panel toggle functionality
+ * NOTE: Only handles editor/preview toggle. Sidebar/details handled by WorkspacePanelResizer.
  */
 export function initPanelToggle(): void {
-  console.log("[Panel Toggle] Initializing...");
+  console.log("[Panel Toggle] Initializing (editor/preview only)...");
 
-  // Restore saved states
+  // Restore saved states (only for editor/preview, not sidebar/details)
   restorePanelStates();
 
   // Set up global function for onclick handlers
   (window as any).toggleWriterPanel = togglePanel;
 
-  // Set up click handlers for toggle buttons
-  const sidebarToggle = document.getElementById("sidebar-toggle-btn") || document.getElementById("sidebar-toggle");
-  if (sidebarToggle) {
-    sidebarToggle.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      togglePanel("sidebar");
-    });
-  }
+  // NOTE: Sidebar and details toggle click handlers are now set up by
+  // shared/workspace-panel-resizer.ts via data-toggle-btn attributes
 
-  const detailsToggle = document.getElementById("details-toggle");
-  if (detailsToggle) {
-    detailsToggle.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      togglePanel("details");
-    });
-  }
-
-  // Set up keyboard shortcuts
+  // Set up keyboard shortcuts for editor/preview only
   document.addEventListener("keydown", (e: KeyboardEvent) => {
-    // Ctrl+\ to toggle sidebar
-    if (e.ctrlKey && e.key === "\\") {
-      e.preventDefault();
-      togglePanel("sidebar");
-    }
-    // Ctrl+Shift+D to toggle details
-    if (e.ctrlKey && e.shiftKey && e.key === "D") {
-      e.preventDefault();
-      togglePanel("details");
-    }
     // Ctrl+Shift+E to toggle editor expand
     if (e.ctrlKey && e.shiftKey && e.key === "E") {
       e.preventDefault();

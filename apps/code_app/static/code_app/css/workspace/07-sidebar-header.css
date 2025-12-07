@@ -6,11 +6,14 @@
   border-top: 1px solid var(--workspace-border-default);
   border-bottom: 1px solid var(--workspace-border-default);
   height: 48px;
+  min-height: 48px;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  overflow: hidden; /* Prevent content from forcing width */
+  min-width: 0; /* Allow flex shrinking */
 }
 
 .code-sidebar .sidebar-header h5 {
@@ -21,6 +24,10 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0; /* Allow flex shrinking */
 }
 
 .code-sidebar .sidebar-header h5 i {

@@ -26,7 +26,8 @@ import {
   handleFileSelect,
   setupTreeFilterObserver,
 } from "../tree/index";
-import { initSidebarResizer } from "../ui/sidebar-resizer";
+// Note: Sidebar resizer is now handled by shared/workspace-panel-resizer.ts
+// via data attributes on the sidebar-resizer element (auto-initialized on DOM load)
 import { WriterTabManager } from "../tabs/WriterTabManager";
 
 // Get WRITER_CONFIG from window
@@ -339,8 +340,8 @@ export const initWriterApp = async (): Promise<void> => {
   // Initialize right panel header
   initRightPanelHeader();
 
-  // Initialize sidebar resizer
-  initSidebarResizer();
+  // Note: Sidebar and details resizers are auto-initialized by shared/workspace-panel-resizer.ts
+  // via data-panel-resizer attributes on the resizer elements
 
   console.log("[Writer] Writer application initialized");
 };

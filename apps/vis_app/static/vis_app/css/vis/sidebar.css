@@ -10,7 +10,7 @@
     overflow: hidden;
     transition: width 0.2s ease, min-width 0.2s ease;
     width: 250px;
-    min-width: 10px;
+    min-width: 40px; /* Match collapsed width for proper shrinking */
     flex-shrink: 0;
 }
 
@@ -58,6 +58,8 @@
     box-sizing: border-box;
     background: var(--vis-bg-secondary);
     border-bottom: 1px solid var(--vis-border);
+    overflow: hidden; /* Prevent content from forcing width */
+    min-width: 0; /* Allow flex shrinking */
 }
 
 /* Dark mode: consistent header background */
@@ -78,6 +80,10 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0; /* Allow flex shrinking */
 }
 
 .sidebar-header h5 i {

@@ -370,10 +370,80 @@ export class WorkspacePanelResizer {
 
     /**
      * Convenience method to initialize both resizer and toggle
+     * Order matters: restore collapse state first, then width, then attach handlers
      */
     public initPanel(config: PanelConfig): void {
+        // First: restore collapse state so restoreWidth knows if panel is collapsed
+        const targetPanel = document.querySelector(config.targetPanel) as HTMLElement;
+        const toggleBtn = config.toggleButtonId ? document.getElementById(config.toggleButtonId) : null;
+        if (targetPanel && toggleBtn && config.collapseStorageKey) {
+            this.restoreCollapseState(config, targetPanel, toggleBtn);
+        }
+
+        // Then initialize resizer (which restores width if not collapsed)
         this.initResizer(config);
-        this.initToggle(config);
+
+        // Finally attach toggle click handler (skip restoreCollapseState since already done)
+        this.initToggleClickHandler(config);
+    }
+
+    /**
+     * Initialize toggle click handler only (without restoring state)
+     */
+    private initToggleClickHandler(config: PanelConfig): void {
+        if (!config.toggleButtonId) return;
+
+        const toggleBtn = document.getElementById(config.toggleButtonId);
+        const targetPanel = document.querySelector(config.targetPanel) as HTMLElement;
+
+        if (!toggleBtn || !targetPanel) {
+            console.warn(`[WorkspacePanelResizer] Missing toggle elements for ${config.toggleButtonId}`);
+            return;
+        }
+
+        toggleBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const isCollapsed = targetPanel.classList.toggle('collapsed');
+
+            if (isCollapsed) {
+                // Clear inline width when collapsing so CSS takes effect
+                targetPanel.style.width = '';
+                targetPanel.style.flexShrink = '';
+                targetPanel.style.flexGrow = '';
+            } else {
+                // Restore saved width when expanding
+                const savedWidth = localStorage.getItem(this.storagePrefix + config.storageKey);
+                if (savedWidth) {
+                    const width = parseInt(savedWidth, 10);
+                    if (width >= config.minWidth) {
+                        targetPanel.style.width = `${width}px`;
+                        targetPanel.style.flexShrink = '0';
+                        targetPanel.style.flexGrow = '0';
+                    }
+                } else if (config.defaultWidth) {
+                    targetPanel.style.width = `${config.defaultWidth}px`;
+                    targetPanel.style.flexShrink = '0';
+                    targetPanel.style.flexGrow = '0';
+                }
+            }
+
+            // Update icon
+            this.updateToggleIcon(toggleBtn, config.resizeDirection, isCollapsed);
+
+            // Save state
+            if (config.collapseStorageKey) {
+                localStorage.setItem(config.collapseStorageKey, isCollapsed.toString());
+            }
+
+            console.log(`[WorkspacePanelResizer] ${config.targetPanel} toggled:`, {
+                collapsed: isCollapsed,
+                width: targetPanel.offsetWidth
+            });
+        });
+
+        console.log(`[WorkspacePanelResizer] Toggle click handler attached for ${config.toggleButtonId}`);
     }
 }
 

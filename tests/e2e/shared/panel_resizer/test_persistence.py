@@ -16,14 +16,14 @@ class TestLocalStoragePersistence:
     """Tests for localStorage state persistence."""
 
     def test_width_persists_after_reload(
-        self, page: Page, base_url: str, test_credentials: dict, scholar_app: dict
+        self, page: Page, base_url: str, test_credentials: dict, workspace_app: dict
     ):
         """Panel width is restored after page reload."""
-        if not login_and_navigate(page, base_url, test_credentials, scholar_app):
-            pytest.skip("Scholar workspace not available")
+        if not login_and_navigate(page, base_url, test_credentials, workspace_app):
+            pytest.skip(f"{workspace_app['name']} workspace not available")
 
-        sidebar = page.locator(scholar_app["sidebar"])
-        resizer = page.locator(scholar_app["resizer"])
+        sidebar = page.locator(workspace_app["sidebar"])
+        resizer = page.locator(workspace_app["resizer"])
 
         show_step(page, 1, 5, "Testing width persistence...", "info")
 
@@ -57,13 +57,13 @@ class TestLocalStoragePersistence:
         show_test_result(page, True, "Width persistence test passed", delay_ms=2000)
 
     def test_collapse_state_persists_after_reload(
-        self, page: Page, base_url: str, test_credentials: dict, scholar_app: dict
+        self, page: Page, base_url: str, test_credentials: dict, workspace_app: dict
     ):
         """Panel collapse state is restored after page reload."""
-        if not login_and_navigate(page, base_url, test_credentials, scholar_app):
-            pytest.skip("Scholar workspace not available")
+        if not login_and_navigate(page, base_url, test_credentials, workspace_app):
+            pytest.skip(f"{workspace_app['name']} workspace not available")
 
-        sidebar = page.locator(scholar_app["sidebar"])
+        sidebar = page.locator(workspace_app["sidebar"])
         toggle_btn = page.locator("#sidebar-toggle")
 
         if toggle_btn.count() == 0:

@@ -1,6 +1,7 @@
 /**
  * UI Components Manager
- * Handles modals, context menus, resizers, and other UI interactions
+ * Handles modals, context menus, and other UI interactions
+ * Note: Resizers are handled by shared WorkspacePanelResizer component
  */
 
 import type { EditorConfig } from "../core/types";
@@ -19,7 +20,7 @@ export class UIComponents {
 
   initializeAll(): void {
     this.initContextMenu();
-    this.initResizers();
+    // Resizers are now handled by shared WorkspacePanelResizer component via data attributes
   }
 
   private initContextMenu(): void {
@@ -63,71 +64,6 @@ export class UIComponents {
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         contextMenu.style.display = "none";
-      }
-    });
-  }
-
-  private initResizers(): void {
-    this.setupResizer("sidebar-resizer", "code-sidebar", "horizontal");
-    this.setupResizer("editor-resizer", "code-terminal-panel", "horizontal");
-  }
-
-  private setupResizer(
-    resizerId: string,
-    targetId: string,
-    direction: "horizontal" | "vertical"
-  ): void {
-    const resizer = document.getElementById(resizerId);
-    const target = document.getElementById(targetId);
-
-    if (!resizer || !target) {
-      console.warn(`[UIComponents] Resizer setup failed: resizer=${resizerId}, target=${targetId}`);
-      return;
-    }
-
-    let isResizing = false;
-    let startPos = 0;
-    let startSize = 0;
-
-    // Set minimum sizes based on target
-    const MIN_SIDEBAR_WIDTH = 200;
-    const MIN_TERMINAL_WIDTH = 300;
-    const minSize = targetId === "code-sidebar" ? MIN_SIDEBAR_WIDTH :
-                    targetId === "code-terminal-panel" ? MIN_TERMINAL_WIDTH : 100;
-
-    resizer.addEventListener("mousedown", (e) => {
-      isResizing = true;
-      startPos = direction === "horizontal" ? e.clientX : e.clientY;
-      startSize =
-        direction === "horizontal" ? target.offsetWidth : target.offsetHeight;
-      document.body.style.cursor =
-        direction === "horizontal" ? "ew-resize" : "ns-resize";
-      e.preventDefault();
-    });
-
-    document.addEventListener("mousemove", (e) => {
-      if (!isResizing) return;
-
-      const currentPos = direction === "horizontal" ? e.clientX : e.clientY;
-      const delta = currentPos - startPos;
-
-      // For terminal panel on the right, invert delta (dragging left = wider)
-      // For sidebar on the left, use normal delta (dragging right = wider)
-      const isTerminal = targetId === "code-terminal-panel";
-      const adjustedDelta = isTerminal ? -delta : delta;
-      const newSize = Math.max(minSize, startSize + adjustedDelta);
-
-      if (direction === "horizontal") {
-        target.style.width = `${newSize}px`;
-      } else {
-        target.style.height = `${newSize}px`;
-      }
-    });
-
-    document.addEventListener("mouseup", () => {
-      if (isResizing) {
-        isResizing = false;
-        document.body.style.cursor = "";
       }
     });
   }

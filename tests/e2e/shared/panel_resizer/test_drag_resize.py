@@ -3,7 +3,7 @@
 # Timestamp: 2025-12-08
 # File: tests/e2e/shared/panel_resizer/test_drag_resize.py
 
-"""E2E tests for panel drag resize functionality."""
+"""E2E tests for panel drag resize functionality across all workspace apps."""
 
 import pytest
 from playwright.sync_api import Page
@@ -13,17 +13,17 @@ from scitex.browser import show_test_result
 
 
 class TestDragResize:
-    """Tests for drag resize functionality."""
+    """Tests for drag resize functionality across all workspace apps."""
 
     def test_drag_resizer_changes_width(
-        self, page: Page, base_url: str, test_credentials: dict, scholar_app: dict
+        self, page: Page, base_url: str, test_credentials: dict, workspace_app: dict
     ):
         """Dragging the resizer changes panel width."""
-        if not login_and_navigate(page, base_url, test_credentials, scholar_app):
-            pytest.skip("Scholar workspace not available")
+        if not login_and_navigate(page, base_url, test_credentials, workspace_app):
+            pytest.skip(f"{workspace_app['name']} workspace not available")
 
-        sidebar = page.locator(scholar_app["sidebar"])
-        resizer = page.locator(scholar_app["resizer"])
+        sidebar = page.locator(workspace_app["sidebar"])
+        resizer = page.locator(workspace_app["resizer"])
 
         show_step(page, 1, 5, "Testing drag resize...", "info")
 
@@ -47,7 +47,7 @@ class TestDragResize:
         end_x = start_x + 100
 
         show_step(page, 3, 5, "Highlighting resizer...", "info")
-        highlight_element(page, scholar_app["resizer"], 500)
+        highlight_element(page, workspace_app["resizer"], 500)
 
         show_step(page, 4, 5, "Dragging resizer +100px...", "info")
         visual_drag(page, start_x, start_y, end_x, start_y, steps=15)
@@ -62,14 +62,14 @@ class TestDragResize:
         show_test_result(page, True, "Drag resize test passed", delay_ms=2000)
 
     def test_drag_respects_minimum_width(
-        self, page: Page, base_url: str, test_credentials: dict, scholar_app: dict
+        self, page: Page, base_url: str, test_credentials: dict, workspace_app: dict
     ):
         """Dragging cannot make panel smaller than minimum width."""
-        if not login_and_navigate(page, base_url, test_credentials, scholar_app):
+        if not login_and_navigate(page, base_url, test_credentials, workspace_app):
             pytest.skip("Scholar workspace not available")
 
-        sidebar = page.locator(scholar_app["sidebar"])
-        resizer = page.locator(scholar_app["resizer"])
+        sidebar = page.locator(workspace_app["sidebar"])
+        resizer = page.locator(workspace_app["resizer"])
 
         show_step(page, 1, 4, "Testing minimum width constraint...", "info")
 
@@ -89,7 +89,7 @@ class TestDragResize:
         end_x = start_x - 500
 
         show_step(page, 2, 4, "Attempting extreme shrink (-500px)...", "info")
-        highlight_element(page, scholar_app["resizer"], 500)
+        highlight_element(page, workspace_app["resizer"], 500)
 
         visual_drag(page, start_x, start_y, end_x, start_y, steps=25)
         page.wait_for_timeout(300)
@@ -103,14 +103,14 @@ class TestDragResize:
         show_test_result(page, True, "Minimum width test passed", delay_ms=2000)
 
     def test_drag_collapsed_panel_expands(
-        self, page: Page, base_url: str, test_credentials: dict, scholar_app: dict
+        self, page: Page, base_url: str, test_credentials: dict, workspace_app: dict
     ):
         """Dragging a collapsed panel should expand it."""
-        if not login_and_navigate(page, base_url, test_credentials, scholar_app):
+        if not login_and_navigate(page, base_url, test_credentials, workspace_app):
             pytest.skip("Scholar workspace not available")
 
-        sidebar = page.locator(scholar_app["sidebar"])
-        resizer = page.locator(scholar_app["resizer"])
+        sidebar = page.locator(workspace_app["sidebar"])
+        resizer = page.locator(workspace_app["resizer"])
         toggle_btn = page.locator("#sidebar-toggle")
 
         show_step(page, 1, 6, "Testing drag on collapsed panel...", "info")
@@ -153,7 +153,7 @@ class TestDragResize:
             pytest.fail("Cannot get resizer bounding box")
 
         show_step(page, 4, 6, "Highlighting resizer...", "info")
-        highlight_element(page, scholar_app["resizer"], 500)
+        highlight_element(page, workspace_app["resizer"], 500)
 
         start_x = resizer_box["x"] + resizer_box["width"] / 2
         start_y = resizer_box["y"] + resizer_box["height"] / 2

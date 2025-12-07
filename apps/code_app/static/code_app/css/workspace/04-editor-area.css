@@ -6,6 +6,7 @@
   overflow: hidden;
   background-color: var(--code-bg);
   border-right: 1px solid var(--code-border);
+  min-width: 0; /* Allow flex shrinking - required for side panels to resize properly */
 }
 
 [data-theme="dark"] .code-editor-area {

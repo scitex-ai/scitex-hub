@@ -5,6 +5,9 @@
     <!-- Critical CSS - loaded immediately (editor, PDF, core UI) -->
     <link rel="stylesheet"
           href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d" />
+    <!-- Shared Panel Resizer CSS (unified with Scholar, Code, Vis) -->
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/panel-resizer.css' %}" />
     <link rel="stylesheet"
           href="{% static 'shared/css/components/file-tabs.css' %}?v={{ request.timestamp|default:'1' }}" />
     <link rel="stylesheet"
@@ -146,22 +149,16 @@
             <aside class="writer-sidebar" id="writer-sidebar">
                 <div class="sidebar-header">
                     <div class="sidebar-header-content sidebar-header-compact">
-                        <!-- Left: Sidebar Toggle Button -->
-                        <button id="sidebar-toggle"
-                                class="panel-toggle-btn"
-                                title="Collapse sidebar">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
                         <!-- Icon -->
                         <i class="fas fa-folder-open sidebar-icon"></i>
-                        <!-- Center: Doctype -->
+                        <!-- Doctype -->
                         <select id="doctype-selector" class="form-select form-select-sm sidebar-select">
                             <option value="shared">Shared</option>
                             <option value="manuscript" selected>Manuscript</option>
                             <option value="supplementary">Supplementary</option>
                             <option value="revision">Revision</option>
                         </select>
-                        <!-- Right: Section (wrapped for dropdown positioning) -->
+                        <!-- Section (wrapped for dropdown positioning) -->
                         <div class="section-selector-wrapper">
                             <button id="section-selector-toggle" class="section-selector-btn" type="button">
                                 <span id="section-selector-text">Loading...</span>
@@ -173,6 +170,12 @@
                                 <!-- Sections will be populated here -->
                             </div>
                         </div>
+                        <!-- Right: Sidebar Toggle Button (close to resizer) -->
+                        <button id="sidebar-toggle"
+                                class="panel-toggle-btn left-panel-toggle"
+                                title="Collapse sidebar">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
                     </div>
                 </div>
                 <div class="sidebar-content" id="writer-file-tree">
@@ -180,15 +183,33 @@
                     <div class="wft-loading">Loading...</div>
                 </div>
             </aside>
-            <!-- Sidebar resizer -->
-            <div class="sidebar-resizer" id="sidebar-resizer"></div>
+            <!-- Sidebar resizer (auto-initialized via data attributes) -->
+            <div class="panel-resizer sidebar-resizer" id="sidebar-resizer"
+                 data-panel-resizer
+                 data-storage-prefix="scitex-writer-"
+                 data-target=".writer-sidebar"
+                 data-direction="left"
+                 data-min-width="40"
+                 data-default-width="250"
+                 data-storage-key="sidebar-width"
+                 data-collapse-key="writer-sidebar-collapsed"
+                 data-toggle-btn="sidebar-toggle"></div>
             {% endif %}
             <!-- Main content: editor + preview -->
             <div class="writer-container">
                 {% include "writer_app/index_partials/main_editor.html" %}
             </div>
-            <!-- Details resizer -->
-            <div class="details-resizer" id="details-resizer"></div>
+            <!-- Details resizer (auto-initialized via data attributes) -->
+            <div class="panel-resizer" id="details-resizer"
+                 data-panel-resizer
+                 data-storage-prefix="scitex-writer-"
+                 data-target=".writer-details"
+                 data-direction="right"
+                 data-min-width="40"
+                 data-default-width="280"
+                 data-storage-key="details-width"
+                 data-collapse-key="writer-details-collapsed"
+                 data-toggle-btn="details-toggle"></div>
             <!-- Details panel (rightmost) -->
             {% include "writer_app/index_partials/details_panel.html" %}
         </div>
@@ -273,6 +294,7 @@
         </script>
         <!-- Writer Application Bundle (Vite) -->
         {% vite_hmr_client %}
+        {% vite_script 'shared/workspace-panel-resizer' %}
         {% vite_script 'writer_app/index' %}
         <!-- Real-Time Collaboration Script - temporarily disabled (file not found)
         <script type="module"

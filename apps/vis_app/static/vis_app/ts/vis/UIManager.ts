@@ -58,8 +58,10 @@ export class UIManager {
         private statusBarCallback?: (message: string) => void
     ) {
         // Initialize direct dependencies
+        // NOTE: ResizerManager is no longer used for sidebar/properties panels
+        // Those are now handled by shared/workspace-panel-resizer.ts via data-panel-resizer attributes
         this.resizerManager = new ResizerManager();
-        this.resizerManager.initializeSigmaResizers();  // Initialize panel resizers
+        // this.resizerManager.initializeSigmaResizers();  // DISABLED: Conflicts with workspace-panel-resizer
         this.plotDataManager = new PlotDataManager();
 
         // Initialize PanelControls module
@@ -118,8 +120,10 @@ export class UIManager {
     // ========================================
 
     public initializeEventListeners(): void {
-        this.panelControls.initSidebarToggle();
-        this.panelControls.initPropertiesToggle();
+        // NOTE: Sidebar and properties toggle are now handled by shared/workspace-panel-resizer.ts
+        // via data-panel-resizer attributes. Disabled legacy PanelControls to prevent conflicts.
+        // this.panelControls.initSidebarToggle();
+        // this.panelControls.initPropertiesToggle();
         this.ribbonButtons.initRibbonButtons();
         this.ribbonButtons.initDragAndDrop();
         this.initPanelResizers();
@@ -202,8 +206,10 @@ export class UIManager {
     // ========================================
 
     private initPanelResizers(): void {
-        // Initialize all vis editor panel resizers
-        this.resizerManager.initializeSigmaResizers();
-        console.log('[UIManager] Panel resizers initialized via ResizerManager');
+        // NOTE: Sidebar and properties panel resizers are now handled by shared/workspace-panel-resizer.ts
+        // via data-panel-resizer attributes. The ResizerManager is only used for the split resizer
+        // (data-pane / canvas-pane) which doesn't have collapse functionality.
+        // this.resizerManager.initializeSigmaResizers();  // DISABLED: Conflicts with workspace-panel-resizer
+        console.log('[UIManager] Panel resizers delegated to workspace-panel-resizer via data attributes');
     }
 }

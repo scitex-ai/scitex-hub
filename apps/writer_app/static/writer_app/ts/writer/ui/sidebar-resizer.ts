@@ -268,11 +268,13 @@ export const setSidebarWidth = (width: number): void => {
   localStorage.setItem(STORAGE_KEY, clampedWidth.toString());
 };
 
-// Auto-initialize when DOM is ready
-// This ensures the resizer works even if initSidebarResizer() is not explicitly called
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initSidebarResizer);
-} else {
-  // DOM already loaded, initialize immediately
-  initSidebarResizer();
-}
+// NOTE: Auto-initialization DISABLED - now handled by shared/workspace-panel-resizer.ts
+// The shared component auto-initializes panels from data-panel-resizer attributes
+// This legacy module is kept for backwards compatibility but should not auto-initialize
+
+// Old auto-initialize code (commented out):
+// if (document.readyState === "loading") {
+//   document.addEventListener("DOMContentLoaded", initSidebarResizer);
+// } else {
+//   initSidebarResizer();
+// }

@@ -5,6 +5,30 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.9-alpha] - 2025-12-08
+
+### Added
+- **Zen Mode**: Distraction-free mode for all workspace apps (Writer, Code, Scholar, Vis)
+  - F11 or Alt+Z to toggle through normal → zen → fullscreen → normal states
+  - ESC to exit back to normal mode
+  - Hides header and collapses sidebars for focused work
+  - Notification banner shows current mode
+
+- **Module Switcher Shortcuts**: Quick navigation between workspace modules
+  - Alt+S → Scholar, Alt+C → Code, Alt+V → Vis, Alt+W → Writer
+  - Smart detection to skip when typing in input fields
+  - Works globally on all workspace pages
+
+- **Unified Panel Resizing**: WorkspacePanelResizer component for all apps
+  - Consistent drag-resize behavior across Writer, Code, Scholar, and Vis
+  - Toggle buttons show expand/collapse icons based on panel state
+  - Panel width persistence via localStorage
+  - Collapsed panels display only the expand button
+
+### Changed
+- Removed duplicate zen mode initialization from individual apps
+- Improved collapsed panel CSS with proper content hiding
+
 ## [0.4.8-alpha] - 2025-12-08
 
 ### Added

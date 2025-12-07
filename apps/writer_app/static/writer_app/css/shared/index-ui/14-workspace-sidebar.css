@@ -34,21 +34,29 @@
 }
 
 .writer-sidebar.collapsed .sidebar-header {
-  writing-mode: vertical-lr;
-  text-orientation: mixed;
   height: 100%;
-  padding: 1rem 0.5rem;
-  justify-content: flex-start;
+  padding: 0;
+  justify-content: center;
+  align-items: center;
   border-bottom: none;
   flex-direction: column;
 }
 
+/* Hide all content except toggle button when collapsed */
 .writer-sidebar.collapsed .sidebar-header-content {
   display: none;
 }
 
+.writer-sidebar.collapsed .sidebar-header > *:not(.panel-toggle-btn) {
+  display: none;
+}
+
 .writer-sidebar.collapsed .panel-toggle-btn {
-  writing-mode: horizontal-tb;
+  width: 100%;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .writer-sidebar .sidebar-header {

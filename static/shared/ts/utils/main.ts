@@ -3,6 +3,8 @@
  * Handles mobile menu, global UI initialization
  */
 
+import { initZenMode } from "@/components/zen-mode";
+
 /**
  * Initialize the main application
  */
@@ -13,6 +15,12 @@ console.log(
 function initApp(): void {
   // Initialize mobile menu toggle
   initMobileMenu();
+
+  // Initialize Zen Mode globally (works on all workspace pages)
+  initGlobalZenMode();
+
+  // Initialize module switcher shortcuts (Alt+S/C/V/W)
+  initModuleSwitcher();
 
   // Add event listeners for primary CTAs
   const getStartedBtn =
@@ -79,6 +87,133 @@ function initMobileMenu(): void {
       }
     });
   }
+}
+
+/**
+ * Initialize module switcher keyboard shortcuts
+ * Alt+S → Scholar, Alt+C → Code, Alt+V → Vis, Alt+W → Writer
+ */
+function initModuleSwitcher(): void {
+  const moduleRoutes: Record<string, string> = {
+    's': '/scholar/',
+    'c': '/code/',
+    'v': '/vis/',
+    'w': '/writer/',
+  };
+
+  document.addEventListener('keydown', (e: KeyboardEvent) => {
+    // Only handle Alt+key combinations
+    if (!e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) {
+      return;
+    }
+
+    const key = e.key.toLowerCase();
+    const route = moduleRoutes[key];
+
+    if (route) {
+      // Don't switch if we're already on this module
+      if (window.location.pathname.startsWith(route)) {
+        return;
+      }
+
+      // Don't switch if user is typing in an input field
+      const activeElement = document.activeElement;
+      if (activeElement && (
+        activeElement.tagName === 'INPUT' ||
+        activeElement.tagName === 'TEXTAREA' ||
+        (activeElement as HTMLElement).isContentEditable
+      )) {
+        return;
+      }
+
+      e.preventDefault();
+      console.log(`[ModuleSwitcher] Navigating to ${route}`);
+      window.location.href = route;
+    }
+  });
+
+  console.log('[ModuleSwitcher] Initialized - Alt+S/C/V/W to switch modules');
+}
+
+/**
+ * Initialize Zen Mode only on workspace pages (Writer, Code, Scholar, Vis)
+ * Auto-detects panels based on CSS selectors
+ */
+function initGlobalZenMode(): void {
+  // Only enable zen mode on the four workspace modules
+  // Check for workspace-specific selectors to determine if we're on a workspace page
+  const workspaceSelectors = [
+    '.writer-workspace',    // Writer app
+    '.code-workspace',      // Code app
+    '.scholar-workspace',   // Scholar app
+    '.vis-editor-container', // Vis app
+  ];
+
+  // Check if we're on a workspace page
+  const isWorkspacePage = workspaceSelectors.some(sel => document.querySelector(sel));
+  if (!isWorkspacePage) {
+    console.log('[ZenMode] Not a workspace page, skipping initialization');
+    return;
+  }
+
+  // Auto-detect sidebar and details panel selectors
+  const sidebarSelectors = [
+    '.writer-sidebar',      // Writer app
+    '.code-sidebar',        // Code app
+    '.scholar-sidebar',     // Scholar app
+    '.vis-sidebar',         // Vis app
+  ];
+
+  const detailsSelectors = [
+    '.writer-details',          // Writer app
+    '.code-terminal-panel',     // Code app (right panel)
+    '.scholar-properties',      // Scholar app (right panel)
+    '.vis-properties',          // Vis app (right panel)
+  ];
+
+  const toggleIds: Record<string, { sidebar?: string; details?: string }> = {
+    '.writer-sidebar': { sidebar: 'sidebar-toggle', details: 'details-toggle' },
+    '.code-sidebar': { sidebar: 'sidebar-toggle', details: 'terminal-toggle' },
+    '.scholar-sidebar': { sidebar: 'sidebar-toggle', details: 'properties-toggle' },
+    '.vis-sidebar': { sidebar: 'sidebar-toggle', details: 'properties-toggle' },
+  };
+
+  // Find which selectors exist on the current page
+  let sidebarSelector: string | undefined;
+  let detailsSelector: string | undefined;
+  let sidebarToggleId: string | undefined;
+  let detailsToggleId: string | undefined;
+
+  for (const selector of sidebarSelectors) {
+    if (document.querySelector(selector)) {
+      sidebarSelector = selector;
+      const toggleConfig = toggleIds[selector];
+      if (toggleConfig) {
+        sidebarToggleId = toggleConfig.sidebar;
+        detailsToggleId = toggleConfig.details;
+      }
+      break;
+    }
+  }
+
+  for (const selector of detailsSelectors) {
+    if (document.querySelector(selector)) {
+      detailsSelector = selector;
+      break;
+    }
+  }
+
+  // Initialize zen mode with detected selectors
+  initZenMode({
+    headerSelector: '.global-header',
+    sidebarSelector,
+    detailsSelector,
+    sidebarToggleId,
+    detailsToggleId,
+    storagePrefix: 'scitex-',
+  });
+
+  console.log('[ZenMode] Initialized for workspace - sidebar:', sidebarSelector, 'details:', detailsSelector);
 }
 
 // Initialize when DOM is ready

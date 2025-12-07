@@ -20,14 +20,14 @@
   <link rel="stylesheet" href="{% static 'code_app/css/workspace/00-workspace.css' %}" />
   <link rel="stylesheet" href="{% static 'code_app/css/workspace/01-theme-colors.css' %}" />
   <link rel="stylesheet" href="{% static 'code_app/css/workspace/02-layout.css' %}" />
-  <link rel="stylesheet" href="{% static 'code_app/css/workspace/03-sidebar.css' %}" />
-  <link rel="stylesheet" href="{% static 'code_app/css/workspace/04-editor-area.css' %}" />
+  <link rel="stylesheet" href="{% static 'code_app/css/workspace/03-sidebar.css' %}?v=20251208" />
+  <link rel="stylesheet" href="{% static 'code_app/css/workspace/04-editor-area.css' %}?v=20251208b" />
   <link rel="stylesheet" href="{% static 'code_app/css/workspace/05-file-tabs.css' %}" />
-  <link rel="stylesheet" href="{% static 'code_app/css/workspace/06-terminal-panel.css' %}" />
-  <link rel="stylesheet" href="{% static 'code_app/css/workspace/07-sidebar-header.css' %}?v=20251206a" />
+  <link rel="stylesheet" href="{% static 'code_app/css/workspace/06-terminal-panel.css' %}?v=20251208" />
+  <link rel="stylesheet" href="{% static 'code_app/css/workspace/07-sidebar-header.css' %}?v=20251208" />
   <link rel="stylesheet" href="{% static 'code_app/css/workspace/08-sidebar-signup.css' %}" />
   <link rel="stylesheet" href="{% static 'code_app/css/workspace/09-toolbar.css' %}" />
-  <link rel="stylesheet" href="{% static 'code_app/css/workspace/10-terminal-header.css' %}" />
+  <link rel="stylesheet" href="{% static 'code_app/css/workspace/10-terminal-header.css' %}?v=20251208" />
   <link rel="stylesheet" href="{% static 'code_app/css/workspace/11-terminal-tabs.css' %}" />
   <link rel="stylesheet" href="{% static 'code_app/css/workspace/12-terminal-instances.css' %}" />
   <link rel="stylesheet" href="{% static 'code_app/css/workspace/13-toolbar-buttons.css' %}" />
@@ -166,17 +166,9 @@
       <aside id="code-sidebar" class="code-sidebar repo-sidebar">
         <div class="sidebar-header">
           <h5><i class="fas fa-folder-open"></i> Files</h5>
-          <div class="sidebar-header-actions">
-            <div class="file-search-container" id="file-search-container">
-              <input type="text" id="file-search-input" class="file-search-input" placeholder="Search files... (Ctrl+K)" />
-              <button class="file-search-clear" id="file-search-clear" title="Clear search">
-                <i class="fas fa-times"></i>
-              </button>
-            </div>
-            <button class="sidebar-toggle" id="sidebar-toggle" title="Toggle sidebar">
-              <i class="fas fa-chevron-left"></i>
-            </button>
-          </div>
+          <button class="sidebar-toggle panel-toggle-btn left-panel-toggle" id="sidebar-toggle" title="Toggle sidebar">
+            <i class="fas fa-chevron-left"></i>
+          </button>
         </div>
       <div id="file-tree" class="file-tree-container">
         <div class="tree-loading">
@@ -319,14 +311,14 @@
          data-collapse-key="code-terminal-collapsed"
          data-toggle-btn="terminal-toggle"></div>
 
-    <!-- Right: Details Panel (Terminal / Jobs) -->
+    <!-- Right: Terminal Panel (Terminal / Jobs) -->
     <div id="code-terminal-panel" class="code-terminal-panel">
       <!-- Panel Header with Toggle -->
       <div class="terminal-panel-header">
-        <h5><i class="fas fa-sliders-h"></i> Details</h5>
-        <button class="terminal-toggle panel-toggle-btn" id="terminal-toggle" title="Toggle details">
+        <button class="terminal-toggle panel-toggle-btn right-panel-toggle" id="terminal-toggle" title="Toggle terminal">
           <i class="fas fa-chevron-right"></i>
         </button>
+        <h5><i class="fas fa-terminal"></i> Terminal</h5>
       </div>
       <!-- Panel Tabs (Terminal / Jobs) -->
       <div class="terminal-panel-tabs">
