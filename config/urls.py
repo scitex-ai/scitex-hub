@@ -27,6 +27,7 @@ from apps.project_app.views import api_check_name_availability
 from apps.project_app.views import accept_invitation
 from apps.project_app.views import decline_invitation
 from apps.project_app.views.projects.api import api_switch_active_project
+from apps.public_app.views import healthz
 
 
 # Functions
@@ -61,6 +62,7 @@ def get_reserved_paths():
             "accounts",
             "auth",
             "files",
+            "healthz",
             "favicon.ico",
             "robots.txt",
             "sitemap.xml",
@@ -106,6 +108,8 @@ RESERVED_PATHS = get_reserved_paths()
 
 # Build URL patterns with correct ordering
 urlpatterns = [
+    # Critical health check endpoint (must come before username catch-all)
+    path("healthz/", healthz, name="healthz"),
     # Basics
     path("", include("apps.public_app.urls")),
     path("admin/", admin.site.urls),

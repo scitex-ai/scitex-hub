@@ -109,6 +109,23 @@ class CitationGraphManager {
     }
   }
 
+  private async fetchWithTimeout(url: string, timeoutMs: number = 120000): Promise<Response> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      const response = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      return response;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error(`Request timed out after ${timeoutMs / 1000} seconds`);
+      }
+      throw error;
+    }
+  }
+
   private async checkServiceHealth(): Promise<void> {
     const statusEl = document.getElementById('serviceStatus');
     if (!statusEl) return;
@@ -163,7 +180,7 @@ class CitationGraphManager {
 
     try {
       const networkUrl = `${this.config.urls.buildNetwork}?doi=${encodeURIComponent(doi)}&top_n=${topN}`;
-      const networkResponse = await fetch(networkUrl);
+      const networkResponse = await this.fetchWithTimeout(networkUrl, 120000); // 120 second timeout
 
       if (!networkResponse.ok) {
         const errorData = await networkResponse.json();
@@ -176,10 +193,12 @@ class CitationGraphManager {
       this.renderGraph(networkData);
       await this.fetchRelatedPapers(doi, topN);
 
-      this.showLoading(false);
     } catch (err) {
+      console.error('Error building citation network:', err);
+      this.showError(err instanceof Error ? err.message : 'An error occurred while building the network');
+    } finally {
+      // Always hide loading spinner, even if there's an error
       this.showLoading(false);
-      this.showError(err instanceof Error ? err.message : 'An error occurred');
     }
   }
 
@@ -551,7 +570,7 @@ class CitationGraphManager {
 
     try {
       const url = `${this.config.urls.relatedPapers}?doi=${encodeURIComponent(doi)}&limit=${limit}`;
-      const response = await fetch(url);
+      const response = await this.fetchWithTimeout(url, 60000); // 60 second timeout
 
       if (!response.ok) {
         throw new Error('Failed to fetch related papers');

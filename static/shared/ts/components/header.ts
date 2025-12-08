@@ -222,7 +222,7 @@ function initializeHeader(): void {
 
     async function updateServerHealth(): Promise<void> {
       try {
-        const response = await fetch('/api/server-health/');
+        const response = await fetch('/healthz/');
         const data = await response.json();
 
         const status = data.status; // "healthy" | "warning" | "error" | "starting"
@@ -314,9 +314,9 @@ function initializeHeader(): void {
       }
     }
 
-    // Update immediately and then every 15 seconds
+    // Update immediately and then every 10 minutes
     updateServerHealth();
-    setInterval(updateServerHealth, 15000);
+    setInterval(updateServerHealth, 600000);
   }
 }
 

@@ -365,14 +365,16 @@ CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
 # Periodic task schedule
 CELERY_BEAT_SCHEDULE = {
-    # Collect server metrics every 5 seconds
-    'collect-server-metrics': {
-        'task': 'apps.public_app.tasks.collect_server_metrics',
-        'schedule': 5.0,  # Every 5 seconds
-        'options': {
-            'expires': 4.0,  # Expire after 4 seconds if not started
-        },
-    },
+    # Collect server metrics every 5 minutes
+    # DISABLED: Task causes Daphne event loop blocking even at 5min intervals
+    # TODO: Refactor to run async or move to separate monitoring service
+    # 'collect-server-metrics': {
+    #     'task': 'apps.public_app.tasks.collect_server_metrics',
+    #     'schedule': 300.0,  # Every 5 minutes
+    #     'options': {
+    #         'expires': 270.0,  # Expire after 4.5 minutes if not started
+    #     },
+    # },
     # Clean up expired visitor allocations every 5 minutes
     'cleanup-expired-visitor-allocations': {
         'task': 'apps.public_app.tasks.cleanup_expired_visitor_allocations',
@@ -382,21 +384,23 @@ CELERY_BEAT_SCHEDULE = {
         },
     },
     # Auto-unmount inactive remote projects every 10 minutes
-    'auto-unmount-remote-projects': {
-        'task': 'apps.project_app.tasks.auto_unmount_inactive_remote_projects',
-        'schedule': 600.0,  # Every 10 minutes (in seconds)
-        'options': {
-            'expires': 540.0,  # Expire after 9 minutes if not started
-        },
-    },
+    # DISABLED: Task not registered (tasks.py not imported when tasks/ directory exists)
+    # 'auto-unmount-remote-projects': {
+    #     'task': 'apps.project_app.tasks.auto_unmount_inactive_remote_projects',
+    #     'schedule': 600.0,  # Every 10 minutes (in seconds)
+    #     'options': {
+    #         'expires': 540.0,  # Expire after 9 minutes if not started
+    #     },
+    # },
     # Clean up stale mounts every hour
-    'cleanup-stale-mounts': {
-        'task': 'apps.project_app.tasks.cleanup_stale_mounts',
-        'schedule': 3600.0,  # Every hour (in seconds)
-        'options': {
-            'expires': 3540.0,  # Expire after 59 minutes if not started
-        },
-    },
+    # DISABLED: Task not registered (tasks.py not imported when tasks/ directory exists)
+    # 'cleanup-stale-mounts': {
+    #     'task': 'apps.project_app.tasks.cleanup_stale_mounts',
+    #     'schedule': 3600.0,  # Every hour (in seconds)
+    #     'options': {
+    #         'expires': 3540.0,  # Expire after 59 minutes if not started
+    #     },
+    # },
     # Generate server status charts every 1 minute
     'generate-status-charts': {
         'task': 'apps.public_app.tasks.generate_status_charts',

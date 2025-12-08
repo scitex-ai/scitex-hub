@@ -28,6 +28,7 @@ from django.utils import timezone
 
 from ...models import ServerMetrics
 from .helpers import get_gpu_utilization
+from .health_checks import check_docker_containers, check_database, check_redis, check_citation_graph
 
 logger = logging.getLogger("scitex")
 
@@ -92,6 +93,42 @@ def server_status_api(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+def healthz(request):
+    """
+    Lightweight health check endpoint for frontend status indicator.
+
+    Only checks critical services (DB + Redis) for fast response (<1s).
+    For full diagnostics, use /api/server-health/ or /server-status/ page.
+    """
+    try:
+        status_data = {}
+
+        # Only check database and Redis (fast checks)
+        check_database(status_data)
+        check_redis(status_data)
+
+        # Determine overall health
+        db_healthy = status_data.get('database', {}).get('health_class') == 'healthy'
+        redis_healthy = status_data.get('redis', {}).get('health_class') == 'healthy'
+
+        if db_healthy and redis_healthy:
+            return JsonResponse({
+                "status": "healthy",
+                "color": "#22c55e",
+            })
+        else:
+            return JsonResponse({
+                "status": "error",
+                "color": "#ef4444",
+            })
+    except Exception as e:
+        logger.exception(f"Error in healthz: {e}")
+        return JsonResponse({
+            "status": "error",
+            "color": "#ef4444",
+        }, status=500)
+
+
 def server_health_status_api(request):
     """
     API endpoint for overall server health status (for header indicator).
@@ -102,18 +139,18 @@ def server_health_status_api(request):
         - services: dict of service statuses
     """
     try:
-        from .health_checks import check_docker_containers, check_database, check_redis, check_citation_graph
-        from .compute_resources import check_slurm_status, check_container_runtime_status
-
         status_data = {"services": []}
 
-        # Check critical services
-        check_docker_containers(status_data)
+        # Check critical services (with selective skipping for performance)
         check_database(status_data)
         check_redis(status_data)
-        check_slurm_status(status_data)
-        check_container_runtime_status(status_data)
-        check_citation_graph(status_data)
+
+        # Skip slow checks for the health endpoint (used by header indicator)
+        # Full checks available on /server-status/ page
+        # check_docker_containers(status_data)  # Slow Docker API calls
+        # check_slurm_status(status_data)  # Can be slow
+        # check_container_runtime_status(status_data)  # Can be slow
+        # check_citation_graph(status_data)  # Already skipped internally
 
         # Determine overall health
         has_errors = False
