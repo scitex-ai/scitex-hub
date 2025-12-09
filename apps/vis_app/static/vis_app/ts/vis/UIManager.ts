@@ -55,7 +55,24 @@ export class UIManager {
         private firstRowIsHeaderRef?: { value: boolean },
         private firstColIsIndexRef?: { value: boolean },
         private renderEditableDataTableCallback?: () => void,
-        private statusBarCallback?: (message: string) => void
+        private statusBarCallback?: (message: string) => void,
+        private deleteSelectedCallback?: () => void,
+        private duplicateSelectedCallback?: () => void,
+        private undoCallback?: () => void,
+        private redoCallback?: () => void,
+        private copyCanvasObjectCallback?: () => void,
+        private pasteCanvasObjectCallback?: () => void,
+        private alignCallback?: (direction: 'left' | 'right' | 'top' | 'bottom' | 'center-h' | 'center-v') => void,
+        private arrangeCallback?: (action: 'front' | 'back') => void,
+        private distributeCallback?: (direction: 'horizontal' | 'vertical') => void,
+        private sizeCallback?: (action: 'match-size' | 'match-width' | 'match-height' | 'multiple-crop') => void,
+        private groupCallback?: () => void,
+        private ungroupCallback?: () => void,
+        private copyViewCallback?: () => void,
+        private pasteViewCallback?: () => void,
+        private nudgeCallback?: (direction: 'up' | 'down' | 'left' | 'right', shift: boolean) => void,
+        private selectAllCallback?: () => void,
+        private alignByAxisCallback?: (direction: 'L' | 'C' | 'R' | 'T' | 'M' | 'B' | 'S') => void
     ) {
         // Initialize direct dependencies
         // NOTE: ResizerManager is no longer used for sidebar/properties panels
@@ -93,7 +110,24 @@ export class UIManager {
             toggleGridCallback,
             copySelectionCallback,
             (cell) => this.setEditingCell(cell),
-            statusBarCallback
+            statusBarCallback,
+            deleteSelectedCallback,
+            duplicateSelectedCallback,
+            undoCallback,
+            redoCallback,
+            copyCanvasObjectCallback,
+            pasteCanvasObjectCallback,
+            alignCallback,
+            arrangeCallback,
+            distributeCallback,
+            sizeCallback,
+            groupCallback,
+            ungroupCallback,
+            copyViewCallback,
+            pasteViewCallback,
+            nudgeCallback,
+            selectAllCallback,
+            alignByAxisCallback
         );
 
         // Initialize TreeIntegration module
