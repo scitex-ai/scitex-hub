@@ -1,0 +1,59 @@
+{
+    "scitex_schema": "scitex.plt.figure.editable",
+    "scitex_schema_version": "0.3.0",
+    "meta": {
+        "title": "",
+        "description": "",
+        "exported_at": "2025-12-11T07:26:44.648703"
+    },
+    "figure": {
+        "size_px": [
+            944,
+            803
+        ],
+        "dpi": 300,
+        "figsize_inches": [
+            3.1496062992125986,
+            2.677165354330709
+        ]
+    },
+    "axes": {
+        "ax_00": {
+            "bbox_px": {
+                "x0": 236,
+                "y0": 236,
+                "x1": 708,
+                "y1": 566
+            },
+            "position": [
+                0.25,
+                0.29411764705882354,
+                0.5,
+                0.41176470588235287
+            ],
+            "xlim": [
+                -3.2412673400690726,
+                3.9262377064363267
+            ],
+            "ylim": [
+                -3.9224002516183423,
+                3.529055187570484
+            ]
+        }
+    },
+    "elements": {},
+    "statistics": {},
+    "data": {
+        "csv_path": "hist2d.csv",
+        "columns_actual": [
+            "ax-row-0-col-0_trace-id-position-density_variable-x",
+            "ax-row-0-col-0_trace-id-position-density_variable-y"
+        ],
+        "csv_hash": "5252e39c3493ba98"
+    },
+    "output": {
+        "format": "png",
+        "width_px": 944,
+        "height_px": 803
+    }
+}

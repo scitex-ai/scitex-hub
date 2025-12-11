@@ -1,0 +1,80 @@
+{
+    "scitex_schema": "scitex.plt.figure.editable",
+    "scitex_schema_version": "0.3.0",
+    "meta": {
+        "title": "",
+        "description": "",
+        "exported_at": "2025-12-11T07:27:11.747668"
+    },
+    "figure": {
+        "size_px": [
+            944,
+            803
+        ],
+        "dpi": 300,
+        "figsize_inches": [
+            3.1496062992125986,
+            2.677165354330709
+        ]
+    },
+    "axes": {
+        "ax_00": {
+            "bbox_px": {
+                "x0": 236,
+                "y0": 236,
+                "x1": 708,
+                "y1": 566
+            },
+            "position": [
+                0.25,
+                0.29411764705882354,
+                0.5,
+                0.41176470588235287
+            ],
+            "xlim": [
+                -2.857142857142857,
+                2.857142857142857
+            ],
+            "ylim": [
+                -2.0,
+                2.0
+            ]
+        }
+    },
+    "elements": {
+        "ax_00_linecoll_00": {
+            "id": "ax_00_linecoll_00",
+            "axes_id": "ax_00",
+            "element_type": "line_collection",
+            "label": "linecoll_0",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": null
+            },
+            "style": {},
+            "editable_styles": [
+                "color",
+                "linewidth",
+                "alpha"
+            ],
+            "zorder": 2,
+            "visible": true
+        }
+    },
+    "statistics": {},
+    "data": {
+        "csv_path": "streamplot.csv",
+        "columns_actual": [
+            "ax_00_flow_field_streamplot_x",
+            "ax_00_flow_field_streamplot_y",
+            "ax_00_flow_field_streamplot_u",
+            "ax_00_flow_field_streamplot_v"
+        ],
+        "csv_hash": "f652d8cf630fa60e"
+    },
+    "output": {
+        "format": "png",
+        "width_px": 944,
+        "height_px": 803
+    }
+}
