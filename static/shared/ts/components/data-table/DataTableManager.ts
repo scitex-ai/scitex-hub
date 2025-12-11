@@ -107,6 +107,8 @@ export class DataTableManager {
             getSelection: () => this.tableSelection.getSelectionState(),
             updateSelection: () => this.tableSelection.updateSelection(),
             selectCellAt: (row: number, col: number) => this.tableSelection.selectCellAt(row, col),
+            setCurrentCell: (row: number, col: number) => this.tableSelection.setCurrentCell(row, col),
+            hasRangeSelection: () => this.tableSelection.hasRangeSelection(),
             statusBarCallback: effectiveStatusCallback
         });
 

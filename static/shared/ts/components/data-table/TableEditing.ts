@@ -19,6 +19,8 @@ export interface TableEditingCallbacks {
     getSelection: () => { start: { row: number; col: number } | null; end: { row: number; col: number } | null };
     updateSelection: () => void;
     selectCellAt: (row: number, col: number) => void;
+    setCurrentCell: (row: number, col: number) => void;  // Move currentCell within selection
+    hasRangeSelection: () => boolean;  // Check if multiple cells are selected
     statusBarCallback?: (message: string) => void;
 }
 
@@ -36,6 +38,7 @@ export class TableEditing {
         this.exitEditMode(); // Exit any existing edit mode
 
         cell.contentEditable = 'true';
+        cell.classList.add('editing');
         cell.focus();
         this.editingCell = cell;
 
@@ -69,6 +72,7 @@ export class TableEditing {
         }
 
         this.editingCell.contentEditable = 'false';
+        this.editingCell.classList.remove('editing');
         this.handleCellEdit(this.editingCell);
         this.editingCell = null;
     }
@@ -126,69 +130,31 @@ export class TableEditing {
 
         // If in edit mode, handle differently
         if (this.editingCell === cell) {
+            const rowIndex = parseInt(cell.getAttribute('data-row') || '-1');
+            const colIndex = parseInt(cell.getAttribute('data-col') || '-1');
+
             if (e.key === 'Escape') {
                 e.preventDefault();
                 this.exitEditMode();
                 cell.focus();
-            } else if (e.key === 'Enter' && !e.shiftKey) {
+            } else if (e.key === 'Enter' || e.key === 'Tab') {
                 e.preventDefault();
                 this.exitEditMode();
-                // Move down
-                const rowIndex = parseInt(cell.getAttribute('data-row') || '-1');
-                const colIndex = parseInt(cell.getAttribute('data-col') || '-1');
-                if (rowIndex < currentData.rows.length - 1) {
-                    const targetCell = this.callbacks.getCellAt(rowIndex + 1, colIndex);
-                    if (targetCell) {
-                        this.moveTo(targetCell);
+
+                // Calculate next position and enter edit mode there
+                const mode = e.key === 'Tab' ? 'tab' : 'enter';
+                const nextPos = this.calculateNextPosition(rowIndex, colIndex, mode, e.shiftKey, currentData);
+                const targetCell = this.callbacks.getCellAt(nextPos.row, nextPos.col);
+
+                if (targetCell) {
+                    // Update currentCell (keeps currentCells if range selected)
+                    if (this.callbacks.hasRangeSelection()) {
+                        this.callbacks.setCurrentCell(nextPos.row, nextPos.col);
+                    } else {
+                        this.callbacks.selectCellAt(nextPos.row, nextPos.col);
                     }
-                }
-            } else if (e.key === 'Enter' && e.shiftKey) {
-                e.preventDefault();
-                this.exitEditMode();
-                // Move up with Shift+Enter
-                const rowIndex = parseInt(cell.getAttribute('data-row') || '-1');
-                const colIndex = parseInt(cell.getAttribute('data-col') || '-1');
-                if (rowIndex > 0) {
-                    const targetCell = this.callbacks.getCellAt(rowIndex - 1, colIndex);
-                    if (targetCell) {
-                        this.moveTo(targetCell);
-                    }
-                }
-            } else if (e.key === 'Tab' && !e.shiftKey) {
-                e.preventDefault();
-                this.exitEditMode();
-                // Move right with Tab
-                const rowIndex = parseInt(cell.getAttribute('data-row') || '-1');
-                const colIndex = parseInt(cell.getAttribute('data-col') || '-1');
-                if (colIndex < currentData.columns.length - 1) {
-                    const targetCell = this.callbacks.getCellAt(rowIndex, colIndex + 1);
-                    if (targetCell) {
-                        this.moveTo(targetCell);
-                    }
-                } else if (rowIndex < currentData.rows.length - 1) {
-                    // Wrap to next row
-                    const targetCell = this.callbacks.getCellAt(rowIndex + 1, 0);
-                    if (targetCell) {
-                        this.moveTo(targetCell);
-                    }
-                }
-            } else if (e.key === 'Tab' && e.shiftKey) {
-                e.preventDefault();
-                this.exitEditMode();
-                // Move left with Shift+Tab
-                const rowIndex = parseInt(cell.getAttribute('data-row') || '-1');
-                const colIndex = parseInt(cell.getAttribute('data-col') || '-1');
-                if (colIndex > 0) {
-                    const targetCell = this.callbacks.getCellAt(rowIndex, colIndex - 1);
-                    if (targetCell) {
-                        this.moveTo(targetCell);
-                    }
-                } else if (rowIndex > 0) {
-                    // Wrap to previous row
-                    const targetCell = this.callbacks.getCellAt(rowIndex - 1, currentData.columns.length - 1);
-                    if (targetCell) {
-                        this.moveTo(targetCell);
-                    }
+                    // Continue editing in next cell
+                    this.enterEditMode(targetCell);
                 }
             } else if (e.key === 'F2') {
                 // F2 in edit mode - exit edit mode
@@ -206,14 +172,19 @@ export class TableEditing {
 
         let targetCell: HTMLElement | null = null;
 
-        // Check if it's a printable character or backspace/delete
-        if (e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete') {
+        // Handle Delete/Backspace - clear all cells in currentCells
+        if (e.key === 'Backspace' || e.key === 'Delete') {
+            e.preventDefault();
+            this.clearSelectedCells();
+            return;
+        }
+
+        // Check if it's a printable character - enter edit mode on currentCell
+        if (e.key.length === 1) {
+            // Update currentCell to this cell (keeps currentCells intact)
+            this.callbacks.setCurrentCell(rowIndex, colIndex);
             // Enter edit mode and let the character be typed
             this.enterEditMode(cell);
-            if (e.key === 'Backspace' || e.key === 'Delete') {
-                e.preventDefault();
-                cell.textContent = '';
-            }
             return;
         }
 
@@ -248,37 +219,13 @@ export class TableEditing {
 
             case 'Tab':
                 e.preventDefault();
-                if (e.shiftKey) {
-                    // Shift+Tab - move left
-                    if (colIndex > 0) {
-                        targetCell = this.callbacks.getCellAt(rowIndex, colIndex - 1);
-                    } else if (rowIndex > 0) {
-                        targetCell = this.callbacks.getCellAt(rowIndex - 1, currentData.columns.length - 1);
-                    }
-                } else {
-                    // Tab - move right
-                    if (colIndex < currentData.columns.length - 1) {
-                        targetCell = this.callbacks.getCellAt(rowIndex, colIndex + 1);
-                    } else if (rowIndex < currentData.rows.length - 1) {
-                        targetCell = this.callbacks.getCellAt(rowIndex + 1, 0);
-                    }
-                }
-                break;
+                this.handleSelectionNavigation(rowIndex, colIndex, 'tab', e.shiftKey, currentData);
+                return; // Don't call moveTo (which collapses selection)
 
             case 'Enter':
                 e.preventDefault();
-                if (e.shiftKey) {
-                    // Shift+Enter - move up
-                    if (rowIndex > 0) {
-                        targetCell = this.callbacks.getCellAt(rowIndex - 1, colIndex);
-                    }
-                } else {
-                    // Enter - move down (Excel behavior)
-                    if (rowIndex < currentData.rows.length - 1) {
-                        targetCell = this.callbacks.getCellAt(rowIndex + 1, colIndex);
-                    }
-                }
-                break;
+                this.handleSelectionNavigation(rowIndex, colIndex, 'enter', e.shiftKey, currentData);
+                return; // Don't call moveTo (which collapses selection)
 
             case 'F2':
                 e.preventDefault();
@@ -307,6 +254,144 @@ export class TableEditing {
 
         // Focus the target cell
         targetCell.focus();
+    }
+
+    /**
+     * Handle Tab/Enter navigation - keeps rectangular selection if exists
+     */
+    private handleSelectionNavigation(
+        currentRow: number,
+        currentCol: number,
+        mode: 'tab' | 'enter',
+        reverse: boolean,
+        data: Dataset
+    ): void {
+        const hasRectSelection = this.callbacks.hasRangeSelection();
+        const nextPos = this.calculateNextPosition(currentRow, currentCol, mode, reverse, data);
+
+        if (hasRectSelection) {
+            // Move currentCell within selection (keeps currentCells intact)
+            this.callbacks.setCurrentCell(nextPos.row, nextPos.col);
+        } else {
+            // No rectangular selection - move and select the new cell
+            this.callbacks.selectCellAt(nextPos.row, nextPos.col);
+            const targetCell = this.callbacks.getCellAt(nextPos.row, nextPos.col);
+            if (targetCell) {
+                targetCell.focus();
+            }
+        }
+    }
+
+    /**
+     * Calculate next cell position within selection bounds
+     * Tab: move left-to-right, wrap to next row
+     * Enter: move top-to-bottom, wrap to next column
+     */
+    private calculateNextPosition(
+        currentRow: number,
+        currentCol: number,
+        mode: 'tab' | 'enter',
+        reverse: boolean,
+        data: Dataset
+    ): { row: number; col: number } {
+        const selection = this.callbacks.getSelection();
+        const start = selection.start;
+        const end = selection.end;
+
+        // If no selection or single cell selected, use full table bounds
+        const hasRectSelection = start && end &&
+            (start.row !== end.row || start.col !== end.col);
+
+        const minRow = hasRectSelection ? Math.min(start!.row, end!.row) : 0;
+        const maxRow = hasRectSelection ? Math.max(start!.row, end!.row) : data.rows.length - 1;
+        const minCol = hasRectSelection ? Math.min(start!.col, end!.col) : 0;
+        const maxCol = hasRectSelection ? Math.max(start!.col, end!.col) : data.columns.length - 1;
+
+        let nextRow = currentRow;
+        let nextCol = currentCol;
+
+        if (mode === 'tab') {
+            // Tab: horizontal movement (left-to-right, wrap to next row)
+            if (!reverse) {
+                // Tab: move right
+                if (currentCol < maxCol) {
+                    nextCol = currentCol + 1;
+                } else {
+                    // Wrap to next row, first column of selection
+                    nextCol = minCol;
+                    nextRow = currentRow < maxRow ? currentRow + 1 : minRow;
+                }
+            } else {
+                // Shift+Tab: move left
+                if (currentCol > minCol) {
+                    nextCol = currentCol - 1;
+                } else {
+                    // Wrap to previous row, last column of selection
+                    nextCol = maxCol;
+                    nextRow = currentRow > minRow ? currentRow - 1 : maxRow;
+                }
+            }
+        } else {
+            // Enter: vertical movement (top-to-bottom, wrap to next column)
+            if (!reverse) {
+                // Enter: move down
+                if (currentRow < maxRow) {
+                    nextRow = currentRow + 1;
+                } else {
+                    // Wrap to next column, first row of selection
+                    nextRow = minRow;
+                    nextCol = currentCol < maxCol ? currentCol + 1 : minCol;
+                }
+            } else {
+                // Shift+Enter: move up
+                if (currentRow > minRow) {
+                    nextRow = currentRow - 1;
+                } else {
+                    // Wrap to previous column, last row of selection
+                    nextRow = maxRow;
+                    nextCol = currentCol > minCol ? currentCol - 1 : maxCol;
+                }
+            }
+        }
+
+        return { row: nextRow, col: nextCol };
+    }
+
+    /**
+     * Clear all cells in currentCells range
+     */
+    private clearSelectedCells(): void {
+        const currentData = this.callbacks.getCurrentData();
+        if (!currentData) return;
+
+        const selection = this.callbacks.getSelection();
+        const start = selection.start;
+        const end = selection.end;
+
+        if (!start || !end) return;
+
+        const minRow = Math.min(start.row, end.row);
+        const maxRow = Math.max(start.row, end.row);
+        const minCol = Math.min(start.col, end.col);
+        const maxCol = Math.max(start.col, end.col);
+
+        // Clear all cells in the range
+        for (let r = minRow; r <= maxRow; r++) {
+            for (let c = minCol; c <= maxCol; c++) {
+                if (r < currentData.rows.length && c < currentData.columns.length) {
+                    const colName = currentData.columns[c];
+                    currentData.rows[r][colName] = '';
+
+                    // Update visual
+                    const cell = this.callbacks.getCellAt(r, c);
+                    if (cell) {
+                        cell.textContent = '';
+                    }
+                }
+            }
+        }
+
+        console.log(`[TableEditing] Cleared cells [${minRow}-${maxRow}, ${minCol}-${maxCol}]`);
     }
 
     /**

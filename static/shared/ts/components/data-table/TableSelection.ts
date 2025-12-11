@@ -1,23 +1,42 @@
 /**
- * TableSelection - Handles cell, column, and row selection in data tables
+ * TableSelection - Handles cell selection state in data tables
  *
- * Responsibilities:
- * - Single cell selection
- * - Range selection (drag to select)
- * - Column selection (click column header, drag to select multiple)
- * - Row selection (click row number, drag to select multiple)
- * - Visual selection updates (highlighting, borders)
- * - Selection state management
+ * State Model:
+ * - currentCells: {start, end} | null  - Range selection (rectangular area)
+ * - currentCell: {row, col} | null     - Single active cell for input
+ * - isEditing: boolean                  - Whether currentCell is in edit mode (managed by TableEditing)
+ *
+ * Rules:
+ * - currentCell is always within currentCells bounds (if both exist)
+ * - Single click: sets both currentCells and currentCell to same cell
+ * - Drag select: sets currentCells to range, currentCell to top-left
+ * - Tab/Enter: moves currentCell within currentCells, keeps currentCells intact
+ * - Arrow keys: moves currentCell and collapses currentCells to single cell
+ *
+ * CSS Classes:
+ * - .selected: cells within currentCells range
+ * - .current: the currentCell (active input target)
  */
 
-import { DataRow, TABLE_CONSTANTS } from './types.ts';
+export interface CellPosition {
+    row: number;
+    col: number;
+}
+
+export interface CellRange {
+    start: CellPosition;
+    end: CellPosition;
+}
 
 export class TableSelection {
-    // Selection state
-    private selectedCell: HTMLElement | null = null;
-    private selectionStart: { row: number, col: number } | null = null;
-    private selectionEnd: { row: number, col: number } | null = null;
-    private isSelecting: boolean = false;
+    // Core state
+    private currentCells: CellRange | null = null;
+    private currentCell: CellPosition | null = null;
+
+    // Drag state (transient)
+    private isDragging: boolean = false;
+
+    // Column/row selection (separate from cell selection)
     private selectedColumns: Set<number> = new Set();
     private selectedRows: Set<number> = new Set();
     private isSelectingColumns: boolean = false;
@@ -33,92 +52,232 @@ export class TableSelection {
         private statusBarCallback?: (message: string) => void
     ) {}
 
-    /**
-     * Set container selector
-     */
+    // ========================================
+    // PUBLIC API - Configuration
+    // ========================================
+
     public setContainerSelector(selector: string): void {
         this.containerSelector = selector;
     }
 
+    // ========================================
+    // PUBLIC API - State Getters
+    // ========================================
+
+    public getCurrentCells(): CellRange | null {
+        return this.currentCells ? { ...this.currentCells } : null;
+    }
+
+    public getCurrentCell(): CellPosition | null {
+        return this.currentCell ? { ...this.currentCell } : null;
+    }
+
+    public hasRangeSelection(): boolean {
+        if (!this.currentCells) return false;
+        const { start, end } = this.currentCells;
+        return start.row !== end.row || start.col !== end.col;
+    }
+
     /**
-     * Handle mouse down on cell
+     * Get selection state (for backward compatibility)
+     */
+    public getSelectionState(): {
+        start: CellPosition | null;
+        end: CellPosition | null;
+        currentCell: CellPosition | null;
+        currentCells: CellRange | null;
+        isSelecting: boolean;
+        // Legacy aliases
+        selectedCell: HTMLElement | null;
+        selectionStart: CellPosition | null;
+        selectionEnd: CellPosition | null;
+    } {
+        return {
+            start: this.currentCells?.start || null,
+            end: this.currentCells?.end || null,
+            currentCell: this.currentCell,
+            currentCells: this.currentCells,
+            isSelecting: this.isDragging,
+            // Legacy
+            selectedCell: this.currentCell ? this.getCellAt(this.currentCell.row, this.currentCell.col) : null,
+            selectionStart: this.currentCells?.start || null,
+            selectionEnd: this.currentCells?.end || null,
+        };
+    }
+
+    public getSelectionBounds(): { startRow: number; endRow: number; startCol: number; endCol: number } | null {
+        if (!this.currentCells) return null;
+        const { start, end } = this.currentCells;
+        return {
+            startRow: Math.min(start.row, end.row),
+            endRow: Math.max(start.row, end.row),
+            startCol: Math.min(start.col, end.col),
+            endCol: Math.max(start.col, end.col),
+        };
+    }
+
+    // ========================================
+    // PUBLIC API - Cell Mouse Handlers
+    // ========================================
+
+    /**
+     * Handle mouse down on cell - starts selection
      */
     public handleCellMouseDown(e: MouseEvent, cell: HTMLElement): void {
         e.preventDefault();
-        e.stopPropagation();  // Prevent event from bubbling to panel resizers
+        e.stopPropagation();
 
-        const rowIndex = parseInt(cell.getAttribute('data-row') || '-1');
-        const colIndex = parseInt(cell.getAttribute('data-col') || '-1');
+        const row = parseInt(cell.getAttribute('data-row') || '-1');
+        const col = parseInt(cell.getAttribute('data-col') || '-1');
+        if (row === -1 || col === -1) return;
 
-        // Clear column/row selections when clicking on regular cells
+        // Clear column/row selections
         this.selectedColumns.clear();
         this.selectedRows.clear();
 
-        // Start selection
-        this.isSelecting = true;
-        this.selectionStart = { row: rowIndex, col: colIndex };
-        this.selectionEnd = { row: rowIndex, col: colIndex };
-        this.selectedCell = cell;
+        // Set both currentCells and currentCell to clicked cell
+        this.currentCells = { start: { row, col }, end: { row, col } };
+        this.currentCell = { row, col };
+        this.isDragging = true;
 
-        // Update visual selection
-        this.updateSelection();
-
-        // Focus the cell for keyboard events
+        this.updateVisuals();
         cell.focus();
 
-        console.log(`[TableSelection] Cell selected: [${rowIndex}, ${colIndex}]`);
+        console.log(`[TableSelection] Cell clicked: [${row}, ${col}]`);
     }
 
     /**
-     * Handle mouse over on cell (for drag selection)
+     * Handle mouse over on cell - extends selection during drag
      */
     public handleCellMouseOver(cell: HTMLElement): void {
-        if (!this.isSelecting || !this.selectionStart) return;
+        if (!this.isDragging || !this.currentCells) return;
 
-        const rowIndex = parseInt(cell.getAttribute('data-row') || '-1');
-        const colIndex = parseInt(cell.getAttribute('data-col') || '-1');
+        const row = parseInt(cell.getAttribute('data-row') || '-1');
+        const col = parseInt(cell.getAttribute('data-col') || '-1');
+        if (row === -1 || col === -1) return;
 
-        if (rowIndex === -1 || colIndex === -1) return;
+        // Extend selection range (keep start, update end)
+        this.currentCells.end = { row, col };
+        this.updateVisuals();
 
-        this.selectionEnd = { row: rowIndex, col: colIndex };
-        this.updateSelection();
-
-        console.log(`[TableSelection] Selection extended to: [${rowIndex}, ${colIndex}]`);
+        console.log(`[TableSelection] Selection extended to: [${row}, ${col}]`);
     }
 
     /**
-     * Handle column header mouse down (start column selection)
+     * Handle mouse up - stops dragging, focuses currentCell
      */
+    public stopSelection(): void {
+        console.log('[TableSelection] stopSelection called, isDragging:', this.isDragging, 'currentCells:', this.currentCells);
+        if (this.isDragging && this.currentCells) {
+            // Set currentCell to top-left of selection
+            const bounds = this.getSelectionBounds()!;
+            this.currentCell = { row: bounds.startRow, col: bounds.startCol };
+            console.log('[TableSelection] Set currentCell to:', this.currentCell);
+
+            // Focus the current cell
+            const cellElement = this.getCellAt(this.currentCell.row, this.currentCell.col);
+            if (cellElement) {
+                cellElement.focus();
+            }
+
+            this.updateVisuals();
+        }
+
+        this.isDragging = false;
+        this.isSelectingColumns = false;
+        this.isSelectingRows = false;
+    }
+
+    // ========================================
+    // PUBLIC API - Programmatic Selection
+    // ========================================
+
+    /**
+     * Select a single cell (collapses range to single cell)
+     */
+    public selectCellAt(row: number, col: number): void {
+        this.currentCells = { start: { row, col }, end: { row, col } };
+        this.currentCell = { row, col };
+        this.selectedColumns.clear();
+        this.selectedRows.clear();
+        this.updateVisuals();
+    }
+
+    /**
+     * Move currentCell within currentCells (for Tab/Enter navigation)
+     * Does NOT change currentCells range
+     */
+    public setCurrentCell(row: number, col: number): void {
+        this.currentCell = { row, col };
+        this.updateVisuals();
+
+        // Focus the cell
+        const cellElement = this.getCellAt(row, col);
+        if (cellElement) {
+            cellElement.focus();
+        }
+    }
+
+    /**
+     * Set selection range programmatically
+     */
+    public setSelection(startRow: number, startCol: number, endRow: number, endCol: number): void {
+        this.currentCells = {
+            start: { row: startRow, col: startCol },
+            end: { row: endRow, col: endCol },
+        };
+        // Set currentCell to top-left
+        this.currentCell = {
+            row: Math.min(startRow, endRow),
+            col: Math.min(startCol, endCol),
+        };
+        this.updateVisuals();
+    }
+
+    /**
+     * Clear all selection
+     */
+    public clearSelection(): void {
+        this.currentCells = null;
+        this.currentCell = null;
+        this.selectedColumns.clear();
+        this.selectedRows.clear();
+        this.isDragging = false;
+        this.isSelectingColumns = false;
+        this.isSelectingRows = false;
+        this.updateVisuals();
+    }
+
+    // ========================================
+    // PUBLIC API - Column/Row Selection
+    // ========================================
+
     public handleColumnHeaderMouseDown(e: MouseEvent, header: HTMLElement): void {
         e.preventDefault();
-        e.stopPropagation();  // Prevent event from bubbling to panel resizers
+        e.stopPropagation();
 
         const colIndex = parseInt(header.getAttribute('data-col') || '-1');
         if (colIndex === -1) return;
 
-        // Clear previous selections
         this.selectedColumns.clear();
         this.selectedRows.clear();
+        this.currentCells = null;
+        this.currentCell = null;
 
-        // Start column drag selection
         this.isSelectingColumns = true;
         this.columnSelectionStart = colIndex;
         this.selectedColumns.add(colIndex);
 
-        this.updateColumnRowSelection();
+        this.updateColumnRowVisuals();
         console.log('[TableSelection] Column selection started:', colIndex);
     }
 
-    /**
-     * Handle column header mouse over (during drag)
-     */
     public handleColumnHeaderMouseOver(header: HTMLElement): void {
         if (!this.isSelectingColumns) return;
 
         const colIndex = parseInt(header.getAttribute('data-col') || '-1');
         if (colIndex === -1) return;
 
-        // Select range from start to current
         this.selectedColumns.clear();
         const start = Math.min(this.columnSelectionStart, colIndex);
         const end = Math.max(this.columnSelectionStart, colIndex);
@@ -127,17 +286,13 @@ export class TableSelection {
             this.selectedColumns.add(i);
         }
 
-        this.updateColumnRowSelection();
+        this.updateColumnRowVisuals();
     }
 
-    /**
-     * Handle row number mouse down (start row selection)
-     */
     public handleRowNumberMouseDown(e: MouseEvent, rowElement: HTMLElement): void {
         e.preventDefault();
-        e.stopPropagation();  // Prevent event from bubbling to panel resizers
+        e.stopPropagation();
 
-        // Get row index from the parent tr
         const tr = rowElement.closest('tr');
         if (!tr) return;
 
@@ -147,26 +302,22 @@ export class TableSelection {
         const rowIndex = parseInt(firstCell.getAttribute('data-row') || '-1');
         if (rowIndex === -1) return;
 
-        // Clear previous selections
         this.selectedColumns.clear();
         this.selectedRows.clear();
+        this.currentCells = null;
+        this.currentCell = null;
 
-        // Start row drag selection
         this.isSelectingRows = true;
         this.rowSelectionStart = rowIndex;
         this.selectedRows.add(rowIndex);
 
-        this.updateColumnRowSelection();
+        this.updateColumnRowVisuals();
         console.log('[TableSelection] Row selection started:', rowIndex);
     }
 
-    /**
-     * Handle row number mouse over (during drag)
-     */
     public handleRowNumberMouseOver(rowElement: HTMLElement): void {
         if (!this.isSelectingRows) return;
 
-        // Get row index from the parent tr
         const tr = rowElement.closest('tr');
         if (!tr) return;
 
@@ -176,7 +327,6 @@ export class TableSelection {
         const rowIndex = parseInt(firstCell.getAttribute('data-row') || '-1');
         if (rowIndex === -1) return;
 
-        // Select range from start to current
         this.selectedRows.clear();
         const start = Math.min(this.rowSelectionStart, rowIndex);
         const end = Math.max(this.rowSelectionStart, rowIndex);
@@ -185,226 +335,24 @@ export class TableSelection {
             this.selectedRows.add(i);
         }
 
-        this.updateColumnRowSelection();
+        this.updateColumnRowVisuals();
     }
 
-    /**
-     * Select a single cell by coordinates (used for keyboard navigation)
-     */
-    public selectCellAt(row: number, col: number): void {
-        this.selectionStart = { row, col };
-        this.selectionEnd = { row, col };
-        this.selectedColumns.clear();
-        this.selectedRows.clear();
-        this.updateSelection();
-    }
+    // ========================================
+    // PUBLIC API - Highlighting (external sync)
+    // ========================================
 
-    /**
-     * Update visual selection
-     */
-    public updateSelection(): void {
-        if (!this.selectionStart || !this.selectionEnd) return;
-
-        const container = document.querySelector(this.containerSelector) as HTMLElement;
-        if (!container) return;
-
-        // Clear previous selection
-        const allCells = container.querySelectorAll('.data-table td, .data-table th');
-        allCells.forEach(cell => cell.classList.remove('selected', 'header-highlighted'));
-
-        // Remove previous border and fill handle
-        container.querySelectorAll('.selection-border-overlay, .fill-handle').forEach(el => el.remove());
-
-        // Calculate selection bounds
-        const startRow = Math.min(this.selectionStart.row, this.selectionEnd.row);
-        const endRow = Math.max(this.selectionStart.row, this.selectionEnd.row);
-        const startCol = Math.min(this.selectionStart.col, this.selectionEnd.col);
-        const endCol = Math.max(this.selectionStart.col, this.selectionEnd.col);
-
-        // Apply selection
-        let firstCell: HTMLElement | null = null;
-        let lastCell: HTMLElement | null = null;
-
-        for (let r = startRow; r <= endRow; r++) {
-            for (let c = startCol; c <= endCol; c++) {
-                const cell = this.getCellAt(r, c);
-                if (cell) {
-                    cell.classList.add('selected');
-                    if (!firstCell) firstCell = cell;
-                    lastCell = cell;
-                }
-            }
-        }
-
-        // Highlight corresponding row numbers and column headers (Excel-like)
-        const allRowNumbers = container.querySelectorAll('.row-number');
-        for (let r = startRow; r <= endRow; r++) {
-            if (allRowNumbers[r]) {
-                allRowNumbers[r].classList.add('header-highlighted');
-            }
-        }
-
-        for (let c = startCol; c <= endCol; c++) {
-            const columnHeader = container.querySelector(`th[data-col="${c}"]`);
-            if (columnHeader) {
-                columnHeader.classList.add('header-highlighted');
-            }
-        }
-
-        // Add dashed border overlay and fill handle
-        if (firstCell && lastCell) {
-            const containerRect = container.getBoundingClientRect();
-            const firstRect = firstCell.getBoundingClientRect();
-            const lastRect = lastCell.getBoundingClientRect();
-
-            const borderOffset = 1;
-
-            const left = firstRect.left - containerRect.left + container.scrollLeft;
-            const top = firstRect.top - containerRect.top + container.scrollTop;
-            const width = lastRect.right - firstRect.left;
-            const height = lastRect.bottom - firstRect.top;
-
-            // Create dashed border overlay
-            const borderOverlay = document.createElement('div');
-            borderOverlay.className = 'selection-border-overlay';
-            borderOverlay.style.left = (left - borderOffset) + 'px';
-            borderOverlay.style.top = (top - borderOffset) + 'px';
-            borderOverlay.style.width = (width + borderOffset * 2) + 'px';
-            borderOverlay.style.height = (height + borderOffset * 2) + 'px';
-            container.appendChild(borderOverlay);
-
-            // Create fill handle (small square at bottom-right)
-            const fillHandle = document.createElement('div');
-            fillHandle.className = 'fill-handle';
-            fillHandle.style.left = (left + width - 4 + borderOffset) + 'px';
-            fillHandle.style.top = (top + height - 4 + borderOffset) + 'px';
-            container.appendChild(fillHandle);
-        }
-    }
-
-    /**
-     * Update visual selection for columns/rows
-     */
-    private updateColumnRowSelection(): void {
-        const container = document.querySelector(this.containerSelector) as HTMLElement;
-        if (!container) return;
-
-        // Clear all selections first
-        const allCells = container.querySelectorAll('.data-table td, .data-table th');
-        allCells.forEach(cell => cell.classList.remove('selected'));
-
-        // Select columns
-        this.selectedColumns.forEach(colIndex => {
-            // Select header
-            const header = container.querySelector(`th[data-col="${colIndex}"]`);
-            header?.classList.add('selected');
-
-            // Select all cells in column
-            const cells = container.querySelectorAll(`td[data-col="${colIndex}"]`);
-            cells.forEach(cell => cell.classList.add('selected'));
-        });
-
-        // Select rows
-        this.selectedRows.forEach(rowIndex => {
-            // Select row number
-            const cells = container.querySelectorAll(`td[data-row="${rowIndex}"]`);
-            cells.forEach(cell => cell.classList.add('selected'));
-        });
-    }
-
-    /**
-     * Clear cell selection
-     */
-    public clearSelection(): void {
-        this.selectionStart = null;
-        this.selectionEnd = null;
-        this.selectedCell = null;
-        this.selectedColumns.clear();
-        this.selectedRows.clear();
-        this.isSelecting = false;
-        this.isSelectingColumns = false;
-        this.isSelectingRows = false;
-    }
-
-    /**
-     * Stop selection mode (called on mouse up)
-     */
-    public stopSelection(): void {
-        this.isSelecting = false;
-        this.isSelectingColumns = false;
-        this.isSelectingRows = false;
-    }
-
-    /**
-     * Get current selection bounds
-     */
-    public getSelectionBounds(): { startRow: number, endRow: number, startCol: number, endCol: number } | null {
-        if (!this.selectionStart || !this.selectionEnd) return null;
-
-        return {
-            startRow: Math.min(this.selectionStart.row, this.selectionEnd.row),
-            endRow: Math.max(this.selectionStart.row, this.selectionEnd.row),
-            startCol: Math.min(this.selectionStart.col, this.selectionEnd.col),
-            endCol: Math.max(this.selectionStart.col, this.selectionEnd.col)
-        };
-    }
-
-    /**
-     * Get selected cell
-     */
-    public getSelectedCell(): HTMLElement | null {
-        return this.selectedCell;
-    }
-
-    /**
-     * Get selection state (for external use)
-     */
-    public getSelectionState(): {
-        start: { row: number, col: number } | null,
-        end: { row: number, col: number } | null,
-        selectedCell: HTMLElement | null,
-        selectionStart: { row: number, col: number } | null,
-        selectionEnd: { row: number, col: number } | null,
-        isSelecting: boolean
-    } {
-        return {
-            start: this.selectionStart,
-            end: this.selectionEnd,
-            selectedCell: this.selectedCell,
-            selectionStart: this.selectionStart,
-            selectionEnd: this.selectionEnd,
-            isSelecting: this.isSelecting
-        };
-    }
-
-    /**
-     * Set selection programmatically
-     */
-    public setSelection(startRow: number, startCol: number, endRow: number, endCol: number): void {
-        this.selectionStart = { row: startRow, col: startCol };
-        this.selectionEnd = { row: endRow, col: endCol };
-        this.updateSelection();
-    }
-
-    /**
-     * Highlight specific columns (for element-CSV synchronization)
-     * @param columnIndices Array of column indices to highlight
-     */
     public highlightColumns(columnIndices: number[]): void {
         const container = document.querySelector(this.containerSelector) as HTMLElement;
         if (!container) return;
 
-        // Clear previous highlights
         const allCells = container.querySelectorAll('.data-table td, .data-table th');
         allCells.forEach(cell => cell.classList.remove('element-highlight'));
 
-        // Highlight specified columns
         for (const colIndex of columnIndices) {
-            // Highlight header
             const header = container.querySelector(`th[data-col="${colIndex}"]`);
             header?.classList.add('element-highlight');
 
-            // Highlight all cells in the column
             const cells = container.querySelectorAll(`td[data-col="${colIndex}"]`);
             cells.forEach(cell => cell.classList.add('element-highlight'));
         }
@@ -414,14 +362,147 @@ export class TableSelection {
         }
     }
 
-    /**
-     * Clear column highlights (for element-CSV synchronization)
-     */
     public clearColumnHighlights(): void {
         const container = document.querySelector(this.containerSelector) as HTMLElement;
         if (!container) return;
 
         const allCells = container.querySelectorAll('.data-table td, .data-table th');
         allCells.forEach(cell => cell.classList.remove('element-highlight'));
+    }
+
+    // ========================================
+    // PRIVATE - Visual Updates
+    // ========================================
+
+    /**
+     * Update all visual classes based on current state
+     */
+    private updateVisuals(): void {
+        const container = document.querySelector(this.containerSelector) as HTMLElement;
+        if (!container) return;
+
+        // Clear all selection classes
+        const allCells = container.querySelectorAll('.data-table td, .data-table th');
+        allCells.forEach(cell => cell.classList.remove('selected', 'current', 'header-highlighted'));
+
+        // Remove overlays
+        container.querySelectorAll('.selection-border-overlay, .fill-handle').forEach(el => el.remove());
+
+        if (!this.currentCells) return;
+
+        const bounds = this.getSelectionBounds()!;
+
+        // Apply .selected to all cells in range
+        let firstCell: HTMLElement | null = null;
+        let lastCell: HTMLElement | null = null;
+
+        for (let r = bounds.startRow; r <= bounds.endRow; r++) {
+            for (let c = bounds.startCol; c <= bounds.endCol; c++) {
+                const cell = this.getCellAt(r, c);
+                if (cell) {
+                    cell.classList.add('selected');
+                    if (!firstCell) firstCell = cell;
+                    lastCell = cell;
+                }
+            }
+        }
+
+        // Apply .current to currentCell
+        if (this.currentCell) {
+            const currentCellElement = this.getCellAt(this.currentCell.row, this.currentCell.col);
+            console.log('[TableSelection] Applying .current to cell:', this.currentCell, 'element:', currentCellElement);
+            if (currentCellElement) {
+                currentCellElement.classList.add('current');
+                console.log('[TableSelection] Cell classes after adding current:', currentCellElement.className);
+            }
+        } else {
+            console.log('[TableSelection] No currentCell to apply .current class');
+        }
+
+        // Highlight row numbers and column headers
+        const allRowNumbers = container.querySelectorAll('.row-number');
+        for (let r = bounds.startRow; r <= bounds.endRow; r++) {
+            if (allRowNumbers[r]) {
+                allRowNumbers[r].classList.add('header-highlighted');
+            }
+        }
+
+        for (let c = bounds.startCol; c <= bounds.endCol; c++) {
+            const columnHeader = container.querySelector(`th[data-col="${c}"]`);
+            if (columnHeader) {
+                columnHeader.classList.add('header-highlighted');
+            }
+        }
+
+        // Add selection border overlay and fill handle
+        if (firstCell && lastCell) {
+            this.addSelectionOverlay(container, firstCell, lastCell);
+        }
+    }
+
+    private addSelectionOverlay(container: HTMLElement, firstCell: HTMLElement, lastCell: HTMLElement): void {
+        const containerRect = container.getBoundingClientRect();
+        const firstRect = firstCell.getBoundingClientRect();
+        const lastRect = lastCell.getBoundingClientRect();
+
+        const borderOffset = 1;
+        const left = firstRect.left - containerRect.left + container.scrollLeft;
+        const top = firstRect.top - containerRect.top + container.scrollTop;
+        const width = lastRect.right - firstRect.left;
+        const height = lastRect.bottom - firstRect.top;
+
+        // Border overlay
+        const borderOverlay = document.createElement('div');
+        borderOverlay.className = 'selection-border-overlay';
+        borderOverlay.style.left = (left - borderOffset) + 'px';
+        borderOverlay.style.top = (top - borderOffset) + 'px';
+        borderOverlay.style.width = (width + borderOffset * 2) + 'px';
+        borderOverlay.style.height = (height + borderOffset * 2) + 'px';
+        container.appendChild(borderOverlay);
+
+        // Fill handle
+        const fillHandle = document.createElement('div');
+        fillHandle.className = 'fill-handle';
+        fillHandle.style.left = (left + width - 4 + borderOffset) + 'px';
+        fillHandle.style.top = (top + height - 4 + borderOffset) + 'px';
+        container.appendChild(fillHandle);
+    }
+
+    private updateColumnRowVisuals(): void {
+        const container = document.querySelector(this.containerSelector) as HTMLElement;
+        if (!container) return;
+
+        const allCells = container.querySelectorAll('.data-table td, .data-table th');
+        allCells.forEach(cell => cell.classList.remove('selected', 'current'));
+
+        // Select columns
+        this.selectedColumns.forEach(colIndex => {
+            const header = container.querySelector(`th[data-col="${colIndex}"]`);
+            header?.classList.add('selected');
+
+            const cells = container.querySelectorAll(`td[data-col="${colIndex}"]`);
+            cells.forEach(cell => cell.classList.add('selected'));
+        });
+
+        // Select rows
+        this.selectedRows.forEach(rowIndex => {
+            const cells = container.querySelectorAll(`td[data-row="${rowIndex}"]`);
+            cells.forEach(cell => cell.classList.add('selected'));
+        });
+    }
+
+    // ========================================
+    // LEGACY - Backward Compatibility
+    // ========================================
+
+    /** @deprecated Use getCurrentCell() */
+    public getSelectedCell(): HTMLElement | null {
+        if (!this.currentCell) return null;
+        return this.getCellAt(this.currentCell.row, this.currentCell.col);
+    }
+
+    /** @deprecated Use updateVisuals() */
+    public updateSelection(): void {
+        this.updateVisuals();
     }
 }
