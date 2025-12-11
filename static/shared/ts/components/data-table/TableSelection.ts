@@ -189,6 +189,17 @@ export class TableSelection {
     }
 
     /**
+     * Select a single cell by coordinates (used for keyboard navigation)
+     */
+    public selectCellAt(row: number, col: number): void {
+        this.selectionStart = { row, col };
+        this.selectionEnd = { row, col };
+        this.selectedColumns.clear();
+        this.selectedRows.clear();
+        this.updateSelection();
+    }
+
+    /**
      * Update visual selection
      */
     public updateSelection(): void {

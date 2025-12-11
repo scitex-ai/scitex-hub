@@ -18,6 +18,7 @@ export interface TableEditingCallbacks {
     renderCallback: () => void;
     getSelection: () => { start: { row: number; col: number } | null; end: { row: number; col: number } | null };
     updateSelection: () => void;
+    selectCellAt: (row: number, col: number) => void;
     statusBarCallback?: (message: string) => void;
 }
 
@@ -293,17 +294,19 @@ export class TableEditing {
 
     /**
      * Move selection to target cell
-     * This is a helper method that simulates a mouse down event on the target cell
+     * This is a helper method that focuses the target cell and updates selection
      */
     private moveTo(targetCell: HTMLElement): void {
+        const rowIndex = parseInt(targetCell.getAttribute('data-row') || '-1');
+        const colIndex = parseInt(targetCell.getAttribute('data-col') || '-1');
+
+        if (rowIndex >= 0 && colIndex >= 0) {
+            // Update selection state and visual highlight
+            this.callbacks.selectCellAt(rowIndex, colIndex);
+        }
+
         // Focus the target cell
         targetCell.focus();
-
-        // We need to trigger a selection update, but we don't have direct access to
-        // the selection state. The parent class should handle this through the
-        // handleCellMouseDown event, but since we're in a separated module,
-        // we'll trigger focus which should be enough for navigation.
-        // The actual selection update would need to be handled by the parent.
     }
 
     /**

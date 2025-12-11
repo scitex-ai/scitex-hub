@@ -106,6 +106,7 @@ export class DataTableManager {
             renderCallback: () => this.renderEditableDataTable(),
             getSelection: () => this.tableSelection.getSelectionState(),
             updateSelection: () => this.tableSelection.updateSelection(),
+            selectCellAt: (row: number, col: number) => this.tableSelection.selectCellAt(row, col),
             statusBarCallback: effectiveStatusCallback
         });
 
