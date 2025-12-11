@@ -1,0 +1,108 @@
+/* ========================================================================
+   GIT INTEGRATIONS PAGE STYLES
+   ======================================================================== */
+
+/* Form sections */
+.form-section {
+  background: var(--color-canvas-default);
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+/* Section header */
+.section-header {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.section-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-fg-default);
+  margin-bottom: 4px;
+}
+
+.section-subtitle {
+  font-size: 14px;
+  color: var(--color-fg-muted);
+}
+
+/* Form groups */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-fg-default);
+  margin-bottom: 6px;
+}
+
+.form-group input[type="password"],
+.form-group input[type="text"] {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  background: var(--color-canvas-default);
+  color: var(--color-fg-default);
+  font-size: 14px;
+}
+
+/* Form help text */
+.form-help {
+  font-size: 12px;
+  color: var(--color-fg-muted);
+  margin-top: 6px;
+}
+
+.form-help a {
+  color: var(--scitex-color-04);
+}
+
+.form-help code {
+  background: var(--color-canvas-subtle);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+/* Form actions */
+.form-actions {
+  display: flex;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border-default);
+  margin-top: 24px;
+}
+
+/* Save button */
+.btn-save {
+  background: var(--color-btn-primary-bg);
+  color: var(--color-btn-primary-text);
+  border: 1px solid var(--color-btn-primary-border);
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Cancel button */
+.btn-cancel {
+  background: var(--color-btn-bg);
+  color: var(--color-btn-text);
+  border: 1px solid var(--color-btn-border);
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  text-decoration: none;
+}
