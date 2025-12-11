@@ -4,6 +4,7 @@
  */
 
 import type { ModalManager } from "./ModalManager";
+import { getSharedShortcutsHTML } from "@shared/ts/utils/shared-shortcuts";
 
 export class ShortcutsManager {
   constructor(private modalManager: ModalManager) {}
@@ -84,8 +85,11 @@ export class ShortcutsManager {
       </ul>
     `;
 
+    const globalShortcuts = getSharedShortcutsHTML();
+
     if (mode === "emacs") {
       return `
+        ${globalShortcuts}
         <h3>Emacs Mode</h3>
         ${commonShortcuts}
         <h3>Emacs Navigation</h3>
@@ -102,6 +106,7 @@ export class ShortcutsManager {
       `;
     } else if (mode === "vim") {
       return `
+        ${globalShortcuts}
         <h3>Vim Mode</h3>
         ${commonShortcuts}
         <h3>Vim Navigation</h3>
@@ -117,6 +122,7 @@ export class ShortcutsManager {
       `;
     } else {
       return `
+        ${globalShortcuts}
         <h3>VS Code Mode</h3>
         ${commonShortcuts}
         <h3>Standard Navigation</h3>

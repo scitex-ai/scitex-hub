@@ -4,6 +4,10 @@
  */
 
 import { initZenMode } from "@/components/zen-mode";
+import { SHARED_SHORTCUTS, getShortcutKey, checkShortcutConflict, registerAppShortcut, getSharedShortcutsHTML, getSharedShortcutsList } from "./shared-shortcuts";
+
+// Re-export shared shortcuts utilities for use by other modules
+export { SHARED_SHORTCUTS, checkShortcutConflict, registerAppShortcut, getSharedShortcutsHTML, getSharedShortcutsList };
 
 /**
  * Initialize the main application

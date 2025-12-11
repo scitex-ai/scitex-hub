@@ -12,6 +12,8 @@
  * - table-help-modal: Contains help information and keyboard shortcuts
  */
 
+import { getSharedShortcutsList } from '@shared/ts/utils/shared-shortcuts';
+
 export class Modals {
     /**
      * Show sort modal
@@ -55,7 +57,9 @@ export class Modals {
             console.log('[Modals] Table help modal opened');
         } else {
             // Create a simple help alert if modal doesn't exist
+            const sharedShortcuts = getSharedShortcutsList();
             alert('Table Help:\n\n' +
+                '=== Table Editing ===\n' +
                 '- Click cell to select\n' +
                 '- Drag to select range\n' +
                 '- Double-click to edit\n' +
@@ -63,10 +67,13 @@ export class Modals {
                 '- Ctrl+V to paste\n' +
                 '- Arrow keys to navigate\n' +
                 '- F2 to edit cell\n' +
-                '- Tab/Shift+Tab to move\n' +
+                '- Tab/Shift+Tab to move horizontally\n' +
                 '- Enter/Shift+Enter to move vertically\n' +
+                '- Delete/Backspace to clear selected cells\n' +
                 '- Drag column borders to resize\n' +
-                '- Drag fill handle to auto-fill');
+                '- Drag fill handle to auto-fill\n\n' +
+                '=== Global Shortcuts (Always Active) ===\n' +
+                sharedShortcuts);
         }
     }
 }
