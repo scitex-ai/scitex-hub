@@ -7,32 +7,45 @@
  * - Handle canvas theme (light/dark)
  * - Handle canvas-specific zoom and pan
  * - Coordinate with rulers for unified transform
+ *
+ * NOTE: This file is being refactored to use specialized managers.
+ * See: /apps/vis_app/static/vis_app/ts/vis/canvas/REFACTORING_PLAN.md
  */
 
 import { CANVAS_CONSTANTS } from './types.ts';
+import { GridManager } from './canvas/GridManager.ts';
+import { ExportManager } from './canvas/ExportManager.ts';
+import { UndoRedoManager } from './canvas/UndoRedoManager.ts';
+import { ThemeManager } from './canvas/ThemeManager.ts';
+import { ZoomPanManager } from './canvas/ZoomPanManager.ts';
+import { SelectionManager } from './canvas/SelectionManager.ts';
+import { ObjectManager } from './canvas/ObjectManager.ts';
+import { TransformManager } from './canvas/TransformManager.ts';
+import { GroupManager } from './canvas/GroupManager.ts';
+import { AlignmentManager } from './canvas/AlignmentManager.ts';
+import { SnapManager } from './canvas/SnapManager.ts';
+import { CropManager } from './canvas/CropManager.ts';
+import { ElementSelectionManager } from './canvas/ElementSelectionManager.ts';
+import { ContextMenuManager } from './canvas/ContextMenuManager.ts';
 
 export class CanvasManager {
     public canvas: any | null = null; // Fabric.js canvas instance
-    private gridEnabled: boolean = true;
-    private canvasZoomLevel: number = 0.22; // Start at 22% to fit full canvas (180mm × 240mm)
-    private canvasPanOffset: { x: number, y: number } = { x: 0, y: 0 };
-    private canvasIsPanning: boolean = false;
-    private canvasIsZoomDragging: boolean = false;  // Ctrl+drag zoom mode
-    private canvasPanStartPoint: { x: number, y: number } | null = null;
-    private canvasZoomDragStartY: number = 0;
-    private canvasZoomDragStartLevel: number = 1;
-    private canvasWheelThrottleFrame: number | null = null;
-    private canvasAccumulatedZoomDelta: number = 0;
-    private canvasLastZoomMousePos: { x: number, y: number } = { x: 0, y: 0 };
-    private canvasAccumulatedPanDelta: { x: number, y: number } = { x: 0, y: 0 };
-    private canvasDragThrottleFrame: number | null = null;
-    private pendingDragUpdate: boolean = false;
 
-    // Undo/Redo state management
-    private undoStack: string[] = [];
-    private redoStack: string[] = [];
-    private maxUndoSteps: number = 50;
-    private isUndoRedoing: boolean = false;
+    // Specialized managers (Phase 1, 2, 3, 4 & 5 refactoring)
+    private gridManager: GridManager | null = null;
+    private exportManager: ExportManager | null = null;
+    private undoRedoManager: UndoRedoManager | null = null;
+    private themeManager: ThemeManager | null = null;
+    private zoomPanManager: ZoomPanManager | null = null;
+    private selectionManager: SelectionManager | null = null;
+    private objectManager: ObjectManager | null = null;
+    private transformManager: TransformManager | null = null;
+    private groupManager: GroupManager | null = null;
+    private alignmentManager: AlignmentManager | null = null;
+    private snapManager: SnapManager | null = null;
+    private cropManager: CropManager | null = null;
+    private elementSelectionManager: ElementSelectionManager | null = null;
+    private contextMenuManager: ContextMenuManager | null = null;
 
     // Snap and alignment guidelines
     private snapEnabled: boolean = true;
@@ -52,13 +65,11 @@ export class CanvasManager {
     private columnCount: number = 0; // 0 = disabled, 2-4 for multi-column layout
     private columnGuidePositions: number[] = []; // X positions of column guides in mm
 
-    // Dark mode state for plot image processing
-    private isDarkMode: boolean = false;
-    // Store original image sources for theme switching
-    private originalImageSources: Map<any, string> = new Map();
-
     private selectionCallback?: (obj: any | null) => void;
     private onObjectResizedCallback?: (obj: any, newWidth: number, newHeight: number) => void;
+
+    // Original image sources for theme switching (shared with ThemeManager via ObjectManager)
+    private originalImageSources: Map<any, string> = new Map();
 
     constructor(
         private statusBarCallback?: (message: string) => void,
@@ -83,36 +94,38 @@ export class CanvasManager {
 
     /**
      * Get canvas zoom level
+     * DELEGATES to ZoomPanManager
      */
     public getCanvasZoomLevel(): number {
-        return this.canvasZoomLevel;
+        return this.zoomPanManager?.getZoomLevel() || 0.22;
     }
 
     /**
      * Get canvas pan offset
+     * DELEGATES to ZoomPanManager
      */
     public getCanvasPanOffset(): { x: number, y: number } {
-        return this.canvasPanOffset;
+        return this.zoomPanManager?.getPanOffset() || { x: 0, y: 0 };
     }
 
     /**
      * Set canvas zoom level (used when restoring tab state)
-     * NOTE: Only updates internal state and CSS transform - Fabric.js stays at identity
+     * DELEGATES to ZoomPanManager
      */
     public setCanvasZoomLevel(zoom: number): void {
-        this.canvasZoomLevel = zoom;
-        // Don't call canvas.setZoom() - all zoom is via CSS transform
-        this.updateCanvasTransform();
+        if (this.zoomPanManager) {
+            this.zoomPanManager.setZoomLevel(zoom);
+        }
     }
 
     /**
      * Set canvas pan offset (used when restoring tab state)
-     * NOTE: Only updates internal state and CSS transform - Fabric.js stays at identity
+     * DELEGATES to ZoomPanManager
      */
     public setCanvasPanOffset(x: number, y: number): void {
-        this.canvasPanOffset = { x, y };
-        // Don't call canvas.absolutePan() - all pan is via CSS transform
-        this.updateCanvasTransform();
+        if (this.zoomPanManager) {
+            this.zoomPanManager.setPanOffset(x, y);
+        }
     }
 
     /**
@@ -141,9 +154,6 @@ export class CanvasManager {
         const savedCanvasTheme = localStorage.getItem('canvas-theme') || globalTheme;
         const initialIsDark = savedCanvasTheme === 'dark';
         const initialBgColor = initialIsDark ? '#2a2a2a' : '#ffffff';
-
-        // Initialize dark mode state for image processing
-        this.isDarkMode = initialIsDark;
 
         try {
             // Initialize canvas with correct theme from the start
@@ -174,8 +184,76 @@ export class CanvasManager {
             const canvasCreateTime = performance.now();
             console.log(`[CanvasManager] Fabric.js canvas created in ${(canvasCreateTime - startTime).toFixed(2)}ms (${defaultWidth}×${defaultHeight}px)`);
 
-            if (this.gridEnabled) {
-                this.drawGrid(initialIsDark);  // Use initial theme for grid
+            // Initialize specialized managers (Phase 1, 2 & 3 refactoring)
+            this.gridManager = new GridManager(this.canvas, this.statusBarCallback);
+            this.exportManager = new ExportManager(this.canvas, this.statusBarCallback);
+            this.undoRedoManager = new UndoRedoManager(this.canvas, this.statusBarCallback);
+            this.themeManager = new ThemeManager(this.canvas, initialIsDark, this.statusBarCallback);
+            this.zoomPanManager = new ZoomPanManager(this.canvas, this.rulersAreaTransformCallback, this.statusBarCallback);
+            this.selectionManager = new SelectionManager(this.canvas, this.statusBarCallback);
+
+            // Phase 3 managers - object manipulation, transforms, and grouping
+            this.objectManager = new ObjectManager(
+                this.canvas,
+                () => this.themeManager?.isDark() || false,
+                (img) => this.updateImageForTheme(img),
+                (group) => this.processSvgGroupForDarkMode(group),
+                () => this.saveUndoState(),
+                () => this.saveCanvasContent(),
+                this.statusBarCallback
+            );
+            this.transformManager = new TransformManager(
+                this.canvas,
+                () => this.saveUndoState(),
+                () => this.saveCanvasContent(),
+                this.statusBarCallback
+            );
+            this.groupManager = new GroupManager(
+                this.canvas,
+                () => this.saveUndoState(),
+                () => this.saveCanvasContent(),
+                this.statusBarCallback
+            );
+
+            // Phase 4 managers - alignment, snapping, and cropping
+            this.alignmentManager = new AlignmentManager(
+                this.statusBarCallback,
+                () => this.saveUndoState(),
+                () => this.saveCanvasContent()
+            );
+            this.alignmentManager.initialize(this.canvas);
+
+            this.snapManager = new SnapManager(
+                this.statusBarCallback,
+                () => this.getCanvasZoomLevel(),
+                () => this.getCanvasPanOffset()
+            );
+            this.snapManager.initialize(this.canvas);
+
+            this.cropManager = new CropManager(
+                this.statusBarCallback,
+                () => this.saveUndoState(),
+                () => this.saveCanvasContent(),
+                () => this.getCanvasZoomLevel(),
+                () => this.getCanvasPanOffset()
+            );
+            this.cropManager.initialize(this.canvas);
+
+            // Phase 5 managers - element selection and context menu
+            this.elementSelectionManager = new ElementSelectionManager(
+                this.canvas,
+                this.statusBarCallback
+            );
+
+            this.contextMenuManager = new ContextMenuManager(
+                this.canvas,
+                () => this.elementSelectionManager?.getSelectedElementNames() || [],
+                this.statusBarCallback
+            );
+
+            // Draw initial grid if enabled
+            if (this.gridManager.isGridEnabled()) {
+                this.gridManager.drawGrid(initialIsDark);
                 const gridTime = performance.now();
                 console.log(`[CanvasManager] Grid drawn in ${(gridTime - canvasCreateTime).toFixed(2)}ms`);
                 console.log(`[CanvasManager] ✅ Total canvas init: ${(gridTime - startTime).toFixed(2)}ms`);
@@ -184,7 +262,9 @@ export class CanvasManager {
             }
 
             // Restore saved view state
-            this.restoreViewState();
+            if (this.zoomPanManager) {
+                this.zoomPanManager.restoreViewState();
+            }
 
             // Save canvas when objects are modified (moved, scaled, rotated)
             this.canvas.on('object:modified', () => {
@@ -327,215 +407,70 @@ export class CanvasManager {
     }
 
     /**
-     * Track if we're in group edit mode
-     */
-    private groupEditMode: boolean = false;
-    private editingGroup: any = null;
-    private editingGroupOriginalObjects: any[] = [];
-
-    /**
      * Enter group edit mode - allows selecting elements inside a group
      * Double-click on group to enter, click outside to exit
+     * DELEGATES to GroupManager
      */
     private enterGroupEditMode(group: any): void {
-        if (!this.canvas || this.groupEditMode) return;
-
-        this.groupEditMode = true;
-        this.editingGroup = group;
-
-        // Store original state
-        const groupLeft = group.left || 0;
-        const groupTop = group.top || 0;
-        const groupScaleX = group.scaleX || 1;
-        const groupScaleY = group.scaleY || 1;
-        const groupAngle = group.angle || 0;
-
-        // Convert group to active selection (ungroup but keep tracking)
-        const objects = group.getObjects();
-        this.editingGroupOriginalObjects = objects.map((obj: any) => ({
-            obj,
-            originalLeft: obj.left,
-            originalTop: obj.top,
-        }));
-
-        // Remove group and add individual objects
-        this.canvas.remove(group);
-
-        objects.forEach((obj: any) => {
-            // Transform object coordinates from group space to canvas space
-            const point = fabric.util.transformPoint(
-                { x: obj.left || 0, y: obj.top || 0 },
-                group.calcTransformMatrix()
-            );
-            obj.set({
-                left: point.x,
-                top: point.y,
-                scaleX: (obj.scaleX || 1) * groupScaleX,
-                scaleY: (obj.scaleY || 1) * groupScaleY,
-                angle: (obj.angle || 0) + groupAngle,
-                selectable: true,
-            });
-            obj.setCoords();
-            this.canvas!.add(obj);
-        });
-
-        this.canvas.renderAll();
-
-        if (this.statusBarCallback) {
-            this.statusBarCallback('Editing group - click outside to exit');
+        if (this.groupManager) {
+            this.groupManager.enterGroupEditMode(group);
         }
-        console.log('[CanvasManager] Entered group edit mode');
-
-        // Add one-time click handler to exit group edit mode
-        const exitHandler = (e: any) => {
-            // If clicking on empty space or different object, exit edit mode
-            if (!e.target || !objects.includes(e.target)) {
-                this.exitGroupEditMode();
-                this.canvas?.off('mouse:down', exitHandler);
-            }
-        };
-
-        // Delay adding handler to avoid immediate trigger
-        setTimeout(() => {
-            this.canvas?.on('mouse:down', exitHandler);
-        }, 100);
     }
 
     /**
      * Exit group edit mode - regroup the objects
+     * DELEGATES to GroupManager
      */
     public exitGroupEditMode(): void {
-        if (!this.canvas || !this.groupEditMode) return;
-
-        const objects = this.editingGroupOriginalObjects.map(item => item.obj);
-
-        // Remove individual objects from canvas
-        objects.forEach((obj: any) => {
-            this.canvas!.remove(obj);
-        });
-
-        // Create new group from objects
-        const newGroup = new fabric.Group(objects);
-        this.canvas.add(newGroup);
-        this.canvas.setActiveObject(newGroup);
-        this.canvas.renderAll();
-
-        this.groupEditMode = false;
-        this.editingGroup = null;
-        this.editingGroupOriginalObjects = [];
-
-        this.saveCanvasContent();
-
-        if (this.statusBarCallback) {
-            this.statusBarCallback('Exited group edit mode');
+        if (this.groupManager) {
+            this.groupManager.exitGroupEditMode();
         }
-        console.log('[CanvasManager] Exited group edit mode');
     }
 
     /**
      * Draw grid using pre-rendered static SVG files
-     * PERFORMANCE: Static SVG files are cached by browser
+     * DELEGATES to GridManager
      */
     public drawGrid(isDark: boolean = false): void {
-        if (!this.canvas) return;
-
-        const startTime = performance.now();
-
-        // Use pre-rendered static SVG files for maximum performance
-        // Cache bust version: increment when SVG files are updated
-        const cacheBust = 'v5';
-        const gridUrl = isDark
-            ? `/static/vis_app/img/vis/grid-dark.svg?${cacheBust}`
-            : `/static/vis_app/img/vis/grid-light.svg?${cacheBust}`;
-
-        // Load as Fabric.js background image
-        fabric.Image.fromURL(gridUrl, (img: any) => {
-            this.canvas!.setBackgroundImage(img, this.canvas!.renderAll.bind(this.canvas), {
-                scaleX: 1,
-                scaleY: 1,
-                originX: 'left',
-                originY: 'top',
-            });
-
-            const endTime = performance.now();
-            console.log(`[CanvasManager] ✅ Grid loaded from static SVG in ${(endTime - startTime).toFixed(2)}ms (${isDark ? 'dark' : 'light'} mode)`);
-
-            if (this.statusBarCallback) {
-                this.statusBarCallback('Grid enabled');
-            }
-        }, { crossOrigin: 'visitor' });
+        if (this.gridManager) {
+            this.gridManager.drawGrid(isDark);
+        }
     }
 
     /**
      * Clear grid background from canvas
+     * DELEGATES to GridManager
      */
     public clearGrid(): void {
-        if (!this.canvas) return;
-
-        // Determine current theme to restore proper background color
-        const savedTheme = localStorage.getItem('canvas-theme') || localStorage.getItem('scitex-theme-preference') || 'dark';
-        const isDark = savedTheme === 'dark';
-        const bgColor = isDark ? '#2a2a2a' : '#ffffff';
-
-        // Clear background image (SVG grid) and restore solid background color
-        this.canvas.setBackgroundImage(null, () => {
-            this.canvas!.backgroundColor = bgColor;
-            this.canvas!.renderAll();
-        });
-
-        // Legacy cleanup: Remove any old Fabric.js grid objects (for backwards compatibility)
-        const objects = this.canvas.getObjects();
-        objects.forEach((obj: any) => {
-            if (obj.id === 'grid-line' || obj.id === 'column-guide') {
-                this.canvas!.remove(obj);
-            }
-        });
+        if (this.gridManager) {
+            this.gridManager.clearGrid();
+        }
     }
 
     /**
      * Toggle grid visibility
+     * DELEGATES to GridManager
      */
     public toggleGrid(): void {
-        this.gridEnabled = !this.gridEnabled;
-
-        if (this.gridEnabled) {
-            // Determine current theme from localStorage
-            const savedTheme = localStorage.getItem('canvas-theme') || localStorage.getItem('scitex-theme-preference') || 'dark';
-            this.drawGrid(savedTheme === 'dark');
-        } else {
-            this.clearGrid();
+        if (this.gridManager) {
+            this.gridManager.toggleGrid();
         }
-
-        if (this.statusBarCallback) {
-            this.statusBarCallback(`Grid ${this.gridEnabled ? 'enabled' : 'disabled'}`);
-        }
-        console.log(`[CanvasManager] Grid ${this.gridEnabled ? 'enabled' : 'disabled'}`);
     }
 
     /**
      * Update canvas theme
      */
     public updateCanvasTheme(isDark: boolean): void {
-        if (!this.canvas) return;
+        if (!this.themeManager) return;
 
-        const themeChanged = this.isDarkMode !== isDark;
-        this.isDarkMode = isDark;
+        // Create callback for grid redraw
+        const gridRedrawCallback = () => {
+            if (this.gridManager && this.gridManager.isGridEnabled()) {
+                this.gridManager.drawGrid(isDark);
+            }
+        };
 
-        // Update canvas background color
-        this.canvas.backgroundColor = isDark ? '#2a2a2a' : '#ffffff';
-
-        // Redraw grid with appropriate color if grid is enabled
-        if (this.gridEnabled) {
-            this.drawGrid(isDark);
-        }
-
-        // Reprocess all figure images and SVG groups for dark mode display
-        if (themeChanged) {
-            this.reprocessAllImagesForTheme();
-            this.reprocessAllSvgGroupsForTheme();
-        }
-
-        this.canvas.renderAll();
+        this.themeManager.updateCanvasTheme(isDark, gridRedrawCallback);
     }
 
     /**
@@ -604,78 +539,22 @@ export class CanvasManager {
 
     /**
      * Process SVG group paths for dark mode display
-     * Converts black fills to light gray for visibility on dark canvas
+     * DELEGATES to ThemeManager
      */
     public processSvgGroupForDarkMode(group: any): void {
-        if (!group || group.type !== 'group') return;
-
-        const children = group._objects || [];
-        const TARGET_GRAY = '#c8c8c8'; // Light gray (rgb 200,200,200) for dark mode
-        let modifiedCount = 0;
-
-        children.forEach((child: any) => {
-            if (child.type !== 'path') return;
-
-            const fill = child.fill;
-            const stroke = child.stroke;
-
-            // Convert black fills to light gray
-            if (fill === '#000000' || fill === 'rgb(0,0,0)' || fill === 'black') {
-                // Store original color if not stored
-                if (!child.originalFill) {
-                    child.originalFill = fill;
-                }
-                child.set('fill', TARGET_GRAY);
-                modifiedCount++;
-            }
-
-            // Convert black strokes to light gray
-            if (stroke === '#000000' || stroke === 'rgb(0,0,0)' || stroke === 'black') {
-                if (!child.originalStroke) {
-                    child.originalStroke = stroke;
-                }
-                child.set('stroke', TARGET_GRAY);
-                modifiedCount++;
-            }
-        });
-
-        // Mark group dirty and update coordinates
-        group.set('dirty', true);
-        group.setCoords();
-
-        console.log(`[CanvasManager] Dark mode: modified ${modifiedCount} path colors in group`);
+        if (this.themeManager) {
+            this.themeManager.processSvgGroupForDarkMode(group);
+        }
     }
 
     /**
      * Restore SVG group paths to original colors (for light mode)
+     * DELEGATES to ThemeManager
      */
     public restoreSvgGroupColors(group: any): void {
-        if (!group || group.type !== 'group') return;
-
-        const children = group._objects || [];
-        let modifiedCount = 0;
-
-        children.forEach((child: any) => {
-            if (child.type !== 'path') return;
-
-            // Restore original fill if stored
-            if (child.originalFill) {
-                child.set('fill', child.originalFill);
-                modifiedCount++;
-            }
-
-            // Restore original stroke if stored
-            if (child.originalStroke) {
-                child.set('stroke', child.originalStroke);
-                modifiedCount++;
-            }
-        });
-
-        // Mark group dirty and update coordinates
-        group.set('dirty', true);
-        group.setCoords();
-
-        console.log(`[CanvasManager] Light mode: restored ${modifiedCount} path colors in group`);
+        if (this.themeManager) {
+            this.themeManager.restoreSvgGroupColors(group);
+        }
     }
 
     /**
@@ -769,93 +648,35 @@ export class CanvasManager {
     }
 
     /**
-     * Save current state to undo stack
+     * Save undo state
+     * DELEGATES to UndoRedoManager
      */
     public saveUndoState(): void {
-        if (!this.canvas || this.isUndoRedoing) return;
-
-        const json = JSON.stringify(this.canvas.toJSON(['name', 'id']));
-
-        // Don't save if state is same as last
-        if (this.undoStack.length > 0 && this.undoStack[this.undoStack.length - 1] === json) {
-            return;
+        if (this.undoRedoManager) {
+            this.undoRedoManager.saveUndoState();
         }
-
-        this.undoStack.push(json);
-
-        // Limit stack size
-        if (this.undoStack.length > this.maxUndoSteps) {
-            this.undoStack.shift();
-        }
-
-        // Clear redo stack when new action is performed
-        this.redoStack = [];
-
-        console.log(`[CanvasManager] Saved undo state (${this.undoStack.length} states)`);
     }
 
     /**
      * Undo last action
+     * DELEGATES to UndoRedoManager
      */
     public undo(): void {
-        if (!this.canvas || this.undoStack.length === 0) {
-            if (this.statusBarCallback) {
-                this.statusBarCallback('Nothing to undo');
-            }
-            return;
+        if (this.undoRedoManager) {
+            this.undoRedoManager.undo();
         }
-
-        this.isUndoRedoing = true;
-
-        // Save current state to redo stack
-        const currentState = JSON.stringify(this.canvas.toJSON(['name', 'id']));
-        this.redoStack.push(currentState);
-
-        // Pop and apply previous state
-        const previousState = this.undoStack.pop()!;
-        this.canvas.loadFromJSON(JSON.parse(previousState), () => {
-            this.canvas!.renderAll();
-            this.isUndoRedoing = false;
-
-            if (this.statusBarCallback) {
-                this.statusBarCallback(`Undo (${this.undoStack.length} left)`);
-            }
-            console.log(`[CanvasManager] Undo applied (${this.undoStack.length} states left)`);
-        });
     }
 
     /**
      * Redo last undone action
+     * DELEGATES to UndoRedoManager
      */
     public redo(): void {
-        if (!this.canvas || this.redoStack.length === 0) {
-            if (this.statusBarCallback) {
-                this.statusBarCallback('Nothing to redo');
-            }
-            return;
+        if (this.undoRedoManager) {
+            this.undoRedoManager.redo();
         }
-
-        this.isUndoRedoing = true;
-
-        // Save current state to undo stack
-        const currentState = JSON.stringify(this.canvas.toJSON(['name', 'id']));
-        this.undoStack.push(currentState);
-
-        // Pop and apply redo state
-        const redoState = this.redoStack.pop()!;
-        this.canvas.loadFromJSON(JSON.parse(redoState), () => {
-            this.canvas!.renderAll();
-            this.isUndoRedoing = false;
-
-            if (this.statusBarCallback) {
-                this.statusBarCallback(`Redo (${this.redoStack.length} left)`);
-            }
-            console.log(`[CanvasManager] Redo applied (${this.redoStack.length} states left)`);
-        });
     }
 
-    // Clipboard for copy/paste
-    private clipboard: any = null;
 
     // View clipboard for copy/paste view (axis limits, crop)
     private viewClipboard: {
@@ -869,62 +690,25 @@ export class CanvasManager {
 
     /**
      * Copy active object to clipboard
+     * DELEGATES to SelectionManager
      */
     public copyActiveObject(): void {
-        if (!this.canvas) return;
-
-        const active = this.canvas.getActiveObject();
-        if (!active) {
-            if (this.statusBarCallback) {
-                this.statusBarCallback('No object selected to copy');
-            }
-            return;
+        if (this.selectionManager) {
+            this.selectionManager.copyActiveObject();
         }
-
-        active.clone((cloned: any) => {
-            this.clipboard = cloned;
-            if (this.statusBarCallback) {
-                this.statusBarCallback('Object copied');
-            }
-            console.log('[CanvasManager] Object copied to clipboard');
-        });
     }
 
     /**
      * Paste object from clipboard
+     * DELEGATES to SelectionManager
      */
     public pasteObject(): void {
-        if (!this.canvas || !this.clipboard) {
-            if (this.statusBarCallback) {
-                this.statusBarCallback('Nothing to paste');
-            }
-            return;
+        if (this.selectionManager) {
+            this.selectionManager.pasteObject(
+                () => this.saveUndoState(),
+                () => this.saveCanvasContent()
+            );
         }
-
-        // Save undo state before pasting
-        this.saveUndoState();
-
-        this.clipboard.clone((cloned: any) => {
-            cloned.set({
-                left: (this.clipboard.left || 0) + 20,
-                top: (this.clipboard.top || 0) + 20,
-                evented: true,
-            });
-
-            this.canvas!.add(cloned);
-            this.canvas!.setActiveObject(cloned);
-            this.canvas!.renderAll();
-            this.saveCanvasContent();
-
-            // Update clipboard position for cascading pastes
-            this.clipboard.left = cloned.left;
-            this.clipboard.top = cloned.top;
-
-            if (this.statusBarCallback) {
-                this.statusBarCallback('Object pasted');
-            }
-            console.log('[CanvasManager] Object pasted from clipboard');
-        });
     }
 
     // Context menu callbacks
@@ -2495,162 +2279,37 @@ export class CanvasManager {
 
     /**
      * Bring active object to front
+     * DELEGATES to AlignmentManager
      */
     public bringToFront(): void {
-        if (!this.canvas) return;
-
-        const active = this.canvas.getActiveObject();
-        if (active) {
-            this.canvas.bringToFront(active);
-            this.canvas.renderAll();
-            this.saveCanvasContent();
-
-            if (this.statusBarCallback) {
-                this.statusBarCallback('Brought to front');
-            }
-        }
+        this.alignmentManager?.bringToFront();
     }
 
     /**
      * Send active object to back
+     * DELEGATES to AlignmentManager
      */
     public sendToBack(): void {
-        if (!this.canvas) return;
-
-        const active = this.canvas.getActiveObject();
-        if (active) {
-            this.canvas.sendToBack(active);
-            this.canvas.renderAll();
-            this.saveCanvasContent();
-
-            if (this.statusBarCallback) {
-                this.statusBarCallback('Sent to back');
-            }
-        }
+        this.alignmentManager?.sendToBack();
     }
 
     /**
      * Arrange object (bring to front or send to back)
      * Used by keyboard shortcuts (Alt+G → F/B)
+     * DELEGATES to AlignmentManager
      */
     public arrangeObject(action: 'front' | 'back'): void {
-        if (action === 'front') {
-            this.bringToFront();
-        } else {
-            this.sendToBack();
-        }
+        this.alignmentManager?.arrangeObject(action);
     }
 
     /**
      * Align selected objects
      * - Single object: Aligns to canvas (like PowerPoint aligns to slide)
      * - Multiple objects: Aligns objects relative to each other
+     * DELEGATES to AlignmentManager
      */
     public alignObjects(alignment: 'left' | 'right' | 'top' | 'bottom' | 'center-h' | 'center-v'): void {
-        if (!this.canvas) return;
-
-        const activeObject = this.canvas.getActiveObject();
-        if (!activeObject) return;
-
-        this.saveUndoState();
-
-        const alignmentNames: Record<string, string> = {
-            'left': 'Left',
-            'right': 'Right',
-            'top': 'Top',
-            'bottom': 'Bottom',
-            'center-h': 'Horizontal Center',
-            'center-v': 'Vertical Center',
-        };
-
-        // Single object - align to canvas
-        if (activeObject.type !== 'activeSelection') {
-            const canvasWidth = this.canvas.getWidth();
-            const canvasHeight = this.canvas.getHeight();
-            const bound = activeObject.getBoundingRect(true);
-
-            switch (alignment) {
-                case 'left':
-                    activeObject.set('left', activeObject.left! - bound.left);
-                    break;
-                case 'right':
-                    activeObject.set('left', activeObject.left! + (canvasWidth - (bound.left + bound.width)));
-                    break;
-                case 'top':
-                    activeObject.set('top', activeObject.top! - bound.top);
-                    break;
-                case 'bottom':
-                    activeObject.set('top', activeObject.top! + (canvasHeight - (bound.top + bound.height)));
-                    break;
-                case 'center-h':
-                    activeObject.set('left', activeObject.left! + (canvasWidth / 2 - (bound.left + bound.width / 2)));
-                    break;
-                case 'center-v':
-                    activeObject.set('top', activeObject.top! + (canvasHeight / 2 - (bound.top + bound.height / 2)));
-                    break;
-            }
-            activeObject.setCoords();
-
-            this.canvas.renderAll();
-            this.saveCanvasContent();
-
-            if (this.statusBarCallback) {
-                this.statusBarCallback(`Aligned to canvas: ${alignmentNames[alignment]}`);
-            }
-            return;
-        }
-
-        // Multiple objects - align relative to each other
-        const objects = (activeObject as any).getObjects();
-        if (objects.length < 2) return;
-
-        // Calculate bounds of all selected objects
-        let minLeft = Infinity, maxRight = -Infinity;
-        let minTop = Infinity, maxBottom = -Infinity;
-
-        objects.forEach((obj: any) => {
-            const bound = obj.getBoundingRect(true);
-            minLeft = Math.min(minLeft, bound.left);
-            maxRight = Math.max(maxRight, bound.left + bound.width);
-            minTop = Math.min(minTop, bound.top);
-            maxBottom = Math.max(maxBottom, bound.top + bound.height);
-        });
-
-        const centerX = (minLeft + maxRight) / 2;
-        const centerY = (minTop + maxBottom) / 2;
-
-        objects.forEach((obj: any) => {
-            const bound = obj.getBoundingRect(true);
-
-            switch (alignment) {
-                case 'left':
-                    obj.set('left', obj.left! - (bound.left - minLeft));
-                    break;
-                case 'right':
-                    obj.set('left', obj.left! + (maxRight - (bound.left + bound.width)));
-                    break;
-                case 'top':
-                    obj.set('top', obj.top! - (bound.top - minTop));
-                    break;
-                case 'bottom':
-                    obj.set('top', obj.top! + (maxBottom - (bound.top + bound.height)));
-                    break;
-                case 'center-h':
-                    obj.set('left', obj.left! + (centerX - (bound.left + bound.width / 2)));
-                    break;
-                case 'center-v':
-                    obj.set('top', obj.top! + (centerY - (bound.top + bound.height / 2)));
-                    break;
-            }
-            obj.setCoords();
-        });
-
-        this.canvas.renderAll();
-        this.saveCanvasContent();
-
-        if (this.statusBarCallback) {
-            this.statusBarCallback(`Aligned: ${alignmentNames[alignment]}`);
-        }
+        this.alignmentManager?.alignObjects(alignment);
     }
 
     /**
@@ -5689,89 +5348,31 @@ export class CanvasManager {
 
     /**
      * Export canvas as PNG
+     * DELEGATES to ExportManager
      */
     public exportAsPng(): void {
-        if (!this.canvas) return;
-
-        const dataUrl = this.canvas.toDataURL({
-            format: 'png',
-            quality: 1,
-            multiplier: 2  // 2x resolution for better quality
-        });
-
-        const link = document.createElement('a');
-        link.download = `figure-${Date.now()}.png`;
-        link.href = dataUrl;
-        link.click();
-
-        if (this.statusBarCallback) {
-            this.statusBarCallback('Exported as PNG');
+        if (this.exportManager) {
+            this.exportManager.exportAsPng();
         }
     }
 
     /**
      * Export canvas as SVG
+     * DELEGATES to ExportManager
      */
     public exportAsSvg(): void {
-        if (!this.canvas) return;
-
-        const svg = this.canvas.toSVG();
-        const blob = new Blob([svg], { type: 'image/svg+xml' });
-        const url = URL.createObjectURL(blob);
-
-        const link = document.createElement('a');
-        link.download = `figure-${Date.now()}.svg`;
-        link.href = url;
-        link.click();
-
-        URL.revokeObjectURL(url);
-
-        if (this.statusBarCallback) {
-            this.statusBarCallback('Exported as SVG');
+        if (this.exportManager) {
+            this.exportManager.exportAsSvg();
         }
     }
 
     /**
      * Export canvas as PDF (requires jsPDF library)
+     * DELEGATES to ExportManager
      */
     public exportAsPdf(): void {
-        if (!this.canvas) return;
-
-        // Check if jsPDF is available
-        const jsPDF = (window as any).jspdf?.jsPDF || (window as any).jsPDF;
-        if (!jsPDF) {
-            console.warn('[CanvasManager] jsPDF not available, falling back to PNG');
-            if (this.statusBarCallback) {
-                this.statusBarCallback('PDF export requires jsPDF library');
-            }
-            return;
-        }
-
-        const dataUrl = this.canvas.toDataURL({
-            format: 'png',
-            quality: 1,
-            multiplier: 2
-        });
-
-        const canvasWidth = this.canvas.getWidth();
-        const canvasHeight = this.canvas.getHeight();
-
-        // Create PDF with canvas dimensions (in mm)
-        const pxToMm = 0.264583;  // 1px = 0.264583mm at 96 DPI
-        const pdfWidth = canvasWidth * pxToMm;
-        const pdfHeight = canvasHeight * pxToMm;
-
-        const pdf = new jsPDF({
-            orientation: pdfWidth > pdfHeight ? 'landscape' : 'portrait',
-            unit: 'mm',
-            format: [pdfWidth, pdfHeight]
-        });
-
-        pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        pdf.save(`figure-${Date.now()}.pdf`);
-
-        if (this.statusBarCallback) {
-            this.statusBarCallback('Exported as PDF');
+        if (this.exportManager) {
+            this.exportManager.exportAsPdf();
         }
     }
 
