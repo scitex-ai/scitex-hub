@@ -5,6 +5,58 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0-alpha] - 2025-12-12
+
+### Added
+- **Vis Layout Improvements**: Enhanced workspace organization
+  - Convert Figure tabs to dropdown menu for horizontal space saving
+  - Convert Data Table tabs to dropdown for consistency
+  - Add ruler unit toggle button (mm/inch) in top-left corner
+  - Add bidirectional transform sync between RulersManager and CanvasManager
+
+- **Context Menu Actions**: Enhanced right-click functionality
+  - Export as PNG/SVG/PDF
+  - Save Figure, Toggle Light/Dark theme
+  - Zoom to Fit, Reset View options
+
+- **Gallery Feature**: Template gallery for plots
+  - Gallery generator service for plot templates
+  - Gallery categories with CSS and TypeScript components
+  - Research-master gallery templates (46 plot types across 10 categories)
+  - Area, categorical, contour, distribution, grid, line, scatter, special, statistical, vector plots
+
+- **Stats Feature**: Statistical analysis integration
+  - StatsManager for running statistical tests
+  - Stats API endpoint
+  - Stats CSS styling
+
+- **Element Selection**: Multi-element selection capability
+  - ElementSelectionManager for selecting plot elements
+  - Element bounding boxes for plot renderer
+
+- **API Enhancements**: New backend endpoints
+  - Gallery API views for template management
+  - Plots API for rendering and manipulation
+  - Enhanced public API views
+
+- **Tools**: New public tools
+  - docx2tex tool template for document conversion
+
+- **Maintenance Scripts**: Gallery regeneration tooling
+  - Gallery worker script
+  - Demo screenshot capture
+  - Template gallery generator
+
+### Changed
+- Improved DataTable component with better rendering and selection
+- Enhanced PropertiesManager with more property controls
+- Updated docs app template and routing
+- Improved split-view and status-bar CSS
+
+### Fixed
+- Ruler rendering robustness with validation and retry logic
+- Column label font size matching ruler tick labels
+
 ## [0.4.9-alpha] - 2025-12-08
 
 ### Added
