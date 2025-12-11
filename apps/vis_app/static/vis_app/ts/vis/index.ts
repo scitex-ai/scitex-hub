@@ -25,3 +25,20 @@ export { CanvasTabManager } from './ui/CanvasTabManager.ts';
 export { SciTeXEditor } from './SciTeXEditor.ts';
 export { FigureDropHandler } from './FigureDropHandler.ts';
 export { PlotGallery } from './PlotGallery.ts';
+export { GalleryCategories } from './GalleryCategories.ts';
+
+// Element-level selection (Schema v0.3 compatible)
+export { ElementSelectionManager, elementSelectionManager } from './ElementSelectionManager.ts';
+export type { ElementBbox, ElementBboxes, ElementBboxesMeta, GeometryPx } from './ElementSelectionManager.ts';
+
+// Statistics integration
+export { StatsManager, statsManager } from './StatsManager.ts';
+export type {
+    StatContext,
+    TestMenuItem,
+    TestResult,
+    StatAnnotation,
+    GroupData,
+    SummaryStats,
+    EffectSize,
+} from './StatsManager.ts';

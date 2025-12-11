@@ -30,6 +30,9 @@ export function initializeSigmaEditor(): void {
         // Setup theme toggle
         interactionHandlers.setupThemeToggle();
 
+        // Setup keyboard shortcuts help modal
+        interactionHandlers.setupShortcutsHelp();
+
         // Setup files tree if project context exists
         // Read directly from data attributes to avoid race condition with editor-inline.js
         const editorContainer = document.querySelector('.vis-editor-container');
@@ -51,8 +54,19 @@ export function initializeSigmaEditor(): void {
             getActiveDataTab: () => managers.dataTabManager.getActiveTab(),
             createCanvasTab: (name?: string) => managers.canvasTabManager.createTab(name),
             createDataTab: (name: string, type?: any, figureName?: string, objectName?: string) =>
-                managers.dataTabManager.createTab(name, type, figureName, objectName)
+                managers.dataTabManager.createTab(name, type, figureName, objectName),
+            // Debug utilities
+            plotAllTypes: () => editorInstance.plotAllTypes(),
         };
+
+        // Setup "Plot All" button click handler (dev utility)
+        const plotAllBtn = document.getElementById('plot-all-types-btn');
+        if (plotAllBtn) {
+            plotAllBtn.addEventListener('click', () => {
+                console.log('[Dev] Plot All Types button clicked');
+                editorInstance.plotAllTypes();
+            });
+        }
 
         console.log('[SigmaEditor] Editor ready');
     });

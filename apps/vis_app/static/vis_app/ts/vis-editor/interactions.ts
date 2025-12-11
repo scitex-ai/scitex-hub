@@ -35,12 +35,15 @@ export function setupInteractionHandlers(editor: SigmaEditor): InteractionHandle
         const canvasThemeValue = localStorage.getItem('canvas-theme') || globalTheme;
         let canvasIsDark = canvasThemeValue === 'dark';
 
-        // Function to update theme emoji
+        // Function to update theme emoji (now inside .theme-icon span)
         const updateThemeEmoji = (isDark: boolean) => {
-            themeToggle.textContent = isDark ? '🌙' : '☀️';
+            const themeIcon = themeToggle.querySelector('.theme-icon');
+            if (themeIcon) {
+                themeIcon.textContent = isDark ? '🌙' : '☀️';
+            }
         };
 
-        // Function to update dark mode warning visibility
+        // Function to update dark mode warning visibility (now inline with theme toggle)
         const updateDarkModeWarning = (isDark: boolean) => {
             const warning = document.getElementById('toolbar-dark-warning');
             if (warning) {
@@ -197,6 +200,8 @@ export function setupInteractionHandlers(editor: SigmaEditor): InteractionHandle
                             <div class="shortcut-row"><kbd>-</kbd> Zoom Out</div>
                             <div class="shortcut-row"><kbd>0</kbd> Fit to Window</div>
                             <div class="shortcut-row"><kbd>G</kbd> Toggle Grid</div>
+                            <div class="shortcut-row"><kbd>Right-drag</kbd> Pan canvas</div>
+                            <div class="shortcut-row"><kbd>Right-dblclick</kbd> Reset pan</div>
                         </div>
                         <div class="shortcuts-section">
                             <h4>Group</h4>

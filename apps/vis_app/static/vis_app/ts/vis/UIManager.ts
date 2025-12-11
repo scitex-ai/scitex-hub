@@ -72,7 +72,8 @@ export class UIManager {
         private pasteViewCallback?: () => void,
         private nudgeCallback?: (direction: 'up' | 'down' | 'left' | 'right', shift: boolean) => void,
         private selectAllCallback?: () => void,
-        private alignByAxisCallback?: (direction: 'L' | 'C' | 'R' | 'T' | 'M' | 'B' | 'S') => void
+        private alignByAxisCallback?: (direction: 'L' | 'C' | 'R' | 'T' | 'M' | 'B' | 'S') => void,
+        private escapeCallback?: () => void
     ) {
         // Initialize direct dependencies
         // NOTE: ResizerManager is no longer used for sidebar/properties panels

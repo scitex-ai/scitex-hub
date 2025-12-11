@@ -76,10 +76,34 @@ export interface Guide {
 
 export interface Annotation {
     id: string;
-    type: 'text' | 'scalebar' | 'arrow';
+    type: 'text' | 'scalebar' | 'arrow' | 'stat_bracket';
     label: string;
     content?: string;
     position?: { x: number; y: number };
+    // Statistical annotation data
+    statResult?: StatAnnotationData;
+}
+
+/**
+ * Statistical annotation data (for stat_bracket type)
+ */
+export interface StatAnnotationData {
+    test_name: string;
+    groups: string[];
+    stars: string;
+    p_value: number;
+    p_adj?: number;
+    effect_size?: {
+        name: string;
+        value: number;
+        note?: string;
+    };
+    formatted: string;
+    bracket_style?: {
+        line_width: number;
+        bracket_height: number;
+        star_offset: number;
+    };
 }
 
 /**
@@ -89,8 +113,8 @@ export const CANVAS_CONSTANTS = {
     MAX_CANVAS_WIDTH: 2126,   // 180mm @ 300dpi
     MAX_CANVAS_HEIGHT: 2953,  // 250mm @ 300dpi
     DPI: 300,
-    MM_TO_PX: 11.811,         // 1mm @ 300 DPI
-    GRID_SIZE: 11.811,        // 1mm @ 300dpi
+    MM_TO_PX: 300 / 25.4,     // 1mm @ 300 DPI = 11.811023622047244
+    GRID_SIZE: 300 / 25.4,    // 1mm @ 300dpi = 11.811023622047244
 } as const;
 
 /**

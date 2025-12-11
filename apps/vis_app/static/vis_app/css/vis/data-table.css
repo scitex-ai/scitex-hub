@@ -19,12 +19,26 @@
     gap: 0;
     overflow-x: auto;
     flex: 1;
-    scrollbar-width: none;
+    scrollbar-width: thin;
+    scrollbar-color: var(--workspace-border-default) transparent;
     padding: 0 4px;
 }
 
 .data-tabs-container::-webkit-scrollbar {
-    display: none;
+    height: 4px;
+}
+
+.data-tabs-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.data-tabs-container::-webkit-scrollbar-thumb {
+    background: var(--workspace-border-default);
+    border-radius: 2px;
+}
+
+.data-tabs-container::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
 }
 
 .data-tab {

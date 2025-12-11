@@ -223,7 +223,42 @@ export class RibbonButtons {
             });
         });
 
+        // Download dropdown toggle
+        this.initDownloadDropdown();
+
         console.log('[RibbonButtons] Ribbon buttons initialized with hover previews');
+    }
+
+    /**
+     * Initialize download dropdown toggle
+     */
+    private initDownloadDropdown(): void {
+        const dropdown = document.getElementById('download-dropdown');
+        const toggleBtn = document.getElementById('download-btn');
+        if (!dropdown || !toggleBtn) return;
+
+        // Toggle dropdown on button click
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('open');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const target = e.target as Element;
+            if (!dropdown.contains(target)) {
+                dropdown.classList.remove('open');
+            }
+        });
+
+        // Close dropdown when an item is clicked
+        dropdown.querySelectorAll('.dropdown-item').forEach(item => {
+            item.addEventListener('click', () => {
+                dropdown.classList.remove('open');
+            });
+        });
+
+        console.log('[RibbonButtons] Download dropdown initialized');
     }
 
     /**

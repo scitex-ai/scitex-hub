@@ -43,7 +43,8 @@ export class KeyboardShortcuts {
         private pasteViewCallback?: () => void,
         private nudgeCallback?: (direction: 'up' | 'down' | 'left' | 'right', shift: boolean) => void,
         private selectAllCallback?: () => void,
-        private alignByAxisCallback?: (direction: 'L' | 'C' | 'R' | 'T' | 'M' | 'B' | 'S') => void
+        private alignByAxisCallback?: (direction: 'L' | 'C' | 'R' | 'T' | 'M' | 'B' | 'S') => void,
+        private escapeCallback?: () => void
     ) {}
 
     private sizeModeActive: boolean = false;
@@ -238,6 +239,16 @@ export class KeyboardShortcuts {
                 if (this.deleteSelectedCallback) {
                     this.deleteSelectedCallback();
                 }
+            }
+
+            // Escape key - Exit modes (element selection, etc.)
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                this.clearModes();
+                if (this.escapeCallback) {
+                    this.escapeCallback();
+                }
+                return;
             }
 
             // Ctrl+D - Duplicate selected object
