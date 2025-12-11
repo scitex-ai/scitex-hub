@@ -97,20 +97,22 @@ export class CanvasManager {
 
     /**
      * Set canvas zoom level (used when restoring tab state)
+     * NOTE: Only updates internal state and CSS transform - Fabric.js stays at identity
      */
     public setCanvasZoomLevel(zoom: number): void {
-        if (!this.canvas) return;
         this.canvasZoomLevel = zoom;
-        this.canvas.setZoom(zoom);
+        // Don't call canvas.setZoom() - all zoom is via CSS transform
+        this.updateCanvasTransform();
     }
 
     /**
      * Set canvas pan offset (used when restoring tab state)
+     * NOTE: Only updates internal state and CSS transform - Fabric.js stays at identity
      */
     public setCanvasPanOffset(x: number, y: number): void {
-        if (!this.canvas) return;
         this.canvasPanOffset = { x, y };
-        this.canvas.absolutePan(new fabric.Point(-x, -y));
+        // Don't call canvas.absolutePan() - all pan is via CSS transform
+        this.updateCanvasTransform();
     }
 
     /**
@@ -5081,11 +5083,9 @@ export class CanvasManager {
         // Clear overlay
         ctx.clearRect(0, 0, this.elementSelectionOverlay.width, this.elementSelectionOverlay.height);
 
-        // Get viewport transform (for pan/zoom)
-        const vpt = this.canvas?.viewportTransform || [1, 0, 0, 1, 0, 0];
-        const zoom = vpt[0];  // Scale factor
-        const panX = vpt[4];  // X translation
-        const panY = vpt[5];  // Y translation
+        // NOTE: Since the overlay canvas is inside the same CSS-transformed container as the Fabric.js canvas,
+        // all coordinates are in canvas-local space. No need to apply viewport transform.
+        // The CSS transform on .vis-rulers-area handles all zoom/pan for both canvas and overlay.
 
         // Get image transform - account for Fabric.js center origin
         const imgScaleX = target.scaleX || 1;
@@ -5106,23 +5106,19 @@ export class CanvasManager {
 
         // Fabric.js uses center origin by default, so left/top are center coords
         // Convert to top-left corner position in CANVAS coordinates
-        const canvasLeft = (target.left || 0) - (imgWidth * imgScaleX / 2);
-        const canvasTop = (target.top || 0) - (imgHeight * imgScaleY / 2);
+        const imgLeft = (target.left || 0) - (imgWidth * imgScaleX / 2);
+        const imgTop = (target.top || 0) - (imgHeight * imgScaleY / 2);
 
-        // Apply viewport transform to get SCREEN coordinates
-        const imgLeft = canvasLeft * zoom + panX;
-        const imgTop = canvasTop * zoom + panY;
-
-        // Total scale: figure pixels -> object pixels -> canvas pixels -> screen pixels
-        const totalScaleX = figureToObjectScaleX * imgScaleX * zoom;
-        const totalScaleY = figureToObjectScaleY * imgScaleY * zoom;
+        // Total scale: figure pixels -> object pixels -> canvas pixels
+        // (no viewport zoom since CSS handles all zoom/pan)
+        const totalScaleX = figureToObjectScaleX * imgScaleX;
+        const totalScaleY = figureToObjectScaleY * imgScaleY;
 
         console.log('[CanvasManager] updateElementOverlay scale calculation:', {
             figureSize: { width: figureWidth, height: figureHeight },
             objectSize: { width: imgWidth, height: imgHeight },
             figureToObjectScale: { x: figureToObjectScaleX, y: figureToObjectScaleY },
             imgScale: { x: imgScaleX, y: imgScaleY },
-            zoom,
             totalScale: { x: totalScaleX, y: totalScaleY }
         });
 

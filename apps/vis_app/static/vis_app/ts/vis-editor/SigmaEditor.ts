@@ -305,44 +305,69 @@ export class SigmaEditor {
         });
 
         // Wire up element selection callback to highlight CSV columns and show properties
-        this.canvasManager.setElementSelectionCallback((elementName: string | null, elementInfo: any | null) => {
-            if (elementName && elementInfo) {
-                console.log(`[SigmaEditor] Element selected: ${elementName}`, elementInfo);
+        this.canvasManager.setElementSelectionCallback((elementNames: string[], elementInfos: any[]) => {
+            if (elementNames.length > 0 && elementInfos.length > 0) {
+                // Use first selected element for properties panel (or could show multi-select)
+                const elementName = elementNames[0];
+                const elementInfo = elementInfos[0];
+
+                console.log(`[SigmaEditor] Elements selected: ${elementNames.join(', ')}`, elementInfos);
 
                 // Show element properties in right panel
                 this.propertiesManager.showElementProperties(elementName, elementInfo);
 
-                // Get csv_columns from elementInfo, or try to infer from canvas object's csvData
-                let csvCols = elementInfo.csv_columns;
+                // Collect all column indices from all selected elements
+                const allColumnIndices: Set<number> = new Set();
+                const allColumnNames: string[] = [];
 
-                // If csv_columns is not available (old figures), try to infer from csvData
-                const inferrableTypes = ['line', 'scatter', 'bar', 'boxplot', 'violin'];
-                if (!csvCols && elementInfo.element_type && inferrableTypes.includes(elementInfo.element_type)) {
-                    csvCols = this.inferCsvColumnsFromLabel(elementName, elementInfo);
+                for (let i = 0; i < elementNames.length; i++) {
+                    const info = elementInfos[i];
+                    if (!info) continue;
+
+                    // Get csv_columns from elementInfo, or try to infer from canvas object's csvData
+                    let csvCols = info.csv_columns;
+
+                    // If csv_columns is not available (old figures), try to infer from csvData
+                    const inferrableTypes = ['line', 'scatter', 'bar', 'boxplot', 'violin'];
+                    if (!csvCols && info.element_type && inferrableTypes.includes(info.element_type)) {
+                        csvCols = this.inferCsvColumnsFromLabel(elementNames[i], info);
+                    }
+
+                    if (csvCols) {
+                        if (csvCols.x?.index !== undefined) {
+                            allColumnIndices.add(csvCols.x.index);
+                            if (csvCols.x.name) allColumnNames.push(csvCols.x.name);
+                        }
+                        if (csvCols.y?.index !== undefined) {
+                            allColumnIndices.add(csvCols.y.index);
+                            if (csvCols.y.name) allColumnNames.push(csvCols.y.name);
+                        }
+                    }
                 }
 
                 // Highlight CSV columns if available
-                if (csvCols) {
-                    const columnIndices: number[] = [];
-
-                    if (csvCols.x?.index !== undefined) {
-                        columnIndices.push(csvCols.x.index);
-                    }
-                    if (csvCols.y?.index !== undefined) {
-                        columnIndices.push(csvCols.y.index);
-                    }
-
+                const columnIndices = Array.from(allColumnIndices);
+                if (columnIndices.length > 0) {
                     console.log(`[SigmaEditor] Highlighting columns: ${columnIndices.join(', ')}`);
                     // Highlight the corresponding columns in the data table
                     this.dataTableManager.highlightColumns(columnIndices);
 
                     // Update status bar with column info
-                    const colNames = [csvCols.x?.name, csvCols.y?.name].filter(Boolean).join(', ');
-                    this.updateStatusBar(`Element: ${elementInfo.label || elementName} (columns: ${colNames})`);
+                    const uniqueNames = [...new Set(allColumnNames)];
+                    const colNamesStr = uniqueNames.join(', ');
+                    if (elementNames.length === 1) {
+                        this.updateStatusBar(`Element: ${elementInfo.label || elementName} (columns: ${colNamesStr})`);
+                    } else {
+                        this.updateStatusBar(`${elementNames.length} elements selected (columns: ${colNamesStr})`);
+                    }
                 } else {
-                    console.log(`[SigmaEditor] No csv_columns on element:`, elementName);
+                    console.log(`[SigmaEditor] No csv_columns on selected elements`);
                     // Update status bar without column info
-                    this.updateStatusBar(`Element: ${elementInfo.label || elementName}`);
+                    if (elementNames.length === 1) {
+                        this.updateStatusBar(`Element: ${elementInfo.label || elementName}`);
+                    } else {
+                        this.updateStatusBar(`${elementNames.length} elements selected`);
+                    }
                 }
             } else {
                 // Clear highlights when no element selected
