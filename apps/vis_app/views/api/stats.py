@@ -13,51 +13,14 @@ and significance markers (stars) appear."
 
 import json
 import logging
-from typing import Any, Dict, List, Optional
 
-import numpy as np
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_POST
 
-# Import from scitex.stats
-try:
-    from scitex.stats import (
-        StatContext,
-        StatResult,
-        TEST_RULES,
-        check_applicable,
-        get_menu_items,
-        p_to_stars,
-        recommend_effect_sizes,
-        recommend_posthoc,
-        recommend_tests,
-    )
-    from scitex.stats.auto import (
-        apply_multiple_correction,
-        compute_summary_from_groups,
-        format_for_inspector,
-        format_test_line,
-    )
-
-    SCITEX_STATS_AVAILABLE = True
-except ImportError:
-    SCITEX_STATS_AVAILABLE = False
+from ...services.stats_service import StatsService
 
 logger = logging.getLogger(__name__)
-
-
-def _check_scitex_available() -> Optional[JsonResponse]:
-    """Check if scitex.stats is available."""
-    if not SCITEX_STATS_AVAILABLE:
-        return JsonResponse(
-            {
-                "success": False,
-                "error": "scitex.stats module not available",
-            },
-            status=500,
-        )
-    return None
 
 
 @require_POST
@@ -87,22 +50,15 @@ def get_applicable_tests(request) -> JsonResponse:
     Response:
     {
         "success": true,
-        "items": [
-            {
-                "id": "brunner_munzel",
-                "label": "Brunner-Munzel test (recommended)",
-                "family": "nonparametric",
-                "enabled": true,
-                "tooltip": null,
-                "priority": 110
-            },
-            ...
-        ],
+        "items": [...],
         "recommended": ["brunner_munzel", "ttest_ind", "mannwhitneyu"]
     }
     """
-    if err := _check_scitex_available():
-        return err
+    if not StatsService.is_scitex_stats_available():
+        return JsonResponse(
+            {"success": False, "error": "scitex.stats module not available"},
+            status=500,
+        )
 
     try:
         data = json.loads(request.body)
@@ -113,50 +69,26 @@ def get_applicable_tests(request) -> JsonResponse:
 
     # Build StatContext from request
     try:
-        ctx = StatContext(
-            n_groups=data.get("n_groups", 2),
-            sample_sizes=data.get("sample_sizes", [10, 10]),
-            outcome_type=data.get("outcome_type", "continuous"),
-            design=data.get("design", "between"),
-            paired=data.get("paired"),
-            has_control_group=data.get("has_control_group", False),
-            n_factors=data.get("n_factors", 1),
-            normality_ok=data.get("normality_ok"),
-            variance_homogeneity_ok=data.get("variance_homogeneity_ok"),
-            group_names=data.get("group_names"),
-            control_group_name=data.get("control_group_name"),
-        )
-    except Exception as e:
+        ctx = StatsService.build_stat_context(data)
+    except ValueError as e:
         return JsonResponse(
-            {"success": False, "error": f"Invalid context: {str(e)}"},
-            status=400,
+            {"success": False, "error": str(e)}, status=400
         )
 
     # Get menu items
     include_families = data.get("include_families")
     exclude_families = data.get("exclude_families")
 
-    items = get_menu_items(
+    result = StatsService.get_applicable_tests_menu(
         ctx,
         include_families=include_families,
         exclude_families=exclude_families,
     )
 
-    # Get recommendations
-    recommended = recommend_tests(ctx, top_k=3)
-    effect_sizes = recommend_effect_sizes(ctx, top_k=2)
-    posthoc = recommend_posthoc(ctx, top_k=2) if ctx.n_groups >= 3 else []
-
-    return JsonResponse(
-        {
-            "success": True,
-            "items": items,
-            "recommended": recommended,
-            "effect_sizes": effect_sizes,
-            "posthoc": posthoc,
-            "context": ctx.to_dict(),
-        }
-    )
+    return JsonResponse({
+        "success": True,
+        **result,
+    })
 
 
 @require_POST
@@ -198,8 +130,11 @@ def run_statistical_test(request) -> JsonResponse:
         }
     }
     """
-    if err := _check_scitex_available():
-        return err
+    if not StatsService.is_scitex_stats_available():
+        return JsonResponse(
+            {"success": False, "error": "scitex.stats module not available"},
+            status=500,
+        )
 
     try:
         data = json.loads(request.body)
@@ -218,116 +153,63 @@ def run_statistical_test(request) -> JsonResponse:
             {"success": False, "error": "test_name is required"}, status=400
         )
 
-    if len(groups_data) < 2:
+    # Run test using service
+    try:
+        result = StatsService.run_statistical_test_with_context(
+            test_name=test_name,
+            groups_data=groups_data,
+            paired=paired,
+            correction_method=correction_method,
+        )
+    except ValueError as e:
         return JsonResponse(
-            {"success": False, "error": "At least 2 groups required"},
-            status=400,
+            {"success": False, "error": str(e)}, status=400
+        )
+    except Exception as e:
+        logger.error(f"Statistical test error: {e}")
+        return JsonResponse(
+            {"success": False, "error": str(e)}, status=500
         )
 
-    # Extract group names and values
-    group_names = [g.get("name", f"Group_{i+1}") for i, g in enumerate(groups_data)]
-    group_values = [np.array(g.get("values", []), dtype=float) for g in groups_data]
-
-    # Compute summary statistics
-    summary = compute_summary_from_groups(group_values, group_names)
-
-    # Run the test
-    result = _run_test(test_name, group_values, paired=paired)
-
-    if result is None:
-        return JsonResponse(
-            {"success": False, "error": f"Test {test_name} not implemented"},
-            status=400,
-        )
-
-    # Apply correction if needed
-    if correction_method:
-        results = apply_multiple_correction([result], method=correction_method)
-        result = results[0]
-
-    # Get stars
-    p_value = result.get("p_adj") or result.get("p_raw")
-    stars = p_to_stars(p_value)
-
-    # Compute effect size
-    effect_size = _compute_effect_size(test_name, group_values, paired=paired)
-
-    # Format for display
-    formatted = format_test_line(
-        result,
-        effects=[effect_size] if effect_size else None,
-        summary=summary,
-        style="plain",
-        include_n=True,
-    )
-
-    # Build annotation object for canvas
-    annotation = {
-        "type": "stat_bracket",
-        "groups": group_names,
-        "stars": stars,
-        "p_value": p_value,
-        "test_name": test_name,
-        "effect_size": effect_size,
-        "formatted": formatted,
-        "bracket_style": {
-            "line_width": 1.0,
-            "bracket_height": 5.0,
-            "star_offset": 3.0,
-        },
-    }
-
-    return JsonResponse(
-        {
-            "success": True,
-            "result": {
-                "test_name": test_name,
-                "stat": result.get("stat"),
-                "df": result.get("df"),
-                "p_raw": result.get("p_raw"),
-                "p_adj": result.get("p_adj"),
-                "stars": stars,
-                "effect_size": effect_size,
-                "summary": summary,
-                "formatted": formatted,
-            },
-            "annotation": annotation,
-        }
-    )
+    return JsonResponse({
+        "success": True,
+        **result,
+    })
 
 
 @require_POST
 @csrf_exempt
 def run_all_applicable(request) -> JsonResponse:
     """
-    Run all applicable tests in parallel and return results.
-
-    This is the "magic" mode: run every applicable test and show
-    results in the Stats Inspector panel.
+    Run all applicable statistical tests on provided data.
 
     Request body:
     {
-        "groups": [...],
-        "outcome_type": "continuous",
-        "design": "between",
-        "paired": false,
+        "groups": [
+            {"name": "Control", "values": [1.2, 2.3, ...]},
+            {"name": "Treatment", "values": [3.4, 4.5, ...]}
+        ],
         "correction_method": "fdr_bh",
-        "include_effect_sizes": true
+        "max_tests": 5
     }
 
     Response:
     {
         "success": true,
-        "results": {
-            "tests": [...],
-            "effects": [...],
-            "recommended": "brunner_munzel"
-        },
-        "inspector_data": {...}
+        "results": [
+            {
+                "result": {...},
+                "annotation": {...}
+            },
+            ...
+        ]
     }
     """
-    if err := _check_scitex_available():
-        return err
+    if not StatsService.is_scitex_stats_available():
+        return JsonResponse(
+            {"success": False, "error": "scitex.stats module not available"},
+            status=500,
+        )
 
     try:
         data = json.loads(request.body)
@@ -337,11 +219,8 @@ def run_all_applicable(request) -> JsonResponse:
         )
 
     groups_data = data.get("groups", [])
-    outcome_type = data.get("outcome_type", "continuous")
-    design = data.get("design", "between")
-    paired = data.get("paired", False)
     correction_method = data.get("correction_method", "fdr_bh")
-    include_effect_sizes = data.get("include_effect_sizes", True)
+    max_tests = data.get("max_tests", 5)
 
     if len(groups_data) < 2:
         return JsonResponse(
@@ -349,104 +228,56 @@ def run_all_applicable(request) -> JsonResponse:
             status=400,
         )
 
-    # Extract data
-    group_names = [g.get("name", f"Group_{i+1}") for i, g in enumerate(groups_data)]
-    group_values = [np.array(g.get("values", []), dtype=float) for g in groups_data]
-    sample_sizes = [len(v) for v in group_values]
-
-    # Build context
-    ctx = StatContext(
-        n_groups=len(group_values),
-        sample_sizes=sample_sizes,
-        outcome_type=outcome_type,
-        design=design,
-        paired=paired,
-        has_control_group=data.get("has_control_group", False),
-        n_factors=data.get("n_factors", 1),
-        group_names=group_names,
-    )
-
-    # Get recommended tests
-    recommended = recommend_tests(ctx, top_k=5)
-
-    # Run all recommended tests
-    test_results = []
-    for test_name in recommended:
-        result = _run_test(test_name, group_values, paired=paired)
-        if result:
-            test_results.append(result)
-
-    # Apply correction
-    if correction_method and test_results:
-        test_results = apply_multiple_correction(
-            test_results, method=correction_method
+    # Run all applicable tests
+    try:
+        results = StatsService.run_all_applicable_tests(
+            groups_data=groups_data,
+            correction_method=correction_method,
+            max_tests=max_tests,
+        )
+    except Exception as e:
+        logger.error(f"Run all applicable tests error: {e}")
+        return JsonResponse(
+            {"success": False, "error": str(e)}, status=500
         )
 
-    # Compute effect sizes if requested
-    effect_results = []
-    if include_effect_sizes:
-        recommended_effects = recommend_effect_sizes(ctx, top_k=3)
-        for effect_name in recommended_effects:
-            effect = _compute_effect_size(
-                effect_name, group_values, paired=paired
-            )
-            if effect:
-                effect_results.append(effect)
-
-    # Format for inspector panel
-    inspector_data = format_for_inspector(test_results, effect_results)
-
-    # Get top recommendation
-    top_recommendation = recommended[0] if recommended else None
-
-    return JsonResponse(
-        {
-            "success": True,
-            "results": {
-                "tests": test_results,
-                "effects": effect_results,
-                "recommended": top_recommendation,
-            },
-            "inspector_data": inspector_data,
-            "context": ctx.to_dict(),
-        }
-    )
+    return JsonResponse({
+        "success": True,
+        "results": results,
+    })
 
 
 @require_POST
 @csrf_exempt
 def build_context_from_plot(request) -> JsonResponse:
     """
-    Build StatContext from plot metadata.
-
-    Extracts group information from plot data (e.g., boxplot groups)
-    and returns the context for test selection.
+    Build StatContext from plot metadata and CSV data.
 
     Request body:
     {
-        "plot_type": "boxplot",
-        "data": {
-            "groups": [
-                {"name": "A", "values": [...]},
-                {"name": "B", "values": [...]}
-            ]
-        },
-        "metadata": {
-            "design": "between",
-            "has_control_group": false
-        }
+        "element_bboxes": {...},
+        "column_mapping": {"line_0": "Group_A", ...},
+        "csv_data": [[...], ...]
     }
 
     Response:
     {
         "success": true,
-        "context": {...},
-        "applicable_tests": [...],
-        "recommended": [...]
+        "context": {
+            "n_groups": 2,
+            "sample_sizes": [30, 32],
+            "outcome_type": "continuous",
+            ...
+        },
+        "recommended_tests": ["brunner_munzel", "ttest_ind"],
+        "effect_sizes": ["cliffs_delta", "cohens_d"]
     }
     """
-    if err := _check_scitex_available():
-        return err
+    if not StatsService.is_scitex_stats_available():
+        return JsonResponse(
+            {"success": False, "error": "scitex.stats module not available"},
+            status=500,
+        )
 
     try:
         data = json.loads(request.body)
@@ -455,226 +286,32 @@ def build_context_from_plot(request) -> JsonResponse:
             {"success": False, "error": "Invalid JSON"}, status=400
         )
 
-    plot_type = data.get("plot_type", "boxplot")
-    plot_data = data.get("data", {})
-    metadata = data.get("metadata", {})
+    element_bboxes = data.get("element_bboxes", {})
+    column_mapping = data.get("column_mapping", {})
+    csv_data = data.get("csv_data", [])
 
-    # Extract groups from plot data
-    groups_data = plot_data.get("groups", [])
+    # Build context from plot metadata
+    ctx = StatsService.build_context_from_plot_metadata(
+        element_bboxes=element_bboxes,
+        column_mapping=column_mapping,
+        csv_data=csv_data,
+    )
 
-    if not groups_data:
+    if ctx is None:
         return JsonResponse(
-            {"success": False, "error": "No groups found in plot data"},
+            {"success": False, "error": "Could not infer statistical context from plot"},
             status=400,
         )
 
-    group_names = [g.get("name", f"Group_{i+1}") for i, g in enumerate(groups_data)]
-    group_values = [np.array(g.get("values", []), dtype=float) for g in groups_data]
-    sample_sizes = [len(v) for v in group_values]
+    # Get recommendations
+    from scitex.stats import recommend_tests, recommend_effect_sizes
 
-    # Infer outcome type from data
-    outcome_type = _infer_outcome_type(group_values)
+    recommended_tests = recommend_tests(ctx, top_k=3)
+    effect_sizes = recommend_effect_sizes(ctx, top_k=2)
 
-    # Build context
-    ctx = StatContext(
-        n_groups=len(group_values),
-        sample_sizes=sample_sizes,
-        outcome_type=outcome_type,
-        design=metadata.get("design", "between"),
-        paired=metadata.get("paired"),
-        has_control_group=metadata.get("has_control_group", False),
-        n_factors=metadata.get("n_factors", 1),
-        group_names=group_names,
-        control_group_name=metadata.get("control_group_name"),
-    )
-
-    # Get applicable tests
-    items = get_menu_items(ctx)
-    recommended = recommend_tests(ctx, top_k=3)
-
-    return JsonResponse(
-        {
-            "success": True,
-            "context": ctx.to_dict(),
-            "applicable_tests": items,
-            "recommended": recommended,
-            "summary": compute_summary_from_groups(group_values, group_names),
-        }
-    )
-
-
-# =============================================================================
-# Helper Functions
-# =============================================================================
-
-
-def _run_test(
-    test_name: str,
-    groups: List[np.ndarray],
-    paired: bool = False,
-) -> Optional[Dict[str, Any]]:
-    """
-    Run a specific statistical test.
-
-    Returns a TestResultDict or None if test not implemented.
-    """
-    try:
-        from scipy import stats
-    except ImportError:
-        logger.warning("scipy not available for statistical tests")
-        return None
-
-    if len(groups) < 2:
-        return None
-
-    g1, g2 = groups[0], groups[1]
-
-    # Filter NaN
-    g1 = g1[~np.isnan(g1)]
-    g2 = g2[~np.isnan(g2)]
-
-    result: Dict[str, Any] = {"test_name": test_name}
-
-    try:
-        if test_name == "ttest_ind":
-            stat, p = stats.ttest_ind(g1, g2, equal_var=False)  # Welch
-            result.update({"stat": float(stat), "p_raw": float(p), "df": None})
-
-        elif test_name == "ttest_rel":
-            if len(g1) != len(g2):
-                return None
-            stat, p = stats.ttest_rel(g1, g2)
-            result.update({"stat": float(stat), "p_raw": float(p), "df": len(g1) - 1})
-
-        elif test_name == "mannwhitneyu":
-            stat, p = stats.mannwhitneyu(g1, g2, alternative="two-sided")
-            result.update({"stat": float(stat), "p_raw": float(p)})
-
-        elif test_name == "wilcoxon":
-            if len(g1) != len(g2):
-                return None
-            stat, p = stats.wilcoxon(g1, g2)
-            result.update({"stat": float(stat), "p_raw": float(p)})
-
-        elif test_name == "brunner_munzel":
-            stat, p = stats.brunnermunzel(g1, g2)
-            result.update({"stat": float(stat), "p_raw": float(p)})
-
-        elif test_name == "kruskal":
-            stat, p = stats.kruskal(*groups)
-            result.update({"stat": float(stat), "p_raw": float(p)})
-
-        elif test_name == "anova_oneway":
-            stat, p = stats.f_oneway(*groups)
-            result.update({"stat": float(stat), "p_raw": float(p)})
-
-        else:
-            # Test not implemented
-            return None
-
-    except Exception as e:
-        logger.warning(f"Error running test {test_name}: {e}")
-        return None
-
-    return result
-
-
-def _compute_effect_size(
-    effect_name: str,
-    groups: List[np.ndarray],
-    paired: bool = False,
-) -> Optional[Dict[str, Any]]:
-    """
-    Compute effect size for the given groups.
-    """
-    if len(groups) < 2:
-        return None
-
-    g1, g2 = groups[0], groups[1]
-    g1 = g1[~np.isnan(g1)]
-    g2 = g2[~np.isnan(g2)]
-
-    try:
-        if effect_name in ("cohens_d_ind", "cohens_d_paired", "hedges_g"):
-            # Cohen's d
-            pooled_std = np.sqrt(
-                ((len(g1) - 1) * np.var(g1, ddof=1) +
-                 (len(g2) - 1) * np.var(g2, ddof=1)) /
-                (len(g1) + len(g2) - 2)
-            )
-            if pooled_std == 0:
-                return None
-            d = (np.mean(g1) - np.mean(g2)) / pooled_std
-
-            # Apply Hedges' correction if requested
-            if effect_name == "hedges_g":
-                n = len(g1) + len(g2)
-                d = d * (1 - 3 / (4 * n - 9))
-
-            return {
-                "name": effect_name,
-                "label": "Cohen's d" if "cohens" in effect_name else "Hedges' g",
-                "value": float(d),
-                "note": _interpret_cohens_d(abs(d)),
-            }
-
-        elif effect_name == "cliffs_delta":
-            # Cliff's delta
-            count = 0
-            for x in g1:
-                for y in g2:
-                    if x > y:
-                        count += 1
-                    elif x < y:
-                        count -= 1
-            delta = count / (len(g1) * len(g2))
-            return {
-                "name": "cliffs_delta",
-                "label": "Cliff's delta",
-                "value": float(delta),
-                "note": _interpret_cliffs_delta(abs(delta)),
-            }
-
-    except Exception as e:
-        logger.warning(f"Error computing effect size {effect_name}: {e}")
-
-    return None
-
-
-def _interpret_cohens_d(d: float) -> str:
-    """Interpret Cohen's d magnitude."""
-    if d < 0.2:
-        return "negligible"
-    elif d < 0.5:
-        return "small"
-    elif d < 0.8:
-        return "medium"
-    else:
-        return "large"
-
-
-def _interpret_cliffs_delta(delta: float) -> str:
-    """Interpret Cliff's delta magnitude."""
-    if delta < 0.147:
-        return "negligible"
-    elif delta < 0.33:
-        return "small"
-    elif delta < 0.474:
-        return "medium"
-    else:
-        return "large"
-
-
-def _infer_outcome_type(groups: List[np.ndarray]) -> str:
-    """Infer outcome type from data."""
-    all_values = np.concatenate(groups)
-    all_values = all_values[~np.isnan(all_values)]
-
-    unique = np.unique(all_values)
-
-    if len(unique) == 2 and set(unique).issubset({0, 1}):
-        return "binary"
-    elif len(unique) <= 10 and np.allclose(all_values, all_values.astype(int)):
-        return "ordinal"
-    else:
-        return "continuous"
+    return JsonResponse({
+        "success": True,
+        "context": ctx.to_dict(),
+        "recommended_tests": recommended_tests,
+        "effect_sizes": effect_sizes,
+    })
