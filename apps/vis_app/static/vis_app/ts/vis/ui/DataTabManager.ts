@@ -11,7 +11,9 @@
 export interface DataTab {
     id: string;
     name: string;
-    figureName?: string;  // Figure name for tab display
+    /** ID of the linked figure (canvas tab) - bidirectional link */
+    linkedFigureId?: string;
+    figureName?: string;  // Figure name for tab display (deprecated, use linkedFigureId)
     objectName?: string;  // Object name for tab display (line, scatter, etc.)
     type: 'line' | 'scatter' | 'categorical' | 'distribution' | 'statistical' | 'grid' | 'area' | 'contour' | 'vector' | 'special' | 'default';
     isActive: boolean;
@@ -34,15 +36,15 @@ export class DataTabManager {
      */
     private initializeDefaultTab(): void {
         const defaultTab: DataTab = {
-            id: 'default',
-            name: 'Figure 1 - Line 1',
-            figureName: 'Figure 1',
-            objectName: 'Line 1',
+            id: 'default-data',
+            name: 'Table 1',
+            linkedFigureId: 'default',  // Links to default canvas figure
+            objectName: 'Table 1',
             type: 'default',
             isActive: true
         };
         this.tabs.push(defaultTab);
-        this.activeTabId = 'default';
+        this.activeTabId = 'default-data';
     }
 
     /**
@@ -63,22 +65,19 @@ export class DataTabManager {
      */
     public createTab(
         name: string,
-        type: DataTab['type'] = 'line',
+        type: DataTab['type'] = 'default',
         figureName?: string,
         objectName?: string,
         data?: any
     ): string {
         const id = `tab-${Date.now()}`;
 
-        // Auto-generate figure and object names if not provided
-        const figName = figureName || `Figure ${Math.floor(this.tabs.length / 3) + 1}`;
-        const objName = objectName || name;
-
+        // Use provided name directly as the tab name
         const newTab: DataTab = {
             id,
-            name: `${figName} - ${objName}`,
-            figureName: figName,
-            objectName: objName,
+            name: name,
+            figureName: figureName,
+            objectName: objectName || name,
             type,
             isActive: false,
             data
@@ -366,6 +365,33 @@ export class DataTabManager {
     }
 
     /**
+     * Get tabs linked to a specific figure
+     */
+    public getTabsForFigure(figureId: string): DataTab[] {
+        return this.tabs.filter(t => t.linkedFigureId === figureId);
+    }
+
+    /**
+     * Link a data table to a figure
+     */
+    public linkToFigure(tabId: string, figureId: string): void {
+        const tab = this.tabs.find(t => t.id === tabId);
+        if (tab) {
+            tab.linkedFigureId = figureId;
+        }
+    }
+
+    /**
+     * Unlink a data table from its figure
+     */
+    public unlinkFromFigure(tabId: string): void {
+        const tab = this.tabs.find(t => t.id === tabId);
+        if (tab) {
+            tab.linkedFigureId = undefined;
+        }
+    }
+
+    /**
      * Initialize event listeners for dropdown and new tab button
      */
     public initializeEventListeners(): void {
@@ -426,17 +452,17 @@ export class DataTabManager {
         const inputItem = document.createElement('div');
         inputItem.className = 'data-dropdown-item inline-new-tab-wrapper';
 
-        // Icon
+        // Icon (table icon for new tables)
         const icon = document.createElement('i');
-        icon.className = 'fas fa-chart-line';
+        icon.className = 'fas fa-table';
         inputItem.appendChild(icon);
 
         const input = document.createElement('input');
         input.type = 'text';
         input.className = 'inline-new-tab-input data-rename-input';
-        const defaultObjectName = `Line ${this.tabs.length}`;
-        input.value = defaultObjectName;
-        input.placeholder = defaultObjectName;
+        const defaultTableName = `Table ${this.tabs.length + 1}`;
+        input.value = defaultTableName;
+        input.placeholder = defaultTableName;
 
         inputItem.appendChild(input);
         menu.appendChild(inputItem);
@@ -450,10 +476,10 @@ export class DataTabManager {
         const finishCreate = () => {
             if (isFinished) return;
             isFinished = true;
-            const objectName = input.value.trim() || defaultObjectName;
+            const tableName = input.value.trim() || defaultTableName;
             inputItem.remove();
-            // Auto-assign to Figure 1 for now (can be enhanced later)
-            const newTabId = this.createTab(objectName, 'line', 'Figure 1', objectName);
+            // Create table with default type
+            const newTabId = this.createTab(tableName, 'default', undefined, tableName);
             this.switchToTab(newTabId);
             this.closeDropdown();
         };

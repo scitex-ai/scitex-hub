@@ -13,6 +13,8 @@ export interface CanvasTab {
     id: string;
     figureName: string;
     isActive: boolean;
+    /** IDs of linked data tables - bidirectional link with DataTab.linkedFigureId */
+    linkedDataTableIds?: string[];
     /** Serialized canvas JSON (fabric.js toJSON output) */
     canvasJson?: any;
     /** View state: zoom level and pan offset */
@@ -42,7 +44,8 @@ export class CanvasTabManager {
         const defaultTab: CanvasTab = {
             id: 'default',
             figureName: 'Figure 1',
-            isActive: true
+            isActive: true,
+            linkedDataTableIds: ['default-data']  // Links to default data table
         };
         this.tabs.push(defaultTab);
         this.activeTabId = 'default';
@@ -300,6 +303,44 @@ export class CanvasTabManager {
      */
     public getTabs(): CanvasTab[] {
         return [...this.tabs];
+    }
+
+    /**
+     * Get linked data table IDs for a figure
+     */
+    public getLinkedDataTableIds(figureId: string): string[] {
+        const tab = this.tabs.find(t => t.id === figureId);
+        return tab?.linkedDataTableIds || [];
+    }
+
+    /**
+     * Link a data table to this figure
+     */
+    public linkDataTable(figureId: string, dataTableId: string): void {
+        const tab = this.tabs.find(t => t.id === figureId);
+        if (tab) {
+            if (!tab.linkedDataTableIds) {
+                tab.linkedDataTableIds = [];
+            }
+            if (!tab.linkedDataTableIds.includes(dataTableId)) {
+                tab.linkedDataTableIds.push(dataTableId);
+                this.saveTabsToStorage();
+            }
+        }
+    }
+
+    /**
+     * Unlink a data table from this figure
+     */
+    public unlinkDataTable(figureId: string, dataTableId: string): void {
+        const tab = this.tabs.find(t => t.id === figureId);
+        if (tab && tab.linkedDataTableIds) {
+            const index = tab.linkedDataTableIds.indexOf(dataTableId);
+            if (index !== -1) {
+                tab.linkedDataTableIds.splice(index, 1);
+                this.saveTabsToStorage();
+            }
+        }
     }
 
     /**
