@@ -11,6 +11,12 @@ urlpatterns = [
         views.figure_editor,
         name="figure_editor",
     ),
+    # Gallery page - shows all available plot types
+    path(
+        "gallery/",
+        views.gallery_page,
+        name="gallery",
+    ),
     # Legacy canvas-based editor
     path(
         "legacy/",
@@ -103,9 +109,20 @@ urlpatterns = [
         name="api_render_plot",
     ),
     path(
+        "api/plot/gallery/",
+        api_views.render_gallery_plot,
+        name="api_render_gallery_plot",
+    ),
+    path(
         "api/upload-plot-data/",
         api_views.upload_plot_data,
         name="api_upload_plot_data",
+    ),
+    # Extract metadata from PNG images (for axis snap/align)
+    path(
+        "api/plot/metadata/",
+        api_views.extract_image_metadata,
+        name="api_extract_image_metadata",
     ),
     # SciTeX Editor API endpoints
     path(
@@ -148,5 +165,64 @@ urlpatterns = [
         "api/gallery/<str:gallery_id>/<str:plot_id>/template/",
         api_views.get_plot_template,
         name="api_gallery_template",
+    ),
+    # Project-based gallery endpoints
+    path(
+        "api/gallery/generate/",
+        api_views.generate_project_gallery,
+        name="api_gallery_generate",
+    ),
+    path(
+        "api/gallery/project/",
+        api_views.get_project_gallery,
+        name="api_gallery_project",
+    ),
+    path(
+        "api/gallery/project/<str:category>/<str:plot_name>/image/",
+        api_views.get_project_gallery_image,
+        name="api_gallery_project_image",
+    ),
+    path(
+        "api/gallery/project/<str:category>/<str:plot_name>/csv/",
+        api_views.get_project_gallery_csv,
+        name="api_gallery_project_csv",
+    ),
+    path(
+        "api/gallery/available/",
+        api_views.list_gallery_categories_available,
+        name="api_gallery_available",
+    ),
+    # Axis metadata for snap/align by axis position
+    path(
+        "api/gallery/metadata/<str:category>/<str:plot_name>/",
+        api_views.get_plot_metadata,
+        name="api_gallery_metadata",
+    ),
+    # =========================================================================
+    # Statistics API endpoints (scitex.stats integration)
+    # =========================================================================
+    # Get applicable tests for right-click context menu
+    path(
+        "api/stats/applicable/",
+        api_views.get_applicable_tests,
+        name="api_stats_applicable",
+    ),
+    # Run a specific statistical test
+    path(
+        "api/stats/run/",
+        api_views.run_statistical_test,
+        name="api_stats_run",
+    ),
+    # Run all applicable tests (magic mode)
+    path(
+        "api/stats/run-all/",
+        api_views.run_all_applicable,
+        name="api_stats_run_all",
+    ),
+    # Build StatContext from plot metadata
+    path(
+        "api/stats/context/",
+        api_views.build_context_from_plot,
+        name="api_stats_context",
     ),
 ]

@@ -130,3 +130,36 @@ def figure_list(request):
     }
 
     return render(request, "vis_app/figure_list.html", context)
+
+
+def gallery_page(request):
+    """
+    Gallery page showing all available plot types from scitex.plt.gallery.
+
+    Displays plot examples organized by category with thumbnails.
+    Users can generate gallery into their project or view examples.
+    """
+    from apps.project_app.services.project_utils import get_current_project
+    from ..services.gallery_generator import get_gallery_contents, list_gallery_categories
+
+    context = {
+        "module_name": "Vis Gallery",
+        "module_icon": "fa-images",
+    }
+
+    # Get available categories from scitex.plt.gallery
+    available = list_gallery_categories()
+    context["available_categories"] = available.get("categories", {})
+    context["total_available_plots"] = available.get("total_plots", 0)
+
+    # Check if user has a project with gallery
+    if request.user.is_authenticated:
+        current_project = get_current_project(request, user=request.user)
+        if current_project:
+            context["current_project"] = current_project
+            project_path = current_project.get_local_path()
+            gallery_contents = get_gallery_contents(project_path)
+            context["project_gallery"] = gallery_contents
+            context["gallery_exists"] = gallery_contents.get("exists", False)
+
+    return render(request, "vis_app/gallery.html", context)

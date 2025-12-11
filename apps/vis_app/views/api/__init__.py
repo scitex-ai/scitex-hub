@@ -37,7 +37,9 @@ from .conversion import (
 # Plot Rendering Views
 from .plots import (
     render_plot,
+    render_gallery_plot,
     upload_plot_data,
+    extract_image_metadata,
 )
 
 # SciTeX Editor Views
@@ -54,6 +56,22 @@ from .gallery import (
     get_plot_thumbnail,
     get_plot_template,
     get_categories,
+    # Project-based gallery
+    generate_project_gallery,
+    get_project_gallery,
+    get_project_gallery_image,
+    get_project_gallery_csv,
+    list_gallery_categories_available,
+    # Axis metadata for snap/align
+    get_plot_metadata,
+)
+
+# Statistics Views
+from .stats import (
+    get_applicable_tests,
+    run_statistical_test,
+    run_all_applicable,
+    build_context_from_plot,
 )
 
 __all__ = [
@@ -75,7 +93,9 @@ __all__ = [
     'convert_png_to_tiff',
     # Plots
     'render_plot',
+    'render_gallery_plot',
     'upload_plot_data',
+    'extract_image_metadata',
     # SciTeX Editor
     'load_figure_json',
     'update_preview',
@@ -86,4 +106,17 @@ __all__ = [
     'get_plot_thumbnail',
     'get_plot_template',
     'get_categories',
+    # Project-based gallery
+    'generate_project_gallery',
+    'get_project_gallery',
+    'get_project_gallery_image',
+    'get_project_gallery_csv',
+    'list_gallery_categories_available',
+    # Axis metadata for snap/align
+    'get_plot_metadata',
+    # Statistics
+    'get_applicable_tests',
+    'run_statistical_test',
+    'run_all_applicable',
+    'build_context_from_plot',
 ]

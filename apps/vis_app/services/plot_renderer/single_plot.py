@@ -15,6 +15,74 @@ from .data_loader import load_data_from_spec
 from .plot_types import render_plot_by_type
 
 
+def extract_axis_metadata(fig, ax, dpi):
+    """
+    Extract axis bounding box and spine positions in pixels.
+    Used for snap/align by axis in the canvas editor.
+
+    Args:
+        fig: Matplotlib figure
+        ax: Matplotlib axes
+        dpi: DPI of the figure
+
+    Returns:
+        dict: Axis metadata including spine positions in pixels
+    """
+    # Force a draw to get accurate positions
+    fig.canvas.draw()
+
+    # Get figure dimensions in pixels
+    fig_width_px = fig.get_figwidth() * dpi
+    fig_height_px = fig.get_figheight() * dpi
+
+    # Get axes bounding box in figure coordinates (0-1)
+    bbox_norm = ax.get_position()
+
+    # Convert to pixels (origin at top-left for web/canvas)
+    axes_bbox_px = {
+        'left': bbox_norm.x0 * fig_width_px,
+        'right': bbox_norm.x1 * fig_width_px,
+        'top': (1 - bbox_norm.y1) * fig_height_px,  # Flip Y for web
+        'bottom': (1 - bbox_norm.y0) * fig_height_px,
+        'width': bbox_norm.width * fig_width_px,
+        'height': bbox_norm.height * fig_height_px,
+    }
+
+    # Get spine positions in pixels (display coordinates)
+    spines_px = {}
+    for spine_name, spine in ax.spines.items():
+        if spine.get_visible():
+            try:
+                # Get the spine's window extent (display pixels)
+                bbox_display = spine.get_window_extent(fig.canvas.get_renderer())
+                # Convert Y coordinate (matplotlib Y=0 is bottom, web Y=0 is top)
+                spines_px[spine_name] = {
+                    'x0': bbox_display.x0,
+                    'y0': fig_height_px - bbox_display.y1,  # Flip Y
+                    'x1': bbox_display.x1,
+                    'y1': fig_height_px - bbox_display.y0,  # Flip Y
+                    'visible': True
+                }
+            except Exception:
+                pass
+
+    # Get axis limits (data coordinates)
+    xlim = ax.get_xlim()
+    ylim = ax.get_ylim()
+
+    return {
+        'dpi': dpi,
+        'figure_size_px': {
+            'width': fig_width_px,
+            'height': fig_height_px
+        },
+        'axes_bbox_px': axes_bbox_px,
+        'spines_px': spines_px,
+        'xlim': list(xlim),
+        'ylim': list(ylim),
+    }
+
+
 def render_single_plot(fig, panel_spec, style_spec):
     """
     Render a single plot on a specific axes within a figure.
@@ -88,7 +156,7 @@ def render_single_plot(fig, panel_spec, style_spec):
     return ax
 
 
-def render_single_plot_figure(spec):
+def render_single_plot_figure(spec, return_metadata=False):
     """
     Render a single plot as a complete figure.
 
@@ -97,9 +165,11 @@ def render_single_plot_figure(spec):
             - figure: {width_mm, height_mm, dpi}
             - style: {tick_length_mm, tick_thickness_mm, ...}
             - plot: {kind, csv_path, x_column, y_column, ...}
+        return_metadata: If True, also return axis metadata for snap/align
 
     Returns:
         BytesIO buffer containing SVG data
+        (optionally) tuple of (buffer, metadata) if return_metadata=True
     """
     # Extract specifications
     figure_spec = spec.get('figure', {})
@@ -130,12 +200,20 @@ def render_single_plot_figure(spec):
     # Adjust layout
     fig.tight_layout()
 
+    # Extract metadata before saving (if requested)
+    metadata = None
+    if return_metadata:
+        metadata = extract_axis_metadata(fig, ax, dpi)
+
     # Save to buffer as SVG with transparent background
     buf = io.BytesIO()
     fig.savefig(buf, format='svg', bbox_inches='tight', dpi=dpi, transparent=True)
     plt.close(fig)
 
     buf.seek(0)
+
+    if return_metadata:
+        return buf, metadata
     return buf
 
 
