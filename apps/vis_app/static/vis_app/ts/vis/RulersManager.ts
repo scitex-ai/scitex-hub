@@ -13,16 +13,24 @@ import { RulerUnit, CANVAS_CONSTANTS } from './types.ts';
 
 export class RulersManager {
     private rulerUnit: RulerUnit = 'mm';
-    private canvasZoomLevel: number = 1.0;
+    private canvasZoomLevel: number = 0.22; // Start at 22% to match CanvasManager initial zoom
     private canvasPanOffset: { x: number, y: number } = { x: 0, y: 0 };
     private canvasIsPanning: boolean = false;
     private canvasPanStartPoint: { x: number, y: number } | null = null;
     private isDarkTheme: boolean = false;  // Track current theme for rulers
+    private onTransformUpdate?: () => void;  // Callback to SigmaEditor for transform sync
 
     constructor(
         private canvas: any, // Fabric.js canvas instance
         private statusBarCallback?: (message: string) => void
     ) {}
+
+    /**
+     * Set callback for transform updates (called from SigmaEditor)
+     */
+    public setTransformCallback(callback: () => void): void {
+        this.onTransformUpdate = callback;
+    }
 
     /**
      * Get current ruler unit
@@ -63,11 +71,17 @@ export class RulersManager {
      * Initialize rulers on canvas load
      */
     public initializeRulers(): void {
-        // Read theme from localStorage before drawing rulers
+        // Rulers follow GLOBAL theme, not canvas theme
         const globalTheme = localStorage.getItem('scitex-theme-preference') || 'dark';
-        const savedCanvasTheme = localStorage.getItem('canvas-theme') || globalTheme;
-        this.isDarkTheme = savedCanvasTheme === 'dark';
+        this.isDarkTheme = globalTheme === 'dark';
+
+        // Draw immediately
         this.drawRulers();
+
+        // Also schedule a redraw after DOM is fully ready (belt and suspenders approach)
+        requestAnimationFrame(() => {
+            this.drawRulers();
+        });
     }
 
     /**
@@ -75,12 +89,32 @@ export class RulersManager {
      * PERFORMANCE: Pre-rendered SVG instead of 840+ DOM elements
      */
     public drawRulers(): void {
-        if (!this.canvas) return;
+        if (!this.canvas) {
+            console.warn('[RulersManager] Cannot draw rulers: canvas not set');
+            return;
+        }
 
         const startTime = performance.now();
         const canvasWidth = this.canvas.getWidth();
         const canvasHeight = this.canvas.getHeight();
         const dpi = CANVAS_CONSTANTS.DPI;
+
+        // Validate canvas dimensions
+        if (!canvasWidth || !canvasHeight || canvasWidth <= 0 || canvasHeight <= 0) {
+            console.warn(`[RulersManager] Invalid canvas dimensions: ${canvasWidth}x${canvasHeight}, retrying...`);
+            // Retry after a short delay
+            setTimeout(() => this.drawRulers(), 100);
+            return;
+        }
+
+        // Check if SVG elements exist
+        const rulerH = document.getElementById('ruler-h');
+        const rulerV = document.getElementById('ruler-v');
+        if (!rulerH || !rulerV) {
+            console.warn('[RulersManager] Ruler SVG elements not found, retrying...');
+            setTimeout(() => this.drawRulers(), 100);
+            return;
+        }
 
         // Render all four rulers with pre-generated SVG
         this.renderHorizontalRuler(canvasWidth, dpi, 'ruler-h');  // Top
@@ -89,7 +123,7 @@ export class RulersManager {
         this.renderVerticalRuler(canvasHeight, dpi, 'ruler-r');   // Right
 
         const endTime = performance.now();
-        console.log(`[RulersManager] ✅ All 4 rulers rendered in ${(endTime - startTime).toFixed(2)}ms (pre-rendered SVG)`);
+        console.log(`[RulersManager] ✅ All 4 rulers rendered in ${(endTime - startTime).toFixed(2)}ms (canvas: ${canvasWidth}x${canvasHeight})`);
     }
 
     /**
@@ -154,10 +188,10 @@ export class RulersManager {
         const pxToMm = (px: number) => (px / dpi) * 25.4;
         const mmToPx = (mm: number) => (mm * dpi) / 25.4;
 
-        // Theme-aware colors
-        const majorColor = this.isDarkTheme ? '#ccc' : '#999';
-        const textColor = this.isDarkTheme ? '#aaa' : '#666';
-        const minorColor = this.isDarkTheme ? '#666' : '#ccc';
+        // Theme-aware colors (light mode minor ticks made more visible)
+        const majorColor = this.isDarkTheme ? '#ccc' : '#888';
+        const textColor = this.isDarkTheme ? '#aaa' : '#555';
+        const minorColor = this.isDarkTheme ? '#666' : '#aaa';
 
         const maxMm = pxToMm(width);
         const majorInterval = 10;  // 10mm
@@ -177,7 +211,7 @@ export class RulersManager {
             if (mm % majorInterval === 0) {
                 // Major tick (10mm)
                 svgContent += `<line x1="${x}" y1="40" x2="${x}" y2="${rulerHeight}" stroke="${majorColor}" stroke-width="1.5"/>`;
-                svgContent += `<text x="${x}" y="35" text-anchor="middle" font-size="11" fill="${textColor}">${mm}</text>`;
+                svgContent += `<text x="${x}" y="35" text-anchor="middle" font-size="11" fill="${textColor}">${mm}mm</text>`;
             } else if (mm % middleInterval === 0) {
                 // Middle tick (5mm)
                 svgContent += `<line x1="${x}" y1="48" x2="${x}" y2="${rulerHeight}" stroke="${majorColor}" stroke-width="1"/>`;
@@ -195,10 +229,12 @@ export class RulersManager {
             { mm: 180, label: '2.0 col' }
         ];
 
+        // Column label color aligned with ruler text color
+        const columnLabelColor = this.isDarkTheme ? '#aaa' : '#555';
         columnMarkers.forEach(marker => {
             const x = mmToPx(marker.mm);
             if (x <= width) {
-                svgContent += `<text x="${x}" y="10" text-anchor="middle" font-size="9" fill="#0080c0" font-weight="600">${marker.label}</text>`;
+                svgContent += `<text x="${x}" y="12" text-anchor="middle" font-size="11" fill="${columnLabelColor}" font-weight="500">${marker.label}</text>`;
             }
         });
 
@@ -214,10 +250,10 @@ export class RulersManager {
         const pxToInch = (px: number) => px / dpi;
         const inchToPx = (inch: number) => inch * dpi;
 
-        // Theme-aware colors
-        const majorColor = this.isDarkTheme ? '#ccc' : '#999';
-        const textColor = this.isDarkTheme ? '#aaa' : '#666';
-        const minorColor = this.isDarkTheme ? '#666' : '#ccc';
+        // Theme-aware colors (light mode minor ticks made more visible)
+        const majorColor = this.isDarkTheme ? '#ccc' : '#888';
+        const textColor = this.isDarkTheme ? '#aaa' : '#555';
+        const minorColor = this.isDarkTheme ? '#666' : '#aaa';
 
         const maxInch = pxToInch(width);
         let svgContent = '';
@@ -262,10 +298,12 @@ export class RulersManager {
             { inch: 180 / 25.4, label: '2.0 col' }
         ];
 
+        // Column label color aligned with ruler text color
+        const columnLabelColor = this.isDarkTheme ? '#aaa' : '#555';
         columnMarkersInch.forEach(marker => {
             const x = inchToPx(marker.inch);
             if (x <= width) {
-                svgContent += `<text x="${x}" y="10" text-anchor="middle" font-size="9" fill="#0080c0" font-weight="600">${marker.label}</text>`;
+                svgContent += `<text x="${x}" y="12" text-anchor="middle" font-size="11" fill="${columnLabelColor}" font-weight="500">${marker.label}</text>`;
             }
         });
 
@@ -304,10 +342,10 @@ export class RulersManager {
         const pxToMm = (px: number) => (px / dpi) * 25.4;
         const mmToPx = (mm: number) => (mm * dpi) / 25.4;
 
-        // Theme-aware colors
-        const majorColor = this.isDarkTheme ? '#ccc' : '#999';
-        const textColor = this.isDarkTheme ? '#aaa' : '#666';
-        const minorColor = this.isDarkTheme ? '#666' : '#ccc';
+        // Theme-aware colors (light mode minor ticks made more visible)
+        const majorColor = this.isDarkTheme ? '#ccc' : '#888';
+        const textColor = this.isDarkTheme ? '#aaa' : '#555';
+        const minorColor = this.isDarkTheme ? '#666' : '#aaa';
 
         const maxMm = pxToMm(height);
         const majorInterval = 10;  // 10mm
@@ -326,7 +364,7 @@ export class RulersManager {
             if (mm % majorInterval === 0) {
                 // Major tick
                 svgContent += `<line x1="40" y1="${y}" x2="${rulerWidth}" y2="${y}" stroke="${majorColor}" stroke-width="1.5"/>`;
-                svgContent += `<text x="30" y="${y}" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="${textColor}" transform="rotate(-90, 30, ${y})">${mm}</text>`;
+                svgContent += `<text x="30" y="${y}" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="${textColor}" transform="rotate(-90, 30, ${y})">${mm}mm</text>`;
             } else if (mm % middleInterval === 0) {
                 // Middle tick
                 svgContent += `<line x1="48" y1="${y}" x2="${rulerWidth}" y2="${y}" stroke="${majorColor}" stroke-width="1"/>`;
@@ -348,10 +386,10 @@ export class RulersManager {
         const pxToInch = (px: number) => px / dpi;
         const inchToPx = (inch: number) => inch * dpi;
 
-        // Theme-aware colors
-        const majorColor = this.isDarkTheme ? '#ccc' : '#999';
-        const textColor = this.isDarkTheme ? '#aaa' : '#666';
-        const minorColor = this.isDarkTheme ? '#666' : '#ccc';
+        // Theme-aware colors (light mode minor ticks made more visible)
+        const majorColor = this.isDarkTheme ? '#ccc' : '#888';
+        const textColor = this.isDarkTheme ? '#aaa' : '#555';
+        const minorColor = this.isDarkTheme ? '#666' : '#aaa';
 
         const maxInch = pxToInch(height);
         let svgContent = '';
@@ -411,6 +449,39 @@ export class RulersManager {
                 ruler.style.cursor = 'grabbing';
             });
 
+            // Double-click (left) to reset pan position to origin
+            ruler.addEventListener('dblclick', (e) => {
+                e.preventDefault();
+                this.canvasPanOffset.x = 0;
+                this.canvasPanOffset.y = 0;
+                this.updateRulersAreaTransform();
+                console.log('[RulersManager] Pan reset to origin (double-click)');
+                if (this.statusBarCallback) {
+                    this.statusBarCallback('Pan reset to origin');
+                }
+            });
+
+            // Double right-click to reset pan position to origin (same as left double-click)
+            let lastRightClickTime = 0;
+            const DOUBLE_CLICK_THRESHOLD = 300; // ms
+            ruler.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                const now = Date.now();
+                if (now - lastRightClickTime < DOUBLE_CLICK_THRESHOLD) {
+                    // Double right-click - reset pan
+                    this.canvasPanOffset.x = 0;
+                    this.canvasPanOffset.y = 0;
+                    this.updateRulersAreaTransform();
+                    console.log('[RulersManager] Pan reset to origin (right double-click)');
+                    if (this.statusBarCallback) {
+                        this.statusBarCallback('Pan reset to origin');
+                    }
+                    lastRightClickTime = 0;
+                } else {
+                    lastRightClickTime = now;
+                }
+            });
+
             ruler.addEventListener('mouseenter', () => {
                 if (!this.canvasIsPanning) ruler.style.cursor = 'grab';
             });
@@ -454,12 +525,28 @@ export class RulersManager {
 
     /**
      * Update transform on the entire rulers area (rulers + canvas together)
+     * Uses callback to SigmaEditor to ensure sync with CanvasManager
      */
     public updateRulersAreaTransform(): void {
-        const rulersArea = document.querySelector('.vis-rulers-area') as HTMLElement;
-        if (rulersArea) {
-            rulersArea.style.transform = `translate(${this.canvasPanOffset.x}px, ${this.canvasPanOffset.y}px) scale(${this.canvasZoomLevel})`;
-            rulersArea.style.transformOrigin = 'top left';
+        if (this.onTransformUpdate) {
+            // Use the callback to let SigmaEditor handle the transform
+            // This ensures sync with CanvasManager's zoom/pan state
+            this.onTransformUpdate();
+        } else {
+            // Fallback to local implementation
+            const rulersArea = document.querySelector('.vis-rulers-area') as HTMLElement;
+            if (rulersArea) {
+                rulersArea.style.transform = `translate(${this.canvasPanOffset.x}px, ${this.canvasPanOffset.y}px) scale(${this.canvasZoomLevel})`;
+                rulersArea.style.transformOrigin = 'top left';
+            }
         }
+    }
+
+    /**
+     * Reset pan offset to origin and notify CanvasManager
+     */
+    public resetPanToOrigin(): void {
+        this.canvasPanOffset.x = 0;
+        this.canvasPanOffset.y = 0;
     }
 }

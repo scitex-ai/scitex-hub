@@ -87,6 +87,37 @@
 
 .ruler-corner-tl {
     grid-area: corner-tl;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Ruler Unit Toggle Button in corner */
+.ruler-unit-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: transparent;
+    border: 1px solid var(--workspace-border-default);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.ruler-unit-btn:hover {
+    color: var(--accent-primary);
+    border-color: var(--accent-primary);
+    background: rgba(var(--accent-primary-rgb), 0.1);
+}
+
+.ruler-unit-btn span {
+    text-transform: lowercase;
 }
 
 .ruler-corner-tr {
@@ -316,5 +347,90 @@
     font-size: 12px;
     font-weight: 600;
     color: var(--status-success);
+}
+
+/* ========================================
+   DROPDOWN CONTROLS
+   ======================================== */
+.dropdown-container {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dropdown-toggle span {
+    font-size: 11px;
+}
+
+.dropdown-toggle .fa-caret-down {
+    font-size: 10px;
+    opacity: 0.7;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 4px;
+    min-width: 120px;
+    background: var(--vis-bg-secondary);
+    border: 1px solid var(--workspace-border-default);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.dropdown-container.open .dropdown-menu {
+    display: block;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 12px;
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    text-align: left;
+}
+
+.dropdown-item:hover {
+    background: var(--vis-bg-hover);
+}
+
+.dropdown-item i {
+    width: 16px;
+    text-align: center;
+    opacity: 0.7;
+}
+
+/* Theme toggle button with dark mode warning */
+.pane-header-btn.theme-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.pane-header-btn.theme-toggle-btn .theme-icon {
+    font-size: 14px;
+}
+
+.pane-header-btn.theme-toggle-btn .dark-warning {
+    display: none;
+    color: #f59e0b;
+    font-size: 11px;
+    font-weight: 500;
 }
 

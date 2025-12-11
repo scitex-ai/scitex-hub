@@ -39,9 +39,23 @@ export class CanvasManager {
     private snapThreshold: number = 10; // pixels for snap detection
     private guidelineOverlay: HTMLDivElement | null = null; // CSS overlay for guidelines (faster than Fabric.js)
 
+    // Throttling for object moving (performance optimization)
+    private objectMovingThrottleFrame: number | null = null;
+    private pendingMovingTarget: any = null;
+    private panThrottleFrame: number | null = null;
+    private pendingPanUpdate: { x: number, y: number } | null = null;
+
+    // Track right-click pan to suppress context menu after panning
+    private rightClickPanOccurred: boolean = false;
+
     // Column guides for layout snapping
     private columnCount: number = 0; // 0 = disabled, 2-4 for multi-column layout
     private columnGuidePositions: number[] = []; // X positions of column guides in mm
+
+    // Dark mode state for plot image processing
+    private isDarkMode: boolean = false;
+    // Store original image sources for theme switching
+    private originalImageSources: Map<any, string> = new Map();
 
     private selectionCallback?: (obj: any | null) => void;
     private onObjectResizedCallback?: (obj: any, newWidth: number, newHeight: number) => void;
@@ -82,6 +96,24 @@ export class CanvasManager {
     }
 
     /**
+     * Set canvas zoom level (used when restoring tab state)
+     */
+    public setCanvasZoomLevel(zoom: number): void {
+        if (!this.canvas) return;
+        this.canvasZoomLevel = zoom;
+        this.canvas.setZoom(zoom);
+    }
+
+    /**
+     * Set canvas pan offset (used when restoring tab state)
+     */
+    public setCanvasPanOffset(x: number, y: number): void {
+        if (!this.canvas) return;
+        this.canvasPanOffset = { x, y };
+        this.canvas.absolutePan(new fabric.Point(-x, -y));
+    }
+
+    /**
      * Initialize Fabric.js canvas
      */
     public initCanvas(): void {
@@ -108,6 +140,9 @@ export class CanvasManager {
         const initialIsDark = savedCanvasTheme === 'dark';
         const initialBgColor = initialIsDark ? '#2a2a2a' : '#ffffff';
 
+        // Initialize dark mode state for image processing
+        this.isDarkMode = initialIsDark;
+
         try {
             // Initialize canvas with correct theme from the start
             this.canvas = new fabric.Canvas('vis-canvas', {
@@ -115,7 +150,7 @@ export class CanvasManager {
                 height: defaultHeight,
                 backgroundColor: initialBgColor,
                 selection: true,
-                selectionKey: 'ctrlKey',  // PowerPoint-style multi-select
+                selectionKey: ['ctrlKey', 'shiftKey'],  // Multi-select with Ctrl or Shift
                 // Selection styling - make more visible
                 selectionColor: 'rgba(100, 150, 255, 0.15)',
                 selectionBorderColor: '#4a9eff',
@@ -164,15 +199,46 @@ export class CanvasManager {
             });
 
             // Notify properties panel when object selected
+            // Also auto-enter element selection mode for plot images with element_bboxes
             this.canvas.on('selection:created', (e: any) => {
                 if (this.selectionCallback && e.selected && e.selected.length > 0) {
-                    this.selectionCallback(e.selected[0]);
+                    // For multi-selection, pass the ActiveSelection or first object
+                    const activeObj = this.canvas?.getActiveObject();
+                    this.selectionCallback(activeObj || e.selected[0]);
+
+                    // Only auto-enter element selection for SINGLE selection of plot images/groups
+                    if (e.selected.length === 1) {
+                        const selected = e.selected[0];
+                        // Support both image and group (SVG) types with element_bboxes
+                        if ((selected.type === 'image' || selected.type === 'group') && selected.axisMetadata?.element_bboxes) {
+                            this.enterElementSelectionMode(selected, { x: 0, y: 0 });
+                        }
+                    } else {
+                        // Exit element selection mode for multi-selection
+                        this.exitElementSelectionMode();
+                    }
                 }
             });
 
             this.canvas.on('selection:updated', (e: any) => {
                 if (this.selectionCallback && e.selected && e.selected.length > 0) {
-                    this.selectionCallback(e.selected[0]);
+                    // For multi-selection, pass the ActiveSelection or first object
+                    const activeObj = this.canvas?.getActiveObject();
+                    this.selectionCallback(activeObj || e.selected[0]);
+
+                    // Only auto-enter element selection for SINGLE selection of plot images/groups
+                    if (e.selected.length === 1) {
+                        const selected = e.selected[0];
+                        // Support both image and group (SVG) types with element_bboxes
+                        if ((selected.type === 'image' || selected.type === 'group') && selected.axisMetadata?.element_bboxes) {
+                            this.enterElementSelectionMode(selected, { x: 0, y: 0 });
+                        } else {
+                            this.exitElementSelectionMode();
+                        }
+                    } else {
+                        // Exit element selection mode for multi-selection
+                        this.exitElementSelectionMode();
+                    }
                 }
             });
 
@@ -180,21 +246,44 @@ export class CanvasManager {
                 if (this.selectionCallback) {
                     this.selectionCallback(null);
                 }
+                // Exit element selection mode when deselecting
+                this.exitElementSelectionMode();
             });
 
             // Double-click to enter group (PowerPoint-style sub-element selection)
+            // SCIENTIFIC INTEGRITY: Plot images should NOT have individual elements editable
             this.canvas.on('mouse:dblclick', (e: any) => {
                 const target = e.target;
                 if (target && target.type === 'group') {
-                    // Ungroup temporarily to allow sub-element selection
+                    // Check if this is a scientific plot (has data attached)
+                    // Plot images should NOT be editable at element level for scientific integrity
+                    const isPlotImage = target.plotInfo || target.csvData || target.axisMetadata;
+                    if (isPlotImage) {
+                        if (this.statusBarCallback) {
+                            this.statusBarCallback('Plot data cannot be edited (scientific integrity)');
+                        }
+                        console.log('[CanvasManager] Blocked group edit for plot image (scientific integrity)');
+                        return;
+                    }
+                    // Only allow group edit mode for non-plot groups (e.g., imported SVGs, shapes)
                     this.enterGroupEditMode(target);
                 }
+                // Note: Element selection mode is now auto-entered on selection
             });
 
             // Snap to other objects while moving (PowerPoint-style)
+            // Throttled using requestAnimationFrame for performance
             this.canvas.on('object:moving', (e: any) => {
                 if (this.snapEnabled) {
-                    this.handleObjectSnap(e.target);
+                    this.pendingMovingTarget = e.target;
+                    if (!this.objectMovingThrottleFrame) {
+                        this.objectMovingThrottleFrame = requestAnimationFrame(() => {
+                            if (this.pendingMovingTarget) {
+                                this.handleObjectSnap(this.pendingMovingTarget);
+                            }
+                            this.objectMovingThrottleFrame = null;
+                        });
+                    }
                 }
             });
 
@@ -351,9 +440,11 @@ export class CanvasManager {
         const startTime = performance.now();
 
         // Use pre-rendered static SVG files for maximum performance
+        // Cache bust version: increment when SVG files are updated
+        const cacheBust = 'v5';
         const gridUrl = isDark
-            ? '/static/vis_app/img/vis/grid-dark.svg'
-            : '/static/vis_app/img/vis/grid-light.svg';
+            ? `/static/vis_app/img/vis/grid-dark.svg?${cacheBust}`
+            : `/static/vis_app/img/vis/grid-light.svg?${cacheBust}`;
 
         // Load as Fabric.js background image
         fabric.Image.fromURL(gridUrl, (img: any) => {
@@ -425,6 +516,9 @@ export class CanvasManager {
     public updateCanvasTheme(isDark: boolean): void {
         if (!this.canvas) return;
 
+        const themeChanged = this.isDarkMode !== isDark;
+        this.isDarkMode = isDark;
+
         // Update canvas background color
         this.canvas.backgroundColor = isDark ? '#2a2a2a' : '#ffffff';
 
@@ -433,7 +527,243 @@ export class CanvasManager {
             this.drawGrid(isDark);
         }
 
+        // Reprocess all figure images and SVG groups for dark mode display
+        if (themeChanged) {
+            this.reprocessAllImagesForTheme();
+            this.reprocessAllSvgGroupsForTheme();
+        }
+
         this.canvas.renderAll();
+    }
+
+    /**
+     * Process image pixels for dark mode display
+     * Converts black/near-black to light gray, white to transparent
+     */
+    private processImageForDarkMode(img: HTMLImageElement): string {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth || img.width;
+        canvas.height = img.naturalHeight || img.height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return img.src;
+
+        ctx.drawImage(img, 0, 0);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+
+        const BLACK_THRESHOLD = 40;  // Pixels darker than this are considered black
+        const WHITE_THRESHOLD = 245; // Pixels lighter than this are considered white
+        const TARGET_GRAY = 200;     // Light gray for dark mode text/axes
+
+        for (let i = 0; i < data.length; i += 4) {
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+
+            // Check if pixel is black/near-black
+            if (r < BLACK_THRESHOLD && g < BLACK_THRESHOLD && b < BLACK_THRESHOLD) {
+                // Convert to light gray
+                data[i] = TARGET_GRAY;
+                data[i + 1] = TARGET_GRAY;
+                data[i + 2] = TARGET_GRAY;
+            }
+            // Check if pixel is white/near-white (background)
+            else if (r > WHITE_THRESHOLD && g > WHITE_THRESHOLD && b > WHITE_THRESHOLD) {
+                // Make transparent
+                data[i + 3] = 0;
+            }
+        }
+
+        ctx.putImageData(imageData, 0, 0);
+        return canvas.toDataURL('image/png');
+    }
+
+    /**
+     * Reprocess all figure images when theme changes
+     */
+    private reprocessAllImagesForTheme(): void {
+        if (!this.canvas) return;
+
+        const objects = this.canvas.getObjects();
+        let processedCount = 0;
+
+        objects.forEach((obj: any) => {
+            // Only process images that are figures (not grid background)
+            if (obj.type === 'image' && obj.name && obj.name !== 'grid-background') {
+                this.updateImageForTheme(obj);
+                processedCount++;
+            }
+        });
+
+        if (processedCount > 0) {
+            console.log(`[CanvasManager] Reprocessed ${processedCount} images for ${this.isDarkMode ? 'dark' : 'light'} mode`);
+        }
+    }
+
+    /**
+     * Process SVG group paths for dark mode display
+     * Converts black fills to light gray for visibility on dark canvas
+     */
+    public processSvgGroupForDarkMode(group: any): void {
+        if (!group || group.type !== 'group') return;
+
+        const children = group._objects || [];
+        const TARGET_GRAY = '#c8c8c8'; // Light gray (rgb 200,200,200) for dark mode
+        let modifiedCount = 0;
+
+        children.forEach((child: any) => {
+            if (child.type !== 'path') return;
+
+            const fill = child.fill;
+            const stroke = child.stroke;
+
+            // Convert black fills to light gray
+            if (fill === '#000000' || fill === 'rgb(0,0,0)' || fill === 'black') {
+                // Store original color if not stored
+                if (!child.originalFill) {
+                    child.originalFill = fill;
+                }
+                child.set('fill', TARGET_GRAY);
+                modifiedCount++;
+            }
+
+            // Convert black strokes to light gray
+            if (stroke === '#000000' || stroke === 'rgb(0,0,0)' || stroke === 'black') {
+                if (!child.originalStroke) {
+                    child.originalStroke = stroke;
+                }
+                child.set('stroke', TARGET_GRAY);
+                modifiedCount++;
+            }
+        });
+
+        // Mark group dirty and update coordinates
+        group.set('dirty', true);
+        group.setCoords();
+
+        console.log(`[CanvasManager] Dark mode: modified ${modifiedCount} path colors in group`);
+    }
+
+    /**
+     * Restore SVG group paths to original colors (for light mode)
+     */
+    public restoreSvgGroupColors(group: any): void {
+        if (!group || group.type !== 'group') return;
+
+        const children = group._objects || [];
+        let modifiedCount = 0;
+
+        children.forEach((child: any) => {
+            if (child.type !== 'path') return;
+
+            // Restore original fill if stored
+            if (child.originalFill) {
+                child.set('fill', child.originalFill);
+                modifiedCount++;
+            }
+
+            // Restore original stroke if stored
+            if (child.originalStroke) {
+                child.set('stroke', child.originalStroke);
+                modifiedCount++;
+            }
+        });
+
+        // Mark group dirty and update coordinates
+        group.set('dirty', true);
+        group.setCoords();
+
+        console.log(`[CanvasManager] Light mode: restored ${modifiedCount} path colors in group`);
+    }
+
+    /**
+     * Reprocess all SVG groups when theme changes
+     * Uses remove/re-add strategy to force complete re-render
+     */
+    public reprocessAllSvgGroupsForTheme(): void {
+        if (!this.canvas) return;
+
+        const objects = this.canvas.getObjects();
+        const groupsToProcess: any[] = [];
+
+        // Collect all groups first (avoid modifying while iterating)
+        objects.forEach((obj: any) => {
+            if (obj.type === 'group') {
+                groupsToProcess.push(obj);
+            }
+        });
+
+        if (groupsToProcess.length === 0) return;
+
+        // Process each group by removing and re-adding to force re-render
+        groupsToProcess.forEach((group: any) => {
+            // Store position and other properties
+            const index = this.canvas!.getObjects().indexOf(group);
+
+            // Modify colors on the children
+            if (this.isDarkMode) {
+                this.processSvgGroupForDarkMode(group);
+            } else {
+                this.restoreSvgGroupColors(group);
+            }
+
+            // Remove and re-add the group to force complete re-render
+            this.canvas!.remove(group);
+
+            // Disable object caching for SVG groups to ensure child updates are visible
+            group.objectCaching = false;
+
+            // Re-add at the same position
+            if (index >= 0 && index < this.canvas!.getObjects().length) {
+                this.canvas!.insertAt(index, group);
+            } else {
+                this.canvas!.add(group);
+            }
+        });
+
+        this.canvas.renderAll();
+        console.log(`[CanvasManager] Reprocessed ${groupsToProcess.length} SVG groups for ${this.isDarkMode ? 'dark' : 'light'} mode`);
+    }
+
+    /**
+     * Update a single image for current theme
+     */
+    private updateImageForTheme(fabricImg: any): void {
+        const element = fabricImg.getElement();
+        if (!element) return;
+
+        // Store original source if not already stored
+        if (!this.originalImageSources.has(fabricImg)) {
+            this.originalImageSources.set(fabricImg, element.src);
+        }
+
+        const originalSrc = this.originalImageSources.get(fabricImg)!;
+
+        if (this.isDarkMode) {
+            // Load original image and process for dark mode
+            const tempImg = new Image();
+            tempImg.crossOrigin = 'anonymous';
+            tempImg.onload = () => {
+                const processedSrc = this.processImageForDarkMode(tempImg);
+                const newImg = new Image();
+                newImg.crossOrigin = 'anonymous';
+                newImg.onload = () => {
+                    fabricImg.setElement(newImg);
+                    this.canvas?.renderAll();
+                };
+                newImg.src = processedSrc;
+            };
+            tempImg.src = originalSrc;
+        } else {
+            // Restore original image
+            const newImg = new Image();
+            newImg.crossOrigin = 'anonymous';
+            newImg.onload = () => {
+                fabricImg.setElement(newImg);
+                this.canvas?.renderAll();
+            };
+            newImg.src = originalSrc;
+        }
     }
 
     /**
@@ -623,6 +953,13 @@ export class CanvasManager {
         // Setup context menu
         this.setupContextMenu(canvasContainer);
 
+        // Track right-click pan to distinguish from context menu
+        let rightClickPanStartPoint: { x: number; y: number } | null = null;
+
+        // Track right-click double-click for canvas reset
+        let lastRightClickTime = 0;
+        const DOUBLE_CLICK_THRESHOLD = 300; // ms
+
         // Mouse down - Check for panning or zoom dragging
         canvasContainer.addEventListener('mousedown', (e: MouseEvent) => {
             if (e.button === 1 || (e as any).spaceKey) {
@@ -642,11 +979,48 @@ export class CanvasManager {
                     e.preventDefault();
                     console.log('[CanvasManager] Canvas pan mode started');
                 }
+            } else if (e.button === 2) {
+                // Right-click - check for double-click to reset canvas position
+                const now = Date.now();
+                if (now - lastRightClickTime < DOUBLE_CLICK_THRESHOLD) {
+                    // Double right-click - reset canvas position to origin
+                    this.canvasPanOffset.x = 0;
+                    this.canvasPanOffset.y = 0;
+                    this.updateCanvasTransform();
+                    if (this.rulersAreaTransformCallback) {
+                        this.rulersAreaTransformCallback();
+                    }
+                    this.saveViewState();
+                    this.rightClickPanOccurred = true; // Suppress context menu
+                    console.log('[CanvasManager] Canvas position reset to origin (right double-click)');
+                    lastRightClickTime = 0; // Reset to prevent triple-click
+                } else {
+                    // Single right-click - prepare for potential pan
+                    rightClickPanStartPoint = { x: e.clientX, y: e.clientY };
+                    this.rightClickPanOccurred = false;
+                    lastRightClickTime = now;
+                }
             }
         });
 
         // Mouse move - Handle panning or zoom dragging
         canvasContainer.addEventListener('mousemove', (e: MouseEvent) => {
+            // Handle right-click pan initiation (detect movement threshold)
+            if (rightClickPanStartPoint && !this.canvasIsPanning) {
+                const dx = e.clientX - rightClickPanStartPoint.x;
+                const dy = e.clientY - rightClickPanStartPoint.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                // Start panning if moved more than 3 pixels
+                if (distance > 3) {
+                    this.rightClickPanOccurred = true;
+                    this.canvasIsPanning = true;
+                    this.canvasPanStartPoint = rightClickPanStartPoint;
+                    canvasContainer.style.cursor = 'grabbing';
+                    console.log('[CanvasManager] Canvas pan mode started (right-click)');
+                }
+            }
+
             if (this.canvasIsZoomDragging) {
                 // Ctrl+drag zoom: vertical movement changes zoom
                 const deltaY = e.clientY - this.canvasZoomDragStartY;
@@ -680,14 +1054,33 @@ export class CanvasManager {
                     deltaY *= 0.1;
                 }
 
-                this.canvasPanOffset.x += deltaX;
-                this.canvasPanOffset.y += deltaY;
+                // Accumulate pan delta for throttled update
+                if (!this.pendingPanUpdate) {
+                    this.pendingPanUpdate = { x: deltaX, y: deltaY };
+                } else {
+                    this.pendingPanUpdate.x += deltaX;
+                    this.pendingPanUpdate.y += deltaY;
+                }
 
-                // Direct DOM update for maximum performance during pan
-                // Skip requestAnimationFrame for more responsive panning
-                const rulersArea = document.querySelector('.vis-rulers-area') as HTMLElement;
-                if (rulersArea) {
-                    rulersArea.style.transform = `translate(${this.canvasPanOffset.x}px, ${this.canvasPanOffset.y}px) scale(${this.canvasZoomLevel})`;
+                // Throttle pan updates using requestAnimationFrame
+                if (!this.panThrottleFrame) {
+                    this.panThrottleFrame = requestAnimationFrame(() => {
+                        if (this.pendingPanUpdate) {
+                            this.canvasPanOffset.x += this.pendingPanUpdate.x;
+                            this.canvasPanOffset.y += this.pendingPanUpdate.y;
+
+                            // Use Fabric.js viewport transform for pan (maintains SVG crispness)
+                            this.updateCanvasTransform();
+
+                            // Update rulers
+                            if (this.rulersAreaTransformCallback) {
+                                this.rulersAreaTransformCallback();
+                            }
+
+                            this.pendingPanUpdate = null;
+                        }
+                        this.panThrottleFrame = null;
+                    });
                 }
 
                 this.canvasPanStartPoint = { x: e.clientX, y: e.clientY };
@@ -695,7 +1088,12 @@ export class CanvasManager {
         });
 
         // Mouse up - Reset panning or zoom dragging
-        canvasContainer.addEventListener('mouseup', () => {
+        canvasContainer.addEventListener('mouseup', (e: MouseEvent) => {
+            // Reset right-click pan tracking
+            if (e.button === 2) {
+                rightClickPanStartPoint = null;
+            }
+
             if (this.canvasIsZoomDragging) {
                 this.canvasIsZoomDragging = false;
                 canvasContainer.style.cursor = 'default';
@@ -715,6 +1113,16 @@ export class CanvasManager {
                 cancelAnimationFrame(this.canvasDragThrottleFrame);
                 this.canvasDragThrottleFrame = null;
                 this.pendingDragUpdate = false;
+            }
+            if (this.panThrottleFrame !== null) {
+                cancelAnimationFrame(this.panThrottleFrame);
+                this.panThrottleFrame = null;
+                this.pendingPanUpdate = null;
+            }
+            if (this.objectMovingThrottleFrame !== null) {
+                cancelAnimationFrame(this.objectMovingThrottleFrame);
+                this.objectMovingThrottleFrame = null;
+                this.pendingMovingTarget = null;
             }
         });
 
@@ -791,8 +1199,14 @@ export class CanvasManager {
 
         // Keep Fabric.js canvas at identity transform
         // All zoom/pan is handled by CSS transform on .vis-rulers-area parent
-        // No need to call renderAll here - only setViewportTransform
         this.canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+
+        // Update CSS transform on rulers area
+        const rulersArea = document.querySelector('.vis-rulers-area') as HTMLElement;
+        if (rulersArea) {
+            rulersArea.style.transform = `translate(${this.canvasPanOffset.x}px, ${this.canvasPanOffset.y}px) scale(${this.canvasZoomLevel})`;
+            rulersArea.style.transformOrigin = '0 0';
+        }
 
         // Save state to localStorage for persistence
         this.saveViewState();
@@ -851,11 +1265,32 @@ export class CanvasManager {
         if (!this.canvas) return;
         try {
             const json = this.canvas.toJSON(['name', 'id', 'axisMetadata', 'plotInfo', 'originalWidth', 'originalHeight']);
-            localStorage.setItem('scitex-vis-canvas', JSON.stringify(json));
+            // Use custom serializer to preserve tiny scale values (prevent 0.0001 from becoming 0)
+            const jsonString = this.serializeWithPrecision(json);
+            localStorage.setItem('scitex-vis-canvas', jsonString);
             console.log('[CanvasManager] Saved canvas content to localStorage');
         } catch (err) {
             console.warn('[CanvasManager] Failed to save canvas:', err);
         }
+    }
+
+    /**
+     * Serialize JSON with high precision for small numbers
+     * JSON.stringify rounds 0.0001 to 0, losing text glyph scale data
+     */
+    private serializeWithPrecision(obj: any): string {
+        return JSON.stringify(obj, (key, value) => {
+            // Preserve precision for scale values and other small numbers
+            if (typeof value === 'number' && value !== 0) {
+                // If it's a very small number, convert to string with high precision
+                // Then parse it back to ensure valid number representation
+                if (Math.abs(value) < 0.001 && Math.abs(value) > 0) {
+                    // Store as scientific notation string wrapped in special marker
+                    return { __tinyNum__: value.toExponential(10) };
+                }
+            }
+            return value;
+        });
     }
 
     /**
@@ -871,8 +1306,17 @@ export class CanvasManager {
             try {
                 const saved = localStorage.getItem('scitex-vis-canvas');
                 if (saved) {
-                    const json = JSON.parse(saved);
+                    // Parse with custom reviver to restore tiny numbers
+                    const json = this.parseWithPrecision(saved);
+
+                    // Fallback: fix any remaining zero-scale paths (from old saves)
+                    this.fixZeroScalePathsInJson(json);
+
                     this.canvas.loadFromJSON(json, () => {
+                        // Apply dark mode color transformation to restored SVG groups
+                        if (this.isDarkMode) {
+                            this.reprocessAllSvgGroupsForTheme();
+                        }
                         this.canvas!.renderAll();
                         const objects = this.canvas!.getObjects();
                         console.log(`[CanvasManager] Restored canvas content (${objects.length} objects)`);
@@ -886,6 +1330,88 @@ export class CanvasManager {
                 resolve([]);
             }
         });
+    }
+
+    /**
+     * Parse JSON with restoration of tiny numbers preserved by serializeWithPrecision
+     */
+    private parseWithPrecision(jsonString: string): any {
+        const parsed = JSON.parse(jsonString);
+
+        // Recursively restore __tinyNum__ markers
+        const restoreTinyNumbers = (obj: any): any => {
+            if (obj === null || typeof obj !== 'object') {
+                return obj;
+            }
+
+            // Check if this is a tiny number marker
+            if (obj.__tinyNum__ !== undefined) {
+                return parseFloat(obj.__tinyNum__);
+            }
+
+            // Handle arrays
+            if (Array.isArray(obj)) {
+                return obj.map(restoreTinyNumbers);
+            }
+
+            // Handle objects
+            const result: any = {};
+            for (const key in obj) {
+                if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                    result[key] = restoreTinyNumbers(obj[key]);
+                }
+            }
+            return result;
+        };
+
+        return restoreTinyNumbers(parsed);
+    }
+
+    /**
+     * Fix paths with zero scale in JSON before loading
+     * Matplotlib SVG text glyphs have tiny scale values (e.g., 0.00146) that get rounded to 0
+     * These paths have large width/height (glyph definition space ~3000x4000)
+     *
+     * The standard matplotlib glyph scale is approximately 0.00145833 (1/685.71)
+     * This renders glyphs at their intended size (~7px for typical 4600-height glyphs)
+     */
+    private fixZeroScalePathsInJson(json: any): void {
+        if (!json?.objects) return;
+
+        let fixedCount = 0;
+
+        // Standard matplotlib glyph scale factor
+        // This is the typical scale used by matplotlib SVG text rendering
+        // Calculated as: intended_font_size_px / glyph_coordinate_space
+        // Typical: ~7px / 4800 ≈ 0.00145833
+        const MATPLOTLIB_GLYPH_SCALE = 0.0014583333333333334;
+
+        const fixPathsInObject = (obj: any) => {
+            if (obj.type === 'path') {
+                // Check if this is a zero-scale path with large dimensions (text glyph)
+                const hasZeroScale = (obj.scaleX === 0 || obj.scaleY === 0);
+                const hasLargeDimensions = (obj.width > 500 || obj.height > 500);
+
+                if (hasZeroScale && hasLargeDimensions) {
+                    // Use the standard matplotlib scale for both axes
+                    // This maintains the correct aspect ratio and text size
+                    if (obj.scaleX === 0) obj.scaleX = MATPLOTLIB_GLYPH_SCALE;
+                    if (obj.scaleY === 0) obj.scaleY = MATPLOTLIB_GLYPH_SCALE;
+                    fixedCount++;
+                }
+            }
+
+            // Recursively process group children
+            if (obj.type === 'group' && obj.objects) {
+                obj.objects.forEach(fixPathsInObject);
+            }
+        };
+
+        json.objects.forEach(fixPathsInObject);
+
+        if (fixedCount > 0) {
+            console.log(`[CanvasManager] Fixed ${fixedCount} zero-scale paths (text glyphs)`);
+        }
     }
 
     /**
@@ -983,6 +1509,8 @@ export class CanvasManager {
         selectable?: boolean;
         name?: string;
         axisMetadata?: any;  // Axis metadata for snap/align by axis
+        csvData?: string[][];  // CSV data for stats (must be set before adding to canvas)
+        plotInfo?: any;  // Plot info for re-rendering
     } = {}): Promise<any> {
         return new Promise(async (resolve, reject) => {
             if (!this.canvas) {
@@ -1049,12 +1577,33 @@ export class CanvasManager {
                     console.log('[CanvasManager] Stored axis metadata on image:', axisMetadata);
                 }
 
+                // Store CSV data for stats (MUST be set before adding to canvas)
+                // This is because setActiveObject triggers selection:created which enters element mode
+                if (options.csvData && options.csvData.length > 0) {
+                    img.csvData = options.csvData;
+                    console.log(`[CanvasManager] Stored CSV data on image: ${options.csvData.length} rows`);
+                }
+
+                // Store plot info for re-rendering
+                if (options.plotInfo) {
+                    img.plotInfo = options.plotInfo;
+                }
+
                 // Save undo state before adding
                 this.saveUndoState();
 
+                // Store original source for theme switching
+                this.originalImageSources.set(img, src);
+
                 this.canvas!.add(img);
                 this.canvas!.setActiveObject(img);
-                this.canvas!.renderAll();
+
+                // Process for dark mode if active
+                if (this.isDarkMode) {
+                    this.updateImageForTheme(img);
+                } else {
+                    this.canvas!.renderAll();
+                }
 
                 // Save canvas content after adding image
                 this.saveCanvasContent();
@@ -1093,6 +1642,9 @@ export class CanvasManager {
         maxHeight?: number;
         name?: string;
         selectableElements?: boolean; // If true, elements inside can be selected individually
+        axisMetadata?: any; // Metadata for element selection (must be attached BEFORE setActiveObject)
+        plotInfo?: any; // Plot info (category, name, etc.)
+        csvData?: any; // CSV data for stats
     } = {}): Promise<any> {
         return new Promise((resolve, reject) => {
             if (!this.canvas) {
@@ -1159,6 +1711,23 @@ export class CanvasManager {
                     resolve(objects);
                 } else {
                     // Add as a single group (default behavior)
+                    // IMPORTANT: Attach metadata BEFORE setActiveObject to enable element selection
+                    // setActiveObject triggers selection:created which checks for axisMetadata
+                    if (options.axisMetadata) {
+                        group.axisMetadata = options.axisMetadata;
+                    }
+                    if (options.plotInfo) {
+                        group.plotInfo = options.plotInfo;
+                    }
+                    if (options.csvData) {
+                        group.csvData = options.csvData;
+                    }
+
+                    // Apply dark mode color transformation if in dark mode
+                    if (this.isDarkMode) {
+                        this.processSvgGroupForDarkMode(group);
+                    }
+
                     this.canvas!.add(group);
                     this.canvas!.setActiveObject(group);
                     this.canvas!.renderAll();
@@ -1486,6 +2055,61 @@ export class CanvasManager {
                 <i class="fas fa-object-ungroup"></i> Ungroup
                 <span class="shortcut">Ctrl+Shift+G</span>
             </div>
+            <div class="context-menu-separator"></div>
+            <div class="context-menu-submenu">
+                <div class="context-menu-item submenu-header">
+                    <i class="fas fa-download"></i> Export
+                    <i class="fas fa-chevron-right" style="margin-left:auto;opacity:0.5;"></i>
+                </div>
+                <div class="submenu-items">
+                    <div class="context-menu-item" data-action="export-png">
+                        <i class="fas fa-file-image"></i> Export as PNG
+                    </div>
+                    <div class="context-menu-item" data-action="export-svg">
+                        <i class="fas fa-bezier-curve"></i> Export as SVG
+                    </div>
+                    <div class="context-menu-item" data-action="export-pdf">
+                        <i class="fas fa-file-pdf"></i> Export as PDF
+                    </div>
+                </div>
+            </div>
+            <div class="context-menu-item" data-action="save-canvas">
+                <i class="fas fa-save"></i> Save Figure
+                <span class="shortcut">Ctrl+S</span>
+            </div>
+            <div class="context-menu-separator"></div>
+            <div class="context-menu-item" data-action="toggle-theme">
+                <i class="fas fa-adjust"></i> Toggle Light/Dark
+            </div>
+            <div class="context-menu-item" data-action="zoom-fit">
+                <i class="fas fa-expand"></i> Zoom to Fit
+                <span class="shortcut">Ctrl+0</span>
+            </div>
+            <div class="context-menu-item" data-action="reset-view">
+                <i class="fas fa-home"></i> Reset View
+            </div>
+            <div class="context-menu-separator stats-section" style="display:none;"></div>
+            <div class="context-menu-submenu stats-section" style="display:none;">
+                <div class="context-menu-item submenu-header">
+                    <i class="fas fa-chart-bar"></i> Statistics
+                    <i class="fas fa-chevron-right" style="margin-left:auto;opacity:0.5;"></i>
+                </div>
+                <div class="submenu-items">
+                    <div class="context-menu-item" data-action="stats-recommended">
+                        <i class="fas fa-magic"></i> Run Recommended Test
+                    </div>
+                    <div class="context-menu-item" data-action="stats-all">
+                        <i class="fas fa-vials"></i> Run All Applicable
+                    </div>
+                    <div class="context-menu-item" data-action="stats-select">
+                        <i class="fas fa-list"></i> Select Test...
+                    </div>
+                    <div class="context-menu-separator"></div>
+                    <div class="context-menu-item" data-action="stats-inspector">
+                        <i class="fas fa-microscope"></i> Open Stats Inspector
+                    </div>
+                </div>
+            </div>
         `;
         menu.style.cssText = `
             position: fixed;
@@ -1562,9 +2186,18 @@ export class CanvasManager {
         container.addEventListener('contextmenu', (e: MouseEvent) => {
             e.preventDefault();
 
-            // Check if we have an active object
+            // Skip context menu if right-click was used for panning
+            if (this.rightClickPanOccurred) {
+                this.rightClickPanOccurred = false;
+                menu.style.display = 'none';
+                return;
+            }
+
+            // Check if we have an active object or element-level selection
             const activeObj = this.canvas?.getActiveObject();
-            if (!activeObj) {
+            const hasElementSelection = this.selectedElementNames.size >= 2;
+
+            if (!activeObj && !hasElementSelection) {
                 menu.style.display = 'none';
                 return;
             }
@@ -1572,17 +2205,25 @@ export class CanvasManager {
             // Show/hide multi-select-only options (Distribute, Size)
             // Align is always shown (single object aligns to canvas)
             const multiSelectSections = menu.querySelectorAll('.multi-select-section');
-            const isMultiSelect = activeObj.type === 'activeSelection';
+            const isMultiSelect = activeObj?.type === 'activeSelection';
             multiSelectSections.forEach(section => {
                 (section as HTMLElement).style.display = isMultiSelect ? 'block' : 'none';
             });
 
             // Show/hide image-only options (Crop)
             const imageOnlySections = menu.querySelectorAll('.image-only-section');
-            const isImage = activeObj.type === 'image' ||
-                (isMultiSelect && (activeObj as any).getObjects().some((o: any) => o.type === 'image'));
+            const isImage = activeObj?.type === 'image' ||
+                (isMultiSelect && (activeObj as any).getObjects?.()?.some((o: any) => o.type === 'image'));
             imageOnlySections.forEach(section => {
                 (section as HTMLElement).style.display = isImage ? 'block' : 'none';
+            });
+
+            // Show/hide stats section (requires multi-selection with plot data OR element-level selection)
+            const statsSections = menu.querySelectorAll('.stats-section');
+            const hasPlotData = isMultiSelect && activeObj && (activeObj as any).getObjects?.()?.some((o: any) => o.plotData);
+            // hasElementSelection already declared above
+            statsSections.forEach(section => {
+                (section as HTMLElement).style.display = (isMultiSelect || hasPlotData || hasElementSelection) ? 'block' : 'none';
             });
 
             // Position menu at cursor
@@ -1737,6 +2378,45 @@ export class CanvasManager {
                     break;
                 case 'paste-view':
                     this.pasteView();
+                    break;
+                // Statistics actions
+                case 'stats-recommended':
+                    this.runRecommendedStatTest();
+                    break;
+                case 'stats-all':
+                    this.runAllStatTests();
+                    break;
+                case 'stats-select':
+                    this.showStatTestSelector();
+                    break;
+                case 'stats-inspector':
+                    this.openStatsInspector();
+                    break;
+                // Export actions
+                case 'export-png':
+                    this.exportAsPng();
+                    break;
+                case 'export-svg':
+                    this.exportAsSvg();
+                    break;
+                case 'export-pdf':
+                    this.exportAsPdf();
+                    break;
+                // Canvas actions
+                case 'save-canvas':
+                    this.saveCanvasContent();
+                    if (this.statusBarCallback) {
+                        this.statusBarCallback('Figure saved');
+                    }
+                    break;
+                case 'toggle-theme':
+                    this.toggleCanvasTheme();
+                    break;
+                case 'zoom-fit':
+                    this.zoomToFit();
+                    break;
+                case 'reset-view':
+                    this.resetView();
                     break;
             }
         });
@@ -3875,5 +4555,1254 @@ export class CanvasManager {
         }
 
         return result;
+    }
+
+    // ============================================================
+    // Element-level Selection Mode
+    // ============================================================
+
+    private elementSelectionTarget: any = null;
+    private elementSelectionOverlay: HTMLCanvasElement | null = null;
+    private selectedElementNames: Set<string> = new Set();  // Multi-selection support
+    private hoveredElementName: string | null = null;
+    private elementSelectionCallback?: (elementNames: string[], elementInfos: any[]) => void;
+
+    /**
+     * Set callback for element selection changes
+     */
+    public setElementSelectionCallback(callback: (elementNames: string[], elementInfos: any[]) => void): void {
+        this.elementSelectionCallback = callback;
+    }
+
+    /**
+     * Get currently selected element names
+     */
+    public getSelectedElementNames(): string[] {
+        return Array.from(this.selectedElementNames);
+    }
+
+    /**
+     * Enter element selection mode for a plot image
+     */
+    private enterElementSelectionMode(target: any, pointer?: { x: number, y: number }): void {
+        if (!target.axisMetadata?.element_bboxes) {
+            console.warn('[CanvasManager] No element_bboxes on target');
+            return;
+        }
+
+        // Don't re-enter if already in element selection mode for this target
+        if (this.elementSelectionTarget === target) {
+            return;
+        }
+
+        this.elementSelectionTarget = target;
+        const bboxes = target.axisMetadata.element_bboxes;
+        const elementKeys = Object.keys(bboxes);
+        console.log('[CanvasManager] Entering element selection mode', elementKeys);
+        // Debug: Check if path_simplified is available
+        for (const key of elementKeys) {
+            const bbox = bboxes[key];
+            console.log(`[CanvasManager] Element ${key}:`, {
+                hasPathSimplified: !!bbox.path_simplified,
+                pathLength: bbox.path_simplified?.length || 0,
+                hasBbox: !!bbox.bbox,
+                elementType: bbox.element_type
+            });
+        }
+
+        // Create overlay canvas for element highlights
+        this.createElementOverlay(target);
+
+        // If pointer provided and valid, try to select element at that position
+        if (pointer && pointer.x !== 0 && pointer.y !== 0) {
+            const element = this.findElementAtPosition(pointer.x, pointer.y);
+            if (element) {
+                this.selectElement(element);
+            }
+        }
+
+        if (this.statusBarCallback) {
+            this.statusBarCallback('Element selection mode - Click to select, Ctrl+Click to multi-select');
+        }
+    }
+
+    /**
+     * Exit element selection mode
+     */
+    public exitElementSelectionMode(): void {
+        if (!this.elementSelectionTarget) return;
+
+        this.elementSelectionTarget = null;
+        this.selectedElementNames.clear();
+        this.hoveredElementName = null;
+
+        // Remove overlay
+        if (this.elementSelectionOverlay && this.elementSelectionOverlay.parentNode) {
+            this.elementSelectionOverlay.parentNode.removeChild(this.elementSelectionOverlay);
+        }
+        this.elementSelectionOverlay = null;
+
+        if (this.elementSelectionCallback) {
+            this.elementSelectionCallback([], []);
+        }
+
+        if (this.statusBarCallback) {
+            this.statusBarCallback('Exited element selection mode');
+        }
+
+        console.log('[CanvasManager] Exited element selection mode');
+    }
+
+    /**
+     * Check if currently in element selection mode
+     */
+    public isInElementSelectionMode(): boolean {
+        return this.elementSelectionTarget !== null;
+    }
+
+    /**
+     * Create overlay canvas for element highlights
+     */
+    private createElementOverlay(target: any): void {
+        // Remove any existing overlay
+        if (this.elementSelectionOverlay && this.elementSelectionOverlay.parentNode) {
+            this.elementSelectionOverlay.parentNode.removeChild(this.elementSelectionOverlay);
+        }
+
+        const canvasEl = this.canvas?.getElement();
+        if (!canvasEl) return;
+
+        const container = canvasEl.parentElement;
+        if (!container) return;
+
+        // Create overlay canvas
+        const overlay = document.createElement('canvas');
+        overlay.id = 'element-selection-overlay';
+        overlay.style.position = 'absolute';
+        overlay.style.pointerEvents = 'none';
+        overlay.style.left = '0';
+        overlay.style.top = '0';
+        overlay.width = canvasEl.width;
+        overlay.height = canvasEl.height;
+        overlay.style.zIndex = '10';
+
+        container.style.position = 'relative';
+        container.appendChild(overlay);
+        this.elementSelectionOverlay = overlay;
+
+        // Setup mouse events for element detection
+        this.setupElementSelectionEvents();
+    }
+
+    /**
+     * Setup mouse events for element selection
+     */
+    private setupElementSelectionEvents(): void {
+        if (!this.canvas) return;
+
+        // Store handler reference for cleanup
+        const mouseMoveHandler = (e: any) => {
+            if (!this.elementSelectionTarget) return;
+
+            const pointer = this.canvas.getPointer(e.e);
+            const element = this.findElementAtPosition(pointer.x, pointer.y);
+
+            if (element !== this.hoveredElementName) {
+                this.hoveredElementName = element;
+                this.updateElementOverlay();
+            }
+        };
+
+        const mouseDownHandler = (e: any) => {
+            if (!this.elementSelectionTarget) return;
+
+            // Check if click is outside the target image
+            const target = e.target;
+            if (target !== this.elementSelectionTarget) {
+                this.exitElementSelectionMode();
+                return;
+            }
+
+            const pointer = this.canvas.getPointer(e.e);
+            const isMultiSelect = e.e.ctrlKey || e.e.shiftKey;
+
+            // Alt+click for cycle selection
+            if (e.e.altKey) {
+                const element = this.cycleElementSelection(pointer.x, pointer.y);
+                if (element) {
+                    this.selectElement(element, isMultiSelect);
+                }
+            } else {
+                const element = this.findElementAtPosition(pointer.x, pointer.y);
+                if (element) {
+                    this.selectElement(element, isMultiSelect);
+                }
+            }
+        };
+
+        this.canvas.on('mouse:move', mouseMoveHandler);
+        this.canvas.on('mouse:down', mouseDownHandler);
+
+        // Store handlers for cleanup (simple approach - they get removed when canvas is disposed)
+        (this.canvas as any)._elementSelectionMouseMove = mouseMoveHandler;
+        (this.canvas as any)._elementSelectionMouseDown = mouseDownHandler;
+    }
+
+    /**
+     * Find element at canvas position
+     */
+    private findElementAtPosition(canvasX: number, canvasY: number): string | null {
+        if (!this.elementSelectionTarget) return null;
+
+        const target = this.elementSelectionTarget;
+        const bboxes = target.axisMetadata?.element_bboxes;
+        if (!bboxes) return null;
+
+        // Convert canvas position to image-local position
+        // Fabric.js uses center origin by default, so left/top are center coords
+        const imgScaleX = target.scaleX || 1;
+        const imgScaleY = target.scaleY || 1;
+        const imgWidth = target.width || 0;
+        const imgHeight = target.height || 0;
+
+        // Get figure_size_px from metadata - bbox coordinates are in figure pixels
+        const figureSize = target.axisMetadata?.figure_size_px;
+        const figureWidth = figureSize?.width || imgWidth;
+        const figureHeight = figureSize?.height || imgHeight;
+
+        // Convert center coords to top-left corner
+        const imgLeft = (target.left || 0) - (imgWidth * imgScaleX / 2);
+        const imgTop = (target.top || 0) - (imgHeight * imgScaleY / 2);
+
+        // Position relative to image (in object pixels)
+        const objX = (canvasX - imgLeft) / imgScaleX;
+        const objY = (canvasY - imgTop) / imgScaleY;
+
+        // Check if point is inside image bounds
+        if (objX < 0 || objX > imgWidth || objY < 0 || objY > imgHeight) {
+            return null;
+        }
+
+        // Convert object pixels to figure pixels for hit detection
+        // bbox/path_simplified coordinates are in figure pixels
+        const figX = objX * (figureWidth / imgWidth);
+        const figY = objY * (figureHeight / imgHeight);
+
+        // Use the imported ElementSelectionManager for hit detection
+        return this.findElementAtImageCoords(bboxes, figX, figY);
+    }
+
+    /**
+     * Find element at image coordinates (reimplemented inline for simplicity)
+     */
+    private findElementAtImageCoords(bboxes: any, imgX: number, imgY: number): string | null {
+        const PROXIMITY_THRESHOLD = 15;
+        const SCATTER_THRESHOLD = 20;
+
+        // First: Check for data elements with points/path_simplified (lines, scatter)
+        let closestDataElement: string | null = null;
+        let minDistance = Infinity;
+
+        for (const [name, bbox] of Object.entries(bboxes) as [string, any][]) {
+            // Support both old 'points' and new 'path_simplified' formats
+            const points = bbox.points || bbox.path_simplified;
+            // Get bbox coords - support both old (x0,y0,x1,y1) and new (bbox.x0,...) formats
+            const bboxCoords = bbox.bbox || bbox;
+            const x0 = bboxCoords.x0 ?? 0;
+            const y0 = bboxCoords.y0 ?? 0;
+            const x1 = bboxCoords.x1 ?? 0;
+            const y1 = bboxCoords.y1 ?? 0;
+
+            if (points && points.length > 0) {
+                if (imgX >= x0 - SCATTER_THRESHOLD &&
+                    imgX <= x1 + SCATTER_THRESHOLD &&
+                    imgY >= y0 - SCATTER_THRESHOLD &&
+                    imgY <= y1 + SCATTER_THRESHOLD) {
+
+                    const elementType = bbox.element_type || 'line';
+                    let dist: number;
+
+                    if (elementType === 'scatter') {
+                        dist = this.distanceToNearestPoint(imgX, imgY, points);
+                    } else {
+                        dist = this.distanceToLine(imgX, imgY, points);
+                    }
+
+                    if (dist < minDistance) {
+                        minDistance = dist;
+                        closestDataElement = name;
+                    }
+                }
+            }
+        }
+
+        if (closestDataElement) {
+            const bbox = bboxes[closestDataElement];
+            const threshold = (bbox.element_type === 'scatter') ? SCATTER_THRESHOLD : PROXIMITY_THRESHOLD;
+            if (minDistance <= threshold) {
+                return closestDataElement;
+            }
+        }
+
+        // Second: Check bbox containment
+        const matches: { name: string; area: number; isPanel: boolean }[] = [];
+
+        for (const [name, bbox] of Object.entries(bboxes) as [string, any][]) {
+            // Support both old (x0,y0,x1,y1) and new (bbox.x0,...) formats
+            const bboxCoords = bbox.bbox || bbox;
+            const x0 = bboxCoords.x0 ?? 0;
+            const y0 = bboxCoords.y0 ?? 0;
+            const x1 = bboxCoords.x1 ?? 0;
+            const y1 = bboxCoords.y1 ?? 0;
+
+            if (imgX >= x0 && imgX <= x1 && imgY >= y0 && imgY <= y1) {
+                const area = (x1 - x0) * (y1 - y0);
+                const isPanel = bbox.is_panel || name === 'panel' || name.endsWith('_panel');
+                const hasPoints = bbox.points || bbox.path_simplified;
+
+                if (!hasPoints || hasPoints.length === 0) {
+                    matches.push({ name, area, isPanel });
+                }
+            }
+        }
+
+        // Return smallest non-panel element
+        const nonPanels = matches.filter(m => !m.isPanel);
+        if (nonPanels.length > 0) {
+            nonPanels.sort((a, b) => a.area - b.area);
+            return nonPanels[0].name;
+        }
+
+        // Fallback to panel
+        const panels = matches.filter(m => m.isPanel);
+        if (panels.length > 0) {
+            panels.sort((a, b) => a.area - b.area);
+            return panels[0].name;
+        }
+
+        return null;
+    }
+
+    private distanceToNearestPoint(px: number, py: number, points: number[][]): number {
+        let minDist = Infinity;
+        for (const [x, y] of points) {
+            const dist = Math.sqrt((px - x) ** 2 + (py - y) ** 2);
+            if (dist < minDist) minDist = dist;
+        }
+        return minDist;
+    }
+
+    private distanceToLine(px: number, py: number, points: number[][]): number {
+        let minDist = Infinity;
+        for (let i = 0; i < points.length - 1; i++) {
+            const [x1, y1] = points[i];
+            const [x2, y2] = points[i + 1];
+            const dist = this.distanceToSegment(px, py, x1, y1, x2, y2);
+            if (dist < minDist) minDist = dist;
+        }
+        return minDist;
+    }
+
+    private distanceToSegment(px: number, py: number, x1: number, y1: number, x2: number, y2: number): number {
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const lenSq = dx * dx + dy * dy;
+        if (lenSq === 0) return Math.sqrt((px - x1) ** 2 + (py - y1) ** 2);
+        let t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
+        t = Math.max(0, Math.min(1, t));
+        const projX = x1 + t * dx;
+        const projY = y1 + t * dy;
+        return Math.sqrt((px - projX) ** 2 + (py - projY) ** 2);
+    }
+
+    // Cycle selection state
+    private elementsAtCursor: string[] = [];
+    private currentCycleIndex: number = 0;
+
+    private cycleElementSelection(canvasX: number, canvasY: number): string | null {
+        if (!this.elementSelectionTarget) return null;
+
+        const target = this.elementSelectionTarget;
+        const bboxes = target.axisMetadata?.element_bboxes;
+        if (!bboxes) return null;
+
+        // Convert to image coords (then to figure coords)
+        const imgScaleX = target.scaleX || 1;
+        const imgScaleY = target.scaleY || 1;
+        const imgWidth = target.width || 0;
+        const imgHeight = target.height || 0;
+
+        // Get figure_size_px from metadata - bbox coordinates are in figure pixels
+        const figureSize = target.axisMetadata?.figure_size_px;
+        const figureWidth = figureSize?.width || imgWidth;
+        const figureHeight = figureSize?.height || imgHeight;
+
+        // Convert center coords to top-left corner
+        const imgLeft = (target.left || 0) - (imgWidth * imgScaleX / 2);
+        const imgTop = (target.top || 0) - (imgHeight * imgScaleY / 2);
+
+        // Position relative to image (in object pixels)
+        const objX = (canvasX - imgLeft) / imgScaleX;
+        const objY = (canvasY - imgTop) / imgScaleY;
+
+        // Convert object pixels to figure pixels for hit detection
+        const figX = objX * (figureWidth / imgWidth);
+        const figY = objY * (figureHeight / imgHeight);
+
+        // Find all elements at position
+        const allElements = this.findAllElementsAtImageCoords(bboxes, figX, figY);
+
+        if (allElements.length > 0) {
+            if (JSON.stringify(allElements) !== JSON.stringify(this.elementsAtCursor)) {
+                this.elementsAtCursor = allElements;
+                this.currentCycleIndex = 0;
+            } else {
+                this.currentCycleIndex = (this.currentCycleIndex + 1) % this.elementsAtCursor.length;
+            }
+
+            const total = this.elementsAtCursor.length;
+            const current = this.currentCycleIndex + 1;
+            console.log(`[ElementSelection] Cycle: ${current}/${total}`);
+
+            return this.elementsAtCursor[this.currentCycleIndex];
+        }
+
+        return null;
+    }
+
+    private findAllElementsAtImageCoords(bboxes: any, imgX: number, imgY: number): string[] {
+        const PROXIMITY_THRESHOLD = 15;
+        const SCATTER_THRESHOLD = 20;
+        const results: { name: string; priority: number; distance: number }[] = [];
+
+        for (const [name, bbox] of Object.entries(bboxes) as [string, any][]) {
+            let match = false;
+            let distance = Infinity;
+            let priority = 0;
+
+            const hasPoints = bbox.points && bbox.points.length > 0;
+            const elementType = bbox.element_type || '';
+            const isPanel = bbox.is_panel || name === 'panel' || name.endsWith('_panel');
+
+            if (hasPoints) {
+                if (imgX >= bbox.x0 - SCATTER_THRESHOLD && imgX <= bbox.x1 + SCATTER_THRESHOLD &&
+                    imgY >= bbox.y0 - SCATTER_THRESHOLD && imgY <= bbox.y1 + SCATTER_THRESHOLD) {
+                    if (elementType === 'scatter') {
+                        distance = this.distanceToNearestPoint(imgX, imgY, bbox.points);
+                        if (distance <= SCATTER_THRESHOLD) { match = true; priority = 1; }
+                    } else {
+                        distance = this.distanceToLine(imgX, imgY, bbox.points);
+                        if (distance <= PROXIMITY_THRESHOLD) { match = true; priority = 2; }
+                    }
+                }
+            }
+
+            if (imgX >= bbox.x0 && imgX <= bbox.x1 && imgY >= bbox.y0 && imgY <= bbox.y1) {
+                const area = (bbox.x1 - bbox.x0) * (bbox.y1 - bbox.y0);
+                if (!match) { match = true; distance = 0; }
+                if (isPanel) { priority = 100; }
+                else if (!hasPoints) { priority = 10 + Math.min(area / 10000, 50); }
+            }
+
+            if (match) { results.push({ name, priority, distance }); }
+        }
+
+        results.sort((a, b) => a.priority !== b.priority ? a.priority - b.priority : a.distance - b.distance);
+        return results.map(r => r.name);
+    }
+
+    /**
+     * Select an element by name (supports multi-selection with Ctrl/Shift)
+     */
+    private selectElement(elementName: string, addToSelection: boolean = false): void {
+        const bboxes = this.elementSelectionTarget?.axisMetadata?.element_bboxes;
+
+        if (addToSelection) {
+            // Toggle selection: if already selected, remove; otherwise add
+            if (this.selectedElementNames.has(elementName)) {
+                this.selectedElementNames.delete(elementName);
+            } else {
+                this.selectedElementNames.add(elementName);
+            }
+        } else {
+            // Single selection: clear others and select this one
+            this.selectedElementNames.clear();
+            this.selectedElementNames.add(elementName);
+        }
+
+        this.updateElementOverlay();
+
+        // Build arrays of selected element names and infos
+        const selectedNames = Array.from(this.selectedElementNames);
+        const selectedInfos = selectedNames.map(name => bboxes?.[name]).filter(Boolean);
+
+        if (this.elementSelectionCallback) {
+            this.elementSelectionCallback(selectedNames, selectedInfos);
+        }
+
+        if (this.statusBarCallback) {
+            if (selectedNames.length === 1) {
+                const info = bboxes?.[selectedNames[0]];
+                this.statusBarCallback(`Selected: ${info?.label || selectedNames[0]}`);
+            } else if (selectedNames.length > 1) {
+                const labels = selectedNames.map(n => bboxes?.[n]?.label || n).join(', ');
+                this.statusBarCallback(`Selected ${selectedNames.length} elements: ${labels}`);
+            }
+        }
+
+        console.log('[CanvasManager] Selected elements:', selectedNames);
+    }
+
+    /**
+     * Clear element selection
+     */
+    public clearElementSelection(): void {
+        this.selectedElementNames.clear();
+        this.updateElementOverlay();
+
+        if (this.elementSelectionCallback) {
+            this.elementSelectionCallback([], []);
+        }
+    }
+
+    /**
+     * Update the element overlay to show current hover/selection
+     */
+    private updateElementOverlay(): void {
+        if (!this.elementSelectionOverlay || !this.elementSelectionTarget) return;
+
+        const ctx = this.elementSelectionOverlay.getContext('2d');
+        if (!ctx) return;
+
+        const target = this.elementSelectionTarget;
+        const bboxes = target.axisMetadata?.element_bboxes;
+        if (!bboxes) return;
+
+        // Clear overlay
+        ctx.clearRect(0, 0, this.elementSelectionOverlay.width, this.elementSelectionOverlay.height);
+
+        // Get viewport transform (for pan/zoom)
+        const vpt = this.canvas?.viewportTransform || [1, 0, 0, 1, 0, 0];
+        const zoom = vpt[0];  // Scale factor
+        const panX = vpt[4];  // X translation
+        const panY = vpt[5];  // Y translation
+
+        // Get image transform - account for Fabric.js center origin
+        const imgScaleX = target.scaleX || 1;
+        const imgScaleY = target.scaleY || 1;
+        const imgWidth = target.width || 0;
+        const imgHeight = target.height || 0;
+
+        // Get figure_size_px from metadata - coordinates are in figure pixels
+        // The path_simplified coordinates are in the original figure coordinate system
+        const figureSize = target.axisMetadata?.figure_size_px;
+        const figureWidth = figureSize?.width || imgWidth;
+        const figureHeight = figureSize?.height || imgHeight;
+
+        // Calculate the ratio between Fabric object size and figure pixels
+        // path_simplified coords are in figure pixels, need to convert to object pixels
+        const figureToObjectScaleX = imgWidth / figureWidth;
+        const figureToObjectScaleY = imgHeight / figureHeight;
+
+        // Fabric.js uses center origin by default, so left/top are center coords
+        // Convert to top-left corner position in CANVAS coordinates
+        const canvasLeft = (target.left || 0) - (imgWidth * imgScaleX / 2);
+        const canvasTop = (target.top || 0) - (imgHeight * imgScaleY / 2);
+
+        // Apply viewport transform to get SCREEN coordinates
+        const imgLeft = canvasLeft * zoom + panX;
+        const imgTop = canvasTop * zoom + panY;
+
+        // Total scale: figure pixels -> object pixels -> canvas pixels -> screen pixels
+        const totalScaleX = figureToObjectScaleX * imgScaleX * zoom;
+        const totalScaleY = figureToObjectScaleY * imgScaleY * zoom;
+
+        console.log('[CanvasManager] updateElementOverlay scale calculation:', {
+            figureSize: { width: figureWidth, height: figureHeight },
+            objectSize: { width: imgWidth, height: imgHeight },
+            figureToObjectScale: { x: figureToObjectScaleX, y: figureToObjectScaleY },
+            imgScale: { x: imgScaleX, y: imgScaleY },
+            zoom,
+            totalScale: { x: totalScaleX, y: totalScaleY }
+        });
+
+        // Draw hovered element (if not already selected)
+        if (this.hoveredElementName && !this.selectedElementNames.has(this.hoveredElementName)) {
+            const bbox = bboxes[this.hoveredElementName];
+            if (bbox) {
+                this.drawElementHighlight(ctx, bbox, imgLeft, imgTop, totalScaleX, totalScaleY, 'hover');
+            }
+        }
+
+        // Draw all selected elements
+        for (const elementName of this.selectedElementNames) {
+            const bbox = bboxes[elementName];
+            if (bbox) {
+                this.drawElementHighlight(ctx, bbox, imgLeft, imgTop, totalScaleX, totalScaleY, 'selected');
+            }
+        }
+    }
+
+    /**
+     * Draw element highlight
+     */
+    private drawElementHighlight(
+        ctx: CanvasRenderingContext2D,
+        bbox: any,
+        imgLeft: number,
+        imgTop: number,
+        scaleX: number,
+        scaleY: number,
+        type: 'hover' | 'selected'
+    ): void {
+        const color = type === 'hover' ? 'rgba(100, 200, 255, 0.5)' : 'rgba(255, 180, 100, 0.7)';
+        const strokeColor = type === 'hover' ? 'rgba(100, 200, 255, 0.8)' : 'rgba(255, 140, 50, 0.9)';
+
+        ctx.save();
+
+        // Support both old 'points' and new 'path_simplified' formats
+        const points = bbox.points || bbox.path_simplified;
+        // Support both old (x0,y0,x1,y1) and new (bbox.x0,...) formats
+        const bboxCoords = bbox.bbox || bbox;
+
+        console.log(`[CanvasManager] drawElementHighlight:`, {
+            hasPoints: !!points,
+            pointsLength: points?.length || 0,
+            elementType: bbox.element_type,
+            bboxKeys: Object.keys(bbox)
+        });
+
+        // If element has points (line/scatter), draw along the path
+        if (points && points.length > 1) {
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = type === 'hover' ? 3 : 4;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            if (bbox.element_type === 'scatter') {
+                ctx.fillStyle = color;
+                for (const [x, y] of points) {
+                    ctx.beginPath();
+                    ctx.arc(imgLeft + x * scaleX, imgTop + y * scaleY, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+                }
+            } else {
+                ctx.beginPath();
+                ctx.moveTo(imgLeft + points[0][0] * scaleX, imgTop + points[0][1] * scaleY);
+                for (let i = 1; i < points.length; i++) {
+                    ctx.lineTo(imgLeft + points[i][0] * scaleX, imgTop + points[i][1] * scaleY);
+                }
+                ctx.stroke();
+            }
+        } else {
+            // Draw rectangle for elements without path data
+            const x0 = bboxCoords.x0 ?? 0;
+            const y0 = bboxCoords.y0 ?? 0;
+            const x1 = bboxCoords.x1 ?? 0;
+            const y1 = bboxCoords.y1 ?? 0;
+            const x = imgLeft + x0 * scaleX;
+            const y = imgTop + y0 * scaleY;
+            const w = (x1 - x0) * scaleX;
+            const h = (y1 - y0) * scaleY;
+
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, w, h);
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x, y, w, h);
+        }
+
+        // Draw label
+        const labelX = imgLeft + bbox.x0 * scaleX;
+        const labelY = imgTop + bbox.y0 * scaleY - 5;
+        ctx.fillStyle = strokeColor;
+        ctx.font = '12px sans-serif';
+        ctx.fillText(bbox.label || '', labelX, labelY);
+
+        ctx.restore();
+    }
+
+    // =========================================================================
+    // Statistics Integration
+    // =========================================================================
+
+    /**
+     * Extract group data from selected objects for statistical testing.
+     * Supports both:
+     * 1. Multiple Fabric objects selected (multi-object selection)
+     * 2. Multiple elements selected within a single plot image (element-level selection)
+     */
+    private extractGroupsFromSelection(): { name: string; values: number[] }[] {
+        if (!this.canvas) return [];
+
+        const groups: { name: string; values: number[] }[] = [];
+
+        console.log('[Stats] extractGroupsFromSelection called');
+        console.log('[Stats] elementSelectionTarget:', this.elementSelectionTarget);
+        console.log('[Stats] selectedElementNames:', Array.from(this.selectedElementNames));
+
+        // Check if we're in element selection mode with multiple elements selected
+        if (this.elementSelectionTarget && this.selectedElementNames.size > 0) {
+            const target = this.elementSelectionTarget;
+            const bboxes = target.axisMetadata?.element_bboxes;
+            const csvData = target.csvData || target.axisMetadata?.csv_data;
+
+            console.log('[Stats] bboxes:', bboxes);
+            console.log('[Stats] csvData:', csvData);
+
+            if (bboxes && csvData) {
+                for (const elementName of this.selectedElementNames) {
+                    const bbox = bboxes[elementName];
+                    if (bbox) {
+                        // Extract data for this element (e.g., boxplot group)
+                        const elementData = this.extractElementData(elementName, bbox, csvData, target);
+                        if (elementData && elementData.values.length > 0) {
+                            groups.push(elementData);
+                        }
+                    }
+                }
+            }
+
+            // If we got groups from element selection, return them
+            if (groups.length > 0) {
+                return groups;
+            }
+        }
+
+        // Fallback: Extract from multiple Fabric objects selected
+        const activeObjects = this.canvas.getActiveObjects();
+
+        for (const obj of activeObjects) {
+            // Check if object has plot data attached
+            const plotData = (obj as any).plotData;
+            if (plotData && plotData.values) {
+                groups.push({
+                    name: plotData.label || `Group ${groups.length + 1}`,
+                    values: plotData.values,
+                });
+            }
+        }
+
+        return groups;
+    }
+
+    /**
+     * Extract data values for a specific element within a plot
+     */
+    private extractElementData(
+        elementName: string,
+        bbox: any,
+        csvData: any,
+        target: any
+    ): { name: string; values: number[] } | null {
+        const elementType = bbox.element_type;
+        const label = bbox.label || elementName;
+
+        // Handle boxplot elements - try to find corresponding data column
+        if (elementType === 'boxplot' || elementName.startsWith('boxplot_')) {
+            // Extract boxplot index from name (e.g., "boxplot_0" -> 0)
+            const match = elementName.match(/boxplot_(\d+)/);
+            if (match) {
+                const boxIndex = parseInt(match[1], 10);
+
+                // Try to get data from CSV columns
+                // Boxplots typically have data in Y columns corresponding to each box
+                if (csvData && csvData.rows && csvData.columns) {
+                    // Look for Y-value column for this box
+                    const yColPatterns = [
+                        `y_${boxIndex}`,
+                        `value_${boxIndex}`,
+                        csvData.columns[boxIndex + 1], // Skip x column
+                    ];
+
+                    for (const pattern of yColPatterns) {
+                        if (csvData.columns.includes(pattern)) {
+                            const values = csvData.rows
+                                .map((row: any) => parseFloat(row[pattern]))
+                                .filter((v: number) => !isNaN(v));
+
+                            if (values.length > 0) {
+                                return { name: label, values };
+                            }
+                        }
+                    }
+
+                    // If columns don't match pattern, try direct column index
+                    // Box plots often have data organized as groups
+                    const colName = csvData.columns[boxIndex + 1]; // +1 to skip index column
+                    if (colName) {
+                        const values = csvData.rows
+                            .map((row: any) => parseFloat(row[colName]))
+                            .filter((v: number) => !isNaN(v));
+
+                        if (values.length > 0) {
+                            return { name: label, values };
+                        }
+                    }
+                }
+            }
+        }
+
+        // Handle bar elements
+        if (elementType === 'bar' || elementName.startsWith('bar_')) {
+            // Similar extraction logic for bars
+            // For now, return the bbox metadata if it contains values
+            if (bbox.values && Array.isArray(bbox.values)) {
+                return { name: label, values: bbox.values };
+            }
+        }
+
+        // Check if element has direct values attached
+        if (bbox.values && Array.isArray(bbox.values)) {
+            return { name: label, values: bbox.values };
+        }
+
+        // Try to infer from trace_idx
+        if (typeof bbox.trace_idx === 'number' && csvData) {
+            const colIdx = bbox.trace_idx + 1; // +1 to skip index column
+            const colName = csvData.columns?.[colIdx];
+            if (colName) {
+                const values = csvData.rows
+                    ?.map((row: any) => parseFloat(row[colName]))
+                    .filter((v: number) => !isNaN(v));
+
+                if (values && values.length > 0) {
+                    return { name: label, values };
+                }
+            }
+        }
+
+        console.warn(`[CanvasManager] Could not extract data for element: ${elementName}`);
+        return null;
+    }
+
+    /**
+     * Run the recommended statistical test
+     */
+    private async runRecommendedStatTest(): Promise<void> {
+        const groups = this.extractGroupsFromSelection();
+
+        if (groups.length < 2) {
+            console.warn('[Stats] Need at least 2 groups selected for comparison');
+            return;
+        }
+
+        try {
+            // Get recommended test
+            const contextResp = await fetch('/vis/api/stats/context/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    plot_type: 'boxplot',
+                    data: { groups },
+                    metadata: {},
+                }),
+            });
+
+            const contextData = await contextResp.json();
+            if (!contextData.success || !contextData.recommended.length) {
+                console.warn('[Stats] No recommended test found');
+                return;
+            }
+
+            const testName = contextData.recommended[0];
+
+            // Run the test
+            const testResp = await fetch('/vis/api/stats/run/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    test_name: testName,
+                    groups,
+                    paired: false,
+                }),
+            });
+
+            const testData = await testResp.json();
+            if (!testData.success) {
+                console.error('[Stats] Test failed:', testData.error);
+                return;
+            }
+
+            // Add bracket annotation to canvas
+            this.addStatBracketAnnotation(testData.annotation, groups);
+
+            console.log('[Stats] Test result:', testData.result);
+        } catch (error) {
+            console.error('[Stats] Error running test:', error);
+        }
+    }
+
+    /**
+     * Run all applicable statistical tests
+     */
+    private async runAllStatTests(): Promise<void> {
+        const groups = this.extractGroupsFromSelection();
+
+        if (groups.length < 2) {
+            console.warn('[Stats] Need at least 2 groups selected');
+            return;
+        }
+
+        try {
+            const response = await fetch('/vis/api/stats/run-all/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    groups,
+                    outcome_type: 'continuous',
+                    design: 'between',
+                    paired: false,
+                    correction_method: 'fdr_bh',
+                    include_effect_sizes: true,
+                }),
+            });
+
+            const data = await response.json();
+            if (!data.success) {
+                console.error('[Stats] Run all failed:', data.error);
+                return;
+            }
+
+            // Show inspector panel with results
+            this.showStatsInspectorPanel(data.inspector_data);
+
+            console.log('[Stats] All tests complete:', data.results);
+        } catch (error) {
+            console.error('[Stats] Error running all tests:', error);
+        }
+    }
+
+    /**
+     * Show test selector dialog
+     */
+    private async showStatTestSelector(): Promise<void> {
+        const groups = this.extractGroupsFromSelection();
+
+        if (groups.length < 2) {
+            console.warn('[Stats] Need at least 2 groups selected');
+            return;
+        }
+
+        // Import stats manager dynamically to avoid circular deps
+        const { statsManager } = await import('./StatsManager.ts');
+
+        // Get mouse position for context menu
+        const rect = this.canvas?.upperCanvasEl.getBoundingClientRect();
+        const x = rect ? rect.left + rect.width / 2 : window.innerWidth / 2;
+        const y = rect ? rect.top + rect.height / 2 : window.innerHeight / 2;
+
+        statsManager.showContextMenu(x, y, groups, async (testName: string) => {
+            // Run selected test
+            try {
+                const response = await fetch('/vis/api/stats/run/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        test_name: testName,
+                        groups,
+                        paired: false,
+                    }),
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    this.addStatBracketAnnotation(data.annotation, groups);
+                }
+            } catch (error) {
+                console.error('[Stats] Error:', error);
+            }
+        });
+    }
+
+    /**
+     * Open the Stats Inspector panel
+     */
+    private openStatsInspector(): void {
+        // Create empty inspector if no data yet
+        this.showStatsInspectorPanel({ tests: [], effects: [] });
+    }
+
+    /**
+     * Show Stats Inspector panel with data
+     */
+    private showStatsInspectorPanel(data: { tests: any[]; effects: any[] }): void {
+        let panel = document.getElementById('stats-inspector-panel');
+
+        if (!panel) {
+            panel = document.createElement('div');
+            panel.id = 'stats-inspector-panel';
+            panel.className = 'stats-inspector-panel';
+            document.body.appendChild(panel);
+        }
+
+        const formatP = (p: number | null): string => {
+            if (p === null) return '-';
+            if (p < 0.001) return '< 0.001 ***';
+            if (p < 0.01) return `${p.toFixed(3)} **`;
+            if (p < 0.05) return `${p.toFixed(3)} *`;
+            return `${p.toFixed(3)} ns`;
+        };
+
+        panel.innerHTML = `
+            <div class="stats-inspector-header">
+                <span>Statistics Inspector</span>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="stats-inspector-content">
+                <h4>Tests</h4>
+                ${data.tests.length > 0 ? `
+                    <table class="stats-table">
+                        <thead>
+                            <tr><th>Test</th><th>p-value</th><th>Stat</th></tr>
+                        </thead>
+                        <tbody>
+                            ${data.tests.map(t => `
+                                <tr>
+                                    <td>${t.label || t.name}</td>
+                                    <td>${formatP(t.p_adj || t.p_raw)}</td>
+                                    <td>${t.stat?.toFixed(3) || '-'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                ` : '<p>No tests run yet</p>'}
+
+                ${data.effects.length > 0 ? `
+                    <h4>Effect Sizes</h4>
+                    <table class="stats-table">
+                        <thead>
+                            <tr><th>Measure</th><th>Value</th><th>Interpretation</th></tr>
+                        </thead>
+                        <tbody>
+                            ${data.effects.map(e => `
+                                <tr>
+                                    <td>${e.label || e.name}</td>
+                                    <td>${e.value?.toFixed(3) || '-'}</td>
+                                    <td>${e.note || '-'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                ` : ''}
+            </div>
+        `;
+
+        // Add close button handler
+        const closeBtn = panel.querySelector('.close-btn');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                panel!.style.display = 'none';
+            });
+        }
+
+        panel.style.display = 'block';
+    }
+
+    /**
+     * Add statistical bracket annotation to canvas
+     */
+    private addStatBracketAnnotation(
+        annotation: any,
+        groups: { name: string; values: number[] }[]
+    ): void {
+        if (!this.canvas) return;
+
+        const activeObjects = this.canvas.getActiveObjects();
+        if (activeObjects.length < 2) return;
+
+        // Get positions of first two objects for bracket
+        const obj1 = activeObjects[0];
+        const obj2 = activeObjects[1];
+
+        const x1 = obj1.left! + (obj1.width! * (obj1.scaleX || 1)) / 2;
+        const x2 = obj2.left! + (obj2.width! * (obj2.scaleX || 1)) / 2;
+        const topY = Math.min(obj1.top!, obj2.top!) - 30;
+
+        const bracketHeight = annotation.bracket_style?.bracket_height || 5;
+        const starOffset = annotation.bracket_style?.star_offset || 3;
+
+        // Create bracket lines using fabric.js
+        const leftLine = new fabric.Line(
+            [x1, topY + bracketHeight, x1, topY],
+            { stroke: '#000000', strokeWidth: 1 }
+        );
+
+        const rightLine = new fabric.Line(
+            [x2, topY + bracketHeight, x2, topY],
+            { stroke: '#000000', strokeWidth: 1 }
+        );
+
+        const topLine = new fabric.Line(
+            [x1, topY, x2, topY],
+            { stroke: '#000000', strokeWidth: 1 }
+        );
+
+        // Create stars text
+        const starsText = new fabric.Text(annotation.stars || 'ns', {
+            left: (x1 + x2) / 2,
+            top: topY - starOffset - 14,
+            fontSize: 14,
+            fontFamily: 'Arial',
+            originX: 'center',
+            fill: '#000000',
+        });
+
+        // Group all elements
+        const group = new fabric.Group([leftLine, rightLine, topLine, starsText], {
+            selectable: true,
+            hasControls: true,
+            lockRotation: true,
+        });
+
+        // Store annotation data for serialization
+        (group as any).statAnnotation = annotation;
+        (group as any).objectType = 'stat_bracket';
+
+        this.canvas.add(group);
+        this.canvas.renderAll();
+
+        console.log('[Stats] Added bracket annotation:', annotation.stars);
+    }
+
+    /**
+     * Export canvas as PNG
+     */
+    public exportAsPng(): void {
+        if (!this.canvas) return;
+
+        const dataUrl = this.canvas.toDataURL({
+            format: 'png',
+            quality: 1,
+            multiplier: 2  // 2x resolution for better quality
+        });
+
+        const link = document.createElement('a');
+        link.download = `figure-${Date.now()}.png`;
+        link.href = dataUrl;
+        link.click();
+
+        if (this.statusBarCallback) {
+            this.statusBarCallback('Exported as PNG');
+        }
+    }
+
+    /**
+     * Export canvas as SVG
+     */
+    public exportAsSvg(): void {
+        if (!this.canvas) return;
+
+        const svg = this.canvas.toSVG();
+        const blob = new Blob([svg], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement('a');
+        link.download = `figure-${Date.now()}.svg`;
+        link.href = url;
+        link.click();
+
+        URL.revokeObjectURL(url);
+
+        if (this.statusBarCallback) {
+            this.statusBarCallback('Exported as SVG');
+        }
+    }
+
+    /**
+     * Export canvas as PDF (requires jsPDF library)
+     */
+    public exportAsPdf(): void {
+        if (!this.canvas) return;
+
+        // Check if jsPDF is available
+        const jsPDF = (window as any).jspdf?.jsPDF || (window as any).jsPDF;
+        if (!jsPDF) {
+            console.warn('[CanvasManager] jsPDF not available, falling back to PNG');
+            if (this.statusBarCallback) {
+                this.statusBarCallback('PDF export requires jsPDF library');
+            }
+            return;
+        }
+
+        const dataUrl = this.canvas.toDataURL({
+            format: 'png',
+            quality: 1,
+            multiplier: 2
+        });
+
+        const canvasWidth = this.canvas.getWidth();
+        const canvasHeight = this.canvas.getHeight();
+
+        // Create PDF with canvas dimensions (in mm)
+        const pxToMm = 0.264583;  // 1px = 0.264583mm at 96 DPI
+        const pdfWidth = canvasWidth * pxToMm;
+        const pdfHeight = canvasHeight * pxToMm;
+
+        const pdf = new jsPDF({
+            orientation: pdfWidth > pdfHeight ? 'landscape' : 'portrait',
+            unit: 'mm',
+            format: [pdfWidth, pdfHeight]
+        });
+
+        pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save(`figure-${Date.now()}.pdf`);
+
+        if (this.statusBarCallback) {
+            this.statusBarCallback('Exported as PDF');
+        }
+    }
+
+    /**
+     * Toggle canvas theme between light and dark
+     */
+    public toggleCanvasTheme(): void {
+        if (!this.canvas) return;
+
+        const currentBg = this.canvas.backgroundColor;
+        const isDark = currentBg === '#1e1e1e' || currentBg === 'rgb(30, 30, 30)';
+
+        if (isDark) {
+            // Switch to light theme
+            this.canvas.setBackgroundColor('#ffffff', () => {
+                this.canvas!.renderAll();
+            });
+        } else {
+            // Switch to dark theme
+            this.canvas.setBackgroundColor('#1e1e1e', () => {
+                this.canvas!.renderAll();
+            });
+        }
+
+        this.saveCanvasContent();
+
+        if (this.statusBarCallback) {
+            this.statusBarCallback(`Canvas theme: ${isDark ? 'light' : 'dark'}`);
+        }
+    }
+
+    /**
+     * Reset view to default zoom and pan
+     */
+    public resetView(): void {
+        this.canvasZoomLevel = 1.0;
+        this.canvasPanOffset = { x: 0, y: 0 };
+
+        // Update rulers area transform
+        const rulersArea = document.getElementById('canvas-rulers-area');
+        if (rulersArea) {
+            rulersArea.style.transform = 'translate(0px, 0px) scale(1)';
+        }
+
+        // Update zoom display
+        const zoomDisplay = document.getElementById('zoom-level-display');
+        if (zoomDisplay) {
+            zoomDisplay.textContent = '100%';
+        }
+
+        if (this.statusBarCallback) {
+            this.statusBarCallback('View reset to 100%');
+        }
     }
 }

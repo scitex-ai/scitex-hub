@@ -13,7 +13,7 @@ export interface DataTab {
     name: string;
     figureName?: string;  // Figure name for tab display
     objectName?: string;  // Object name for tab display (line, scatter, etc.)
-    type: 'line' | 'scatter' | 'bar' | 'default';
+    type: 'line' | 'scatter' | 'categorical' | 'distribution' | 'statistical' | 'grid' | 'area' | 'contour' | 'vector' | 'special' | 'default';
     isActive: boolean;
     data?: any;
 }
@@ -65,7 +65,8 @@ export class DataTabManager {
         name: string,
         type: DataTab['type'] = 'line',
         figureName?: string,
-        objectName?: string
+        objectName?: string,
+        data?: any
     ): string {
         const id = `tab-${Date.now()}`;
 
@@ -79,11 +80,45 @@ export class DataTabManager {
             figureName: figName,
             objectName: objName,
             type,
-            isActive: false
+            isActive: false,
+            data
         };
         this.tabs.push(newTab);
         this.renderTabs();
         return id;
+    }
+
+    /**
+     * Create a new tab and switch to it
+     */
+    public createAndSwitchToTab(
+        name: string,
+        type: DataTab['type'] = 'line',
+        figureName?: string,
+        objectName?: string,
+        data?: any
+    ): string {
+        const tabId = this.createTab(name, type, figureName, objectName, data);
+        this.switchToTab(tabId);
+        return tabId;
+    }
+
+    /**
+     * Get tab data by ID
+     */
+    public getTabData(tabId: string): any {
+        const tab = this.tabs.find(t => t.id === tabId);
+        return tab?.data;
+    }
+
+    /**
+     * Update tab data
+     */
+    public updateTabData(tabId: string, data: any): void {
+        const tab = this.tabs.find(t => t.id === tabId);
+        if (tab) {
+            tab.data = data;
+        }
     }
 
     /**
@@ -97,6 +132,11 @@ export class DataTabManager {
         tab.isActive = true;
         this.activeTabId = tabId;
         this.renderTabs();
+
+        // Scroll to make the active tab visible
+        requestAnimationFrame(() => {
+            this.scrollToActiveTab();
+        });
 
         if (this.onTabChange) {
             this.onTabChange(tabId);
@@ -144,120 +184,153 @@ export class DataTabManager {
     }
 
     /**
-     * Render tabs in the container
+     * Render dropdown menu items
      */
     public renderTabs(): void {
-        const container = document.getElementById('data-tabs-container');
-        if (!container) return;
+        const menu = document.getElementById('data-dropdown-menu');
+        const label = document.getElementById('data-dropdown-label');
+        if (!menu) return;
 
-        // Save the + button element before clearing
-        const plusBtn = container.querySelector('.data-tab-new');
-
-        container.innerHTML = '';
+        menu.innerHTML = '';
 
         this.tabs.forEach(tab => {
-            const tabElement = this.createTabElement(tab);
-            container.appendChild(tabElement);
+            const itemElement = this.createDropdownItem(tab);
+            menu.appendChild(itemElement);
         });
 
-        // Re-append the + button at the end
-        if (plusBtn) {
-            container.appendChild(plusBtn);
+        // Update the dropdown toggle label to show active tab
+        const activeTab = this.getActiveTab();
+        if (label && activeTab) {
+            label.textContent = activeTab.name;
+        }
+
+        // Update toggle icon based on active tab type
+        const toggleIcon = document.querySelector('#data-dropdown-toggle i:first-child');
+        if (toggleIcon && activeTab) {
+            toggleIcon.className = this.getIconClass(activeTab.type);
         }
     }
 
     /**
-     * Create a tab element
+     * Create a dropdown item element
      */
-    private createTabElement(tab: DataTab): HTMLElement {
-        const tabDiv = document.createElement('div');
-        tabDiv.className = `data-tab${tab.isActive ? ' active' : ''}`;
-        tabDiv.dataset.tabId = tab.id;
-        tabDiv.title = tab.name;
-        tabDiv.draggable = true;
+    private createDropdownItem(tab: DataTab): HTMLElement {
+        const item = document.createElement('div');
+        item.className = `data-dropdown-item${tab.isActive ? ' active' : ''}`;
+        item.dataset.tabId = tab.id;
 
         // Icon based on type
         const icon = document.createElement('i');
         icon.className = this.getIconClass(tab.type);
-        tabDiv.appendChild(icon);
+        item.appendChild(icon);
 
         // Label
         const label = document.createElement('span');
-        label.className = 'data-tab-label';
+        label.className = 'data-dropdown-item-label';
         label.textContent = tab.name;
-        tabDiv.appendChild(label);
+        item.appendChild(label);
 
-        // Close button
-        const closeBtn = document.createElement('button');
-        closeBtn.className = 'data-tab-close';
-        closeBtn.title = 'Close tab';
-        closeBtn.innerHTML = '&times;';
-        closeBtn.onclick = (e) => {
-            e.stopPropagation();
-            this.closeTab(tab.id);
-        };
-        tabDiv.appendChild(closeBtn);
+        // Close button (only show if more than 1 tab)
+        if (this.tabs.length > 1) {
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'data-dropdown-item-close';
+            closeBtn.title = 'Close data table';
+            closeBtn.innerHTML = '&times;';
+            closeBtn.onclick = (e) => {
+                e.stopPropagation();
+                this.closeTab(tab.id);
+            };
+            item.appendChild(closeBtn);
+        }
 
         // Click to switch
-        tabDiv.onclick = () => {
+        item.onclick = (e) => {
+            if ((e.target as HTMLElement).classList.contains('data-dropdown-item-close')) return;
             this.switchToTab(tab.id);
+            this.closeDropdown();
         };
 
         // Double-click to rename
-        tabDiv.ondblclick = (e) => {
+        item.ondblclick = (e) => {
             e.preventDefault();
-            this.startInlineRename(tabDiv, tab.id, label);
+            e.stopPropagation();
+            this.startInlineRename(item, tab.id, label);
         };
 
-        // Drag and drop handlers
-        this.setupDragHandlers(tabDiv, tab.id);
+        return item;
+    }
 
-        return tabDiv;
+    /**
+     * Toggle dropdown open/close
+     */
+    private toggleDropdown(): void {
+        const container = document.getElementById('data-dropdown-container');
+        if (container) {
+            container.classList.toggle('open');
+        }
+    }
+
+    /**
+     * Close dropdown
+     */
+    private closeDropdown(): void {
+        const container = document.getElementById('data-dropdown-container');
+        if (container) {
+            container.classList.remove('open');
+        }
     }
 
     /**
      * Get icon class based on tab type
+     * Icons match the gallery category buttons in canvas pane
      */
     private getIconClass(type: DataTab['type']): string {
         switch (type) {
             case 'line':
                 return 'fas fa-chart-line';
             case 'scatter':
-                return 'fas fa-circle';
-            case 'bar':
+                return 'fas fa-braille';
+            case 'categorical':
                 return 'fas fa-chart-bar';
+            case 'distribution':
+                return 'fas fa-chart-column';
+            case 'statistical':
+                return 'fas fa-square-root-variable';
+            case 'grid':
+                return 'fas fa-th';
+            case 'area':
+                return 'fas fa-chart-area';
+            case 'contour':
+                return 'fas fa-layer-group';
+            case 'vector':
+                return 'fas fa-arrows-alt';
+            case 'special':
+                return 'fas fa-shapes';
             default:
                 return 'fas fa-table';
         }
     }
 
     /**
-     * Start inline rename
+     * Start inline rename in dropdown
      */
-    private startInlineRename(tabElement: HTMLElement, tabId: string, labelElement: HTMLElement): void {
+    private startInlineRename(itemElement: HTMLElement, tabId: string, labelElement: HTMLElement): void {
         const currentName = labelElement.textContent || '';
 
         const input = document.createElement('input');
         input.type = 'text';
-        input.className = 'data-tab-rename-input';
+        input.className = 'data-rename-input';
         input.value = currentName;
-        input.style.cssText = `
-            width: 80px;
-            padding: 2px 4px;
-            font-size: 12px;
-            border: 1px solid var(--workspace-icon-primary);
-            border-radius: 3px;
-            background: var(--workspace-bg-primary);
-            color: var(--text-primary);
-            outline: none;
-        `;
 
         labelElement.style.display = 'none';
-        tabElement.insertBefore(input, labelElement.nextSibling);
+        itemElement.insertBefore(input, labelElement.nextSibling);
         input.focus();
         input.select();
 
+        let isFinished = false;
         const finishRename = () => {
+            if (isFinished) return;
+            isFinished = true;
             const newName = input.value.trim() || currentName;
             this.renameTab(tabId, newName);
             input.remove();
@@ -266,9 +339,12 @@ export class DataTabManager {
 
         input.onblur = finishRename;
         input.onkeydown = (e) => {
+            e.stopPropagation();
             if (e.key === 'Enter') {
+                e.preventDefault();
                 finishRename();
             } else if (e.key === 'Escape') {
+                e.preventDefault();
                 input.value = currentName;
                 finishRename();
             }
@@ -290,80 +366,102 @@ export class DataTabManager {
     }
 
     /**
-     * Initialize event listeners for the new tab button
+     * Initialize event listeners for dropdown and new tab button
      */
     public initializeEventListeners(): void {
+        // Dropdown toggle
+        const toggleBtn = document.getElementById('data-dropdown-toggle');
+        if (toggleBtn) {
+            toggleBtn.onclick = (e) => {
+                e.stopPropagation();
+                this.toggleDropdown();
+            };
+        }
+
+        // New data table button
         const newTabBtn = document.getElementById('data-tab-new');
         if (newTabBtn) {
             newTabBtn.onclick = () => {
                 this.showInlineNewTabInput();
             };
         }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const container = document.getElementById('data-dropdown-container');
+            if (container && !container.contains(e.target as Node)) {
+                this.closeDropdown();
+            }
+        });
+
+        // Close dropdown on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.closeDropdown();
+            }
+        });
     }
 
     /**
-     * Show inline input for creating a new tab
+     * Show inline input for creating a new tab (in dropdown menu)
      */
     private showInlineNewTabInput(): void {
-        const container = document.getElementById('data-tabs-container');
-        const newTabBtn = document.getElementById('data-tab-new');
-        if (!container || !newTabBtn) return;
+        const menu = document.getElementById('data-dropdown-menu');
+        if (!menu) return;
+
+        // Open dropdown first
+        const container = document.getElementById('data-dropdown-container');
+        if (container) {
+            container.classList.add('open');
+        }
 
         // Check if input already exists
-        const existingInput = container.querySelector('.inline-new-tab-input');
+        const existingInput = menu.querySelector('.inline-new-tab-input');
         if (existingInput) {
             (existingInput as HTMLInputElement).focus();
             return;
         }
 
-        // Create inline input container
-        const inputWrapper = document.createElement('div');
-        inputWrapper.className = 'data-tab inline-new-tab-wrapper';
-        inputWrapper.style.cssText = `
-            display: inline-flex;
-            align-items: center;
-            padding: 4px 8px;
-        `;
+        // Create inline input item
+        const inputItem = document.createElement('div');
+        inputItem.className = 'data-dropdown-item inline-new-tab-wrapper';
+
+        // Icon
+        const icon = document.createElement('i');
+        icon.className = 'fas fa-chart-line';
+        inputItem.appendChild(icon);
 
         const input = document.createElement('input');
         input.type = 'text';
-        input.className = 'inline-new-tab-input';
-        input.placeholder = 'Line 1';
+        input.className = 'inline-new-tab-input data-rename-input';
         const defaultObjectName = `Line ${this.tabs.length}`;
         input.value = defaultObjectName;
-        input.style.cssText = `
-            width: 120px;
-            padding: 4px 6px;
-            font-size: 12px;
-            border: 1px solid var(--workspace-icon-primary);
-            border-radius: 3px;
-            background: var(--workspace-bg-primary);
-            color: var(--text-primary);
-            outline: none;
-        `;
+        input.placeholder = defaultObjectName;
 
-        inputWrapper.appendChild(input);
-
-        // Insert before the + button (not after)
-        if (newTabBtn && newTabBtn.parentNode === container) {
-            container.insertBefore(inputWrapper, newTabBtn);
-        } else {
-            container.appendChild(inputWrapper);
-        }
+        inputItem.appendChild(input);
+        menu.appendChild(inputItem);
 
         input.focus();
         input.select();
 
+        // Flag to prevent double execution
+        let isFinished = false;
+
         const finishCreate = () => {
+            if (isFinished) return;
+            isFinished = true;
             const objectName = input.value.trim() || defaultObjectName;
-            inputWrapper.remove();
+            inputItem.remove();
             // Auto-assign to Figure 1 for now (can be enhanced later)
             const newTabId = this.createTab(objectName, 'line', 'Figure 1', objectName);
             this.switchToTab(newTabId);
+            this.closeDropdown();
         };
 
         const cancelCreate = () => {
-            inputWrapper.remove();
+            if (isFinished) return;
+            isFinished = true;
+            inputItem.remove();
         };
 
         input.onblur = () => {
@@ -375,6 +473,7 @@ export class DataTabManager {
         };
 
         input.onkeydown = (e) => {
+            e.stopPropagation();
             if (e.key === 'Enter') {
                 e.preventDefault();
                 finishCreate();
@@ -385,64 +484,4 @@ export class DataTabManager {
         };
     }
 
-    /**
-     * Setup drag and drop handlers for tab reordering
-     */
-    private setupDragHandlers(tabElement: HTMLElement, tabId: string): void {
-        tabElement.addEventListener('dragstart', (e: DragEvent) => {
-            if (e.dataTransfer) {
-                e.dataTransfer.effectAllowed = 'move';
-                e.dataTransfer.setData('text/plain', tabId);
-            }
-            tabElement.classList.add('dragging');
-        });
-
-        tabElement.addEventListener('dragend', () => {
-            tabElement.classList.remove('dragging');
-            // Remove all drag-over indicators
-            document.querySelectorAll('.data-tab').forEach(el => {
-                el.classList.remove('drag-over');
-            });
-        });
-
-        tabElement.addEventListener('dragover', (e: DragEvent) => {
-            e.preventDefault();
-            if (e.dataTransfer) {
-                e.dataTransfer.dropEffect = 'move';
-            }
-            tabElement.classList.add('drag-over');
-        });
-
-        tabElement.addEventListener('dragleave', () => {
-            tabElement.classList.remove('drag-over');
-        });
-
-        tabElement.addEventListener('drop', (e: DragEvent) => {
-            e.preventDefault();
-            tabElement.classList.remove('drag-over');
-
-            if (e.dataTransfer) {
-                const draggedId = e.dataTransfer.getData('text/plain');
-                this.reorderTabs(draggedId, tabId);
-            }
-        });
-    }
-
-    /**
-     * Reorder tabs by moving draggedId before targetId
-     */
-    private reorderTabs(draggedId: string, targetId: string): void {
-        if (draggedId === targetId) return;
-
-        const draggedIndex = this.tabs.findIndex(t => t.id === draggedId);
-        const targetIndex = this.tabs.findIndex(t => t.id === targetId);
-
-        if (draggedIndex === -1 || targetIndex === -1) return;
-
-        // Remove dragged tab and insert before target
-        const [draggedTab] = this.tabs.splice(draggedIndex, 1);
-        this.tabs.splice(targetIndex, 0, draggedTab);
-
-        this.renderTabs();
-    }
 }
