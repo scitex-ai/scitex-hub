@@ -4,7 +4,7 @@
  */
 
 import type { ModalManager } from "./ModalManager";
-import { getSharedShortcutsHTML } from "@shared/ts/utils/shared-shortcuts";
+import { getSharedShortcutsHTML } from "@/utils/shared-shortcuts";
 
 export class ShortcutsManager {
   constructor(private modalManager: ModalManager) {}

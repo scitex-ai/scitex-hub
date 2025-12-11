@@ -12,7 +12,7 @@
  * - table-help-modal: Contains help information and keyboard shortcuts
  */
 
-import { getSharedShortcutsList } from '@shared/ts/utils/shared-shortcuts';
+import { getSharedShortcutsList } from '@/utils/shared-shortcuts';
 
 export class Modals {
     /**
