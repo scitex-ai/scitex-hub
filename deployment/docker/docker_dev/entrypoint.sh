@@ -191,6 +191,48 @@ else
 fi
 
 # ============================================
+# Generate Plot Gallery to Static Directory
+# ============================================
+# Generate scitex.plt gallery examples into static/shared/images/gallery
+# This makes thumbnails available as static files (no API needed)
+generate_static_gallery() {
+    local gallery_path="/app/static/shared/images/gallery"
+
+    # Check if gallery already exists (fast-path)
+    if [ -d "$gallery_path" ] && [ "$(find "$gallery_path" -name '*.png' 2>/dev/null | head -1)" ]; then
+        echo_info "Static gallery already exists, skipping generation"
+        return 0
+    fi
+
+    echo_info "Generating plot gallery to static directory..."
+    python -c "
+import os
+os.environ['MPLBACKEND'] = 'Agg'
+try:
+    import scitex as stx
+    result = stx.plt.gallery.generate(
+        output_dir='$gallery_path',
+        figsize=(4, 3),
+        dpi=150,
+        save_csv=True,
+        save_png=True,
+        verbose=False
+    )
+    png_count = len(result.get('png', []))
+    csv_count = len(result.get('csv', []))
+    print(f'Generated {png_count} PNG, {csv_count} CSV to static gallery')
+except Exception as e:
+    print(f'Gallery generation failed: {e}')
+" 2>&1 | grep -v "ERRO\|WARN" || true
+    echo_success "Static gallery ready"
+}
+
+# Run on first start only
+if [ ! -f "$MIGRATION_SENTINEL" ]; then
+    generate_static_gallery
+fi
+
+# ============================================
 # Template Hot Reload
 # ============================================
 # Note: Template hot reload is handled by django-browser-reload via Django's autoreload

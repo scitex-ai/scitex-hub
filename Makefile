@@ -80,7 +80,8 @@ SHELL := /bin/bash
 	check-file-sizes \
 	check-host \
 	ensure-executable \
-	info
+	info \
+	regenerate-gallery
 
 .DEFAULT_GOAL := help
 
@@ -115,7 +116,7 @@ ifdef ENV
 else
   # ENV not specified - only allow non-operational commands
   ifneq ($(MAKECMDGOALS),)
-    ifneq ($(filter-out help status validate-docker stop-all force-stop-all format format-python format-web format-shell lint lint-web check-file-sizes check-assets check-host ensure-executable slurm-start slurm-stop slurm-restart slurm-status slurm-fix slurm-resume slurm-reset crossref-status crossref-check crossref-rebuild-check crossref-next-steps crossref-create-title-index crossref-create-author-index info,$(MAKECMDGOALS)),)
+    ifneq ($(filter-out help status validate-docker stop-all force-stop-all format format-python format-web format-shell lint lint-web check-file-sizes check-assets check-host ensure-executable slurm-start slurm-stop slurm-restart slurm-status slurm-fix slurm-resume slurm-reset crossref-status crossref-check crossref-rebuild-check crossref-next-steps crossref-create-title-index crossref-create-author-index info regenerate-gallery,$(MAKECMDGOALS)),)
       $(error ❌ ENV not specified! Use: make ENV=<dev|nas> <command>)
     endif
   endif
@@ -318,7 +319,9 @@ start:
 	@$(MAKE) --no-print-directory status
 
 restart: validate
-	rm -f ./logs/*.log
+	@# Clear logs - use docker exec for root-owned files (includes rotated logs like *.log.1)
+	@docker exec scitex-cloud-$(ENV)-web-1 sh -c 'rm -f /app/logs/*.log /app/logs/*.log.[0-9]*' 2>/dev/null || true
+	@rm -f ./logs/*.log ./logs/*.log.[0-9]* 2>/dev/null || true
 
 	@RUNNING=$$(docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-cloud-(dev|prod|nas)-' | sed 's/scitex-cloud-//' | sed 's/-//' | sort -u); \
 	if [ "$$RUNNING" != "$(ENV)" ]; then \
@@ -334,7 +337,9 @@ restart: validate
 	@echo -e "$(GREEN)✅ $(ENV) restarted$(NC)"
 
 reload: validate
-	rm -f ./logs/*.log
+	@# Clear logs - use docker exec for root-owned files (includes rotated logs like *.log.1)
+	@docker exec scitex-cloud-$(ENV)-web-1 sh -c 'rm -f /app/logs/*.log /app/logs/*.log.[0-9]*' 2>/dev/null || true
+	@rm -f ./logs/*.log ./logs/*.log.[0-9]* 2>/dev/null || true
 
 	@RUNNING=$$(docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-cloud-(dev|prod|nas)-' | sed 's/scitex-cloud-//' | sed 's/-//' | sort -u); \
 	if [ "$$RUNNING" != "$(ENV)" ]; then \
@@ -1150,5 +1155,13 @@ slurm-reset:
 	@read -p "Are you sure? (y/N) " confirm && [ "$$confirm" = "y" ] || exit 1
 	@sudo ./deployment/slurm/scripts/08_reset_slurm_state.sh
 	@$(MAKE) slurm-status
+
+# ============================================
+# Gallery Management
+# ============================================
+regenerate-gallery:
+	@echo -e "$(CYAN)🎨 Regenerating plot gallery...$(NC)"
+	@./scripts/maintenance/regenerate_gallery.sh
+	@echo -e "$(GREEN)✅ Gallery regeneration complete$(NC)"
 
 # EOF
