@@ -172,6 +172,32 @@ export class DataTableManager {
         this.renderEditableDataTable();
     }
 
+    /**
+     * Load data from 2D array (e.g., from gallery CSV)
+     * @param data 2D array where first row can be headers
+     * @param firstRowIsHeader Whether first row contains column headers
+     */
+    public loadFromArray(data: string[][], firstRowIsHeader: boolean = true): void {
+        if (!data || data.length === 0) {
+            console.warn('[DataTableManager] Empty data array provided');
+            return;
+        }
+
+        // Convert array to CSV string
+        const csvContent = data.map(row =>
+            row.map(cell => {
+                // Escape cells containing commas or quotes
+                if (cell.includes(',') || cell.includes('"') || cell.includes('\n')) {
+                    return `"${cell.replace(/"/g, '""')}"`;
+                }
+                return cell;
+            }).join(',')
+        ).join('\n');
+
+        this.loadFromCSVContent(csvContent, 'gallery_data.csv');
+        console.log(`[DataTableManager] Loaded ${data.length} rows from array`);
+    }
+
     public loadDemoData(): void {
         this.tableData.loadDemoData();
         this.renderEditableDataTable();
@@ -227,6 +253,21 @@ export class DataTableManager {
 
     public clearSelection(): void {
         this.tableSelection.clearSelection();
+    }
+
+    /**
+     * Highlight specific columns (for element-CSV synchronization)
+     * @param columnIndices Array of column indices to highlight
+     */
+    public highlightColumns(columnIndices: number[]): void {
+        this.tableSelection.highlightColumns(columnIndices);
+    }
+
+    /**
+     * Clear column highlights
+     */
+    public clearColumnHighlights(): void {
+        this.tableSelection.clearColumnHighlights();
     }
 
     // ========================================

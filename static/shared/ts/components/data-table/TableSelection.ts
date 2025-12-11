@@ -374,4 +374,43 @@ export class TableSelection {
         this.selectionEnd = { row: endRow, col: endCol };
         this.updateSelection();
     }
+
+    /**
+     * Highlight specific columns (for element-CSV synchronization)
+     * @param columnIndices Array of column indices to highlight
+     */
+    public highlightColumns(columnIndices: number[]): void {
+        const container = document.querySelector(this.containerSelector) as HTMLElement;
+        if (!container) return;
+
+        // Clear previous highlights
+        const allCells = container.querySelectorAll('.data-table td, .data-table th');
+        allCells.forEach(cell => cell.classList.remove('element-highlight'));
+
+        // Highlight specified columns
+        for (const colIndex of columnIndices) {
+            // Highlight header
+            const header = container.querySelector(`th[data-col="${colIndex}"]`);
+            header?.classList.add('element-highlight');
+
+            // Highlight all cells in the column
+            const cells = container.querySelectorAll(`td[data-col="${colIndex}"]`);
+            cells.forEach(cell => cell.classList.add('element-highlight'));
+        }
+
+        if (columnIndices.length > 0) {
+            console.log(`[TableSelection] Highlighted columns: ${columnIndices.join(', ')}`);
+        }
+    }
+
+    /**
+     * Clear column highlights (for element-CSV synchronization)
+     */
+    public clearColumnHighlights(): void {
+        const container = document.querySelector(this.containerSelector) as HTMLElement;
+        if (!container) return;
+
+        const allCells = container.querySelectorAll('.data-table td, .data-table th');
+        allCells.forEach(cell => cell.classList.remove('element-highlight'));
+    }
 }

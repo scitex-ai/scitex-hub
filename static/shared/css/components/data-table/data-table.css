@@ -317,6 +317,47 @@
 .editable-table th[data-col] {
     text-align: center;
     font-size: 12px;
+    position: relative;
+    min-width: 40px;
+    max-width: 150px;
+}
+
+/* Column header text truncation */
+.editable-table th[data-col] .col-header-text {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-right: 8px; /* Space for resize handle */
+}
+
+/* Cell text truncation */
+.editable-table td[data-col] .cell-text {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Ensure cells respect dynamic width */
+.editable-table td[data-col] {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Fixed table layout for consistent column widths */
+.editable-table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+/* Row number column - fixed width */
+.editable-table .row-number,
+.editable-table .row-number-header {
+    width: 45px !important;
+    min-width: 45px !important;
+    max-width: 45px !important;
 }
 
 /* Table action buttons */
@@ -433,4 +474,38 @@ body.resizing-column {
 
 [data-theme="dark"] .editable-table [contenteditable="true"] {
     background-color: var(--workspace-bg-primary, #1e1e1e) !important;
+}
+
+/* ========================================================================
+   ELEMENT-CSV SYNCHRONIZATION HIGHLIGHT
+   ======================================================================== */
+
+/* Highlight for columns linked to selected plot element */
+.data-table td.element-highlight,
+.data-table th.element-highlight,
+.editable-table td.element-highlight,
+.editable-table th.element-highlight {
+    background-color: rgba(255, 193, 7, 0.15) !important;
+    box-shadow: inset 0 0 0 2px rgba(255, 193, 7, 0.4);
+}
+
+/* Header highlight for element-linked columns */
+.data-table th.element-highlight,
+.editable-table th.element-highlight {
+    background-color: rgba(255, 193, 7, 0.25) !important;
+    font-weight: 700;
+}
+
+/* Light theme variant */
+[data-theme="light"] .data-table td.element-highlight,
+[data-theme="light"] .data-table th.element-highlight,
+[data-theme="light"] .editable-table td.element-highlight,
+[data-theme="light"] .editable-table th.element-highlight {
+    background-color: rgba(255, 193, 7, 0.12) !important;
+    box-shadow: inset 0 0 0 2px rgba(255, 193, 7, 0.5);
+}
+
+[data-theme="light"] .data-table th.element-highlight,
+[data-theme="light"] .editable-table th.element-highlight {
+    background-color: rgba(255, 193, 7, 0.2) !important;
 }

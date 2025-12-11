@@ -91,13 +91,6 @@ class ElementInspector {
         return;
       }
 
-      // Alt+C: Copy full page structure
-      if (e.altKey && !e.shiftKey && !e.ctrlKey && key === "c") {
-        e.preventDefault();
-        this.pageStructureExporter.copyPageStructure();
-        return;
-      }
-
       // Escape: Deactivate inspector and cancel selection mode
       if (e.key === "Escape") {
         e.preventDefault();
@@ -113,7 +106,6 @@ class ElementInspector {
 
     console.log("[ElementInspector] Initialized");
     console.log("  Alt+I: Toggle inspector overlay");
-    console.log("  Alt+C: Copy full page structure");
     console.log("  Ctrl+Alt+I: Rectangle selection mode");
     console.log("  Ctrl+Shift+I: Debug snapshot (console logs + page info)");
     console.log("  Escape: Deactivate inspector / Cancel selection");
