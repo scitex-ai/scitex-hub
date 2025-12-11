@@ -35,6 +35,8 @@ urlpatterns = [
     path("cookies/", views.cookie_policy, name="cookies"),
     # Demo page
     path("demo/", views.demo, name="demo"),
+    # API documentation
+    path("api-docs/", views.api_docs, name="api-docs"),
     # Status pages
     path("server-status/", views.server_status, name="server_status"),
     path("api/server-status/", views.server_status_api, name="server_status_api"),
@@ -48,8 +50,6 @@ urlpatterns = [
     path("visitor-restart/", views.visitor_restart_session, name="visitor_restart"),
     path("visitor-pool-full/", views.visitor_pool_full, name="visitor_pool_full"),
     path("api/visitor-pool/initialize/", views.visitor_pool_initialize_api, name="visitor_pool_initialize_api"),
-    # API Documentation
-    path("api-docs/", views.api_docs, name="api-docs"),
     # SciTeX API Key Management
     path("api-keys/", views.scitex_api_keys, name="scitex_api_keys"),
     # Release Notes
@@ -171,11 +171,21 @@ urlpatterns = [
         views.tool_mermaid_renderer,
         name="tool_mermaid_renderer",
     ),
+    path(
+        "tools/docx2tex/",
+        views.tool_docx2tex,
+        name="tool_docx2tex",
+    ),
     # API endpoints
     path(
         "api/read-image-metadata/",
         api_views.read_image_metadata,
         name="api_read_image_metadata",
+    ),
+    path(
+        "api/docx2tex/",
+        api_views.docx2tex_convert,
+        name="api_docx2tex",
     ),
 ]
 

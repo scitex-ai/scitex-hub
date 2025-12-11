@@ -27,6 +27,7 @@ from .legal import contact, privacy_policy, terms_of_use, cookie_policy
 from .status import (
     server_status,
     server_status_api,
+    healthz,
     server_health_status_api,
     server_metrics_history_api,
     server_metrics_export_csv,
@@ -67,6 +68,7 @@ from .tools import (
     tool_plot_backend_test,
     tool_image_viewer,
     tool_mermaid_renderer,
+    tool_docx2tex,
 )
 
 # Utility views
@@ -91,6 +93,7 @@ __all__ = [
     # Status
     "server_status",
     "server_status_api",
+    "healthz",
     "server_health_status_api",
     "server_metrics_history_api",
     "server_metrics_export_csv",
@@ -129,6 +132,7 @@ __all__ = [
     "tool_plot_backend_test",
     "tool_image_viewer",
     "tool_mermaid_renderer",
+    "tool_docx2tex",
     # Utils
     "demo",
     "donation_success",

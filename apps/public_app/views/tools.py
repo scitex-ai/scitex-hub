@@ -290,6 +290,21 @@ def tools(request):
                 },
             ],
         },
+        {
+            "name": "Document Conversion",
+            "slug": "document",
+            "icon": "📄",
+            "description": "Convert documents between formats",
+            "tools": [
+                {
+                    "name": "DOCX to LaTeX",
+                    "description": "Convert Microsoft Word documents to LaTeX format with figure extraction and reference parsing.",
+                    "use_case": "Convert Word manuscript to LaTeX for journal submission",
+                    "bookmarklet_url": "/tools/docx2tex/",
+                    "icon": "📝",
+                },
+            ],
+        },
     ]
 
     # Calculate total tools
@@ -441,6 +456,24 @@ def tool_mermaid_renderer(request):
     pie charts, and git graphs using Mermaid.js syntax.
     """
     return render(request, "public_app/tools/mermaid-renderer.html")
+
+
+def tool_docx2tex(request):
+    """
+    DOCX to LaTeX Converter - Convert Word documents to LaTeX.
+
+    Uses scitex.msword to convert DOCX files to LaTeX format with:
+    - Figure extraction and linking
+    - Reference parsing
+    - Section heading normalization
+    - Multiple journal profile support
+    """
+    from scitex.msword import list_profiles
+
+    profiles = list_profiles()
+    return render(
+        request, "public_app/tools/docx2tex.html", {"profiles": profiles}
+    )
 
 
 # EOF
