@@ -545,4 +545,13 @@ export class TableRendering {
     public getFirstColIsIndex(): boolean {
         return this.firstColIsIndex;
     }
+
+    /**
+     * Set first row as header (placeholder - data interpretation handled by TableData)
+     */
+    public setFirstRowIsHeader(value: boolean): void {
+        // This affects how data is interpreted during import
+        // For now just log - actual implementation in TableData
+        console.log('[TableRendering] First row is header:', value);
+    }
 }

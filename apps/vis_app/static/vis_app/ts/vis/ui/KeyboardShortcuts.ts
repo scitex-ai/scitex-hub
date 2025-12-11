@@ -44,7 +44,8 @@ export class KeyboardShortcuts {
         private nudgeCallback?: (direction: 'up' | 'down' | 'left' | 'right', shift: boolean) => void,
         private selectAllCallback?: () => void,
         private alignByAxisCallback?: (direction: 'L' | 'C' | 'R' | 'T' | 'M' | 'B' | 'S') => void,
-        private escapeCallback?: () => void
+        private escapeCallback?: () => void,
+        private toggleThemeCallback?: () => void
     ) {}
 
     private sizeModeActive: boolean = false;
@@ -168,10 +169,17 @@ export class KeyboardShortcuts {
                 return;
             }
 
-            // Alt+S - Enter Size mode
-            if (e.altKey && e.key.toLowerCase() === 's' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+            // Alt+Z - Enter Size mode (Alt+S is reserved for global navigation to Scholar)
+            if (e.altKey && e.key.toLowerCase() === 'z' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
                 e.preventDefault();
                 this.enterSizeMode();
+                return;
+            }
+
+            // Alt+T - Toggle theme (area-responsive: canvas-only in canvas pane, global elsewhere)
+            if (e.altKey && e.key.toLowerCase() === 't' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+                e.preventDefault();
+                this.handleAreaResponsiveThemeToggle();
                 return;
             }
 
@@ -382,13 +390,13 @@ export class KeyboardShortcuts {
 
     /**
      * Enter Size mode (Alt+Z)
-     * Shows status and waits for S/W/H/C key
+     * Shows status and waits for S/W/T/C key
      */
     private enterSizeMode(): void {
         this.clearModes();
         this.sizeModeActive = true;
         this.startModeTimeout();
-        this.updateStatusBar('Size mode: S=Match Size, W=Match Width, T=Match Height (Tall), C=Multiple Crop');
+        this.updateStatusBar('Size mode (Alt+Z): S=Match Size, W=Match Width, T=Match Height (Tall), C=Multiple Crop');
     }
 
     /**
@@ -526,6 +534,59 @@ export class KeyboardShortcuts {
             this.updateStatusBar(`Arranged: ${action === 'front' ? 'Bring to Front' : 'Send to Back'}`);
         }
         this.clearModes();
+    }
+
+    /**
+     * Handle area-responsive theme toggle
+     * Canvas-only when focus is in canvas pane, global theme otherwise
+     */
+    private handleAreaResponsiveThemeToggle(): void {
+        // Check if focus is in canvas area
+        const canvasPane = document.querySelector('.canvas-pane');
+        const activeElement = document.activeElement;
+        const canvasContainer = document.getElementById('canvas-container');
+        const rulersArea = document.getElementById('rulers-area');
+
+        // Determine if user is focused in canvas area
+        const isInCanvasArea = (
+            canvasPane?.contains(activeElement) ||
+            canvasContainer?.contains(activeElement) ||
+            rulersArea?.contains(activeElement) ||
+            activeElement?.closest('.canvas-pane') !== null ||
+            activeElement?.closest('#canvas-container') !== null
+        );
+
+        if (isInCanvasArea) {
+            // Toggle canvas theme only (local)
+            this.toggleCanvasThemeOnly();
+        } else {
+            // Toggle global theme
+            if (this.toggleThemeCallback) {
+                this.toggleThemeCallback();
+            }
+        }
+    }
+
+    /**
+     * Toggle canvas theme only (independent of global theme)
+     */
+    private toggleCanvasThemeOnly(): void {
+        const canvasContainer = document.querySelector('.vis-canvas-container');
+        if (!canvasContainer) return;
+
+        const currentTheme = canvasContainer.getAttribute('data-canvas-theme') || 'light';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+        canvasContainer.setAttribute('data-canvas-theme', newTheme);
+        localStorage.setItem('canvas-theme', newTheme);
+
+        // Dispatch event for CanvasManager to update Fabric.js canvas background
+        document.dispatchEvent(new CustomEvent('canvas-theme-changed', {
+            detail: { theme: newTheme, isDark: newTheme === 'dark' }
+        }));
+
+        this.updateStatusBar(`Canvas theme: ${newTheme}`);
+        console.log(`[KeyboardShortcuts] Canvas theme toggled to ${newTheme}`);
     }
 
     /**

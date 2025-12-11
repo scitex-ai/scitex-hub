@@ -1,0 +1,86 @@
+/**
+ * Data Table Context Menu Styles
+ *
+ * Right-click context menu for table operations
+ */
+
+.data-table-context-menu {
+    position: fixed !important;
+    z-index: 10000;
+    background: var(--bg-secondary, #2d2d2d);
+    border: 1px solid var(--border-color, #444);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    min-width: 200px;
+    padding: 4px 0;
+    font-size: 13px;
+    /* Reset any inherited positioning */
+    right: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    margin: 0 !important;
+}
+
+.context-menu-section {
+    padding: 2px 0;
+}
+
+.context-menu-divider {
+    height: 1px;
+    background: var(--border-color, #444);
+    margin: 4px 8px;
+}
+
+.context-menu-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    cursor: pointer;
+    color: var(--text-primary, #e0e0e0);
+    gap: 10px;
+    transition: background 0.1s ease;
+}
+
+.context-menu-item:hover {
+    background: var(--bg-hover, rgba(255, 255, 255, 0.1));
+}
+
+.context-menu-item i:first-child {
+    width: 16px;
+    text-align: center;
+    color: var(--text-secondary, #888);
+}
+
+.context-menu-item span {
+    flex: 1;
+}
+
+.context-menu-item .check-icon {
+    width: 14px;
+    opacity: 0;
+    color: var(--status-success, #6ba89a);
+    transition: opacity 0.1s ease;
+}
+
+.context-menu-item.active .check-icon {
+    opacity: 1;
+}
+
+/* Light theme support */
+[data-theme="light"] .data-table-context-menu {
+    background: #fff;
+    border-color: #ddd;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .context-menu-item {
+    color: #333;
+}
+
+[data-theme="light"] .context-menu-item:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .context-menu-divider {
+    background: #ddd;
+}

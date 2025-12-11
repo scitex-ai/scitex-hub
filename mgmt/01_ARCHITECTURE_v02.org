@@ -1,0 +1,537 @@
+# Timestamp: 2025-12-08
+# File: /home/ywatanabe/proj/scitex-cloud/mgmt/01_ARCHITECTURE_v02.org
+# Subject: scitex.vis Directory-Based Figure Storage Architecture
+
+* Project Overview
+
+** Objective
+Implement directory-based figure storage for scitex.vis:
+- Path: `project/scitex/vis/figures/{fig_descriptive_name}/`
+- Each figure directory contains: `figure.json`, `data/`, `exports/`
+- 1 Canvas = 1 Figure = 1 Directory
+
+** Design Principles
+1. scitex-code package: Core logic + simple APIs (NO Django dependencies)
+2. scitex-cloud (Django): Thin wrapper over scitex-code APIs
+3. NO backward compatibility: Clean slate, no legacy support
+4. Project-centric: All operations link to user/group projects
+5. Data integrity: Hash-based verification for all data files
+6. Descriptive naming: `fig_descriptive_name` used as figure ID (also in writer)
+
+* Agreed Architecture
+
+** Directory Structure
+
+#+BEGIN_SRC text
+project/scitex/vis/figures/
+├── neural_activity/
+│   ├── figure.json           # Canvas state + data references with hashes
+│   ├── data/                 # Source data files
+│   │   ├── trace_001.csv
+│   │   └── trace_002.csv
+│   └── exports/              # Rendered outputs (flat)
+│       ├── figure.png
+│       ├── figure.pdf
+│       └── figure.svg
+│
+├── connectivity_matrix/
+│   ├── figure.json
+│   ├── data/
+│   └── exports/
+│
+└── time_series_summary/
+    ├── figure.json
+    ├── data/
+    └── exports/
+#+END_SRC
+
+** figure.json Schema
+
+#+BEGIN_SRC json
+{
+  "schema_version": "2.0.0",
+  "fig_name": "neural_activity",
+
+  "canvas": {
+    "width_mm": 180,
+    "height_mm": 120,
+    "dpi": 300,
+    "nrows": 1,
+    "ncols": 1
+  },
+
+  "axes": [...],
+
+  "data_files": [
+    {
+      "path": "data/trace_001.csv",
+      "hash": "sha256:a1b2c3d4...",
+      "description": "Neural trace channel 1"
+    },
+    {
+      "path": "data/trace_002.csv",
+      "hash": "sha256:e5f6g7h8...",
+      "description": "Neural trace channel 2"
+    }
+  ],
+
+  "metadata": {
+    "created_at": "2025-12-08T12:00:00Z",
+    "updated_at": "2025-12-08T15:30:00Z",
+    "author": "user"
+  }
+}
+#+END_SRC
+
+* Core API: scitex.vis.io
+
+** Function Overview
+
+#+BEGIN_SRC text
+scitex.vis.io/
+├── __init__.py               # Public API exports
+├── directory.py              # Directory operations
+├── figure.py                 # Figure JSON operations
+├── data.py                   # Data file operations with hash verification
+└── export.py                 # Export operations
+#+END_SRC
+
+** Directory Operations (directory.py)
+
+#+BEGIN_SRC python
+def ensure_figure_directory(
+    project_dir: Path,
+    fig_name: str,
+) -> Path:
+    """
+    Create figure directory structure if not exists.
+
+    Creates:
+        - figures/{fig_name}/
+        - figures/{fig_name}/data/
+        - figures/{fig_name}/exports/
+        - figures/{fig_name}/figure.json (empty template)
+
+    Returns: Path to figure directory
+    """
+
+def list_figure_directories(
+    project_dir: Path,
+) -> List[str]:
+    """
+    List all figure directory names in project.
+
+    Returns: List of fig_names (directory names)
+    """
+
+def delete_figure_directory(
+    project_dir: Path,
+    fig_name: str,
+) -> bool:
+    """
+    Delete figure directory and all contents.
+
+    Returns: True if deleted successfully
+    """
+
+def get_figure_directory_path(
+    project_dir: Path,
+    fig_name: str,
+) -> Path:
+    """
+    Get path to figure directory.
+
+    Returns: Path to figures/{fig_name}/
+    """
+#+END_SRC
+
+** Figure JSON Operations (figure.py)
+
+#+BEGIN_SRC python
+def save_figure_json(
+    project_dir: Path,
+    fig_name: str,
+    fig_json: Dict[str, Any],
+) -> Path:
+    """
+    Save figure specification to figure.json.
+
+    Saves to: figures/{fig_name}/figure.json
+    Returns: Path to saved file
+    """
+
+def load_figure_json(
+    project_dir: Path,
+    fig_name: str,
+    verify_data_hashes: bool = True,
+) -> Dict[str, Any]:
+    """
+    Load figure specification from figure.json.
+
+    If verify_data_hashes=True, validates all data file hashes.
+    Raises: HashMismatchError if data files have changed
+
+    Returns: Figure JSON dict
+    """
+
+def update_figure_json(
+    project_dir: Path,
+    fig_name: str,
+    updates: Dict[str, Any],
+) -> Path:
+    """
+    Partial update of figure.json (merge with existing).
+
+    Returns: Path to updated file
+    """
+#+END_SRC
+
+** Data Operations (data.py)
+
+#+BEGIN_SRC python
+def save_figure_data(
+    project_dir: Path,
+    fig_name: str,
+    data: Any,  # DataFrame, ndarray, dict, etc.
+    filename: str,
+    description: str = "",
+    register_in_json: bool = True,
+) -> Path:
+    """
+    Save data file to figure's data/ directory.
+
+    - Computes SHA256 hash of saved file
+    - If register_in_json=True, adds entry to figure.json data_files
+
+    Saves to: figures/{fig_name}/data/{filename}
+    Returns: Path to saved data file
+    """
+
+def load_figure_data(
+    project_dir: Path,
+    fig_name: str,
+    filename: str,
+    verify_hash: bool = True,
+) -> Any:
+    """
+    Load data file from figure's data/ directory.
+
+    If verify_hash=True, validates against hash in figure.json.
+    Raises: HashMismatchError if file has changed
+
+    Returns: Loaded data (DataFrame, etc.)
+    """
+
+def list_figure_data_files(
+    project_dir: Path,
+    fig_name: str,
+) -> List[Dict[str, Any]]:
+    """
+    List all data files for figure with their hashes.
+
+    Returns: List of {path, hash, description} dicts from figure.json
+    """
+
+def verify_all_data_hashes(
+    project_dir: Path,
+    fig_name: str,
+) -> Dict[str, bool]:
+    """
+    Verify hashes of all data files.
+
+    Returns: Dict of {filename: is_valid}
+    """
+
+def compute_file_hash(filepath: Path) -> str:
+    """
+    Compute SHA256 hash of file.
+
+    Returns: "sha256:{hash_hex}"
+    """
+#+END_SRC
+
+** Export Operations (export.py)
+
+#+BEGIN_SRC python
+def export_figure_to_file(
+    project_dir: Path,
+    fig_name: str,
+    output_format: str,  # "png", "pdf", "svg", "eps"
+    **kwargs,  # dpi, transparent, etc.
+) -> Path:
+    """
+    Export figure to specified format.
+
+    Saves to: figures/{fig_name}/exports/figure.{format}
+    Returns: Path to exported file
+    """
+
+def export_figure_to_multiple_formats(
+    project_dir: Path,
+    fig_name: str,
+    formats: List[str],
+    **kwargs,
+) -> List[Path]:
+    """
+    Export figure to multiple formats.
+
+    Returns: List of paths to exported files
+    """
+
+def list_figure_exports(
+    project_dir: Path,
+    fig_name: str,
+) -> List[Path]:
+    """
+    List all exported files for figure.
+
+    Returns: List of paths in exports/ directory
+    """
+#+END_SRC
+
+* Editor Integration
+
+** Manual Overrides
+
+Manual overrides are stored directly in `figure.json` under a `manual_overrides` key:
+
+#+BEGIN_SRC json
+{
+  "schema_version": "2.0.0",
+  "fig_name": "neural_activity",
+  "canvas": {...},
+  "axes": [...],
+  "data_files": [...],
+
+  "manual_overrides": {
+    "axes[0].title.fontsize": 14,
+    "axes[0].xlabel.text": "Time (ms)",
+    "canvas.facecolor": "#f5f5f5"
+  }
+}
+#+END_SRC
+
+** Editor Functions
+
+#+BEGIN_SRC python
+def apply_manual_overrides(
+    fig_json: Dict[str, Any],
+) -> Dict[str, Any]:
+    """
+    Apply manual_overrides to figure JSON.
+
+    Returns: Figure JSON with overrides applied
+    """
+
+def save_manual_override(
+    project_dir: Path,
+    fig_name: str,
+    key: str,
+    value: Any,
+) -> None:
+    """
+    Save single manual override to figure.json.
+    """
+#+END_SRC
+
+* Django Integration (scitex-cloud)
+
+** Thin Wrapper Views
+
+#+BEGIN_SRC python
+# apps/vis_app/views.py
+
+import scitex as stx
+
+def list_figures(request, project_id):
+    """List all figures in project."""
+    project_path = get_project_path(project_id)
+    figures = stx.vis.io.list_figure_directories(project_path)
+    return JsonResponse({"figures": figures})
+
+def get_figure(request, project_id, fig_name):
+    """Get figure JSON."""
+    project_path = get_project_path(project_id)
+    fig_json = stx.vis.io.load_figure_json(project_path, fig_name)
+    return JsonResponse(fig_json)
+
+def create_figure(request, project_id, fig_name):
+    """Create new figure directory."""
+    project_path = get_project_path(project_id)
+    fig_dir = stx.vis.io.ensure_figure_directory(project_path, fig_name)
+    return JsonResponse({"path": str(fig_dir)})
+
+def save_figure(request, project_id, fig_name):
+    """Save figure JSON."""
+    project_path = get_project_path(project_id)
+    fig_json = json.loads(request.body)
+    stx.vis.io.save_figure_json(project_path, fig_name, fig_json)
+    return JsonResponse({"success": True})
+
+def delete_figure(request, project_id, fig_name):
+    """Delete figure directory."""
+    project_path = get_project_path(project_id)
+    success = stx.vis.io.delete_figure_directory(project_path, fig_name)
+    return JsonResponse({"success": success})
+
+def export_figure(request, project_id, fig_name, format):
+    """Export figure to format."""
+    project_path = get_project_path(project_id)
+    export_path = stx.vis.io.export_figure_to_file(project_path, fig_name, format)
+    return FileResponse(open(export_path, 'rb'))
+#+END_SRC
+
+** URL Patterns
+
+#+BEGIN_SRC python
+# apps/vis_app/urls.py
+
+urlpatterns = [
+    path('api/figures/', views.list_figures),
+    path('api/figures/<str:fig_name>/', views.get_figure),
+    path('api/figures/<str:fig_name>/create/', views.create_figure),
+    path('api/figures/<str:fig_name>/save/', views.save_figure),
+    path('api/figures/<str:fig_name>/delete/', views.delete_figure),
+    path('api/figures/<str:fig_name>/export/<str:format>/', views.export_figure),
+]
+#+END_SRC
+
+* Implementation Phases
+
+** Phase 1: Core I/O (scitex-code)
+1. Implement directory.py: ensure_figure_directory, list_figure_directories, etc.
+2. Implement figure.py: save_figure_json, load_figure_json
+3. Implement data.py: save_figure_data, load_figure_data, hash functions
+4. Write tests for all functions
+
+** Phase 2: Export & Editor (scitex-code)
+1. Implement export.py: export_figure_to_file, etc.
+2. Update editor to use new directory structure
+3. Implement manual_overrides in figure.json
+
+** Phase 3: Django Integration (scitex-cloud)
+1. Create thin wrapper views
+2. Add URL routing
+3. Connect /vis/ page to API
+
+* Data Flow Diagram
+
+#+BEGIN_SRC mermaid
+sequenceDiagram
+    participant User
+    participant Django as scitex-cloud
+    participant Core as scitex.vis.io
+    participant FS as Filesystem
+
+    User->>Django: Create figure "neural_activity"
+    Django->>Core: ensure_figure_directory(project, "neural_activity")
+    Core->>FS: mkdir figures/neural_activity/{data,exports}
+    Core->>FS: write figure.json (template)
+    Core-->>Django: Path
+    Django-->>User: Success
+
+    User->>Django: Save data file
+    Django->>Core: save_figure_data(project, "neural_activity", df, "trace.csv")
+    Core->>FS: write data/trace.csv
+    Core->>Core: compute_file_hash()
+    Core->>FS: update figure.json (add data_files entry)
+    Core-->>Django: Path
+    Django-->>User: Success
+
+    User->>Django: Load figure
+    Django->>Core: load_figure_json(project, "neural_activity", verify_hashes=True)
+    Core->>FS: read figure.json
+    Core->>Core: verify_all_data_hashes()
+    Core-->>Django: fig_json (validated)
+    Django-->>User: Figure data
+#+END_SRC
+
+* Compatibility with stx.plt
+
+** Current stx.plt Output
+
+stx.plt saves 3 files per figure (path depends on user's save call):
+
+#+BEGIN_SRC text
+# Flat (default)
+output_dir/
+├── 01_plot.png
+├── 01_plot.json
+└── 01_plot.csv
+
+# Or organized by extension
+output_dir/
+├── png/01_plot.png
+├── json/01_plot.json
+└── csv/01_plot.csv
+#+END_SRC
+
+** JSON Format from stx.plt
+
+#+BEGIN_SRC json
+{
+  "metadata_version": "1.1.0",
+  "scitex": {
+    "version": "2.4.3",
+    "created_at": "2025-12-08T15:40:58",
+    "axes_size_mm": [40, 28],
+    "style_mm": {...}
+  },
+  "id": "01_plot",
+  "dimensions": {
+    "figure_size_mm": [80.0, 68.0],
+    "dpi": 300
+  },
+  "axes": {
+    "x": {"label": "Time", "unit": "s", "scale": "linear", "lim": [...]},
+    "y": {"label": "Amplitude", "unit": "a.u.", ...}
+  },
+  "traces": [
+    {
+      "id": "sine",
+      "label": "sin(x)",
+      "color": "#0000ff",
+      "csv_columns": {"x": "ax_00_sine_plot_x", "y": "ax_00_sine_plot_y"}
+    }
+  ]
+}
+#+END_SRC
+
+** New scitex.vis Structure
+
+Per-figure directory (different concept from stx.plt):
+
+#+BEGIN_SRC text
+project/scitex/vis/figures/
+└── neural_activity/
+    ├── figure.json      # Canvas spec + data refs with hashes
+    ├── data/
+    │   └── traces.csv   # Source data
+    └── exports/
+        ├── figure.png
+        ├── figure.pdf
+        └── figure.svg
+#+END_SRC
+
+** Key Differences
+
+| Aspect | stx.plt | scitex.vis |
+|--------|---------|------------|
+| Scope | Multiple figures in one dir | One figure per directory |
+| Organization | By file type or flat | By purpose (data, exports) |
+| Use case | Batch plotting output | Interactive canvas editing |
+| Data integrity | None | SHA256 hash verification |
+
+* Summary
+
+| Aspect | Decision |
+|--------|----------|
+| Directory path | `project/scitex/vis/figures/{fig_descriptive_name}/` |
+| Naming | Descriptive names (e.g., `neural_activity`, `connectivity_matrix`) |
+| Data references | Relative paths (`data/trace.csv`) with SHA256 hash |
+| Hash verification | On load by default, can disable |
+| Export structure | Flat (`exports/figure.png`, `exports/figure.pdf`) |
+| Manual overrides | Stored in `figure.json` under `manual_overrides` key |
+| Backward compat | None - clean implementation |
+
+* EOF

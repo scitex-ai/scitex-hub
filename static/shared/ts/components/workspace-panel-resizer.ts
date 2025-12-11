@@ -205,11 +205,15 @@ export class WorkspacePanelResizer {
             const isCollapsed = targetPanel.classList.toggle('collapsed');
 
             if (isCollapsed) {
-                // Clear inline width when collapsing so CSS takes effect
+                // Clear inline styles when collapsing so CSS takes effect
                 targetPanel.style.width = '';
+                targetPanel.style.maxWidth = '';
                 targetPanel.style.flexShrink = '';
                 targetPanel.style.flexGrow = '';
             } else {
+                // Clear max-width constraint first when expanding
+                targetPanel.style.maxWidth = 'none';
+
                 // Restore saved width when expanding
                 const savedWidth = localStorage.getItem(this.storagePrefix + config.storageKey);
                 if (savedWidth) {
@@ -223,6 +227,25 @@ export class WorkspacePanelResizer {
                     targetPanel.style.width = `${config.defaultWidth}px`;
                     targetPanel.style.flexShrink = '0';
                     targetPanel.style.flexGrow = '0';
+                }
+
+                // Special handling for canvas-pane: reset sibling data-pane when expanding
+                if (config.targetPanel === '#canvas-pane') {
+                    const dataPaneKey = 'data-pane-width';
+                    const dataPane = document.getElementById('data-pane');
+                    if (dataPane) {
+                        const dataPaneWidth = localStorage.getItem(this.storagePrefix + dataPaneKey);
+                        if (dataPaneWidth) {
+                            const width = parseInt(dataPaneWidth, 10);
+                            dataPane.style.width = `${width}px`;
+                            dataPane.style.flexShrink = '0';
+                            dataPane.style.flexGrow = '0';
+                        } else {
+                            dataPane.style.width = '400px';
+                            dataPane.style.flexShrink = '0';
+                            dataPane.style.flexGrow = '0';
+                        }
+                    }
                 }
             }
 
@@ -408,11 +431,15 @@ export class WorkspacePanelResizer {
             const isCollapsed = targetPanel.classList.toggle('collapsed');
 
             if (isCollapsed) {
-                // Clear inline width when collapsing so CSS takes effect
+                // Clear inline styles when collapsing so CSS takes effect
                 targetPanel.style.width = '';
+                targetPanel.style.maxWidth = '';
                 targetPanel.style.flexShrink = '';
                 targetPanel.style.flexGrow = '';
             } else {
+                // Clear max-width constraint first when expanding
+                targetPanel.style.maxWidth = 'none';
+
                 // Restore saved width when expanding
                 const savedWidth = localStorage.getItem(this.storagePrefix + config.storageKey);
                 if (savedWidth) {
@@ -426,6 +453,28 @@ export class WorkspacePanelResizer {
                     targetPanel.style.width = `${config.defaultWidth}px`;
                     targetPanel.style.flexShrink = '0';
                     targetPanel.style.flexGrow = '0';
+                }
+
+                // Special handling for canvas-pane: reset sibling data-pane when expanding
+                // This ensures the data pane returns to its normal width instead of flex: 1
+                if (config.targetPanel === '#canvas-pane') {
+                    const dataPaneKey = 'data-pane-width';
+                    const dataPane = document.getElementById('data-pane');
+                    if (dataPane) {
+                        const dataPaneWidth = localStorage.getItem(this.storagePrefix + dataPaneKey);
+                        if (dataPaneWidth) {
+                            const width = parseInt(dataPaneWidth, 10);
+                            dataPane.style.width = `${width}px`;
+                            dataPane.style.flexShrink = '0';
+                            dataPane.style.flexGrow = '0';
+                        } else {
+                            // Default data pane width
+                            dataPane.style.width = '400px';
+                            dataPane.style.flexShrink = '0';
+                            dataPane.style.flexGrow = '0';
+                        }
+                        console.log('[WorkspacePanelResizer] Reset data-pane width after canvas expand');
+                    }
                 }
             }
 

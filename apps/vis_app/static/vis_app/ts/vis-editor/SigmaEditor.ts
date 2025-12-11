@@ -1187,6 +1187,10 @@ export class SigmaEditor {
     /**
      * Infer csv_columns from element label when csv_columns is not available (backward compatibility)
      * Uses the currently loaded data table to find matching column names
+     *
+     * Handles SciTeX header naming convention:
+     *   ax-row-0-col-0_trace-id-sine-wave_variable-x
+     *   ax-row-0-col-0_trace-id-sine-wave_variable-y
      */
     private inferCsvColumnsFromLabel(elementName: string, elementInfo: any): { x?: { name: string, index: number }, y?: { name: string, index: number } } | null {
         const currentData = this.dataTableManager.getCurrentData();
@@ -1196,26 +1200,67 @@ export class SigmaEditor {
         }
 
         const headers = currentData.headers;
-        const label = elementInfo.label || '';
+        const label = (elementInfo.label || '').toLowerCase();
         const traceIdx = elementInfo.trace_idx;
+        const axesId = elementInfo.axes_id || '';
 
-        // First column is typically X (time/independent variable)
-        const xCol = { name: headers[0], index: 0 };
+        // Find matching columns by trace-id pattern in SciTeX headers
+        // Header format: ax-row-R-col-C_trace-id-TRACENAME_variable-{x|y}
+        let xColIdx = -1;
+        let yColIdx = -1;
 
-        // Try to find Y column by trace_idx first (most reliable)
+        for (let i = 0; i < headers.length; i++) {
+            const header = headers[i].toLowerCase();
+
+            // Check if header contains the trace label (e.g., "sin" matches "sine-wave")
+            // or exact label match (e.g., "sine-wave" matches "sine-wave")
+            const traceIdMatch = header.match(/trace-id-([^_]+)/);
+            if (traceIdMatch) {
+                const traceId = traceIdMatch[1];  // e.g., "sine-wave"
+
+                // Check for partial match: "sin" in "sine-wave" or "sine-wave" contains "sin"
+                const labelMatches = traceId.includes(label) ||
+                                    label.includes(traceId.replace('-', '').replace('_', '')) ||
+                                    traceId.startsWith(label);
+
+                if (labelMatches) {
+                    // Determine if this is x or y variable
+                    if (header.endsWith('_variable-x') || header.includes('_x_') || header.endsWith('-x')) {
+                        xColIdx = i;
+                    } else if (header.endsWith('_variable-y') || header.includes('_y_') || header.endsWith('-y')) {
+                        yColIdx = i;
+                    }
+                }
+            }
+        }
+
+        if (xColIdx !== -1 || yColIdx !== -1) {
+            const result: { x?: { name: string, index: number }, y?: { name: string, index: number } } = {};
+            if (xColIdx !== -1) {
+                result.x = { name: headers[xColIdx], index: xColIdx };
+            }
+            if (yColIdx !== -1) {
+                result.y = { name: headers[yColIdx], index: yColIdx };
+            }
+            console.log(`[SigmaEditor] Inferred csv_columns from SciTeX header: x=${result.x?.name}, y=${result.y?.name}`);
+            return result;
+        }
+
+        // Fallback: Try to find Y column by trace_idx (legacy format)
         if (traceIdx !== undefined && traceIdx + 1 < headers.length) {
+            const xCol = { name: headers[0], index: 0 };
             const yColIdx = traceIdx + 1;  // trace_0 -> column 1, trace_1 -> column 2
             const yCol = { name: headers[yColIdx], index: yColIdx };
             console.log(`[SigmaEditor] Inferred csv_columns from trace_idx ${traceIdx}: x=${xCol.name}, y=${yCol.name}`);
             return { x: xCol, y: yCol };
         }
 
-        // Fallback: Try to match by label name
+        // Fallback: Try to match by label name (simple headers)
         for (let i = 1; i < headers.length; i++) {
-            const header = headers[i];
-            if (label.toLowerCase().includes(header.toLowerCase()) ||
-                header.toLowerCase().includes(label.toLowerCase())) {
-                const yCol = { name: header, index: i };
+            const header = headers[i].toLowerCase();
+            if (label.includes(header) || header.includes(label)) {
+                const xCol = { name: headers[0], index: 0 };
+                const yCol = { name: headers[i], index: i };
                 console.log(`[SigmaEditor] Inferred csv_columns from label match: x=${xCol.name}, y=${yCol.name}`);
                 return { x: xCol, y: yCol };
             }
@@ -1226,13 +1271,14 @@ export class SigmaEditor {
         if (traceMatch) {
             const idx = parseInt(traceMatch[1]) + 1;
             if (idx < headers.length) {
+                const xCol = { name: headers[0], index: 0 };
                 const yCol = { name: headers[idx], index: idx };
                 console.log(`[SigmaEditor] Inferred csv_columns from element name: x=${xCol.name}, y=${yCol.name}`);
                 return { x: xCol, y: yCol };
             }
         }
 
-        console.log('[SigmaEditor] Could not infer csv_columns for element:', elementName);
+        console.log('[SigmaEditor] Could not infer csv_columns for element:', elementName, 'label:', label);
         return null;
     }
 

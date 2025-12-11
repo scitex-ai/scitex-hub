@@ -130,17 +130,17 @@ export function setupInteractionHandlers(editor: SigmaEditor): InteractionHandle
 
     /**
      * Setup keyboard shortcuts help modal
+     * Creates a dynamic modal with 3-column grid layout
      */
     function setupShortcutsHelp(): void {
         const helpBtn = document.getElementById('btn-shortcuts-help');
         if (!helpBtn) return;
 
-        // Create modal if it doesn't exist
-        let modal = document.getElementById('shortcuts-modal');
+        // Create modal dynamically (replaces HTML modal)
+        let modal = document.getElementById('shortcuts-modal-dynamic');
         if (!modal) {
             modal = document.createElement('div');
-            modal.id = 'shortcuts-modal';
-            modal.className = 'shortcuts-modal';
+            modal.id = 'shortcuts-modal-dynamic';
             modal.innerHTML = `
                 <div class="shortcuts-modal-content">
                     <div class="shortcuts-modal-header">
@@ -148,6 +148,13 @@ export function setupInteractionHandlers(editor: SigmaEditor): InteractionHandle
                         <button class="shortcuts-modal-close">&times;</button>
                     </div>
                     <div class="shortcuts-modal-body">
+                        <div class="shortcuts-section">
+                            <h4>Global Navigation</h4>
+                            <div class="shortcut-row"><kbd>Alt+S</kbd> Scholar (research)</div>
+                            <div class="shortcut-row"><kbd>Alt+V</kbd> Vis (visualization)</div>
+                            <div class="shortcut-row"><kbd>Alt+C</kbd> Code (editor)</div>
+                            <div class="shortcut-row"><kbd>Alt+W</kbd> Writer</div>
+                        </div>
                         <div class="shortcuts-section">
                             <h4>Basic</h4>
                             <div class="shortcut-row"><kbd>Ctrl+C</kbd> Copy object</div>
@@ -157,7 +164,7 @@ export function setupInteractionHandlers(editor: SigmaEditor): InteractionHandle
                             <div class="shortcut-row"><kbd>Ctrl+Y</kbd> Redo</div>
                             <div class="shortcut-row"><kbd>Del</kbd> Delete selected</div>
                             <div class="shortcut-row"><kbd>Arrow</kbd> Move 1px</div>
-                            <div class="shortcut-row"><kbd>Shift+Arrow</kbd> Resize 1px</div>
+                            <div class="shortcut-row"><kbd>Shift+Arrow</kbd> Move 10px</div>
                         </div>
                         <div class="shortcuts-section">
                             <h4>Align (Alt+A → ...)</h4>
@@ -181,7 +188,7 @@ export function setupInteractionHandlers(editor: SigmaEditor): InteractionHandle
                             <div class="shortcut-row"><kbd>S</kbd> Stack vertically</div>
                         </div>
                         <div class="shortcuts-section">
-                            <h4>Size (Alt+S → ...)</h4>
+                            <h4>Size (Alt+Z → ...)</h4>
                             <div class="shortcut-row"><kbd>S</kbd> Match Size</div>
                             <div class="shortcut-row"><kbd>W</kbd> Match Width</div>
                             <div class="shortcut-row"><kbd>T</kbd> Match Height (Tall)</div>
@@ -200,6 +207,7 @@ export function setupInteractionHandlers(editor: SigmaEditor): InteractionHandle
                             <div class="shortcut-row"><kbd>-</kbd> Zoom Out</div>
                             <div class="shortcut-row"><kbd>0</kbd> Fit to Window</div>
                             <div class="shortcut-row"><kbd>G</kbd> Toggle Grid</div>
+                            <div class="shortcut-row"><kbd>Alt+T</kbd> Toggle Theme</div>
                             <div class="shortcut-row"><kbd>Right-drag</kbd> Pan canvas</div>
                             <div class="shortcut-row"><kbd>Right-dblclick</kbd> Reset pan</div>
                         </div>
@@ -218,6 +226,7 @@ export function setupInteractionHandlers(editor: SigmaEditor): InteractionHandle
                 width: 100%;
                 height: 100%;
                 background: rgba(0,0,0,0.6);
+                backdrop-filter: blur(4px);
                 display: none;
                 align-items: center;
                 justify-content: center;
@@ -229,49 +238,78 @@ export function setupInteractionHandlers(editor: SigmaEditor): InteractionHandle
             const style = document.createElement('style');
             style.textContent = `
                 .shortcuts-modal-content {
-                    background: var(--bg-primary, #1e1e1e);
+                    background: var(--scitex-color-02, #1a1d24);
                     border-radius: 8px;
-                    max-width: 700px;
-                    max-height: 80vh;
+                    max-width: 800px;
+                    max-height: 85vh;
                     overflow: hidden;
                     box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+                }
+                [data-theme="light"] .shortcuts-modal-content {
+                    background: #ffffff;
+                    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
                 }
                 .shortcuts-modal-header {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
                     padding: 16px 20px;
-                    border-bottom: 1px solid var(--border-color, #333);
+                    border-bottom: 1px solid var(--scitex-color-03, #2d3139);
+                }
+                [data-theme="light"] .shortcuts-modal-header {
+                    border-bottom-color: #e5e7eb;
                 }
                 .shortcuts-modal-header h3 {
                     margin: 0;
                     font-size: 18px;
-                    color: var(--text-primary, #fff);
+                    color: #ffffff;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+                [data-theme="light"] .shortcuts-modal-header h3 {
+                    color: #1f2937;
                 }
                 .shortcuts-modal-close {
                     background: none;
                     border: none;
                     font-size: 24px;
                     cursor: pointer;
-                    color: var(--text-secondary, #888);
+                    color: #8b949e;
+                    padding: 4px 8px;
+                    border-radius: 6px;
+                    transition: background 0.15s ease, color 0.15s ease;
                 }
                 .shortcuts-modal-close:hover {
-                    color: var(--text-primary, #fff);
+                    background: var(--scitex-color-03, #2d3139);
+                    color: #ffffff;
+                }
+                [data-theme="light"] .shortcuts-modal-close {
+                    color: #6b7280;
+                }
+                [data-theme="light"] .shortcuts-modal-close:hover {
+                    background: #f3f4f6;
+                    color: #1f2937;
                 }
                 .shortcuts-modal-body {
                     padding: 20px;
                     display: grid;
                     grid-template-columns: repeat(3, 1fr);
                     gap: 20px;
-                    max-height: calc(80vh - 60px);
+                    max-height: calc(85vh - 60px);
                     overflow-y: auto;
                 }
                 .shortcuts-section h4 {
                     margin: 0 0 10px 0;
-                    font-size: 14px;
-                    color: var(--accent-blue, #4a9eff);
-                    border-bottom: 1px solid var(--border-color, #333);
-                    padding-bottom: 5px;
+                    font-size: 13px;
+                    font-weight: 600;
+                    color: #58a6ff;
+                    border-bottom: 1px solid var(--scitex-color-03, #2d3139);
+                    padding-bottom: 6px;
+                }
+                [data-theme="light"] .shortcuts-section h4 {
+                    color: #2563eb;
+                    border-bottom-color: #e5e7eb;
                 }
                 .shortcut-row {
                     display: flex;
@@ -279,52 +317,76 @@ export function setupInteractionHandlers(editor: SigmaEditor): InteractionHandle
                     gap: 10px;
                     margin-bottom: 6px;
                     font-size: 12px;
-                    color: var(--text-secondary, #aaa);
+                    color: #8b949e;
+                }
+                [data-theme="light"] .shortcut-row {
+                    color: #4b5563;
                 }
                 .shortcut-row kbd {
-                    background: var(--bg-tertiary, #333);
-                    padding: 2px 6px;
+                    background: var(--scitex-color-03, #2d3139);
+                    padding: 3px 7px;
                     border-radius: 4px;
-                    font-family: monospace;
+                    font-family: ui-monospace, monospace;
                     font-size: 11px;
                     min-width: 60px;
                     text-align: center;
-                    color: var(--text-primary, #fff);
+                    color: #e6edf3;
+                    border: 1px solid var(--scitex-color-04, #3d4149);
+                }
+                [data-theme="light"] .shortcut-row kbd {
+                    background: #f3f4f6;
+                    color: #1f2937;
+                    border-color: #d1d5db;
                 }
             `;
             document.head.appendChild(style);
-
-            // Close handlers
-            modal.querySelector('.shortcuts-modal-close')?.addEventListener('click', () => {
-                modal!.style.display = 'none';
-            });
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    modal!.style.display = 'none';
-                }
-            });
         }
 
-        // Show modal on button click
-        helpBtn.addEventListener('click', () => {
+        const closeModal = () => {
+            modal!.style.display = 'none';
+        };
+
+        const openModal = () => {
             modal!.style.display = 'flex';
+        };
+
+        const toggleModal = () => {
+            modal!.style.display = modal!.style.display === 'flex' ? 'none' : 'flex';
+        };
+
+        // Show modal on button click
+        helpBtn.addEventListener('click', openModal);
+
+        // Close handlers
+        modal.querySelector('.shortcuts-modal-close')?.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
         });
 
-        // Show modal on ? key
+        // Keyboard handlers
         document.addEventListener('keydown', (e) => {
-            if (e.key === '?' && !e.ctrlKey && !e.altKey && !e.metaKey) {
-                // Don't trigger if typing in input
-                if (document.activeElement?.tagName === 'INPUT' ||
-                    document.activeElement?.tagName === 'TEXTAREA') {
-                    return;
-                }
-                modal!.style.display = modal!.style.display === 'flex' ? 'none' : 'flex';
+            // Don't trigger if typing in input
+            if (document.activeElement?.tagName === 'INPUT' ||
+                document.activeElement?.tagName === 'TEXTAREA') {
+                return;
             }
-            // Close on Escape
-            if (e.key === 'Escape') {
-                modal!.style.display = 'none';
+
+            // ? key - Toggle modal
+            if (e.key === '?' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+                e.preventDefault();
+                toggleModal();
+            }
+
+            // Escape key - Close modal
+            if (e.key === 'Escape' && modal!.style.display === 'flex') {
+                e.preventDefault();
+                closeModal();
             }
         });
+
+        console.log('[InteractionHandlers] Shortcuts help modal initialized');
     }
 
     // Apply themes on initialization

@@ -21,6 +21,7 @@ import { TableEditing } from './TableEditing.ts';
 import { TableClipboard } from './TableClipboard.ts';
 import { TableFillHandle } from './TableFillHandle.ts';
 import { TableColumnRow } from './TableColumnRow.ts';
+import { TableContextMenu } from './TableContextMenu.ts';
 
 export class DataTableManager {
     // Module instances
@@ -31,6 +32,7 @@ export class DataTableManager {
     private tableClipboard: TableClipboard;
     private tableFillHandle: TableFillHandle;
     private tableColumnRow: TableColumnRow;
+    private tableContextMenu: TableContextMenu;
 
     // Configuration
     private containerSelector: string;
@@ -134,6 +136,24 @@ export class DataTableManager {
         );
         this.tableColumnRow.setContainerSelector(this.containerSelector);
 
+        // Initialize TableContextMenu module
+        this.tableContextMenu = new TableContextMenu({
+            onToggleHeader: (isHeader) => {
+                this.tableRendering.setFirstRowIsHeader(isHeader);
+            },
+            onToggleIndex: (isIndex) => {
+                this.tableRendering.setFirstColIsIndex(isIndex);
+            },
+            onImportFile: () => {
+                // Trigger file input click
+                const fileInput = document.getElementById('data-file-input') as HTMLInputElement;
+                if (fileInput) fileInput.click();
+            },
+            onRenderTable: () => this.renderEditableDataTable(),
+            statusBarCallback: effectiveStatusCallback
+        });
+        this.tableContextMenu.setContainerSelector(this.containerSelector);
+
         // Handle initial data from config (only when config is a DataTableConfig object)
         if (config && typeof config !== 'string' && typeof config !== 'function' && config.initialData) {
             this.tableData.setCurrentData(config.initialData);
@@ -224,6 +244,7 @@ export class DataTableManager {
         } else {
             this.tableRendering.renderEditableDataTable();
             this.setupEventHandlers();
+            this.tableContextMenu.setupContextMenu();
         }
     }
 

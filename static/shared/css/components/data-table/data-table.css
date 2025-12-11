@@ -301,13 +301,7 @@
     text-align: center;
     cursor: default;
     user-select: none;
-    position: sticky;
-    left: 0;
-    z-index: 5;
-}
-
-.editable-table .row-number-header {
-    z-index: 11 !important;
+    /* Not sticky - scrolls with table content */
 }
 
 .editable-table .row-number:hover {

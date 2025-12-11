@@ -73,7 +73,8 @@ export class UIManager {
         private nudgeCallback?: (direction: 'up' | 'down' | 'left' | 'right', shift: boolean) => void,
         private selectAllCallback?: () => void,
         private alignByAxisCallback?: (direction: 'L' | 'C' | 'R' | 'T' | 'M' | 'B' | 'S') => void,
-        private escapeCallback?: () => void
+        private escapeCallback?: () => void,
+        private toggleThemeCallback?: () => void
     ) {
         // Initialize direct dependencies
         // NOTE: ResizerManager is no longer used for sidebar/properties panels
@@ -128,7 +129,9 @@ export class UIManager {
             pasteViewCallback,
             nudgeCallback,
             selectAllCallback,
-            alignByAxisCallback
+            alignByAxisCallback,
+            escapeCallback,
+            toggleThemeCallback
         );
 
         // Initialize TreeIntegration module

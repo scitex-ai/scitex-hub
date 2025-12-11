@@ -73,16 +73,10 @@
     text-align: center;
     cursor: default;
     user-select: none;
-    position: sticky;
-    left: 0;
-    z-index: 5;
+    /* Not sticky - scrolls with table content */
     background: var(--vis-bg-secondary, #f5f5f5);
     min-width: 50px;
     max-width: 50px;
-}
-
-.data-table .row-number-header {
-    z-index: 11 !important;
 }
 
 .data-table .row-number:hover {

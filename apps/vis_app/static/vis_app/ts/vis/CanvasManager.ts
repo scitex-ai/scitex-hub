@@ -955,6 +955,11 @@ export class CanvasManager {
         // Setup context menu
         this.setupContextMenu(canvasContainer);
 
+        // Listen for canvas theme changes from keyboard shortcut (Alt+T)
+        document.addEventListener('canvas-theme-changed', ((e: CustomEvent) => {
+            this.updateCanvasTheme(e.detail.isDark);
+        }) as EventListener);
+
         // Track right-click pan to distinguish from context menu
         let rightClickPanStartPoint: { x: number; y: number } | null = null;
 
@@ -1513,6 +1518,7 @@ export class CanvasManager {
         axisMetadata?: any;  // Axis metadata for snap/align by axis
         csvData?: string[][];  // CSV data for stats (must be set before adding to canvas)
         plotInfo?: any;  // Plot info for re-rendering
+        autoCrop?: boolean;  // Auto-crop to axes_bbox_px (default: true)
     } = {}): Promise<any> {
         return new Promise(async (resolve, reject) => {
             if (!this.canvas) {
@@ -1548,7 +1554,32 @@ export class CanvasManager {
                     return;
                 }
 
-                // Scale to fit if requested
+                // Store axis metadata for snap/align by axis
+                if (axisMetadata) {
+                    img.axisMetadata = axisMetadata;
+                    console.log('[CanvasManager] Stored axis metadata on image:', axisMetadata);
+
+                    // Auto-crop to axes_bbox_px FIRST (before scaleToFit)
+                    // This removes whitespace margins around the axes
+                    if (axisMetadata.axes_bbox_px && options.autoCrop !== false) {
+                        const bbox = axisMetadata.axes_bbox_px;
+                        const cropWidth = bbox.x1 - bbox.x0;
+                        const cropHeight = bbox.y1 - bbox.y0;
+
+                        if (cropWidth > 0 && cropHeight > 0) {
+                            img.set({
+                                cropX: bbox.x0,
+                                cropY: bbox.y0,
+                                width: cropWidth,
+                                height: cropHeight,
+                            });
+                            img.setCoords();
+                            console.log(`[CanvasManager] Auto-cropped to axes: ${cropWidth}×${cropHeight} (from ${bbox.x0},${bbox.y0})`);
+                        }
+                    }
+                }
+
+                // Scale to fit if requested (uses cropped dimensions if crop was applied)
                 if (options.scaleToFit) {
                     const maxW = options.maxWidth || CANVAS_CONSTANTS.MAX_CANVAS_WIDTH * 0.8;
                     const maxH = options.maxHeight || CANVAS_CONSTANTS.MAX_CANVAS_HEIGHT * 0.8;
@@ -1572,12 +1603,6 @@ export class CanvasManager {
                 // Store original dimensions for scaling calculations
                 img.originalWidth = img.width;
                 img.originalHeight = img.height;
-
-                // Store axis metadata for snap/align by axis
-                if (axisMetadata) {
-                    img.axisMetadata = axisMetadata;
-                    console.log('[CanvasManager] Stored axis metadata on image:', axisMetadata);
-                }
 
                 // Store CSV data for stats (MUST be set before adding to canvas)
                 // This is because setActiveObject triggers selection:created which enters element mode

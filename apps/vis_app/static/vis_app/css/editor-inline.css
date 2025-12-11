@@ -2,6 +2,9 @@
    Inline CSS extracted from editor.html
    ======================================================================== */
 
+/* Import shared data table context menu styles */
+@import '../../../../../../static/shared/css/components/data-table/context-menu.css';
+
 /* Tree empty state */
 .tree-empty-state {
     padding: 12px;
@@ -41,7 +44,8 @@
 #size-modal,
 #sort-modal,
 #filter-modal,
-#compute-modal {
+#compute-modal,
+#shortcuts-modal {
     display: none;
 }
 
@@ -57,3 +61,5 @@
 #compute-modal .modal-content {
     max-width: 450px;
 }
+
+/* Keyboard Shortcuts Modal styles are defined dynamically in interactions.ts */

@@ -84,7 +84,7 @@
     min-height: 0;  /* Allow flexbox shrinking */
     background: var(--vis-bg-secondary);
     border-right: 1px solid var(--vis-border);
-    transition: width 0.2s ease;
+    transition: width 0.2s ease, flex 0.2s ease;
 }
 
 /* Collapsed data pane */
@@ -122,17 +122,25 @@
     background: var(--vis-bg-primary);
     position: relative;
     min-width: 10px;
+    max-width: none;  /* Ensure no max-width constraint when expanded */
     min-height: 0;  /* Allow flexbox shrinking */
     display: flex;
     flex-direction: column;
-    transition: flex 0.2s ease, min-width 0.2s ease;
+    transition: flex 0.2s ease, min-width 0.2s ease, max-width 0.2s ease, width 0.2s ease;
 }
 
-/* Collapsed canvas pane */
+/* Collapsed canvas pane - shrinks to narrow strip at right edge */
 .split-pane-right.collapsed {
-    flex: 0 0 40px !important;
+    flex: 0 0 40px;
     min-width: 40px;
     max-width: 40px;
+    width: 40px;
+}
+
+/* When canvas is collapsed, data pane expands to fill available space */
+.workspace-split-view:has(.split-pane-right.collapsed) .split-pane-left {
+    flex: 1;
+    width: auto !important;  /* Override inline styles */
 }
 
 .split-pane-right.collapsed .pane-header {
