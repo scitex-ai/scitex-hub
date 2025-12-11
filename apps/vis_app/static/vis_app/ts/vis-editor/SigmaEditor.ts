@@ -392,13 +392,8 @@ export class SigmaEditor {
         // Apply initial transform to rulers-area to match CanvasManager's initial zoom (0.22)
         this.updateRulersAreaTransform();
 
-        // Ruler unit toggle button
-        const rulerUnitToggleBtn = document.getElementById('ruler-unit-toggle');
-        if (rulerUnitToggleBtn) {
-            rulerUnitToggleBtn.onclick = () => {
-                this.rulersManager.toggleRulerUnit();
-            };
-        }
+        // Note: Ruler unit toggle is now handled by clicking on ruler labels (0mm, 10mm, etc.)
+        // See RulersManager.setupRulerLabelClickHandlers()
 
         // Initialize FigureDropHandler with CanvasManager
         this.figureDropHandler = new FigureDropHandler({

@@ -122,9 +122,33 @@ export class RulersManager {
         this.renderVerticalRuler(canvasHeight, dpi, 'ruler-v');   // Left
         this.renderVerticalRuler(canvasHeight, dpi, 'ruler-r');   // Right
 
+        // Set up click handlers on ruler labels for unit toggle
+        this.setupRulerLabelClickHandlers();
+
         const endTime = performance.now();
         console.log(`[RulersManager] ✅ All 4 rulers rendered in ${(endTime - startTime).toFixed(2)}ms (canvas: ${canvasWidth}x${canvasHeight})`);
     }
+
+    /**
+     * Set up click handlers on ruler labels for unit toggle
+     * Click on any "0mm", "10mm", etc. label to toggle between mm and inch
+     */
+    private setupRulerLabelClickHandlers(): void {
+        const rulerLabels = document.querySelectorAll('.ruler-label');
+        rulerLabels.forEach(label => {
+            // Remove existing listener to avoid duplicates
+            label.removeEventListener('click', this.handleRulerLabelClick);
+            label.addEventListener('click', this.handleRulerLabelClick);
+        });
+    }
+
+    /**
+     * Handle click on ruler label - toggle units
+     */
+    private handleRulerLabelClick = (e: Event): void => {
+        e.stopPropagation();
+        this.toggleRulerUnit();
+    };
 
     /**
      * Toggle ruler unit between mm and inch
@@ -132,7 +156,7 @@ export class RulersManager {
     public toggleRulerUnit(): void {
         this.rulerUnit = this.rulerUnit === 'mm' ? 'inch' : 'mm';
 
-        // Update button label
+        // Update button label (if it exists - for backward compatibility)
         const label = document.getElementById('ruler-unit-label');
         if (label) {
             label.textContent = this.rulerUnit;
@@ -202,7 +226,7 @@ export class RulersManager {
 
         // Add 0mm tick mark at origin
         svgContent += `<line x1="0" y1="40" x2="0" y2="${rulerHeight}" stroke="${majorColor}" stroke-width="1.5"/>`;
-        svgContent += `<text x="3" y="35" text-anchor="start" font-size="11" fill="${textColor}">0mm</text>`;
+        svgContent += `<text x="3" y="35" text-anchor="start" font-size="11" fill="${textColor}" class="ruler-label" style="cursor:pointer">0mm</text>`;
 
         // Generate all tick marks
         for (let mm = minorInterval; mm <= maxMm; mm += minorInterval) {
@@ -211,7 +235,7 @@ export class RulersManager {
             if (mm % majorInterval === 0) {
                 // Major tick (10mm)
                 svgContent += `<line x1="${x}" y1="40" x2="${x}" y2="${rulerHeight}" stroke="${majorColor}" stroke-width="1.5"/>`;
-                svgContent += `<text x="${x}" y="35" text-anchor="middle" font-size="11" fill="${textColor}">${mm}mm</text>`;
+                svgContent += `<text x="${x}" y="35" text-anchor="middle" font-size="11" fill="${textColor}" class="ruler-label" style="cursor:pointer">${mm}mm</text>`;
             } else if (mm % middleInterval === 0) {
                 // Middle tick (5mm)
                 svgContent += `<line x1="${x}" y1="48" x2="${x}" y2="${rulerHeight}" stroke="${majorColor}" stroke-width="1"/>`;
@@ -262,7 +286,7 @@ export class RulersManager {
         for (let inch = 0; inch <= maxInch; inch++) {
             const x = inchToPx(inch);
             svgContent += `<line x1="${x}" y1="40" x2="${x}" y2="${rulerHeight}" stroke="${majorColor}" stroke-width="1.5"/>`;
-            svgContent += `<text x="${x}" y="35" text-anchor="middle" font-size="11" fill="${textColor}">${inch}"</text>`;
+            svgContent += `<text x="${x}" y="35" text-anchor="middle" font-size="11" fill="${textColor}" class="ruler-label" style="cursor:pointer">${inch}"</text>`;
         }
 
         // Fractional inch markers (1/2, 1/4, 1/8, 1/16)
@@ -356,7 +380,7 @@ export class RulersManager {
 
         // Add 0mm tick mark at origin
         svgContent += `<line x1="40" y1="0" x2="${rulerWidth}" y2="0" stroke="${majorColor}" stroke-width="1.5"/>`;
-        svgContent += `<text x="30" y="8" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="${textColor}" transform="rotate(-90, 30, 8)">0mm</text>`;
+        svgContent += `<text x="30" y="8" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="${textColor}" class="ruler-label" style="cursor:pointer" transform="rotate(-90, 30, 8)">0mm</text>`;
 
         for (let mm = minorInterval; mm <= maxMm; mm += minorInterval) {
             const y = mmToPx(mm);
@@ -364,7 +388,7 @@ export class RulersManager {
             if (mm % majorInterval === 0) {
                 // Major tick
                 svgContent += `<line x1="40" y1="${y}" x2="${rulerWidth}" y2="${y}" stroke="${majorColor}" stroke-width="1.5"/>`;
-                svgContent += `<text x="30" y="${y}" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="${textColor}" transform="rotate(-90, 30, ${y})">${mm}mm</text>`;
+                svgContent += `<text x="30" y="${y}" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="${textColor}" class="ruler-label" style="cursor:pointer" transform="rotate(-90, 30, ${y})">${mm}mm</text>`;
             } else if (mm % middleInterval === 0) {
                 // Middle tick
                 svgContent += `<line x1="48" y1="${y}" x2="${rulerWidth}" y2="${y}" stroke="${majorColor}" stroke-width="1"/>`;
@@ -398,7 +422,7 @@ export class RulersManager {
         for (let inch = 0; inch <= maxInch; inch++) {
             const y = inchToPx(inch);
             svgContent += `<line x1="40" y1="${y}" x2="${rulerWidth}" y2="${y}" stroke="${majorColor}" stroke-width="1.5"/>`;
-            svgContent += `<text x="30" y="${y}" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="${textColor}" transform="rotate(-90, 30, ${y})">${inch}"</text>`;
+            svgContent += `<text x="30" y="${y}" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="${textColor}" class="ruler-label" style="cursor:pointer" transform="rotate(-90, 30, ${y})">${inch}"</text>`;
         }
 
         // Fractional inch markers

@@ -87,41 +87,20 @@
 
 .ruler-corner-tl {
     grid-area: corner-tl;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Ruler Unit Toggle Button in corner */
-.ruler-unit-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    padding: 0;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    background: transparent;
-    border: 1px solid var(--workspace-border-default);
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-
-.ruler-unit-btn:hover {
-    color: var(--accent-primary);
-    border-color: var(--accent-primary);
-    background: rgba(var(--accent-primary-rgb), 0.1);
-}
-
-.ruler-unit-btn span {
-    text-transform: lowercase;
 }
 
 .ruler-corner-tr {
     grid-area: corner-tr;
+}
+
+/* Ruler labels are clickable to toggle mm/inch */
+.ruler-label {
+    cursor: pointer;
+    transition: fill 0.15s ease;
+}
+
+.ruler-label:hover {
+    fill: var(--accent-primary, #4a9b7e) !important;
 }
 
 .ruler-corner-bl {
