@@ -105,6 +105,8 @@ services:
       - POSTGRES_DB=${SCITEX_CLOUD_POSTGRES_DB}
       - POSTGRES_USER=${SCITEX_CLOUD_POSTGRES_USER}
       - POSTGRES_PASSWORD=${SCITEX_CLOUD_POSTGRES_PASSWORD}
+    # Increase max_connections to handle django, celery workers, gitea, etc.
+    command: postgres -c max_connections=200 -c shared_buffers=128MB
     restart: always
     networks:
       - scitex-network

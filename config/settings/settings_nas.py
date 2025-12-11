@@ -115,7 +115,10 @@ else:
                 ),
                 "PORT": os.environ.get("SCITEX_CLOUD_DB_PORT_NAS", "5432"),
                 "ATOMIC_REQUESTS": True,
-                "CONN_MAX_AGE": 600,
+                # Connection pooling: 60s keeps connections alive for reuse
+                # but releases them faster than 600s to prevent exhaustion
+                "CONN_MAX_AGE": 60,
+                "CONN_HEALTH_CHECKS": True,  # Django 4.1+ connection health checks
                 "OPTIONS": {
                     "connect_timeout": 10,
                     "options": "-c statement_timeout=30000",
@@ -133,7 +136,8 @@ else:
                 "HOST": os.environ.get("SCITEX_CLOUD_DB_HOST_NAS", "postgres"),
                 "PORT": os.environ.get("SCITEX_CLOUD_DB_PORT_NAS", "5432"),
                 "ATOMIC_REQUESTS": True,
-                "CONN_MAX_AGE": 600,
+                "CONN_MAX_AGE": 60,
+                "CONN_HEALTH_CHECKS": True,
             }
         }
 
