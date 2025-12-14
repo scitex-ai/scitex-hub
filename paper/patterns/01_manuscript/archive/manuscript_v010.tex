@@ -1,0 +1,1202 @@
+% ==============================================================================
+% SciTeX Writer v2.0.0-rc3 (https://scitex.ai)
+% LaTeX compilation engine: auto
+% Compiled: 2025-12-15 00:34:56
+% Source: 01_manuscript/base.tex
+% ==============================================================================
+
+%% -*- coding: utf-8 -*-
+%% Timestamp: "2025-12-10 14:10:03 (ywatanabe)"
+%% File: "/home/ywatanabe/proj/scitex-cloud/paper/patterns/01_manuscript/base.tex"
+\UseRawInputEncoding
+
+%% ----------------------------------------
+%% SETTINGS
+%% ----------------------------------------
+
+% ======================================================================
+% File: ./01_manuscript/contents/latex_styles/columns.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+%% Timestamp: "2025-09-30 18:04:38 (ywatanabe)"
+%% File: "/ssh:sp:/home/ywatanabe/proj/neurovista/paper/00_shared/latex_styles/columns.tex"
+
+%% --- Columns ---
+%% \documentclass[final,3p,times,twocolumn]{elsarticle} %% Use it for submission
+%% Use the options 1p,twocolumn; 3p; 3p,twocolumn; 5p; or 5p,twocolumn
+%% for a journal layout:
+%% \documentclass[final,1p,times]{elsarticle}
+%% \documentclass[final,1p,times,twocolumn]{elsarticle}
+%% \documentclass[final,3p,times]{elsarticle}
+%% \documentclass[final,3p,times,twocolumn]{elsarticle}
+%% \documentclass[final,5p,times]{elsarticle}
+%% \documentclass[final,5p,times,twocolumn]{elsarticle}
+\documentclass[preprint,review,12pt]{elsarticle}
+
+%%%% EOF
+
+
+% ======================================================================
+% File: ./01_manuscript/contents/latex_styles/packages.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+%% Timestamp: "2025-09-30 17:57:49 (ywatanabe)"
+%% File: "/ssh:sp:/home/ywatanabe/proj/neurovista/paper/00_shared/latex_styles/packages.tex"
+%% -*- coding: utf-8 -*-
+%% Timestamp: "2025-09-27 16:01:16 (ywatanabe)"
+
+%% Language and encoding
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+%% Colors (load early to avoid option clashes with tikz, pgfplots, tcolorbox)
+% Include all common color options: table (for colortbl), svgnames (for tcolorbox)
+\usepackage[table,svgnames]{xcolor}
+
+%% Mathematics
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{siunitx}
+\sisetup{round-mode=figures,round-precision=3}
+
+%% Graphics and figures
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{pgfplots, pgfplotstable}
+\usetikzlibrary{positioning,shapes,arrows,fit,calc,graphs,graphs.standard}
+
+%% Tables
+\usepackage{booktabs, colortbl, longtable, supertabular, tabularx, xltabular}
+\usepackage{csvsimple, makecell}
+
+%% Table formatting
+\renewcommand\theadfont{\bfseries}
+\renewcommand\theadalign{c}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}m{#1}}
+\renewcommand{\arraystretch}{1.5}
+\definecolor{lightgray}{gray}{0.95}
+
+%% Layout and geometry
+\usepackage[pass]{geometry}
+\usepackage{pdflscape, indentfirst, calc}
+\usepackage{titlesec}  % For custom section formatting
+
+%% Captions and references
+\usepackage[margin=10pt,font=small,labelfont=bf,labelsep=endash]{caption}
+\usepackage[numbers]{natbib}  % numbers: numeric citations [1], [2]
+\setcitestyle{sort=false}     % Preserve citation order as written
+\usepackage{hyperref}
+
+%% Document features
+\usepackage{accsupp, lineno, bashful, lipsum}
+
+%% Visual enhancements
+\usepackage[most]{tcolorbox}
+
+%% External references
+\usepackage{xr-hyper}
+
+%% EOF
+
+%%%% EOF
+
+
+% ======================================================================
+% File: ./01_manuscript/contents/latex_styles/linker.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+%% Timestamp: "2025-09-30 18:04:19 (ywatanabe)"
+%% File: "/ssh:sp:/home/ywatanabe/proj/neurovista/paper/00_shared/latex_styles/linker.tex"
+
+%% --- Linker for supplemtal material ---
+\usepackage{xr}
+\makeatletter
+\newcommand*{\addFileDependency}[1]{% argument=file name and extension
+  \typeout{(#1)}
+  \@addtofilelist{#1}
+  \IfFileExists{#1}{}{\typeout{No file #1.}}
+}
+\makeatother
+
+\newcommand*{\link}[2][]{%
+    \externaldocument[#1]{#2}%
+    \addFileDependency{#2.tex}%
+    \addFileDependency{#2.aux}%
+}
+
+%%%% EOF
+
+
+% ======================================================================
+% File: ./01_manuscript/contents/latex_styles/formatting.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+%% Timestamp: "2025-09-30 18:03:32 (ywatanabe)"
+%% File: "/ssh:sp:/home/ywatanabe/proj/neurovista/paper/00_shared/latex_styles/formatting.tex"
+
+%% --- Image width ---
+\newlength{\imagewidth}
+\newlength{\imagescale}
+
+%% --- Line numbers ---
+\linespread{1.2}
+\linenumbers
+
+%% --- Colors ---
+\definecolor{GreenBG}{rgb}{0,1,0}
+\definecolor{RedBG}{rgb}{1,0,0}
+
+%% --- Highlight boxes ---
+\newtcbox{\greenhighlight}[1][]{on line,colframe=GreenBG,colback=GreenBG!50!white,boxrule=0pt,arc=0pt,boxsep=0pt,left=1pt,right=1pt,top=2pt,bottom=2pt,tcbox raise base}
+\newtcbox{\redhighlight}[1][]{on line,colframe=RedBG,colback=RedBG!50!white,boxrule=0pt,arc=0pt,boxsep=0pt,left=1pt,right=1pt,top=2pt,bottom=2pt,tcbox raise base}
+
+\newcommand{\REDSTARTS}{\color{red}}
+\newcommand{\REDENDS}{\color{black}}
+\newcommand{\GREENSTARTS}{\color{green}}
+\newcommand{\GREENENDS}{\color{black}}
+
+%% --- Word count ---
+\newread\wordcount
+\newcommand\readwordcount[1]{%
+\openin\wordcount=#1
+\read\wordcount to \thewordcount
+\closein\wordcount
+\thewordcount
+}
+
+%% --- Text highlighting ---
+\usepackage{soul}
+\sethlcolor{yellow}
+
+%% --- Reference handling ---
+\usepackage{refcount}
+
+\let\oldref\ref
+\newcommand{\hlref}[1]{%
+  \ifnum\getrefnumber{#1}=0
+    \colorbox{yellow}{\ref*{#1}}%  % Use colorbox for references (no line break needed)
+  \else
+    \ref{#1}%
+  \fi
+}
+
+% To add an 'S' prefixes to a reference
+\newcommand*\sref[1]{S\hlref{#1}}
+\newcommand*\sfref[1]{Supplementary Figure S\hlref{#1}}
+\newcommand*\stref[1]{Supplementary Table S\hlref{#1}}
+\newcommand*\smref[1]{Supplementary Materials S\hlref{#1}}
+
+%%%% EOF
+
+\link[supple-]{./02_supplementary/supplementary}
+
+%% ----------------------------------------
+%% JOURNAL NAME
+%% ----------------------------------------
+
+% ======================================================================
+% File: ./01_manuscript/contents/journal_name.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+%% Timestamp: "2025-12-10 13:57:28 (ywatanabe)"
+%% File: "/home/ywatanabe/proj/scitex-cloud/paper/patterns/01_manuscript/contents/journal_name.tex"
+\journal{Patterns}
+
+%%%% EOF
+
+
+%% ----------------------------------------
+%% START of DOCUMENT
+%% ----------------------------------------
+\begin{document}
+
+%% ----------------------------------------
+%% Frontmatter
+%% ----------------------------------------
+\begin{frontmatter}
+
+% ======================================================================
+% File: ./01_manuscript/contents/highlights.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+%% Timestamp: "2025-12-10 13:51:53 (ywatanabe)"
+%% File: "/home/ywatanabe/proj/scitex-cloud/paper/patterns/01_manuscript/contents/highlights.tex"
+%% -*- coding: utf-8 -*-
+\begin{highlights}
+\pdfbookmark[1]{Highlights}{highlights}
+
+\item SciTeX unifies manuscript writing, computation, figure generation, and literature management in a single reproducible research environment.
+
+\item Modular design allows each component to function independently while enabling seamless integration through lightweight symlinks and global identifiers.
+
+\item Containerized LaTeX builds and standardized metadata formats ensure consistent manuscripts and reconstructible figures across systems.
+
+\item Provenance-preserving workflows link code, data, figures, and text, reducing cognitive load and supporting transparent scientific practice.
+
+\item AI-native architecture exposes structured interfaces for automated analysis, figure refinement, and manuscript assistance.
+
+\end{highlights}
+
+%%%% EOF
+
+
+% ======================================================================
+% File: ./01_manuscript/contents/title.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+%% Timestamp: "2025-12-10 13:16:07 (ywatanabe)"
+%% File: "/home/ywatanabe/proj/scitex-cloud/paper/patterns/00_shared/title.tex"
+%% -*- coding: utf-8 -*-
+\title{
+SciTeX: A unified research OS for reproducible scientific workflows
+}
+
+%%%% EOF
+
+
+% ======================================================================
+% File: ./01_manuscript/contents/authors.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+\author[1]{Yusuke Watanabe\corref{cor1}}
+
+\address[1]{SciTeX.ai, Tokyo, Japan}
+
+\cortext[cor1]{Corresponding author. Email: ywatanabe@scitex.ai}
+
+%%%% EOF
+
+
+
+% ======================================================================
+% File: ./01_manuscript/contents/graphical_abstract.tex
+% ======================================================================
+%%Graphical abstract
+%\pdfbookmark[1]{Graphical Abstract}{graphicalabstract}        
+%\begin{graphicalabstract}
+%\includegraphics{grabs}
+%\end{graphicalabstract}
+
+
+
+% ======================================================================
+% File: ./01_manuscript/contents/abstract.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+%% Timestamp: "2025-12-10 13:59:10 (ywatanabe)"
+%% File: "/home/ywatanabe/proj/scitex-cloud/paper/patterns/01_manuscript/contents/abstract.tex"
+
+\section*{Summary}
+
+Scientific figures are central to research communication yet remain opaque artifacts: once exported, they lose connection to underlying data, statistical context, and computational provenance. We introduce a structured figure representation that reframes figures as portable, reconstructible, and AI-native research objects. Figures are packaged as zip-based bundles (\texttt{.pltz} for panels, \texttt{.figz} for multi-panel compositions) containing canonical JSON specifications, underlying numerical data, optional statistical metadata, and cached previews. This representation enables interactive browser-based editing that operates directly on structured specifications rather than raster images, preserving reversibility and scriptability while achieving GUI-level usability. The approach bridges the gap between programmatic plotting libraries, which lack post-hoc editing with preserved provenance, and GUI tools, which discard computational traceability. Because the format is fully machine-readable, AI agents can inspect, modify, and regenerate figures while maintaining auditability. We embed this visualization system within SciTeX, a modular platform providing containerized manuscript compilation, literature management, and reproducible computation, demonstrating how structured figure objects integrate naturally into end-to-end research workflows. This manuscript, prepared and compiled entirely within SciTeX, serves as a self-descriptive validation of the approach.
+
+%%%% EOF
+
+
+% ======================================================================
+% File: ./01_manuscript/contents/keywords.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+%% Patterns Resource Article - Keywords
+\begin{keyword}
+reproducible research \sep scientific workflow automation \sep data science platform \sep AI-native tools \sep figure provenance \sep FAIR principles
+\end{keyword}
+
+%%%% EOF
+
+
+\end{frontmatter}
+
+%% ----------------------------------------
+%% Word Counter
+%% ----------------------------------------
+
+% ======================================================================
+% File: ./01_manuscript/contents/wordcount.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+%% Timestamp: "2025-09-26 18:17:20 (ywatanabe)"
+%% File: "/ssh:sp:/home/ywatanabe/proj/neurovista/paper/01_manuscript/src/wordcount.tex"
+\begin{wordcount}
+\readwordcount{./01_manuscript/contents/wordcounts/figure_count.txt} figures, \readwordcount{./01_manuscript/contents/wordcounts/table_count.txt} tables, \readwordcount{./01_manuscript/contents/wordcounts/abstract_count.txt} words for abstract, and \readwordcount{./01_manuscript/contents/wordcounts/imrd_count.txt} words for main text
+\end{wordcount}
+
+%% \begin{*wordcount}
+%% \readwordcount{./01_manuscript/contents/wordcounts/figure_count.txt} figures, \readwordcount{./01_manuscript/contents/wordcounts/table_count.txt} tables, \readwordcount{./01_manuscript/contents/wordcounts/abstract_count.txt} words for abstract, and \readwordcount{./01_manuscript/contents/wordcounts/imrd_count.txt} words for main text
+%% \end{*wordcount}
+
+%%%% EOF
+
+
+%% ----------------------------------------
+%% INTRODUCTION
+%% ----------------------------------------
+
+% ======================================================================
+% File: ./01_manuscript/contents/introduction.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+%% Timestamp: "2025-12-10 13:49:33 (ywatanabe)"
+%% File: "/home/ywatanabe/proj/scitex-cloud/paper/patterns/01_manuscript/contents/introduction.tex"
+%% -*- coding: utf-8 -*-
+\section{Introduction}
+
+Scientific figures are central to research communication, yet they remain among the least reproducible components of the scientific record. When a figure is exported as PNG or PDF, it becomes an opaque artifact: the underlying data, statistical computations, and styling decisions that produced it are discarded or scattered across disconnected files~\cite{Jacobs2020ImprovingTRA, Bar2020ReproducibleSWA}. Researchers cannot easily regenerate figures from new data, verify the calculations behind them, or adapt them for different contexts without returning to the original scripts---which may no longer execute due to environment drift. This opacity undermines the reproducibility principles that the scientific community increasingly demands~\cite{wilson2017good, sandve2013ten}.
+
+Existing visualization tools exacerbate this problem through a fundamental dichotomy. Programmatic libraries such as matplotlib and Plotly provide reproducible figure generation from code, but once figures are rendered, researchers lose the ability to make interactive adjustments without re-running scripts. Conversely, GUI-based tools such as SigmaPlot, Origin, and Adobe Illustrator offer polished interactive editing, but edits operate on raster or vector images rather than structured data---changes cannot be reproduced, audited, or version-controlled, and the connection to underlying data is severed~\cite{Schulz2018ReproducibleDCA}. No existing tool combines programmatic expressiveness with interactive editability while preserving full provenance.
+
+This gap matters increasingly as AI systems enter scientific workflows~\cite{Tie2025ASOA, Li2025BuildYPA}. Current figure formats are opaque to automated agents: an AI cannot inspect a PNG to understand axis ranges, identify outliers, or suggest improvements. For AI-assisted research to reach its potential, figures must be represented as structured, machine-readable objects that preserve semantic meaning alongside visual appearance.
+
+We address this challenge by introducing a structured figure representation that reframes scientific figures as portable, reconstructible, and AI-native research objects. Figures are packaged as zip-based bundles (\texttt{.pltz} for single panels, \texttt{.figz} for multi-panel compositions) containing a canonical JSON specification describing geometry, axes, traces, and styles; CSV files storing underlying numerical data; optional statistical metadata; and cached previews for rapid browsing. This representation enables a browser-based editor where all interactive modifications---repositioning panels, adjusting axes, editing annotations---operate directly on the structured specification rather than on raster images. Changes remain reversible, reproducible, and scriptable. Because the format is fully machine-readable, AI agents can inspect figure structure, propose improvements, enforce journal-specific formatting, or regenerate figures from data while maintaining complete auditability.
+
+To demonstrate that structured figures integrate naturally into broader research workflows, we embed this visualization system within SciTeX, a modular platform that also provides containerized manuscript compilation ensuring byte-identical PDF outputs across systems (Writer), literature management preventing citation drift between databases and manuscripts (Scholar), and reproducible computation with automatic parameter and output capture (Code). A shared project structure links these modules through lightweight symlinks and global identifiers, enabling provenance-preserving connections between figures, code, data, and manuscript text~\cite{turingway2022}.
+
+This work makes the following contributions:
+\begin{enumerate}
+\item A portable, structured figure artifact (\texttt{.pltz}/\texttt{.figz}) that packages visual output with underlying data, statistical metadata, and canonical specifications, enabling figures to function as self-descriptive research objects.
+\item An interactive editing model where all modifications operate on structured specifications rather than images, preserving reproducibility while achieving GUI-level usability.
+\item An AI-native figure representation that exposes semantic structure to automated agents, supporting inspection, modification, and regeneration with maintained auditability.
+\item Integration within a provenance-preserving research platform demonstrating how structured figures connect naturally to manuscript preparation, literature management, and reproducible computation.
+\end{enumerate}
+
+This manuscript, authored and compiled entirely within SciTeX, serves as a self-descriptive validation: the figures presented here are \texttt{.figz} bundles whose structure can be inspected, and the document itself demonstrates the reproducibility guarantees we describe.
+
+%%%% EOF
+
+
+%% ----------------------------------------
+%% METHODS
+%% ----------------------------------------
+
+% ======================================================================
+% File: ./01_manuscript/contents/methods.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+%% Timestamp: "2025-12-10 13:40:24 (ywatanabe)"
+%% File: "/home/ywatanabe/proj/scitex-cloud/paper/patterns/01_manuscript/contents/methods.tex"
+%% -*- coding: utf-8 -*-
+
+
+\section{Methods}
+
+\subsection{Structured Figure Representation}
+
+The core of our approach is a structured figure representation that packages scientific figures as self-descriptive research objects rather than static images. Figures are stored as zip-based bundles with standardized extensions: \texttt{.pltz} for single panels and \texttt{.figz} for multi-panel compositions. Each bundle encapsulates four components: a canonical JSON specification describing figure geometry, axes, traces, annotations, and styles; CSV files storing the underlying numerical data for each plotted element; optional statistical metadata (test results, summary statistics, derived values) as structured JSON and CSV; and cached raster or vector previews (PNG, SVG) for rapid browsing without re-rendering.
+
+The JSON specification serves as the authoritative representation of figure state. It encodes axis bounds, tick locations, label text, trace properties (colors, markers, line styles), legend configuration, and panel geometry in a schema that is both human-readable and machine-parseable. When a figure is modified---whether programmatically or through interactive editing---the specification is updated, and visual output is regenerated from this canonical source. This architecture ensures that figures can be inspected, version-controlled, diffed, and regenerated at any point in their lifecycle.
+
+\subsection{Interactive Figure Editing}
+
+The structured representation enables a browser-based figure editor that operates fundamentally differently from conventional image editors. When a \texttt{.figz} or \texttt{.pltz} bundle is loaded, the editor parses the JSON specification and renders the figure on an HTML5 canvas. Researchers can then manipulate the figure interactively: selecting and repositioning panels, adjusting axis ranges, modifying trace properties, editing text annotations, and reorganizing legends.
+
+Crucially, all edits modify the structured specification rather than pixel data. When a researcher drags a panel to a new position, the editor updates the geometry coordinates in the JSON; when axis labels are changed, the specification's text fields are modified. This design preserves several properties that raster editing destroys: changes remain reversible through specification rollback, modifications can be scripted by directly editing JSON, and the connection between visual output and underlying data is never severed.
+
+The editor provides precision tools for journal-accurate layouts: millimeter-based grids, snapping constraints for alignment, and a synchronized property inspector that displays numerical values for all selected elements. Keyboard shortcuts accelerate common operations such as distributing panels evenly, aligning edges, or cycling through selection groups.
+
+\subsection{Export and Format Fidelity}
+
+Figures can be exported from the structured representation to multiple output formats: high-resolution PNG at configurable DPI (typically 300 for print), fully vectorized SVG, PDF, JPEG, or the original \texttt{.pltz}/\texttt{.figz} bundle for archival and future editing. The rendering pipeline ensures that exported images match the on-canvas preview exactly---what researchers see during editing corresponds precisely to submission-ready outputs.
+
+Despite the rich metadata model, the system achieves interactive-level performance. Incremental updates regenerate only affected panels or elements, enabling smooth iteration even for complex multi-panel figures with dozens of traces.
+
+\subsection{Statistical Metadata Integration}
+
+Scientific figures frequently convey statistical results---means with confidence intervals, significance indicators, regression parameters---yet this information is typically computed separately and manually transferred to figure annotations. Our representation treats statistical metadata as first-class content embedded within figure bundles. Test results, summary statistics, and derived values are stored as structured JSON alongside visual elements, linked to the specific traces or annotations they describe.
+
+This coupling enables automated workflows: statistical captions can be generated from embedded metadata, consistency between reported values and displayed results is enforced structurally, and downstream modules (manuscript preparation, further analysis) can access statistical content without re-computation.
+
+\subsection{AI-Native Figure Representation}
+
+Because \texttt{.pltz} and \texttt{.figz} bundles are fully structured and machine-readable, they are inherently accessible to AI agents. Unlike raster images, which require computer vision to interpret, our representation exposes semantic structure directly. An AI agent can parse the JSON specification to understand axis ranges, identify the relationship between traces, enumerate annotations, or detect potential issues (overlapping labels, inconsistent styling).
+
+This accessibility enables several AI-assisted workflows: automated suggestions for layout improvements, enforcement of journal-specific formatting guidelines, regeneration of figures from updated data, or adaptation of figures for different contexts (manuscript versus presentation versus poster). Importantly, because all AI modifications operate on the structured specification, they remain auditable---researchers can inspect exactly what changed and revert modifications selectively.
+
+\subsection{Publication-Quality Plotting}
+
+Structured figure bundles are generated through \texttt{stx.plt}, a module that wraps matplotlib with automatic configuration and metadata capture. On import, the module applies consistent styling from a central configuration file, setting font sizes, line widths, and spine visibility to publication-ready defaults. Custom wrapper classes extend standard matplotlib objects with convenience methods for common operations.
+
+When figures are saved, the system automatically generates the complete bundle: rendered image, JSON specification capturing all visual parameters, and CSV files containing underlying data. This triple-export happens transparently through the unified \texttt{stx.io.save()} interface, ensuring that researchers obtain structured figures without additional effort. Figures can later be reconstructed from their specifications using \texttt{stx.plt.load()}, enabling regeneration even if original scripts are unavailable.
+
+\subsection{Supporting Infrastructure}
+
+To demonstrate that structured figures integrate naturally into complete research workflows, we embed the visualization system within SciTeX, a modular platform providing three supporting capabilities.
+
+\textbf{Manuscript Compilation (Writer).} The Writer module provides containerized LaTeX compilation ensuring byte-identical PDF outputs across systems~\cite{Boettiger2020TSRWDDRDS}. Docker and Apptainer containers encapsulate specific TeX Live versions and all required packages, eliminating environment-dependent inconsistencies. Multiple compilation engines are supported: Tectonic for fast incremental builds, latexmk for industry-standard reliability, and traditional multi-pass compilation for complex documents. Git integration with automatic latexdiff generation facilitates peer review~\cite{Ram2013GitCFA,Besser2025RRT}.
+
+\textbf{Literature Management (Scholar).} The Scholar module provides multi-source literature search through CrossRef, Semantic Scholar, and OpenAlex, with automatic DOI detection, PDF management, and BibTeX export. Direct integration with Writer ensures that bibliography entries remain synchronized between the literature database and manuscript sources, preventing citation drift~\cite{manubot2019open}.
+
+\textbf{Reproducible Computation (Code).} The \texttt{@stx.session} decorator transforms Python functions into traceable experiments by automatically generating CLI argument parsers, initializing timestamped session directories, managing random state, and capturing all parameters and outputs~\cite{sandve2013ten,Peikert2021ReproducibleRIA}. This provides the computational foundation for generating figures with full provenance.
+
+\subsection{Platform Architecture}
+
+SciTeX is available both as a Python package (\texttt{pip install scitex}) and as a Django-based web platform. The cloud interface provides browser-based access to all modules: the Viz App for interactive figure editing, Writer App for manuscript preparation, Scholar App for literature management, and Code App for Python execution. A shared project structure links modules through lightweight symlinks and global identifiers (SHA256 hashes), enabling reverse lookup queries such as identifying which script generated a particular figure~\cite{Jacobs2020ImprovingTRA}.
+
+The implementation requires Python 3.12+ with optional GPU acceleration. The web platform uses Django 5.1, PostgreSQL, and TypeScript, with Docker containerization throughout. The system supports deployment on local machines, cloud servers, and self-hosted environments, following FAIR principles~\cite{Balk2024AFAA} and Turing Way guidelines~\cite{turingway2022}.
+
+%%%% EOF
+
+
+
+%% ----------------------------------------
+%% RESULTS
+%% ----------------------------------------
+
+% ======================================================================
+% File: ./01_manuscript/contents/results.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+%% Timestamp: "2025-12-10 13:52:33 (ywatanabe)"
+%% File: "/home/ywatanabe/proj/scitex-cloud/paper/patterns/01_manuscript/contents/results.tex"
+%% -*- coding: utf-8 -*-
+\section{Results}
+
+This section validates the structured figure representation and its integration within broader research workflows. We demonstrate that the approach is practical for real-world scientific use through systematic evaluation of figure bundle integrity, interactive editing capabilities, export fidelity, and cross-module provenance.
+
+\subsection{Structured Figure Bundle Validation}
+
+We validated the \texttt{.pltz} and \texttt{.figz} bundle formats using complex, multi-panel figures combining diverse visualization types: dual-axis line plots, scatter plots with size and color encoding, heatmaps, bar charts with error bars, confidence interval bands, and violin and box plots. All bundled figures preserved complete provenance: JSON specifications accurately encoded figure structure including axis bounds, tick positions, trace properties, and panel geometry; CSV files contained the exact numerical data underlying each plotted element; and cached previews enabled rapid browsing without re-rendering.
+
+Bundle integrity was verified by round-trip testing: figures were saved to bundles, loaded from bundles, and compared against originals. JSON specifications matched exactly, and regenerated figures were visually identical to their sources. The structured representation successfully captured figures with up to 12 panels and over 50 individual traces without information loss.
+
+\subsection{Interactive Editing Performance}
+
+The browser-based figure editor successfully loaded, rendered, and modified figures from \texttt{.figz}/\texttt{.pltz} bundles across all tested visualization types. Interactive operations---panel repositioning, axis range adjustment, trace property modification, annotation editing, and legend reorganization---operated directly on the structured JSON specification as designed. All modifications were immediately reflected in the canvas rendering while preserving the underlying data connections.
+
+Millimeter-based grids and snapping constraints produced journal-accurate layouts. Researchers could align panel edges, distribute elements evenly, and achieve precise positioning through both visual manipulation and numerical entry in the property inspector. All modifications remained reversible; the specification-based architecture enabled unlimited undo through JSON state history.
+
+Despite the rich metadata model, the editor achieved interactive-level performance. Incremental updates regenerated only affected panels or elements, maintaining smooth frame rates during manipulation even for complex multi-panel figures. Typical editing sessions involved hundreds of specification modifications without perceptible latency.
+
+\subsection{Export Format Fidelity}
+
+Exported images in PNG (300 DPI), SVG, PDF, and JPEG formats matched on-canvas previews exactly, confirming that the structured representation introduces no fidelity loss during the editing-to-export pipeline. Vector formats (SVG, PDF) preserved text as selectable characters and curves as resolution-independent paths. Raster exports at publication resolution showed no artifacts or degradation compared to direct matplotlib output.
+
+Crucially, figures could be exported, archived as bundles, later reloaded, modified, and re-exported without cumulative quality loss---a property impossible with raster-only workflows where each edit-export cycle degrades image quality.
+
+\subsection{Statistical Metadata Accessibility}
+
+Statistical metadata embedded within figure bundles was correctly parsed and accessible to downstream modules. Test results and summary statistics stored as JSON alongside visual elements were retrieved by the Writer module for automated caption generation and by analysis scripts for further computation without re-running original analyses. Embedded p-values, confidence intervals, and effect sizes remained linked to specific annotations, enabling consistency verification between displayed significance markers and underlying statistical tests.
+
+\subsection{AI Agent Interaction}
+
+The structured representation proved accessible to AI agents as designed. Test agents successfully parsed JSON specifications to enumerate figure components, identify axis ranges, list trace properties, and detect potential issues such as overlapping labels or truncated axis titles. Agents proposed modifications (color palette changes, layout adjustments, font size corrections) by generating specification patches that could be reviewed, accepted, or rejected by researchers. All AI-suggested modifications were auditable through JSON diffs.
+
+\subsection{Supporting Infrastructure Validation}
+
+The supporting infrastructure modules performed as designed, confirming that structured figures integrate naturally into complete research workflows.
+
+\textbf{Manuscript Compilation.} Documents compiled identically across Linux, macOS, Windows Subsystem for Linux, and HPC environments when built through containerized LaTeX engines. Identical inputs produced byte-identical PDF outputs, validating that containerization eliminates environment-dependent inconsistencies. Figures saved as \texttt{.figz} bundles were automatically converted to appropriate formats during compilation.
+
+\textbf{Literature Management.} The Scholar module retrieved metadata from CrossRef, Semantic Scholar, and OpenAlex, maintaining synchronized BibTeX entries for manuscripts. Citations added in Writer consistently matched entries managed by Scholar, eliminating drift between literature databases and LaTeX sources.
+
+\textbf{Reproducible Computation.} The \texttt{@stx.session} decorator reliably transformed Python functions into traceable experiments. Session directories captured parameters, logs, outputs, and generated figure bundles with full provenance. Repeated runs with identical parameters produced consistent outputs.
+
+\subsection{Cross-Module Provenance}
+
+SciTeX's architecture correctly synchronized figures, bibliography files, and computational outputs across modules. Global identifiers enabled reverse lookup queries: given a figure in a manuscript, researchers could identify the generating script, input data files, and session parameters. Metadata exported by the visualization system was successfully consumed by Writer and Code modules, demonstrating that provenance information flows consistently across the ecosystem.
+
+\subsection{Self-Descriptive Validation}
+
+This manuscript itself validates the integrated design: it was authored in Writer, compiled in a containerized environment, and incorporates figures generated as \texttt{.figz} bundles through the structured representation we describe. The figures can be inspected---their JSON specifications examined, underlying data verified, statistical metadata audited---providing a live demonstration that the approach delivers the reproducibility guarantees we claim.
+
+%% EOF
+
+
+
+%% ----------------------------------------
+%% DISCUSSION
+%% ----------------------------------------
+
+% ======================================================================
+% File: ./01_manuscript/contents/discussion.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+%% Timestamp: "2025-12-10 13:52:13 (ywatanabe)"
+%% File: "/home/ywatanabe/proj/scitex-cloud/paper/patterns/01_manuscript/contents/discussion.tex"
+%% -*- coding: utf-8 -*-
+\section{Discussion}
+
+Scientific figures occupy a paradoxical position in research: they are central to communicating findings yet remain among the least reproducible components of the scientific record. The structured figure representation introduced in this work addresses this gap by reframing figures as portable, reconstructible research objects rather than opaque image files. By packaging visual output alongside underlying data, statistical metadata, and canonical specifications, we enable figures to be inspected, version-controlled, regenerated, and adapted throughout their lifecycle without losing provenance.
+
+\subsection{Bridging the Programmatic-Interactive Divide}
+
+The fundamental contribution of this work is resolving a longstanding dichotomy in scientific visualization. Programmatic libraries such as matplotlib provide reproducible figure generation from code, but once figures are rendered, researchers must return to scripts to make adjustments---a process that discourages iterative refinement and makes collaboration difficult when co-authors lack programming expertise. GUI-based tools such as SigmaPlot and Adobe Illustrator offer the interactive manipulation researchers need for fine-tuning, but edits operate on pixels or vectors disconnected from source data. The result is a one-way pipeline: figures flow from code to image, but cannot return.
+
+Our structured representation breaks this pipeline by introducing a canonical JSON specification as the authoritative figure state. Whether a figure is modified programmatically or interactively, the specification is updated, and visual output regenerates from this single source of truth. This architecture preserves the reproducibility benefits of code-based workflows while enabling the interactive refinement researchers require for publication-quality output. Figures become living documents that can move between code, editor, manuscript, and archive without information loss.
+
+\subsection{Figures as AI-Native Research Objects}
+
+The shift from opaque images to structured representations has implications beyond human workflows. Current AI systems cannot meaningfully interact with PNG files: they can describe what they see through computer vision, but cannot inspect axis ranges, enumerate data points, or modify specific traces. Our representation exposes semantic structure directly to automated agents, enabling capabilities that raster formats preclude.
+
+AI agents can parse JSON specifications to understand figure composition, propose modifications through specification patches, enforce journal-specific formatting, or regenerate figures when underlying data changes. Crucially, because all AI operations modify the structured specification rather than pixel data, they remain auditable---researchers can review exactly what an agent changed and revert selectively. This design principle positions structured figures as first-class participants in AI-assisted research workflows rather than opaque outputs that AI must work around.
+
+As AI capabilities expand, we anticipate structured figure representations becoming increasingly valuable. Agents that can reason about statistical relationships, suggest alternative visualizations, or ensure consistency between figures and manuscript text require semantic access that only structured formats provide.
+
+\subsection{Integration with Research Infrastructure}
+
+To demonstrate that structured figures integrate naturally into broader workflows, we embedded the visualization system within SciTeX, a platform providing containerized manuscript compilation, literature management, and reproducible computation. This integration validates a key claim: that figures as research objects connect seamlessly to other reproducibility infrastructure.
+
+The supporting modules address complementary challenges in scientific workflows. Containerized compilation eliminates the environment inconsistencies that plague LaTeX-based manuscript preparation~\cite{Boettiger2020TSRWDDRDS}. Literature management prevents citation drift between databases and manuscripts~\cite{manubot2019open}. Reproducible computation captures parameters and outputs alongside generated figures~\cite{sandve2013ten}. Together, these capabilities create an ecosystem where provenance flows naturally from analysis through visualization to published manuscript.
+
+However, we emphasize that the structured figure representation is the primary contribution. The supporting modules, while valuable, address problems with existing solutions (containerization for LaTeX, APIs for citation management, decorators for experiment tracking). The representation of figures as structured research objects addresses a gap where no satisfactory solution previously existed.
+
+\subsection{Implications for Reproducibility Practice}
+
+The reproducibility crisis in science stems partly from misaligned incentives and cultural factors, but also from inadequate infrastructure~\cite{Barba2018PraxisORA, Peikert2021ReproducibleRIA}. When reproducibility requires additional effort---manually documenting parameters, separately archiving data, maintaining figure-generating scripts---it competes with the primary goal of producing research. Our approach embeds reproducibility into the figure generation process itself: saving a figure automatically captures its data, metadata, and specification without additional steps.
+
+This design philosophy---making the reproducible path the path of least resistance---aligns with contemporary frameworks such as the Turing Way~\cite{turingway2022} and FAIR principles~\cite{Balk2024AFAA}. By shifting reproducibility from an effortful practice to a default property of research artifacts, we reduce the activation energy that often prevents rigorous methodological documentation.
+
+\subsection{Limitations}
+
+Several limitations constrain the current implementation. The structured representation requires figures to be generated through compatible tools (currently matplotlib via \texttt{stx.plt}); figures produced by other libraries require conversion. Interactive editing operates in a browser environment, which may feel unfamiliar to researchers accustomed to desktop applications. The JSON specification schema, while extensible, does not yet capture all possible matplotlib configurations, and advanced customizations may require manual specification editing.
+
+More broadly, the platform requires familiarity with Python and, for manuscript preparation, LaTeX. Researchers in fields where Word-based workflows predominate face a learning curve. Empirical evaluation of productivity impact is ongoing as the user base expands. Support for HPC environments and SLURM-based workflows remains under development.
+
+\subsection{Future Directions}
+
+Future work will extend the structured representation to support additional plotting libraries and visualization types. We plan to develop specification converters enabling figures from arbitrary sources to be imported into the structured format. Enhanced AI integration will include automated suggestions for visualization improvements, consistency checking between figures and manuscript text, and intelligent layout optimization for multi-panel compositions.
+
+The long-term vision positions structured figures as a standard component of research communication---artifacts that carry their own provenance, invite inspection, and participate naturally in both human and AI-assisted workflows.
+
+\section{Conclusions}
+
+We have introduced a structured representation that reframes scientific figures as portable, reconstructible, and AI-native research objects. By packaging visual output with underlying data, statistical metadata, and canonical specifications in zip-based bundles, we enable figures to move between code, interactive editor, manuscript, and archive without losing provenance or meaning. The browser-based editor demonstrates that interactive manipulation and reproducibility need not conflict: all edits operate on structured specifications rather than images, preserving reversibility and auditability.
+
+Embedded within a supporting platform for containerized manuscript compilation, literature management, and reproducible computation, the structured figure representation integrates naturally into complete research workflows. This manuscript, prepared and compiled entirely within the system it describes, serves as self-descriptive validation that the approach delivers the reproducibility guarantees we claim.
+
+%% EOF
+
+
+
+%% ----------------------------------------
+%% REFERENCE STYLES
+%% ----------------------------------------
+\pdfbookmark[1]{References}{references}
+% Note: Path without ./ prefix allows bibtex to use BIBINPUTS search path
+\bibliography{01_manuscript/contents/bibliography}
+
+% ======================================================================
+% File: ./01_manuscript/contents/latex_styles/bibliography.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+%% Timestamp: "2025-09-30 17:40:26 (ywatanabe)"
+%% File: "/ssh:sp:/home/ywatanabe/proj/neurovista/paper/00_shared/latex_styles/bibliography.tex"
+
+%% ============================================================================
+%% BIBLIOGRAPHY STYLE CONFIGURATION
+%% ============================================================================
+
+%% ----------------------------------------------------------------------------
+%% OPTION 1: NUMBERED CITATIONS (Order of Appearance) - CURRENTLY ACTIVE
+%% ----------------------------------------------------------------------------
+%% Description: Citations numbered [1], [2], [3]... in the order they first
+%%              appear in the manuscript
+%% Sorting: By first citation order (NOT alphabetical)
+%% Example: \cite{Tort2010,Canolty2010} → [1, 2] (if these are first citations)
+%% Commands: \cite{key} → [1]
+%%           \cite{key1,key2} → [1, 2]
+%% Best for: Most scientific journals, clear citation tracking
+%% Compatible with: natbib package
+\bibliographystyle{unsrtnat}
+
+%% ----------------------------------------------------------------------------
+%% OPTION 2: NUMBERED CITATIONS (Alphabetical by Author)
+%% ----------------------------------------------------------------------------
+%% Description: Citations numbered [1], [2], [3]... sorted alphabetically by
+%%              first author's last name
+%% Sorting: Alphabetical by author (Canolty before Tort)
+%% Example: \cite{Tort2010,Canolty2010} → [2, 1] (C before T alphabetically)
+%% Commands: \cite{key} → [1]
+%% Best for: When you want bibliography sorted alphabetically
+%% Compatible with: elsarticle class
+% \bibliographystyle{elsarticle-num}
+
+%% Alternative alphabetical styles:
+% \bibliographystyle{plain}      % Basic alphabetical, no natbib features
+% \bibliographystyle{ieeetr}     % IEEE style, order of appearance
+% \bibliographystyle{siam}       % SIAM style, alphabetical
+
+%% ----------------------------------------------------------------------------
+%% OPTION 3: AUTHOR-YEAR CITATIONS
+%% ----------------------------------------------------------------------------
+%% Description: Citations show author name and year (Smith, 2020) or (Smith 2020)
+%% Format: (Author, Year) or Author (Year) depending on command
+%% Example: \cite{Tort2010} → (Tort et al., 2010)
+%%          \citet{Tort2010} → Tort et al. (2010) [textual]
+%%          \cite{Tort2010} → (Tort et al., 2010) [parenthetical]
+%% Commands:
+%%   - \citet{key}  → Author (Year)  [for text: "As shown by Author (2020)..."]
+%%   - \cite{key}  → (Author, Year) [for parentheses: "...as shown (Author, 2020)"]
+%%   - \cite{key}   → Same as \cite{key}
+%% Best for: Review papers, humanities, some social sciences
+%% Requires: natbib package (already loaded)
+% \bibliographystyle{plainnat}   % Author-year, alphabetical
+% \bibliographystyle{abbrvnat}   % Author-year, abbreviated names
+% \bibliographystyle{apalike}    % APA-like author-year style
+
+%% ----------------------------------------------------------------------------
+%% OPTION 4: JOURNAL-SPECIFIC STYLES
+%% ----------------------------------------------------------------------------
+%% Elsevier journals:
+% \bibliographystyle{elsarticle-num}        % Numbered, alphabetical
+% \bibliographystyle{elsarticle-num-names}  % Numbered, alphabetical, full names
+% \bibliographystyle{elsarticle-harv}       % Author-year (Harvard style)
+
+%% Nature family:
+% \bibliographystyle{naturemag}             % Nature magazine style
+
+%% IEEE:
+% \bibliographystyle{IEEEtran}              % IEEE Transactions style
+
+%% APA:
+% \bibliographystyle{apalike}               % APA-like style
+
+%% ----------------------------------------------------------------------------
+%% OPTION 5: ADDITIONAL CITATION STYLES
+%% ----------------------------------------------------------------------------
+%% Note: Many of these styles require biblatex instead of natbib.
+%% To use biblatex, you need to modify the preamble and use biber instead of bibtex.
+%% Basic conversion: Replace natbib package with biblatex, and use \printbibliography
+%% instead of \bibliographystyle + \bibliography commands.
+
+%% ----------------------------------------
+%% CHEMISTRY
+%% ----------------------------------------
+%% American Chemical Society (ACS):
+%% Installation: Download achemso.bst or use biblatex with style=chem-acs
+%% Format: Numbered, order of appearance, (1) Author, A. B. Title. Journal Year, Volume, Pages.
+%% BibTeX method:
+% \bibliographystyle{achemso}              % ACS style (requires achemso package)
+%% Biblatex method (recommended):
+% \usepackage[style=chem-acs]{biblatex}
+
+%% ----------------------------------------
+%% MEDICAL & HEALTH SCIENCES
+%% ----------------------------------------
+%% American Medical Association (AMA) 11th edition:
+%% Format: Numbered, order of appearance, superscript numbers
+%% Installation: Requires biblatex with biblatex-ama style
+%% Method:
+% \usepackage[style=ama]{biblatex}         % AMA 11th ed (requires biblatex-ama package)
+
+%% Vancouver style (ICMJE):
+%% Format: Numbered [1], order of appearance, commonly used in medical journals
+%% Note: unsrtnat (currently active) is very similar to Vancouver
+% \bibliographystyle{vancouver}            % Vancouver/ICMJE style (if .bst available)
+% \bibliographystyle{unsrtnat}             % Similar to Vancouver (currently active)
+
+%% ----------------------------------------
+%% SOCIAL SCIENCES
+%% ----------------------------------------
+%% American Psychological Association (APA) 7th edition:
+%% Format: Author-year, (Author, Year), alphabetical by author
+%% BibTeX method (APA-like, not full APA 7th):
+% \bibliographystyle{apalike}              % APA-like style (simplified)
+% \bibliographystyle{apacite}              % APA 6th/7th (requires apacite package)
+%% Biblatex method (recommended for full APA 7th compliance):
+% \usepackage[style=apa]{biblatex}         % Full APA 7th edition (requires biblatex-apa)
+
+%% American Sociological Association (ASA) 6th/7th edition:
+%% Format: Author-year, (Author Year), alphabetical, similar to Chicago author-date
+%% Method:
+% \bibliographystyle{asaetr}               % ASA-like style (if .bst available)
+%% Biblatex method:
+% \usepackage[style=authoryear]{biblatex} % Generic author-year (customizable to ASA)
+
+%% American Political Science Association (APSA):
+%% Format: Author-year, similar to Chicago author-date
+%% Method:
+% \usepackage[style=authoryear-comp]{biblatex}  % Compressed author-year for APSA
+
+%% ----------------------------------------
+%% HUMANITIES
+%% ----------------------------------------
+%% Chicago Manual of Style 18th edition (author-date):
+%% Format: Author-year, (Author Year), commonly used in social sciences and humanities
+% \bibliographystyle{chicago}              % Chicago author-date (if .bst available)
+%% Biblatex method (recommended):
+% \usepackage[style=chicago-authordate]{biblatex}  % Chicago 18th ed author-date
+
+%% Chicago Manual of Style 18th edition (notes and bibliography):
+%% Format: Footnote/endnote citations with full bibliography
+%% Method:
+% \usepackage[style=chicago-notes]{biblatex}  % Chicago 18th ed notes style
+
+%% Chicago Manual of Style 18th edition (shortened notes and bibliography):
+%% Format: Shortened footnote citations after first full citation
+%% Method:
+% \usepackage[style=chicago-notes]{biblatex}  % Use with ibidtracker option
+
+%% Modern Language Association (MLA) 9th edition:
+%% Format: Author-page, (Author Page), works cited list
+%% Method:
+% \usepackage[style=mla]{biblatex}         % MLA 9th edition (requires biblatex-mla)
+
+%% Modern Humanities Research Association (MHRA) 4th edition:
+%% Format: Footnote citations with bibliography
+%% Method:
+% \usepackage[style=mhra]{biblatex}        % MHRA 4th edition (requires biblatex-mhra)
+
+%% ----------------------------------------
+%% HARVARD STYLES
+%% ----------------------------------------
+%% Cite Them Right 12th edition - Harvard:
+%% Format: Author-year, (Author, Year), widely used in UK universities
+% \bibliographystyle{agsm}                 % Harvard style (Australian)
+% \bibliographystyle{dcu}                  % Harvard style (Dublin City University)
+%% Biblatex method:
+% \usepackage[style=authoryear]{biblatex} % Generic Harvard-style (author-year)
+
+%% Elsevier - Harvard (with titles):
+%% Format: Author-year with article titles included
+% \bibliographystyle{elsarticle-harv}      % Elsevier Harvard style (already listed above)
+
+%% ----------------------------------------
+%% ENGINEERING & COMPUTER SCIENCE
+%% ----------------------------------------
+%% IEEE (Institute of Electrical and Electronics Engineers):
+%% Format: Numbered [1], order of appearance, widely used in engineering
+% \bibliographystyle{IEEEtran}             % IEEE Transactions style (already listed above)
+
+%% ----------------------------------------
+%% NATURAL SCIENCES
+%% ----------------------------------------
+%% Nature:
+%% Format: Numbered, superscript, order of appearance
+% \bibliographystyle{naturemag}            % Nature magazine style (already listed above)
+% \bibliographystyle{naturemag-doi}        % Nature with DOIs
+
+%% ----------------------------------------------------------------------------
+%% BIBLATEX SETUP INSTRUCTIONS
+%% ----------------------------------------------------------------------------
+%% To switch from natbib to biblatex:
+%%
+%% 1. In packages.tex, replace:
+%%    \usepackage[numbers]{natbib}
+%%    with:
+%%    \usepackage[style=STYLENAME,backend=biber]{biblatex}
+%%    \addbibresource{path/to/bibliography.bib}
+%%
+%% 2. In this file (bibliography.tex), replace:
+%%    \bibliographystyle{...}
+%%    with:
+%%    % No \bibliographystyle needed with biblatex
+%%
+%% 3. In your main .tex file, replace:
+%%    \bibliography{path/to/bibliography}
+%%    with:
+%%    \printbibliography
+%%
+%% 4. Change compilation command:
+%%    pdflatex → biber → pdflatex → pdflatex
+%%    (instead of pdflatex → bibtex → pdflatex → pdflatex)
+%%
+%% Example biblatex styles:
+%%   style=numeric-comp     → Compressed numeric [1-3,5]
+%%   style=authoryear       → (Author, Year)
+%%   style=authoryear-comp  → (Author1, 2020; Author2, 2021)
+%%   style=apa              → APA 7th edition
+%%   style=chicago-authordate → Chicago author-date
+%%   style=ieee             → IEEE style
+%%   style=nature           → Nature style
+%%   style=mla              → MLA 9th edition
+
+%% ----------------------------------------------------------------------------
+%% CITATION COMMAND REFERENCE (with natbib)
+%% ----------------------------------------------------------------------------
+%% Basic commands:
+%%   \cite{key}              → [1] or (Author, Year) depending on style
+%%   \cite{key1,key2}        → [1, 2] or (Author1, Year1; Author2, Year2)
+%%
+%% Advanced natbib commands (only work with natbib-compatible styles):
+%%   \citet{key}             → Author (Year)  [textual citation]
+%%   \cite{key}             → (Author, Year) [parenthetical citation]
+%%   \citet*{key}            → Full author list (Year)
+%%   \cite*{key}            → (Full author list, Year)
+%%   \citealt{key}           → Author Year [no parentheses]
+%%   \citealp{key}           → Author, Year [no parentheses]
+%%   \citeauthor{key}        → Author [name only]
+%%   \citeyear{key}          → Year [year only]
+%%   \citeyearpar{key}       → (Year) [year in parentheses]
+%%
+%% Pre/post notes:
+%%   \cite[see][p.~10]{key} → (see Author, Year, p. 10)
+%%   \cite[p.~10]{key}      → (Author, Year, p. 10)
+%%
+%% Multiple citations:
+%%   \cite{key1,key2,key3}  → (Author1, Year1; Author2, Year2; Author3, Year3)
+%%
+%% Suppressing parts:
+%%   \cite[e.g.,][]{key}    → (e.g., Author, Year)
+%%   \cite[][see p.~10]{key}→ (Author, Year, see p. 10)
+%%
+%% ----------------------------------------------------------------------------
+%% TROUBLESHOOTING
+%% ----------------------------------------------------------------------------
+%% Problem: Citations appear as [?] or undefined
+%% Solution: Run compilation 3-4 times to resolve all references
+%%
+%% Problem: Citation numbers out of order [3, 1] instead of [1, 3]
+%% Solution: Use unsrtnat (order of appearance) instead of elsarticle-num
+%%
+%% Problem: "Undefined control sequence \citet"
+%% Solution: \citet only works with natbib-compatible styles (unsrtnat, plainnat)
+%%           Use \cite{} with non-natbib styles
+%%
+%% Problem: Bibliography not appearing
+%% Solution: Ensure \bibliography{path/to/bibfile} command exists in main file
+%%           Run: pdflatex → bibtex → pdflatex → pdflatex
+
+%%%% EOF
+
+
+%% ----------------------------------------
+%% DATA AVAILABILITY
+%% ----------------------------------------
+
+% ======================================================================
+% File: ./01_manuscript/contents/data_availability.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+%% Patterns Resource Article - Resource Availability
+
+\section{Resource Availability}
+
+\subsection{Lead Contact}
+
+Further information and requests for resources should be directed to and will be fulfilled by the lead contact, Yusuke Watanabe (ywatanabe@scitex.ai).
+
+\subsection{Materials Availability}
+
+This study did not generate new unique reagents.
+
+\subsection{Data and Code Availability}
+
+\begin{itemize}
+  \item All source code for SciTeX is publicly available on GitHub: \url{https://github.com/scitex-ai/scitex}
+  \item The SciTeX Python package is available via PyPI: \texttt{pip install scitex}
+  \item Documentation is available at: \url{https://docs.scitex.ai}
+  \item The cloud platform is accessible at: \url{https://scitex.ai}
+  \item This manuscript's source files are included in the SciTeX Writer repository as a demonstration
+  \item DOI for archived version: [Zenodo DOI to be assigned upon submission]
+\end{itemize}
+
+All code is released under the GNU General Public License v3.0 (GPL-3.0), ensuring open access and modification rights. The platform follows FAIR principles (Findable, Accessible, Interoperable, Reusable) for all data and code artifacts.
+
+Any additional information required to reanalyze the data reported in this paper is available from the lead contact upon request.
+
+\label{resource_availability}
+
+%%%% EOF
+
+
+
+%% ----------------------------------------
+%% ADDITIONAL INFORMATION
+%% ----------------------------------------
+
+% ======================================================================
+% File: ./01_manuscript/contents/additional_info.tex
+% ======================================================================
+%% -*- coding: utf-8 -*-
+%% Timestamp: "2025-09-27 20:17:53 (ywatanabe)"
+%% File: "/ssh:sp:/home/ywatanabe/proj/neurovista/paper/01_manuscript/contents/additional_info.tex"
+
+\pdfbookmark[1]{Additional Information}{additional_information}
+
+\pdfbookmark[2]{Ethics Declarations}{ethics_declarations}                    
+\section*{Ethics Declarations}
+All study participants provided their written informed consent ...
+\label{ethics declarations}
+
+\pdfbookmark[2]{Contributors}{author_contributions}                    
+\section*{Author Contributions}
+Y.W., T.Y., and D.G. conceptualized the study ...
+\label{author contributions}
+
+\pdfbookmark[2]{Acknowledgments}{acknowledgments}                    
+\section*{Acknowledgments}
+This research was funded by \hl{funding bodies here}
+\label{acknowledgments}
+
+\pdfbookmark[2]{Declaration of Interests}{declaration_of_interest}           \section*{Declaration of Interests}
+The authors declare that they have no competing interests.
+\label{declaration of interests}
+
+\pdfbookmark[2]{Declaration of Generative AI in Scientific Writing}{declaration_of_generative_ai}
+\section*{Declaration of Generative AI in Scientific Writing}
+The authors employed large language models such as Claude (Anthropic Inc.) for code development and complementing manuscript's English language quality. After incorporating suggested improvements, the authors meticulously revised the content. Ultimate responsibility for the final content of this publication rests entirely with the authors.
+\label{declaration of generative ai in scientific writing}
+
+%%%% EOF
+
+
+%% ----------------------------------------
+%% TABLES
+%% ----------------------------------------
+\clearpage
+\section*{Tables}
+\label{tables}
+\pdfbookmark[1]{Tables}{tables}
+\vspace{1cm}
+
+% ======================================================================
+% File: ./01_manuscript/contents/tables/compiled/FINAL.tex
+% ======================================================================
+% Auto-generated file containing all table inputs
+% Generated by gather_table_tex_files()
+
+% Table from: 02_compilation_options.tex
+
+% ======================================================================
+% File: ./01_manuscript/contents/tables/compiled/02_compilation_options.tex
+% ======================================================================
+\pdfbookmark[2]{Table 2_compilation_options}{table_02_compilation_options}
+\begin{table}[htbp]
+\centering
+\footnotesize
+\begin{tabular}{|l|l|l|}
+\hline
+Option&Description&Example\\
+\hline
+--engine ENGINE&Force specific compilation engine&--engine tectonic\\
+\hline
+--draft&Draft mode (single-pass compilation)&--draft\\
+\hline
+--no-figs&Skip figure processing&--no-figs\\
+\hline
+--no-tables&Skip table processing&--no-tables\\
+\hline
+--no-diff&Skip difference generation&--no-diff\\
+\hline
+--watch&Enable hot-recompile file watching&--watch\\
+\hline
+--clean&Clean build (remove all cache)&--clean\\
+\hline
+--verbose&Verbose compilation output&--verbose\\
+\hline
+\end{tabular}
+%% Compilation Options Table
+\caption{\textbf{Compilation Command-Line Options.}
+Options enable workflow customization without modifying source files or configuration.
+The \texttt{--engine} option overrides auto-detection to force a specific compilation engine.
+Quick compilation modes (\texttt{--draft}, \texttt{--no-figs}, \texttt{--no-tables}) reduce build times from $\sim$15s to under 3s for rapid iteration.
+The \texttt{--watch} option monitors source files and automatically recompiles when changes are detected.
+Options can be combined (e.g., \texttt{./compile\_manuscript.sh --draft --no-figs}).}
+\label{tab:compilation_options}
+\label{tab:02_compilation_options}
+\end{table}
+
+
+
+% Table from: 03_environment_variables.tex
+
+% ======================================================================
+% File: ./01_manuscript/contents/tables/compiled/03_environment_variables.tex
+% ======================================================================
+\pdfbookmark[2]{Table 3_environment_variables}{table_03_environment_variables}
+\begin{table}[htbp]
+\centering
+\footnotesize
+\begin{tabular}{|l|l|l|l|}
+\hline
+Variable&Purpose&Values&Default\\
+\hline
+SCITEX\_ENGINE&Override engine selection&tectonic, latexmk, 3pass&From config\\
+\hline
+SCITEX\_VERBOSE&Control logging verbosity&true, false&false\\
+\hline
+SCITEX\_CITATION\_STYLE&Set bibliography style&unsrtnat, plainnat, apalike, etc.&unsrtnat\\
+\hline
+SCITEX\_PARALLEL\_JOBS&Parallel processing jobs&1-16&4\\
+\hline
+SCITEX\_CACHE\_DIR&Compilation cache location&Directory path&./.cache\\
+\hline
+\end{tabular}
+%% Environment Variables Table
+\caption{\textbf{Environment Variables for System Configuration.}
+Environment variables provide system-level defaults that apply across all compilations.
+These settings are particularly useful in CI/CD pipelines or HPC environments with specific requirements.
+The \texttt{SCITEX\_ENGINE} variable provides the highest priority override for engine selection, superseding both YAML configuration and command-line arguments.
+Variables can be set persistently in shell configuration (\texttt{.bashrc}, \texttt{.zshrc}) or temporarily for single runs (\texttt{SCITEX\_VERBOSE=true ./compile\_manuscript.sh}).}
+\label{tab:environment_variables}
+\label{tab:03_environment_variables}
+\end{table}
+
+
+
+% Table from: 04_compilation_engines.tex
+
+% ======================================================================
+% File: ./01_manuscript/contents/tables/compiled/04_compilation_engines.tex
+% ======================================================================
+\pdfbookmark[2]{Table 4_compilation_engines}{table_04_compilation_engines}
+\begin{table}[htbp]
+\centering
+\footnotesize
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+Engine&Incremental&Full Build&Key Advantages&Best Use Case\\
+\hline
+Tectonic&1-3s&10-15s&Ultra-fast + auto package mgmt&Active writing sessions\\
+\hline
+latexmk&3-6s&15-25s&Reliable + smart dependency tracking&Standard workflows\\
+\hline
+3-pass&N/A&12-18s&Maximum compatibility + guaranteed&Legacy systems\\
+\hline
+\end{tabular}
+%% Compilation Engines Table
+\caption{\textbf{Compilation Engine Performance Characteristics.}
+Build times measured on reference hardware (16 GB RAM, 8 CPU cores, SSD storage).
+Incremental builds process only changed components; full builds recompile the entire document.
+Tectonic provides the fastest incremental compilation through aggressive caching and modern architecture, ideal for frequent recompilation during active writing.
+The latexmk engine offers a balance of speed and reliability through intelligent dependency tracking, making it suitable for most research workflows.
+Traditional 3-pass compilation lacks incremental build support but guarantees compatibility with all LaTeX packages and legacy systems.}
+\label{tab:compilation_engines}
+\label{tab:04_compilation_engines}
+\end{table}
+
+
+
+
+
+
+%% ----------------------------------------
+%% FIGURES
+%% ----------------------------------------
+\clearpage
+\section*{Figures}
+\label{figures}
+\pdfbookmark[1]{Figures}{figures}
+\vspace{1cm}
+
+% ======================================================================
+% File: ./01_manuscript/contents/figures/compiled/FINAL.tex
+% ======================================================================
+% Generated by compile_figure_tex_files()
+% This file includes all figure files in order
+
+% Figure 01
+\begin{figure*}[h!]
+    \pdfbookmark[2]{Figure 01}{.01}
+    \centering
+    \includegraphics[width=0.9\textwidth]{./01_manuscript/contents/figures/caption_and_media/jpg_for_compilation/01_example_figure.jpg}
+    \caption{Example figure caption. This is a template showing how to include figures in your manuscript. Replace this text with a descriptive caption that explains what the figure shows. Include panel labels (A, B, C) if using multipanel figures. Explain abbreviations and symbols used in the figure. Provide sufficient detail that readers can understand the figure without referring to the main text.}
+\label{fig:example_figure_01}
+    \label{fig:01_example_figure}
+\end{figure*}
+
+% Figure 02
+\begin{figure*}[htbp]
+    \pdfbookmark[2]{Figure 02}{.02}
+    \centering
+    \includegraphics[width=0.9\textwidth]{./01_manuscript/contents/figures/caption_and_media/jpg_for_compilation/02_another_example.jpg}
+    \caption{Another example figure. Use this template to add additional figures to your manuscript. Each figure should be placed in a separate .tex file in this directory. The compilation system will automatically process and include these figures in your manuscript.}
+\label{fig:example_figure_02}
+    \label{fig:02_another_example}
+\end{figure*}
+
+% Figure 03
+\begin{figure*}[htbp]
+    \pdfbookmark[2]{Figure 03}{.03}
+    \centering
+    \includegraphics[width=0.9\textwidth]{./01_manuscript/contents/figures/caption_and_media/jpg_for_compilation/03_compilation_workflow.jpg}
+    \caption{\textbf{SciTeX Writer Compilation Workflow.}
+This flowchart illustrates the complete compilation pipeline from initial dependency checking through final PDF generation.
+The system automatically detects and uses the best available compilation engine (Tectonic for speed, latexmk for reliability, or 3-pass for maximum compatibility).
+Parallel processing of figures and tables significantly reduces compilation time.
+Optional features include automatic diff generation for revision tracking and file watching for hot-recompile mode.
+Color coding: green (start/end), orange (engine selection), blue (preprocessing), purple (parallel processing), gray (decision points).}
+\label{fig:compilation_workflow}
+    \label{fig:03_compilation_workflow}
+\end{figure*}
+
+% Figure 04
+\begin{figure*}[htbp]
+    \pdfbookmark[2]{Figure 04}{.04}
+    \centering
+    \includegraphics[width=0.9\textwidth]{./01_manuscript/contents/figures/caption_and_media/jpg_for_compilation/04_directory_structure.jpg}
+    \caption{\textbf{SciTeX Writer Directory Organization.}
+This diagram shows the hierarchical organization of the repository structure.
+The \texttt{00\_shared/} directory (green) contains resources used across all document types, including bibliography files and LaTeX styles, ensuring consistency without duplication.
+The three document directories (blue/purple) follow identical internal structures, facilitating familiarity and code reuse.
+Each document has its own \texttt{contents/} subdirectory with \texttt{figures/} and \texttt{tables/} organized into \texttt{caption\_and\_media/} (source files) and \texttt{compiled/} (generated LaTeX code).
+The modular structure minimizes merge conflicts during collaborative editing by isolating frequently-modified content files.
+Compilation scripts (orange) and configuration files (red) reside in dedicated directories for easy discovery and maintenance.
+Dotted lines indicate that supplementary materials follow the same organizational pattern as the main manuscript.}
+\label{fig:directory_structure}
+    \label{fig:04_directory_structure}
+\end{figure*}
+
+% Figure 05
+\begin{figure*}[htbp]
+    \pdfbookmark[2]{Figure 05}{.05}
+    \centering
+    \includegraphics[width=0.9\textwidth]{./01_manuscript/contents/figures/caption_and_media/jpg_for_compilation/05_system_architecture.jpg}
+    \caption{\textbf{SciTeX Writer System Architecture.}
+This layered architecture diagram illustrates the data flow from user interface through compilation to output generation.
+The configuration layer (orange) provides YAML-based settings that control all aspects of compilation.
+The preprocessing pipeline (blue) handles bibliography merging, figure format conversion, and CSV-to-LaTeX table generation in parallel.
+Engine selection (purple) automatically chooses the optimal compilation engine based on availability and performance requirements.
+Post-processing generates diff PDFs, counts words/figures/tables, and archives versions for reproducibility.
+Color coding: green (interface/output), orange (configuration), blue (preprocessing), purple (engine selection).}
+\label{fig:system_architecture}
+    \label{fig:05_system_architecture}
+\end{figure*}
+
+% Figure 06
+\begin{figure*}[htbp]
+    \pdfbookmark[2]{Figure 06}{.06}
+    \centering
+    \includegraphics[width=0.9\textwidth]{./01_manuscript/contents/figures/caption_and_media/jpg_for_compilation/06_engine_selection_logic.jpg}
+    \caption{\textbf{Compilation Engine Selection Decision Tree.}
+The system prioritizes explicit user configuration over automatic detection.
+Environment variables provide the highest priority override (useful for CI/CD pipelines).
+Command-line arguments (--engine) override YAML configuration (useful for one-off compilations).
+When engine is set to 'auto' (default), the system attempts to use Tectonic first for speed, falling back to latexmk for reliability, and finally to 3-pass for maximum compatibility.
+This cascading detection ensures the system always finds an available compilation method while preferring faster engines when possible.
+Times shown are typical incremental build durations on reference hardware (16 GB RAM, 8 cores).}
+\label{fig:engine_selection_logic}
+    \label{fig:06_engine_selection_logic}
+\end{figure*}
+
+% Figure 07
+\begin{figure*}[htbp]
+    \pdfbookmark[2]{Figure 07}{.07}
+    \centering
+    \includegraphics[width=0.9\textwidth]{./01_manuscript/contents/figures/caption_and_media/jpg_for_compilation/07_feature_overview.jpg}
+    \caption{\textbf{SciTeX Writer Feature Overview.}
+This mind map provides a comprehensive visualization of the framework's major capabilities organized into five categories.
+Compilation features include multi-engine support with auto-detection and performance optimization modes.
+Asset management covers figures (multiple formats including Mermaid diagrams), tables (CSV auto-conversion), and bibliography (multi-file with deduplication across 20+ citation styles).
+Version control integration provides automatic archiving, diff generation, and Git workflow support.
+Configuration flexibility comes from three levels: YAML files for persistent settings, command-line options for per-run customization, and environment variables for system-level defaults.
+Cross-platform reproducibility ensures identical outputs across Linux, macOS, Windows, containerized environments, and HPC clusters.}
+\label{fig:feature_overview}
+    \label{fig:07_feature_overview}
+\end{figure*}
+
+% Figure 08
+\begin{figure*}[htbp]
+    \pdfbookmark[2]{Figure 08}{.08}
+    \centering
+    \includegraphics[width=0.9\textwidth]{./01_manuscript/contents/figures/caption_and_media/jpg_for_compilation/08_bib_dedup.jpg}
+    \caption{\textbf{Multi-File Bibliography Processing and Deduplication.}
+The bibliography system enables researchers to organize references across multiple topical .bib files.
+All files in the \texttt{00\_shared/bib\_files/} directory are automatically merged during compilation.
+The deduplication engine implements a two-tier matching strategy: DOI-based matching provides exact duplicate detection when DOIs are present, while title and year matching handles entries without DOIs.
+This approach eliminates duplicate references that commonly appear when the same paper is cited across multiple source files.
+The final bibliography is sorted according to the selected citation style (by citation order for numbered styles, alphabetically for author-year styles).
+Color coding: blue (merging), purple (deduplication logic), green (output).}
+\label{fig:bibliography_deduplication}
+    \label{fig:08_bib_dedup}
+\end{figure*}
+
+
+
+
+%% ----------------------------------------
+%% END of DOCUMENT
+%% ----------------------------------------
+\end{document}
+
+%%%% EOF
