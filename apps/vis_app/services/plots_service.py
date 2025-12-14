@@ -366,6 +366,30 @@ class PlotsService:
         from apps.vis_app.services.plot_renderer.element_bboxes import extract_element_bboxes
         element_bboxes = extract_element_bboxes(fig, ax, renderer, width, height)
 
+        # Generate hitmap for fast element picking (optional enhancement)
+        hitmap_data = None
+        hitmap_color_map = None
+        try:
+            from scitex.plt.utils._hitmap import generate_hitmap_id_colors, save_hitmap_png
+            hitmap, color_map = generate_hitmap_id_colors(fig, dpi=dpi)
+            # Convert hitmap to base64 PNG
+            hitmap_buf = io.BytesIO()
+            from PIL import Image as PILImage
+            # Convert 24-bit IDs back to RGB
+            h, w = hitmap.shape
+            rgb = np.zeros((h, w, 3), dtype=np.uint8)
+            rgb[:, :, 0] = (hitmap >> 16) & 0xFF
+            rgb[:, :, 1] = (hitmap >> 8) & 0xFF
+            rgb[:, :, 2] = hitmap & 0xFF
+            hitmap_img = PILImage.fromarray(rgb, mode='RGB')
+            hitmap_img.save(hitmap_buf, format='PNG')
+            hitmap_buf.seek(0)
+            hitmap_data = f'data:image/png;base64,{base64.b64encode(hitmap_buf.getvalue()).decode("utf-8")}'
+            hitmap_color_map = {str(k): v for k, v in color_map.items()}
+            logger.info(f'[PlotsService] Generated hitmap with {len(color_map)} elements')
+        except Exception as e:
+            logger.debug(f'[PlotsService] Hitmap generation skipped: {e}')
+
         # Add column mapping to data elements (for CSV column highlighting)
         cols = df.columns.tolist()
         xy_pairs = PlotsService.detect_xy_column_pairs(cols)
@@ -388,7 +412,7 @@ class PlotsService:
         # Convert to base64
         b64_data = base64.b64encode(buf.getvalue()).decode('utf-8')
 
-        return {
+        result = {
             'success': True,
             'image': f'data:image/png;base64,{b64_data}',
             'width': width,
@@ -396,6 +420,13 @@ class PlotsService:
             'element_bboxes': element_bboxes,
             'column_mapping': column_mapping,
         }
+
+        # Add hitmap data if available
+        if hitmap_data and hitmap_color_map:
+            result['hitmap'] = hitmap_data
+            result['hitmap_color_map'] = hitmap_color_map
+
+        return result
 
     @staticmethod
     def _map_elements_to_columns(

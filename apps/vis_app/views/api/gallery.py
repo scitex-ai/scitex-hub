@@ -7,6 +7,7 @@ Provides:
 - Categorized plot types (matplotlib, scitex, seaborn)
 """
 
+import base64
 import json
 import logging
 import traceback
@@ -363,6 +364,13 @@ def get_project_gallery_image(request, category: str, plot_name: str):
             gallery_path = get_gallery_path(project_path)
             png_path = gallery_path / category / f"{plot_name}.png"
 
+        # Try temp gallery with hitmap first
+        temp_gallery_path = Path('/tmp/scitex_gallery_with_bboxes')
+        temp_png = temp_gallery_path / category / f"{plot_name}.png"
+        if temp_png.exists():
+            png_path = temp_png
+            gallery_path = temp_gallery_path
+
         # Fallback to template gallery
         if not png_path or not png_path.exists():
             gallery_path = get_template_gallery_path()
@@ -383,7 +391,7 @@ def get_project_gallery_image(request, category: str, plot_name: str):
                 'name': plot_name,
                 'category': category
             }
-            # Try to load axes_bbox_px from companion JSON
+            # Try to load metadata from companion JSON
             json_path = png_path.with_suffix('.json')
             if json_path.exists():
                 try:
@@ -391,8 +399,23 @@ def get_project_gallery_image(request, category: str, plot_name: str):
                         metadata = json.load(f)
                     if 'axes_bbox_px' in metadata:
                         result['axes_bbox_px'] = metadata['axes_bbox_px']
-                except Exception:
-                    pass
+                    if 'element_bboxes' in metadata:
+                        result['element_bboxes'] = metadata['element_bboxes']
+                    if 'dimensions' in metadata:
+                        dims = metadata['dimensions']
+                        if 'figure_size_px' in dims:
+                            result['figure_size_px'] = dims['figure_size_px']
+                    # Add hitmap for fast element picking
+                    if 'hitmap_color_map' in metadata:
+                        result['hitmap_color_map'] = metadata['hitmap_color_map']
+                    if 'hitmap_file' in metadata:
+                        hitmap_path = png_path.parent / metadata['hitmap_file']
+                        if hitmap_path.exists():
+                            with open(hitmap_path, 'rb') as f:
+                                hitmap_data = f.read()
+                            result['hitmap'] = f'data:image/png;base64,{base64.b64encode(hitmap_data).decode("utf-8")}'
+                except Exception as e:
+                    logger.warning(f"Failed to load metadata: {e}")
             return JsonResponse(result)
 
     except Exception as e:
