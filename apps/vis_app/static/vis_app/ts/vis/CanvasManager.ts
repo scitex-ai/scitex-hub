@@ -27,6 +27,8 @@ import { SnapManager } from './canvas/SnapManager.ts';
 import { CropManager } from './canvas/CropManager.ts';
 import { ElementSelectionManager } from './canvas/ElementSelectionManager.ts';
 import { ContextMenuManager } from './canvas/ContextMenuManager.ts';
+import { CanvasResizeManager } from './canvas/CanvasResizeManager.ts';
+import { hitmapManager } from './HitmapManager.ts';
 
 export class CanvasManager {
     public canvas: any | null = null; // Fabric.js canvas instance
@@ -46,6 +48,22 @@ export class CanvasManager {
     private cropManager: CropManager | null = null;
     private elementSelectionManager: ElementSelectionManager | null = null;
     private contextMenuManager: ContextMenuManager | null = null;
+    private canvasResizeManager: CanvasResizeManager | null = null;
+
+    // Canvas zoom and pan state
+    private canvasZoomLevel: number = 0.22;
+    private canvasPanOffset: { x: number, y: number } = { x: 0, y: 0 };
+    private canvasIsPanning: boolean = false;
+    private canvasPanStartPoint: { x: number, y: number } | null = null;
+    private canvasIsZoomDragging: boolean = false;
+    private canvasZoomDragStartY: number = 0;
+    private canvasZoomDragStartLevel: number = 1;
+    private canvasDragThrottleFrame: number | null = null;
+    private canvasWheelThrottleFrame: number | null = null;
+    private canvasAccumulatedZoomDelta: number = 0;
+    private canvasAccumulatedPanDelta: { x: number, y: number } = { x: 0, y: 0 };
+    private canvasLastZoomMousePos: { x: number, y: number } = { x: 0, y: 0 };
+    private pendingDragUpdate: boolean = false;
 
     // Snap and alignment guidelines
     private snapEnabled: boolean = true;
@@ -125,6 +143,57 @@ export class CanvasManager {
     public setCanvasPanOffset(x: number, y: number): void {
         if (this.zoomPanManager) {
             this.zoomPanManager.setPanOffset(x, y);
+        }
+    }
+
+    /**
+     * Get canvas document size in mm
+     * DELEGATES to CanvasResizeManager
+     */
+    public getCanvasSizeMm(): { width: number, height: number } {
+        return this.canvasResizeManager?.getCanvasSizeMm() || { width: 180, height: 250 };
+    }
+
+    /**
+     * Set canvas document size in mm
+     * DELEGATES to CanvasResizeManager
+     */
+    public setCanvasSizeMm(widthMm: number, heightMm: number): void {
+        if (this.canvasResizeManager) {
+            this.canvasResizeManager.setCanvasSize(widthMm, heightMm);
+        }
+    }
+
+    /**
+     * Increase canvas document size
+     * DELEGATES to CanvasResizeManager
+     */
+    public increaseCanvasSize(): void {
+        if (this.canvasResizeManager) {
+            this.canvasResizeManager.increaseSize();
+            this.drawGrid(this.themeManager?.isDark() || false);
+        }
+    }
+
+    /**
+     * Decrease canvas document size
+     * DELEGATES to CanvasResizeManager
+     */
+    public decreaseCanvasSize(): void {
+        if (this.canvasResizeManager) {
+            this.canvasResizeManager.decreaseSize();
+            this.drawGrid(this.themeManager?.isDark() || false);
+        }
+    }
+
+    /**
+     * Reset canvas document size to default
+     * DELEGATES to CanvasResizeManager
+     */
+    public resetCanvasSize(): void {
+        if (this.canvasResizeManager) {
+            this.canvasResizeManager.resetSize();
+            this.drawGrid(this.themeManager?.isDark() || false);
         }
     }
 
@@ -248,6 +317,24 @@ export class CanvasManager {
             this.contextMenuManager = new ContextMenuManager(
                 this.canvas,
                 () => this.elementSelectionManager?.getSelectedElementNames() || [],
+                this.statusBarCallback
+            );
+
+            // Phase 6 manager - canvas document resize (Ctrl+drag edges)
+            this.canvasResizeManager = new CanvasResizeManager(
+                this.canvas,
+                () => this.getCanvasZoomLevel(),
+                () => this.getCanvasPanOffset(),
+                () => {
+                    // Update rulers when canvas size changes
+                    if (this.rulersAreaTransformCallback) {
+                        this.rulersAreaTransformCallback();
+                    }
+                    // Redraw grid if enabled
+                    if (this.gridManager?.isGridEnabled()) {
+                        this.gridManager.drawGrid(this.themeManager?.isDark() || false);
+                    }
+                },
                 this.statusBarCallback
             );
 
@@ -739,6 +826,11 @@ export class CanvasManager {
         // Setup context menu
         this.setupContextMenu(canvasContainer);
 
+        // Setup canvas resize (Ctrl+drag from edges)
+        if (this.canvasResizeManager) {
+            this.canvasResizeManager.setupResizeListeners(canvasContainer);
+        }
+
         // Listen for canvas theme changes from keyboard shortcut (Alt+T)
         document.addEventListener('canvas-theme-changed', ((e: CustomEvent) => {
             this.updateCanvasTheme(e.detail.isDark);
@@ -753,6 +845,7 @@ export class CanvasManager {
 
         // Mouse down - Check for panning or zoom dragging
         canvasContainer.addEventListener('mousedown', (e: MouseEvent) => {
+            console.log(`[CanvasManager] mousedown: button=${e.button}, ctrlKey=${e.ctrlKey}, metaKey=${e.metaKey}`);
             if (e.button === 1 || (e as any).spaceKey) {
                 if (e.ctrlKey || e.metaKey) {
                     // Ctrl + middle mouse = zoom drag mode
@@ -761,7 +854,7 @@ export class CanvasManager {
                     this.canvasZoomDragStartLevel = this.canvasZoomLevel;
                     canvasContainer.style.cursor = 'ns-resize';
                     e.preventDefault();
-                    console.log('[CanvasManager] Canvas zoom drag mode started');
+                    console.log(`[CanvasManager] Canvas zoom drag mode started, startLevel=${this.canvasZoomLevel}`);
                 } else {
                     // Middle mouse without Ctrl = pan mode
                     this.canvasIsPanning = true;
@@ -4296,6 +4389,25 @@ export class CanvasManager {
             });
         }
 
+        // Load hitmap if available (for fast element picking)
+        console.log('[CanvasManager] Checking hitmap availability:',
+            'hitmap=', !!target.axisMetadata?.hitmap,
+            'hitmap_color_map=', !!target.axisMetadata?.hitmap_color_map,
+            'hitmap length=', target.axisMetadata?.hitmap?.length || 0);
+        if (target.axisMetadata?.hitmap && target.axisMetadata?.hitmap_color_map) {
+            console.log('[CanvasManager] hitmap_color_map keys:', Object.keys(target.axisMetadata.hitmap_color_map));
+            hitmapManager.load(target.axisMetadata.hitmap, target.axisMetadata.hitmap_color_map)
+                .then(() => {
+                    console.log('[CanvasManager] Hitmap loaded successfully for fast picking');
+                    console.log('[CanvasManager] Hitmap dimensions:', hitmapManager.getDimensions());
+                })
+                .catch((e: Error) => console.log('[CanvasManager] Hitmap load failed, using bbox fallback:', e));
+        } else {
+            console.log('[CanvasManager] No hitmap available in axisMetadata, using bbox fallback');
+            console.log('[CanvasManager] axisMetadata keys:', target.axisMetadata ? Object.keys(target.axisMetadata) : 'none');
+            hitmapManager.clear();
+        }
+
         // Create overlay canvas for element highlights
         this.createElementOverlay(target);
 
@@ -4321,6 +4433,9 @@ export class CanvasManager {
         this.elementSelectionTarget = null;
         this.selectedElementNames.clear();
         this.hoveredElementName = null;
+
+        // Clear hitmap
+        hitmapManager.clear();
 
         // Remove overlay
         if (this.elementSelectionOverlay && this.elementSelectionOverlay.parentNode) {
@@ -4469,12 +4584,30 @@ export class CanvasManager {
             return null;
         }
 
-        // Convert object pixels to figure pixels for hit detection
+        // FAST PATH: Use hitmap if available (24-bit RGB ID encoding)
+        console.log('[CanvasManager] findElementAtPosition: hitmapManager.isReady()=', hitmapManager.isReady());
+        if (hitmapManager.isReady()) {
+            // Scale to hitmap coordinates
+            const hitmapCoords = hitmapManager.scaleToHitmap(objX, objY, imgWidth, imgHeight);
+            console.log('[CanvasManager] Hitmap coords:', hitmapCoords, 'from objX/Y:', objX, objY, 'imgSize:', imgWidth, imgHeight);
+            // Get elements in neighborhood (handles thin lines and overlapping elements)
+            const elementsAtPoint = hitmapManager.getElementsInNeighborhood(hitmapCoords.x, hitmapCoords.y, 2);
+            console.log('[CanvasManager] Elements at point:', elementsAtPoint);
+            if (elementsAtPoint.length > 0) {
+                // Return the closest element's label
+                console.log('[CanvasManager] Found element via hitmap:', elementsAtPoint[0].label);
+                return elementsAtPoint[0].label || null;
+            }
+        } else {
+            console.log('[CanvasManager] Hitmap NOT ready, falling back to bbox');
+        }
+
+        // FALLBACK: Convert object pixels to figure pixels for geometry-based hit detection
         // bbox/path_simplified coordinates are in figure pixels
         const figX = objX * (figureWidth / imgWidth);
         const figY = objY * (figureHeight / imgHeight);
 
-        // Use the imported ElementSelectionManager for hit detection
+        // Use bbox/geometry-based hit detection
         return this.findElementAtImageCoords(bboxes, figX, figY);
     }
 

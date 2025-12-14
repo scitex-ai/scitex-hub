@@ -30,3 +30,6 @@ export { CropManager } from './CropManager.ts';
 // Phase 5 - Element selection and context menu
 export { ElementSelectionManager } from './ElementSelectionManager.ts';
 export { ContextMenuManager } from './ContextMenuManager.ts';
+
+// Phase 6 - Canvas document resize
+export { CanvasResizeManager } from './CanvasResizeManager.ts';

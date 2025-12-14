@@ -134,7 +134,11 @@ export class SigmaEditor {
                     this.canvasManager.alignByAxis(direction);
                 }
             },
-            () => this.canvasManager.exitElementSelectionMode()  // escapeCallback
+            () => this.canvasManager.exitElementSelectionMode(),  // escapeCallback
+            () => this.canvasManager.toggleCanvasTheme(),  // toggleThemeCallback
+            () => this.canvasManager.increaseCanvasSize(),  // canvasSizeIncreaseCallback
+            () => this.canvasManager.decreaseCanvasSize(),  // canvasSizeDecreaseCallback
+            () => this.canvasManager.resetCanvasSize()  // canvasSizeResetCallback
         );
 
         // Initialize DataTabManager
@@ -877,11 +881,13 @@ export class SigmaEditor {
 
             const result = await response.json();
             if (result.success && result.image) {
-                // Build axis metadata from response
+                // Build axis metadata from response (including hitmap for fast element picking)
                 const axisMetadata = result.axes_bbox_px ? {
                     axes_bbox_px: result.axes_bbox_px,
                     figure_size_px: { width: result.width, height: result.height },
-                    element_bboxes: result.element_bboxes
+                    element_bboxes: result.element_bboxes,
+                    hitmap: result.hitmap,
+                    hitmap_color_map: result.hitmap_color_map
                 } : undefined;
 
                 await this.canvasManager.addImage(result.image, {
@@ -922,11 +928,16 @@ export class SigmaEditor {
                     axisMetadata = {
                         axes_bbox_px: metadata.axes_bbox_px,
                         figure_size_px: metadata.figure_size_px,
-                        element_bboxes: metadata.element_bboxes  // For element-level selection
+                        element_bboxes: metadata.element_bboxes,  // For element-level selection
+                        hitmap: metadata.hitmap,
+                        hitmap_color_map: metadata.hitmap_color_map
                     };
                     console.log(`[SigmaEditor] Loaded axis metadata for ${plot.name}:`, axisMetadata);
                     if (metadata.element_bboxes) {
                         console.log(`[SigmaEditor] Element bboxes available: ${Object.keys(metadata.element_bboxes).length} elements`);
+                    }
+                    if (metadata.hitmap) {
+                        console.log(`[SigmaEditor] Hitmap available for fast element picking`);
                     }
                 }
             }
@@ -1118,7 +1129,9 @@ export class SigmaEditor {
                                     obj.axisMetadata = {
                                         axes_bbox_px: metadata.axes_bbox_px,
                                         figure_size_px: metadata.figure_size_px,
-                                        element_bboxes: metadata.element_bboxes  // For element-level selection
+                                        element_bboxes: metadata.element_bboxes,  // For element-level selection
+                                        hitmap: metadata.hitmap,
+                                        hitmap_color_map: metadata.hitmap_color_map
                                     };
                                     // Refresh properties panel to show metadata
                                     this.propertiesManager.showCanvasObjectProperties(obj);
@@ -1170,7 +1183,9 @@ export class SigmaEditor {
                         obj.axisMetadata = {
                             axes_bbox_px: metadata.axes_bbox_px,
                             figure_size_px: metadata.figure_size_px,
-                            element_bboxes: metadata.element_bboxes  // For element-level selection
+                            element_bboxes: metadata.element_bboxes,  // For element-level selection
+                            hitmap: metadata.hitmap,
+                            hitmap_color_map: metadata.hitmap_color_map
                         };
                         console.log(`[SigmaEditor] Loaded metadata for ${obj.name || plot.name}`);
                     }
@@ -1436,6 +1451,8 @@ export class SigmaEditor {
                                     axes_bbox_px: metadata.axes_bbox_px,
                                     figure_size_px: metadata.figure_size_px,
                                     element_bboxes: metadata.element_bboxes,
+                                    hitmap: metadata.hitmap,
+                                    hitmap_color_map: metadata.hitmap_color_map
                                 };
                             }
                         }

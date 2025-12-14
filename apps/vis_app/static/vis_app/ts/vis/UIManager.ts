@@ -74,7 +74,10 @@ export class UIManager {
         private selectAllCallback?: () => void,
         private alignByAxisCallback?: (direction: 'L' | 'C' | 'R' | 'T' | 'M' | 'B' | 'S') => void,
         private escapeCallback?: () => void,
-        private toggleThemeCallback?: () => void
+        private toggleThemeCallback?: () => void,
+        private canvasSizeIncreaseCallback?: () => void,
+        private canvasSizeDecreaseCallback?: () => void,
+        private canvasSizeResetCallback?: () => void
     ) {
         // Initialize direct dependencies
         // NOTE: ResizerManager is no longer used for sidebar/properties panels
@@ -131,7 +134,10 @@ export class UIManager {
             selectAllCallback,
             alignByAxisCallback,
             escapeCallback,
-            toggleThemeCallback
+            toggleThemeCallback,
+            canvasSizeIncreaseCallback,
+            canvasSizeDecreaseCallback,
+            canvasSizeResetCallback
         );
 
         // Initialize TreeIntegration module

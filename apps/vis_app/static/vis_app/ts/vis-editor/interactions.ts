@@ -203,9 +203,12 @@ export function setupInteractionHandlers(editor: SigmaEditor): InteractionHandle
                             <h4>View</h4>
                             <div class="shortcut-row"><kbd>Ctrl+Shift+C</kbd> Copy View (ROI)</div>
                             <div class="shortcut-row"><kbd>Ctrl+Shift+V</kbd> Paste View (ROI)</div>
-                            <div class="shortcut-row"><kbd>+</kbd> Zoom In</div>
-                            <div class="shortcut-row"><kbd>-</kbd> Zoom Out</div>
+                            <div class="shortcut-row"><kbd>+</kbd> Zoom In (view)</div>
+                            <div class="shortcut-row"><kbd>-</kbd> Zoom Out (view)</div>
                             <div class="shortcut-row"><kbd>0</kbd> Fit to Window</div>
+                            <div class="shortcut-row"><kbd>Ctrl++</kbd> Increase Canvas Size</div>
+                            <div class="shortcut-row"><kbd>Ctrl+-</kbd> Decrease Canvas Size</div>
+                            <div class="shortcut-row"><kbd>Ctrl+0</kbd> Reset Canvas Size</div>
                             <div class="shortcut-row"><kbd>G</kbd> Toggle Grid</div>
                             <div class="shortcut-row"><kbd>Alt+T</kbd> Toggle Theme</div>
                             <div class="shortcut-row"><kbd>Right-drag</kbd> Pan canvas</div>

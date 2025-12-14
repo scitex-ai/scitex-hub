@@ -4,9 +4,16 @@
  * This provides Flask-editor-like element selection for the Django vis app.
  * It allows users to click on specific elements (traces, labels, axes) within
  * a plot image and see them highlighted.
+ *
+ * Selection Strategy:
+ * 1. Hitmap (if loaded): Fast 24-bit RGB ID lookup with neighborhood sampling
+ * 2. Fallback: Legacy bbox/geometry-based proximity detection
+ *
+ * Hover effects use the ORIGINAL figure's geometry and colors (not hitmap colors).
  */
 
 import type { Canvas as FabricCanvas } from 'fabric';
+import { HitmapManager, hitmapManager, type HitmapElementInfo, type HitmapColorMap } from './HitmapManager';
 
 /**
  * Schema v0.3 geometry structure (axes-local pixels)
@@ -104,8 +111,82 @@ export class ElementSelectionManager {
     private elementsAtCursor: string[] = [];
     private currentCycleIndex: number = 0;
 
+    // Hitmap manager reference
+    private hitmapManager: HitmapManager = hitmapManager;
+
     constructor() {
         console.log('[ElementSelectionManager] Initialized');
+    }
+
+    /**
+     * Load hitmap for fast element picking
+     * @param hitmapUrl - URL to plot_hitmap.png
+     * @param colorMap - Mapping from element ID to element info
+     */
+    public async loadHitmap(hitmapUrl: string, colorMap: HitmapColorMap): Promise<void> {
+        await this.hitmapManager.load(hitmapUrl, colorMap);
+    }
+
+    /**
+     * Check if hitmap is loaded and ready
+     */
+    public isHitmapReady(): boolean {
+        return this.hitmapManager.isReady();
+    }
+
+    /**
+     * Find element using hitmap (fast path)
+     * @param imgX - X coordinate in image pixels
+     * @param imgY - Y coordinate in image pixels
+     * @param displayWidth - Current display width
+     * @param displayHeight - Current display height
+     */
+    public findElementByHitmap(
+        imgX: number,
+        imgY: number,
+        displayWidth: number,
+        displayHeight: number
+    ): string | null {
+        if (!this.hitmapManager.isReady()) return null;
+
+        // Scale display coordinates to hitmap coordinates
+        const { width: hitmapW, height: hitmapH } = this.hitmapManager.getDimensions();
+        const hx = (imgX / displayWidth) * hitmapW;
+        const hy = (imgY / displayHeight) * hitmapH;
+
+        // Use neighborhood sampling for thin lines
+        const elements = this.hitmapManager.getElementsInNeighborhood(hx, hy, 2);
+        if (elements.length > 0) {
+            return elements[0].label;
+        }
+        return null;
+    }
+
+    /**
+     * Find all elements at position using hitmap (for cycle selection)
+     */
+    public findAllElementsByHitmap(
+        imgX: number,
+        imgY: number,
+        displayWidth: number,
+        displayHeight: number
+    ): string[] {
+        if (!this.hitmapManager.isReady()) return [];
+
+        const { width: hitmapW, height: hitmapH } = this.hitmapManager.getDimensions();
+        const hx = (imgX / displayWidth) * hitmapW;
+        const hy = (imgY / displayHeight) * hitmapH;
+
+        const elements = this.hitmapManager.getElementsInNeighborhood(hx, hy, 3);
+        return elements.map(e => e.label);
+    }
+
+    /**
+     * Get hitmap element info by label
+     */
+    public getHitmapElementInfo(label: string): HitmapElementInfo | null {
+        const elements = this.hitmapManager.getAllElements();
+        return elements.find(e => e.label === label) || null;
     }
 
     /**

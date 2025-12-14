@@ -415,6 +415,44 @@ export class PropertiesManager {
             const scaleX = obj.scaleX || 1;
             const scaleY = obj.scaleY || 1;
 
+            // Handle scitex.plt.plot schema format (has size.width_px instead of figure_size_px)
+            // Convert to expected format if needed
+            if (!meta.figure_size_px && meta.size && meta.size.width_px) {
+                meta.figure_size_px = {
+                    width: meta.size.width_px,
+                    height: meta.size.height_px
+                };
+            }
+
+            // Estimate axes_bbox_px from scitex.plt.plot schema if not available
+            // Uses axes dimensions in mm and DPI to calculate pixel coordinates
+            if (!meta.axes_bbox_px && meta.axes && meta.axes[0] && meta.size) {
+                const axesInfo = meta.axes[0];
+                const sizeInfo = meta.size;
+                if (axesInfo.axes_width_mm && axesInfo.axes_height_mm && sizeInfo.dpi) {
+                    const dpi = sizeInfo.dpi;
+                    const mmToInch = 1 / 25.4;
+                    const axesWidthPx = Math.round(axesInfo.axes_width_mm * mmToInch * dpi);
+                    const axesHeightPx = Math.round(axesInfo.axes_height_mm * mmToInch * dpi);
+
+                    // Estimate position: assume centered with typical margins
+                    // Standard scitex layout uses ~25% margin on left/bottom for labels
+                    const figWidthPx = sizeInfo.width_px;
+                    const figHeightPx = sizeInfo.height_px;
+                    const x0 = Math.round(figWidthPx * 0.25);  // Left margin ~25%
+                    const y0 = Math.round(figHeightPx * 0.15); // Top margin ~15%
+
+                    meta.axes_bbox_px = {
+                        x0: x0,
+                        y0: y0,
+                        x1: x0 + axesWidthPx,
+                        y1: y0 + axesHeightPx,
+                        width: axesWidthPx,
+                        height: axesHeightPx
+                    };
+                }
+            }
+
             // axes_bbox_px - show scaled values
             if (meta.axes_bbox_px) {
                 const bbox = meta.axes_bbox_px;

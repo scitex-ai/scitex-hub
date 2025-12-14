@@ -45,7 +45,10 @@ export class KeyboardShortcuts {
         private selectAllCallback?: () => void,
         private alignByAxisCallback?: (direction: 'L' | 'C' | 'R' | 'T' | 'M' | 'B' | 'S') => void,
         private escapeCallback?: () => void,
-        private toggleThemeCallback?: () => void
+        private toggleThemeCallback?: () => void,
+        private canvasSizeIncreaseCallback?: () => void,
+        private canvasSizeDecreaseCallback?: () => void,
+        private canvasSizeResetCallback?: () => void
     ) {}
 
     private sizeModeActive: boolean = false;
@@ -61,9 +64,79 @@ export class KeyboardShortcuts {
     }
 
     /**
+     * Check if focus is within the canvas area
+     */
+    private isCanvasFocused(): boolean {
+        const activeElement = document.activeElement;
+        const canvasPane = document.querySelector('.canvas-pane');
+        const canvasContainer = document.getElementById('canvas-container');
+        const rulersArea = document.getElementById('rulers-area');
+        const visRulersArea = document.querySelector('.vis-rulers-area');
+
+        return !!(
+            canvasPane?.contains(activeElement) ||
+            canvasContainer?.contains(activeElement) ||
+            rulersArea?.contains(activeElement) ||
+            visRulersArea?.contains(activeElement) ||
+            activeElement?.closest('.canvas-pane') !== null ||
+            activeElement?.closest('#canvas-container') !== null ||
+            activeElement?.closest('.vis-rulers-area') !== null ||
+            // Also check if body is focused (click on canvas area)
+            (activeElement === document.body && this.isMouseOverCanvas())
+        );
+    }
+
+    /**
+     * Check if mouse is currently over canvas area
+     */
+    private isMouseOverCanvas(): boolean {
+        // Check via last known mouse position or hover state
+        const canvasPane = document.querySelector('.canvas-pane:hover');
+        const rulersArea = document.querySelector('.vis-rulers-area:hover');
+        return !!(canvasPane || rulersArea);
+    }
+
+    /**
      * Setup keyboard shortcuts
      */
     public setupKeyboardShortcuts(): void {
+        // Use capture phase to intercept Ctrl+/- before browser zoom
+        window.addEventListener('keydown', (e: KeyboardEvent) => {
+            // Intercept Ctrl++/- for canvas size (prevent browser zoom)
+            // ONLY when focus is in canvas area
+            if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '=' || e.key === '-' || e.key === '_' || e.key === '0')) {
+                // Skip if in input/textarea
+                if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') {
+                    return; // Let browser handle it
+                }
+
+                // Only intercept when canvas area has focus
+                if (!this.isCanvasFocused()) {
+                    console.log(`[KeyboardShortcuts] Ctrl+${e.key} ignored - canvas not focused`);
+                    return; // Let browser handle it (global zoom)
+                }
+
+                e.preventDefault();
+                e.stopPropagation();
+                console.log(`[KeyboardShortcuts] Intercepted Ctrl+${e.key} for canvas size`);
+
+                if (e.key === '+' || e.key === '=') {
+                    if (this.canvasSizeIncreaseCallback) {
+                        this.canvasSizeIncreaseCallback();
+                    }
+                } else if (e.key === '-' || e.key === '_') {
+                    if (this.canvasSizeDecreaseCallback) {
+                        this.canvasSizeDecreaseCallback();
+                    }
+                } else if (e.key === '0') {
+                    if (this.canvasSizeResetCallback) {
+                        this.canvasSizeResetCallback();
+                    }
+                }
+                return;
+            }
+        }, true);  // capture: true to intercept before browser
+
         document.addEventListener('keydown', (e: KeyboardEvent) => {
             // Prevent shortcuts when typing in inputs
             if (document.activeElement?.tagName === 'INPUT' ||
@@ -267,34 +340,52 @@ export class KeyboardShortcuts {
                 }
             }
 
-            // + key - Zoom in
+            // + key - Zoom in (view) or canvas size increase (with Ctrl, only when canvas focused)
             if (e.key === '+' || e.key === '=') {
-                if (!e.ctrlKey && !e.metaKey) {
+                if ((e.ctrlKey || e.metaKey) && this.isCanvasFocused()) {
+                    // Ctrl + = Canvas size increase (only when canvas has focus)
+                    // Already handled by capture listener, skip here
+                    return;
+                } else if (!(e.ctrlKey || e.metaKey)) {
+                    // Plain + = Zoom in view
                     e.preventDefault();
                     if (this.zoomInCallback) {
                         this.zoomInCallback();
                     }
                 }
+                // If Ctrl++ but canvas not focused, let browser handle zoom
             }
 
-            // - key - Zoom out
+            // - key - Zoom out (view) or canvas size decrease (with Ctrl, only when canvas focused)
             if (e.key === '-' || e.key === '_') {
-                if (!e.ctrlKey && !e.metaKey) {
+                if ((e.ctrlKey || e.metaKey) && this.isCanvasFocused()) {
+                    // Ctrl - = Canvas size decrease (only when canvas has focus)
+                    // Already handled by capture listener, skip here
+                    return;
+                } else if (!(e.ctrlKey || e.metaKey)) {
+                    // Plain - = Zoom out view
                     e.preventDefault();
                     if (this.zoomOutCallback) {
                         this.zoomOutCallback();
                     }
                 }
+                // If Ctrl+- but canvas not focused, let browser handle zoom
             }
 
-            // 0 key - Fit to window
+            // 0 key - Fit to window (view) or reset canvas size (with Ctrl, only when canvas focused)
             if (e.key === '0') {
-                if (!e.ctrlKey && !e.metaKey) {
+                if ((e.ctrlKey || e.metaKey) && this.isCanvasFocused()) {
+                    // Ctrl 0 = Reset canvas size to default (only when canvas has focus)
+                    // Already handled by capture listener, skip here
+                    return;
+                } else if (!(e.ctrlKey || e.metaKey)) {
+                    // Plain 0 = Fit view to window
                     e.preventDefault();
                     if (this.zoomToFitCallback) {
                         this.zoomToFitCallback();
                     }
                 }
+                // If Ctrl+0 but canvas not focused, let browser handle reset
             }
 
             // G key or Space - Toggle grid
