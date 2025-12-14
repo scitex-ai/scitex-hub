@@ -1,0 +1,46 @@
+{
+  "schema": {
+    "name": "scitex.plt.plot",
+    "version": "1.0.0"
+  },
+  "backend": "mpl",
+  "size": {
+    "width_inch": 3.1496062992125986,
+    "height_inch": 2.677165354330709,
+    "width_mm": 50.8,
+    "height_mm": 40.47,
+    "width_px": 300,
+    "height_px": 239,
+    "dpi": 150,
+    "crop_margin_mm": 1.0
+  },
+  "axes": [
+    {
+      "xlabel": "Time [s]",
+      "ylabel": "Amplitude [a.u.]",
+      "title": "ax.plot()",
+      "xlim": [
+        -0.3141592653589793,
+        6.5973445725385655
+      ],
+      "ylim": [
+        -1.099867834057569,
+        1.0999937063836938
+      ],
+      "axes_width_mm": 40.0,
+      "axes_height_mm": 28.0,
+      "plot_type": "line"
+    }
+  ],
+  "theme": {
+    "mode": "light",
+    "colors": {
+      "background": "transparent",
+      "axes_bg": "white",
+      "text": "black",
+      "spine": "black",
+      "tick": "black",
+      "grid": "#cccccc"
+    }
+  }
+}

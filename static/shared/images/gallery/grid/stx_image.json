@@ -1,0 +1,190 @@
+{
+    "scitex_schema": "scitex.plt.figure.editable",
+    "scitex_schema_version": "0.3.0",
+    "meta": {
+        "title": "",
+        "description": "",
+        "exported_at": "2025-12-11T21:42:18.942401"
+    },
+    "figure": {
+        "size_px": [
+            944,
+            803
+        ],
+        "dpi": 300,
+        "figsize_inches": [
+            3.1496062992125986,
+            2.677165354330709
+        ]
+    },
+    "axes": {
+        "ax_00": {
+            "bbox_px": {
+                "x0": 236,
+                "y0": 236,
+                "x1": 668,
+                "y1": 566
+            },
+            "position": [
+                0.25,
+                0.29411764705882354,
+                0.4570000000000001,
+                0.41176470588235287
+            ],
+            "xlim": [
+                -0.5,
+                31.5
+            ],
+            "ylim": [
+                -0.5,
+                31.5
+            ]
+        },
+        "ax_01": {
+            "bbox_px": {
+                "x0": 686,
+                "y0": 236,
+                "x1": 703,
+                "y1": 566
+            },
+            "position": [
+                0.727,
+                0.29411764705882354,
+                0.01749999999999996,
+                0.41176470588235287
+            ],
+            "xlim": [
+                0.0,
+                1.0
+            ],
+            "ylim": [
+                0.004632023004602859,
+                0.9997176732861306
+            ]
+        }
+    },
+    "elements": {
+        "ax_00_image_00": {
+            "id": "ax_00_image_00",
+            "axes_id": "ax_00",
+            "element_type": "image",
+            "label": "image_0",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 0,
+                    "y0": 0,
+                    "x1": 432,
+                    "y1": 330
+                }
+            },
+            "style": {
+                "cmap": "viridis",
+                "alpha": null
+            },
+            "editable_styles": [
+                "cmap",
+                "alpha",
+                "clim"
+            ],
+            "zorder": 0,
+            "visible": true
+        },
+        "ax_01_linecoll_00": {
+            "id": "ax_01_linecoll_00",
+            "axes_id": "ax_01",
+            "element_type": "line_collection",
+            "label": "linecoll_0",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": null
+            },
+            "style": {},
+            "editable_styles": [
+                "color",
+                "linewidth",
+                "alpha"
+            ],
+            "zorder": 2,
+            "visible": true
+        }
+    },
+    "statistics": {},
+    "data": {
+        "csv_path": "stx_image.csv",
+        "columns_actual": [
+            "ax_00_grayscale_image_0",
+            "ax_00_grayscale_image_1",
+            "ax_00_grayscale_image_2",
+            "ax_00_grayscale_image_3",
+            "ax_00_grayscale_image_4",
+            "ax_00_grayscale_image_5",
+            "ax_00_grayscale_image_6",
+            "ax_00_grayscale_image_7",
+            "ax_00_grayscale_image_8",
+            "ax_00_grayscale_image_9",
+            "ax_00_grayscale_image_10",
+            "ax_00_grayscale_image_11",
+            "ax_00_grayscale_image_12",
+            "ax_00_grayscale_image_13",
+            "ax_00_grayscale_image_14",
+            "ax_00_grayscale_image_15",
+            "ax_00_grayscale_image_16",
+            "ax_00_grayscale_image_17",
+            "ax_00_grayscale_image_18",
+            "ax_00_grayscale_image_19",
+            "ax_00_grayscale_image_20",
+            "ax_00_grayscale_image_21",
+            "ax_00_grayscale_image_22",
+            "ax_00_grayscale_image_23",
+            "ax_00_grayscale_image_24",
+            "ax_00_grayscale_image_25",
+            "ax_00_grayscale_image_26",
+            "ax_00_grayscale_image_27",
+            "ax_00_grayscale_image_28",
+            "ax_00_grayscale_image_29",
+            "ax_00_grayscale_image_30",
+            "ax_00_grayscale_image_31"
+        ],
+        "csv_hash": "fdca650cbc966cd2"
+    },
+    "output": {
+        "format": "png",
+        "width_px": 944,
+        "height_px": 803
+    },
+    "element_bboxes": {
+        "panel": {
+            "x0": 45,
+            "y0": 21,
+            "x1": 292,
+            "y1": 196,
+            "label": "Panel",
+            "is_panel": true
+        },
+        "xaxis_ticks": {
+            "x0": 34,
+            "y0": 193,
+            "x1": 303,
+            "y1": 219,
+            "label": "X Spine & Ticks"
+        },
+        "yaxis_ticks": {
+            "x0": 5,
+            "y0": 10,
+            "x1": 52,
+            "y1": 210,
+            "label": "Y Spine & Ticks"
+        },
+        "_meta": {
+            "schema_version": "0.3.0",
+            "axes_bbox_px": {
+                "x0": 118,
+                "y0": 118,
+                "x1": 354,
+                "y1": 283
+            },
+            "coord_space": "axes"
+        }
+    }
+}

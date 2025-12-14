@@ -1,0 +1,161 @@
+{
+    "scitex_schema": "scitex.plt.figure.editable",
+    "scitex_schema_version": "0.3.0",
+    "meta": {
+        "title": "",
+        "description": "",
+        "exported_at": "2025-12-11T21:42:12.497416"
+    },
+    "figure": {
+        "size_px": [
+            944,
+            803
+        ],
+        "dpi": 300,
+        "figsize_inches": [
+            3.1496062992125986,
+            2.677165354330709
+        ]
+    },
+    "axes": {
+        "ax_00": {
+            "bbox_px": {
+                "x0": 283,
+                "y0": 236,
+                "x1": 614,
+                "y1": 566
+            },
+            "position": [
+                0.29999999999999993,
+                0.29411764705882354,
+                0.35,
+                0.41176470588235287
+            ],
+            "xlim": [
+                -0.5,
+                4.5
+            ],
+            "ylim": [
+                4.5,
+                -0.5
+            ]
+        },
+        "ax_01": {
+            "bbox_px": {
+                "x0": 637,
+                "y0": 269,
+                "x1": 651,
+                "y1": 533
+            },
+            "position": [
+                0.675,
+                0.3352941176470588,
+                0.014000000000000012,
+                0.32941176470588235
+            ],
+            "xlim": [
+                0.0,
+                1.0
+            ],
+            "ylim": [
+                -0.2148164329814327,
+                0.9999999999999999
+            ]
+        }
+    },
+    "elements": {
+        "ax_00_image_00": {
+            "id": "ax_00_image_00",
+            "axes_id": "ax_00",
+            "element_type": "image",
+            "label": "image_0",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 0,
+                    "y0": 0,
+                    "x1": 331,
+                    "y1": 330
+                }
+            },
+            "style": {
+                "cmap": "RdBu_r",
+                "alpha": null
+            },
+            "editable_styles": [
+                "cmap",
+                "alpha",
+                "clim"
+            ],
+            "zorder": 0,
+            "visible": true
+        },
+        "ax_01_linecoll_00": {
+            "id": "ax_01_linecoll_00",
+            "axes_id": "ax_01",
+            "element_type": "line_collection",
+            "label": "linecoll_0",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": null
+            },
+            "style": {},
+            "editable_styles": [
+                "color",
+                "linewidth",
+                "alpha"
+            ],
+            "zorder": 2,
+            "visible": true
+        }
+    },
+    "statistics": {},
+    "data": {
+        "csv_path": "matshow.csv",
+        "columns_actual": [
+            "ax_00_correlation_matrix_matshow_row",
+            "ax_00_correlation_matrix_matshow_col",
+            "ax_00_correlation_matrix_matshow_value"
+        ],
+        "csv_hash": "3c0f208ba97d4570"
+    },
+    "output": {
+        "format": "png",
+        "width_px": 944,
+        "height_px": 803
+    },
+    "element_bboxes": {
+        "panel": {
+            "x0": 37,
+            "y0": 22,
+            "x1": 239,
+            "y1": 200,
+            "label": "Panel",
+            "is_panel": true
+        },
+        "xaxis_ticks": {
+            "x0": 28,
+            "y0": 197,
+            "x1": 248,
+            "y1": 223,
+            "label": "X Spine & Ticks"
+        },
+        "yaxis_ticks": {
+            "x0": 4,
+            "y0": 10,
+            "x1": 43,
+            "y1": 214,
+            "label": "Y Spine & Ticks"
+        },
+        "_meta": {
+            "schema_version": "0.3.0",
+            "axes_bbox_px": {
+                "x0": 118,
+                "y0": 118,
+                "x1": 354,
+                "y1": 283
+            },
+            "coord_space": "axes"
+        }
+    }
+}

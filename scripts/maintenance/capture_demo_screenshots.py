@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Timestamp: "2025-12-08 09:16:53 (ywatanabe)"
+# Timestamp: "2025-12-12 08:39:14 (ywatanabe)"
 # File: /home/ywatanabe/proj/scitex-cloud/scripts/maintenance/capture_demo_screenshots.py
 
 
@@ -315,7 +315,7 @@ async def capture_page_screenshot(
     page_name = normalize_path_to_filename(page_path)
     url = f"{BASE_URL}{page_path}"
     wait_sec = (
-        3.0
+        5.0
         if page_path
         in PAGES_TO_CAPTURE_MODULES_DEFAULT + PAGES_TO_CAPTURE_MODULES_ZEN
         else 1.0

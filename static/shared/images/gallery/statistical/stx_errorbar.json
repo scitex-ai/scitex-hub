@@ -1,0 +1,281 @@
+{
+    "scitex_schema": "scitex.plt.figure.editable",
+    "scitex_schema_version": "0.3.0",
+    "meta": {
+        "title": "",
+        "description": "",
+        "exported_at": "2025-12-11T21:41:12.241910"
+    },
+    "figure": {
+        "size_px": [
+            944,
+            803
+        ],
+        "dpi": 300,
+        "figsize_inches": [
+            3.1496062992125986,
+            2.677165354330709
+        ]
+    },
+    "axes": {
+        "ax_00": {
+            "bbox_px": {
+                "x0": 236,
+                "y0": 236,
+                "x1": 708,
+                "y1": 566
+            },
+            "position": [
+                0.25,
+                0.29411764705882354,
+                0.5,
+                0.41176470588235287
+            ],
+            "xlim": [
+                -0.2,
+                4.2
+            ],
+            "ylim": [
+                0.6355,
+                0.9545
+            ]
+        }
+    },
+    "elements": {
+        "ax_00_line_00": {
+            "id": "ax_00_line_00",
+            "axes_id": "ax_00",
+            "element_type": "line",
+            "label": "line_0",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 21,
+                    "y0": 56,
+                    "x1": 451,
+                    "y1": 263
+                },
+                "path_simplified": [
+                    [
+                        21.5,
+                        263.3
+                    ],
+                    [
+                        128.7,
+                        159.8
+                    ],
+                    [
+                        343.3,
+                        56.4
+                    ],
+                    [
+                        450.5,
+                        139.1
+                    ]
+                ],
+                "path": null
+            },
+            "style": {
+                "color": [
+                    0.0,
+                    0.5,
+                    0.75,
+                    1.0
+                ],
+                "linewidth": 0.5669291338582677,
+                "linestyle": "-",
+                "alpha": null,
+                "marker": "o",
+                "markersize": 2.267716535433071
+            },
+            "editable_styles": [
+                "color",
+                "linewidth",
+                "linestyle",
+                "alpha",
+                "marker"
+            ],
+            "zorder": 2.1,
+            "visible": true
+        },
+        "ax_00_line_01": {
+            "id": "ax_00_line_01",
+            "axes_id": "ax_00",
+            "element_type": "line",
+            "label": "line_1",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 21,
+                    "y0": 98,
+                    "x1": 451,
+                    "y1": 315
+                },
+                "path_simplified": [
+                    [
+                        21.5,
+                        315.0
+                    ],
+                    [
+                        128.7,
+                        201.2
+                    ],
+                    [
+                        236.0,
+                        139.1
+                    ],
+                    [
+                        343.3,
+                        97.8
+                    ],
+                    [
+                        450.5,
+                        201.2
+                    ]
+                ],
+                "path": null
+            },
+            "style": {
+                "color": [
+                    0.0,
+                    0.5,
+                    0.75,
+                    1.0
+                ],
+                "linewidth": 0.5669291338582677,
+                "linestyle": "None",
+                "alpha": null,
+                "marker": "_",
+                "markersize": 2.267716535433071
+            },
+            "editable_styles": [
+                "color",
+                "linewidth",
+                "linestyle",
+                "alpha",
+                "marker"
+            ],
+            "zorder": 2,
+            "visible": true
+        },
+        "ax_00_line_02": {
+            "id": "ax_00_line_02",
+            "axes_id": "ax_00",
+            "element_type": "line",
+            "label": "line_2",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 21,
+                    "y0": 15,
+                    "x1": 451,
+                    "y1": 212
+                },
+                "path_simplified": [
+                    [
+                        21.5,
+                        211.6
+                    ],
+                    [
+                        128.7,
+                        118.4
+                    ],
+                    [
+                        236.0,
+                        77.1
+                    ],
+                    [
+                        343.3,
+                        15.0
+                    ],
+                    [
+                        450.5,
+                        77.1
+                    ]
+                ],
+                "path": null
+            },
+            "style": {
+                "color": [
+                    0.0,
+                    0.5,
+                    0.75,
+                    1.0
+                ],
+                "linewidth": 0.5669291338582677,
+                "linestyle": "None",
+                "alpha": null,
+                "marker": "_",
+                "markersize": 2.267716535433071
+            },
+            "editable_styles": [
+                "color",
+                "linewidth",
+                "linestyle",
+                "alpha",
+                "marker"
+            ],
+            "zorder": 2,
+            "visible": true
+        },
+        "ax_00_linecoll_00": {
+            "id": "ax_00_linecoll_00",
+            "axes_id": "ax_00",
+            "element_type": "line_collection",
+            "label": "linecoll_0",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": null
+            },
+            "style": {},
+            "editable_styles": [
+                "color",
+                "linewidth",
+                "alpha"
+            ],
+            "zorder": 2,
+            "visible": true
+        }
+    },
+    "statistics": {},
+    "data": {},
+    "output": {
+        "format": "png",
+        "width_px": 944,
+        "height_px": 803
+    },
+    "element_bboxes": {
+        "panel": {
+            "x0": 41,
+            "y0": 21,
+            "x1": 268,
+            "y1": 196,
+            "label": "Panel",
+            "is_panel": true
+        },
+        "xaxis_ticks": {
+            "x0": 31,
+            "y0": 193,
+            "x1": 278,
+            "y1": 219,
+            "label": "X Spine & Ticks"
+        },
+        "yaxis_ticks": {
+            "x0": 4,
+            "y0": 10,
+            "x1": 48,
+            "y1": 210,
+            "label": "Y Spine & Ticks"
+        },
+        "_meta": {
+            "schema_version": "0.3.0",
+            "axes_bbox_px": {
+                "x0": 118,
+                "y0": 118,
+                "x1": 354,
+                "y1": 283
+            },
+            "coord_space": "axes"
+        }
+    }
+}

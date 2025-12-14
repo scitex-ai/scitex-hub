@@ -1,0 +1,152 @@
+{
+    "scitex_schema": "scitex.plt.figure.editable",
+    "scitex_schema_version": "0.3.0",
+    "meta": {
+        "title": "",
+        "description": "",
+        "exported_at": "2025-12-11T21:41:34.228354"
+    },
+    "figure": {
+        "size_px": [
+            944,
+            803
+        ],
+        "dpi": 300,
+        "figsize_inches": [
+            3.1496062992125986,
+            2.677165354330709
+        ]
+    },
+    "axes": {
+        "ax_00": {
+            "bbox_px": {
+                "x0": 236,
+                "y0": 236,
+                "x1": 708,
+                "y1": 566
+            },
+            "position": [
+                0.25,
+                0.29411764705882354,
+                0.5,
+                0.41176470588235287
+            ],
+            "xlim": [
+                -0.5900000000000001,
+                3.5900000000000003
+            ],
+            "ylim": [
+                0.0,
+                0.9450000000000001
+            ]
+        }
+    },
+    "elements": {
+        "ax_00_bars": {
+            "id": "ax_00_bars",
+            "axes_id": "ax_00",
+            "element_type": "bar",
+            "label": "bars",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 21,
+                    "y0": 15,
+                    "x1": 450,
+                    "y1": 330
+                },
+                "rectangles": [
+                    {
+                        "x": 21.5,
+                        "y": 85.6,
+                        "width": 90.3,
+                        "height": 244.4
+                    },
+                    {
+                        "x": 134.4,
+                        "y": 50.6,
+                        "width": 90.3,
+                        "height": 279.4
+                    },
+                    {
+                        "x": 247.3,
+                        "y": 33.2,
+                        "width": 90.3,
+                        "height": 296.8
+                    },
+                    {
+                        "x": 360.2,
+                        "y": 15.7,
+                        "width": 90.3,
+                        "height": 314.3
+                    }
+                ]
+            },
+            "style": {
+                "facecolor": [
+                    0.0,
+                    0.5,
+                    0.75,
+                    1.0
+                ],
+                "edgecolor": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "linewidth": 0.5669291338582677,
+                "alpha": null
+            },
+            "editable_styles": [
+                "facecolor",
+                "edgecolor",
+                "alpha",
+                "linewidth"
+            ],
+            "zorder": 0.5,
+            "visible": true
+        }
+    },
+    "statistics": {},
+    "data": {},
+    "output": {
+        "format": "png",
+        "width_px": 944,
+        "height_px": 803
+    },
+    "element_bboxes": {
+        "panel": {
+            "x0": 41,
+            "y0": 21,
+            "x1": 267,
+            "y1": 196,
+            "label": "Panel",
+            "is_panel": true
+        },
+        "xaxis_ticks": {
+            "x0": 31,
+            "y0": 193,
+            "x1": 277,
+            "y1": 219,
+            "label": "X Spine & Ticks"
+        },
+        "yaxis_ticks": {
+            "x0": 4,
+            "y0": 10,
+            "x1": 48,
+            "y1": 210,
+            "label": "Y Spine & Ticks"
+        },
+        "_meta": {
+            "schema_version": "0.3.0",
+            "axes_bbox_px": {
+                "x0": 118,
+                "y0": 118,
+                "x1": 354,
+                "y1": 283
+            },
+            "coord_space": "axes"
+        }
+    }
+}

@@ -162,10 +162,12 @@ def main():
         dpi=150,
         save_csv=True,
         save_png=True,
+        save_svg=True,
+        save_pltz=True,
         verbose=False
     )
 
-    print(f"Generated {len(result['png'])} plots")
+    print(f"Generated {len(result['png'])} PNG, {len(result.get('pltz', []))} PLTZ bundles")
     if result['errors']:
         print(f"Errors: {len(result['errors'])}")
         for err in result['errors']:

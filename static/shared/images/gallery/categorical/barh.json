@@ -1,0 +1,159 @@
+{
+    "scitex_schema": "scitex.plt.figure.editable",
+    "scitex_schema_version": "0.3.0",
+    "meta": {
+        "title": "",
+        "description": "",
+        "exported_at": "2025-12-11T21:41:32.191235"
+    },
+    "figure": {
+        "size_px": [
+            944,
+            803
+        ],
+        "dpi": 300,
+        "figsize_inches": [
+            3.1496062992125986,
+            2.677165354330709
+        ]
+    },
+    "axes": {
+        "ax_00": {
+            "bbox_px": {
+                "x0": 236,
+                "y0": 236,
+                "x1": 708,
+                "y1": 566
+            },
+            "position": [
+                0.25,
+                0.29411764705882354,
+                0.5,
+                0.41176470588235287
+            ],
+            "xlim": [
+                0.0,
+                0.9660000000000001
+            ],
+            "ylim": [
+                -0.5900000000000001,
+                3.5900000000000003
+            ]
+        }
+    },
+    "elements": {
+        "ax_00_bars": {
+            "id": "ax_00_bars",
+            "axes_id": "ax_00",
+            "element_type": "bar",
+            "label": "bars",
+            "geometry_px": {
+                "coord_space": "axes",
+                "bbox": {
+                    "x0": 0,
+                    "y0": 15,
+                    "x1": 449,
+                    "y1": 315
+                },
+                "rectangles": [
+                    {
+                        "x": 0.0,
+                        "y": 251.8,
+                        "width": 415.3,
+                        "height": 63.2
+                    },
+                    {
+                        "x": 0.0,
+                        "y": 172.9,
+                        "width": 449.5,
+                        "height": 63.2
+                    },
+                    {
+                        "x": 0.0,
+                        "y": 93.9,
+                        "width": 381.1,
+                        "height": 63.2
+                    },
+                    {
+                        "x": 0.0,
+                        "y": 15.0,
+                        "width": 430.0,
+                        "height": 63.2
+                    }
+                ]
+            },
+            "style": {
+                "facecolor": [
+                    0.0,
+                    0.5019607843137255,
+                    0.7529411764705882,
+                    1.0
+                ],
+                "edgecolor": [
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "linewidth": 0.5669291338582677,
+                "alpha": null
+            },
+            "editable_styles": [
+                "facecolor",
+                "edgecolor",
+                "alpha",
+                "linewidth"
+            ],
+            "zorder": 0.5,
+            "visible": true
+        }
+    },
+    "statistics": {},
+    "data": {
+        "csv_path": "barh.csv",
+        "columns_actual": [
+            "ax-row-0-col-0_trace-id-method-comparison_variable-y",
+            "ax-row-0-col-0_trace-id-method-comparison_variable-x"
+        ],
+        "csv_hash": "d3b9f0493a1b7b50"
+    },
+    "output": {
+        "format": "png",
+        "width_px": 944,
+        "height_px": 803
+    },
+    "element_bboxes": {
+        "panel": {
+            "x0": 47,
+            "y0": 21,
+            "x1": 307,
+            "y1": 197,
+            "label": "Panel",
+            "is_panel": true
+        },
+        "xaxis_ticks": {
+            "x0": 36,
+            "y0": 195,
+            "x1": 318,
+            "y1": 221,
+            "label": "X Spine & Ticks"
+        },
+        "yaxis_ticks": {
+            "x0": 5,
+            "y0": 10,
+            "x1": 55,
+            "y1": 212,
+            "label": "Y Spine & Ticks"
+        },
+        "_meta": {
+            "schema_version": "0.3.0",
+            "axes_bbox_px": {
+                "x0": 118,
+                "y0": 118,
+                "x1": 354,
+                "y1": 283
+            },
+            "coord_space": "axes"
+        }
+    }
+}
