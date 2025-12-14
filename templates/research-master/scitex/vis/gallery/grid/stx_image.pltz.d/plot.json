@@ -1,0 +1,62 @@
+{
+  "schema": {
+    "name": "scitex.plt.plot",
+    "version": "1.0.0"
+  },
+  "backend": "mpl",
+  "size": {
+    "width_inch": 3.1496062992125986,
+    "height_inch": 2.677165354330709,
+    "width_mm": 54.19,
+    "height_mm": 40.47,
+    "width_px": 320,
+    "height_px": 239,
+    "dpi": 150,
+    "crop_margin_mm": 1.0
+  },
+  "axes": [
+    {
+      "xlabel": "X",
+      "ylabel": "Y",
+      "title": "ax.stx_image()",
+      "xlim": [
+        -0.5,
+        31.5
+      ],
+      "ylim": [
+        -0.5,
+        31.5
+      ],
+      "axes_width_mm": 40.0,
+      "axes_height_mm": 28.0,
+      "plot_type": "imshow"
+    },
+    {
+      "xlabel": "",
+      "ylabel": "",
+      "title": "",
+      "xlim": [
+        0.0,
+        1.0
+      ],
+      "ylim": [
+        0.004632023004602859,
+        0.9997176732861306
+      ],
+      "axes_width_mm": 1.4,
+      "axes_height_mm": 28.0,
+      "plot_type": "scatter"
+    }
+  ],
+  "theme": {
+    "mode": "light",
+    "colors": {
+      "background": "transparent",
+      "axes_bg": "white",
+      "text": "black",
+      "spine": "black",
+      "tick": "black",
+      "grid": "#cccccc"
+    }
+  }
+}

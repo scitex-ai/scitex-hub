@@ -4,7 +4,7 @@
     "meta": {
         "title": "",
         "description": "",
-        "exported_at": "2025-12-11T07:26:41.821142"
+        "exported_at": "2025-12-11T21:41:08.871221"
     },
     "figure": {
         "size_px": [
@@ -251,5 +251,39 @@
         "format": "png",
         "width_px": 944,
         "height_px": 803
+    },
+    "element_bboxes": {
+        "panel": {
+            "x0": 41,
+            "y0": 21,
+            "x1": 268,
+            "y1": 195,
+            "label": "Panel",
+            "is_panel": true
+        },
+        "xaxis_ticks": {
+            "x0": 31,
+            "y0": 192,
+            "x1": 278,
+            "y1": 218,
+            "label": "X Spine & Ticks"
+        },
+        "yaxis_ticks": {
+            "x0": 4,
+            "y0": 10,
+            "x1": 48,
+            "y1": 209,
+            "label": "Y Spine & Ticks"
+        },
+        "_meta": {
+            "schema_version": "0.3.0",
+            "axes_bbox_px": {
+                "x0": 118,
+                "y0": 118,
+                "x1": 354,
+                "y1": 283
+            },
+            "coord_space": "axes"
+        }
     }
 }
