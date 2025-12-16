@@ -1475,108 +1475,12 @@ export class CanvasManager {
         galleryCategory?: string,
         galleryPlotName?: string
     ): Promise<{ panelLabel: string; bundlePath: string } | null> {
-        if (!this.canvas) {
-            console.error('[CanvasManager] Canvas not initialized');
-            return null;
+        if (this.bundleCanvasManager) {
+            return this.bundleCanvasManager.addPanelFromGallery(plotType, dataCsv, projectOwner, projectSlug, figureName, galleryCategory, galleryPlotName);
         }
-
-        // Determine next panel label
-        const existingPanels = this.getBundlePanels();
-        const usedLabels = new Set(existingPanels.map((p: any) => p.panelLabel || 'A'));
-        const labels = 'ABCDEFGH'.split('');
-        const nextLabel = labels.find(l => !usedLabels.has(l)) || 'A';
-
-        // Calculate position for new panel
-        const existingCount = existingPanels.length;
-        const dpi = this.bundleRenderDpi;
-        const mmToPx = dpi / 25.4;
-
-        // Default panel size
-        const panelWidthMm = 80;
-        const panelHeightMm = 68;
-        const paddingMm = 5;
-
-        // Simple grid layout
-        const col = existingCount % 2;
-        const row = Math.floor(existingCount / 2);
-        const xMm = paddingMm + col * (panelWidthMm + paddingMm);
-        const yMm = paddingMm + row * (panelHeightMm + paddingMm);
-
-        console.log(`[CanvasManager] Creating pltz bundle for panel ${nextLabel} at (${xMm}mm, ${yMm}mm)`);
-
-        try {
-            // Create pltz bundle via API
-            const response = await fetch('/vis/api/bundles/pltz/create-from-plot/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCSRFToken(),
-                },
-                body: JSON.stringify({
-                    plot_type: plotType,
-                    data_csv: dataCsv,
-                    project_owner: projectOwner,
-                    project_slug: projectSlug,
-                    figure_name: figureName || 'Figure1',
-                    panel_label: nextLabel,
-                    gallery_category: galleryCategory,
-                    gallery_plot_name: galleryPlotName,
-                }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `HTTP ${response.status}`);
-            }
-
-            const result = await response.json();
-            const bundlePath = result.bundle_path;
-
-            console.log(`[CanvasManager] Created pltz bundle: ${bundlePath}`);
-
-            // Load the panel onto canvas
-            await this.loadPltzPanel(
-                {
-                    id: nextLabel,
-                    label: nextLabel,
-                    plot: bundlePath.split('/').pop() || `${nextLabel}.pltz.d`,
-                    position: { x_mm: xMm, y_mm: yMm },
-                    size: { width_mm: panelWidthMm, height_mm: panelHeightMm },
-                },
-                bundlePath.replace(/\/[^/]+\.pltz\.d$/, '')  // Parent directory as figz path
-            );
-
-            // Update the pltzPath on the loaded panel to use full path
-            const newPanel = this.canvas.getObjects().find((obj: any) =>
-                obj.panelLabel === nextLabel && obj.isBundlePanel
-            );
-            if (newPanel) {
-                newPanel.set('pltzPath', bundlePath);
-            }
-
-            this.canvas.renderAll();
-
-            if (this.statusBarCallback) {
-                this.statusBarCallback(`Panel ${nextLabel} added: ${plotType}`);
-            }
-
-            // Trigger auto-save of figz bundle
-            this.triggerFigzAutoSave(projectOwner, projectSlug, figureName);
-
-            return { panelLabel: nextLabel, bundlePath };
-
-        } catch (error) {
-            console.error('[CanvasManager] Failed to create panel from gallery:', error);
-            if (this.statusBarCallback) {
-                this.statusBarCallback(`Error: ${error}`);
-            }
-            return null;
-        }
+        return null;
     }
 
-    /**
-     * Trigger auto-save of the current canvas state as a figz bundle.
-     */
     public async triggerFigzAutoSave(
         projectOwner?: string,
         projectSlug?: string,
