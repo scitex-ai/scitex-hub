@@ -9,6 +9,7 @@
  */
 
 import { Dataset } from './types.ts';
+import { getCSRFToken } from './canvas/CanvasSerializationUtils.ts';
 
 export class PropertiesManager {
     private currentPropertiesTab: string = 'plot';
@@ -34,12 +35,6 @@ export class PropertiesManager {
 
     /**
      * Get CSRF token from cookies
-     */
-    private getCSRFToken(): string {
-        const cookieValue = document.cookie
-            .split('; ')
-            .find(row => row.startsWith('csrftoken='));
-        return cookieValue ? cookieValue.split('=')[1] : '';
     }
 
     /**
