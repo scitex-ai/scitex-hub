@@ -13,21 +13,29 @@ from django.views.decorators.http import require_http_methods
 
 # Setup dedicated console logger
 console_log_file = Path(settings.BASE_DIR) / "logs" / "console.log"
+console_error_file = Path(settings.BASE_DIR) / "logs" / "console_error.log"
 console_log_file.parent.mkdir(parents=True, exist_ok=True)
 
 console_logger = logging.getLogger("browser_console")
 console_logger.setLevel(logging.DEBUG)
 
-# File handler
-file_handler = logging.FileHandler(console_log_file)
-file_handler.setLevel(logging.DEBUG)
+# Handler 1: All logs to console.log
+all_handler = logging.FileHandler(console_log_file)
+all_handler.setLevel(logging.DEBUG)
+
+# Handler 2: Errors/warnings only to console_error.log
+error_handler = logging.FileHandler(console_error_file)
+error_handler.setLevel(logging.WARNING)
 
 # Format: [timestamp] LEVEL: message (file:line:col)
 formatter = logging.Formatter(
     "[%(asctime)s] %(levelname)s: %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
 )
-file_handler.setFormatter(formatter)
-console_logger.addHandler(file_handler)
+all_handler.setFormatter(formatter)
+error_handler.setFormatter(formatter)
+
+console_logger.addHandler(all_handler)
+console_logger.addHandler(error_handler)
 
 # Prevent propagation to root logger
 console_logger.propagate = False
