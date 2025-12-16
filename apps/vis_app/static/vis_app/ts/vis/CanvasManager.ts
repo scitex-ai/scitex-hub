@@ -549,9 +549,6 @@ export class CanvasManager {
                 this.lastSnapY = null;
             });
 
-            // Setup hover tooltip for pltz bundles
-            this.setupHoverTooltip();
-
             // Setup Alt key tracking for fine adjustment mode
             this.setupAltKeyTracking();
         } catch (error) {
