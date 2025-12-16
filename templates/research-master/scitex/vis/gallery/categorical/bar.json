@@ -1,159 +1,84 @@
 {
-    "scitex_schema": "scitex.plt.figure.editable",
-    "scitex_schema_version": "0.3.0",
-    "meta": {
-        "title": "",
-        "description": "",
-        "exported_at": "2025-12-11T21:41:29.898392"
+    "schema": {
+        "name": "scitex.plt.spec",
+        "version": "1.0.0"
     },
-    "figure": {
-        "size_px": [
-            944,
-            803
-        ],
-        "dpi": 300,
-        "figsize_inches": [
-            3.1496062992125986,
-            2.677165354330709
-        ]
+    "plot_id": "bar",
+    "data": {
+        "csv": "bar.csv",
+        "format": "wide",
+        "hash": "sha256:1d112c014e3ed030"
     },
-    "axes": {
-        "ax_00": {
-            "bbox_px": {
-                "x0": 236,
-                "y0": 236,
-                "x1": 708,
-                "y1": 566
+    "axes": [
+        {
+            "id": "ax0",
+            "bbox": {
+                "x0": 0.25,
+                "y0": 0.2941,
+                "width": 0.5,
+                "height": 0.4118,
+                "space": "panel"
             },
-            "position": [
-                0.25,
-                0.29411764705882354,
-                0.5,
-                0.41176470588235287
-            ],
-            "xlim": [
-                -0.5900000000000001,
-                3.5900000000000003
-            ],
-            "ylim": [
-                0.0,
-                81.9
-            ]
-        }
-    },
-    "elements": {
-        "ax_00_bars": {
-            "id": "ax_00_bars",
-            "axes_id": "ax_00",
-            "element_type": "bar",
-            "label": "bars",
-            "geometry_px": {
-                "coord_space": "axes",
-                "bbox": {
-                    "x0": 21,
-                    "y0": 15,
-                    "x1": 450,
-                    "y1": 330
-                },
-                "rectangles": [
-                    {
-                        "x": 21.5,
-                        "y": 237.3,
-                        "width": 90.3,
-                        "height": 92.7
-                    },
-                    {
-                        "x": 134.4,
-                        "y": 148.7,
-                        "width": 90.3,
-                        "height": 181.3
-                    },
-                    {
-                        "x": 247.3,
-                        "y": 104.4,
-                        "width": 90.3,
-                        "height": 225.6
-                    },
-                    {
-                        "x": 360.2,
-                        "y": 15.7,
-                        "width": 90.3,
-                        "height": 314.3
-                    }
+            "labels": {
+                "xlabel": "Category",
+                "ylabel": "Count",
+                "title": "ax.bar()"
+            },
+            "limits": {
+                "x": [
+                    -0.5900000000000001,
+                    3.5900000000000003
+                ],
+                "y": [
+                    0.0,
+                    81.9
                 ]
             },
-            "style": {
-                "facecolor": [
-                    0.0,
-                    0.5019607843137255,
-                    0.7529411764705882,
-                    1.0
-                ],
-                "edgecolor": [
-                    0.0,
-                    0.0,
-                    0.0,
-                    1.0
-                ],
-                "linewidth": 0.5669291338582677,
-                "alpha": null
-            },
-            "editable_styles": [
-                "facecolor",
-                "edgecolor",
-                "alpha",
-                "linewidth"
-            ],
-            "zorder": 0.5,
-            "visible": true
+            "role": "main",
+            "linked_to": null
+        }
+    ],
+    "traces": [],
+    "scitex_schema": "scitex.plt.spec",
+    "scitex_schema_version": "1.0.0",
+    "element_bboxes": {
+        "bar_0": {
+            "x0": 64,
+            "y0": 154,
+            "x1": 109,
+            "y1": 199,
+            "label": "_nolegend_",
+            "element_type": "bar"
+        },
+        "bar_1": {
+            "x0": 120,
+            "y0": 110,
+            "x1": 165,
+            "y1": 199,
+            "label": "_nolegend_",
+            "element_type": "bar"
+        },
+        "bar_2": {
+            "x0": 176,
+            "y0": 89,
+            "x1": 220,
+            "y1": 199,
+            "label": "_nolegend_",
+            "element_type": "bar"
+        },
+        "bar_3": {
+            "x0": 232,
+            "y0": 46,
+            "x1": 276,
+            "y1": 199,
+            "label": "_nolegend_",
+            "element_type": "bar"
         }
     },
-    "statistics": {},
-    "data": {
-        "csv_path": "bar.csv",
-        "columns_actual": [
-            "ax-row-0-col-0_trace-id-category-counts_variable-x",
-            "ax-row-0-col-0_trace-id-category-counts_variable-y"
-        ],
-        "csv_hash": "1d112c014e3ed030"
-    },
-    "output": {
-        "format": "png",
-        "width_px": 944,
-        "height_px": 803
-    },
-    "element_bboxes": {
-        "panel": {
-            "x0": 40,
-            "y0": 21,
-            "x1": 264,
-            "y1": 197,
-            "label": "Panel",
-            "is_panel": true
-        },
-        "xaxis_ticks": {
-            "x0": 31,
-            "y0": 195,
-            "x1": 273,
-            "y1": 221,
-            "label": "X Spine & Ticks"
-        },
-        "yaxis_ticks": {
-            "x0": 4,
-            "y0": 10,
-            "x1": 47,
-            "y1": 212,
-            "label": "Y Spine & Ticks"
-        },
-        "_meta": {
-            "schema_version": "0.3.0",
-            "axes_bbox_px": {
-                "x0": 118,
-                "y0": 118,
-                "x1": 354,
-                "y1": 283
-            },
-            "coord_space": "axes"
+    "dimensions": {
+        "figure_size_px": {
+            "width": 302,
+            "height": 251
         }
     }
 }

@@ -1,95 +1,44 @@
 {
-    "scitex_schema": "scitex.plt.figure.editable",
-    "scitex_schema_version": "0.3.0",
-    "meta": {
-        "title": "",
-        "description": "",
-        "exported_at": "2025-12-11T21:42:41.037315"
-    },
-    "figure": {
-        "size_px": [
-            944,
-            803
+  "schema": {
+    "name": "scitex.plt.spec",
+    "version": "1.0.0"
+  },
+  "plot_id": "quiver",
+  "data": {
+    "csv": "quiver.csv",
+    "format": "wide",
+    "hash": "sha256:95c2ec49231b44cb"
+  },
+  "axes": [
+    {
+      "id": "ax0",
+      "bbox": {
+        "x0": 0.25,
+        "y0": 0.2941,
+        "width": 0.5,
+        "height": 0.4118,
+        "space": "panel"
+      },
+      "labels": {
+        "xlabel": "X",
+        "ylabel": "Y",
+        "title": "ax.quiver()"
+      },
+      "limits": {
+        "x": [
+          -3.1428571428571432,
+          3.1428571428571432
         ],
-        "dpi": 300,
-        "figsize_inches": [
-            3.1496062992125986,
-            2.677165354330709
+        "y": [
+          -2.2,
+          2.2
         ]
-    },
-    "axes": {
-        "ax_00": {
-            "bbox_px": {
-                "x0": 236,
-                "y0": 236,
-                "x1": 708,
-                "y1": 566
-            },
-            "position": [
-                0.25,
-                0.29411764705882354,
-                0.5,
-                0.41176470588235287
-            ],
-            "xlim": [
-                -3.1428571428571432,
-                3.1428571428571432
-            ],
-            "ylim": [
-                -2.2,
-                2.2
-            ]
-        }
-    },
-    "elements": {},
-    "statistics": {},
-    "data": {
-        "csv_path": "quiver.csv",
-        "columns_actual": [
-            "ax_00_rotation_field_quiver_x",
-            "ax_00_rotation_field_quiver_y",
-            "ax_00_rotation_field_quiver_u",
-            "ax_00_rotation_field_quiver_v"
-        ],
-        "csv_hash": "fceafd100793c375"
-    },
-    "output": {
-        "format": "png",
-        "width_px": 944,
-        "height_px": 803
-    },
-    "element_bboxes": {
-        "panel": {
-            "x0": 42,
-            "y0": 21,
-            "x1": 276,
-            "y1": 195,
-            "label": "Panel",
-            "is_panel": true
-        },
-        "xaxis_ticks": {
-            "x0": 32,
-            "y0": 192,
-            "x1": 286,
-            "y1": 218,
-            "label": "X Spine & Ticks"
-        },
-        "yaxis_ticks": {
-            "x0": 4,
-            "y0": 10,
-            "x1": 49,
-            "y1": 209,
-            "label": "Y Spine & Ticks"
-        },
-        "_meta": {
-            "schema_version": "0.3.0",
-            "axes_bbox_px": {
-                "x0": 118,
-                "y0": 118,
-                "x1": 354,
-                "y1": 283
-            },
-            "coord_space": "axes"
-        }
+      },
+      "role": "main",
+      "linked_to": null
     }
+  ],
+  "traces": [],
+  "scitex_schema": "scitex.plt.spec",
+  "scitex_schema_version": "1.0.0"
 }

@@ -400,4 +400,9 @@ urlpatterns = [
         api_views.download_pltz_bundle,
         name="api_pltz_download",
     ),
+    path(
+        "api/bundles/figz/export-image/",
+        api_views.export_figz_image,
+        name="api_figz_export_image",
+    ),
 ]

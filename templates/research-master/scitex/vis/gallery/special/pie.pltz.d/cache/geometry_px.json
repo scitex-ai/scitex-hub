@@ -1,0 +1,150 @@
+{
+  "schema": {
+    "name": "scitex.plt.geometry",
+    "version": "1.0.0"
+  },
+  "_comment": "CACHE - can be deleted and regenerated from spec + style",
+  "source_hash": "sha256:3c0185fc1539b138",
+  "figure_px": [
+    304,
+    203
+  ],
+  "dpi": 150,
+  "axes": [
+    {
+      "id": "ax0",
+      "xlim": [
+        -1.25,
+        1.25
+      ],
+      "ylim": [
+        -1.25,
+        1.25
+      ],
+      "bbox_px": {
+        "x0": "67",
+        "y0": "35",
+        "width": "165",
+        "height": "166"
+      }
+    }
+  ],
+  "artists": [],
+  "hit_regions": {
+    "strategy": "hybrid",
+    "hit_map": "pie_hitmap.png",
+    "color_map": {
+      "1": {
+        "id": 1,
+        "type": "wedge",
+        "label": "Category A",
+        "axes_index": 0,
+        "rgb": [
+          255,
+          0,
+          0
+        ],
+        "group_id": "pie_0_0",
+        "role": "physical"
+      },
+      "2": {
+        "id": 2,
+        "type": "wedge",
+        "label": "Category B",
+        "axes_index": 0,
+        "rgb": [
+          0,
+          200,
+          0
+        ],
+        "group_id": "pie_0_0",
+        "role": "physical"
+      },
+      "3": {
+        "id": 3,
+        "type": "wedge",
+        "label": "Category C",
+        "axes_index": 0,
+        "rgb": [
+          0,
+          100,
+          255
+        ],
+        "group_id": "pie_0_0",
+        "role": "physical"
+      },
+      "4": {
+        "id": 4,
+        "type": "wedge",
+        "label": "Category D",
+        "axes_index": 0,
+        "rgb": [
+          255,
+          200,
+          0
+        ],
+        "group_id": "pie_0_0",
+        "role": "physical"
+      },
+      "5": {
+        "id": 5,
+        "type": "wedge",
+        "label": "Category E",
+        "axes_index": 0,
+        "rgb": [
+          255,
+          0,
+          200
+        ],
+        "group_id": "pie_0_0",
+        "role": "physical"
+      }
+    },
+    "groups": {
+      "pie_0_0": {
+        "id": 6,
+        "type": "pie",
+        "label": "Pie Chart",
+        "axes_index": 0,
+        "rgb": [
+          0,
+          220,
+          220
+        ],
+        "role": "logical",
+        "member_ids": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "member_count": 5
+      }
+    },
+    "fig_dpi": 300,
+    "export_dpi": 150,
+    "dpi_scale": 0.5
+  },
+  "selectable_regions": {
+    "axes": [
+      {
+        "index": 0,
+        "title": {
+          "bbox_px": [
+            122.47047244094489,
+            11.035433070866134,
+            177.9704724409449,
+            26.035433070866134
+          ],
+          "text": "ax.pie()",
+          "fontsize": 8.0,
+          "color": "black"
+        }
+      }
+    ]
+  },
+  "crop_box": null,
+  "scitex_schema": "scitex.plt.geometry",
+  "scitex_schema_version": "1.0.0"
+}

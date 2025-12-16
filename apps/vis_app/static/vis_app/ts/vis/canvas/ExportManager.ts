@@ -461,4 +461,53 @@ export class ExportManager {
     public getFigzPath(): string | undefined {
         return this.currentFigzPath;
     }
+
+    /**
+     * Export figure as publication-ready image using backend compositing.
+     * Uses original light-mode images from bundle (not dark-mode canvas).
+     * @param format - Output format: 'png', 'jpg', or 'pdf'
+     * @param dpi - Resolution in DPI (default: 300)
+     */
+    public async exportFigureImage(format: 'png' | 'jpg' | 'pdf' = 'png', dpi: number = 300): Promise<void> {
+        if (!this.currentFigzPath) {
+            console.warn('[ExportManager] No figz bundle loaded');
+            if (this.statusCallback) {
+                this.statusCallback('No figure loaded - save first');
+            }
+            return;
+        }
+
+        try {
+            const exportUrl = `/vis/api/bundles/figz/export-image/?path=${encodeURIComponent(this.currentFigzPath)}&format=${format}&dpi=${dpi}`;
+
+            const response = await fetch(exportUrl);
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({ error: response.statusText }));
+                throw new Error(error.error || 'Export failed');
+            }
+
+            const blob = await response.blob();
+            const ext = format === 'jpg' ? 'jpg' : format;
+            const filename = `figure-${Date.now()}.${ext}`;
+
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = url;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            if (this.statusCallback) {
+                this.statusCallback(`Exported as ${format.toUpperCase()} (${dpi} DPI)`);
+            }
+            console.log(`[ExportManager] Exported figure as ${format} (${dpi} DPI)`);
+        } catch (error) {
+            console.error('[ExportManager] Figure export failed:', error);
+            if (this.statusCallback) {
+                this.statusCallback(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            }
+        }
+    }
 }

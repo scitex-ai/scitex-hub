@@ -16,16 +16,16 @@
  * - Modal elements in DOM
  */
 
-// Map plot types to gallery preview images
+// Map plot types to gallery preview images (using new transparent gallery)
 const PLOT_PREVIEW_IMAGES: Record<string, string> = {
-    scatter: '/static/vis_app/img/plot_gallery/01_matplotlib_basic/02_scatter.png',
-    line: '/static/vis_app/img/plot_gallery/01_matplotlib_basic/01_plot.png',
-    bar: '/static/vis_app/img/plot_gallery/01_matplotlib_basic/03_bar.png',
-    histogram: '/static/vis_app/img/plot_gallery/01_matplotlib_basic/04_hist.png',
-    box: '/static/vis_app/img/plot_gallery/01_matplotlib_basic/05_boxplot.png',
-    violin: '/static/vis_app/img/plot_gallery/02_custom_scitex/04_plot_violin.png',
-    heatmap: '/static/vis_app/img/plot_gallery/02_custom_scitex/01_plot_heatmap.png',
-    contour: '/static/vis_app/img/plot_gallery/01_matplotlib_basic/10_contour.png',
+    scatter: '/vis/api/gallery/project/scatter/scatter/image/?format=binary',
+    line: '/vis/api/gallery/project/line/plot/image/?format=binary',
+    bar: '/vis/api/gallery/project/categorical/bar/image/?format=binary',
+    histogram: '/vis/api/gallery/project/distribution/hist/image/?format=binary',
+    box: '/vis/api/gallery/project/categorical/boxplot/image/?format=binary',
+    violin: '/vis/api/gallery/project/categorical/violinplot/image/?format=binary',
+    heatmap: '/vis/api/gallery/project/grid/stx_heatmap/image/?format=binary',
+    contour: '/vis/api/gallery/project/contour/contour/image/?format=binary',
 };
 
 export class RibbonButtons {

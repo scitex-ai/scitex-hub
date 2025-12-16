@@ -112,6 +112,7 @@ from .bundles import (
     download_figz_bundle,
     download_figz_d_bundle,
     download_pltz_bundle,
+    export_figz_image,
     # Create empty figz bundle
     create_empty_figz,
 )
@@ -196,6 +197,7 @@ __all__ = [
     'download_figz_bundle',
     'download_figz_d_bundle',
     'download_pltz_bundle',
+    'export_figz_image',
     # Create empty figz bundle
     'create_empty_figz',
 ]

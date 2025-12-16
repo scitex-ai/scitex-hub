@@ -86,9 +86,10 @@ export class ThemeManager {
     }
 
     /**
-     * Process image for dark mode display using CSS filter approach.
-     * Uses invert(0.88) + hue-rotate(180deg) for natural color preservation.
-     * This matches the scitex flask editor's dark mode implementation.
+     * Process image for dark mode display.
+     * ONLY converts black pixels (axes, labels) to light gray for visibility.
+     * Preserves all other colors intact for scientific rigor.
+     * Makes white background transparent.
      */
     public processImageForDarkMode(img: HTMLImageElement): string {
         const canvas = document.createElement('canvas');
@@ -97,30 +98,35 @@ export class ThemeManager {
         const ctx = canvas.getContext('2d');
         if (!ctx) return img.src;
 
-        // Apply CSS filter using canvas context
-        // invert(0.88) - inverts colors ~88% (black→light gray, white→dark gray)
-        // hue-rotate(180deg) - preserves original hues after inversion
-        ctx.filter = 'invert(0.88) hue-rotate(180deg)';
+        // Draw original image first
         ctx.drawImage(img, 0, 0);
 
-        // Reset filter and make white areas transparent
-        ctx.filter = 'none';
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const data = imageData.data;
 
-        // Make near-white pixels (which were near-black before invert) transparent
-        // After invert(0.88), original white (#fff) becomes ~#1f1f1f
-        // We want to make the dark background transparent
+        // Process each pixel:
+        // - Black pixels (axes, labels) → light gray for visibility
+        // - White/near-white pixels (background) → transparent
+        // - Other colors → keep intact for scientific rigor
         for (let i = 0; i < data.length; i += 4) {
             const r = data[i];
             const g = data[i + 1];
             const b = data[i + 2];
 
-            // Check if pixel is dark (was white/background before invert)
-            if (r < 50 && g < 50 && b < 50) {
+            // Check if pixel is black or near-black (axes, labels, tick marks)
+            if (r < this.BLACK_THRESHOLD && g < this.BLACK_THRESHOLD && b < this.BLACK_THRESHOLD) {
+                // Convert to eye-friendly light gray
+                data[i] = this.TARGET_GRAY;      // R
+                data[i + 1] = this.TARGET_GRAY;  // G
+                data[i + 2] = this.TARGET_GRAY;  // B
+                // Keep alpha as-is
+            }
+            // Check if pixel is white or near-white (background)
+            else if (r > this.WHITE_THRESHOLD && g > this.WHITE_THRESHOLD && b > this.WHITE_THRESHOLD) {
                 // Make transparent
                 data[i + 3] = 0;
             }
+            // All other colors (data points, lines, etc.) - keep intact
         }
 
         ctx.putImageData(imageData, 0, 0);

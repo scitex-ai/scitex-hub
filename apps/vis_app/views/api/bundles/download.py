@@ -2,9 +2,11 @@
 Bundle Download API Views - GET-based download endpoints.
 
 Provides direct download endpoints for figz and pltz bundles as ZIP files.
+Also provides figure export generation from bundle components.
 """
 
 import io
+import json
 import logging
 import zipfile
 from pathlib import Path
@@ -12,6 +14,12 @@ from pathlib import Path
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_http_methods
+
+try:
+    from PIL import Image
+    HAS_PIL = True
+except ImportError:
+    HAS_PIL = False
 
 logger = logging.getLogger(__name__)
 
@@ -189,4 +197,49 @@ def download_pltz_bundle(request):
 
     except Exception as e:
         logger.exception(f"Failed to download pltz bundle: {e}")
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["GET"])
+def export_figz_image(request):
+    """
+    Generate and download a composite figure image from figz bundle.
+
+    Delegates to scitex.io.bundle for actual compositing logic.
+
+    Query params:
+        path: Filesystem path to .figz.d directory
+        format: Output format (png, jpg, pdf) - default: png
+        dpi: Resolution in DPI (default: 300)
+
+    Returns:
+        Image file download
+    """
+    bundle_path = request.GET.get("path")
+    output_format = request.GET.get("format", "png").lower()
+    dpi = int(request.GET.get("dpi", 300))
+
+    if not bundle_path:
+        return JsonResponse({"error": "path parameter required"}, status=400)
+
+    try:
+        # Delegate to scitex.fig.io for compositing
+        from scitex.fig.io import export_figz_bundle
+
+        image_bytes = export_figz_bundle(bundle_path, output_format=output_format, dpi=dpi)
+
+        bundle_name = Path(bundle_path).name.replace('.figz.d', '').replace('.figz', '')
+        ext = "jpg" if output_format in ("jpg", "jpeg") else output_format
+        content_types = {"png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg", "pdf": "application/pdf"}
+
+        response = HttpResponse(image_bytes, content_type=content_types.get(output_format, "image/png"))
+        response['Content-Disposition'] = f'attachment; filename="{bundle_name}.{ext}"'
+        return response
+
+    except ImportError:
+        logger.error("[export_figz_image] scitex.fig.io.export_figz_bundle not available")
+        return JsonResponse({"error": "scitex.fig.io.export_figz_bundle not available"}, status=500)
+    except Exception as e:
+        logger.exception(f"Failed to export figz image: {e}")
         return JsonResponse({"error": str(e)}, status=500)

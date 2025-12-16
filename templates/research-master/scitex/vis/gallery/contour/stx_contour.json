@@ -1,86 +1,44 @@
 {
-    "scitex_schema": "scitex.plt.figure.editable",
-    "scitex_schema_version": "0.3.0",
-    "meta": {
-        "title": "",
-        "description": "",
-        "exported_at": "2025-12-11T21:42:39.198846"
-    },
-    "figure": {
-        "size_px": [
-            944,
-            803
+  "schema": {
+    "name": "scitex.plt.spec",
+    "version": "1.0.0"
+  },
+  "plot_id": "stx_contour",
+  "data": {
+    "csv": "stx_contour.csv",
+    "format": "wide",
+    "hash": "sha256:ef7d3a423e5c5ee5"
+  },
+  "axes": [
+    {
+      "id": "ax0",
+      "bbox": {
+        "x0": 0.25,
+        "y0": 0.2941,
+        "width": 0.5,
+        "height": 0.4118,
+        "space": "panel"
+      },
+      "labels": {
+        "xlabel": "X",
+        "ylabel": "Y",
+        "title": "ax.stx_contour()"
+      },
+      "limits": {
+        "x": [
+          -2.0,
+          2.0
         ],
-        "dpi": 300,
-        "figsize_inches": [
-            3.1496062992125986,
-            2.677165354330709
+        "y": [
+          -2.0,
+          2.0
         ]
-    },
-    "axes": {
-        "ax_00": {
-            "bbox_px": {
-                "x0": 236,
-                "y0": 236,
-                "x1": 708,
-                "y1": 566
-            },
-            "position": [
-                0.25,
-                0.29411764705882354,
-                0.5,
-                0.41176470588235287
-            ],
-            "xlim": [
-                -2.0,
-                2.0
-            ],
-            "ylim": [
-                -2.0,
-                2.0
-            ]
-        }
-    },
-    "elements": {},
-    "statistics": {},
-    "data": {},
-    "output": {
-        "format": "png",
-        "width_px": 944,
-        "height_px": 803
-    },
-    "element_bboxes": {
-        "panel": {
-            "x0": 42,
-            "y0": 21,
-            "x1": 276,
-            "y1": 196,
-            "label": "Panel",
-            "is_panel": true
-        },
-        "xaxis_ticks": {
-            "x0": 32,
-            "y0": 193,
-            "x1": 286,
-            "y1": 219,
-            "label": "X Spine & Ticks"
-        },
-        "yaxis_ticks": {
-            "x0": 4,
-            "y0": 10,
-            "x1": 49,
-            "y1": 210,
-            "label": "Y Spine & Ticks"
-        },
-        "_meta": {
-            "schema_version": "0.3.0",
-            "axes_bbox_px": {
-                "x0": 118,
-                "y0": 118,
-                "x1": 354,
-                "y1": 283
-            },
-            "coord_space": "axes"
-        }
+      },
+      "role": "main",
+      "linked_to": null
     }
+  ],
+  "traces": [],
+  "scitex_schema": "scitex.plt.spec",
+  "scitex_schema_version": "1.0.0"
 }

@@ -1,235 +1,73 @@
 {
-    "scitex_schema": "scitex.plt.figure.editable",
-    "scitex_schema_version": "0.3.0",
-    "meta": {
-        "title": "",
-        "description": "",
-        "exported_at": "2025-12-11T21:41:56.844525"
-    },
-    "figure": {
-        "size_px": [
-            944,
-            803
+  "schema": {
+    "name": "scitex.plt.spec",
+    "version": "1.0.0"
+  },
+  "plot_id": "stem",
+  "data": {
+    "csv": "stem.csv",
+    "format": "wide",
+    "hash": "sha256:732ea2381d8b2cc3"
+  },
+  "axes": [
+    {
+      "id": "ax0",
+      "bbox": {
+        "x0": 0.25,
+        "y0": 0.2941,
+        "width": 0.5,
+        "height": 0.4118,
+        "space": "panel"
+      },
+      "labels": {
+        "xlabel": "Frequency [Hz]",
+        "ylabel": "Power [dB]",
+        "title": "ax.stem()"
+      },
+      "limits": {
+        "x": [
+          -2.25,
+          47.25
         ],
-        "dpi": 300,
-        "figsize_inches": [
-            3.1496062992125986,
-            2.677165354330709
+        "y": [
+          -0.08162137929650234,
+          1.7140489652265491
         ]
-    },
-    "axes": {
-        "ax_00": {
-            "bbox_px": {
-                "x0": 236,
-                "y0": 236,
-                "x1": 708,
-                "y1": 566
-            },
-            "position": [
-                0.25,
-                0.29411764705882354,
-                0.5,
-                0.41176470588235287
-            ],
-            "xlim": [
-                -2.25,
-                47.25
-            ],
-            "ylim": [
-                -0.08162137929650234,
-                1.7140489652265491
-            ]
-        }
-    },
-    "elements": {
-        "ax_00_line_00": {
-            "id": "ax_00_line_00",
-            "axes_id": "ax_00",
-            "element_type": "line",
-            "label": "line_0",
-            "geometry_px": {
-                "coord_space": "axes",
-                "bbox": {
-                    "x0": 21,
-                    "y0": 15,
-                    "x1": 451,
-                    "y1": 315
-                },
-                "path_simplified": [
-                    [
-                        21.5,
-                        188.7
-                    ],
-                    [
-                        69.1,
-                        257.3
-                    ],
-                    [
-                        116.8,
-                        212.4
-                    ],
-                    [
-                        164.5,
-                        246.5
-                    ],
-                    [
-                        212.2,
-                        314.9
-                    ],
-                    [
-                        259.8,
-                        312.5
-                    ],
-                    [
-                        307.5,
-                        15.0
-                    ],
-                    [
-                        355.2,
-                        250.7
-                    ],
-                    [
-                        402.9,
-                        260.0
-                    ],
-                    [
-                        450.5,
-                        307.5
-                    ]
-                ],
-                "path": null
-            },
-            "style": {
-                "color": [
-                    0.0,
-                    0.5,
-                    0.75,
-                    1.0
-                ],
-                "linewidth": 0.56693,
-                "linestyle": "None",
-                "alpha": null,
-                "marker": "o",
-                "markersize": 2.267716535433071
-            },
-            "editable_styles": [
-                "color",
-                "linewidth",
-                "linestyle",
-                "alpha",
-                "marker"
-            ],
-            "zorder": 2,
-            "visible": true
-        },
-        "ax_00_line_01": {
-            "id": "ax_00_line_01",
-            "axes_id": "ax_00",
-            "element_type": "line",
-            "label": "line_1",
-            "geometry_px": {
-                "coord_space": "axes",
-                "bbox": {
-                    "x0": 21,
-                    "y0": 315,
-                    "x1": 451,
-                    "y1": 315
-                },
-                "path_simplified": [
-                    [
-                        21.5,
-                        315.0
-                    ],
-                    [
-                        450.5,
-                        315.0
-                    ]
-                ],
-                "path": null
-            },
-            "style": {
-                "color": "black",
-                "linewidth": 0.56693,
-                "linestyle": "--",
-                "alpha": null,
-                "marker": "None",
-                "markersize": 2.267716535433071
-            },
-            "editable_styles": [
-                "color",
-                "linewidth",
-                "linestyle",
-                "alpha",
-                "marker"
-            ],
-            "zorder": 2,
-            "visible": true
-        },
-        "ax_00_linecoll_00": {
-            "id": "ax_00_linecoll_00",
-            "axes_id": "ax_00",
-            "element_type": "line_collection",
-            "label": "linecoll_0",
-            "geometry_px": {
-                "coord_space": "axes",
-                "bbox": null
-            },
-            "style": {},
-            "editable_styles": [
-                "color",
-                "linewidth",
-                "alpha"
-            ],
-            "zorder": 2,
-            "visible": true
-        }
-    },
-    "statistics": {},
-    "data": {
-        "csv_path": "stem.csv",
-        "columns_actual": [
-            "ax-row-0-col-0_trace-id-frequency-spectrum_variable-x",
-            "ax-row-0-col-0_trace-id-frequency-spectrum_variable-y"
-        ],
-        "csv_hash": "a7da742f1e262102"
-    },
-    "output": {
-        "format": "png",
-        "width_px": 944,
-        "height_px": 803
-    },
-    "element_bboxes": {
-        "panel": {
-            "x0": 41,
-            "y0": 21,
-            "x1": 268,
-            "y1": 198,
-            "label": "Panel",
-            "is_panel": true
-        },
-        "xaxis_ticks": {
-            "x0": 31,
-            "y0": 196,
-            "x1": 278,
-            "y1": 221,
-            "label": "X Spine & Ticks"
-        },
-        "yaxis_ticks": {
-            "x0": 4,
-            "y0": 10,
-            "x1": 48,
-            "y1": 213,
-            "label": "Y Spine & Ticks"
-        },
-        "_meta": {
-            "schema_version": "0.3.0",
-            "axes_bbox_px": {
-                "x0": 118,
-                "y0": 118,
-                "x1": 354,
-                "y1": 283
-            },
-            "coord_space": "axes"
-        }
+      },
+      "role": "main",
+      "linked_to": null
     }
+  ],
+  "traces": [
+    {
+      "id": "ax0-line-0",
+      "type": "line",
+      "x_col": "ax0_trace-ax0-line-0_x",
+      "y_col": "ax0_trace-ax0-line-0_y",
+      "data_cols": null,
+      "value_col": null,
+      "u_col": null,
+      "v_col": null,
+      "label": "series_0",
+      "group": null,
+      "axes_index": 0,
+      "extra": {}
+    },
+    {
+      "id": "ax0-line-1",
+      "type": "line",
+      "x_col": "ax0_trace-ax0-line-1_x",
+      "y_col": "ax0_trace-ax0-line-1_y",
+      "data_cols": null,
+      "value_col": null,
+      "u_col": null,
+      "v_col": null,
+      "label": "series_1",
+      "group": null,
+      "axes_index": 0,
+      "extra": {}
+    }
+  ],
+  "scitex_schema": "scitex.plt.spec",
+  "scitex_schema_version": "1.0.0"
 }

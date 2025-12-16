@@ -54,6 +54,7 @@ from .download import (
     download_figz_bundle,
     download_figz_d_bundle,
     download_pltz_bundle,
+    export_figz_image,
 )
 
 __all__ = [
@@ -94,4 +95,5 @@ __all__ = [
     "download_figz_bundle",
     "download_figz_d_bundle",
     "download_pltz_bundle",
+    "export_figz_image",
 ]

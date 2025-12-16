@@ -1,0 +1,51 @@
+{
+  "schema": {
+    "name": "scitex.plt.style",
+    "version": "1.0.0"
+  },
+  "theme": {
+    "mode": "light",
+    "colors": {
+      "background": "transparent",
+      "axes_bg": "white",
+      "text": "black",
+      "spine": "black",
+      "tick": "black"
+    },
+    "palette": null
+  },
+  "size": {
+    "width_mm": 80.0,
+    "height_mm": 68.0
+  },
+  "font": {
+    "family": "sans-serif",
+    "size_pt": 8.0,
+    "title_size_pt": 8.0,
+    "label_size_pt": 7.0,
+    "tick_size_pt": 6.0
+  },
+  "traces": [
+    {
+      "trace_id": "ax0-line-0",
+      "color": "#0080bf",
+      "linewidth": 0.56693,
+      "linestyle": null,
+      "marker": null,
+      "markersize": null,
+      "alpha": null,
+      "extra": {}
+    }
+  ],
+  "legend": {
+    "visible": true,
+    "location": "lower left",
+    "frameon": false,
+    "fontsize": 6.0,
+    "ncols": 1,
+    "title": ""
+  },
+  "grid": false,
+  "scitex_schema": "scitex.plt.style",
+  "scitex_schema_version": "1.0.0"
+}
