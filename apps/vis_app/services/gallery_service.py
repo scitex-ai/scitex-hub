@@ -7,6 +7,7 @@ Handles:
 - Loading plot thumbnails and templates
 - Generating boilerplate code
 - Loading plot metadata
+- Loading pltz bundles from gallery
 """
 
 import base64
@@ -14,9 +15,11 @@ import json
 import logging
 import os
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 from django.conf import settings
+
+from .pltz_service import PltzService
 
 logger = logging.getLogger(__name__)
 
@@ -549,3 +552,255 @@ stx.io.save(fig, "output/sns_{method}.png")
             response_data['hitmap_file'] = hitmap_file
 
         return response_data
+
+    # =========================================================================
+    # Pltz Bundle Integration Methods
+    # =========================================================================
+
+    @staticmethod
+    def get_pltz_galleries() -> List[Dict]:
+        """
+        Get plot galleries that include pltz bundles.
+
+        Scans for both legacy (png/json/csv) and modern (pltz.d) formats.
+
+        Returns:
+            List of gallery dictionaries with plots in both formats
+        """
+        galleries = GalleryService.get_plot_galleries()
+
+        # Scan for pltz bundles in additional locations
+        pltz_gallery_paths = [
+            SCITEX_CODE_PATH / 'examples' / 'scitex' / 'fig',
+            SCITEX_CODE_PATH / 'examples' / 'scitex' / 'plt',
+        ]
+
+        for gallery_path in pltz_gallery_paths:
+            if not gallery_path.exists():
+                continue
+
+            pltz_plots = GalleryService._scan_pltz_gallery(gallery_path)
+            if pltz_plots:
+                galleries.append({
+                    'id': f'pltz_{gallery_path.name}',
+                    'name': f'SciTeX {gallery_path.name.title()}',
+                    'description': f'Pltz bundles from {gallery_path.name}',
+                    'path': gallery_path,
+                    'plots': pltz_plots,
+                    'format': 'pltz',
+                })
+
+        return galleries
+
+    @staticmethod
+    def _scan_pltz_gallery(base_path: Path) -> List[Dict]:
+        """
+        Scan directory for pltz bundles.
+
+        Args:
+            base_path: Directory to scan
+
+        Returns:
+            List of pltz bundle info dictionaries
+        """
+        bundles = []
+
+        # Find all .pltz.d directories
+        for pltz_dir in sorted(base_path.glob('**/*.pltz.d')):
+            if not PltzService.is_pltz_bundle(pltz_dir):
+                continue
+
+            try:
+                bundle_data = PltzService.load_bundle(pltz_dir)
+                spec = bundle_data.get('spec', {})
+                style = bundle_data.get('style', {})
+
+                # Get display name from spec or directory name
+                plot_id = spec.get('plot_id', pltz_dir.stem.replace('.pltz', ''))
+                display_name = plot_id.replace('_', ' ').title()
+
+                # Categorize
+                category = PltzService.categorize_plot(spec)
+
+                bundle_info = {
+                    'id': f'pltz_{plot_id}',
+                    'name': display_name,
+                    'category': category,
+                    'format': 'pltz',
+                    'bundle_path': str(pltz_dir),
+                    'spec': spec,
+                    'style': style,
+                    'files': {
+                        'pltz': str(pltz_dir),
+                        'png': bundle_data.get('exports', {}).get('png'),
+                        'csv': str(pltz_dir / 'data.csv') if (pltz_dir / 'data.csv').exists() else None,
+                    }
+                }
+
+                bundles.append(bundle_info)
+
+            except Exception as e:
+                logger.warning(f"Failed to load pltz bundle {pltz_dir}: {e}")
+
+        return bundles
+
+    @staticmethod
+    def load_pltz_from_gallery(
+        category: str,
+        plot_name: str
+    ) -> Optional[Dict]:
+        """
+        Load a pltz bundle from the gallery.
+
+        Args:
+            category: Plot category
+            plot_name: Plot name
+
+        Returns:
+            Full pltz bundle data or None if not found
+        """
+        from .gallery_generator import get_template_gallery_path
+
+        # Check template gallery for pltz bundles
+        gallery_path = get_template_gallery_path()
+        pltz_path = gallery_path / category / f"{plot_name}.pltz.d"
+
+        if pltz_path.exists() and PltzService.is_pltz_bundle(pltz_path):
+            return PltzService.load_bundle(pltz_path)
+
+        # Check temp gallery
+        temp_gallery = Path('/tmp/scitex_gallery_with_bboxes')
+        pltz_path = temp_gallery / category / f"{plot_name}.pltz.d"
+
+        if pltz_path.exists() and PltzService.is_pltz_bundle(pltz_path):
+            return PltzService.load_bundle(pltz_path)
+
+        return None
+
+    @staticmethod
+    def get_pltz_preview_base64(
+        category: str,
+        plot_name: str
+    ) -> Optional[str]:
+        """
+        Get pltz bundle preview as base64 data URL.
+
+        Args:
+            category: Plot category
+            plot_name: Plot name
+
+        Returns:
+            Base64 data URL or None
+        """
+        from .gallery_generator import get_template_gallery_path
+
+        # Check template gallery
+        gallery_path = get_template_gallery_path()
+        pltz_path = gallery_path / category / f"{plot_name}.pltz.d"
+
+        if pltz_path.exists():
+            return PltzService.get_preview_base64(pltz_path)
+
+        # Fallback to temp gallery
+        temp_gallery = Path('/tmp/scitex_gallery_with_bboxes')
+        pltz_path = temp_gallery / category / f"{plot_name}.pltz.d"
+
+        if pltz_path.exists():
+            return PltzService.get_preview_base64(pltz_path)
+
+        return None
+
+    @staticmethod
+    def convert_legacy_to_pltz(
+        png_path: Union[str, Path],
+        json_path: Optional[Union[str, Path]] = None,
+        csv_path: Optional[Union[str, Path]] = None,
+        output_dir: Optional[Union[str, Path]] = None,
+    ) -> Optional[Dict]:
+        """
+        Convert legacy gallery format (png/json/csv) to pltz bundle.
+
+        Args:
+            png_path: Path to PNG file
+            json_path: Path to JSON metadata (optional)
+            csv_path: Path to CSV data (optional)
+            output_dir: Output directory for pltz bundle
+
+        Returns:
+            Created pltz bundle data or None on failure
+        """
+        png_path = Path(png_path)
+        plot_name = png_path.stem
+
+        # Determine output path
+        if output_dir:
+            pltz_path = Path(output_dir) / f"{plot_name}.pltz.d"
+        else:
+            pltz_path = png_path.parent / f"{plot_name}.pltz.d"
+
+        # Load existing metadata if available
+        spec = {}
+        style = {}
+
+        if json_path:
+            json_path = Path(json_path)
+            if json_path.exists():
+                with open(json_path, 'r') as f:
+                    metadata = json.load(f)
+
+                # Extract spec from metadata
+                spec = {
+                    'plot_id': plot_name,
+                    'data': {
+                        'csv': 'data.csv',
+                        'format': 'wide',
+                    },
+                    'axes': [],
+                    'traces': [],
+                }
+
+                # Extract axes info if available
+                if 'axes_bbox_px' in metadata:
+                    spec['axes'].append({
+                        'id': 'ax0',
+                        'role': 'main',
+                        'labels': {},
+                    })
+
+                # Extract style from metadata
+                if 'dimensions' in metadata:
+                    dims = metadata['dimensions']
+                    style['size'] = {
+                        'width_mm': dims.get('width_mm', 80),
+                        'height_mm': dims.get('height_mm', 60),
+                    }
+
+        # Load CSV data
+        csv_data = None
+        if csv_path:
+            csv_path = Path(csv_path)
+            if csv_path.exists():
+                with open(csv_path, 'r') as f:
+                    csv_data = f.read()
+
+        try:
+            # Create pltz bundle
+            result = PltzService.save_bundle(
+                spec=spec or {'plot_id': plot_name},
+                style=style or {},
+                data_csv=csv_data,
+                output_path=pltz_path,
+                generate_exports=False,  # Copy existing PNG instead
+            )
+
+            # Copy existing PNG to exports
+            import shutil
+            exports_dir = pltz_path / 'exports'
+            exports_dir.mkdir(exist_ok=True)
+            shutil.copy(png_path, exports_dir / f"{plot_name}.png")
+
+            return result
+
+        except Exception as e:
+            logger.exception(f"Failed to convert to pltz: {e}")
+            return None

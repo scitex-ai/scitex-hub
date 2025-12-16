@@ -74,6 +74,48 @@ from .stats import (
     build_context_from_plot,
 )
 
+# Bundle Views (pltz/figz)
+from .bundles import (
+    # PltzBundle endpoints
+    list_pltz_bundles,
+    create_pltz_bundle,
+    get_pltz_bundle,
+    update_pltz_bundle,
+    delete_pltz_bundle,
+    get_pltz_preview,
+    get_pltz_data,
+    get_pltz_geometry,
+    # FigzBundle endpoints
+    list_figz_bundles,
+    create_figz_bundle,
+    get_figz_bundle,
+    update_figz_bundle,
+    delete_figz_bundle,
+    get_figz_preview,
+    add_figz_panel,
+    remove_figz_panel,
+    get_figz_panel_previews,
+    get_layout_options,
+    # Path-based bundle endpoints (for canvas integration)
+    load_figz_by_path,
+    load_pltz_by_path,
+    get_pltz_preview_by_path,
+    get_pltz_geometry_by_path,
+    get_pltz_data_by_path,
+    update_pltz_by_path,
+    render_pltz_by_path,
+    # Gallery → Canvas → Bundle flow (auto-save system)
+    create_pltz_from_plot,
+    save_figz_canvas,
+    export_figz_bundle,
+    # Download endpoints
+    download_figz_bundle,
+    download_figz_d_bundle,
+    download_pltz_bundle,
+    # Create empty figz bundle
+    create_empty_figz,
+)
+
 __all__ = [
     # Presets
     'get_journal_presets',
@@ -119,4 +161,41 @@ __all__ = [
     'run_statistical_test',
     'run_all_applicable',
     'build_context_from_plot',
+    # Bundles (pltz/figz)
+    'list_pltz_bundles',
+    'create_pltz_bundle',
+    'get_pltz_bundle',
+    'update_pltz_bundle',
+    'delete_pltz_bundle',
+    'get_pltz_preview',
+    'get_pltz_data',
+    'get_pltz_geometry',
+    'list_figz_bundles',
+    'create_figz_bundle',
+    'get_figz_bundle',
+    'update_figz_bundle',
+    'delete_figz_bundle',
+    'get_figz_preview',
+    'add_figz_panel',
+    'remove_figz_panel',
+    'get_figz_panel_previews',
+    'get_layout_options',
+    # Path-based bundle endpoints
+    'load_figz_by_path',
+    'load_pltz_by_path',
+    'get_pltz_preview_by_path',
+    'get_pltz_geometry_by_path',
+    'get_pltz_data_by_path',
+    'update_pltz_by_path',
+    'render_pltz_by_path',
+    # Gallery → Canvas → Bundle flow
+    'create_pltz_from_plot',
+    'save_figz_canvas',
+    'export_figz_bundle',
+    # Download endpoints
+    'download_figz_bundle',
+    'download_figz_d_bundle',
+    'download_pltz_bundle',
+    # Create empty figz bundle
+    'create_empty_figz',
 ]
