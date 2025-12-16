@@ -1700,59 +1700,11 @@ export class CanvasManager {
      * @param figzPath - Filesystem path to .figz.d directory or .figz file
      */
     public async loadFigzBundle(figzPath: string): Promise<void> {
-        if (!this.canvas) {
-            console.error('[CanvasManager] Canvas not initialized');
-            return;
-        }
-
-        console.log(`[CanvasManager] Loading figz bundle: ${figzPath}`);
-
-        try {
-            // Clear existing content
-            this.clearCanvas();
-
-            // Fetch figz bundle data from API
-            const response = await fetch(`/vis/api/bundles/figz/load/?path=${encodeURIComponent(figzPath)}`);
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Failed to load figz bundle');
-            }
-
-            const figzData = await response.json();
-            this.currentFigzPath = figzPath;
-
-            console.log(`[CanvasManager] Figz API response:`, JSON.stringify(figzData.panels, null, 2));
-
-            // Set canvas size from figz style (mm → px at DPI)
-            const sizeMm = figzData.size_mm || { width: 170, height: 120 };
-            this.setCanvasSizeMm(sizeMm.width, sizeMm.height);
-
-            // Load each panel
-            const panels = figzData.panels || [];
-            for (const panel of panels) {
-                console.log(`[CanvasManager] Loading panel ${panel.label} with plot: ${panel.plot}`);
-                await this.loadPltzPanel(panel, figzPath);
-            }
-
-            this.canvas.renderAll();
-
-            if (this.statusBarCallback) {
-                this.statusBarCallback(`Loaded figure: ${figzPath.split('/').pop()}`);
-            }
-
-            console.log(`[CanvasManager] Loaded figz bundle with ${panels.length} panels`);
-
-            // Save session state after loading
-            this.saveSessionState();
-
-        } catch (error) {
-            console.error('[CanvasManager] Failed to load figz bundle:', error);
-            if (this.statusBarCallback) {
-                this.statusBarCallback(`Error: ${error}`);
-            }
-            throw error;
+        if (this.bundleCanvasManager) {
+            return this.bundleCanvasManager.loadFigzBundle(figzPath);
         }
     }
+
 
     /**
      * Load a single pltz panel onto the canvas.
@@ -1894,74 +1846,11 @@ export class CanvasManager {
      * @param pltzPath - Path to the pltz bundle
      */
     public async refreshPanelImage(pltzPath: string): Promise<void> {
-        if (!this.canvas) return;
-
-        // Find the panel image on canvas
-        const panelImg = this.canvas.getObjects().find((obj: any) =>
-            obj.pltzPath === pltzPath && obj.isBundlePanel
-        );
-
-        if (!panelImg) {
-            console.warn(`[CanvasManager] Panel not found for path: ${pltzPath}`);
-            return;
-        }
-
-        // Try SVG first, fallback to PNG
-        const svgUrl = `/vis/api/bundles/pltz/preview/?path=${encodeURIComponent(pltzPath)}&type=svg&t=${Date.now()}`;
-        const pngUrl = `/vis/api/bundles/pltz/preview/?path=${encodeURIComponent(pltzPath)}&type=png&t=${Date.now()}`;
-
-        try {
-            // Try SVG first
-            const svgResponse = await fetch(svgUrl);
-            if (svgResponse.ok) {
-                const svgText = await svgResponse.text();
-                const fabric = (window as any).fabric;
-
-                fabric.loadSVGFromString(svgText, (objects: any[], options: any) => {
-                    if (objects && objects.length > 0) {
-                        // Get current position and scale
-                        const left = panelImg.left;
-                        const top = panelImg.top;
-                        const scaleX = panelImg.scaleX;
-                        const scaleY = panelImg.scaleY;
-
-                        // Remove old panel
-                        this.canvas!.remove(panelImg);
-
-                        // Create new SVG group
-                        const newImg = fabric.util.groupSVGElements(objects, options);
-                        newImg.set({
-                            left,
-                            top,
-                            scaleX,
-                            scaleY,
-                            selectable: true,
-                            lockRotation: true,
-                            panelId: panelImg.panelId,
-                            panelLabel: panelImg.panelLabel,
-                            pltzPath: pltzPath,
-                            figzPath: panelImg.figzPath,
-                            isBundlePanel: true,
-                        });
-
-                        this.canvas!.add(newImg);
-                        this.canvas!.renderAll();
-                        console.log(`[CanvasManager] Panel refreshed with SVG: ${pltzPath}`);
-                        return;
-                    }
-                });
-                return;
-            }
-
-            // Fallback to PNG
-            panelImg.setSrc(pngUrl, () => {
-                this.canvas!.renderAll();
-                console.log(`[CanvasManager] Panel refreshed with PNG: ${pltzPath}`);
-            }, { crossOrigin: 'anonymous' });
-        } catch (error) {
-            console.error(`[CanvasManager] Failed to refresh panel:`, error);
+        if (this.bundleCanvasManager) {
+            return this.bundleCanvasManager.refreshPanelImage(pltzPath);
         }
     }
+
 
     /**
      * Get the current figz bundle path.
@@ -2264,107 +2153,34 @@ export class CanvasManager {
      * Remove active object(s) - handles both single and multiple selection
      */
     public removeActiveObject(): void {
-        if (!this.canvas) return;
-
-        const active = this.canvas.getActiveObject();
-        if (!active) return;
-
-        // Save undo state before removing
-        this.saveUndoState();
-
-        // Check if it's an ActiveSelection (multiple objects selected)
-        if (active.type === 'activeSelection') {
-            // Get all objects in the selection
-            const objects = active.getObjects();
-            const count = objects.length;
-
-            // Discard the selection first
-            this.canvas.discardActiveObject();
-
-            // Remove each object individually
-            objects.forEach((obj: any) => {
-                this.canvas!.remove(obj);
-            });
-
-            this.canvas.renderAll();
-
-            if (this.statusBarCallback) {
-                this.statusBarCallback(`${count} objects removed`);
-            }
-        } else {
-            // Single object
-            this.canvas.remove(active);
-            this.canvas.renderAll();
-
-            if (this.statusBarCallback) {
-                this.statusBarCallback('Object removed');
-            }
+        if (this.objectManager) {
+            this.objectManager.removeActiveObject();
         }
     }
+
 
     /**
      * Select all objects on canvas
      */
     public selectAll(): void {
-        if (!this.canvas) return;
-
-        // Get all selectable objects (exclude grid, guidelines, etc.)
-        const objects = this.canvas.getObjects().filter((obj: any) => {
-            return obj.selectable !== false &&
-                   obj.id !== 'grid-line' &&
-                   obj.id !== 'column-guide' &&
-                   !obj.isAlignmentLine;
-        });
-
-        if (objects.length === 0) {
-            if (this.statusBarCallback) {
-                this.statusBarCallback('No objects to select');
-            }
-            return;
-        }
-
-        // Deselect any current selection
-        this.canvas.discardActiveObject();
-
-        // Create new selection with all objects
-        const selection = new (window as any).fabric.ActiveSelection(objects, {
-            canvas: this.canvas
-        });
-        this.canvas.setActiveObject(selection);
-        this.canvas.renderAll();
-
-        if (this.statusBarCallback) {
-            this.statusBarCallback(`Selected ${objects.length} objects`);
+        if (this.selectionManager) {
+            this.selectionManager.selectAll();
         }
     }
+
 
     /**
      * Duplicate active object
      */
     public duplicateActiveObject(): void {
-        if (!this.canvas) return;
-
-        const active = this.canvas.getActiveObject();
-        if (!active) return;
-
-        // Save undo state before duplicating
-        this.saveUndoState();
-
-        active.clone((cloned: any) => {
-            cloned.set({
-                left: (active.left || 0) + 20,
-                top: (active.top || 0) + 20,
-            });
-            this.canvas!.add(cloned);
-            this.canvas!.setActiveObject(cloned);
-            this.canvas!.renderAll();
-            this.saveCanvasContent();
-
-            if (this.statusBarCallback) {
-                this.statusBarCallback('Object duplicated');
-            }
-        });
+        if (this.selectionManager) {
+            this.selectionManager.duplicateActiveObject(
+                () => this.saveUndoState(),
+                () => this.saveCanvasContent()
+            );
+        }
     }
+
 
     /**
      * Bring active object to front
