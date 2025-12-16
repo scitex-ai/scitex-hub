@@ -37,14 +37,21 @@ export class DataTabManager {
     private initializeDefaultTab(): void {
         const defaultTab: DataTab = {
             id: 'default-data',
-            name: 'Table 1',
+            name: 'Table1',  // No space for filesystem compatibility
             linkedFigureId: 'default',  // Links to default canvas figure
-            objectName: 'Table 1',
+            objectName: 'Table1',
             type: 'default',
             isActive: true
         };
         this.tabs.push(defaultTab);
         this.activeTabId = 'default-data';
+    }
+
+    /**
+     * Sanitize name for filesystem compatibility
+     */
+    private sanitizeName(name: string): string {
+        return name.replace(/\s+/g, '').replace(/[<>:"/\\|?*]/g, '');
     }
 
     /**
@@ -62,6 +69,7 @@ export class DataTabManager {
 
     /**
      * Create a new tab
+     * Names are sanitized (no spaces) for filesystem compatibility
      */
     public createTab(
         name: string,
@@ -72,12 +80,16 @@ export class DataTabManager {
     ): string {
         const id = `tab-${Date.now()}`;
 
-        // Use provided name directly as the tab name
+        // Sanitize name for filesystem compatibility
+        const sanitizedName = this.sanitizeName(name);
+        const sanitizedObjectName = objectName ? this.sanitizeName(objectName) : sanitizedName;
+        const sanitizedFigureName = figureName ? this.sanitizeName(figureName) : undefined;
+
         const newTab: DataTab = {
             id,
-            name: name,
-            figureName: figureName,
-            objectName: objectName || name,
+            name: sanitizedName,
+            figureName: sanitizedFigureName,
+            objectName: sanitizedObjectName,
             type,
             isActive: false,
             data
@@ -316,13 +328,41 @@ export class DataTabManager {
     private startInlineRename(itemElement: HTMLElement, tabId: string, labelElement: HTMLElement): void {
         const currentName = labelElement.textContent || '';
 
+        // Create wrapper for input and error tooltip
+        const wrapper = document.createElement('div');
+        wrapper.style.position = 'relative';
+        wrapper.style.display = 'inline-block';
+        wrapper.style.flex = '1';
+
         const input = document.createElement('input');
         input.type = 'text';
         input.className = 'data-rename-input';
         input.value = currentName;
 
+        // Create hint tooltip for space-to-underscore conversion
+        const hintTooltip = document.createElement('div');
+        hintTooltip.className = 'rename-hint-tooltip';
+        hintTooltip.textContent = 'Space → _';
+        hintTooltip.style.cssText = `
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background: #6c757d;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            white-space: nowrap;
+            display: none;
+            z-index: 1000;
+            margin-bottom: 2px;
+        `;
+
+        wrapper.appendChild(input);
+        wrapper.appendChild(hintTooltip);
+
         labelElement.style.display = 'none';
-        itemElement.insertBefore(input, labelElement.nextSibling);
+        itemElement.insertBefore(wrapper, labelElement.nextSibling);
         input.focus();
         input.select();
 
@@ -330,10 +370,37 @@ export class DataTabManager {
         const finishRename = () => {
             if (isFinished) return;
             isFinished = true;
-            const newName = input.value.trim() || currentName;
+            const newName = this.sanitizeName(input.value.trim()) || currentName;
             this.renameTab(tabId, newName);
-            input.remove();
+            wrapper.remove();
             labelElement.style.display = '';
+        };
+
+        // Auto-replace spaces with underscores
+        input.addEventListener('beforeinput', (e: InputEvent) => {
+            if (e.data && e.data.includes(' ')) {
+                e.preventDefault();
+                // Insert underscore at cursor position
+                const start = input.selectionStart || 0;
+                const end = input.selectionEnd || 0;
+                const replaced = e.data.replace(/\s+/g, '_');
+                input.value = input.value.slice(0, start) + replaced + input.value.slice(end);
+                input.setSelectionRange(start + replaced.length, start + replaced.length);
+                hintTooltip.style.display = 'block';
+                setTimeout(() => { hintTooltip.style.display = 'none'; }, 1000);
+            }
+        });
+
+        // Fallback: replace any spaces that got through (e.g., from paste)
+        input.oninput = () => {
+            if (input.value.includes(' ')) {
+                const pos = input.selectionStart || 0;
+                const diff = input.value.length - input.value.replace(/\s+/g, '_').length;
+                input.value = input.value.replace(/\s+/g, '_');
+                input.setSelectionRange(pos - diff, pos - diff);
+                hintTooltip.style.display = 'block';
+                setTimeout(() => { hintTooltip.style.display = 'none'; }, 1000);
+            }
         };
 
         input.onblur = finishRename;
@@ -348,6 +415,17 @@ export class DataTabManager {
                 finishRename();
             }
         };
+    }
+
+    /**
+     * Scroll dropdown menu to make the active tab visible
+     */
+    private scrollToActiveTab(): void {
+        const menu = document.getElementById('data-dropdown-menu');
+        const activeItem = menu?.querySelector('.data-dropdown-item.active') as HTMLElement;
+        if (menu && activeItem) {
+            activeItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
     }
 
     /**
@@ -389,6 +467,61 @@ export class DataTabManager {
         if (tab) {
             tab.linkedFigureId = undefined;
         }
+    }
+
+    /**
+     * Validate tabs - remove tabs linked to figures that no longer exist.
+     *
+     * @param validFigureIds Array of valid figure tab IDs
+     * @returns Number of tabs removed
+     */
+    public validateAndCleanTabs(validFigureIds: string[]): number {
+        const initialCount = this.tabs.length;
+        const validIdSet = new Set(validFigureIds);
+
+        this.tabs = this.tabs.filter(tab => {
+            // Keep tabs without linkedFigureId (standalone tables)
+            if (!tab.linkedFigureId) return true;
+
+            // Keep if linked figure still exists
+            const exists = validIdSet.has(tab.linkedFigureId);
+            if (!exists) {
+                console.log(`[DataTabManager] Removing stale tab: ${tab.name} (linked to ${tab.linkedFigureId})`);
+            }
+            return exists;
+        });
+
+        const removedCount = initialCount - this.tabs.length;
+
+        // Ensure at least one tab exists
+        if (this.tabs.length === 0) {
+            this.initializeDefaultTab();
+            console.log('[DataTabManager] No valid tabs - created default tab');
+        }
+
+        // Update active tab if it was removed
+        if (this.activeTabId && !this.tabs.find(t => t.id === this.activeTabId)) {
+            this.activeTabId = this.tabs[0]?.id || null;
+            this.tabs.forEach(t => t.isActive = t.id === this.activeTabId);
+        }
+
+        if (removedCount > 0) {
+            this.renderTabs();
+            console.log(`[DataTabManager] Removed ${removedCount} stale tab(s)`);
+        }
+
+        return removedCount;
+    }
+
+    /**
+     * Clear all tabs and reset to default
+     */
+    public clearAllTabs(): void {
+        this.tabs = [];
+        this.activeTabId = null;
+        this.initializeDefaultTab();
+        this.renderTabs();
+        console.log('[DataTabManager] Cleared all tabs');
     }
 
     /**
@@ -457,14 +590,41 @@ export class DataTabManager {
         icon.className = 'fas fa-table';
         inputItem.appendChild(icon);
 
+        // Create wrapper for input and error tooltip
+        const inputWrapper = document.createElement('div');
+        inputWrapper.style.position = 'relative';
+        inputWrapper.style.display = 'inline-block';
+        inputWrapper.style.flex = '1';
+
         const input = document.createElement('input');
         input.type = 'text';
         input.className = 'inline-new-tab-input data-rename-input';
-        const defaultTableName = `Table ${this.tabs.length + 1}`;
+        const defaultTableName = `Table${this.tabs.length + 1}`;  // No space for filesystem compatibility
         input.value = defaultTableName;
         input.placeholder = defaultTableName;
 
-        inputItem.appendChild(input);
+        // Create hint tooltip for space-to-underscore conversion
+        const hintTooltip = document.createElement('div');
+        hintTooltip.className = 'rename-hint-tooltip';
+        hintTooltip.textContent = 'Space → _';
+        hintTooltip.style.cssText = `
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background: #6c757d;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            white-space: nowrap;
+            display: none;
+            z-index: 1000;
+            margin-bottom: 2px;
+        `;
+
+        inputWrapper.appendChild(input);
+        inputWrapper.appendChild(hintTooltip);
+        inputItem.appendChild(inputWrapper);
         menu.appendChild(inputItem);
 
         input.focus();
@@ -476,7 +636,7 @@ export class DataTabManager {
         const finishCreate = () => {
             if (isFinished) return;
             isFinished = true;
-            const tableName = input.value.trim() || defaultTableName;
+            const tableName = this.sanitizeName(input.value.trim()) || defaultTableName;
             inputItem.remove();
             // Create table with default type
             const newTabId = this.createTab(tableName, 'default', undefined, tableName);
@@ -488,6 +648,33 @@ export class DataTabManager {
             if (isFinished) return;
             isFinished = true;
             inputItem.remove();
+        };
+
+        // Auto-replace spaces with underscores
+        input.addEventListener('beforeinput', (e: InputEvent) => {
+            if (e.data && e.data.includes(' ')) {
+                e.preventDefault();
+                // Insert underscore at cursor position
+                const start = input.selectionStart || 0;
+                const end = input.selectionEnd || 0;
+                const replaced = e.data.replace(/\s+/g, '_');
+                input.value = input.value.slice(0, start) + replaced + input.value.slice(end);
+                input.setSelectionRange(start + replaced.length, start + replaced.length);
+                hintTooltip.style.display = 'block';
+                setTimeout(() => { hintTooltip.style.display = 'none'; }, 1000);
+            }
+        });
+
+        // Fallback: replace any spaces that got through (e.g., from paste)
+        input.oninput = () => {
+            if (input.value.includes(' ')) {
+                const pos = input.selectionStart || 0;
+                const diff = input.value.length - input.value.replace(/\s+/g, '_').length;
+                input.value = input.value.replace(/\s+/g, '_');
+                input.setSelectionRange(pos - diff, pos - diff);
+                hintTooltip.style.display = 'block';
+                setTimeout(() => { hintTooltip.style.display = 'none'; }, 1000);
+            }
         };
 
         input.onblur = () => {

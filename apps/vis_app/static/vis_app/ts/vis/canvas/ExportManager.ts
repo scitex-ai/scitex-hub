@@ -2,14 +2,20 @@
  * ExportManager - Handles canvas export functionality
  *
  * Responsibilities:
- * - Export canvas as PNG with high quality
+ * - Export canvas as PNG with 300 DPI for publication
  * - Export canvas as SVG (vector format)
  * - Export canvas as PDF (requires jsPDF library)
+ * - Export canvas as JPEG (95% quality)
+ * - Export as FIGZ bundle (includes spec, style, data, exports)
  *
  * All exports use timestamp-based filenames and clean up resources
  */
 
 export class ExportManager {
+    private currentFigzPath?: string;
+    private bundleProjectOwner?: string;
+    private bundleProjectSlug?: string;
+
     /**
      * Create a new ExportManager
      * @param canvas - Fabric.js canvas instance
@@ -21,8 +27,23 @@ export class ExportManager {
     ) {}
 
     /**
-     * Export canvas as PNG with high quality
-     * Uses 2x multiplier for better resolution
+     * Set the current figz bundle path for bundle exports
+     */
+    public setFigzPath(path: string): void {
+        this.currentFigzPath = path;
+    }
+
+    /**
+     * Set project context for bundle exports
+     */
+    public setProjectContext(owner: string, slug: string): void {
+        this.bundleProjectOwner = owner;
+        this.bundleProjectSlug = slug;
+    }
+
+    /**
+     * Export canvas as PNG with 300 DPI for publication quality
+     * Uses multiplier to achieve 300 DPI (screen is typically 96 DPI)
      */
     public exportAsPng(): void {
         if (!this.canvas) {
@@ -30,10 +51,12 @@ export class ExportManager {
             return;
         }
 
+        // 300 DPI / 96 DPI ≈ 3.125 multiplier for publication quality
+        const dpiMultiplier = 300 / 96;
         const dataUrl = this.canvas.toDataURL({
             format: 'png',
             quality: 1,
-            multiplier: 2  // 2x resolution for better quality
+            multiplier: dpiMultiplier
         });
 
         const link = document.createElement('a');
@@ -42,10 +65,122 @@ export class ExportManager {
         link.click();
 
         if (this.statusCallback) {
-            this.statusCallback('Exported as PNG');
+            this.statusCallback('Exported as PNG (300 DPI)');
         }
 
-        console.log('[ExportManager] Exported as PNG');
+        console.log('[ExportManager] Exported as PNG (300 DPI)');
+    }
+
+    /**
+     * Export canvas as JPEG with 95% quality
+     * Good for file size when vector formats aren't needed
+     */
+    public exportAsJpeg(): void {
+        if (!this.canvas) {
+            console.error('[ExportManager] Canvas not available');
+            return;
+        }
+
+        // Use white background for JPEG (no transparency)
+        const tempCanvas = document.createElement('canvas');
+        const ctx = tempCanvas.getContext('2d');
+        if (!ctx) return;
+
+        const multiplier = 2;
+        tempCanvas.width = this.canvas.getWidth() * multiplier;
+        tempCanvas.height = this.canvas.getHeight() * multiplier;
+
+        // Fill white background
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+        // Get canvas data and draw on white background
+        const pngDataUrl = this.canvas.toDataURL({
+            format: 'png',
+            quality: 1,
+            multiplier: multiplier
+        });
+
+        const img = new Image();
+        img.onload = () => {
+            ctx.drawImage(img, 0, 0);
+            const jpegDataUrl = tempCanvas.toDataURL('image/jpeg', 0.95);
+
+            const link = document.createElement('a');
+            link.download = `figure-${Date.now()}.jpg`;
+            link.href = jpegDataUrl;
+            link.click();
+
+            if (this.statusCallback) {
+                this.statusCallback('Exported as JPEG (95%)');
+            }
+
+            console.log('[ExportManager] Exported as JPEG');
+        };
+        img.src = pngDataUrl;
+    }
+
+    /**
+     * Export as FIGZ bundle (zip containing spec, style, data, exports)
+     * Downloads the entire figz bundle for sharing or version control
+     */
+    public async exportAsFigzBundle(): Promise<void> {
+        if (!this.statusCallback) {
+            console.error('[ExportManager] Status callback not available');
+            return;
+        }
+
+        try {
+            // First, trigger a save to ensure bundle is up-to-date
+            const response = await fetch('/vis/api/bundles/figz/export/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCSRFToken()
+                },
+                body: JSON.stringify({
+                    project_owner: this.bundleProjectOwner,
+                    project_slug: this.bundleProjectSlug,
+                    figz_path: this.currentFigzPath
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Export failed: ${response.statusText}`);
+            }
+
+            // Get the blob (zip file)
+            const blob = await response.blob();
+            const filename = `figure-${Date.now()}.figz`;
+
+            // Download the zip
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = url;
+            link.click();
+            URL.revokeObjectURL(url);
+
+            this.statusCallback('Exported as FIGZ bundle');
+            console.log('[ExportManager] Exported as FIGZ bundle');
+        } catch (error) {
+            console.error('[ExportManager] FIGZ export failed:', error);
+            this.statusCallback('FIGZ export failed - save figure first');
+        }
+    }
+
+    /**
+     * Get CSRF token from cookie
+     */
+    private getCSRFToken(): string {
+        const cookies = document.cookie.split(';');
+        for (const cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'csrftoken') {
+                return value;
+            }
+        }
+        return '';
     }
 
     /**
@@ -228,5 +363,102 @@ export class ExportManager {
         if (this.statusCallback) {
             this.statusCallback(`Exported as ${filename}.pdf`);
         }
+    }
+
+    /**
+     * Download the current figz bundle as .figz ZIP file
+     * Uses the GET-based download endpoint for direct download
+     */
+    public downloadFigzBundle(): void {
+        if (!this.currentFigzPath) {
+            console.warn('[ExportManager] No figz bundle loaded');
+            if (this.statusCallback) {
+                this.statusCallback('No figure loaded to download');
+            }
+            return;
+        }
+
+        // Use GET-based download endpoint
+        const downloadUrl = `/vis/api/bundles/figz/download/?path=${encodeURIComponent(this.currentFigzPath)}`;
+
+        // Create a link and click it to trigger download
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = ''; // Let server set filename via Content-Disposition
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        if (this.statusCallback) {
+            this.statusCallback('Downloading figz bundle...');
+        }
+        console.log('[ExportManager] Downloading figz bundle:', this.currentFigzPath);
+    }
+
+    /**
+     * Download the current figz bundle as .figz.d directory (ZIP preserving structure)
+     * Downloads the full directory bundle with all panels
+     */
+    public downloadFigzDBundle(): void {
+        if (!this.currentFigzPath) {
+            console.warn('[ExportManager] No figz bundle loaded');
+            if (this.statusCallback) {
+                this.statusCallback('No figure loaded to download');
+            }
+            return;
+        }
+
+        // Use GET-based download endpoint for .figz.d
+        const downloadUrl = `/vis/api/bundles/figz-d/download/?path=${encodeURIComponent(this.currentFigzPath)}`;
+
+        // Create a link and click it to trigger download
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = ''; // Let server set filename via Content-Disposition
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        if (this.statusCallback) {
+            this.statusCallback('Downloading figz.d bundle...');
+        }
+        console.log('[ExportManager] Downloading figz.d bundle:', this.currentFigzPath);
+    }
+
+    /**
+     * Download a pltz bundle as .pltz ZIP file
+     * @param pltzPath - Path to the pltz bundle
+     */
+    public downloadPltzBundle(pltzPath: string): void {
+        if (!pltzPath) {
+            console.warn('[ExportManager] No pltz path provided');
+            if (this.statusCallback) {
+                this.statusCallback('No panel to download');
+            }
+            return;
+        }
+
+        // Use GET-based download endpoint
+        const downloadUrl = `/vis/api/bundles/pltz/download/?path=${encodeURIComponent(pltzPath)}`;
+
+        // Create a link and click it to trigger download
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = ''; // Let server set filename via Content-Disposition
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        if (this.statusCallback) {
+            this.statusCallback('Downloading pltz bundle...');
+        }
+        console.log('[ExportManager] Downloading pltz bundle:', pltzPath);
+    }
+
+    /**
+     * Get current figz path for external use
+     */
+    public getFigzPath(): string | undefined {
+        return this.currentFigzPath;
     }
 }

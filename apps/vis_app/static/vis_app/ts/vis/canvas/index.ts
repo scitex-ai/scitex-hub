@@ -33,3 +33,9 @@ export { ContextMenuManager } from './ContextMenuManager.ts';
 
 // Phase 6 - Canvas document resize
 export { CanvasResizeManager } from './CanvasResizeManager.ts';
+
+// Phase 7 - Session and bundle management
+export { SessionManager } from './SessionManager.ts';
+export type { SessionState, PanelInfo } from './SessionManager.ts';
+export { BundleCanvasManager } from './BundleCanvasManager.ts';
+export type { PanelSpec, PanelData, ProjectContext } from './BundleCanvasManager.ts';

@@ -184,10 +184,16 @@ export class RibbonButtons {
             }
         });
 
-        // Table help button
+        // Table help button - show keyboard shortcuts modal
         const tableHelpBtn = document.getElementById('table-help-btn');
         tableHelpBtn?.addEventListener('click', () => {
-            if (this.showTableHelpCallback) {
+            // Show the full keyboard shortcuts modal
+            const shortcutsModal = document.getElementById('vis-shortcuts-modal');
+            if (shortcutsModal) {
+                shortcutsModal.style.display = 'block';
+                console.log('[RibbonButtons] Vis shortcuts modal opened');
+            } else if (this.showTableHelpCallback) {
+                // Fallback to alert if modal not found
                 this.showTableHelpCallback();
             }
         });

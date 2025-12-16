@@ -57,6 +57,11 @@ export class SigmaEditor {
     private firstRowIsHeader: boolean = true;
     private firstColIsIndex: boolean = false;
 
+    // Project context for bundle-based flow
+    private projectOwner: string = '';
+    private projectSlug: string = '';
+    private figureName: string = 'Figure1';
+
     constructor() {
         console.log('[SigmaEditor] Initializing modular Sigma Editor...');
 
@@ -105,7 +110,7 @@ export class SigmaEditor {
             (plotType: string) => this.createQuickPlot(plotType),
             () => this.canvasManager.zoomIn(),
             () => this.canvasManager.zoomOut(),
-            () => this.canvasManager.zoomToFit(),
+            () => this.canvasManager.zoomToContent(),  // Changed from zoomToFit to fit content
             () => this.canvasManager.toggleGrid(),
             { value: this.firstRowIsHeader },
             { value: this.firstColIsIndex },
@@ -138,7 +143,7 @@ export class SigmaEditor {
             () => this.canvasManager.toggleCanvasTheme(),  // toggleThemeCallback
             () => this.canvasManager.increaseCanvasSize(),  // canvasSizeIncreaseCallback
             () => this.canvasManager.decreaseCanvasSize(),  // canvasSizeDecreaseCallback
-            () => this.canvasManager.resetCanvasSize()  // canvasSizeResetCallback
+            () => this.canvasManager.fitCanvasToContent()  // canvasSizeResetCallback → now fits to content
         );
 
         // Initialize DataTabManager
@@ -182,6 +187,10 @@ export class SigmaEditor {
                 const activeTab = this.canvasTabManager.getActiveTab();
                 if (activeTab) {
                     this.updateStatusBar(`Switched to ${activeTab.figureName}`);
+                    // Sync tree to highlight the figure's file
+                    if (activeTab.figurePath) {
+                        this.syncTreeToFigure(activeTab.figurePath);
+                    }
                 }
             },
             (tabId: string) => {
@@ -194,6 +203,12 @@ export class SigmaEditor {
             () => {
                 // onBeforeTabChange: Save current canvas before switching
                 this.saveCanvasForCurrentTab();
+            },
+            async (figureName: string, figurePath: string) => {
+                // onBundleCreated: Refresh file tree when a new figz bundle is created
+                console.log('[SigmaEditor] New figz bundle created:', figureName, figurePath);
+                await this.refreshFilesTree();
+                this.updateStatusBar(`Created ${figureName}`);
             }
         );
     }
@@ -219,20 +234,55 @@ export class SigmaEditor {
      */
     private async restoreCanvasForTab(tabId: string): Promise<void> {
         const tabState = this.canvasTabManager.getTabState(tabId);
-        if (!tabState || !this.canvasManager.canvas) {
-            // New tab or no state - clear canvas
+
+        // Check if we have actual canvas content to restore
+        const hasCanvasContent = tabState && tabState.canvasJson;
+
+        if (!hasCanvasContent || !this.canvasManager.canvas) {
+            // New tab or no saved state - clear canvas for fresh start
             this.canvasManager.canvas?.clear();
             this.canvasManager.canvas?.renderAll();
-            console.log('[SigmaEditor] New tab - canvas cleared');
+            // Also reset the current figz path since this is a new/empty figure
+            this.canvasManager.setCurrentFigzPath(null);
+
+            // Re-apply current theme to the cleared canvas
+            const savedCanvasTheme = localStorage.getItem('canvas-theme') || localStorage.getItem('scitex-theme-preference') || 'dark';
+            const isDark = savedCanvasTheme === 'dark';
+            this.canvasManager.updateCanvasTheme(isDark);
+
+            console.log(`[SigmaEditor] New tab or no content - canvas cleared, theme applied: ${savedCanvasTheme}`);
             return;
         }
 
         if (tabState.canvasJson) {
+            // Also restore the figz path from the tab
+            const tab = this.canvasTabManager.getTab(tabId);
+            if (tab?.figurePath) {
+                this.canvasManager.setCurrentFigzPath(tab.figurePath);
+            }
+
             // Load canvas content from tab state
             return new Promise((resolve) => {
                 this.canvasManager.canvas!.loadFromJSON(tabState.canvasJson, () => {
-                    // Restore view state
-                    if (tabState.viewState) {
+                    // Use localStorage view state (most recent user position) over tab state
+                    // This ensures the user's last position is preserved across hard refresh
+                    const savedViewState = localStorage.getItem('scitex-vis-viewstate');
+                    if (savedViewState) {
+                        try {
+                            const viewState = JSON.parse(savedViewState);
+                            console.log('[SigmaEditor] 📂 Using localStorage view state:', viewState);
+                            this.canvasManager.setCanvasZoomLevel(viewState.zoom ?? 1);
+                            this.canvasManager.setCanvasPanOffset(viewState.panX ?? 0, viewState.panY ?? 0);
+                        } catch (e) {
+                            console.warn('[SigmaEditor] Failed to parse localStorage view state, falling back to tab state');
+                            if (tabState.viewState) {
+                                console.log('[SigmaEditor] 📂 Using tab view state:', tabState.viewState);
+                                this.canvasManager.setCanvasZoomLevel(tabState.viewState.zoom);
+                                this.canvasManager.setCanvasPanOffset(tabState.viewState.panX, tabState.viewState.panY);
+                            }
+                        }
+                    } else if (tabState.viewState) {
+                        console.log('[SigmaEditor] 📂 Using tab view state (no localStorage):', tabState.viewState);
                         this.canvasManager.setCanvasZoomLevel(tabState.viewState.zoom);
                         this.canvasManager.setCanvasPanOffset(tabState.viewState.panX, tabState.viewState.panY);
                     }
@@ -286,14 +336,22 @@ export class SigmaEditor {
         this.canvasManager.initCanvas();
         this.canvasManager.setupCanvasEvents();
 
-        // Wire up selection callback to update properties panel and data tab
+        // Wire up selection callback to update properties panel, data tab, and tree
         this.canvasManager.setSelectionCallback(async (obj: any) => {
             if (obj) {
                 this.propertiesManager.showCanvasObjectProperties(obj);
 
+                // Sync tree to highlight selected panel's file
+                if (obj.isBundlePanel && obj.pltzPath) {
+                    this.syncTreeToPanel(obj.pltzPath);
+                }
+
                 // Handle CSV data in dedicated tab
                 if (obj.csvData) {
                     this.loadCsvDataInTab(obj);
+                } else if (obj.isBundlePanel && obj.pltzPath) {
+                    // Load CSV from bundle for panel selection
+                    await this.loadCsvForBundlePanel(obj);
                 } else if (obj.name) {
                     // Try to fetch CSV data from gallery based on object name
                     await this.loadCsvForImage(obj);
@@ -462,6 +520,11 @@ export class SigmaEditor {
         this.uiManager.setDataTableManager(this.dataTableManager);
         this.uiManager.initializeTreeManager();
 
+        // Wire up panel refresh callback for bundle property editing
+        this.propertiesManager.setPanelRefreshCallback(async (pltzPath: string) => {
+            await this.canvasManager.refreshPanelImage(pltzPath);
+        });
+
         // Initialize PlotGallery for thumbnail dropdowns
         this.initializePlotGallery();
 
@@ -562,7 +625,7 @@ export class SigmaEditor {
 
     /**
      * Update rulers area transform
-     * Syncs transform state between CanvasManager and RulersManager
+     * Sets CSS transform and syncs state to RulersManager
      */
     private updateRulersAreaTransform(): void {
         const rulersArea = document.querySelector('.vis-rulers-area') as HTMLElement;
@@ -571,10 +634,11 @@ export class SigmaEditor {
         const zoom = this.canvasManager.getCanvasZoomLevel();
         const pan = this.canvasManager.getCanvasPanOffset();
 
-        // Sync state to RulersManager for bidirectional consistency
+        // Sync state to RulersManager for ruler drawing
         this.rulersManager.setCanvasZoomLevel(zoom);
         this.rulersManager.setCanvasPanOffset(pan);
 
+        // Set CSS transform (needed for initial setup and ruler sync)
         rulersArea.style.transform = `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`;
         rulersArea.style.transformOrigin = '0 0';
     }
@@ -785,9 +849,18 @@ export class SigmaEditor {
                     console.warn('[SigmaEditor] No CSV data to load');
                 }
 
-                // Always use static image from gallery - this ensures visual consistency
-                // Dynamic re-rendering will only happen when user explicitly modifies data
-                await this.loadStaticImage(plot, category, csvData);
+                // Always use bundle-based flow (figz/pltz format)
+                // Project context is optional - will use user's bundle directory as fallback
+                const projectOwner = this.projectOwner || (window as any).projectOwner;
+                const projectSlug = this.projectSlug || (window as any).projectSlug;
+
+                if (projectOwner && projectSlug) {
+                    console.log(`[SigmaEditor] Creating pltz bundle for project: ${projectOwner}/${projectSlug}`);
+                } else {
+                    console.log(`[SigmaEditor] Creating pltz bundle in user's bundle directory (no project context)`);
+                }
+
+                await this.createPltzBundleFromGallery(plot, category, csvData);
             },
             onDataModified: (isModified) => {
                 // Update UI to show modification status
@@ -1006,6 +1079,148 @@ export class SigmaEditor {
     }
 
     /**
+     * Create a pltz bundle from gallery selection and add as panel.
+     *
+     * Always uses figz/pltz bundle format:
+     * - With project context: saves to proj-root/scitex/vis/figures/
+     * - Without project context: saves to user's bundle directory
+     *
+     * @param plot - The selected plot info
+     * @param category - The plot category
+     * @param csvData - Optional CSV data array
+     */
+    private async createPltzBundleFromGallery(
+        plot: any,
+        category: string,
+        csvData?: string[][]
+    ): Promise<void> {
+        console.log(`[SigmaEditor] createPltzBundleFromGallery called:`, {
+            plotName: plot?.name,
+            displayName: plot?.display_name,
+            category,
+            csvRows: csvData?.length || 0
+        });
+
+        const projectOwner = this.projectOwner || (window as any).projectOwner;
+        const projectSlug = this.projectSlug || (window as any).projectSlug;
+
+        console.log(`[SigmaEditor] Project context:`, { projectOwner, projectSlug, figureName: this.figureName });
+
+        // Always use bundle format - no fallback to static images
+        this.updateStatusBar(`Creating bundle: ${plot.display_name}...`);
+
+        // Map plot name to plot type
+        // e.g. "line_01_basic" -> "line", "scatter_02_colored" -> "scatter"
+        const plotType = this.mapPlotNameToType(plot.name, category);
+        console.log(`[SigmaEditor] Mapped plot type: "${plot.name}" + "${category}" -> "${plotType}"`);
+
+        // Convert CSV array to CSV string if available
+        let dataCsv: string | undefined;
+        if (csvData && csvData.length > 1) {
+            dataCsv = csvData.map(row => row.join(',')).join('\n');
+            console.log(`[SigmaEditor] CSV data prepared: ${dataCsv.length} chars`);
+        }
+
+        try {
+            console.log('[SigmaEditor] Calling canvasManager.addPanelFromGallery...');
+            // Use CanvasManager's addPanelFromGallery method
+            // Pass gallery_category and gallery_plot_name to copy from template instead of re-rendering
+            const result = await this.canvasManager.addPanelFromGallery(
+                plotType,
+                dataCsv,
+                projectOwner,
+                projectSlug,
+                this.figureName,
+                category,      // gallery_category
+                plot.name      // gallery_plot_name
+            );
+
+            if (result) {
+                this.updateStatusBar(`Panel ${result.panelLabel} created: ${plot.display_name}`);
+                console.log(`[SigmaEditor] Created pltz bundle panel: ${result.panelLabel} at ${result.bundlePath}`);
+
+                // Refresh file tree after creating bundle
+                await this.refreshFilesTree();
+            } else {
+                // Bundle creation returned null - show error
+                console.error('[SigmaEditor] Bundle creation failed - result is null');
+                this.updateStatusBar(`Error: Failed to create bundle for ${plot.display_name}`);
+            }
+        } catch (error) {
+            console.error('[SigmaEditor] Failed to create pltz bundle:', error);
+            this.updateStatusBar(`Error: ${error}`);
+        }
+    }
+
+    /**
+     * Map gallery plot name to plot type for bundle creation.
+     *
+     * Gallery plot names are like "line_01_basic", "scatter_02_colored", "plot", etc.
+     * We extract the base plot type (line, scatter, bar, etc.)
+     */
+    private mapPlotNameToType(plotName: string, category: string): string {
+        // Direct name mappings for common gallery plot names
+        const directMappings: Record<string, string> = {
+            'plot': 'line',           // Generic "plot" maps to line
+            'stx_line': 'line',
+            'stx_shaded_line': 'line',
+            'stx_plot': 'line',
+        };
+
+        const lowerName = plotName.toLowerCase();
+        if (directMappings[lowerName]) {
+            return directMappings[lowerName];
+        }
+
+        // Try to extract from plot name parts
+        const parts = lowerName.split('_');
+        const plotTypes = [
+            'line', 'scatter', 'bar', 'barh', 'histogram', 'hist',
+            'boxplot', 'violinplot', 'heatmap', 'contour', 'pie',
+            'step', 'stem', 'area', 'kde', 'ecdf'
+        ];
+
+        for (const type of plotTypes) {
+            if (parts[0] === type || lowerName.includes(type)) {
+                return type;
+            }
+        }
+
+        // Fallback to category
+        const categoryMap: Record<string, string> = {
+            'line': 'line',
+            'scatter': 'scatter',
+            'bar': 'bar',
+            'distribution': 'histogram',
+            'statistical': 'boxplot',
+            'heatmap': 'heatmap',
+            'contour': 'contour',
+            'pie': 'pie',
+            'vector': 'line',
+            'error': 'line',
+            'stem': 'stem',
+        };
+
+        return categoryMap[category.toLowerCase()] || 'line';
+    }
+
+    /**
+     * Set project context for bundle-based flow.
+     *
+     * @param owner - Project owner username
+     * @param slug - Project slug
+     * @param figureName - Optional figure name (defaults to 'Figure1')
+     */
+    public setProjectContext(owner: string, slug: string, figureName?: string): void {
+        this.projectOwner = owner;
+        this.projectSlug = slug;
+        if (figureName) {
+            this.figureName = figureName;
+        }
+        console.log(`[SigmaEditor] Project context set: ${owner}/${slug}/${this.figureName}`);
+    }
+
+    /**
      * Get manager instances for external access
      */
     public getManagers() {
@@ -1015,6 +1230,77 @@ export class SigmaEditor {
             canvasTabManager: this.canvasTabManager,
             dataTabManager: this.dataTabManager,
         };
+    }
+
+    /**
+     * Get canvas manager instance for external access
+     */
+    public getCanvasManager(): CanvasManager {
+        return this.canvasManager;
+    }
+
+    /**
+     * Refresh the file tree (e.g., after creating/deleting figures)
+     */
+    public async refreshFilesTree(): Promise<void> {
+        const filesTree = (window as any).filesTree;
+        if (filesTree && typeof filesTree.refresh === 'function') {
+            await filesTree.refresh();
+            console.log('[SigmaEditor] File tree refreshed');
+        } else {
+            console.log('[SigmaEditor] filesTree not available for refresh');
+        }
+    }
+
+    /**
+     * Validate tabs against existing files - remove stale tabs.
+     * Collects figz paths from the tree and validates canvas tabs against them.
+     * Also validates data tabs against remaining figure tabs.
+     */
+    public validateTabsAgainstFilesystem(): void {
+        // Collect figz paths from the file tree
+        const figzPaths = this.collectFigzPathsFromTree();
+
+        // Validate canvas tabs (figures)
+        const removedFigureTabs = this.canvasTabManager.validateAndCleanTabs(figzPaths);
+
+        // After validating figure tabs, validate data tabs against remaining figures
+        const validFigureIds = this.canvasTabManager.getTabs().map(t => t.id);
+        const removedDataTabs = this.dataTabManager.validateAndCleanTabs(validFigureIds);
+
+        if (removedFigureTabs > 0 || removedDataTabs > 0) {
+            this.updateStatusBar(`Cleaned up ${removedFigureTabs} figure(s) and ${removedDataTabs} table(s)`);
+        }
+    }
+
+    /**
+     * Collect all figz paths from the file tree DOM
+     */
+    private collectFigzPathsFromTree(): string[] {
+        const paths: string[] = [];
+        const treeEl = document.querySelector('.wft-tree');
+        if (!treeEl) return paths;
+
+        // Find all tree items that are figz bundles
+        const items = treeEl.querySelectorAll('[data-path]');
+        items.forEach(item => {
+            const path = (item as HTMLElement).dataset.path || '';
+            if (path.endsWith('.figz') || path.endsWith('.figz.d')) {
+                paths.push(path);
+            }
+        });
+
+        console.log(`[SigmaEditor] Found ${paths.length} figz paths in tree`);
+        return paths;
+    }
+
+    /**
+     * Clear all tabs and reset to defaults (for project switching)
+     */
+    public clearAllTabs(): void {
+        this.canvasTabManager.clearAllTabs();
+        this.dataTabManager.clearAllTabs();
+        console.log('[SigmaEditor] All tabs cleared');
     }
 
     /**
@@ -1150,6 +1436,55 @@ export class SigmaEditor {
             }
         } catch (error) {
             console.error('[SigmaEditor] Failed to load CSV for image:', error);
+        }
+    }
+
+    /**
+     * Load CSV data for a bundle panel and sync with data table
+     */
+    private async loadCsvForBundlePanel(obj: any): Promise<void> {
+        const pltzPath = obj.pltzPath;
+        const panelLabel = obj.panelLabel || 'Panel';
+
+        if (!pltzPath) {
+            console.log('[SigmaEditor] No pltzPath on bundle panel');
+            return;
+        }
+
+        console.log(`[SigmaEditor] Loading CSV for bundle panel: ${pltzPath}`);
+
+        try {
+            const csvUrl = `/vis/api/bundles/pltz/data/?path=${encodeURIComponent(pltzPath)}`;
+            const response = await fetch(csvUrl);
+
+            if (response.ok) {
+                const csvText = await response.text();
+                const csvData = this.parseCSV(csvText);
+
+                // Store CSV data on the object for later use
+                obj.csvData = csvData;
+
+                // Create or switch to tab for this panel
+                const tabType = 'default';
+                const tabId = this.dataTabManager.createAndSwitchToTab(
+                    `Panel ${panelLabel}`,
+                    tabType,
+                    'Bundle',
+                    panelLabel,
+                    csvData
+                );
+
+                // Load into data table
+                this.dataTableManager.loadFromArray(csvData, true);
+
+                this.updateStatusBar(`Data loaded for Panel ${panelLabel} (${csvData.length} rows)`);
+                console.log(`[SigmaEditor] Loaded CSV for bundle panel ${panelLabel}: ${csvData.length} rows`);
+            } else {
+                console.log(`[SigmaEditor] No CSV data found for bundle: ${pltzPath}`);
+                this.updateStatusBar(`No data available for Panel ${panelLabel}`);
+            }
+        } catch (error) {
+            console.error('[SigmaEditor] Failed to load CSV for bundle panel:', error);
         }
     }
 
@@ -1485,6 +1820,50 @@ export class SigmaEditor {
         } catch (error) {
             console.error('[SigmaEditor] Failed to load all plot types:', error);
             this.updateStatusBar('Failed to load all plot types');
+        }
+    }
+
+    /**
+     * Sync tree selection to highlight the panel's pltz.d file
+     * Called when a bundle panel is selected on canvas
+     */
+    private syncTreeToPanel(absolutePltzPath: string): void {
+        this.syncTreeToPath(absolutePltzPath, 'panel');
+    }
+
+    /**
+     * Sync tree selection to highlight the figure's figz.d file
+     * Called when a figure tab is switched
+     */
+    private syncTreeToFigure(absoluteFigzPath: string): void {
+        this.syncTreeToPath(absoluteFigzPath, 'figure');
+    }
+
+    /**
+     * Sync tree selection to a given absolute path
+     */
+    private syncTreeToPath(absolutePath: string, source: string): void {
+        if (!this.projectOwner || !this.projectSlug) {
+            console.log(`[SigmaEditor] No project context, skipping tree sync (${source})`);
+            return;
+        }
+
+        // Convert absolute path to relative path for tree
+        // /app/data/users/{owner}/proj/{slug}/{relativePath} → {relativePath}
+        const prefix = `/app/data/users/${this.projectOwner}/proj/${this.projectSlug}/`;
+        let relativePath = absolutePath;
+        if (absolutePath.startsWith(prefix)) {
+            relativePath = absolutePath.substring(prefix.length);
+        }
+
+        // Use the globally exposed filesTree
+        const filesTree = (window as any).filesTree;
+        if (filesTree && typeof filesTree.selectFile === 'function') {
+            // Use skipCallback=true to avoid re-triggering file selection events
+            filesTree.selectFile(relativePath, true);
+            console.log(`[SigmaEditor] Tree synced to ${source}: ${relativePath}`);
+        } else {
+            console.log(`[SigmaEditor] filesTree not available for sync (${source})`);
         }
     }
 }

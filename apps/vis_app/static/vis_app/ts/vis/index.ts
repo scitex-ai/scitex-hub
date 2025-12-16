@@ -42,3 +42,13 @@ export type {
     SummaryStats,
     EffectSize,
 } from './StatsManager.ts';
+
+// Bundle managers (pltz/figz)
+export { PltzBundleManager, pltzBundleManager } from './PltzBundleManager.ts';
+export { FigzBundleManager, figzBundleManager } from './FigzBundleManager.ts';
+
+// Bundle UI components
+export { BundleGalleryPanel } from './ui/BundleGalleryPanel.ts';
+export type { BundleType, BundleGalleryPanelOptions } from './ui/BundleGalleryPanel.ts';
+export { FigureComposer } from './ui/FigureComposer.ts';
+export type { FigureComposerOptions } from './ui/FigureComposer.ts';

@@ -14,6 +14,7 @@ export interface InteractionHandlers {
     setupThemeToggle(): void;
     setupFilesTree(projectOwner: string, projectSlug: string): Promise<void>;
     setupShortcutsHelp(): void;
+    setupHitRegionToggle(): void;
 }
 
 /**
@@ -95,9 +96,54 @@ export function setupInteractionHandlers(editor: SigmaEditor): InteractionHandle
                 slug: projectSlug,
                 showFolderActions: true,
                 showGitStatus: true,
-                onFileSelect: (path: string) => {
+                onFileSelect: async (path: string) => {
                     console.log(`[InteractionHandlers] File selected: ${path}`);
-                    // TODO: Implement file import when clicked
+
+                    // Construct full filesystem path from relative path
+                    const fullPath = `/app/data/users/${projectOwner}/proj/${projectSlug}/${path}`;
+
+                    // Handle figz bundle files
+                    if (path.endsWith('.figz') || path.endsWith('.figz.d')) {
+                        console.log('[InteractionHandlers] Loading figz bundle:', fullPath);
+                        try {
+                            const managers = editor.getManagers();
+                            await managers.canvasManager.loadFigzBundle(fullPath);
+                            // Store the figure path on the active tab for tree sync
+                            const activeTabId = managers.canvasTabManager.getActiveTab()?.id;
+                            if (activeTabId) {
+                                managers.canvasTabManager.setTabFigurePath(activeTabId, fullPath);
+                            }
+                        } catch (error) {
+                            console.error('[InteractionHandlers] Failed to load figz bundle:', error);
+                        }
+                        return;
+                    }
+
+                    // Handle pltz bundle files (load as single panel)
+                    if (path.endsWith('.pltz') || path.endsWith('.pltz.d')) {
+                        console.log('[InteractionHandlers] Loading pltz bundle:', fullPath);
+                        try {
+                            const managers = editor.getManagers();
+                            // Extract panel name from path
+                            const panelName = path.split('/').pop()?.replace('.pltz.d', '').replace('.pltz', '') || 'A';
+                            const parentPath = fullPath.replace(`/${path.split('/').pop()}`, '');
+                            await managers.canvasManager.loadPltzPanel(
+                                {
+                                    id: panelName,
+                                    label: panelName,
+                                    plot: path.split('/').pop() || '',
+                                    position: { x_mm: 10, y_mm: 10 },
+                                    size: { width_mm: 80, height_mm: 60 },
+                                },
+                                parentPath // Full path to parent dir
+                            );
+                        } catch (error) {
+                            console.error('[InteractionHandlers] Failed to load pltz bundle:', error);
+                        }
+                        return;
+                    }
+
+                    // TODO: Handle other file types (CSV, images, etc.)
                 },
             });
 
@@ -105,6 +151,51 @@ export function setupInteractionHandlers(editor: SigmaEditor): InteractionHandle
 
             // Expose tree to window for debugging
             (window as any).filesTree = filesTree;
+
+            // Listen for file-delete events to sync tabs with filesystem
+            const filesTreeContainer = document.getElementById('files-tree');
+            if (filesTreeContainer) {
+                filesTreeContainer.addEventListener('file-delete', (event: Event) => {
+                    const customEvent = event as CustomEvent;
+                    const deletedPath = customEvent.detail?.path;
+                    console.log(`[InteractionHandlers] File deleted: ${deletedPath}`);
+
+                    // Get managers for cleanup
+                    const managers = editor.getManagers();
+
+                    // Check if it's a figz bundle that was deleted
+                    if (deletedPath?.endsWith('.figz') || deletedPath?.endsWith('.figz.d')) {
+                        console.log('[InteractionHandlers] Figz bundle deleted, cleaning up tabs and canvas');
+
+                        // Clear canvas if the deleted figure is currently displayed
+                        const currentFigzPath = managers.canvasManager.getCurrentFigzPath?.();
+                        if (currentFigzPath && currentFigzPath.includes(deletedPath)) {
+                            managers.canvasManager.clearCanvas();
+                            console.log('[InteractionHandlers] Cleared canvas after figure deletion');
+                        }
+                    }
+
+                    // Always validate tabs after any file deletion (orphan cleanup)
+                    setTimeout(() => {
+                        editor.validateTabsAgainstFilesystem();
+                    }, 500);
+                });
+                console.log('[InteractionHandlers] File-delete event listener registered');
+
+                // Also listen for tree-refresh events
+                filesTreeContainer.addEventListener('tree-refresh', () => {
+                    console.log('[InteractionHandlers] Tree refreshed, validating tabs');
+                    setTimeout(() => {
+                        editor.validateTabsAgainstFilesystem();
+                    }, 500);
+                });
+            }
+
+            // Validate tabs against filesystem after tree loads
+            // Use setTimeout to ensure DOM is fully updated
+            setTimeout(() => {
+                editor.validateTabsAgainstFilesystem();
+            }, 800);
 
             console.log('[InteractionHandlers] WorkspaceFilesTree initialized successfully');
         } catch (error) {
@@ -150,10 +241,12 @@ export function setupInteractionHandlers(editor: SigmaEditor): InteractionHandle
                     <div class="shortcuts-modal-body">
                         <div class="shortcuts-section">
                             <h4>Global Navigation</h4>
-                            <div class="shortcut-row"><kbd>Alt+S</kbd> Scholar (research)</div>
-                            <div class="shortcut-row"><kbd>Alt+V</kbd> Vis (visualization)</div>
-                            <div class="shortcut-row"><kbd>Alt+C</kbd> Code (editor)</div>
+                            <div class="shortcut-row"><kbd>Alt+F</kbd> Files</div>
+                            <div class="shortcut-row"><kbd>Alt+S</kbd> Scholar</div>
+                            <div class="shortcut-row"><kbd>Alt+C</kbd> Code</div>
+                            <div class="shortcut-row"><kbd>Alt+V</kbd> Vis</div>
                             <div class="shortcut-row"><kbd>Alt+W</kbd> Writer</div>
+                            <div class="shortcut-row"><kbd>Alt+Z</kbd> Zen Mode</div>
                         </div>
                         <div class="shortcuts-section">
                             <h4>Basic</h4>
@@ -208,7 +301,7 @@ export function setupInteractionHandlers(editor: SigmaEditor): InteractionHandle
                             <div class="shortcut-row"><kbd>0</kbd> Fit to Window</div>
                             <div class="shortcut-row"><kbd>Ctrl++</kbd> Increase Canvas Size</div>
                             <div class="shortcut-row"><kbd>Ctrl+-</kbd> Decrease Canvas Size</div>
-                            <div class="shortcut-row"><kbd>Ctrl+0</kbd> Reset Canvas Size</div>
+                            <div class="shortcut-row"><kbd>Ctrl+0</kbd> Fit Canvas to Content</div>
                             <div class="shortcut-row"><kbd>G</kbd> Toggle Grid</div>
                             <div class="shortcut-row"><kbd>Alt+T</kbd> Toggle Theme</div>
                             <div class="shortcut-row"><kbd>Right-drag</kbd> Pan canvas</div>
@@ -392,12 +485,48 @@ export function setupInteractionHandlers(editor: SigmaEditor): InteractionHandle
         console.log('[InteractionHandlers] Shortcuts help modal initialized');
     }
 
+    /**
+     * Setup hit region overlay toggle button (debug visualization)
+     */
+    function setupHitRegionToggle(): void {
+        const toggleBtn = document.getElementById('toggle-hit-regions');
+        if (!toggleBtn) {
+            console.warn('[InteractionHandlers] Hit regions toggle button not found');
+            return;
+        }
+
+        // Track toggle state for button visual feedback
+        let isActive = false;
+
+        toggleBtn.addEventListener('click', () => {
+            const canvasManager = editor.getCanvasManager();
+            if (!canvasManager) {
+                console.warn('[InteractionHandlers] CanvasManager not available');
+                return;
+            }
+
+            const result = canvasManager.toggleHitRegionOverlay();
+            isActive = result;
+
+            // Update button appearance
+            toggleBtn.classList.toggle('active', isActive);
+            toggleBtn.title = isActive
+                ? 'Hide hit region overlay (debug)'
+                : 'Show hit region overlay (debug)';
+
+            console.log(`[InteractionHandlers] Hit region overlay: ${isActive ? 'ON' : 'OFF'}`);
+        });
+
+        console.log('[InteractionHandlers] Hit region toggle button initialized');
+    }
+
     // Apply themes on initialization
     applySavedThemes();
 
     return {
         setupThemeToggle,
         setupFilesTree,
-        setupShortcutsHelp
+        setupShortcutsHelp,
+        setupHitRegionToggle
     };
 }

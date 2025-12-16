@@ -448,9 +448,22 @@ export class GalleryCategories {
     private async selectPlot(category: string, plotName: string): Promise<void> {
         console.log(`[GalleryCategories] Selecting plot: ${category}/${plotName}`);
 
-        const categoryInfo = this.galleryContents?.categories[category];
-        const plot = categoryInfo?.plots.find(p => p.name === plotName);
-        if (!plot) return;
+        if (!this.galleryContents) {
+            console.error('[GalleryCategories] galleryContents is null - gallery not loaded');
+            return;
+        }
+
+        const categoryInfo = this.galleryContents.categories[category];
+        if (!categoryInfo) {
+            console.error(`[GalleryCategories] Category not found: ${category}`);
+            return;
+        }
+
+        const plot = categoryInfo.plots.find(p => p.name === plotName);
+        if (!plot) {
+            console.error(`[GalleryCategories] Plot not found: ${plotName} in ${category}`);
+            return;
+        }
 
         // Update selected state
         this.popupGrid?.querySelectorAll('.thumbnail-card').forEach(card => {
@@ -475,15 +488,32 @@ export class GalleryCategories {
                 this.state.loadedFrom = { category, plotName };
 
                 // Call the callback with plot info and CSV data
-                this.onPlotSelectCallback?.(plot, category, csvData);
+                console.log(`[GalleryCategories] Calling onPlotSelectCallback with ${csvData.length} rows`);
+                if (this.onPlotSelectCallback) {
+                    try {
+                        await this.onPlotSelectCallback(plot, category, csvData);
+                        console.log('[GalleryCategories] Callback completed successfully');
+                    } catch (callbackError) {
+                        console.error('[GalleryCategories] Callback error:', callbackError);
+                    }
+                } else {
+                    console.warn('[GalleryCategories] No onPlotSelectCallback defined');
+                }
                 this.onDataModifiedCallback?.(false);
 
                 // Hide popup
                 this.hidePopup();
             } else {
-                console.warn(`[GalleryCategories] No CSV found for ${category}/${plotName}`);
+                console.warn(`[GalleryCategories] No CSV found for ${category}/${plotName}, calling with empty data`);
                 // Still call callback with empty data (some plots don't have CSV)
-                this.onPlotSelectCallback?.(plot, category, []);
+                if (this.onPlotSelectCallback) {
+                    try {
+                        await this.onPlotSelectCallback(plot, category, []);
+                        console.log('[GalleryCategories] Callback completed (empty data)');
+                    } catch (callbackError) {
+                        console.error('[GalleryCategories] Callback error:', callbackError);
+                    }
+                }
                 this.hidePopup();
             }
         } catch (error) {

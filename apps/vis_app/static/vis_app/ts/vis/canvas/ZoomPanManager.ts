@@ -114,6 +114,7 @@ export class ZoomPanManager {
                 panY: this.canvasPanOffset.y,
             };
             localStorage.setItem('scitex-vis-viewstate', JSON.stringify(state));
+            console.log('[ZoomPanManager] 💾 Saved view state:', state);
         }, 200); // Debounce 200ms
     }
 
@@ -123,15 +124,50 @@ export class ZoomPanManager {
     public restoreViewState(): void {
         try {
             const saved = localStorage.getItem('scitex-vis-viewstate');
+            console.log('[ZoomPanManager] 📂 Raw localStorage value:', saved);
             if (saved) {
                 const state = JSON.parse(saved);
+                console.log('[ZoomPanManager] 📂 Parsed state:', state);
                 if (state.zoom !== undefined) this.canvasZoomLevel = state.zoom;
                 if (state.panX !== undefined) this.canvasPanOffset.x = state.panX;
                 if (state.panY !== undefined) this.canvasPanOffset.y = state.panY;
-                console.log('[ZoomPanManager] Restored view state:', state);
+                console.log('[ZoomPanManager] 📂 Applied to internal state - zoom:', this.canvasZoomLevel, 'panX:', this.canvasPanOffset.x, 'panY:', this.canvasPanOffset.y);
+                // Apply the restored transform to DOM elements
+                this.applyTransformWithoutSave();
+            } else {
+                console.log('[ZoomPanManager] 📂 No saved state found in localStorage');
             }
         } catch (err) {
             console.warn('[ZoomPanManager] Failed to restore view state:', err);
+        }
+    }
+
+    /**
+     * Apply CSS transform without triggering save (used during restore)
+     */
+    private applyTransformWithoutSave(): void {
+        if (!this.canvas) {
+            console.warn('[ZoomPanManager] ⚠️ applyTransformWithoutSave: canvas not available');
+            return;
+        }
+
+        // Keep Fabric.js canvas at identity transform
+        this.canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+
+        // Update CSS transform on rulers area
+        const rulersArea = document.querySelector('.vis-rulers-area') as HTMLElement;
+        if (rulersArea) {
+            const transform = `translate(${this.canvasPanOffset.x}px, ${this.canvasPanOffset.y}px) scale(${this.canvasZoomLevel})`;
+            rulersArea.style.transform = transform;
+            rulersArea.style.transformOrigin = '0 0';
+            console.log('[ZoomPanManager] ✅ Applied CSS transform:', transform);
+        } else {
+            console.warn('[ZoomPanManager] ⚠️ .vis-rulers-area not found in DOM');
+        }
+
+        // Update rulers callback if set
+        if (this.rulersCallback) {
+            this.rulersCallback();
         }
     }
 
@@ -202,6 +238,76 @@ export class ZoomPanManager {
 
         this.applyZoom();
         console.log(`[ZoomPanManager] Canvas zoomed to fit: ${Math.round(this.canvasZoomLevel * 100)}% (container: ${containerWidth}×${containerHeight}px)`);
+    }
+
+    /**
+     * Zoom to fit content - calculates bounding box of all objects and fits view
+     * This is more useful than zoomToFit which fits the entire canvas document
+     */
+    public zoomToContent(): void {
+        if (!this.canvas) {
+            console.warn('[ZoomPanManager] Canvas not initialized');
+            return;
+        }
+
+        // Get viewport dimensions
+        const viewport = document.querySelector('.pane-content.canvas-content');
+        if (!viewport) {
+            console.warn('[ZoomPanManager] Viewport not found, falling back to zoomToFit');
+            this.zoomToFit();
+            return;
+        }
+
+        const viewportWidth = (viewport as HTMLElement).clientWidth - 80;  // Account for rulers
+        const viewportHeight = (viewport as HTMLElement).clientHeight - 80;
+
+        // Get all objects (or just bundle panels if any exist)
+        const objects = this.canvas.getObjects();
+        const panels = objects.filter((obj: any) => obj.isBundlePanel);
+        const targetObjects = panels.length > 0 ? panels : objects.filter((obj: any) => !obj.isGrid);
+
+        if (targetObjects.length === 0) {
+            console.log('[ZoomPanManager] No content to fit, using default view');
+            this.resetView();
+            return;
+        }
+
+        // Calculate bounding box
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (const obj of targetObjects) {
+            const left = obj.left || 0;
+            const top = obj.top || 0;
+            const width = obj.getScaledWidth ? obj.getScaledWidth() : (obj.width || 0);
+            const height = obj.getScaledHeight ? obj.getScaledHeight() : (obj.height || 0);
+
+            minX = Math.min(minX, left);
+            minY = Math.min(minY, top);
+            maxX = Math.max(maxX, left + width);
+            maxY = Math.max(maxY, top + height);
+        }
+
+        // Add padding
+        const padding = 30;
+        minX -= padding;
+        minY -= padding;
+        maxX += padding;
+        maxY += padding;
+
+        const contentWidth = maxX - minX;
+        const contentHeight = maxY - minY;
+
+        // Calculate zoom to fit content in viewport (cap at 150%)
+        const zoom = Math.min(viewportWidth / contentWidth, viewportHeight / contentHeight, 1.5);
+
+        // Pan to position content at top-left with small offset
+        const panX = -(minX * zoom) + 20;
+        const panY = -(minY * zoom) + 20;
+
+        this.canvasZoomLevel = zoom;
+        this.canvasPanOffset = { x: panX, y: panY };
+
+        this.applyZoom();
+        console.log(`[ZoomPanManager] Zoomed to content: ${Math.round(zoom * 100)}% (content: ${Math.round(contentWidth)}×${Math.round(contentHeight)}px)`);
     }
 
     /**
@@ -285,6 +391,7 @@ export class ZoomPanManager {
                 const now = Date.now();
                 if (now - lastRightClickTime < DOUBLE_CLICK_THRESHOLD) {
                     // Double right-click - reset canvas position to origin
+                    console.log('[ZoomPanManager] 🎯 Double-right-click: resetting to origin. Current pan:', this.canvasPanOffset);
                     this.canvasPanOffset.x = 0;
                     this.canvasPanOffset.y = 0;
                     this.updateCanvasTransform();
@@ -293,7 +400,7 @@ export class ZoomPanManager {
                     }
                     this.saveViewState();
                     this.rightClickPanOccurred = true; // Suppress context menu
-                    console.log('[ZoomPanManager] Canvas position reset to origin (right double-click)');
+                    console.log('[ZoomPanManager] 🎯 Canvas position reset to origin. New pan:', this.canvasPanOffset);
                     lastRightClickTime = 0; // Reset to prevent triple-click
                 } else {
                     // Single right-click - prepare for potential pan

@@ -286,7 +286,12 @@ export class RulersManager {
         for (let inch = 0; inch <= maxInch; inch++) {
             const x = inchToPx(inch);
             svgContent += `<line x1="${x}" y1="40" x2="${x}" y2="${rulerHeight}" stroke="${majorColor}" stroke-width="1.5"/>`;
-            svgContent += `<text x="${x}" y="35" text-anchor="middle" font-size="11" fill="${textColor}" class="ruler-label" style="cursor:pointer"><title>${inch}" (click to toggle mm)</title>${inch}"</text>`;
+            if (inch === 0) {
+                // Special handling for 0" - position like mm ruler to avoid being cut off
+                svgContent += `<text x="3" y="35" text-anchor="start" font-size="11" fill="${textColor}" class="ruler-label" style="cursor:pointer"><title>0" (click to toggle mm)</title>0"</text>`;
+            } else {
+                svgContent += `<text x="${x}" y="35" text-anchor="middle" font-size="11" fill="${textColor}" class="ruler-label" style="cursor:pointer"><title>${inch}" (click to toggle mm)</title>${inch}"</text>`;
+            }
         }
 
         // Fractional inch markers (1/2, 1/4, 1/8, 1/16)
@@ -422,7 +427,12 @@ export class RulersManager {
         for (let inch = 0; inch <= maxInch; inch++) {
             const y = inchToPx(inch);
             svgContent += `<line x1="40" y1="${y}" x2="${rulerWidth}" y2="${y}" stroke="${majorColor}" stroke-width="1.5"/>`;
-            svgContent += `<text x="30" y="${y}" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="${textColor}" class="ruler-label" style="cursor:pointer" transform="rotate(-90, 30, ${y})"><title>${inch}" (click to toggle mm)</title>${inch}"</text>`;
+            if (inch === 0) {
+                // Special handling for 0" - position like mm ruler to avoid being cut off
+                svgContent += `<text x="30" y="8" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="${textColor}" class="ruler-label" style="cursor:pointer" transform="rotate(-90, 30, 8)"><title>0" (click to toggle mm)</title>0"</text>`;
+            } else {
+                svgContent += `<text x="30" y="${y}" text-anchor="middle" dominant-baseline="middle" font-size="11" fill="${textColor}" class="ruler-label" style="cursor:pointer" transform="rotate(-90, 30, ${y})"><title>${inch}" (click to toggle mm)</title>${inch}"</text>`;
+            }
         }
 
         // Fractional inch markers

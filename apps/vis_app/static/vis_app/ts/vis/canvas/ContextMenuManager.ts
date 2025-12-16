@@ -66,6 +66,10 @@ export class ContextMenuManager {
         exportAsSvg?: () => void;
         exportAsPdf?: () => void;
 
+        // Download operations
+        downloadFigzBundle?: () => void;
+        downloadPltzBundle?: () => void;
+
         // Canvas operations
         saveCanvas?: () => void;
         toggleTheme?: () => void;
@@ -330,6 +334,12 @@ export class ContextMenuManager {
                 break;
             case 'export-pdf':
                 this.contextMenuCallbacks.exportAsPdf?.();
+                break;
+            case 'download-figz':
+                this.contextMenuCallbacks.downloadFigzBundle?.();
+                break;
+            case 'download-pltz':
+                this.contextMenuCallbacks.downloadPltzBundle?.();
                 break;
             case 'save-canvas':
                 this.contextMenuCallbacks.saveCanvas?.();
@@ -611,6 +621,13 @@ export class ContextMenuManager {
                     </div>
                     <div class="context-menu-item" data-action="export-pdf">
                         <i class="fas fa-file-pdf"></i> Export as PDF
+                    </div>
+                    <div class="context-menu-separator"></div>
+                    <div class="context-menu-item" data-action="download-figz">
+                        <i class="fas fa-file-archive"></i> Download .figz
+                    </div>
+                    <div class="context-menu-item" data-action="download-pltz">
+                        <i class="fas fa-chart-line"></i> Download .pltz
                     </div>
                 </div>
             </div>

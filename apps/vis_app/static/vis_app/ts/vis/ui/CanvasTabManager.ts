@@ -13,6 +13,8 @@ export interface CanvasTab {
     id: string;
     figureName: string;
     isActive: boolean;
+    /** File path of the figz bundle (for tree sync) */
+    figurePath?: string;
     /** IDs of linked data tables - bidirectional link with DataTab.linkedFigureId */
     linkedDataTableIds?: string[];
     /** Serialized canvas JSON (fabric.js toJSON output) */
@@ -32,18 +34,19 @@ export class CanvasTabManager {
     private onTabChange: ((tabId: string) => void) | null = null;
     private onTabClose: ((tabId: string) => void) | null = null;
     private onTabRename: ((tabId: string, newName: string) => void) | null = null;
+    private onBundleCreated: ((figureName: string, figurePath: string) => void) | null = null;
 
     constructor() {
         this.initializeDefaultTab();
     }
 
     /**
-     * Initialize with a default tab (Figure 1)
+     * Initialize with a default tab (Figure1)
      */
     private initializeDefaultTab(): void {
         const defaultTab: CanvasTab = {
             id: 'default',
-            figureName: 'Figure 1',
+            figureName: 'Figure1',  // No space for filesystem compatibility
             isActive: true,
             linkedDataTableIds: ['default-data']  // Links to default data table
         };
@@ -58,26 +61,108 @@ export class CanvasTabManager {
         onTabChange: (tabId: string) => void,
         onTabClose: (tabId: string) => void,
         onTabRename: (tabId: string, newName: string) => void,
-        onBeforeTabChange?: () => void
+        onBeforeTabChange?: () => void,
+        onBundleCreated?: (figureName: string, figurePath: string) => void
     ): void {
         this.onTabChange = onTabChange;
         this.onTabClose = onTabClose;
         this.onTabRename = onTabRename;
         this.onBeforeTabChange = onBeforeTabChange || null;
+        this.onBundleCreated = onBundleCreated || null;
+    }
+
+    /**
+     * Create a figz bundle on the backend using scitex package
+     * Called when a new figure tab is created to ensure the bundle exists on disk
+     */
+    private async createFigzBundleOnBackend(figureName: string): Promise<string | null> {
+        const projectOwner = (window as any).projectOwner;
+        const projectSlug = (window as any).projectSlug;
+
+        if (!projectOwner || !projectSlug) {
+            console.warn('[CanvasTabManager] No project context - cannot create figz bundle');
+            return null;
+        }
+
+        try {
+            const csrfToken = this.getCSRFToken();
+            const response = await fetch('/vis/api/bundles/figz/create-empty/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    project_owner: projectOwner,
+                    project_slug: projectSlug,
+                    figure_name: figureName,
+                    canvas_size: { width_mm: 170, height_mm: 120 }
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                console.error('[CanvasTabManager] Failed to create figz bundle:', error);
+                return null;
+            }
+
+            const result = await response.json();
+            console.log('[CanvasTabManager] Created figz bundle:', result.directory_path);
+
+            // Notify callback (e.g., to refresh file tree)
+            if (this.onBundleCreated && result.directory_path) {
+                this.onBundleCreated(figureName, result.directory_path);
+            }
+
+            return result.directory_path;
+        } catch (error) {
+            console.error('[CanvasTabManager] Error creating figz bundle:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Get CSRF token from cookie
+     */
+    private getCSRFToken(): string {
+        const cookies = document.cookie.split(';');
+        for (const cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'csrftoken') {
+                return value;
+            }
+        }
+        return '';
     }
 
     /**
      * Create a new figure tab
+     * Prevents duplicate figure names by adding numeric suffix
      */
-    public createTab(figureName?: string): string {
+    public createTab(figureName?: string, figurePath?: string): string {
         const id = `canvas-tab-${Date.now()}`;
 
-        // Auto-generate figure name if not provided
-        const figName = figureName || `Figure ${this.tabs.length + 1}`;
+        // Auto-generate unique figure name or sanitize provided name
+        let figName = figureName
+            ? this.sanitizeFigureName(figureName)
+            : this.generateUniqueFigureName();
+
+        // Check for duplicate names (case-insensitive)
+        const existingNames = this.tabs.map(t => t.figureName.toLowerCase());
+        if (existingNames.includes(figName.toLowerCase())) {
+            // Find next available number
+            let counter = 2;
+            const baseName = figName.replace(/\d+$/, '');  // Remove trailing numbers
+            while (existingNames.includes(`${baseName}${counter}`.toLowerCase())) {
+                counter++;
+            }
+            figName = `${baseName}${counter}`;  // No space
+        }
 
         const newTab: CanvasTab = {
             id,
             figureName: figName,
+            figurePath: figurePath,
             isActive: false
         };
         this.tabs.push(newTab);
@@ -87,6 +172,89 @@ export class CanvasTabManager {
         this.saveTabsToStorage();
 
         return id;
+    }
+
+    /**
+     * Generate a unique figure name based on existing tabs
+     * Uses no spaces (e.g., "Figure1", "Figure2") for filesystem compatibility
+     */
+    private generateUniqueFigureName(): string {
+        const existingNames = this.tabs.map(t => t.figureName.toLowerCase());
+        let counter = 1;
+        // No space between Figure and number (filesystem-friendly)
+        while (existingNames.includes(`figure${counter}`.toLowerCase()) ||
+               existingNames.includes(`figure ${counter}`.toLowerCase())) {
+            counter++;
+        }
+        return `Figure${counter}`;
+    }
+
+    /**
+     * Sanitize figure name for filesystem compatibility
+     * Removes/replaces characters that are invalid in filenames
+     */
+    private sanitizeFigureName(name: string): string {
+        return name
+            .replace(/\s+/g, '')           // Remove all spaces
+            .replace(/[<>:"/\\|?*]/g, '')  // Remove invalid filename chars
+            .trim();
+    }
+
+    /**
+     * Find a tab by figure path (normalized to handle both .figz and .figz.d)
+     */
+    public findTabByFigurePath(figurePath: string): CanvasTab | undefined {
+        // Normalize path for comparison (remove both .figz.d and .figz to get base)
+        const normalizePath = (p: string) => p.replace(/\.figz\.d$/, '').replace(/\.figz$/, '');
+        const normalizedInput = normalizePath(figurePath);
+
+        return this.tabs.find(tab => {
+            if (!tab.figurePath) return false;
+            return normalizePath(tab.figurePath) === normalizedInput;
+        });
+    }
+
+    /**
+     * Create or switch to a tab for a figz bundle file
+     * If a tab already exists for this figure, switch to it
+     * Otherwise create a new tab with the figure name
+     */
+    public createTabForFigure(figurePath: string): string {
+        // Check if a tab already exists for this figure
+        const existingTab = this.findTabByFigurePath(figurePath);
+        if (existingTab) {
+            console.log(`[CanvasTabManager] Found existing tab for ${figurePath}, switching to it`);
+            this.switchToTab(existingTab.id);
+            return existingTab.id;
+        }
+
+        // Extract figure name from path (e.g., "/path/to/Figure1.figz.d" -> "Figure1")
+        const parts = figurePath.split('/');
+        let filename = parts[parts.length - 1];
+        // Remove .figz.d or .figz extension
+        filename = filename.replace(/\.figz\.d$/, '').replace(/\.figz$/, '');
+
+        return this.createTab(filename, figurePath);
+    }
+
+    /**
+     * Set figure path for an existing tab (for when canvas is loaded from tree)
+     */
+    public setTabFigurePath(tabId: string, figurePath: string): void {
+        const tab = this.tabs.find(t => t.id === tabId);
+        if (tab) {
+            tab.figurePath = figurePath;
+            this.saveTabsToStorage();
+            console.log(`[CanvasTabManager] Set figurePath for tab ${tabId}: ${figurePath}`);
+        }
+    }
+
+    /**
+     * Get figure path for the active tab
+     */
+    public getActiveTabFigurePath(): string | undefined {
+        const activeTab = this.getActiveTab();
+        return activeTab?.figurePath;
     }
 
     /**
@@ -242,8 +410,15 @@ export class CanvasTabManager {
         input.className = 'figure-rename-input';
         input.value = currentName;
 
+        // Create hint tooltip for space-to-underscore conversion
+        const hintTooltip = document.createElement('div');
+        hintTooltip.className = 'rename-hint-tooltip';
+        hintTooltip.textContent = 'Space → _';
+        hintTooltip.style.cssText = 'display:none;position:absolute;background:#6c757d;color:white;padding:2px 6px;border-radius:3px;font-size:11px;z-index:9999;white-space:nowrap;';
+
         labelElement.style.display = 'none';
         itemElement.insertBefore(input, labelElement.nextSibling);
+        itemElement.appendChild(hintTooltip);
         input.focus();
         input.select();
 
@@ -254,7 +429,35 @@ export class CanvasTabManager {
             const newName = input.value.trim() || currentName;
             this.renameTab(tabId, newName);
             input.remove();
+            hintTooltip.remove();
             labelElement.style.display = '';
+        };
+
+        // Auto-replace spaces with underscores
+        input.addEventListener('beforeinput', (e: InputEvent) => {
+            if (e.data && e.data.includes(' ')) {
+                e.preventDefault();
+                // Insert underscore at cursor position
+                const start = input.selectionStart || 0;
+                const end = input.selectionEnd || 0;
+                const replaced = e.data.replace(/\s+/g, '_');
+                input.value = input.value.slice(0, start) + replaced + input.value.slice(end);
+                input.setSelectionRange(start + replaced.length, start + replaced.length);
+                hintTooltip.style.display = 'block';
+                setTimeout(() => { hintTooltip.style.display = 'none'; }, 1000);
+            }
+        });
+
+        // Fallback: replace any spaces that got through (e.g., from paste)
+        input.oninput = () => {
+            if (input.value.includes(' ')) {
+                const pos = input.selectionStart || 0;
+                const diff = input.value.length - input.value.replace(/\s+/g, '_').length;
+                input.value = input.value.replace(/\s+/g, '_');
+                input.setSelectionRange(pos - diff, pos - diff);
+                hintTooltip.style.display = 'block';
+                setTimeout(() => { hintTooltip.style.display = 'none'; }, 1000);
+            }
         };
 
         input.onblur = finishRename;
@@ -373,6 +576,13 @@ export class CanvasTabManager {
     }
 
     /**
+     * Get a tab by ID
+     */
+    public getTab(tabId: string): CanvasTab | undefined {
+        return this.tabs.find(t => t.id === tabId);
+    }
+
+    /**
      * Save all tabs to localStorage for persistence across page reloads
      */
     private saveTabsToStorage(): void {
@@ -380,6 +590,7 @@ export class CanvasTabManager {
             const tabsData = this.tabs.map(tab => ({
                 id: tab.id,
                 figureName: tab.figureName,
+                figurePath: tab.figurePath,
                 isActive: tab.isActive,
                 canvasJson: tab.canvasJson,
                 viewState: tab.viewState
@@ -409,6 +620,77 @@ export class CanvasTabManager {
             console.warn('[CanvasTabManager] Failed to load tabs from storage:', err);
         }
         return false;
+    }
+
+    /**
+     * Validate tabs against filesystem - remove orphan tabs.
+     * Call this when the file tree refreshes or at initialization.
+     *
+     * Removes:
+     * - Tabs with figurePath that no longer exists in filesystem
+     * - Tabs without figurePath (unsaved figures), except default tab
+     *
+     * @param validPaths Array of valid figz paths from the file tree
+     * @returns Number of tabs removed
+     */
+    public validateAndCleanTabs(validPaths: string[]): number {
+        const initialCount = this.tabs.length;
+        const validPathSet = new Set(validPaths.map(p => p.toLowerCase()));
+
+        this.tabs = this.tabs.filter(tab => {
+            // Always keep the default tab
+            if (tab.id === 'default') return true;
+
+            // Tabs without figurePath are orphans (unsaved) - remove them
+            if (!tab.figurePath) {
+                console.log(`[CanvasTabManager] Removing orphan tab (unsaved): ${tab.figureName}`);
+                return false;
+            }
+
+            // Check if the figurePath exists in the tree (case-insensitive)
+            const tabPath = tab.figurePath.toLowerCase();
+            const exists = validPathSet.has(tabPath) ||
+                Array.from(validPathSet).some(vp => tabPath.endsWith(vp) || vp.endsWith(tabPath));
+
+            if (!exists) {
+                console.log(`[CanvasTabManager] Removing stale tab: ${tab.figureName} (${tab.figurePath})`);
+            }
+            return exists;
+        });
+
+        const removedCount = initialCount - this.tabs.length;
+
+        // Ensure at least one tab exists
+        if (this.tabs.length === 0) {
+            this.initializeDefaultTab();
+            console.log('[CanvasTabManager] No valid tabs - created default tab');
+        }
+
+        // Update active tab if it was removed
+        if (this.activeTabId && !this.tabs.find(t => t.id === this.activeTabId)) {
+            this.activeTabId = this.tabs[0]?.id || null;
+            this.tabs.forEach(t => t.isActive = t.id === this.activeTabId);
+        }
+
+        if (removedCount > 0) {
+            this.saveTabsToStorage();
+            this.renderTabs();
+            console.log(`[CanvasTabManager] Removed ${removedCount} orphan/stale tab(s)`);
+        }
+
+        return removedCount;
+    }
+
+    /**
+     * Clear all stored tabs (useful when switching projects)
+     */
+    public clearAllTabs(): void {
+        localStorage.removeItem('scitex-vis-canvas-tabs');
+        this.tabs = [];
+        this.activeTabId = null;
+        this.initializeDefaultTab();
+        this.renderTabs();
+        console.log('[CanvasTabManager] Cleared all tabs');
     }
 
     /**
@@ -480,11 +762,18 @@ export class CanvasTabManager {
         const input = document.createElement('input');
         input.type = 'text';
         input.className = 'inline-new-tab-input figure-rename-input';
-        const defaultFigureName = `Figure ${this.tabs.length + 1}`;
+        const defaultFigureName = this.generateUniqueFigureName();  // No space (Figure1, Figure2...)
         input.value = defaultFigureName;
         input.placeholder = defaultFigureName;
 
+        // Create hint tooltip for space-to-underscore conversion
+        const hintTooltip = document.createElement('div');
+        hintTooltip.className = 'rename-hint-tooltip';
+        hintTooltip.textContent = 'Space → _';
+        hintTooltip.style.cssText = 'display:none;position:absolute;background:#6c757d;color:white;padding:2px 6px;border-radius:3px;font-size:11px;z-index:9999;white-space:nowrap;';
+
         inputItem.appendChild(input);
+        inputItem.appendChild(hintTooltip);
         menu.appendChild(inputItem);
 
         input.focus();
@@ -493,12 +782,17 @@ export class CanvasTabManager {
         // Flag to prevent double execution from both Enter key and blur event
         let isFinished = false;
 
-        const finishCreate = () => {
+        const finishCreate = async () => {
             if (isFinished) return;
             isFinished = true;
             const figureName = input.value.trim() || defaultFigureName;
             inputItem.remove();
-            const newTabId = this.createTab(figureName);
+
+            // Create figz bundle on backend first (using scitex package)
+            const bundlePath = await this.createFigzBundleOnBackend(figureName);
+
+            // Create the tab with the figure path (if bundle was created)
+            const newTabId = this.createTab(figureName, bundlePath || undefined);
             this.switchToTab(newTabId);
             this.closeDropdown();
         };
@@ -507,6 +801,33 @@ export class CanvasTabManager {
             if (isFinished) return;
             isFinished = true;
             inputItem.remove();
+        };
+
+        // Auto-replace spaces with underscores
+        input.addEventListener('beforeinput', (e: InputEvent) => {
+            if (e.data && e.data.includes(' ')) {
+                e.preventDefault();
+                // Insert underscore at cursor position
+                const start = input.selectionStart || 0;
+                const end = input.selectionEnd || 0;
+                const replaced = e.data.replace(/\s+/g, '_');
+                input.value = input.value.slice(0, start) + replaced + input.value.slice(end);
+                input.setSelectionRange(start + replaced.length, start + replaced.length);
+                hintTooltip.style.display = 'block';
+                setTimeout(() => { hintTooltip.style.display = 'none'; }, 1000);
+            }
+        });
+
+        // Fallback: replace any spaces that got through (e.g., from paste)
+        input.oninput = () => {
+            if (input.value.includes(' ')) {
+                const pos = input.selectionStart || 0;
+                const diff = input.value.length - input.value.replace(/\s+/g, '_').length;
+                input.value = input.value.replace(/\s+/g, '_');
+                input.setSelectionRange(pos - diff, pos - diff);
+                hintTooltip.style.display = 'block';
+                setTimeout(() => { hintTooltip.style.display = 'none'; }, 1000);
+            }
         };
 
         input.onblur = () => {

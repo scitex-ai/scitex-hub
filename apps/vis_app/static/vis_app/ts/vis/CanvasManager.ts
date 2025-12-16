@@ -28,7 +28,9 @@ import { CropManager } from './canvas/CropManager.ts';
 import { ElementSelectionManager } from './canvas/ElementSelectionManager.ts';
 import { ContextMenuManager } from './canvas/ContextMenuManager.ts';
 import { CanvasResizeManager } from './canvas/CanvasResizeManager.ts';
-import { hitmapManager } from './HitmapManager.ts';
+import { SessionManager } from './canvas/SessionManager.ts';
+import { BundleCanvasManager } from './canvas/BundleCanvasManager.ts';
+import { geometryManager, GeometryData } from './GeometryManager.ts';
 
 export class CanvasManager {
     public canvas: any | null = null; // Fabric.js canvas instance
@@ -49,6 +51,8 @@ export class CanvasManager {
     private elementSelectionManager: ElementSelectionManager | null = null;
     private contextMenuManager: ContextMenuManager | null = null;
     private canvasResizeManager: CanvasResizeManager | null = null;
+    private sessionManager: SessionManager | null = null;
+    private bundleCanvasManager: BundleCanvasManager | null = null;
 
     // Canvas zoom and pan state
     private canvasZoomLevel: number = 0.22;
@@ -89,6 +93,17 @@ export class CanvasManager {
     // Original image sources for theme switching (shared with ThemeManager via ObjectManager)
     private originalImageSources: Map<any, string> = new Map();
 
+    // Bundle auto-save state
+    private autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
+    private autoSaveDelay: number = 1000; // Debounce delay in ms
+    private bundleProjectOwner: string = '';
+    private bundleProjectSlug: string = '';
+    private bundleFigureName: string = 'Figure1';
+
+    // Hit region overlay (debug visualization)
+    private hitRegionOverlayVisible: boolean = false;
+    private hitRegionOverlayImage: any = null; // Fabric.js image for hitmap overlay
+
     constructor(
         private statusBarCallback?: (message: string) => void,
         private rulersAreaTransformCallback?: () => void
@@ -112,35 +127,36 @@ export class CanvasManager {
 
     /**
      * Get canvas zoom level
-     * DELEGATES to ZoomPanManager
+     * Returns CanvasManager's internal state (used by wheel handlers)
      */
     public getCanvasZoomLevel(): number {
-        return this.zoomPanManager?.getZoomLevel() || 0.22;
+        return this.canvasZoomLevel;
     }
 
     /**
      * Get canvas pan offset
-     * DELEGATES to ZoomPanManager
+     * Returns CanvasManager's internal state (used by wheel handlers)
      */
     public getCanvasPanOffset(): { x: number, y: number } {
-        return this.zoomPanManager?.getPanOffset() || { x: 0, y: 0 };
+        return { x: this.canvasPanOffset.x, y: this.canvasPanOffset.y };
     }
 
     /**
-     * Set canvas zoom level (used when restoring tab state)
-     * DELEGATES to ZoomPanManager
+     * Set canvas zoom level (used when restoring tab state or ruler sync)
      */
     public setCanvasZoomLevel(zoom: number): void {
+        this.canvasZoomLevel = zoom;
         if (this.zoomPanManager) {
             this.zoomPanManager.setZoomLevel(zoom);
         }
     }
 
     /**
-     * Set canvas pan offset (used when restoring tab state)
-     * DELEGATES to ZoomPanManager
+     * Set canvas pan offset (used when restoring tab state or ruler sync)
      */
     public setCanvasPanOffset(x: number, y: number): void {
+        this.canvasPanOffset.x = x;
+        this.canvasPanOffset.y = y;
         if (this.zoomPanManager) {
             this.zoomPanManager.setPanOffset(x, y);
         }
@@ -194,6 +210,26 @@ export class CanvasManager {
         if (this.canvasResizeManager) {
             this.canvasResizeManager.resetSize();
             this.drawGrid(this.themeManager?.isDark() || false);
+        }
+    }
+
+    /**
+     * Fit canvas document size to content bounds
+     * DELEGATES to CanvasResizeManager
+     */
+    public fitCanvasToContent(): void {
+        if (this.canvasResizeManager) {
+            const success = this.canvasResizeManager.fitToContent();
+            if (success) {
+                this.drawGrid(this.themeManager?.isDark() || false);
+                // Zoom view to show the fitted content
+                this.zoomToContent();
+                this.saveSessionState();
+                // Also trigger figz auto-save if bundle manager exists
+                if (this.bundleCanvasManager) {
+                    this.bundleCanvasManager.debouncedFigzAutoSave();
+                }
+            }
         }
     }
 
@@ -338,6 +374,27 @@ export class CanvasManager {
                 this.statusBarCallback
             );
 
+            // Phase 7 managers - session and bundle management
+            this.bundleCanvasManager = new BundleCanvasManager(
+                this.canvas,
+                this.statusBarCallback,
+                (w: number, h: number) => this.setCanvasSizeMm(w, h),
+                () => this.clearCanvas(),
+                () => this.saveSessionState(),
+                (img: any) => this.processNewImageForTheme(img)
+            );
+
+            this.sessionManager = new SessionManager(
+                this.canvas,
+                () => this.getCurrentFigzPath(),
+                () => ({
+                    owner: this.bundleProjectOwner,
+                    slug: this.bundleProjectSlug,
+                    figureName: this.bundleFigureName,
+                }),
+                (path: string) => this.loadFigzBundle(path)
+            );
+
             // Draw initial grid if enabled
             if (this.gridManager.isGridEnabled()) {
                 this.gridManager.drawGrid(initialIsDark);
@@ -351,6 +408,12 @@ export class CanvasManager {
             // Restore saved view state
             if (this.zoomPanManager) {
                 this.zoomPanManager.restoreViewState();
+                // Sync CanvasManager's internal state with ZoomPanManager
+                // (wheel handler uses these internal variables directly)
+                this.canvasZoomLevel = this.zoomPanManager.getZoomLevel();
+                const panOffset = this.zoomPanManager.getPanOffset();
+                this.canvasPanOffset.x = panOffset.x;
+                this.canvasPanOffset.y = panOffset.y;
             }
 
             // Save canvas when objects are modified (moved, scaled, rotated)
@@ -475,6 +538,11 @@ export class CanvasManager {
                 // Update properties panel if selection callback exists
                 if (this.selectionCallback && obj) {
                     this.selectionCallback(obj);
+                }
+
+                // Trigger figz auto-save for bundle panels
+                if (obj && obj.isBundlePanel) {
+                    this.debouncedFigzAutoSave();
                 }
             });
 
@@ -641,6 +709,16 @@ export class CanvasManager {
     public restoreSvgGroupColors(group: any): void {
         if (this.themeManager) {
             this.themeManager.restoreSvgGroupColors(group);
+        }
+    }
+
+    /**
+     * Process a newly added image for current theme (dark mode conversion)
+     * DELEGATES to ThemeManager
+     */
+    public processNewImageForTheme(img: any): void {
+        if (this.themeManager) {
+            this.themeManager.processNewImage(img);
         }
     }
 
@@ -953,10 +1031,8 @@ export class CanvasManager {
                             this.canvasPanOffset.x += this.pendingPanUpdate.x;
                             this.canvasPanOffset.y += this.pendingPanUpdate.y;
 
-                            // Use Fabric.js viewport transform for pan (maintains SVG crispness)
                             this.updateCanvasTransform();
 
-                            // Update rulers
                             if (this.rulersAreaTransformCallback) {
                                 this.rulersAreaTransformCallback();
                             }
@@ -1009,6 +1085,14 @@ export class CanvasManager {
                 this.pendingMovingTarget = null;
             }
         });
+
+        // Prevent browser's native Ctrl+wheel zoom on canvas area
+        // Must be at document level with capture to intercept before browser
+        document.addEventListener('wheel', (e: WheelEvent) => {
+            if ((e.ctrlKey || e.metaKey) && canvasContainer.contains(e.target as Node)) {
+                e.preventDefault();
+            }
+        }, { passive: false, capture: true });
 
         // Wheel event - Zoom with Ctrl, Pan without Ctrl
         canvasContainer.addEventListener('wheel', (e: WheelEvent) => {
@@ -1111,6 +1195,7 @@ export class CanvasManager {
                 panY: this.canvasPanOffset.y,
             };
             localStorage.setItem('scitex-vis-viewstate', JSON.stringify(state));
+            console.log('[CanvasManager] 💾 Saved view state:', state);
         }, 200); // Debounce 200ms
     }
 
@@ -1120,15 +1205,50 @@ export class CanvasManager {
     public restoreViewState(): void {
         try {
             const saved = localStorage.getItem('scitex-vis-viewstate');
+            console.log('[CanvasManager] 📂 Raw localStorage value:', saved);
             if (saved) {
                 const state = JSON.parse(saved);
+                console.log('[CanvasManager] 📂 Parsed state:', state);
                 if (state.zoom !== undefined) this.canvasZoomLevel = state.zoom;
                 if (state.panX !== undefined) this.canvasPanOffset.x = state.panX;
                 if (state.panY !== undefined) this.canvasPanOffset.y = state.panY;
-                console.log('[CanvasManager] Restored view state:', state);
+                console.log('[CanvasManager] 📂 Applied to internal state - zoom:', this.canvasZoomLevel, 'panX:', this.canvasPanOffset.x, 'panY:', this.canvasPanOffset.y);
+                // Apply the restored transform to DOM elements (without triggering save)
+                this.applyTransformWithoutSave();
+            } else {
+                console.log('[CanvasManager] 📂 No saved state found in localStorage');
             }
         } catch (err) {
             console.warn('[CanvasManager] Failed to restore view state:', err);
+        }
+    }
+
+    /**
+     * Apply CSS transform without triggering save (used during restore)
+     */
+    private applyTransformWithoutSave(): void {
+        if (!this.canvas) {
+            console.warn('[CanvasManager] ⚠️ applyTransformWithoutSave: canvas not available');
+            return;
+        }
+
+        // Keep Fabric.js canvas at identity transform
+        this.canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+
+        // Update CSS transform on rulers area
+        const rulersArea = document.querySelector('.vis-rulers-area') as HTMLElement;
+        if (rulersArea) {
+            const transform = `translate(${this.canvasPanOffset.x}px, ${this.canvasPanOffset.y}px) scale(${this.canvasZoomLevel})`;
+            rulersArea.style.transform = transform;
+            rulersArea.style.transformOrigin = '0 0';
+            console.log('[CanvasManager] ✅ Applied CSS transform:', transform);
+        } else {
+            console.warn('[CanvasManager] ⚠️ .vis-rulers-area not found in DOM');
+        }
+
+        // Update rulers callback if set
+        if (this.rulersAreaTransformCallback) {
+            this.rulersAreaTransformCallback();
         }
     }
 
@@ -1298,6 +1418,195 @@ export class CanvasManager {
         }
     }
 
+    // ========================================
+    // SESSION STATE PERSISTENCE (Page Refresh)
+    // ========================================
+
+    private static SESSION_STORAGE_KEY = 'scitex-vis-session';
+
+    /**
+     * Save session state to localStorage for page refresh recovery
+     * Includes: figz path, project context, panels info
+     */
+    public saveSessionState(): void {
+        try {
+            const sessionState = {
+                timestamp: Date.now(),
+                figzPath: this.currentFigzPath,
+                projectOwner: this.bundleProjectOwner,
+                projectSlug: this.bundleProjectSlug,
+                figureName: this.bundleFigureName,
+                canvasSize: this.canvas ? {
+                    width: this.canvas.getWidth(),
+                    height: this.canvas.getHeight(),
+                } : null,
+                panels: this.getBundlePanelsForSession(),
+            };
+
+            localStorage.setItem(CanvasManager.SESSION_STORAGE_KEY, JSON.stringify(sessionState));
+            console.log('[CanvasManager] Session state saved');
+        } catch (err) {
+            console.warn('[CanvasManager] Failed to save session state:', err);
+        }
+    }
+
+    /**
+     * Get panel info for session storage (lightweight version of getBundlePanels)
+     */
+    private getBundlePanelsForSession(): any[] {
+        if (!this.canvas) return [];
+
+        const panels: any[] = [];
+        const objects = this.canvas.getObjects();
+
+        for (const obj of objects) {
+            const plotInfo = (obj as any).plotInfo;
+            if (plotInfo?.bundlePath) {
+                panels.push({
+                    label: plotInfo.panelLabel || 'A',
+                    pltzPath: plotInfo.bundlePath,
+                    position: {
+                        left: obj.left,
+                        top: obj.top,
+                    },
+                    size: {
+                        width: obj.getScaledWidth(),
+                        height: obj.getScaledHeight(),
+                    },
+                });
+            }
+        }
+
+        return panels;
+    }
+
+    /**
+     * Restore session state from localStorage
+     * Returns the session state if found and valid, null otherwise
+     */
+    public getSessionState(): {
+        figzPath: string | null;
+        projectOwner: string;
+        projectSlug: string;
+        figureName: string;
+        canvasSize: { width: number; height: number } | null;
+        panels: any[];
+        timestamp: number;
+    } | null {
+        try {
+            const saved = localStorage.getItem(CanvasManager.SESSION_STORAGE_KEY);
+            if (!saved) return null;
+
+            const state = JSON.parse(saved);
+
+            // Check if session is recent (within 24 hours)
+            const maxAge = 24 * 60 * 60 * 1000; // 24 hours
+            if (Date.now() - state.timestamp > maxAge) {
+                console.log('[CanvasManager] Session state expired, clearing');
+                this.clearSessionState();
+                return null;
+            }
+
+            return state;
+        } catch (err) {
+            console.warn('[CanvasManager] Failed to restore session state:', err);
+            return null;
+        }
+    }
+
+    /**
+     * Clear session state from localStorage
+     */
+    public clearSessionState(): void {
+        localStorage.removeItem(CanvasManager.SESSION_STORAGE_KEY);
+        console.log('[CanvasManager] Session state cleared');
+    }
+
+    /**
+     * Restore session - load figz bundle from saved state
+     * Returns true if session was restored, false otherwise
+     */
+    public async restoreSession(): Promise<boolean> {
+        const session = this.getSessionState();
+        if (!session) {
+            console.log('[CanvasManager] No valid session to restore');
+            return false;
+        }
+
+        console.log('[CanvasManager] Restoring session:', session);
+
+        // Restore project context
+        if (session.projectOwner && session.projectSlug) {
+            this.bundleProjectOwner = session.projectOwner;
+            this.bundleProjectSlug = session.projectSlug;
+        }
+        if (session.figureName) {
+            this.bundleFigureName = session.figureName;
+        }
+
+        // If we have a figz path, reload it
+        if (session.figzPath) {
+            try {
+                await this.loadFigzBundle(session.figzPath);
+                console.log('[CanvasManager] Session restored from figz:', session.figzPath);
+                return true;
+            } catch (err) {
+                console.warn('[CanvasManager] Failed to load figz from session:', err);
+            }
+        }
+
+        // Fallback: restore canvas content from localStorage (panels without figz)
+        if (session.panels && session.panels.length > 0) {
+            console.log('[CanvasManager] Restoring panels from session...');
+            // Canvas content is restored via restoreCanvasContent() in SigmaEditor
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Setup beforeunload handler to save state before page close/refresh
+     */
+    public setupBeforeUnloadHandler(): void {
+        window.addEventListener('beforeunload', () => {
+            // Save session state synchronously
+            this.saveSessionStateSync();
+        });
+
+        // Also save periodically (every 30 seconds)
+        setInterval(() => {
+            this.saveSessionState();
+        }, 30000);
+
+        console.log('[CanvasManager] Page refresh handler installed');
+    }
+
+    /**
+     * Synchronous version of saveSessionState for beforeunload
+     * Uses localStorage.setItem which is synchronous
+     */
+    private saveSessionStateSync(): void {
+        try {
+            const sessionState = {
+                timestamp: Date.now(),
+                figzPath: this.currentFigzPath,
+                projectOwner: this.bundleProjectOwner,
+                projectSlug: this.bundleProjectSlug,
+                figureName: this.bundleFigureName,
+                canvasSize: this.canvas ? {
+                    width: this.canvas.getWidth(),
+                    height: this.canvas.getHeight(),
+                } : null,
+                panels: this.getBundlePanelsForSession(),
+            };
+
+            localStorage.setItem(CanvasManager.SESSION_STORAGE_KEY, JSON.stringify(sessionState));
+        } catch (err) {
+            // Silent fail for beforeunload
+        }
+    }
+
     /**
      * Update canvas zoom display
      */
@@ -1365,6 +1674,19 @@ export class CanvasManager {
 
         this.applyZoom();
         console.log(`[CanvasManager] Canvas zoomed to fit: ${Math.round(this.canvasZoomLevel * 100)}% (container: ${containerWidth}×${containerHeight}px)`);
+    }
+
+    /**
+     * Zoom to fit content - calculates bounding box of all objects and fits view
+     * DELEGATES to ZoomPanManager
+     */
+    public zoomToContent(): void {
+        if (this.zoomPanManager) {
+            this.zoomPanManager.zoomToContent();
+        } else {
+            // Fallback: use local implementation
+            this.zoomToFit();
+        }
     }
 
     /**
@@ -1681,6 +2003,573 @@ export class CanvasManager {
             this.statusBarCallback('Canvas cleared');
         }
         console.log('[CanvasManager] Canvas cleared');
+    }
+
+    // =========================================================================
+    // Bundle Integration (pltz/figz) - Canvas backed by SciTeX bundles
+    // =========================================================================
+
+    // Current figz bundle path (if loaded)
+    private currentFigzPath: string | null = null;
+
+    // DPI for mm-to-pixel conversion
+    private bundleRenderDpi: number = 150;
+
+    /**
+     * Load a figz bundle onto the canvas.
+     * Clears existing content and loads figure with all panels.
+     *
+     * @param figzPath - Filesystem path to .figz.d directory or .figz file
+     */
+    public async loadFigzBundle(figzPath: string): Promise<void> {
+        if (!this.canvas) {
+            console.error('[CanvasManager] Canvas not initialized');
+            return;
+        }
+
+        console.log(`[CanvasManager] Loading figz bundle: ${figzPath}`);
+
+        try {
+            // Clear existing content
+            this.clearCanvas();
+
+            // Fetch figz bundle data from API
+            const response = await fetch(`/vis/api/bundles/figz/load/?path=${encodeURIComponent(figzPath)}`);
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to load figz bundle');
+            }
+
+            const figzData = await response.json();
+            this.currentFigzPath = figzPath;
+
+            console.log(`[CanvasManager] Figz API response:`, JSON.stringify(figzData.panels, null, 2));
+
+            // Set canvas size from figz style (mm → px at DPI)
+            const sizeMm = figzData.size_mm || { width: 170, height: 120 };
+            this.setCanvasSizeMm(sizeMm.width, sizeMm.height);
+
+            // Load each panel
+            const panels = figzData.panels || [];
+            for (const panel of panels) {
+                console.log(`[CanvasManager] Loading panel ${panel.label} with plot: ${panel.plot}`);
+                await this.loadPltzPanel(panel, figzPath);
+            }
+
+            this.canvas.renderAll();
+
+            if (this.statusBarCallback) {
+                this.statusBarCallback(`Loaded figure: ${figzPath.split('/').pop()}`);
+            }
+
+            console.log(`[CanvasManager] Loaded figz bundle with ${panels.length} panels`);
+
+            // Save session state after loading
+            this.saveSessionState();
+
+        } catch (error) {
+            console.error('[CanvasManager] Failed to load figz bundle:', error);
+            if (this.statusBarCallback) {
+                this.statusBarCallback(`Error: ${error}`);
+            }
+            throw error;
+        }
+    }
+
+    /**
+     * Load a single pltz panel onto the canvas.
+     *
+     * @param panel - Panel spec with position, size, and plot reference
+     * @param figzPath - Parent figz bundle path
+     */
+    public async loadPltzPanel(
+        panel: {
+            id: string;
+            label: string;
+            plot: string;
+            position: { x_mm?: number; y_mm?: number };
+            size: { width_mm?: number; height_mm?: number };
+        },
+        figzPath: string
+    ): Promise<void> {
+        if (!this.canvas) {
+            console.error('[CanvasManager] Canvas not initialized');
+            return;
+        }
+
+        // Construct pltz bundle path
+        const pltzPath = `${figzPath}/${panel.plot}`;
+
+        console.log(`[CanvasManager] Loading panel ${panel.label}: ${pltzPath}`);
+
+        // Try SVG first for vector graphics quality, fallback to PNG
+        const svgUrl = `/vis/api/bundles/pltz/preview/?path=${encodeURIComponent(pltzPath)}&type=svg&t=${Date.now()}`;
+        const pngUrl = `/vis/api/bundles/pltz/preview/?path=${encodeURIComponent(pltzPath)}&type=png&t=${Date.now()}`;
+        const geometryUrl = `/vis/api/bundles/pltz/geometry/?path=${encodeURIComponent(pltzPath)}`;
+        console.log(`[CanvasManager] Loading panel ${panel.label} preview from: ${pltzPath}`);
+
+        // Convert mm position to pixels
+        const dpi = this.bundleRenderDpi;
+        const mmToPx = dpi / 25.4;
+        const x = (panel.position.x_mm || 0) * mmToPx;
+        const y = (panel.position.y_mm || 0) * mmToPx;
+        const w = (panel.size.width_mm || 80) * mmToPx;
+        const h = (panel.size.height_mm || 60) * mmToPx;
+
+        try {
+            // Fetch geometry_px.json for JSON-based hit detection
+            let geometryData: GeometryData | null = null;
+            try {
+                const geometryResponse = await fetch(geometryUrl);
+                if (geometryResponse.ok) {
+                    geometryData = await geometryResponse.json();
+                    console.log(`[CanvasManager] Loaded geometry_px.json for panel ${panel.label}:`,
+                        'artists=', geometryData?.artists?.length || 0,
+                        'axes=', geometryData?.axes?.length || 0);
+                }
+            } catch (err) {
+                console.log(`[CanvasManager] No geometry_px.json for panel ${panel.label}`);
+            }
+
+            // Load image using Fabric.js - try SVG first for vector quality
+            const fabric = (window as any).fabric;
+            let img: any = null;
+            let usedSvg = false;
+
+            // Try SVG first
+            try {
+                const svgResponse = await fetch(svgUrl);
+                if (svgResponse.ok) {
+                    const svgText = await svgResponse.text();
+                    img = await new Promise<any>((resolve, reject) => {
+                        fabric.loadSVGFromString(svgText, (objects: any[], options: any) => {
+                            if (objects && objects.length > 0) {
+                                const group = fabric.util.groupSVGElements(objects, options);
+                                usedSvg = true;
+                                console.log(`[CanvasManager] Loaded SVG for panel ${panel.label}`);
+                                resolve(group);
+                            } else {
+                                reject(new Error('SVG has no objects'));
+                            }
+                        });
+                    });
+                }
+            } catch (svgErr) {
+                console.log(`[CanvasManager] SVG not available for panel ${panel.label}, falling back to PNG`);
+            }
+
+            // Fallback to PNG if SVG failed
+            if (!img) {
+                img = await new Promise<any>((resolve, reject) => {
+                    fabric.Image.fromURL(pngUrl, (loadedImg: any) => {
+                        if (loadedImg) {
+                            console.log(`[CanvasManager] Loaded PNG for panel ${panel.label}`);
+                            resolve(loadedImg);
+                        } else {
+                            reject(new Error('Failed to load image'));
+                        }
+                    }, { crossOrigin: 'anonymous' });
+                });
+            }
+
+            // Calculate scale to fit target size
+            const scaleX = w / img.width;
+            const scaleY = h / img.height;
+
+            // Set image properties
+            img.set({
+                left: x,
+                top: y,
+                scaleX: scaleX,
+                scaleY: scaleY,
+                selectable: true,
+                lockRotation: true,
+                // Store bundle info for property editing
+                panelId: panel.id,
+                panelLabel: panel.label,
+                pltzPath: pltzPath,
+                figzPath: figzPath,
+                // Custom properties for panel identification
+                isBundlePanel: true,
+            });
+
+            // Attach geometry data for JSON-based element selection / hit testing
+            if (geometryData) {
+                img.geometryData = geometryData;
+            }
+
+            this.canvas.add(img);
+
+            console.log(`[CanvasManager] Panel ${panel.label} added at (${x.toFixed(0)}, ${y.toFixed(0)}), size ${w.toFixed(0)}x${h.toFixed(0)}px`);
+
+        } catch (error) {
+            console.error(`[CanvasManager] Failed to load panel ${panel.label}:`, error);
+        }
+    }
+
+    /**
+     * Refresh a panel image after property changes.
+     *
+     * @param pltzPath - Path to the pltz bundle
+     */
+    public async refreshPanelImage(pltzPath: string): Promise<void> {
+        if (!this.canvas) return;
+
+        // Find the panel image on canvas
+        const panelImg = this.canvas.getObjects().find((obj: any) =>
+            obj.pltzPath === pltzPath && obj.isBundlePanel
+        );
+
+        if (!panelImg) {
+            console.warn(`[CanvasManager] Panel not found for path: ${pltzPath}`);
+            return;
+        }
+
+        // Try SVG first, fallback to PNG
+        const svgUrl = `/vis/api/bundles/pltz/preview/?path=${encodeURIComponent(pltzPath)}&type=svg&t=${Date.now()}`;
+        const pngUrl = `/vis/api/bundles/pltz/preview/?path=${encodeURIComponent(pltzPath)}&type=png&t=${Date.now()}`;
+
+        try {
+            // Try SVG first
+            const svgResponse = await fetch(svgUrl);
+            if (svgResponse.ok) {
+                const svgText = await svgResponse.text();
+                const fabric = (window as any).fabric;
+
+                fabric.loadSVGFromString(svgText, (objects: any[], options: any) => {
+                    if (objects && objects.length > 0) {
+                        // Get current position and scale
+                        const left = panelImg.left;
+                        const top = panelImg.top;
+                        const scaleX = panelImg.scaleX;
+                        const scaleY = panelImg.scaleY;
+
+                        // Remove old panel
+                        this.canvas!.remove(panelImg);
+
+                        // Create new SVG group
+                        const newImg = fabric.util.groupSVGElements(objects, options);
+                        newImg.set({
+                            left,
+                            top,
+                            scaleX,
+                            scaleY,
+                            selectable: true,
+                            lockRotation: true,
+                            panelId: panelImg.panelId,
+                            panelLabel: panelImg.panelLabel,
+                            pltzPath: pltzPath,
+                            figzPath: panelImg.figzPath,
+                            isBundlePanel: true,
+                        });
+
+                        this.canvas!.add(newImg);
+                        this.canvas!.renderAll();
+                        console.log(`[CanvasManager] Panel refreshed with SVG: ${pltzPath}`);
+                        return;
+                    }
+                });
+                return;
+            }
+
+            // Fallback to PNG
+            panelImg.setSrc(pngUrl, () => {
+                this.canvas!.renderAll();
+                console.log(`[CanvasManager] Panel refreshed with PNG: ${pltzPath}`);
+            }, { crossOrigin: 'anonymous' });
+        } catch (error) {
+            console.error(`[CanvasManager] Failed to refresh panel:`, error);
+        }
+    }
+
+    /**
+     * Get the current figz bundle path.
+     */
+    public getCurrentFigzPath(): string | null {
+        return this.currentFigzPath;
+    }
+
+    /**
+     * Set the current figz bundle path.
+     * Used when switching tabs to reset or restore figz context.
+     */
+    public setCurrentFigzPath(path: string | null): void {
+        this.currentFigzPath = path;
+        console.log(`[CanvasManager] Set currentFigzPath to: ${path}`);
+    }
+
+    /**
+     * Check if an object is a bundle panel.
+     */
+    public isBundlePanel(obj: any): boolean {
+        return obj && obj.isBundlePanel === true;
+    }
+
+    /**
+     * Get all bundle panels on canvas.
+     */
+    public getBundlePanels(): any[] {
+        if (!this.canvas) return [];
+        return this.canvas.getObjects().filter((obj: any) => obj.isBundlePanel === true);
+    }
+
+    /**
+     * Add a panel to the canvas from gallery selection.
+     *
+     * Creates a pltz bundle from the plot type and data, then adds it to the canvas.
+     *
+     * @param plotType - The plot type (line, scatter, bar, etc.)
+     * @param dataCsv - Optional CSV data string
+     * @param projectOwner - Project owner for saving bundle
+     * @param projectSlug - Project slug for saving bundle
+     * @param figureName - Figure name (optional, defaults to 'Figure1')
+     * @returns The created panel info
+     */
+    public async addPanelFromGallery(
+        plotType: string,
+        dataCsv?: string,
+        projectOwner?: string,
+        projectSlug?: string,
+        figureName?: string,
+        galleryCategory?: string,
+        galleryPlotName?: string
+    ): Promise<{ panelLabel: string; bundlePath: string } | null> {
+        if (!this.canvas) {
+            console.error('[CanvasManager] Canvas not initialized');
+            return null;
+        }
+
+        // Determine next panel label
+        const existingPanels = this.getBundlePanels();
+        const usedLabels = new Set(existingPanels.map((p: any) => p.panelLabel || 'A'));
+        const labels = 'ABCDEFGH'.split('');
+        const nextLabel = labels.find(l => !usedLabels.has(l)) || 'A';
+
+        // Calculate position for new panel
+        const existingCount = existingPanels.length;
+        const dpi = this.bundleRenderDpi;
+        const mmToPx = dpi / 25.4;
+
+        // Default panel size
+        const panelWidthMm = 80;
+        const panelHeightMm = 68;
+        const paddingMm = 5;
+
+        // Simple grid layout
+        const col = existingCount % 2;
+        const row = Math.floor(existingCount / 2);
+        const xMm = paddingMm + col * (panelWidthMm + paddingMm);
+        const yMm = paddingMm + row * (panelHeightMm + paddingMm);
+
+        console.log(`[CanvasManager] Creating pltz bundle for panel ${nextLabel} at (${xMm}mm, ${yMm}mm)`);
+
+        try {
+            // Create pltz bundle via API
+            const response = await fetch('/vis/api/bundles/pltz/create-from-plot/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCSRFToken(),
+                },
+                body: JSON.stringify({
+                    plot_type: plotType,
+                    data_csv: dataCsv,
+                    project_owner: projectOwner,
+                    project_slug: projectSlug,
+                    figure_name: figureName || 'Figure1',
+                    panel_label: nextLabel,
+                    gallery_category: galleryCategory,
+                    gallery_plot_name: galleryPlotName,
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP ${response.status}`);
+            }
+
+            const result = await response.json();
+            const bundlePath = result.bundle_path;
+
+            console.log(`[CanvasManager] Created pltz bundle: ${bundlePath}`);
+
+            // Load the panel onto canvas
+            await this.loadPltzPanel(
+                {
+                    id: nextLabel,
+                    label: nextLabel,
+                    plot: bundlePath.split('/').pop() || `${nextLabel}.pltz.d`,
+                    position: { x_mm: xMm, y_mm: yMm },
+                    size: { width_mm: panelWidthMm, height_mm: panelHeightMm },
+                },
+                bundlePath.replace(/\/[^/]+\.pltz\.d$/, '')  // Parent directory as figz path
+            );
+
+            // Update the pltzPath on the loaded panel to use full path
+            const newPanel = this.canvas.getObjects().find((obj: any) =>
+                obj.panelLabel === nextLabel && obj.isBundlePanel
+            );
+            if (newPanel) {
+                newPanel.set('pltzPath', bundlePath);
+            }
+
+            this.canvas.renderAll();
+
+            if (this.statusBarCallback) {
+                this.statusBarCallback(`Panel ${nextLabel} added: ${plotType}`);
+            }
+
+            // Trigger auto-save of figz bundle
+            this.triggerFigzAutoSave(projectOwner, projectSlug, figureName);
+
+            return { panelLabel: nextLabel, bundlePath };
+
+        } catch (error) {
+            console.error('[CanvasManager] Failed to create panel from gallery:', error);
+            if (this.statusBarCallback) {
+                this.statusBarCallback(`Error: ${error}`);
+            }
+            return null;
+        }
+    }
+
+    /**
+     * Trigger auto-save of the current canvas state as a figz bundle.
+     */
+    public async triggerFigzAutoSave(
+        projectOwner?: string,
+        projectSlug?: string,
+        figureName?: string
+    ): Promise<void> {
+        const panels = this.getBundlePanels();
+        if (panels.length === 0) {
+            console.log('[CanvasManager] Auto-save skipped: no panels');
+            return;
+        }
+
+        // Project context is optional - backend will use user's bundle directory as fallback
+        if (!projectOwner || !projectSlug) {
+            console.log('[CanvasManager] Auto-save: using user bundle directory (no project context)');
+        }
+
+        const dpi = this.bundleRenderDpi;
+        const pxToMm = 25.4 / dpi;
+
+        // Build panel data for save
+        const panelData = panels.map((panel: any) => ({
+            label: panel.panelLabel || 'A',
+            pltz_path: panel.pltzPath,
+            position: {
+                x_mm: Math.round((panel.left || 0) * pxToMm * 10) / 10,
+                y_mm: Math.round((panel.top || 0) * pxToMm * 10) / 10,
+            },
+            size: {
+                width_mm: Math.round((panel.width || 80) * (panel.scaleX || 1) * pxToMm * 10) / 10,
+                height_mm: Math.round((panel.height || 68) * (panel.scaleY || 1) * pxToMm * 10) / 10,
+            },
+        }));
+
+        // Get canvas size
+        const canvasSize = {
+            width_mm: Math.round((this.canvas?.width || 1000) * pxToMm * 10) / 10,
+            height_mm: Math.round((this.canvas?.height || 800) * pxToMm * 10) / 10,
+        };
+
+        try {
+            const response = await fetch('/vis/api/bundles/figz/save-canvas/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCSRFToken(),
+                },
+                body: JSON.stringify({
+                    project_owner: projectOwner,
+                    project_slug: projectSlug,
+                    figure_name: figureName || 'Figure1',
+                    panels: panelData,
+                    canvas_size: canvasSize,
+                    theme: document.body.classList.contains('dark-mode') ? 'dark' : 'light',
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                console.warn('[CanvasManager] Auto-save warning:', errorData.error);
+            } else {
+                const result = await response.json();
+                const isNewBundle = !this.currentFigzPath;
+
+                // Update current figz path from save result
+                if (result.bundle_path) {
+                    this.currentFigzPath = result.bundle_path;
+                }
+                console.log('[CanvasManager] Figz bundle auto-saved');
+
+                // Refresh file tree if this was a new bundle
+                if (isNewBundle && result.bundle_path) {
+                    const filesTree = (window as any).filesTree;
+                    if (filesTree && typeof filesTree.refresh === 'function') {
+                        await filesTree.refresh();
+                        console.log('[CanvasManager] File tree refreshed after new figz save');
+                    }
+                }
+            }
+
+            // Also save session state to localStorage for page refresh recovery
+            this.saveSessionState();
+        } catch (error) {
+            console.warn('[CanvasManager] Auto-save failed:', error);
+        }
+    }
+
+    /**
+     * Get CSRF token from cookie.
+     */
+    private getCSRFToken(): string {
+        const name = 'csrftoken';
+        const cookieValue = document.cookie
+            .split('; ')
+            .find(row => row.startsWith(name + '='))
+            ?.split('=')[1];
+        return cookieValue || '';
+    }
+
+    /**
+     * Debounced figz auto-save to prevent excessive saves during rapid changes.
+     *
+     * Uses the stored project context if available, otherwise tries window globals.
+     */
+    private debouncedFigzAutoSave(): void {
+        // Clear existing timer
+        if (this.autoSaveTimer) {
+            clearTimeout(this.autoSaveTimer);
+        }
+
+        // Schedule new auto-save
+        this.autoSaveTimer = setTimeout(() => {
+            const projectOwner = this.bundleProjectOwner || (window as any).projectOwner;
+            const projectSlug = this.bundleProjectSlug || (window as any).projectSlug;
+
+            if (projectOwner && projectSlug) {
+                this.triggerFigzAutoSave(projectOwner, projectSlug, this.bundleFigureName);
+            }
+        }, this.autoSaveDelay);
+    }
+
+    /**
+     * Set bundle project context for auto-save.
+     *
+     * @param owner - Project owner username
+     * @param slug - Project slug
+     * @param figureName - Optional figure name
+     */
+    public setBundleProjectContext(owner: string, slug: string, figureName?: string): void {
+        this.bundleProjectOwner = owner;
+        this.bundleProjectSlug = slug;
+        if (figureName) {
+            this.bundleFigureName = figureName;
+        }
+        console.log(`[CanvasManager] Bundle project context set: ${owner}/${slug}/${this.bundleFigureName}`);
     }
 
     /**
@@ -2305,6 +3194,13 @@ export class CanvasManager {
                     break;
                 case 'export-pdf':
                     this.exportAsPdf();
+                    break;
+                // Download actions
+                case 'download-figz':
+                    this.downloadFigzBundle();
+                    break;
+                case 'download-pltz':
+                    this.downloadPltzBundle();
                     break;
                 // Canvas actions
                 case 'save-canvas':
@@ -4389,23 +5285,19 @@ export class CanvasManager {
             });
         }
 
-        // Load hitmap if available (for fast element picking)
-        console.log('[CanvasManager] Checking hitmap availability:',
-            'hitmap=', !!target.axisMetadata?.hitmap,
-            'hitmap_color_map=', !!target.axisMetadata?.hitmap_color_map,
-            'hitmap length=', target.axisMetadata?.hitmap?.length || 0);
-        if (target.axisMetadata?.hitmap && target.axisMetadata?.hitmap_color_map) {
-            console.log('[CanvasManager] hitmap_color_map keys:', Object.keys(target.axisMetadata.hitmap_color_map));
-            hitmapManager.load(target.axisMetadata.hitmap, target.axisMetadata.hitmap_color_map)
-                .then(() => {
-                    console.log('[CanvasManager] Hitmap loaded successfully for fast picking');
-                    console.log('[CanvasManager] Hitmap dimensions:', hitmapManager.getDimensions());
-                })
-                .catch((e: Error) => console.log('[CanvasManager] Hitmap load failed, using bbox fallback:', e));
+        // Load geometry data for JSON-based element picking
+        console.log('[CanvasManager] Checking geometry availability:',
+            'geometryData=', !!target.geometryData,
+            'artists=', target.geometryData?.artists?.length || 0);
+        if (target.geometryData) {
+            // Get display dimensions of the target image
+            const displayWidth = target.width * target.scaleX;
+            const displayHeight = target.height * target.scaleY;
+            geometryManager.load(target.geometryData, displayWidth, displayHeight);
+            console.log('[CanvasManager] Geometry loaded for JSON-based picking');
         } else {
-            console.log('[CanvasManager] No hitmap available in axisMetadata, using bbox fallback');
-            console.log('[CanvasManager] axisMetadata keys:', target.axisMetadata ? Object.keys(target.axisMetadata) : 'none');
-            hitmapManager.clear();
+            console.log('[CanvasManager] No geometry data available, using bbox fallback');
+            geometryManager.clear();
         }
 
         // Create overlay canvas for element highlights
@@ -4434,8 +5326,8 @@ export class CanvasManager {
         this.selectedElementNames.clear();
         this.hoveredElementName = null;
 
-        // Clear hitmap
-        hitmapManager.clear();
+        // Clear geometry manager
+        geometryManager.clear();
 
         // Remove overlay
         if (this.elementSelectionOverlay && this.elementSelectionOverlay.parentNode) {
@@ -4459,6 +5351,99 @@ export class CanvasManager {
      */
     public isInElementSelectionMode(): boolean {
         return this.elementSelectionTarget !== null;
+    }
+
+    /**
+     * Toggle hit region overlay visibility (debug visualization)
+     * Shows geometry bboxes as semi-transparent overlays to visualize clickable regions
+     */
+    public toggleHitRegionOverlay(): boolean {
+        if (!this.canvas) return false;
+
+        this.hitRegionOverlayVisible = !this.hitRegionOverlayVisible;
+
+        if (this.hitRegionOverlayVisible) {
+            // Find the selected image with geometry data
+            const activeObj = this.canvas.getActiveObject();
+            const target = activeObj || this.elementSelectionTarget;
+
+            if (!target || !target.geometryData) {
+                console.log('[CanvasManager] No geometry data available for overlay');
+                if (this.statusBarCallback) {
+                    this.statusBarCallback('No geometry data available - select a plot panel first');
+                }
+                this.hitRegionOverlayVisible = false;
+                return false;
+            }
+
+            // Create geometry overlay showing element bounding boxes
+            const fabric = (window as any).fabric;
+            const geometry = target.geometryData as GeometryData;
+            const displayWidth = target.width * target.scaleX;
+            const displayHeight = target.height * target.scaleY;
+            const [figW, figH] = geometry.figure_px;
+            const scaleX = displayWidth / figW;
+            const scaleY = displayHeight / figH;
+
+            // Create a group of rectangles for each artist
+            const overlayObjects: any[] = [];
+            const colors = ['#ff0000', '#00ff00', '#0000ff', '#ff00ff', '#00ffff', '#ffff00'];
+
+            geometry.artists.forEach((artist, i) => {
+                const bbox = artist.bbox_px;
+                const rect = new fabric.Rect({
+                    left: target.left + (bbox.x0 * scaleX),
+                    top: target.top + (bbox.y0 * scaleY),
+                    width: bbox.width * scaleX,
+                    height: bbox.height * scaleY,
+                    fill: colors[i % colors.length],
+                    opacity: 0.3,
+                    stroke: colors[i % colors.length],
+                    strokeWidth: 2,
+                    selectable: false,
+                    evented: false,
+                });
+                overlayObjects.push(rect);
+            });
+
+            const group = new fabric.Group(overlayObjects, {
+                selectable: false,
+                evented: false,
+                name: 'geometry-overlay',
+                excludeFromExport: true,
+            });
+
+            this.hitRegionOverlayImage = group;
+            this.canvas.add(group);
+            this.canvas.bringToFront(group);
+            this.canvas.renderAll();
+
+            console.log('[CanvasManager] Geometry overlay shown');
+            if (this.statusBarCallback) {
+                this.statusBarCallback('Geometry overlay ON - each color = different element');
+            }
+        } else {
+            // Remove overlay
+            if (this.hitRegionOverlayImage && this.canvas) {
+                this.canvas.remove(this.hitRegionOverlayImage);
+                this.hitRegionOverlayImage = null;
+                this.canvas.renderAll();
+            }
+
+            console.log('[CanvasManager] Hit region overlay hidden');
+            if (this.statusBarCallback) {
+                this.statusBarCallback('Hit region overlay OFF');
+            }
+        }
+
+        return this.hitRegionOverlayVisible;
+    }
+
+    /**
+     * Check if hit region overlay is currently visible
+     */
+    public isHitRegionOverlayVisible(): boolean {
+        return this.hitRegionOverlayVisible;
     }
 
     /**
@@ -4584,22 +5569,22 @@ export class CanvasManager {
             return null;
         }
 
-        // FAST PATH: Use hitmap if available (24-bit RGB ID encoding)
-        console.log('[CanvasManager] findElementAtPosition: hitmapManager.isReady()=', hitmapManager.isReady());
-        if (hitmapManager.isReady()) {
-            // Scale to hitmap coordinates
-            const hitmapCoords = hitmapManager.scaleToHitmap(objX, objY, imgWidth, imgHeight);
-            console.log('[CanvasManager] Hitmap coords:', hitmapCoords, 'from objX/Y:', objX, objY, 'imgSize:', imgWidth, imgHeight);
-            // Get elements in neighborhood (handles thin lines and overlapping elements)
-            const elementsAtPoint = hitmapManager.getElementsInNeighborhood(hitmapCoords.x, hitmapCoords.y, 2);
-            console.log('[CanvasManager] Elements at point:', elementsAtPoint);
-            if (elementsAtPoint.length > 0) {
-                // Return the closest element's label
-                console.log('[CanvasManager] Found element via hitmap:', elementsAtPoint[0].label);
-                return elementsAtPoint[0].label || null;
+        // Use geometry-based hit detection (JSON instead of hitmap PNG)
+        console.log('[CanvasManager] findElementAtPosition: geometryManager.isReady()=', geometryManager.isReady());
+        if (geometryManager.isReady()) {
+            // Geometry manager uses display coordinates directly
+            // Scale object coordinates to display coordinates
+            const displayX = objX * imgScaleX;
+            const displayY = objY * imgScaleY;
+            console.log('[CanvasManager] Geometry coords:', displayX, displayY, 'from objX/Y:', objX, objY);
+
+            const element = geometryManager.findElementAt(displayX, displayY);
+            if (element) {
+                console.log('[CanvasManager] Found element via geometry:', element.label);
+                return element.label || element.name;
             }
         } else {
-            console.log('[CanvasManager] Hitmap NOT ready, falling back to bbox');
+            console.log('[CanvasManager] Geometry NOT ready, falling back to bbox');
         }
 
         // FALLBACK: Convert object pixels to figure pixels for geometry-based hit detection
@@ -5507,6 +6492,83 @@ export class CanvasManager {
         if (this.exportManager) {
             this.exportManager.exportAsPdf();
         }
+    }
+
+    /**
+     * Export canvas as JPEG (95% quality)
+     * DELEGATES to ExportManager
+     */
+    public exportAsJpeg(): void {
+        if (this.exportManager) {
+            this.exportManager.exportAsJpeg();
+        }
+    }
+
+    /**
+     * Export as FIGZ bundle (zip download)
+     * DELEGATES to ExportManager
+     */
+    public async exportAsFigzBundle(): Promise<void> {
+        if (this.exportManager) {
+            // Set project context before export
+            if (this.bundleProjectOwner && this.bundleProjectSlug) {
+                this.exportManager.setProjectContext(this.bundleProjectOwner, this.bundleProjectSlug);
+            }
+            if (this.currentFigzPath) {
+                this.exportManager.setFigzPath(this.currentFigzPath);
+            }
+            await this.exportManager.exportAsFigzBundle();
+        }
+    }
+
+    /**
+     * Download current figz bundle as .figz ZIP file
+     * DELEGATES to ExportManager
+     */
+    public downloadFigzBundle(): void {
+        if (this.exportManager) {
+            if (this.currentFigzPath) {
+                this.exportManager.setFigzPath(this.currentFigzPath);
+            }
+            this.exportManager.downloadFigzBundle();
+        }
+    }
+
+    /**
+     * Download current figz.d bundle as ZIP (preserving directory structure)
+     * DELEGATES to ExportManager
+     */
+    public downloadFigzDBundle(): void {
+        if (this.exportManager) {
+            if (this.currentFigzPath) {
+                this.exportManager.setFigzPath(this.currentFigzPath);
+            }
+            this.exportManager.downloadFigzDBundle();
+        }
+    }
+
+    /**
+     * Download a pltz bundle as .pltz ZIP file
+     * Downloads the selected panel's bundle
+     */
+    public downloadPltzBundle(): void {
+        if (!this.exportManager) return;
+
+        // Get selected object
+        const activeObj = this.canvas?.getActiveObject();
+        if (!activeObj) {
+            this.updateStatusBar?.('No panel selected for download');
+            return;
+        }
+
+        // Get pltz path from the selected object
+        const pltzPath = (activeObj as any).pltzPath;
+        if (!pltzPath) {
+            this.updateStatusBar?.('Selected object is not a pltz panel');
+            return;
+        }
+
+        this.exportManager.downloadPltzBundle(pltzPath);
     }
 
     /**

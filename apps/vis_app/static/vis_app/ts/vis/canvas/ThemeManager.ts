@@ -127,7 +127,13 @@ export class ThemeManager {
             this.originalImageSources.set(fabricImg, element.src);
         }
 
-        const originalSrc = this.originalImageSources.get(fabricImg)!;
+        const originalSrc = this.originalImageSources.get(fabricImg);
+
+        // Guard against undefined or invalid source URLs
+        if (!originalSrc || originalSrc === 'undefined' || originalSrc.includes('/undefined')) {
+            console.warn(`[ThemeManager] Skipping image with invalid source: ${originalSrc}`);
+            return;
+        }
 
         if (this.isDarkMode) {
             // Load original image and process for dark mode
@@ -157,6 +163,23 @@ export class ThemeManager {
     }
 
     /**
+     * Check if an image object should be processed for dark mode
+     * Includes regular figures, bundle panels, but excludes grid background
+     */
+    private shouldProcessImage(obj: any): boolean {
+        if (obj.type !== 'image') return false;
+        // Exclude grid background
+        if (obj.name === 'grid-background') return false;
+        // Include bundle panels (pltz)
+        if (obj.isBundlePanel) return true;
+        // Include named figures
+        if (obj.name) return true;
+        // Include images with panel labels
+        if (obj.panelLabel) return true;
+        return false;
+    }
+
+    /**
      * Reprocess all figure images when theme changes
      */
     public reprocessAllImagesForTheme(): void {
@@ -166,8 +189,7 @@ export class ThemeManager {
         let processedCount = 0;
 
         objects.forEach((obj: any) => {
-            // Only process images that are figures (not grid background)
-            if (obj.type === 'image' && obj.name && obj.name !== 'grid-background') {
+            if (this.shouldProcessImage(obj)) {
                 this.updateImageForTheme(obj);
                 processedCount++;
             }
@@ -175,6 +197,19 @@ export class ThemeManager {
 
         if (processedCount > 0) {
             console.log(`[ThemeManager] Reprocessed ${processedCount} images for ${this.isDarkMode ? 'dark' : 'light'} mode`);
+        }
+    }
+
+    /**
+     * Process a newly added image for current theme immediately
+     * Call this after adding bundle panels or other images to canvas
+     */
+    public processNewImage(fabricImg: any): void {
+        if (!this.shouldProcessImage(fabricImg)) return;
+
+        if (this.isDarkMode) {
+            this.updateImageForTheme(fabricImg);
+            console.log(`[ThemeManager] Processed new image for dark mode`);
         }
     }
 

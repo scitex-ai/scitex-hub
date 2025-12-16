@@ -305,4 +305,87 @@ export class CanvasResizeManager {
         this.statusCallback?.(`Canvas: ${defaultWidth}mm × ${defaultHeight}mm (reset)`);
         console.log(`[CanvasResizeManager] Canvas size reset to ${defaultWidth}mm × ${defaultHeight}mm`);
     }
+
+    /**
+     * Fit canvas document size to content bounds
+     * This resizes the actual canvas, not just the view
+     */
+    public fitToContent(paddingMm: number = 10): boolean {
+        if (!this.canvas) {
+            console.warn('[CanvasResizeManager] Canvas not initialized');
+            return false;
+        }
+
+        // Get all objects (prioritize bundle panels)
+        const objects = this.canvas.getObjects();
+        const panels = objects.filter((obj: any) => obj.isBundlePanel);
+        const targetObjects = panels.length > 0 ? panels : objects.filter((obj: any) => !obj.isGrid);
+
+        if (targetObjects.length === 0) {
+            console.log('[CanvasResizeManager] No content to fit');
+            this.statusCallback?.('No content to fit');
+            return false;
+        }
+
+        // Calculate bounding box of all objects
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        let validObjects = 0;
+        for (const obj of targetObjects) {
+            const left = obj.left || 0;
+            const top = obj.top || 0;
+            const width = obj.getScaledWidth ? obj.getScaledWidth() : (obj.width || 0);
+            const height = obj.getScaledHeight ? obj.getScaledHeight() : (obj.height || 0);
+
+            // Skip objects with invalid dimensions (e.g., failed image loads)
+            if (!isFinite(width) || !isFinite(height) || width <= 0 || height <= 0) {
+                console.warn(`[CanvasResizeManager] Skipping object with invalid dimensions: ${width}x${height}`);
+                continue;
+            }
+
+            minX = Math.min(minX, left);
+            minY = Math.min(minY, top);
+            maxX = Math.max(maxX, left + width);
+            maxY = Math.max(maxY, top + height);
+            validObjects++;
+        }
+
+        // Guard against no valid objects
+        if (validObjects === 0 || !isFinite(minX) || !isFinite(maxX)) {
+            console.warn('[CanvasResizeManager] No valid objects with dimensions found');
+            this.statusCallback?.('No valid content to fit');
+            return false;
+        }
+
+        // Calculate required canvas size in mm
+        const pxToMm = 25.4 / CANVAS_CONSTANTS.DPI;
+        const mmToPx = CANVAS_CONSTANTS.DPI / 25.4;
+        const paddingPx = paddingMm * mmToPx;
+
+        const contentWidthMm = (maxX - minX) * pxToMm;
+        const contentHeightMm = (maxY - minY) * pxToMm;
+
+        // Add padding (both sides)
+        const newWidthMm = contentWidthMm + (paddingMm * 2);
+        const newHeightMm = contentHeightMm + (paddingMm * 2);
+
+        // Move all objects so content starts at padding position
+        // New position = (current position - minX) + paddingPx
+        for (const obj of targetObjects) {
+            const newLeft = (obj.left || 0) - minX + paddingPx;
+            const newTop = (obj.top || 0) - minY + paddingPx;
+            obj.set({ left: newLeft, top: newTop });
+            obj.setCoords();
+        }
+
+        console.log(`[CanvasResizeManager] Moved ${targetObjects.length} objects from (${minX.toFixed(0)}, ${minY.toFixed(0)}) to padding (${paddingPx.toFixed(0)}px)`)
+
+        // Resize canvas
+        this.setCanvasSize(newWidthMm, newHeightMm);
+
+        this.canvas.renderAll();
+        this.statusCallback?.(`Canvas fitted: ${newWidthMm.toFixed(0)}mm × ${newHeightMm.toFixed(0)}mm`);
+        console.log(`[CanvasResizeManager] Canvas fitted to content: ${newWidthMm.toFixed(1)}mm × ${newHeightMm.toFixed(1)}mm`);
+
+        return true;
+    }
 }

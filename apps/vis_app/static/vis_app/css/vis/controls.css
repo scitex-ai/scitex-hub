@@ -395,6 +395,19 @@
     opacity: 0.7;
 }
 
+.dropdown-item .format-hint {
+    margin-left: auto;
+    font-size: 10px;
+    opacity: 0.6;
+    color: var(--vis-text-muted);
+}
+
+.dropdown-divider {
+    height: 1px;
+    margin: 4px 0;
+    background: var(--vis-border);
+}
+
 /* Theme toggle button with dark mode warning */
 .pane-header-btn.theme-toggle-btn {
     display: flex;
@@ -413,3 +426,24 @@
     font-weight: 500;
 }
 
+/* Debug buttons (e.g., hit region toggle) */
+.pane-header-btn.debug-btn {
+    color: var(--text-secondary, #8b949e);
+    opacity: 0.7;
+}
+
+.pane-header-btn.debug-btn:hover {
+    opacity: 1;
+    color: #f59e0b;
+}
+
+.pane-header-btn.debug-btn.active {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    opacity: 1;
+}
+
+[data-theme="light"] .pane-header-btn.debug-btn.active {
+    background: rgba(245, 158, 11, 0.2);
+    color: #d97706;
+}
