@@ -311,7 +311,7 @@ export class CanvasManager {
             this.objectManager = new ObjectManager(
                 this.canvas,
                 () => this.themeManager?.isDark() || false,
-                (img) => this.updateImageForTheme(img),
+                (img) => this.themeManager?.updateImageForTheme(img),
                 (group) => this.processSvgGroupForDarkMode(group),
                 () => this.saveUndoState(),
                 () => this.saveCanvasContent(),
@@ -642,70 +642,6 @@ export class CanvasManager {
     }
 
     /**
-     * Process image for dark mode display using CSS filter approach.
-     * Uses invert(0.88) + hue-rotate(180deg) for natural color preservation.
-     * This matches the scitex flask editor's dark mode implementation.
-     */
-    private processImageForDarkMode(img: HTMLImageElement): string {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.naturalWidth || img.width;
-        canvas.height = img.naturalHeight || img.height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return img.src;
-
-        // Apply CSS filter using canvas context
-        // invert(0.88) - inverts colors ~88% (black→light gray, white→dark gray)
-        // hue-rotate(180deg) - preserves original hues after inversion
-        ctx.filter = 'invert(0.88) hue-rotate(180deg)';
-        ctx.drawImage(img, 0, 0);
-
-        // Reset filter and make white areas transparent
-        ctx.filter = 'none';
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const data = imageData.data;
-
-        // Make near-dark pixels (which were near-white before invert) transparent
-        // After invert(0.88), original white (#fff) becomes ~#1f1f1f
-        // We want to make the dark background transparent
-        for (let i = 0; i < data.length; i += 4) {
-            const r = data[i];
-            const g = data[i + 1];
-            const b = data[i + 2];
-
-            // Check if pixel is dark (was white/background before invert)
-            if (r < 50 && g < 50 && b < 50) {
-                // Make transparent
-                data[i + 3] = 0;
-            }
-        }
-
-        ctx.putImageData(imageData, 0, 0);
-        return canvas.toDataURL('image/png');
-    }
-
-    /**
-     * Reprocess all figure images when theme changes
-     */
-    private reprocessAllImagesForTheme(): void {
-        if (!this.canvas) return;
-
-        const objects = this.canvas.getObjects();
-        let processedCount = 0;
-
-        objects.forEach((obj: any) => {
-            // Only process images that are figures (not grid background)
-            if (obj.type === 'image' && obj.name && obj.name !== 'grid-background') {
-                this.updateImageForTheme(obj);
-                processedCount++;
-            }
-        });
-
-        if (processedCount > 0) {
-            console.log(`[CanvasManager] Reprocessed ${processedCount} images for ${this.isDarkMode ? 'dark' : 'light'} mode`);
-        }
-    }
-
-    /**
      * Process SVG group paths for dark mode display
      * DELEGATES to ThemeManager
      */
@@ -782,47 +718,6 @@ export class CanvasManager {
 
         this.canvas.renderAll();
         console.log(`[CanvasManager] Reprocessed ${groupsToProcess.length} SVG groups for ${this.isDarkMode ? 'dark' : 'light'} mode`);
-    }
-
-    /**
-     * Update a single image for current theme
-     */
-    private updateImageForTheme(fabricImg: any): void {
-        const element = fabricImg.getElement();
-        if (!element) return;
-
-        // Store original source if not already stored
-        if (!this.originalImageSources.has(fabricImg)) {
-            this.originalImageSources.set(fabricImg, element.src);
-        }
-
-        const originalSrc = this.originalImageSources.get(fabricImg)!;
-
-        if (this.isDarkMode) {
-            // Load original image and process for dark mode
-            const tempImg = new Image();
-            tempImg.crossOrigin = 'anonymous';
-            tempImg.onload = () => {
-                const processedSrc = this.processImageForDarkMode(tempImg);
-                const newImg = new Image();
-                newImg.crossOrigin = 'anonymous';
-                newImg.onload = () => {
-                    fabricImg.setElement(newImg);
-                    this.canvas?.renderAll();
-                };
-                newImg.src = processedSrc;
-            };
-            tempImg.src = originalSrc;
-        } else {
-            // Restore original image
-            const newImg = new Image();
-            newImg.crossOrigin = 'anonymous';
-            newImg.onload = () => {
-                fabricImg.setElement(newImg);
-                this.canvas?.renderAll();
-            };
-            newImg.src = originalSrc;
-        }
     }
 
     /**
@@ -914,8 +809,10 @@ export class CanvasManager {
             return;
         }
 
-        // Setup context menu
-        this.setupContextMenu(canvasContainer);
+        // Setup context menu (delegate to ContextMenuManager)
+        if (this.contextMenuManager) {
+            this.contextMenuManager.setupContextMenu(canvasContainer);
+        }
 
         // Setup canvas resize (Ctrl+drag from edges)
         if (this.canvasResizeManager) {
@@ -1839,7 +1736,7 @@ export class CanvasManager {
 
                 // Process for dark mode if active
                 if (this.isDarkMode) {
-                    this.updateImageForTheme(img);
+                    this.themeManager?.updateImageForTheme(img);
                 } else {
                     this.canvas!.renderAll();
                 }
@@ -2212,6 +2109,9 @@ export class CanvasManager {
             }
 
             this.canvas.add(img);
+
+            // Process image for current theme (dark mode conversion)
+            this.processNewImageForTheme(img);
 
             console.log(`[CanvasManager] Panel ${panel.label} added at (${x.toFixed(0)}, ${y.toFixed(0)}), size ${w.toFixed(0)}x${h.toFixed(0)}px`);
 
@@ -2668,587 +2568,6 @@ export class CanvasManager {
         if (this.statusBarCallback) {
             this.statusBarCallback(`Selected ${objects.length} objects`);
         }
-    }
-
-    /**
-     * Setup right-click context menu
-     */
-    private setupContextMenu(container: HTMLElement): void {
-        // Create context menu element
-        const menu = document.createElement('div');
-        menu.id = 'canvas-context-menu';
-        menu.className = 'canvas-context-menu';
-        menu.innerHTML = `
-            <div class="context-menu-item" data-action="copy">
-                <i class="fas fa-copy"></i> Copy
-                <span class="shortcut">Ctrl+C</span>
-            </div>
-            <div class="context-menu-item" data-action="paste">
-                <i class="fas fa-paste"></i> Paste
-                <span class="shortcut">Ctrl+V</span>
-            </div>
-            <div class="context-menu-item" data-action="duplicate">
-                <i class="fas fa-clone"></i> Duplicate
-                <span class="shortcut">Ctrl+D</span>
-            </div>
-            <div class="context-menu-item" data-action="delete">
-                <i class="fas fa-trash"></i> Delete
-                <span class="shortcut">Del</span>
-            </div>
-            <div class="context-menu-separator"></div>
-            <div class="context-menu-submenu image-only-section" style="display:none;">
-                <div class="context-menu-item submenu-header">
-                    <i class="fas fa-crop-alt"></i> Crop
-                    <i class="fas fa-chevron-right" style="margin-left:auto;opacity:0.5;"></i>
-                </div>
-                <div class="submenu-items">
-                    <div class="context-menu-item" data-action="crop-manual">
-                        <i class="fas fa-crop"></i> Crop (Manual)
-                    </div>
-                    <div class="context-menu-item" data-action="crop-margin">
-                        <i class="fas fa-compress-alt"></i> Auto Crop Margin
-                    </div>
-                    <div class="context-menu-item" data-action="crop-reset">
-                        <i class="fas fa-undo"></i> Reset Crop
-                    </div>
-                </div>
-            </div>
-            <div class="context-menu-item" data-action="copy-view">
-                <i class="fas fa-crop"></i> Copy View (ROI)
-                <span class="shortcut">Ctrl+Shift+C</span>
-            </div>
-            <div class="context-menu-item" data-action="paste-view">
-                <i class="fas fa-paste"></i> Paste View (ROI)
-                <span class="shortcut">Ctrl+Shift+V</span>
-            </div>
-            <div class="context-menu-separator"></div>
-            <div class="context-menu-item" data-action="bring-front">
-                <i class="fas fa-layer-group"></i> Bring to Front
-                <span class="shortcut">Alt+F</span>
-            </div>
-            <div class="context-menu-item" data-action="send-back">
-                <i class="fas fa-layer-group"></i> Send to Back
-                <span class="shortcut">Alt+B</span>
-            </div>
-            <div class="context-menu-separator"></div>
-            <div class="context-menu-submenu">
-                <div class="context-menu-item submenu-header">
-                    <i class="fas fa-align-left"></i> Align
-                    <span class="shortcut">Alt+A</span>
-                    <i class="fas fa-chevron-right" style="margin-left:8px;opacity:0.5;"></i>
-                </div>
-                <div class="submenu-items">
-                    <div class="context-menu-item" data-action="align-left">
-                        <i class="fas fa-align-left"></i> Left
-                        <span class="shortcut">L</span>
-                    </div>
-                    <div class="context-menu-item" data-action="align-center-h">
-                        <i class="fas fa-align-center"></i> Horizontal
-                        <span class="shortcut">H</span>
-                    </div>
-                    <div class="context-menu-item" data-action="align-right">
-                        <i class="fas fa-align-right"></i> Right
-                        <span class="shortcut">R</span>
-                    </div>
-                    <div class="context-menu-item" data-action="align-top">
-                        <i class="fas fa-arrow-up"></i> Top
-                        <span class="shortcut">T</span>
-                    </div>
-                    <div class="context-menu-item" data-action="align-center-v">
-                        <i class="fas fa-arrows-alt-v"></i> Vertical
-                        <span class="shortcut">V</span>
-                    </div>
-                    <div class="context-menu-item" data-action="align-bottom">
-                        <i class="fas fa-arrow-down"></i> Bottom
-                        <span class="shortcut">B</span>
-                    </div>
-                </div>
-            </div>
-            <div class="context-menu-submenu multi-select-section" style="display:none;">
-                <div class="context-menu-item submenu-header">
-                    <i class="fas fa-chart-line"></i> Align by Axis
-                    <span class="shortcut">Alt+Shift+A</span>
-                    <i class="fas fa-chevron-right" style="margin-left:8px;opacity:0.5;"></i>
-                </div>
-                <div class="submenu-items">
-                    <div class="context-menu-item" data-action="align-by-axis-l">
-                        <i class="fas fa-grip-lines-vertical"></i> Y-Axis (Left)
-                        <span class="shortcut">L</span>
-                    </div>
-                    <div class="context-menu-item" data-action="align-by-axis-c">
-                        <i class="fas fa-arrows-alt-h"></i> Horizontal Center
-                        <span class="shortcut">C</span>
-                    </div>
-                    <div class="context-menu-item" data-action="align-by-axis-r">
-                        <i class="fas fa-grip-lines-vertical"></i> Right Edge
-                        <span class="shortcut">R</span>
-                    </div>
-                    <div class="context-menu-separator"></div>
-                    <div class="context-menu-item" data-action="align-by-axis-t">
-                        <i class="fas fa-grip-lines"></i> Top Edge
-                        <span class="shortcut">T</span>
-                    </div>
-                    <div class="context-menu-item" data-action="align-by-axis-m">
-                        <i class="fas fa-arrows-alt-v"></i> Vertical Center
-                        <span class="shortcut">M</span>
-                    </div>
-                    <div class="context-menu-item" data-action="align-by-axis-b">
-                        <i class="fas fa-grip-lines"></i> X-Axis (Bottom)
-                        <span class="shortcut">B</span>
-                    </div>
-                    <div class="context-menu-separator"></div>
-                    <div class="context-menu-item" data-action="align-by-axis-s">
-                        <i class="fas fa-layer-group"></i> Stack Vertically
-                        <span class="shortcut">S</span>
-                    </div>
-                </div>
-            </div>
-            <div class="context-menu-submenu multi-select-section" style="display:none;">
-                <div class="context-menu-item submenu-header">
-                    <i class="fas fa-expand-arrows-alt"></i> Size
-                    <span class="shortcut">Alt+S</span>
-                    <i class="fas fa-chevron-right" style="margin-left:8px;opacity:0.5;"></i>
-                </div>
-                <div class="submenu-items">
-                    <div class="context-menu-item" data-action="match-size">
-                        <i class="fas fa-compress-arrows-alt"></i> Match Size
-                        <span class="shortcut">S</span>
-                    </div>
-                    <div class="context-menu-item" data-action="match-width">
-                        <i class="fas fa-arrows-alt-h"></i> Match Width
-                        <span class="shortcut">W</span>
-                    </div>
-                    <div class="context-menu-item" data-action="match-height">
-                        <i class="fas fa-arrows-alt-v"></i> Match Height
-                        <span class="shortcut">T</span>
-                    </div>
-                    <div class="context-menu-item" data-action="multiple-crop">
-                        <i class="fas fa-crop-alt"></i> Multiple Crop
-                        <span class="shortcut">C</span>
-                    </div>
-                </div>
-            </div>
-            <div class="context-menu-separator"></div>
-            <div class="context-menu-submenu">
-                <div class="context-menu-item submenu-header">
-                    <i class="fas fa-sync-alt"></i> Transform
-                    <i class="fas fa-chevron-right" style="margin-left:auto;opacity:0.5;"></i>
-                </div>
-                <div class="submenu-items">
-                    <div class="context-menu-item" data-action="flip-h">
-                        <i class="fas fa-arrows-alt-h"></i> Flip Horizontal
-                    </div>
-                    <div class="context-menu-item" data-action="flip-v">
-                        <i class="fas fa-arrows-alt-v"></i> Flip Vertical
-                    </div>
-                    <div class="context-menu-item" data-action="rotate-90">
-                        <i class="fas fa-redo"></i> Rotate 90°
-                    </div>
-                    <div class="context-menu-item" data-action="rotate-180">
-                        <i class="fas fa-sync"></i> Rotate 180°
-                    </div>
-                    <div class="context-menu-item" data-action="reset-size">
-                        <i class="fas fa-expand"></i> Reset Size (100%)
-                    </div>
-                </div>
-            </div>
-            <div class="context-menu-separator"></div>
-            <div class="context-menu-item" data-action="group">
-                <i class="fas fa-object-group"></i> Group
-                <span class="shortcut">Ctrl+G</span>
-            </div>
-            <div class="context-menu-item" data-action="ungroup">
-                <i class="fas fa-object-ungroup"></i> Ungroup
-                <span class="shortcut">Ctrl+Shift+G</span>
-            </div>
-            <div class="context-menu-separator"></div>
-            <div class="context-menu-submenu">
-                <div class="context-menu-item submenu-header">
-                    <i class="fas fa-download"></i> Export
-                    <i class="fas fa-chevron-right" style="margin-left:auto;opacity:0.5;"></i>
-                </div>
-                <div class="submenu-items">
-                    <div class="context-menu-item" data-action="export-png">
-                        <i class="fas fa-file-image"></i> Export as PNG
-                    </div>
-                    <div class="context-menu-item" data-action="export-svg">
-                        <i class="fas fa-bezier-curve"></i> Export as SVG
-                    </div>
-                    <div class="context-menu-item" data-action="export-pdf">
-                        <i class="fas fa-file-pdf"></i> Export as PDF
-                    </div>
-                </div>
-            </div>
-            <div class="context-menu-item" data-action="save-canvas">
-                <i class="fas fa-save"></i> Save Figure
-                <span class="shortcut">Ctrl+S</span>
-            </div>
-            <div class="context-menu-separator"></div>
-            <div class="context-menu-item" data-action="toggle-theme">
-                <i class="fas fa-adjust"></i> Toggle Light/Dark
-            </div>
-            <div class="context-menu-item" data-action="zoom-fit">
-                <i class="fas fa-expand"></i> Zoom to Fit
-                <span class="shortcut">Ctrl+0</span>
-            </div>
-            <div class="context-menu-item" data-action="reset-view">
-                <i class="fas fa-home"></i> Reset View
-            </div>
-            <div class="context-menu-separator stats-section" style="display:none;"></div>
-            <div class="context-menu-submenu stats-section" style="display:none;">
-                <div class="context-menu-item submenu-header">
-                    <i class="fas fa-chart-bar"></i> Statistics
-                    <i class="fas fa-chevron-right" style="margin-left:auto;opacity:0.5;"></i>
-                </div>
-                <div class="submenu-items">
-                    <div class="context-menu-item" data-action="stats-recommended">
-                        <i class="fas fa-magic"></i> Run Recommended Test
-                    </div>
-                    <div class="context-menu-item" data-action="stats-all">
-                        <i class="fas fa-vials"></i> Run All Applicable
-                    </div>
-                    <div class="context-menu-item" data-action="stats-select">
-                        <i class="fas fa-list"></i> Select Test...
-                    </div>
-                    <div class="context-menu-separator"></div>
-                    <div class="context-menu-item" data-action="stats-inspector">
-                        <i class="fas fa-microscope"></i> Open Stats Inspector
-                    </div>
-                </div>
-            </div>
-        `;
-        menu.style.cssText = `
-            position: fixed;
-            display: none;
-            background: var(--bg-secondary, #1e1e1e);
-            border: 1px solid var(--border-color, #333);
-            border-radius: 6px;
-            padding: 4px 0;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            z-index: 10000;
-            min-width: 160px;
-        `;
-        document.body.appendChild(menu);
-
-        // Add styles for menu items
-        const style = document.createElement('style');
-        style.textContent = `
-            .canvas-context-menu .context-menu-item {
-                padding: 8px 12px;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                color: var(--text-primary, #e0e0e0);
-                font-size: 13px;
-            }
-            .canvas-context-menu .context-menu-item:hover {
-                background: var(--bg-hover, #2a2a2a);
-            }
-            .canvas-context-menu .context-menu-item i {
-                width: 16px;
-                text-align: center;
-                opacity: 0.7;
-            }
-            .canvas-context-menu .context-menu-item .shortcut {
-                margin-left: auto;
-                opacity: 0.5;
-                font-size: 11px;
-            }
-            .canvas-context-menu .context-menu-separator {
-                height: 1px;
-                background: var(--border-color, #333);
-                margin: 4px 0;
-            }
-            .canvas-context-menu .context-menu-submenu {
-                position: relative;
-            }
-            .canvas-context-menu .context-menu-submenu .submenu-header {
-                cursor: default;
-            }
-            .canvas-context-menu .context-menu-submenu .submenu-items {
-                display: none;
-                position: absolute;
-                left: 100%;
-                top: 0;
-                background: var(--bg-secondary, #1e1e1e);
-                border: 1px solid var(--border-color, #333);
-                border-radius: 6px;
-                padding: 4px 0;
-                min-width: 120px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            }
-            .canvas-context-menu .context-menu-submenu:hover .submenu-items {
-                display: block;
-            }
-            .canvas-context-menu .context-menu-submenu.submenu-left .submenu-items {
-                left: auto;
-                right: 100%;
-            }
-        `;
-        document.head.appendChild(style);
-
-        // Right-click handler
-        container.addEventListener('contextmenu', (e: MouseEvent) => {
-            e.preventDefault();
-
-            // Skip context menu if right-click was used for panning
-            if (this.rightClickPanOccurred) {
-                this.rightClickPanOccurred = false;
-                menu.style.display = 'none';
-                return;
-            }
-
-            // Check if we have an active object or element-level selection
-            const activeObj = this.canvas?.getActiveObject();
-            const hasElementSelection = this.selectedElementNames.size >= 2;
-
-            if (!activeObj && !hasElementSelection) {
-                menu.style.display = 'none';
-                return;
-            }
-
-            // Show/hide multi-select-only options (Distribute, Size)
-            // Align is always shown (single object aligns to canvas)
-            const multiSelectSections = menu.querySelectorAll('.multi-select-section');
-            const isMultiSelect = activeObj?.type === 'activeSelection';
-            multiSelectSections.forEach(section => {
-                (section as HTMLElement).style.display = isMultiSelect ? 'block' : 'none';
-            });
-
-            // Show/hide image-only options (Crop)
-            const imageOnlySections = menu.querySelectorAll('.image-only-section');
-            const isImage = activeObj?.type === 'image' ||
-                (isMultiSelect && (activeObj as any).getObjects?.()?.some((o: any) => o.type === 'image'));
-            imageOnlySections.forEach(section => {
-                (section as HTMLElement).style.display = isImage ? 'block' : 'none';
-            });
-
-            // Show/hide stats section (requires multi-selection with plot data OR element-level selection)
-            const statsSections = menu.querySelectorAll('.stats-section');
-            const hasPlotData = isMultiSelect && activeObj && (activeObj as any).getObjects?.()?.some((o: any) => o.plotData);
-            // hasElementSelection already declared above
-            statsSections.forEach(section => {
-                (section as HTMLElement).style.display = (isMultiSelect || hasPlotData || hasElementSelection) ? 'block' : 'none';
-            });
-
-            // Position menu at cursor
-            menu.style.left = `${e.clientX}px`;
-            menu.style.top = `${e.clientY}px`;
-            menu.style.display = 'block';
-
-            // Ensure menu stays in viewport
-            const rect = menu.getBoundingClientRect();
-            if (rect.right > window.innerWidth) {
-                menu.style.left = `${window.innerWidth - rect.width - 5}px`;
-            }
-            if (rect.bottom > window.innerHeight) {
-                menu.style.top = `${window.innerHeight - rect.height - 5}px`;
-            }
-
-            // Check if submenus need to open to the left
-            const submenus = menu.querySelectorAll('.context-menu-submenu');
-            const menuRight = menu.getBoundingClientRect().right;
-            const submenuWidth = 140; // Approximate submenu width
-            submenus.forEach(submenu => {
-                if (menuRight + submenuWidth > window.innerWidth) {
-                    submenu.classList.add('submenu-left');
-                } else {
-                    submenu.classList.remove('submenu-left');
-                }
-            });
-        });
-
-        // Click handlers for menu items
-        menu.addEventListener('click', (e: MouseEvent) => {
-            const target = (e.target as HTMLElement).closest('.context-menu-item');
-            if (!target) return;
-
-            // Don't close menu for submenu headers
-            if ((target as HTMLElement).classList.contains('submenu-header')) {
-                return;
-            }
-
-            const action = (target as HTMLElement).dataset.action;
-            menu.style.display = 'none';
-
-            switch (action) {
-                case 'copy':
-                    this.copyActiveObject();
-                    break;
-                case 'paste':
-                    this.pasteObject();
-                    break;
-                case 'delete':
-                    this.removeActiveObject();
-                    this.saveCanvasContent();
-                    break;
-                case 'duplicate':
-                    this.duplicateActiveObject();
-                    break;
-                case 'bring-front':
-                    this.bringToFront();
-                    break;
-                case 'send-back':
-                    this.sendToBack();
-                    break;
-                case 'align-left':
-                    this.alignObjects('left');
-                    break;
-                case 'align-right':
-                    this.alignObjects('right');
-                    break;
-                case 'align-top':
-                    this.alignObjects('top');
-                    break;
-                case 'align-bottom':
-                    this.alignObjects('bottom');
-                    break;
-                case 'align-center-h':
-                    this.alignObjects('center-h');
-                    break;
-                case 'align-center-v':
-                    this.alignObjects('center-v');
-                    break;
-                case 'distribute-h':
-                    this.distributeObjects('horizontal');
-                    break;
-                case 'distribute-v':
-                    this.distributeObjects('vertical');
-                    break;
-                case 'match-size':
-                    this.matchSize();
-                    break;
-                case 'match-width':
-                    this.matchWidth();
-                    break;
-                case 'match-height':
-                    this.matchHeight();
-                    break;
-                case 'multiple-crop':
-                    this.multipleCrop();
-                    break;
-                case 'align-by-axis-l':
-                    this.alignByAxis('L');
-                    break;
-                case 'align-by-axis-c':
-                    this.alignByAxis('C');
-                    break;
-                case 'align-by-axis-r':
-                    this.alignByAxis('R');
-                    break;
-                case 'align-by-axis-t':
-                    this.alignByAxis('T');
-                    break;
-                case 'align-by-axis-m':
-                    this.alignByAxis('M');
-                    break;
-                case 'align-by-axis-b':
-                    this.alignByAxis('B');
-                    break;
-                case 'align-by-axis-s':
-                    this.stackVertically();
-                    break;
-                case 'crop-manual':
-                    this.enterCropMode();
-                    break;
-                case 'crop-margin':
-                    this.autoCropMargin();
-                    break;
-                case 'crop-reset':
-                    this.resetCrop();
-                    break;
-                case 'flip-h':
-                    this.flipHorizontal();
-                    break;
-                case 'flip-v':
-                    this.flipVertical();
-                    break;
-                case 'rotate-90':
-                    this.rotateObjects(90);
-                    break;
-                case 'rotate-180':
-                    this.rotateObjects(180);
-                    break;
-                case 'reset-size':
-                    this.resetSize();
-                    break;
-                case 'group':
-                    this.groupObjects();
-                    break;
-                case 'ungroup':
-                    this.ungroupObjects();
-                    break;
-                case 'copy-view':
-                    this.copyView();
-                    break;
-                case 'paste-view':
-                    this.pasteView();
-                    break;
-                // Statistics actions
-                case 'stats-recommended':
-                    this.runRecommendedStatTest();
-                    break;
-                case 'stats-all':
-                    this.runAllStatTests();
-                    break;
-                case 'stats-select':
-                    this.showStatTestSelector();
-                    break;
-                case 'stats-inspector':
-                    this.openStatsInspector();
-                    break;
-                // Export actions
-                case 'export-png':
-                    this.exportAsPng();
-                    break;
-                case 'export-svg':
-                    this.exportAsSvg();
-                    break;
-                case 'export-pdf':
-                    this.exportAsPdf();
-                    break;
-                // Download actions
-                case 'download-figz':
-                    this.downloadFigzBundle();
-                    break;
-                case 'download-pltz':
-                    this.downloadPltzBundle();
-                    break;
-                // Canvas actions
-                case 'save-canvas':
-                    this.saveCanvasContent();
-                    if (this.statusBarCallback) {
-                        this.statusBarCallback('Figure saved');
-                    }
-                    break;
-                case 'toggle-theme':
-                    this.toggleCanvasTheme();
-                    break;
-                case 'zoom-fit':
-                    this.zoomToFit();
-                    break;
-                case 'reset-view':
-                    this.resetView();
-                    break;
-            }
-        });
-
-        // Close menu on click outside
-        document.addEventListener('click', (e: MouseEvent) => {
-            if (!menu.contains(e.target as Node)) {
-                menu.style.display = 'none';
-            }
-        });
-
-        // Close menu on escape
-        document.addEventListener('keydown', (e: KeyboardEvent) => {
-            if (e.key === 'Escape') {
-                menu.style.display = 'none';
-            }
-        });
-
-        console.log('[CanvasManager] Context menu initialized');
     }
 
     /**
@@ -3907,115 +3226,9 @@ export class CanvasManager {
      * Detects and removes white/transparent margins from images
      */
     public async autoCropMargin(): Promise<void> {
-        if (!this.canvas) return;
-
-        const activeObj = this.canvas.getActiveObject();
-        if (!activeObj) return;
-
-        // Collect images to process
-        const images: any[] = [];
-        if (activeObj.type === 'activeSelection') {
-            (activeObj as any).getObjects().forEach((obj: any) => {
-                if (obj.type === 'image') images.push(obj);
-            });
-        } else if (activeObj.type === 'image') {
-            images.push(activeObj);
-        }
-
-        if (images.length === 0) {
-            if (this.statusBarCallback) {
-                this.statusBarCallback('Select image(s) to auto-crop');
-            }
-            return;
-        }
-
-        if (this.statusBarCallback) {
-            this.statusBarCallback(`Auto-cropping ${images.length} image(s)...`);
-        }
-
-        this.saveUndoState();
-
-        // Process each image
-        for (const img of images) {
-            try {
-                await this.autoCropSingleImage(img);
-            } catch (error) {
-                console.error('[CanvasManager] Auto-crop failed for image:', error);
-            }
-        }
-
-        this.canvas.renderAll();
-        this.saveCanvasContent();
-
-        if (this.statusBarCallback) {
-            this.statusBarCallback(`Auto-cropped ${images.length} image(s)`);
-        }
-    }
-
-    /**
-     * Auto crop a single image using canvas analysis
-     * Finds content bounds and removes margins
-     */
-    private async autoCropSingleImage(fabricImg: any): Promise<void> {
-        const element = fabricImg.getElement();
-        if (!element) return;
-
-        // Create temporary canvas for image analysis
-        const tempCanvas = document.createElement('canvas');
-        const ctx = tempCanvas.getContext('2d');
-        if (!ctx) return;
-
-        const imgWidth = element.naturalWidth || element.width;
-        const imgHeight = element.naturalHeight || element.height;
-        tempCanvas.width = imgWidth;
-        tempCanvas.height = imgHeight;
-
-        ctx.drawImage(element, 0, 0);
-
-        // Get image data
-        const imageData = ctx.getImageData(0, 0, imgWidth, imgHeight);
-        const data = imageData.data;
-
-        // Find content bounds (non-white/non-transparent pixels)
-        let minX = imgWidth, minY = imgHeight, maxX = 0, maxY = 0;
-        const threshold = 250; // Consider pixels with R,G,B > 250 as white
-
-        for (let y = 0; y < imgHeight; y++) {
-            for (let x = 0; x < imgWidth; x++) {
-                const idx = (y * imgWidth + x) * 4;
-                const r = data[idx];
-                const g = data[idx + 1];
-                const b = data[idx + 2];
-                const a = data[idx + 3];
-
-                // Check if pixel is not white and not transparent
-                const isContent = a > 10 && (r < threshold || g < threshold || b < threshold);
-
-                if (isContent) {
-                    minX = Math.min(minX, x);
-                    minY = Math.min(minY, y);
-                    maxX = Math.max(maxX, x);
-                    maxY = Math.max(maxY, y);
-                }
-            }
-        }
-
-        // Add small padding
-        const padding = 2;
-        minX = Math.max(0, minX - padding);
-        minY = Math.max(0, minY - padding);
-        maxX = Math.min(imgWidth - 1, maxX + padding);
-        maxY = Math.min(imgHeight - 1, maxY + padding);
-
-        // Apply crop if bounds were found
-        if (maxX > minX && maxY > minY) {
-            fabricImg.set({
-                cropX: (fabricImg.cropX || 0) + minX,
-                cropY: (fabricImg.cropY || 0) + minY,
-                width: maxX - minX + 1,
-                height: maxY - minY + 1,
-            });
-            fabricImg.setCoords();
+        // Delegate to CropManager
+        if (this.cropManager) {
+            await this.cropManager.autoCropMargin();
         }
     }
 
@@ -6554,11 +5767,24 @@ export class CanvasManager {
 
     /**
      * Export canvas as PNG
+     * Uses backend compositing for publication-ready output (light mode)
+     * Requires saving figure first - no silent fallback
      * DELEGATES to ExportManager
      */
     public exportAsPng(): void {
         if (this.exportManager) {
-            this.exportManager.exportAsPng();
+            // Use backend compositing - requires figz bundle (light mode export for publication)
+            if (this.currentFigzPath) {
+                console.log('[CanvasManager] exportAsPng: Using backend compositing for', this.currentFigzPath);
+                this.exportManager.setFigzPath(this.currentFigzPath);
+                this.exportManager.exportFigureImage('png', 300);
+            } else {
+                // No silent fallback - must save figure first to create bundle
+                console.error('[CanvasManager] exportAsPng: No figz bundle - save figure first');
+                if (this.statusBarCallback) {
+                    this.statusBarCallback('Save figure first (Ctrl+S) to enable export');
+                }
+            }
         }
     }
 
@@ -6574,21 +5800,47 @@ export class CanvasManager {
 
     /**
      * Export canvas as PDF (requires jsPDF library)
+     * Uses backend compositing for publication-ready output (light mode)
+     * Requires saving figure first - no silent fallback
      * DELEGATES to ExportManager
      */
     public exportAsPdf(): void {
         if (this.exportManager) {
-            this.exportManager.exportAsPdf();
+            // Use backend compositing - requires figz bundle (light mode export for publication)
+            if (this.currentFigzPath) {
+                console.log('[CanvasManager] exportAsPdf: Using backend compositing for', this.currentFigzPath);
+                this.exportManager.setFigzPath(this.currentFigzPath);
+                this.exportManager.exportFigureImage('pdf', 300);
+            } else {
+                // No silent fallback - must save figure first to create bundle
+                console.error('[CanvasManager] exportAsPdf: No figz bundle - save figure first');
+                if (this.statusBarCallback) {
+                    this.statusBarCallback('Save figure first (Ctrl+S) to enable export');
+                }
+            }
         }
     }
 
     /**
      * Export canvas as JPEG (95% quality)
+     * Uses backend compositing for publication-ready output (light mode)
+     * Requires saving figure first - no silent fallback
      * DELEGATES to ExportManager
      */
     public exportAsJpeg(): void {
         if (this.exportManager) {
-            this.exportManager.exportAsJpeg();
+            // Use backend compositing - requires figz bundle (light mode export for publication)
+            if (this.currentFigzPath) {
+                console.log('[CanvasManager] exportAsJpeg: Using backend compositing for', this.currentFigzPath);
+                this.exportManager.setFigzPath(this.currentFigzPath);
+                this.exportManager.exportFigureImage('jpg', 300);
+            } else {
+                // No silent fallback - must save figure first to create bundle
+                console.error('[CanvasManager] exportAsJpeg: No figz bundle - save figure first');
+                if (this.statusBarCallback) {
+                    this.statusBarCallback('Save figure first (Ctrl+S) to enable export');
+                }
+            }
         }
     }
 
