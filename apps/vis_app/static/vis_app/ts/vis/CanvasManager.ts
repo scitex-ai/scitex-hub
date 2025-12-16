@@ -1076,7 +1076,7 @@ export class CanvasManager {
         // Fallback: restore canvas content from localStorage (panels without figz)
         if (session.panels && session.panels.length > 0) {
             console.log('[CanvasManager] Restoring panels from session...');
-            // Canvas content is restored via restoreCanvasContent() in SigmaEditor
+            // Canvas content is restored via restoreCanvasContent() in VisEditor
             return true;
         }
 

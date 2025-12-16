@@ -1,5 +1,5 @@
 /**
- * SciTeX Sigma Editor - Main Coordinator Class
+ * SciTeX Vis Editor - Main Coordinator Class
  *
  * Lightweight coordinator that:
  * - Initializes all manager modules
@@ -24,9 +24,9 @@ import {
 import { setupGraphOperations } from './graph.ts';
 
 /**
- * SigmaEditor - Coordinator class that manages all editor components
+ * VisEditor - Coordinator class that manages all editor components
  */
-export class SigmaEditor {
+export class VisEditor {
     // Manager instances
     private rulersManager!: RulersManager;
     private canvasManager!: CanvasManager;
@@ -63,7 +63,7 @@ export class SigmaEditor {
     private figureName: string = 'Figure1';
 
     constructor() {
-        console.log('[SigmaEditor] Initializing modular Sigma Editor...');
+        console.log('[VisEditor] Initializing modular Vis Editor...');
 
         // Initialize managers
         this.initializeManagers();
@@ -150,7 +150,7 @@ export class SigmaEditor {
         this.dataTabManager = new DataTabManager();
         this.dataTabManager.setCallbacks(
             (tabId: string) => {
-                console.log('[SigmaEditor] Data tab changed to:', tabId);
+                console.log('[VisEditor] Data tab changed to:', tabId);
                 // Load the tab's data into the data table
                 const tabData = this.dataTabManager.getTabData(tabId);
                 if (tabData && Array.isArray(tabData) && tabData.length > 0) {
@@ -159,7 +159,7 @@ export class SigmaEditor {
                 }
             },
             (tabId: string) => {
-                console.log('[SigmaEditor] Data tab closed:', tabId);
+                console.log('[VisEditor] Data tab closed:', tabId);
                 // Remove corresponding figure from canvas (if not already being deleted)
                 if (!this.isDeleting) {
                     const figureId = this.tabToFigureMap.get(tabId);
@@ -173,7 +173,7 @@ export class SigmaEditor {
                 }
             },
             (tabId: string, newName: string) => {
-                console.log('[SigmaEditor] Data tab renamed:', tabId, 'to', newName);
+                console.log('[VisEditor] Data tab renamed:', tabId, 'to', newName);
             }
         );
 
@@ -181,7 +181,7 @@ export class SigmaEditor {
         this.canvasTabManager = new CanvasTabManager();
         this.canvasTabManager.setCallbacks(
             async (tabId: string) => {
-                console.log('[SigmaEditor] Canvas tab changed to:', tabId);
+                console.log('[VisEditor] Canvas tab changed to:', tabId);
                 // Restore canvas content for the new tab
                 await this.restoreCanvasForTab(tabId);
                 const activeTab = this.canvasTabManager.getActiveTab();
@@ -194,11 +194,11 @@ export class SigmaEditor {
                 }
             },
             (tabId: string) => {
-                console.log('[SigmaEditor] Canvas tab closed:', tabId);
+                console.log('[VisEditor] Canvas tab closed:', tabId);
                 // Tab data is already removed by CanvasTabManager
             },
             (tabId: string, newName: string) => {
-                console.log('[SigmaEditor] Canvas tab renamed:', tabId, 'to', newName);
+                console.log('[VisEditor] Canvas tab renamed:', tabId, 'to', newName);
             },
             () => {
                 // onBeforeTabChange: Save current canvas before switching
@@ -206,7 +206,7 @@ export class SigmaEditor {
             },
             async (figureName: string, figurePath: string) => {
                 // onBundleCreated: Refresh file tree when a new figz bundle is created
-                console.log('[SigmaEditor] New figz bundle created:', figureName, figurePath);
+                console.log('[VisEditor] New figz bundle created:', figureName, figurePath);
                 await this.refreshFilesTree();
                 this.updateStatusBar(`Created ${figureName}`);
             }
@@ -250,7 +250,7 @@ export class SigmaEditor {
             const isDark = savedCanvasTheme === 'dark';
             this.canvasManager.updateCanvasTheme(isDark);
 
-            console.log(`[SigmaEditor] New tab or no content - canvas cleared, theme applied: ${savedCanvasTheme}`);
+            console.log(`[VisEditor] New tab or no content - canvas cleared, theme applied: ${savedCanvasTheme}`);
             return;
         }
 
@@ -270,25 +270,25 @@ export class SigmaEditor {
                     if (savedViewState) {
                         try {
                             const viewState = JSON.parse(savedViewState);
-                            console.log('[SigmaEditor] 📂 Using localStorage view state:', viewState);
+                            console.log('[VisEditor] 📂 Using localStorage view state:', viewState);
                             this.canvasManager.setCanvasZoomLevel(viewState.zoom ?? 1);
                             this.canvasManager.setCanvasPanOffset(viewState.panX ?? 0, viewState.panY ?? 0);
                         } catch (e) {
-                            console.warn('[SigmaEditor] Failed to parse localStorage view state, falling back to tab state');
+                            console.warn('[VisEditor] Failed to parse localStorage view state, falling back to tab state');
                             if (tabState.viewState) {
-                                console.log('[SigmaEditor] 📂 Using tab view state:', tabState.viewState);
+                                console.log('[VisEditor] 📂 Using tab view state:', tabState.viewState);
                                 this.canvasManager.setCanvasZoomLevel(tabState.viewState.zoom);
                                 this.canvasManager.setCanvasPanOffset(tabState.viewState.panX, tabState.viewState.panY);
                             }
                         }
                     } else if (tabState.viewState) {
-                        console.log('[SigmaEditor] 📂 Using tab view state (no localStorage):', tabState.viewState);
+                        console.log('[VisEditor] 📂 Using tab view state (no localStorage):', tabState.viewState);
                         this.canvasManager.setCanvasZoomLevel(tabState.viewState.zoom);
                         this.canvasManager.setCanvasPanOffset(tabState.viewState.panX, tabState.viewState.panY);
                     }
                     this.canvasManager.canvas!.renderAll();
                     this.updateRulersAreaTransform();
-                    console.log(`[SigmaEditor] Restored canvas for tab ${tabId}`);
+                    console.log(`[VisEditor] Restored canvas for tab ${tabId}`);
                     resolve();
                 });
             });
@@ -300,7 +300,7 @@ export class SigmaEditor {
      */
     private async initializeEditor(): Promise<void> {
         const totalStart = performance.now();
-        console.log('[SigmaEditor] Starting optimized initialization...');
+        console.log('[VisEditor] Starting optimized initialization...');
 
         // PHASE 1: CRITICAL PATH ONLY
         const phase1Start = performance.now();
@@ -316,7 +316,7 @@ export class SigmaEditor {
         this.dataTableManager.initializeBlankTable();
 
         const phase1End = performance.now();
-        console.log(`[SigmaEditor] Phase 1 complete in ${(phase1End - phase1Start).toFixed(2)}ms`);
+        console.log(`[VisEditor] Phase 1 complete in ${(phase1End - phase1Start).toFixed(2)}ms`);
 
         // PHASE 2: DEFERRED
         const phase2Start = performance.now();
@@ -327,7 +327,7 @@ export class SigmaEditor {
         this.uiManager.setupKeyboardShortcuts();
 
         const phase2End = performance.now();
-        console.log(`[SigmaEditor] Phase 2 complete in ${(phase2End - phase2Start).toFixed(2)}ms`);
+        console.log(`[VisEditor] Phase 2 complete in ${(phase2End - phase2Start).toFixed(2)}ms`);
 
         // PHASE 3: DEFERRED - Canvas and heavy graphics
         const phase3Start = performance.now();
@@ -373,7 +373,7 @@ export class SigmaEditor {
                 const elementName = elementNames[0];
                 const elementInfo = elementInfos[0];
 
-                console.log(`[SigmaEditor] Elements selected: ${elementNames.join(', ')}`, elementInfos);
+                console.log(`[VisEditor] Elements selected: ${elementNames.join(', ')}`, elementInfos);
 
                 // Show element properties in right panel
                 this.propertiesManager.showElementProperties(elementName, elementInfo);
@@ -410,7 +410,7 @@ export class SigmaEditor {
                 // Highlight CSV columns if available
                 const columnIndices = Array.from(allColumnIndices);
                 if (columnIndices.length > 0) {
-                    console.log(`[SigmaEditor] Highlighting columns: ${columnIndices.join(', ')}`);
+                    console.log(`[VisEditor] Highlighting columns: ${columnIndices.join(', ')}`);
                     // Highlight the corresponding columns in the data table
                     this.dataTableManager.highlightColumns(columnIndices);
 
@@ -423,7 +423,7 @@ export class SigmaEditor {
                         this.updateStatusBar(`${elementNames.length} elements selected (columns: ${colNamesStr})`);
                     }
                 } else {
-                    console.log(`[SigmaEditor] No csv_columns on selected elements`);
+                    console.log(`[VisEditor] No csv_columns on selected elements`);
                     // Update status bar without column info
                     if (elementNames.length === 1) {
                         this.updateStatusBar(`Element: ${elementInfo.label || elementName}`);
@@ -463,7 +463,7 @@ export class SigmaEditor {
             dataTableSelector: '.data-table-container',
             canvasManager: this.canvasManager,
             onCsvLoad: (data: string[][]) => {
-                console.log('[SigmaEditor] CSV loaded via drop:', data.length, 'rows');
+                console.log('[VisEditor] CSV loaded via drop:', data.length, 'rows');
                 // TODO: Load into data table
             },
         });
@@ -474,7 +474,7 @@ export class SigmaEditor {
             if (activeTab?.canvasJson) {
                 // Restore from canvas tab state
                 await this.restoreCanvasForTab(activeTab.id);
-                console.log(`[SigmaEditor] Restored canvas from tab: ${activeTab.figureName}`);
+                console.log(`[VisEditor] Restored canvas from tab: ${activeTab.figureName}`);
             } else {
                 // Fallback: Try to restore from old single-canvas localStorage
                 const savedState = localStorage.getItem('scitex-vis-viewstate');
@@ -482,7 +482,7 @@ export class SigmaEditor {
                     const restoredObjects = await this.canvasManager.restoreCanvasContent();
                     await this.loadMissingMetadata(restoredObjects);
                     this.updateRulersAreaTransform();
-                    console.log(`[SigmaEditor] Restored view: ${Math.round(this.canvasManager.getCanvasZoomLevel() * 100)}%`);
+                    console.log(`[VisEditor] Restored view: ${Math.round(this.canvasManager.getCanvasZoomLevel() * 100)}%`);
 
                     // Migrate: Save this to the default tab
                     this.saveCanvasForCurrentTab();
@@ -490,7 +490,7 @@ export class SigmaEditor {
                     // First time - zoom to fit
                     this.canvasManager.zoomToFit();
                     this.updateRulersAreaTransform();
-                    console.log(`[SigmaEditor] Initial zoom: ${Math.round(this.canvasManager.getCanvasZoomLevel() * 100)}%`);
+                    console.log(`[VisEditor] Initial zoom: ${Math.round(this.canvasManager.getCanvasZoomLevel() * 100)}%`);
                 }
             }
 
@@ -500,15 +500,15 @@ export class SigmaEditor {
             const savedCanvasTheme = localStorage.getItem('canvas-theme') || savedGlobalTheme;
             const canvasDarkMode = savedCanvasTheme === 'dark';
             this.canvasManager.updateCanvasTheme(canvasDarkMode);
-            console.log(`[SigmaEditor] Canvas theme re-applied after restore: ${savedCanvasTheme}`);
+            console.log(`[VisEditor] Canvas theme re-applied after restore: ${savedCanvasTheme}`);
 
             // Redraw rulers after canvas is fully loaded
             this.rulersManager.drawRulers();
-            console.log(`[SigmaEditor] Rulers redrawn after canvas restore`);
+            console.log(`[VisEditor] Rulers redrawn after canvas restore`);
         }, 100);
 
         const phase3End = performance.now();
-        console.log(`[SigmaEditor] Phase 3 complete in ${(phase3End - phase3Start).toFixed(2)}ms`);
+        console.log(`[VisEditor] Phase 3 complete in ${(phase3End - phase3Start).toFixed(2)}ms`);
 
         // PHASE 4: DEFERRED - Properties and final setup
         const phase4Start = performance.now();
@@ -534,7 +534,7 @@ export class SigmaEditor {
         this.updateStatusBar('Ready');
 
         const phase4End = performance.now();
-        console.log(`[SigmaEditor] Phase 4 complete in ${(phase4End - phase4Start).toFixed(2)}ms`);
+        console.log(`[VisEditor] Phase 4 complete in ${(phase4End - phase4Start).toFixed(2)}ms`);
 
         // Note: Canvas theme is applied in the setTimeout callback after canvas content restoration
         // to ensure it's not overwritten by saved canvas JSON
@@ -543,18 +543,18 @@ export class SigmaEditor {
         document.addEventListener('theme-changed', (e: CustomEvent) => {
             const isDark = e.detail?.theme === 'dark';
             this.rulersManager.updateRulerTheme(isDark);
-            console.log(`[SigmaEditor] Global theme changed, rulers updated to ${isDark ? 'dark' : 'light'}`);
+            console.log(`[VisEditor] Global theme changed, rulers updated to ${isDark ? 'dark' : 'light'}`);
         });
 
         const totalEnd = performance.now();
-        console.log(`[SigmaEditor] Total initialization: ${(totalEnd - totalStart).toFixed(2)}ms`);
+        console.log(`[VisEditor] Total initialization: ${(totalEnd - totalStart).toFixed(2)}ms`);
     }
 
     /**
      * Setup data table events
      */
     private setupDataTableEvents(): void {
-        console.log('[SigmaEditor] Data table using native scrolling');
+        console.log('[VisEditor] Data table using native scrolling');
     }
 
     /**
@@ -584,7 +584,7 @@ export class SigmaEditor {
 
         // Initial setup
         this.setupPropertyInputHandlers(debounceReRender);
-        console.log('[SigmaEditor] Property change handlers initialized');
+        console.log('[VisEditor] Property change handlers initialized');
     }
 
     /**
@@ -660,7 +660,7 @@ export class SigmaEditor {
             return;
         }
 
-        console.log(`[SigmaEditor] Creating ${plotType} plot...`);
+        console.log(`[VisEditor] Creating ${plotType} plot...`);
         this.updateStatusBar(`Creating ${plotType} plot...`);
 
         const graphOps = setupGraphOperations(
@@ -807,8 +807,8 @@ export class SigmaEditor {
         // Initialize GalleryCategories for the new category-based UI
         this.galleryCategories = new GalleryCategories({
             onPlotSelect: async (plot, category, csvData) => {
-                console.log(`[SigmaEditor] Gallery plot selected: ${plot.name} (${category})`);
-                console.log(`[SigmaEditor] CSV data rows: ${csvData?.length || 0}`);
+                console.log(`[VisEditor] Gallery plot selected: ${plot.name} (${category})`);
+                console.log(`[VisEditor] CSV data rows: ${csvData?.length || 0}`);
                 this.updateStatusBar(`Loading: ${plot.display_name}...`);
 
                 // Store current plot info for re-rendering
@@ -841,12 +841,12 @@ export class SigmaEditor {
 
                         // Load CSV into data table
                         this.dataTableManager.loadFromArray(csvData, true);
-                        console.log(`[SigmaEditor] Created tab ${tabId} and loaded ${csvData.length} rows from gallery CSV`);
+                        console.log(`[VisEditor] Created tab ${tabId} and loaded ${csvData.length} rows from gallery CSV`);
                     } catch (err) {
-                        console.error('[SigmaEditor] Failed to load CSV into data table:', err);
+                        console.error('[VisEditor] Failed to load CSV into data table:', err);
                     }
                 } else {
-                    console.warn('[SigmaEditor] No CSV data to load');
+                    console.warn('[VisEditor] No CSV data to load');
                 }
 
                 // Always use bundle-based flow (figz/pltz format)
@@ -855,9 +855,9 @@ export class SigmaEditor {
                 const projectSlug = this.projectSlug || (window as any).projectSlug;
 
                 if (projectOwner && projectSlug) {
-                    console.log(`[SigmaEditor] Creating pltz bundle for project: ${projectOwner}/${projectSlug}`);
+                    console.log(`[VisEditor] Creating pltz bundle for project: ${projectOwner}/${projectSlug}`);
                 } else {
-                    console.log(`[SigmaEditor] Creating pltz bundle in user's bundle directory (no project context)`);
+                    console.log(`[VisEditor] Creating pltz bundle in user's bundle directory (no project context)`);
                 }
 
                 await this.createPltzBundleFromGallery(plot, category, csvData);
@@ -889,11 +889,11 @@ export class SigmaEditor {
         // Also keep the legacy PlotGallery for backward compatibility
         this.plotGallery = new PlotGallery({
             onSelect: async (plot, gallery) => {
-                console.log(`[SigmaEditor] Legacy plot selected: ${plot.name} from ${gallery.name}`);
+                console.log(`[VisEditor] Legacy plot selected: ${plot.name} from ${gallery.name}`);
             }
         });
 
-        console.log('[SigmaEditor] GalleryCategories initialized');
+        console.log('[VisEditor] GalleryCategories initialized');
     }
 
     /**
@@ -901,7 +901,7 @@ export class SigmaEditor {
      */
     public async reRenderCurrentPlot(): Promise<void> {
         if (!this.currentPlot || !this.currentCsvData || this.currentCsvData.length < 2) {
-            console.warn('[SigmaEditor] No current plot to re-render');
+            console.warn('[VisEditor] No current plot to re-render');
             return;
         }
 
@@ -970,11 +970,11 @@ export class SigmaEditor {
                 });
                 this.updateStatusBar(`Updated: ${this.currentPlot.display_name}`);
             } else {
-                console.error('[SigmaEditor] Re-render failed:', result.error);
+                console.error('[VisEditor] Re-render failed:', result.error);
                 this.updateStatusBar(`Failed to update: ${result.error || 'Unknown error'}`);
             }
         } catch (err) {
-            console.error('[SigmaEditor] Re-render error:', err);
+            console.error('[VisEditor] Re-render error:', err);
             this.updateStatusBar('Failed to re-render plot');
         }
     }
@@ -988,7 +988,7 @@ export class SigmaEditor {
         // Prefer SVG for element selection; fall back to PNG
         const imageUrl = plot.svg || plot.png || `/vis/api/gallery/project/${category}/${plot.name}/image/?format=svg`;
         const isSvg = imageUrl.includes('format=svg') || imageUrl.endsWith('.svg');
-        console.log(`[SigmaEditor] Loading static image (${isSvg ? 'SVG' : 'PNG'}): ${imageUrl}`);
+        console.log(`[VisEditor] Loading static image (${isSvg ? 'SVG' : 'PNG'}): ${imageUrl}`);
 
         // Try to load JSON metadata from original gallery
         let axisMetadata: any = undefined;
@@ -1005,17 +1005,17 @@ export class SigmaEditor {
                         hitmap: metadata.hitmap,
                         hitmap_color_map: metadata.hitmap_color_map
                     };
-                    console.log(`[SigmaEditor] Loaded axis metadata for ${plot.name}:`, axisMetadata);
+                    console.log(`[VisEditor] Loaded axis metadata for ${plot.name}:`, axisMetadata);
                     if (metadata.element_bboxes) {
-                        console.log(`[SigmaEditor] Element bboxes available: ${Object.keys(metadata.element_bboxes).length} elements`);
+                        console.log(`[VisEditor] Element bboxes available: ${Object.keys(metadata.element_bboxes).length} elements`);
                     }
                     if (metadata.hitmap) {
-                        console.log(`[SigmaEditor] Hitmap available for fast element picking`);
+                        console.log(`[VisEditor] Hitmap available for fast element picking`);
                     }
                 }
             }
         } catch (err) {
-            console.log(`[SigmaEditor] No metadata available for ${plot.name}`);
+            console.log(`[VisEditor] No metadata available for ${plot.name}`);
         }
 
         try {
@@ -1028,10 +1028,10 @@ export class SigmaEditor {
                     if (csvResponse.ok) {
                         const csvText = await csvResponse.text();
                         finalCsvData = this.parseCSV(csvText);
-                        console.log(`[SigmaEditor] Loaded CSV data from ${plot.csv}: ${finalCsvData.length} rows`);
+                        console.log(`[VisEditor] Loaded CSV data from ${plot.csv}: ${finalCsvData.length} rows`);
                     }
                 } catch (e) {
-                    console.log(`[SigmaEditor] No CSV data for ${plot.name}`);
+                    console.log(`[VisEditor] No CSV data for ${plot.name}`);
                 }
             }
 
@@ -1050,7 +1050,7 @@ export class SigmaEditor {
                 });
                 // Log metadata attachment (now happens inside addSvgFromUrl)
                 if (result && !Array.isArray(result)) {
-                    console.log(`[SigmaEditor] Attached metadata to SVG group:`, {
+                    console.log(`[VisEditor] Attached metadata to SVG group:`, {
                         hasAxisMetadata: !!axisMetadata,
                         hasElementBboxes: !!axisMetadata?.element_bboxes,
                         elementCount: axisMetadata?.element_bboxes ? Object.keys(axisMetadata.element_bboxes).length : 0,
@@ -1069,11 +1069,11 @@ export class SigmaEditor {
 
             if (result) {
                 const rows = Array.isArray(result) ? 0 : (result.csvData?.length || 0);
-                console.log(`[SigmaEditor] ${isSvg ? 'SVG' : 'Image'} loaded with csvData: ${!!finalCsvData}, rows: ${rows}`);
+                console.log(`[VisEditor] ${isSvg ? 'SVG' : 'Image'} loaded with csvData: ${!!finalCsvData}, rows: ${rows}`);
             }
             this.updateStatusBar(`Loaded: ${plot.display_name}`);
         } catch (err) {
-            console.error('[SigmaEditor] Failed to load static image:', err);
+            console.error('[VisEditor] Failed to load static image:', err);
             this.updateStatusBar(`Failed to load: ${plot.display_name}`);
         }
     }
@@ -1094,7 +1094,7 @@ export class SigmaEditor {
         category: string,
         csvData?: string[][]
     ): Promise<void> {
-        console.log(`[SigmaEditor] createPltzBundleFromGallery called:`, {
+        console.log(`[VisEditor] createPltzBundleFromGallery called:`, {
             plotName: plot?.name,
             displayName: plot?.display_name,
             category,
@@ -1104,7 +1104,7 @@ export class SigmaEditor {
         const projectOwner = this.projectOwner || (window as any).projectOwner;
         const projectSlug = this.projectSlug || (window as any).projectSlug;
 
-        console.log(`[SigmaEditor] Project context:`, { projectOwner, projectSlug, figureName: this.figureName });
+        console.log(`[VisEditor] Project context:`, { projectOwner, projectSlug, figureName: this.figureName });
 
         // Always use bundle format - no fallback to static images
         this.updateStatusBar(`Creating bundle: ${plot.display_name}...`);
@@ -1112,17 +1112,17 @@ export class SigmaEditor {
         // Map plot name to plot type
         // e.g. "line_01_basic" -> "line", "scatter_02_colored" -> "scatter"
         const plotType = this.mapPlotNameToType(plot.name, category);
-        console.log(`[SigmaEditor] Mapped plot type: "${plot.name}" + "${category}" -> "${plotType}"`);
+        console.log(`[VisEditor] Mapped plot type: "${plot.name}" + "${category}" -> "${plotType}"`);
 
         // Convert CSV array to CSV string if available
         let dataCsv: string | undefined;
         if (csvData && csvData.length > 1) {
             dataCsv = csvData.map(row => row.join(',')).join('\n');
-            console.log(`[SigmaEditor] CSV data prepared: ${dataCsv.length} chars`);
+            console.log(`[VisEditor] CSV data prepared: ${dataCsv.length} chars`);
         }
 
         try {
-            console.log('[SigmaEditor] Calling canvasManager.addPanelFromGallery...');
+            console.log('[VisEditor] Calling canvasManager.addPanelFromGallery...');
             // Use CanvasManager's addPanelFromGallery method
             // Pass gallery_category and gallery_plot_name to copy from template instead of re-rendering
             const result = await this.canvasManager.addPanelFromGallery(
@@ -1137,17 +1137,17 @@ export class SigmaEditor {
 
             if (result) {
                 this.updateStatusBar(`Panel ${result.panelLabel} created: ${plot.display_name}`);
-                console.log(`[SigmaEditor] Created pltz bundle panel: ${result.panelLabel} at ${result.bundlePath}`);
+                console.log(`[VisEditor] Created pltz bundle panel: ${result.panelLabel} at ${result.bundlePath}`);
 
                 // Refresh file tree after creating bundle
                 await this.refreshFilesTree();
             } else {
                 // Bundle creation returned null - show error
-                console.error('[SigmaEditor] Bundle creation failed - result is null');
+                console.error('[VisEditor] Bundle creation failed - result is null');
                 this.updateStatusBar(`Error: Failed to create bundle for ${plot.display_name}`);
             }
         } catch (error) {
-            console.error('[SigmaEditor] Failed to create pltz bundle:', error);
+            console.error('[VisEditor] Failed to create pltz bundle:', error);
             this.updateStatusBar(`Error: ${error}`);
         }
     }
@@ -1217,7 +1217,7 @@ export class SigmaEditor {
         if (figureName) {
             this.figureName = figureName;
         }
-        console.log(`[SigmaEditor] Project context set: ${owner}/${slug}/${this.figureName}`);
+        console.log(`[VisEditor] Project context set: ${owner}/${slug}/${this.figureName}`);
     }
 
     /**
@@ -1246,9 +1246,9 @@ export class SigmaEditor {
         const filesTree = (window as any).filesTree;
         if (filesTree && typeof filesTree.refresh === 'function') {
             await filesTree.refresh();
-            console.log('[SigmaEditor] File tree refreshed');
+            console.log('[VisEditor] File tree refreshed');
         } else {
-            console.log('[SigmaEditor] filesTree not available for refresh');
+            console.log('[VisEditor] filesTree not available for refresh');
         }
     }
 
@@ -1290,7 +1290,7 @@ export class SigmaEditor {
             }
         });
 
-        console.log(`[SigmaEditor] Found ${paths.length} figz paths in tree`);
+        console.log(`[VisEditor] Found ${paths.length} figz paths in tree`);
         return paths;
     }
 
@@ -1300,7 +1300,7 @@ export class SigmaEditor {
     public clearAllTabs(): void {
         this.canvasTabManager.clearAllTabs();
         this.dataTabManager.clearAllTabs();
-        console.log('[SigmaEditor] All tabs cleared');
+        console.log('[VisEditor] All tabs cleared');
     }
 
     /**
@@ -1350,21 +1350,21 @@ export class SigmaEditor {
     private async loadCsvForImage(obj: any): Promise<void> {
         const name = obj.name || '';
         if (!name) {
-            console.log('[SigmaEditor] No name on selected image, cannot load CSV');
+            console.log('[VisEditor] No name on selected image, cannot load CSV');
             return;
         }
 
-        console.log(`[SigmaEditor] Looking up CSV for image: "${name}"`);
+        console.log(`[VisEditor] Looking up CSV for image: "${name}"`);
 
         try {
             // Try to find the plot in loaded gallery contents
             const contents = this.galleryCategories?.getContents();
             if (!contents) {
-                console.log('[SigmaEditor] Gallery contents not loaded yet');
+                console.log('[VisEditor] Gallery contents not loaded yet');
                 return;
             }
 
-            console.log(`[SigmaEditor] Searching ${Object.keys(contents.categories || {}).length} categories`);
+            console.log(`[VisEditor] Searching ${Object.keys(contents.categories || {}).length} categories`);
 
             // Search for the plot by display name across all categories
             // Try multiple matching strategies
@@ -1388,7 +1388,7 @@ export class SigmaEditor {
 
                 if (plot) {
                     found = true;
-                    console.log(`[SigmaEditor] Found matching plot: ${plot.name} in ${category}`);
+                    console.log(`[VisEditor] Found matching plot: ${plot.name} in ${category}`);
                     // Load CSV data
                     const csvUrl = plot.csv || `/vis/api/gallery/project/${category}/${plot.name}/csv/`;
                     try {
@@ -1402,7 +1402,7 @@ export class SigmaEditor {
                             this.loadCsvDataInTab(obj);
                         }
                     } catch (e) {
-                        console.log(`[SigmaEditor] No CSV found for ${name}`);
+                        console.log(`[VisEditor] No CSV found for ${name}`);
                     }
 
                     // Load axis metadata if not already present
@@ -1424,7 +1424,7 @@ export class SigmaEditor {
                                 }
                             }
                         } catch (e) {
-                            console.log(`[SigmaEditor] No metadata found for ${name}`);
+                            console.log(`[VisEditor] No metadata found for ${name}`);
                         }
                     }
                     break;
@@ -1432,10 +1432,10 @@ export class SigmaEditor {
             }
 
             if (!found) {
-                console.log(`[SigmaEditor] No matching plot found for "${name}"`);
+                console.log(`[VisEditor] No matching plot found for "${name}"`);
             }
         } catch (error) {
-            console.error('[SigmaEditor] Failed to load CSV for image:', error);
+            console.error('[VisEditor] Failed to load CSV for image:', error);
         }
     }
 
@@ -1447,11 +1447,11 @@ export class SigmaEditor {
         const panelLabel = obj.panelLabel || 'Panel';
 
         if (!pltzPath) {
-            console.log('[SigmaEditor] No pltzPath on bundle panel');
+            console.log('[VisEditor] No pltzPath on bundle panel');
             return;
         }
 
-        console.log(`[SigmaEditor] Loading CSV for bundle panel: ${pltzPath}`);
+        console.log(`[VisEditor] Loading CSV for bundle panel: ${pltzPath}`);
 
         try {
             const csvUrl = `/vis/api/bundles/pltz/data/?path=${encodeURIComponent(pltzPath)}`;
@@ -1478,13 +1478,13 @@ export class SigmaEditor {
                 this.dataTableManager.loadFromArray(csvData, true);
 
                 this.updateStatusBar(`Data loaded for Panel ${panelLabel} (${csvData.length} rows)`);
-                console.log(`[SigmaEditor] Loaded CSV for bundle panel ${panelLabel}: ${csvData.length} rows`);
+                console.log(`[VisEditor] Loaded CSV for bundle panel ${panelLabel}: ${csvData.length} rows`);
             } else {
-                console.log(`[SigmaEditor] No CSV data found for bundle: ${pltzPath}`);
+                console.log(`[VisEditor] No CSV data found for bundle: ${pltzPath}`);
                 this.updateStatusBar(`No data available for Panel ${panelLabel}`);
             }
         } catch (error) {
-            console.error('[SigmaEditor] Failed to load CSV for bundle panel:', error);
+            console.error('[VisEditor] Failed to load CSV for bundle panel:', error);
         }
     }
 
@@ -1500,11 +1500,11 @@ export class SigmaEditor {
         );
 
         if (!objectsNeedingMetadata.length) {
-            console.log('[SigmaEditor] All objects have axis metadata');
+            console.log('[VisEditor] All objects have axis metadata');
             return;
         }
 
-        console.log(`[SigmaEditor] Loading metadata for ${objectsNeedingMetadata.length} objects`);
+        console.log(`[VisEditor] Loading metadata for ${objectsNeedingMetadata.length} objects`);
 
         for (const obj of objectsNeedingMetadata) {
             try {
@@ -1522,11 +1522,11 @@ export class SigmaEditor {
                             hitmap: metadata.hitmap,
                             hitmap_color_map: metadata.hitmap_color_map
                         };
-                        console.log(`[SigmaEditor] Loaded metadata for ${obj.name || plot.name}`);
+                        console.log(`[VisEditor] Loaded metadata for ${obj.name || plot.name}`);
                     }
                 }
             } catch (e) {
-                console.log(`[SigmaEditor] Failed to load metadata for ${obj.name || 'unknown'}`);
+                console.log(`[VisEditor] Failed to load metadata for ${obj.name || 'unknown'}`);
             }
         }
 
@@ -1545,7 +1545,7 @@ export class SigmaEditor {
     private inferCsvColumnsFromLabel(elementName: string, elementInfo: any): { x?: { name: string, index: number }, y?: { name: string, index: number } } | null {
         const currentData = this.dataTableManager.getCurrentData();
         if (!currentData || !currentData.headers || currentData.headers.length === 0) {
-            console.log('[SigmaEditor] No data table loaded for column inference');
+            console.log('[VisEditor] No data table loaded for column inference');
             return null;
         }
 
@@ -1592,7 +1592,7 @@ export class SigmaEditor {
             if (yColIdx !== -1) {
                 result.y = { name: headers[yColIdx], index: yColIdx };
             }
-            console.log(`[SigmaEditor] Inferred csv_columns from SciTeX header: x=${result.x?.name}, y=${result.y?.name}`);
+            console.log(`[VisEditor] Inferred csv_columns from SciTeX header: x=${result.x?.name}, y=${result.y?.name}`);
             return result;
         }
 
@@ -1601,7 +1601,7 @@ export class SigmaEditor {
             const xCol = { name: headers[0], index: 0 };
             const yColIdx = traceIdx + 1;  // trace_0 -> column 1, trace_1 -> column 2
             const yCol = { name: headers[yColIdx], index: yColIdx };
-            console.log(`[SigmaEditor] Inferred csv_columns from trace_idx ${traceIdx}: x=${xCol.name}, y=${yCol.name}`);
+            console.log(`[VisEditor] Inferred csv_columns from trace_idx ${traceIdx}: x=${xCol.name}, y=${yCol.name}`);
             return { x: xCol, y: yCol };
         }
 
@@ -1611,7 +1611,7 @@ export class SigmaEditor {
             if (label.includes(header) || header.includes(label)) {
                 const xCol = { name: headers[0], index: 0 };
                 const yCol = { name: headers[i], index: i };
-                console.log(`[SigmaEditor] Inferred csv_columns from label match: x=${xCol.name}, y=${yCol.name}`);
+                console.log(`[VisEditor] Inferred csv_columns from label match: x=${xCol.name}, y=${yCol.name}`);
                 return { x: xCol, y: yCol };
             }
         }
@@ -1623,12 +1623,12 @@ export class SigmaEditor {
             if (idx < headers.length) {
                 const xCol = { name: headers[0], index: 0 };
                 const yCol = { name: headers[idx], index: idx };
-                console.log(`[SigmaEditor] Inferred csv_columns from element name: x=${xCol.name}, y=${yCol.name}`);
+                console.log(`[VisEditor] Inferred csv_columns from element name: x=${xCol.name}, y=${yCol.name}`);
                 return { x: xCol, y: yCol };
             }
         }
 
-        console.log('[SigmaEditor] Could not infer csv_columns for element:', elementName, 'label:', label);
+        console.log('[VisEditor] Could not infer csv_columns for element:', elementName, 'label:', label);
         return null;
     }
 
@@ -1663,17 +1663,17 @@ export class SigmaEditor {
      */
     private async reRenderPlotAtSize(obj: any, newWidth: number, newHeight: number): Promise<void> {
         if (!obj.plotInfo) {
-            console.log('[SigmaEditor] Cannot re-render: no plotInfo on object');
+            console.log('[VisEditor] Cannot re-render: no plotInfo on object');
             return;
         }
 
         const { plot, category } = obj.plotInfo;
         if (!plot || !category) {
-            console.log('[SigmaEditor] Cannot re-render: missing plot or category');
+            console.log('[VisEditor] Cannot re-render: missing plot or category');
             return;
         }
 
-        console.log(`[SigmaEditor] Re-rendering plot at ${newWidth}x${newHeight}px`);
+        console.log(`[VisEditor] Re-rendering plot at ${newWidth}x${newHeight}px`);
         this.updateStatusBar(`Re-rendering ${obj.name || 'plot'} at ${Math.round(newWidth)}x${Math.round(newHeight)}px...`);
 
         try {
@@ -1705,7 +1705,7 @@ export class SigmaEditor {
             this.updateStatusBar(`Resized: ${obj.name || 'plot'}`);
 
         } catch (error) {
-            console.error('[SigmaEditor] Failed to re-render plot:', error);
+            console.error('[VisEditor] Failed to re-render plot:', error);
             this.updateStatusBar(`Failed to re-render: ${obj.name || 'plot'}`);
         }
     }
@@ -1715,7 +1715,7 @@ export class SigmaEditor {
      * Useful for testing element selection and visual consistency
      */
     public async plotAllTypes(): Promise<void> {
-        console.log('[SigmaEditor] Loading all plot types for debugging...');
+        console.log('[VisEditor] Loading all plot types for debugging...');
         this.updateStatusBar('Loading all plot types...');
 
         try {
@@ -1741,7 +1741,7 @@ export class SigmaEditor {
                 }
             }
 
-            console.log(`[SigmaEditor] Found ${allPlots.length} plot types to load`);
+            console.log(`[VisEditor] Found ${allPlots.length} plot types to load`);
 
             // Grid layout parameters
             const PLOT_WIDTH = 180;
@@ -1771,7 +1771,7 @@ export class SigmaEditor {
                             );
                         }
                     } catch {
-                        console.warn(`[SigmaEditor] No CSV for ${plot.name}`);
+                        console.warn(`[VisEditor] No CSV for ${plot.name}`);
                     }
 
                     // Fetch metadata
@@ -1792,7 +1792,7 @@ export class SigmaEditor {
                             }
                         }
                     } catch {
-                        console.warn(`[SigmaEditor] No metadata for ${plot.name}`);
+                        console.warn(`[VisEditor] No metadata for ${plot.name}`);
                     }
 
                     // Load SVG for crisp rendering at any zoom level
@@ -1810,15 +1810,15 @@ export class SigmaEditor {
                         csvData: csvData,
                     });
                 } catch (err) {
-                    console.error(`[SigmaEditor] Failed to load ${plot.name}:`, err);
+                    console.error(`[VisEditor] Failed to load ${plot.name}:`, err);
                 }
             }
 
             this.updateStatusBar(`Loaded ${allPlots.length} plot types`);
-            console.log('[SigmaEditor] All plot types loaded');
+            console.log('[VisEditor] All plot types loaded');
 
         } catch (error) {
-            console.error('[SigmaEditor] Failed to load all plot types:', error);
+            console.error('[VisEditor] Failed to load all plot types:', error);
             this.updateStatusBar('Failed to load all plot types');
         }
     }
@@ -1844,7 +1844,7 @@ export class SigmaEditor {
      */
     private syncTreeToPath(absolutePath: string, source: string): void {
         if (!this.projectOwner || !this.projectSlug) {
-            console.log(`[SigmaEditor] No project context, skipping tree sync (${source})`);
+            console.log(`[VisEditor] No project context, skipping tree sync (${source})`);
             return;
         }
 
@@ -1861,9 +1861,9 @@ export class SigmaEditor {
         if (filesTree && typeof filesTree.selectFile === 'function') {
             // Use skipCallback=true to avoid re-triggering file selection events
             filesTree.selectFile(relativePath, true);
-            console.log(`[SigmaEditor] Tree synced to ${source}: ${relativePath}`);
+            console.log(`[VisEditor] Tree synced to ${source}: ${relativePath}`);
         } else {
-            console.log(`[SigmaEditor] filesTree not available for sync (${source})`);
+            console.log(`[VisEditor] filesTree not available for sync (${source})`);
         }
     }
 }

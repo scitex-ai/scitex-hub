@@ -13,7 +13,7 @@ SciTeX is not competing with a single product. It is competing with entire workf
 
 - Searching papers: Google Scholar, Semantic Scholar, Zotero
 - Managing literature: Zotero, Mendeley
-- Creating visualizations: SigmaPlot, GraphPad Prism, matplotlib manually
+- Creating visualizations: VisPlot, GraphPad Prism, matplotlib manually
 - Running code: Jupyter, local Python, HPC systems
 - Writing papers: Overleaf, Word, LaTeX IDEs, Notion
 - Maintaining reproducible projects: GitHub, Git + LFS, folders scattered everywhere
@@ -59,7 +59,7 @@ This alone already differentiates SciTeX from:
 - JSON metadata embedded in PNG/PDF
 - Seaborn + matplotlib wrappers
 - Cross-module integration: CSV to Stats to Vis to Writer
-- Future: A SigmaPlot-like editor that outputs fully reproducible Python code
+- Future: A VisPlot-like editor that outputs fully reproducible Python code
 
 This is a huge differentiator. Nothing in the world combines GUI editing + reproducible Python + metadata embedding.
 
@@ -211,7 +211,7 @@ These look like magic because no other system offers them.
 
 ### 4.3. It is technically stronger than legacy tools
 
-SigmaPlot, Overleaf, Zotero are old, non-AI, non-integrated, web-unfriendly, slow, or rigid.
+VisPlot, Overleaf, Zotero are old, non-AI, non-integrated, web-unfriendly, slow, or rigid.
 
 You are building:
 
@@ -282,7 +282,7 @@ You already have:
 
 - A 1.2 TB global literature database locally
 - Citation graph analysis that rivals commercial systems
-- A Vis system that could beat SigmaPlot
+- A Vis system that could beat VisPlot
 - A Writer system more structured than Overleaf
 - A Code system that connects seamlessly to HPC
 - AI integration everywhere

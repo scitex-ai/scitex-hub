@@ -18,7 +18,7 @@ export class RulersManager {
     private canvasIsPanning: boolean = false;
     private canvasPanStartPoint: { x: number, y: number } | null = null;
     private isDarkTheme: boolean = false;  // Track current theme for rulers
-    private onTransformUpdate?: () => void;  // Callback to SigmaEditor for transform sync
+    private onTransformUpdate?: () => void;  // Callback to VisEditor for transform sync
 
     constructor(
         private canvas: any, // Fabric.js canvas instance
@@ -26,7 +26,7 @@ export class RulersManager {
     ) {}
 
     /**
-     * Set callback for transform updates (called from SigmaEditor)
+     * Set callback for transform updates (called from VisEditor)
      */
     public setTransformCallback(callback: () => void): void {
         this.onTransformUpdate = callback;
@@ -559,11 +559,11 @@ export class RulersManager {
 
     /**
      * Update transform on the entire rulers area (rulers + canvas together)
-     * Uses callback to SigmaEditor to ensure sync with CanvasManager
+     * Uses callback to VisEditor to ensure sync with CanvasManager
      */
     public updateRulersAreaTransform(): void {
         if (this.onTransformUpdate) {
-            // Use the callback to let SigmaEditor handle the transform
+            // Use the callback to let VisEditor handle the transform
             // This ensures sync with CanvasManager's zoom/pan state
             this.onTransformUpdate();
         } else {

@@ -83,7 +83,7 @@ export class UIManager {
         // NOTE: ResizerManager is no longer used for sidebar/properties panels
         // Those are now handled by shared/workspace-panel-resizer.ts via data-panel-resizer attributes
         this.resizerManager = new ResizerManager();
-        // this.resizerManager.initializeSigmaResizers();  // DISABLED: Conflicts with workspace-panel-resizer
+        // this.resizerManager.initializeVisResizers();  // DISABLED: Conflicts with workspace-panel-resizer
         this.plotDataManager = new PlotDataManager();
 
         // Initialize PanelControls module
@@ -253,7 +253,7 @@ export class UIManager {
         // NOTE: Sidebar and properties panel resizers are now handled by shared/workspace-panel-resizer.ts
         // via data-panel-resizer attributes. The ResizerManager is only used for the split resizer
         // (data-pane / canvas-pane) which doesn't have collapse functionality.
-        // this.resizerManager.initializeSigmaResizers();  // DISABLED: Conflicts with workspace-panel-resizer
+        // this.resizerManager.initializeVisResizers();  // DISABLED: Conflicts with workspace-panel-resizer
         console.log('[UIManager] Panel resizers delegated to workspace-panel-resizer via data attributes');
     }
 }

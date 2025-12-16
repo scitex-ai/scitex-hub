@@ -363,7 +363,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.3.0-alpha] - 2025-11-22
 
 ### Major Features
-- **Sigma Editor Integration**: Major refactor adding Sigma editor for enhanced collaboration
+- **Vis Editor Integration**: Major refactor adding Vis editor for enhanced collaboration
 - **Collaboration Features**: Real-time collaboration capabilities across the platform
 - **Development Tools**: Enhanced development utilities and debugging tools
 - **Hot Reload System**: Implemented django-browser-reload for Python/HTML hot reloading

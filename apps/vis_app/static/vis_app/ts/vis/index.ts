@@ -1,7 +1,7 @@
 /**
- * Sigma Editor Modules - Central Export Point
+ * Vis Editor Modules - Central Export Point
  *
- * This file re-exports all Sigma Editor modules for clean imports in the main file.
+ * This file re-exports all Vis Editor modules for clean imports in the main file.
  */
 
 // Type definitions and constants

@@ -1,5 +1,5 @@
 /**
- * Type definitions for Sigma Editor
+ * Type definitions for Vis Editor
  */
 
 export interface Dataset {

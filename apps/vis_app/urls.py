@@ -5,7 +5,7 @@ from .views import api as api_views
 app_name = "vis"
 
 urlpatterns = [
-    # Main editor - Sigma (SigmaPlot-inspired, now default)
+    # Main editor - Vis (VisPlot-inspired, now default)
     path(
         "",
         views.figure_editor,

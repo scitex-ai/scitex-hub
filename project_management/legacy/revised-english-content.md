@@ -64,7 +64,7 @@ Statistical computing"
 
 **Original:**
 "Publication-ready figure plotting
-Python interface for SigmaPlot graphing"
+Python interface for VisPlot graphing"
 
 **Revised:**
 "Publication-quality graphics

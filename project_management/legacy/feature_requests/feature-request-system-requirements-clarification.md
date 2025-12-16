@@ -8,7 +8,7 @@
 
 Clarify and document the system requirements for each SciTeX component, particularly addressing:
 - SciTeX-Engine's dependency on Claude Code
-- SciTeX-Viz's dependency on Windows and SigmaPlot
+- SciTeX-Viz's dependency on Windows and VisPlot
 - Linux compatibility and Apptainer containerization strategy
 
 ## Current Situation
@@ -31,11 +31,11 @@ Create clear documentation for each component's dependencies:
 - **Container Strategy**: Package Claude Code within Apptainer if needed
 
 #### SciTeX-Viz
-- **Requires**: Windows OS + SigmaPlot (proprietary software)
+- **Requires**: Windows OS + VisPlot (proprietary software)
 - **Current Platform**: Windows only
 - **Container Strategy**: 
   - Option A: Wine/Windows compatibility layer in Apptainer
-  - Option B: Remote Windows server for SigmaPlot processing
+  - Option B: Remote Windows server for VisPlot processing
   - Option C: Develop Linux-native alternative visualization backend
 
 #### Other Components
@@ -89,9 +89,9 @@ Modify product description pages to clearly state:
 ## Alternative Solutions
 
 For SciTeX-Viz specifically:
-1. Develop open-source alternatives to SigmaPlot functionality
+1. Develop open-source alternatives to VisPlot functionality
 2. Create API bridge to cloud-hosted Windows instances
-3. Partner with SigmaPlot for Linux version or container license
+3. Partner with VisPlot for Linux version or container license
 
 ## Success Criteria
 

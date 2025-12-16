@@ -1,4 +1,4 @@
-# Sigma Editor Modularization
+# Vis Editor Modularization
 
 ## Current Status
 
@@ -41,16 +41,16 @@ apps/vis_app/static/vis_app/ts/vis/
 ## Next Steps
 
 1. **Create Manager Classes**: Each manager will be a class that handles a specific domain
-2. **Extract Methods**: Move related methods from SigmaEditor to appropriate managers
+2. **Extract Methods**: Move related methods from VisEditor to appropriate managers
 3. **Maintain State**: Managers will receive state through constructor or setters
-4. **Update Main Class**: SigmaEditor will compose these managers and coordinate between them
+4. **Update Main Class**: VisEditor will compose these managers and coordinate between them
 
 ## Architecture
 
 The refactored architecture will follow the **Composition pattern**:
 
 ```typescript
-class SigmaEditor {
+class VisEditor {
     private rulersManager: RulersManager;
     private canvasManager: CanvasManager;
     private dataTableManager: DataTableManager;

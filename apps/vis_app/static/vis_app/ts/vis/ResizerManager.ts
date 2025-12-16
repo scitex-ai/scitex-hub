@@ -183,9 +183,9 @@ export class ResizerManager {
     }
 
     /**
-     * Initialize all standard Sigma editor panel resizers
+     * Initialize all standard Vis editor panel resizers
      */
-    public initializeSigmaResizers(): void {
+    public initializeVisResizers(): void {
         // Sidebar resizer: Project ↔ Data Table
         // Affected panels: Project, Data Table, Canvas (all must stay >= 10px)
         this.registerResizer({
@@ -219,6 +219,6 @@ export class ResizerManager {
             resizeTarget: 'right'
         });
 
-        console.log('[ResizerManager] All Sigma editor resizers initialized');
+        console.log('[ResizerManager] All Vis editor resizers initialized');
     }
 }

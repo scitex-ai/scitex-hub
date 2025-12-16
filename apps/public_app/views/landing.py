@@ -97,7 +97,7 @@ def premium_subscription(request):
             "support_level": "Priority",
             "key_features": [
                 "Full scientific writing suite",
-                "SigmaPlot integration",
+                "VisPlot integration",
                 "Agent orchestration",
                 "JST/MEXT grant optimization",
                 "Advanced statistical analysis",

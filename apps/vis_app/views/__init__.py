@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 def figure_editor(request):
-    """Main figure editor view - Sigma (SigmaPlot-inspired)
+    """Main figure editor view - Vis (VisPlot-inspired)
 
     If visitor pool is exhausted, redirect to visitor-pool-full page.
     """

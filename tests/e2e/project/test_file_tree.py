@@ -28,7 +28,7 @@ def navigate_to_vis(page: Page, base_url: str) -> bool:
     """
     # Navigate directly to Vis app - it auto-assigns visitor session
     page.goto(f"{base_url}/vis/", wait_until="domcontentloaded")
-    page.wait_for_timeout(5000)  # Allow SigmaEditor and tree to fully load
+    page.wait_for_timeout(5000)  # Allow VisEditor and tree to fully load
 
     # Check if tree exists (the main container class)
     tree = page.locator(".workspace-files-tree")

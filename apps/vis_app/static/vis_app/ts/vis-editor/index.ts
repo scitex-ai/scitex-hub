@@ -1,10 +1,10 @@
 /**
- * Sigma Editor Module Index
+ * Vis Editor Module Index
  *
  * Re-exports all modules for easy importing
  */
 
-export { SigmaEditor } from './SigmaEditor.ts';
+export { VisEditor } from './VisEditor.ts';
 export { setupGraphOperations } from './graph.ts';
 export type { GraphOperations } from './graph.ts';
 export { setupLayoutAlgorithms } from './layout.ts';
@@ -15,16 +15,16 @@ export { setupExportFunctionality } from './export.ts';
 export type { ExportOptions, ExportFunctionality } from './export.ts';
 
 /**
- * Initialize SigmaEditor when DOM is ready
+ * Initialize VisEditor when DOM is ready
  */
-export function initializeSigmaEditor(): void {
+export function initializeVisEditor(): void {
     document.addEventListener('DOMContentLoaded', async () => {
-        console.log('[SigmaEditor] DOM loaded, initializing editor...');
+        console.log('[VisEditor] DOM loaded, initializing editor...');
 
-        const { SigmaEditor } = await import('./SigmaEditor.js');
+        const { VisEditor } = await import('./VisEditor.js');
         const { setupInteractionHandlers } = await import('./interactions.js');
 
-        const editorInstance = new SigmaEditor();
+        const editorInstance = new VisEditor();
         const interactionHandlers = setupInteractionHandlers(editorInstance);
 
         // Setup theme toggle
@@ -51,7 +51,7 @@ export function initializeSigmaEditor(): void {
             const managers = editorInstance.getManagers();
             managers.canvasManager.setBundleProjectContext(projectOwner, projectSlug);
 
-            console.log(`[SigmaEditor] Project context: ${projectOwner}/${projectSlug}`);
+            console.log(`[VisEditor] Project context: ${projectOwner}/${projectSlug}`);
         }
 
         // Expose to window for external access
@@ -99,7 +99,7 @@ export function initializeSigmaEditor(): void {
         // Initialize bundle UI components
         await initializeBundleComponents(editorInstance);
 
-        console.log('[SigmaEditor] Editor ready');
+        console.log('[VisEditor] Editor ready');
     });
 }
 
@@ -150,7 +150,7 @@ function setupExportHandlers(canvasManager: any): void {
         canvasManager.downloadFigzDBundle();
     });
 
-    console.log('[SigmaEditor] Export dropdown handlers initialized');
+    console.log('[VisEditor] Export dropdown handlers initialized');
 }
 
 /**
@@ -164,7 +164,7 @@ async function restoreSessionIfAvailable(
 ): Promise<void> {
     const session = canvasManager.getSessionState();
     if (!session) {
-        console.log('[SigmaEditor] No session to restore');
+        console.log('[VisEditor] No session to restore');
         return;
     }
 
@@ -175,7 +175,7 @@ async function restoreSessionIfAvailable(
     if (sessionHasProject && currentHasProject) {
         // Both have project context - only restore if they match
         if (session.projectOwner !== currentProjectOwner || session.projectSlug !== currentProjectSlug) {
-            console.log('[SigmaEditor] Session from different project, skipping restore');
+            console.log('[VisEditor] Session from different project, skipping restore');
             return;
         }
     }
@@ -183,7 +183,7 @@ async function restoreSessionIfAvailable(
     // Try to restore session
     const restored = await canvasManager.restoreSession();
     if (restored) {
-        console.log('[SigmaEditor] Session restored successfully');
+        console.log('[VisEditor] Session restored successfully');
     }
 }
 
@@ -199,8 +199,8 @@ async function initializeBundleComponents(editorInstance: any): Promise<void> {
         (window as any).visEditor.pltzBundleManager = pltzBundleManager;
         (window as any).visEditor.figzBundleManager = figzBundleManager;
 
-        console.log('[SigmaEditor] Bundle managers initialized (canvas-as-figz mode)');
+        console.log('[VisEditor] Bundle managers initialized (canvas-as-figz mode)');
     } catch (error) {
-        console.warn('[SigmaEditor] Bundle managers not available:', error);
+        console.warn('[VisEditor] Bundle managers not available:', error);
     }
 }

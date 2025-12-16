@@ -21,7 +21,7 @@ Searching papers (Google Scholar, Semantic Scholar, Zotero)
 
 Managing literature (Zotero, Mendeley)
 
-Creating visualizations (SigmaPlot, GraphPad Prism, matplotlib manually)
+Creating visualizations (VisPlot, GraphPad Prism, matplotlib manually)
 
 Running code (Jupyter, local Python, HPC systems)
 
@@ -85,7 +85,7 @@ Seaborn + matplotlib wrappers
 
 Cross-module integration: CSV → Stats → Vis → Writer
 
-Future: A SigmaPlot-like editor that outputs fully reproducible Python code
+Future: A VisPlot-like editor that outputs fully reproducible Python code
 
 This is a huge differentiator.
 Nothing in the world combines GUI editing + reproducible Python + metadata embedding.
@@ -285,7 +285,7 @@ These look like magic because no other system offers them.
 
 4.3 It is technically stronger than legacy tools
 
-SigmaPlot, Overleaf, Zotero — these are old, non-AI, non-integrated, web-unfriendly, slow, or rigid.
+VisPlot, Overleaf, Zotero — these are old, non-AI, non-integrated, web-unfriendly, slow, or rigid.
 
 You are building:
 
@@ -381,7 +381,7 @@ A 1.2 TB global literature database locally
 
 Citation graph analysis that rivals commercial systems
 
-A Vis system that could beat SigmaPlot
+A Vis system that could beat VisPlot
 
 A Writer system more structured than Overleaf
 

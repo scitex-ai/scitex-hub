@@ -8,7 +8,7 @@
  * - File tree integration
  */
 
-import type { SigmaEditor } from './SigmaEditor.ts';
+import type { VisEditor } from './VisEditor.ts';
 
 export interface InteractionHandlers {
     setupThemeToggle(): void;
@@ -20,7 +20,7 @@ export interface InteractionHandlers {
 /**
  * Setup interaction handlers
  */
-export function setupInteractionHandlers(editor: SigmaEditor): InteractionHandlers {
+export function setupInteractionHandlers(editor: VisEditor): InteractionHandlers {
     /**
      * Setup canvas-specific theme toggle
      */

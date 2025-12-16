@@ -58,7 +58,7 @@ Key tenets:
 - Consistent color hierarchy for light and dark modes
 - Clear location awareness on every page
 - All data represented as cards (paper cards, figure cards, code cards)
-- Unified right panel as Details/Inspector (like Figma, GitHub Desktop, SigmaPlot)
+- Unified right panel as Details/Inspector (like Figma, GitHub Desktop, VisPlot)
 
 ## 2. Global UI Layout
 
@@ -85,7 +85,7 @@ Layout zones:
 - Center: Workspace for the active module
 - Right: Inspector for selected element (paper, figure, code, file)
 
-This combines the best aspects of GitHub, Figma, Notion, and SigmaPlot.
+This combines the best aspects of GitHub, Figma, Notion, and VisPlot.
 
 ## 3. Module-Specific UI Guidelines
 
@@ -175,7 +175,7 @@ Features:
 
 ### 3.3 Viz
 
-Purpose: Modern reconstruction of SigmaPlot and GraphPad Prism
+Purpose: Modern reconstruction of VisPlot and GraphPad Prism
 
 Layout:
 

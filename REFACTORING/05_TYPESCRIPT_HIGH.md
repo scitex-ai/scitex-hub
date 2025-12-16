@@ -89,7 +89,7 @@ apps/project_app/static/project_app/ts/repository/admin/
 ```
 apps/vis_app/static/vis_app/ts/vis/
 ├── index.ts
-├── SigmaEditor.ts       # Main class
+├── VisEditor.ts       # Main class
 ├── graph.ts             # Graph operations
 ├── layout.ts            # Layout algorithms
 ├── interactions.ts      # Mouse/keyboard
