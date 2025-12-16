@@ -798,275 +798,33 @@ export class CanvasManager {
      * Setup canvas zoom/pan events
      */
     public setupCanvasEvents(): void {
-        const canvasContainer = document.getElementById('canvas-container');
+        const canvasContainer = document.getElementById("canvas-container");
         if (!canvasContainer || !this.canvas) {
-            console.warn('[CanvasManager] Canvas container or Fabric.js canvas not found');
+            console.warn("[CanvasManager] Canvas container or Fabric.js canvas not found");
             return;
         }
 
-        // Setup context menu (delegate to ContextMenuManager)
+        // Delegate to specialized managers
         if (this.contextMenuManager) {
             this.contextMenuManager.setupContextMenu(canvasContainer);
         }
 
-        // Setup canvas resize (Ctrl+drag from edges)
         if (this.canvasResizeManager) {
             this.canvasResizeManager.setupResizeListeners(canvasContainer);
         }
 
+        if (this.zoomPanManager) {
+            this.zoomPanManager.setupEvents(canvasContainer);
+        }
+
         // Listen for canvas theme changes from keyboard shortcut (Alt+T)
-        document.addEventListener('canvas-theme-changed', ((e: CustomEvent) => {
+        document.addEventListener("canvas-theme-changed", ((e: CustomEvent) => {
             this.updateCanvasTheme(e.detail.isDark);
         }) as EventListener);
 
-        // Track right-click pan to distinguish from context menu
-        let rightClickPanStartPoint: { x: number; y: number } | null = null;
-
-        // Track right-click double-click for canvas reset
-        let lastRightClickTime = 0;
-        const DOUBLE_CLICK_THRESHOLD = 300; // ms
-
-        // Mouse down - Check for panning or zoom dragging
-        canvasContainer.addEventListener('mousedown', (e: MouseEvent) => {
-            console.log(`[CanvasManager] mousedown: button=${e.button}, ctrlKey=${e.ctrlKey}, metaKey=${e.metaKey}`);
-            if (e.button === 1 || (e as any).spaceKey) {
-                if (e.ctrlKey || e.metaKey) {
-                    // Ctrl + middle mouse = zoom drag mode
-                    this.canvasIsZoomDragging = true;
-                    this.canvasZoomDragStartY = e.clientY;
-                    this.canvasZoomDragStartLevel = this.canvasZoomLevel;
-                    canvasContainer.style.cursor = 'ns-resize';
-                    e.preventDefault();
-                    console.log(`[CanvasManager] Canvas zoom drag mode started, startLevel=${this.canvasZoomLevel}`);
-                } else {
-                    // Middle mouse without Ctrl = pan mode
-                    this.canvasIsPanning = true;
-                    this.canvasPanStartPoint = { x: e.clientX, y: e.clientY };
-                    canvasContainer.style.cursor = 'grabbing';
-                    e.preventDefault();
-                    console.log('[CanvasManager] Canvas pan mode started');
-                }
-            } else if (e.button === 2) {
-                // Right-click - check for double-click to reset canvas position
-                const now = Date.now();
-                if (now - lastRightClickTime < DOUBLE_CLICK_THRESHOLD) {
-                    // Double right-click - reset canvas position to origin
-                    this.canvasPanOffset.x = 0;
-                    this.canvasPanOffset.y = 0;
-                    this.updateCanvasTransform();
-                    if (this.rulersAreaTransformCallback) {
-                        this.rulersAreaTransformCallback();
-                    }
-                    this.saveViewState();
-                    this.rightClickPanOccurred = true; // Suppress context menu
-                    console.log('[CanvasManager] Canvas position reset to origin (right double-click)');
-                    lastRightClickTime = 0; // Reset to prevent triple-click
-                } else {
-                    // Single right-click - prepare for potential pan
-                    rightClickPanStartPoint = { x: e.clientX, y: e.clientY };
-                    this.rightClickPanOccurred = false;
-                    lastRightClickTime = now;
-                }
-            }
-        });
-
-        // Mouse move - Handle panning or zoom dragging
-        canvasContainer.addEventListener('mousemove', (e: MouseEvent) => {
-            // Handle right-click pan initiation (detect movement threshold)
-            if (rightClickPanStartPoint && !this.canvasIsPanning) {
-                const dx = e.clientX - rightClickPanStartPoint.x;
-                const dy = e.clientY - rightClickPanStartPoint.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-
-                // Start panning if moved more than 3 pixels
-                if (distance > 3) {
-                    this.rightClickPanOccurred = true;
-                    this.canvasIsPanning = true;
-                    this.canvasPanStartPoint = rightClickPanStartPoint;
-                    canvasContainer.style.cursor = 'grabbing';
-                    console.log('[CanvasManager] Canvas pan mode started (right-click)');
-                }
-            }
-
-            if (this.canvasIsZoomDragging) {
-                // Ctrl+drag zoom: vertical movement changes zoom
-                const deltaY = e.clientY - this.canvasZoomDragStartY;
-                const zoomFactor = 1 - (deltaY * 0.005); // Drag up = zoom in, drag down = zoom out
-                let newZoom = this.canvasZoomDragStartLevel * zoomFactor;
-
-                // Clamp zoom level
-                if (newZoom > 5) newZoom = 5;
-                if (newZoom < 0.1) newZoom = 0.1;
-
-                this.canvasZoomLevel = newZoom;
-
-                // Throttle updates using requestAnimationFrame
-                if (!this.pendingDragUpdate) {
-                    this.pendingDragUpdate = true;
-                    this.canvasDragThrottleFrame = requestAnimationFrame(() => {
-                        this.updateCanvasTransform();
-                        if (this.rulersAreaTransformCallback) {
-                            this.rulersAreaTransformCallback();
-                        }
-                        this.updateCanvasZoomDisplay();
-                        this.pendingDragUpdate = false;
-                    });
-                }
-            } else if (this.canvasIsPanning && this.canvasPanStartPoint) {
-                let deltaX = e.clientX - this.canvasPanStartPoint.x;
-                let deltaY = e.clientY - this.canvasPanStartPoint.y;
-
-                if (e.altKey) {
-                    deltaX *= 0.1;
-                    deltaY *= 0.1;
-                }
-
-                // Accumulate pan delta for throttled update
-                if (!this.pendingPanUpdate) {
-                    this.pendingPanUpdate = { x: deltaX, y: deltaY };
-                } else {
-                    this.pendingPanUpdate.x += deltaX;
-                    this.pendingPanUpdate.y += deltaY;
-                }
-
-                // Throttle pan updates using requestAnimationFrame
-                if (!this.panThrottleFrame) {
-                    this.panThrottleFrame = requestAnimationFrame(() => {
-                        if (this.pendingPanUpdate) {
-                            this.canvasPanOffset.x += this.pendingPanUpdate.x;
-                            this.canvasPanOffset.y += this.pendingPanUpdate.y;
-
-                            this.updateCanvasTransform();
-
-                            if (this.rulersAreaTransformCallback) {
-                                this.rulersAreaTransformCallback();
-                            }
-
-                            this.pendingPanUpdate = null;
-                        }
-                        this.panThrottleFrame = null;
-                    });
-                }
-
-                this.canvasPanStartPoint = { x: e.clientX, y: e.clientY };
-            }
-        });
-
-        // Mouse up - Reset panning or zoom dragging
-        canvasContainer.addEventListener('mouseup', (e: MouseEvent) => {
-            // Reset right-click pan tracking
-            if (e.button === 2) {
-                rightClickPanStartPoint = null;
-            }
-
-            if (this.canvasIsZoomDragging) {
-                this.canvasIsZoomDragging = false;
-                canvasContainer.style.cursor = 'default';
-                this.saveViewState(); // Save after zoom drag ends
-                console.log('[CanvasManager] Canvas zoom drag mode ended');
-            }
-            if (this.canvasIsPanning) {
-                this.canvasIsPanning = false;
-                this.canvasPanStartPoint = null;
-                canvasContainer.style.cursor = 'default';
-                this.saveViewState(); // Save after pan ends
-                console.log('[CanvasManager] Canvas pan mode ended');
-            }
-
-            // Cancel any pending throttled updates
-            if (this.canvasDragThrottleFrame !== null) {
-                cancelAnimationFrame(this.canvasDragThrottleFrame);
-                this.canvasDragThrottleFrame = null;
-                this.pendingDragUpdate = false;
-            }
-            if (this.panThrottleFrame !== null) {
-                cancelAnimationFrame(this.panThrottleFrame);
-                this.panThrottleFrame = null;
-                this.pendingPanUpdate = null;
-            }
-            if (this.objectMovingThrottleFrame !== null) {
-                cancelAnimationFrame(this.objectMovingThrottleFrame);
-                this.objectMovingThrottleFrame = null;
-                this.pendingMovingTarget = null;
-            }
-        });
-
-        // Prevent browser's native Ctrl+wheel zoom on canvas area
-        // Must be at document level with capture to intercept before browser
-        document.addEventListener('wheel', (e: WheelEvent) => {
-            if ((e.ctrlKey || e.metaKey) && canvasContainer.contains(e.target as Node)) {
-                e.preventDefault();
-            }
-        }, { passive: false, capture: true });
-
-        // Wheel event - Zoom with Ctrl, Pan without Ctrl
-        canvasContainer.addEventListener('wheel', (e: WheelEvent) => {
-            e.preventDefault();
-            e.stopPropagation();
-
-            if (e.ctrlKey || e.metaKey) {
-                // Ctrl+Wheel = Zoom
-                this.canvasAccumulatedZoomDelta += e.deltaY;
-
-                const rect = canvasContainer.getBoundingClientRect();
-                this.canvasLastZoomMousePos.x = e.clientX - rect.left;
-                this.canvasLastZoomMousePos.y = e.clientY - rect.top;
-
-                if (!this.canvasWheelThrottleFrame) {
-                    this.canvasWheelThrottleFrame = requestAnimationFrame(() => {
-                        const oldZoom = this.canvasZoomLevel;
-                        let newZoom = oldZoom * (0.999 ** this.canvasAccumulatedZoomDelta);
-
-                        if (newZoom > 5) newZoom = 5;
-                        if (newZoom < 0.1) newZoom = 0.1;
-
-                        this.canvasZoomLevel = newZoom;
-
-                        const zoomRatio = newZoom / oldZoom;
-                        const mouseX = this.canvasLastZoomMousePos.x;
-                        const mouseY = this.canvasLastZoomMousePos.y;
-                        this.canvasPanOffset.x = mouseX - (mouseX - this.canvasPanOffset.x) * zoomRatio;
-                        this.canvasPanOffset.y = mouseY - (mouseY - this.canvasPanOffset.y) * zoomRatio;
-
-                        this.updateCanvasTransform();
-                        if (this.rulersAreaTransformCallback) {
-                            this.rulersAreaTransformCallback();
-                        }
-                        this.updateCanvasZoomDisplay();
-
-                        this.canvasAccumulatedZoomDelta = 0;
-                        this.canvasWheelThrottleFrame = null;
-                    });
-                }
-            } else {
-                // Regular wheel = Pan
-                this.canvasAccumulatedPanDelta.x += e.deltaX;
-                this.canvasAccumulatedPanDelta.y += e.deltaY;
-
-                if (!this.canvasWheelThrottleFrame) {
-                    this.canvasWheelThrottleFrame = requestAnimationFrame(() => {
-                        this.canvasPanOffset.x -= this.canvasAccumulatedPanDelta.x;
-                        this.canvasPanOffset.y -= this.canvasAccumulatedPanDelta.y;
-
-                        this.updateCanvasTransform();
-                        if (this.rulersAreaTransformCallback) {
-                            this.rulersAreaTransformCallback();
-                        }
-
-                        this.canvasAccumulatedPanDelta.x = 0;
-                        this.canvasAccumulatedPanDelta.y = 0;
-                        this.canvasWheelThrottleFrame = null;
-                    });
-                }
-            }
-        }, { passive: false });
-
-        console.log('[CanvasManager] Canvas events (zoom/pan) initialized');
+        console.log("[CanvasManager] Canvas events initialized (delegated to managers)");
     }
 
-    /**
-     * Update canvas transform (keep at identity, all zoom/pan via CSS)
-     */
     public updateCanvasTransform(): void {
         if (!this.canvas) return;
 
