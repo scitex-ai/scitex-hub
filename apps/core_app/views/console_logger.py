@@ -4,6 +4,7 @@ Console Logger View - Captures browser console logs to server file
 
 import json
 import logging
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 from django.conf import settings
@@ -11,7 +12,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-# Setup dedicated console logger
+# Setup dedicated console logger with rotation
 console_log_file = Path(settings.BASE_DIR) / "logs" / "console.log"
 console_error_file = Path(settings.BASE_DIR) / "logs" / "console_error.log"
 console_log_file.parent.mkdir(parents=True, exist_ok=True)
@@ -19,12 +20,20 @@ console_log_file.parent.mkdir(parents=True, exist_ok=True)
 console_logger = logging.getLogger("browser_console")
 console_logger.setLevel(logging.DEBUG)
 
-# Handler 1: All logs to console.log
-all_handler = logging.FileHandler(console_log_file)
+# Handler 1: All logs to console.log (with rotation)
+all_handler = RotatingFileHandler(
+    console_log_file,
+    maxBytes=5 * 1024 * 1024,  # 5MB
+    backupCount=5,
+)
 all_handler.setLevel(logging.DEBUG)
 
-# Handler 2: Errors/warnings only to console_error.log
-error_handler = logging.FileHandler(console_error_file)
+# Handler 2: Errors/warnings only to console_error.log (with rotation)
+error_handler = RotatingFileHandler(
+    console_error_file,
+    maxBytes=5 * 1024 * 1024,  # 5MB
+    backupCount=5,
+)
 error_handler.setLevel(logging.WARNING)
 
 # Format: [timestamp] LEVEL: message (file:line:col)
