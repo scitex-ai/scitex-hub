@@ -3,6 +3,10 @@
 TODOS/90_COMPARISON_TABLE.md
 slurm_logs
 
+# SciTeX user data directory (should be in home dir, not project root)
+# This gets accidentally created when Docker uses /app/.scitex/ path
+.scitex/
+
 ### Source: /home/ywatanabe/.git-templates/.gitignore-templates/Custom/Claude.gitignore ###
 .claude
 docs/to_claude/

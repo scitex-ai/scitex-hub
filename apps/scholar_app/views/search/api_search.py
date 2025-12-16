@@ -56,6 +56,8 @@ def cached_search(request, source_name, search_func, max_results, cache_ttl=1800
     Returns:
         JsonResponse with search results or error
     """
+    from .config import get_limit_for_source
+
     query = request.GET.get("q", "").strip()
     ignore_cache = request.GET.get("ignore_cache", "").lower() == "true"
 
@@ -72,12 +74,24 @@ def cached_search(request, source_name, search_func, max_results, cache_ttl=1800
 
     try:
         results = search_func(query, max_results=max_results)
+        result_count = len(results)
+        configured_max = get_limit_for_source(source_name, request.user if request.user.is_authenticated else None)
+
+        # Build result guidance
+        result_guidance = _build_result_guidance(
+            source_name=source_name,
+            received=result_count,
+            requested=max_results,
+            configured_max=configured_max,
+        )
+
         response_data = {
             "status": "success",
             "source": source_name,
             "query": query,
-            "count": len(results),
+            "count": result_count,
             "results": results,
+            "result_guidance": result_guidance,
         }
         # Cache the results
         cache.set(cache_key, response_data, cache_ttl)
@@ -87,6 +101,61 @@ def cached_search(request, source_name, search_func, max_results, cache_ttl=1800
         return JsonResponse(
             {"status": "error", "source": source_name, "error": str(e)}, status=500
         )
+
+
+def _build_result_guidance(source_name, received, requested, configured_max, error=None):
+    """
+    Build result guidance dict explaining why results are limited.
+
+    Args:
+        source_name: Name of the search source
+        received: Number of results actually received
+        requested: Number of results requested
+        configured_max: Maximum configured for this source
+        error: Error message if any
+
+    Returns:
+        dict with guidance information
+    """
+    # Source-specific rate limit explanations
+    rate_limit_info = {
+        "pubmed": "PubMed API: 3 requests/sec without API key",
+        "arxiv": "arXiv API: 1 request/3 sec recommended",
+        "semantic_scholar": "Semantic Scholar: 10 results max, strict rate limits",
+        "crossref": "CrossRef API: Polite pool (faster with contact email)",
+        "crossref_local": "Local database: No rate limits",
+        "openalex": "OpenAlex API: 10 requests/sec max",
+        "pmc": "PMC API: Similar to PubMed limits",
+        "doaj": "DOAJ API: Moderate rate limits",
+        "biorxiv": "bioRxiv API: Moderate rate limits",
+        "plos": "PLOS API: Moderate rate limits",
+    }
+
+    # Build reason explanation
+    if error:
+        reason = f"Error: {error}"
+    elif received == 0:
+        reason = "No matching results found"
+    elif received < requested:
+        reasons = []
+        if source_name in rate_limit_info:
+            reasons.append(rate_limit_info[source_name])
+        if received < 5:
+            reasons.append("Very few matches - try broader terms")
+        elif received < requested // 2:
+            reasons.append("API returned fewer than requested")
+        reason = " | ".join(reasons) if reasons else f"Returned {received}/{requested}"
+    else:
+        reason = f"Received all {received} requested results"
+
+    return {
+        "source": source_name,
+        "requested": requested,
+        "received": received,
+        "configured_max": configured_max,
+        "reason": reason,
+        "rate_limit_info": rate_limit_info.get(source_name, "Unknown"),
+    }
 
 
 # Import scitex.scholar if available
@@ -250,12 +319,22 @@ def api_search_crossref(request):
                 "impact_factor": impact_factor,
             })
 
+        from .config import get_limit_for_source
+        result_count = len(results)
+        configured_max = get_limit_for_source("crossref", request.user if request.user.is_authenticated else None)
+
         response_data = {
             "status": "success",
             "source": "crossref",
             "query": query,
-            "count": len(results),
+            "count": result_count,
             "results": results,
+            "result_guidance": _build_result_guidance(
+                source_name="crossref",
+                received=result_count,
+                requested=max_results,
+                configured_max=configured_max,
+            ),
         }
         cache.set(cache_key, response_data, 1800)
         return JsonResponse(response_data)
@@ -360,12 +439,22 @@ def api_search_crossref_local(request):
                 "impact_factor": impact_factor,
             })
 
+        from .config import get_limit_for_source
+        result_count = len(results)
+        configured_max = get_limit_for_source("crossref_local", request.user if request.user.is_authenticated else None)
+
         response_data = {
             "status": "success",
             "source": "crossref_local",
             "query": query,
-            "count": len(results),
+            "count": result_count,
             "results": results,
+            "result_guidance": _build_result_guidance(
+                source_name="crossref_local",
+                received=result_count,
+                requested=max_results,
+                configured_max=configured_max,
+            ),
         }
         cache.set(cache_key, response_data, 600)  # 10 min cache for local service
         return JsonResponse(response_data)
@@ -380,6 +469,13 @@ def api_search_crossref_local(request):
                 "count": 0,
                 "results": [],
                 "note": "CrossRef Local service not running",
+                "result_guidance": _build_result_guidance(
+                    source_name="crossref_local",
+                    received=0,
+                    requested=max_results,
+                    configured_max=1000,
+                    error="Service not running",
+                ),
             }
         )
     except Exception as e:
@@ -479,12 +575,22 @@ def api_search_openalex(request):
                 "impact_factor": impact_factor,
             })
 
+        from .config import get_limit_for_source
+        result_count = len(results)
+        configured_max = get_limit_for_source("openalex", request.user if request.user.is_authenticated else None)
+
         response_data = {
             "status": "success",
             "source": "openalex",
             "query": query,
-            "count": len(results),
+            "count": result_count,
             "results": results,
+            "result_guidance": _build_result_guidance(
+                source_name="openalex",
+                received=result_count,
+                requested=max_results,
+                configured_max=configured_max,
+            ),
         }
         cache.set(cache_key, response_data, 1800)
         return JsonResponse(response_data)

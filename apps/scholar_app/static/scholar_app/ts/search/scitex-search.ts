@@ -901,11 +901,12 @@ function searchSource(source: SourceConfig, query: string): void {
         let logMessage = `✓ ${source.name}: ${count} results (${elapsed}s)${cachedNote}`;
 
         // Add result guidance if available
-        if (data.result_guidance?.per_source_limits?.[source.name]) {
-          const sourceGuidance = data.result_guidance.per_source_limits[source.name];
-          const reason = sourceGuidance.reason;
-          const requested = sourceGuidance.requested;
-          const configuredMax = sourceGuidance.configured_max;
+        // Handle both unified API format (per_source_limits) and individual endpoint format (direct)
+        const guidance = data.result_guidance?.per_source_limits?.[source.name] || data.result_guidance;
+        if (guidance?.reason) {
+          const reason = guidance.reason;
+          const requested = guidance.requested;
+          const configuredMax = guidance.configured_max;
 
           // Add explanation if results are limited
           if (reason && (count < requested || count < configuredMax)) {
@@ -915,6 +916,11 @@ function searchSource(source: SourceConfig, query: string): void {
           // Add configured max info
           if (configuredMax && configuredMax !== requested) {
             logMessage += `\n  📊 Config: max=${configuredMax}, requested=${requested}`;
+          }
+
+          // Add rate limit info for individual sources
+          if (guidance.rate_limit_info && guidance.rate_limit_info !== "Unknown") {
+            logMessage += `\n  🛡️  ${guidance.rate_limit_info}`;
           }
         }
 
