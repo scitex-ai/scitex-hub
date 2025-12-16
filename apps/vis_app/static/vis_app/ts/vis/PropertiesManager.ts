@@ -594,7 +594,7 @@ export class PropertiesManager {
                     white-space: pre;
                     color: var(--text-secondary, #aaa);
                     margin: 0;
-                ">${this.escapeHtml(jsonString)}</pre>
+                ">${PropertiesHTMLBuilder.escapeHtml(jsonString)}</pre>
                 <button class="copy-json-btn" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent).then(() => { this.textContent = 'Copied!'; setTimeout(() => this.textContent = 'Copy JSON', 1500); })" style="
                     margin-top: 8px;
                     padding: 4px 12px;
@@ -797,7 +797,7 @@ export class PropertiesManager {
 
             // Full JSON button
             html += `<div class="property-group" style="margin-top: 12px;">
-                <button class="copy-json-btn" onclick="navigator.clipboard.writeText(JSON.stringify(${this.escapeHtml(JSON.stringify(metadata))}, null, 2)).then(() => { this.textContent = 'Copied!'; setTimeout(() => this.textContent = 'Copy Full Metadata', 1500); })" style="
+                <button class="copy-json-btn" onclick="navigator.clipboard.writeText(JSON.stringify(${PropertiesHTMLBuilder.escapeHtml(JSON.stringify(metadata))}, null, 2)).then(() => { this.textContent = 'Copied!'; setTimeout(() => this.textContent = 'Copy Full Metadata', 1500); })" style="
                     padding: 4px 12px;
                     font-size: 11px;
                     background: var(--accent-secondary, #5a8bc7);
@@ -826,16 +826,6 @@ export class PropertiesManager {
     /**
      * Escape HTML special characters for safe display
      */
-    private escapeHtml(text: string): string {
-        const map: Record<string, string> = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#039;'
-        };
-        return text.replace(/[&<>"']/g, m => map[m]);
-    }
 
     /**
      * Show placeholder message when no object selected
@@ -1084,7 +1074,7 @@ export class PropertiesManager {
                         <div class="property-group half">
                             <label class="property-label" id="width-label">Width (mm)</label>
                             <input type="number" class="property-input pltz-editable"
-                                data-pltz-path="${this.escapeHtml(pltzPath)}"
+                                data-pltz-path="${PropertiesHTMLBuilder.escapeHtml(pltzPath)}"
                                 data-property="style.size.width_mm"
                                 id="pltz-width"
                                 value="${sizeMm.width_mm || 80}"
@@ -1093,7 +1083,7 @@ export class PropertiesManager {
                         <div class="property-group half">
                             <label class="property-label" id="height-label">Height (mm)</label>
                             <input type="number" class="property-input pltz-editable"
-                                data-pltz-path="${this.escapeHtml(pltzPath)}"
+                                data-pltz-path="${PropertiesHTMLBuilder.escapeHtml(pltzPath)}"
                                 data-property="style.size.height_mm"
                                 id="pltz-height"
                                 value="${sizeMm.height_mm || 60}"
@@ -1103,7 +1093,7 @@ export class PropertiesManager {
                     <div class="property-group">
                         <label class="property-label">DPI</label>
                         <input type="number" class="property-input pltz-editable"
-                            data-pltz-path="${this.escapeHtml(pltzPath)}"
+                            data-pltz-path="${PropertiesHTMLBuilder.escapeHtml(pltzPath)}"
                             data-property="style.dpi"
                             value="${style.dpi || 300}"
                             step="1" min="72" max="600">
@@ -1124,7 +1114,7 @@ export class PropertiesManager {
                     <div class="property-group" style="margin-bottom: 8px;">
                         <label class="checkbox-field" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
                             <input type="checkbox" class="pltz-editable"
-                                data-pltz-path="${this.escapeHtml(pltzPath)}"
+                                data-pltz-path="${PropertiesHTMLBuilder.escapeHtml(pltzPath)}"
                                 data-property="style.grid"
                                 ${style.grid ? 'checked' : ''}>
                             <span style="font-size: 12px;">Show Grid</span>
@@ -1133,7 +1123,7 @@ export class PropertiesManager {
                     <div class="property-group">
                         <label class="property-label">Label Size (pt)</label>
                         <input type="number" class="property-input pltz-editable"
-                            data-pltz-path="${this.escapeHtml(pltzPath)}"
+                            data-pltz-path="${PropertiesHTMLBuilder.escapeHtml(pltzPath)}"
                             data-property="style.axis_fontsize"
                             value="${style.axis_fontsize || 7}"
                             step="1" min="4" max="16">
@@ -1165,37 +1155,37 @@ export class PropertiesManager {
                     <div class="property-group">
                         <label class="property-label">Title</label>
                         <input type="text" class="property-input pltz-editable"
-                            data-pltz-path="${this.escapeHtml(pltzPath)}"
+                            data-pltz-path="${PropertiesHTMLBuilder.escapeHtml(pltzPath)}"
                             data-property="spec.axes.0.labels.title"
-                            value="${this.escapeHtml(labels.title || '')}"
+                            value="${PropertiesHTMLBuilder.escapeHtml(labels.title || '')}"
                             placeholder="Plot title">
                     </div>
                     <div class="property-row">
                         <div class="property-group half">
                             <label class="property-label">X Label</label>
                             <input type="text" class="property-input pltz-editable"
-                                data-pltz-path="${this.escapeHtml(pltzPath)}"
+                                data-pltz-path="${PropertiesHTMLBuilder.escapeHtml(pltzPath)}"
                                 data-property="spec.axes.0.labels.xlabel"
-                                value="${this.escapeHtml(labels.xlabel || '')}"
+                                value="${PropertiesHTMLBuilder.escapeHtml(labels.xlabel || '')}"
                                 placeholder="X axis">
                         </div>
                         <div class="property-group half">
                             <label class="property-label">Y Label</label>
                             <input type="text" class="property-input pltz-editable"
-                                data-pltz-path="${this.escapeHtml(pltzPath)}"
+                                data-pltz-path="${PropertiesHTMLBuilder.escapeHtml(pltzPath)}"
                                 data-property="spec.axes.0.labels.ylabel"
-                                value="${this.escapeHtml(labels.ylabel || '')}"
+                                value="${PropertiesHTMLBuilder.escapeHtml(labels.ylabel || '')}"
                                 placeholder="Y axis">
                         </div>
                     </div>
                     <div class="property-group">
                         <label class="property-label">Caption</label>
                         <textarea class="property-input pltz-editable"
-                            data-pltz-path="${this.escapeHtml(pltzPath)}"
+                            data-pltz-path="${PropertiesHTMLBuilder.escapeHtml(pltzPath)}"
                             data-property="spec.caption"
                             rows="2"
                             placeholder="Figure caption..."
-                            style="resize: vertical; min-height: 40px;">${this.escapeHtml(spec.caption || '')}</textarea>
+                            style="resize: vertical; min-height: 40px;">${PropertiesHTMLBuilder.escapeHtml(spec.caption || '')}</textarea>
                     </div>
                 </div>
             </div>`;
@@ -1216,12 +1206,12 @@ export class PropertiesManager {
                             <label class="property-label">X Range</label>
                             <div style="display: flex; gap: 4px;">
                                 <input type="number" class="property-input pltz-editable" style="width: 50%;"
-                                    data-pltz-path="${this.escapeHtml(pltzPath)}"
+                                    data-pltz-path="${PropertiesHTMLBuilder.escapeHtml(pltzPath)}"
                                     data-property="spec.axes.0.limits.xmin"
                                     value="${limits.xmin !== undefined ? limits.xmin : ''}"
                                     placeholder="Min" step="any">
                                 <input type="number" class="property-input pltz-editable" style="width: 50%;"
-                                    data-pltz-path="${this.escapeHtml(pltzPath)}"
+                                    data-pltz-path="${PropertiesHTMLBuilder.escapeHtml(pltzPath)}"
                                     data-property="spec.axes.0.limits.xmax"
                                     value="${limits.xmax !== undefined ? limits.xmax : ''}"
                                     placeholder="Max" step="any">
@@ -1231,12 +1221,12 @@ export class PropertiesManager {
                             <label class="property-label">Y Range</label>
                             <div style="display: flex; gap: 4px;">
                                 <input type="number" class="property-input pltz-editable" style="width: 50%;"
-                                    data-pltz-path="${this.escapeHtml(pltzPath)}"
+                                    data-pltz-path="${PropertiesHTMLBuilder.escapeHtml(pltzPath)}"
                                     data-property="spec.axes.0.limits.ymin"
                                     value="${limits.ymin !== undefined ? limits.ymin : ''}"
                                     placeholder="Min" step="any">
                                 <input type="number" class="property-input pltz-editable" style="width: 50%;"
-                                    data-pltz-path="${this.escapeHtml(pltzPath)}"
+                                    data-pltz-path="${PropertiesHTMLBuilder.escapeHtml(pltzPath)}"
                                     data-property="spec.axes.0.limits.ymax"
                                     value="${limits.ymax !== undefined ? limits.ymax : ''}"
                                     placeholder="Max" step="any">
@@ -1248,7 +1238,7 @@ export class PropertiesManager {
                         <div class="property-group half">
                             <label class="property-label">X Ticks</label>
                             <input type="number" class="property-input pltz-editable"
-                                data-pltz-path="${this.escapeHtml(pltzPath)}"
+                                data-pltz-path="${PropertiesHTMLBuilder.escapeHtml(pltzPath)}"
                                 data-property="style.x_n_ticks"
                                 value="${style.x_n_ticks || 5}"
                                 step="1" min="2" max="15">
@@ -1256,7 +1246,7 @@ export class PropertiesManager {
                         <div class="property-group half">
                             <label class="property-label">Y Ticks</label>
                             <input type="number" class="property-input pltz-editable"
-                                data-pltz-path="${this.escapeHtml(pltzPath)}"
+                                data-pltz-path="${PropertiesHTMLBuilder.escapeHtml(pltzPath)}"
                                 data-property="style.y_n_ticks"
                                 value="${style.y_n_ticks || 5}"
                                 step="1" min="2" max="15">
@@ -1266,7 +1256,7 @@ export class PropertiesManager {
                         <div class="property-group half">
                             <label class="property-label">Tick Direction</label>
                             <select class="property-input pltz-editable"
-                                data-pltz-path="${this.escapeHtml(pltzPath)}"
+                                data-pltz-path="${PropertiesHTMLBuilder.escapeHtml(pltzPath)}"
                                 data-property="style.tick_direction">
                                 <option value="out" ${style.tick_direction === 'out' ? 'selected' : ''}>Out</option>
                                 <option value="in" ${style.tick_direction === 'in' ? 'selected' : ''}>In</option>
@@ -1276,7 +1266,7 @@ export class PropertiesManager {
                         <div class="property-group half">
                             <label class="property-label">Tick Font (pt)</label>
                             <input type="number" class="property-input pltz-editable"
-                                data-pltz-path="${this.escapeHtml(pltzPath)}"
+                                data-pltz-path="${PropertiesHTMLBuilder.escapeHtml(pltzPath)}"
                                 data-property="style.tick_fontsize"
                                 value="${style.tick_fontsize || 7}"
                                 step="1" min="4" max="16">
@@ -1285,14 +1275,14 @@ export class PropertiesManager {
                     <div class="property-row" style="margin-top: 8px;">
                         <label class="checkbox-field" style="display: flex; align-items: center; gap: 6px; cursor: pointer; flex: 1;">
                             <input type="checkbox" class="pltz-editable"
-                                data-pltz-path="${this.escapeHtml(pltzPath)}"
+                                data-pltz-path="${PropertiesHTMLBuilder.escapeHtml(pltzPath)}"
                                 data-property="style.hide_top_spine"
                                 ${style.hide_top_spine !== false ? 'checked' : ''}>
                             <span style="font-size: 11px;">Hide Top</span>
                         </label>
                         <label class="checkbox-field" style="display: flex; align-items: center; gap: 6px; cursor: pointer; flex: 1;">
                             <input type="checkbox" class="pltz-editable"
-                                data-pltz-path="${this.escapeHtml(pltzPath)}"
+                                data-pltz-path="${PropertiesHTMLBuilder.escapeHtml(pltzPath)}"
                                 data-property="style.hide_right_spine"
                                 ${style.hide_right_spine !== false ? 'checked' : ''}>
                             <span style="font-size: 11px;">Hide Right</span>
@@ -1321,13 +1311,13 @@ export class PropertiesManager {
 
                     html += `<div class="trace-item" style="margin-bottom: 10px; padding: 8px; background: var(--bg-tertiary, #222); border-radius: 4px; border-left: 3px solid ${traceStyle.color || '#0080bf'};">
                         <div style="font-weight: 600; font-size: 11px; margin-bottom: 6px; color: var(--text-primary, #fff);">
-                            ${this.escapeHtml(traceLabel)}
+                            ${PropertiesHTMLBuilder.escapeHtml(traceLabel)}
                         </div>
                         <div class="property-row">
                             <div class="property-group" style="flex: 0 0 50px;">
                                 <label class="property-label">Color</label>
                                 <input type="color" class="property-input pltz-editable"
-                                    data-pltz-path="${this.escapeHtml(pltzPath)}"
+                                    data-pltz-path="${PropertiesHTMLBuilder.escapeHtml(pltzPath)}"
                                     data-property="style.traces.${index}.color"
                                     data-trace-id="${trace.id}"
                                     value="${traceStyle.color || '#0080bf'}"
@@ -1336,7 +1326,7 @@ export class PropertiesManager {
                             <div class="property-group" style="flex: 1;">
                                 <label class="property-label">Width</label>
                                 <input type="number" class="property-input pltz-editable"
-                                    data-pltz-path="${this.escapeHtml(pltzPath)}"
+                                    data-pltz-path="${PropertiesHTMLBuilder.escapeHtml(pltzPath)}"
                                     data-property="style.traces.${index}.linewidth"
                                     data-trace-id="${trace.id}"
                                     value="${traceStyle.linewidth || 1.5}"
@@ -1345,7 +1335,7 @@ export class PropertiesManager {
                             <div class="property-group" style="flex: 1;">
                                 <label class="property-label">Style</label>
                                 <select class="property-input pltz-editable"
-                                    data-pltz-path="${this.escapeHtml(pltzPath)}"
+                                    data-pltz-path="${PropertiesHTMLBuilder.escapeHtml(pltzPath)}"
                                     data-property="style.traces.${index}.linestyle"
                                     data-trace-id="${trace.id}">
                                     <option value="-" ${traceStyle.linestyle === '-' || !traceStyle.linestyle ? 'selected' : ''}>Solid</option>
@@ -1359,7 +1349,7 @@ export class PropertiesManager {
                             <div class="property-group" style="flex: 1;">
                                 <label class="property-label">Marker</label>
                                 <select class="property-input pltz-editable"
-                                    data-pltz-path="${this.escapeHtml(pltzPath)}"
+                                    data-pltz-path="${PropertiesHTMLBuilder.escapeHtml(pltzPath)}"
                                     data-property="style.traces.${index}.marker"
                                     data-trace-id="${trace.id}">
                                     <option value="" ${!traceStyle.marker ? 'selected' : ''}>None</option>
@@ -1372,7 +1362,7 @@ export class PropertiesManager {
                             <div class="property-group" style="flex: 1;">
                                 <label class="property-label">Alpha</label>
                                 <input type="range" class="property-input pltz-editable"
-                                    data-pltz-path="${this.escapeHtml(pltzPath)}"
+                                    data-pltz-path="${PropertiesHTMLBuilder.escapeHtml(pltzPath)}"
                                     data-property="style.traces.${index}.alpha"
                                     data-trace-id="${trace.id}"
                                     value="${traceStyle.alpha || 1}"
@@ -1403,7 +1393,7 @@ export class PropertiesManager {
                     <div class="property-group" style="margin-bottom: 8px;">
                         <label class="checkbox-field" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
                             <input type="checkbox" class="pltz-editable"
-                                data-pltz-path="${this.escapeHtml(pltzPath)}"
+                                data-pltz-path="${PropertiesHTMLBuilder.escapeHtml(pltzPath)}"
                                 data-property="style.legend.visible"
                                 ${legend.visible !== false ? 'checked' : ''}>
                             <span style="font-size: 12px;">Show Legend</span>
@@ -1413,7 +1403,7 @@ export class PropertiesManager {
                         <div class="property-group half">
                             <label class="property-label">Position</label>
                             <select class="property-input pltz-editable"
-                                data-pltz-path="${this.escapeHtml(pltzPath)}"
+                                data-pltz-path="${PropertiesHTMLBuilder.escapeHtml(pltzPath)}"
                                 data-property="style.legend.location">
                                 <option value="best" ${legend.location === 'best' || !legend.location ? 'selected' : ''}>Best (auto)</option>
                                 <option value="upper right" ${legend.location === 'upper right' ? 'selected' : ''}>Upper Right</option>
@@ -1427,7 +1417,7 @@ export class PropertiesManager {
                         <div class="property-group half">
                             <label class="property-label">Columns</label>
                             <input type="number" class="property-input pltz-editable"
-                                data-pltz-path="${this.escapeHtml(pltzPath)}"
+                                data-pltz-path="${PropertiesHTMLBuilder.escapeHtml(pltzPath)}"
                                 data-property="style.legend.ncols"
                                 value="${legend.ncols || 1}"
                                 step="1" min="1" max="5">
@@ -1436,7 +1426,7 @@ export class PropertiesManager {
                     <div class="property-row" style="margin-top: 6px;">
                         <label class="checkbox-field" style="display: flex; align-items: center; gap: 6px; cursor: pointer; flex: 1;">
                             <input type="checkbox" class="pltz-editable"
-                                data-pltz-path="${this.escapeHtml(pltzPath)}"
+                                data-pltz-path="${PropertiesHTMLBuilder.escapeHtml(pltzPath)}"
                                 data-property="style.legend.frameon"
                                 ${legend.frameon ? 'checked' : ''}>
                             <span style="font-size: 11px;">Show Frame</span>
@@ -1444,7 +1434,7 @@ export class PropertiesManager {
                         <div class="property-group" style="flex: 1;">
                             <label class="property-label">Font (pt)</label>
                             <input type="number" class="property-input pltz-editable"
-                                data-pltz-path="${this.escapeHtml(pltzPath)}"
+                                data-pltz-path="${PropertiesHTMLBuilder.escapeHtml(pltzPath)}"
                                 data-property="style.legend.fontsize"
                                 value="${legend.fontsize || 6}"
                                 step="1" min="4" max="16">
