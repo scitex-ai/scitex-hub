@@ -69,11 +69,6 @@ export class CanvasManager {
     private canvasLastZoomMousePos: { x: number, y: number } = { x: 0, y: 0 };
     private pendingDragUpdate: boolean = false;
 
-    // Snap and alignment guidelines
-    private snapEnabled: boolean = true;
-    private snapThreshold: number = 10; // pixels for snap detection
-    private guidelineOverlay: HTMLDivElement | null = null; // CSS overlay for guidelines (faster than Fabric.js)
-
     // Hover tooltip for showing pltz path
     private hoverTooltip: HTMLDivElement | null = null;
 
@@ -2519,103 +2514,15 @@ export class CanvasManager {
      * For scientific plots: copy axis limits / ROI to apply to other panels
      */
     public copyView(): void {
-        if (!this.canvas) return;
-
-        const active = this.canvas.getActiveObject();
-        if (!active) {
-            if (this.statusBarCallback) {
-                this.statusBarCallback('No object selected to copy view from');
-            }
-            return;
+        if (this.cropManager) {
+            this.cropManager.copyView();
         }
-
-        // For multi-selection, use the first object
-        const sourceObj = active.type === 'activeSelection'
-            ? (active as any).getObjects()[0]
-            : active;
-
-        if (!sourceObj) {
-            if (this.statusBarCallback) {
-                this.statusBarCallback('No valid object to copy view from');
-            }
-            return;
-        }
-
-        // Store view properties (crop, dimensions, scale)
-        this.viewClipboard = {
-            cropX: sourceObj.cropX || 0,
-            cropY: sourceObj.cropY || 0,
-            width: sourceObj.width,
-            height: sourceObj.height,
-            scaleX: sourceObj.scaleX || 1,
-            scaleY: sourceObj.scaleY || 1,
-        };
-
-        if (this.statusBarCallback) {
-            this.statusBarCallback('View copied (crop & scale settings)');
-        }
-        console.log('[CanvasManager] View copied:', this.viewClipboard);
     }
 
-    /**
-     * Paste view settings (crop, size, scale) to selected objects
-     * For scientific plots: apply axis limits / ROI to multiple panels
-     */
     public pasteView(): void {
-        if (!this.canvas) return;
-
-        if (!this.viewClipboard) {
-            if (this.statusBarCallback) {
-                this.statusBarCallback('No view to paste. Use Ctrl+Shift+C first.');
-            }
-            return;
+        if (this.cropManager) {
+            this.cropManager.pasteView();
         }
-
-        const active = this.canvas.getActiveObject();
-        if (!active) {
-            if (this.statusBarCallback) {
-                this.statusBarCallback('No objects selected to paste view to');
-            }
-            return;
-        }
-
-        this.saveUndoState();
-
-        // Get objects to apply view to
-        const objects = active.type === 'activeSelection'
-            ? (active as any).getObjects()
-            : [active];
-
-        let appliedCount = 0;
-        objects.forEach((obj: any) => {
-            // Apply view settings
-            if (obj.type === 'image') {
-                // For images: apply crop and scale
-                obj.set({
-                    cropX: this.viewClipboard!.cropX,
-                    cropY: this.viewClipboard!.cropY,
-                    width: this.viewClipboard!.width,
-                    height: this.viewClipboard!.height,
-                });
-            }
-
-            // Apply scale to all object types
-            obj.set({
-                scaleX: this.viewClipboard!.scaleX,
-                scaleY: this.viewClipboard!.scaleY,
-            });
-
-            obj.setCoords();
-            appliedCount++;
-        });
-
-        this.canvas.renderAll();
-        this.saveCanvasContent();
-
-        if (this.statusBarCallback) {
-            this.statusBarCallback(`View pasted to ${appliedCount} object(s)`);
-        }
-        console.log(`[CanvasManager] View pasted to ${appliedCount} objects`);
     }
 
     // ========================================
@@ -2626,19 +2533,15 @@ export class CanvasManager {
      * Toggle snap functionality
      */
     public toggleSnap(): void {
-        this.snapEnabled = !this.snapEnabled;
-        if (this.statusBarCallback) {
-            this.statusBarCallback(`Snap ${this.snapEnabled ? 'enabled' : 'disabled'}`);
+        if (this.snapManager) {
+            this.snapManager.toggleSnap();
         }
-        console.log(`[CanvasManager] Snap ${this.snapEnabled ? 'enabled' : 'disabled'}`);
     }
 
-    /**
-     * Check if snap is enabled
-     */
     public isSnapEnabled(): boolean {
-        return this.snapEnabled;
+        return this.snapManager?.isSnapEnabled() || false;
     }
+
 
     /**
      * Initialize guideline overlay (CSS-based for performance)
