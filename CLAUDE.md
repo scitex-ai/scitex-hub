@@ -1,11 +1,19 @@
 <!-- ---
-!-- Timestamp: 2025-12-16 22:48:09
+!-- Timestamp: 2025-12-17 08:16:02
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/scitex-cloud/CLAUDE.md
 !-- --- -->
 
 ## DO NOT EDIT
 Agents: Never edit this file. Only user may modify.
+
+## python scitex package as single source of truth
+Django must be a thin wrapper
+Backend core logics MUST be implemented in python scitex package (~/proj/scitex-code/src/scitex/)
+DO NEVER IMPLEMENT COMPLICATED LOGICS IN DJANGO
+Instead, please revise the python scitex package.
+Do not write custom code in django as much as possible
+Please delegate to the python scitex package as much as possible
 
 
 ## E2E Test

@@ -22,6 +22,11 @@ interface HandlerDependencies {
     updateStatusBar: (message: string) => void;
     inferCsvColumnsFromLabel: (elementName: string, elementInfo: any) => any;
     updateRulersAreaTransform: () => void;
+    // Gallery-related dependencies
+    getTabTypeFromCategory?: (category: string) => string;
+    createPltzBundleFromGallery?: (plot: any, category: string, csvData: string[][]) => Promise<void>;
+    getProjectContext?: () => { projectOwner: string; projectSlug: string };
+    setCurrentPlotState?: (plot: any, plotType: string, category: string, csvData: string[][]) => void;
 }
 
 export class EditorCallbackHandlers {
@@ -194,6 +199,67 @@ export class EditorCallbackHandlers {
             // Redraw rulers after canvas is fully loaded
             this.deps.rulersManager.drawRulers();
             console.log(`[VisEditor] Rulers redrawn after canvas restore`);
+        };
+    }
+
+    /**
+     * Handle plot selection from gallery
+     * Extracted from initializePlotGallery line 703-758 (56 lines)
+     */
+    public createPlotSelectCallback(dataTabManager: any) {
+        return async (plot: any, category: string, csvData: string[][]) => {
+            console.log(`[VisEditor] Gallery plot selected: ${plot.name} (${category})`);
+            console.log(`[VisEditor] CSV data rows: ${csvData?.length || 0}`);
+            this.deps.updateStatusBar(`Loading: ${plot.display_name}...`);
+
+            // Store current plot info for re-rendering
+            if (this.deps.setCurrentPlotState) {
+                this.deps.setCurrentPlotState(plot, plot.name, category, csvData || []);
+            }
+
+            // Show properties panel with plot settings
+            this.deps.propertiesManager.showPropertiesFor('plot', plot.display_name, {
+                plotType: plot.name,
+                category: category,
+            });
+            this.deps.propertiesManager.updateColumnDropdowns();
+
+            // Create new tab and load CSV data into data table
+            if (csvData && csvData.length > 0) {
+                try {
+                    // Determine tab type from category for icon synchronization
+                    const tabType = this.deps.getTabTypeFromCategory?.(category) || 'default';
+
+                    // Create new tab with the plot data
+                    const tabId = dataTabManager.createAndSwitchToTab(
+                        plot.display_name,
+                        tabType,
+                        category.charAt(0).toUpperCase() + category.slice(1),
+                        plot.display_name,
+                        csvData
+                    );
+
+                    // Load CSV into data table
+                    this.deps.dataTableManager.loadFromArray(csvData, true);
+                    console.log(`[VisEditor] Created tab ${tabId} and loaded ${csvData.length} rows from gallery CSV`);
+                } catch (err) {
+                    console.error('[VisEditor] Failed to load CSV into data table:', err);
+                }
+            } else {
+                console.warn('[VisEditor] No CSV data to load');
+            }
+
+            // Always use bundle-based flow (figz/pltz format)
+            const projectContext = this.deps.getProjectContext?.() || { projectOwner: '', projectSlug: '' };
+            if (projectContext.projectOwner && projectContext.projectSlug) {
+                console.log(`[VisEditor] Creating pltz bundle for project: ${projectContext.projectOwner}/${projectContext.projectSlug}`);
+            } else {
+                console.log(`[VisEditor] Creating pltz bundle in user's bundle directory (no project context)`);
+            }
+
+            if (this.deps.createPltzBundleFromGallery) {
+                await this.deps.createPltzBundleFromGallery(plot, category, csvData);
+            }
         };
     }
 }

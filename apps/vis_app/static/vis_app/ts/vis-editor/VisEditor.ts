@@ -228,6 +228,20 @@ export class VisEditor {
             inferCsvColumnsFromLabel: (elementName: string, elementInfo: any) =>
                 this.inferCsvColumnsFromLabel(elementName, elementInfo),
             updateRulersAreaTransform: () => this.updateRulersAreaTransform(),
+            // Gallery-related dependencies
+            getTabTypeFromCategory: (category: string) => this.getTabTypeFromCategory(category),
+            createPltzBundleFromGallery: (plot: any, category: string, csvData: string[][]) =>
+                this.createPltzBundleFromGallery(plot, category, csvData),
+            getProjectContext: () => ({
+                projectOwner: this.projectOwner || (window as any).projectOwner,
+                projectSlug: this.projectSlug || (window as any).projectSlug,
+            }),
+            setCurrentPlotState: (plot: any, plotType: string, category: string, csvData: string[][]) => {
+                this.currentPlot = plot;
+                this.currentPlotType = plotType;
+                this.currentCategory = category;
+                this.currentCsvData = csvData;
+            },
         });
     }
 
@@ -700,62 +714,7 @@ export class VisEditor {
     private initializePlotGallery(): void {
         // Initialize GalleryCategories for the new category-based UI
         this.galleryCategories = new GalleryCategories({
-            onPlotSelect: async (plot, category, csvData) => {
-                console.log(`[VisEditor] Gallery plot selected: ${plot.name} (${category})`);
-                console.log(`[VisEditor] CSV data rows: ${csvData?.length || 0}`);
-                this.updateStatusBar(`Loading: ${plot.display_name}...`);
-
-                // Store current plot info for re-rendering
-                this.currentPlot = plot;
-                this.currentPlotType = plot.name;
-                this.currentCategory = category;
-                this.currentCsvData = csvData || [];
-
-                // Show properties panel with plot settings
-                this.propertiesManager.showPropertiesFor('plot', plot.display_name, {
-                    plotType: plot.name,
-                    category: category,
-                });
-                this.propertiesManager.updateColumnDropdowns();
-
-                // Create new tab and load CSV data into data table
-                if (csvData && csvData.length > 0) {
-                    try {
-                        // Determine tab type from category for icon synchronization
-                        const tabType = this.getTabTypeFromCategory(category);
-
-                        // Create new tab with the plot data
-                        const tabId = this.dataTabManager.createAndSwitchToTab(
-                            plot.display_name,
-                            tabType,
-                            category.charAt(0).toUpperCase() + category.slice(1), // Capitalize category
-                            plot.display_name,
-                            csvData
-                        );
-
-                        // Load CSV into data table
-                        this.dataTableManager.loadFromArray(csvData, true);
-                        console.log(`[VisEditor] Created tab ${tabId} and loaded ${csvData.length} rows from gallery CSV`);
-                    } catch (err) {
-                        console.error('[VisEditor] Failed to load CSV into data table:', err);
-                    }
-                } else {
-                    console.warn('[VisEditor] No CSV data to load');
-                }
-
-                // Always use bundle-based flow (figz/pltz format)
-                // Project context is optional - will use user's bundle directory as fallback
-                const projectOwner = this.projectOwner || (window as any).projectOwner;
-                const projectSlug = this.projectSlug || (window as any).projectSlug;
-
-                if (projectOwner && projectSlug) {
-                    console.log(`[VisEditor] Creating pltz bundle for project: ${projectOwner}/${projectSlug}`);
-                } else {
-                    console.log(`[VisEditor] Creating pltz bundle in user's bundle directory (no project context)`);
-                }
-
-                await this.createPltzBundleFromGallery(plot, category, csvData);
-            },
+            onPlotSelect: this.callbackHandlers.createPlotSelectCallback(this.dataTabManager),
             onDataModified: (isModified) => {
                 // Update UI to show modification status
                 const revertBtn = document.getElementById('revert-data-btn');
