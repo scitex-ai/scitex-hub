@@ -22,6 +22,7 @@ import {
 } from '../vis/index.ts';
 
 import { setupGraphOperations } from './graph.ts';
+import { EditorCallbackHandlers } from './EditorCallbackHandlers.ts';
 
 /**
  * VisEditor - Coordinator class that manages all editor components
@@ -41,6 +42,7 @@ export class VisEditor {
     private scitexEditor!: SciTeXEditor;
     private plotGallery!: PlotGallery;
     private galleryCategories!: GalleryCategories;
+    private callbackHandlers!: EditorCallbackHandlers;
 
     // Plot-related state
     private currentPlot: any = null;
@@ -211,6 +213,22 @@ export class VisEditor {
                 this.updateStatusBar(`Created ${figureName}`);
             }
         );
+
+        // Initialize callback handlers
+        this.callbackHandlers = new EditorCallbackHandlers({
+            canvasManager: this.canvasManager,
+            propertiesManager: this.propertiesManager,
+            dataTableManager: this.dataTableManager,
+            rulersManager: this.rulersManager,
+            syncTreeToPanel: (pltzPath: string) => this.syncTreeToPanel(pltzPath),
+            loadCsvDataInTab: (obj: any) => this.loadCsvDataInTab(obj),
+            loadCsvForBundlePanel: (obj: any) => this.loadCsvForBundlePanel(obj),
+            loadCsvForImage: (obj: any) => this.loadCsvForImage(obj),
+            updateStatusBar: (message: string) => this.updateStatusBar(message),
+            inferCsvColumnsFromLabel: (elementName: string, elementInfo: any) =>
+                this.inferCsvColumnsFromLabel(elementName, elementInfo),
+            updateRulersAreaTransform: () => this.updateRulersAreaTransform(),
+        });
     }
 
     /**
@@ -337,29 +355,7 @@ export class VisEditor {
         this.canvasManager.setupCanvasEvents();
 
         // Wire up selection callback to update properties panel, data tab, and tree
-        this.canvasManager.setSelectionCallback(async (obj: any) => {
-            if (obj) {
-                this.propertiesManager.showCanvasObjectProperties(obj);
-
-                // Sync tree to highlight selected panel's file
-                if (obj.isBundlePanel && obj.pltzPath) {
-                    this.syncTreeToPanel(obj.pltzPath);
-                }
-
-                // Handle CSV data in dedicated tab
-                if (obj.csvData) {
-                    this.loadCsvDataInTab(obj);
-                } else if (obj.isBundlePanel && obj.pltzPath) {
-                    // Load CSV from bundle for panel selection
-                    await this.loadCsvForBundlePanel(obj);
-                } else if (obj.name) {
-                    // Try to fetch CSV data from gallery based on object name
-                    await this.loadCsvForImage(obj);
-                }
-            } else {
-                this.propertiesManager.showNoSelection();
-            }
-        });
+        this.canvasManager.setSelectionCallback(this.callbackHandlers.createSelectionCallback());
 
         // Wire up resize callback to re-render plots at new size
         this.canvasManager.setObjectResizedCallback(async (obj: any, newWidth: number, newHeight: number) => {
@@ -367,87 +363,13 @@ export class VisEditor {
         });
 
         // Wire up element selection callback to highlight CSV columns and show properties
-        this.canvasManager.setElementSelectionCallback((elementNames: string[], elementInfos: any[]) => {
-            if (elementNames.length > 0 && elementInfos.length > 0) {
-                // Use first selected element for properties panel (or could show multi-select)
-                const elementName = elementNames[0];
-                const elementInfo = elementInfos[0];
-
-                console.log(`[VisEditor] Elements selected: ${elementNames.join(', ')}`, elementInfos);
-
-                // Show element properties in right panel
-                this.propertiesManager.showElementProperties(elementName, elementInfo);
-
-                // Collect all column indices from all selected elements
-                const allColumnIndices: Set<number> = new Set();
-                const allColumnNames: string[] = [];
-
-                for (let i = 0; i < elementNames.length; i++) {
-                    const info = elementInfos[i];
-                    if (!info) continue;
-
-                    // Get csv_columns from elementInfo, or try to infer from canvas object's csvData
-                    let csvCols = info.csv_columns;
-
-                    // If csv_columns is not available (old figures), try to infer from csvData
-                    const inferrableTypes = ['line', 'scatter', 'bar', 'boxplot', 'violin'];
-                    if (!csvCols && info.element_type && inferrableTypes.includes(info.element_type)) {
-                        csvCols = this.inferCsvColumnsFromLabel(elementNames[i], info);
-                    }
-
-                    if (csvCols) {
-                        if (csvCols.x?.index !== undefined) {
-                            allColumnIndices.add(csvCols.x.index);
-                            if (csvCols.x.name) allColumnNames.push(csvCols.x.name);
-                        }
-                        if (csvCols.y?.index !== undefined) {
-                            allColumnIndices.add(csvCols.y.index);
-                            if (csvCols.y.name) allColumnNames.push(csvCols.y.name);
-                        }
-                    }
-                }
-
-                // Highlight CSV columns if available
-                const columnIndices = Array.from(allColumnIndices);
-                if (columnIndices.length > 0) {
-                    console.log(`[VisEditor] Highlighting columns: ${columnIndices.join(', ')}`);
-                    // Highlight the corresponding columns in the data table
-                    this.dataTableManager.highlightColumns(columnIndices);
-
-                    // Update status bar with column info
-                    const uniqueNames = [...new Set(allColumnNames)];
-                    const colNamesStr = uniqueNames.join(', ');
-                    if (elementNames.length === 1) {
-                        this.updateStatusBar(`Element: ${elementInfo.label || elementName} (columns: ${colNamesStr})`);
-                    } else {
-                        this.updateStatusBar(`${elementNames.length} elements selected (columns: ${colNamesStr})`);
-                    }
-                } else {
-                    console.log(`[VisEditor] No csv_columns on selected elements`);
-                    // Update status bar without column info
-                    if (elementNames.length === 1) {
-                        this.updateStatusBar(`Element: ${elementInfo.label || elementName}`);
-                    } else {
-                        this.updateStatusBar(`${elementNames.length} elements selected`);
-                    }
-                }
-            } else {
-                // Clear highlights when no element selected
-                this.dataTableManager.clearColumnHighlights();
-            }
-        });
+        this.canvasManager.setElementSelectionCallback(this.callbackHandlers.createElementSelectionCallback());
 
         this.rulersManager['canvas'] = this.canvasManager.canvas;
         this.rulersManager.initializeRulers();
 
         // Set up bidirectional sync between RulersManager and CanvasManager
-        this.rulersManager.setTransformCallback(() => {
-            // Sync pan offset from RulersManager to CanvasManager
-            const rulerPan = this.rulersManager.getCanvasPanOffset();
-            this.canvasManager.setCanvasPanOffset(rulerPan.x, rulerPan.y);
-            // Update the transform using CanvasManager's values
-            this.updateRulersAreaTransform();
-        });
+        this.rulersManager.setTransformCallback(this.callbackHandlers.createTransformCallback());
 
         this.rulersManager.setupRulerDragging();
 
@@ -469,43 +391,15 @@ export class VisEditor {
         });
 
         // Restore canvas content from active tab or fallback to old localStorage
-        setTimeout(async () => {
-            const activeTab = this.canvasTabManager.getActiveTab();
-            if (activeTab?.canvasJson) {
-                // Restore from canvas tab state
-                await this.restoreCanvasForTab(activeTab.id);
-                console.log(`[VisEditor] Restored canvas from tab: ${activeTab.figureName}`);
-            } else {
-                // Fallback: Try to restore from old single-canvas localStorage
-                const savedState = localStorage.getItem('scitex-vis-viewstate');
-                if (savedState) {
-                    const restoredObjects = await this.canvasManager.restoreCanvasContent();
-                    await this.loadMissingMetadata(restoredObjects);
-                    this.updateRulersAreaTransform();
-                    console.log(`[VisEditor] Restored view: ${Math.round(this.canvasManager.getCanvasZoomLevel() * 100)}%`);
-
-                    // Migrate: Save this to the default tab
-                    this.saveCanvasForCurrentTab();
-                } else {
-                    // First time - zoom to fit
-                    this.canvasManager.zoomToFit();
-                    this.updateRulersAreaTransform();
-                    console.log(`[VisEditor] Initial zoom: ${Math.round(this.canvasManager.getCanvasZoomLevel() * 100)}%`);
-                }
-            }
-
-            // Re-apply canvas theme AFTER content restoration
-            // This ensures the theme is not overwritten by saved canvas JSON
-            const savedGlobalTheme = localStorage.getItem('scitex-theme-preference') || 'dark';
-            const savedCanvasTheme = localStorage.getItem('canvas-theme') || savedGlobalTheme;
-            const canvasDarkMode = savedCanvasTheme === 'dark';
-            this.canvasManager.updateCanvasTheme(canvasDarkMode);
-            console.log(`[VisEditor] Canvas theme re-applied after restore: ${savedCanvasTheme}`);
-
-            // Redraw rulers after canvas is fully loaded
-            this.rulersManager.drawRulers();
-            console.log(`[VisEditor] Rulers redrawn after canvas restore`);
-        }, 100);
+        setTimeout(
+            this.callbackHandlers.createCanvasRestorationCallback(
+                this.canvasTabManager,
+                (tabId: string) => this.restoreCanvasForTab(tabId),
+                (objects: any[]) => this.loadMissingMetadata(objects),
+                () => this.saveCanvasForCurrentTab()
+            ),
+            100
+        );
 
         const phase3End = performance.now();
         console.log(`[VisEditor] Phase 3 complete in ${(phase3End - phase3Start).toFixed(2)}ms`);
