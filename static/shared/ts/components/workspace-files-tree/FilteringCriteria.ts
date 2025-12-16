@@ -60,8 +60,8 @@ export const DENY_DIRECTORIES: Record<WorkspaceMode, string[]> = {
     '__pycache__',
     '.venv',
     'venv',
-    // NOTE: .figz.d and .pltz.d are NOT hidden yet
-    // They'll be hidden when sibling .figz/.pltz files exist (future feature)
+    // NOTE: .figz.d and .pltz.d hiding is handled in TreeFilter.isHidden()
+    // They are ALWAYS hidden regardless of this list (ZIP-first architecture)
   ],
 
   writer: [

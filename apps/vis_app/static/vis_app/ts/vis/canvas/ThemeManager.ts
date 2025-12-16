@@ -18,10 +18,18 @@ export class ThemeManager {
     private originalImageSources: Map<any, string> = new Map();
 
     // Constants for dark mode processing
-    private readonly BLACK_THRESHOLD = 40;  // Pixels darker than this are considered black
-    private readonly WHITE_THRESHOLD = 245; // Pixels lighter than this are considered white
+    private readonly BLACK_THRESHOLD = 60;  // Pixels darker than this are considered black (increased from 40)
+    private readonly WHITE_THRESHOLD = 240; // Pixels lighter than this are considered white
     private readonly TARGET_GRAY = 200;     // Light gray for dark mode text/axes
     private readonly TARGET_GRAY_HEX = '#c8c8c8'; // Light gray (#c8c8c8) for SVG paths
+
+    // Common dark colors used in matplotlib/scientific plots
+    private readonly DARK_COLORS = [
+        '#000000', 'rgb(0,0,0)', 'black',
+        '#1a1a1a', '#1f1f1f', '#212121', '#2a2a2a',
+        '#333333', '#3a3a3a', '#404040',
+        'rgb(26,26,26)', 'rgb(33,33,33)', 'rgb(51,51,51)',
+    ];
 
     constructor(
         private canvas: any,
@@ -78,8 +86,9 @@ export class ThemeManager {
     }
 
     /**
-     * Process image for dark mode display
-     * Converts black pixels to light gray and white pixels to transparent
+     * Process image for dark mode display using CSS filter approach.
+     * Uses invert(0.88) + hue-rotate(180deg) for natural color preservation.
+     * This matches the scitex flask editor's dark mode implementation.
      */
     public processImageForDarkMode(img: HTMLImageElement): string {
         const canvas = document.createElement('canvas');
@@ -88,24 +97,27 @@ export class ThemeManager {
         const ctx = canvas.getContext('2d');
         if (!ctx) return img.src;
 
+        // Apply CSS filter using canvas context
+        // invert(0.88) - inverts colors ~88% (black→light gray, white→dark gray)
+        // hue-rotate(180deg) - preserves original hues after inversion
+        ctx.filter = 'invert(0.88) hue-rotate(180deg)';
         ctx.drawImage(img, 0, 0);
+
+        // Reset filter and make white areas transparent
+        ctx.filter = 'none';
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const data = imageData.data;
 
+        // Make near-white pixels (which were near-black before invert) transparent
+        // After invert(0.88), original white (#fff) becomes ~#1f1f1f
+        // We want to make the dark background transparent
         for (let i = 0; i < data.length; i += 4) {
             const r = data[i];
             const g = data[i + 1];
             const b = data[i + 2];
 
-            // Check if pixel is black/near-black
-            if (r < this.BLACK_THRESHOLD && g < this.BLACK_THRESHOLD && b < this.BLACK_THRESHOLD) {
-                // Convert to light gray
-                data[i] = this.TARGET_GRAY;
-                data[i + 1] = this.TARGET_GRAY;
-                data[i + 2] = this.TARGET_GRAY;
-            }
-            // Check if pixel is white/near-white (background)
-            else if (r > this.WHITE_THRESHOLD && g > this.WHITE_THRESHOLD && b > this.WHITE_THRESHOLD) {
+            // Check if pixel is dark (was white/background before invert)
+            if (r < 50 && g < 50 && b < 50) {
                 // Make transparent
                 data[i + 3] = 0;
             }
@@ -120,7 +132,10 @@ export class ThemeManager {
      */
     public updateImageForTheme(fabricImg: any): void {
         const element = fabricImg.getElement();
-        if (!element) return;
+        if (!element) {
+            console.warn(`[ThemeManager] updateImageForTheme: no element found`);
+            return;
+        }
 
         // Store original source if not already stored
         if (!this.originalImageSources.has(fabricImg)) {
@@ -128,6 +143,7 @@ export class ThemeManager {
         }
 
         const originalSrc = this.originalImageSources.get(fabricImg);
+        console.log(`[ThemeManager] updateImageForTheme: originalSrc=${originalSrc?.substring(0, 80)}...`);
 
         // Guard against undefined or invalid source URLs
         if (!originalSrc || originalSrc === 'undefined' || originalSrc.includes('/undefined')) {
@@ -140,14 +156,23 @@ export class ThemeManager {
             const tempImg = new Image();
             tempImg.crossOrigin = 'anonymous';
             tempImg.onload = () => {
+                console.log(`[ThemeManager] Original image loaded, processing for dark mode...`);
                 const processedSrc = this.processImageForDarkMode(tempImg);
+                console.log(`[ThemeManager] Dark mode processing complete, src length=${processedSrc.length}`);
                 const newImg = new Image();
                 newImg.crossOrigin = 'anonymous';
                 newImg.onload = () => {
                     fabricImg.setElement(newImg);
                     this.canvas?.renderAll();
+                    console.log(`[ThemeManager] Dark mode image applied to canvas`);
+                };
+                newImg.onerror = (err) => {
+                    console.error(`[ThemeManager] Failed to load processed image`, err);
                 };
                 newImg.src = processedSrc;
+            };
+            tempImg.onerror = (err) => {
+                console.error(`[ThemeManager] Failed to load original image for dark mode`, err);
             };
             tempImg.src = originalSrc;
         } else {
@@ -205,17 +230,33 @@ export class ThemeManager {
      * Call this after adding bundle panels or other images to canvas
      */
     public processNewImage(fabricImg: any): void {
-        if (!this.shouldProcessImage(fabricImg)) return;
+        console.log(`[ThemeManager] processNewImage called, isDarkMode=${this.isDarkMode}, obj.type=${fabricImg?.type}, isBundlePanel=${fabricImg?.isBundlePanel}`);
+
+        if (!this.shouldProcessImage(fabricImg)) {
+            console.log(`[ThemeManager] shouldProcessImage returned false`);
+            return;
+        }
 
         if (this.isDarkMode) {
+            console.log(`[ThemeManager] Processing image for dark mode...`);
             this.updateImageForTheme(fabricImg);
-            console.log(`[ThemeManager] Processed new image for dark mode`);
+        } else {
+            console.log(`[ThemeManager] Skipping dark mode processing (light mode active)`);
         }
     }
 
     /**
+     * Check if a color is dark (should be converted for dark mode)
+     */
+    private isDarkColor(color: string | null | undefined): boolean {
+        if (!color) return false;
+        const normalizedColor = color.toLowerCase().replace(/\s/g, '');
+        return this.DARK_COLORS.some(dark => normalizedColor === dark.toLowerCase().replace(/\s/g, ''));
+    }
+
+    /**
      * Process SVG group paths for dark mode display
-     * Converts black fills/strokes to light gray for visibility on dark canvas
+     * Converts black/dark fills/strokes to light gray for visibility on dark canvas
      */
     public processSvgGroupForDarkMode(group: any): void {
         if (!group || group.type !== 'group') return;
@@ -229,8 +270,8 @@ export class ThemeManager {
             const fill = child.fill;
             const stroke = child.stroke;
 
-            // Convert black fills to light gray
-            if (fill === '#000000' || fill === 'rgb(0,0,0)' || fill === 'black') {
+            // Convert dark fills to light gray
+            if (this.isDarkColor(fill)) {
                 // Store original color if not stored
                 if (!child.originalFill) {
                     child.originalFill = fill;
@@ -239,8 +280,8 @@ export class ThemeManager {
                 modifiedCount++;
             }
 
-            // Convert black strokes to light gray
-            if (stroke === '#000000' || stroke === 'rgb(0,0,0)' || stroke === 'black') {
+            // Convert dark strokes to light gray
+            if (this.isDarkColor(stroke)) {
                 if (!child.originalStroke) {
                     child.originalStroke = stroke;
                 }

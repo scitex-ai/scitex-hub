@@ -74,6 +74,9 @@ export class CanvasManager {
     private snapThreshold: number = 10; // pixels for snap detection
     private guidelineOverlay: HTMLDivElement | null = null; // CSS overlay for guidelines (faster than Fabric.js)
 
+    // Hover tooltip for showing pltz path
+    private hoverTooltip: HTMLDivElement | null = null;
+
     // Throttling for object moving (performance optimization)
     private objectMovingThrottleFrame: number | null = null;
     private pendingMovingTarget: any = null;
@@ -108,6 +111,13 @@ export class CanvasManager {
         private statusBarCallback?: (message: string) => void,
         private rulersAreaTransformCallback?: () => void
     ) {}
+
+    /**
+     * Get current dark mode state from ThemeManager
+     */
+    private get isDarkMode(): boolean {
+        return this.themeManager?.isDark() ?? false;
+    }
 
     /**
      * Set callback for canvas selection changes
@@ -554,6 +564,9 @@ export class CanvasManager {
                 this.lastSnapY = null;
             });
 
+            // Setup hover tooltip for pltz bundles
+            this.setupHoverTooltip();
+
             // Setup Alt key tracking for fine adjustment mode
             this.setupAltKeyTracking();
         } catch (error) {
@@ -629,8 +642,9 @@ export class CanvasManager {
     }
 
     /**
-     * Process image pixels for dark mode display
-     * Converts black/near-black to light gray, white to transparent
+     * Process image for dark mode display using CSS filter approach.
+     * Uses invert(0.88) + hue-rotate(180deg) for natural color preservation.
+     * This matches the scitex flask editor's dark mode implementation.
      */
     private processImageForDarkMode(img: HTMLImageElement): string {
         const canvas = document.createElement('canvas');
@@ -639,28 +653,27 @@ export class CanvasManager {
         const ctx = canvas.getContext('2d');
         if (!ctx) return img.src;
 
+        // Apply CSS filter using canvas context
+        // invert(0.88) - inverts colors ~88% (black→light gray, white→dark gray)
+        // hue-rotate(180deg) - preserves original hues after inversion
+        ctx.filter = 'invert(0.88) hue-rotate(180deg)';
         ctx.drawImage(img, 0, 0);
+
+        // Reset filter and make white areas transparent
+        ctx.filter = 'none';
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const data = imageData.data;
 
-        const BLACK_THRESHOLD = 40;  // Pixels darker than this are considered black
-        const WHITE_THRESHOLD = 245; // Pixels lighter than this are considered white
-        const TARGET_GRAY = 200;     // Light gray for dark mode text/axes
-
+        // Make near-dark pixels (which were near-white before invert) transparent
+        // After invert(0.88), original white (#fff) becomes ~#1f1f1f
+        // We want to make the dark background transparent
         for (let i = 0; i < data.length; i += 4) {
             const r = data[i];
             const g = data[i + 1];
             const b = data[i + 2];
 
-            // Check if pixel is black/near-black
-            if (r < BLACK_THRESHOLD && g < BLACK_THRESHOLD && b < BLACK_THRESHOLD) {
-                // Convert to light gray
-                data[i] = TARGET_GRAY;
-                data[i + 1] = TARGET_GRAY;
-                data[i + 2] = TARGET_GRAY;
-            }
-            // Check if pixel is white/near-white (background)
-            else if (r > WHITE_THRESHOLD && g > WHITE_THRESHOLD && b > WHITE_THRESHOLD) {
+            // Check if pixel is dark (was white/background before invert)
+            if (r < 50 && g < 50 && b < 50) {
                 // Make transparent
                 data[i + 3] = 0;
             }
@@ -4883,6 +4896,81 @@ export class CanvasManager {
         // Also clear on blur (window loses focus)
         window.addEventListener('blur', () => {
             this.altKeyPressed = false;
+        });
+    }
+
+    /**
+     * Setup hover tooltip to show pltz/figz path when hovering over canvas objects.
+     * Shows the bundle path for panels so users know which file they're working with.
+     */
+    private setupHoverTooltip(): void {
+        if (!this.canvas) return;
+
+        // Create tooltip element
+        this.hoverTooltip = document.createElement('div');
+        this.hoverTooltip.className = 'canvas-hover-tooltip';
+        this.hoverTooltip.style.cssText = `
+            position: fixed;
+            background: rgba(0, 0, 0, 0.85);
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: monospace;
+            pointer-events: none;
+            z-index: 10000;
+            display: none;
+            max-width: 400px;
+            word-break: break-all;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        `;
+        document.body.appendChild(this.hoverTooltip);
+
+        // Track currently hovered object to avoid redundant updates
+        let currentHoveredObj: any = null;
+
+        // Show tooltip on mouse:over
+        this.canvas.on('mouse:over', (e: any) => {
+            const target = e.target;
+            if (!target || !this.hoverTooltip) return;
+
+            // Check if object has pltzPath (bundle panel)
+            const pltzPath = target.pltzPath;
+            const bundlePath = target.bundlePath;
+            const displayPath = pltzPath || bundlePath;
+
+            if (displayPath && target !== currentHoveredObj) {
+                currentHoveredObj = target;
+                // Extract just the filename for cleaner display
+                const filename = displayPath.split('/').pop() || displayPath;
+                const label = target.panelLabel || '';
+
+                this.hoverTooltip.innerHTML = label
+                    ? `<strong>${label}</strong>: ${filename}`
+                    : filename;
+                this.hoverTooltip.style.display = 'block';
+            }
+        });
+
+        // Update tooltip position on mouse move
+        this.canvas.on('mouse:move', (e: any) => {
+            if (!this.hoverTooltip || this.hoverTooltip.style.display === 'none') return;
+
+            const pointer = e.e as MouseEvent;
+            this.hoverTooltip.style.left = `${pointer.clientX + 15}px`;
+            this.hoverTooltip.style.top = `${pointer.clientY + 15}px`;
+        });
+
+        // Hide tooltip on mouse:out
+        this.canvas.on('mouse:out', (e: any) => {
+            if (!this.hoverTooltip) return;
+
+            // Only hide if we're leaving an object with a path
+            const target = e.target;
+            if (target && (target.pltzPath || target.bundlePath)) {
+                currentHoveredObj = null;
+                this.hoverTooltip.style.display = 'none';
+            }
         });
     }
 

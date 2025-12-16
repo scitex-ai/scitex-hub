@@ -351,9 +351,10 @@ class PlotsService:
         renderer = fig.canvas.get_renderer()
 
         # Save to buffer first to get actual image dimensions
+        # Use transparent background - works on both light and dark canvases
         buf = io.BytesIO()
         fig.savefig(buf, format='png', dpi=dpi, bbox_inches='tight',
-                    facecolor='white', edgecolor='none')
+                    transparent=True, facecolor='none', edgecolor='none')
         buf.seek(0)
 
         # Get actual image dimensions
