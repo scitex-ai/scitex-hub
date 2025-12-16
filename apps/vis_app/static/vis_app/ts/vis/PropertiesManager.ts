@@ -30,7 +30,7 @@ export class PropertiesManager {
     ) {
         this.dynamicPropertiesEl = document.getElementById('dynamic-properties');
         this.selectedItemInfoEl = document.querySelector('.selected-item-info') as HTMLElement;
-        this.csrfToken = this.getCSRFToken();
+        this.csrfToken = getCSRFToken();
     }
 
     /**
