@@ -1273,60 +1273,23 @@ export class CanvasManager {
      * Zoom in
      */
     public zoomIn(): void {
-        this.canvasZoomLevel = Math.min(this.canvasZoomLevel * 1.2, 5.0);
-        this.applyZoom();
-        console.log('[CanvasManager] Zoomed in - Canvas:', Math.round(this.canvasZoomLevel * 100) + '%');
-    }
-
-    /**
-     * Zoom out
-     */
-    public zoomOut(): void {
-        this.canvasZoomLevel = Math.max(this.canvasZoomLevel / 1.2, 0.1);
-        this.applyZoom();
-        console.log('[CanvasManager] Zoomed out - Canvas:', Math.round(this.canvasZoomLevel * 100) + '%');
-    }
-
-    /**
-     * Zoom to fit - fits full canvas (180mm × 240mm) within viewport
-     */
-    public zoomToFit(): void {
-        const canvasContainer = document.getElementById('canvas-container');
-        if (!canvasContainer) {
-            console.warn('[CanvasManager] canvas-container not found, using default zoom');
-            this.canvasZoomLevel = 0.22;  // Default to 22% to fit full canvas
-            this.canvasPanOffset = { x: 0, y: 0 };
-            this.applyZoom();
-            return;
+        if (this.zoomPanManager) {
+            this.zoomPanManager.zoomIn();
         }
-
-        // Get container dimensions (with padding for rulers)
-        const containerWidth = canvasContainer.clientWidth - 40;  // Account for rulers
-        const containerHeight = canvasContainer.clientHeight - 40;
-
-        console.log(`[CanvasManager] Container dimensions: ${containerWidth}×${containerHeight}px`);
-
-        // Full canvas: 180mm width × 240mm height at 300dpi
-        const canvasWidth = CANVAS_CONSTANTS.MAX_CANVAS_WIDTH;   // 2126px (180mm)
-        const canvasHeight = CANVAS_CONSTANTS.MAX_CANVAS_HEIGHT; // 2835px (240mm)
-
-        console.log(`[CanvasManager] Canvas dimensions: ${canvasWidth}×${canvasHeight}px`);
-
-        // Calculate zoom to fit entire canvas
-        const zoomX = containerWidth / canvasWidth;
-        const zoomY = containerHeight / canvasHeight;
-
-        // Use minimum zoom to fit, but ensure at least 10% minimum
-        this.canvasZoomLevel = Math.max(Math.min(zoomX, zoomY, 1.0), 0.1);
-
-        console.log(`[CanvasManager] Calculated zoom: zoomX=${zoomX.toFixed(3)}, zoomY=${zoomY.toFixed(3)}, final=${this.canvasZoomLevel.toFixed(3)}`);
-
-        // Reset pan offset
-        this.canvasPanOffset = { x: 0, y: 0 };
-
-        this.applyZoom();
-        console.log(`[CanvasManager] Canvas zoomed to fit: ${Math.round(this.canvasZoomLevel * 100)}% (container: ${containerWidth}×${containerHeight}px)`);
     }
+
+    public zoomOut(): void {
+        if (this.zoomPanManager) {
+            this.zoomPanManager.zoomOut();
+        }
+    }
+
+    public zoomToFit(): void {
+        if (this.zoomPanManager) {
+            this.zoomPanManager.zoomToFit();
+        }
+    }
+
 
     /**
      * Zoom to fit content - calculates bounding box of all objects and fits view
