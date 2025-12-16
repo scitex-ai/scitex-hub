@@ -48,8 +48,58 @@
         </div>
         <div class="release-month">
             <div class="month-header">
-                <h2>December 2025 — v0.5.1-alpha</h2>
+                <h2>December 2025 — v0.5.2-alpha</h2>
                 <span class="month-badge">Latest Release</span>
+            </div>
+            <ul class="feature-list">
+                <li class="feature-item">
+                    <h3>📊 App-Separated Logging System</h3>
+                    <p>
+                        Dedicated log files for each major app (vis_app.log, writer_app.log, scholar_app.log,
+                        code_app.log, project_app.log) with RotatingFileHandler (5MB, 3 backups). Improves
+                        development speed by isolating app-specific logs. Browser console errors now split
+                        into console_error.log for easier debugging.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>🔧 Vis Editor Refactoring</h3>
+                    <p>
+                        Reduced VisEditor.ts from 1,869 to 1,722 lines (147-line reduction) by extracting
+                        callback handlers to EditorCallbackHandlers.ts. PropertiesManager reduced from 2,086
+                        to 1,706 lines (380-line reduction) with new builder classes. Total 527-line reduction
+                        improves maintainability.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>🏷️ Sigma → Vis Component Rename</h3>
+                    <p>
+                        Completed naming transition from Sigma to Vis across 37 files. Updated SigmaEditor.ts
+                        to VisEditor.ts with all references in TypeScript, Python, HTML, and CSS. Cleaned up
+                        obsolete backup files and generated assets.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>🔄 rename.sh Utility Enhancements</h3>
+                    <p>
+                        New execution order ensures path integrity: Contents → Symlink targets → Symlink/file
+                        names → Directories (deepest first). Added config display at startup, progress indicators,
+                        and intelligent directory depth sorting to prevent path breakage during bulk renames.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>🐛 Canvas Initialization Fixes</h3>
+                    <p>
+                        Fixed TypeError errors in CanvasManager by removing obsolete setupHoverTooltip() and
+                        setupAltKeyTracking() method calls. Canvas now initializes correctly and renders figures
+                        without errors.
+                    </p>
+                </li>
+            </ul>
+        </div>
+        <div class="release-month">
+            <div class="month-header">
+                <h2>December 2025 — v0.5.1-alpha</h2>
+                <span class="month-badge">Element Inspector</span>
             </div>
             <ul class="feature-list">
                 <li class="feature-item">

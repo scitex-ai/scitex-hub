@@ -5,6 +5,54 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.2-alpha] - 2025-12-17
+
+### Added
+- **App-Separated Logging**: Dedicated log files for each major app
+  - `vis_app.log`, `writer_app.log`, `scholar_app.log`, `code_app.log`, `project_app.log`
+  - All use RotatingFileHandler (5MB, 3 backups) for automatic rotation
+  - Improves debugging by isolating app-specific logs
+  - Usage: `logger = logging.getLogger(__name__)` auto-routes to correct log
+
+- **Browser Console Error Logs**: Separate error file for browser console
+  - `console_error.log` captures WARNING+ level browser logs
+  - `console.log` continues to capture all levels
+  - Both use RotatingFileHandler to prevent unbounded growth
+
+- **rename.sh Enhancements**: Improved bulk rename utility
+  - New execution order for path integrity: Contents → Symlink targets → Symlink/file names → Directories (deepest first)
+  - Config display at startup showing patterns, filters, and Django-safe mode status
+  - Better logging with progress indicators
+  - `update_symlink_targets()` function to update what symlinks point to
+  - `rename_symlink_names()` function to rename symlink names
+  - Directory renaming sorted by depth (deepest first) to prevent path breakage
+
+### Changed
+- **Vis Editor Refactoring**: Reduced VisEditor.ts from 1,869 to 1,722 lines (147-line reduction, 7.9%)
+  - Extracted callback handlers to `EditorCallbackHandlers.ts`
+  - Improved maintainability by separating callback logic from initialization
+
+- **Component Rename**: Renamed Sigma → Vis across codebase
+  - `SigmaEditor.ts` → `VisEditor.ts`
+  - Updated all references in TypeScript, Python, HTML, CSS (37 files)
+  - Removed obsolete backup files
+
+- **PropertiesManager Refactoring**: Reduced from 2,086 to 1,706 lines (380-line reduction, 18.2%)
+  - Created `ElementPropertiesBuilder.ts` for plot element properties
+  - Created `CanvasObjectPropertiesBuilder.ts` for canvas object properties
+  - Improved code organization and maintainability
+
+### Fixed
+- **Canvas Initialization Errors**: Removed obsolete method calls
+  - Fixed `TypeError: this.setupHoverTooltip is not a function`
+  - Fixed `TypeError: this.setupAltKeyTracking is not a function`
+  - Canvas now initializes correctly and renders figures
+
+### Infrastructure
+- **Log Management**: Makefile already clears logs on start/restart/reload
+  - Ensures fresh logs for each session
+  - Includes rotated logs (`*.log.[0-9]*`)
+
 ## [0.5.1-alpha] - 2025-12-16
 
 ### Added
