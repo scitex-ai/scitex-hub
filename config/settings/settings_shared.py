@@ -500,6 +500,47 @@ LOGGING = {
             "formatter": "standard",
             "level": "ERROR",
         },
+        # App-specific logs
+        "vis_app_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": str(BASE_DIR / "logs" / "vis_app.log"),
+            "maxBytes": 5242880,
+            "backupCount": 3,
+            "formatter": "standard",
+            "level": "DEBUG",
+        },
+        "writer_app_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": str(BASE_DIR / "logs" / "writer_app.log"),
+            "maxBytes": 5242880,
+            "backupCount": 3,
+            "formatter": "standard",
+            "level": "DEBUG",
+        },
+        "scholar_app_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": str(BASE_DIR / "logs" / "scholar_app.log"),
+            "maxBytes": 5242880,
+            "backupCount": 3,
+            "formatter": "standard",
+            "level": "DEBUG",
+        },
+        "code_app_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": str(BASE_DIR / "logs" / "code_app.log"),
+            "maxBytes": 5242880,
+            "backupCount": 3,
+            "formatter": "standard",
+            "level": "DEBUG",
+        },
+        "project_app_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": str(BASE_DIR / "logs" / "project_app.log"),
+            "maxBytes": 5242880,
+            "backupCount": 3,
+            "formatter": "standard",
+            "level": "DEBUG",
+        },
     },
     "loggers": {
         # Django framework
@@ -551,6 +592,33 @@ LOGGING = {
         "scitex.errors": {
             "handlers": ["error_file", "console"],
             "level": "ERROR",
+            "propagate": False,
+        },
+        # App-specific loggers
+        # Usage: logger = logging.getLogger(__name__)  # Auto-routes to correct app log
+        "apps.vis_app": {
+            "handlers": ["vis_app_file", "console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+        "apps.writer_app": {
+            "handlers": ["writer_app_file", "console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+        "apps.scholar_app": {
+            "handlers": ["scholar_app_file", "console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+        "apps.code_app": {
+            "handlers": ["code_app_file", "console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+        "apps.project_app": {
+            "handlers": ["project_app_file", "console"],
+            "level": "DEBUG",
             "propagate": False,
         },
     },
