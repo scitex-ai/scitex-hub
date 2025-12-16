@@ -46,6 +46,9 @@ class ElementInspector {
       this.notificationManager,
     );
 
+    // Set element scanner reference for depth-aware selection
+    this.selectionManager.setElementScanner(this.elementScanner);
+
     // Page structure exporter needs notification manager
     this.pageStructureExporter = new PageStructureExporter(
       this.notificationManager,
@@ -67,6 +70,12 @@ class ElementInspector {
     document.addEventListener("keydown", (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
 
+      // FIRST: Always allow Tab, Enter, Arrow keys to pass through normally
+      // These should never be intercepted by the element inspector
+      if (["Tab", "Enter", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+        return; // Don't handle these keys at all
+      }
+
       // Ctrl+Shift+I: Capture debug snapshot (screenshot + console logs)
       // Check this FIRST before other "i" handlers
       if (e.ctrlKey && e.shiftKey && !e.altKey && key === "i") {
@@ -84,6 +93,16 @@ class ElementInspector {
         return;
       }
 
+      // Ctrl+I: Load next batch of elements (when inspector is active)
+      if (e.ctrlKey && !e.altKey && !e.shiftKey && key === "i") {
+        if (this.isActive) {
+          e.preventDefault();
+          console.log("[ElementInspector] Ctrl+I pressed - loading next batch");
+          this.elementScanner.loadNextBatch();
+          return;
+        }
+      }
+
       // Alt+I: Toggle inspector (no Ctrl, no Shift)
       if (e.altKey && !e.shiftKey && !e.ctrlKey && key === "i") {
         e.preventDefault();
@@ -93,21 +112,27 @@ class ElementInspector {
 
       // Escape: Deactivate inspector and cancel selection mode
       if (e.key === "Escape") {
-        e.preventDefault();
         if (this.selectionManager.isActive()) {
+          e.preventDefault();
           this.selectionManager.cancelSelectionMode();
           this.deactivate();
         } else if (this.isActive) {
+          e.preventDefault();
           this.deactivate();
         }
+        // If not active, let Escape pass through
         return;
       }
     });
 
     console.log("[ElementInspector] Initialized");
     console.log("  Alt+I: Toggle inspector overlay");
+    console.log("  Ctrl+I: Load next 512 elements (when active)");
     console.log("  Ctrl+Alt+I: Rectangle selection mode");
-    console.log("  Ctrl+Shift+I: Debug snapshot (console logs + page info)");
+    console.log("  Ctrl+Shift+I: Debug snapshot (screenshot + console logs)");
+    console.log("  Scroll wheel: Cycle through overlapped elements (affects rect selection depth)");
+    console.log("  Right-click: Copy element debug info");
+    console.log("  Left-click: Pass through to underlying element");
     console.log("  Escape: Deactivate inspector / Cancel selection");
   }
 

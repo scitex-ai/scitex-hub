@@ -4,6 +4,7 @@
  */
 
 import type { SelectionRect } from "./types";
+import type { ElementScanner } from "./element-scanner";
 import { DebugInfoCollector } from "./debug-info-collector";
 import { NotificationManager } from "./notification-manager";
 
@@ -16,6 +17,7 @@ export class SelectionManager {
   private elementBoxMap: Map<HTMLDivElement, Element>;
   private debugCollector: DebugInfoCollector;
   private notificationManager: NotificationManager;
+  private elementScanner: ElementScanner | null = null;
 
   constructor(
     elementBoxMap: Map<HTMLDivElement, Element>,
@@ -25,6 +27,13 @@ export class SelectionManager {
     this.elementBoxMap = elementBoxMap;
     this.debugCollector = debugCollector;
     this.notificationManager = notificationManager;
+  }
+
+  /**
+   * Set the element scanner reference for depth-aware selection
+   */
+  public setElementScanner(scanner: ElementScanner): void {
+    this.elementScanner = scanner;
   }
 
   public isActive(): boolean {
@@ -263,12 +272,31 @@ export class SelectionManager {
       bottom: rect.top + rect.height,
     };
 
+    // Get target depth from scroll wheel selection (if available)
+    let targetDepth: number | null = null;
+    const depthTolerance = 2; // Select elements within ±2 depth levels
+
+    if (this.elementScanner) {
+      const depthSelectedElement = this.elementScanner.getDepthSelectedElement();
+      if (depthSelectedElement) {
+        targetDepth = this.getDepth(depthSelectedElement);
+        console.log(`[SelectionManager] Filtering by depth: ${targetDepth} (±${depthTolerance})`);
+      }
+    }
+
     allElements.forEach((element: Element) => {
       if (
         element.closest("#element-inspector-overlay") ||
         element.classList.contains("selection-rectangle") ||
-        element.classList.contains("selection-overlay")
+        element.classList.contains("selection-overlay") ||
+        element.closest(".element-inspector-layer-picker")
       ) {
+        return;
+      }
+
+      // Skip non-visual elements
+      const tagName = element.tagName.toLowerCase();
+      if (["script", "style", "link", "meta", "head", "noscript", "br", "html", "body"].includes(tagName)) {
         return;
       }
 
@@ -279,7 +307,21 @@ export class SelectionManager {
         }
       }
 
+      // Filter by depth if target depth is set
+      if (targetDepth !== null) {
+        const elementDepth = this.getDepth(element);
+        if (Math.abs(elementDepth - targetDepth) > depthTolerance) {
+          return; // Skip elements that are too shallow or too deep
+        }
+      }
+
       const elementRect = element.getBoundingClientRect();
+
+      // Skip very small elements
+      if (elementRect.width < 10 || elementRect.height < 10) {
+        return;
+      }
+
       const elementBounds = {
         left: elementRect.left,
         top: elementRect.top,

@@ -26,6 +26,9 @@ function initApp(): void {
   // Initialize module switcher shortcuts (Alt+S/C/V/W)
   initModuleSwitcher();
 
+  // Initialize Alt key shortcut badges on navigation
+  initAltKeyShortcutBadges();
+
   // Add event listeners for primary CTAs
   const getStartedBtn =
     document.querySelector<HTMLButtonElement>(".btn-primary");
@@ -96,17 +99,23 @@ function initMobileMenu(): void {
 /**
  * Initialize module switcher keyboard shortcuts
  * Alt+S → Scholar, Alt+C → Code, Alt+V → Vis, Alt+W → Writer
+ *
+ * Uses capture phase to intercept before Monaco/Terminal can consume the event.
+ * Alt+key combinations are NOT used by Monaco or xterm.js for text input,
+ * so we can safely capture them globally.
  */
 function initModuleSwitcher(): void {
   const moduleRoutes: Record<string, string> = {
+    'f': '/files/',
     's': '/scholar/',
     'c': '/code/',
     'v': '/vis/',
     'w': '/writer/',
   };
 
+  // Use capture phase to intercept before Monaco/xterm can consume the event
   document.addEventListener('keydown', (e: KeyboardEvent) => {
-    // Only handle Alt+key combinations
+    // Only handle Alt+key combinations (no other modifiers)
     if (!e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) {
       return;
     }
@@ -120,23 +129,39 @@ function initModuleSwitcher(): void {
         return;
       }
 
-      // Don't switch if user is typing in an input field
-      const activeElement = document.activeElement;
-      if (activeElement && (
-        activeElement.tagName === 'INPUT' ||
-        activeElement.tagName === 'TEXTAREA' ||
-        (activeElement as HTMLElement).isContentEditable
-      )) {
-        return;
+      // Skip if user is in a regular text input (NOT Monaco or Terminal)
+      // Monaco uses a hidden textarea, xterm uses a hidden input
+      // We want to allow Alt+key in those since they're not for typing Alt+letter
+      const activeElement = document.activeElement as HTMLElement;
+      if (activeElement) {
+        // Only skip for visible, user-facing input fields
+        const isVisibleInput = (
+          (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA') &&
+          !activeElement.classList.contains('monaco-mouse-cursor-text') &&
+          !activeElement.closest('.monaco-editor') &&
+          !activeElement.closest('.xterm') &&
+          !activeElement.classList.contains('xterm-helper-textarea')
+        );
+
+        // Also skip for contentEditable elements that are NOT code editors
+        const isContentEditable = activeElement.isContentEditable &&
+          !activeElement.closest('.monaco-editor');
+
+        if (isVisibleInput || isContentEditable) {
+          return;
+        }
       }
 
+      // Stop propagation to prevent Monaco/Terminal from seeing this event
       e.preventDefault();
+      e.stopPropagation();
+
       console.log(`[ModuleSwitcher] Navigating to ${route}`);
       window.location.href = route;
     }
-  });
+  }, true); // Use capture phase
 
-  console.log('[ModuleSwitcher] Initialized - Alt+S/C/V/W to switch modules');
+  console.log('[ModuleSwitcher] Initialized - Alt+F/S/C/V/W to switch modules (capture phase)');
 }
 
 /**
@@ -218,6 +243,88 @@ function initGlobalZenMode(): void {
   });
 
   console.log('[ZenMode] Initialized for workspace - sidebar:', sidebarSelector, 'details:', detailsSelector);
+}
+
+/**
+ * Initialize Alt key shortcut badges on navigation buttons
+ * Shows visual badges (e.g., "Alt+F") when Alt key is pressed
+ */
+function initAltKeyShortcutBadges(): void {
+  const navItems = document.querySelectorAll<HTMLElement>('.header-nav-item[data-shortcut]');
+  if (navItems.length === 0) return;
+
+  // Create and inject styles for shortcut badges
+  const style = document.createElement('style');
+  style.textContent = `
+    .shortcut-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: var(--color-accent-emphasis, #0969da);
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 2px 4px;
+      border-radius: 4px;
+      pointer-events: none;
+      opacity: 0;
+      transform: scale(0.8);
+      transition: opacity 0.15s, transform 0.15s;
+      z-index: 1000;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .shortcut-badge.visible {
+      opacity: 1;
+      transform: scale(1);
+    }
+    .header-nav-item {
+      position: relative;
+    }
+  `;
+  document.head.appendChild(style);
+
+  // Add badges to navigation items
+  navItems.forEach(item => {
+    const shortcut = item.dataset.shortcut;
+    if (!shortcut) return;
+
+    const badge = document.createElement('span');
+    badge.className = 'shortcut-badge';
+    badge.textContent = `Alt+${shortcut}`;
+    item.appendChild(badge);
+  });
+
+  // Show badges when Alt is pressed
+  let altPressed = false;
+
+  document.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key === 'Alt' && !altPressed) {
+      altPressed = true;
+      document.querySelectorAll('.shortcut-badge').forEach(badge => {
+        badge.classList.add('visible');
+      });
+    }
+  }, true);
+
+  document.addEventListener('keyup', (e: KeyboardEvent) => {
+    if (e.key === 'Alt') {
+      altPressed = false;
+      document.querySelectorAll('.shortcut-badge').forEach(badge => {
+        badge.classList.remove('visible');
+      });
+    }
+  }, true);
+
+  // Also hide badges when window loses focus (Alt+Tab scenario)
+  window.addEventListener('blur', () => {
+    altPressed = false;
+    document.querySelectorAll('.shortcut-badge').forEach(badge => {
+      badge.classList.remove('visible');
+    });
+  });
+
+  console.log('[AltKeyBadges] Initialized - Press Alt to see navigation shortcuts');
 }
 
 // Initialize when DOM is ready

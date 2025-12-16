@@ -60,6 +60,8 @@ export const DENY_DIRECTORIES: Record<WorkspaceMode, string[]> = {
     '__pycache__',
     '.venv',
     'venv',
+    // NOTE: .figz.d and .pltz.d are NOT hidden yet
+    // They'll be hidden when sibling .figz/.pltz files exist (future feature)
   ],
 
   writer: [
@@ -161,6 +163,10 @@ export const ALLOW_EXTENSIONS: Record<WorkspaceMode, string[] | 'all'> = {
 
     // Documents
     '.pdf',
+
+    // SciTeX bundles (ZIP format - preferred)
+    '.figz',
+    '.pltz',
   ],
 
   writer: [

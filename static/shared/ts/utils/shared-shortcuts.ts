@@ -6,6 +6,7 @@
  *
  * Reserved Shortcuts:
  * - Alt+Z: Toggle Zen Mode
+ * - Alt+F: Go to Files Mode
  * - Alt+S: Go to Scholar Mode
  * - Alt+C: Go to Code Mode
  * - Alt+V: Go to Vis Mode
@@ -29,6 +30,7 @@ export interface SharedShortcut {
  */
 export const SHARED_SHORTCUTS: SharedShortcut[] = [
   { key: 'z', altKey: true, ctrlKey: false, shiftKey: false, metaKey: false, description: 'Toggle Zen Mode', action: 'zen-mode' },
+  { key: 'f', altKey: true, ctrlKey: false, shiftKey: false, metaKey: false, description: 'Go to Files', action: 'navigate-files' },
   { key: 's', altKey: true, ctrlKey: false, shiftKey: false, metaKey: false, description: 'Go to Scholar', action: 'navigate-scholar' },
   { key: 'c', altKey: true, ctrlKey: false, shiftKey: false, metaKey: false, description: 'Go to Code', action: 'navigate-code' },
   { key: 'v', altKey: true, ctrlKey: false, shiftKey: false, metaKey: false, description: 'Go to Vis', action: 'navigate-vis' },

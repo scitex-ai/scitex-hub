@@ -255,6 +255,11 @@ export class WorkspaceFilesTree {
         }
         break;
       }
+      case 'extract-bundle': {
+        console.log('[WorkspaceFilesTree] Extract bundle:', path);
+        await this.extractBundle(path);
+        break;
+      }
       // Git actions - support multi-selection
       case 'git-stage':
         await this.gitActions.stage(getPathsForOperation());
@@ -324,6 +329,37 @@ export class WorkspaceFilesTree {
       }
     } catch (error) {
       this.showMessage('Failed to create symlink', 'error');
+    }
+  }
+
+  /** Extract a .figz or .pltz bundle file to a directory */
+  private async extractBundle(bundlePath: string): Promise<void> {
+    // Determine the output directory path (.figz -> .figz.d, .pltz -> .pltz.d)
+    const outputPath = bundlePath + '.d';
+    const bundleName = bundlePath.split('/').pop() || 'bundle';
+
+    try {
+      const response = await fetch(`/${this.config.username}/${this.config.slug}/api/files/extract-bundle/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': this.getCsrfToken(),
+        },
+        body: JSON.stringify({ bundle_path: bundlePath, output_path: outputPath }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        this.showMessage(`Extracted ${bundleName} to ${bundleName}.d`, 'success');
+        await this.refresh();
+        // Expand the newly created directory
+        this.stateManager.expand(outputPath);
+      } else {
+        this.showMessage(`Failed: ${data.error}`, 'error');
+      }
+    } catch (error) {
+      console.error('[WorkspaceFilesTree] Failed to extract bundle:', error);
+      this.showMessage('Failed to extract bundle', 'error');
     }
   }
 

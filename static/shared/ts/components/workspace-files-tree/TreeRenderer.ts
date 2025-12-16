@@ -127,12 +127,13 @@ export class TreeRenderer {
 
     // Git status data attributes for git-gutter styling
     const gitDataAttrs = this.getGitDataAttributes(item.git_status);
-    const gitTitleAttr = this.getGitTitleAttribute(item.git_status);
+    // Title shows full path with git status if present
+    const titleAttr = this.getItemTitleAttribute(item.path, item.git_status);
 
     let html = `<div class="${classes.join(' ')}"
                      data-path="${this.escapeAttr(item.path)}"
                      draggable="true"
-                     ${gitDataAttrs}${gitTitleAttr}
+                     ${gitDataAttrs}${titleAttr}
                      style="padding-left: ${indent}px;">`;
 
     // Folder toggle button
@@ -184,13 +185,14 @@ export class TreeRenderer {
 
     // Git status data attributes for git-gutter styling
     const gitDataAttrs = this.getGitDataAttributes(item.git_status);
-    const gitTitleAttr = this.getGitTitleAttribute(item.git_status);
+    // Title shows full path with git status if present
+    const titleAttr = this.getItemTitleAttribute(item.path, item.git_status);
 
     let html = `<div class="${classes.join(' ')}"
                      data-path="${this.escapeAttr(item.path)}"
                      data-action="select"
                      draggable="true"
-                     ${gitDataAttrs}${gitTitleAttr}
+                     ${gitDataAttrs}${titleAttr}
                      style="padding-left: ${indent}px;">`;
 
     html += `<span class="wft-spacer"></span>`;
@@ -278,6 +280,30 @@ export class TreeRenderer {
 
     const stagedNote = status.staged ? ' (staged)' : '';
     return ` title="${tooltip}${stagedNote}"`;
+  }
+
+  /** Get title attribute showing full path with git status */
+  private getItemTitleAttribute(path: string, gitStatus: { status: string; staged: boolean } | undefined): string {
+    let title = path || '/';
+
+    // Add git status if present
+    if (gitStatus) {
+      const tooltipMap: Record<string, string> = {
+        'M': 'Modified',
+        'A': 'Added',
+        'D': 'Deleted',
+        '??': 'Untracked',
+        'R': 'Renamed',
+        'C': 'Copied',
+      };
+      const gitInfo = tooltipMap[gitStatus.status];
+      if (gitInfo) {
+        const stagedNote = gitStatus.staged ? ', staged' : '';
+        title += ` [${gitInfo}${stagedNote}]`;
+      }
+    }
+
+    return ` title="${this.escapeAttr(title)}"`;
   }
 
   /** Generate unique ID for tree item */

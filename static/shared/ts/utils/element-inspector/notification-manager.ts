@@ -29,6 +29,7 @@ export class NotificationManager {
   public showNotification(
     message: string,
     type: "success" | "error",
+    duration: number = 1000,
   ): void {
     const notification = document.createElement("div");
     notification.textContent = message;
@@ -59,12 +60,12 @@ export class NotificationManager {
       notification.style.transform = "translateY(0) scale(1)";
     });
 
-    // Show for 1 second
+    // Show for specified duration
     setTimeout(() => {
       notification.style.opacity = "0";
       notification.style.transform = "translateY(-10px) scale(0.95)";
       setTimeout(() => notification.remove(), 200);
-    }, 1000);
+    }, duration);
   }
 
   public showCameraFlash(): void {

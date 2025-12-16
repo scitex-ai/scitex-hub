@@ -203,8 +203,10 @@ export class SelectionHandler {
     } else {
       // Normal click: single selection
       this.stateManager.selectSingle(path);
-      // Trigger file select callback only for files
-      if (item.type === 'file') {
+      // Trigger file select callback for files and bundle directories (.figz.d, .pltz.d)
+      const isBundleDir = item.type === 'directory' &&
+        (path.endsWith('.figz.d') || path.endsWith('.pltz.d'));
+      if (item.type === 'file' || isBundleDir) {
         this.selectFileFn(path);
       }
     }

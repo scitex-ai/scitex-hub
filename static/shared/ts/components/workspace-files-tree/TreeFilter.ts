@@ -58,7 +58,13 @@ export class TreeFilter {
       return true;
     }
 
-    // 2. DIRECTORY BLACKLIST - NO LONGER HIDES, just marks as inactive
+    // 2. ALWAYS hide extracted bundle directories (.figz.d, .pltz.d)
+    //    Users work with ZIP files (.figz, .pltz) only
+    if (type === 'directory' && (name.endsWith('.figz.d') || name.endsWith('.pltz.d'))) {
+      return true;
+    }
+
+    // 3. DIRECTORY BLACKLIST - NO LONGER HIDES, just marks as inactive
     //    Items in blacklist directories are now shown but grayed out
     //    (handled by isInactive() method instead)
 
@@ -76,6 +82,10 @@ export class TreeFilter {
 
     // 1. Items in blacklisted directories are shown but inactive
     for (const pattern of this.config.hiddenPatterns) {
+      // Support suffix patterns (e.g., '.figz.d' matches 'Figure1.figz.d')
+      if (pattern.startsWith('.') && name.endsWith(pattern)) {
+        return true;
+      }
       if (name === pattern || path.includes(`/${pattern}/`) || path.includes(`/${pattern}`)) {
         return true;
       }

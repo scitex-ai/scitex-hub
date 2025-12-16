@@ -241,23 +241,41 @@ export class ConsoleCollector {
     // Show flash
     this.notificationManager.showCameraFlash();
 
-    // Run screenshot and console log capture in parallel
-    const [screenshotResult, logsResult] = await Promise.all([
-      this.captureScreenshot(),
-      this.captureConsoleLogs(),
-    ]);
+    // Capture screenshot first
+    const screenshotBlob = await this.captureScreenshotBlob();
+    const logsText = this.getConsoleLogs();
 
-    // Report results
-    const results: string[] = [];
-    if (screenshotResult) results.push("screenshot");
-    if (logsResult) results.push("logs");
-
-    if (results.length === 2) {
-      this.notificationManager.showNotification("✓ Screenshot + logs copied", "success");
-    } else if (results.length === 1) {
-      this.notificationManager.showNotification(`✓ ${results[0]} copied`, "success");
-    } else {
+    if (!screenshotBlob && !logsText) {
       this.notificationManager.showNotification("✗ Capture failed", "error");
+      this.notificationManager.triggerCopyCallback();
+      return;
+    }
+
+    // Sequential clipboard copying: screenshot first, then logs
+    if (screenshotBlob) {
+      try {
+        await navigator.clipboard.write([
+          new ClipboardItem({ "image/png": screenshotBlob }),
+        ]);
+        this.notificationManager.showNotification("📷 Screenshot copied - paste now!", "success", 2500);
+      } catch (e) {
+        this.originalConsole.error("[ConsoleCollector] Screenshot clipboard failed:", e);
+      }
+    }
+
+    // Wait for user to paste screenshot, then copy logs
+    if (logsText && logsText !== "No console logs captured.") {
+      const delay = screenshotBlob ? 3000 : 0; // 3 second delay if screenshot was copied
+      await new Promise((r) => setTimeout(r, delay));
+
+      try {
+        await navigator.clipboard.writeText(logsText);
+        this.notificationManager.showNotification("📋 Console logs copied - paste now!", "success");
+      } catch (e) {
+        this.originalConsole.error("[ConsoleCollector] Logs clipboard failed:", e);
+      }
+    } else if (!screenshotBlob) {
+      this.notificationManager.showNotification("✗ No logs to copy", "error");
     }
 
     this.notificationManager.triggerCopyCallback();
@@ -265,9 +283,9 @@ export class ConsoleCollector {
 
   /**
    * Capture screenshot using getDisplayMedia (OS-level capture)
-   * Returns true if successful
+   * Returns the screenshot blob, or null if failed/cancelled
    */
-  private async captureScreenshot(): Promise<boolean> {
+  private async captureScreenshotBlob(): Promise<Blob | null> {
     try {
       // Use getDisplayMedia with preferCurrentTab for auto-selection
       const stream = await navigator.mediaDevices.getDisplayMedia({
@@ -301,45 +319,24 @@ export class ConsoleCollector {
       const ctx = canvas.getContext("2d");
       if (!ctx) {
         stream.getTracks().forEach((t) => t.stop());
-        return false;
+        return null;
       }
 
       ctx.drawImage(video, 0, 0);
       stream.getTracks().forEach((t) => t.stop());
 
-      // Convert to blob and copy to clipboard
+      // Convert to blob
       const blob = await new Promise<Blob | null>((resolve) => {
         canvas.toBlob((b) => resolve(b), "image/png");
       });
 
-      if (!blob) return false;
-
-      await navigator.clipboard.write([
-        new ClipboardItem({ "image/png": blob }),
-      ]);
-
-      return true;
+      return blob;
     } catch (err) {
       // User cancelled or permission denied
       if ((err as Error).name !== "NotAllowedError") {
         this.originalConsole.error("[ConsoleCollector] Screenshot failed:", err);
       }
-      return false;
-    }
-  }
-
-  /**
-   * Capture console logs and copy to clipboard
-   * Returns true if successful
-   */
-  private async captureConsoleLogs(): Promise<boolean> {
-    try {
-      const textSnapshot = this.getConsoleLogs();
-      await navigator.clipboard.writeText(textSnapshot);
-      return true;
-    } catch (e) {
-      this.originalConsole.error("[ConsoleCollector] Failed to copy logs:", e);
-      return false;
+      return null;
     }
   }
 

@@ -189,6 +189,19 @@ export class ContextMenuHandler {
       { label: 'Create Symlink', icon: 'fa-link', action: 'create-symlink' }
     );
 
+    // Bundle operations for .figz and .pltz files
+    if (this.currentPath) {
+      if (this.currentPath.endsWith('.figz') || this.currentPath.endsWith('.pltz')) {
+        items.push({ label: '', action: '', separator: true });
+        items.push({
+          label: 'Extract Bundle',
+          icon: 'fa-folder-open',
+          action: 'extract-bundle',
+          cssClass: 'context-extract-bundle'
+        });
+      }
+    }
+
     // Git operations (dynamic based on git status)
     if (gitStatus) {
       items.push({ label: '', action: '', separator: true });
