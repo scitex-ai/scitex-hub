@@ -536,7 +536,7 @@ export class CanvasManager {
 
                 // Trigger figz auto-save for bundle panels
                 if (obj && obj.isBundlePanel) {
-                    this.debouncedFigzAutoSave();
+                    this.bundleCanvasManager?.debouncedFigzAutoSave();
                 }
             });
 
@@ -1716,86 +1716,11 @@ export class CanvasManager {
         projectSlug?: string,
         figureName?: string
     ): Promise<void> {
-        const panels = this.getBundlePanels();
-        if (panels.length === 0) {
-            console.log('[CanvasManager] Auto-save skipped: no panels');
-            return;
-        }
-
-        // Project context is optional - backend will use user's bundle directory as fallback
-        if (!projectOwner || !projectSlug) {
-            console.log('[CanvasManager] Auto-save: using user bundle directory (no project context)');
-        }
-
-        const dpi = this.bundleRenderDpi;
-        const pxToMm = 25.4 / dpi;
-
-        // Build panel data for save
-        const panelData = panels.map((panel: any) => ({
-            label: panel.panelLabel || 'A',
-            pltz_path: panel.pltzPath,
-            position: {
-                x_mm: Math.round((panel.left || 0) * pxToMm * 10) / 10,
-                y_mm: Math.round((panel.top || 0) * pxToMm * 10) / 10,
-            },
-            size: {
-                width_mm: Math.round((panel.width || 80) * (panel.scaleX || 1) * pxToMm * 10) / 10,
-                height_mm: Math.round((panel.height || 68) * (panel.scaleY || 1) * pxToMm * 10) / 10,
-            },
-        }));
-
-        // Get canvas size
-        const canvasSize = {
-            width_mm: Math.round((this.canvas?.width || 1000) * pxToMm * 10) / 10,
-            height_mm: Math.round((this.canvas?.height || 800) * pxToMm * 10) / 10,
-        };
-
-        try {
-            const response = await fetch('/vis/api/bundles/figz/save-canvas/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': this.getCSRFToken(),
-                },
-                body: JSON.stringify({
-                    project_owner: projectOwner,
-                    project_slug: projectSlug,
-                    figure_name: figureName || 'Figure1',
-                    panels: panelData,
-                    canvas_size: canvasSize,
-                    theme: document.body.classList.contains('dark-mode') ? 'dark' : 'light',
-                }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.warn('[CanvasManager] Auto-save warning:', errorData.error);
-            } else {
-                const result = await response.json();
-                const isNewBundle = !this.currentFigzPath;
-
-                // Update current figz path from save result
-                if (result.bundle_path) {
-                    this.currentFigzPath = result.bundle_path;
-                }
-                console.log('[CanvasManager] Figz bundle auto-saved');
-
-                // Refresh file tree if this was a new bundle
-                if (isNewBundle && result.bundle_path) {
-                    const filesTree = (window as any).filesTree;
-                    if (filesTree && typeof filesTree.refresh === 'function') {
-                        await filesTree.refresh();
-                        console.log('[CanvasManager] File tree refreshed after new figz save');
-                    }
-                }
-            }
-
-            // Also save session state to localStorage for page refresh recovery
-            this.saveSessionState();
-        } catch (error) {
-            console.warn('[CanvasManager] Auto-save failed:', error);
+        if (this.bundleCanvasManager) {
+            await this.bundleCanvasManager.triggerFigzAutoSave();
         }
     }
+
 
     /**
      * Get CSRF token from cookie.
@@ -1814,22 +1739,6 @@ export class CanvasManager {
      *
      * Uses the stored project context if available, otherwise tries window globals.
      */
-    private debouncedFigzAutoSave(): void {
-        // Clear existing timer
-        if (this.autoSaveTimer) {
-            clearTimeout(this.autoSaveTimer);
-        }
-
-        // Schedule new auto-save
-        this.autoSaveTimer = setTimeout(() => {
-            const projectOwner = this.bundleProjectOwner || (window as any).projectOwner;
-            const projectSlug = this.bundleProjectSlug || (window as any).projectSlug;
-
-            if (projectOwner && projectSlug) {
-                this.triggerFigzAutoSave(projectOwner, projectSlug, this.bundleFigureName);
-            }
-        }, this.autoSaveDelay);
-    }
 
     /**
      * Set bundle project context for auto-save.
