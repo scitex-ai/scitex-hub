@@ -660,49 +660,11 @@ export class CanvasManager {
      * Uses remove/re-add strategy to force complete re-render
      */
     public reprocessAllSvgGroupsForTheme(): void {
-        if (!this.canvas) return;
-
-        const objects = this.canvas.getObjects();
-        const groupsToProcess: any[] = [];
-
-        // Collect all groups first (avoid modifying while iterating)
-        objects.forEach((obj: any) => {
-            if (obj.type === 'group') {
-                groupsToProcess.push(obj);
-            }
-        });
-
-        if (groupsToProcess.length === 0) return;
-
-        // Process each group by removing and re-adding to force re-render
-        groupsToProcess.forEach((group: any) => {
-            // Store position and other properties
-            const index = this.canvas!.getObjects().indexOf(group);
-
-            // Modify colors on the children
-            if (this.isDarkMode) {
-                this.processSvgGroupForDarkMode(group);
-            } else {
-                this.restoreSvgGroupColors(group);
-            }
-
-            // Remove and re-add the group to force complete re-render
-            this.canvas!.remove(group);
-
-            // Disable object caching for SVG groups to ensure child updates are visible
-            group.objectCaching = false;
-
-            // Re-add at the same position
-            if (index >= 0 && index < this.canvas!.getObjects().length) {
-                this.canvas!.insertAt(index, group);
-            } else {
-                this.canvas!.add(group);
-            }
-        });
-
-        this.canvas.renderAll();
-        console.log(`[CanvasManager] Reprocessed ${groupsToProcess.length} SVG groups for ${this.isDarkMode ? 'dark' : 'light'} mode`);
+        if (this.themeManager) {
+            this.themeManager.reprocessAllSvgGroupsForTheme();
+        }
     }
+
 
     /**
      * Save undo state
