@@ -503,6 +503,60 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from .search_helpers import parse_query_operators, apply_advanced_filters
 from ...middleware.rate_limit import rate_limit, rate_limit_status
 from ...api_auth import api_key_optional
+from .config import get_limit_for_source
+
+
+def _explain_result_count(source_name, received, requested, error=None):
+    """
+    Explain why a source returned a specific number of results.
+
+    Args:
+        source_name: Name of the search source
+        received: Number of results actually received
+        requested: Number of results requested
+        error: Error message if any
+
+    Returns:
+        String explanation for users
+    """
+    if error:
+        return f"Error occurred: {error}"
+
+    if received == 0:
+        return "No matching results found in this source"
+
+    if received < requested:
+        reasons = []
+
+        # Source-specific explanations
+        if source_name == "crossref":
+            reasons.append("CrossRef API has strict rate limits")
+            if received < 10:
+                reasons.append("Limited results may indicate rate limiting or narrow query match")
+        elif source_name == "crossref_local":
+            reasons.append("Local database query - no rate limits")
+            if received == 0:
+                reasons.append("Database may not be populated or query doesn't match local data")
+        elif source_name == "semantic":
+            reasons.append("Semantic Scholar has aggressive rate limiting (10 results max)")
+        elif source_name == "pubmed":
+            if received < requested / 2:
+                reasons.append("PubMed API may be rate limiting or query is very specific")
+        elif source_name == "openalex":
+            if received == 50:
+                reasons.append("Default limit reached (50 results)")
+
+        # Generic explanations
+        if received < 5:
+            reasons.append("Very few matches - try broader search terms")
+        elif received < requested / 2:
+            reasons.append("API returned fewer results than requested")
+        else:
+            reasons.append(f"Source returned {received}/{requested} requested results")
+
+        return " | ".join(reasons)
+
+    return f"Received all {received} requested results"
 
 # Import scitex.scholar integration (preferred for core logic)
 from ...integrations import scitex_scholar as scitex_integration
@@ -582,6 +636,41 @@ def api_search_unified(request):
             # Get parsed filters from scitex
             parsed = scitex_integration.parse_query_scitex(query)
 
+            # Build result guidance from scitex metadata
+            source_metadata = scitex_results.get("metadata", {}).get("sources", {})
+            total_before_dedup = sum(
+                meta.get("result_count", 0) for meta in source_metadata.values()
+            )
+            deduplication_count = total_before_dedup - len(formatted_results)
+
+            result_guidance = {
+                "total_fetched": total_before_dedup,
+                "total_after_dedup": len(formatted_results),
+                "deduplication": {
+                    "removed": deduplication_count,
+                    "explanation": "Duplicate papers (same DOI/title) removed across sources"
+                },
+                "per_source_limits": {
+                    source: {
+                        "requested": max_results,
+                        "received": meta.get("result_count", 0),
+                        "configured_max": get_limit_for_source(source, request.user),
+                        "reason": _explain_result_count(
+                            source,
+                            meta.get("result_count", 0),
+                            max_results,
+                            meta.get("error")
+                        )
+                    }
+                    for source, meta in source_metadata.items()
+                },
+                "rate_limiting": {
+                    "applied": True,
+                    "details": rate_limit_status(request, "api_search_unified"),
+                    "explanation": "Rate limits protect external APIs and ensure service stability"
+                }
+            }
+
             return JsonResponse({
                 "status": "success",
                 "engine": "scitex.scholar",
@@ -608,6 +697,7 @@ def api_search_unified(request):
                 ],
                 "stats": scitex_results.get("stats", {}),
                 "rate_limit": rate_limit_status(request, "api_search_unified"),
+                "result_guidance": result_guidance,
             })
 
         except Exception as e:
@@ -698,6 +788,34 @@ def api_search_unified(request):
     else:
         formatted_results = filtered_results
 
+    # Calculate deduplication stats
+    total_before_dedup = sum(stats.get("count", 0) for stats in source_stats.values())
+    deduplication_count = total_before_dedup - len(filtered_results)
+
+    # Build result guidance
+    result_guidance = {
+        "total_fetched": total_before_dedup,
+        "total_after_dedup": len(filtered_results),
+        "deduplication": {
+            "removed": deduplication_count,
+            "explanation": "Duplicate papers (same DOI/title) removed across sources"
+        },
+        "per_source_limits": {
+            source: {
+                "requested": max_results,
+                "received": stats.get("count", 0),
+                "configured_max": get_limit_for_source(source, request.user),
+                "reason": _explain_result_count(source, stats.get("count", 0), max_results, stats.get("error"))
+            }
+            for source, stats in source_stats.items()
+        },
+        "rate_limiting": {
+            "applied": True,
+            "details": rate_limit_status(request, "api_search_unified"),
+            "explanation": "Rate limits protect external APIs and ensure service stability"
+        }
+    }
+
     return JsonResponse({
         "status": "success",
         "engine": "django",
@@ -724,6 +842,7 @@ def api_search_unified(request):
         "results": formatted_results,
         "errors": errors if errors else None,
         "rate_limit": rate_limit_status(request, "api_search_unified"),
+        "result_guidance": result_guidance,
     })
 
 

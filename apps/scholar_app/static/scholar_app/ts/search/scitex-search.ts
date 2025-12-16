@@ -896,13 +896,57 @@ function searchSource(source: SourceConfig, query: string): void {
 
         // Update status panel
         searchLog.updateSourceStatus(source.name, "success", count);
-        searchLog.log(`✓ ${source.name}: ${count} results (${elapsed}s)${cachedNote}`);
+
+        // Build detailed log message with guidance
+        let logMessage = `✓ ${source.name}: ${count} results (${elapsed}s)${cachedNote}`;
+
+        // Add result guidance if available
+        if (data.result_guidance?.per_source_limits?.[source.name]) {
+          const sourceGuidance = data.result_guidance.per_source_limits[source.name];
+          const reason = sourceGuidance.reason;
+          const requested = sourceGuidance.requested;
+          const configuredMax = sourceGuidance.configured_max;
+
+          // Add explanation if results are limited
+          if (reason && (count < requested || count < configuredMax)) {
+            logMessage += `\n  ℹ️  ${reason}`;
+          }
+
+          // Add configured max info
+          if (configuredMax && configuredMax !== requested) {
+            logMessage += `\n  📊 Config: max=${configuredMax}, requested=${requested}`;
+          }
+        }
+
+        searchLog.log(logMessage);
 
         // Add results
         if (data.results && Array.isArray(data.results)) {
           data.results.forEach((result: SearchResult) => {
             addResultToProgressive(result);
           });
+        }
+
+        // Log deduplication info when all searches complete
+        if (activeSearches === 1 && data.result_guidance?.deduplication) {
+          const dedup = data.result_guidance.deduplication;
+          if (dedup.removed > 0) {
+            setTimeout(() => {
+              searchLog.log(`\n📌 Deduplication: ${dedup.removed} duplicate(s) removed`);
+              searchLog.log(`   ${dedup.explanation}`);
+            }, 100);
+          }
+        }
+
+        // Log rate limiting info
+        if (activeSearches === 1 && data.result_guidance?.rate_limiting) {
+          const rateLimitInfo = data.result_guidance.rate_limiting;
+          setTimeout(() => {
+            searchLog.log(`\n🛡️  Rate Limiting: ${rateLimitInfo.explanation}`);
+            if (rateLimitInfo.details) {
+              searchLog.log(`   Remaining: ${rateLimitInfo.details.remaining}/${rateLimitInfo.details.limit} requests`);
+            }
+          }, 200);
         }
       } else {
         searchLog.updateSourceStatus(source.name, "error");

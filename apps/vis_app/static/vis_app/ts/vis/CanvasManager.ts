@@ -548,9 +548,6 @@ export class CanvasManager {
                 this.lastSnapX = null;
                 this.lastSnapY = null;
             });
-
-            // Setup Alt key tracking for fine adjustment mode
-            this.setupAltKeyTracking();
         } catch (error) {
             console.error('[CanvasManager] Error initializing canvas:', error);
         }
