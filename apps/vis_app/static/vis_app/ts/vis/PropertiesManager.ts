@@ -12,6 +12,7 @@ import { Dataset } from './types.ts';
 import { getCSRFToken } from './canvas/CanvasSerializationUtils.ts';
 import { PltzPropertiesBuilder } from './properties/PltzPropertiesBuilder.ts';
 import { CanvasObjectPropertiesBuilder } from './properties/CanvasObjectPropertiesBuilder.ts';
+import { ElementPropertiesBuilder } from './properties/ElementPropertiesBuilder.ts';
 
 export class PropertiesManager {
     private currentPropertiesTab: string = 'plot';
@@ -592,138 +593,17 @@ export class PropertiesManager {
         }
 
         const label = elementInfo?.label || elementName;
-        const elementType = elementInfo?.element_type || 'unknown';
 
         // Update header
         this.updateSelectedItemInfo('element', label);
 
-        // Build properties HTML
-        let html = '';
-
-        // ELEMENT INFO section
-        html += `<div class="scitex-section">
-            <div class="scitex-section-header" onclick="this.classList.toggle('collapsed'); this.nextElementSibling.style.display = this.classList.contains('collapsed') ? 'none' : 'block';">
-                <i class="fas fa-chevron-down"></i>
-                <span>Element Info</span>
-            </div>
-            <div class="scitex-section-content">`;
-
-        html += `<div class="property-group">
-            <label class="property-label">Label</label>
-            <input type="text" class="property-input" value="${label}" readonly>
-        </div>`;
-
-        html += `<div class="property-group">
-            <label class="property-label">Type</label>
-            <input type="text" class="property-input" value="${this.formatElementType(elementType)}" readonly>
-        </div>`;
-
-        html += `<div class="property-group">
-            <label class="property-label">Element ID</label>
-            <input type="text" class="property-input" value="${elementName}" readonly>
-        </div>`;
-
-        html += `</div></div>`;
-
-        // CSV COLUMNS section (if available)
-        if (elementInfo?.csv_columns) {
-            html += `<div class="scitex-section">
-                <div class="scitex-section-header" onclick="this.classList.toggle('collapsed'); this.nextElementSibling.style.display = this.classList.contains('collapsed') ? 'none' : 'block';">
-                    <i class="fas fa-chevron-down"></i>
-                    <span>Data Columns</span>
-                </div>
-                <div class="scitex-section-content">`;
-
-            const csvCols = elementInfo.csv_columns;
-
-            if (csvCols.x) {
-                html += `<div class="property-group">
-                    <label class="property-label">X Column</label>
-                    <input type="text" class="property-input" value="${csvCols.x.name} (index: ${csvCols.x.index})" readonly>
-                </div>`;
-            }
-
-            if (csvCols.y) {
-                html += `<div class="property-group">
-                    <label class="property-label">Y Column</label>
-                    <input type="text" class="property-input" value="${csvCols.y.name} (index: ${csvCols.y.index})" readonly>
-                </div>`;
-            }
-
-            html += `<div class="scitex-no-traces" style="color: var(--accent-primary); font-style: normal;">
-                <i class="fas fa-link"></i> Linked to CSV data
-            </div>`;
-
-            html += `</div></div>`;
-        }
-
-        // BOUNDING BOX section
-        if (elementInfo?.x0 !== undefined) {
-            html += `<div class="scitex-section">
-                <div class="scitex-section-header collapsed" onclick="this.classList.toggle('collapsed'); this.nextElementSibling.style.display = this.classList.contains('collapsed') ? 'none' : 'block';">
-                    <i class="fas fa-chevron-down"></i>
-                    <span>Bounding Box</span>
-                </div>
-                <div class="scitex-section-content" style="display: none;">`;
-
-            html += `<div class="property-row">
-                <div class="property-group half">
-                    <label class="property-label">x0</label>
-                    <input type="text" class="property-input" value="${elementInfo.x0} px" readonly>
-                </div>
-                <div class="property-group half">
-                    <label class="property-label">y0</label>
-                    <input type="text" class="property-input" value="${elementInfo.y0} px" readonly>
-                </div>
-            </div>`;
-
-            html += `<div class="property-row">
-                <div class="property-group half">
-                    <label class="property-label">x1</label>
-                    <input type="text" class="property-input" value="${elementInfo.x1} px" readonly>
-                </div>
-                <div class="property-group half">
-                    <label class="property-label">y1</label>
-                    <input type="text" class="property-input" value="${elementInfo.y1} px" readonly>
-                </div>
-            </div>`;
-
-            const width = elementInfo.x1 - elementInfo.x0;
-            const height = elementInfo.y1 - elementInfo.y0;
-            html += `<div class="property-row">
-                <div class="property-group half">
-                    <label class="property-label">Width</label>
-                    <input type="text" class="property-input" value="${width} px" readonly>
-                </div>
-                <div class="property-group half">
-                    <label class="property-label">Height</label>
-                    <input type="text" class="property-input" value="${height} px" readonly>
-                </div>
-            </div>`;
-
-            html += `</div></div>`;
-        }
+        // Build properties HTML using ElementPropertiesBuilder
+        const html = ElementPropertiesBuilder.buildElementPropertiesHTML(elementName, elementInfo);
 
         this.dynamicPropertiesEl.innerHTML = html;
-        console.log(`[PropertiesManager] Showing element properties: ${label} (${elementType})`);
+        console.log(`[PropertiesManager] Showing element properties:`, label, elementInfo?.element_type || 'unknown');
     }
 
-    /**
-     * Format element type for display
-     */
-    private formatElementType(type: string): string {
-        const typeMap: Record<string, string> = {
-            'line': 'Line Plot',
-            'scatter': 'Scatter Plot',
-            'bar': 'Bar Chart',
-            'hist': 'Histogram',
-            'boxplot': 'Box Plot',
-            'violin': 'Violin Plot',
-            'fill': 'Fill Area',
-            'panel': 'Plot Panel',
-        };
-        return typeMap[type] || type.charAt(0).toUpperCase() + type.slice(1);
-    }
 
     // =========================================================================
     // Pltz Bundle Properties (for canvas bundle integration)
