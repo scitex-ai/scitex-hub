@@ -5,6 +5,42 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1-alpha] - 2025-12-16
+
+### Added
+- **Element Inspector Enhancements**: Major debugging tool improvements
+  - **Layer Picker Panel**: Visual stacked list of all elements at cursor position
+    - Color-coded depth bars showing nesting level
+    - Click any item to select, or scroll wheel to cycle
+    - Auto-positioned near cursor with scrollable list
+  - **Pagination System**: Load elements in batches for performance
+    - Alt+I loads first 512 elements
+    - Ctrl+I loads next 512 elements on demand
+    - Notification shows progress: "512/2048 elements | Ctrl+I for more"
+  - **Scroll Wheel Depth Cycling**: Navigate overlapped elements
+    - Scroll down for deeper (child) elements
+    - Scroll up for shallower (parent) elements
+  - **Direct Element Highlighting**: Visual feedback for all elements
+    - Elements not in current batch get direct outline highlight
+    - Blue outline applied directly to DOM when no overlay box exists
+  - **Scaled Borders**: Adaptive border widths based on element size
+    - Large elements (>100k px²): 1px border
+    - Medium elements (>10k px²): 1.5px border
+    - Small elements: 2px border
+
+- **Debug Snapshot Improvements**: Enhanced Ctrl+Shift+I capture
+  - Sequential clipboard copying (screenshot first, then logs after 3s)
+  - Notification guides: "📷 Screenshot copied - paste now!"
+  - Console logs copied after delay: "📋 Console logs copied - paste now!"
+
+### Performance
+- **Element Scanner Optimization**: Faster inspector activation
+  - DocumentFragment for batch DOM operations
+  - Skip non-visual elements early (script, style, meta, etc.)
+  - Viewport filtering to skip off-screen elements
+  - Quick visibility check using offsetParent instead of getComputedStyle
+  - Performance logging: "Rendered 512 elements in 45.2ms"
+
 ## [0.5.0-alpha] - 2025-12-12
 
 ### Added
@@ -423,6 +459,12 @@ Complete documentation for:
 - Git repository integration via Gitea
 - Docker-based deployment
 
+[0.5.1-alpha]: https://github.com/ywatanabe1989/scitex-cloud/compare/v0.5.0-alpha...v0.5.1-alpha
+[0.5.0-alpha]: https://github.com/ywatanabe1989/scitex-cloud/compare/v0.4.9-alpha...v0.5.0-alpha
+[0.4.9-alpha]: https://github.com/ywatanabe1989/scitex-cloud/compare/v0.4.8-alpha...v0.4.9-alpha
+[0.4.8-alpha]: https://github.com/ywatanabe1989/scitex-cloud/compare/v0.4.7-alpha...v0.4.8-alpha
+[0.4.7-alpha]: https://github.com/ywatanabe1989/scitex-cloud/compare/v0.4.3-alpha...v0.4.7-alpha
+[0.4.3-alpha]: https://github.com/ywatanabe1989/scitex-cloud/compare/v0.4.2-alpha...v0.4.3-alpha
 [0.4.2-alpha]: https://github.com/ywatanabe1989/scitex-cloud/compare/v0.4.1-alpha...v0.4.2-alpha
 [0.4.1-alpha]: https://github.com/ywatanabe1989/scitex-cloud/compare/v0.3.3-alpha...v0.4.1-alpha
 [0.3.3-alpha]: https://github.com/ywatanabe1989/scitex-cloud/compare/v0.3.2-alpha...v0.3.3-alpha

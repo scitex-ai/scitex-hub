@@ -219,6 +219,9 @@ export class MonacoManager {
     // Initialize theme toggle button
     this.updateThemeToggleButton(initialTheme);
 
+    // Add global navigation shortcuts FIRST (highest priority)
+    this.addGlobalNavigationKeybindings(monaco);
+
     // Apply saved keybinding mode
     const savedMode = localStorage.getItem("code-keybinding-mode") || "emacs";
     this.setKeybindingMode(savedMode);
@@ -242,6 +245,77 @@ export class MonacoManager {
     });
 
     console.log("[Keybinding] Ctrl+Enter keybinding for Run added");
+  }
+
+  /**
+   * Add global navigation keybindings that override Emacs/Vim modes
+   * These shortcuts are ALWAYS prioritized for module navigation
+   */
+  private addGlobalNavigationKeybindings(monaco: any): void {
+    if (!this.editor) return;
+
+    const navigationRoutes: Record<string, string> = {
+      f: "/files/",
+      s: "/scholar/",
+      c: "/code/",
+      v: "/vis/",
+      w: "/writer/",
+    };
+
+    // Alt+Z: Toggle Zen Mode (dispatch event for zen-mode component)
+    this.editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.KeyZ, () => {
+      console.log("[Monaco] Alt+Z - Toggle Zen Mode");
+      // Dispatch F11 keydown event to trigger zen mode cycle
+      const event = new KeyboardEvent("keydown", {
+        key: "F11",
+        keyCode: 122,
+        bubbles: true,
+        cancelable: true,
+      });
+      document.dispatchEvent(event);
+    });
+
+    // Alt+F: Files
+    this.editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.KeyF, () => {
+      if (!window.location.pathname.startsWith("/files/")) {
+        console.log("[Monaco] Alt+F - Navigate to Files");
+        window.location.href = "/files/";
+      }
+    });
+
+    // Alt+S: Scholar
+    this.editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.KeyS, () => {
+      if (!window.location.pathname.startsWith("/scholar/")) {
+        console.log("[Monaco] Alt+S - Navigate to Scholar");
+        window.location.href = "/scholar/";
+      }
+    });
+
+    // Alt+C: Code (already here, but include for completeness)
+    this.editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.KeyC, () => {
+      if (!window.location.pathname.startsWith("/code/")) {
+        console.log("[Monaco] Alt+C - Navigate to Code");
+        window.location.href = "/code/";
+      }
+    });
+
+    // Alt+V: Vis
+    this.editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.KeyV, () => {
+      if (!window.location.pathname.startsWith("/vis/")) {
+        console.log("[Monaco] Alt+V - Navigate to Vis");
+        window.location.href = "/vis/";
+      }
+    });
+
+    // Alt+W: Writer
+    this.editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.KeyW, () => {
+      if (!window.location.pathname.startsWith("/writer/")) {
+        console.log("[Monaco] Alt+W - Navigate to Writer");
+        window.location.href = "/writer/";
+      }
+    });
+
+    console.log("[Monaco] Global navigation keybindings added (Alt+Z/F/S/C/V/W)");
   }
 
   private async waitForMonaco(): Promise<void> {

@@ -97,8 +97,43 @@ export class PTYTerminal {
       }
     });
 
-    // Add clipboard support (Ctrl+C/Ctrl+Shift+C to copy, Ctrl+V/Ctrl+Shift+V to paste)
+    // Add clipboard support and global navigation shortcuts
     this.term.attachCustomKeyEventHandler((event: KeyboardEvent) => {
+      // Global navigation shortcuts (Alt+key) - HIGHEST PRIORITY
+      if (event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
+        const key = event.key.toLowerCase();
+        const navigationRoutes: Record<string, string> = {
+          f: "/files/",
+          s: "/scholar/",
+          c: "/code/",
+          v: "/vis/",
+          w: "/writer/",
+        };
+
+        // Alt+Z: Toggle Zen Mode
+        if (key === 'z') {
+          console.log('[PTY] Alt+Z - Toggle Zen Mode');
+          const zenEvent = new KeyboardEvent("keydown", {
+            key: "F11",
+            keyCode: 122,
+            bubbles: true,
+            cancelable: true,
+          });
+          document.dispatchEvent(zenEvent);
+          return false;
+        }
+
+        // Module navigation (Alt+F/S/C/V/W)
+        if (navigationRoutes[key]) {
+          const route = navigationRoutes[key];
+          if (!window.location.pathname.startsWith(route)) {
+            console.log(`[PTY] Alt+${key.toUpperCase()} - Navigate to ${route}`);
+            window.location.href = route;
+          }
+          return false; // Prevent terminal from receiving this
+        }
+      }
+
       // Ctrl+C or Ctrl+Shift+C: Copy selected text (if selection exists)
       if (event.ctrlKey && (event.key === 'C' || event.key === 'c')) {
         const selection = this.term.getSelection();

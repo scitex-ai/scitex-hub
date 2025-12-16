@@ -23,11 +23,11 @@
         </div>
         <div class="stats-box">
             <div class="stat-item">
-                <span class="stat-number">1559</span>
+                <span class="stat-number">1205</span>
                 <span class="stat-label">Total Commits</span>
             </div>
             <div class="stat-item">
-                <span class="stat-number">6</span>
+                <span class="stat-number">7</span>
                 <span class="stat-label">Months of Development</span>
             </div>
             <div class="stat-item">
@@ -48,8 +48,95 @@
         </div>
         <div class="release-month">
             <div class="month-header">
-                <h2>December 2025 — v0.4.9-alpha</h2>
+                <h2>December 2025 — v0.5.1-alpha</h2>
                 <span class="month-badge">Latest Release</span>
+            </div>
+            <ul class="feature-list">
+                <li class="feature-item">
+                    <h3>🔍 Element Inspector Enhancements</h3>
+                    <p>
+                        Major debugging tool improvements with Layer Picker Panel showing a visual
+                        stacked list of all elements at cursor position. Color-coded depth bars
+                        indicate nesting level, click any item to select or use scroll wheel to cycle.
+                        Pagination system loads elements in batches of 512 (Alt+I for first batch,
+                        Ctrl+I for more). Direct element highlighting provides visual feedback for
+                        all elements, even those not in the current batch.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>📸 Debug Snapshot Improvements</h3>
+                    <p>
+                        Enhanced Ctrl+Shift+I capture with sequential clipboard copying. Screenshot
+                        is copied first with "📷 Screenshot copied - paste now!" notification, then
+                        after 3 seconds, console logs are copied with "📋 Console logs copied - paste now!".
+                        No more race conditions between clipboard writes.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>⚡ Element Scanner Performance</h3>
+                    <p>
+                        Faster inspector activation with DocumentFragment for batch DOM operations,
+                        early skipping of non-visual elements (script, style, meta), viewport filtering
+                        for off-screen elements, and quick visibility checks using offsetParent.
+                        Adaptive border widths: 1px for large elements, 1.5px for medium, 2px for small.
+                    </p>
+                </li>
+            </ul>
+        </div>
+        <div class="release-month">
+            <div class="month-header">
+                <h2>December 2025 — v0.5.0-alpha</h2>
+                <span class="month-badge">Vis Gallery</span>
+            </div>
+            <ul class="feature-list">
+                <li class="feature-item">
+                    <h3>🎨 Vis Layout Improvements</h3>
+                    <p>
+                        Enhanced workspace organization with Figure and Data Table tabs converted to
+                        dropdown menus for horizontal space saving. New ruler unit toggle button
+                        (mm/inch) in top-left corner. Bidirectional transform sync between
+                        RulersManager and CanvasManager for seamless zoom and pan coordination.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>📊 Gallery Feature</h3>
+                    <p>
+                        Template gallery for plots with 46 plot types across 10 categories:
+                        area, categorical, contour, distribution, grid, line, scatter, special,
+                        statistical, and vector plots. Gallery generator service and research-master
+                        templates provide a comprehensive starting point for scientific visualizations.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>🖱️ Context Menu Actions</h3>
+                    <p>
+                        Enhanced right-click functionality with Export as PNG/SVG/PDF options,
+                        Save Figure, Toggle Light/Dark theme, Zoom to Fit, and Reset View.
+                        Quick access to common visualization operations directly from the canvas.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>📈 Stats Feature</h3>
+                    <p>
+                        Statistical analysis integration with new StatsManager for running
+                        statistical tests. Stats API endpoint and dedicated CSS styling for
+                        presenting statistical results within visualizations.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>🎯 Element Selection</h3>
+                    <p>
+                        Multi-element selection capability with ElementSelectionManager for
+                        selecting plot elements. Element bounding boxes enable precise selection
+                        and manipulation of individual chart components.
+                    </p>
+                </li>
+            </ul>
+        </div>
+        <div class="release-month">
+            <div class="month-header">
+                <h2>December 2025 — v0.4.9-alpha</h2>
+                <span class="month-badge">Zen Mode</span>
             </div>
             <ul class="feature-list">
                 <li class="feature-item">
@@ -711,8 +798,20 @@
       {
         date: "2025-12-06",
         commits: 89,
-        cumulative: 1559,
+        cumulative: 1125,
         milestone: "Scholar Search UI (v0.4.6-alpha)",
+      },
+      {
+        date: "2025-12-12",
+        commits: 35,
+        cumulative: 1160,
+        milestone: "Vis Gallery (v0.5.0-alpha)",
+      },
+      {
+        date: "2025-12-16",
+        commits: 45,
+        cumulative: 1205,
+        milestone: "Element Inspector (v0.5.1-alpha)",
       },
     ];
 

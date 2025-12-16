@@ -43,6 +43,7 @@ from ..views.repository.api import (
     api_file_upload,
     api_file_upload_url,
     api_create_symlink,
+    api_extract_bundle,
 )
 
 # Note: slug and username are passed via kwargs from parent URL pattern
@@ -82,6 +83,7 @@ urlpatterns = [
     path("api/files/upload/", api_file_upload, name="api_file_upload"),
     path("api/files/upload-url/", api_file_upload_url, name="api_file_upload_url"),
     path("api/files/symlink/", api_create_symlink, name="api_create_symlink"),
+    path("api/files/extract-bundle/", api_extract_bundle, name="api_extract_bundle"),
     # File viewer - GitHub-style /blob/ for viewing files
     # /<username>/<slug>/blob/<file-path> - default view
     # /<username>/<slug>/blob/<file-path>?mode=edit - edit mode

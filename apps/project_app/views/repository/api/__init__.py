@@ -15,6 +15,9 @@ from .file_tree import api_file_tree
 # Symlink operations
 from .symlink import api_create_symlink
 
+# Bundle extraction
+from .extract_bundle import api_extract_bundle
+
 # Directory operations
 from .directory import api_concatenate_directory
 
@@ -66,6 +69,7 @@ __all__ = [
     # File operations
     "api_file_tree",
     "api_create_symlink",
+    "api_extract_bundle",
     "api_concatenate_directory",
     "api_git_status",
     "api_initialize_scitex_structure",

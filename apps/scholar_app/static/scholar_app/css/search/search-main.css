@@ -613,3 +613,27 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     transition: opacity 0.3s ease;
 }
+
+/* Keyboard shortcuts section in help popup */
+.search-help-shortcuts kbd {
+    background: var(--color-neutral-muted, #2a2a2a);
+    border: 1px solid var(--border-default, #3a3a3a);
+    border-radius: 3px;
+    padding: 1px 4px;
+    font-size: 0.65rem;
+    font-family: 'JetBrains Mono', monospace;
+    margin-right: 4px;
+}
+
+.search-help-shortcuts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px 8px;
+    font-size: 0.7rem;
+    color: var(--text-secondary, #9ca3af);
+}
+
+[data-theme="light"] .search-help-shortcuts kbd {
+    background: var(--color-neutral-muted, #eaeef2);
+    border-color: var(--border-default, #d0d7de);
+}
