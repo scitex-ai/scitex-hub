@@ -72,9 +72,6 @@ export class CanvasManager {
     // Hover tooltip for showing pltz path
     private hoverTooltip: HTMLDivElement | null = null;
 
-    // Throttling for object moving (performance optimization)
-    private objectMovingThrottleFrame: number | null = null;
-    private pendingMovingTarget: any = null;
     private panThrottleFrame: number | null = null;
     private pendingPanUpdate: { x: number, y: number } | null = null;
 
@@ -511,22 +508,14 @@ export class CanvasManager {
             // Snap to other objects while moving (PowerPoint-style)
             // Throttled using requestAnimationFrame for performance
             this.canvas.on('object:moving', (e: any) => {
-                if (this.snapEnabled) {
-                    this.pendingMovingTarget = e.target;
-                    if (!this.objectMovingThrottleFrame) {
-                        this.objectMovingThrottleFrame = requestAnimationFrame(() => {
-                            if (this.pendingMovingTarget) {
-                                this.handleObjectSnap(this.pendingMovingTarget);
-                            }
-                            this.objectMovingThrottleFrame = null;
-                        });
-                    }
+                if (this.snapManager?.isSnapEnabled()) {
+                    this.snapManager.handleObjectSnap(e.target);
                 }
             });
 
             // Clear alignment guidelines when object stops moving
             this.canvas.on('object:modified', (e: any) => {
-                this.clearAlignmentLines();
+                this.snapManager?.clearAlignmentLines();
                 this.saveCanvasContent();
 
                 // Check if object was scaled and needs re-render
@@ -553,7 +542,7 @@ export class CanvasManager {
 
             // Clear guidelines on mouse up
             this.canvas.on('mouse:up', () => {
-                this.clearAlignmentLines();
+                this.snapManager?.clearAlignmentLines();
                 // Reset snap state when mouse is released
                 this.lastSnapX = null;
                 this.lastSnapY = null;
@@ -2339,7 +2328,7 @@ export class CanvasManager {
             if (e.altKey && !this.altKeyPressed) {
                 this.altKeyPressed = true;
                 // Clear any existing guidelines when entering fine mode
-                this.clearAlignmentLines();
+                this.snapManager?.clearAlignmentLines();
             }
         });
         document.addEventListener('keyup', (e: KeyboardEvent) => {
@@ -2439,7 +2428,7 @@ export class CanvasManager {
 
         // Alt key disables snapping for fine adjustment (like PowerPoint)
         if (this.altKeyPressed) {
-            this.clearAlignmentLines();
+            this.snapManager?.clearAlignmentLines();
             this.lastSnapX = null;
             this.lastSnapY = null;
             return;
@@ -2663,11 +2652,6 @@ export class CanvasManager {
     /**
      * Clear alignment guidelines
      */
-    private clearAlignmentLines(): void {
-        if (this.guidelineOverlay) {
-            this.guidelineOverlay.innerHTML = '';
-        }
-    }
 
     /**
      * Snap to axis positions of other plots (for aligning Y-axes, X-axes, etc.)
