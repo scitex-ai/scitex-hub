@@ -1616,143 +1616,13 @@ export class CanvasManager {
      * Add image to canvas from URL or data URL
      * Automatically extracts embedded scitex metadata for axis snap/align
      */
-    public addImage(src: string, options: {
-        left?: number;
-        top?: number;
-        scaleToFit?: boolean;
-        maxWidth?: number;
-        maxHeight?: number;
-        selectable?: boolean;
-        name?: string;
-        axisMetadata?: any;  // Axis metadata for snap/align by axis
-        csvData?: string[][];  // CSV data for stats (must be set before adding to canvas)
-        plotInfo?: any;  // Plot info for re-rendering
-        autoCrop?: boolean;  // Auto-crop to axes_bbox_px (default: true)
-    } = {}): Promise<any> {
-        return new Promise(async (resolve, reject) => {
-            if (!this.canvas) {
-                reject(new Error('Canvas not initialized'));
-                return;
-            }
-
-            // If no axisMetadata provided and src is a data URL (PNG), try to extract embedded metadata
-            let axisMetadata = options.axisMetadata;
-            if (!axisMetadata && src.startsWith('data:image/png')) {
-                try {
-                    const response = await fetch('/vis/api/plot/metadata/', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ image: src }),
-                    });
-                    const result = await response.json();
-                    if (result.success && result.has_metadata && result.axes_bbox_px) {
-                        axisMetadata = {
-                            axes_bbox_px: result.axes_bbox_px,
-                            figure_size_px: result.figure_size_px
-                        };
-                        console.log('[CanvasManager] Extracted embedded metadata:', axisMetadata);
-                    }
-                } catch (err) {
-                    console.log('[CanvasManager] No embedded metadata or extraction failed');
-                }
-            }
-
-            fabric.Image.fromURL(src, (img: any) => {
-                if (!img || !img.width) {
-                    reject(new Error('Failed to load image'));
-                    return;
-                }
-
-                // Store axis metadata for snap/align by axis
-                if (axisMetadata) {
-                    img.axisMetadata = axisMetadata;
-                    console.log('[CanvasManager] Stored axis metadata on image:', axisMetadata);
-
-                    // Auto-crop to axes_bbox_px FIRST (before scaleToFit)
-                    // This removes whitespace margins around the axes
-                    if (axisMetadata.axes_bbox_px && options.autoCrop !== false) {
-                        const bbox = axisMetadata.axes_bbox_px;
-                        const cropWidth = bbox.x1 - bbox.x0;
-                        const cropHeight = bbox.y1 - bbox.y0;
-
-                        if (cropWidth > 0 && cropHeight > 0) {
-                            img.set({
-                                cropX: bbox.x0,
-                                cropY: bbox.y0,
-                                width: cropWidth,
-                                height: cropHeight,
-                            });
-                            img.setCoords();
-                            console.log(`[CanvasManager] Auto-cropped to axes: ${cropWidth}×${cropHeight} (from ${bbox.x0},${bbox.y0})`);
-                        }
-                    }
-                }
-
-                // Scale to fit if requested (uses cropped dimensions if crop was applied)
-                if (options.scaleToFit) {
-                    const maxW = options.maxWidth || CANVAS_CONSTANTS.MAX_CANVAS_WIDTH * 0.8;
-                    const maxH = options.maxHeight || CANVAS_CONSTANTS.MAX_CANVAS_HEIGHT * 0.8;
-
-                    const scaleX = maxW / img.width!;
-                    const scaleY = maxH / img.height!;
-                    const scale = Math.min(scaleX, scaleY, 1); // Don't upscale
-
-                    img.scale(scale);
-                }
-
-                // Position - default to upper-left with small margin (5mm ≈ 19px at 96dpi)
-                const defaultMargin = 19; // ~5mm
-                img.set({
-                    left: options.left ?? defaultMargin,
-                    top: options.top ?? defaultMargin,
-                    selectable: options.selectable !== false,
-                    name: options.name || 'figure',
-                });
-
-                // Store original dimensions for scaling calculations
-                img.originalWidth = img.width;
-                img.originalHeight = img.height;
-
-                // Store CSV data for stats (MUST be set before adding to canvas)
-                // This is because setActiveObject triggers selection:created which enters element mode
-                if (options.csvData && options.csvData.length > 0) {
-                    img.csvData = options.csvData;
-                    console.log(`[CanvasManager] Stored CSV data on image: ${options.csvData.length} rows`);
-                }
-
-                // Store plot info for re-rendering
-                if (options.plotInfo) {
-                    img.plotInfo = options.plotInfo;
-                }
-
-                // Save undo state before adding
-                this.saveUndoState();
-
-                // Store original source for theme switching
-                this.originalImageSources.set(img, src);
-
-                this.canvas!.add(img);
-                this.canvas!.setActiveObject(img);
-
-                // Process for dark mode if active
-                if (this.isDarkMode) {
-                    this.themeManager?.updateImageForTheme(img);
-                } else {
-                    this.canvas!.renderAll();
-                }
-
-                // Save canvas content after adding image
-                this.saveCanvasContent();
-
-                if (this.statusBarCallback) {
-                    this.statusBarCallback(`Added image: ${options.name || 'figure'}`);
-                }
-
-                console.log(`[CanvasManager] Added image: ${options.name || 'figure'} (${img.width}×${img.height})`);
-                resolve(img);
-            }, { crossOrigin: 'anonymous' });
-        });
+    public addImage(src: string, options: any = {}): Promise<any> {
+        if (this.objectManager) {
+            return this.objectManager.addImage(src, options);
+        }
+        return Promise.reject("ObjectManager not initialized");
     }
+
 
     /**
      * Add image from base64 data
@@ -1770,113 +1640,11 @@ export class CanvasManager {
      * Add SVG to canvas with selectable sub-elements
      * This allows selecting individual parts of a figure (axes, legend, title, etc.)
      */
-    public addSvg(svgString: string, options: {
-        left?: number;
-        top?: number;
-        scaleToFit?: boolean;
-        maxWidth?: number;
-        maxHeight?: number;
-        name?: string;
-        selectableElements?: boolean; // If true, elements inside can be selected individually
-        axisMetadata?: any; // Metadata for element selection (must be attached BEFORE setActiveObject)
-        plotInfo?: any; // Plot info (category, name, etc.)
-        csvData?: any; // CSV data for stats
-    } = {}): Promise<any> {
-        return new Promise((resolve, reject) => {
-            if (!this.canvas) {
-                reject(new Error('Canvas not initialized'));
-                return;
-            }
-
-            fabric.loadSVGFromString(svgString, (objects: any[], svgOptions: any) => {
-                if (!objects || objects.length === 0) {
-                    reject(new Error('Failed to load SVG'));
-                    return;
-                }
-
-                // Create a group from all SVG elements
-                const group = fabric.util.groupSVGElements(objects, svgOptions);
-
-                // Scale to fit if requested
-                if (options.scaleToFit) {
-                    const maxW = options.maxWidth || CANVAS_CONSTANTS.MAX_CANVAS_WIDTH * 0.8;
-                    const maxH = options.maxHeight || CANVAS_CONSTANTS.MAX_CANVAS_HEIGHT * 0.8;
-
-                    const scaleX = maxW / group.width!;
-                    const scaleY = maxH / group.height!;
-                    const scale = Math.min(scaleX, scaleY, 1);
-
-                    group.scale(scale);
-                }
-
-                // Position
-                const defaultMargin = 19;
-                group.set({
-                    left: options.left ?? defaultMargin,
-                    top: options.top ?? defaultMargin,
-                    name: options.name || 'svg-figure',
-                });
-
-                // If selectableElements is true, make this a non-grouped set
-                // so individual elements can be selected
-                if (options.selectableElements) {
-                    // Add individual elements instead of group
-                    const groupLeft = group.left || 0;
-                    const groupTop = group.top || 0;
-                    const scale = group.scaleX || 1;
-
-                    objects.forEach((obj: any, index: number) => {
-                        obj.set({
-                            left: groupLeft + (obj.left || 0) * scale,
-                            top: groupTop + (obj.top || 0) * scale,
-                            scaleX: (obj.scaleX || 1) * scale,
-                            scaleY: (obj.scaleY || 1) * scale,
-                            selectable: true,
-                            name: `${options.name || 'svg'}-element-${index}`,
-                        });
-                        this.canvas!.add(obj);
-                    });
-
-                    this.canvas!.renderAll();
-                    this.saveCanvasContent();
-
-                    if (this.statusBarCallback) {
-                        this.statusBarCallback(`Added SVG with ${objects.length} selectable elements`);
-                    }
-
-                    resolve(objects);
-                } else {
-                    // Add as a single group (default behavior)
-                    // IMPORTANT: Attach metadata BEFORE setActiveObject to enable element selection
-                    // setActiveObject triggers selection:created which checks for axisMetadata
-                    if (options.axisMetadata) {
-                        group.axisMetadata = options.axisMetadata;
-                    }
-                    if (options.plotInfo) {
-                        group.plotInfo = options.plotInfo;
-                    }
-                    if (options.csvData) {
-                        group.csvData = options.csvData;
-                    }
-
-                    // Apply dark mode color transformation if in dark mode
-                    if (this.isDarkMode) {
-                        this.processSvgGroupForDarkMode(group);
-                    }
-
-                    this.canvas!.add(group);
-                    this.canvas!.setActiveObject(group);
-                    this.canvas!.renderAll();
-                    this.saveCanvasContent();
-
-                    if (this.statusBarCallback) {
-                        this.statusBarCallback(`Added SVG: ${options.name || 'figure'}`);
-                    }
-
-                    resolve(group);
-                }
-            });
-        });
+    public addSvg(svgString: string, options: any = {}): Promise<any> {
+        if (this.objectManager) {
+            return this.objectManager.addSvg(svgString, options);
+        }
+        return Promise.reject("ObjectManager not initialized");
     }
 
     /**
@@ -2636,83 +2404,12 @@ export class CanvasManager {
     /**
      * Distribute selected objects evenly
      */
-    public distributeObjects(direction: 'horizontal' | 'vertical'): void {
-        if (!this.canvas) return;
-
-        const activeObject = this.canvas.getActiveObject();
-        if (!activeObject || activeObject.type !== 'activeSelection') {
-            if (this.statusBarCallback) {
-                this.statusBarCallback('Select multiple objects to distribute');
-            }
-            return;
-        }
-
-        const objects = (activeObject as any).getObjects();
-        if (objects.length < 3) {
-            if (this.statusBarCallback) {
-                this.statusBarCallback('Select at least 3 objects to distribute');
-            }
-            return;
-        }
-
-        this.saveUndoState();
-
-        // Get absolute bounding rects for all objects
-        // Need to calculate absolute position since objects in ActiveSelection have relative coords
-        const objectsWithBounds = objects.map((obj: any) => {
-            const bound = obj.getBoundingRect(true, true); // absolute=true, calculate=true
-            return {
-                obj,
-                bound,
-                centerX: bound.left + bound.width / 2,
-                centerY: bound.top + bound.height / 2
-            };
-        });
-
-        // Sort objects by position
-        objectsWithBounds.sort((a: any, b: any) => {
-            return direction === 'horizontal'
-                ? a.centerX - b.centerX
-                : a.centerY - b.centerY;
-        });
-
-        // Calculate total space between first and last centers
-        const first = objectsWithBounds[0];
-        const last = objectsWithBounds[objectsWithBounds.length - 1];
-
-        const totalSpace = direction === 'horizontal'
-            ? last.centerX - first.centerX
-            : last.centerY - first.centerY;
-
-        const spacing = totalSpace / (objectsWithBounds.length - 1);
-
-        // Distribute middle objects (skip first and last)
-        for (let i = 1; i < objectsWithBounds.length - 1; i++) {
-            const item = objectsWithBounds[i];
-            const obj = item.obj;
-
-            if (direction === 'horizontal') {
-                const targetCenterX = first.centerX + spacing * i;
-                const deltaX = targetCenterX - item.centerX;
-                obj.set('left', (obj.left || 0) + deltaX);
-            } else {
-                const targetCenterY = first.centerY + spacing * i;
-                const deltaY = targetCenterY - item.centerY;
-                obj.set('top', (obj.top || 0) + deltaY);
-            }
-            obj.setCoords();
-        }
-
-        // Need to update the ActiveSelection's internal coordinates
-        activeObject.setCoords();
-
-        this.canvas.renderAll();
-        this.saveCanvasContent();
-
-        if (this.statusBarCallback) {
-            this.statusBarCallback(`Distributed: ${direction === 'horizontal' ? 'Horizontally' : 'Vertically'}`);
+    public distributeObjects(direction: "horizontal" | "vertical"): void {
+        if (this.alignmentManager) {
+            this.alignmentManager.distributeObjects(direction);
         }
     }
+
 
     /**
      * Apply crop from first selected object to all selected objects (Multiple Crop)
@@ -2752,431 +2449,73 @@ export class CanvasManager {
      * PowerPoint-style: First object's size applied to all
      */
     public matchSize(): void {
-        if (!this.canvas) return;
-
-        const activeObject = this.canvas.getActiveObject();
-        if (!activeObject || activeObject.type !== 'activeSelection') {
-            if (this.statusBarCallback) {
-                this.statusBarCallback('Select multiple objects to match size');
-            }
-            return;
-        }
-
-        const objects = (activeObject as any).getObjects();
-        if (objects.length < 2) return;
-
-        this.saveUndoState();
-
-        // Get first object's dimensions
-        const first = objects[0];
-        const targetWidth = first.getScaledWidth();
-        const targetHeight = first.getScaledHeight();
-
-        // Apply to all other objects
-        objects.forEach((obj: any, index: number) => {
-            if (index === 0) return;
-
-            const currentWidth = obj.getScaledWidth();
-            const currentHeight = obj.getScaledHeight();
-
-            // Scale to match (preserve aspect ratio option could be added)
-            obj.scaleX = (obj.scaleX || 1) * (targetWidth / currentWidth);
-            obj.scaleY = (obj.scaleY || 1) * (targetHeight / currentHeight);
-            obj.setCoords();
-        });
-
-        this.canvas.renderAll();
-        this.saveCanvasContent();
-
-        if (this.statusBarCallback) {
-            this.statusBarCallback(`Matched size to ${objects.length - 1} objects`);
+        if (this.transformManager) {
+            this.transformManager.matchSize();
         }
     }
 
-    /**
-     * Match width only (maintain aspect ratio)
-     */
     public matchWidth(): void {
-        if (!this.canvas) return;
-
-        const activeObject = this.canvas.getActiveObject();
-        if (!activeObject || activeObject.type !== 'activeSelection') {
-            if (this.statusBarCallback) {
-                this.statusBarCallback('Select multiple objects to match width');
-            }
-            return;
-        }
-
-        const objects = (activeObject as any).getObjects();
-        if (objects.length < 2) return;
-
-        this.saveUndoState();
-
-        const targetWidth = objects[0].getScaledWidth();
-
-        objects.forEach((obj: any, index: number) => {
-            if (index === 0) return;
-
-            const currentWidth = obj.getScaledWidth();
-            const scale = targetWidth / currentWidth;
-
-            // Scale both dimensions to preserve aspect ratio
-            obj.scaleX = (obj.scaleX || 1) * scale;
-            obj.scaleY = (obj.scaleY || 1) * scale;
-            obj.setCoords();
-        });
-
-        this.canvas.renderAll();
-        this.saveCanvasContent();
-
-        if (this.statusBarCallback) {
-            this.statusBarCallback(`Matched width`);
+        if (this.transformManager) {
+            this.transformManager.matchWidth();
         }
     }
 
-    /**
-     * Match height only (maintain aspect ratio)
-     */
     public matchHeight(): void {
-        if (!this.canvas) return;
-
-        const activeObject = this.canvas.getActiveObject();
-        if (!activeObject || activeObject.type !== 'activeSelection') {
-            if (this.statusBarCallback) {
-                this.statusBarCallback('Select multiple objects to match height');
-            }
-            return;
-        }
-
-        const objects = (activeObject as any).getObjects();
-        if (objects.length < 2) return;
-
-        this.saveUndoState();
-
-        const targetHeight = objects[0].getScaledHeight();
-
-        objects.forEach((obj: any, index: number) => {
-            if (index === 0) return;
-
-            const currentHeight = obj.getScaledHeight();
-            const scale = targetHeight / currentHeight;
-
-            obj.scaleX = (obj.scaleX || 1) * scale;
-            obj.scaleY = (obj.scaleY || 1) * scale;
-            obj.setCoords();
-        });
-
-        this.canvas.renderAll();
-        this.saveCanvasContent();
-
-        if (this.statusBarCallback) {
-            this.statusBarCallback(`Matched height`);
+        if (this.transformManager) {
+            this.transformManager.matchHeight();
         }
     }
 
-    /**
-     * Reset object size to original (100%)
-     */
     public resetSize(): void {
-        if (!this.canvas) return;
-
-        const active = this.canvas.getActiveObject();
-        if (!active) return;
-
-        this.saveUndoState();
-
-        if (active.type === 'activeSelection') {
-            (active as any).getObjects().forEach((obj: any) => {
-                obj.scaleX = 1;
-                obj.scaleY = 1;
-                obj.setCoords();
-            });
-        } else {
-            active.scaleX = 1;
-            active.scaleY = 1;
-            active.setCoords();
-        }
-
-        this.canvas.renderAll();
-        this.saveCanvasContent();
-
-        if (this.statusBarCallback) {
-            this.statusBarCallback('Reset to original size');
+        if (this.transformManager) {
+            this.transformManager.resetSize();
         }
     }
 
-    /**
-     * Flip selected objects horizontally
-     */
     public flipHorizontal(): void {
-        if (!this.canvas) return;
-
-        const active = this.canvas.getActiveObject();
-        if (!active) return;
-
-        this.saveUndoState();
-
-        if (active.type === 'activeSelection') {
-            (active as any).getObjects().forEach((obj: any) => {
-                obj.flipX = !obj.flipX;
-            });
-        } else {
-            active.flipX = !active.flipX;
-        }
-
-        this.canvas.renderAll();
-        this.saveCanvasContent();
-
-        if (this.statusBarCallback) {
-            this.statusBarCallback('Flipped horizontally');
+        if (this.transformManager) {
+            this.transformManager.flipHorizontal();
         }
     }
 
-    /**
-     * Flip selected objects vertically
-     */
     public flipVertical(): void {
-        if (!this.canvas) return;
-
-        const active = this.canvas.getActiveObject();
-        if (!active) return;
-
-        this.saveUndoState();
-
-        if (active.type === 'activeSelection') {
-            (active as any).getObjects().forEach((obj: any) => {
-                obj.flipY = !obj.flipY;
-            });
-        } else {
-            active.flipY = !active.flipY;
-        }
-
-        this.canvas.renderAll();
-        this.saveCanvasContent();
-
-        if (this.statusBarCallback) {
-            this.statusBarCallback('Flipped vertically');
+        if (this.transformManager) {
+            this.transformManager.flipVertical();
         }
     }
 
-    /**
-     * Rotate selected objects by specified degrees
-     */
     public rotateObjects(degrees: number): void {
-        if (!this.canvas) return;
-
-        const active = this.canvas.getActiveObject();
-        if (!active) return;
-
-        this.saveUndoState();
-
-        if (active.type === 'activeSelection') {
-            (active as any).getObjects().forEach((obj: any) => {
-                obj.angle = ((obj.angle || 0) + degrees) % 360;
-                obj.setCoords();
-            });
-        } else {
-            active.angle = ((active.angle || 0) + degrees) % 360;
-            active.setCoords();
-        }
-
-        this.canvas.renderAll();
-        this.saveCanvasContent();
-
-        if (this.statusBarCallback) {
-            this.statusBarCallback(`Rotated ${degrees}°`);
+        if (this.transformManager) {
+            this.transformManager.rotateObjects(degrees);
         }
     }
+
 
     /**
      * Group selected objects
      */
     public groupObjects(): void {
-        if (!this.canvas) return;
-
-        const activeObject = this.canvas.getActiveObject();
-        if (!activeObject || activeObject.type !== 'activeSelection') {
-            if (this.statusBarCallback) {
-                this.statusBarCallback('Select multiple objects to group');
-            }
-            return;
-        }
-
-        this.saveUndoState();
-
-        const group = (activeObject as any).toGroup();
-        this.canvas.setActiveObject(group);
-        this.canvas.renderAll();
-        this.saveCanvasContent();
-
-        if (this.statusBarCallback) {
-            this.statusBarCallback('Objects grouped');
+        if (this.groupManager) {
+            this.groupManager.groupObjects();
         }
     }
 
-    /**
-     * Ungroup selected group
-     */
     public ungroupObjects(): void {
-        if (!this.canvas) return;
-
-        const active = this.canvas.getActiveObject();
-        if (!active || active.type !== 'group') {
-            if (this.statusBarCallback) {
-                this.statusBarCallback('Select a group to ungroup');
-            }
-            return;
-        }
-
-        this.saveUndoState();
-
-        const selection = (active as any).toActiveSelection();
-        this.canvas.setActiveObject(selection);
-        this.canvas.renderAll();
-        this.saveCanvasContent();
-
-        if (this.statusBarCallback) {
-            this.statusBarCallback('Group ungrouped');
+        if (this.groupManager) {
+            this.groupManager.ungroupObjects();
         }
     }
 
-    /**
-     * Align selected plots by their axis positions.
-     * Uses axes_bbox_px from metadata to align Y-axes (left edge) and X-axes (bottom edge).
-     * The first selected object is the reference - others align to it.
-     */
     /**
      * Align by axis with direction support (like regular alignment)
      * @param direction - L=left(Y-axis), C=center-H, R=right, T=top, M=middle-V, B=bottom(X-axis)
      */
-    public alignByAxis(direction: 'L' | 'C' | 'R' | 'T' | 'M' | 'B' = 'L'): void {
-        if (!this.canvas) return;
-
-        const active = this.canvas.getActiveObject();
-        if (!active) {
-            if (this.statusBarCallback) {
-                this.statusBarCallback('Select objects to align by axis');
-            }
-            return;
-        }
-
-        // Get objects to align
-        let objects: any[];
-        if (active.type === 'activeSelection') {
-            objects = (active as any).getObjects();
-        } else {
-            if (this.statusBarCallback) {
-                this.statusBarCallback('Select multiple plots to align by axis');
-            }
-            return;
-        }
-
-        // Filter to only objects with axis metadata
-        const plotsWithMeta = objects.filter((obj: any) => obj.axisMetadata?.axes_bbox_px);
-
-        // Debug logging
-        console.log(`[CanvasManager] alignByAxis(${direction}): ${objects.length} objects, ${plotsWithMeta.length} have axis metadata`);
-        objects.forEach((obj: any, i: number) => {
-            console.log(`  [${i}] ${obj.name || obj.type}: axisMetadata=${obj.axisMetadata ? 'yes' : 'no'}`);
-        });
-
-        if (plotsWithMeta.length < 2) {
-            const withoutMeta = objects.length - plotsWithMeta.length;
-            if (this.statusBarCallback) {
-                this.statusBarCallback(`Need 2+ plots with axis metadata (${withoutMeta} missing metadata)`);
-            }
-            return;
-        }
-
-        this.saveUndoState();
-
-        // First object is the reference
-        const refObj = plotsWithMeta[0];
-        const refMeta = refObj.axisMetadata.axes_bbox_px;
-        const refScaleX = refObj.scaleX || 1;
-        const refScaleY = refObj.scaleY || 1;
-
-        // Reference axis positions in canvas coordinates based on direction
-        let refPosition: number;
-        const isHorizontal = ['L', 'C', 'R'].includes(direction);
-
-        if (direction === 'L') {
-            // Y-axis left edge
-            refPosition = refObj.left + refMeta.x0 * refScaleX;
-        } else if (direction === 'C') {
-            // Horizontal center of plot area
-            refPosition = refObj.left + ((refMeta.x0 + refMeta.x1) / 2) * refScaleX;
-        } else if (direction === 'R') {
-            // Right edge of plot area
-            refPosition = refObj.left + refMeta.x1 * refScaleX;
-        } else if (direction === 'T') {
-            // Top edge of plot area
-            refPosition = refObj.top + refMeta.y0 * refScaleY;
-        } else if (direction === 'M') {
-            // Vertical center of plot area
-            refPosition = refObj.top + ((refMeta.y0 + refMeta.y1) / 2) * refScaleY;
-        } else {
-            // B = Bottom (X-axis)
-            refPosition = refObj.top + refMeta.y1 * refScaleY;
-        }
-
-        let alignedCount = 0;
-
-        // Align remaining objects to the reference
-        for (let i = 1; i < plotsWithMeta.length; i++) {
-            const obj = plotsWithMeta[i];
-            const meta = obj.axisMetadata.axes_bbox_px;
-            const scaleX = obj.scaleX || 1;
-            const scaleY = obj.scaleY || 1;
-
-            let currentPosition: number;
-            if (direction === 'L') {
-                currentPosition = obj.left + meta.x0 * scaleX;
-            } else if (direction === 'C') {
-                currentPosition = obj.left + ((meta.x0 + meta.x1) / 2) * scaleX;
-            } else if (direction === 'R') {
-                currentPosition = obj.left + meta.x1 * scaleX;
-            } else if (direction === 'T') {
-                currentPosition = obj.top + meta.y0 * scaleY;
-            } else if (direction === 'M') {
-                currentPosition = obj.top + ((meta.y0 + meta.y1) / 2) * scaleY;
-            } else {
-                currentPosition = obj.top + meta.y1 * scaleY;
-            }
-
-            const delta = refPosition - currentPosition;
-
-            if (isHorizontal) {
-                obj.left = (obj.left || 0) + delta;
-            } else {
-                obj.top = (obj.top || 0) + delta;
-            }
-            obj.setCoords();
-            alignedCount++;
-        }
-
-        // Refresh the selection
-        this.canvas.discardActiveObject();
-        const selection = new (window as any).fabric.ActiveSelection(plotsWithMeta, {
-            canvas: this.canvas
-        });
-        this.canvas.setActiveObject(selection);
-        this.canvas.renderAll();
-        this.saveCanvasContent();
-
-        const dirNames: Record<string, string> = {
-            'L': 'Y-axis (left)',
-            'C': 'center-H',
-            'R': 'right edge',
-            'T': 'top edge',
-            'M': 'center-V',
-            'B': 'X-axis (bottom)'
-        };
-
-        if (this.statusBarCallback) {
-            this.statusBarCallback(`Aligned ${alignedCount + 1} plots by ${dirNames[direction]}`);
+    public alignByAxis(direction: "L" | "C" | "R" | "T" | "M" | "B" = "L"): void {
+        if (this.alignmentManager) {
+            this.alignmentManager.alignByAxis(direction);
         }
     }
+
 
     /**
      * Stack selected plots vertically with Y-axis alignment.
@@ -3185,101 +2524,11 @@ export class CanvasManager {
      * Order is determined by current vertical position (top to bottom).
      */
     public stackVertically(): void {
-        if (!this.canvas) return;
-
-        const active = this.canvas.getActiveObject();
-        if (!active) {
-            if (this.statusBarCallback) {
-                this.statusBarCallback('Select objects to stack vertically');
-            }
-            return;
-        }
-
-        let objects: any[];
-        if (active.type === 'activeSelection') {
-            objects = (active as any).getObjects();
-        } else {
-            if (this.statusBarCallback) {
-                this.statusBarCallback('Select multiple plots to stack');
-            }
-            return;
-        }
-
-        // Filter to only objects with axis metadata
-        const plotsWithMeta = objects.filter((obj: any) => obj.axisMetadata?.axes_bbox_px);
-
-        if (plotsWithMeta.length < 2) {
-            const withoutMeta = objects.length - plotsWithMeta.length;
-            if (this.statusBarCallback) {
-                this.statusBarCallback(`Need 2+ plots with axis metadata (${withoutMeta} missing metadata)`);
-            }
-            return;
-        }
-
-        this.saveUndoState();
-
-        // Sort plots by current vertical position (top to bottom)
-        plotsWithMeta.sort((a: any, b: any) => (a.top || 0) - (b.top || 0));
-
-        // First pass: align all Y-axes (left edges) to the first plot
-        const refObj = plotsWithMeta[0];
-        const refMeta = refObj.axisMetadata.axes_bbox_px;
-        const refScaleX = refObj.scaleX || 1;
-        const refYAxisX = refObj.left + refMeta.x0 * refScaleX;
-
-        for (let i = 1; i < plotsWithMeta.length; i++) {
-            const obj = plotsWithMeta[i];
-            const meta = obj.axisMetadata.axes_bbox_px;
-            const scaleX = obj.scaleX || 1;
-            const currentYAxisX = obj.left + meta.x0 * scaleX;
-            const deltaX = refYAxisX - currentYAxisX;
-            obj.left = (obj.left || 0) + deltaX;
-        }
-
-        // Second pass: stack vertically (each plot's top at previous plot's X-axis)
-        for (let i = 1; i < plotsWithMeta.length; i++) {
-            const prevObj = plotsWithMeta[i - 1];
-            const prevMeta = prevObj.axisMetadata.axes_bbox_px;
-            const prevScaleY = prevObj.scaleY || 1;
-            // Previous plot's X-axis (bottom of plot area) in canvas coordinates
-            const prevXAxisY = prevObj.top + prevMeta.y1 * prevScaleY;
-
-            const obj = plotsWithMeta[i];
-            const meta = obj.axisMetadata.axes_bbox_px;
-            const scaleY = obj.scaleY || 1;
-            // Current plot's top of plot area in canvas coordinates
-            const currentPlotTopY = obj.top + meta.y0 * scaleY;
-
-            // Move this plot so its plot area top aligns with previous plot's X-axis
-            const deltaY = prevXAxisY - currentPlotTopY;
-            obj.top = (obj.top || 0) + deltaY;
-            obj.setCoords();
-        }
-
-        // Update coordinates for first plot too
-        refObj.setCoords();
-
-        // Refresh the selection
-        this.canvas.discardActiveObject();
-        const selection = new (window as any).fabric.ActiveSelection(plotsWithMeta, {
-            canvas: this.canvas
-        });
-        this.canvas.setActiveObject(selection);
-        this.canvas.renderAll();
-        this.saveCanvasContent();
-
-        if (this.statusBarCallback) {
-            this.statusBarCallback(`Stacked ${plotsWithMeta.length} plots vertically with aligned Y-axes`);
+        if (this.alignmentManager) {
+            this.alignmentManager.stackVertically();
         }
     }
 
-    // Store debug lines for cleanup
-    private axisDebugLines: any[] = [];
-
-    /**
-     * Show debug lines indicating axis positions on figures
-     * Red = Y-axis (x0), Blue = X-axis (y1), Green = plot bounds
-     */
     public showAxisDebugLines(objects?: any[]): void {
         if (!this.canvas) return;
 
