@@ -2073,27 +2073,8 @@ export class CanvasManager {
      * Toggle canvas theme between light and dark
      */
     public toggleCanvasTheme(): void {
-        if (!this.canvas) return;
-
-        const currentBg = this.canvas.backgroundColor;
-        const isDark = currentBg === '#1e1e1e' || currentBg === 'rgb(30, 30, 30)';
-
-        if (isDark) {
-            // Switch to light theme
-            this.canvas.setBackgroundColor('#ffffff', () => {
-                this.canvas!.renderAll();
-            });
-        } else {
-            // Switch to dark theme
-            this.canvas.setBackgroundColor('#1e1e1e', () => {
-                this.canvas!.renderAll();
-            });
-        }
-
-        this.saveCanvasContent();
-
-        if (this.statusBarCallback) {
-            this.statusBarCallback(`Canvas theme: ${isDark ? 'light' : 'dark'}`);
+        if (this.themeManager) {
+            this.themeManager.toggleTheme(() => this.drawGrid(this.themeManager?.isDark() || false));
         }
     }
 
