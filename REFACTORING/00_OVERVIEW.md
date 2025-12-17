@@ -36,7 +36,7 @@ Files that need splitting into smaller modules.
 
 ```bash
 # Check file sizes
-./scripts/check_file_sizes.sh --verbose
+./scripts/maintenance/check_file_sizes.sh --verbose
 
 # Run tests after each refactoring
 ./run_tests.sh

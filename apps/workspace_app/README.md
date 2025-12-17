@@ -67,7 +67,7 @@ The user workspace image must be built before use:
 
 ```bash
 # Build image
-./scripts/build_user_workspace_image.sh
+./scripts/deployment/build_user_workspace_image.sh
 
 # Or manually
 docker build -t scitex-user-workspace:latest \

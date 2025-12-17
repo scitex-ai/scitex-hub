@@ -263,7 +263,7 @@ Sun Nov 23 06:19:58 PM AEDT 2025
 [0;33m   HTML: 3 files (>1024 lines)[0m
 [0;36m     Worst: plot-viewer.html (1179 lines, 1x threshold)[0m
 
-[0;36m💡 To see full list: ./scripts/check_file_sizes.sh --verbose[0m
+[0;36m💡 To see full list: ./scripts/maintenance/check_file_sizes.sh --verbose[0m
 
 [0;36m=== Detailed Report ===[0m
 
@@ -349,7 +349,7 @@ Now, we have positive review from an agent as below.
 Please keep on working on the refactoring task, following
 
 ./GITIGNORED/RULES/*.md
-./scripts/check_file_sizes.sh --verbose
+./scripts/maintenance/check_file_sizes.sh --verbose
 
 --- Review from an agent ---
 

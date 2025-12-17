@@ -105,4 +105,4 @@ echo ""
 # ============================================
 # File Size Warnings
 # ============================================
-"${PROJECT_ROOT}/scripts/check_file_sizes.sh" || true
+"${PROJECT_ROOT}/scripts/maintenance/check_file_sizes.sh" || true

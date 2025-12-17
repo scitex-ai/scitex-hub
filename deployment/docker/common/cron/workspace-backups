@@ -10,4 +10,4 @@ SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
 # Run backup every 5 minutes
-*/5 * * * * root /app/scripts/backup_workspaces.sh >> /app/logs/workspace-backups.log 2>&1
+*/5 * * * * root /app/scripts/deployment/backup_workspaces.sh >> /app/logs/workspace-backups.log 2>&1

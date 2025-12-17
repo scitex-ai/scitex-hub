@@ -137,7 +137,7 @@ npx stylelint "apps/**/*.css"
 # - Verify no styling regressions
 
 # File size check
-./scripts/check_file_sizes.sh --verbose | grep "CSS"
+./scripts/maintenance/check_file_sizes.sh --verbose | grep "CSS"
 ```
 
 ## Completion Criteria

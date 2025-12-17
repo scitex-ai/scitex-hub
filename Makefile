@@ -229,9 +229,9 @@ status:
 
 # Live status with spinners and animations
 status-live:
-	@./scripts/check_status_live.sh $(ENV)
+	@./scripts/maintenance/check_status_live.sh $(ENV)
 	@echo -e ""
-	@./scripts/check_file_sizes.sh
+	@./scripts/maintenance/check_file_sizes.sh
 
 # ============================================
 # Stop All Environments
@@ -890,13 +890,13 @@ lint-web:
 # ============================================
 check-file-sizes:
 	@echo -e "$(CYAN)📏 Checking file sizes (>300 line threshold)...$(NC)"
-	@./scripts/check_file_sizes.sh --verbose
+	@./scripts/maintenance/check_file_sizes.sh --verbose
 
 # ============================================
 # Asset Tracking Checks
 # ============================================
 check-assets:
-	@./scripts/check_untracked_assets.sh
+	@./scripts/maintenance/check_untracked_assets.sh
 
 # ============================================
 # Host Requirements Checks

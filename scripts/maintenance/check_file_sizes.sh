@@ -1,7 +1,7 @@
 #!/bin/bash
 # -*- coding: utf-8 -*-
 # Timestamp: "2025-11-23 18:18:36 (ywatanabe)"
-# File: ./scripts/check_file_sizes.sh
+# File: ./scripts/maintenance/check_file_sizes.sh
 
 ORIG_DIR="$(pwd)"
 THIS_DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
@@ -25,15 +25,15 @@ echo_header() { echo_info "=== $1 ==="; }
 # ============================================
 # Check File Sizes - Detect files >300 lines
 # ============================================
-# Location: /scripts/check_file_sizes.sh
+# Location: /scripts/maintenance/check_file_sizes.sh
 #
 # Purpose: Warn about files exceeding the 300-line threshold
 # See: GITIGNORED/RULES/06_FILE_SIZE_LIMITS.md
 #
 # Usage:
-#   ./scripts/check_file_sizes.sh           # Show warnings
-#   ./scripts/check_file_sizes.sh --quiet   # Exit code only
-#   ./scripts/check_file_sizes.sh --verbose # Detailed report
+#   ./scripts/maintenance/check_file_sizes.sh           # Show warnings
+#   ./scripts/maintenance/check_file_sizes.sh --quiet   # Exit code only
+#   ./scripts/maintenance/check_file_sizes.sh --verbose # Detailed report
 
 # Colors
 CYAN='\033[0;36m'
@@ -190,7 +190,7 @@ check_files() {
         }
 
         echo ""
-        echo -e "${CYAN}💡 To see full list: ./scripts/check_file_sizes.sh --verbose${NC}"
+        echo -e "${CYAN}💡 To see full list: ./scripts/maintenance/check_file_sizes.sh --verbose${NC}"
         echo ""
     else
         if [ "$MODE" = "--verbose" ]; then

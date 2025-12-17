@@ -1,7 +1,7 @@
 #!/bin/bash
 # -*- coding: utf-8 -*-
 # Timestamp: "2025-11-15 01:00:00 (ywatanabe)"
-# File: ./scripts/backup_workspaces.sh
+# File: ./scripts/deployment/backup_workspaces.sh
 #
 # Simple rsync-based workspace backup script
 #
@@ -17,10 +17,10 @@
 #
 # Usage:
 #   # Manual run
-#   ./scripts/backup_workspaces.sh
+#   ./scripts/deployment/backup_workspaces.sh
 #
 #   # Cron setup (every 5 minutes)
-#   */5 * * * * /app/scripts/backup_workspaces.sh >> /app/logs/backups.log 2>&1
+#   */5 * * * * /app/scripts/deployment/backup_workspaces.sh >> /app/logs/backups.log 2>&1
 
 set -euo pipefail
 

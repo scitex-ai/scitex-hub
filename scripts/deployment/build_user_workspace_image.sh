@@ -1,6 +1,6 @@
 #!/bin/bash
 # Timestamp: "2025-11-14 17:45:00 (ywatanabe)"
-# File: ./scripts/build_user_workspace_image.sh
+# File: ./scripts/deployment/build_user_workspace_image.sh
 # ============================================
 # Build User Workspace Container Image
 # ============================================

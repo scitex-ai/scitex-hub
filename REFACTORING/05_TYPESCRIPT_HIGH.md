@@ -129,7 +129,7 @@ apps/writer_app/static/writer_app/ts/utils/section-dropdown/
 npx tsc --noEmit
 
 # File size check
-./scripts/check_file_sizes.sh --verbose | grep "TypeScript"
+./scripts/maintenance/check_file_sizes.sh --verbose | grep "TypeScript"
 ```
 
 ## Completion Criteria

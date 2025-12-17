@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """
-Generate gallery into research-master template.
+Generate gallery into static/shared/images/gallery/.
 
 Run with appropriate permissions:
     sudo python3 scripts/maintenance/generate_template_gallery.py
 
-This pre-generates all scitex.plt gallery examples into the master template,
-so that new visitor projects will have the gallery by default.
+This pre-generates all scitex.plt gallery examples into the static directory,
+which serves as the single source of truth for gallery templates.
+
+Note: Prefer using regenerate_gallery.sh which runs inside Docker.
 """
 
 import os
@@ -29,10 +31,11 @@ os.environ['MPLBACKEND'] = 'Agg'
 
 
 def main():
-    """Generate gallery into research-master template."""
-    template_gallery_path = PROJECT_ROOT / "templates" / "research-master" / "scitex" / "vis" / "gallery"
+    """Generate gallery into static directory."""
+    # Single source of truth: static/shared/images/gallery/
+    static_gallery_path = PROJECT_ROOT / "static" / "shared" / "images" / "gallery"
 
-    print(f"Generating gallery to: {template_gallery_path}")
+    print(f"Generating gallery to: {static_gallery_path}")
 
     try:
         import scitex as stx
@@ -42,15 +45,17 @@ def main():
         sys.exit(1)
 
     # Create directory if needed
-    template_gallery_path.mkdir(parents=True, exist_ok=True)
+    static_gallery_path.mkdir(parents=True, exist_ok=True)
 
     # Generate all gallery plots
     result = stx.plt.gallery.generate(
-        output_dir=str(template_gallery_path),
+        output_dir=str(static_gallery_path),
         figsize=(4, 3),
         dpi=150,
         save_csv=True,
         save_png=True,
+        save_svg=True,
+        save_pltz=True,
         verbose=True,
     )
 
@@ -60,6 +65,7 @@ def main():
     print("=" * 50)
     print(f"PNGs generated: {len(result.get('png', []))}")
     print(f"CSVs generated: {len(result.get('csv', []))}")
+    print(f"PLTZs generated: {len(result.get('pltz', []))}")
 
     if result.get('errors'):
         print(f"\nErrors ({len(result['errors'])}):")
@@ -68,7 +74,7 @@ def main():
         sys.exit(1)
     else:
         print("\nGallery generated successfully!")
-        print(f"Location: {template_gallery_path}")
+        print(f"Location: {static_gallery_path}")
 
 
 if __name__ == "__main__":

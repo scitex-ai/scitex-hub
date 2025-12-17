@@ -1,9 +1,11 @@
 #!/bin/bash
 # -*- coding: utf-8 -*-
-# Timestamp: "2025-12-10 (ywatanabe)"
+# Timestamp: "2025-12-17 (ywatanabe)"
 # File: /home/ywatanabe/proj/scitex-cloud/scripts/maintenance/regenerate_gallery.sh
 #
 # Regenerates the plot gallery with correct axis metadata for alignment features.
+# Gallery is stored in static/shared/images/gallery/ as single source of truth.
+#
 # This script should be run after any changes to:
 # - scitex.plt.gallery plot functions
 # - scitex.io.save metadata collection
@@ -42,24 +44,26 @@ if ! docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
     exit 1
 fi
 
-# Gallery output directories (host paths for display)
-TEMPLATE_GALLERY="${PROJECT_ROOT}/templates/research-master/scitex/vis/gallery"
+# Gallery output directory (single source of truth)
 STATIC_GALLERY="${PROJECT_ROOT}/static/shared/images/gallery"
-
-# Container paths (mounted at /app/)
-CONTAINER_TEMPLATE_GALLERY="/app/templates/research-master/scitex/vis/gallery"
 CONTAINER_STATIC_GALLERY="/app/static/shared/images/gallery"
 
+# Legacy template gallery (to be removed)
+CONTAINER_TEMPLATE_GALLERY="/app/templates/research-master/scitex/vis/gallery"
+
 echo_info "Regenerating plot gallery..."
-echo_info "Template gallery: ${TEMPLATE_GALLERY}"
 echo_info "Static gallery: ${STATIC_GALLERY}"
 
-# Clean existing galleries
-echo_info "Cleaning existing galleries..."
-docker exec "${CONTAINER_NAME}" bash -c "rm -rf '${CONTAINER_TEMPLATE_GALLERY}'/* '${CONTAINER_STATIC_GALLERY}'/* 2>/dev/null || true"
+# Remove legacy template gallery if it exists
+echo_info "Removing legacy template gallery (if exists)..."
+docker exec "${CONTAINER_NAME}" bash -c "rm -rf '${CONTAINER_TEMPLATE_GALLERY}' 2>/dev/null || true"
 
-# Ensure directories exist
-docker exec "${CONTAINER_NAME}" bash -c "mkdir -p '${CONTAINER_TEMPLATE_GALLERY}' '${CONTAINER_STATIC_GALLERY}'"
+# Clean existing static gallery
+echo_info "Cleaning existing static gallery..."
+docker exec "${CONTAINER_NAME}" bash -c "rm -rf '${CONTAINER_STATIC_GALLERY}'/* 2>/dev/null || true"
+
+# Ensure directory exists
+docker exec "${CONTAINER_NAME}" bash -c "mkdir -p '${CONTAINER_STATIC_GALLERY}'"
 
 # Generate gallery using a Python script file (not heredoc) for proper path resolution
 echo_info "Generating gallery plots with metadata..."
@@ -69,10 +73,6 @@ if [ $? -ne 0 ]; then
     echo_error "Gallery generation failed"
     exit 1
 fi
-
-# Copy to static gallery
-echo_info "Copying to static gallery..."
-docker exec "${CONTAINER_NAME}" bash -c "cp -r '${CONTAINER_TEMPLATE_GALLERY}'/* '${CONTAINER_STATIC_GALLERY}/'  2>/dev/null || true"
 
 # Verify gallery has JSON files with different axes_bbox_px
 echo_info "Verifying axes metadata..."
@@ -109,4 +109,5 @@ else:
 PYEOF
 
 echo_info "Gallery regeneration complete!"
+echo_info "Gallery location: ${STATIC_GALLERY}"
 echo_info "To test alignment: navigate to /vis/ and use Alt+Ctrl+A on multiple plots"

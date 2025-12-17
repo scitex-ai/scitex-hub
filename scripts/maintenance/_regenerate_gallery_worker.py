@@ -21,8 +21,8 @@ import os
 from pathlib import Path
 import scitex as stx
 
-# Output paths - use absolute path for correct resolution
-OUTPUT_DIR = '/app/templates/research-master/scitex/vis/gallery'
+# Output paths - use static directory as single source of truth
+OUTPUT_DIR = '/app/static/shared/images/gallery'
 
 
 def add_element_bboxes_to_json(json_path, png_path, csv_path=None):

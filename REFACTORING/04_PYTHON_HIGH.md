@@ -142,7 +142,7 @@ apps/project_app/views/project/
 # After each refactoring
 docker exec scitex-cloud-dev-django-1 python manage.py check
 ./run_tests.sh
-./scripts/check_file_sizes.sh --verbose | grep -E "^[0-9]+ lines"
+./scripts/maintenance/check_file_sizes.sh --verbose | grep -E "^[0-9]+ lines"
 ```
 
 ## Completion Criteria

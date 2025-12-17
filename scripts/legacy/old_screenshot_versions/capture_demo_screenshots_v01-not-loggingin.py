@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Timestamp: "2025-12-12 08:39:14 (ywatanabe)"
+# Timestamp: "2025-12-03 02:06:55 (ywatanabe)"
 # File: /home/ywatanabe/proj/scitex-cloud/scripts/maintenance/capture_demo_screenshots.py
 
 
@@ -66,10 +66,10 @@ TEST_PASSWORD = os.getenv("SCITEX_CLOUD_TEST_USER_PASSWORD", "Password123!")
 
 # Standard viewport sizes for consistent screenshots
 VIEWPORT_PRESETS = {
-    "desktop": {"width": 1920, "height": 1080},
-    "laptop": {"width": 1366, "height": 768},
-    "tablet": {"width": 768, "height": 1024},
-    "mobile": {"width": 375, "height": 667},
+    "desktop": {"width": 1920, "height": 1080},  # Full HD
+    "laptop": {"width": 1366, "height": 768},  # Common laptop
+    "tablet": {"width": 768, "height": 1024},  # iPad portrait
+    "mobile": {"width": 375, "height": 667},  # iPhone SE
 }
 
 # Default preset for screenshots
@@ -123,19 +123,12 @@ PAGES_TO_CAPTURE_MODULES = [
     "/writer/",
     # "/tools/",
 ]
-PAGES_TO_CAPTURE_MODULES_DEFAULT = [
-    f"{module}#default" for module in PAGES_TO_CAPTURE_MODULES
-]
-PAGES_TO_CAPTURE_MODULES_ZEN = [
-    f"{module}#zen" for module in PAGES_TO_CAPTURE_MODULES
-]
 PAGES_TO_CAPTURE = [
     # *PAGES_TO_CAPTURE_BASIC,
     # *PAGES_TO_CAPTURE_ACCOUNT,
     # *PAGES_TO_CAPTURE_DEV,
     *PAGES_TO_CAPTURE_REPO,
-    *PAGES_TO_CAPTURE_MODULES_DEFAULT,
-    *PAGES_TO_CAPTURE_MODULES_ZEN,
+    *PAGES_TO_CAPTURE_MODULES,
 ]
 
 # ============================================================================
@@ -161,11 +154,10 @@ def normalize_path_to_filename(path: str) -> str:
     Returns:
         Normalized filename (without extension)
     """
-    # Parse URL to separate path, query, and fragment
+    # Parse URL to separate path and query
     parsed = urlparse(path)
     clean_path = parsed.path
     query = parsed.query
-    fragment = parsed.fragment  # URL hash (e.g., #zen, #default)
 
     # Handle root path
     if clean_path == "/" or clean_path == "":
@@ -176,11 +168,6 @@ def normalize_path_to_filename(path: str) -> str:
 
         # Replace slashes with hyphens
         name = clean_path.replace("/", "-")
-
-    # Add URL fragment (hash) to filename if present
-    if fragment:
-        safe_fragment = re.sub(r"[^\w-]", "-", fragment)
-        name += f"-{safe_fragment}"
 
     # Add query parameters to filename if present
     if query:
@@ -211,16 +198,31 @@ def normalize_path_to_filename(path: str) -> str:
 
 
 async def login_to_scitex(page: Page, username: str, password: str) -> bool:
+    """
+    Log in to SciTeX using provided credentials.
+
+    Args:
+        page: Playwright page object
+        username: Username for login
+        password: Password for login
+
+    Returns:
+        True if login successful, False otherwise
+    """
     logger.info(f"Attempting login as '{username}'")
+
     try:
+        # Navigate to login page
         login_url = f"{BASE_URL}/auth/signin/"
         logger.info(f"Navigating to {login_url}")
         await page.goto(login_url, wait_until="load", timeout=30_000)
         await asyncio.sleep(2)
 
+        # Check if already authenticated
         is_authenticated = await page.evaluate(
             "() => document.body.getAttribute('data-user-authenticated') === 'true'"
         )
+
         if is_authenticated:
             logger.info(
                 "Already logged in (detected via data-user-authenticated)"
@@ -228,53 +230,45 @@ async def login_to_scitex(page: Page, username: str, password: str) -> bool:
             await page.goto(BASE_URL, wait_until="load")
             return True
 
+        # Check if redirected (already logged in)
         if "/auth/signin" not in page.url:
             logger.info("Already logged in (redirected from signin page)")
             return True
 
+        # Wait for form
         logger.info("Waiting for login form")
         await page.wait_for_selector("form#login-form", timeout=5_000)
 
+        # Fill credentials
         logger.info("Entering credentials")
         await fill_with_fallbacks_async(
             page, "input#username", username, verbose=False
         )
         await asyncio.sleep(0.3)
+
         await fill_with_fallbacks_async(
             page, "input#password", password, verbose=False
         )
         await asyncio.sleep(0.3)
 
-        # Check "Remember me" checkbox if not already checked
-        logger.info("Checking 'Remember me' checkbox")
-        remember_checkbox = page.locator(
-            "input#remember-me, input[name='remember']"
-        )
-        if await remember_checkbox.count() > 0:
-            is_checked = await remember_checkbox.is_checked()
-            if not is_checked:
-                await remember_checkbox.check()
-                await asyncio.sleep(0.2)
-
+        # Submit
         logger.info("Submitting login form")
         await click_with_fallbacks_async(
             page, "button.btn-primary.w-100", verbose=False
         )
 
-        # Wait for navigation after form submission (use 'load' instead of 'networkidle')
+        # Wait for navigation
         try:
-            await page.wait_for_load_state("load", timeout=15_000)
-        except Exception:
-            pass
-        await asyncio.sleep(3)
+            await page.wait_for_url(
+                lambda url: "/auth/signin" not in url, timeout=10_000
+            )
+            logger.info("Navigation detected after login")
+        except:
+            logger.warning("No navigation detected")
 
-        is_authenticated = await page.evaluate(
-            "() => document.body.getAttribute('data-user-authenticated') === 'true'"
-        )
-        if is_authenticated:
-            logger.info(f"Login successful as '{username}'")
-            return True
+        await asyncio.sleep(2)
 
+        # Verify
         if "/auth/signin" not in page.url:
             logger.info(f"Login successful as '{username}'")
             return True
@@ -314,19 +308,11 @@ async def capture_page_screenshot(
     # Generate filename automatically from path
     page_name = normalize_path_to_filename(page_path)
     url = f"{BASE_URL}{page_path}"
-    wait_sec = (
-        5.0
-        if page_path
-        in PAGES_TO_CAPTURE_MODULES_DEFAULT + PAGES_TO_CAPTURE_MODULES_ZEN
-        else 1.0
-    )
+    wait_sec = 3.0 if page_path in PAGES_TO_CAPTURE_MODULES else 1.0
 
     # Code pages have wide horizontal scroll - capture viewport only
     # Other pages can use full_page for vertical scroll
-    use_full_page = (
-        page_path
-        not in PAGES_TO_CAPTURE_MODULES_DEFAULT + PAGES_TO_CAPTURE_MODULES_ZEN
-    )
+    use_full_page = page_path not in ["/code/"]
 
     screenshot_filename = f"{index:02d}_{page_name}.png"
     screenshot_path = output_dir / screenshot_filename
@@ -336,41 +322,20 @@ async def capture_page_screenshot(
     logger.info(f"  Mode: {'full-page' if use_full_page else 'viewport-only'}")
 
     try:
-        # Check if page is still open
-        if page.is_closed():
-            logger.error(f"  ✗ Page is closed, cannot capture {page_name}")
-            return None
-
         # Navigate
         await page.goto(url, wait_until="load", timeout=30000)
         await asyncio.sleep(wait_sec)
 
-        # For full-page screenshots, try viewport first if it fails
-        try:
-            await page.screenshot(
-                path=str(screenshot_path), full_page=use_full_page, type="png"
-            )
-        except Exception as screenshot_err:
-            if use_full_page:
-                logger.warning(
-                    f"  Full-page screenshot failed, trying viewport-only: {screenshot_err}"
-                )
-                await page.screenshot(
-                    path=str(screenshot_path), full_page=False, type="png"
-                )
-            else:
-                raise
+        # Capture
+        await page.screenshot(
+            path=str(screenshot_path), full_page=use_full_page, type="png"
+        )
 
         logger.info(f"  ✓ Saved: {screenshot_filename}")
         return screenshot_path
 
     except Exception as e:
-        error_msg = str(e)
-        logger.error(f"  ✗ Failed to capture {page_name}: {error_msg}")
-        # Check if browser/page has been closed - this is fatal
-        if "closed" in error_msg.lower():
-            logger.error("  Browser or page has been closed - cannot continue")
-            raise
+        logger.error(f"  ✗ Failed to capture {page_name}: {str(e)}")
         return None
 
 
@@ -408,7 +373,7 @@ async def run_capture_async(
     logger.info(f"Pages to capture: {len(PAGES_TO_CAPTURE)}")
     logger.info(f"Viewport: {width}x{height} ({viewport_name})")
     logger.info(f"Headless: {headless}")
-    logger.info(f"Device pixel ratio: 1.0 (standard)")
+    logger.info(f"Device pixel ratio: 1.0 (standard)")  # For reproducibility
 
     try:
         async with async_playwright() as p:
@@ -418,7 +383,7 @@ async def run_capture_async(
                 user_data_dir=str(session_dir),
                 headless=headless,
                 viewport={"width": width, "height": height},
-                device_scale_factor=1.0,
+                device_scale_factor=1.0,  # Standard DPI for consistent rendering
                 args=["--start-maximized"] if not headless else [],
                 ignore_https_errors=True,
             )
@@ -439,61 +404,13 @@ async def run_capture_async(
             )
 
             if is_authenticated:
-                # Check if logged in as the correct user by visiting profile page
-                # The profile link in navbar contains the username
-                current_user = await page.evaluate(
-                    """() => {
-                        // Try to get username from navbar profile link
-                        const profileLink = document.querySelector('a[href^="/@"]');
-                        if (profileLink) {
-                            const href = profileLink.getAttribute('href');
-                            // Extract username from /@username/ pattern
-                            const match = href.match(/^\/@([^/]+)/);
-                            if (match) return match[1];
-                        }
-                        // Fallback: check for data-username attribute anywhere
-                        const elem = document.querySelector('[data-username]');
-                        if (elem) return elem.getAttribute('data-username');
-                        return null;
-                    }"""
-                )
-                if current_user == TEST_USER:
-                    logger.info(f"✓ Already authenticated as '{TEST_USER}'")
-                elif current_user is None:
-                    # Could not determine current user, assume we need to re-login
-                    logger.warning(
-                        f"Could not determine current user. Logging out and re-logging in as '{TEST_USER}'..."
-                    )
-                    logout_url = f"{BASE_URL}/auth/signout/"
-                    await page.goto(logout_url, wait_until="load")
-                    await asyncio.sleep(1)
-                    if not await login_to_scitex(
-                        page, TEST_USER, TEST_PASSWORD
-                    ):
-                        logger.error("Cannot proceed without authentication")
-                        return 1
-                    logger.info(f"✓ Login successful as '{TEST_USER}'")
-                else:
-                    logger.warning(
-                        f"Logged in as '{current_user}', but need '{TEST_USER}'. Logging out..."
-                    )
-                    # Logout first
-                    logout_url = f"{BASE_URL}/auth/signout/"
-                    await page.goto(logout_url, wait_until="load")
-                    await asyncio.sleep(1)
-                    # Now login as correct user
-                    if not await login_to_scitex(
-                        page, TEST_USER, TEST_PASSWORD
-                    ):
-                        logger.error("Cannot proceed without authentication")
-                        return 1
-                    logger.info(f"✓ Login successful as '{TEST_USER}'")
+                logger.info("✓ Already authenticated")
             else:
-                logger.info(f"Logging in as '{TEST_USER}'...")
+                logger.info("Logging in...")
                 if not await login_to_scitex(page, TEST_USER, TEST_PASSWORD):
                     logger.error("Cannot proceed without authentication")
                     return 1
-                logger.info(f"✓ Login successful as '{TEST_USER}'")
+                logger.info("✓ Login successful")
 
             # Step 2: Capture screenshots
             logger.info("\n=== Step 2: Capturing Screenshots ===")
@@ -502,29 +419,16 @@ async def run_capture_async(
             total = len(PAGES_TO_CAPTURE)
 
             for i, page_path in enumerate(PAGES_TO_CAPTURE, 1):
-                try:
-                    result = await capture_page_screenshot(
-                        page, page_path, output_dir, i, total
-                    )
+                result = await capture_page_screenshot(
+                    page, page_path, output_dir, i, total
+                )
 
-                    if result:
-                        captured.append(result)
-                    else:
-                        failed.append(normalize_path_to_filename(page_path))
-
-                    await asyncio.sleep(0.3)
-                except Exception as loop_err:
-                    # Browser closed or fatal error - stop the loop
-                    logger.error(f"Fatal error during capture: {loop_err}")
+                if result:
+                    captured.append(result)
+                else:
                     failed.append(normalize_path_to_filename(page_path))
-                    # Add remaining pages to failed list
-                    for j, remaining_path in enumerate(
-                        PAGES_TO_CAPTURE[i:], i + 1
-                    ):
-                        failed.append(
-                            normalize_path_to_filename(remaining_path)
-                        )
-                    break
+
+                await asyncio.sleep(0.3)
 
             # Step 3: Summary
             logger.info("\n=== Summary ===")
