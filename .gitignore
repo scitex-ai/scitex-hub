@@ -845,3 +845,4 @@ GITIGNORED/
 **/*_before_*.ts
 tsconfig.tsbuildinfo
 paper/
+tests/ui/artifacts/

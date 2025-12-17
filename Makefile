@@ -69,6 +69,25 @@ SHELL := /bin/bash
 	test-e2e \
 	test-e2e-headed \
 	test-e2e-specific \
+	sync-tests \
+	sync-tests-move \
+	sync-ts-tests \
+	sync-ts-tests-move \
+	setup-vitest \
+	test-ts \
+	test-ts-watch \
+	test-ts-ui \
+	test-ts-coverage \
+	setup-pytest \
+	setup-testing \
+	test-unit \
+	test-db \
+	test-api \
+	test-ui \
+	test-ui-headed \
+	test-python \
+	test-all \
+	test-status \
 	clean-python \
 	clean-js \
 	format \
@@ -116,7 +135,7 @@ ifdef ENV
 else
   # ENV not specified - only allow non-operational commands
   ifneq ($(MAKECMDGOALS),)
-    ifneq ($(filter-out help status validate-docker stop-all force-stop-all format format-python format-web format-shell lint lint-web check-file-sizes check-assets check-host ensure-executable slurm-start slurm-stop slurm-restart slurm-status slurm-fix slurm-resume slurm-reset crossref-status crossref-check crossref-rebuild-check crossref-next-steps crossref-create-title-index crossref-create-author-index info regenerate-gallery,$(MAKECMDGOALS)),)
+    ifneq ($(filter-out help status validate-docker stop-all force-stop-all format format-python format-web format-shell lint lint-web check-file-sizes check-assets check-host ensure-executable slurm-start slurm-stop slurm-restart slurm-status slurm-fix slurm-resume slurm-reset crossref-status crossref-check crossref-rebuild-check crossref-next-steps crossref-create-title-index crossref-create-author-index info regenerate-gallery sync-tests sync-tests-move sync-ts-tests sync-ts-tests-move setup-vitest test-ts test-ts-watch test-ts-ui test-ts-coverage setup-pytest setup-testing test-unit test-db test-api test-ui test-ui-headed test-python test-all test-status,$(MAKECMDGOALS)),)
       $(error ❌ ENV not specified! Use: make ENV=<dev|nas> <command>)
     endif
   endif
@@ -208,6 +227,33 @@ help:
 	@echo -e "  make ENV=<env> exec <cmd>         # Execute command in web container"
 	@echo -e "  make ENV=<env> list-envs          # List environment variables"
 	@echo -e "  make ensure-executable            # Ensure all scripts have +x permission"
+	@echo -e "  make sync-tests                   # Sync Python test stubs with apps/"
+	@echo -e "  make sync-tests-move              # Sync Python tests, move stale files"
+	@echo -e "  make sync-ts-tests                # Sync TypeScript test stubs"
+	@echo -e "  make sync-ts-tests-move           # Sync TS tests, move stale files"
+	@echo -e ""
+	@echo -e "$(CYAN)🧪 Testing:$(NC)"
+	@echo -e "  make setup-testing                # Install all test dependencies"
+	@echo -e "  make setup-pytest                 # Install Python testing (pytest + playwright)"
+	@echo -e "  make setup-vitest                 # Install TypeScript testing (vitest)"
+	@echo -e ""
+	@echo -e "$(CYAN)🐍 Python Testing:$(NC)"
+	@echo -e "  make test-unit                    # Run unit tests (no DB)"
+	@echo -e "  make test-db                      # Run database tests"
+	@echo -e "  make test-api                     # Run API endpoint tests"
+	@echo -e "  make test-ui                      # Run UI tests (headless)"
+	@echo -e "  make test-ui-headed               # Run UI tests (visible browser)"
+	@echo -e "  make test-python                  # Run all Python tests"
+	@echo -e ""
+	@echo -e "$(CYAN)📘 TypeScript Testing:$(NC)"
+	@echo -e "  make test-ts                      # Run TypeScript tests (single run)"
+	@echo -e "  make test-ts-watch                # Run tests in watch mode"
+	@echo -e "  make test-ts-ui                   # Open Vitest visual UI"
+	@echo -e "  make test-ts-coverage             # Run tests with coverage report"
+	@echo -e ""
+	@echo -e "$(CYAN)🚀 All Tests:$(NC)"
+	@echo -e "  make test-all                     # Run all tests (Python + TypeScript)"
+	@echo -e "  make test-status                  # Show test infrastructure status"
 	@echo -e ""
 	@echo -e "$(CYAN)✨ Code Quality:$(NC)"
 	@echo -e "  make lint                         # Check code without changes (SAFE - read-only)"
@@ -495,6 +541,97 @@ test-e2e-specific: validate
 	fi
 	@echo -e "$(CYAN)🎭 Running specific E2E test: $(TEST) ($(ENV))...$(NC)"
 	@cd $(DOCKER_DIR) && $(MAKE) -f Makefile test-e2e-specific TEST=$(TEST)
+
+# Test Synchronization (mirrors apps/ -> tests/apps/)
+sync-tests:
+	@echo -e "$(CYAN)🔄 Synchronizing test files with source...$(NC)"
+	@./scripts/testing/sync_tests_with_source.sh $(if $(MOVE),-m,)
+	@echo -e "$(GREEN)✅ Test sync complete$(NC)"
+
+sync-tests-move:
+	@echo -e "$(CYAN)🔄 Synchronizing tests and moving stale files...$(NC)"
+	@./scripts/testing/sync_tests_with_source.sh -m
+	@echo -e "$(GREEN)✅ Test sync complete (stale files moved)$(NC)"
+
+# TypeScript Test Synchronization (mirrors apps/*/static/*/ts/ -> tests/ts/)
+sync-ts-tests:
+	@echo -e "$(CYAN)🔄 Synchronizing TypeScript test files with source...$(NC)"
+	@./scripts/testing/sync_ts_tests_with_source.sh $(if $(MOVE),-m,)
+	@echo -e "$(GREEN)✅ TypeScript test sync complete$(NC)"
+
+sync-ts-tests-move:
+	@echo -e "$(CYAN)🔄 Synchronizing TS tests and moving stale files...$(NC)"
+	@./scripts/testing/sync_ts_tests_with_source.sh -m
+	@echo -e "$(GREEN)✅ TypeScript test sync complete (stale files moved)$(NC)"
+
+# TypeScript Testing with Vitest
+setup-vitest:
+	@echo -e "$(CYAN)🔧 Setting up Vitest testing infrastructure...$(NC)"
+	@./scripts/testing/setup_vitest.sh
+	@echo -e "$(GREEN)✅ Vitest setup complete$(NC)"
+
+test-ts:
+	@if ! npm list vitest --depth=0 >/dev/null 2>&1; then \
+		echo -e "$(RED)❌ Vitest not installed. Run: make setup-vitest$(NC)"; \
+		exit 1; \
+	fi
+	@echo -e "$(CYAN)🧪 Running TypeScript tests...$(NC)"
+	@npm run test:run
+
+test-ts-watch:
+	@if ! npm list vitest --depth=0 >/dev/null 2>&1; then \
+		echo -e "$(RED)❌ Vitest not installed. Run: make setup-vitest$(NC)"; \
+		exit 1; \
+	fi
+	@echo -e "$(CYAN)🧪 Running TypeScript tests (watch mode)...$(NC)"
+	@npm run test
+
+test-ts-ui:
+	@if ! npm list vitest --depth=0 >/dev/null 2>&1; then \
+		echo -e "$(RED)❌ Vitest not installed. Run: make setup-vitest$(NC)"; \
+		exit 1; \
+	fi
+	@echo -e "$(CYAN)🧪 Opening Vitest UI...$(NC)"
+	@npm run test:ui
+
+test-ts-coverage:
+	@if ! npm list vitest --depth=0 >/dev/null 2>&1; then \
+		echo -e "$(RED)❌ Vitest not installed. Run: make setup-vitest$(NC)"; \
+		exit 1; \
+	fi
+	@echo -e "$(CYAN)🧪 Running TypeScript tests with coverage...$(NC)"
+	@npm run test:coverage
+
+# Python Testing with Pytest
+setup-pytest:
+	@./scripts/testing/setup_pytest.sh
+
+setup-testing: setup-pytest setup-vitest
+	@echo -e "$(GREEN)✅ All testing infrastructure setup complete$(NC)"
+
+test-unit:
+	@./scripts/testing/run_tests.sh unit
+
+test-db:
+	@./scripts/testing/run_tests.sh db
+
+test-api:
+	@./scripts/testing/run_tests.sh api
+
+test-ui:
+	@./scripts/testing/run_tests.sh ui
+
+test-ui-headed:
+	@./scripts/testing/run_tests.sh ui --headed
+
+test-python:
+	@./scripts/testing/run_tests.sh python
+
+test-all:
+	@./scripts/testing/run_tests.sh all
+
+test-status:
+	@./scripts/testing/run_tests.sh --check
 
 # ============================================
 # Database Commands
