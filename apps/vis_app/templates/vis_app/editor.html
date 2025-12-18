@@ -99,7 +99,7 @@
                             <div class="data-dropdown-menu" id="data-dropdown-menu">
                                 <!-- Dropdown items will be inserted here by DataTabManager -->
                             </div>
-                            <button class="data-new-btn" id="data-tab-new" title="New data table (Ctrl+T)">
+                            <button class="data-new-btn" id="data-tab-new" title="New data table">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
@@ -166,7 +166,7 @@
                             <div class="figure-dropdown-menu" id="figure-dropdown-menu">
                                 <!-- Dropdown items will be inserted here by CanvasTabManager -->
                             </div>
-                            <button class="figure-new-btn" id="canvas-tab-new" title="New figure (Ctrl+Shift+T)">
+                            <button class="figure-new-btn" id="canvas-tab-new" title="New figure">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
@@ -354,11 +354,109 @@
                 <div class="selected-item-label">Select an item from the tree to view properties</div>
             </div>
 
-            <div class="properties-content">
-                <!-- Dynamic Properties Panel -->
-                <div id="dynamic-properties" class="dynamic-properties">
-                    <!-- Content will be dynamically populated based on selection -->
+            <!-- Properties Tabs -->
+            <div class="properties-tabs">
+                <button class="properties-tab active" data-tab="current">
+                    <i class="fas fa-edit"></i> Current
+                </button>
+                <button class="properties-tab" data-tab="defaults">
+                    <i class="fas fa-palette"></i> Preset
+                </button>
+            </div>
 
+            <div class="properties-content">
+                <!-- Current Properties Tab Content -->
+                <div id="tab-current" class="properties-tab-content active">
+                    <div id="dynamic-properties" class="dynamic-properties">
+                        <!-- Content will be dynamically populated based on selection -->
+                    </div>
+                </div>
+
+                <!-- Defaults Tab Content -->
+                <div id="tab-defaults" class="properties-tab-content">
+                    <div id="defaults-properties" class="defaults-properties">
+                        <!-- Live Figure Preview -->
+                        <div class="preset-visual-guide preset-figure-preview">
+                            <div class="blueprint-title">
+                                <span>
+                                    <i class="fas fa-chart-line"></i> Style Preview
+                                </span>
+                                <button id="preview-refresh-btn" class="preview-refresh-btn" title="Refresh preview">
+                                    <i class="fas fa-sync-alt"></i> Refresh
+                                </button>
+                            </div>
+                            <div class="figure-preview-container">
+                                <img id="live-preview-image" alt="Style Preview" style="display: none; max-width: 100%; height: auto;"/>
+                                <div id="preview-loading-overlay" class="preview-loading" style="display: none;">
+                                    <i class="fas fa-spinner fa-spin"></i> Rendering...
+                                </div>
+                                <div id="preview-placeholder" class="preview-placeholder">
+                                    <i class="fas fa-image"></i>
+                                    <span>Click Refresh to see preview</span>
+                                </div>
+                            </div>
+                            <!-- Quick label editors below preview -->
+                            <div class="preview-label-editors">
+                                <div class="label-editor-row">
+                                    <label>Title</label>
+                                    <input id="diagram-title-input" type="text" value="Title" data-field="title" placeholder="Figure title"/>
+                                </div>
+                                <div class="label-editor-row">
+                                    <label>X Label</label>
+                                    <input id="diagram-xlabel-input" type="text" value="X Label" data-field="xlabel" placeholder="X-axis label"/>
+                                </div>
+                                <div class="label-editor-row">
+                                    <label>Y Label</label>
+                                    <input id="diagram-ylabel-input" type="text" value="Y Label" data-field="ylabel" placeholder="Y-axis label"/>
+                                </div>
+                            </div>
+                            <div class="preview-info">
+                                <span id="preview-timestamp">Click Refresh to see live matplotlib preview</span>
+                            </div>
+                        </div>
+
+                        <!-- Preset Selector & Actions -->
+                        <div class="preset-controls">
+                            <div class="preset-selector-row">
+                                <label class="property-label">Style Preset</label>
+                                <select id="preset-selector" class="property-select">
+                                    <option value="">SciTeX Default</option>
+                                </select>
+                            </div>
+                            <div class="preset-actions">
+                                <button id="preset-save-btn" class="scitex-btn scitex-btn-secondary" title="Save to account storage">
+                                    <i class="fas fa-save"></i> Save
+                                </button>
+                                <button id="preset-import-btn" class="scitex-btn scitex-btn-secondary" title="Import YAML from file">
+                                    <i class="fas fa-file-import"></i> Import
+                                </button>
+                                <button id="preset-export-btn" class="scitex-btn scitex-btn-secondary" title="Export current preset as YAML">
+                                    <i class="fas fa-file-export"></i> Export
+                                </button>
+                                <button id="preset-apply-btn" class="scitex-btn scitex-btn-primary" title="Apply changes and refresh preview">
+                                    <i class="fas fa-check"></i> Apply
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- YAML Configuration Editor -->
+                        <div class="preset-yaml-editor">
+                            <label class="property-label">
+                                <i class="fas fa-code"></i> YAML Configuration
+                            </label>
+                            <textarea id="preset-yaml-textarea" class="preset-yaml-textarea" spellcheck="false"></textarea>
+                            <div class="yaml-status" id="yaml-status">
+                                <i class="fas fa-info-circle"></i> Edit YAML and click Apply to update preview
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hidden file input for YAML import -->
+                <input type="file" id="yaml-import-input" accept=".yaml,.yml" style="display: none;">
+
+                <!-- Templates Section (shared across tabs) -->
+                <div id="property-templates" style="display: none;">
                     <!-- Figure Properties Template (hidden) -->
                     <template id="template-figure-props">
                         <div class="property-group">
@@ -516,6 +614,7 @@
                         </div>
                     </template>
                 </div>
+                <!-- End of Templates Section -->
             </div>
         </div>
     </div>
