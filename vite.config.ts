@@ -148,6 +148,9 @@ export default defineConfig({
         'public_app/landing-demos-inline': resolve(__dirname, 'apps/public_app/static/public_app/ts/landing-demos-inline.ts'),
         'public_app/landing/module-cards': resolve(__dirname, 'apps/public_app/static/public_app/ts/landing/module-cards.ts'),
         'public_app/tools/plot-viewer/index': resolve(__dirname, 'apps/public_app/static/public_app/ts/tools/plot-viewer/index.ts'),
+        'public_app/tools/image-viewer': resolve(__dirname, 'apps/public_app/static/public_app/ts/tools/image-viewer.ts'),
+        'public_app/pages/api-docs': resolve(__dirname, 'apps/public_app/static/public_app/ts/pages/api-docs.ts'),
+        'public_app/pages/release-timeline': resolve(__dirname, 'apps/public_app/static/public_app/ts/pages/release-timeline.ts'),
 
         // Accounts app
         'accounts_app/profile': resolve(__dirname, 'apps/accounts_app/static/accounts_app/ts/profile.ts'),
