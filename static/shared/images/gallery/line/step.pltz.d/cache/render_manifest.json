@@ -3,7 +3,7 @@
     "name": "scitex.plt.render_manifest",
     "version": "1.0.0"
   },
-  "source_hash": "2533e16951a47862:b9c6ff4695d1ddd0",
+  "source_hash": "189d7d5e5e140491:b9c6ff4695d1ddd0",
   "panel_size_mm": [
     80.0,
     68.0
@@ -18,7 +18,7 @@
     252
   ],
   "crop_margin_mm": 1.0,
-  "rendered_at": "2025-12-16T12:06:47.508816",
+  "rendered_at": "2025-12-17T10:50:27.671084",
   "scitex_schema": "scitex.plt.render_manifest",
   "scitex_schema_version": "1.0.0"
 }

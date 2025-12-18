@@ -6,11 +6,11 @@
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:date>2025-12-16T12:07:10.364817</dc:date>
+    <dc:date>2025-12-17T10:50:40.770079</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
-      <dc:title>Matplotlib v3.10.7, https://matplotlib.org/</dc:title>
+      <dc:title>Matplotlib v3.10.8, https://matplotlib.org/</dc:title>
      </cc:Agent>
     </dc:creator>
    </cc:Work>
@@ -243,7 +243,7 @@ L 35.335721 88.13843
 L 34.294529 87.87596 
 L 33.253337 89.882427 
 z
-" clip-path="url(#p8f50d6c3e6)" style="fill: #0080bf; fill-opacity: 0.3"/>
+" clip-path="url(#p70afd251f8)" style="fill: #0080bf; fill-opacity: 0.3"/>
    </g>
    <g id="line2d_1">
     <path d="M 33.253337 92.820627 
@@ -346,18 +346,18 @@ L 133.207784 30.001081
 L 134.248977 30.720539 
 L 135.290169 28.115004 
 L 136.331361 26.753138 
-" clip-path="url(#p8f50d6c3e6)" style="fill: none; stroke: #0080bf; stroke-opacity: 0.3; stroke-width: 0.56693; stroke-linecap: square"/>
+" clip-path="url(#p70afd251f8)" style="fill: none; stroke: #0080bf; stroke-opacity: 0.3; stroke-width: 0.56693; stroke-linecap: square"/>
    </g>
    <g id="matplotlib.axis_1">
     <g id="xtick_1">
      <g id="line2d_2">
       <defs>
-       <path id="m11924dbe00" d="M 0 0 
+       <path id="m521c62df12" d="M 0 0 
 L 0 2.267717 
 " style="stroke: #000000; stroke-width: 0.566929"/>
       </defs>
       <g>
-       <use xlink:href="#m11924dbe00" x="33.253337" y="98.393829" style="stroke: #000000; stroke-width: 0.566929"/>
+       <use xlink:href="#m521c62df12" x="33.253337" y="98.393829" style="stroke: #000000; stroke-width: 0.566929"/>
       </g>
      </g>
      <g id="text_1">
@@ -397,7 +397,7 @@ z
     <g id="xtick_2">
      <g id="line2d_3">
       <g>
-       <use xlink:href="#m11924dbe00" x="74.901023" y="98.393829" style="stroke: #000000; stroke-width: 0.566929"/>
+       <use xlink:href="#m521c62df12" x="74.901023" y="98.393829" style="stroke: #000000; stroke-width: 0.566929"/>
       </g>
      </g>
      <g id="text_2">
@@ -432,7 +432,7 @@ z
     <g id="xtick_3">
      <g id="line2d_4">
       <g>
-       <use xlink:href="#m11924dbe00" x="116.54871" y="98.393829" style="stroke: #000000; stroke-width: 0.566929"/>
+       <use xlink:href="#m521c62df12" x="116.54871" y="98.393829" style="stroke: #000000; stroke-width: 0.566929"/>
       </g>
      </g>
      <g id="text_3">
@@ -591,12 +591,12 @@ z
     <g id="ytick_1">
      <g id="line2d_5">
       <defs>
-       <path id="m867651eb21" d="M 0 0 
+       <path id="m0a53b59158" d="M 0 0 
 L -2.267717 0 
 " style="stroke: #000000; stroke-width: 0.566929"/>
       </defs>
       <g>
-       <use xlink:href="#m867651eb21" x="28.099435" y="80.293525" style="stroke: #000000; stroke-width: 0.566929"/>
+       <use xlink:href="#m0a53b59158" x="28.099435" y="80.293525" style="stroke: #000000; stroke-width: 0.566929"/>
       </g>
      </g>
      <g id="text_5">
@@ -670,7 +670,7 @@ z
     <g id="ytick_2">
      <g id="line2d_6">
       <g>
-       <use xlink:href="#m867651eb21" x="28.099435" y="54.556601" style="stroke: #000000; stroke-width: 0.566929"/>
+       <use xlink:href="#m0a53b59158" x="28.099435" y="54.556601" style="stroke: #000000; stroke-width: 0.566929"/>
       </g>
      </g>
      <g id="text_6">
@@ -685,7 +685,7 @@ z
     <g id="ytick_3">
      <g id="line2d_7">
       <g>
-       <use xlink:href="#m867651eb21" x="28.099435" y="28.819676" style="stroke: #000000; stroke-width: 0.566929"/>
+       <use xlink:href="#m0a53b59158" x="28.099435" y="28.819676" style="stroke: #000000; stroke-width: 0.566929"/>
       </g>
      </g>
      <g id="text_7">
@@ -1062,7 +1062,7 @@ L 141.485262 98.393829
   </g>
  </g>
  <defs>
-  <clipPath id="p8f50d6c3e6">
+  <clipPath id="p70afd251f8">
    <rect x="28.099435" y="19.02375" width="113.385827" height="79.370079"/>
   </clipPath>
  </defs>

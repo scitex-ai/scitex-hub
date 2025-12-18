@@ -92,5 +92,5 @@ stx.plt.io.regenerate_cache("/app/static/shared/images/gallery/categorical/stx_v
 
 ---
 
-*Generated: 2025-12-16 12:08:42*
+*Generated: 2025-12-17 10:51:33*
 *Schema: scitex.plt v1.0.0*
