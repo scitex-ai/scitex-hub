@@ -206,16 +206,20 @@ def export_figz_image(request):
     """
     Generate and download a composite figure image from figz bundle.
 
-    Delegates to scitex.io.bundle for actual compositing logic.
+    Delegates to scitex.fig.io for actual compositing logic.
 
     Query params:
-        path: Filesystem path to .figz.d directory
+        path: Filesystem path to .figz or .figz.d bundle
         format: Output format (png, jpg, pdf) - default: png
         dpi: Resolution in DPI (default: 300)
+        project_owner: (optional) Project owner for path resolution
+        project_slug: (optional) Project slug for path resolution
 
     Returns:
         Image file download
     """
+    from ._path_helpers import resolve_bundle_path
+
     bundle_path = request.GET.get("path")
     output_format = request.GET.get("format", "png").lower()
     dpi = int(request.GET.get("dpi", 300))
@@ -223,23 +227,59 @@ def export_figz_image(request):
     if not bundle_path:
         return JsonResponse({"error": "path parameter required"}, status=400)
 
+    logger.info(f"[export_figz_image] Requested path: {bundle_path}")
+
+    # Resolve relative paths using project context
+    resolved_path = resolve_bundle_path(
+        bundle_path,
+        project_owner=request.GET.get("project_owner"),
+        project_slug=request.GET.get("project_slug"),
+        user=request.user,
+    )
+    bundle_path = resolved_path
+
+    logger.info(f"[export_figz_image] Resolved path: {bundle_path}")
+
+    # Check if path exists (try both .figz and .figz.d)
+    if not bundle_path.exists():
+        # Try .figz.d variant
+        figz_d_path = Path(str(bundle_path) + ".d")
+        if figz_d_path.exists():
+            bundle_path = figz_d_path
+        else:
+            logger.error(f"[export_figz_image] Bundle not found: {bundle_path}")
+            return JsonResponse({"error": f"Bundle not found: {bundle_path}"}, status=404)
+
+    logger.info(f"[export_figz_image] Final path: {bundle_path}, format={output_format}, dpi={dpi}")
+
     try:
         # Delegate to scitex.fig.io for compositing
         from scitex.fig.io import export_figz_bundle
 
-        image_bytes = export_figz_bundle(bundle_path, output_format=output_format, dpi=dpi)
+        image_bytes = export_figz_bundle(str(bundle_path), output_format=output_format, dpi=dpi)
 
-        bundle_name = Path(bundle_path).name.replace('.figz.d', '').replace('.figz', '')
+        if not image_bytes:
+            logger.error("[export_figz_image] export_figz_bundle returned empty bytes")
+            return JsonResponse({"error": "Export returned empty result"}, status=500)
+
+        bundle_name = bundle_path.name.replace('.figz.d', '').replace('.figz', '')
         ext = "jpg" if output_format in ("jpg", "jpeg") else output_format
         content_types = {"png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg", "pdf": "application/pdf"}
 
         response = HttpResponse(image_bytes, content_type=content_types.get(output_format, "image/png"))
         response['Content-Disposition'] = f'attachment; filename="{bundle_name}.{ext}"'
+        logger.info(f"[export_figz_image] Successfully exported {len(image_bytes)} bytes as {output_format}")
         return response
 
-    except ImportError:
-        logger.error("[export_figz_image] scitex.fig.io.export_figz_bundle not available")
+    except ImportError as e:
+        logger.error(f"[export_figz_image] scitex.fig.io.export_figz_bundle not available: {e}")
         return JsonResponse({"error": "scitex.fig.io.export_figz_bundle not available"}, status=500)
+    except FileNotFoundError as e:
+        logger.error(f"[export_figz_image] File not found: {e}")
+        return JsonResponse({"error": str(e)}, status=404)
+    except ValueError as e:
+        logger.error(f"[export_figz_image] Invalid input: {e}")
+        return JsonResponse({"error": str(e)}, status=400)
     except Exception as e:
-        logger.exception(f"Failed to export figz image: {e}")
+        logger.exception(f"[export_figz_image] Failed to export figz image: {e}")
         return JsonResponse({"error": str(e)}, status=500)
