@@ -1,74 +1,25 @@
 /**
  * Citation Graph Visualization
  * Interactive force-directed network visualization for citation relationships
+ *
+ * Refactored: Extracted ForceSimulation, GraphRenderer, and types for maintainability.
  */
 
-interface CitationGraphConfig {
-  urls: {
-    buildNetwork: string;
-    relatedPapers: string;
-    paperSummary: string;
-    health: string;
-  };
-}
-
-interface NetworkNode {
-  id: string;
-  title: string;
-  year: number;
-  authors: string[];
-  is_seed: boolean;
-  similarity_score?: number;
-  x?: number;
-  y?: number;
-  vx?: number;
-  vy?: number;
-  fx?: number | null;
-  fy?: number | null;
-}
-
-interface NetworkEdge {
-  source: string | NetworkNode;
-  target: string | NetworkNode;
-  weight: number;
-  type: string;
-}
-
-interface NetworkData {
-  seed: string;
-  nodes: NetworkNode[];
-  edges: NetworkEdge[];
-  metadata: {
-    top_n: number;
-    weights: Record<string, number>;
-    cached: boolean;
-  };
-}
-
-interface RelatedPaper {
-  id: string;
-  title: string;
-  year: number;
-  authors: string[];
-  similarity_score: number;
-}
-
-interface Transform {
-  x: number;
-  y: number;
-  k: number;
-}
-
-declare const window: Window & {
-  CITATION_GRAPH_CONFIG?: CitationGraphConfig;
-};
+import type {
+  CitationGraphConfig,
+  NetworkNode,
+  NetworkEdge,
+  NetworkData,
+  RelatedPaper,
+  Transform
+} from './types';
+import { GraphRenderer } from './GraphRenderer';
 
 class CitationGraphManager {
   private config: CitationGraphConfig;
   private currentData: NetworkData | null = null;
-  private svg: SVGSVGElement | null = null;
+  private renderer: GraphRenderer;
   private transform: Transform = { x: 0, y: 0, k: 1 };
-  private simulation: ForceSimulation | null = null;
   private isDragging = false;
   private selectedNode: NetworkNode | null = null;
 
@@ -79,6 +30,15 @@ class CitationGraphManager {
       return;
     }
     this.config = config;
+
+    this.renderer = new GraphRenderer({
+      onNodeHover: (node, el) => this.showNodeTooltip(node, el),
+      onNodeLeave: () => this.hideNodeTooltip(),
+      onNodeClick: (node) => this.selectNode(node),
+      onNodeDragStart: (e, node) => this.startNodeDrag(e, node),
+      getDepthColor: () => '#3B82F6'
+    });
+
     this.init();
   }
 
@@ -89,24 +49,11 @@ class CitationGraphManager {
 
   private bindEvents(): void {
     const form = document.getElementById('graphForm');
-    if (form) {
-      form.addEventListener('submit', (e) => this.handleSubmit(e));
-    }
+    form?.addEventListener('submit', (e) => this.handleSubmit(e));
 
-    const resetBtn = document.getElementById('resetZoomBtn');
-    if (resetBtn) {
-      resetBtn.addEventListener('click', () => this.resetView());
-    }
-
-    const downloadBtn = document.getElementById('downloadSvgBtn');
-    if (downloadBtn) {
-      downloadBtn.addEventListener('click', () => this.downloadSvg());
-    }
-
-    const fitBtn = document.getElementById('fitViewBtn');
-    if (fitBtn) {
-      fitBtn.addEventListener('click', () => this.fitToView());
-    }
+    document.getElementById('resetZoomBtn')?.addEventListener('click', () => this.resetView());
+    document.getElementById('downloadSvgBtn')?.addEventListener('click', () => this.downloadSvg());
+    document.getElementById('fitViewBtn')?.addEventListener('click', () => this.fitToView());
   }
 
   private async fetchWithTimeout(url: string, timeoutMs: number = 120000): Promise<Response> {
@@ -134,30 +81,11 @@ class CitationGraphManager {
       const response = await fetch(this.config.urls.health);
       const data = await response.json();
 
-      if (data.status === 'healthy') {
-        statusEl.innerHTML = `
-          <div class="status-indicator status-healthy">
-            <i class="fas fa-check-circle"></i>
-            <span>Service available</span>
-          </div>
-        `;
-      } else {
-        statusEl.innerHTML = `
-          <div class="status-indicator status-warning">
-            <i class="fas fa-exclamation-triangle"></i>
-            <span>Service limited</span>
-          </div>
-          <small class="status-detail">${data.error || 'Unknown status'}</small>
-        `;
-      }
+      statusEl.innerHTML = data.status === 'healthy'
+        ? `<div class="status-indicator status-healthy"><i class="fas fa-check-circle"></i><span>Service available</span></div>`
+        : `<div class="status-indicator status-warning"><i class="fas fa-exclamation-triangle"></i><span>Service limited</span></div><small class="status-detail">${data.error || 'Unknown status'}</small>`;
     } catch {
-      statusEl.innerHTML = `
-        <div class="status-indicator status-error">
-          <i class="fas fa-times-circle"></i>
-          <span>Service unavailable</span>
-        </div>
-        <small class="status-detail">Could not connect to citation graph service</small>
-      `;
+      statusEl.innerHTML = `<div class="status-indicator status-error"><i class="fas fa-times-circle"></i><span>Service unavailable</span></div><small class="status-detail">Could not connect to citation graph service</small>`;
     }
   }
 
@@ -180,7 +108,7 @@ class CitationGraphManager {
 
     try {
       const networkUrl = `${this.config.urls.buildNetwork}?doi=${encodeURIComponent(doi)}&top_n=${topN}`;
-      const networkResponse = await this.fetchWithTimeout(networkUrl, 120000); // 120 second timeout
+      const networkResponse = await this.fetchWithTimeout(networkUrl, 120000);
 
       if (!networkResponse.ok) {
         const errorData = await networkResponse.json();
@@ -192,12 +120,10 @@ class CitationGraphManager {
 
       this.renderGraph(networkData);
       await this.fetchRelatedPapers(doi, topN);
-
     } catch (err) {
       console.error('Error building citation network:', err);
-      this.showError(err instanceof Error ? err.message : 'An error occurred while building the network');
+      this.showError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
-      // Always hide loading spinner, even if there's an error
       this.showLoading(false);
     }
   }
@@ -218,198 +144,14 @@ class CitationGraphManager {
         : 'Citation Network';
     }
 
-    this.renderForceGraph(canvas, data);
+    this.renderer.render(canvas, data.nodes, data.edges);
+    this.setupZoomPan(canvas);
   }
 
-  private renderForceGraph(container: HTMLElement, data: NetworkData): void {
-    const width = container.clientWidth || 800;
-    const height = container.clientHeight || 500;
+  private setupZoomPan(container: HTMLElement): void {
+    const svg = this.renderer.getSvg();
+    if (!svg) return;
 
-    // Clear previous
-    container.innerHTML = '';
-
-    // Create SVG
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('width', '100%');
-    svg.setAttribute('height', '100%');
-    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-    svg.id = 'citationGraphSvg';
-    svg.classList.add('citation-graph-svg');
-    this.svg = svg;
-
-    // Main group for zoom/pan
-    const mainGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    mainGroup.id = 'graphMainGroup';
-
-    // Defs for gradients and markers
-    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-
-    // Arrow marker for directed edges
-    const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
-    marker.setAttribute('id', 'arrowhead');
-    marker.setAttribute('viewBox', '0 -5 10 10');
-    marker.setAttribute('refX', '20');
-    marker.setAttribute('refY', '0');
-    marker.setAttribute('markerWidth', '6');
-    marker.setAttribute('markerHeight', '6');
-    marker.setAttribute('orient', 'auto');
-
-    const arrowPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    arrowPath.setAttribute('d', 'M0,-5L10,0L0,5');
-    arrowPath.setAttribute('fill', 'var(--graph-edge-color, #3a3a3a)');
-    marker.appendChild(arrowPath);
-    defs.appendChild(marker);
-    svg.appendChild(defs);
-
-    // Edge group
-    const edgeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    edgeGroup.setAttribute('class', 'graph-edges');
-
-    // Node group
-    const nodeGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    nodeGroup.setAttribute('class', 'graph-nodes');
-
-    mainGroup.appendChild(edgeGroup);
-    mainGroup.appendChild(nodeGroup);
-    svg.appendChild(mainGroup);
-    container.appendChild(svg);
-
-    // Initialize node positions
-    const centerX = width / 2;
-    const centerY = height / 2;
-
-    data.nodes.forEach((node, i) => {
-      if (node.is_seed) {
-        node.x = centerX;
-        node.y = centerY;
-        node.fx = centerX;
-        node.fy = centerY;
-      } else {
-        const angle = (2 * Math.PI * i) / data.nodes.length;
-        const radius = Math.min(width, height) * 0.3;
-        node.x = centerX + radius * Math.cos(angle);
-        node.y = centerY + radius * Math.sin(angle);
-      }
-      node.vx = 0;
-      node.vy = 0;
-    });
-
-    // Create node map for edge lookups
-    const nodeMap = new Map(data.nodes.map(n => [n.id, n]));
-
-    // Resolve edge references
-    const resolvedEdges = data.edges.map(e => ({
-      ...e,
-      source: typeof e.source === 'string' ? nodeMap.get(e.source)! : e.source,
-      target: typeof e.target === 'string' ? nodeMap.get(e.target)! : e.target,
-    })).filter(e => e.source && e.target);
-
-    // Run force simulation
-    this.simulation = new ForceSimulation(data.nodes, resolvedEdges, width, height);
-    this.simulation.onTick(() => this.updateGraphPositions(edgeGroup, nodeGroup, data.nodes, resolvedEdges));
-    this.simulation.start();
-
-    // Add zoom/pan behavior
-    this.setupZoomPan(svg, mainGroup, width, height);
-
-    // Initial render
-    this.createGraphElements(edgeGroup, nodeGroup, data.nodes, resolvedEdges);
-  }
-
-  private createGraphElements(
-    edgeGroup: SVGGElement,
-    nodeGroup: SVGGElement,
-    nodes: NetworkNode[],
-    edges: NetworkEdge[]
-  ): void {
-    // Create edges
-    edges.forEach((edge) => {
-      const source = edge.source as NetworkNode;
-      const target = edge.target as NetworkNode;
-
-      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      line.setAttribute('class', `graph-edge edge-${edge.type}`);
-      line.setAttribute('data-source', source.id);
-      line.setAttribute('data-target', target.id);
-      line.setAttribute('stroke-width', String(Math.max(1, Math.min(edge.weight / 20, 3))));
-      edgeGroup.appendChild(line);
-    });
-
-    // Create nodes
-    nodes.forEach((node) => {
-      const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      group.setAttribute('class', `graph-node ${node.is_seed ? 'node-seed' : 'node-related'}`);
-      group.setAttribute('data-id', node.id);
-
-      // Node circle
-      const radius = node.is_seed ? 16 : Math.max(8, Math.min(12, (node.similarity_score || 10) / 5));
-      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      circle.setAttribute('r', String(radius));
-      circle.setAttribute('class', 'node-circle');
-
-      // Year indicator ring
-      const yearRing = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      yearRing.setAttribute('r', String(radius + 3));
-      yearRing.setAttribute('class', 'node-year-ring');
-      yearRing.setAttribute('fill', 'none');
-      yearRing.setAttribute('stroke-width', '2');
-
-      group.appendChild(yearRing);
-      group.appendChild(circle);
-
-      // Label for seed
-      if (node.is_seed) {
-        const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        label.setAttribute('class', 'node-label');
-        label.setAttribute('dy', String(radius + 16));
-        label.setAttribute('text-anchor', 'middle');
-        label.textContent = 'SEED';
-        group.appendChild(label);
-      }
-
-      // Interaction handlers
-      group.addEventListener('mouseenter', () => this.showNodeTooltip(node, group));
-      group.addEventListener('mouseleave', () => this.hideNodeTooltip());
-      group.addEventListener('click', () => this.selectNode(node));
-      group.addEventListener('mousedown', (e) => this.startNodeDrag(e, node));
-
-      nodeGroup.appendChild(group);
-    });
-  }
-
-  private updateGraphPositions(
-    edgeGroup: SVGGElement,
-    nodeGroup: SVGGElement,
-    nodes: NetworkNode[],
-    edges: NetworkEdge[]
-  ): void {
-    // Update edges
-    const lines = edgeGroup.querySelectorAll('line');
-    lines.forEach((line, i) => {
-      const edge = edges[i];
-      if (!edge) return;
-
-      const source = edge.source as NetworkNode;
-      const target = edge.target as NetworkNode;
-
-      line.setAttribute('x1', String(source.x || 0));
-      line.setAttribute('y1', String(source.y || 0));
-      line.setAttribute('x2', String(target.x || 0));
-      line.setAttribute('y2', String(target.y || 0));
-    });
-
-    // Update nodes
-    const nodeElements = nodeGroup.querySelectorAll('.graph-node');
-    nodeElements.forEach((el) => {
-      const nodeId = el.getAttribute('data-id');
-      const node = nodes.find(n => n.id === nodeId);
-      if (node) {
-        el.setAttribute('transform', `translate(${node.x || 0}, ${node.y || 0})`);
-      }
-    });
-  }
-
-  private setupZoomPan(svg: SVGSVGElement, mainGroup: SVGGElement, width: number, height: number): void {
     let isPanning = false;
     let startX = 0;
     let startY = 0;
@@ -422,12 +164,11 @@ class CitationGraphManager {
       const mouseY = e.clientY - rect.top;
 
       const newK = Math.max(0.1, Math.min(5, this.transform.k * scaleFactor));
-
       this.transform.x = mouseX - (mouseX - this.transform.x) * (newK / this.transform.k);
       this.transform.y = mouseY - (mouseY - this.transform.y) * (newK / this.transform.k);
       this.transform.k = newK;
 
-      this.applyTransform(mainGroup);
+      this.renderer.applyTransform(this.transform);
     });
 
     svg.addEventListener('mousedown', (e) => {
@@ -443,32 +184,20 @@ class CitationGraphManager {
       if (isPanning && !this.isDragging) {
         this.transform.x = e.clientX - startX;
         this.transform.y = e.clientY - startY;
-        this.applyTransform(mainGroup);
+        this.renderer.applyTransform(this.transform);
       }
     });
 
-    svg.addEventListener('mouseup', () => {
-      isPanning = false;
-      svg.style.cursor = 'grab';
-    });
-
-    svg.addEventListener('mouseleave', () => {
-      isPanning = false;
-      svg.style.cursor = 'grab';
-    });
-
+    svg.addEventListener('mouseup', () => { isPanning = false; svg.style.cursor = 'grab'; });
+    svg.addEventListener('mouseleave', () => { isPanning = false; svg.style.cursor = 'grab'; });
     svg.style.cursor = 'grab';
-  }
-
-  private applyTransform(group: SVGGElement): void {
-    group.setAttribute('transform', `translate(${this.transform.x}, ${this.transform.y}) scale(${this.transform.k})`);
   }
 
   private startNodeDrag(e: MouseEvent, node: NetworkNode): void {
     e.stopPropagation();
     this.isDragging = true;
 
-    const svg = this.svg!;
+    const svg = this.renderer.getSvg()!;
     const rect = svg.getBoundingClientRect();
 
     const onMouseMove = (moveEvent: MouseEvent) => {
@@ -478,7 +207,7 @@ class CitationGraphManager {
       node.fy = y;
       node.x = x;
       node.y = y;
-      this.simulation?.reheat();
+      this.renderer.getSimulation()?.reheat();
     };
 
     const onMouseUp = () => {
@@ -496,8 +225,7 @@ class CitationGraphManager {
   }
 
   private showNodeTooltip(node: NetworkNode, element: SVGGElement): void {
-    const existing = document.getElementById('graphTooltip');
-    if (existing) existing.remove();
+    document.getElementById('graphTooltip')?.remove();
 
     const tooltip = document.createElement('div');
     tooltip.id = 'graphTooltip';
@@ -513,26 +241,19 @@ class CitationGraphManager {
     `;
 
     document.body.appendChild(tooltip);
-
     const rect = element.getBoundingClientRect();
     tooltip.style.left = `${rect.left + rect.width / 2}px`;
     tooltip.style.top = `${rect.top - 10}px`;
   }
 
   private hideNodeTooltip(): void {
-    const tooltip = document.getElementById('graphTooltip');
-    if (tooltip) tooltip.remove();
+    document.getElementById('graphTooltip')?.remove();
   }
 
   private selectNode(node: NetworkNode): void {
     this.selectedNode = node;
-
-    // Update visual selection
     document.querySelectorAll('.graph-node').forEach(el => el.classList.remove('selected'));
-    const nodeEl = document.querySelector(`[data-id="${node.id}"]`);
-    if (nodeEl) nodeEl.classList.add('selected');
-
-    // Show node details in panel
+    document.querySelector(`[data-id="${node.id}"]`)?.classList.add('selected');
     this.showNodeDetails(node);
   }
 
@@ -553,11 +274,7 @@ class CitationGraphManager {
         <div class="detail-authors">${node.authors.join(', ')}</div>
         <div class="detail-year">Published: ${node.year}</div>
         ${node.similarity_score ? `<div class="detail-score">Similarity Score: <strong>${node.similarity_score.toFixed(2)}</strong></div>` : ''}
-        <div class="detail-doi">
-          <a href="https://doi.org/${node.id}" target="_blank" rel="noopener">
-            <i class="fas fa-external-link-alt"></i> View on DOI.org
-          </a>
-        </div>
+        <div class="detail-doi"><a href="https://doi.org/${node.id}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> View on DOI.org</a></div>
       </div>
     `;
   }
@@ -565,27 +282,22 @@ class CitationGraphManager {
   private async fetchRelatedPapers(doi: string, limit: number): Promise<void> {
     const container = document.getElementById('relatedPapersList');
     const content = document.getElementById('relatedPapersContent');
-
     if (!container || !content) return;
 
     try {
       const url = `${this.config.urls.relatedPapers}?doi=${encodeURIComponent(doi)}&limit=${limit}`;
-      const response = await this.fetchWithTimeout(url, 60000); // 60 second timeout
+      const response = await this.fetchWithTimeout(url, 60000);
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch related papers');
-      }
+      if (!response.ok) throw new Error('Failed to fetch related papers');
 
       const data = await response.json();
       const papers: RelatedPaper[] = data.related || [];
 
-      if (papers.length === 0) {
-        content.innerHTML = '<p class="empty-message">No related papers found</p>';
-      } else {
-        content.innerHTML = papers
-          .map((paper, index) => `
+      content.innerHTML = papers.length === 0
+        ? '<p class="empty-message">No related papers found</p>'
+        : papers.map((paper, i) => `
             <div class="related-paper-item" data-doi="${paper.id}">
-              <div class="paper-rank">${index + 1}</div>
+              <div class="paper-rank">${i + 1}</div>
               <div class="paper-info">
                 <div class="paper-title">${this.escapeHtml(paper.title)}</div>
                 <div class="paper-meta">
@@ -594,26 +306,21 @@ class CitationGraphManager {
                 </div>
               </div>
               <div class="paper-score">
-                <div class="score-bar">
-                  <div class="score-fill" style="width: ${Math.min(100, paper.similarity_score * 2)}%"></div>
-                </div>
+                <div class="score-bar"><div class="score-fill" style="width: ${Math.min(100, paper.similarity_score * 2)}%"></div></div>
                 <span class="score-value">${paper.similarity_score.toFixed(1)}</span>
               </div>
             </div>
-          `)
-          .join('');
+          `).join('');
 
-        // Add click handlers
-        content.querySelectorAll('.related-paper-item').forEach(item => {
-          item.addEventListener('click', () => {
-            const doi = item.getAttribute('data-doi');
-            if (doi && this.currentData) {
-              const node = this.currentData.nodes.find(n => n.id === doi);
-              if (node) this.selectNode(node);
-            }
-          });
+      content.querySelectorAll('.related-paper-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const paperDoi = item.getAttribute('data-doi');
+          if (paperDoi && this.currentData) {
+            const node = this.currentData.nodes.find(n => n.id === paperDoi);
+            if (node) this.selectNode(node);
+          }
         });
-      }
+      });
 
       container.classList.remove('hidden');
     } catch (err) {
@@ -640,7 +347,6 @@ class CitationGraphManager {
   private showError(message: string): void {
     const errorEl = document.getElementById('graphError');
     const messageEl = document.getElementById('graphErrorMessage');
-
     if (errorEl && messageEl) {
       messageEl.textContent = message;
       errorEl.classList.remove('hidden');
@@ -648,20 +354,19 @@ class CitationGraphManager {
   }
 
   private hideError(): void {
-    const errorEl = document.getElementById('graphError');
-    errorEl?.classList.add('hidden');
+    document.getElementById('graphError')?.classList.add('hidden');
   }
 
   private resetView(): void {
     this.transform = { x: 0, y: 0, k: 1 };
-    const mainGroup = document.getElementById('graphMainGroup');
-    if (mainGroup) {
-      this.applyTransform(mainGroup as unknown as SVGGElement);
-    }
+    this.renderer.applyTransform(this.transform);
   }
 
   private fitToView(): void {
-    if (!this.currentData || !this.svg) return;
+    if (!this.currentData) return;
+
+    const svg = this.renderer.getSvg();
+    if (!svg) return;
 
     const nodes = this.currentData.nodes;
     if (nodes.length === 0) return;
@@ -675,24 +380,16 @@ class CitationGraphManager {
     const graphWidth = maxX - minX + padding * 2;
     const graphHeight = maxY - minY + padding * 2;
 
-    const svgRect = this.svg.getBoundingClientRect();
-    const scaleX = svgRect.width / graphWidth;
-    const scaleY = svgRect.height / graphHeight;
-    const scale = Math.min(scaleX, scaleY, 2);
-
-    const centerX = (minX + maxX) / 2;
-    const centerY = (minY + maxY) / 2;
+    const svgRect = svg.getBoundingClientRect();
+    const scale = Math.min(svgRect.width / graphWidth, svgRect.height / graphHeight, 2);
 
     this.transform = {
-      x: svgRect.width / 2 - centerX * scale,
-      y: svgRect.height / 2 - centerY * scale,
+      x: svgRect.width / 2 - ((minX + maxX) / 2) * scale,
+      y: svgRect.height / 2 - ((minY + maxY) / 2) * scale,
       k: scale
     };
 
-    const mainGroup = document.getElementById('graphMainGroup');
-    if (mainGroup) {
-      this.applyTransform(mainGroup as unknown as SVGGElement);
-    }
+    this.renderer.applyTransform(this.transform);
   }
 
   private downloadSvg(): void {
@@ -716,151 +413,6 @@ class CitationGraphManager {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
-  }
-}
-
-/**
- * Simple force-directed simulation
- */
-class ForceSimulation {
-  private nodes: NetworkNode[];
-  private edges: NetworkEdge[];
-  private width: number;
-  private height: number;
-  private alpha = 1;
-  private alphaDecay = 0.02;
-  private alphaMin = 0.001;
-  private tickCallback: (() => void) | null = null;
-  private animationId: number | null = null;
-
-  constructor(nodes: NetworkNode[], edges: NetworkEdge[], width: number, height: number) {
-    this.nodes = nodes;
-    this.edges = edges;
-    this.width = width;
-    this.height = height;
-  }
-
-  onTick(callback: () => void): void {
-    this.tickCallback = callback;
-  }
-
-  start(): void {
-    this.alpha = 1;
-    this.tick();
-  }
-
-  stop(): void {
-    if (this.animationId) {
-      cancelAnimationFrame(this.animationId);
-      this.animationId = null;
-    }
-  }
-
-  reheat(): void {
-    this.alpha = Math.max(this.alpha, 0.3);
-    if (!this.animationId) {
-      this.tick();
-    }
-  }
-
-  private tick(): void {
-    if (this.alpha < this.alphaMin) {
-      this.animationId = null;
-      return;
-    }
-
-    this.applyForces();
-    this.alpha *= (1 - this.alphaDecay);
-
-    this.tickCallback?.();
-
-    this.animationId = requestAnimationFrame(() => this.tick());
-  }
-
-  private applyForces(): void {
-    const centerX = this.width / 2;
-    const centerY = this.height / 2;
-
-    // Reset velocities
-    this.nodes.forEach(node => {
-      if (node.fx !== null && node.fx !== undefined) {
-        node.x = node.fx;
-      }
-      if (node.fy !== null && node.fy !== undefined) {
-        node.y = node.fy;
-      }
-    });
-
-    // Repulsion force between all nodes
-    for (let i = 0; i < this.nodes.length; i++) {
-      for (let j = i + 1; j < this.nodes.length; j++) {
-        const a = this.nodes[i];
-        const b = this.nodes[j];
-
-        const dx = (b.x || 0) - (a.x || 0);
-        const dy = (b.y || 0) - (a.y || 0);
-        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-        const force = 500 / (dist * dist);
-
-        const fx = (dx / dist) * force * this.alpha;
-        const fy = (dy / dist) * force * this.alpha;
-
-        if (a.fx === null || a.fx === undefined) {
-          a.vx = (a.vx || 0) - fx;
-          a.vy = (a.vy || 0) - fy;
-        }
-        if (b.fx === null || b.fx === undefined) {
-          b.vx = (b.vx || 0) + fx;
-          b.vy = (b.vy || 0) + fy;
-        }
-      }
-    }
-
-    // Attraction force along edges
-    this.edges.forEach(edge => {
-      const source = edge.source as NetworkNode;
-      const target = edge.target as NetworkNode;
-
-      const dx = (target.x || 0) - (source.x || 0);
-      const dy = (target.y || 0) - (source.y || 0);
-      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-      const force = (dist - 100) * 0.05 * this.alpha;
-
-      const fx = (dx / dist) * force;
-      const fy = (dy / dist) * force;
-
-      if (source.fx === null || source.fx === undefined) {
-        source.vx = (source.vx || 0) + fx;
-        source.vy = (source.vy || 0) + fy;
-      }
-      if (target.fx === null || target.fx === undefined) {
-        target.vx = (target.vx || 0) - fx;
-        target.vy = (target.vy || 0) - fy;
-      }
-    });
-
-    // Centering force
-    this.nodes.forEach(node => {
-      if (node.fx === null || node.fx === undefined) {
-        node.vx = (node.vx || 0) + (centerX - (node.x || 0)) * 0.01 * this.alpha;
-        node.vy = (node.vy || 0) + (centerY - (node.y || 0)) * 0.01 * this.alpha;
-      }
-    });
-
-    // Apply velocities with damping
-    this.nodes.forEach(node => {
-      if (node.fx === null || node.fx === undefined) {
-        node.vx = (node.vx || 0) * 0.6;
-        node.vy = (node.vy || 0) * 0.6;
-        node.x = (node.x || 0) + (node.vx || 0);
-        node.y = (node.y || 0) + (node.vy || 0);
-
-        // Boundary constraints
-        const padding = 50;
-        node.x = Math.max(padding, Math.min(this.width - padding, node.x));
-        node.y = Math.max(padding, Math.min(this.height - padding, node.y));
-      }
-    });
   }
 }
 

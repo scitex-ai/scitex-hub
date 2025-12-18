@@ -1,0 +1,109 @@
+/**
+ * Citation Graph - States
+ * Loading, error, and empty states
+ */
+
+/* Loading State */
+.graph-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  background: var(--workspace-bg-secondary, #151515);
+  border: 1px solid var(--workspace-border-default, #3a3a3a);
+}
+
+.loading-spinner {
+  position: relative;
+  width: 60px;
+  height: 60px;
+}
+
+.spinner-ring {
+  position: absolute;
+  inset: 0;
+  border: 2px solid transparent;
+  border-top-color: var(--workspace-icon-primary, #059669);
+  border-radius: 50%;
+  animation: spinnerRotate 1.2s linear infinite;
+}
+
+.spinner-ring:nth-child(2) {
+  inset: 6px;
+  animation-delay: 0.15s;
+  border-top-color: rgba(5, 150, 105, 0.6);
+}
+
+.spinner-ring:nth-child(3) {
+  inset: 12px;
+  animation-delay: 0.3s;
+  border-top-color: rgba(5, 150, 105, 0.3);
+}
+
+@keyframes spinnerRotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-text {
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--text-muted, #6c8ba0);
+}
+
+/* Error State */
+.graph-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px;
+  text-align: center;
+  background: var(--workspace-bg-secondary, #151515);
+  border: 1px solid var(--workspace-border-default, #3a3a3a);
+}
+
+.graph-error i {
+  font-size: 48px;
+  color: #f59e0b;
+  margin-bottom: 16px;
+}
+
+.graph-error p {
+  font-size: 14px;
+  color: var(--text-primary, #d4e1e8);
+  margin-bottom: 16px;
+}
+
+.btn-retry {
+  padding: 8px 16px;
+  background: var(--workspace-bg-tertiary, #1a1a1a);
+  border: 1px solid var(--workspace-border-default, #3a3a3a);
+  color: var(--text-primary, #d4e1e8);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.btn-retry:hover {
+  border-color: var(--workspace-icon-primary, #059669);
+}
+
+/* Empty/Error Messages */
+.empty-message,
+.error-message {
+  padding: 24px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted, #6c8ba0);
+}
+
+.error-message {
+  color: #ef4444;
+}
+
+/* Hidden */
+.hidden {
+  display: none !important;
+}

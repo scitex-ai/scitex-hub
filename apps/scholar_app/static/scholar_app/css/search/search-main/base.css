@@ -1,0 +1,96 @@
+/**
+ * Search Main - Base Styles
+ * Results header, info, and toolbar
+ */
+
+/* Results Header */
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-muted, #3a3a3a);
+}
+
+.results-info {
+    font-size: 0.85rem;
+    color: var(--text-secondary, #9ca3af);
+}
+
+.results-count {
+    font-weight: 500;
+}
+
+.results-info-icon {
+    font-size: 0.7rem;
+    opacity: 0.6;
+    cursor: help;
+    margin-left: 0.25rem;
+}
+
+.results-info-icon:hover {
+    opacity: 1;
+}
+
+.results-source {
+    color: var(--text-muted, #6c8ba0);
+}
+
+.results-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Toolbar Buttons */
+.toolbar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-secondary, #9ca3af);
+    background: var(--bg-secondary, #1a1a1a);
+    border: 1px solid var(--border-color, #3a3a3a);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.toolbar-btn:hover:not(:disabled) {
+    color: var(--text-primary, #d4e1e8);
+    border-color: var(--scitex-color-04, #6c8ba0);
+    background: var(--bg-tertiary, #252525);
+}
+
+.toolbar-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.toolbar-btn--primary {
+    color: var(--workspace-icon-primary, #059669);
+    border-color: var(--workspace-icon-primary, #059669);
+}
+
+.toolbar-btn--primary:hover:not(:disabled) {
+    background: rgba(5, 150, 105, 0.15);
+    color: var(--workspace-icon-primary, #059669);
+}
+
+.toolbar-btn i {
+    font-size: 0.7rem;
+}
+
+[data-theme="light"] .toolbar-btn {
+    background: var(--bg-secondary, #f3f4f6);
+    border-color: var(--border-color, #d0d7de);
+    color: var(--text-secondary, #586069);
+}
+
+[data-theme="light"] .toolbar-btn:hover:not(:disabled) {
+    background: var(--bg-tertiary, #e9ecef);
+    color: var(--text-primary, #1a2a40);
+}

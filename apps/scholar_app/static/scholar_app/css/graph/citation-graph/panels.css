@@ -1,0 +1,111 @@
+/**
+ * Citation Graph - Panels
+ * Node details panel and related paper sections
+ */
+
+/* Node Details Panel */
+.node-details-panel {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 280px;
+  background: var(--workspace-bg-secondary, #151515);
+  border: 1px solid var(--workspace-border-default, #3a3a3a);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  animation: panelSlideIn 0.2s ease-out;
+}
+
+@keyframes panelSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.node-details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: var(--workspace-bg-tertiary, #1a1a1a);
+  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
+}
+
+.node-details-header h6 {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary, #d4e1e8);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.node-details-header h6 i {
+  color: var(--workspace-icon-primary, #059669);
+}
+
+.btn-close-panel {
+  background: none;
+  border: none;
+  color: var(--text-muted, #6c8ba0);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.btn-close-panel:hover {
+  color: var(--text-primary, #d4e1e8);
+}
+
+.node-details-content {
+  padding: 12px;
+}
+
+.detail-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary, #d4e1e8);
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.detail-authors {
+  font-size: 12px;
+  color: var(--text-muted, #6c8ba0);
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.detail-year,
+.detail-score {
+  font-size: 12px;
+  color: var(--text-secondary, #a0b3c0);
+  margin-bottom: 4px;
+}
+
+.detail-score strong {
+  color: var(--workspace-icon-primary, #059669);
+}
+
+.detail-doi {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--workspace-border-default, #3a3a3a);
+}
+
+.detail-doi a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--workspace-icon-primary, #059669);
+  text-decoration: none;
+}
+
+.detail-doi a:hover {
+  text-decoration: underline;
+}

@@ -1,0 +1,30 @@
+/**
+ * Search Main - Empty State
+ * Empty search results display
+ */
+
+/* Empty State */
+.search-empty-state {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+    text-align: center;
+    color: var(--text-muted, #6c8ba0);
+}
+
+.search-empty-state i {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    opacity: 0.4;
+}
+
+.search-empty-state h5 {
+    color: var(--text-primary, #d4e1e8);
+    margin-bottom: 0.5rem;
+}
+
+.search-empty-state p {
+    font-size: 0.9rem;
+}

@@ -1,0 +1,100 @@
+/**
+ * Search Main - Selection Action Bar
+ * Sticky selection toolbar and action buttons
+ */
+
+/* Selection Action Bar */
+.selection-action-bar {
+    display: none;
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg-secondary, #1a1a1a);
+    border: 1px solid var(--scitex-color-04, #4a8eb0);
+    border-radius: 6px;
+    padding: 0.6rem 1rem;
+    margin-bottom: 0.75rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    align-self: flex-start;
+    width: 100%;
+}
+
+.selection-action-bar.visible {
+    display: flex;
+}
+
+.selection-count {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--scitex-color-04, #4a8eb0);
+    white-space: nowrap;
+}
+
+.selection-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* Selection action bar buttons */
+.selection-action-bar .action-btn {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    margin: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.35rem !important;
+    padding: 0.45rem 0.85rem !important;
+    font-size: 0.8rem !important;
+    font-weight: 500 !important;
+    color: var(--text-primary, #d4e1e8) !important;
+    background: var(--bg-tertiary, #252525) !important;
+    border: 1px solid var(--border-color, #3a3a3a) !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+    font-family: inherit !important;
+    line-height: 1.4 !important;
+    text-decoration: none !important;
+    white-space: nowrap !important;
+}
+
+.selection-action-bar .action-btn:hover {
+    background: var(--scitex-color-04, #4a8eb0) !important;
+    border-color: var(--scitex-color-04, #4a8eb0) !important;
+    color: #fff !important;
+}
+
+.selection-action-bar .action-btn i {
+    font-size: 0.75rem;
+}
+
+.selection-action-bar .action-btn--clear {
+    padding: 0.45rem 0.55rem !important;
+    color: var(--text-muted, #6c8ba0) !important;
+    background: transparent !important;
+    border-color: transparent !important;
+}
+
+.selection-action-bar .action-btn--clear:hover {
+    color: #ef4444 !important;
+    background: rgba(239, 68, 68, 0.1) !important;
+    border-color: transparent !important;
+}
+
+[data-theme="light"] .selection-action-bar {
+    background: var(--bg-secondary, #f8f9fa);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .selection-action-bar .action-btn {
+    background: var(--bg-tertiary, #e9ecef) !important;
+    color: var(--text-primary, #1a2a40) !important;
+    border-color: var(--border-color, #d0d7de) !important;
+}

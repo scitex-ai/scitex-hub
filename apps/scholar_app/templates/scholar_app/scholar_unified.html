@@ -332,6 +332,29 @@
     [data-theme="light"] .scholar-tab-content .search-input {
         background: var(--workspace-bg-primary, #f3f4f6) !important;
     }
+
+    /* Tab badge styles */
+    .tab-badge {
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.65rem;
+        font-weight: 600;
+        padding: 2px 6px;
+        border-radius: 3px;
+        margin-left: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
+    .tab-badge--soon {
+        background: rgba(251, 191, 36, 0.15);
+        color: #f59e0b;
+        border: 1px solid rgba(251, 191, 36, 0.3);
+    }
+    [data-theme="light"] .tab-badge--soon {
+        background: rgba(251, 191, 36, 0.2);
+        color: #d97706;
+        border: 1px solid rgba(251, 191, 36, 0.4);
+    }
     </style>
 {% endblock %}
 {% block content %}
@@ -371,20 +394,21 @@
         <main class="scholar-main">
             <div class="pane-header">
                 <nav class="scholar-tabs">
-                    <a href="#search"
-                       class="scholar-tab"
-                       data-tab="search">
-                        <i class="fas fa-search"></i> Search
-                    </a>
                     <a href="#bibtex"
                        class="scholar-tab"
                        data-tab="bibtex">
                         <i class="fas fa-file-code"></i> BibTeX Enrichment
                     </a>
+                    <a href="#search"
+                       class="scholar-tab"
+                       data-tab="search">
+                        <i class="fas fa-search"></i> Search
+                    </a>
                     <a href="#graph"
                        class="scholar-tab"
                        data-tab="graph">
                         <i class="fas fa-project-diagram"></i> Graph
+                        <span class="tab-badge tab-badge--soon">Coming soon</span>
                     </a>
                 </nav>
                 <div class="pane-header-actions">
@@ -738,8 +762,8 @@
     <!-- Tab Switching Script -->
     <script>
     (function() {
-        const TAB_ORDER = ['search', 'bibtex', 'graph'];
-        const DEFAULT_TAB = 'search';
+        const TAB_ORDER = ['bibtex', 'search', 'graph'];
+        const DEFAULT_TAB = 'bibtex';
 
         function getActiveTab() {
             const hash = window.location.hash.slice(1);

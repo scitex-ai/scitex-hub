@@ -1,0 +1,14 @@
+/**
+ * BibTeX Enrichment Styles - Index
+ * Imports all modular CSS files
+ */
+
+@import url('./base.css');
+@import url('./dropzone.css');
+@import url('./actions.css');
+@import url('./running.css');
+@import url('./tiles.css');
+@import url('./jobs.css');
+@import url('./modals.css');
+@import url('./animations.css');
+@import url('./responsive.css');

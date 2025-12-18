@@ -3,8 +3,8 @@
  * Handles tab navigation and content switching for the Scholar unified page
  */
 
-const TAB_ORDER = ['search', 'bibtex', 'graph'];
-const DEFAULT_TAB = 'search';
+const TAB_ORDER = ['bibtex', 'search', 'graph'];
+const DEFAULT_TAB = 'bibtex';
 
 function getActiveTab(): string {
     const hash = window.location.hash.slice(1);

@@ -1,0 +1,23 @@
+/**
+ * Citation Graph - Themes
+ * Light mode overrides
+ */
+
+/* Light Mode */
+[data-theme="light"] .citation-graph-container {
+  background: var(--workspace-bg-primary, #f3f4f6);
+}
+
+[data-theme="light"] .graph-card,
+[data-theme="light"] .sidebar-section {
+  background: var(--workspace-bg-secondary, #ebedef);
+}
+
+[data-theme="light"] .form-input,
+[data-theme="light"] .form-select {
+  background: var(--workspace-bg-primary, #f3f4f6);
+}
+
+[data-theme="light"] .graph-canvas-wrapper {
+  background: var(--workspace-bg-primary, #f3f4f6);
+}

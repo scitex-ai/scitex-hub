@@ -1,0 +1,14 @@
+/**
+ * Citation Graph Styles - Index
+ * Imports all modular CSS files
+ */
+
+@import url('./base.css');
+@import url('./forms.css');
+@import url('./canvas.css');
+@import url('./tooltips.css');
+@import url('./panels.css');
+@import url('./related-papers.css');
+@import url('./states.css');
+@import url('./sidebar.css');
+@import url('./themes.css');
