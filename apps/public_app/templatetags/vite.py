@@ -166,6 +166,8 @@ def _entry_to_ts_path(entry_name: str) -> str:
         'public_app/landing-demos-inline': 'apps/public_app/static/public_app/ts/landing-demos-inline.ts',
         'public_app/landing/module-cards': 'apps/public_app/static/public_app/ts/landing/module-cards.ts',
         'public_app/tools/plot-viewer/index': 'apps/public_app/static/public_app/ts/tools/plot-viewer/index.ts',
+        'public_app/pages/api-docs': 'apps/public_app/static/public_app/ts/pages/api-docs.ts',
+        'public_app/pages/release-timeline': 'apps/public_app/static/public_app/ts/pages/release-timeline.ts',
         # Accounts app
         'accounts_app/profile': 'apps/accounts_app/static/accounts_app/ts/profile.ts',
         'accounts_app/account-settings': 'apps/accounts_app/static/accounts_app/ts/account-settings.ts',

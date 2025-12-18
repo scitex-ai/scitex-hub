@@ -1,0 +1,110 @@
+/**
+ * Server Status - Visitor Pool
+ * Visitor pool section and allocations
+ */
+
+/* Visitor Pool Section */
+.visitor-pool-status-count {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    font-weight: normal;
+    margin-left: 1rem;
+}
+
+.visitor-pool-section {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-default);
+}
+
+.visitor-pool-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.visitor-pool-title i {
+    color: var(--scitex-color-04);
+}
+
+.visitor-pool-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+}
+
+.visitor-pool-card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.visitor-pool-card-text {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.visitor-pool-card-text code {
+    background: var(--bg-surface);
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.85em;
+}
+
+.visitor-pool-icon {
+    color: var(--scitex-color-04);
+}
+
+.visitor-pool-link {
+    color: var(--scitex-color-04);
+    text-decoration: none;
+}
+
+.visitor-pool-link:hover {
+    text-decoration: underline;
+}
+
+/* Allocations Table */
+.allocation-project-icon {
+    margin-right: 0.5rem;
+    color: var(--workspace-icon-primary);
+}
+
+.allocation-visitor-icon {
+    color: #ff9800;
+    margin-right: 0.5rem;
+}
+
+.allocation-current-user {
+    color: var(--workspace-icon-primary);
+}
+
+.allocation-active-icon {
+    color: #4caf50;
+    margin-right: 0.5rem;
+}
+
+/* Info Card - shared style for visitor pool cards */
+.info-card {
+    background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(5, 150, 105, 0.08) 100%);
+    border: 1px solid var(--border-default);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+.info-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14);
+}

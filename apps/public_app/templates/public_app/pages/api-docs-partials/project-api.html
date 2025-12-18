@@ -1,0 +1,64 @@
+<!-- Project Files -->
+<section id="project-files" class="api-section">
+    <h2><i class="fas fa-folder-open"></i> Project: File Operations</h2>
+    <p>Manage files in your project repository.</p>
+    <div class="api-endpoints-list">
+        <div class="api-endpoint-item">
+            <span class="method method-get">GET</span>
+            <code>/{user}/{slug}/api/file-tree/</code>
+            <span>Get project file tree</span>
+        </div>
+        <div class="api-endpoint-item">
+            <span class="method method-post">POST</span>
+            <code>/{user}/{slug}/api/files/upload/</code>
+            <span>Upload file</span>
+        </div>
+        <div class="api-endpoint-item">
+            <span class="method method-post">POST</span>
+            <code>/{user}/{slug}/api/files/create/</code>
+            <span>Create new file</span>
+        </div>
+        <div class="api-endpoint-item">
+            <span class="method method-delete">DELETE</span>
+            <code>/{user}/{slug}/api/files/delete/</code>
+            <span>Delete file</span>
+        </div>
+    </div>
+    <h4>Example: Upload File</h4>
+    <div class="api-example">
+        <div class="api-example-body">
+            <pre><code>curl -X POST "https://scitex.ai/jane/my-project/api/files/upload/" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -F "file=@figure1.png" \
+  -F "path=figures/"</code></pre>
+        </div>
+    </div>
+</section>
+
+<!-- Project Git -->
+<section id="project-git" class="api-section">
+    <h2><i class="fab fa-github"></i> Project: Git Operations</h2>
+    <p>Full git operations for your project repository.</p>
+    <div class="api-endpoints-list">
+        <div class="api-endpoint-item">
+            <span class="method method-get">GET</span>
+            <code>/{user}/{slug}/api/git/status/</code>
+            <span>Repository status</span>
+        </div>
+        <div class="api-endpoint-item">
+            <span class="method method-post">POST</span>
+            <code>/{user}/{slug}/api/git/stage/</code>
+            <span>Stage file for commit</span>
+        </div>
+        <div class="api-endpoint-item">
+            <span class="method method-post">POST</span>
+            <code>/{user}/{slug}/api/git/commit/</code>
+            <span>Create commit</span>
+        </div>
+        <div class="api-endpoint-item">
+            <span class="method method-get">GET</span>
+            <code>/{user}/{slug}/api/git/history/</code>
+            <span>Commit history</span>
+        </div>
+    </div>
+</section>

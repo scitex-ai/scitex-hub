@@ -1,0 +1,213 @@
+{% load static %}
+<!-- Scholar Search -->
+<section id="scholar-search" class="api-section">
+    <h2><i class="fas fa-search"></i> Search Papers</h2>
+    <p>Search across multiple academic databases with a unified query interface.</p>
+    <div class="api-endpoint-detail">
+        <div class="api-endpoint-header">
+            <span class="method method-get">GET</span>
+            <code>/scholar/api/search/</code>
+        </div>
+        <h4>Query Parameters</h4>
+        <table class="api-table api-params-table">
+            <thead><tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>q</code></td><td>string</td><td><span class="badge-required">Required</span></td><td>Search query. Supports advanced syntax (see below)</td></tr>
+                <tr><td><code>page</code></td><td>integer</td><td>Optional</td><td>Page number (default: 1)</td></tr>
+                <tr><td><code>per_page</code></td><td>integer</td><td>Optional</td><td>Results per page (default: 20, max: 100)</td></tr>
+                <tr><td><code>sort</code></td><td>string</td><td>Optional</td><td>Sort by: <code>relevance</code>, <code>date</code>, <code>citations</code></td></tr>
+            </tbody>
+        </table>
+        <h4>Search Syntax</h4>
+        <p>Use these modifiers to refine your search:</p>
+        <table class="api-table">
+            <thead><tr><th>Modifier</th><th>Example</th><th>Description</th></tr></thead>
+            <tbody>
+                <tr><td><code>db:</code></td><td><code>db:arxiv</code></td><td>Search specific database (arxiv, pubmed, semantic, openalex, crossref, biorxiv)</td></tr>
+                <tr><td><code>year:</code></td><td><code>year:2024</code></td><td>Filter by publication year</td></tr>
+                <tr><td><code>author:</code></td><td><code>author:hinton</code></td><td>Filter by author name</td></tr>
+                <tr><td><code>title:</code></td><td><code>title:"attention is all"</code></td><td>Search in title only</td></tr>
+                <tr><td><code>"..."</code></td><td><code>"neural network"</code></td><td>Exact phrase match</td></tr>
+            </tbody>
+        </table>
+        <h4>Example Request</h4>
+        <div class="api-example">
+            <div class="api-example-header">
+                <span class="api-example-lang">cURL</span>
+                <button class="copy-btn" data-copy="search-example"><i class="fas fa-copy"></i></button>
+            </div>
+            <div class="api-example-body">
+                <pre><code id="search-example">curl "https://scitex.ai/scholar/api/search/?q=transformer+attention+db:arxiv+year:2024&per_page=10" \
+  -H "Authorization: Bearer YOUR_TOKEN"</code></pre>
+            </div>
+        </div>
+        <h4>Response</h4>
+        <div class="api-example">
+            <div class="api-example-body">
+                <pre><code>{
+  "success": true,
+  "query": "transformer attention db:arxiv year:2024",
+  "total_results": 1547,
+  "page": 1,
+  "per_page": 10,
+  "results": [
+    {
+      "id": "arxiv:2401.12345",
+      "title": "Efficient Attention Mechanisms for Large Language Models",
+      "authors": [{"name": "Jane Smith", "affiliation": "MIT"}],
+      "abstract": "We propose a novel attention mechanism that reduces...",
+      "published_date": "2024-01-15",
+      "source": "arxiv",
+      "doi": "10.48550/arXiv.2401.12345",
+      "citation_count": 42
+    }
+  ]
+}</code></pre>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Database Search -->
+<section id="scholar-databases" class="api-section">
+    <h2><i class="fas fa-database"></i> Database-Specific Search</h2>
+    <p>Search individual databases directly for more control.</p>
+    <div class="api-database-grid">
+        <div class="api-database-card">
+            <div class="api-database-header">
+                <img src="{% static 'scholar_app/images/logos/arxiv.svg' %}" alt="arXiv" onerror="this.style.display='none'">
+                <h4>arXiv</h4>
+            </div>
+            <p>Preprints in physics, mathematics, computer science</p>
+            <code class="api-endpoint-mini">/scholar/api/search/arxiv/</code>
+        </div>
+        <div class="api-database-card">
+            <div class="api-database-header">
+                <img src="{% static 'scholar_app/images/logos/pubmed.svg' %}" alt="PubMed" onerror="this.style.display='none'">
+                <h4>PubMed</h4>
+            </div>
+            <p>Biomedical literature from MEDLINE</p>
+            <code class="api-endpoint-mini">/scholar/api/search/pubmed/</code>
+        </div>
+        <div class="api-database-card">
+            <div class="api-database-header">
+                <img src="{% static 'scholar_app/images/logos/semantic-scholar.svg' %}" alt="Semantic Scholar" onerror="this.style.display='none'">
+                <h4>Semantic Scholar</h4>
+            </div>
+            <p>AI-powered academic search</p>
+            <code class="api-endpoint-mini">/scholar/api/search/semantic/</code>
+        </div>
+        <div class="api-database-card">
+            <div class="api-database-header">
+                <img src="{% static 'scholar_app/images/logos/openalex.svg' %}" alt="OpenAlex" onerror="this.style.display='none'">
+                <h4>OpenAlex</h4>
+            </div>
+            <p>Open catalog of scholarly works</p>
+            <code class="api-endpoint-mini">/scholar/api/search/openalex/</code>
+        </div>
+        <div class="api-database-card">
+            <div class="api-database-header">
+                <img src="{% static 'scholar_app/images/logos/crossref.svg' %}" alt="CrossRef" onerror="this.style.display='none'">
+                <h4>CrossRef</h4>
+            </div>
+            <p>DOI registration and metadata</p>
+            <code class="api-endpoint-mini">/scholar/api/search/crossref/</code>
+        </div>
+        <div class="api-database-card">
+            <div class="api-database-header">
+                <img src="{% static 'scholar_app/images/logos/biorxiv.svg' %}" alt="bioRxiv" onerror="this.style.display='none'">
+                <h4>bioRxiv</h4>
+            </div>
+            <p>Preprints in biology</p>
+            <code class="api-endpoint-mini">/scholar/api/search/biorxiv/</code>
+        </div>
+    </div>
+</section>
+
+<!-- BibTeX Enrichment -->
+<section id="scholar-bibtex" class="api-section">
+    <h2><i class="fas fa-magic"></i> BibTeX Enrichment</h2>
+    <p>Automatically enrich your BibTeX files with abstracts, DOIs, URLs, and impact factors.</p>
+    <div class="api-endpoint-detail">
+        <div class="api-endpoint-header">
+            <span class="method method-post">POST</span>
+            <code>/scholar/api/bibtex/enrich/</code>
+        </div>
+        <h4>Request Body</h4>
+        <div class="api-example">
+            <div class="api-example-header">
+                <span class="api-example-lang">cURL</span>
+                <button class="copy-btn" data-copy="bibtex-example"><i class="fas fa-copy"></i></button>
+            </div>
+            <div class="api-example-body">
+                <pre><code id="bibtex-example">curl -X POST "https://scitex.ai/scholar/api/bibtex/enrich/" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -F "file=@references.bib"</code></pre>
+            </div>
+        </div>
+        <h4>Response</h4>
+        <div class="api-example">
+            <div class="api-example-body">
+                <pre><code>{
+  "success": true,
+  "job_id": "550e8400-e29b-41d4-a716-446655440000",
+  "status": "completed",
+  "stats": {"total_entries": 45, "enriched": 42, "failed": 3}
+}</code></pre>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Export Citations -->
+<section id="scholar-export" class="api-section">
+    <h2><i class="fas fa-download"></i> Export Citations</h2>
+    <p>Export your library or search results in various formats.</p>
+    <div class="api-export-formats">
+        <div class="api-export-card">
+            <h4><i class="fas fa-file-code"></i> BibTeX</h4>
+            <code>/scholar/api/export/bibtex/</code>
+            <p>Standard LaTeX bibliography format</p>
+        </div>
+        <div class="api-export-card">
+            <h4><i class="fas fa-file-alt"></i> RIS</h4>
+            <code>/scholar/api/export/ris/</code>
+            <p>For EndNote, Zotero, Mendeley</p>
+        </div>
+        <div class="api-export-card">
+            <h4><i class="fas fa-file-csv"></i> CSV</h4>
+            <code>/scholar/api/export/csv/</code>
+            <p>Spreadsheet-compatible format</p>
+        </div>
+    </div>
+</section>
+
+<!-- Library Management -->
+<section id="scholar-library" class="api-section">
+    <h2><i class="fas fa-bookmark"></i> Library Management</h2>
+    <p>Manage your personal paper library and collections.</p>
+    <h4>Save a Paper</h4>
+    <div class="api-example">
+        <div class="api-example-header">
+            <span class="method method-post">POST</span>
+            <code>/scholar/api/save-paper/</code>
+        </div>
+        <div class="api-example-body">
+            <pre><code>curl -X POST "https://scitex.ai/scholar/api/save-paper/" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"doi": "10.1038/s41586-021-03819-2", "collection": "my-thesis"}'</code></pre>
+        </div>
+    </div>
+    <h4>List Library Papers</h4>
+    <div class="api-example">
+        <div class="api-example-header">
+            <span class="method method-get">GET</span>
+            <code>/scholar/api/library/papers/</code>
+        </div>
+        <div class="api-example-body">
+            <pre><code>curl "https://scitex.ai/scholar/api/library/papers/?collection=my-thesis" \
+  -H "Authorization: Bearer YOUR_TOKEN"</code></pre>
+        </div>
+    </div>
+</section>

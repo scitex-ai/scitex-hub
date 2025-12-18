@@ -1,0 +1,106 @@
+<!-- Writer Sections -->
+<section id="writer-sections" class="api-section">
+    <h2><i class="fas fa-pen-fancy"></i> Writer: Sections</h2>
+    <p>Read and update LaTeX manuscript sections programmatically.</p>
+    <h4>Get Section Content</h4>
+    <div class="api-example">
+        <div class="api-example-header">
+            <span class="method method-get">GET</span>
+            <code>/writer/api/project/{project_id}/section/{section_name}/</code>
+        </div>
+        <div class="api-example-body">
+            <pre><code>curl "https://scitex.ai/writer/api/project/123/section/introduction/" \
+  -H "Authorization: Bearer YOUR_TOKEN"</code></pre>
+        </div>
+    </div>
+    <h4>Response</h4>
+    <div class="api-example">
+        <div class="api-example-body">
+            <pre><code>{
+  "section": "introduction",
+  "content": "\\section{Introduction}\n\nDeep learning has revolutionized...",
+  "word_count": 1250,
+  "last_modified": "2024-01-15T10:30:00Z"
+}</code></pre>
+        </div>
+    </div>
+    <h4>Update Section</h4>
+    <div class="api-example">
+        <div class="api-example-header">
+            <span class="method method-put">PUT</span>
+            <code>/writer/api/project/{project_id}/section/{section_name}/</code>
+        </div>
+        <div class="api-example-body">
+            <pre><code>curl -X PUT "https://scitex.ai/writer/api/project/123/section/introduction/" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"content": "\\section{Introduction}\n\nUpdated content here..."}'</code></pre>
+        </div>
+    </div>
+</section>
+
+<!-- Writer Compile -->
+<section id="writer-compile" class="api-section">
+    <h2><i class="fas fa-file-pdf"></i> Writer: Compilation</h2>
+    <p>Compile your LaTeX manuscript to PDF.</p>
+    <h4>Compile Full Document</h4>
+    <div class="api-example">
+        <div class="api-example-header">
+            <span class="method method-post">POST</span>
+            <code>/writer/api/project/{project_id}/compile_full/</code>
+        </div>
+        <div class="api-example-body">
+            <pre><code>curl -X POST "https://scitex.ai/writer/api/project/123/compile_full/" \
+  -H "Authorization: Bearer YOUR_TOKEN"</code></pre>
+        </div>
+    </div>
+    <h4>Response</h4>
+    <div class="api-example">
+        <div class="api-example-body">
+            <pre><code>{
+  "success": true,
+  "job_id": "compile-abc123",
+  "status": "completed",
+  "pdf_url": "/writer/api/project/123/preview-pdf/",
+  "compile_time": "3.2s"
+}</code></pre>
+        </div>
+    </div>
+</section>
+
+<!-- Writer Git -->
+<section id="writer-git" class="api-section">
+    <h2><i class="fab fa-git-alt"></i> Writer: Version Control</h2>
+    <p>Track changes and manage versions of your manuscript.</p>
+    <div class="api-endpoints-list">
+        <div class="api-endpoint-item">
+            <span class="method method-get">GET</span>
+            <code>/writer/api/project/{id}/git/status/</code>
+            <span>Get current git status</span>
+        </div>
+        <div class="api-endpoint-item">
+            <span class="method method-get">GET</span>
+            <code>/writer/api/project/{id}/git/history/</code>
+            <span>List commit history</span>
+        </div>
+        <div class="api-endpoint-item">
+            <span class="method method-post">POST</span>
+            <code>/writer/api/project/{id}/git/commit/</code>
+            <span>Create a new commit</span>
+        </div>
+        <div class="api-endpoint-item">
+            <span class="method method-get">GET</span>
+            <code>/writer/api/project/{id}/git/diff/</code>
+            <span>View uncommitted changes</span>
+        </div>
+    </div>
+    <h4>Example: Commit Changes</h4>
+    <div class="api-example">
+        <div class="api-example-body">
+            <pre><code>curl -X POST "https://scitex.ai/writer/api/project/123/git/commit/" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Updated methodology section with new analysis"}'</code></pre>
+        </div>
+    </div>
+</section>

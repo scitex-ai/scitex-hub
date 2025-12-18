@@ -1,0 +1,37 @@
+<!-- Bundle multi-figure display (shows all figures simultaneously) -->
+<div id="bundleFiguresContainer" style="display: none;">
+  <div class="bundle-figures-grid" id="bundleFiguresGrid">
+    <!-- PNG card -->
+    <div class="bundle-figure-card" id="pngCard" style="display: none;">
+      <h4>📷 PNG (Raster)</h4>
+      <img id="bundlePngPreview" src="" alt="PNG preview" />
+      <div class="dimensions" id="pngDimensions"></div>
+    </div>
+    <!-- SVG card -->
+    <div class="bundle-figure-card" id="svgCard" style="display: none;">
+      <h4>🎨 SVG (Vector)</h4>
+      <div class="svg-container" id="bundleSvgPreview"></div>
+      <div class="dimensions" id="svgDimensions"></div>
+    </div>
+    <!-- PDF card -->
+    <div class="bundle-figure-card" id="pdfCard" style="display: none;">
+      <h4>📄 PDF (Vector)</h4>
+      <canvas id="bundlePdfCanvas"></canvas>
+      <div class="dimensions" id="pdfDimensions"></div>
+    </div>
+  </div>
+
+  <!-- CSV Data table -->
+  <div class="csv-container" id="csvContainer" style="display: none;">
+    <h4>📊 CSV Data (Reproducible)</h4>
+    <div class="csv-table-wrapper">
+      <table class="csv-table" id="csvTable">
+        <thead id="csvTableHead"></thead>
+        <tbody id="csvTableBody"></tbody>
+      </table>
+    </div>
+    <div style="margin-top: 8px; font-size: 11px; color: var(--text-secondary);">
+      <span id="csvRowCount">0</span> rows × <span id="csvColCount">0</span> columns
+    </div>
+  </div>
+</div>

@@ -26,6 +26,8 @@ urlpatterns = [
     path("publications/", views.publications, name="publications"),
     path("contributors/", views.contributors, name="contributors"),
     path("pricing/", views.pricing, name="pricing"),
+    # Reference pages
+    path("keyboard-shortcuts/", views.keyboard_shortcuts, name="keyboard_shortcuts"),
     # Support pages
     path("donate/", views.donate, name="donate"),
     # Legal and contact pages
