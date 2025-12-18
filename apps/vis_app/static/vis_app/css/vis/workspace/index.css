@@ -1,0 +1,11 @@
+/**
+ * Workspace Styles - Index
+ * Imports all modular CSS files
+ */
+
+@import url('./base.css');
+@import url('./data-table.css');
+@import url('./canvas.css');
+@import url('./tabs.css');
+@import url('./figure-dropdown.css');
+@import url('./data-dropdown.css');
