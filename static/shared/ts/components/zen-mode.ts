@@ -9,19 +9,10 @@
  * - Restores panel states when exiting zen mode
  * - Works with existing WorkspacePanelResizer component
  *
- * Usage:
- * ```ts
- * import { ZenMode } from '@/components/zen-mode';
- * const zenMode = new ZenMode({
- *   headerSelector: '.global-header',
- *   sidebarSelector: '.writer-sidebar',
- *   detailsSelector: '.writer-details',
- *   sidebarToggleId: 'sidebar-toggle',
- *   detailsToggleId: 'details-toggle',
- * });
- * zenMode.init();
- * ```
+ * Refactored: ZenPanelManager handles panel state capture/restore.
  */
+
+import { ZenPanelManager, SavedPanelStates } from './ZenPanelManager';
 
 console.log('[DEBUG] shared/ts/components/zen-mode.ts loaded');
 
@@ -40,11 +31,8 @@ export interface ZenModeConfig {
   storagePrefix?: string;
 }
 
-interface SavedPanelStates {
-  headerCollapsed: boolean;
-  sidebarCollapsed: boolean;
-  detailsCollapsed: boolean;
-}
+// Re-export for backwards compatibility
+export type { SavedPanelStates };
 
 type ZenState = 'normal' | 'zen' | 'fullscreen';
 
@@ -62,13 +50,22 @@ export class ZenMode {
   private currentState: ZenState = 'normal';
   private savedStates: SavedPanelStates | null = null;
   private initialized = false;
-  private exitingToNormal = false; // Track intentional exit to avoid fullscreenchange interference
+  private exitingToNormal = false;
+  private panelManager: ZenPanelManager;
 
   constructor(config: ZenModeConfig) {
     this.config = {
       storagePrefix: 'scitex-',
       ...config,
     };
+    this.panelManager = new ZenPanelManager({
+      headerSelector: this.config.headerSelector,
+      sidebarSelector: this.config.sidebarSelector,
+      detailsSelector: this.config.detailsSelector,
+      sidebarToggleId: this.config.sidebarToggleId,
+      detailsToggleId: this.config.detailsToggleId,
+      storagePrefix: this.config.storagePrefix,
+    });
   }
 
   /**
@@ -148,14 +145,14 @@ export class ZenMode {
     if (this.currentState === 'zen' || this.currentState === 'fullscreen') return;
 
     // Save current panel states before entering zen mode
-    this.savedStates = this.captureCurrentStates();
+    this.savedStates = this.panelManager.captureCurrentStates();
     this.persistSavedStates();
 
     // Add zen-mode class to body for CSS targeting
     document.body.classList.add('zen-mode');
 
     // Collapse all panels
-    this.collapseAllPanels();
+    this.panelManager.collapseAllPanels();
 
     this.currentState = 'zen';
     localStorage.setItem(ZEN_MODE_STORAGE_KEY, 'zen');
@@ -214,7 +211,7 @@ export class ZenMode {
 
     // Restore saved panel states
     if (this.savedStates) {
-      this.restorePanelStates(this.savedStates);
+      this.panelManager.restorePanelStates(this.savedStates);
       this.savedStates = null;
       this.clearSavedStates();
     }
@@ -253,259 +250,6 @@ export class ZenMode {
   }
 
   /**
-   * Capture current panel collapse states
-   */
-  private captureCurrentStates(): SavedPanelStates {
-    const header = document.querySelector(this.config.headerSelector) as HTMLElement;
-    const sidebar = this.config.sidebarSelector
-      ? document.querySelector(this.config.sidebarSelector) as HTMLElement
-      : null;
-    const details = this.config.detailsSelector
-      ? document.querySelector(this.config.detailsSelector) as HTMLElement
-      : null;
-
-    return {
-      headerCollapsed: header?.classList.contains('collapsed') ?? false,
-      sidebarCollapsed: sidebar?.classList.contains('collapsed') ?? false,
-      detailsCollapsed: details?.classList.contains('collapsed') ?? false,
-    };
-  }
-
-  /**
-   * Collapse all panels
-   */
-  private collapseAllPanels(): void {
-    // Collapse header
-    const header = document.querySelector(this.config.headerSelector) as HTMLElement;
-    if (header && !header.classList.contains('collapsed')) {
-      header.classList.add('collapsed');
-    }
-
-    // Collapse sidebar
-    if (this.config.sidebarSelector) {
-      const sidebar = document.querySelector(this.config.sidebarSelector) as HTMLElement;
-      if (sidebar && !sidebar.classList.contains('collapsed')) {
-        sidebar.classList.add('collapsed');
-        sidebar.style.width = '';
-        sidebar.style.flexShrink = '';
-        sidebar.style.flexGrow = '';
-
-        // Update toggle icon
-        if (this.config.sidebarToggleId) {
-          const toggleBtn = document.getElementById(this.config.sidebarToggleId);
-          if (toggleBtn) {
-            this.updateToggleIcon(toggleBtn, 'left', true);
-          }
-        }
-      }
-    }
-
-    // Collapse details panel
-    if (this.config.detailsSelector) {
-      const details = document.querySelector(this.config.detailsSelector) as HTMLElement;
-      if (details && !details.classList.contains('collapsed')) {
-        details.classList.add('collapsed');
-        details.style.width = '';
-        details.style.flexShrink = '';
-        details.style.flexGrow = '';
-
-        // Update toggle icon
-        if (this.config.detailsToggleId) {
-          const toggleBtn = document.getElementById(this.config.detailsToggleId);
-          if (toggleBtn) {
-            this.updateToggleIcon(toggleBtn, 'right', true);
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * Expand all panels (for #default hash - useful for screenshots)
-   */
-  private expandAllPanels(): void {
-    // Expand header
-    const header = document.querySelector(this.config.headerSelector) as HTMLElement;
-    if (header) {
-      header.classList.remove('collapsed');
-      localStorage.setItem('scitex-header-collapsed', 'false');
-    }
-
-    // Expand sidebar
-    if (this.config.sidebarSelector) {
-      const sidebar = document.querySelector(this.config.sidebarSelector) as HTMLElement;
-      if (sidebar) {
-        sidebar.classList.remove('collapsed');
-        // Set a reasonable default width if not set
-        const savedWidth = localStorage.getItem(`${this.config.storagePrefix}sidebar-width`);
-        if (savedWidth) {
-          const width = parseInt(savedWidth, 10);
-          if (width > 40) {
-            sidebar.style.width = `${width}px`;
-            sidebar.style.flexShrink = '0';
-            sidebar.style.flexGrow = '0';
-          }
-        }
-
-        // Update toggle icon
-        if (this.config.sidebarToggleId) {
-          const toggleBtn = document.getElementById(this.config.sidebarToggleId);
-          if (toggleBtn) {
-            this.updateToggleIcon(toggleBtn, 'left', false);
-          }
-        }
-
-        // Update localStorage
-        const sidebarCollapseKey = `${this.config.storagePrefix}sidebar-collapsed`;
-        localStorage.setItem(sidebarCollapseKey, 'false');
-      }
-    }
-
-    // Expand details panel
-    if (this.config.detailsSelector) {
-      const details = document.querySelector(this.config.detailsSelector) as HTMLElement;
-      if (details) {
-        details.classList.remove('collapsed');
-        // Set a reasonable default width if not set
-        const savedWidth = localStorage.getItem(`${this.config.storagePrefix}details-width`);
-        if (savedWidth) {
-          const width = parseInt(savedWidth, 10);
-          if (width > 40) {
-            details.style.width = `${width}px`;
-            details.style.flexShrink = '0';
-            details.style.flexGrow = '0';
-          }
-        }
-
-        // Update toggle icon
-        if (this.config.detailsToggleId) {
-          const toggleBtn = document.getElementById(this.config.detailsToggleId);
-          if (toggleBtn) {
-            this.updateToggleIcon(toggleBtn, 'right', false);
-          }
-        }
-
-        // Update localStorage
-        const detailsCollapseKey = `${this.config.storagePrefix}details-collapsed`;
-        localStorage.setItem(detailsCollapseKey, 'false');
-      }
-    }
-  }
-
-  /**
-   * Restore panel states from saved states
-   */
-  private restorePanelStates(states: SavedPanelStates): void {
-    // Restore header
-    const header = document.querySelector(this.config.headerSelector) as HTMLElement;
-    if (header) {
-      if (states.headerCollapsed) {
-        header.classList.add('collapsed');
-      } else {
-        header.classList.remove('collapsed');
-      }
-      // Update localStorage for header
-      localStorage.setItem('scitex-header-collapsed', states.headerCollapsed.toString());
-    }
-
-    // Restore sidebar
-    if (this.config.sidebarSelector) {
-      const sidebar = document.querySelector(this.config.sidebarSelector) as HTMLElement;
-      if (sidebar) {
-        if (states.sidebarCollapsed) {
-          sidebar.classList.add('collapsed');
-          sidebar.style.width = '';
-        } else {
-          sidebar.classList.remove('collapsed');
-          // Restore saved width
-          const savedWidth = localStorage.getItem(`${this.config.storagePrefix}sidebar-width`);
-          if (savedWidth) {
-            const width = parseInt(savedWidth, 10);
-            if (width > 40) {
-              sidebar.style.width = `${width}px`;
-              sidebar.style.flexShrink = '0';
-              sidebar.style.flexGrow = '0';
-            }
-          }
-        }
-
-        // Update toggle icon
-        if (this.config.sidebarToggleId) {
-          const toggleBtn = document.getElementById(this.config.sidebarToggleId);
-          if (toggleBtn) {
-            this.updateToggleIcon(toggleBtn, 'left', states.sidebarCollapsed);
-          }
-        }
-
-        // Update localStorage
-        const sidebarCollapseKey = `${this.config.storagePrefix}sidebar-collapsed`;
-        localStorage.setItem(sidebarCollapseKey, states.sidebarCollapsed.toString());
-      }
-    }
-
-    // Restore details panel
-    if (this.config.detailsSelector) {
-      const details = document.querySelector(this.config.detailsSelector) as HTMLElement;
-      if (details) {
-        if (states.detailsCollapsed) {
-          details.classList.add('collapsed');
-          details.style.width = '';
-        } else {
-          details.classList.remove('collapsed');
-          // Restore saved width
-          const savedWidth = localStorage.getItem(`${this.config.storagePrefix}details-width`);
-          if (savedWidth) {
-            const width = parseInt(savedWidth, 10);
-            if (width > 40) {
-              details.style.width = `${width}px`;
-              details.style.flexShrink = '0';
-              details.style.flexGrow = '0';
-            }
-          }
-        }
-
-        // Update toggle icon
-        if (this.config.detailsToggleId) {
-          const toggleBtn = document.getElementById(this.config.detailsToggleId);
-          if (toggleBtn) {
-            this.updateToggleIcon(toggleBtn, 'right', states.detailsCollapsed);
-          }
-        }
-
-        // Update localStorage
-        const detailsCollapseKey = `${this.config.storagePrefix}details-collapsed`;
-        localStorage.setItem(detailsCollapseKey, states.detailsCollapsed.toString());
-      }
-    }
-  }
-
-  /**
-   * Update toggle button icon
-   */
-  private updateToggleIcon(toggleBtn: HTMLElement, direction: 'left' | 'right', isCollapsed: boolean): void {
-    const icon = toggleBtn.querySelector('i');
-    if (!icon) return;
-
-    if (direction === 'left') {
-      if (isCollapsed) {
-        icon.classList.remove('fa-chevron-left');
-        icon.classList.add('fa-chevron-right');
-      } else {
-        icon.classList.remove('fa-chevron-right');
-        icon.classList.add('fa-chevron-left');
-      }
-    } else {
-      if (isCollapsed) {
-        icon.classList.remove('fa-chevron-right');
-        icon.classList.add('fa-chevron-left');
-      } else {
-        icon.classList.remove('fa-chevron-left');
-        icon.classList.add('fa-chevron-right');
-      }
-    }
-  }
-
-  /**
    * Persist saved states to localStorage (for page refresh)
    */
   private persistSavedStates(): void {
@@ -539,19 +283,19 @@ export class ZenMode {
       this.savedStates = null;
 
       // Expand all panels
-      this.expandAllPanels();
+      this.panelManager.expandAllPanels();
       console.log('[ZenMode] Expanded all panels from URL hash #default');
       return;
     }
 
     if (hash === HASH_ZEN || hash === HASH_FULLSCREEN) {
       // Save current states before entering zen (for later restoration)
-      this.savedStates = this.captureCurrentStates();
+      this.savedStates = this.panelManager.captureCurrentStates();
       this.persistSavedStates();
 
       // Enter zen mode from URL hash
       document.body.classList.add('zen-mode');
-      this.collapseAllPanels();
+      this.panelManager.collapseAllPanels();
       this.currentState = 'zen';
       localStorage.setItem(ZEN_MODE_STORAGE_KEY, 'zen');
 
@@ -578,7 +322,7 @@ export class ZenMode {
       if (savedZenState === 'zen' || savedZenState === 'fullscreen') {
         // Re-enter zen mode after page load
         document.body.classList.add('zen-mode');
-        this.collapseAllPanels();
+        this.panelManager.collapseAllPanels();
         this.currentState = 'zen';
 
         if (savedZenState === 'fullscreen') {

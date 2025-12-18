@@ -1,0 +1,66 @@
+/**
+ * Workspace Files Tree - Search Box
+ * File tree search/filter input
+ */
+
+.wft-search-box {
+  background: var(--workspace-bg-default, #252526);
+  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
+  padding: 8px;
+  flex-shrink: 0;
+}
+
+.wft-search-input-wrapper {
+  display: flex;
+  align-items: center;
+  background: var(--workspace-bg-input, #3c3c3c);
+  border: 1px solid var(--workspace-border-default, #3a3a3a);
+  border-radius: 4px;
+  padding: 4px 8px;
+  gap: 8px;
+}
+
+.wft-search-input-wrapper:focus-within {
+  border-color: var(--color-accent-fg, #58a6ff);
+  box-shadow: 0 0 0 1px var(--color-accent-fg, #58a6ff);
+}
+
+.wft-search-icon {
+  color: var(--color-fg-muted, #768390);
+  font-size: 12px;
+}
+
+.wft-search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--color-fg-default, #e6edf3) !important;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  min-width: 0;
+  /* Ensure text is visible in both light and dark themes */
+  -webkit-text-fill-color: var(--color-fg-default, #e6edf3);
+}
+
+.wft-search-input::placeholder {
+  color: var(--color-fg-muted, #768390) !important;
+  opacity: 1;
+}
+
+.wft-search-clear {
+  background: transparent;
+  border: none;
+  color: var(--color-fg-muted, #768390);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+}
+
+.wft-search-clear:hover {
+  color: var(--color-fg-default, #e6edf3);
+  background: var(--workspace-bg-hover, #4a4a4a);
+}

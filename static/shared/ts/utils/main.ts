@@ -4,6 +4,7 @@
  */
 
 import { initZenMode } from "@/components/zen-mode";
+import { toggleShortcutsModal } from "@/components/shortcuts-modal";
 import { SHARED_SHORTCUTS, getShortcutKey, checkShortcutConflict, registerAppShortcut, getSharedShortcutsHTML, getSharedShortcutsList } from "./shared-shortcuts";
 
 // Re-export shared shortcuts utilities for use by other modules
@@ -121,6 +122,15 @@ function initModuleSwitcher(): void {
     }
 
     const key = e.key.toLowerCase();
+
+    // Handle Alt+/ for keyboard shortcuts help
+    if (key === '/' || e.key === '/') {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleShortcutsModal();
+      return;
+    }
+
     const route = moduleRoutes[key];
 
     if (route) {
@@ -161,7 +171,7 @@ function initModuleSwitcher(): void {
     }
   }, true); // Use capture phase
 
-  console.log('[ModuleSwitcher] Initialized - Alt+F/S/C/V/W to switch modules (capture phase)');
+  console.log('[ModuleSwitcher] Initialized - Alt+F/S/C/V/W to switch modules, Alt+/ for shortcuts (capture phase)');
 }
 
 /**

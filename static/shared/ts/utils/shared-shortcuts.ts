@@ -11,6 +11,7 @@
  * - Alt+C: Go to Code Mode
  * - Alt+V: Go to Vis Mode
  * - Alt+W: Go to Writer Mode
+ * - Alt+/: Show Keyboard Shortcuts Help
  * - F11: Cycle Zen/Fullscreen modes
  * - Esc: Exit Zen/Fullscreen mode (when in zen mode)
  */
@@ -35,6 +36,7 @@ export const SHARED_SHORTCUTS: SharedShortcut[] = [
   { key: 'c', altKey: true, ctrlKey: false, shiftKey: false, metaKey: false, description: 'Go to Code', action: 'navigate-code' },
   { key: 'v', altKey: true, ctrlKey: false, shiftKey: false, metaKey: false, description: 'Go to Vis', action: 'navigate-vis' },
   { key: 'w', altKey: true, ctrlKey: false, shiftKey: false, metaKey: false, description: 'Go to Writer', action: 'navigate-writer' },
+  { key: '/', altKey: true, ctrlKey: false, shiftKey: false, metaKey: false, description: 'Show Keyboard Shortcuts', action: 'show-shortcuts' },
   { key: 'F11', altKey: false, ctrlKey: false, shiftKey: false, metaKey: false, description: 'Cycle Zen/Fullscreen modes', action: 'zen-cycle' },
 ];
 

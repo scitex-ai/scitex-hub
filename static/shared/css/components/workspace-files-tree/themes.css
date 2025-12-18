@@ -1,0 +1,61 @@
+/**
+ * Workspace Files Tree - Theme Overrides
+ * Light mode and scrollbar styling
+ */
+
+/* Light mode overrides */
+[data-theme="light"] .wft-name,
+.light .wft-name {
+  color: var(--color-fg-default, #1f2328);
+}
+
+[data-theme="light"] .wft-chevron,
+.light .wft-chevron {
+  color: var(--color-fg-muted, #656d76);
+}
+
+[data-theme="light"] .wft-item:hover,
+.light .wft-item:hover {
+  background-color: var(--color-canvas-subtle, rgba(0, 0, 0, 0.05));
+}
+
+[data-theme="light"] .wft-file.selected,
+[data-theme="light"] .wft-folder.selected,
+.light .wft-file.selected,
+.light .wft-folder.selected {
+  background-color: var(--color-accent-subtle, rgba(47, 129, 247, 0.1));
+}
+
+[data-theme="light"] .wft-folder.focused,
+.light .wft-folder.focused {
+  background-color: var(--color-accent-subtle, rgba(47, 129, 247, 0.08));
+  outline-color: var(--color-accent-fg, rgba(47, 129, 247, 0.4));
+}
+
+/* Scrollbar styling */
+.workspace-files-tree::-webkit-scrollbar {
+  width: 8px;
+}
+
+.workspace-files-tree::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.workspace-files-tree::-webkit-scrollbar-thumb {
+  background-color: var(--color-border-muted, rgba(127, 127, 127, 0.3));
+  border-radius: 4px;
+}
+
+.workspace-files-tree::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-border-default, rgba(127, 127, 127, 0.5));
+}
+
+/* Keyboard focus - disabled to avoid distracting border changes during tree actions */
+.workspace-files-tree:focus,
+.workspace-files-tree:focus-visible,
+.workspace-files-tree *:focus,
+.workspace-files-tree *:focus-visible,
+.wft-tree:focus,
+.wft-tree:focus-visible {
+  outline: none;
+}

@@ -10,6 +10,7 @@ export class SearchHandler {
   private searchQuery: string = '';
   private onSearchChange: () => void;
   private getTreeData: () => TreeItem[];
+  private expandPath: ((path: string) => void) | null = null;
 
   constructor(
     onSearchChange: () => void,
@@ -20,11 +21,42 @@ export class SearchHandler {
   }
 
   /**
+   * Set the expand path callback for search expansion
+   */
+  setExpandCallback(expandPath: (path: string) => void): void {
+    this.expandPath = expandPath;
+  }
+
+  /**
    * Set search query and trigger re-render
    */
   setQuery(query: string): void {
     this.searchQuery = query.toLowerCase().trim();
     this.onSearchChange();
+  }
+
+  /**
+   * Set search query and expand all directories
+   */
+  setQueryAndExpandAll(query: string): void {
+    this.setQuery(query);
+    if (query && this.expandPath) {
+      this.expandAllForSearch(this.getTreeData());
+    }
+  }
+
+  /**
+   * Recursively expand all directories for search
+   */
+  private expandAllForSearch(items: TreeItem[]): void {
+    for (const item of items) {
+      if (item.type === "directory") {
+        this.expandPath?.(item.path);
+        if (item.children) {
+          this.expandAllForSearch(item.children);
+        }
+      }
+    }
   }
 
   /**
