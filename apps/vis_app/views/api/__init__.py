@@ -48,6 +48,20 @@ from .scitex_editor import (
     update_preview,
     save_manual_overrides,
     export_figure,
+    get_scitex_style,
+)
+
+# Style Preset Views
+from .style_presets import (
+    list_style_presets,
+    get_style_preset,
+    create_style_preset,
+    update_style_preset,
+    delete_style_preset,
+    activate_style_preset,
+    export_preset_yaml,
+    import_preset_yaml,
+    get_active_style,
 )
 
 # Gallery Views
@@ -108,6 +122,9 @@ from .bundles import (
     create_pltz_from_plot,
     save_figz_canvas,
     export_figz_bundle,
+    # Gallery -> Figz flow (no standalone pltz)
+    add_panel_to_figz,
+    get_figz_panel_preview,
     # Download endpoints
     download_figz_bundle,
     download_figz_d_bundle,
@@ -193,6 +210,9 @@ __all__ = [
     'create_pltz_from_plot',
     'save_figz_canvas',
     'export_figz_bundle',
+    # Gallery -> Figz flow (no standalone pltz)
+    'add_panel_to_figz',
+    'get_figz_panel_preview',
     # Download endpoints
     'download_figz_bundle',
     'download_figz_d_bundle',

@@ -145,6 +145,59 @@ urlpatterns = [
         api_views.export_figure,
         name="api_editor_export",
     ),
+    path(
+        "api/editor/style/",
+        api_views.get_scitex_style,
+        name="api_editor_style",
+    ),
+    # =========================================================================
+    # Style Preset API endpoints
+    # =========================================================================
+    path(
+        "api/style-presets/",
+        api_views.list_style_presets,
+        name="api_style_presets_list",
+    ),
+    path(
+        "api/style-presets/create/",
+        api_views.create_style_preset,
+        name="api_style_presets_create",
+    ),
+    path(
+        "api/style-presets/active/",
+        api_views.get_active_style,
+        name="api_style_presets_active",
+    ),
+    path(
+        "api/style-presets/import/",
+        api_views.import_preset_yaml,
+        name="api_style_presets_import",
+    ),
+    path(
+        "api/style-presets/<uuid:preset_id>/",
+        api_views.get_style_preset,
+        name="api_style_presets_detail",
+    ),
+    path(
+        "api/style-presets/<uuid:preset_id>/update/",
+        api_views.update_style_preset,
+        name="api_style_presets_update",
+    ),
+    path(
+        "api/style-presets/<uuid:preset_id>/delete/",
+        api_views.delete_style_preset,
+        name="api_style_presets_delete",
+    ),
+    path(
+        "api/style-presets/<uuid:preset_id>/activate/",
+        api_views.activate_style_preset,
+        name="api_style_presets_activate",
+    ),
+    path(
+        "api/style-presets/<uuid:preset_id>/export/",
+        api_views.export_preset_yaml,
+        name="api_style_presets_export",
+    ),
     # Gallery API endpoints (plot type thumbnails)
     path(
         "api/gallery/",
@@ -371,6 +424,17 @@ urlpatterns = [
         "api/bundles/figz/save-canvas/",
         api_views.save_figz_canvas,
         name="api_figz_save_canvas",
+    ),
+    # Gallery -> Figz flow (no standalone pltz)
+    path(
+        "api/bundles/figz/add-panel/",
+        api_views.add_panel_to_figz,
+        name="api_figz_add_panel_by_path",
+    ),
+    path(
+        "api/bundles/figz/panel-preview/",
+        api_views.get_figz_panel_preview,
+        name="api_figz_panel_preview_by_path",
     ),
     path(
         "api/bundles/figz/create-empty/",

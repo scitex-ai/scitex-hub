@@ -14,7 +14,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_http_methods
 
-from ....services.figz_service import FigzService
+from ....services.figz import FigzService
 
 logger = logging.getLogger(__name__)
 

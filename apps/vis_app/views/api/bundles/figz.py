@@ -13,7 +13,7 @@ from django.utils.text import slugify
 from django.views.decorators.http import require_http_methods
 
 from ....models import PltzBundle, FigzBundle, FigzPanel
-from ....services.figz_service import FigzService
+from ....services.figz import FigzService
 
 logger = logging.getLogger(__name__)
 

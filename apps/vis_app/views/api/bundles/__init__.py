@@ -41,6 +41,9 @@ from .path_api import (
     render_pltz_by_path,
     create_pltz_from_plot,
     save_figz_canvas,
+    # Gallery -> Figz flow (no standalone pltz)
+    add_panel_to_figz,
+    get_figz_panel_preview,
 )
 
 # Bundle creation
@@ -88,6 +91,9 @@ __all__ = [
     "render_pltz_by_path",
     "create_pltz_from_plot",
     "save_figz_canvas",
+    # Gallery -> Figz flow (no standalone pltz)
+    "add_panel_to_figz",
+    "get_figz_panel_preview",
     # Bundle creation
     "create_empty_figz",
     "export_figz_bundle",

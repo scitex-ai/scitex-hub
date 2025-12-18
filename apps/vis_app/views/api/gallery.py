@@ -340,15 +340,28 @@ def get_project_gallery_image(request, category: str, plot_name: str):
             project_path = project.get_local_path()
             gallery_path = get_gallery_path(project_path)
 
+        # Helper to find SVG in gallery (bundle or flat format)
+        def find_svg_in_gallery(gallery_base: Path) -> Path | None:
+            """Find SVG in gallery, checking both new bundle format and old flat format."""
+            # New format: inside .pltz.d bundle
+            bundle_svg = gallery_base / category / f"{plot_name}.pltz.d" / "exports" / f"{plot_name}.svg"
+            if bundle_svg.exists():
+                return bundle_svg
+            # Old format: flat file
+            flat_svg = gallery_base / category / f"{plot_name}.svg"
+            if flat_svg.exists():
+                return flat_svg
+            return None
+
         # For SVG, try SVG file first
         if image_type == 'svg':
             svg_path = None
             if gallery_path:
-                svg_path = gallery_path / category / f"{plot_name}.svg"
-            if not svg_path or not svg_path.exists():
+                svg_path = find_svg_in_gallery(gallery_path)
+            if not svg_path:
                 gallery_path = get_template_gallery_path()
-                svg_path = gallery_path / category / f"{plot_name}.svg"
-            if svg_path.exists():
+                svg_path = find_svg_in_gallery(gallery_path)
+            if svg_path:
                 with open(svg_path, 'r') as f:
                     svg_content = f.read()
                 response = HttpResponse(svg_content, content_type='image/svg+xml')
@@ -357,26 +370,40 @@ def get_project_gallery_image(request, category: str, plot_name: str):
             # Fall back to PNG if SVG doesn't exist
             image_type = 'png'
 
-        # PNG path
+        # PNG path - check multiple locations
+        # New format: gallery/{category}/{plot_name}.pltz.d/exports/{plot_name}.png
+        # Old format: gallery/{category}/{plot_name}.png
         png_path = None
+
+        def find_png_in_gallery(gallery_base: Path) -> Path | None:
+            """Find PNG in gallery, checking both new bundle format and old flat format."""
+            # New format: inside .pltz.d bundle
+            bundle_png = gallery_base / category / f"{plot_name}.pltz.d" / "exports" / f"{plot_name}.png"
+            if bundle_png.exists():
+                return bundle_png
+            # Old format: flat file
+            flat_png = gallery_base / category / f"{plot_name}.png"
+            if flat_png.exists():
+                return flat_png
+            return None
+
+        # Try project gallery first
         if project:
             project_path = project.get_local_path()
             gallery_path = get_gallery_path(project_path)
-            png_path = gallery_path / category / f"{plot_name}.png"
+            png_path = find_png_in_gallery(gallery_path)
 
-        # Try temp gallery with hitmap first
-        temp_gallery_path = Path('/tmp/scitex_gallery_with_bboxes')
-        temp_png = temp_gallery_path / category / f"{plot_name}.png"
-        if temp_png.exists():
-            png_path = temp_png
-            gallery_path = temp_gallery_path
+        # Try temp gallery with hitmap
+        if not png_path:
+            temp_gallery_path = Path('/tmp/scitex_gallery_with_bboxes')
+            png_path = find_png_in_gallery(temp_gallery_path)
 
-        # Fallback to template gallery
-        if not png_path or not png_path.exists():
+        # Fallback to static template gallery
+        if not png_path:
             gallery_path = get_template_gallery_path()
-            png_path = gallery_path / category / f"{plot_name}.png"
-            if not png_path.exists():
-                return JsonResponse({'error': 'Image not found'}, status=404)
+            png_path = find_png_in_gallery(gallery_path)
+            if not png_path:
+                return JsonResponse({'error': f'Image not found: {category}/{plot_name}'}, status=404)
 
         with open(png_path, 'rb') as f:
             image_data = f.read()
@@ -392,7 +419,11 @@ def get_project_gallery_image(request, category: str, plot_name: str):
                 'category': category
             }
             # Try to load metadata from companion JSON
-            json_path = png_path.with_suffix('.json')
+            # New format: spec.json in bundle root (../spec.json from exports/)
+            # Old format: {plot_name}.json next to PNG
+            json_path = png_path.parent.parent / 'spec.json'  # New bundle format
+            if not json_path.exists():
+                json_path = png_path.with_suffix('.json')  # Old flat format
             if json_path.exists():
                 try:
                     with open(json_path, 'r') as f:

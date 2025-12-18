@@ -5,6 +5,8 @@ Integrates scitex.vis functionality into the Django /vis/ page:
 - Load figure from JSON/CSV files
 - Render preview with overrides
 - Save manual edits to .manual.json
+
+Note: Uses SCITEX_STYLE-compatible defaults (defined locally to avoid import issues)
 """
 
 import json
@@ -20,21 +22,45 @@ from django.conf import settings
 
 
 def _get_scitex_defaults():
-    """Get SciTeX publication style defaults."""
+    """
+    Get SciTeX publication style defaults.
+    Based on SCITEX_STYLE from scitex.plt.styles.SCITEX_STYLE.yaml
+    """
     return {
+        # Axes dimensions
+        "axes_width_mm": 40,
+        "axes_height_mm": 28,
+        "axes_thickness_mm": 0.2,
+        # Margins
+        "margin_left_mm": 20,
+        "margin_right_mm": 20,
+        "margin_bottom_mm": 20,
+        "margin_top_mm": 20,
+        # Fonts
+        "font_family": "Arial",
+        "axis_font_size_pt": 7,
+        "tick_font_size_pt": 7,
+        "title_font_size_pt": 8,
+        "legend_font_size_pt": 6,
+        # Lines and ticks
+        "trace_thickness_mm": 0.2,
+        "tick_length_mm": 0.8,
+        "tick_thickness_mm": 0.2,
+        "n_ticks": 4,
+        # Output
         "dpi": 300,
-        "fig_size": [3.15, 2.68],  # inches (80mm x 68mm)
+        "transparent": True,
+        "auto_crop": False,
+        # Legacy compatibility
+        "fontsize": 7,
+        "title_fontsize": 8,
         "axis_fontsize": 7,
         "tick_fontsize": 7,
-        "title_fontsize": 8,
-        "legend_fontsize": 6,
-        "linewidth": 0.57,  # pt
-        "axis_width": 0.2,  # mm
-        "tick_length": 0.8,  # mm
-        "tick_width": 0.2,  # mm
+        "linewidth": 0.57,
+        "axis_width": 0.2,
+        "tick_length": 0.8,
+        "tick_width": 0.2,
         "tick_direction": "out",
-        "n_ticks": 4,
-        "transparent": True,
         "hide_top_spine": True,
         "hide_right_spine": True,
         "legend_visible": True,
@@ -411,7 +437,8 @@ def update_preview(request):
     {
         "json_path": "/path/to/figure.json",
         "csv_path": "/path/to/figure.csv",
-        "overrides": {...}
+        "overrides": {...},
+        "sample_data": "x,y\n0,1\n1,2\n..."  // Optional CSV string
     }
 
     Response:
@@ -422,19 +449,28 @@ def update_preview(request):
     """
     try:
         data = json.loads(request.body)
-        json_path = Path(data.get("json_path", ""))
+        json_path_str = data.get("json_path", "")
+        json_path = Path(json_path_str) if json_path_str else None
         csv_path = data.get("csv_path")
         overrides = data.get("overrides", {})
+        sample_data_str = data.get("sample_data")
 
         # Load metadata
         metadata = {}
-        if json_path.exists():
+        if json_path and json_path.exists():
             with open(json_path, "r") as f:
                 metadata = json.load(f)
 
         # Load CSV data
         csv_data = None
-        if csv_path:
+        if sample_data_str:
+            # Use sample data from request
+            import pandas as pd
+            from io import StringIO
+
+            csv_data = pd.read_csv(StringIO(sample_data_str))
+        elif csv_path:
+            # Load from file
             import pandas as pd
 
             csv_path = Path(csv_path)
@@ -635,6 +671,33 @@ def export_figure(request):
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
 
         return response
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+@require_http_methods(["GET"])
+def get_scitex_style(request):
+    """
+    Get SCITEX_STYLE configuration for the frontend.
+
+    GET /vis/api/editor/style/
+
+    Response:
+    {
+        "style": {...},  // SCITEX_STYLE-compatible defaults
+        "defaults": {...}  // Default values for editor
+    }
+    """
+    try:
+        defaults = _get_scitex_defaults()
+
+        return JsonResponse(
+            {
+                "style": defaults,  # Use same defaults for style
+                "defaults": defaults,
+            }
+        )
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
