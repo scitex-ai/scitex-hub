@@ -396,10 +396,10 @@ export class ExportManager {
     }
 
     /**
-     * Download the current figz bundle as .figz.d directory (ZIP preserving structure)
-     * Downloads the full directory bundle with all panels
+     * Download the current figz bundle (zipped format)
+     * Downloads the complete bundle with all panels
      */
-    public downloadFigzDBundle(): void {
+    public downloadFigzBundleZip(): void {
         if (!this.currentFigzPath) {
             console.warn('[ExportManager] No figz bundle loaded');
             if (this.statusCallback) {
@@ -408,8 +408,8 @@ export class ExportManager {
             return;
         }
 
-        // Use GET-based download endpoint for .figz.d
-        const downloadUrl = `/vis/api/bundles/figz-d/download/?path=${encodeURIComponent(this.currentFigzPath)}`;
+        // Use GET-based download endpoint for .figz
+        const downloadUrl = `/vis/api/bundles/figz/download/?path=${encodeURIComponent(this.currentFigzPath)}`;
 
         // Create a link and click it to trigger download
         const link = document.createElement('a');
@@ -420,9 +420,9 @@ export class ExportManager {
         document.body.removeChild(link);
 
         if (this.statusCallback) {
-            this.statusCallback('Downloading figz.d bundle...');
+            this.statusCallback('Downloading figz bundle...');
         }
-        console.log('[ExportManager] Downloading figz.d bundle:', this.currentFigzPath);
+        console.log('[ExportManager] Downloading figz bundle (zipped):', this.currentFigzPath);
     }
 
     /**

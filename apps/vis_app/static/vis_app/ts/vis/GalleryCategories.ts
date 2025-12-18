@@ -433,10 +433,15 @@ export class GalleryCategories {
         // Bind click events
         this.popupGrid.querySelectorAll('.thumbnail-card').forEach(card => {
             card.addEventListener('click', () => {
+                console.log('[GalleryCategories] Thumbnail clicked!');
                 const cat = (card as HTMLElement).dataset.category;
                 const plotName = (card as HTMLElement).dataset.plot;
+                console.log(`[GalleryCategories] Category: ${cat}, Plot: ${plotName}`);
                 if (cat && plotName) {
+                    console.log('[GalleryCategories] Calling selectPlot...');
                     this.selectPlot(cat, plotName);
+                } else {
+                    console.error('[GalleryCategories] Missing data-category or data-plot!');
                 }
             });
         });

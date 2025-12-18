@@ -31,11 +31,26 @@ export { CropManager } from './CropManager.ts';
 export { ElementSelectionManager } from './ElementSelectionManager.ts';
 export { ContextMenuManager } from './ContextMenuManager.ts';
 
+// Phase 5.1 - Element selection helpers (extracted from ElementSelectionManager)
+export { HitmapManager } from './HitmapManager.ts';
+export type { HitmapElementInfo, HitmapColorMap } from './HitmapManager.ts';
+export { ElementHighlighter } from './ElementHighlighter.ts';
+export type { HighlightType, HighlightColors } from './ElementHighlighter.ts';
+export { HitDetector } from './HitDetector.ts';
+export type { HitResult } from './HitDetector.ts';
+export { StatsExtractor } from './StatsExtractor.ts';
+export type { GroupData, StatsData } from './StatsExtractor.ts';
+
 // Phase 6 - Canvas document resize
 export { CanvasResizeManager } from './CanvasResizeManager.ts';
 
 // Phase 7 - Session and bundle management
 export { SessionManager } from './SessionManager.ts';
-export type { SessionState, PanelInfo } from './SessionManager.ts';
+export type { SessionState } from './SessionManager.ts';
 export { BundleCanvasManager } from './BundleCanvasManager.ts';
-export type { PanelSpec, PanelData, ProjectContext } from './BundleCanvasManager.ts';
+
+// Phase 8 - Additional utilities
+export { NudgeManager } from './NudgeManager.ts';
+export { AxisDebugManager } from './AxisDebugManager.ts';
+export { initializeCanvas, setupCanvasEventListeners } from './CanvasInitializer.ts';
+export type { CanvasManagerRefs, InitCallbacks } from './CanvasInitializer.ts';

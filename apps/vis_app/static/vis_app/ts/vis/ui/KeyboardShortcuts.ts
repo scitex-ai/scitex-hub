@@ -9,14 +9,15 @@
  * - Handle undo/redo (Ctrl+Z, Ctrl+Y)
  * - Handle delete operations
  * - Detect when user is editing a cell to avoid shortcut interference
+ *
+ * Refactored: KeyboardModeHandlers handles mode-based shortcuts.
  */
+
+import { KeyboardModeHandlers } from './KeyboardModeHandlers';
 
 export class KeyboardShortcuts {
     private editingCell: HTMLElement | null = null;
-    private alignModeActive: boolean = false;
-    private arrangeModeActive: boolean = false;
-    private alignByAxisModeActive: boolean = false;
-    private modeTimeout: ReturnType<typeof setTimeout> | null = null;
+    private modeHandlers: KeyboardModeHandlers;
 
     constructor(
         private createQuickPlotCallback?: (plotType: string) => void,
@@ -49,9 +50,18 @@ export class KeyboardShortcuts {
         private canvasSizeIncreaseCallback?: () => void,
         private canvasSizeDecreaseCallback?: () => void,
         private canvasSizeResetCallback?: () => void
-    ) {}
-
-    private sizeModeActive: boolean = false;
+    ) {
+        // Initialize mode handlers with relevant callbacks
+        this.modeHandlers = new KeyboardModeHandlers({
+            alignCallback: this.alignCallback,
+            arrangeCallback: this.arrangeCallback,
+            distributeCallback: this.distributeCallback,
+            sizeCallback: this.sizeCallback,
+            alignByAxisCallback: this.alignByAxisCallback,
+            toggleThemeCallback: this.toggleThemeCallback,
+            updateStatusBarCallback: this.updateStatusBarCallback
+        });
+    }
 
     /**
      * Set editing cell reference (for keyboard shortcut detection)
@@ -148,7 +158,7 @@ export class KeyboardShortcuts {
             // Alt+Shift+A - Enter Align by Axis mode (prefix for L/R/T/B/C/M/S)
             if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'a' && !e.ctrlKey && !e.metaKey) {
                 e.preventDefault();
-                this.enterAlignByAxisMode();
+                this.modeHandlers.enterAlignByAxisMode();
                 return;
             }
 
@@ -218,7 +228,7 @@ export class KeyboardShortcuts {
             // Alt+A - Enter Align mode (PowerPoint-style)
             if (e.altKey && e.key.toLowerCase() === 'a' && !e.ctrlKey && !e.metaKey) {
                 e.preventDefault();
-                this.enterAlignMode();
+                this.modeHandlers.enterAlignMode();
                 return;
             }
 
@@ -245,14 +255,14 @@ export class KeyboardShortcuts {
             // Alt+Z - Enter Size mode (Alt+S is reserved for global navigation to Scholar)
             if (e.altKey && e.key.toLowerCase() === 'z' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
                 e.preventDefault();
-                this.enterSizeMode();
+                this.modeHandlers.enterSizeMode();
                 return;
             }
 
             // Alt+T - Toggle theme (area-responsive: canvas-only in canvas pane, global elsewhere)
             if (e.altKey && e.key.toLowerCase() === 't' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
                 e.preventDefault();
-                this.handleAreaResponsiveThemeToggle();
+                this.modeHandlers.handleAreaResponsiveThemeToggle();
                 return;
             }
 
@@ -274,33 +284,10 @@ export class KeyboardShortcuts {
                 return;
             }
 
-            // Handle Align mode shortcuts (L/R/T/B/C/M)
-            if (this.alignModeActive) {
+            // Handle mode shortcuts (align, arrange, size, alignByAxis)
+            if (this.modeHandlers.isAnyModeActive()) {
                 e.preventDefault();
-                this.handleAlignModeKey(e.key);
-                return;
-            }
-
-            // Handle Align by Axis mode shortcuts (L/R/T/B/C/M/S)
-            if (this.alignByAxisModeActive) {
-                e.preventDefault();
-                this.handleAlignByAxisModeKey(e.key);
-                return;
-            }
-
-            // Handle Arrange mode shortcuts (F/B)
-            if (this.arrangeModeActive) {
-                e.preventDefault();
-                this.handleArrangeModeKey(e.key);
-                return;
-            }
-
-            // Distribute mode removed - now handled by Alt+A -> H/V
-
-            // Handle Size mode shortcuts (S/W/H/C)
-            if (this.sizeModeActive) {
-                e.preventDefault();
-                this.handleSizeModeKey(e.key);
+                this.modeHandlers.handleModeKey(e.key);
                 return;
             }
 
@@ -325,7 +312,7 @@ export class KeyboardShortcuts {
             // Escape key - Exit modes (element selection, etc.)
             if (e.key === 'Escape') {
                 e.preventDefault();
-                this.clearModes();
+                this.modeHandlers.clearModes();
                 if (this.escapeCallback) {
                     this.escapeCallback();
                 }
@@ -421,297 +408,4 @@ export class KeyboardShortcuts {
         console.log('[KeyboardShortcuts] Keyboard shortcuts initialized');
     }
 
-    /**
-     * Update status bar
-     */
-    private updateStatusBar(message?: string): void {
-        if (this.updateStatusBarCallback && message) {
-            this.updateStatusBarCallback(message);
-        }
-    }
-
-    /**
-     * Clear any active mode
-     */
-    private clearModes(): void {
-        this.alignModeActive = false;
-        this.arrangeModeActive = false;
-        this.sizeModeActive = false;
-        this.alignByAxisModeActive = false;
-        if (this.modeTimeout) {
-            clearTimeout(this.modeTimeout);
-            this.modeTimeout = null;
-        }
-    }
-
-    /**
-     * Start mode timeout (auto-cancel after 3 seconds)
-     */
-    private startModeTimeout(): void {
-        if (this.modeTimeout) {
-            clearTimeout(this.modeTimeout);
-        }
-        this.modeTimeout = setTimeout(() => {
-            this.clearModes();
-            this.updateStatusBar('Mode cancelled (timeout)');
-        }, 3000);
-    }
-
-    /**
-     * Enter Align mode (Alt+A)
-     * Shows status and waits for L/R/T/B/C/M key
-     */
-    private enterAlignMode(): void {
-        this.clearModes();
-        this.alignModeActive = true;
-        this.startModeTimeout();
-        this.updateStatusBar('Align mode: L/R/T/B=Edge, H=Distribute Horiz, V=Distribute Vert, C=Center-H, M=Center-V');
-    }
-
-    /**
-     * Enter Send mode (Alt+S)
-     * Shows status and waits for F/B key
-     */
-    private enterArrangeMode(): void {
-        this.clearModes();
-        this.arrangeModeActive = true;
-        this.startModeTimeout();
-        this.updateStatusBar('Send mode: F=Front, B=Back');
-    }
-
-    /**
-     * Enter Size mode (Alt+Z)
-     * Shows status and waits for S/W/T/C key
-     */
-    private enterSizeMode(): void {
-        this.clearModes();
-        this.sizeModeActive = true;
-        this.startModeTimeout();
-        this.updateStatusBar('Size mode (Alt+Z): S=Match Size, W=Match Width, T=Match Height (Tall), C=Multiple Crop');
-    }
-
-    /**
-     * Enter Align by Axis mode (Ctrl+Alt+A)
-     * Shows status and waits for L/R/T/B/C/M/S key
-     */
-    private enterAlignByAxisMode(): void {
-        this.clearModes();
-        this.alignByAxisModeActive = true;
-        this.startModeTimeout();
-        this.updateStatusBar('Align by Axis: L=Y-Axis(Left), R=Right, T=Top, B=X-Axis(Bottom), C=Center-H, M=Center-V, S=Stack');
-    }
-
-    /**
-     * Handle key press in Align by Axis mode
-     * L = Y-Axis (left edge of axes)
-     * R = Right edge of axes
-     * T = Top edge of axes
-     * B = X-Axis (bottom edge of axes)
-     * C = Horizontal center of axes
-     * M = Vertical center of axes
-     * S = Stack vertically (align Y-axes + stack plots)
-     */
-    private handleAlignByAxisModeKey(key: string): void {
-        const keyLower = key.toLowerCase();
-
-        let direction: 'L' | 'C' | 'R' | 'T' | 'M' | 'B' | 'S' | null = null;
-
-        switch (keyLower) {
-            case 'l': direction = 'L'; break;
-            case 'r': direction = 'R'; break;
-            case 't': direction = 'T'; break;
-            case 'b': direction = 'B'; break;
-            case 'c': direction = 'C'; break;
-            case 'm': direction = 'M'; break;
-            case 's': direction = 'S'; break;
-            case 'escape':
-                this.clearModes();
-                this.updateStatusBar('Align by Axis mode cancelled');
-                return;
-            default:
-                this.updateStatusBar(`Invalid key. Use: L/R/T/B/C/M/S or Escape`);
-                return;
-        }
-
-        if (direction && this.alignByAxisCallback) {
-            this.alignByAxisCallback(direction);
-            const dirNames: Record<string, string> = {
-                'L': 'Y-axis (left)',
-                'R': 'right edge',
-                'T': 'top edge',
-                'B': 'X-axis (bottom)',
-                'C': 'center-H',
-                'M': 'center-V',
-                'S': 'stacked vertically'
-            };
-            this.updateStatusBar(`Aligned by axis: ${dirNames[direction]}`);
-        }
-
-        this.clearModes();
-    }
-
-    /**
-     * Handle key press in Align mode
-     * H = Distribute horizontally (equal spacing) for multi-select, center-h for single
-     * V = Distribute vertically (equal spacing) for multi-select, center-v for single
-     */
-    private handleAlignModeKey(key: string): void {
-        const keyLower = key.toLowerCase();
-
-        // H and V trigger distribute (equal spacing) in align mode
-        if (keyLower === 'h') {
-            if (this.distributeCallback) {
-                this.distributeCallback('horizontal');
-                this.updateStatusBar('Distributed: Horizontal (equal spacing)');
-            }
-            this.clearModes();
-            return;
-        }
-        if (keyLower === 'v') {
-            if (this.distributeCallback) {
-                this.distributeCallback('vertical');
-                this.updateStatusBar('Distributed: Vertical (equal spacing)');
-            }
-            this.clearModes();
-            return;
-        }
-
-        let direction: 'left' | 'right' | 'top' | 'bottom' | 'center-h' | 'center-v' | null = null;
-
-        switch (keyLower) {
-            case 'l': direction = 'left'; break;
-            case 'r': direction = 'right'; break;
-            case 't': direction = 'top'; break;
-            case 'b': direction = 'bottom'; break;
-            case 'c': direction = 'center-h'; break;  // C = Center horizontally (align centers)
-            case 'm': direction = 'center-v'; break;  // M = Middle vertically (align centers)
-            case 'escape':
-                this.clearModes();
-                this.updateStatusBar('Align mode cancelled');
-                return;
-            default:
-                this.updateStatusBar(`Invalid key. Use: L/R/T/B/H/V/C/M or Escape`);
-                return;
-        }
-
-        if (direction && this.alignCallback) {
-            this.alignCallback(direction);
-            this.updateStatusBar(`Aligned: ${direction}`);
-        }
-        this.clearModes();
-    }
-
-    /**
-     * Handle key press in Arrange mode
-     */
-    private handleArrangeModeKey(key: string): void {
-        const keyLower = key.toLowerCase();
-        let action: 'front' | 'back' | null = null;
-
-        switch (keyLower) {
-            case 'f': action = 'front'; break;
-            case 'b': action = 'back'; break;
-            case 'escape':
-                this.clearModes();
-                this.updateStatusBar('Arrange mode cancelled');
-                return;
-            default:
-                this.updateStatusBar(`Invalid key. Use: F/B or Escape`);
-                return;
-        }
-
-        if (action && this.arrangeCallback) {
-            this.arrangeCallback(action);
-            this.updateStatusBar(`Arranged: ${action === 'front' ? 'Bring to Front' : 'Send to Back'}`);
-        }
-        this.clearModes();
-    }
-
-    /**
-     * Handle area-responsive theme toggle
-     * Canvas-only when focus is in canvas pane, global theme otherwise
-     */
-    private handleAreaResponsiveThemeToggle(): void {
-        // Check if focus is in canvas area
-        const canvasPane = document.querySelector('.canvas-pane');
-        const activeElement = document.activeElement;
-        const canvasContainer = document.getElementById('canvas-container');
-        const rulersArea = document.getElementById('rulers-area');
-
-        // Determine if user is focused in canvas area
-        const isInCanvasArea = (
-            canvasPane?.contains(activeElement) ||
-            canvasContainer?.contains(activeElement) ||
-            rulersArea?.contains(activeElement) ||
-            activeElement?.closest('.canvas-pane') !== null ||
-            activeElement?.closest('#canvas-container') !== null
-        );
-
-        if (isInCanvasArea) {
-            // Toggle canvas theme only (local)
-            this.toggleCanvasThemeOnly();
-        } else {
-            // Toggle global theme
-            if (this.toggleThemeCallback) {
-                this.toggleThemeCallback();
-            }
-        }
-    }
-
-    /**
-     * Toggle canvas theme only (independent of global theme)
-     */
-    private toggleCanvasThemeOnly(): void {
-        const canvasContainer = document.querySelector('.vis-canvas-container');
-        if (!canvasContainer) return;
-
-        const currentTheme = canvasContainer.getAttribute('data-canvas-theme') || 'light';
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
-        canvasContainer.setAttribute('data-canvas-theme', newTheme);
-        localStorage.setItem('canvas-theme', newTheme);
-
-        // Dispatch event for CanvasManager to update Fabric.js canvas background
-        document.dispatchEvent(new CustomEvent('canvas-theme-changed', {
-            detail: { theme: newTheme, isDark: newTheme === 'dark' }
-        }));
-
-        this.updateStatusBar(`Canvas theme: ${newTheme}`);
-        console.log(`[KeyboardShortcuts] Canvas theme toggled to ${newTheme}`);
-    }
-
-    /**
-     * Handle key press in Size mode
-     */
-    private handleSizeModeKey(key: string): void {
-        const keyLower = key.toLowerCase();
-        let action: 'match-size' | 'match-width' | 'match-height' | 'multiple-crop' | null = null;
-
-        switch (keyLower) {
-            case 's': action = 'match-size'; break;
-            case 'w': action = 'match-width'; break;
-            case 't': action = 'match-height'; break;  // T = Tall (Height)
-            case 'h': action = 'match-height'; break;  // H = Height (legacy alias)
-            case 'c': action = 'multiple-crop'; break;
-            case 'escape':
-                this.clearModes();
-                this.updateStatusBar('Size mode cancelled');
-                return;
-            default:
-                this.updateStatusBar(`Invalid key. Use: S/W/T/C or Escape`);
-                return;
-        }
-
-        if (action && this.sizeCallback) {
-            this.sizeCallback(action);
-            const actionNames: Record<string, string> = {
-                'match-size': 'Match Size',
-                'match-width': 'Match Width',
-                'match-height': 'Match Height',
-                'multiple-crop': 'Multiple Crop',
-            };
-            this.updateStatusBar(`Applied: ${actionNames[action]}`);
-        }
-        this.clearModes();
-    }
 }
