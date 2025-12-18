@@ -27,9 +27,9 @@ def get_gallery_path(project_path: Path) -> Path:
 
 
 def get_template_gallery_path() -> Path:
-    """Get the default template gallery path (research-master template)."""
+    """Get the static gallery path (centralized server-side templates)."""
     from django.conf import settings
-    return Path(settings.BASE_DIR) / "templates" / "research-master" / "scitex" / "vis" / "gallery"
+    return Path(settings.BASE_DIR) / "static" / "shared" / "images" / "gallery"
 
 
 def generate_gallery(
