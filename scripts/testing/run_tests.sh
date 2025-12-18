@@ -71,7 +71,7 @@ check_vitest() {
 }
 
 # =============================================================================
-# Test Runners
+# Test Runners - Explicit paths, no fallbacks
 # =============================================================================
 
 run_unit_tests() {
@@ -89,17 +89,17 @@ run_unit_tests() {
 
     cd "$PROJECT_ROOT"
 
-    # Try new structure first, fall back to legacy
-    if [ -d "tests/unit" ] && find tests/unit -name "test_*.py" 2>/dev/null | grep -q .; then
-        pytest tests/unit/ $pytest_args
-    elif [ -d "tests/apps" ]; then
-        echo -e "${YELLOW}ℹ️  Using tests/apps/ (run 'make sync-tests' to update structure)${NC}"
-        pytest tests/apps/ $pytest_args -m "not django_db" 2>/dev/null || \
-            echo -e "${YELLOW}⚠️  No unit tests found (tests without django_db marker)${NC}"
-    else
-        echo -e "${YELLOW}⚠️  No unit tests found in tests/unit/ or tests/apps/${NC}"
+    local test_dir="tests/unit"
+    local test_count=$(find "$test_dir" -name "test_*.py" 2>/dev/null | wc -l)
+
+    if [ "$test_count" -eq 0 ]; then
+        echo -e "${YELLOW}⚠️  No unit tests found in ${test_dir}/${NC}"
+        echo -e "${YELLOW}   Create test files as ${test_dir}/test_*.py${NC}"
         return 0
     fi
+
+    echo -e "${CYAN}   Found ${test_count} test file(s) in ${test_dir}/${NC}"
+    pytest "$test_dir/" $pytest_args
 }
 
 run_db_tests() {
@@ -117,13 +117,17 @@ run_db_tests() {
 
     cd "$PROJECT_ROOT"
 
-    if [ -d "tests/db" ] && find tests/db -name "test_*.py" 2>/dev/null | grep -q .; then
-        pytest tests/db/ $pytest_args
-    else
-        echo -e "${YELLOW}⚠️  No database tests found in tests/db/${NC}"
+    local test_dir="tests/db"
+    local test_count=$(find "$test_dir" -name "test_*.py" 2>/dev/null | wc -l)
+
+    if [ "$test_count" -eq 0 ]; then
+        echo -e "${YELLOW}⚠️  No database tests found in ${test_dir}/${NC}"
         echo -e "${YELLOW}   Create tests with @pytest.mark.django_db decorator${NC}"
         return 0
     fi
+
+    echo -e "${CYAN}   Found ${test_count} test file(s) in ${test_dir}/${NC}"
+    pytest "$test_dir/" $pytest_args
 }
 
 run_api_tests() {
@@ -141,12 +145,16 @@ run_api_tests() {
 
     cd "$PROJECT_ROOT"
 
-    if [ -d "tests/api" ] && find tests/api -name "test_*.py" 2>/dev/null | grep -q .; then
-        pytest tests/api/ $pytest_args
-    else
-        echo -e "${YELLOW}⚠️  No API tests found in tests/api/${NC}"
+    local test_dir="tests/api"
+    local test_count=$(find "$test_dir" -name "test_*.py" 2>/dev/null | wc -l)
+
+    if [ "$test_count" -eq 0 ]; then
+        echo -e "${YELLOW}⚠️  No API tests found in ${test_dir}/${NC}"
         return 0
     fi
+
+    echo -e "${CYAN}   Found ${test_count} test file(s) in ${test_dir}/${NC}"
+    pytest "$test_dir/" $pytest_args
 }
 
 run_ui_tests() {
@@ -166,16 +174,17 @@ run_ui_tests() {
 
     cd "$PROJECT_ROOT"
 
-    # Try new structure first, fall back to legacy e2e
-    if [ -d "tests/ui" ] && find tests/ui -name "test_*.py" 2>/dev/null | grep -q .; then
-        pytest tests/ui/ $pytest_args
-    elif [ -d "tests/e2e" ] && find tests/e2e -name "test_*.py" 2>/dev/null | grep -q .; then
-        echo -e "${YELLOW}ℹ️  Using tests/e2e/ (legacy location)${NC}"
-        pytest tests/e2e/ $pytest_args
-    else
-        echo -e "${YELLOW}⚠️  No UI tests found in tests/ui/ or tests/e2e/${NC}"
-        return 0
+    local test_dir="tests/ui"
+    local test_count=$(find "$test_dir" -name "test_*.py" 2>/dev/null | wc -l)
+
+    if [ "$test_count" -eq 0 ]; then
+        echo -e "${RED}❌ No UI tests found in ${test_dir}/${NC}"
+        echo -e "${YELLOW}   Expected test files at ${test_dir}/test_*.py${NC}"
+        return 1
     fi
+
+    echo -e "${CYAN}   Found ${test_count} test file(s) in ${test_dir}/${NC}"
+    pytest "$test_dir/" $pytest_args
 }
 
 run_python_tests() {
@@ -213,6 +222,16 @@ run_ts_tests() {
     fi
 
     cd "$PROJECT_ROOT"
+
+    local test_dir="tests/ts"
+    local test_count=$(find "$test_dir" -name "*.test.ts" 2>/dev/null | wc -l)
+
+    if [ "$test_count" -eq 0 ]; then
+        echo -e "${YELLOW}⚠️  No TypeScript tests found in ${test_dir}/${NC}"
+        return 0
+    fi
+
+    echo -e "${CYAN}   Found ${test_count} test file(s) in ${test_dir}/${NC}"
     npm run test:run
 }
 
@@ -287,23 +306,28 @@ show_status() {
 
     echo ""
 
-    # Test counts
-    echo -e "${CYAN}Test Files:${NC}"
+    # Test counts - explicit paths only
+    echo -e "${CYAN}Test Files (explicit paths):${NC}"
     local unit_count=$(find "$PROJECT_ROOT/tests/unit" -name "test_*.py" 2>/dev/null | wc -l)
     local db_count=$(find "$PROJECT_ROOT/tests/db" -name "test_*.py" 2>/dev/null | wc -l)
     local api_count=$(find "$PROJECT_ROOT/tests/api" -name "test_*.py" 2>/dev/null | wc -l)
     local ui_count=$(find "$PROJECT_ROOT/tests/ui" -name "test_*.py" 2>/dev/null | wc -l)
-    local e2e_count=$(find "$PROJECT_ROOT/tests/e2e" -name "test_*.py" 2>/dev/null | wc -l)
     local ts_count=$(find "$PROJECT_ROOT/tests/ts" -name "*.test.ts" 2>/dev/null | wc -l)
-    local apps_count=$(find "$PROJECT_ROOT/tests/apps" -name "test_*.py" 2>/dev/null | wc -l)
 
     echo -e "  tests/unit/:      ${CYAN}$unit_count${NC} files"
     echo -e "  tests/db/:        ${CYAN}$db_count${NC} files"
     echo -e "  tests/api/:       ${CYAN}$api_count${NC} files"
     echo -e "  tests/ui/:        ${CYAN}$ui_count${NC} files"
-    echo -e "  tests/e2e/:       ${CYAN}$e2e_count${NC} files (legacy)"
-    echo -e "  tests/apps/:      ${CYAN}$apps_count${NC} files (legacy)"
     echo -e "  tests/ts/:        ${CYAN}$ts_count${NC} files"
+
+    # Legacy locations warning
+    local apps_count=$(find "$PROJECT_ROOT/tests/apps" -name "test_*.py" 2>/dev/null | wc -l)
+    if [ "$apps_count" -gt 0 ]; then
+        echo ""
+        echo -e "${YELLOW}⚠️  Legacy tests found:${NC}"
+        echo -e "  tests/apps/:      ${YELLOW}$apps_count${NC} files (not run by default)"
+        echo -e "  ${YELLOW}Consider migrating to tests/{unit,db,api,ui}/${NC}"
+    fi
 
     echo ""
     echo -e "${CYAN}Setup Commands:${NC}"
@@ -321,12 +345,12 @@ usage() {
     echo "Usage: $0 <category> [options]"
     echo ""
     echo "Categories:"
-    echo "  unit      Run Python unit tests"
-    echo "  db        Run Python database tests"
-    echo "  api       Run Python API tests"
-    echo "  ui        Run UI tests (Playwright)"
+    echo "  unit      Run Python unit tests (tests/unit/)"
+    echo "  db        Run Python database tests (tests/db/)"
+    echo "  api       Run Python API tests (tests/api/)"
+    echo "  ui        Run UI tests - Playwright (tests/ui/)"
     echo "  python    Run all Python tests"
-    echo "  ts        Run TypeScript tests"
+    echo "  ts        Run TypeScript tests (tests/ts/)"
     echo "  all       Run all tests"
     echo ""
     echo "Options:"

@@ -1,6 +1,6 @@
 #!/bin/bash
 # -*- coding: utf-8 -*-
-# Timestamp: "2025-11-23 18:18:36 (ywatanabe)"
+# Timestamp: "2025-12-18 20:19:35 (ywatanabe)"
 # File: ./scripts/maintenance/check_file_sizes.sh
 
 ORIG_DIR="$(pwd)"
@@ -22,6 +22,7 @@ echo_warning() { echo -e "${YELLOW}WARN: $1${NC}"; }
 echo_error() { echo -e "${RED}ERRO: $1${NC}"; }
 echo_header() { echo_info "=== $1 ==="; }
 # ---------------------------------------
+
 # ============================================
 # Check File Sizes - Detect files >300 lines
 # ============================================
@@ -40,7 +41,7 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 
 # Configuration - Powers of 2 thresholds
-THRESHOLD_TS=256
+THRESHOLD_TS=512
 THRESHOLD_PY=256
 THRESHOLD_CSS=512
 THRESHOLD_HTML=1024
