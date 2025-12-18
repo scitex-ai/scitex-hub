@@ -1,0 +1,12 @@
+/**
+ * Jobs Panel Styles - Index
+ * SLURM job management panel for the code workspace
+ * Imports all modular CSS files
+ */
+
+@import url('./tabs.css');
+@import url('./toolbar.css');
+@import url('./list.css');
+@import url('./sections.css');
+@import url('./cards.css');
+@import url('./scrollbar.css');
