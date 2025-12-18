@@ -44,6 +44,7 @@ export class ExportManager {
     /**
      * Export canvas as PNG with 300 DPI for publication quality
      * Uses multiplier to achieve 300 DPI (screen is typically 96 DPI)
+     * Temporarily removes grid background for clean export
      */
     public exportAsPng(): void {
         if (!this.canvas) {
@@ -51,12 +52,27 @@ export class ExportManager {
             return;
         }
 
+        // Save current background (grid) and background color
+        const originalBgImage = this.canvas.backgroundImage;
+        const originalBgColor = this.canvas.backgroundColor;
+
+        // Set white background for clean export (no grid)
+        this.canvas.setBackgroundImage(null, () => {});
+        this.canvas.backgroundColor = '#ffffff';
+        this.canvas.renderAll();
+
         // 300 DPI / 96 DPI ≈ 3.125 multiplier for publication quality
         const dpiMultiplier = 300 / 96;
         const dataUrl = this.canvas.toDataURL({
             format: 'png',
             quality: 1,
             multiplier: dpiMultiplier
+        });
+
+        // Restore original background
+        this.canvas.setBackgroundImage(originalBgImage, () => {
+            this.canvas.backgroundColor = originalBgColor;
+            this.canvas.renderAll();
         });
 
         const link = document.createElement('a');
@@ -74,6 +90,7 @@ export class ExportManager {
     /**
      * Export canvas as JPEG with 95% quality
      * Good for file size when vector formats aren't needed
+     * Temporarily removes grid background for clean export
      */
     public exportAsJpeg(): void {
         if (!this.canvas) {
@@ -81,10 +98,26 @@ export class ExportManager {
             return;
         }
 
+        // Save current background (grid) and background color
+        const originalBgImage = this.canvas.backgroundImage;
+        const originalBgColor = this.canvas.backgroundColor;
+
+        // Set white background for clean export (no grid)
+        this.canvas.setBackgroundImage(null, () => {});
+        this.canvas.backgroundColor = '#ffffff';
+        this.canvas.renderAll();
+
         // Use white background for JPEG (no transparency)
         const tempCanvas = document.createElement('canvas');
         const ctx = tempCanvas.getContext('2d');
-        if (!ctx) return;
+        if (!ctx) {
+            // Restore and return on error
+            this.canvas.setBackgroundImage(originalBgImage, () => {
+                this.canvas.backgroundColor = originalBgColor;
+                this.canvas.renderAll();
+            });
+            return;
+        }
 
         const multiplier = 2;
         tempCanvas.width = this.canvas.getWidth() * multiplier;
@@ -99,6 +132,12 @@ export class ExportManager {
             format: 'png',
             quality: 1,
             multiplier: multiplier
+        });
+
+        // Restore original background immediately after capturing
+        this.canvas.setBackgroundImage(originalBgImage, () => {
+            this.canvas.backgroundColor = originalBgColor;
+            this.canvas.renderAll();
         });
 
         const img = new Image();
@@ -186,6 +225,7 @@ export class ExportManager {
     /**
      * Export canvas as SVG (vector format)
      * SVG preserves scalability for publications
+     * Temporarily removes grid background for clean export
      */
     public exportAsSvg(): void {
         if (!this.canvas) {
@@ -193,7 +233,23 @@ export class ExportManager {
             return;
         }
 
+        // Save current background (grid) and background color
+        const originalBgImage = this.canvas.backgroundImage;
+        const originalBgColor = this.canvas.backgroundColor;
+
+        // Set white background for clean export (no grid)
+        this.canvas.setBackgroundImage(null, () => {});
+        this.canvas.backgroundColor = '#ffffff';
+        this.canvas.renderAll();
+
         const svg = this.canvas.toSVG();
+
+        // Restore original background
+        this.canvas.setBackgroundImage(originalBgImage, () => {
+            this.canvas.backgroundColor = originalBgColor;
+            this.canvas.renderAll();
+        });
+
         const blob = new Blob([svg], { type: 'image/svg+xml' });
         const url = URL.createObjectURL(blob);
 
@@ -215,6 +271,7 @@ export class ExportManager {
     /**
      * Export canvas as PDF (requires jsPDF library)
      * PDF dimensions match canvas size for scientific publications
+     * Temporarily removes grid background for clean export
      */
     public exportAsPdf(): void {
         if (!this.canvas) {
@@ -232,11 +289,26 @@ export class ExportManager {
             return;
         }
 
+        // Save current background (grid) and background color
+        const originalBgImage = this.canvas.backgroundImage;
+        const originalBgColor = this.canvas.backgroundColor;
+
+        // Set white background for clean export (no grid)
+        this.canvas.setBackgroundImage(null, () => {});
+        this.canvas.backgroundColor = '#ffffff';
+        this.canvas.renderAll();
+
         // Convert canvas to high-quality PNG data URL
         const dataUrl = this.canvas.toDataURL({
             format: 'png',
             quality: 1,
             multiplier: 2  // 2x resolution for better quality
+        });
+
+        // Restore original background
+        this.canvas.setBackgroundImage(originalBgImage, () => {
+            this.canvas.backgroundColor = originalBgColor;
+            this.canvas.renderAll();
         });
 
         const canvasWidth = this.canvas.getWidth();
@@ -290,12 +362,28 @@ export class ExportManager {
 
     /**
      * Export as PNG with custom filename
+     * Temporarily removes grid background for clean export
      */
     private exportAsPngWithFilename(filename: string): void {
+        // Save current background (grid) and background color
+        const originalBgImage = this.canvas.backgroundImage;
+        const originalBgColor = this.canvas.backgroundColor;
+
+        // Set white background for clean export (no grid)
+        this.canvas.setBackgroundImage(null, () => {});
+        this.canvas.backgroundColor = '#ffffff';
+        this.canvas.renderAll();
+
         const dataUrl = this.canvas.toDataURL({
             format: 'png',
             quality: 1,
             multiplier: 2
+        });
+
+        // Restore original background
+        this.canvas.setBackgroundImage(originalBgImage, () => {
+            this.canvas.backgroundColor = originalBgColor;
+            this.canvas.renderAll();
         });
 
         const link = document.createElement('a');
@@ -310,9 +398,26 @@ export class ExportManager {
 
     /**
      * Export as SVG with custom filename
+     * Temporarily removes grid background for clean export
      */
     private exportAsSvgWithFilename(filename: string): void {
+        // Save current background (grid) and background color
+        const originalBgImage = this.canvas.backgroundImage;
+        const originalBgColor = this.canvas.backgroundColor;
+
+        // Set white background for clean export (no grid)
+        this.canvas.setBackgroundImage(null, () => {});
+        this.canvas.backgroundColor = '#ffffff';
+        this.canvas.renderAll();
+
         const svg = this.canvas.toSVG();
+
+        // Restore original background
+        this.canvas.setBackgroundImage(originalBgImage, () => {
+            this.canvas.backgroundColor = originalBgColor;
+            this.canvas.renderAll();
+        });
+
         const blob = new Blob([svg], { type: 'image/svg+xml' });
         const url = URL.createObjectURL(blob);
 
@@ -330,6 +435,7 @@ export class ExportManager {
 
     /**
      * Export as PDF with custom filename
+     * Temporarily removes grid background for clean export
      */
     private exportAsPdfWithFilename(filename: string): void {
         const jsPDF = (window as any).jspdf?.jsPDF || (window as any).jsPDF;
@@ -338,10 +444,25 @@ export class ExportManager {
             return;
         }
 
+        // Save current background (grid) and background color
+        const originalBgImage = this.canvas.backgroundImage;
+        const originalBgColor = this.canvas.backgroundColor;
+
+        // Set white background for clean export (no grid)
+        this.canvas.setBackgroundImage(null, () => {});
+        this.canvas.backgroundColor = '#ffffff';
+        this.canvas.renderAll();
+
         const dataUrl = this.canvas.toDataURL({
             format: 'png',
             quality: 1,
             multiplier: 2
+        });
+
+        // Restore original background
+        this.canvas.setBackgroundImage(originalBgImage, () => {
+            this.canvas.backgroundColor = originalBgColor;
+            this.canvas.renderAll();
         });
 
         const canvasWidth = this.canvas.getWidth();

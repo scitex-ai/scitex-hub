@@ -128,24 +128,25 @@ export function initializeVisEditor(): void {
 
 /**
  * Setup export dropdown handlers
- * Wires download dropdown buttons to CanvasManager export methods
+ * Wires download dropdown buttons to backend export via scitex package.
+ * All exports delegate to scitex.fig.io.export_figz_bundle for proper compositing.
  */
 function setupExportHandlers(canvasManager: any): void {
-  // PNG (300 DPI)
+  // PNG (300 DPI) - Uses backend scitex package
   const exportPngBtn = document.getElementById("export-png");
-  exportPngBtn?.addEventListener("click", () => {
-    console.log("[Export] PNG (300 DPI)");
+  exportPngBtn?.addEventListener("click", async () => {
+    console.log("[Export] PNG (300 DPI) via backend");
     if (canvasManager.exportManager) {
-      canvasManager.exportManager.exportAsPng();
+      await canvasManager.exportManager.exportFigureImage("png", 300);
     } else {
       console.error("[Export] ExportManager not initialized");
     }
   });
 
-  // SVG (Vector)
+  // SVG (Vector) - Client-side export (no backend SVG compositing yet)
   const exportSvgBtn = document.getElementById("export-svg");
   exportSvgBtn?.addEventListener("click", () => {
-    console.log("[Export] SVG (Vector)");
+    console.log("[Export] SVG (Vector) - client-side");
     if (canvasManager.exportManager) {
       canvasManager.exportManager.exportAsSvg();
     } else {
@@ -153,23 +154,23 @@ function setupExportHandlers(canvasManager: any): void {
     }
   });
 
-  // PDF
+  // PDF - Uses backend scitex package
   const exportPdfBtn = document.getElementById("export-pdf");
-  exportPdfBtn?.addEventListener("click", () => {
-    console.log("[Export] PDF");
+  exportPdfBtn?.addEventListener("click", async () => {
+    console.log("[Export] PDF via backend");
     if (canvasManager.exportManager) {
-      canvasManager.exportManager.exportAsPdf();
+      await canvasManager.exportManager.exportFigureImage("pdf", 300);
     } else {
       console.error("[Export] ExportManager not initialized");
     }
   });
 
-  // JPEG (95%)
+  // JPEG (95%) - Uses backend scitex package
   const exportJpegBtn = document.getElementById("export-jpeg");
-  exportJpegBtn?.addEventListener("click", () => {
-    console.log("[Export] JPEG (95%)");
+  exportJpegBtn?.addEventListener("click", async () => {
+    console.log("[Export] JPEG via backend");
     if (canvasManager.exportManager) {
-      canvasManager.exportManager.exportAsJpeg();
+      await canvasManager.exportManager.exportFigureImage("jpg", 300);
     } else {
       console.error("[Export] ExportManager not initialized");
     }
@@ -186,7 +187,7 @@ function setupExportHandlers(canvasManager: any): void {
     }
   });
 
-  console.log("[VisEditor] Export dropdown handlers initialized");
+  console.log("[VisEditor] Export dropdown handlers initialized (backend-based)");
 }
 
 /**
