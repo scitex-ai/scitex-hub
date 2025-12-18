@@ -1,24 +1,22 @@
-#!/usr/bin/env python3
 """
-Models package for SciTeX-Code application.
-Exports all models for backward compatibility.
+Code App Models - Secure Python Code Execution
+
+Exports all models for backward compatibility:
+    from apps.code_app.models import CodeExecutionJob, Notebook, ...
 """
 
-from .code_models import (
-    CodeExecutionJob,
-    DataAnalysisJob,
-    Notebook,
-    CodeLibrary,
-    ResourceUsage,
-    ProjectService,
-    UserQuota,
-)
+from .execution import CodeExecutionJob, DataAnalysisJob
+from .notebook import CodeLibrary, Notebook
+from .tracking import ProjectService, ResourceUsage, UserQuota
 
 __all__ = [
+    # execution.py
     "CodeExecutionJob",
     "DataAnalysisJob",
+    # notebook.py
     "Notebook",
     "CodeLibrary",
+    # tracking.py
     "ResourceUsage",
     "ProjectService",
     "UserQuota",
