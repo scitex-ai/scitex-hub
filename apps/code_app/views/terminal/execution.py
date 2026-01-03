@@ -135,6 +135,7 @@ def exec_slurm_shell(
     cmd = [
         "srun",
         "--pty",
+        "--chdir=/tmp",  # Explicit host cwd (prevents /app warning)
         f"--partition={SLURM_PARTITION}",
         f"--time={SLURM_TIME_LIMIT}",
         f"--cpus-per-task={SLURM_CPUS}",
