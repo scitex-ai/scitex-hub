@@ -341,6 +341,11 @@ start:
 		fi; \
 		echo -e "$(GREEN)✓ Host requirements OK$(NC)"; \
 		echo ""; \
+		echo -e "$(CYAN)Fixing SLURM path permissions (NAS ACL workaround)...$(NC)"; \
+		chmod a+rx /home/ywatanabe/proj /home/ywatanabe/proj/scitex-cloud /home/ywatanabe/proj/scitex-cloud/deployment /home/ywatanabe/proj/scitex-cloud/deployment/singularity 2>/dev/null || true; \
+		chmod a+rx /home/ywatanabe/proj/scitex-cloud/data /home/ywatanabe/proj/scitex-cloud/data/users 2>/dev/null || true; \
+		echo -e "$(GREEN)✓ Permissions fixed$(NC)"; \
+		echo ""; \
 	fi
 	@# Stop all other environments to ensure exclusivity
 	@for env in $(VALID_ENVS); do \
