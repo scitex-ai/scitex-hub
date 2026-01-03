@@ -106,3 +106,47 @@ echo ""
 # File Size Warnings
 # ============================================
 "${PROJECT_ROOT}/scripts/maintenance/check_file_sizes.sh" || true
+
+# ============================================
+# NAS SLURM Path Check
+# ============================================
+if echo "$RUNNING" | grep -q "nas"; then
+    echo ""
+    echo -e "${BLUE}🔐 SLURM Paths (/opt/scitex):${NC}"
+
+    # Check if /opt/scitex is set up
+    SIF_PATH="/opt/scitex/singularity/scitex-user-workspace.sif"
+    DATA_PATH="/opt/scitex/data/users"
+
+    SETUP_OK=true
+
+    # Check SIF file exists and is readable
+    if [ -f "$SIF_PATH" ]; then
+        # Check if scitex user can read it
+        if sudo -u scitex test -r "$SIF_PATH" 2>/dev/null; then
+            echo -e "   ${GREEN}✅ Container: ${SIF_PATH}${NC}"
+        else
+            echo -e "   ${RED}❌ Container exists but not readable by scitex${NC}"
+            SETUP_OK=false
+        fi
+    else
+        echo -e "   ${RED}❌ Container not found: ${SIF_PATH}${NC}"
+        SETUP_OK=false
+    fi
+
+    # Check data directory exists and is writable
+    if [ -d "$DATA_PATH" ]; then
+        echo -e "   ${GREEN}✅ Data dir: ${DATA_PATH}${NC}"
+    else
+        echo -e "   ${RED}❌ Data dir not found: ${DATA_PATH}${NC}"
+        SETUP_OK=false
+    fi
+
+    # Show setup guidance if needed
+    if [ "$SETUP_OK" = false ]; then
+        echo ""
+        echo -e "   ${YELLOW}⚠️  SLURM paths not configured (terminal will fail)${NC}"
+        echo -e "   ${YELLOW}Setup:${NC} ${GREEN}sudo ./deployment/host-setup/scripts/setup-slurm-paths.sh${NC}"
+        echo -e "   Then: ${GREEN}make env=nas restart${NC}"
+    fi
+fi

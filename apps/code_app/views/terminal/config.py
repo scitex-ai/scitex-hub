@@ -36,13 +36,14 @@ SLURM_MEMORY_GB = int(os.environ.get('SCITEX_QUOTA_SLURM_INTERACTIVE_MEMORY_GB',
 
 # SLURM host paths - jobs run on compute nodes, not inside Docker
 # These paths must be accessible from the SLURM compute nodes
+# Using /opt/scitex to avoid NAS ACL issues with home directories
 SLURM_CONTAINER_PATH = os.environ.get(
     'SCITEX_SLURM_CONTAINER_PATH',
-    '/home/ywatanabe/proj/scitex-cloud/deployment/singularity/scitex-user-workspace.sif'
+    '/opt/scitex/singularity/scitex-user-workspace.sif'
 )
 SLURM_USER_DATA_ROOT = Path(os.environ.get(
     'SCITEX_SLURM_USER_DATA_ROOT',
-    '/home/ywatanabe/proj/scitex-cloud/data/users'
+    '/opt/scitex/data/users'
 ))
 
 

@@ -69,10 +69,11 @@ def api_submit_job(request):
         user_workspace = get_user_workspace(request.user)
 
         # Get container path from settings
+        # Using /opt/scitex to avoid NAS ACL issues with home directories
         container_path = Path(getattr(
             settings,
             'APPTAINER_CONTAINER_PATH',
-            '/home/ywatanabe/proj/scitex-cloud/deployment/singularity/scitex-user-workspace.sif'
+            '/opt/scitex/singularity/scitex-user-workspace.sif'
         ))
 
         # Submit job

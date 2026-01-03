@@ -1,0 +1,17 @@
+[Unit]
+Description=Ensure SLURM path permissions for SciTeX Cloud
+Documentation=https://github.com/ywatanabe1989/scitex-cloud
+# Run before Docker starts so containers have correct permissions
+Before=docker.service
+After=local-fs.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# Ensure /opt/scitex paths are accessible to SLURM
+# These are system paths, less prone to ACL issues than home directories
+ExecStart=/bin/bash -c 'chmod -R a+rX /opt/scitex 2>/dev/null || true'
+ExecStart=/bin/bash -c 'chmod 1777 /opt/scitex/data/users 2>/dev/null || true'
+
+[Install]
+WantedBy=multi-user.target
