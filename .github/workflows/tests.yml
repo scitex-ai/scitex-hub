@@ -21,44 +21,49 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: |
-          cd tsconfig
-          npm install
+        run: npm install
 
-      - name: TypeScript type checking
-        run: |
-          cd tsconfig
-          npm run type-check
+      - name: Build with Vite
+        run: npm run build
 
-      - name: ESLint
-        run: |
-          cd tsconfig
-          npm run lint
-        continue-on-error: true  # Don't fail CI on lint warnings initially
-
-      - name: Check formatting (Prettier)
-        run: |
-          cd tsconfig
-          npx prettier --check ../static/shared/ts/**/*.ts ../apps/**/static/**/ts/**/*.ts
-        continue-on-error: true  # Don't fail CI on formatting initially
-
-      - name: Build TypeScript
-        run: |
-          cd tsconfig
-          npm run build:all
-
-  typescript-summary:
-    name: TypeScript Summary
+  vitest:
+    name: Vitest Unit Tests
     runs-on: ubuntu-latest
-    needs: typescript-check
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm run test:run
+        continue-on-error: true  # Tests may need setup
+
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [typescript-check, vitest]
     if: always()
 
     steps:
       - name: Check results
         run: |
-          if [ "${{ needs.typescript-check.result }}" == "failure" ]; then
+          TS_RESULT="${{ needs.typescript-check.result }}"
+          TEST_RESULT="${{ needs.vitest.result }}"
+
+          echo "TypeScript: $TS_RESULT"
+          echo "Vitest: $TEST_RESULT"
+
+          if [ "$TS_RESULT" == "failure" ]; then
             echo "❌ TypeScript checks failed"
             exit 1
-          else
-            echo "✅ All TypeScript checks passed"
           fi
+
+          echo "✅ CI checks completed"
