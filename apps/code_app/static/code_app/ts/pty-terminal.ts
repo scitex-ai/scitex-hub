@@ -171,11 +171,19 @@ export class PTYTerminal {
 
     console.log('[PTY] Connecting to:', wsUrl);
 
+    // Show connecting message
+    if (this.term) {
+      this.term.write('\x1b[1;36m⏳ Connecting to terminal...\x1b[0m\r\n');
+    }
+
     this.ws = new WebSocket(wsUrl);
 
     this.ws.onopen = () => {
       console.log('[PTY] WebSocket connected');
-      // No welcome message - PS1 already shows all necessary info
+      // Show connected status (will be followed by shell output)
+      if (this.term) {
+        this.term.write('\x1b[1;32m✓ Connected. Initializing shell...\x1b[0m\r\n');
+      }
       this.sendResize();
     };
 
@@ -191,7 +199,7 @@ export class PTYTerminal {
 
     this.ws.onclose = () => {
       console.log('[PTY] WebSocket closed');
-      this.term.write('\r\n\x1b[1;33m[Disconnected]\x1b[0m\r\n');
+      this.term.write('\r\n\x1b[1;33m⚠ Disconnected. Reconnecting in 3s...\x1b[0m\r\n');
 
       // Attempt reconnect after 3 seconds
       setTimeout(() => this.connect(), 3000);

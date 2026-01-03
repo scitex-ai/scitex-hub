@@ -101,6 +101,8 @@ class TerminalConsumer(AsyncWebsocketConsumer):
             return
 
         await self.accept()
+        # Send initial status before spawning (SLURM job may take time to start)
+        await self.send(text_data='\x1b[1;36m🔧 Allocating compute resources via SLURM...\x1b[0m\r\n')
         await self.spawn_pty()
 
     async def spawn_pty(self):
@@ -143,6 +145,11 @@ class TerminalConsumer(AsyncWebsocketConsumer):
                 else:
                     # SECURITY: No fallback - SLURM is required for all terminals
                     logger.error("SLURM not available - terminals disabled for security")
+                    # Write error message to stdout so it appears in terminal
+                    import sys
+                    sys.stdout.write('\x1b[1;31m❌ SLURM not available - terminals disabled\x1b[0m\r\n')
+                    sys.stdout.write('\x1b[1;33mContact administrator to check SLURM status\x1b[0m\r\n')
+                    sys.stdout.flush()
                     os._exit(1)
         finally:
             # Parent process - restore signal mask
