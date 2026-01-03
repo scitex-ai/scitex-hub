@@ -194,15 +194,65 @@ export class PTYTerminal {
 
     this.ws.onerror = (error) => {
       console.error('[PTY] WebSocket error:', error);
-      this.term.write('\r\n\x1b[1;31mTerminal connection error\x1b[0m\r\n');
+      this.term.write('\r\n\x1b[1;31m❌ Terminal connection error\x1b[0m\r\n');
+      this.term.write('\x1b[0;33m   Check network connection and try refreshing the page\x1b[0m\r\n');
     };
 
-    this.ws.onclose = () => {
-      console.log('[PTY] WebSocket closed');
-      this.term.write('\r\n\x1b[1;33m⚠ Disconnected. Reconnecting in 3s...\x1b[0m\r\n');
+    this.ws.onclose = (event: CloseEvent) => {
+      console.log('[PTY] WebSocket closed:', event.code, event.reason);
 
-      // Attempt reconnect after 3 seconds
-      setTimeout(() => this.connect(), 3000);
+      // Provide detailed close reason based on code
+      // https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent/code
+      let message = '';
+      let reconnect = true;
+
+      switch (event.code) {
+        case 1000:
+          message = 'Session ended normally';
+          reconnect = false;
+          break;
+        case 1001:
+          message = 'Server going away (maintenance or restart)';
+          break;
+        case 1006:
+          message = 'Connection lost (network issue or server unavailable)';
+          break;
+        case 1011:
+          message = 'Server error while processing request';
+          break;
+        case 1012:
+          message = 'Server restarting';
+          break;
+        case 1013:
+          message = 'Server overloaded, try again later';
+          break;
+        case 4000:
+          message = 'Authentication required - please log in';
+          reconnect = false;
+          break;
+        case 4001:
+          message = 'Access denied - no permission for this project';
+          reconnect = false;
+          break;
+        case 4002:
+          message = 'Project not found';
+          reconnect = false;
+          break;
+        case 4003:
+          message = 'SLURM unavailable - compute resources offline';
+          break;
+        default:
+          message = event.reason || `Connection closed (code: ${event.code})`;
+      }
+
+      this.term.write(`\r\n\x1b[1;33m⚠ Disconnected: ${message}\x1b[0m\r\n`);
+
+      if (reconnect) {
+        this.term.write('\x1b[0;36m   Reconnecting in 3s...\x1b[0m\r\n');
+        setTimeout(() => this.connect(), 3000);
+      } else {
+        this.term.write('\x1b[0;33m   Refresh page to reconnect\x1b[0m\r\n');
+      }
     };
   }
 

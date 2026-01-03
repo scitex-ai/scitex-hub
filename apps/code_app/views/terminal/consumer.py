@@ -69,7 +69,9 @@ class TerminalConsumer(AsyncWebsocketConsumer):
         project_id = query_params.get('project_id')
 
         if not project_id:
-            await self.close()
+            await self.accept()
+            await self.send(text_data='\x1b[1;31m❌ No project specified\x1b[0m\r\n')
+            await self.close(code=4002)  # Project not found
             return
 
         try:
@@ -93,11 +95,15 @@ class TerminalConsumer(AsyncWebsocketConsumer):
                 has_access = (visitor_project_id and int(project_id) == visitor_project_id)
 
             if not has_access:
-                await self.close()
+                await self.accept()
+                await self.send(text_data='\x1b[1;31m❌ Access denied - no permission for this project\x1b[0m\r\n')
+                await self.close(code=4001)  # Access denied
                 return
 
         except Project.DoesNotExist:
-            await self.close()
+            await self.accept()
+            await self.send(text_data='\x1b[1;31m❌ Project not found\x1b[0m\r\n')
+            await self.close(code=4002)  # Project not found
             return
 
         await self.accept()
@@ -125,6 +131,15 @@ class TerminalConsumer(AsyncWebsocketConsumer):
         # Check if SLURM is available
         use_slurm = await asyncio.to_thread(is_slurm_available)
 
+        if not use_slurm:
+            # SECURITY: No fallback - SLURM is required for all terminals
+            logger.error("SLURM not available - terminals disabled for security")
+            await self.send(text_data='\x1b[1;31m❌ SLURM not available - compute resources offline\x1b[0m\r\n')
+            await self.send(text_data='\x1b[1;33m   Contact administrator to check SLURM status\x1b[0m\r\n')
+            await self.send(text_data='\x1b[0;36m   Run: make env=nas status\x1b[0m\r\n')
+            await self.close(code=4003)  # SLURM unavailable
+            return
+
         # Block signals during PTY fork to prevent "Interrupted system call" errors
         # This is a known SLURM issue (SchedMD Bug #3979) where signals can
         # interrupt the accept() call during PTY setup
@@ -140,17 +155,10 @@ class TerminalConsumer(AsyncWebsocketConsumer):
             if self.pid == 0:
                 # Child process - restore signal mask before exec
                 signal.pthread_sigmask(signal.SIG_SETMASK, old_mask)
-                if use_slurm:
-                    exec_slurm_shell(username, user_data_dir, project_dir, container_path, project_slug)
-                else:
-                    # SECURITY: No fallback - SLURM is required for all terminals
-                    logger.error("SLURM not available - terminals disabled for security")
-                    # Write error message to stdout so it appears in terminal
-                    import sys
-                    sys.stdout.write('\x1b[1;31m❌ SLURM not available - terminals disabled\x1b[0m\r\n')
-                    sys.stdout.write('\x1b[1;33mContact administrator to check SLURM status\x1b[0m\r\n')
-                    sys.stdout.flush()
-                    os._exit(1)
+                # SLURM availability already checked above, so this should always succeed
+                exec_slurm_shell(username, user_data_dir, project_dir, container_path, project_slug)
+                # exec_slurm_shell never returns on success
+                os._exit(1)  # Only reached if exec fails
         finally:
             # Parent process - restore signal mask
             if self.pid != 0:
