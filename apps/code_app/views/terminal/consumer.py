@@ -126,7 +126,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
         # Block signals during PTY fork to prevent "Interrupted system call" errors
         # This is a known SLURM issue (SchedMD Bug #3979) where signals can
         # interrupt the accept() call during PTY setup
-        old_mask = signal.pthread_vissk(
+        old_mask = signal.pthread_sigmask(
             signal.SIG_BLOCK,
             {signal.SIGCHLD, signal.SIGWINCH, signal.SIGINT, signal.SIGTERM}
         )
@@ -137,7 +137,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 
             if self.pid == 0:
                 # Child process - restore signal mask before exec
-                signal.pthread_vissk(signal.SIG_SETMASK, old_mask)
+                signal.pthread_sigmask(signal.SIG_SETMASK, old_mask)
                 if use_slurm:
                     exec_slurm_shell(username, user_data_dir, project_dir, container_path, project_slug)
                 else:
@@ -147,7 +147,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
         finally:
             # Parent process - restore signal mask
             if self.pid != 0:
-                signal.pthread_vissk(signal.SIG_SETMASK, old_mask)
+                signal.pthread_sigmask(signal.SIG_SETMASK, old_mask)
 
         # Parent process - read from PTY
         if self.pid != 0:
