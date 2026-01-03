@@ -88,7 +88,7 @@ services:
       interval: 30s
       timeout: 3s
       retries: 3
-      start_period: 40s
+      start_period: 300s  # NAS needs 4-5min for npm install
 
   postgres:
     image: postgres:15-alpine
