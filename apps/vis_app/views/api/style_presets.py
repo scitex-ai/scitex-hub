@@ -16,8 +16,28 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 
 from apps.vis_app.models import UserStylePreset
-from scitex.fig.editor._defaults import get_scitex_defaults
-from scitex.plt.styles import SCITEX_STYLE
+
+# Try to import from scitex.vis.editor (dev) or provide defaults
+try:
+    from scitex.vis.editor._defaults import get_scitex_defaults
+except ImportError:
+    def get_scitex_defaults():
+        """Fallback defaults when scitex.vis.editor is not available."""
+        return {
+            'fontsize': 7, 'title_fontsize': 8, 'axis_fontsize': 7,
+            'tick_fontsize': 7, 'legend_fontsize': 6, 'linewidth': 0.57,
+            'n_ticks': 4, 'tick_length': 0.8, 'tick_width': 0.2,
+            'tick_direction': 'out', 'axis_width': 0.2,
+            'hide_top_spine': True, 'hide_right_spine': True,
+            'grid': False, 'grid_linewidth': 0.6, 'grid_alpha': 0.3,
+            'dpi': 300, 'fig_size': [3.15, 2.68],
+            'facecolor': '#ffffff', 'transparent': True,
+        }
+
+try:
+    from scitex.plt.styles import SCITEX_STYLE
+except ImportError:
+    SCITEX_STYLE = {}
 
 
 @require_http_methods(["GET"])
