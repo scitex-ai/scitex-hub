@@ -5,8 +5,6 @@
  */
 
 export { VisEditor } from "./VisEditor.ts";
-export { setupGraphOperations } from "./graph.ts";
-export type { GraphOperations } from "./graph.ts";
 export { setupLayoutAlgorithms } from "./layout.ts";
 export type { LayoutOptions, LayoutAlgorithms } from "./layout.ts";
 export { setupInteractionHandlers } from "./interactions.ts";

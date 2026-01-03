@@ -1,4 +1,5 @@
 from django.urls import path
+
 from . import views
 from .views import api as api_views
 
@@ -468,5 +469,13 @@ urlpatterns = [
         "api/bundles/figz/export-image/",
         api_views.export_figz_image,
         name="api_figz_export_image",
+    ),
+    # =========================================================================
+    # Unified .stx Bundle Download (supports .stx, .figz, .pltz)
+    # =========================================================================
+    path(
+        "api/bundles/stx/download/",
+        api_views.download_stx_bundle,
+        name="api_stx_download",
     ),
 ]

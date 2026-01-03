@@ -43,7 +43,7 @@ export class RibbonButtons {
         private showSortModalCallback?: () => void,
         private showFilterModalCallback?: () => void,
         private showTableHelpCallback?: () => void,
-        private createQuickPlotCallback?: (plotType: string) => void,
+        private createQuickPlotCallback?: (plotType: string) => void | Promise<void>,
         private handleExportPlotCSVCallback?: () => void
     ) {
         this.createPreviewPopup();

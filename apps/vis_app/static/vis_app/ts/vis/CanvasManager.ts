@@ -47,7 +47,7 @@ export class CanvasManager {
             processNewImageForTheme: (img) => this.themeManager?.processNewImage(img),
             setCanvasSizeMm: (w, h) => this.canvasResizeManager?.setCanvasSize(w, h),
             clearCanvas: () => this.clearCanvas(), saveSessionState: () => this.sessionManager?.saveState(),
-            setCurrentFigzPath: (p) => { this.currentFigzPath = p; }, getCurrentFigzPath: () => this.currentFigzPath,
+            setCurrentFigzPath: (p) => { this.currentFigzPath = p; if (p) this.refs?.exportManager?.setFigzPath(p); }, getCurrentFigzPath: () => this.currentFigzPath,
             getProjectContext: () => ({ owner: this.bundleProjectOwner, slug: this.bundleProjectSlug, figureName: this.bundleFigureName }),
             loadFigzBundle: (p) => this.loadFigzBundle(p), exitElementSelectionMode: () => this.elementSelectionManager?.exitElementSelectionMode(),
             enterGroupEditMode: (g) => this.groupManager?.enterGroupEditMode(g),
@@ -200,6 +200,7 @@ export class CanvasManager {
     public setBundleProjectContext(owner: string, slug: string, fig?: string): void {
         this.bundleProjectOwner = owner; this.bundleProjectSlug = slug; if (fig) this.bundleFigureName = fig;
         this.bundleCanvasManager?.setProjectContext(owner, slug, fig ?? this.bundleFigureName);
+        this.exportManager?.setProjectContext(owner, slug);
     }
 
     // Canvas Content

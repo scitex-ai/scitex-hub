@@ -846,3 +846,4 @@ GITIGNORED/
 tsconfig.tsbuildinfo
 paper/
 tests/ui/artifacts/
+mgmt

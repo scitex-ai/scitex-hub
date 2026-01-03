@@ -19,7 +19,6 @@ import {
     SciTeXEditor,
 } from '../vis/index.ts';
 
-import { setupGraphOperations } from './graph.ts';
 import { EditorCallbackHandlers } from './EditorCallbackHandlers.ts';
 import {
     CsvDataCoordinator,
@@ -361,7 +360,6 @@ export class VisEditor {
         });
 
         this.initializePlotGallery();
-        this.setupPropertyChangeHandlers();
         this.updateStatusBar('Ready');
 
         document.addEventListener('theme-changed', (e: CustomEvent) => {
@@ -377,54 +375,6 @@ export class VisEditor {
         console.log('[VisEditor] Data table using native scrolling');
     }
 
-    private setupPropertyChangeHandlers(): void {
-        const dynamicPropsEl = document.getElementById('dynamic-properties');
-        if (!dynamicPropsEl) return;
-
-        let reRenderTimeout: ReturnType<typeof setTimeout> | null = null;
-        const debounceReRender = () => {
-            if (reRenderTimeout) clearTimeout(reRenderTimeout);
-            reRenderTimeout = setTimeout(() => {
-                this.reRenderCurrentPlot();
-            }, 500);
-        };
-
-        const observer = new MutationObserver(() => {
-            this.setupPropertyInputHandlers(debounceReRender);
-        });
-
-        observer.observe(dynamicPropsEl, { childList: true, subtree: true });
-        this.setupPropertyInputHandlers(debounceReRender);
-    }
-
-    private setupPropertyInputHandlers(onChange: () => void): void {
-        const propsContainer = document.getElementById('dynamic-properties');
-        if (!propsContainer) return;
-
-        propsContainer.querySelectorAll('input[type="range"]').forEach(slider => {
-            if ((slider as any)._hasChangeHandler) return;
-            slider.addEventListener('change', onChange);
-            (slider as any)._hasChangeHandler = true;
-        });
-
-        propsContainer.querySelectorAll('input[type="color"]').forEach(picker => {
-            if ((picker as any)._hasChangeHandler) return;
-            picker.addEventListener('change', onChange);
-            (picker as any)._hasChangeHandler = true;
-        });
-
-        propsContainer.querySelectorAll('select').forEach(select => {
-            if ((select as any)._hasChangeHandler) return;
-            select.addEventListener('change', onChange);
-            (select as any)._hasChangeHandler = true;
-        });
-
-        propsContainer.querySelectorAll('input[type="text"], input[type="number"]').forEach(input => {
-            if ((input as any)._hasChangeHandler) return;
-            input.addEventListener('change', onChange);
-            (input as any)._hasChangeHandler = true;
-        });
-    }
 
     private updateRulersAreaTransform(): void {
         const rulersArea = document.querySelector('.vis-rulers-area') as HTMLElement;
@@ -444,24 +394,66 @@ export class VisEditor {
         this.uiManager.updateStatusBar(message);
     }
 
-    private createQuickPlot(plotType: string): void {
+    /**
+     * Create a quick plot using the bundle-based flow
+     * Maps plot type to gallery category/name and uses addPanelFromGallery
+     */
+    private async createQuickPlot(plotType: string): Promise<void> {
         const currentData = this.dataTableManager.getCurrentData();
-        if (!currentData || currentData.rows.length === 0) {
-            this.updateStatusBar('Please load data first');
-            return;
-        }
 
-        console.log(`[VisEditor] Creating ${plotType} plot...`);
+        console.log(`[VisEditor] Creating ${plotType} plot via bundle flow...`);
         this.updateStatusBar(`Creating ${plotType} plot...`);
 
-        const graphOps = setupGraphOperations(
-            this.dataTableManager,
-            this.propertiesManager,
-            (msg) => this.updateStatusBar(msg)
-        );
+        // Prepare CSV data from data table if available
+        let dataCsv: string | undefined;
+        if (currentData && currentData.rows.length > 0) {
+            const headers = currentData.headers || [];
+            const rows = currentData.rows.map((row: any[]) => row.join(','));
+            dataCsv = [headers.join(','), ...rows].join('\n');
+        }
 
-        const plot = graphOps.renderPlot(plotType);
-        this.galleryCoordinator.setPlotState(plot, plotType, '', []);
+        // Map plotType to gallery category/name
+        const { category, plotName } = this.mapPlotTypeToGallery(plotType);
+
+        try {
+            // Use bundle-based flow - creates figz + embedded pltz
+            await this.canvasManager.addPanelFromGallery(
+                plotType,
+                dataCsv,
+                this.projectOwner,
+                this.projectSlug,
+                this.figureName,
+                category,
+                plotName
+            );
+
+            this.updateStatusBar(`Created ${plotType} panel`);
+            await this.refreshFilesTree();
+        } catch (error) {
+            console.error('[VisEditor] Failed to create quick plot:', error);
+            this.updateStatusBar(`Failed to create ${plotType} plot`);
+        }
+    }
+
+    /**
+     * Map plot type to gallery category and plot name
+     */
+    private mapPlotTypeToGallery(plotType: string): { category: string; plotName: string } {
+        const mapping: Record<string, { category: string; plotName: string }> = {
+            'scatter': { category: 'scatter', plotName: 'scatter' },
+            'line': { category: 'line', plotName: 'plot' },
+            'lineMarker': { category: 'line', plotName: 'plot' },
+            'bar': { category: 'categorical', plotName: 'bar' },
+            'histogram': { category: 'distribution', plotName: 'hist' },
+            'box': { category: 'categorical', plotName: 'boxplot' },
+            'violin': { category: 'categorical', plotName: 'violinplot' },
+            'heatmap': { category: 'grid', plotName: 'stx_heatmap' },
+            'contour': { category: 'contour', plotName: 'contour' },
+            'pie': { category: 'special', plotName: 'pie' },
+            'step': { category: 'line', plotName: 'step' },
+            'stem': { category: 'scatter', plotName: 'stem' },
+        };
+        return mapping[plotType] || { category: 'line', plotName: 'plot' };
     }
 
     public updateCanvasTheme(isDark: boolean): void {
@@ -536,10 +528,6 @@ export class VisEditor {
 
     private initializePlotGallery(): void {
         this.galleryCoordinator.initialize();
-    }
-
-    public async reRenderCurrentPlot(): Promise<void> {
-        return this.galleryCoordinator.reRenderCurrentPlot();
     }
 
     public setProjectContext(owner: string, slug: string, figureName?: string): void {

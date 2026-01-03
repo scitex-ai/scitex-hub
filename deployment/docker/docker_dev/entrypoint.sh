@@ -6,9 +6,9 @@
 ORIG_DIR="$(pwd)"
 THIS_DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
 LOG_PATH="$THIS_DIR/.$(basename $0).log"
-echo -e > "$LOG_PATH"
+echo -e >"$LOG_PATH"
 
-GIT_ROOT="$(git rev-parse --show-toplevel 2> /dev/null)"
+GIT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
 
 GRAY='\033[0;90m'
 GREEN='\033[0;32m'
@@ -57,12 +57,12 @@ try_scitex_installation_in_editable_mode() {
         # Check if scitex-code is a valid Python project
         if [ -f "/scitex-code/pyproject.toml" ] || [ -f "/scitex-code/setup.py" ]; then
             # Check if scitex is already installed in editable mode from /scitex-code
-            if pip show -f scitex 2> /dev/null | grep -q "/scitex-code"; then
+            if pip show -f scitex 2>/dev/null | grep -q "/scitex-code"; then
                 echo -e "${GREEN}✅ Scitex already installed in editable mode${NC}"
             else
                 echo_info "Installing scitex (editable mode)..."
 
-                uv pip install -e "/scitex-code[dl,ml,jupyter,neuro,web,scholar,writer,dev]" --link-mode=copy > /dev/null
+                uv pip install -e "/scitex-code[dl,ml,jupyter,neuro,web,scholar,writer,dev]" --link-mode=copy >/dev/null
             fi
             verify_scitex_package
         else
@@ -77,8 +77,29 @@ try_scitex_installation_in_editable_mode() {
 }
 try_scitex_installation_in_editable_mode
 
+# ============================================
+# Install figrecipe in Editable Mode (Optional)
+# ============================================
+try_figrecipe_installation_in_editable_mode() {
+    if [ -d "/figrecipe" ]; then
+        if [ -f "/figrecipe/pyproject.toml" ] || [ -f "/figrecipe/setup.py" ]; then
+            if pip show -f figrecipe 2>/dev/null | grep -q "/figrecipe"; then
+                echo -e "${GREEN}✅ figrecipe already installed in editable mode${NC}"
+            else
+                echo_info "Installing figrecipe (editable mode)..."
+                uv pip install -e "/figrecipe" --link-mode=copy >/dev/null
+            fi
+        else
+            echo -e "⚠️  WARNING: /figrecipe exists but is not a valid Python package"
+        fi
+    else
+        echo -e "⚠️  WARNING: /figrecipe not mounted, skipping..."
+    fi
+}
+try_figrecipe_installation_in_editable_mode
+
 add_insufficient_python_packages() {
-    pip install pygments > /dev/null 2>&1 || true
+    pip install pygments >/dev/null 2>&1 || true
 }
 add_insufficient_python_packages
 
@@ -89,7 +110,7 @@ add_insufficient_python_packages
 start_vite_dev_server() {
     if [ -f "/app/package.json" ] && [ -f "/app/vite.config.ts" ]; then
         # Check if Vite is already running
-        if pgrep -f "vite" > /dev/null 2>&1; then
+        if pgrep -f "vite" >/dev/null 2>&1; then
             echo_info "Vite dev server already running"
             return 0
         fi
@@ -105,7 +126,7 @@ start_vite_dev_server() {
 
         # Start Vite dev server in background
         nohup npm run dev \
-            > /app/logs/vite-dev.log 2>&1 &
+            >/app/logs/vite-dev.log 2>&1 &
         VITE_PID=$!
         echo_success "Vite dev server started (PID: $VITE_PID)"
         echo "   URL: http://127.0.0.1:5173"
@@ -126,7 +147,7 @@ start_vite_dev_server() {
 start_typescript_build_watcher_fallback() {
     if [ -d "/app/tsconfig" ] && [ -f "/app/tsconfig/package.json" ]; then
         # Check if tsc is already running
-        if pgrep -f "tsc.*--watch" > /dev/null 2>&1; then
+        if pgrep -f "tsc.*--watch" >/dev/null 2>&1; then
             echo_info "TypeScript watcher already running"
             return 0
         fi
@@ -142,7 +163,7 @@ start_typescript_build_watcher_fallback() {
 
         # Start unified TypeScript compiler in watch mode for ALL apps (background)
         nohup npm run build:all:watch \
-            > /app/logs/tsc-watch-all.log 2>&1 &
+            >/app/logs/tsc-watch-all.log 2>&1 &
         TSC_ALL_PID=$!
         echo_success "TypeScript watch (ALL apps) started (PID: $TSC_ALL_PID)"
         echo -e "   Watching: static/ts/**, apps/*/static/*/ts/**"
@@ -172,7 +193,7 @@ if [ ! -f "$MIGRATION_SENTINEL" ]; then
 else
     # Hot-reload restart - skip migrations
     echo_info "Hot-reload restart detected - skipping migrations"
-    wait_for_database  # Still wait for DB to be ready
+    wait_for_database # Still wait for DB to be ready
 fi
 
 # ============================================
@@ -249,7 +270,7 @@ if [ ! -f "$MIGRATION_SENTINEL" ]; then
         nohup python manage.py run_ssh_gateway \
             --port 2200 \
             --host 0.0.0.0 \
-            > /app/logs/ssh-gateway.log 2>&1 &
+            >/app/logs/ssh-gateway.log 2>&1 &
         SSH_GATEWAY_PID=$!
         echo_success "SSH gateway started (PID: $SSH_GATEWAY_PID)"
         echo -e "   Port: 2200"
@@ -263,7 +284,7 @@ if [ ! -f "$MIGRATION_SENTINEL" ]; then
         nohup python manage.py auto_sync_workspaces \
             --daemon \
             --interval 900 \
-            > /app/logs/auto-sync.log 2>&1 &
+            >/app/logs/auto-sync.log 2>&1 &
         AUTO_SYNC_PID=$!
         echo_success "Auto-sync daemon started (PID: $AUTO_SYNC_PID)"
         echo -e "   Interval: 15 minutes (900s)"

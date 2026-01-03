@@ -20,7 +20,7 @@ export class KeyboardShortcuts {
     private modeHandlers: KeyboardModeHandlers;
 
     constructor(
-        private createQuickPlotCallback?: (plotType: string) => void,
+        private createQuickPlotCallback?: (plotType: string) => void | Promise<void>,
         private zoomInCallback?: () => void,
         private zoomOutCallback?: () => void,
         private zoomToFitCallback?: () => void,

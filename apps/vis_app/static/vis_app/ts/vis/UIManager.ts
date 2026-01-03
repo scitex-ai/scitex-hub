@@ -47,7 +47,7 @@ export class UIManager {
         private addColumnsCallback?: (count: number) => void,
         private addRowsCallback?: (count: number) => void,
         private copySelectionCallback?: () => void,
-        private createQuickPlotCallback?: (plotType: string) => void,
+        private createQuickPlotCallback?: (plotType: string) => void | Promise<void>,
         private zoomInCallback?: () => void,
         private zoomOutCallback?: () => void,
         private zoomToFitCallback?: () => void,

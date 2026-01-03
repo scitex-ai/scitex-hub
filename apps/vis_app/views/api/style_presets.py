@@ -8,36 +8,37 @@ Provides endpoints for:
 """
 
 import json
-import yaml
 from pathlib import Path
-from django.http import JsonResponse, HttpResponse
-from django.views.decorators.http import require_http_methods
-from django.views.decorators.csrf import csrf_exempt
+
+import yaml
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 
 from apps.vis_app.models import UserStylePreset
 
-# Try to import from scitex.vis.editor (dev) or provide defaults
+# Use figrecipe for style management
 try:
-    from scitex.vis.editor._defaults import get_scitex_defaults
-except ImportError:
-    def get_scitex_defaults():
-        """Fallback defaults when scitex.vis.editor is not available."""
-        return {
-            'fontsize': 7, 'title_fontsize': 8, 'axis_fontsize': 7,
-            'tick_fontsize': 7, 'legend_fontsize': 6, 'linewidth': 0.57,
-            'n_ticks': 4, 'tick_length': 0.8, 'tick_width': 0.2,
-            'tick_direction': 'out', 'axis_width': 0.2,
-            'hide_top_spine': True, 'hide_right_spine': True,
-            'grid': False, 'grid_linewidth': 0.6, 'grid_alpha': 0.3,
-            'dpi': 300, 'fig_size': [3.15, 2.68],
-            'facecolor': '#ffffff', 'transparent': True,
-        }
+    from figrecipe.styles import STYLE as FIGRECIPE_STYLE
+    from figrecipe.styles import get_style
 
-try:
-    from scitex.plt.styles import SCITEX_STYLE
+    SCITEX_STYLE = get_style() if get_style() else {}
 except ImportError:
     SCITEX_STYLE = {}
+
+
+def get_scitex_defaults():
+    """Get default style values for the editor."""
+    try:
+        from figrecipe.styles import get_style
+
+        style = get_style()
+        if style:
+            return style.to_dict() if hasattr(style, "to_dict") else dict(style)
+    except (ImportError, AttributeError):
+        pass
+    return {}
 
 
 @require_http_methods(["GET"])
@@ -210,9 +211,7 @@ def update_style_preset(request, preset_id):
         preset = UserStylePreset.objects.get(id=preset_id, user=request.user)
 
         if preset.is_builtin:
-            return JsonResponse(
-                {"error": "Cannot modify built-in presets"}, status=403
-            )
+            return JsonResponse({"error": "Cannot modify built-in presets"}, status=403)
 
         data = json.loads(request.body)
 
@@ -260,9 +259,7 @@ def delete_style_preset(request, preset_id):
         preset = UserStylePreset.objects.get(id=preset_id, user=request.user)
 
         if preset.is_builtin:
-            return JsonResponse(
-                {"error": "Cannot delete built-in presets"}, status=403
-            )
+            return JsonResponse({"error": "Cannot delete built-in presets"}, status=403)
 
         preset.delete()
 

@@ -599,7 +599,12 @@ export class ExportManager {
         }
 
         try {
-            const exportUrl = `/vis/api/bundles/figz/export-image/?path=${encodeURIComponent(this.currentFigzPath)}&format=${format}&dpi=${dpi}`;
+            // Build export URL with project context for path resolution
+            let exportUrl = `/vis/api/bundles/figz/export-image/?path=${encodeURIComponent(this.currentFigzPath)}&format=${format}&dpi=${dpi}`;
+            if (this.bundleProjectOwner && this.bundleProjectSlug) {
+                exportUrl += `&project_owner=${encodeURIComponent(this.bundleProjectOwner)}&project_slug=${encodeURIComponent(this.bundleProjectSlug)}`;
+            }
+            console.log(`[ExportManager] Export URL: ${exportUrl}`);
 
             const response = await fetch(exportUrl);
             if (!response.ok) {
