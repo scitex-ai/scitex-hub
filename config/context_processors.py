@@ -79,3 +79,13 @@ def scitex_version(request):
     return {
         'SCITEX_CLOUD_VERSION': getattr(settings, 'SCITEX_CLOUD_VERSION', '0.0.0')
     }
+
+
+def google_analytics(request):
+    """
+    Expose Google Analytics Measurement ID to templates.
+    Only sends tracking data if GOOGLE_ANALYTICS_ID is configured.
+    """
+    return {
+        'GOOGLE_ANALYTICS_ID': getattr(settings, 'GOOGLE_ANALYTICS_ID', '')
+    }

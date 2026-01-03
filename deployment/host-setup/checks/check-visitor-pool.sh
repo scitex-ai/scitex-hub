@@ -24,13 +24,17 @@ fi
 # Check visitor pool health via Django shell
 RESULT=$(docker exec "$CONTAINER" python manage.py shell -c "
 from django.contrib.auth.models import User
+from django.conf import settings
 from apps.project_app.models import Project, VisitorAllocation
 from django.utils import timezone
+
+# Get pool size from settings
+pool_size = getattr(settings, 'VISITOR_POOL_SIZE', 16)
 
 # Check visitor users
 missing_users = []
 missing_projects = []
-for i in range(1, 5):
+for i in range(1, pool_size + 1):
     username = f'visitor-{i:03d}'
     try:
         u = User.objects.get(username=username)
@@ -51,7 +55,7 @@ elif missing_projects:
     print(f'MISSING_PROJECTS:{len(missing_projects)}')
 else:
     print('OK')
-print(f'POOL:{4-active}/4')
+print(f'POOL:{pool_size-active}/{pool_size}')
 print(f'EXPIRED:{expired}')
 " 2>&1 | grep -E "^(OK$|MISSING_USERS:|MISSING_PROJECTS:|POOL:|EXPIRED:)" || echo "ERROR")
 

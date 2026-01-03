@@ -341,6 +341,14 @@ start:
 		fi; \
 		echo -e "$(GREEN)✓ Host requirements OK$(NC)"; \
 		echo ""; \
+		echo -e "$(CYAN)Checking SLURM paths (/opt/scitex)...$(NC)"; \
+		if [ -f "/opt/scitex/singularity/scitex-user-workspace.sif" ]; then \
+			echo -e "$(GREEN)✓ SLURM paths configured$(NC)"; \
+		else \
+			echo -e "$(YELLOW)⚠️  SLURM paths not configured (terminal will fail)$(NC)"; \
+			echo -e "$(YELLOW)   Setup: sudo ./deployment/host-setup/scripts/setup-slurm-paths.sh$(NC)"; \
+		fi; \
+		echo ""; \
 	fi
 	@# Stop all other environments to ensure exclusivity
 	@for env in $(VALID_ENVS); do \

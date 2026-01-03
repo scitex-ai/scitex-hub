@@ -259,9 +259,19 @@ RUN useradd -m -u 1000 scitex && \
     echo -e "scitex:100000:65536" >> /etc/subuid && \
     echo -e "scitex:100000:65536" >> /etc/subgid
 
+# Copy package.json first for npm caching (changes less often than code)
+COPY --chown=scitex:scitex package.json ./
+
+# Install npm dependencies at build time (cached layer)
+RUN --mount=type=cache,target=/root/.npm \
+    npm install && \
+    touch node_modules/.install-timestamp
+
 # Copy application code (last - changes most frequently)
 COPY --chown=scitex:scitex . .
 
+# Note: Vite build runs at runtime because static_volume mount hides build-time files
+# npm install is cached above, vite build is fast (~10s)
 
 # Copy NAS-specific entrypoint scripts
 COPY deployment/docker/docker_nas/root-init.sh /root-init.sh

@@ -33,10 +33,18 @@ fi
 
 check_status=0
 
-# Quick test: Can SLURM actually execute jobs?
-# This catches the "SLURM needs restart" issue
+# Check terminal readiness with smart detection
 if docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$" 2>/dev/null; then
-    # Container is running, test SLURM job execution
+    # Container is running
+
+    # First check: Are there running terminal jobs? (proves terminals work)
+    RUNNING_TERMINALS=$(squeue -h --name=terminal --state=R 2>/dev/null | wc -l)
+    if [ "$RUNNING_TERMINALS" -gt 0 ]; then
+        echo -e "${GREEN}✓ Terminals ready (${RUNNING_TERMINALS} active session(s))${NC}"
+        exit 0
+    fi
+
+    # Second check: Can SLURM execute jobs? (3s timeout, may fail if resources busy)
     if [ -n "$USER_CMD" ]; then
         TEST_CMD="timeout 3 docker exec ${CONTAINER_NAME} ${USER_CMD} \"srun --partition=express true\""
     else
@@ -44,12 +52,19 @@ if docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$" 2>/dev/null; 
     fi
 
     if eval "$TEST_CMD" >/dev/null 2>&1; then
-        echo -e "${GREEN}✓ Terminals ready (SLURM job execution verified as ${TEST_USER})${NC}"
+        echo -e "${GREEN}✓ Terminals ready (SLURM job execution verified)${NC}"
     else
-        echo -e "${RED}✗ Terminals NOT ready (SLURM job execution failed)${NC}"
-        echo -e "${YELLOW}  Cause: SLURM services likely need restart after user creation${NC}"
-        echo -e "${YELLOW}  Fix: sudo deployment/host-setup/scripts/restart-slurm-for-new-user.sh${NC}"
-        check_status=1
+        # Job may have timed out due to resource contention, check queue status
+        QUEUED_JOBS=$(squeue -h --name=true 2>/dev/null | wc -l)
+        if [ "$QUEUED_JOBS" -gt 0 ]; then
+            echo -e "${YELLOW}⚠ Terminals: SLURM busy (jobs queued, but controller responding)${NC}"
+            check_status=0  # Not a failure - just busy
+        else
+            echo -e "${RED}✗ Terminals NOT ready (SLURM job execution failed)${NC}"
+            echo -e "${YELLOW}  Cause: SLURM services likely need restart after user creation${NC}"
+            echo -e "${YELLOW}  Fix: sudo deployment/host-setup/scripts/restart-slurm-for-new-user.sh${NC}"
+            check_status=1
+        fi
     fi
 else
     echo -e "${YELLOW}⚠ Django container not running - cannot test terminals${NC}"

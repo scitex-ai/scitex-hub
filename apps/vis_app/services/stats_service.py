@@ -39,6 +39,20 @@ try:
     SCITEX_STATS_AVAILABLE = True
 except ImportError:
     SCITEX_STATS_AVAILABLE = False
+    # Define placeholder types for type hints when scitex.stats unavailable
+    StatContext = Dict
+    StatResult = Dict
+    TEST_RULES = {}
+    check_applicable = lambda *args, **kwargs: False
+    get_menu_items = lambda *args, **kwargs: []
+    p_to_stars = lambda p: ''
+    recommend_effect_sizes = lambda *args, **kwargs: []
+    recommend_posthoc = lambda *args, **kwargs: []
+    recommend_tests = lambda *args, **kwargs: []
+    apply_multiple_correction = lambda *args, **kwargs: []
+    compute_summary_from_groups = lambda *args, **kwargs: {}
+    format_for_inspector = lambda *args, **kwargs: {}
+    format_test_line = lambda *args, **kwargs: ''
 
 
 class StatsService:

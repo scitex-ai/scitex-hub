@@ -135,6 +135,7 @@ def exec_slurm_shell(
     cmd = [
         "srun",
         "--pty",
+        "--chdir=/tmp",  # Explicit host cwd (prevents /app warning)
         f"--partition={SLURM_PARTITION}",
         f"--time={SLURM_TIME_LIMIT}",
         f"--cpus-per-task={SLURM_CPUS}",
@@ -162,9 +163,16 @@ def exec_slurm_shell(
         "SCITEX_CLOUD": "true",
         "SCITEX_PROJECT": project_slug,
         "SCITEX_USER": username,
+        "USER": username,  # Standard Unix USER variable
+        "LOGNAME": username,  # Standard Unix LOGNAME variable
+        "HOME": f"/home/{username}",  # Ensure HOME is set correctly
     }
 
     logger.info(f"Spawning SLURM terminal: user={username} partition={SLURM_PARTITION} time={SLURM_TIME_LIMIT}")
+    logger.info(f"SLURM command: {' '.join(cmd)}")
+
+    # Note: host_user_dir and host_project_dir are HOST paths (not visible from container)
+    # SLURM will run on the host where these paths exist
 
     # Change to a directory that exists on the host (srun inherits cwd)
     # The Django container runs from /app which doesn't exist on the host

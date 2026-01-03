@@ -95,6 +95,8 @@ start:
 restart:
 	@echo -e "$(CYAN)🔄 Restarting NAS services...$(NC)"
 	$(COMPOSE) restart
+	@# Reload nginx to refresh DNS cache (prevents 502 after container IP changes)
+	@sleep 2 && docker exec scitex-cloud-nas-nginx-1 nginx -s reload 2>/dev/null || true
 	@echo -e "$(GREEN)✅ Services restarted$(NC)"
 
 stop: down

@@ -49,3 +49,16 @@
       content="{% block twitter_description %}Accelerate your scientific research with SciTeX - an integrated ecosystem of tools from hypothesis to publication{% endblock %}" />
 <meta property="twitter:image"
       content="{% block twitter_image %}https://scitex.ai/static/shared/images/scitex-og-image.png{% endblock %}" />
+<!-- Google Analytics 4 -->
+{% if GOOGLE_ANALYTICS_ID %}
+<script async src="https://www.googletagmanager.com/gtag/js?id={{ GOOGLE_ANALYTICS_ID }}"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', '{{ GOOGLE_ANALYTICS_ID }}', {
+    'anonymize_ip': true,
+    'cookie_flags': 'SameSite=None;Secure'
+  });
+</script>
+{% endif %}

@@ -425,6 +425,8 @@
                data-tooltip="Keyboard Shortcuts (Alt+/ for quick view)">
                 <i class="fas fa-keyboard"></i>
             </a>
+            <!-- Dev-only buttons (hidden in production) -->
+            {% if DEBUG %}
             <!-- Refresh Button (Ctrl+Shift+R alternative) -->
             <button id="page-refresh-btn"
                     class="theme-toggle"
@@ -438,8 +440,7 @@
                     onclick="if(confirm('Clear all localStorage? This will reset theme preferences and cached data.')) { localStorage.clear(); location.reload(); }">
                 <i class="fas fa-eraser"></i>
             </button>
-            <!-- Initialize Visitor Pool Button (Dev only) -->
-            {% if DEBUG %}
+            <!-- Initialize Visitor Pool Button -->
             <button id="init-visitor-pool-btn"
                     class="theme-toggle"
                     data-tooltip="Initialize Visitor Pool (Dev)"
