@@ -28,7 +28,7 @@ from django.utils import timezone
 
 from ...models import ServerMetrics
 from .helpers import get_gpu_utilization
-from .health_checks import check_docker_containers, check_database, check_redis, check_citation_graph
+from .health_checks import check_docker_containers, check_database, check_redis, check_citation_graph, check_user_data_permissions
 
 logger = logging.getLogger("scitex")
 
@@ -211,6 +211,12 @@ def server_health_status_api(request):
         # Citation graph status (non-critical - don't affect overall health)
         citation_graph = status_data.get('citation_graph', {})
 
+        # User data permissions check
+        check_user_data_permissions(status_data)
+        user_data_perms = status_data.get('user_data_permissions', {})
+        if user_data_perms.get('health_class') == 'unhealthy':
+            has_warnings = True  # Treat as warning, not error (can self-heal)
+
         return JsonResponse({
             "status": overall_status,
             "color": color,
@@ -229,6 +235,8 @@ def server_health_status_api(request):
                 # Scholar services
                 "citation_graph": citation_graph.get('health_class', 'unknown'),
                 "citation_graph_mode": citation_graph.get('mode', 'unknown'),
+                # Filesystem
+                "user_data_permissions": user_data_perms.get('health_class', 'unknown'),
             }
         })
     except Exception as e:

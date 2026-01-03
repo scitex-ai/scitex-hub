@@ -1,7 +1,7 @@
 version: '3.8'
 
 # NAS Deployment with Cloudflare Tunnel
-# For: Synology DXP480T Plus (Home NAS)
+# For: UGREEN DXP480T Plus (Home NAS)
 # No router access or port forwarding needed!
 
 # Set project name with environment for clear identification

@@ -73,6 +73,24 @@ mkdir -p /app/data/slurm /app/logs /app/run
 chown -R scitex:scitex /app/data /app/logs /app/run 2>/dev/null || true
 chmod -R 755 /app/data/slurm 2>/dev/null || true
 
+# ============================================
+# Fix user data directory permissions
+# ============================================
+# NAS bind mounts can lose permissions (show as d--------- inside container)
+# This fixes permissions on startup to ensure user directories are accessible
+if [ -d "/app/data/users" ]; then
+    # Check if any user directory has broken permissions
+    BROKEN_PERMS=$(find /app/data/users -maxdepth 2 -type d ! -perm -755 2>/dev/null | head -1)
+    if [ -n "$BROKEN_PERMS" ]; then
+        echo "🔧 Fixing user data directory permissions (NAS bind mount issue)..."
+        chmod -R 755 /app/data/users 2>/dev/null || true
+        chown -R scitex:scitex /app/data/users 2>/dev/null || true
+        echo "✅ User data permissions fixed"
+    else
+        echo "✅ User data permissions OK"
+    fi
+fi
+
 echo "✅ Root initialization complete"
 echo ""
 

@@ -83,6 +83,13 @@ SCITEX_CLOUD_VERSION = "0.5.2-alpha"
 SCITEX_CLOUD_VISITOR_POOL_SIZE = int(os.environ.get("SCITEX_CLOUD_VISITOR_POOL_SIZE", 4))
 
 # ---------------------------------------
+# Analytics
+# ---------------------------------------
+# Google Analytics 4 Measurement ID (e.g., G-XXXXXXXXXX)
+# Leave empty to disable tracking
+GOOGLE_ANALYTICS_ID = os.environ.get("SCITEX_CLOUD_GOOGLE_ANALYTICS_ID", "")
+
+# ---------------------------------------
 # Paths
 # ---------------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -206,6 +213,7 @@ TEMPLATES = [
                 "config.context_processors.cache_buster",
                 "config.context_processors.debug_mode",
                 "config.context_processors.scitex_version",
+                "config.context_processors.google_analytics",
             ],
         },
     },

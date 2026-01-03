@@ -213,4 +213,82 @@ def check_citation_graph(status_data):
     }
 
 
+def check_user_data_permissions(status_data):
+    """
+    Check user data directory permissions.
+
+    NAS bind mounts can cause permission issues where directories
+    appear as d--------- (no permissions) inside the container despite
+    having proper permissions on the host.
+
+    Returns:
+        dict with:
+        - is_healthy: bool
+        - status: "ok" | "warning" | "error"
+        - health_class: "healthy" | "warning" | "unhealthy"
+        - broken_dirs: list of directories with permission issues
+        - message: human-readable status
+    """
+    user_data_path = Path("/app/data/users")
+    broken_dirs = []
+
+    try:
+        if not user_data_path.exists():
+            status_data["user_data_permissions"] = {
+                "is_healthy": True,
+                "status": "ok",
+                "health_class": "healthy",
+                "broken_dirs": [],
+                "message": "User data directory not yet created",
+            }
+            return
+
+        # Check for directories without read/execute permissions
+        for user_dir in user_data_path.iterdir():
+            if not user_dir.is_dir():
+                continue
+
+            # Check if directory is accessible
+            try:
+                # Try to list directory contents
+                list(user_dir.iterdir())
+            except PermissionError:
+                broken_dirs.append(str(user_dir.name))
+
+            # Also check subdirectories (proj directory)
+            for subdir in user_dir.glob("*"):
+                if subdir.is_dir():
+                    try:
+                        list(subdir.iterdir())
+                    except PermissionError:
+                        broken_dirs.append(f"{user_dir.name}/{subdir.name}")
+
+        if broken_dirs:
+            status_data["user_data_permissions"] = {
+                "is_healthy": False,
+                "status": "error",
+                "health_class": "unhealthy",
+                "broken_dirs": broken_dirs[:10],  # Limit to first 10
+                "total_broken": len(broken_dirs),
+                "message": f"Permission issues detected in {len(broken_dirs)} directories",
+            }
+        else:
+            status_data["user_data_permissions"] = {
+                "is_healthy": True,
+                "status": "ok",
+                "health_class": "healthy",
+                "broken_dirs": [],
+                "message": "All user directories accessible",
+            }
+    except Exception as e:
+        logger.warning(f"Could not check user data permissions: {e}")
+        status_data["user_data_permissions"] = {
+            "is_healthy": False,
+            "status": "error",
+            "health_class": "unhealthy",
+            "error": str(e),
+            "message": f"Permission check failed: {e}",
+        }
+
+
 # EOF
