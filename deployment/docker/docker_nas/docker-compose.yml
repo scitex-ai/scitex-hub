@@ -325,10 +325,12 @@ services:
     networks:
       - scitex-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/"]
+      # Check nginx is running (accepts 502 while Django starts)
+      test: ["CMD", "sh", "-c", "curl -s -o /dev/null -w '%{http_code}' http://localhost:80/ | grep -qE '^(200|502)$'"]
       interval: 10s
       timeout: 3s
       retries: 3
+      start_period: 30s
 
   # Cloudflare Tunnel (replaces traditional port forwarding!)
   cloudflared:
