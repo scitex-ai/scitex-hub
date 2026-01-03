@@ -107,8 +107,6 @@ class TerminalConsumer(AsyncWebsocketConsumer):
             return
 
         await self.accept()
-        # Send initial status before spawning (SLURM job may take time to start)
-        await self.send(text_data='\x1b[1;36m🔧 Allocating compute resources via SLURM...\x1b[0m\r\n')
         await self.spawn_pty()
 
     async def spawn_pty(self):
@@ -155,9 +153,15 @@ class TerminalConsumer(AsyncWebsocketConsumer):
             if self.pid == 0:
                 # Child process - restore signal mask before exec
                 signal.pthread_sigmask(signal.SIG_SETMASK, old_mask)
-                # SLURM availability already checked above, so this should always succeed
-                exec_slurm_shell(username, user_data_dir, project_dir, container_path, project_slug)
-                # exec_slurm_shell never returns on success
+                try:
+                    # SLURM availability already checked above, so this should always succeed
+                    exec_slurm_shell(username, user_data_dir, project_dir, container_path, project_slug)
+                    # exec_slurm_shell never returns on success
+                except Exception as e:
+                    # Write error to stderr (will be captured by parent via PTY)
+                    import sys
+                    sys.stderr.write(f'\x1b[1;31m❌ Failed to start terminal: {e}\x1b[0m\r\n')
+                    sys.stderr.flush()
                 os._exit(1)  # Only reached if exec fails
         finally:
             # Parent process - restore signal mask

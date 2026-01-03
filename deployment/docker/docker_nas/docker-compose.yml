@@ -26,8 +26,8 @@ services:
       # scitex-code for citation_graph module (until published to PyPI)
       - /home/ywatanabe/proj/scitex-code/src/scitex/scholar/citation_graph:/usr/local/lib/python3.11/site-packages/scitex/scholar/citation_graph:ro
 
-      # User workspace data directory
-      - ../../../data/users:/app/data/users
+      # User workspace data directory (must match SCITEX_SLURM_USER_DATA_ROOT for terminal passwd files)
+      - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
 
       # Singularity/Apptainer container for secure user code execution
       - ../../../deployment/singularity:/app/singularity:ro
@@ -144,7 +144,7 @@ services:
     volumes:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
-      - ../../../data/users:/app/data/users
+      - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
       - ../../../deployment/singularity:/app/singularity:ro
       - /etc/slurm/slurm.conf:/etc/slurm/slurm.conf:ro
       - /etc/munge:/etc/munge:ro
@@ -192,7 +192,7 @@ services:
     command: celery -A config --broker=redis://redis:6379/1 beat --loglevel=info --scheduler=django_celery_beat.schedulers:DatabaseScheduler
 
     volumes:
-      - ../../../data/users:/app/data/users
+      - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
 
     env_file:
       - .env
@@ -325,8 +325,8 @@ services:
     networks:
       - scitex-network
     healthcheck:
-      # Check nginx is running (accepts 502 while Django starts)
-      test: ["CMD", "sh", "-c", "curl -s -o /dev/null -w '%{http_code}' http://localhost:80/ | grep -qE '^(200|502)$'"]
+      # Check nginx is running (accepts 502/503 while Django starts)
+      test: ["CMD", "sh", "-c", "curl -s -o /dev/null -w '%{http_code}' http://localhost:80/ | grep -qE '^(200|502|503)$'"]
       interval: 10s
       timeout: 3s
       retries: 3

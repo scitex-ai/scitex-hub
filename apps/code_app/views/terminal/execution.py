@@ -111,29 +111,6 @@ def select_container(user_data_dir: Path, project_dir: Path) -> str:
     return SLURM_CONTAINER_PATH
 
 
-def _create_container_passwd(username: str, host_user_dir: Path) -> Path:
-    """
-    Create a custom /etc/passwd file for the container.
-
-    This makes `whoami` return the visitor username instead of 'scitex',
-    providing a more intuitive experience for users.
-    """
-    passwd_file = host_user_dir / ".container_passwd"
-
-    # Minimal passwd with system users + visitor user
-    # UID 1000 maps to the scitex user on host, but shows as visitor inside
-    passwd_content = f"""root:x:0:0:root:/root:/bin/bash
-daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
-bin:x:2:2:bin:/bin:/usr/sbin/nologin
-sys:x:3:3:sys:/dev:/usr/sbin/nologin
-nobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin
-{username}:x:1000:1000:SciTeX User:/home/{username}:/bin/bash
-"""
-    passwd_file.write_text(passwd_content)
-    passwd_file.chmod(0o644)
-    return passwd_file
-
-
 def exec_slurm_shell(
     username: str,
     user_data_dir: Path,
@@ -154,9 +131,6 @@ def exec_slurm_shell(
     host_user_dir = SLURM_USER_DATA_ROOT / username
     host_project_dir = host_user_dir / "proj" / project_slug
 
-    # Create custom passwd file so whoami shows visitor username
-    passwd_file = _create_container_passwd(username, host_user_dir)
-
     # Build srun command with host paths
     cmd = [
         "srun",
@@ -176,7 +150,6 @@ def exec_slurm_shell(
         "--hostname", "scitex-cloud",
         "--home", f"{host_user_dir}:/home/{username}",
         "--bind", f"{host_project_dir}:/home/{username}/proj/{project_slug}:rw",
-        "--bind", f"{passwd_file}:/etc/passwd:ro",  # Custom passwd for whoami
         "--pwd", f"/home/{username}/proj/{project_slug}",
         container_path,  # Use host path to SIF
     ]
@@ -196,6 +169,10 @@ def exec_slurm_shell(
     }
 
     logger.info(f"Spawning SLURM terminal: user={username} partition={SLURM_PARTITION} time={SLURM_TIME_LIMIT}")
+    logger.info(f"SLURM command: {' '.join(cmd)}")
+
+    # Note: host_user_dir and host_project_dir are HOST paths (not visible from container)
+    # SLURM will run on the host where these paths exist
 
     # Change to a directory that exists on the host (srun inherits cwd)
     # The Django container runs from /app which doesn't exist on the host
