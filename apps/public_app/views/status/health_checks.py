@@ -109,12 +109,15 @@ def _check_ssh_banner(host: str, port: int, timeout: float = 2.0) -> tuple[bool,
 
 def check_ssh_services(status_data):
     """Check SSH services (Workspace Gateway and Gitea) with banner verification."""
-    ssh_check_host = '127.0.0.1'
-    if Path('/.dockerenv').exists():
-        ssh_check_host = 'host.docker.internal'
+    # Workspace SSH Gateway runs in the same container (Django container)
+    # So always check on localhost, regardless of Docker environment
+    workspace_ssh_host = '127.0.0.1'
+
+    # Gitea SSH runs in separate container, use Docker network hostname
+    gitea_ssh_host = 'gitea' if Path('/.dockerenv').exists() else '127.0.0.1'
 
     # Workspace SSH Gateway (port 2200) - via cloudflared at ssh.scitex.ai
-    is_functional, banner_or_error = _check_ssh_banner(ssh_check_host, 2200)
+    is_functional, banner_or_error = _check_ssh_banner(workspace_ssh_host, 2200)
     status_data["ssh_services"].append({
         "name": "Workspace SSH Gateway",
         "port": 2200,
@@ -127,8 +130,9 @@ def check_ssh_services(status_data):
     })
 
     # Gitea SSH - via cloudflared at gitea.scitex.ai
-    gitea_ssh_port = int(getattr(settings, 'SCITEX_CLOUD_GITEA_SSH_PORT', 2222))
-    is_functional, banner_or_error = _check_ssh_banner(ssh_check_host, gitea_ssh_port)
+    # Default is 22 (Gitea's internal SSH port in Docker)
+    gitea_ssh_port = int(getattr(settings, 'SCITEX_CLOUD_GITEA_SSH_PORT', 22))
+    is_functional, banner_or_error = _check_ssh_banner(gitea_ssh_host, gitea_ssh_port)
     status_data["ssh_services"].append({
         "name": "Gitea SSH (Git operations)",
         "port": gitea_ssh_port,
