@@ -13,7 +13,7 @@ __DIR__ = os.path.dirname(__FILE__)
 """
 Health Check Functions
 
-Core health checking for Docker, SSH, Database, Redis, and Disk.
+Core health checking for Docker, SSH, Database, Redis, Disk, and API services.
 """
 
 import logging
@@ -21,6 +21,7 @@ import socket
 from pathlib import Path
 
 import psutil
+import requests
 from django.conf import settings
 from django.core.cache import cache
 from django.db import connection
@@ -77,55 +78,139 @@ def check_docker_containers(status_data):
         })
 
 
+def _check_ssh_banner(host: str, port: int, timeout: float = 2.0) -> tuple[bool, str]:
+    """
+    Check SSH service by verifying SSH banner.
+
+    Returns (is_functional, banner_or_error).
+    """
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(timeout)
+        result = sock.connect_ex((host, port))
+        if result != 0:
+            sock.close()
+            return False, "Connection refused"
+
+        # Try to receive SSH banner (e.g., "SSH-2.0-OpenSSH_8.9")
+        try:
+            banner = sock.recv(256).decode('utf-8', errors='ignore').strip()
+            sock.close()
+            if banner.startswith('SSH-'):
+                return True, banner
+            else:
+                return False, f"Invalid banner: {banner[:50]}"
+        except socket.timeout:
+            sock.close()
+            return False, "Banner timeout"
+    except Exception as e:
+        return False, str(e)
+
+
 def check_ssh_services(status_data):
-    """Check SSH services (Workspace Gateway and Gitea)."""
+    """Check SSH services (Workspace Gateway and Gitea) with banner verification."""
     ssh_check_host = '127.0.0.1'
     if Path('/.dockerenv').exists():
         ssh_check_host = 'host.docker.internal'
 
-    # Workspace SSH Gateway (port 2200)
+    # Workspace SSH Gateway (port 2200) - via cloudflared at ssh.scitex.ai
+    is_functional, banner_or_error = _check_ssh_banner(ssh_check_host, 2200)
+    status_data["ssh_services"].append({
+        "name": "Workspace SSH Gateway",
+        "port": 2200,
+        "public_url": "ssh.scitex.ai",
+        "is_running": is_functional,
+        "status": "running" if is_functional else "down",
+        "health_class": "healthy" if is_functional else "down",
+        "banner": banner_or_error if is_functional else None,
+        "error": None if is_functional else banner_or_error,
+    })
+
+    # Gitea SSH - via cloudflared at gitea.scitex.ai
+    gitea_ssh_port = int(getattr(settings, 'SCITEX_CLOUD_GITEA_SSH_PORT', 2222))
+    is_functional, banner_or_error = _check_ssh_banner(ssh_check_host, gitea_ssh_port)
+    status_data["ssh_services"].append({
+        "name": "Gitea SSH (Git operations)",
+        "port": gitea_ssh_port,
+        "public_url": "gitea.scitex.ai",
+        "is_running": is_functional,
+        "status": "running" if is_functional else "down",
+        "health_class": "healthy" if is_functional else "down",
+        "banner": banner_or_error if is_functional else None,
+        "error": None if is_functional else banner_or_error,
+    })
+
+
+def check_api_services(status_data):
+    """Check API services (CrossRef, Gitea HTTP)."""
+    status_data["api_services"] = []
+
+    # CrossRef API - check /health endpoint
     try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(1)
-        result = sock.connect_ex((ssh_check_host, 2200))
-        sock.close()
-        is_running = result == 0
-        status_data["ssh_services"].append({
-            "name": "Workspace SSH Gateway",
-            "port": 2200,
-            "is_running": is_running,
-            "status": "running" if is_running else "down",
-            "health_class": "healthy" if is_running else "down",
+        response = requests.get("http://crossref:3333/health", timeout=5)
+        is_healthy = response.status_code == 200
+        data = response.json() if is_healthy else {}
+        status_data["api_services"].append({
+            "name": "CrossRef API",
+            "url": "crossref:3333",
+            "public_url": "https://crossref.scitex.ai",
+            "is_running": is_healthy,
+            "status": "healthy" if is_healthy else "error",
+            "health_class": "healthy" if is_healthy else "unhealthy",
+            "response_time_ms": int(response.elapsed.total_seconds() * 1000),
+            "details": data.get("status", ""),
+        })
+    except requests.exceptions.Timeout:
+        status_data["api_services"].append({
+            "name": "CrossRef API",
+            "url": "crossref:3333",
+            "public_url": "https://crossref.scitex.ai",
+            "is_running": False,
+            "status": "timeout",
+            "health_class": "unhealthy",
+            "error": "Request timed out",
         })
     except Exception as e:
-        status_data["ssh_services"].append({
-            "name": "Workspace SSH Gateway",
-            "port": 2200,
+        status_data["api_services"].append({
+            "name": "CrossRef API",
+            "url": "crossref:3333",
+            "public_url": "https://crossref.scitex.ai",
             "is_running": False,
             "status": "error",
             "health_class": "unhealthy",
             "error": str(e),
         })
 
-    # Gitea SSH
-    gitea_ssh_port = int(getattr(settings, 'SCITEX_CLOUD_GITEA_SSH_PORT', 2222))
+    # Gitea HTTP API - check /api/v1/version endpoint
     try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(1)
-        result = sock.connect_ex((ssh_check_host, gitea_ssh_port))
-        sock.close()
-        is_running = result == 0
-        status_data["ssh_services"].append({
-            "name": "Gitea SSH (Git operations)",
-            "port": gitea_ssh_port,
-            "is_running": is_running,
-            "status": "running" if is_running else "down",
-            "health_class": "healthy" if is_running else "down",
+        response = requests.get("http://gitea:3000/api/v1/version", timeout=5)
+        is_healthy = response.status_code == 200
+        data = response.json() if is_healthy else {}
+        status_data["api_services"].append({
+            "name": "Gitea API",
+            "url": "gitea:3000",
+            "public_url": "https://git.scitex.ai",
+            "is_running": is_healthy,
+            "status": "healthy" if is_healthy else "error",
+            "health_class": "healthy" if is_healthy else "unhealthy",
+            "response_time_ms": int(response.elapsed.total_seconds() * 1000),
+            "details": f"v{data.get('version', 'unknown')}" if data else "",
+        })
+    except requests.exceptions.Timeout:
+        status_data["api_services"].append({
+            "name": "Gitea API",
+            "url": "gitea:3000",
+            "public_url": "https://git.scitex.ai",
+            "is_running": False,
+            "status": "timeout",
+            "health_class": "unhealthy",
+            "error": "Request timed out",
         })
     except Exception as e:
-        status_data["ssh_services"].append({
-            "name": "Gitea SSH",
-            "port": gitea_ssh_port,
+        status_data["api_services"].append({
+            "name": "Gitea API",
+            "url": "gitea:3000",
+            "public_url": "https://git.scitex.ai",
             "is_running": False,
             "status": "error",
             "health_class": "unhealthy",

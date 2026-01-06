@@ -41,11 +41,10 @@ class CrossRefDatabase:
                 logger.info(f"Connected to database: {self.db_path}")
                 logger.info(f"Available tables: {', '.join(tables)}")
 
-                # Try to get count if works table exists
+                # Note: Skipping COUNT(*) at init - too slow for 167M papers
+                # Count is done lazily in get_database_stats() instead
                 if "works" in tables:
-                    cursor.execute("SELECT COUNT(*) FROM works")
-                    count = cursor.fetchone()[0]
-                    logger.info(f"Database contains {count:,} papers")
+                    logger.info("Database ready (works table available)")
                 else:
                     logger.warning("No 'works' table found - checking for alternatives")
 

@@ -222,21 +222,30 @@ function initializeHeader(): void {
 
     async function updateServerHealth(): Promise<void> {
       try {
-        const response = await fetch('/healthz/');
+        const response = await fetch('/api/server-health/');
         const data = await response.json();
 
         const status = data.status; // "healthy" | "warning" | "error" | "starting"
         const statusColor = data.color; // Hex color from API
+        const timestamp = data.timestamp; // ISO timestamp from API
 
-        // Determine tooltip based on status
-        let statusTooltip = 'All systems operational';
-        if (status === 'starting') {
-          statusTooltip = 'Services starting up...';
-        } else if (status === 'warning') {
-          statusTooltip = 'Some services have warnings';
-        } else if (status === 'error') {
-          statusTooltip = 'Service errors detected';
+        // Format timestamp for display
+        let timeStr = 'now';
+        if (timestamp) {
+          const date = new Date(timestamp);
+          timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
+
+        // Build tooltip: LED color indicates server status
+        let statusMsg = 'healthy';
+        if (status === 'starting') {
+          statusMsg = 'starting up';
+        } else if (status === 'warning') {
+          statusMsg = 'warning';
+        } else if (status === 'error') {
+          statusMsg = 'error';
+        }
+        let statusTooltip = `LED: ${statusMsg} at ${timeStr}`;
 
         // Add service details to tooltip if available
         if (data.services) {

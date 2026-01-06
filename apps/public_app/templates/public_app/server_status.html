@@ -213,13 +213,13 @@ Check the current status of SciTeX Cloud services and infrastructure.
 
     <!-- SSH Services -->
     <div class="status-section">
-        <h2 class="section-title has-tooltip" data-tooltip="SSH gateways for terminal access. Health checked by TCP socket connection test. All services use key-based authentication only (no passwords).">
+        <h2 class="section-title has-tooltip" data-tooltip="SSH gateways for terminal and Git access via Cloudflare Tunnel. Health checked by SSH banner verification. All services use key-based authentication only (no passwords).">
             <i class="fas fa-key"></i> SSH Services
         </h2>
         <div class="services-grid">
             {% for ssh in status_data.ssh_services %}
             <div class="service-card {{ ssh.health_class }} has-tooltip"
-                 data-tooltip="Health Check: TCP socket connection test to port {{ ssh.port }}. Returns healthy if port is open and accepting connections.">
+                 data-tooltip="Health Check: SSH banner verification on port {{ ssh.port }}. Returns healthy if SSH protocol banner is received.">
                 <div class="service-header">
                     <div class="service-name">
                         <i class="fas fa-terminal"></i> {{ ssh.name }}
@@ -231,7 +231,13 @@ Check the current status of SciTeX Cloud services and infrastructure.
                 </div>
                 <div class="service-details">
                     <div><strong>Port:</strong> {{ ssh.port }}</div>
-                    <div><strong>Auth:</strong> SSH Key Only</div>
+                    {% if ssh.public_url %}
+                    <div><strong>Public:</strong> {{ ssh.public_url }}</div>
+                    {% endif %}
+                    {% if ssh.banner %}
+                    <div><strong>Banner:</strong> <code>{{ ssh.banner|truncatechars:40 }}</code></div>
+                    {% endif %}
+                    <div><strong>Auth:</strong> SSH Key Only (via cloudflared)</div>
                     {% if ssh.error %}
                     <div class="error-message"><strong>Error:</strong> {{ ssh.error }}</div>
                     {% endif %}
@@ -244,9 +250,47 @@ Check the current status of SciTeX Cloud services and infrastructure.
         <div class="info-box info-box-with-margin">
             <p>
                 <i class="fas fa-info-circle"></i>
-                <strong>SSH Authentication:</strong> All SSH services use key-based authentication only.
+                <strong>SSH Authentication:</strong> All SSH services use key-based authentication via cloudflared tunnel.
                 <a href="/accounts/settings/ssh-keys/">Manage your SSH keys →</a>
             </p>
+        </div>
+    </div>
+
+    <!-- API Services -->
+    <div class="status-section">
+        <h2 class="section-title has-tooltip" data-tooltip="External API services. Health checked by HTTP request to health/version endpoints.">
+            <i class="fas fa-plug"></i> API Services
+        </h2>
+        <div class="services-grid">
+            {% for api in status_data.api_services %}
+            <div class="service-card {{ api.health_class }} has-tooltip"
+                 data-tooltip="Health Check: HTTP GET request to service endpoint. Returns healthy if HTTP 200 response received.">
+                <div class="service-header">
+                    <div class="service-name">
+                        <i class="fas fa-globe"></i> {{ api.name }}
+                    </div>
+                    <span class="status-badge {{ api.health_class }}">
+                        <i class="fas fa-circle"></i>
+                        {% if api.health_class == 'healthy' %}HEALTHY{% elif api.health_class == 'unhealthy' %}UNHEALTHY{% else %}{{ api.status|upper }}{% endif %}
+                    </span>
+                </div>
+                <div class="service-details">
+                    <div><strong>Internal:</strong> {{ api.url }}</div>
+                    {% if api.public_url %}
+                    <div><strong>Public:</strong> <a href="{{ api.public_url }}" target="_blank">{{ api.public_url }}</a></div>
+                    {% endif %}
+                    {% if api.details %}
+                    <div><strong>Version:</strong> {{ api.details }}</div>
+                    {% endif %}
+                    {% if api.response_time_ms %}
+                    <div><strong>Response:</strong> {{ api.response_time_ms }}ms</div>
+                    {% endif %}
+                    {% if api.error %}
+                    <div class="error-message"><strong>Error:</strong> {{ api.error }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
         </div>
     </div>
 

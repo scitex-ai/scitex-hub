@@ -75,6 +75,36 @@
 
                     <!-- SSH Panel -->
                     <div class="clone-method-panel" id="ssh-panel">
+                        <p class="clone-ssh-hint mb-2">
+                            <strong>Via cloudflared tunnel:</strong>
+                        </p>
+                        <div class="clone-url-container mb-2">
+                            <input type="text"
+                                   class="clone-url-input"
+                                   value="git clone gitea.scitex:{{ project.owner.username }}/{{ project.slug }}.git"
+                                   id="gitea-ssh-cloudflared"
+                                   readonly>
+                            <button class="clone-copy-btn"
+                                    type="button"
+                                    onclick="copyToClipboard('gitea-ssh-cloudflared')"
+                                    title="Copy URL to clipboard">
+                                <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" fill="currentColor">
+                                    <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path>
+                                    <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <p class="clone-ssh-hint small text-muted mb-2">
+                            Requires <a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/" target="_blank">cloudflared</a> + SSH config:
+                        </p>
+                        <pre class="bg-dark text-light p-2 rounded small mb-2" style="font-size: 10px;">Host gitea.scitex
+  HostName gitea.scitex.ai
+  User git
+  ProxyCommand cloudflared access ssh --hostname %h</pre>
+                        <hr class="my-2">
+                        <p class="clone-ssh-hint small text-muted mb-1">
+                            <strong>Direct SSH (if available):</strong>
+                        </p>
                         <div class="clone-url-container">
                             <input type="text"
                                    class="clone-url-input"
@@ -91,7 +121,6 @@
                                 </svg>
                             </button>
                         </div>
-                        <p class="clone-ssh-hint">Use a password-protected SSH key.</p>
                     </div>
 
                     <!-- SciTeX CLI Panel -->
@@ -146,13 +175,23 @@
 
                             <div class="workspace-ssh-info p-3 rounded">
                                 <h6 class="mb-2">
-                                    <i class="fas fa-key me-2"></i>Direct SSH Access
+                                    <i class="fas fa-key me-2"></i>SSH Access via Cloudflare Tunnel
                                 </h6>
-                                <p class="small text-muted mb-2">Connect directly to your workspace via SSH:</p>
+                                <p class="small text-muted mb-2">Connect via SSH (secure tunnel, no port forwarding needed):</p>
+                                <div class="mb-2">
+                                    <small class="text-muted">1. Install <a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/" target="_blank">cloudflared</a></small>
+                                </div>
+                                <div class="mb-2">
+                                    <small class="text-muted">2. Add to ~/.ssh/config:</small>
+                                    <pre class="bg-dark text-light p-2 rounded small mb-0">Host scitex
+  HostName ssh.scitex.ai
+  User {{ project.owner.username }}
+  ProxyCommand cloudflared access ssh --hostname %h</pre>
+                                </div>
                                 <div class="input-group input-group-sm mb-2">
                                     <input type="text"
                                            class="form-control font-monospace"
-                                           value="ssh {{ project.owner.username }}@workspace.scitex.cloud"
+                                           value="ssh scitex"
                                            id="workspace-ssh-url"
                                            readonly>
                                     <button class="btn btn-outline-secondary"

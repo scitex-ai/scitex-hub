@@ -87,17 +87,22 @@ async def health_check():
     """
     Health check endpoint for Docker/Kubernetes
 
-    Returns database status and basic metrics
+    Returns database status (fast - no expensive queries)
     """
     try:
-        stats = db.get_database_stats()
+        # Fast health check - just verify connection works
+        with db.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT 1")
+            cursor.fetchone()
+
         return HealthResponse(
             status="healthy",
             database_connected=True,
             database_path=db.db_path,
-            total_papers=stats.get("total_papers"),
-            database_size_mb=stats.get("database_size_mb"),
-            has_citations=stats.get("has_citations", False),
+            total_papers=None,  # Skip expensive count for health check
+            database_size_mb=None,
+            has_citations="citations" in db.tables,
         )
     except Exception as e:
         logger.error(f"Health check failed: {e}")

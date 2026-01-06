@@ -10,14 +10,47 @@ The SSH Gateway allows users to connect directly to their workspace containers v
 - **Automatic Container Management**: Containers are spawned/attached automatically on connection
 - **Persistent Sessions**: Your workspace persists across SSH sessions
 - **Secure**: Uses SSH protocol with RSA host keys
+- **WebSocket Tunnel**: Access via Cloudflare Tunnel - no port forwarding needed!
 
 ## Architecture
 
 ```
+# Production (via Cloudflare Tunnel)
+User SSH Client → cloudflared → Cloudflare Tunnel → SSH Gateway → SLURM Container
+
+# Development (direct)
 User SSH Client → SSH Gateway (Port 2200) → Django Auth → User Container
 ```
 
-## Setup
+## Production Usage (Recommended)
+
+### Prerequisites
+
+1. **Install cloudflared**: Download from https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/
+2. **Register SSH key**: Go to https://scitex.ai/accounts/settings/ssh-keys/
+
+### SSH Config Setup
+
+Add to your `~/.ssh/config`:
+
+```bash
+Host scitex
+  HostName ssh.scitex.ai
+  User your-username
+  ProxyCommand cloudflared access ssh --hostname %h
+```
+
+### Connect
+
+```bash
+ssh scitex
+```
+
+That's it! No port forwarding, no firewall configuration needed.
+
+---
+
+## Development Setup
 
 ### 1. Start the SSH Gateway
 
@@ -43,16 +76,7 @@ ports:
   - "2200:2200"  # SSH gateway for user workspaces
 ```
 
-## Usage
-
-### Prerequisites
-
-**SSH Key Setup Required**: The SSH gateway only accepts public key authentication for security. You must first:
-
-1. Register your SSH public key at `http://127.0.0.1:8000/accounts/settings/ssh-keys/`
-2. Or generate a new key pair through the web interface
-
-### Connecting via SSH
+### Connecting via SSH (Development)
 
 ```bash
 # Basic connection (uses default SSH key ~/.ssh/id_rsa)
@@ -206,6 +230,21 @@ ssh -p 2200 test-user@127.0.0.1
 
 ### Production Setup
 
+#### Cloudflare Tunnel Configuration
+
+1. Go to [Cloudflare Zero Trust Dashboard](https://one.dash.cloudflare.com/)
+2. Navigate to **Access** → **Tunnels**
+3. Select your tunnel (e.g., `scitex-nas`)
+4. Add a new **Public Hostname**:
+   - **Subdomain**: `ssh`
+   - **Domain**: `scitex.ai`
+   - **Service Type**: `SSH`
+   - **URL**: `django:2200`
+
+This routes `ssh.scitex.ai` directly to the SSH Gateway container.
+
+#### SSH Gateway Service
+
 1. Run SSH gateway as a service (systemd, supervisor, etc.)
 2. Use persistent host key
 3. Configure firewall rules
@@ -309,4 +348,4 @@ For issues or questions:
 
 ---
 
-Last updated: 2025-11-14
+Last updated: 2026-01-06
