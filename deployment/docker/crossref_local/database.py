@@ -55,7 +55,10 @@ class CrossRefDatabase:
     @contextmanager
     def get_connection(self):
         """Context manager for database connections"""
-        conn = sqlite3.connect(self.db_path, check_same_thread=False)
+        # Use immutable mode for read-only filesystem support
+        # This tells SQLite the database will never change, avoiding journal/lock files
+        uri = f"file:{self.db_path}?mode=ro&immutable=1"
+        conn = sqlite3.connect(uri, uri=True, check_same_thread=False)
         conn.row_factory = sqlite3.Row  # Access columns by name
         try:
             yield conn
