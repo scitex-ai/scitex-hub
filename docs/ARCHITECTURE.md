@@ -23,7 +23,7 @@
 - [ ] Context incorporated (optional with SciTeX Scholar, Vis, Code, Files)
 
 ## SciTeX Scholar
-- [ ] https://github.com/ywatanabe1989/scitex-code/src/scitex/scholar
+- [ ] https://github.com/ywatanabe1989/scitex-python/src/scitex/scholar
 - [ ] pip install scitex
   - [ ] import scitex.scholar
   - [ ] $ scitex scholar --help
@@ -32,7 +32,7 @@
 
 
 ## SciTeX Vis
-- [ ] https://github.com/ywatanabe1989/scitex-code/src/scitex/{plt,vis}
+- [ ] https://github.com/ywatanabe1989/scitex-python/src/scitex/{plt,vis}
 - [ ] pip install scitex
   - [ ] import scitex.plt
   - [ ] import scitex.vis
@@ -52,7 +52,7 @@
 - [ ] (Optional) Metadta with scitex.plt
 
 ## SciTeX Code
-- [ ] https://github.com/ywatanabe1989/scitex-code/src/scitex/{io,logging,plt,vis,...}
+- [ ] https://github.com/ywatanabe1989/scitex-python/src/scitex/{io,logging,plt,vis,...}
 - [ ] pip install scitex
   - [ ] import scitex
   - [ ] $ scitex ...
@@ -120,11 +120,11 @@ graph TB
         
         WRITER[Writer<br/>LaTeX Editor<br/>PDF Compile<br/>scitex-writer]
         
-        SCHOLAR[Scholar<br/>Literature Search<br/>BibTeX Manager<br/>scitex-code]
+        SCHOLAR[Scholar<br/>Literature Search<br/>BibTeX Manager<br/>scitex-python]
         
-        CODE[Code<br/>Analysis Scripts<br/>io, logging<br/>scitex-code]
+        CODE[Code<br/>Analysis Scripts<br/>io, logging<br/>scitex-python]
         
-        VIS[Vis<br/>Plotting plt<br/>Visualization<br/>scitex-code]
+        VIS[Vis<br/>Plotting plt<br/>Visualization<br/>scitex-python]
     end
     
     subgraph "Infrastructure"
