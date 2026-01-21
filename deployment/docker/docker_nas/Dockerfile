@@ -41,10 +41,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --system -r requirements.txt && \
     uv pip install --system daphne==4.1.2 psycopg2-binary
 
-# Install scitex from PyPI (production uses stable releases)
-# Version pinned for stability - Complete toolkit with all features
+# Install scitex from PyPI (with all optional dependencies)
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system "scitex[dl,ml,jupyter,neuro,web,scholar,writer,dev]==2.3.0"
+    uv pip install --system "scitex[all]==2.10.3"
 
 # Install Playwright browsers
 RUN --mount=type=cache,target=/root/.cache/ms-playwright \

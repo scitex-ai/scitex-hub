@@ -21,6 +21,7 @@ from django.shortcuts import render
 from .health_checks import (
     check_docker_containers,
     check_ssh_services,
+    check_api_services,
     check_database,
     check_redis,
     check_disk,
@@ -50,6 +51,7 @@ def server_status(request):
     status_data = {
         "services": [],
         "ssh_services": [],
+        "api_services": [],
         "database": {},
         "redis": {},
         "disk": {},
@@ -59,6 +61,7 @@ def server_status(request):
     # Check all services
     check_docker_containers(status_data)
     check_ssh_services(status_data)
+    check_api_services(status_data)
     check_database(status_data)
     check_redis(status_data)
     check_disk(status_data)

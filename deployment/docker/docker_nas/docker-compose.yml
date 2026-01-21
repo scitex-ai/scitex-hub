@@ -1,5 +1,3 @@
-version: '3.8'
-
 # NAS Deployment with Cloudflare Tunnel
 # For: UGREEN DXP480T Plus (Home NAS)
 # No router access or port forwarding needed!
@@ -63,6 +61,7 @@ services:
       - SCITEX_CLOUD_ENV=nas
       - PYTHONPATH=/home/scitex/.local/lib/python3.11/site-packages:/app
       - CROSSREF_DB_PATH=/data/crossref/crossref.db
+      - SCITEX_DIR=/app/.scitex
     depends_on:
       postgres:
         condition: service_healthy
@@ -163,6 +162,7 @@ services:
       - SCITEX_CLOUD_DJANGO_SETTINGS_MODULE=config.settings.settings_nas
       - SCITEX_CLOUD_ENV=nas
       - PYTHONUNBUFFERED=1
+      - SCITEX_DIR=/app/.scitex
 
     depends_on:
       postgres:
@@ -202,6 +202,7 @@ services:
       - SCITEX_CLOUD_DJANGO_SETTINGS_MODULE=config.settings.settings_nas
       - SCITEX_CLOUD_ENV=nas
       - PYTHONUNBUFFERED=1
+      - SCITEX_DIR=/app/.scitex
 
     depends_on:
       postgres:
@@ -237,6 +238,7 @@ services:
       - SCITEX_CLOUD_DJANGO_SETTINGS_MODULE=config.settings.settings_nas
       - SCITEX_CLOUD_ENV=nas
       - PYTHONUNBUFFERED=1
+      - SCITEX_DIR=/app/.scitex
 
     depends_on:
       - redis
@@ -271,7 +273,28 @@ services:
     networks:
       - scitex-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3333/health"]
+      test: ["CMD", "curl", "-f", "--max-time", "25", "http://localhost:3333/health"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+      start_period: 120s
+
+  # WebSocket to SSH Proxy - Enables SSH access via Cloudflare Tunnel
+  # Users connect with: ssh -o ProxyCommand='websocat wss://scitex.ai/ws/ssh/' user@localhost
+  ws_ssh_proxy:
+    build:
+      context: ../ws_ssh_proxy
+      dockerfile: Dockerfile
+    image: scitex-ws-ssh-proxy:latest
+    expose:
+      - "8022"
+    depends_on:
+      - django
+    restart: always
+    networks:
+      - scitex-network
+    healthcheck:
+      test: ["CMD", "websocat", "--version"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -321,6 +344,8 @@ services:
     depends_on:
       - django
       - gitea
+      - crossref
+      - ws_ssh_proxy
     restart: always
     networks:
       - scitex-network

@@ -41,11 +41,10 @@ class CrossRefDatabase:
                 logger.info(f"Connected to database: {self.db_path}")
                 logger.info(f"Available tables: {', '.join(tables)}")
 
-                # Try to get count if works table exists
+                # Note: Skipping COUNT(*) at init - too slow for 167M papers
+                # Count is done lazily in get_database_stats() instead
                 if "works" in tables:
-                    cursor.execute("SELECT COUNT(*) FROM works")
-                    count = cursor.fetchone()[0]
-                    logger.info(f"Database contains {count:,} papers")
+                    logger.info("Database ready (works table available)")
                 else:
                     logger.warning("No 'works' table found - checking for alternatives")
 
@@ -56,7 +55,10 @@ class CrossRefDatabase:
     @contextmanager
     def get_connection(self):
         """Context manager for database connections"""
-        conn = sqlite3.connect(self.db_path, check_same_thread=False)
+        # Use immutable mode for read-only filesystem support
+        # This tells SQLite the database will never change, avoiding journal/lock files
+        uri = f"file:{self.db_path}?mode=ro&immutable=1"
+        conn = sqlite3.connect(uri, uri=True, check_same_thread=False)
         conn.row_factory = sqlite3.Row  # Access columns by name
         try:
             yield conn

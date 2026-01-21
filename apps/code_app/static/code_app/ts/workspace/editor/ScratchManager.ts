@@ -70,8 +70,19 @@ export class ScratchManager {
     const sshKeysUrl = `${protocol}//${host}/accounts/settings/ssh-keys/`;
 
     const isDev = host.includes("127.0.0.1") || host.includes("localhost");
-    const sshHost = isDev ? "127.0.0.1" : "scitex.cloud";
-    const sshPort = isDev ? "2200" : "2200";
+    const sshHostname = isDev ? "127.0.0.1" : "ssh.scitex.ai";
+    const sshPort = isDev ? "2200" : "";
+
+    // Development: direct SSH, Production: via cloudflared
+    const sshInstructions = isDev
+      ? `#   Connect: ssh -p ${sshPort} ${username}@${sshHostname}`
+      : `#   1. Install cloudflared: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/
+#   2. Add to ~/.ssh/config:
+#        Host scitex
+#          HostName ${sshHostname}
+#          User ${username}
+#          ProxyCommand cloudflared access ssh --hostname %h
+#   3. Connect: ssh scitex`;
 
     return `#!/usr/bin/env python3
 # SciTeX Code Workspace
@@ -84,9 +95,10 @@ export class ScratchManager {
 #   Project:    ${projectUrl}
 #   SSH Keys:   ${sshKeysUrl}
 #
-# SSH Access:
-#   1. Add SSH key: ${sshKeysUrl}
-#   2. Connect:     ssh -p ${sshPort} ${username}@${sshHost}
+# SSH Access (secure tunnel via Cloudflare):
+${sshInstructions}
+#
+# Or use the browser terminal (no installation needed!)
 #
 # Keyboard Shortcuts:
 #   Ctrl+S         Save file
@@ -101,7 +113,6 @@ def hello():
     print("Hello from SciTeX!")
     print(f"Project: ${projectName}")
     print(f"User: ${username}")
-    print(f"SSH: ssh -p ${sshPort} ${username}@${sshHost}")
 
 if __name__ == "__main__":
     hello()

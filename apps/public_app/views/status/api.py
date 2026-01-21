@@ -28,7 +28,7 @@ from django.utils import timezone
 
 from ...models import ServerMetrics
 from .helpers import get_gpu_utilization
-from .health_checks import check_docker_containers, check_database, check_redis, check_citation_graph, check_user_data_permissions
+from .health_checks import check_docker_containers, check_database, check_redis, check_citation_graph, check_user_data_permissions, check_api_services, check_ssh_services
 from .compute_resources import check_slurm_status, check_container_runtime_status
 
 logger = logging.getLogger("scitex")
@@ -140,11 +140,15 @@ def server_health_status_api(request):
         - services: dict of service statuses
     """
     try:
-        status_data = {"services": []}
+        status_data = {"services": [], "ssh_services": [], "api_services": []}
 
         # Check critical services (with selective skipping for performance)
         check_database(status_data)
         check_redis(status_data)
+
+        # Check SSH and API services
+        check_ssh_services(status_data)
+        check_api_services(status_data)
 
         # Check compute resources (SLURM and Apptainer)
         check_slurm_status(status_data)
@@ -185,16 +189,27 @@ def server_health_status_api(request):
             elif service.get('status') not in ['running', 'healthy']:
                 has_errors = True
 
+        # Check SSH services (Workspace SSH Gateway, Gitea SSH)
+        for ssh in status_data.get('ssh_services', []):
+            if ssh.get('health_class') in ['unhealthy', 'down']:
+                has_warnings = True  # SSH down is warning, not critical error
+
+        # Check API services (CrossRef, Gitea API)
+        for api in status_data.get('api_services', []):
+            if api.get('health_class') in ['unhealthy', 'down']:
+                has_warnings = True  # API down is warning, not critical error
+
         # Determine final status and color
+        # Priority: error > warning > starting > healthy
         if has_errors:
             overall_status = "error"
             color = "#ef4444"  # Red
-        elif has_starting:
-            overall_status = "starting"
-            color = "#22c55e"  # Green (will flash)
         elif has_warnings:
             overall_status = "warning"
             color = "#eab308"  # Yellow
+        elif has_starting:
+            overall_status = "starting"
+            color = "#22c55e"  # Green (will flash)
         else:
             overall_status = "healthy"
             color = "#22c55e"  # Green
@@ -215,9 +230,22 @@ def server_health_status_api(request):
         if user_data_perms.get('health_class') == 'unhealthy':
             has_warnings = True  # Treat as warning, not error (can self-heal)
 
+        # Build SSH services status
+        ssh_services_status = {}
+        for ssh in status_data.get('ssh_services', []):
+            key = ssh.get('name', '').lower().replace(' ', '_').replace('(', '').replace(')', '')
+            ssh_services_status[key] = ssh.get('health_class', 'unknown')
+
+        # Build API services status
+        api_services_status = {}
+        for api in status_data.get('api_services', []):
+            key = api.get('name', '').lower().replace(' ', '_')
+            api_services_status[key] = api.get('health_class', 'unknown')
+
         return JsonResponse({
             "status": overall_status,
             "color": color,
+            "timestamp": timezone.now().isoformat(),
             "services": {
                 "database": status_data.get('database', {}).get('health_class', 'unknown'),
                 "redis": status_data.get('redis', {}).get('health_class', 'unknown'),
@@ -230,6 +258,10 @@ def server_health_status_api(request):
                 "gitea": containers.get('gitea', 'unknown'),
                 "nginx": containers.get('nginx', 'unknown'),
                 "postgres": containers.get('postgres', 'unknown'),
+                # SSH services
+                **ssh_services_status,
+                # API services
+                **api_services_status,
                 # Scholar services
                 "citation_graph": citation_graph.get('health_class', 'unknown'),
                 "citation_graph_mode": citation_graph.get('mode', 'unknown'),

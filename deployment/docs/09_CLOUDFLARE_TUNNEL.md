@@ -1,7 +1,7 @@
 <!-- ---
-!-- Timestamp: 2025-11-25 10:01:48
+!-- Timestamp: 2026-01-06 10:54:09
 !-- Author: ywatanabe
-!-- File: /home/ywatanabe/proj/scitex-cloud/docs/CLOUDFLARE_TUNNEL.md
+!-- File: /ssh:nas:/home/ywatanabe/proj/scitex-cloud/deployment/docs/CLOUDFLARE_TUNNEL.md
 !-- --- -->
 
 # Self-Hosting with Cloudflare Tunnel
@@ -105,7 +105,7 @@ dig yourdomain.com A +short
 After nameservers have propagated (NS check shows Cloudflare nameservers):
 
 1. Go to https://one.dash.cloudflare.com/
-2. Navigate to Networks → Connectors → Click your tunnel name
+2. Navigate to Networks → Connectors → Click your tunnel name -> Click Edit
 3. Go to Published application routes tab
 4. Click Add a route and enter:
 
@@ -118,12 +118,42 @@ After nameservers have propagated (NS check shows Cloudflare nameservers):
 
 Add subdomains similarly:
 
-| Field     | Value          |
-|-----------|----------------|
-| Subdomain | git            |
-| Domain    | yourdomain.com |
-| Type      | HTTP           |
-| URL       | gitea:3000     |
+| Subdomain | Domain         | Type | URL           | Description              |
+|-----------|----------------|------|---------------|--------------------------|
+| git       | yourdomain.com | HTTP | gitea:3000    | Git server (HTTP)        |
+| crossref  | yourdomain.com | HTTP | crossref:3333 | CrossRef API             |
+| ssh       | yourdomain.com | SSH  | django:2200   | SSH Gateway (workspace)  |
+| gitea     | yourdomain.com | SSH  | gitea:22      | Git SSH (Git operations) |
+
+![Cloudflare Tunnel Routes](images/cloudflare-tunnel-routes.png)
+
+**SSH Access Configuration:**
+
+The `ssh` and `gitea` subdomains use Cloudflare's native SSH service type. Users need to install [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/) locally.
+
+**Workspace SSH** (terminal access):
+```bash
+# ~/.ssh/config
+Host scitex
+  HostName ssh.yourdomain.com
+  User your-username
+  ProxyCommand cloudflared access ssh --hostname %h
+```
+
+**Git SSH** (git clone/push/pull):
+```bash
+# ~/.ssh/config
+Host gitea.scitex
+  HostName gitea.yourdomain.com
+  User git
+  ProxyCommand cloudflared access ssh --hostname %h
+```
+
+Usage:
+```bash
+# Clone via SSH
+git clone gitea.scitex:username/repo.git
+```
 
 ## 6. Verify Deployment
 

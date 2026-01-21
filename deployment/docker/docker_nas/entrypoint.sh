@@ -69,6 +69,19 @@ else
 fi
 
 # ============================================
+# Start SSH Gateway (Background)
+# ============================================
+echo_info "Starting SSH gateway on port 2200..."
+python manage.py run_ssh_gateway --port 2200 --host 0.0.0.0 &
+SSH_GATEWAY_PID=$!
+sleep 2
+if kill -0 $SSH_GATEWAY_PID 2>/dev/null; then
+    echo_success "SSH gateway started (PID: $SSH_GATEWAY_PID)"
+else
+    echo_warning "SSH gateway failed to start - workspace SSH access may be unavailable"
+fi
+
+# ============================================
 # Start Application
 # ============================================
 echo -e "🚀 Starting production server..."
