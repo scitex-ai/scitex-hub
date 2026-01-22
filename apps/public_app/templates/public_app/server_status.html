@@ -163,7 +163,7 @@ Check the current status of SciTeX Cloud services and infrastructure.
                 </div>
                 <img id="activeUsersChartImg" class="metric-chart matplotlib-chart" data-metric="active_users" src="/api/server-metrics/chart/active_users/?minutes=60" />
                 <div class="metric-info">
-                    Currently logged-in users with active sessions
+                    Currently active / {{ status_data.registered_users.total }} registered users
                 </div>
             </div>
         </div>

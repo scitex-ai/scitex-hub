@@ -62,6 +62,24 @@ def get_gpu_utilization():
     return gpu_percent
 
 
+def check_registered_users_count(status_data):
+    """Count total registered users (excluding visitors)."""
+    try:
+        from django.contrib.auth.models import User
+
+        # Count users excluding visitor accounts (visitor-001, visitor-002, etc.)
+        total_registered = User.objects.exclude(
+            username__startswith='visitor-'
+        ).count()
+
+        status_data["registered_users"] = {
+            "total": total_registered,
+        }
+    except Exception as e:
+        logger.warning(f"Could not get registered users count: {e}")
+        status_data["registered_users"] = {"total": 0, "error": str(e)}
+
+
 def check_visitor_pool_status(request, status_data):
     """Check visitor pool status and allocations."""
     try:

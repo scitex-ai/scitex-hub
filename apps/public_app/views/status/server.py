@@ -31,7 +31,7 @@ from .compute_resources import (
     check_container_runtime_status,
 )
 from .system_metrics import check_system_resources
-from .helpers import check_visitor_pool_status
+from .helpers import check_visitor_pool_status, check_registered_users_count
 
 
 def server_status(request):
@@ -75,6 +75,9 @@ def server_status(request):
 
     # Get visitor pool status
     check_visitor_pool_status(request, status_data)
+
+    # Get registered users count
+    check_registered_users_count(status_data)
 
     context = {
         "status_data": status_data,

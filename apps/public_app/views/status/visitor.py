@@ -41,21 +41,38 @@ def visitor_status(request):
 
 def visitor_restart_session(request):
     """
-    Restart visitor session - logs out current expired visitor and redirects to landing.
+    Restart visitor session - logs out current expired visitor and redirects back.
 
     This allows expired visitors to get a new 60-minute session.
-    VisitorAutoLoginMiddleware will allocate them a new visitor slot on the landing page.
+    VisitorAutoLoginMiddleware will allocate them a new visitor slot.
+    Redirects to the original page user wanted to visit (stored in session).
     """
+    # Get the next URL before clearing session (default to landing page)
+    next_url = request.session.get('visitor_next_url', '/')
+
+    # Validate next_url to prevent open redirect attacks
+    # Only allow relative URLs starting with /
+    if not next_url or not next_url.startswith('/') or next_url.startswith('//'):
+        next_url = '/'
+
+    # Don't redirect back to visitor management pages
+    skip_redirects = ('/visitor-expired/', '/visitor-restart/', '/visitor-pool-full/')
+    if any(next_url.startswith(skip) for skip in skip_redirects):
+        next_url = '/'
+
     # Clear visitor allocation from session
     request.session.pop(VisitorPool.SESSION_KEY_PROJECT_ID, None)
     request.session.pop(VisitorPool.SESSION_KEY_VISITOR_ID, None)
     request.session.pop(VisitorPool.SESSION_KEY_ALLOCATION_TOKEN, None)
+    request.session.pop('visitor_next_url', None)
 
     # Log out the current visitor user
     logout(request)
 
-    # Redirect to landing page where VisitorAutoLoginMiddleware will allocate a new slot
-    return redirect('public_app:index')
+    logger.info(f"[Visitor] Session restarted, redirecting to: {next_url}")
+
+    # Redirect to original page - VisitorAutoLoginMiddleware will allocate a new slot
+    return redirect(next_url)
 
 
 def visitor_pool_full(request):
@@ -126,6 +143,49 @@ def visitor_expired(request):
     }
 
     return render(request, 'public_app/visitor_expired.html', context)
+
+
+def visitor_heartbeat_api(request):
+    """
+    Activity heartbeat endpoint for visitor session management.
+
+    GET /api/visitor/heartbeat/
+
+    Called periodically by the frontend to indicate user activity.
+    Updates the visitor's last_activity timestamp for idle detection.
+    Returns remaining session time.
+    """
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Not authenticated'}, status=401)
+
+    if not request.user.username.startswith('visitor-'):
+        return JsonResponse({'error': 'Not a visitor'}, status=400)
+
+    allocation_token = request.session.get(VisitorPool.SESSION_KEY_ALLOCATION_TOKEN)
+    if not allocation_token:
+        return JsonResponse({'error': 'No allocation'}, status=400)
+
+    try:
+        allocation = VisitorAllocation.objects.get(
+            allocation_token=allocation_token,
+            is_active=True
+        )
+
+        # Update last activity timestamp
+        allocation.last_activity = timezone.now()
+        allocation.save(update_fields=['last_activity'])
+
+        # Calculate remaining time
+        remaining_seconds = max(0, (allocation.expires_at - timezone.now()).total_seconds())
+
+        return JsonResponse({
+            'status': 'active',
+            'remaining_seconds': int(remaining_seconds),
+            'expires_at': allocation.expires_at.isoformat(),
+        })
+
+    except VisitorAllocation.DoesNotExist:
+        return JsonResponse({'error': 'Allocation not found', 'status': 'expired'}, status=404)
 
 
 @require_POST
