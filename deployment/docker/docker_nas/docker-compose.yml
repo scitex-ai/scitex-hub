@@ -266,7 +266,7 @@ services:
       - "3333:3333"
     volumes:
       # Mount CrossRef database from NAS (read-only)
-      - /home/ywatanabe/proj/crossref_local/data:/data:ro
+      - /home/ywatanabe/proj/crossref-local/data:/data:ro
     environment:
       - CROSSREF_DB_PATH=/data/crossref.db
       - LOG_LEVEL=info

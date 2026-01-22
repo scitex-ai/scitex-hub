@@ -74,11 +74,39 @@ def debug_mode(request):
 def scitex_version(request):
     """
     Expose SciTeX Cloud version to all templates.
-    Single source of truth from settings.SCITEX_CLOUD_VERSION
+    Single source of truth: pyproject.toml [project] version field.
     """
     return {
-        'SCITEX_CLOUD_VERSION': getattr(settings, 'SCITEX_CLOUD_VERSION', '0.0.0')
+        'SCITEX_CLOUD_VERSION': get_scitex_cloud_version()
     }
+
+
+# Cache the version to avoid repeated file reads
+_cached_version = None
+
+
+def get_scitex_cloud_version():
+    """
+    Parse version from pyproject.toml (single source of truth).
+    Cached after first read.
+    """
+    global _cached_version
+    if _cached_version is not None:
+        return _cached_version
+
+    try:
+        pyproject_path = Path(settings.BASE_DIR) / 'pyproject.toml'
+        if pyproject_path.exists():
+            import tomllib
+            with open(pyproject_path, 'rb') as f:
+                data = tomllib.load(f)
+                _cached_version = data.get('project', {}).get('version', '0.0.0')
+                return _cached_version
+    except Exception:
+        pass
+
+    _cached_version = '0.0.0'
+    return _cached_version
 
 
 def google_analytics(request):
