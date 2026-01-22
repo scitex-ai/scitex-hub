@@ -31,18 +31,39 @@ class VisitorAutoLoginMiddleware:
         # Skip static files, media, and paths that don't need visitor
         path = request.path
         skip_paths = (
+            # System paths
             '/static/',
             '/media/',
             '/favicon.ico',
             '/robots.txt',
             '/sitemap.xml',
-            '/api/server-status/',
+            '/healthz/',
             '/admin/',
-            '/health/',
             '/__debug__/',
-            '/visitor-pool-full/',  # Don't auto-allocate on pool-full page
-            '/visitor-expired/',  # Don't auto-allocate on expired page
-            '/visitor-restart/',  # Don't auto-allocate on restart page
+            # API endpoints
+            '/api/',
+            # Visitor management pages
+            '/visitor-pool-full/',
+            '/visitor-expired/',
+            '/visitor-restart/',
+            # Public marketing/info pages (no login required)
+            '/about/',
+            '/pricing/',
+            '/contact/',
+            '/donate/',
+            '/publications/',
+            '/contributors/',
+            '/releases/',
+            '/demos/',
+            # Legal pages
+            '/privacy/',
+            '/terms/',
+            '/cookies/',
+            # Documentation
+            '/api-docs/',
+            '/keyboard-shortcuts/',
+            # Tools (client-side, no login needed)
+            '/tools/',
         )
 
         if any(path.startswith(p) for p in skip_paths):
@@ -78,10 +99,15 @@ class VisitorAutoLoginMiddleware:
 
 class VisitorExpirationMiddleware:
     """
-    Redirect expired visitors to the expiration page.
+    Auto-reallocate expired visitors to a new session seamlessly.
 
-    Checks if authenticated visitor users have expired allocations
-    and redirects them to /visitor-expired/ with clear messaging.
+    When a visitor's 60-minute session expires, this middleware automatically:
+    1. Logs out the expired visitor
+    2. Clears session data
+    3. Lets VisitorAutoLoginMiddleware allocate a new slot
+
+    This provides a seamless experience - users don't see the expiration page
+    unless all slots are full. Falls back to expiration page only if pool exhausted.
     """
 
     def __init__(self, get_response):
@@ -122,33 +148,57 @@ class VisitorExpirationMiddleware:
             from apps.project_app.models import VisitorAllocation
             from django.utils import timezone
             from django.shortcuts import redirect
+            from django.contrib.auth import logout
 
             allocation_token = request.session.get(VisitorPool.SESSION_KEY_ALLOCATION_TOKEN)
+            is_expired = False
+
             if allocation_token:
                 try:
                     allocation = VisitorAllocation.objects.get(
                         allocation_token=allocation_token,
                         is_active=True
                     )
-
                     # Check if allocation is expired
-                    if allocation.expires_at <= timezone.now():
-                        logger.info(
-                            f"[Middleware] Visitor {request.user.username} allocation expired, "
-                            f"redirecting to expiration page"
-                        )
-                        return redirect('public_app:visitor_expired')
-
+                    is_expired = allocation.expires_at <= timezone.now()
                 except VisitorAllocation.DoesNotExist:
                     # No active allocation found - visitor is expired
+                    is_expired = True
+
+            if is_expired:
+                logger.info(
+                    f"[Middleware] Visitor {request.user.username} expired, auto-reallocating..."
+                )
+
+                # Clear visitor allocation from session
+                request.session.pop(VisitorPool.SESSION_KEY_PROJECT_ID, None)
+                request.session.pop(VisitorPool.SESSION_KEY_VISITOR_ID, None)
+                request.session.pop(VisitorPool.SESSION_KEY_ALLOCATION_TOKEN, None)
+
+                # Log out the current visitor user
+                logout(request)
+
+                # Try to allocate a new visitor slot immediately
+                visitor_project, visitor_user = VisitorPool.allocate_visitor(request.session)
+
+                if visitor_user:
+                    # Successfully allocated new slot - log in and continue
+                    login(request, visitor_user, backend='django.contrib.auth.backends.ModelBackend')
                     logger.info(
-                        f"[Middleware] Visitor {request.user.username} has no active allocation, "
-                        f"redirecting to expiration page"
+                        f"[Middleware] Auto-reallocated to {visitor_user.username} for {path}"
                     )
+                    # Continue with the request - user doesn't see any interruption
+                    return self.get_response(request)
+                else:
+                    # Pool exhausted - redirect to expiration page as fallback
+                    logger.warning(
+                        f"[Middleware] Pool exhausted during auto-reallocation, showing expiration page"
+                    )
+                    request.session['visitor_next_url'] = request.get_full_path()
                     return redirect('public_app:visitor_expired')
 
         except Exception as e:
-            logger.error(f"[Middleware] Error checking visitor expiration: {e}")
+            logger.error(f"[Middleware] Error in auto-reallocation: {e}")
 
         return self.get_response(request)
 
