@@ -20,6 +20,7 @@ services:
     volumes:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
+      - scitex_config_volume:/app/.scitex
 
       # scitex-code for citation_graph module (until published to PyPI)
       - /home/ywatanabe/proj/scitex-code/src/scitex/scholar/citation_graph:/usr/local/lib/python3.11/site-packages/scitex/scholar/citation_graph:ro
@@ -382,6 +383,7 @@ volumes:
   static_volume:
   media_volume:
   gitea_data:
+  scitex_config_volume:
 
 networks:
   scitex-network:

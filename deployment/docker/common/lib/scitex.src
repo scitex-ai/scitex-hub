@@ -5,6 +5,8 @@
 
 verify_scitex_package() {
     echo -e "${CYAN}🔍 Verifying scitex package...${NC}"
+    # Create .scitex/logs directory with proper permissions before importing
+    mkdir -p /app/.scitex/logs 2>/dev/null && chmod 777 /app/.scitex/logs 2>/dev/null
     if python -c "import scitex; print(f'✅ Scitex {scitex.__version__} available')" 2>/dev/null; then
         return 0
     else

@@ -74,6 +74,15 @@ chown -R scitex:scitex /app/data /app/logs /app/run 2>/dev/null || true
 chmod -R 755 /app/data/slurm 2>/dev/null || true
 
 # ============================================
+# Fix scitex config directory permissions (for logging)
+# ============================================
+# Always create .scitex/logs directory (required by scitex package)
+mkdir -p /app/.scitex/logs
+chown -R scitex:scitex /app/.scitex 2>/dev/null || true
+chmod -R 755 /app/.scitex 2>/dev/null || true
+echo "✅ .scitex directory permissions fixed"
+
+# ============================================
 # Fix user data directory permissions
 # ============================================
 # NAS bind mounts can lose permissions (show as d--------- inside container)
