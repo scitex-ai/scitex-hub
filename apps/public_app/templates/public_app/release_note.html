@@ -14,9 +14,112 @@
 {% block content %}
     <div class="release-notes-container">
         <div class="page-header">
-            <h1><i class="fas fa-rocket"></i> SciTeX Cloud Release Notes</h1>
-            <p>Building the future of scientific research collaboration</p>
+            <h1><i class="fas fa-rocket"></i> SciTeX Ecosystem Releases</h1>
+            <p>Building the future of scientific research automation</p>
         </div>
+
+        <!-- SciTeX Ecosystem Section -->
+        <div class="ecosystem-releases">
+            <h2 class="ecosystem-header"><i class="fas fa-cubes"></i> SciTeX Ecosystem — Latest Releases</h2>
+            <div class="ecosystem-grid">
+                <!-- scitex (Python toolkit) -->
+                <div class="ecosystem-card">
+                    <div class="ecosystem-card-header">
+                        <h3><i class="fab fa-python"></i> scitex</h3>
+                        <span class="version-badge">v2.14.0</span>
+                    </div>
+                    <p class="ecosystem-desc">Python toolkit + MCP server for research automation</p>
+                    <ul class="ecosystem-highlights">
+                        <li>106 MCP tools across 10 modules</li>
+                        <li>Scholar: 23 tools for literature search</li>
+                        <li>70% less code for common tasks</li>
+                    </ul>
+                    <div class="ecosystem-links">
+                        <a href="https://pypi.org/project/scitex/" target="_blank"><i class="fab fa-python"></i> PyPI</a>
+                        <a href="https://github.com/ywatanabe1989/scitex-code/releases" target="_blank"><i class="fab fa-github"></i> Releases</a>
+                    </div>
+                    <span class="release-date">January 15, 2025</span>
+                </div>
+
+                <!-- figrecipe -->
+                <div class="ecosystem-card">
+                    <div class="ecosystem-card-header">
+                        <h3><i class="fas fa-chart-bar"></i> figrecipe</h3>
+                        <span class="version-badge">v0.16.2</span>
+                    </div>
+                    <p class="ecosystem-desc">Reproducible scientific figures as first-class objects</p>
+                    <ul class="ecosystem-highlights">
+                        <li>YAML recipes for reproducibility</li>
+                        <li>Millimeter-precise layout</li>
+                        <li>MCP server for AI agents</li>
+                    </ul>
+                    <div class="ecosystem-links">
+                        <a href="https://pypi.org/project/figrecipe/" target="_blank"><i class="fab fa-python"></i> PyPI</a>
+                        <a href="https://github.com/ywatanabe1989/figrecipe/releases" target="_blank"><i class="fab fa-github"></i> Releases</a>
+                    </div>
+                    <span class="release-date">January 19, 2025</span>
+                </div>
+
+                <!-- crossref-local -->
+                <div class="ecosystem-card">
+                    <div class="ecosystem-card-header">
+                        <h3><i class="fas fa-database"></i> crossref-local</h3>
+                        <span class="version-badge">v0.3.1</span>
+                    </div>
+                    <p class="ecosystem-desc">Local database of 167M+ academic works</p>
+                    <ul class="ecosystem-highlights">
+                        <li>No hallucinated citations</li>
+                        <li>FastAPI + MCP server</li>
+                        <li>Works offline</li>
+                    </ul>
+                    <div class="ecosystem-links">
+                        <a href="https://github.com/ywatanabe1989/crossref-local/releases" target="_blank"><i class="fab fa-github"></i> Releases</a>
+                    </div>
+                    <span class="release-date">January 14, 2025</span>
+                </div>
+
+                <!-- scitex-writer -->
+                <div class="ecosystem-card">
+                    <div class="ecosystem-card-header">
+                        <h3><i class="fas fa-file-alt"></i> scitex-writer</h3>
+                        <span class="version-badge">v2.2.1</span>
+                    </div>
+                    <p class="ecosystem-desc">LaTeX manuscript writing for AI agents</p>
+                    <ul class="ecosystem-highlights">
+                        <li>13 MCP tools for manuscripts</li>
+                        <li>Automated compilation</li>
+                        <li>Revision tracking</li>
+                    </ul>
+                    <div class="ecosystem-links">
+                        <a href="https://github.com/ywatanabe1989/scitex-writer/releases" target="_blank"><i class="fab fa-github"></i> Releases</a>
+                    </div>
+                    <span class="release-date">January 19, 2025</span>
+                </div>
+
+                <!-- scitex-cloud -->
+                <div class="ecosystem-card">
+                    <div class="ecosystem-card-header">
+                        <h3><i class="fas fa-cloud"></i> scitex-cloud</h3>
+                        <span class="version-badge">v{{ SCITEX_CLOUD_VERSION }}</span>
+                    </div>
+                    <p class="ecosystem-desc">Web platform for research collaboration</p>
+                    <ul class="ecosystem-highlights">
+                        <li>Self-hostable with Docker</li>
+                        <li>REST API for automation</li>
+                        <li>This site runs on it</li>
+                    </ul>
+                    <div class="ecosystem-links">
+                        <a href="https://github.com/ywatanabe1989/scitex-cloud" target="_blank"><i class="fab fa-github"></i> GitHub</a>
+                    </div>
+                    <span class="release-date">Active Development</span>
+                </div>
+            </div>
+        </div>
+
+        <hr class="section-divider">
+
+        <h2 class="cloud-header"><i class="fas fa-cloud"></i> SciTeX Cloud — Detailed Changelog</h2>
+
         <div class="stats-box">
             <div class="stat-item">
                 <span class="stat-number">1205</span>

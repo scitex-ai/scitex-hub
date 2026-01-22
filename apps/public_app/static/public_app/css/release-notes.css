@@ -169,3 +169,142 @@
   position: relative;
   height: 400px;
 }
+
+/* Ecosystem Releases Section */
+.ecosystem-releases {
+  margin-bottom: 3rem;
+}
+
+.ecosystem-header {
+  color: var(--color-fg-default);
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.ecosystem-header i {
+  color: var(--scitex-color-03);
+}
+
+.ecosystem-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.ecosystem-card {
+  background: var(--color-canvas-default);
+  border: 1px solid var(--color-border-default);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.ecosystem-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.ecosystem-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.ecosystem-card-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--color-fg-default);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ecosystem-card-header h3 i {
+  color: var(--scitex-color-03);
+}
+
+.version-badge {
+  background: var(--scitex-color-02);
+  color: white;
+  padding: 0.25rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.ecosystem-desc {
+  color: var(--color-fg-muted);
+  font-size: 0.9rem;
+  margin: 0 0 1rem 0;
+  line-height: 1.4;
+}
+
+.ecosystem-highlights {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem 0;
+}
+
+.ecosystem-highlights li {
+  color: var(--color-fg-muted);
+  font-size: 0.85rem;
+  padding: 0.25rem 0;
+  padding-left: 1.25rem;
+  position: relative;
+}
+
+.ecosystem-highlights li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--scitex-color-03);
+  font-weight: bold;
+}
+
+.ecosystem-links {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.ecosystem-links a {
+  color: var(--scitex-color-03);
+  text-decoration: none;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.ecosystem-links a:hover {
+  text-decoration: underline;
+}
+
+.release-date {
+  color: var(--color-fg-muted);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+.section-divider {
+  border: none;
+  border-top: 2px solid var(--color-border-default);
+  margin: 3rem 0;
+}
+
+.cloud-header {
+  color: var(--color-fg-default);
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.cloud-header i {
+  color: var(--scitex-color-03);
+}
