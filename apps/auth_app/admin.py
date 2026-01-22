@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
-from .models import UserProfile, EmailVerification
+from .models import UserProfile, EmailVerification, LoginHistory
 
 
 class UserProfileInline(admin.StackedInline):
@@ -64,6 +64,48 @@ class EmailVerificationAdmin(admin.ModelAdmin):
     def has_change_permission(self, request, obj=None):
         # Make email verifications read-only after creation
         return False
+
+
+@admin.register(LoginHistory)
+class LoginHistoryAdmin(admin.ModelAdmin):
+    list_display = (
+        "user",
+        "timestamp",
+        "login_method",
+        "success",
+        "ip_address",
+        "short_user_agent",
+    )
+    list_filter = ("success", "login_method", "timestamp")
+    search_fields = ("user__username", "user__email", "ip_address")
+    readonly_fields = (
+        "user",
+        "timestamp",
+        "ip_address",
+        "user_agent",
+        "login_method",
+        "success",
+        "failure_reason",
+    )
+    date_hierarchy = "timestamp"
+    ordering = ["-timestamp"]
+
+    def short_user_agent(self, obj):
+        """Show truncated user agent"""
+        if obj.user_agent:
+            return obj.user_agent[:50] + "..." if len(obj.user_agent) > 50 else obj.user_agent
+        return "-"
+    short_user_agent.short_description = "Device/Browser"
+
+    def has_add_permission(self, request):
+        return False  # Logins are logged automatically
+
+    def has_change_permission(self, request, obj=None):
+        return False  # Login history should not be editable
+
+    def has_delete_permission(self, request, obj=None):
+        # Only superusers can delete login history (for GDPR requests)
+        return request.user.is_superuser
 
 
 # Re-register UserAdmin

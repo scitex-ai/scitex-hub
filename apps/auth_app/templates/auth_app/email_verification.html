@@ -134,6 +134,13 @@
 
     userEmailSpan.textContent = email;
 
+    // Google Analytics: Track sign_up event (user completed registration form)
+    if (typeof gtag === 'function') {
+      gtag('event', 'sign_up', {
+        'method': 'email'
+      });
+    }
+
     // Setup OTP digit inputs
     otpDigits.forEach((digit, index) => {
       digit.addEventListener("input", function (e) {
@@ -232,6 +239,13 @@
           if (data.success) {
             showSuccess("Email verified! Redirecting...");
             localStorage.removeItem("pending-verification-email");
+            // Google Analytics: Track email_verified event (true conversion)
+            if (typeof gtag === 'function') {
+              gtag('event', 'email_verified', {
+                'event_category': 'engagement',
+                'event_label': 'signup_completion'
+              });
+            }
             setTimeout(
               () => (window.location.href = data.redirect_url || "/dashboard/"),
               2000,
