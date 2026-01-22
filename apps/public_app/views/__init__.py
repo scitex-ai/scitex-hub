@@ -18,7 +18,7 @@ Exports all view functions for URL routing.
 from .landing import index, premium_subscription
 
 # Information pages
-from .pages import about, publications, donate, fundraising, pricing, contributors, keyboard_shortcuts
+from .pages import about, demos, video_player, publications, donate, fundraising, pricing, contributors, keyboard_shortcuts
 
 # Legal pages
 from .legal import contact, privacy_policy, terms_of_use, cookie_policy
@@ -36,6 +36,7 @@ from .status import (
     visitor_expired,
     visitor_pool_full,
     visitor_pool_initialize_api,
+    visitor_heartbeat_api,
     render_metric_chart,
 )
 
@@ -80,6 +81,8 @@ __all__ = [
     "premium_subscription",
     # Pages
     "about",
+    "demos",
+    "video_player",
     "publications",
     "donate",
     "fundraising",
@@ -103,6 +106,7 @@ __all__ = [
     "visitor_expired",
     "visitor_pool_full",
     "visitor_pool_initialize_api",
+    "visitor_heartbeat_api",
     "render_metric_chart",
     # API
     "api_docs",

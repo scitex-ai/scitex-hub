@@ -22,6 +22,8 @@ urlpatterns = [
     path("cloud/", lambda request: redirect("public_app:index"), name="cloud"),
     # Concept and vision pages
     path("about/", views.about, name="about"),
+    path("demos/", views.demos, name="demos"),
+    path("demos/watch/<str:video_id>/", views.video_player, name="video_player"),
     # path("vision/", views.vision, name="vision"),
     path("publications/", views.publications, name="publications"),
     path("contributors/", views.contributors, name="contributors"),
@@ -52,6 +54,7 @@ urlpatterns = [
     path("visitor-restart/", views.visitor_restart_session, name="visitor_restart"),
     path("visitor-pool-full/", views.visitor_pool_full, name="visitor_pool_full"),
     path("api/visitor-pool/initialize/", views.visitor_pool_initialize_api, name="visitor_pool_initialize_api"),
+    path("api/visitor/heartbeat/", views.visitor_heartbeat_api, name="visitor_heartbeat_api"),
     # SciTeX API Key Management
     path("api-keys/", views.scitex_api_keys, name="scitex_api_keys"),
     # Release Notes
