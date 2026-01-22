@@ -1,0 +1,181 @@
+{% extends "global_base.html" %}
+{% block title %}
+    Demos - SciTeX Ecosystem
+{% endblock %}
+{% block meta_description %}
+    Explore the SciTeX ecosystem through interactive demos. See how scitex-cloud and scitex-python
+    work together to streamline research workflows from literature to publication.
+{% endblock %}
+{% block extra_css %}
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'public_app/css/demos/00-demos.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/demos/02-video-gallery.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/demos/03-responsive.css' %}" />
+{% endblock %}
+{% block content %}
+    <div class="demos-container">
+        <!-- Hero Section -->
+        <header class="demos-hero">
+            <h1 class="demos-hero-title">Demo Videos</h1>
+            <p class="demos-hero-subtitle">
+                See SciTeX tools in action. These demos showcase AI agents automating
+                research workflows via scitex MCP (Model Context Protocol) server.
+            </p>
+        </header>
+
+        <!-- Video Demos Section -->
+        <section class="demos-section">
+            <h2 class="demos-section-title">Video Demos</h2>
+            <div class="video-gallery">
+                <!-- scitex-automated-research demo -->
+                <div class="video-card">
+                    <div class="video-thumbnail-wrapper">
+                        <a href="{% url 'public_app:video_player' 'scitex-automated-research' %}">
+                            <img src="/media/videos/scitex-automated-research-demo-thumbnail.png"
+                                 alt="scitex-automated-research demo thumbnail"
+                                 class="video-thumbnail" />
+                            <div class="video-play-overlay">
+                                <i class="fas fa-play-circle"></i>
+                            </div>
+                        </a>
+                        <span class="video-badge claude-badge"><i class="fas fa-robot"></i> AI Agent</span>
+                    </div>
+                    <div class="video-info">
+                        <h3 class="video-title">Automated Research by AI Agent</h3>
+                        <p class="video-description">
+                            AI agent autonomously conducts research via <code>scitex</code> MCP.
+                            Full workflow: literature search, experiment, analysis, figure generation, manuscript writing, and revision.
+                        </p>
+                        <div class="video-links">
+                            <div class="video-links-row">
+                                <a href="https://github.com/ywatanabe1989/scitex-code" target="_blank" class="video-link">
+                                    <i class="fab fa-github"></i> Repository
+                                </a>
+                                <a href="{% url 'public_app:video_player' 'scitex-automated-research' %}" class="video-link">
+                                    <i class="fas fa-play"></i> Watch 4x
+                                </a>
+                            </div>
+                            <div class="video-links-row">
+                                <a href="/media/videos/scitex-automated-research-demo-manuscript.pdf" target="_blank" class="video-link">
+                                    <i class="fas fa-file-alt"></i> Manuscript
+                                </a>
+                                <a href="/media/videos/scitex-automated-research-demo-revision.pdf" target="_blank" class="video-link">
+                                    <i class="fas fa-file-contract"></i> Revision
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- figrecipe demo -->
+                <div class="video-card">
+                    <div class="video-thumbnail-wrapper">
+                        <a href="{% url 'public_app:video_player' 'figrecipe' %}">
+                            <img src="/media/videos/figrecipe-v0.14.0-demo-thumbnail.png"
+                                 alt="figrecipe demo thumbnail"
+                                 class="video-thumbnail" />
+                            <div class="video-play-overlay">
+                                <i class="fas fa-play-circle"></i>
+                            </div>
+                        </a>
+                        <span class="video-badge claude-badge"><i class="fas fa-robot"></i> AI Agent</span>
+                    </div>
+                    <div class="video-info">
+                        <h3 class="video-title">Graphing by AI Agent</h3>
+                        <p class="video-description">
+                            AI agent creates publication-ready scientific figures via
+                            <code>scitex</code> MCP. Reproducible recipes for automated plot generation.
+                        </p>
+                        <div class="video-links">
+                            <a href="https://github.com/ywatanabe1989/figrecipe" target="_blank" class="video-link">
+                                <i class="fab fa-github"></i> Repository
+                            </a>
+                            <a href="{% url 'public_app:video_player' 'figrecipe' %}" class="video-link">
+                                <i class="fas fa-play"></i> Watch 4x
+                            </a>
+                            <a href="/media/videos/figrecipe-v0.14.0-demo.pdf" target="_blank" class="video-link">
+                                <i class="fas fa-file-pdf"></i> Prompt+Report
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- crossref-local demo -->
+                <div class="video-card">
+                    <div class="video-thumbnail-wrapper">
+                        <a href="{% url 'public_app:video_player' 'crossref-local' %}">
+                            <img src="/media/videos/crossref-local-v0.3.1-demo-thumbnail.png"
+                                 alt="crossref-local demo thumbnail"
+                                 class="video-thumbnail" />
+                            <div class="video-play-overlay">
+                                <i class="fas fa-play-circle"></i>
+                            </div>
+                        </a>
+                        <span class="video-badge claude-badge"><i class="fas fa-robot"></i> AI Agent</span>
+                    </div>
+                    <div class="video-info">
+                        <h3 class="video-title">Literature Search by AI Agent</h3>
+                        <p class="video-description">
+                            AI agent searches 167M+ academic works via <code>scitex</code> MCP.
+                            Local database with fast full-text search for offline literature discovery.
+                        </p>
+                        <div class="video-links">
+                            <a href="https://github.com/ywatanabe1989/crossref-local" target="_blank" class="video-link">
+                                <i class="fab fa-github"></i> Repository
+                            </a>
+                            <a href="{% url 'public_app:video_player' 'crossref-local' %}" class="video-link">
+                                <i class="fas fa-play"></i> Watch 4x
+                            </a>
+                            <a href="/media/videos/crossref-local-v0.3.1-demo.pdf" target="_blank" class="video-link">
+                                <i class="fas fa-file-pdf"></i> Prompt+Report
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- scitex-writer demo -->
+                <div class="video-card">
+                    <div class="video-thumbnail-wrapper">
+                        <a href="{% url 'public_app:video_player' 'scitex-writer' %}">
+                            <img src="/media/videos/scitex-writer-v2.2.0-demo-thumbnail.png"
+                                 alt="scitex-writer demo thumbnail"
+                                 class="video-thumbnail" />
+                            <div class="video-play-overlay">
+                                <i class="fas fa-play-circle"></i>
+                            </div>
+                        </a>
+                        <span class="video-badge claude-badge"><i class="fas fa-robot"></i> AI Agent</span>
+                    </div>
+                    <div class="video-info">
+                        <h3 class="video-title">Manuscript Writing by AI Agent</h3>
+                        <p class="video-description">
+                            AI agent writes scientific manuscripts via <code>scitex</code> MCP.
+                            Automated literature integration, LaTeX compilation, and revision tracking.
+                        </p>
+                        <div class="video-links">
+                            <div class="video-links-row">
+                                <a href="https://github.com/ywatanabe1989/scitex" target="_blank" class="video-link">
+                                    <i class="fab fa-github"></i> Repository
+                                </a>
+                                <a href="{% url 'public_app:video_player' 'scitex-writer' %}" class="video-link">
+                                    <i class="fas fa-play"></i> Watch 4x
+                                </a>
+                            </div>
+                            <div class="video-links-row">
+                                <a href="/media/videos/scitex-writer-v2.2.0-demo.pdf" target="_blank" class="video-link">
+                                    <i class="fas fa-file-pdf"></i> Prompt+Report
+                                </a>
+                                <a href="/media/videos/scitex-writer-v2.2.0-demo-manuscript.pdf" target="_blank" class="video-link">
+                                    <i class="fas fa-file-alt"></i> Manuscript
+                                </a>
+                                <a href="/media/videos/scitex-writer-v2.2.0-demo-revision.pdf" target="_blank" class="video-link">
+                                    <i class="fas fa-file-contract"></i> Revision
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+{% endblock %}

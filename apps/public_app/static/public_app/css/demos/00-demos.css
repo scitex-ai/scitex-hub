@@ -1,0 +1,50 @@
+/* Demos Page - Base Styles */
+
+.demos-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* Hero Section */
+.demos-hero {
+    text-align: center;
+    padding: 3rem 2rem;
+    margin-bottom: 3rem;
+    background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-muted) 100%);
+    border-radius: 16px;
+    border: 1px solid var(--border-default);
+}
+
+.demos-hero-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.demos-hero-subtitle {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Section Styling */
+.demos-section {
+    margin-bottom: 4rem;
+}
+
+.demos-section-title {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--border-default);
+}
+
+/* Dark Mode */
+[data-theme="dark"] .demos-hero {
+    background: linear-gradient(135deg, var(--bg-200) 0%, var(--bg-surface) 100%);
+}

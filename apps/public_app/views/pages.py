@@ -26,6 +26,46 @@ def about(request):
     return render(request, "public_app/pages/about.html")
 
 
+def demos(request):
+    """SciTeX demos page - architecture diagram, videos, and repository links."""
+    return render(request, "public_app/pages/demos.html")
+
+
+def video_player(request, video_id):
+    """Video player page with 4x default speed."""
+    videos = {
+        "figrecipe": {
+            "title": "Graphing by AI Agent (figrecipe v0.14.0)",
+            "url": "/media/videos/figrecipe-v0.14.0-demo.mp4",
+            "description": "scitex MCP enables AI agents to create publication-ready scientific figures. Reproducible recipes for automated plot generation.",
+        },
+        "crossref-local": {
+            "title": "Literature Search by AI Agent (crossref-local v0.3.1)",
+            "url": "/media/videos/crossref-local-v0.3.1-demo.mp4",
+            "description": "scitex MCP enables AI agents to search 167M+ academic works via local database. No hallucinated citations — real literature data for reliable research.",
+        },
+        "scitex-writer": {
+            "title": "Manuscript Writing by AI Agent (scitex-writer v2.2.0)",
+            "url": "/media/videos/scitex-writer-v2.2.0-demo.mp4",
+            "description": "scitex MCP enables AI agents to write scientific manuscripts. Automated literature integration, LaTeX compilation, and revision tracking.",
+        },
+        "scitex-automated-research": {
+            "title": "Automated Research by AI Agent (scitex v2.10)",
+            "url": "/media/videos/scitex-automated-research-demo.mp4",
+            "description": "scitex MCP enables AI agents to conduct full research workflows: literature search, experiment, analysis, figure generation, manuscript writing, and revision.",
+        },
+    }
+    video = videos.get(video_id)
+    if not video:
+        from django.http import Http404
+        raise Http404("Video not found")
+    return render(request, "public_app/pages/video_player.html", {
+        "video_title": video["title"],
+        "video_url": video["url"],
+        "video_description": video["description"],
+    })
+
+
 def publications(request):
     """Publications page."""
     return render(request, "public_app/pages/publications.html")

@@ -1,0 +1,178 @@
+{% extends "global_base.html" %}
+{% block title %}{{ video_title }} - SciTeX Demo{% endblock %}
+{% block meta_description %}Watch {{ video_title }} demo video{% endblock %}
+{% block extra_css %}
+<style>
+.video-player-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.video-player-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.video-player-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.speed-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(217, 119, 87, 0.15);
+    border: 1px solid rgba(217, 119, 87, 0.3);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.speed-indicator i {
+    color: #d97757;
+}
+
+.video-wrapper {
+    position: relative;
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.video-wrapper video {
+    width: 100%;
+    display: block;
+}
+
+.speed-controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.speed-btn {
+    padding: 0.5rem 1rem;
+    background: var(--bg-muted);
+    border: 1px solid var(--border-default);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.speed-btn:hover {
+    background: var(--bg-surface);
+    border-color: var(--scitex-color-04);
+}
+
+.speed-btn.active {
+    background: var(--scitex-color-04);
+    border-color: var(--scitex-color-04);
+    color: white;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--bg-muted);
+    border: 1px solid var(--border-default);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.back-link:hover {
+    background: var(--bg-surface);
+    border-color: var(--scitex-color-04);
+}
+
+.video-description {
+    margin-bottom: 1rem;
+    color: var(--text-secondary);
+    font-size: 1rem;
+    line-height: 1.6;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="video-player-container">
+    <div class="video-player-header">
+        <h1 class="video-player-title">{{ video_title }}</h1>
+        <div class="speed-indicator">
+            <i class="fas fa-tachometer-alt"></i>
+            <span id="current-speed">4x</span> speed
+        </div>
+    </div>
+
+    {% if video_description %}
+    <p class="video-description">{{ video_description }}</p>
+    {% endif %}
+
+    <div class="video-wrapper">
+        <video id="demo-video" controls autoplay muted>
+            <source src="{{ video_url }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+
+    <div class="speed-controls">
+        <button class="speed-btn" data-speed="1">x1</button>
+        <button class="speed-btn" data-speed="2">x2</button>
+        <button class="speed-btn active" data-speed="4">x4 (default)</button>
+        <button class="speed-btn" data-speed="8">x8</button>
+        <button class="speed-btn" data-speed="16">x16</button>
+    </div>
+
+    <a href="{% url 'public_app:demos' %}" class="back-link">
+        <i class="fas fa-arrow-left"></i> Back to Demos
+    </a>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const video = document.getElementById('demo-video');
+    const speedIndicator = document.getElementById('current-speed');
+    const speedBtns = document.querySelectorAll('.speed-btn');
+
+    // Set default speed to 4x
+    video.playbackRate = 4.0;
+
+    // Handle speed button clicks
+    speedBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const speed = parseFloat(this.dataset.speed);
+            video.playbackRate = speed;
+            speedIndicator.textContent = 'x' + speed;
+
+            // Update active state
+            speedBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+
+    // Update indicator when speed changes (e.g., via browser controls)
+    video.addEventListener('ratechange', function() {
+        const rate = video.playbackRate;
+        speedIndicator.textContent = 'x' + (Number.isInteger(rate) ? rate : rate.toFixed(1));
+        speedBtns.forEach(btn => {
+            btn.classList.toggle('active', parseFloat(btn.dataset.speed) === rate);
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -21,6 +21,15 @@
                          alt="SciTeX - For Researchers"
                          class="hero-logo" />
                 </div>
+                <!-- Value proposition and CTA -->
+                <p class="hero-tagline">Research Automation — For Humans and AI</p>
+                <p class="hero-description">Python toolkit + MCP server for literature search, statistics, visualization, and manuscript writing. 70% less code.</p>
+                <div class="hero-cta-container">
+                    <a href="{% url 'workspace_app:dashboard' %}" class="hero-cta-button">
+                        <i class="fas fa-rocket"></i> Start Automating
+                    </a>
+                    <span class="hero-cta-note">No sign-up required</span>
+                </div>
                 <div class="hero-badges">
                     <span class="hero-badge badge-success">
                         <i class="fab fa-github"></i> 100% Open Source
@@ -31,20 +40,23 @@
                     <span class="hero-badge badge-secondary">
                         <i class="fas fa-users"></i> Community-driven
                     </span>
+                    <a href="{% url 'public_app:demos' %}" class="hero-badge badge-warning" style="text-decoration: none;">
+                        <i class="fas fa-play-circle"></i> Watch Demos
+                    </a>
                 </div>
             </div>
-            <!-- Hero Image -->
+            <!-- Hero Demo Video Preview -->
             <div class="hero-image">
-                <div class="manuscript-preview">
-                    <a href="{% static 'shared/images/manuscript/compiled.pdf' %}#page=2"
-                       target="_blank"
-                       class="manuscript-link">
-                        <div class="manuscript-display">
-                            <img src="{% static 'shared/images/assets/manuscript/page2-02.jpg' %}"
-                                 alt="SciTeX Manuscript Preview"
-                                 class="manuscript-img" />
-                            <div class="manuscript-overlay">
-                                <span class="view-pdf-text">View Full PDF</span>
+                <div class="demo-preview">
+                    <a href="{% url 'public_app:video_player' 'scitex-automated-research' %}"
+                       class="demo-link">
+                        <div class="demo-display">
+                            <img src="/media/videos/scitex-automated-research-demo-thumbnail.png"
+                                 alt="SciTeX Automated Research Demo"
+                                 class="demo-thumbnail" />
+                            <div class="demo-overlay">
+                                <i class="fas fa-play-circle demo-play-icon"></i>
+                                <span class="demo-text">Watch Demo</span>
                             </div>
                         </div>
                     </a>

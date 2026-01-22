@@ -68,7 +68,96 @@
   );
 }
 
-/* Responsive adjustments */
+/* Watch Demos badge - eye-catching warning style */
+.hero-badge.badge-warning {
+  background: linear-gradient(135deg, #ff7043 0%, #ff5722 100%);
+  color: white;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 2px 8px rgba(255, 87, 34, 0.4);
+  }
+  50% {
+    box-shadow: 0 4px 16px rgba(255, 87, 34, 0.6);
+  }
+}
+
+/* ============================================================================
+ * Hero Demo Video Preview
+ * ============================================================================ */
+.demo-preview {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.demo-preview:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
+}
+
+.demo-link {
+  display: block;
+  text-decoration: none;
+}
+
+.demo-display {
+  position: relative;
+}
+
+.demo-thumbnail {
+  width: 100%;
+  height: auto;
+  display: block;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.demo-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  transition: opacity 0.3s ease, background 0.3s ease;
+}
+
+.demo-preview:hover .demo-overlay {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.demo-play-icon {
+  font-size: 4rem;
+  color: white;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  transition: transform 0.3s ease;
+}
+
+.demo-preview:hover .demo-play-icon {
+  transform: scale(1.1);
+}
+
+.demo-text {
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* ============================================================================
+ * Responsive adjustments
+ * ============================================================================ */
 @media (max-width: 992px) {
   .hero-landing .hero-content {
     text-align: center !important;
@@ -76,5 +165,126 @@
 
   .hero-landing .hero-badges {
     justify-content: center !important;
+  }
+
+  /* Stack hero content vertically on tablet/mobile */
+  .hero-landing .hero-wrapper {
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+
+  .hero-landing .hero-image {
+    width: 100%;
+    max-width: 500px;
+    margin-top: 2rem;
+  }
+
+  .demo-play-icon {
+    font-size: 3rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .hero-landing {
+    margin-top: 1.5rem;
+  }
+
+  .hero-landing .hero-badges {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .hero-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .demo-play-icon {
+    font-size: 2.5rem;
+  }
+
+  .demo-text {
+    font-size: 0.9rem;
+  }
+}
+
+/* ============================================================================
+ * Hero Tagline and CTA Button
+ * ============================================================================ */
+.hero-tagline {
+  font-size: 1.25rem;
+  color: var(--text-secondary, #586069);
+  margin: 0.5rem 0 1.5rem 0;
+  font-weight: 400;
+}
+
+[data-theme="dark"] .hero-tagline {
+  color: var(--text-muted, #8b949e);
+}
+
+.hero-cta-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.hero-cta-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.75rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  border: none;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+}
+
+.hero-cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+  text-decoration: none;
+  color: white;
+}
+
+.hero-cta-button:active {
+  transform: translateY(0);
+}
+
+.hero-cta-note {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #586069);
+}
+
+[data-theme="dark"] .hero-cta-note {
+  color: var(--text-muted, #8b949e);
+}
+
+/* Responsive adjustments for CTA */
+@media (max-width: 992px) {
+  .hero-cta-container {
+    justify-content: center;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .hero-tagline {
+    text-align: center;
+  }
+}
+
+@media (max-width: 576px) {
+  .hero-cta-button {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+  }
+
+  .hero-tagline {
+    font-size: 1.1rem;
   }
 }
