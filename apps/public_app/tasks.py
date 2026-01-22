@@ -325,4 +325,154 @@ def generate_status_charts(self):
         raise
 
 
+# Health Monitoring Cache Keys
+HEALTH_CHECK_CACHE_KEY = "health_check_status"
+HEALTH_CHECK_FAILURE_COUNT_KEY = "health_check_failures"
+HEALTH_CHECK_LAST_NOTIFICATION_KEY = "health_check_last_notification"
+
+
+@shared_task(
+    bind=True,
+    name="apps.public_app.tasks.check_site_health",
+    ignore_result=True,
+    soft_time_limit=30,
+    time_limit=60,
+)
+def check_site_health(self):
+    """
+    Check if the site is accessible and notify admin on failures.
+
+    Runs every minute. Sends notification when:
+    - Site becomes unhealthy (3 consecutive failures)
+    - Site recovers after being unhealthy
+
+    Avoids notification spam by tracking state changes.
+    """
+    import requests
+    from django.conf import settings
+    from django.core.mail import send_mail
+
+    import os
+
+    SITE_URL = getattr(settings, "SITE_URL", os.getenv("SCITEX_CLOUD_SITE_URL", "https://scitex.ai"))
+    HEALTH_CHECK_URL = f"{SITE_URL}/"
+    FAILURE_THRESHOLD = 3  # Notify after 3 consecutive failures
+
+    # Email configuration via env vars (following SCITEX_CLOUD_ convention)
+    NOTIFICATION_RECIPIENT = os.getenv("SCITEX_CLOUD_HEALTH_NOTIFICATION_RECIPIENT")
+    NOTIFICATION_SENDER = os.getenv("SCITEX_CLOUD_HEALTH_NOTIFICATION_SENDER", "noreply@scitex.ai")
+
+    if not NOTIFICATION_RECIPIENT:
+        logger.debug("[HealthCheck] SCITEX_CLOUD_HEALTH_NOTIFICATION_RECIPIENT not set, skipping email notification")
+        # Still run the check but without notifications
+
+    try:
+        # Check site accessibility
+        is_healthy = False
+        error_message = None
+        response_time = None
+
+        try:
+            response = requests.get(
+                HEALTH_CHECK_URL,
+                timeout=10,
+                headers={"User-Agent": "SciTeX-HealthCheck/1.0"}
+            )
+            response_time = response.elapsed.total_seconds()
+            is_healthy = response.status_code == 200
+
+            if not is_healthy:
+                error_message = f"HTTP {response.status_code}"
+
+        except requests.exceptions.Timeout:
+            error_message = "Request timeout (>10s)"
+        except requests.exceptions.ConnectionError as e:
+            error_message = f"Connection error: {str(e)[:100]}"
+        except Exception as e:
+            error_message = f"Error: {str(e)[:100]}"
+
+        # Get previous state
+        prev_status = cache.get(HEALTH_CHECK_CACHE_KEY, "unknown")
+        failure_count = cache.get(HEALTH_CHECK_FAILURE_COUNT_KEY, 0)
+
+        # Update state
+        if is_healthy:
+            new_status = "healthy"
+            cache.set(HEALTH_CHECK_FAILURE_COUNT_KEY, 0, timeout=3600)
+
+            # Notify recovery if was previously unhealthy
+            if prev_status == "unhealthy":
+                logger.info("[HealthCheck] Site recovered!")
+                if NOTIFICATION_RECIPIENT:
+                    try:
+                        send_mail(
+                            subject="✅ [SciTeX] Site Recovered",
+                            message=f"""SciTeX is back online!
+
+URL: {HEALTH_CHECK_URL}
+Response Time: {response_time:.2f}s
+Time: {timezone.now().isoformat()}
+
+The site is now responding normally.
+""",
+                            from_email=NOTIFICATION_SENDER,
+                            recipient_list=[NOTIFICATION_RECIPIENT],
+                            fail_silently=True,
+                        )
+                    except Exception as e:
+                        logger.error(f"[HealthCheck] Failed to send recovery email: {e}")
+        else:
+            failure_count += 1
+            cache.set(HEALTH_CHECK_FAILURE_COUNT_KEY, failure_count, timeout=3600)
+
+            if failure_count >= FAILURE_THRESHOLD:
+                new_status = "unhealthy"
+
+                # Only notify on state change (healthy → unhealthy)
+                if prev_status != "unhealthy":
+                    logger.error(f"[HealthCheck] Site is DOWN! Error: {error_message}")
+                    if NOTIFICATION_RECIPIENT:
+                        try:
+                            send_mail(
+                                subject="🚨 [SciTeX] Site Down Alert",
+                                message=f"""SciTeX is experiencing issues!
+
+URL: {HEALTH_CHECK_URL}
+Error: {error_message}
+Consecutive Failures: {failure_count}
+Time: {timezone.now().isoformat()}
+
+Please check the server status.
+
+Possible actions:
+1. Check Docker containers: docker ps
+2. Check Django logs: docker logs scitex-cloud-nas-django-1
+3. Restart services: docker restart scitex-cloud-nas-django-1
+""",
+                                from_email=NOTIFICATION_SENDER,
+                                recipient_list=[NOTIFICATION_RECIPIENT],
+                                fail_silently=True,
+                            )
+                        except Exception as e:
+                            logger.error(f"[HealthCheck] Failed to send alert email: {e}")
+            else:
+                new_status = "degraded"
+                logger.warning(f"[HealthCheck] Site check failed ({failure_count}/{FAILURE_THRESHOLD}): {error_message}")
+
+        # Update status cache
+        cache.set(HEALTH_CHECK_CACHE_KEY, new_status, timeout=3600)
+
+        return {
+            "status": new_status,
+            "is_healthy": is_healthy,
+            "response_time": response_time,
+            "failure_count": failure_count,
+            "error": error_message,
+        }
+
+    except Exception as e:
+        logger.error(f"[HealthCheck] Task error: {e}", exc_info=True)
+        raise
+
+
 # EOF

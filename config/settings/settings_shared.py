@@ -417,6 +417,15 @@ CELERY_BEAT_SCHEDULE = {
             'expires': 55.0,  # Expire after 55 seconds if not started
         },
     },
+    # Check site health every 1 minute and notify on failures
+    # Set SCITEX_CLOUD_HEALTH_NOTIFICATION_RECIPIENT env var to enable email alerts
+    'check-site-health': {
+        'task': 'apps.public_app.tasks.check_site_health',
+        'schedule': 60.0,  # Every 1 minute
+        'options': {
+            'expires': 55.0,  # Expire after 55 seconds if not started
+        },
+    },
 }
 
 # ---------------------------------------
