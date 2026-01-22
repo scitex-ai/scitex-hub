@@ -11,10 +11,9 @@
    ========================= */
 
 .warning-banner {
-  background: linear-gradient(135deg, var(--warning-color) 0%, #a07a55 100%);
-  border-bottom: 3px solid var(--warning-color);
-  padding: 1.25rem 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  background: var(--color-canvas-subtle, #f6f8fa);
+  border-bottom: 1px solid var(--color-border-default, #d0d7de);
+  padding: 0.75rem 0;
   margin-bottom: 0;
 }
 
@@ -26,40 +25,65 @@
 
 .warning-banner-content {
   display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-  color: white;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: #24292f;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", "Consolas", monospace;
+  font-size: 0.85rem;
 }
 
 .warning-banner-icon {
   flex-shrink: 0;
-  margin-top: 0.2rem;
-  width: 24px;
-  height: 24px;
-  color: white;
+  width: 16px;
+  height: 16px;
+  color: #57606a;
 }
 
 .warning-banner-text {
-  flex: 1;
-  font-size: 0.95rem;
-  line-height: 1.6;
+  flex: 0 1 auto;
+  line-height: 1.4;
 }
 
 .warning-banner-title {
-  margin-bottom: 0.5rem;
-  font-size: 1rem;
-  font-weight: 700;
-  color: white;
+  margin-bottom: 0;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #24292f;
+  display: inline;
 }
 
 .warning-banner-title strong {
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .warning-banner-description {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.95);
-  line-height: 1.5;
+  font-size: 0.85rem;
+  color: #57606a;
+  line-height: 1.4;
+  display: inline;
+}
+
+/* Dark mode for warning banner */
+[data-theme="dark"] .warning-banner {
+  background: var(--color-canvas-subtle, #161b22);
+  border-bottom-color: var(--color-border-default, #30363d);
+}
+
+[data-theme="dark"] .warning-banner-content {
+  color: #c9d1d9;
+}
+
+[data-theme="dark"] .warning-banner-title {
+  color: #c9d1d9;
+}
+
+[data-theme="dark"] .warning-banner-icon {
+  color: #8b949e;
+}
+
+[data-theme="dark"] .warning-banner-description {
+  color: #8b949e;
 }
 
 /* =========================
