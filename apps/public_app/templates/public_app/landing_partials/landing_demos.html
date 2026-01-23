@@ -1,5 +1,6 @@
 {% load static vite %}
-<link rel="stylesheet" href="{% static 'public_app/css/landing-demos-inline.css' %}">
+<link rel="stylesheet"
+      href="{% static 'public_app/css/landing-demos-inline.css' %}">
 {% vite_script 'public_app/landing-demos-inline' %}
 <!-- Unified Ecosystem & Demonstrations Section -->
 <section class="landing-section section-ecosystem-demos bg-pattern bg-pattern-dots-scattered bg-pattern-subtle"
@@ -15,10 +16,15 @@
             <div class="module-nav-card active bg-pattern bg-pattern-dots-radial bg-pattern-subtle"
                  data-module="0"
                  onclick="demosCarousel.goTo(0)">
-                <svg width="56" height="56" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Scholar">
-                  <circle cx="26" cy="26" r="20" stroke="currentColor" stroke-width="4" fill="none"/>
-                  <line x1="40" y1="40" x2="56" y2="56" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>
-                  <circle cx="26" cy="26" r="14" fill="currentColor" fill-opacity="0.3"/>
+                <svg width="56"
+                     height="56"
+                     viewBox="0 0 64 64"
+                     fill="none"
+                     xmlns="http://www.w3.org/2000/svg"
+                     aria-label="Scholar">
+                    <circle cx="26" cy="26" r="20" stroke="currentColor" stroke-width="4" fill="none" />
+                    <line x1="40" y1="40" x2="56" y2="56" stroke="currentColor" stroke-width="6" stroke-linecap="round" />
+                    <circle cx="26" cy="26" r="14" fill="currentColor" fill-opacity="0.3" />
                 </svg>
                 <h3>Scholar</h3>
                 <p>Literature discovery & enrichment</p>
@@ -27,16 +33,21 @@
             <div class="module-nav-card bg-pattern bg-pattern-dots-radial bg-pattern-subtle"
                  data-module="1"
                  onclick="demosCarousel.goTo(1)">
-                <svg width="56" height="56" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Writer">
-                  <rect x="8" y="12" width="36" height="44" rx="3" fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="3"/>
-                  <path d="M14 20H32" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-                  <path d="M14 26H38" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-                  <path d="M14 32H36" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-                  <path d="M14 38H30" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-                  <path d="M34 24L50 8" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
-                  <path d="M38 20L40 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-                  <path d="M34 24L32 26" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
-                  <circle cx="31" cy="27" r="2" fill="currentColor"/>
+                <svg width="56"
+                     height="56"
+                     viewBox="0 0 64 64"
+                     fill="none"
+                     xmlns="http://www.w3.org/2000/svg"
+                     aria-label="Writer">
+                    <rect x="8" y="12" width="36" height="44" rx="3" fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="3" />
+                    <path d="M14 20H32" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                    <path d="M14 26H38" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                    <path d="M14 32H36" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                    <path d="M14 38H30" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                    <path d="M34 24L50 8" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
+                    <path d="M38 20L40 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+                    <path d="M34 24L32 26" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
+                    <circle cx="31" cy="27" r="2" fill="currentColor" />
                 </svg>
                 <h3>Writer</h3>
                 <p>LaTeX manuscript writing</p>
@@ -45,73 +56,95 @@
             <div class="module-nav-card bg-pattern bg-pattern-dots-radial bg-pattern-subtle"
                  data-module="2"
                  onclick="demosCarousel.goTo(2)">
-                <svg width="56" height="56" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Code">
-                  <rect x="8" y="10" width="48" height="44" rx="4" stroke="currentColor" stroke-width="3" fill="currentColor" fill-opacity="0.1"/>
-                  <path d="M25 38L17 30L25 22" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M39 38L47 30L39 22" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M28 44L36 20" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                  <rect x="8" y="10" width="48" height="8" rx="4" fill="currentColor" fill-opacity="0.3"/>
-                  <circle cx="14" cy="14" r="1.5" fill="currentColor"/>
-                  <circle cx="19" cy="14" r="1.5" fill="currentColor"/>
-                  <circle cx="24" cy="14" r="1.5" fill="currentColor"/>
+                <svg width="56"
+                     height="56"
+                     viewBox="0 0 64 64"
+                     fill="none"
+                     xmlns="http://www.w3.org/2000/svg"
+                     aria-label="Console">
+                    <rect x="8" y="10" width="48" height="44" rx="4" stroke="currentColor" stroke-width="3" fill="currentColor" fill-opacity="0.1" />
+                    <path d="M25 38L17 30L25 22" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M39 38L47 30L39 22" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M28 44L36 20" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+                    <rect x="8" y="10" width="48" height="8" rx="4" fill="currentColor" fill-opacity="0.3" />
+                    <circle cx="14" cy="14" r="1.5" fill="currentColor" />
+                    <circle cx="19" cy="14" r="1.5" fill="currentColor" />
+                    <circle cx="24" cy="14" r="1.5" fill="currentColor" />
                 </svg>
-                <h3>Code</h3>
+                <h3>Console</h3>
                 <p>Interactive development workspace</p>
             </div>
-            <!-- Vis -->
+            <!-- Visualizer -->
             <div class="module-nav-card bg-pattern bg-pattern-dots-radial bg-pattern-subtle"
                  data-module="3"
                  onclick="demosCarousel.goTo(3)">
-                <svg width="56" height="56" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Vis">
-                  <rect x="8" y="8" width="48" height="48" rx="4" stroke="currentColor" stroke-width="3" fill="none"/>
-                  <path d="M12 44L20 36L28 40L38 26L52 32" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                  <circle cx="20" cy="36" r="3" fill="currentColor"/>
-                  <circle cx="28" cy="40" r="3" fill="currentColor"/>
-                  <circle cx="38" cy="26" r="3" fill="currentColor"/>
-                  <circle cx="52" cy="32" r="3" fill="currentColor"/>
-                  <path d="M8 52H56" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-                  <rect x="12" y="12" width="40" height="36" fill="currentColor" fill-opacity="0.3"/>
+                <svg width="56"
+                     height="56"
+                     viewBox="0 0 64 64"
+                     fill="none"
+                     xmlns="http://www.w3.org/2000/svg"
+                     aria-label="Visualizer">
+                    <rect x="8" y="8" width="48" height="48" rx="4" stroke="currentColor" stroke-width="3" fill="none" />
+                    <path d="M12 44L20 36L28 40L38 26L52 32" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+                    <circle cx="20" cy="36" r="3" fill="currentColor" />
+                    <circle cx="28" cy="40" r="3" fill="currentColor" />
+                    <circle cx="38" cy="26" r="3" fill="currentColor" />
+                    <circle cx="52" cy="32" r="3" fill="currentColor" />
+                    <path d="M8 52H56" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+                    <rect x="12" y="12" width="40" height="36" fill="currentColor" fill-opacity="0.3" />
                 </svg>
-                <h3>Vis</h3>
+                <h3>Visualizer</h3>
                 <p>Scientific figure editor</p>
             </div>
             <!-- Local -->
             <div class="module-nav-card bg-pattern bg-pattern-dots-radial bg-pattern-subtle"
                  data-module="4"
                  onclick="demosCarousel.goTo(4)">
-                <svg width="56" height="56" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Local">
-                  <path d="M32 12C33.3132 12 34.6136 12.0978 35.8892 12.2857C36.3306 12.3527 36.7256 12.6327 36.9512 13.0401L39.6578 18.0829C40.5183 18.4325 41.3567 18.8246 42.1707 19.2661L47.5461 17.6733C47.9804 17.543 48.4393 17.6423 48.7839 17.9432C50.627 19.5598 52.1965 21.4708 53.4323 23.6001C53.6927 23.9791 53.7465 24.4558 53.5762 24.8825L51.358 30.8053C51.5119 31.8535 51.6 32.9252 51.6 34C51.6 35.0748 51.5119 36.1465 51.358 37.1947L53.5762 43.1175C53.7465 43.5442 53.6927 44.0209 53.4323 44.3999C52.1965 46.5292 50.627 48.4402 48.7839 50.0568C48.4393 50.3577 47.9804 50.457 47.5461 50.3267L42.1707 48.7339C41.3567 49.1754 40.5183 49.5675 39.6578 49.9171L36.9512 54.9599C36.7256 55.3673 36.3306 55.6473 35.8892 55.7143C34.6136 55.9022 33.3132 56 32 56C30.6868 56 29.3864 55.9022 28.1108 55.7143C27.6694 55.6473 27.2744 55.3673 27.0488 54.9599L24.3422 49.9171C23.4817 49.5675 22.6433 49.1754 21.8293 48.7339L16.4539 50.3267C16.0196 50.457 15.5607 50.3577 15.2161 50.0568C13.373 48.4402 11.8035 46.5292 10.5677 44.3999C10.3073 44.0209 10.2535 43.5442 10.4238 43.1175L12.642 37.1947C12.4881 36.1465 12.4 35.0748 12.4 34C12.4 32.9252 12.4881 31.8535 12.642 30.8053L10.4238 24.8825C10.2535 24.4558 10.3073 23.9791 10.5677 23.6001C11.8035 21.4708 13.373 19.5598 15.2161 17.9432C15.5607 17.6423 16.0196 17.543 16.4539 17.6733L21.8293 19.2661C22.6433 18.8246 23.4817 18.4325 24.3422 18.0829L27.0488 13.0401C27.2744 12.6327 27.6694 12.3527 28.1108 12.2857C29.3864 12.0978 30.6868 12 32 12Z" stroke="currentColor" stroke-width="3"/>
-                  <circle cx="32" cy="34" r="10" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="2.5"/>
-                  <circle cx="32" cy="34" r="3" fill="currentColor"/>
-                  <circle cx="24" cy="26" r="2.5" fill="currentColor"/>
-                  <circle cx="40" cy="26" r="2.5" fill="currentColor"/>
-                  <circle cx="24" cy="42" r="2.5" fill="currentColor"/>
-                  <circle cx="40" cy="42" r="2.5" fill="currentColor"/>
-                  <path d="M32 31L24 26" stroke="currentColor" stroke-width="2"/>
-                  <path d="M32 31L40 26" stroke="currentColor" stroke-width="2"/>
-                  <path d="M32 37L24 42" stroke="currentColor" stroke-width="2"/>
-                  <path d="M32 37L40 42" stroke="currentColor" stroke-width="2"/>
+                <svg width="56"
+                     height="56"
+                     viewBox="0 0 64 64"
+                     fill="none"
+                     xmlns="http://www.w3.org/2000/svg"
+                     aria-label="Local">
+                    <path d="M32 12C33.3132 12 34.6136 12.0978 35.8892 12.2857C36.3306 12.3527 36.7256 12.6327 36.9512 13.0401L39.6578 18.0829C40.5183 18.4325 41.3567 18.8246 42.1707 19.2661L47.5461 17.6733C47.9804 17.543 48.4393 17.6423 48.7839 17.9432C50.627 19.5598 52.1965 21.4708 53.4323 23.6001C53.6927 23.9791 53.7465 24.4558 53.5762 24.8825L51.358 30.8053C51.5119 31.8535 51.6 32.9252 51.6 34C51.6 35.0748 51.5119 36.1465 51.358 37.1947L53.5762 43.1175C53.7465 43.5442 53.6927 44.0209 53.4323 44.3999C52.1965 46.5292 50.627 48.4402 48.7839 50.0568C48.4393 50.3577 47.9804 50.457 47.5461 50.3267L42.1707 48.7339C41.3567 49.1754 40.5183 49.5675 39.6578 49.9171L36.9512 54.9599C36.7256 55.3673 36.3306 55.6473 35.8892 55.7143C34.6136 55.9022 33.3132 56 32 56C30.6868 56 29.3864 55.9022 28.1108 55.7143C27.6694 55.6473 27.2744 55.3673 27.0488 54.9599L24.3422 49.9171C23.4817 49.5675 22.6433 49.1754 21.8293 48.7339L16.4539 50.3267C16.0196 50.457 15.5607 50.3577 15.2161 50.0568C13.373 48.4402 11.8035 46.5292 10.5677 44.3999C10.3073 44.0209 10.2535 43.5442 10.4238 43.1175L12.642 37.1947C12.4881 36.1465 12.4 35.0748 12.4 34C12.4 32.9252 12.4881 31.8535 12.642 30.8053L10.4238 24.8825C10.2535 24.4558 10.3073 23.9791 10.5677 23.6001C11.8035 21.4708 13.373 19.5598 15.2161 17.9432C15.5607 17.6423 16.0196 17.543 16.4539 17.6733L21.8293 19.2661C22.6433 18.8246 23.4817 18.4325 24.3422 18.0829L27.0488 13.0401C27.2744 12.6327 27.6694 12.3527 28.1108 12.2857C29.3864 12.0978 30.6868 12 32 12Z" stroke="currentColor" stroke-width="3" />
+                    <circle cx="32" cy="34" r="10" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="2.5" />
+                    <circle cx="32" cy="34" r="3" fill="currentColor" />
+                    <circle cx="24" cy="26" r="2.5" fill="currentColor" />
+                    <circle cx="40" cy="26" r="2.5" fill="currentColor" />
+                    <circle cx="24" cy="42" r="2.5" fill="currentColor" />
+                    <circle cx="40" cy="42" r="2.5" fill="currentColor" />
+                    <path d="M32 31L24 26" stroke="currentColor" stroke-width="2" />
+                    <path d="M32 31L40 26" stroke="currentColor" stroke-width="2" />
+                    <path d="M32 37L24 42" stroke="currentColor" stroke-width="2" />
+                    <path d="M32 37L40 42" stroke="currentColor" stroke-width="2" />
                 </svg>
                 <h3>Local</h3>
-                <p><code>pip install scitex</code></p>
+                <p>
+                    <code>pip install scitex</code>
+                </p>
             </div>
             <!-- Cloud -->
             <div class="module-nav-card bg-pattern bg-pattern-dots-radial bg-pattern-subtle"
                  data-module="5"
                  onclick="demosCarousel.goTo(5)">
-                <svg width="56" height="56" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Cloud">
-                  <path d="M52 42H18C13.6 42 10 38.4 10 34C10 29.6 13.6 26 18 26C18.7 26 19.4 26.1 20 26.3C20 26.2 20 26.1 20 26C20 20.5 24.5 16 30 16C34.4 16 38.1 18.8 39.4 22.7C40.3 22.2 41.3 22 42.3 22C46.1 22 49.3 24.9 49.9 28.5C54.4 29.1 58 32.9 58 37.5C58 40.1 56.5 42.3 54.3 43.5" fill="currentColor" fill-opacity="0.15"/>
-                  <path d="M52 42H18C13.6 42 10 38.4 10 34C10 29.6 13.6 26 18 26C18.7 26 19.4 26.1 20 26.3C20 26.2 20 26.1 20 26C20 20.5 24.5 16 30 16C34.4 16 38.1 18.8 39.4 22.7C40.3 22.2 41.3 22 42.3 22C46.1 22 49.3 24.9 49.9 28.5C54.4 29.1 58 32.9 58 37.5C58 40.1 56.5 42.3 54.3 43.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                  <rect x="22" y="30" width="20" height="24" rx="2" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="2.5"/>
-                  <line x1="22" y1="36" x2="42" y2="36" stroke="currentColor" stroke-width="2"/>
-                  <line x1="22" y1="42" x2="42" y2="42" stroke="currentColor" stroke-width="2"/>
-                  <line x1="22" y1="48" x2="42" y2="48" stroke="currentColor" stroke-width="2"/>
-                  <circle cx="26" cy="33" r="1.5" fill="currentColor"/>
-                  <circle cx="26" cy="39" r="1.5" fill="currentColor"/>
-                  <circle cx="26" cy="45" r="1.5" fill="currentColor"/>
-                  <circle cx="30" cy="33" r="1.5" fill="currentColor"/>
-                  <circle cx="30" cy="39" r="1.5" fill="currentColor"/>
-                  <circle cx="30" cy="45" r="1.5" fill="currentColor"/>
+                <svg width="56"
+                     height="56"
+                     viewBox="0 0 64 64"
+                     fill="none"
+                     xmlns="http://www.w3.org/2000/svg"
+                     aria-label="Cloud">
+                    <path d="M52 42H18C13.6 42 10 38.4 10 34C10 29.6 13.6 26 18 26C18.7 26 19.4 26.1 20 26.3C20 26.2 20 26.1 20 26C20 20.5 24.5 16 30 16C34.4 16 38.1 18.8 39.4 22.7C40.3 22.2 41.3 22 42.3 22C46.1 22 49.3 24.9 49.9 28.5C54.4 29.1 58 32.9 58 37.5C58 40.1 56.5 42.3 54.3 43.5" fill="currentColor" fill-opacity="0.15" />
+                    <path d="M52 42H18C13.6 42 10 38.4 10 34C10 29.6 13.6 26 18 26C18.7 26 19.4 26.1 20 26.3C20 26.2 20 26.1 20 26C20 20.5 24.5 16 30 16C34.4 16 38.1 18.8 39.4 22.7C40.3 22.2 41.3 22 42.3 22C46.1 22 49.3 24.9 49.9 28.5C54.4 29.1 58 32.9 58 37.5C58 40.1 56.5 42.3 54.3 43.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+                    <rect x="22" y="30" width="20" height="24" rx="2" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="2.5" />
+                    <line x1="22" y1="36" x2="42" y2="36" stroke="currentColor" stroke-width="2" />
+                    <line x1="22" y1="42" x2="42" y2="42" stroke="currentColor" stroke-width="2" />
+                    <line x1="22" y1="48" x2="42" y2="48" stroke="currentColor" stroke-width="2" />
+                    <circle cx="26" cy="33" r="1.5" fill="currentColor" />
+                    <circle cx="26" cy="39" r="1.5" fill="currentColor" />
+                    <circle cx="26" cy="45" r="1.5" fill="currentColor" />
+                    <circle cx="30" cy="33" r="1.5" fill="currentColor" />
+                    <circle cx="30" cy="39" r="1.5" fill="currentColor" />
+                    <circle cx="30" cy="45" r="1.5" fill="currentColor" />
                 </svg>
                 <h3>Cloud</h3>
                 <p>Self-host for your lab</p>
@@ -142,13 +175,13 @@
                     <div class="demos-carousel-slide">
                         {% include 'public_app/landing_partials/components/module_demo.html' with module_name='Writer' icon_path='shared/images/icons_svg/scitex-writer-icon.svg' video_path='public_app/videos/landing/writer-demo.mp4' poster='public_app/videos/landing/thumbnails/writer-demo.jpg' docs_url='docs_app:python' github_url='https://github.com/ywatanabe1989/SciTeX-Writer' video_position='1.5fr 1fr' video_first=True object_fit=True margin='0 auto' features_partial='public_app/landing_partials/features/writer_features.html' %}
                     </div>
-                    <!-- Code Demo -->
+                    <!-- Console Demo -->
                     <div class="demos-carousel-slide">
-                        {% include 'public_app/landing_partials/components/module_demo.html' with module_name='Code' icon_path='shared/images/icons_svg/scitex-code-icon.svg' video_path='public_app/videos/landing/code-demo.mp4' docs_url='docs_app:python' github_url='https://github.com/ywatanabe1989/SciTeX-Code' video_position='1.5fr 1fr' video_first=True margin='0 auto' features_partial='public_app/landing_partials/features/code_features.html' %}
+                        {% include 'public_app/landing_partials/components/module_demo.html' with module_name='Console' icon_path='shared/images/icons_svg/scitex-code-icon.svg' video_path='public_app/videos/landing/console-demo.mp4' docs_url='docs_app:python' github_url='https://github.com/ywatanabe1989/SciTeX-Code' video_position='1.5fr 1fr' video_first=True margin='0 auto' features_partial='public_app/landing_partials/features/code_features.html' %}
                     </div>
-                    <!-- Vis Demo -->
+                    <!-- Visualizer Demo -->
                     <div class="demos-carousel-slide">
-                        {% include 'public_app/landing_partials/components/module_demo.html' with module_name='Vis' icon_path='shared/images/icons_svg/scitex-viz-icon.svg' video_path='public_app/videos/landing/vis-demo.mp4' docs_url='docs_app:python' github_url='https://github.com/ywatanabe1989/SciTeX-Vis' video_position='1.5fr 1fr' video_first=True margin='0 auto' features_partial='public_app/landing_partials/features/viz_features.html' %}
+                        {% include 'public_app/landing_partials/components/module_demo.html' with module_name='Visualizer' icon_path='shared/images/icons_svg/scitex-viz-icon.svg' video_path='public_app/videos/landing/visualizer-demo.mp4' docs_url='docs_app:python' github_url='https://github.com/ywatanabe1989/SciTeX-Vis' video_position='1.5fr 1fr' video_first=True margin='0 auto' features_partial='public_app/landing_partials/features/viz_features.html' %}
                     </div>
                     <!-- Local Demo -->
                     <div class="demos-carousel-slide">
@@ -156,9 +189,7 @@
                             <div class="module-demo-grid local-demo-grid">
                                 <div class="module-demo-features">
                                     <h3 class="local-demo-heading">pip install scitex</h3>
-                                    <p class="local-demo-description">
-                                        Full control on your machine. Works offline with complete privacy.
-                                    </p>
+                                    <p class="local-demo-description">Full control on your machine. Works offline with complete privacy.</p>
                                     <pre class="local-demo-code"><code>pip install scitex[all]
 scitex mcp install  # Add to Claude Code</code></pre>
                                     <div class="module-demo-actions">
