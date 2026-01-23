@@ -167,21 +167,12 @@ function init(): void {
     return;
   }
 
-  // Auto-show for first-time visitors on landing page
-  if (!hasCompletedFirstVisit()) {
-    setTimeout(showNavigator, 800);
-  }
+  // Auto-show disabled - step-by-step product tour handles this now
+  // Tour button and Alt+H now trigger the step-by-step product tour
 
-  // Setup product tour button click handler (landing page only)
-  setupProductTourButton();
-
-  // Alt+H to show navigator manually (landing page only)
-  document.addEventListener("keydown", (e: KeyboardEvent) => {
-    if (e.altKey && e.key.toLowerCase() === "h") {
-      e.preventDefault();
-      showNavigator();
-    }
-  });
+  console.log(
+    "[FirstVisitNavigator] Landing page - tour button delegates to product-tour",
+  );
 }
 
 function setupProductTourButton(): void {

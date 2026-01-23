@@ -92,7 +92,7 @@ function showStep(stepIndex: number): void {
   }
   if (nextBtn) {
     const isLastStep = stepIndex === steps.length - 1;
-    nextBtn.textContent = "Next";
+    nextBtn.innerHTML = "Next &rarr;";
     nextBtn.style.visibility = isLastStep ? "hidden" : "visible";
   }
 
@@ -127,14 +127,8 @@ function endTour(completed: boolean = false): void {
   if (!isActive) return;
   isActive = false;
 
-  // Check if "Don't show on startup" is checked
-  const skipCheckbox = tourTooltip?.querySelector(
-    ".product-tour-skip-checkbox",
-  ) as HTMLInputElement | null;
-  const shouldSkipStartup = skipCheckbox?.checked || false;
-
-  // Mark complete if finished tour OR if user checked "don't show"
-  if ((completed || shouldSkipStartup) && currentConfig) {
+  // Mark complete when tour is finished or closed
+  if (currentConfig) {
     markTourComplete(currentConfig.storageKey);
   }
 
@@ -225,9 +219,8 @@ function init(): void {
   const config = getPageConfig();
   const isLandingPage = window.location.pathname === "/";
 
-  // Landing page: first-visit-navigator handles the button
-  // Other pages: we handle the button for step-by-step tours
-  if (!isLandingPage && config) {
+  // Setup tour button for all pages with tour config
+  if (config) {
     setupTourButton();
   }
 
