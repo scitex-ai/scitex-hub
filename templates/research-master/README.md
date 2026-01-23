@@ -1,90 +1,60 @@
-<!-- ---
-!-- Timestamp: 2025-11-18 20:05:33
-!-- Author: ywatanabe
-!-- File: /home/ywatanabe/proj/examples/scitex-research-template/README.md
-!-- --- -->
-
 # SciTeX Research Template
 
-A boilerplate template for scientific research projects using the [SciTeX](https://scitex.ai) framework.
+> **Like GitHub, but for scientific research.** Version control your papers, data, and analysis - all in one place.
 
-## What is This?
+## 🚀 Quick Start
 
-This is a **template project** designed to be used as a starting point for your research. It demonstrates the standard SciTeX workflow with an MNIST example pipeline.
+| What you want to do | Where to go |
+|---------------------|-------------|
+| **Write a paper** | `scitex/writer/` → Open in [Writer](/writer/) |
+| **Manage references** | `scitex/scholar/` → Open in [Scholar](/scholar/) |
+| **Run analysis** | `scripts/` → Open in [Console](/console/) |
+| **Create figures** | `scitex/vis/` → Open in [Visualizer](/visualizer/) |
 
-Part of the [scitex](https://github.com/ywatanabe1989/scitex-code) package (`scitex.template` module).
+## 📁 Project Structure
 
-## Quick Start
+```
+your-project/
+├── config/          # Settings (like .github/ but for research)
+├── data/            # Your datasets (raw → processed)
+├── docs/            # Documentation & notes
+├── scripts/         # Analysis code (Python, R, etc.)
+├── scitex/          # SciTeX-managed folders
+│   ├── writer/      # Manuscripts (.tex files)
+│   ├── scholar/     # References (.bib files)
+│   └── vis/         # Figures (.pltz, .figz)
+├── tests/           # Test your analysis code
+├── Makefile         # Automation (like GitHub Actions)
+└── README.md        # You are here
+```
+
+## 🔄 Typical Workflow
+
+1. **Add data** → Upload to `data/raw/`
+2. **Write scripts** → Create in `scripts/` using Console
+3. **Run analysis** → Submit jobs via SLURM or run directly
+4. **Generate figures** → Auto-saved to `scitex/vis/`
+5. **Write paper** → Edit in Writer, cite from Scholar
+6. **Compile PDF** → One-click in Writer
+7. **Commit & push** → Version everything like GitHub
+
+## ⌨️ Makefile Commands
 
 ```bash
-# Clone and setup
-git clone https://github.com/ywatanabe1989/scitex-research-template.git
-cd scitex-research-template
-make install
-make setup
-
-# Run example pipeline
-make run-mnist
+make help           # Show all available commands
+make run            # Run main analysis
+make test           # Run test suite
+make figures        # Generate all figures
+make compile        # Compile manuscript to PDF
+make clean          # Clean temporary files
 ```
 
-## Project Structure
+## 📖 Learn More
 
-```
-scitex-research-template/
-├── config/            # YAML configuration files
-├── data/              # Centralized data storage
-├── scripts/           # Analysis scripts
-│   ├── mnist/         # MNIST example pipeline
-│   └── template.py    # Template for new scripts
-├── tests/             # Test suite
-├── scitex/            # SciTeX managed resources
-│   ├── writer/        # Manuscript projects
-│   ├── scholar/       # Research notes
-│   ├── vis/           # Figure management
-│   └── ai/            # AI prompts
-└── Makefile           # Automation commands
-```
+- [SciTeX Documentation](https://scitex.ai/docs/)
+- [GitHub Repository](https://github.com/ywatanabe1989/scitex)
+- [Self-hosting Guide](https://github.com/ywatanabe1989/scitex#self-hosting)
 
-## Using as a Template
+---
 
-1. **Clone or fork** this repository
-2. **Remove MNIST example** if not needed
-3. **Add your scripts** to `scripts/your_project/`
-4. **Configure** paths in `config/PATH.yaml`
-5. **Run** `make run-your-script`
-
-## Key Features
-
-- **Standardized structure** for reproducible research
-- **Automated workflows** via Makefile
-- **Manuscript management** with LaTeX compilation
-- **Testing framework** included
-- **Figure provenance** tracking
-
-## Common Commands
-
-```bash
-make run-mnist          # Run MNIST example
-make setup-writer       # Create manuscript project
-make test              # Run tests
-make format            # Format code
-make clean             # Clean outputs
-make help              # Show all commands
-```
-
-## Documentation
-
-For detailed documentation, see:
-- [SciTeX Documentation](https://scitex.ai)
-- [SciTeX GitHub](https://github.com/ywatanabe1989/scitex-code)
-- [MNIST Example README](scripts/mnist/README.md)
-
-## License
-
-AGPL-3.0
-
-## Contact
-
-Yusuke Watanabe (ywatanabe@scitex.ai)
-
-<!-- EOF -->
+*This project is managed by [SciTeX](https://scitex.ai) - Where Research Happens.*
