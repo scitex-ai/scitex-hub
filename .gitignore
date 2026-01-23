@@ -847,3 +847,4 @@ tsconfig.tsbuildinfo
 paper/
 tests/ui/artifacts/
 mgmt
+viewed.md
