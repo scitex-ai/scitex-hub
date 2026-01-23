@@ -1,7 +1,7 @@
 {% extends "global_base.html" %}
 {% load static vite %}
 
-{% block title %}SciTeX Vis{% if current_project %} - {{ current_project.name }}{% endif %}{% endblock %}
+{% block title %}SciTeX Visualizer{% if current_project %} - {{ current_project.name }}{% endif %}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d">
@@ -840,8 +840,8 @@
                 <div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 13px;">
                     <span><kbd>Alt+F</kbd> Files</span>
                     <span><kbd>Alt+S</kbd> Scholar</span>
-                    <span><kbd>Alt+C</kbd> Code</span>
-                    <span><kbd>Alt+V</kbd> Vis</span>
+                    <span><kbd>Alt+C</kbd> Console</span>
+                    <span><kbd>Alt+V</kbd> Visualizer</span>
                     <span><kbd>Alt+W</kbd> Writer</span>
                     <span><kbd>Alt+Z</kbd> Zen Mode</span>
                     <span><kbd>F11</kbd> Cycle Zen/Fullscreen</span>
