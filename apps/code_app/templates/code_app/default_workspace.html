@@ -10,15 +10,15 @@
             <div class="row justify-content-center">
                 <div class="col-lg-8 text-center">
                     <img src="{% static 'shared/images/icons_svg/scitex-code-icon.svg' %}"
-                         alt="Code"
+                         alt="Console"
                          width="80"
                          height="80"
                          class="mb-4" />
                     {% if is_guest_session %}
-                        <h1 class="hero-title">Welcome to SciTeX Code</h1>
+                        <h1 class="hero-title">Welcome to SciTeX Console</h1>
                         <p class="hero-subtitle">Temporary Guest Workspace</p>
                     {% else %}
-                        <h1 class="hero-title">Code Workspace</h1>
+                        <h1 class="hero-title">Console Workspace</h1>
                         <p class="hero-subtitle">{{ username }}'s Default Space</p>
                     {% endif %}
                 </div>

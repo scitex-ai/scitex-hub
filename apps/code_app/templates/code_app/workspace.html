@@ -1,7 +1,7 @@
 {% extends "global_base.html" %}
 {% load static vite %}
 
-{% block title %}SciTeX Code{% if current_project %} - {{ current_project.name }}{% endif %}{% endblock %}
+{% block title %}SciTeX Console{% if current_project %} - {{ current_project.name }}{% endif %}{% endblock %}
 
 {% block extra_head %}
   <!-- Disable caching for development -->
@@ -234,7 +234,7 @@
           <svg class="code-welcome-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
             <path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z" />
           </svg>
-          <h2 class="code-welcome-title">Welcome to Code Workspace</h2>
+          <h2 class="code-welcome-title">Welcome to Console Workspace</h2>
           <p class="code-welcome-subtitle">A powerful editor with integrated terminal for your research projects</p>
 
           <div class="welcome-features-container">

@@ -36,7 +36,7 @@ export class PTYTerminal {
   private async initXterm(containerEl: HTMLElement): Promise<void> {
     // Wait for xterm.js to load
     while (!(window as any).Terminal) {
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
     const Terminal = (window as any).Terminal;
@@ -60,7 +60,7 @@ export class PTYTerminal {
       fitAddon.fit();
 
       // Resize on window resize
-      window.addEventListener('resize', () => {
+      window.addEventListener("resize", () => {
         fitAddon.fit();
         this.sendResize();
       });
@@ -82,12 +82,16 @@ export class PTYTerminal {
       try {
         const imageAddon = new ImageAddon();
         this.term.loadAddon(imageAddon);
-        console.log('[PTY] ✓ ImageAddon loaded successfully - inline images enabled');
+        console.log(
+          "[PTY] ✓ ImageAddon loaded successfully - inline images enabled",
+        );
       } catch (err) {
-        console.error('[PTY] ✗ Failed to load ImageAddon:', err);
+        console.error("[PTY] ✗ Failed to load ImageAddon:", err);
       }
     } else {
-      console.warn('[PTY] ⚠ ImageAddon not available - window.ImageAddon is undefined');
+      console.warn(
+        "[PTY] ⚠ ImageAddon not available - window.ImageAddon is undefined",
+      );
     }
 
     // Handle user input
@@ -111,8 +115,8 @@ export class PTYTerminal {
         };
 
         // Alt+Z: Toggle Zen Mode
-        if (key === 'z') {
-          console.log('[PTY] Alt+Z - Toggle Zen Mode');
+        if (key === "z") {
+          console.log("[PTY] Alt+Z - Toggle Zen Mode");
           const zenEvent = new KeyboardEvent("keydown", {
             key: "F11",
             keyCode: 122,
@@ -127,7 +131,9 @@ export class PTYTerminal {
         if (navigationRoutes[key]) {
           const route = navigationRoutes[key];
           if (!window.location.pathname.startsWith(route)) {
-            console.log(`[PTY] Alt+${key.toUpperCase()} - Navigate to ${route}`);
+            console.log(
+              `[PTY] Alt+${key.toUpperCase()} - Navigate to ${route}`,
+            );
             window.location.href = route;
           }
           return false; // Prevent terminal from receiving this
@@ -135,11 +141,14 @@ export class PTYTerminal {
       }
 
       // Ctrl+C or Ctrl+Shift+C: Copy selected text (if selection exists)
-      if (event.ctrlKey && (event.key === 'C' || event.key === 'c')) {
+      if (event.ctrlKey && (event.key === "C" || event.key === "c")) {
         const selection = this.term.getSelection();
         if (selection) {
           navigator.clipboard.writeText(selection);
-          console.log('[PTY] Copied to clipboard:', selection.substring(0, 50) + '...');
+          console.log(
+            "[PTY] Copied to clipboard:",
+            selection.substring(0, 50) + "...",
+          );
           return false; // Prevent default and don't send to terminal
         }
         // If no selection, allow Ctrl+C to send SIGINT to terminal
@@ -147,8 +156,8 @@ export class PTYTerminal {
       }
 
       // Ctrl+V or Ctrl+Shift+V: Paste from clipboard
-      if (event.ctrlKey && (event.key === 'V' || event.key === 'v')) {
-        navigator.clipboard.readText().then(text => {
+      if (event.ctrlKey && (event.key === "V" || event.key === "v")) {
+        navigator.clipboard.readText().then((text) => {
           if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             this.ws.send(text);
           }
@@ -159,31 +168,22 @@ export class PTYTerminal {
       return true; // Allow other keys
     });
 
-    console.log('[PTY] xterm.js initialized');
+    console.log("[PTY] xterm.js initialized");
 
     // Signal that initialization is complete
     this.readyResolve();
   }
 
   private connect(): void {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsUrl = `${protocol}//${window.location.host}/ws/code/terminal/?project_id=${this.projectId}`;
 
-    console.log('[PTY] Connecting to:', wsUrl);
-
-    // Show connecting message
-    if (this.term) {
-      this.term.write('\x1b[1;36m⏳ Connecting to terminal...\x1b[0m\r\n');
-    }
+    console.log("[PTY] Connecting to:", wsUrl);
 
     this.ws = new WebSocket(wsUrl);
 
     this.ws.onopen = () => {
-      console.log('[PTY] WebSocket connected');
-      // Show connected status (will be followed by shell output)
-      if (this.term) {
-        this.term.write('\x1b[1;32m✓ Connected. Initializing shell...\x1b[0m\r\n');
-      }
+      console.log("[PTY] WebSocket connected");
       this.sendResize();
     };
 
@@ -193,53 +193,56 @@ export class PTYTerminal {
     };
 
     this.ws.onerror = (error) => {
-      console.error('[PTY] WebSocket error:', error);
-      this.term.write('\r\n\x1b[1;31m❌ Terminal connection error\x1b[0m\r\n');
-      this.term.write('\x1b[0;33m   Check network connection and try refreshing the page\x1b[0m\r\n');
+      console.error("[PTY] WebSocket error:", error);
+      this.term.write("\r\n\x1b[1;31m❌ Terminal connection error\x1b[0m\r\n");
+      this.term.write(
+        "\x1b[0;33m   Check network connection and try refreshing the page\x1b[0m\r\n",
+      );
     };
 
     this.ws.onclose = (event: CloseEvent) => {
-      console.log('[PTY] WebSocket closed:', event.code, event.reason);
+      console.log("[PTY] WebSocket closed:", event.code, event.reason);
 
       // Provide detailed close reason based on code
       // https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent/code
-      let message = '';
+      let message = "";
       let reconnect = true;
 
       switch (event.code) {
         case 1000:
-          message = 'Session ended normally';
+          message = "Session ended normally";
           reconnect = false;
           break;
         case 1001:
-          message = 'Server going away (maintenance or restart)';
+          message = "Server going away (maintenance or restart)";
           break;
         case 1006:
-          message = 'Connection lost (network issue or server unavailable)';
+          message = "Connection lost (network issue or server unavailable)";
           break;
         case 1011:
-          message = 'Server error while processing request';
+          message = "Server error while processing request";
           break;
         case 1012:
-          message = 'Server restarting';
+          message = "Server restarting";
           break;
         case 1013:
-          message = 'Server overloaded, try again later';
+          message = "Server overloaded, try again later";
           break;
         case 4000:
-          message = 'Authentication required - please log in';
+          message = "Authentication required - please log in";
           reconnect = false;
           break;
         case 4001:
-          message = 'Access denied - no permission for this project';
+          message = "Access denied - no permission for this project";
           reconnect = false;
           break;
         case 4002:
-          message = 'Project not found';
+          message = "Project not found";
           reconnect = false;
           break;
         case 4003:
-          message = 'SLURM unavailable - compute resources offline';
+          message = "SLURM unavailable";
+          reconnect = false;
           break;
         default:
           message = event.reason || `Connection closed (code: ${event.code})`;
@@ -248,10 +251,10 @@ export class PTYTerminal {
       this.term.write(`\r\n\x1b[1;33m⚠ Disconnected: ${message}\x1b[0m\r\n`);
 
       if (reconnect) {
-        this.term.write('\x1b[0;36m   Reconnecting in 3s...\x1b[0m\r\n');
+        this.term.write("\x1b[0;36m   Reconnecting in 3s...\x1b[0m\r\n");
         setTimeout(() => this.connect(), 3000);
       } else {
-        this.term.write('\x1b[0;33m   Refresh page to reconnect\x1b[0m\r\n');
+        this.term.write("\x1b[0;33m   Refresh page to reconnect\x1b[0m\r\n");
       }
     };
   }
@@ -279,14 +282,14 @@ export class PTYTerminal {
   public clear(): void {
     if (this.term) {
       this.term.clear();
-      console.log('[PTY] Terminal cleared');
+      console.log("[PTY] Terminal cleared");
     }
 
     // Also clear inline images and hide panel
     if (this.imageContainer) {
-      this.imageContainer.innerHTML = '';
-      this.imageContainer.style.display = 'none';
-      console.log('[PTY] Inline images cleared');
+      this.imageContainer.innerHTML = "";
+      this.imageContainer.style.display = "none";
+      console.log("[PTY] Inline images cleared");
     }
   }
 
@@ -298,26 +301,26 @@ export class PTYTerminal {
     const style = getComputedStyle(root);
 
     return {
-      background: style.getPropertyValue('--terminal-bg').trim(),
-      foreground: style.getPropertyValue('--terminal-fg').trim(),
-      cursor: style.getPropertyValue('--terminal-cursor').trim(),
-      cursorAccent: style.getPropertyValue('--terminal-cursor-accent').trim(),
-      black: style.getPropertyValue('--terminal-black').trim(),
-      red: style.getPropertyValue('--terminal-red').trim(),
-      green: style.getPropertyValue('--terminal-green').trim(),
-      yellow: style.getPropertyValue('--terminal-yellow').trim(),
-      blue: style.getPropertyValue('--terminal-blue').trim(),
-      magenta: style.getPropertyValue('--terminal-magenta').trim(),
-      cyan: style.getPropertyValue('--terminal-cyan').trim(),
-      white: style.getPropertyValue('--terminal-white').trim(),
-      brightBlack: style.getPropertyValue('--terminal-bright-black').trim(),
-      brightRed: style.getPropertyValue('--terminal-bright-red').trim(),
-      brightGreen: style.getPropertyValue('--terminal-bright-green').trim(),
-      brightYellow: style.getPropertyValue('--terminal-bright-yellow').trim(),
-      brightBlue: style.getPropertyValue('--terminal-bright-blue').trim(),
-      brightMagenta: style.getPropertyValue('--terminal-bright-magenta').trim(),
-      brightCyan: style.getPropertyValue('--terminal-bright-cyan').trim(),
-      brightWhite: style.getPropertyValue('--terminal-bright-white').trim(),
+      background: style.getPropertyValue("--terminal-bg").trim(),
+      foreground: style.getPropertyValue("--terminal-fg").trim(),
+      cursor: style.getPropertyValue("--terminal-cursor").trim(),
+      cursorAccent: style.getPropertyValue("--terminal-cursor-accent").trim(),
+      black: style.getPropertyValue("--terminal-black").trim(),
+      red: style.getPropertyValue("--terminal-red").trim(),
+      green: style.getPropertyValue("--terminal-green").trim(),
+      yellow: style.getPropertyValue("--terminal-yellow").trim(),
+      blue: style.getPropertyValue("--terminal-blue").trim(),
+      magenta: style.getPropertyValue("--terminal-magenta").trim(),
+      cyan: style.getPropertyValue("--terminal-cyan").trim(),
+      white: style.getPropertyValue("--terminal-white").trim(),
+      brightBlack: style.getPropertyValue("--terminal-bright-black").trim(),
+      brightRed: style.getPropertyValue("--terminal-bright-red").trim(),
+      brightGreen: style.getPropertyValue("--terminal-bright-green").trim(),
+      brightYellow: style.getPropertyValue("--terminal-bright-yellow").trim(),
+      brightBlue: style.getPropertyValue("--terminal-bright-blue").trim(),
+      brightMagenta: style.getPropertyValue("--terminal-bright-magenta").trim(),
+      brightCyan: style.getPropertyValue("--terminal-bright-cyan").trim(),
+      brightWhite: style.getPropertyValue("--terminal-bright-white").trim(),
     };
   }
 
@@ -326,13 +329,13 @@ export class PTYTerminal {
    */
   public updateTheme(): void {
     if (!this.term) {
-      console.warn('[PTY] Cannot update theme - terminal not initialized');
+      console.warn("[PTY] Cannot update theme - terminal not initialized");
       return;
     }
 
     const newTheme = this.getThemeFromCSS();
     this.term.options.theme = newTheme;
-    console.log('[PTY] Terminal theme updated from CSS');
+    console.log("[PTY] Terminal theme updated from CSS");
   }
 
   public executeCommand(command: string): void {
@@ -342,10 +345,10 @@ export class PTYTerminal {
      */
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       // Send command followed by Enter (\r)
-      this.ws.send(command + '\r');
-      console.log('[PTY] Executing command:', command);
+      this.ws.send(command + "\r");
+      console.log("[PTY] Executing command:", command);
     } else {
-      console.error('[PTY] Cannot execute command - WebSocket not connected');
+      console.error("[PTY] Cannot execute command - WebSocket not connected");
     }
   }
 

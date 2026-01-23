@@ -32,13 +32,13 @@ import signal
 import termios
 
 from channels.generic.websocket import AsyncWebsocketConsumer
+
 from apps.project_app.models import Project
 
 from .config import USER_DATA_ROOT
 from .execution import (
-    is_slurm_available,
-    select_container,
     exec_slurm_shell,
+    select_container,
 )
 from .workspace import ensure_workspace
 
@@ -57,52 +57,56 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         """Accept WebSocket connection and spawn PTY"""
-        self.user = self.scope['user']
+        self.user = self.scope["user"]
         self.pid = None
         self.fd = None
         self.reader_task = None
 
         # Get project ID from query params
         query_params = dict(
-            (x.split('=') for x in self.scope['query_string'].decode().split('&') if '=' in x)
+            (
+                x.split("=")
+                for x in self.scope["query_string"].decode().split("&")
+                if "=" in x
+            )
         )
-        project_id = query_params.get('project_id')
+        project_id = query_params.get("project_id")
 
         if not project_id:
             await self.accept()
-            await self.send(text_data='\x1b[1;31m❌ No project specified\x1b[0m\r\n')
+            await self.send(text_data="\x1b[1;31m❌ No project specified\x1b[0m\r\n")
             await self.close(code=4002)  # Project not found
             return
 
         try:
             self.project = await asyncio.to_thread(
-                Project.objects.select_related('owner').get,
-                id=project_id
+                Project.objects.select_related("owner").get, id=project_id
             )
 
             # Check permissions
             if self.user.is_authenticated:
-                has_access = (
-                    self.user == self.project.owner or
-                    await asyncio.to_thread(
-                        lambda: self.user in self.project.collaborators.all()
-                    )
+                has_access = self.user == self.project.owner or await asyncio.to_thread(
+                    lambda: self.user in self.project.collaborators.all()
                 )
             else:
                 # For visitors, check allocated project
-                session = self.scope.get('session', {})
-                visitor_project_id = session.get('visitor_project_id')
-                has_access = (visitor_project_id and int(project_id) == visitor_project_id)
+                session = self.scope.get("session", {})
+                visitor_project_id = session.get("visitor_project_id")
+                has_access = (
+                    visitor_project_id and int(project_id) == visitor_project_id
+                )
 
             if not has_access:
                 await self.accept()
-                await self.send(text_data='\x1b[1;31m❌ Access denied - no permission for this project\x1b[0m\r\n')
+                await self.send(
+                    text_data="\x1b[1;31m❌ Access denied - no permission for this project\x1b[0m\r\n"
+                )
                 await self.close(code=4001)  # Access denied
                 return
 
         except Project.DoesNotExist:
             await self.accept()
-            await self.send(text_data='\x1b[1;31m❌ Project not found\x1b[0m\r\n')
+            await self.send(text_data="\x1b[1;31m❌ Project not found\x1b[0m\r\n")
             await self.close(code=4002)  # Project not found
             return
 
@@ -126,16 +130,14 @@ class TerminalConsumer(AsyncWebsocketConsumer):
             select_container, user_data_dir, project_dir
         )
 
-        # Check if SLURM is available
-        use_slurm = await asyncio.to_thread(is_slurm_available)
+        # Check SLURM status
+        from .execution import check_slurm_status
 
-        if not use_slurm:
-            # SECURITY: No fallback - SLURM is required for all terminals
-            logger.error("SLURM not available - terminals disabled for security")
-            await self.send(text_data='\x1b[1;31m❌ SLURM not available - compute resources offline\x1b[0m\r\n')
-            await self.send(text_data='\x1b[1;33m   Contact administrator to check SLURM status\x1b[0m\r\n')
-            await self.send(text_data='\x1b[0;36m   Run: make env=nas status\x1b[0m\r\n')
-            await self.close(code=4003)  # SLURM unavailable
+        slurm_available, slurm_status = await asyncio.to_thread(check_slurm_status)
+
+        if not slurm_available:
+            logger.error(f"SLURM unavailable ({slurm_status})")
+            await self.close(code=4003)
             return
 
         # Block signals during PTY fork to prevent "Interrupted system call" errors
@@ -143,7 +145,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
         # interrupt the accept() call during PTY setup
         old_mask = signal.pthread_sigmask(
             signal.SIG_BLOCK,
-            {signal.SIGCHLD, signal.SIGWINCH, signal.SIGINT, signal.SIGTERM}
+            {signal.SIGCHLD, signal.SIGWINCH, signal.SIGINT, signal.SIGTERM},
         )
 
         try:
@@ -155,12 +157,21 @@ class TerminalConsumer(AsyncWebsocketConsumer):
                 signal.pthread_sigmask(signal.SIG_SETMASK, old_mask)
                 try:
                     # SLURM availability already checked above, so this should always succeed
-                    exec_slurm_shell(username, user_data_dir, project_dir, container_path, project_slug)
+                    exec_slurm_shell(
+                        username,
+                        user_data_dir,
+                        project_dir,
+                        container_path,
+                        project_slug,
+                    )
                     # exec_slurm_shell never returns on success
                 except Exception as e:
                     # Write error to stderr (will be captured by parent via PTY)
                     import sys
-                    sys.stderr.write(f'\x1b[1;31m❌ Failed to start terminal: {e}\x1b[0m\r\n')
+
+                    sys.stderr.write(
+                        f"\x1b[1;31m❌ Failed to start terminal: {e}\x1b[0m\r\n"
+                    )
                     sys.stderr.flush()
                 os._exit(1)  # Only reached if exec fails
         finally:
@@ -176,15 +187,15 @@ class TerminalConsumer(AsyncWebsocketConsumer):
         """Read from PTY and send to WebSocket"""
         try:
             while True:
-                r, _, _ = await asyncio.to_thread(
-                    select.select, [self.fd], [], [], 0.1
-                )
+                r, _, _ = await asyncio.to_thread(select.select, [self.fd], [], [], 0.1)
 
                 if r:
                     try:
                         data = await asyncio.to_thread(os.read, self.fd, 4096)
                         if data:
-                            await self.send(text_data=data.decode('utf-8', errors='replace'))
+                            await self.send(
+                                text_data=data.decode("utf-8", errors="replace")
+                            )
                         else:
                             break  # EOF
                     except OSError:
@@ -197,11 +208,11 @@ class TerminalConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         """Receive data from WebSocket and write to PTY"""
         try:
-            if text_data.startswith('resize:'):
-                _, rows, cols = text_data.split(':')
+            if text_data.startswith("resize:"):
+                _, rows, cols = text_data.split(":")
                 await self.resize_pty(int(rows), int(cols))
             else:
-                await asyncio.to_thread(os.write, self.fd, text_data.encode('utf-8'))
+                await asyncio.to_thread(os.write, self.fd, text_data.encode("utf-8"))
         except Exception as e:
             logger.error(f"PTY write error: {e}")
 

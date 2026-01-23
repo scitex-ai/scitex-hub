@@ -18,11 +18,11 @@ import subprocess
 from pathlib import Path
 
 from .config import (
-    SLURM_PARTITION,
-    SLURM_TIME_LIMIT,
+    SLURM_CONTAINER_PATH,
     SLURM_CPUS,
     SLURM_MEMORY_GB,
-    SLURM_CONTAINER_PATH,
+    SLURM_PARTITION,
+    SLURM_TIME_LIMIT,
     SLURM_USER_DATA_ROOT,
 )
 
@@ -31,60 +31,46 @@ logger = logging.getLogger(__name__)
 
 class SlurmUnavailableError(Exception):
     """Raised when SLURM is not available but required"""
+
     pass
 
 
-def is_slurm_available() -> bool:
+def check_slurm_status() -> tuple[bool, str]:
     """
-    Check if SLURM controller is available and responsive.
+    Check SLURM availability via scontrol (fast, doesn't allocate resources).
 
-    SECURITY: This system requires SLURM for all terminal sessions.
-    If SLURM is not available, terminals will be disabled.
+    Returns:
+        Tuple of (available: bool, status: str)
+        - (True, "ready") - SLURM controller responding
+        - (False, "unavailable") - SLURM not responding
+        - (False, "not_installed") - SLURM not installed
     """
     try:
-        # First check if srun exists
+        # Check if scontrol can ping the controller (fast, no resource allocation)
         result = subprocess.run(
-            ["srun", "--version"],
+            ["scontrol", "ping"],
             capture_output=True,
-            timeout=5
+            timeout=5,
         )
-        if result.returncode != 0:
-            logger.error("SLURM binary not found - terminals DISABLED for security")
-            return False
-
-        # Verify controller connectivity with actual partition and resources
-        # Note: Don't use --pty here as Django doesn't have a TTY
-        test_result = subprocess.run(
-            ["timeout", "2", "srun",
-             f"--partition={SLURM_PARTITION}",
-             f"--cpus-per-task=1",
-             f"--mem=1G",
-             "true"],
-            capture_output=True,
-            timeout=5
-        )
-
-        if test_result.returncode == 0:
-            # Check if the job actually ran or if it was just queued
-            stderr = test_result.stderr.decode('utf-8', errors='replace')
-            if 'queued and waiting for resources' in stderr or 'Requested partition configuration not available' in stderr:
-                logger.error(f"SLURM partition '{SLURM_PARTITION}' unavailable - check SLURM configuration")
-                return False
-            logger.info(f"SLURM operational - terminals enabled (partition: {SLURM_PARTITION})")
-            return True
-        elif test_result.returncode == 124:
-            logger.error("SLURM controller timeout - terminals DISABLED")
-            return False
+        if result.returncode == 0:
+            logger.debug(f"SLURM controller responding (partition: {SLURM_PARTITION})")
+            return (True, "ready")
         else:
-            logger.error(f"SLURM controller not responding (exit {test_result.returncode}) - terminals DISABLED")
-            return False
+            logger.error("SLURM controller not responding")
+            return (False, "unavailable")
 
     except subprocess.TimeoutExpired:
-        logger.error("SLURM controller connection timeout - terminals DISABLED")
-        return False
+        logger.error("SLURM controller timeout")
+        return (False, "unavailable")
     except FileNotFoundError:
-        logger.error("SLURM not installed - terminals DISABLED for security")
-        return False
+        logger.error("SLURM not installed")
+        return (False, "not_installed")
+
+
+def is_slurm_available() -> bool:
+    """Legacy wrapper for backward compatibility."""
+    available, _ = check_slurm_status()
+    return available
 
 
 def select_container(user_data_dir: Path, project_dir: Path) -> str:
@@ -97,17 +83,17 @@ def select_container(user_data_dir: Path, project_dir: Path) -> str:
     # Project-specific container
     project_sif = project_dir / ".singularity" / "custom.sif"
     if project_sif.exists():
-        logger.info(f"Using project container: {project_sif}")
+        logger.debug(f"Using project container: {project_sif}")
         return str(project_sif)
 
     # User default container
     user_sif = user_data_dir / ".singularity" / "default.sif"
     if user_sif.exists():
-        logger.info(f"Using user container: {user_sif}")
+        logger.debug(f"Using user container: {user_sif}")
         return str(user_sif)
 
     # Base container
-    logger.info(f"Using base container: {SLURM_CONTAINER_PATH}")
+    logger.debug(f"Using base container: {SLURM_CONTAINER_PATH}")
     return SLURM_CONTAINER_PATH
 
 
@@ -116,7 +102,7 @@ def exec_slurm_shell(
     user_data_dir: Path,
     project_dir: Path,
     container_path: str,
-    project_slug: str
+    project_slug: str,
 ):
     """
     Execute shell via SLURM (REQUIRED for all users).
@@ -143,14 +129,19 @@ def exec_slurm_shell(
         f"--job-name=terminal_{username}",
         # Note: --account not used (SLURM accounting not configured)
         # Container execution (using host paths)
-        container_cmd, "shell",
+        container_cmd,
+        "shell",
         "--containall",
         "--cleanenv",
         "--writable-tmpfs",
-        "--hostname", "scitex-cloud",
-        "--home", f"{host_user_dir}:/home/{username}",
-        "--bind", f"{host_project_dir}:/home/{username}/proj/{project_slug}:rw",
-        "--pwd", f"/home/{username}/proj/{project_slug}",
+        "--hostname",
+        "scitex-cloud",
+        "--home",
+        f"{host_user_dir}:/home/{username}",
+        "--bind",
+        f"{host_project_dir}:/home/{username}/proj/{project_slug}:rw",
+        "--pwd",
+        f"/home/{username}/proj/{project_slug}",
         container_path,  # Use host path to SIF
     ]
 
@@ -168,8 +159,10 @@ def exec_slurm_shell(
         "HOME": f"/home/{username}",  # Ensure HOME is set correctly
     }
 
-    logger.info(f"Spawning SLURM terminal: user={username} partition={SLURM_PARTITION} time={SLURM_TIME_LIMIT}")
-    logger.info(f"SLURM command: {' '.join(cmd)}")
+    logger.debug(
+        f"Spawning SLURM terminal: user={username} partition={SLURM_PARTITION}"
+    )
+    logger.debug(f"SLURM command: {' '.join(cmd)}")
 
     # Note: host_user_dir and host_project_dir are HOST paths (not visible from container)
     # SLURM will run on the host where these paths exist
