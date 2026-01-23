@@ -70,14 +70,42 @@ SCITEX_WRITER_TEMPLATE_TAG = os.getenv("SCITEX_WRITER_TEMPLATE_TAG", None)
 SECRET_KEY = os.getenv("SCITEX_CLOUD_DJANGO_SECRET_KEY")
 ALLOWED_HOSTS = os.getenv(
     "SCITEX_CLOUD_ALLOWED_HOSTS",
-    "localhost,127.0.0.1,0.0.0.0,172.19.33.56,[::1],testserver",
+    "localhost,127.0.0.1,0.0.0.0,[::1],testserver",
 ).split(",")
+
+# Add WSL2 dynamic IP support (172.x.x.x range)
+# This allows access from any WSL2 IP which can change on restart
+import socket
+try:
+    wsl_ip = socket.gethostbyname(socket.gethostname())
+    if wsl_ip not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(wsl_ip)
+except Exception:
+    pass
+
+# Also allow any 172.x.x.x IP for WSL2 flexibility in development
+ALLOWED_HOSTS.append(".172.19.33.56")  # Specific WSL2 IP
+ALLOWED_HOSTS.append("*")  # Allow all hosts in development
 
 
 # Hot reload settings
 INTERNAL_IPS = [
     "127.0.0.1",
     "172.20.0.1",  # Docker network gateway (for browser requests from host)
+]
+
+# WhiteNoise: auto-refresh static files in development
+# This ensures changes to JS/CSS files are picked up immediately without restart
+WHITENOISE_AUTOREFRESH = True
+# Disable browser caching of static files in development to ensure fresh JS/CSS
+WHITENOISE_MAX_AGE = 0
+
+# Override STATICFILES_DIRS for dev - exclude .jsbuild since Vite handles TypeScript
+# In dev mode, Vite serves TypeScript directly via dev server (port 5173)
+# .jsbuild contains stale compiled JS that interferes with Vite HMR
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+    # Note: .jsbuild is excluded in dev mode - Vite handles TypeScript transpilation
 ]
 
 # django-browser-reload configuration
@@ -114,6 +142,7 @@ INSTALLED_APPS = DEVELOPMENT_APPS + INSTALLED_APPS  # Daphne must be before djan
 ASGI_APPLICATION = "config.asgi.application"
 MIDDLEWARE += [
     "django_browser_reload.middleware.BrowserReloadMiddleware",
+    "config.middleware.JSNoCacheMiddleware",  # Prevent browser caching of JS modules
 ]
 
 
@@ -171,9 +200,7 @@ SCITEX_CLOUD_GITEA_URL = os.environ.get(
     "SCITEX_CLOUD_GITEA_URL_DEV", "http://127.0.0.1:3000"
 )
 SCITEX_CLOUD_GIT_DOMAIN = os.environ.get("SCITEX_CLOUD_GIT_DOMAIN", "127.0.0.1")
-SCITEX_CLOUD_GITEA_SSH_PORT = os.environ.get(
-    "SCITEX_CLOUD_GITEA_SSH_PORT_DEV", "2222"
-)
+SCITEX_CLOUD_GITEA_SSH_PORT = require_env("SCITEX_CLOUD_GITEA_SSH_PORT_DEV")
 
 # Development Cache Configuration - fallback to dummy cache if Redis not available
 # Override cache configuration for development if Redis is not available
@@ -261,5 +288,17 @@ LOGGING.update(
         },
     }
 )
+
+# ---------------------------------------
+# Celery Beat Schedule Override for Development
+# ---------------------------------------
+# Faster chart generation in development (10 seconds instead of 60)
+CELERY_BEAT_SCHEDULE['generate-status-charts'] = {
+    'task': 'apps.public_app.tasks.generate_status_charts',
+    'schedule': 10.0,  # Every 10 seconds in development
+    'options': {
+        'expires': 9.0,  # Expire after 9 seconds if not started
+    },
+}
 
 # EOF

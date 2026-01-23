@@ -60,7 +60,7 @@ Successfully renamed four core Django apps to better reflect their responsibilit
 - `GitService` - Git operations
 - `SSHService` - SSH key management
 - `FileSystemUtils` - File utilities
-- `AnonymousStorage` - Temporary user storage
+- `VisitorStorage` - Temporary user storage
 
 ---
 
@@ -108,7 +108,7 @@ Successfully renamed four core Django apps to better reflect their responsibilit
 - `config/urls.py` - Updated URL includes
 
 **Imports across 11+ files:**
-- `auth_app/views.py` - email_service, anonymous_storage imports
+- `auth_app/views.py` - email_service, visitor_storage imports
 - `auth_app/api_views.py` - email_service import
 - `accounts_app/views.py` - ssh_service imports
 - `workspace_app/admin.py` - model imports
@@ -120,7 +120,7 @@ Successfully renamed four core Django apps to better reflect their responsibilit
 - `project_app/signals.py` - git_operations imports
 - `writer_app/models.py` - directory_service imports
 - `writer_app/views.py` - directory_service imports
-- `scholar_app/views/workspace_views.py` - anonymous_storage imports
+- `scholar_app/views/workspace_views.py` - visitor_storage imports
 - `scholar_app/views/bibtex_views.py` - git_operations imports
 - `search_app/views.py` - model imports
 - `project_app/management/commands/create_guest_project.py` - directory_service imports

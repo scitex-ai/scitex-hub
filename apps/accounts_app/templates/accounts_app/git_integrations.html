@@ -7,100 +7,8 @@
 {% block extra_css %}
     <link rel="stylesheet"
           href="{% static 'shared/css/layouts/settings-layout.css' %}" />
-    <style>
-  /* Git integrations page-specific styles */
-
-  .form-section {
-    background: var(--color-canvas-default);
-    border: 1px solid var(--color-border-default);
-    border-radius: 6px;
-    padding: 24px;
-    margin-bottom: 24px;
-  }
-
-  .section-header {
-    margin-bottom: 16px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid var(--color-border-default);
-  }
-
-  .section-title {
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--color-fg-default);
-    margin-bottom: 4px;
-  }
-
-  .section-subtitle {
-    font-size: 14px;
-    color: var(--color-fg-muted);
-  }
-
-  .form-group {
-    margin-bottom: 16px;
-  }
-
-  .form-group label {
-    display: block;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--color-fg-default);
-    margin-bottom: 6px;
-  }
-
-  .form-group input[type="password"],
-  .form-group input[type="text"] {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid var(--color-border-default);
-    border-radius: 6px;
-    background: var(--color-canvas-default);
-    color: var(--color-fg-default);
-    font-size: 14px;
-  }
-
-  .form-help {
-    font-size: 12px;
-    color: var(--color-fg-muted);
-    margin-top: 6px;
-  }
-
-  .form-help a {
-    color: var(--scitex-color-04);
-  }
-
-  .form-actions {
-    display: flex;
-    gap: 12px;
-    padding-top: 16px;
-    border-top: 1px solid var(--color-border-default);
-    margin-top: 24px;
-  }
-
-  .btn-save {
-    background: var(--color-btn-primary-bg);
-    color: var(--color-btn-primary-text);
-    border: 1px solid var(--color-btn-primary-border);
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .btn-cancel {
-    background: var(--color-btn-bg);
-    color: var(--color-btn-text);
-    border: 1px solid var(--color-btn-border);
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-size: 14px;
-    text-decoration: none;
-  }
-    </style>
+    <link rel="stylesheet"
+          href="{% static 'accounts_app/css/git_integrations.css' %}" />
 {% endblock %}
 {% block content %}
     <div class="settings-page">
@@ -114,10 +22,9 @@
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     {% if messages %}
-                        <div style="margin-bottom: var(--spacing-md)">
+                        <div class="mb-3">
                             {% for message in messages %}
-                                <div class="alert-banner alert-banner-{% if message.tags == 'success' %}success{% else %}danger{% endif %}"
-                                     style="margin-bottom: var(--spacing-sm)">
+                                <div class="alert-banner alert-banner-{% if message.tags == 'success' %}success{% else %}danger{% endif %} mb-2">
                                     <div class="warning-banner-container">
                                         <div class="warning-banner-content">
                                             <i class="warning-banner-icon fas fa-{% if message.tags == 'success' %}check-circle{% else %}exclamation-circle{% endif %}"></i>
@@ -148,10 +55,7 @@
                             <p class="form-help">
                                 {% if profile.github_token %}
                                     ✅ Token saved:
-                                    <code style="background: var(--color-canvas-subtle);
-                                                 padding: 2px 6px;
-                                                 border-radius: 3px;
-                                                 font-size: 12px">{{ github_token_masked }}</code>
+                                    <code>{{ github_token_masked }}</code>
                                 {% else %}
                                     No token saved
                                 {% endif %}
@@ -169,10 +73,7 @@
                             <p class="form-help">
                                 {% if profile.gitlab_token %}
                                     ✅ Token saved:
-                                    <code style="background: var(--color-canvas-subtle);
-                                                 padding: 2px 6px;
-                                                 border-radius: 3px;
-                                                 font-size: 12px">{{ gitlab_token_masked }}</code>
+                                    <code>{{ gitlab_token_masked }}</code>
                                 {% else %}
                                     No token saved
                                 {% endif %}
@@ -191,10 +92,7 @@
                             <p class="form-help">
                                 {% if profile.bitbucket_token %}
                                     ✅ Password saved:
-                                    <code style="background: var(--color-canvas-subtle);
-                                                 padding: 2px 6px;
-                                                 border-radius: 3px;
-                                                 font-size: 12px">{{ bitbucket_token_masked }}</code>
+                                    <code>{{ bitbucket_token_masked }}</code>
                                 {% else %}
                                     No password saved
                                 {% endif %}

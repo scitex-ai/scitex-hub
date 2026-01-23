@@ -1,0 +1,116 @@
+/*
+ * @component Button Sizes
+ * @description Button size variants (small, medium, large, block)
+ * @file /static/shared/css/components/buttons/sizes.css
+ */
+
+/* =========================================
+   BUTTON SIZES
+   ========================================= */
+
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+.btn-lg {
+  padding: 1rem 2rem;
+  font-size: 1.125rem;
+}
+
+/* Block Button - Full width */
+.btn-block {
+  display: block;
+  width: 100%;
+}
+
+/* =========================================
+   RESPONSIVE BUTTON SIZES
+   ========================================= */
+
+/* Large screens (1024px and up) - Desktop */
+@media (min-width: 1024px) {
+  .btn {
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+  }
+
+  .btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  .btn-lg {
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+  }
+}
+
+/* Medium screens (768px - 1023px) - Tablets */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .btn {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.95rem;
+  }
+
+  .btn-sm {
+    padding: 0.45rem 0.9rem;
+    font-size: 0.8rem;
+  }
+
+  .btn-lg {
+    padding: 0.9rem 1.75rem;
+    font-size: 1rem;
+  }
+}
+
+/* Small screens (480px - 767px) - Mobile landscape */
+@media (max-width: 767px) {
+  .btn {
+    padding: 0.7rem 1rem;
+    font-size: 0.9rem;
+    margin: var(--spacing-xs);
+  }
+
+  .btn-sm {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .btn-lg {
+    padding: 0.8rem 1.5rem;
+    font-size: 0.95rem;
+  }
+
+  .btn-block {
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* Extra small screens (below 480px) - Mobile portrait */
+@media (max-width: 479px) {
+  .btn {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.85rem;
+    margin: var(--spacing-xs);
+  }
+
+  .btn-sm {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.7rem;
+  }
+
+  .btn-lg {
+    padding: 0.7rem 1.2rem;
+    font-size: 0.9rem;
+  }
+
+  .btn-block {
+    margin-bottom: 0.35rem;
+  }
+
+  .btn-text {
+    padding: 0.25rem;
+    font-size: 0.8rem;
+  }
+}

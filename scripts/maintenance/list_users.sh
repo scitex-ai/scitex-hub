@@ -17,9 +17,9 @@ NC='\033[0m' # No Color
 ENV="${1:-prod}"
 
 if [ "$ENV" = "prod" ]; then
-    CONTAINER="docker_prod-web-1"
+    CONTAINER="scitex-cloud-prod-django-1"
 elif [ "$ENV" = "dev" ]; then
-    CONTAINER="scitex-cloud-dev-web-1"
+    CONTAINER="scitex-cloud-dev-django-1"
 else
     echo -e "${RED}Error: Invalid environment. Use 'prod' or 'dev'${NC}"
     exit 1

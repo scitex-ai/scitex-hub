@@ -1,0 +1,152 @@
+/* Fix button colors in panel headers - use workspace colors, flat design */
+.panel-header .btn {
+  color: var(--workspace-text-primary);
+  transition: all 0.15s ease;
+  border-radius: 0; /* Flat design matching workspace */
+  background: transparent;
+  border: none;
+  padding: 6px 10px;
+}
+
+.panel-header .btn i {
+  color: var(--workspace-icon-primary);
+  font-size: 14px;
+}
+
+.panel-header .btn-outline-secondary {
+  color: var(--workspace-text-primary);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+}
+
+.panel-header .btn-outline-secondary:hover,
+.panel-header .btn-outline-secondary.active {
+  color: var(--workspace-text-primary);
+  background: var(--workspace-bg-tertiary);
+  border: none;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.15);
+}
+
+.panel-header .btn-primary {
+  color: var(--text-inverse);
+  background: var(--workspace-icon-primary);
+  border: none;
+  border-radius: 0;
+}
+
+.panel-header .btn-primary:hover {
+  background: var(--workspace-icon-hover);
+  border: none;
+}
+
+.panel-header .btn-outline-secondary:hover i,
+.panel-header .btn-outline-secondary.active i {
+  color: var(--workspace-icon-hover);
+}
+
+/* General button icon colors - workspace theme */
+.btn i,
+.btn-sm i,
+.btn-xs i {
+  color: var(--workspace-icon-primary);
+  transition: color 0.15s ease;
+}
+
+.btn-outline-secondary i,
+.btn-outline i {
+  color: var(--workspace-icon-secondary);
+}
+
+.btn:hover i,
+.btn-sm:hover i,
+.btn-xs:hover i {
+  color: var(--workspace-icon-hover);
+}
+
+.btn-primary i {
+  color: var(--text-inverse);
+}
+
+/* Toolbar button icons */
+.toolbar-right .btn i,
+.toolbar-left .btn i {
+  color: var(--workspace-icon-primary);
+}
+
+.toolbar-right .btn:hover i,
+.toolbar-left .btn:hover i {
+  color: var(--workspace-icon-hover);
+}
+
+/* Section Management Buttons */
+.section-management-btns {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: 0.75rem;
+  padding-left: 0.75rem;
+  border-left: 1px solid var(--workspace-border-default);
+}
+
+.section-management-btns .btn {
+  padding: 0.35rem 0.5rem;
+  font-size: 0.8rem;
+  line-height: 1;
+  transition: all 0.2s ease;
+}
+
+.section-management-btns .btn i {
+  font-size: 0.75rem;
+  color: var(--workspace-icon-primary); /* Green icons matching vis */
+}
+
+.section-management-btns .btn:hover {
+  transform: translateY(-1px);
+  border-color: var(--workspace-icon-hover);
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.15); /* Green shadow matching vis */
+}
+
+.section-management-btns .btn:active {
+  transform: translateY(0);
+}
+
+/* Toggle include/exclude button states */
+#toggle-section-include-btn.excluded {
+  background: var(--color-danger-subtle);
+  border-color: var(--color-danger-emphasis);
+  color: var(--color-danger-fg);
+}
+
+#toggle-section-include-btn.excluded:hover {
+  background: var(--color-danger-emphasis);
+  color: var(--color-fg-on-emphasis);
+}
+
+/* Old toolbar - hide it */
+.writer-toolbar {
+  display: none;
+}
+
+.editing-mode-toggle {
+  display: flex;
+  /* background: #f8f9fa; */ /* Styling from central CSS */
+  /* border-radius: var(--border-radius); */ /* Styling from central CSS */
+  padding: 0.25rem;
+}
+
+.mode-btn {
+  padding: 0.5rem 1rem;
+  /* border: none; */ /* Styling from central CSS */
+  /* background: transparent; */ /* Styling from central CSS */
+  /* border-radius: calc(var(--border-radius) - 2px); */ /* Styling from central CSS */
+  /* transition: var(--transition); */ /* Styling from central CSS */
+  /* font-size: 0.9rem; */ /* Styling from central CSS */
+}
+
+.mode-btn.active {
+  /* background: var(--scitex-primary); */ /* Styling from central CSS */
+  /* color: var(--scitex-white); */ /* Styling from central CSS */
+}
+

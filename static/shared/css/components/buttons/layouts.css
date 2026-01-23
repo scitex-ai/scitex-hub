@@ -1,0 +1,186 @@
+/*
+ * @component Button Layouts
+ * @description Button group, split button, and navigation button layouts
+ * @file /static/shared/css/components/buttons/layouts.css
+ */
+
+/* =========================================
+   BUTTON GROUP
+   ========================================= */
+
+/* Button Group - Multiple adjacent buttons */
+.btn-group {
+  display: inline-flex;
+}
+
+.btn-group .btn {
+  border-radius: 0;
+}
+
+.btn-group .btn:first-child {
+  border-top-left-radius: var(--border-radius);
+  border-bottom-left-radius: var(--border-radius);
+}
+
+.btn-group .btn:last-child {
+  border-top-right-radius: var(--border-radius);
+  border-bottom-right-radius: var(--border-radius);
+}
+
+/* Fix: When dropdown-menu follows button, button is not :last-child
+   Use :last-of-type to ignore non-button elements like dropdown-menu divs */
+.btn-group button:last-of-type,
+.btn-group .btn:last-of-type {
+  border-top-right-radius: var(--border-radius) !important;
+  border-bottom-right-radius: var(--border-radius) !important;
+}
+
+/* =========================================
+   SPLIT BUTTON
+   ========================================= */
+
+.btn-split {
+  display: inline-flex;
+  position: relative;
+}
+
+.btn-split .btn-main {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-split .btn-dropdown-toggle {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  position: relative;
+}
+
+.btn-split .btn-dropdown-toggle::after {
+  content: "▼";
+  font-size: 0.6em;
+  margin-left: 0;
+}
+
+/* Split button dropdown menu */
+.btn-split .dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.25rem;
+  display: none;
+  min-width: 10rem;
+  background: var(--bg-100);
+  border: 2px solid var(--border-300);
+  border-radius: var(--border-radius);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+}
+
+.btn-split.show .dropdown-menu {
+  display: block;
+}
+
+.btn-split .dropdown-menu .dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: var(--text-800);
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.btn-split .dropdown-menu .dropdown-item:hover {
+  background-color: var(--bg-200);
+}
+
+/* =========================================
+   NAVIGATION BUTTONS
+   ========================================= */
+
+.nav-btn {
+  position: relative;
+  margin: 0 var(--spacing-xs);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.nav-icon {
+  display: inline-block;
+  opacity: 0.8;
+  filter: grayscale(1);
+  transition: all var(--transition-normal);
+}
+
+.nav-btn:hover .nav-icon,
+.nav-btn.active .nav-icon {
+  opacity: 1;
+  filter: grayscale(0);
+}
+
+.nav-btn.active {
+  background-color: var(--primary-color);
+  color: var(--white);
+  border-color: var(--primary-color);
+}
+
+.nav-button-item {
+  display: inline-block;
+  margin: 0 var(--spacing-xs);
+}
+
+/* =========================================
+   RESPONSIVE LAYOUTS
+   ========================================= */
+
+/* Medium screens (768px - 1023px) - Tablets */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .nav-btn {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+  }
+}
+
+/* Small screens (480px - 767px) - Mobile landscape */
+@media (max-width: 767px) {
+  .btn-group {
+    display: flex;
+    width: 100%;
+  }
+
+  .btn-group .btn {
+    flex: 1;
+    margin: 0;
+  }
+
+  .nav-btn {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+  }
+}
+
+/* Extra small screens (below 480px) - Mobile portrait */
+@media (max-width: 479px) {
+  .btn-group {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 0.25rem;
+  }
+
+  .btn-group .btn {
+    width: 100%;
+    margin: 0;
+  }
+
+  .nav-btn {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+  }
+}

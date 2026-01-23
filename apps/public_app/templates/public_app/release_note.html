@@ -1,33 +1,132 @@
 {% extends 'global_base.html' %}
-{% load static %}
-{% block title %}
-    Release
-    Notes - SciTeX Cloud
+{% load static vite %}
+{% block title %}Release Notes - SciTeX Cloud{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'shared/css/components/page-header.css' %}" />
+<link rel="stylesheet" href="{% static 'public_app/css/release-notes.css' %}" />
 {% endblock %}
 {% block extra_js %}
-    <!-- Chart.js libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-    <!-- TODO: Move inline script below to apps/public_app/static/public_app/js/release-timeline.js -->
-    <!-- Currently inline due to permission issues on js/ directory (owned by root) -->
-{% endblock %}
-{% block extra_css %}
-    <link rel="stylesheet"
-          href="{% static 'public_app/css/release-notes.css' %}" />
+<!-- Chart.js libraries -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+{% vite_script 'public_app/pages/release-timeline' %}
 {% endblock %}
 {% block content %}
     <div class="release-notes-container">
-        <div class="release-header">
-            <h1>SciTeX Cloud Release Notes</h1>
-            <p>Building the future of scientific research collaboration</p>
+        <div class="page-header">
+            <h1><i class="fas fa-rocket"></i> SciTeX Ecosystem Releases</h1>
+            <p>Building the future of scientific research automation</p>
         </div>
+
+        <!-- SciTeX Ecosystem Section -->
+        <div class="ecosystem-releases">
+            <h2 class="ecosystem-header"><i class="fas fa-cubes"></i> SciTeX Ecosystem — Latest Releases</h2>
+            <div class="ecosystem-grid">
+                <!-- scitex (Python toolkit) -->
+                <div class="ecosystem-card">
+                    <div class="ecosystem-card-header">
+                        <h3><i class="fab fa-python"></i> scitex</h3>
+                        <span class="version-badge">v2.14.0</span>
+                    </div>
+                    <p class="ecosystem-desc">Python toolkit + MCP server for research automation</p>
+                    <ul class="ecosystem-highlights">
+                        <li>106 MCP tools across 10 modules</li>
+                        <li>Scholar: 23 tools for literature search</li>
+                        <li>70% less code for common tasks</li>
+                    </ul>
+                    <div class="ecosystem-links">
+                        <a href="https://pypi.org/project/scitex/" target="_blank"><i class="fab fa-python"></i> PyPI</a>
+                        <a href="https://github.com/ywatanabe1989/scitex-code/releases" target="_blank"><i class="fab fa-github"></i> Releases</a>
+                    </div>
+                    <span class="release-date">January 15, 2025</span>
+                </div>
+
+                <!-- figrecipe -->
+                <div class="ecosystem-card">
+                    <div class="ecosystem-card-header">
+                        <h3><i class="fas fa-chart-bar"></i> figrecipe</h3>
+                        <span class="version-badge">v0.16.2</span>
+                    </div>
+                    <p class="ecosystem-desc">Reproducible scientific figures as first-class objects</p>
+                    <ul class="ecosystem-highlights">
+                        <li>YAML recipes for reproducibility</li>
+                        <li>Millimeter-precise layout</li>
+                        <li>MCP server for AI agents</li>
+                    </ul>
+                    <div class="ecosystem-links">
+                        <a href="https://pypi.org/project/figrecipe/" target="_blank"><i class="fab fa-python"></i> PyPI</a>
+                        <a href="https://github.com/ywatanabe1989/figrecipe/releases" target="_blank"><i class="fab fa-github"></i> Releases</a>
+                    </div>
+                    <span class="release-date">January 19, 2025</span>
+                </div>
+
+                <!-- crossref-local -->
+                <div class="ecosystem-card">
+                    <div class="ecosystem-card-header">
+                        <h3><i class="fas fa-database"></i> crossref-local</h3>
+                        <span class="version-badge">v0.3.1</span>
+                    </div>
+                    <p class="ecosystem-desc">Local database of 167M+ academic works</p>
+                    <ul class="ecosystem-highlights">
+                        <li>No hallucinated citations</li>
+                        <li>FastAPI + MCP server</li>
+                        <li>Works offline</li>
+                    </ul>
+                    <div class="ecosystem-links">
+                        <a href="https://github.com/ywatanabe1989/crossref-local/releases" target="_blank"><i class="fab fa-github"></i> Releases</a>
+                    </div>
+                    <span class="release-date">January 14, 2025</span>
+                </div>
+
+                <!-- scitex-writer -->
+                <div class="ecosystem-card">
+                    <div class="ecosystem-card-header">
+                        <h3><i class="fas fa-file-alt"></i> scitex-writer</h3>
+                        <span class="version-badge">v2.2.1</span>
+                    </div>
+                    <p class="ecosystem-desc">LaTeX manuscript writing for AI agents</p>
+                    <ul class="ecosystem-highlights">
+                        <li>13 MCP tools for manuscripts</li>
+                        <li>Automated compilation</li>
+                        <li>Revision tracking</li>
+                    </ul>
+                    <div class="ecosystem-links">
+                        <a href="https://github.com/ywatanabe1989/scitex-writer/releases" target="_blank"><i class="fab fa-github"></i> Releases</a>
+                    </div>
+                    <span class="release-date">January 19, 2025</span>
+                </div>
+
+                <!-- scitex-cloud -->
+                <div class="ecosystem-card">
+                    <div class="ecosystem-card-header">
+                        <h3><i class="fas fa-cloud"></i> scitex-cloud</h3>
+                        <span class="version-badge">v{{ SCITEX_CLOUD_VERSION }}</span>
+                    </div>
+                    <p class="ecosystem-desc">Web platform for research collaboration</p>
+                    <ul class="ecosystem-highlights">
+                        <li>Self-hostable with Docker</li>
+                        <li>REST API for automation</li>
+                        <li>This site runs on it</li>
+                    </ul>
+                    <div class="ecosystem-links">
+                        <a href="https://github.com/ywatanabe1989/scitex-cloud" target="_blank"><i class="fab fa-github"></i> GitHub</a>
+                    </div>
+                    <span class="release-date">Active Development</span>
+                </div>
+            </div>
+        </div>
+
+        <hr class="section-divider">
+
+        <h2 class="cloud-header"><i class="fas fa-cloud"></i> SciTeX Cloud — Detailed Changelog</h2>
+
         <div class="stats-box">
             <div class="stat-item">
-                <span class="stat-number">920+</span>
+                <span class="stat-number">1205</span>
                 <span class="stat-label">Total Commits</span>
             </div>
             <div class="stat-item">
-                <span class="stat-number">6</span>
+                <span class="stat-number">7</span>
                 <span class="stat-label">Months of Development</span>
             </div>
             <div class="stat-item">
@@ -48,14 +147,440 @@
         </div>
         <div class="release-month">
             <div class="month-header">
+                <h2>December 2025 — v0.5.2-alpha</h2>
+                <span class="month-badge">Latest Release</span>
+            </div>
+            <ul class="feature-list">
+                <li class="feature-item">
+                    <h3>📊 App-Separated Logging System</h3>
+                    <p>
+                        Dedicated log files for each major app (vis_app.log, writer_app.log, scholar_app.log,
+                        code_app.log, project_app.log) with RotatingFileHandler (5MB, 3 backups). Improves
+                        development speed by isolating app-specific logs. Browser console errors now split
+                        into console_error.log for easier debugging.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>🔧 Vis Editor Refactoring</h3>
+                    <p>
+                        Reduced VisEditor.ts from 1,869 to 1,722 lines (147-line reduction) by extracting
+                        callback handlers to EditorCallbackHandlers.ts. PropertiesManager reduced from 2,086
+                        to 1,706 lines (380-line reduction) with new builder classes. Total 527-line reduction
+                        improves maintainability.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>🏷️ Sigma → Vis Component Rename</h3>
+                    <p>
+                        Completed naming transition from Sigma to Vis across 37 files. Updated SigmaEditor.ts
+                        to VisEditor.ts with all references in TypeScript, Python, HTML, and CSS. Cleaned up
+                        obsolete backup files and generated assets.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>🔄 rename.sh Utility Enhancements</h3>
+                    <p>
+                        New execution order ensures path integrity: Contents → Symlink targets → Symlink/file
+                        names → Directories (deepest first). Added config display at startup, progress indicators,
+                        and intelligent directory depth sorting to prevent path breakage during bulk renames.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>🐛 Canvas Initialization Fixes</h3>
+                    <p>
+                        Fixed TypeError errors in CanvasManager by removing obsolete setupHoverTooltip() and
+                        setupAltKeyTracking() method calls. Canvas now initializes correctly and renders figures
+                        without errors.
+                    </p>
+                </li>
+            </ul>
+        </div>
+        <div class="release-month">
+            <div class="month-header">
+                <h2>December 2025 — v0.5.1-alpha</h2>
+                <span class="month-badge">Element Inspector</span>
+            </div>
+            <ul class="feature-list">
+                <li class="feature-item">
+                    <h3>🔍 Element Inspector Enhancements</h3>
+                    <p>
+                        Major debugging tool improvements with Layer Picker Panel showing a visual
+                        stacked list of all elements at cursor position. Color-coded depth bars
+                        indicate nesting level, click any item to select or use scroll wheel to cycle.
+                        Pagination system loads elements in batches of 512 (Alt+I for first batch,
+                        Ctrl+I for more). Direct element highlighting provides visual feedback for
+                        all elements, even those not in the current batch.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>📸 Debug Snapshot Improvements</h3>
+                    <p>
+                        Enhanced Ctrl+Shift+I capture with sequential clipboard copying. Screenshot
+                        is copied first with "📷 Screenshot copied - paste now!" notification, then
+                        after 3 seconds, console logs are copied with "📋 Console logs copied - paste now!".
+                        No more race conditions between clipboard writes.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>⚡ Element Scanner Performance</h3>
+                    <p>
+                        Faster inspector activation with DocumentFragment for batch DOM operations,
+                        early skipping of non-visual elements (script, style, meta), viewport filtering
+                        for off-screen elements, and quick visibility checks using offsetParent.
+                        Adaptive border widths: 1px for large elements, 1.5px for medium, 2px for small.
+                    </p>
+                </li>
+            </ul>
+        </div>
+        <div class="release-month">
+            <div class="month-header">
+                <h2>December 2025 — v0.5.0-alpha</h2>
+                <span class="month-badge">Vis Gallery</span>
+            </div>
+            <ul class="feature-list">
+                <li class="feature-item">
+                    <h3>🎨 Vis Layout Improvements</h3>
+                    <p>
+                        Enhanced workspace organization with Figure and Data Table tabs converted to
+                        dropdown menus for horizontal space saving. New ruler unit toggle button
+                        (mm/inch) in top-left corner. Bidirectional transform sync between
+                        RulersManager and CanvasManager for seamless zoom and pan coordination.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>📊 Gallery Feature</h3>
+                    <p>
+                        Template gallery for plots with 46 plot types across 10 categories:
+                        area, categorical, contour, distribution, grid, line, scatter, special,
+                        statistical, and vector plots. Gallery generator service and research-master
+                        templates provide a comprehensive starting point for scientific visualizations.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>🖱️ Context Menu Actions</h3>
+                    <p>
+                        Enhanced right-click functionality with Export as PNG/SVG/PDF options,
+                        Save Figure, Toggle Light/Dark theme, Zoom to Fit, and Reset View.
+                        Quick access to common visualization operations directly from the canvas.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>📈 Stats Feature</h3>
+                    <p>
+                        Statistical analysis integration with new StatsManager for running
+                        statistical tests. Stats API endpoint and dedicated CSS styling for
+                        presenting statistical results within visualizations.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>🎯 Element Selection</h3>
+                    <p>
+                        Multi-element selection capability with ElementSelectionManager for
+                        selecting plot elements. Element bounding boxes enable precise selection
+                        and manipulation of individual chart components.
+                    </p>
+                </li>
+            </ul>
+        </div>
+        <div class="release-month">
+            <div class="month-header">
+                <h2>December 2025 — v0.4.9-alpha</h2>
+                <span class="month-badge">Zen Mode</span>
+            </div>
+            <ul class="feature-list">
+                <li class="feature-item">
+                    <h3>🧘 Zen Mode</h3>
+                    <p>
+                        Distraction-free mode for all workspace apps (Writer, Console, Scholar, Visualizer).
+                        Press F11 or Alt+Z to toggle through normal → zen → fullscreen → normal states.
+                        ESC exits back to normal mode. Zen mode hides the header and collapses
+                        sidebars for focused work, with a notification banner showing the current mode.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>⌨️ Module Switcher Shortcuts</h3>
+                    <p>
+                        Quick navigation between workspace modules with keyboard shortcuts:
+                        Alt+S → Scholar, Alt+C → Console, Alt+V → Visualizer, Alt+W → Writer.
+                        Smart detection skips navigation when typing in input fields.
+                        Works globally on all workspace pages.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>📐 Unified Panel Resizing</h3>
+                    <p>
+                        New WorkspacePanelResizer component provides consistent drag-resize behavior
+                        across Writer, Code, Scholar, and Vis apps. Toggle buttons show expand/collapse
+                        icons based on panel state. Panel widths persist via localStorage, and collapsed
+                        panels display only the expand button for a cleaner interface.
+                    </p>
+                </li>
+            </ul>
+        </div>
+        <div class="release-month">
+            <div class="month-header">
+                <h2>December 2025 — v0.4.6-alpha</h2>
+                <span class="month-badge">Scholar Search</span>
+            </div>
+            <ul class="feature-list">
+                <li class="feature-item">
+                    <h3>🔎 Scholar Search UI Enhancements</h3>
+                    <p>
+                        Complete redesign of Scholar search with multi-criteria sorting, search operators,
+                        and improved filter panel. New sort toggles for Year/Citations/Impact Factor with
+                        priority-based multi-criteria sorting (most recent click = highest priority).
+                        Search operators (t=, a=, j=, ys=, ye=, cl=, ch=, ifl=, ifh=) enable advanced
+                        query syntax. Enabled Semantic Scholar API integration. Filter panel spacing
+                        improvements for better visual hierarchy and breathing room.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>📊 Citation Graph Visualization</h3>
+                    <p>
+                        New citation network analysis with graph visualization for exploring paper
+                        relationships. Database management utilities for CrossRef metadata search
+                        and import error fixes for improved stability.
+                    </p>
+                </li>
+            </ul>
+        </div>
+        <div class="release-month">
+            <div class="month-header">
+                <h2>December 2025 — v0.4.5-alpha</h2>
+                <span class="month-badge">CrossRef Integration</span>
+            </div>
+            <ul class="feature-list">
+                <li class="feature-item">
+                    <h3>🔍 CrossRef Local Database Integration</h3>
+                    <p>
+                        Added local CrossRef database support for offline scholarly metadata queries.
+                        Docker-based deployment with FastAPI server providing REST API access to
+                        150M+ academic publication records. Enables citation lookups without rate limits.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>📊 DataTable Component Extraction</h3>
+                    <p>
+                        Extracted DataTable functionality from vis_app to shared component library.
+                        Modular architecture with TableData, TableRendering, TableSelection, TableEditing,
+                        TableClipboard, and TableFillHandle modules for reuse across applications.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>🔎 File Tree Search (Ctrl+K)</h3>
+                    <p>
+                        Added Ctrl+K search input for file tree filtering with debounced search,
+                        keyboard navigation (Enter to select, Escape to close), and visual search box UI.
+                        Enhanced SearchHandler and UndoRedoHandler for file operations.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>🖼️ Media Viewer for Code Workspace</h3>
+                    <p>
+                        New MediaViewerManager for viewing images and media files directly in the
+                        code workspace sidebar. Supports image preview with zoom and pan controls.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>✂️ Enhanced File Tree Multi-Selection</h3>
+                    <p>
+                        Improved cut/copy/paste operations with visual feedback for clipboard state.
+                        Multi-selection support for directories, better drag-and-drop handling,
+                        and comprehensive keyboard shortcuts throughout the file tree.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>🧪 Jest Unit Testing Setup</h3>
+                    <p>
+                        Added Jest configuration for JavaScript/TypeScript unit testing.
+                        Initial test coverage for workspace-files-tree SearchHandler and TreeState.
+                    </p>
+                </li>
+            </ul>
+        </div>
+        <div class="release-month">
+            <div class="month-header">
+                <h2>December 2025 — v0.4.4-alpha</h2>
+                <span class="month-badge">File Tree Enhancements</span>
+            </div>
+            <ul class="feature-list">
+                <li class="feature-item">
+                    <h3>🖱️ File Tree Ctrl+Wheel Zoom</h3>
+                    <p>
+                        Added Ctrl+Wheel zoom for file tree text and icons, matching Monaco editor
+                        and PDF viewer behavior. Font size persists per workspace mode in localStorage.
+                        Scroll up to enlarge, scroll down to shrink (10px-20px range).
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>🏠 Landing Page Display Fix</h3>
+                    <p>
+                        Fixed landing page being constrained by workspace CSS rules. Landing page
+                        now properly allows scrolling and full-width content display instead of
+                        being locked to viewport height.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>📝 Writer API & Auto-Save Fixes</h3>
+                    <p>
+                        Fixed read-tex-file API returning 500 error by properly implementing
+                        the endpoint. Fixed auto-save validation false positives where successful
+                        saves were incorrectly reported as failures.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>🗂️ FileTreeSetup Modularization</h3>
+                    <p>
+                        Refactored FileTreeSetup into modular handler architecture with separate
+                        ResizeHandler, EventHandlers, and FileActions modules for better
+                        maintainability and code organization.
+                    </p>
+                </li>
+            </ul>
+        </div>
+        <div class="release-month">
+            <div class="month-header">
+                <h2>November 2025 — v0.4.3-alpha</h2>
+                <span class="month-badge">Database Clarity</span>
+            </div>
+            <ul class="feature-list">
+                <li class="feature-item">
+                    <h3>🗄️ Database Service Clarity</h3>
+                    <p>
+                        Renamed database service from generic "db" to explicit "postgres" across entire codebase.
+                        Updated 20+ locations including Docker Compose files (dev/nas), environment variables,
+                        Django settings, and entrypoint scripts. Improved service naming consistency and
+                        reduced confusion in multi-database scenarios.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>🐳 Docker Configuration Consolidation</h3>
+                    <p>
+                        Merged docker-compose.override.yml patterns into main configuration files for both
+                        development and NAS deployments. Eliminated separate override files while preserving
+                        environment-specific debug settings. Simplified Docker architecture with single-file
+                        configuration per environment.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>⚙️ Enhanced Development Environment</h3>
+                    <p>
+                        Integrated debug settings directly into development Docker Compose: PostgreSQL query
+                        logging, Redis verbose logging, Gitea debug mode, and debugpy remote debugging port.
+                        All development-specific settings now consolidated in one place for easier maintenance.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>✅ Infrastructure Health Monitoring</h3>
+                    <p>
+                        All 7 Docker services (postgres, redis, django, gitea, celery_worker, celery_beat, flower)
+                        now running healthy with proper healthchecks. Fixed container recreation issues and
+                        ensured consistent environment variable propagation across full container lifecycle.
+                    </p>
+                </li>
+            </ul>
+        </div>
+        <div class="release-month">
+            <div class="month-header">
+                <h2>November 2025 — v0.4.2</h2>
+                <span class="month-badge">SLURM Terminal</span>
+            </div>
+            <ul class="feature-list">
+                <li class="feature-item">
+                    <h3>🖥️ SLURM + Apptainer Terminal</h3>
+                    <p>
+                        Fully functional container-based terminal via SLURM job scheduler.
+                        Terminal sessions run inside Apptainer containers with SciTeX 2.3.0 pre-installed.
+                        User dotfiles (.bashrc, .bash_aliases, .inputrc) are mounted for personalized environments.
+                        WebSocket connection to PTY provides real-time interactive shell access.
+                        Docker container now builds SLURM from source to match host version exactly for munge authentication.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>⚙️ Configurable SLURM Infrastructure</h3>
+                    <p>
+                        SLURM version configurable via environment variables (SCITEX_CLOUD_SLURM_VERSION).
+                        Host path configuration for SLURM jobs (SCITEX_SLURM_CONTAINER_PATH, SCITEX_SLURM_USER_DATA_ROOT).
+                        Automatic munge authentication between Docker and host SLURM cluster.
+                        Interactive terminal respects partition time limits (express: 59min max).
+                    </p>
+                </li>
+            </ul>
+        </div>
+        <div class="release-month">
+            <div class="month-header">
+                <h2>November 2025 — v0.4.1</h2>
+                <span class="month-badge">Symlink UI</span>
+            </div>
+            <ul class="feature-list">
+                <li class="feature-item">
+                    <h3>🔗 Workspace Symlink UI</h3>
+                    <p>
+                        Ctrl+Drag to create cross-module symlinks directly in the file tree.
+                        Backend API with relative path support for portable symlinks.
+                        Visual feedback with drag opacity, drop target border, and link cursor.
+                        Perfect for sharing files between modules (vis/exports → writer/figures).
+                    </p>
+                </li>
+            </ul>
+        </div>
+        <div class="release-month">
+            <div class="month-header">
+                <h2>November 2025 — v0.4.0</h2>
+                <span class="month-badge">Celery Workers</span>
+            </div>
+            <ul class="feature-list">
+                <li class="feature-item">
+                    <h3>👤 Visitor Mode UI Improvements</h3>
+                    <p>
+                        Completely redesigned visitor experience with distinct visual identity.
+                        Visitors now see an orange menu icon instead of regular user avatar,
+                        with dedicated dropdown showing Sign Up and Sign In CTAs. Clear warning
+                        about temporary workspace encourages account creation to preserve work.
+                        Visitor Mode badge with countdown timer shows session expiration in real-time.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>🔧 Auto-Allocation System</h3>
+                    <p>
+                        Fixed critical bug where authenticated visitors had no slot allocations,
+                        leaving them in limbo state. Auto-allocation now triggers at 4 key entry
+                        points: landing page (/), visitor status page (/visitor-status/), code
+                        workspace (/code/), and writer workspace (/writer/). Context processor
+                        detects authenticated visitors and provides is_visitor flag to all templates.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>📦 TypeScript Refactoring</h3>
+                    <p>
+                        Major workspace modularization reducing workspace/index.ts from 607 to 320 lines
+                        (47% reduction). Created three new managers: FileCommandHandler (178 lines)
+                        for file CRUD operations, FileStateManager (201 lines) for state management,
+                        and VisitorManager (103 lines) for visitor detection/warnings. Added comprehensive
+                        REFACTORING_PLAN.md documenting modularization strategy and future steps.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>🐳 Docker Infrastructure</h3>
+                    <p>
+                        Pre-installed essential CLI tools (tree, htop, vim, nano) in both dev and
+                        prod Docker images. Users maintain full apt package installation capability
+                        by running 'apt update' first. Image size reduction through removal of
+                        /var/lib/apt/lists/* while preserving package installation functionality.
+                    </p>
+                </li>
+            </ul>
+        </div>
+        <div class="release-month">
+            <div class="month-header">
                 <h2>November 2025 — v0.3.0</h2>
                 <span class="month-badge">445+ commits</span>
             </div>
             <ul class="feature-list">
                 <li class="feature-item">
-                    <h3>🎉 Sigma Editor Integration</h3>
+                    <h3>🎉 Vis Editor Integration</h3>
                     <p>
-                        Major refactor introducing the Sigma editor for enhanced collaboration.
+                        Major refactor introducing the Vis editor for enhanced collaboration.
                         Real-time collaboration capabilities with improved text editing,
                         synchronization, and multi-user support across the platform.
                     </p>
@@ -72,7 +597,7 @@
                 <li class="feature-item">
                     <h3>👥 Visitor Pool System</h3>
                     <p>
-                        Anonymous visitor support with pre-configured demo accounts (visitor-001 to visitor-032).
+                        Visitor visitor support with pre-configured demo accounts (visitor-001 to visitor-032).
                         Try SciTeX Cloud without registration. Seamless upgrade path from visitor to
                         full account while preserving your work and projects.
                     </p>
@@ -136,10 +661,10 @@
                     </p>
                 </li>
                 <li class="feature-item">
-                    <h3>Anonymous Visitor Access</h3>
+                    <h3>Visitor Visitor Access</h3>
                     <p>
                         Try SciTeX Writer without creating an account. Visitor pool system
-                        with 32 demo projects allows anonymous users to experience the
+                        with 32 demo projects allows visitor users to experience the
                         platform. Automatic project allocation, seamless upgrade path to full
                         accounts, and comprehensive visitor documentation.
                     </p>
@@ -276,307 +801,4 @@
             </div>
         </div>
     </div>
-    <script>
-  // Create commit timeline chart
-  document.addEventListener("DOMContentLoaded", function () {
-    const ctx = document.getElementById("commitTimeline");
-    if (!ctx) return;
-
-    // Cumulative commit data by date
-    const commitData = [
-      {
-        date: "2025-06-28",
-        commits: 9,
-        cumulative: 9,
-        milestone: "Platform Launch",
-      },
-      { date: "2025-06-30", commits: 12, cumulative: 21, milestone: null },
-      {
-        date: "2025-07-01",
-        commits: 6,
-        cumulative: 27,
-        milestone: "Project-Centric Architecture",
-      },
-      {
-        date: "2025-10-16",
-        commits: 45,
-        cumulative: 73,
-        milestone: "Design System",
-      },
-      {
-        date: "2025-10-17",
-        commits: 69,
-        cumulative: 142,
-        milestone: "Dark Mode & Templates",
-      },
-      { date: "2025-10-20", commits: 31, cumulative: 173, milestone: null },
-      { date: "2025-10-22", commits: 57, cumulative: 230, milestone: null },
-      { date: "2025-10-23", commits: 66, cumulative: 296, milestone: null },
-      { date: "2025-10-24", commits: 39, cumulative: 335, milestone: null },
-      { date: "2025-10-26", commits: 23, cumulative: 358, milestone: null },
-      {
-        date: "2025-10-27",
-        commits: 39,
-        cumulative: 397,
-        milestone: "Code Blocks & Alerts",
-      },
-      { date: "2025-10-28", commits: 27, cumulative: 424, milestone: null },
-      {
-        date: "2025-10-29",
-        commits: 7,
-        cumulative: 431,
-        milestone: "Writer API Layer",
-      },
-      {
-        date: "2025-10-30",
-        commits: 15,
-        cumulative: 446,
-        milestone: "Monaco Editor",
-      },
-      { date: "2025-11-01", commits: 5, cumulative: 451, milestone: null },
-      {
-        date: "2025-11-02",
-        commits: 6,
-        cumulative: 457,
-        milestone: "SSL & Production",
-      },
-      {
-        date: "2025-11-03",
-        commits: 37,
-        cumulative: 494,
-        milestone: "Visitor Pool System",
-      },
-      {
-        date: "2025-11-04",
-        commits: 25,
-        cumulative: 519,
-        milestone: "TypeScript Migration",
-      },
-      {
-        date: "2025-11-06",
-        commits: 28,
-        cumulative: 547,
-        milestone: "Complete TS Migration",
-      },
-      {
-        date: "2025-11-07",
-        commits: 14,
-        cumulative: 561,
-        milestone: "Citation Autocomplete",
-      },
-    ];
-
-    // Calculate true cumulative
-    let cumulative = 0;
-    const chartData = commitData.map((d) => {
-      cumulative += d.commits;
-      return {
-        date: d.date,
-        cumulative: cumulative,
-        milestone: d.milestone,
-        commits: d.commits,
-      };
-    });
-
-    // Separate data for line and milestones
-    const lineData = chartData.map((d) => ({ x: d.date, y: d.cumulative }));
-    const milestoneData = chartData
-      .filter((d) => d.milestone)
-      .map((d) => ({
-        x: d.date,
-        y: d.cumulative,
-        label: d.milestone,
-        commits: d.commits,
-      }));
-
-    // Function to get theme-aware colors
-    function getThemeColors() {
-      const isDark =
-        document.documentElement.getAttribute("data-theme") === "dark";
-      return {
-        lineColor: isDark ? "rgb(99, 179, 237)" : "rgb(59, 130, 246)",
-        lineBgColor: isDark
-          ? "rgba(99, 179, 237, 0.15)"
-          : "rgba(59, 130, 246, 0.1)",
-        milestoneColor: isDark ? "rgb(251, 146, 60)" : "rgb(249, 115, 22)",
-        gridColor: isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.08)",
-        textColor: isDark ? "rgb(226, 232, 240)" : "rgb(51, 65, 85)",
-      };
-    }
-
-    let colors = getThemeColors();
-    const isDark =
-      document.documentElement.getAttribute("data-theme") === "dark";
-
-    const chart = new Chart(ctx, {
-      type: "line",
-      data: {
-        datasets: [
-          {
-            label: "Cumulative Commits",
-            data: lineData,
-            borderColor: colors.lineColor,
-            backgroundColor: colors.lineBgColor,
-            borderWidth: 3,
-            fill: true,
-            tension: 0.4,
-            pointRadius: 4,
-            pointHoverRadius: 6,
-            pointBackgroundColor: colors.lineColor,
-            pointBorderColor: colors.lineColor,
-          },
-          {
-            label: "Major Milestones",
-            data: milestoneData,
-            type: "scatter",
-            backgroundColor: colors.milestoneColor,
-            borderColor: isDark
-              ? "rgba(0, 0, 0, 0.3)"
-              : "rgba(255, 255, 255, 0.5)",
-            borderWidth: 3,
-            pointRadius: 8,
-            pointHoverRadius: 12,
-            pointStyle: "circle",
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: {
-          mode: "index",
-          intersect: false,
-        },
-        plugins: {
-          legend: {
-            display: true,
-            position: "top",
-            labels: {
-              usePointStyle: true,
-              padding: 20,
-              font: {
-                size: 16,
-                weight: "600",
-              },
-              color: colors.textColor,
-              boxWidth: 20,
-              boxHeight: 20,
-              generateLabels: function (chart) {
-                const datasets = chart.data.datasets;
-                return datasets.map((dataset, i) => ({
-                  text: dataset.label,
-                  fillStyle: dataset.backgroundColor,
-                  strokeStyle: dataset.borderColor,
-                  lineWidth: dataset.borderWidth || 2,
-                  hidden: !chart.isDatasetVisible(i),
-                  index: i,
-                  pointStyle: dataset.pointStyle || "circle",
-                }));
-              },
-            },
-          },
-          tooltip: {
-            callbacks: {
-              title: function (context) {
-                if (context[0].dataset.label === "Major Milestones") {
-                  const point = milestoneData[context[0].dataIndex];
-                  return point.label;
-                }
-                return context[0].label;
-              },
-              label: function (context) {
-                if (context.dataset.label === "Major Milestones") {
-                  const point = milestoneData[context.dataIndex];
-                  return `${point.commits} commits • Total: ${point.y}`;
-                }
-                return `Total Commits: ${context.parsed.y}`;
-              },
-            },
-          },
-        },
-        scales: {
-          x: {
-            type: "time",
-            time: {
-              unit: "month",
-              displayFormats: {
-                month: "MMM yyyy",
-              },
-            },
-            title: {
-              display: true,
-              text: "Development Timeline",
-              color: colors.textColor,
-            },
-            ticks: {
-              color: colors.textColor,
-            },
-            grid: {
-              color: colors.gridColor,
-            },
-          },
-          y: {
-            beginAtZero: true,
-            title: {
-              display: true,
-              text: "Cumulative Commits",
-              color: colors.textColor,
-            },
-            ticks: {
-              color: colors.textColor,
-            },
-            grid: {
-              color: colors.gridColor,
-            },
-          },
-        },
-      },
-    });
-
-    // Listen for theme changes and update chart colors
-    const observer = new MutationObserver(function (mutations) {
-      mutations.forEach(function (mutation) {
-        if (
-          mutation.type === "attributes" &&
-          mutation.attributeName === "data-theme"
-        ) {
-          colors = getThemeColors();
-          const isDark =
-            document.documentElement.getAttribute("data-theme") === "dark";
-
-          // Update dataset colors
-          chart.data.datasets[0].borderColor = colors.lineColor;
-          chart.data.datasets[0].backgroundColor = colors.lineBgColor;
-          chart.data.datasets[0].pointBackgroundColor = colors.lineColor;
-          chart.data.datasets[0].pointBorderColor = colors.lineColor;
-          chart.data.datasets[1].backgroundColor = colors.milestoneColor;
-          chart.data.datasets[1].borderColor = isDark
-            ? "rgba(0, 0, 0, 0.3)"
-            : "rgba(255, 255, 255, 0.5)";
-
-          // Update legend and scale colors
-          chart.options.plugins.legend.labels.color = colors.textColor;
-          chart.options.plugins.legend.labels.font = {
-            size: 16,
-            weight: "600",
-          };
-          chart.options.scales.x.title.color = colors.textColor;
-          chart.options.scales.x.ticks.color = colors.textColor;
-          chart.options.scales.x.grid.color = colors.gridColor;
-          chart.options.scales.y.title.color = colors.textColor;
-          chart.options.scales.y.ticks.color = colors.textColor;
-          chart.options.scales.y.grid.color = colors.gridColor;
-
-          // Update the chart
-          chart.update();
-        }
-      });
-    });
-
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["data-theme"],
-    });
-  });
-    </script>
 {% endblock %}

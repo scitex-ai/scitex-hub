@@ -3,7 +3,7 @@
  * Provides reusable fetch wrapper with CSRF token handling
  */
 
-import { getCsrfToken } from "./csrf.js";
+import { getCsrfToken } from "./csrf";
 
 console.log(
   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/static/ts/utils/api.ts loaded",

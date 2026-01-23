@@ -1,0 +1,64 @@
+/* ============================================================================
+ * Table Panel Modals and States
+ * ============================================================================
+ * Expanded views, empty states, and modal dialogs
+ * ========================================================================== */
+
+/* Empty States */
+.tables-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.tables-empty-state i {
+  opacity: 0.5;
+}
+
+/* Expanded View (Shown on double-click) */
+.table-expanded-view {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--workspace-border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.table-expanded-preview {
+  width: 100%;
+  max-height: 300px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--bg-page);
+  border: 1px solid var(--workspace-border-default);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.table-expanded-preview img {
+  width: 100%;
+  height: auto;
+  max-height: 300px;
+  object-fit: contain;
+}
+
+.table-expanded-details {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.table-expanded-details > div {
+  margin-bottom: 0.4rem;
+}
+
+.table-expanded-details strong {
+  color: var(--workspace-text-primary);
+  font-weight: 600;
+}

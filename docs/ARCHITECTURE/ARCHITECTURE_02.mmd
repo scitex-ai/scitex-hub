@@ -1,0 +1,87 @@
+graph TB
+    subgraph HOST["Host Machine: UGREEN DXP480T Plus NAS"]
+        SLURM["SLURM Workload Manager<br/>(slurmctld + slurmd)<br/>Partitions: express, normal, long"]
+        MUNGE["Munge Authentication Service<br/>Socket: /var/run/munge"]
+        APPTAINER["Apptainer Container Runtime<br/>Version 1.3.4"]
+        HOST_USER["Host User Account<br/>Username: scitex, UID: 1000"]
+    end
+
+    subgraph DOCKER["Docker Network: scitex-network"]
+        subgraph EDGE["Edge Services Layer"]
+            CLOUDFLARED["Cloudflare Tunnel<br/>Domain: scitex.ai"]
+            NGINX["Nginx Reverse Proxy<br/>Ports: 80, 443"]
+        end
+
+        subgraph APP["Application Services Layer"]
+            DJANGO["Django Framework + Daphne ASGI<br/>Port: 8000"]
+            CELERY_WORKER["Celery Distributed Task Queue<br/>Worker Process"]
+            CELERY_BEAT["Celery Beat Scheduler<br/>Periodic Tasks"]
+            FLOWER["Flower Monitoring Dashboard<br/>Port: 5555"]
+        end
+
+        subgraph STORAGE["Data Persistence Layer"]
+            POSTGRES["PostgreSQL Database v15<br/>Port: 5432"]
+            REDIS["Redis Cache + Message Broker<br/>Port: 6379"]
+        end
+
+        subgraph SERVICES["External Services Layer"]
+            GITEA["Gitea Git Server<br/>HTTP: 3000, SSH: 2222"]
+            CROSSREF["Crossref REST API<br/>Port: 8001"]
+        end
+    end
+
+    subgraph GATEWAY["SSH Gateway Services"]
+        SSH_WORKSPACE["Workspace SSH Gateway<br/>Port: 2200"]
+        SSH_GITEA["Gitea SSH Gateway<br/>Port: 2222"]
+    end
+
+    %% External Network
+    INTERNET["Internet Traffic"] --> CLOUDFLARED
+
+    %% Request Flow
+    CLOUDFLARED --> NGINX
+    NGINX -->|"API Requests"| DJANGO
+    NGINX -->|"Static Assets"| DJANGO
+    NGINX -->|"Monitoring"| FLOWER
+    NGINX -->|"Git Subdomain"| GITEA
+
+    %% Application Dependencies
+    DJANGO -->|"SQL Operations"| POSTGRES
+    DJANGO -->|"Cache Operations"| REDIS
+    DJANGO -->|"Task Queue"| REDIS
+    DJANGO -->|"Citation Queries"| CROSSREF
+    DJANGO -->|"Repository Operations"| GITEA
+    DJANGO -.->|"Container Management"| HOST
+    DJANGO -.->|"Job Submission"| SLURM
+    DJANGO -.->|"Authentication"| MUNGE
+
+    %% Worker Dependencies
+    CELERY_WORKER -->|"Task Retrieval"| REDIS
+    CELERY_WORKER -->|"Data Access"| POSTGRES
+    CELERY_BEAT -->|"Task Scheduling"| REDIS
+    FLOWER -->|"Queue Monitoring"| REDIS
+
+    %% Host Service Dependencies
+    SLURM -.->|"Credential Validation"| MUNGE
+    SLURM -.->|"Container Execution"| APPTAINER
+    SLURM -.->|"User Management"| HOST_USER
+
+    %% Gateway Connections
+    SSH_WORKSPACE -.->|"Terminal Sessions"| DJANGO
+    SSH_GITEA -.->|"Git Protocol"| GITEA
+
+    %% Academic Color Scheme
+    classDef hostService fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#0d47a1
+    classDef edgeService fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#bf360c
+    classDef appService fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px,color:#4a148c
+    classDef storageService fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20
+    classDef serviceLayer fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#e65100
+    classDef gateway fill:#fce4ec,stroke:#c2185b,stroke-width:2px,color:#880e4f
+
+    %% Apply Styles
+    class SLURM,MUNGE,APPTAINER,HOST_USER hostService
+    class CLOUDFLARED,NGINX edgeService
+    class DJANGO,CELERY_WORKER,CELERY_BEAT,FLOWER appService
+    class POSTGRES,REDIS storageService
+    class GITEA,CROSSREF serviceLayer
+    class SSH_WORKSPACE,SSH_GITEA gateway

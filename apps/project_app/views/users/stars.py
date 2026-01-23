@@ -21,8 +21,8 @@ def user_stars(request, username):
 
     starred_repos = (
         RepositoryStar.objects.filter(user=user)
-        .select_related("repository")
-        .order_by("-created_at")
+        .select_related("project")
+        .order_by("-starred_at")
     )
 
     # Pagination

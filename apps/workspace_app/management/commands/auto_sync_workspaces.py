@@ -7,7 +7,7 @@ DEPRECATED: Auto-sync daemon has been removed from the architecture.
 
 New Architecture:
 - Manual sync: User runs 'scitex cloud push/pull' from local machine
-- Auto backup: Simple rsync snapshots (see: scripts/backup_workspaces.sh)
+- Auto backup: Simple rsync snapshots (see: scripts/deployment/backup_workspaces.sh)
 
 Reason for removal:
 - Auto-git-sync creates dirty commits during editing
@@ -55,7 +55,7 @@ class Command(BaseCommand):
             "  2. Sync manually: 'scitex cloud push/pull' (from local machine)\n"
             "  3. Auto-backups: rsync snapshots every 5 minutes (transparent)\n"
             "\n"
-            "For disaster recovery backups, see: scripts/backup_workspaces.sh\n"
+            "For disaster recovery backups, see: scripts/deployment/backup_workspaces.sh\n"
         )
 
 

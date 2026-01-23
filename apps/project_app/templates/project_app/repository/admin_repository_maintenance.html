@@ -1,5 +1,5 @@
 {% extends 'global_base.html' %}
-{% load static %}
+{% load static vite %}
 {% block title %}
     Repository
     Maintenance - SciTeX Cloud
@@ -394,7 +394,7 @@
   }
     </style>
 {% endblock %}
-{% load static %}
+{% load static vite %}
 {% block content %}
     {% csrf_token %}
     <!-- Username data for TypeScript -->
@@ -449,5 +449,5 @@
         </div>
     </div>
     <!-- Repository Maintenance Script (TypeScript-compiled) -->
-    <script src="{% static 'project_app/js/repository/admin_maintenance.js' %}"></script>
+    {% vite_script 'project_app/repository/admin/index' %}
 {% endblock %}

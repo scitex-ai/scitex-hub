@@ -147,7 +147,8 @@ class SSHGateway(paramiko.ServerInterface):
         Returns:
             Comma-separated list of allowed auth methods
         """
-        return "publickey,password"
+        # Only allow public key authentication for security
+        return "publickey"
 
     def check_channel_request(self, kind: str, chanid: int) -> int:
         """

@@ -1,0 +1,73 @@
+/* ========================================================================
+   SciTeX Vis Editor - VisPlot-Inspired Layout
+   ======================================================================== */
+
+/* Color Variables - Professional theme matching Code/Writer modules
+ * Uses workspace color system for consistency across all workspace apps
+ *
+ * DESIGN PRINCIPLE:
+ * - Light mode: Clean, professional light surfaces with readable text
+ * - Dark mode: Deep blacks (#0d0d0d) with subtle elevated surfaces
+ * - Both themes use semantic color tokens for consistency
+ */
+:root,
+[data-theme="light"] {
+    /* Ruler colors - distinct from canvas */
+    --vis-ruler-bg: var(--workspace-ruler-bg, #d0dae5);
+    --vis-ruler-border: var(--workspace-ruler-border, #d0d7de);
+
+    /* Semantic aliases for vis editor - consistent with code_app/workspace.css */
+    --vis-bg-primary: var(--workspace-bg-secondary, #f3f4f6);
+    --vis-bg-secondary: var(--workspace-bg-tertiary, #ebedef);
+    --vis-bg-hover: var(--workspace-bg-tertiary, #ebedef);
+    --vis-border: var(--workspace-border-default, #b5c7d1);
+    --vis-text-primary: var(--text-primary, #1a2a40);
+    --vis-text-muted: var(--text-muted, #6c8ba0);
+}
+
+[data-theme="dark"] {
+    /* Use global workspace colors for consistency across Code/Writer/Vis */
+    --vis-ruler-bg: var(--workspace-ruler-bg, #1a1a1a);
+    --vis-ruler-border: var(--workspace-ruler-border, #1a1a1a);
+    --vis-bg-primary: var(--workspace-bg-primary, #0d0d0d);
+    --vis-bg-secondary: var(--workspace-bg-secondary, #151515);
+    --vis-bg-hover: var(--workspace-bg-tertiary, #1a1a1a);
+    --vis-border: var(--workspace-border-default, #3a3a3a);
+    --vis-text-primary: var(--text-primary, #d4e1e8);
+    --vis-text-muted: var(--text-muted, #6c8ba0);
+}
+
+/* Main Container - Grid Layout */
+/* Force workspace-page constraints for vis app - ensure viewport containment */
+body.workspace-page.vis-workspace {
+    height: 100vh !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
+}
+
+body.workspace-page.vis-workspace #main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.vis-editor-container {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;  /* minmax(0, 1fr) prevents content from expanding grid */
+    height: 100%; /* Fill parent container (flex: 1 from global-base.css) */
+    /* Note: max-height removed - parent #main-content with flex:1 handles dynamic sizing */
+    /* This allows content to properly expand when header collapses */
+    background: var(--vis-bg-primary);
+    color: var(--vis-text-primary);
+    overflow: hidden;
+}
+
+/* Dark mode: unified background with workspace modules */
+[data-theme="dark"] .vis-editor-container {
+    background: var(--workspace-bg-primary) !important;
+}
+

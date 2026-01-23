@@ -23,7 +23,7 @@ export function getWriterConfig(): WriterConfig {
       isDemo: false,
       username: null,
       projectSlug: null,
-      isAnonymous: true,
+      isVisitor: true,
     };
   }
   return config;

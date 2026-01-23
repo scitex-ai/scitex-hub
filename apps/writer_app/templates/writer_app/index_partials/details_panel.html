@@ -1,0 +1,124 @@
+<!-- Details Panel (rightmost panel) -->
+<aside class="writer-details" id="writer-details">
+    <div class="details-header">
+        <button class="details-toggle panel-toggle-btn right-panel-toggle" id="details-toggle" title="Toggle details (Ctrl+Shift+D) (Zen: F11/Alt+Z)">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+        <h5><i class="fas fa-sliders-h"></i> Details</h5>
+    </div>
+    <div class="details-content" id="writer-details-content">
+        <!-- Compilation Settings Section -->
+        <div class="details-section">
+            <div class="details-section__header" onclick="this.parentElement.classList.toggle('collapsed')">
+                <h6 class="details-section__title">
+                    <i class="fas fa-cog"></i> Compilation
+                </h6>
+                <i class="fas fa-chevron-down details-section__toggle"></i>
+            </div>
+            <div class="details-section__content">
+                <!-- Auto Preview -->
+                <div class="details-option">
+                    <label class="details-option__label">
+                        <input type="checkbox" id="details-auto-preview" checked>
+                        <span>Auto Preview</span>
+                    </label>
+                    <span class="details-option__hint">Compile on change</span>
+                </div>
+                <!-- Auto Full Compile -->
+                <div class="details-option">
+                    <label class="details-option__label">
+                        <input type="checkbox" id="details-auto-full">
+                        <span>Auto Full Compile</span>
+                    </label>
+                    <span class="details-option__hint">Full manuscript on save</span>
+                </div>
+                <!-- Add Figures -->
+                <div class="details-option">
+                    <label class="details-option__label">
+                        <input type="checkbox" id="details-add-figs" checked>
+                        <span>Include Figures</span>
+                    </label>
+                </div>
+                <!-- Add Tables -->
+                <div class="details-option">
+                    <label class="details-option__label">
+                        <input type="checkbox" id="details-add-tables" checked>
+                        <span>Include Tables</span>
+                    </label>
+                </div>
+                <!-- Draft Mode -->
+                <div class="details-option">
+                    <label class="details-option__label">
+                        <input type="checkbox" id="details-draft-mode">
+                        <span>Draft Mode</span>
+                    </label>
+                    <span class="details-option__hint">Faster compilation</span>
+                </div>
+                <!-- Compile Button -->
+                <button id="details-compile-btn" class="btn btn-primary btn-sm w-100 mt-2">
+                    <i class="fas fa-rocket me-1"></i> Compile Full
+                </button>
+            </div>
+        </div>
+
+        <!-- Project Info Section -->
+        <div class="details-section">
+            <div class="details-section__header" onclick="this.parentElement.classList.toggle('collapsed')">
+                <h6 class="details-section__title">
+                    <i class="fas fa-info-circle"></i> Project Info
+                </h6>
+                <i class="fas fa-chevron-down details-section__toggle"></i>
+            </div>
+            <div class="details-section__content">
+                <div class="details-info-row">
+                    <span class="details-info-label">Project:</span>
+                    <span class="details-info-value" id="details-project-name">{{ project.name|default:"—" }}</span>
+                </div>
+                <div class="details-info-row">
+                    <span class="details-info-label">Owner:</span>
+                    <span class="details-info-value" id="details-project-owner">{{ project.owner.username|default:"—" }}</span>
+                </div>
+                <div class="details-info-row">
+                    <span class="details-info-label">Word Count:</span>
+                    <span class="details-info-value" id="details-total-words">0</span>
+                </div>
+                <div class="details-info-row">
+                    <span class="details-info-label">Last Modified:</span>
+                    <span class="details-info-value" id="details-last-modified">—</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shortcuts Section -->
+        <div class="details-section collapsed">
+            <div class="details-section__header" onclick="this.parentElement.classList.toggle('collapsed')">
+                <h6 class="details-section__title">
+                    <i class="fas fa-keyboard"></i> Shortcuts
+                </h6>
+                <i class="fas fa-chevron-down details-section__toggle"></i>
+            </div>
+            <div class="details-section__content">
+                <div class="details-shortcut">
+                    <kbd>Ctrl+S</kbd>
+                    <span>Save</span>
+                </div>
+                <div class="details-shortcut">
+                    <kbd>Alt+Enter</kbd>
+                    <span>Quick Preview</span>
+                </div>
+                <div class="details-shortcut">
+                    <kbd>Alt+Shift+Enter</kbd>
+                    <span>Full Compile</span>
+                </div>
+                <div class="details-shortcut">
+                    <kbd>Ctrl+\</kbd>
+                    <span>Toggle Sidebar</span>
+                </div>
+                <div class="details-shortcut">
+                    <kbd>Ctrl+Shift+D</kbd>
+                    <span>Toggle Details</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</aside>

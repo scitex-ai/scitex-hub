@@ -1,0 +1,57 @@
+/**
+ * Citation Graph - Base Styles
+ * Container and card components
+ */
+
+/* Container */
+.citation-graph-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  background: var(--workspace-bg-primary, #0d0d0d);
+}
+
+/* Cards */
+.graph-card {
+  background: var(--workspace-bg-secondary, #151515);
+  border: 1px solid var(--workspace-border-default, #3a3a3a);
+}
+
+.graph-card--full {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 400px;
+}
+
+.graph-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
+  background: var(--workspace-bg-tertiary, #1a1a1a);
+}
+
+.graph-card__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #d4e1e8);
+}
+
+.graph-card__title i {
+  color: var(--workspace-icon-primary, #059669);
+}
+
+.graph-card__body {
+  padding: 16px;
+  flex: 1;
+  min-height: 0;
+}

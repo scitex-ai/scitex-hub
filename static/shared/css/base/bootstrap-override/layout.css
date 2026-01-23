@@ -1,0 +1,42 @@
+/* Bootstrap Override - Layout and Container Overrides */
+
+/* Override Bootstrap's container max-width at all breakpoints */
+@media (min-width: 576px) {
+  .container {
+    max-width: var(--container-max-width) !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: var(--container-max-width) !important;
+  }
+}
+
+@media (min-width: 992px) {
+  .container {
+    max-width: var(--container-max-width) !important;
+  }
+}
+
+@media (min-width: 1200px) {
+  .container {
+    max-width: var(--container-max-width) !important;
+  }
+}
+
+@media (min-width: 1400px) {
+  .container {
+    max-width: var(--container-max-width) !important;
+  }
+}
+
+/* Ensure all containers use our max-width */
+.container,
+.container-sm,
+.container-md,
+.container-lg,
+.container-xl,
+.container-xxl {
+  max-width: var(--container-max-width) !important;
+}

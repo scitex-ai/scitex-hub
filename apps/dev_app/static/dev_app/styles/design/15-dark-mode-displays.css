@@ -1,0 +1,6 @@
+/* Dark mode: Make example displays much darker for better contrast */
+[data-theme="dark"] .component-example .example-display {
+  background-color: var(--bg-800);
+  border-color: var(--border-400);
+}
+

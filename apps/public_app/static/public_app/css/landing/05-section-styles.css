@@ -1,0 +1,38 @@
+/* Section Styles */
+.section {
+  padding: var(--spacing-xxl) 0;
+}
+
+.section-alt {
+  background-color: var(--gray-700);
+  color: var(--white);
+}
+
+.section-heading {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto var(--spacing-xl);
+}
+
+.section-heading h2 {
+  font-size: 2.25rem;
+  color: var(--primary-color);
+  margin-bottom: var(--spacing-sm);
+}
+
+.section-heading p {
+  font-size: 1.25rem;
+  color: var(--text-light);
+}
+
+.click-hint {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--gray-500);
+  padding: 0.25rem 0.75rem;
+  background-color: var(--gray-100);
+  border-radius: 20px;
+  cursor: help;
+}
+

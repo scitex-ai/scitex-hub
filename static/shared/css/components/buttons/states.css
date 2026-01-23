@@ -1,0 +1,55 @@
+/*
+ * @component Button States
+ * @description Button state styles (disabled, loading)
+ * @file /static/shared/css/components/buttons/states.css
+ */
+
+/* =========================================
+   BUTTON STATES
+   ========================================= */
+
+.btn:disabled,
+.btn.disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  background-color: var(--bg-muted) !important;
+  border-color: var(--border-default) !important;
+  color: var(--text-secondary) !important;
+}
+
+/* =========================================
+   LOADING BUTTON
+   ========================================= */
+
+.btn-loading {
+  position: relative;
+  pointer-events: none;
+}
+
+.btn-loading::after {
+  content: "";
+  position: absolute;
+  width: 1rem;
+  height: 1rem;
+  top: 50%;
+  left: 50%;
+  margin-left: -0.5rem;
+  margin-top: -0.5rem;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: btn-spinner 0.6s linear infinite;
+}
+
+.btn-loading .btn-text {
+  visibility: hidden;
+}
+
+@keyframes btn-spinner {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

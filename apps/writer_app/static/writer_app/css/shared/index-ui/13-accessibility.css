@@ -1,0 +1,14 @@
+/* =========================================
+   ACCESSIBILITY
+   ========================================= */
+
+.panel-header:focus-within {
+  outline: 2px solid var(--color-accent-emphasis);
+  outline-offset: 2px;
+}
+
+.save-status:focus {
+  outline: 2px solid var(--color-accent-emphasis);
+  outline-offset: 2px;
+}
+

@@ -1,0 +1,126 @@
+/*
+ * Sort Controls Styles
+ *
+ * Drag-and-drop sort items, indicators, and styling
+ */
+
+/* Sort Items Container */
+#dragSortContainer {
+  flex-direction: column;
+}
+
+.sort-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-surface);
+  border: 2px solid var(--border-default);
+  border-radius: 6px;
+  cursor: move;
+  user-select: none;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.sort-item:hover {
+  background: var(--bg-muted);
+  border-color: var(--text-secondary);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.sort-item:active {
+  cursor: grabbing;
+}
+
+.sort-item.dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+}
+
+.sort-item.drag-over {
+  border-color: var(--text-primary);
+  border-style: dashed;
+}
+
+.sort-item[data-state="asc"] {
+  background: var(--text-secondary);
+  border-color: var(--text-primary);
+  color: var(--text-inverse);
+}
+
+.sort-item[data-state="desc"] {
+  background: var(--text-muted);
+  border-color: var(--text-secondary);
+  color: var(--text-inverse);
+}
+
+.sort-item[data-state="none"] {
+  opacity: 0.6;
+}
+
+.sort-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  flex: 1;
+}
+
+/* Sort Drag Handle */
+.drag-handle {
+  color: var(--text-secondary);
+  cursor: grab;
+  display: flex;
+  align-items: center;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.sort-item[data-state="asc"] .drag-handle,
+.sort-item[data-state="desc"] .drag-handle {
+  color: var(--text-inverse);
+}
+
+/* Sort Indicator - Dynamic Symbol Display */
+.sort-indicator {
+  display: inline-block;
+  width: 1.5rem;
+  text-align: center;
+  min-height: 1em;
+  font-size: 0.9rem;
+  font-weight: bold;
+  min-width: 20px;
+}
+
+.sort-indicator[data-state="none"] {
+  visibility: hidden;
+  width: 1.5rem;
+}
+
+.sort-indicator[data-state="asc"]::after {
+  content: "↑";
+  color: var(--text-primary);
+}
+
+.sort-indicator[data-state="desc"]::after {
+  content: "↓";
+  color: var(--text-primary);
+}
+
+.sort-item[data-state="asc"] .sort-indicator::before {
+  content: "↑";
+}
+
+.sort-item[data-state="desc"] .sort-indicator::before {
+  content: "↓";
+}
+
+.sort-item[data-state="none"] .sort-indicator::before {
+  content: "○";
+}

@@ -1,0 +1,42 @@
+/* Add spacing between buttons in examples */
+.example-display .btn {
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.example-display .btn:last-child {
+  margin-right: 0;
+}
+
+.component-example .example-code {
+  background-color: var(--scitex-color-01);
+  border-radius: 8px;
+  padding: 1rem;
+  color: var(--scitex-color-07);
+  font-family: monospace;
+  overflow-x: auto;
+}
+
+.spacing-demo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+
+.spacing-demo .spacing-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.spacing-demo .spacing-example {
+  background-color: var(--scitex-color-03);
+  width: 100px;
+}
+
+.spacing-demo .spacing-label {
+  margin-top: 0.5rem;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+

@@ -1,0 +1,130 @@
+
+/* Button overrides for theme support */
+.btn-outline-primary {
+  /* Styling moved to central CSS - see static/css/components/buttons.css */
+  color: var(--color-accent-fg) !important;
+  border-color: var(--color-accent-fg) !important;
+  background: transparent !important;
+}
+
+.btn-outline-primary:hover {
+  /* Styling moved to central CSS - see static/css/components/buttons.css */
+  color: #ffffff !important;
+  background: var(--color-accent-fg) !important;
+  border-color: var(--color-accent-fg) !important;
+}
+
+[data-theme="dark"] .btn-outline-primary {
+  /* Styling moved to central CSS - see static/css/components/buttons.css */
+  color: var(--scitex-color-06) !important;
+  border-color: var(--scitex-color-05) !important;
+}
+
+[data-theme="dark"] .btn-outline-primary:hover {
+  /* Styling moved to central CSS - see static/css/components/buttons.css */
+  color: #ffffff !important;
+  background: var(--scitex-color-04) !important;
+  border-color: var(--scitex-color-04) !important;
+}
+
+/* Text muted helper */
+.text-muted {
+  /* Styling moved to central CSS - see static/css/common/typography-vars.css */
+  color: var(--color-fg-muted) !important;
+}
+
+/* GitHub-style repo action buttons */
+.repo-action-btn {
+  /* Layout preserved */
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  white-space: nowrap;
+  cursor: pointer;
+  /* Styling moved to central CSS - see static/css/components/buttons.css */
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 20px;
+  background: var(--color-canvas-default);
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  color: var(--color-fg-default);
+  transition: all 0.2s ease;
+}
+
+/* Fix dropdown positioning */
+.btn-group,
+.dropdown {
+  /* Layout preserved */
+  position: relative;
+  display: inline-flex;
+}
+
+/* Split button - connect buttons visually */
+.btn-group .repo-action-btn {
+  margin-left: 0;
+}
+
+.btn-group .repo-action-btn:not(:first-child) {
+  margin-left: -1px;
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+}
+
+.btn-group .repo-action-btn:not(:last-of-type) {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+.btn-group .repo-action-btn.dropdown-toggle-split {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+/* Dropdown menu visibility control */
+.dropdown-menu {
+  display: none;
+}
+
+.dropdown-menu.show {
+  display: block;
+}
+
+.repo-action-btn:hover {
+  /* Styling moved to central CSS - see static/css/components/buttons.css */
+  background: var(--color-neutral-muted);
+  border-color: var(--color-fg-muted);
+}
+
+.repo-action-btn:active {
+  /* Styling moved to central CSS - see static/css/components/buttons.css */
+  background: var(--color-canvas-default);
+  transform: scale(0.97);
+}
+
+.repo-action-btn.active {
+  /* Styling moved to central CSS - see static/css/components/buttons.css */
+  background: var(--color-accent-emphasis);
+  color: #ffffff;
+  border-color: var(--color-accent-emphasis);
+}
+
+.repo-action-icon {
+  /* Styling moved to central CSS - see static/css/components/icons.css */
+  fill: currentColor;
+  vertical-align: text-bottom;
+}
+
+.repo-action-count {
+  /* Layout preserved */
+  display: inline-flex;
+  min-width: 20px;
+  padding: 0 6px;
+  margin-left: 2px;
+  /* Styling moved to central CSS - see static/css/components/badges.css */
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-fg-muted);
+}
+

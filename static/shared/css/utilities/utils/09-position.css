@@ -1,0 +1,17 @@
+/* ========================================================================
+   POSITION UTILITIES
+   ======================================================================== */
+
+.relative {
+  position: relative !important;
+}
+.absolute {
+  position: absolute !important;
+}
+.fixed {
+  position: fixed !important;
+}
+.sticky {
+  position: sticky !important;
+}
+

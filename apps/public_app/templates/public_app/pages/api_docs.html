@@ -1,255 +1,32 @@
-{% extends "public_app/cloud_base.html" %}
-{% load static %}
-{%block title%}
-    API Documentation - SciTeX Cloud
-{% endblock %}
+{% extends "global_base.html" %}
+{% load static vite %}
+{% block title %}API Documentation - SciTeX{% endblock %}
+{% block meta_description %}Complete API reference for integrating with SciTeX modules. REST APIs for Scholar, Writer, Console, Visualizer, and more.{% endblock %}
 {% block extra_css %}
-    <style>
-  .api-docs {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
-  }
-
-  .api-section {
-    background: var(--color-white);
-    border-radius: 12px;
-    padding: 2rem;
-    margin-bottom: 2rem;
-    box-shadow: var(--shadow-sm);
-  }
-
-  .endpoint {
-    background: var(--color-background);
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    padding: 1.5rem;
-    margin-bottom: 1rem;
-  }
-
-  .method {
-    display: inline-block;
-    padding: 0.25rem 0.75rem;
-    border-radius: 4px;
-    font-weight: 600;
-    font-size: 0.875rem;
-    margin-right: 0.5rem;
-  }
-
-  .method-get {
-    background: #e3f2fd;
-    color: #1976d2;
-  }
-  .method-post {
-    background: #e8f5e9;
-    color: #388e3c;
-  }
-  .method-put {
-    background: #fff3e0;
-    color: #f57c00;
-  }
-  .method-delete {
-    background: #ffebee;
-    color: #d32f2f;
-  }
-
-  .endpoint-path {
-    font-family: "Courier New", monospace;
-    font-size: 1rem;
-    color: var(--color-text-dark);
-  }
-
-  .code-block {
-    background: #f5f5f5;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 1rem;
-    margin: 1rem 0;
-    overflow-x: auto;
-  }
-
-  .code-block code {
-    font-family: "Courier New", monospace;
-    font-size: 0.875rem;
-  }
-    </style>
+<link rel="stylesheet" href="{% static 'shared/css/components/page-header.css' %}">
+<link rel="stylesheet" href="{% static 'public_app/css/api-docs.css' %}">
 {% endblock %}
 {% block content %}
-    <div class="api-docs">
-        <h1>SciTeX API Documentation</h1>
-        <p class="lead">Complete API reference for integrating with SciTeX modules</p>
-        <!-- Authentication Section -->
-        <div class="api-section">
-            <h2>Authentication</h2>
-            <p>All API endpoints require authentication using JWT tokens.</p>
-            <div class="endpoint">
-                <span class="method method-post">POST</span>
-                <span class="endpoint-path">/api/v1/auth/login/</span>
-                <p>Authenticate and receive access tokens</p>
-                <div class="code-block">
-                    <code>
-                        { "username": "your_username", "password": "your_password" }
-                    </code>
-                </div>
-            </div>
-            <div class="endpoint">
-                <span class="method method-post">POST</span>
-                <span class="endpoint-path">/api/v1/auth/refresh/</span>
-                <p>Refresh access token using refresh token</p>
-            </div>
-            <div class="endpoint">
-                <span class="method method-get">GET</span>
-                <span class="endpoint-path">/api/v1/auth/profile/</span>
-                <p>Get current user profile information</p>
-            </div>
-        </div>
-        <!-- Modules Overview -->
-        <div class="api-section">
-            <h2>Module Overview</h2>
-            <p>Access all SciTeX modules through a unified API</p>
-            <div class="endpoint">
-                <span class="method method-get">GET</span>
-                <span class="endpoint-path">/api/v1/modules/</span>
-                <p>List all available SciTeX modules with their status</p>
-            </div>
-            <div class="endpoint">
-                <span class="method method-get">GET</span>
-                <span class="endpoint-path">/api/v1/modules/{module_id}/</span>
-                <p>Get detailed information about a specific module</p>
-            </div>
-        </div>
-        <!-- Engine Module -->
-        <div class="api-section">
-            <h2>SciTeX-Engine API</h2>
-            <p>AI-powered code assistance for Emacs</p>
-            <div class="endpoint">
-                <span class="method method-post">POST</span>
-                <span class="endpoint-path">/api/v1/engine/complete/</span>
-                <p>Get AI-powered code completions</p>
-            </div>
-            <div class="endpoint">
-                <span class="method method-post">POST</span>
-                <span class="endpoint-path">/api/v1/engine/analyze/</span>
-                <p>Analyze code for improvements and issues</p>
-            </div>
-            <div class="endpoint">
-                <span class="method method-get">GET</span>
-                <span class="endpoint-path">/api/v1/engine/templates/</span>
-                <p>Get research code templates</p>
-            </div>
-        </div>
-        <!-- Doc Module -->
-        <div class="api-section">
-            <h2>SciTeX-Doc API</h2>
-            <p>LaTeX manuscript management</p>
-            <div class="endpoint">
-                <span class="method method-get">GET</span>
-                <span class="endpoint-path">/api/v1/doc/manuscripts/</span>
-                <p>List user's manuscripts</p>
-            </div>
-            <div class="endpoint">
-                <span class="method method-post">POST</span>
-                <span class="endpoint-path">/api/v1/doc/create_manuscript/</span>
-                <p>Create a new manuscript</p>
-            </div>
-            <div class="endpoint">
-                <span class="method method-get">GET</span>
-                <span class="endpoint-path">/api/v1/doc/templates/</span>
-                <p>Get available LaTeX templates</p>
-            </div>
-        </div>
-        <!-- Code Module -->
-        <div class="api-section">
-            <h2>SciTeX-Code API (MNGS)</h2>
-            <p>Python utilities for research</p>
-            <div class="endpoint">
-                <span class="method method-get">GET</span>
-                <span class="endpoint-path">/api/v1/code/modules/</span>
-                <p>List available MNGS modules</p>
-            </div>
-            <div class="endpoint">
-                <span class="method method-post">POST</span>
-                <span class="endpoint-path">/api/v1/code/execute/</span>
-                <p>Execute MNGS code in sandboxed environment</p>
-            </div>
-            <div class="endpoint">
-                <span class="method method-get">GET</span>
-                <span class="endpoint-path">/api/v1/code/examples/</span>
-                <p>Get code examples</p>
-            </div>
-        </div>
-        <!-- Viz Module -->
-        <div class="api-section">
-            <h2>SciTeX-Viz API</h2>
-            <p>SigmaPlot integration for publication-ready figures</p>
-            <div class="endpoint">
-                <span class="method method-post">POST</span>
-                <span class="endpoint-path">/api/v1/viz/convert/</span>
-                <p>Convert Python plot to SigmaPlot format</p>
-            </div>
-            <div class="endpoint">
-                <span class="method method-get">GET</span>
-                <span class="endpoint-path">/api/v1/viz/templates/</span>
-                <p>Get publication-ready plot templates</p>
-            </div>
-            <div class="endpoint">
-                <span class="method method-get">GET</span>
-                <span class="endpoint-path">/api/v1/viz/gallery/</span>
-                <p>Browse example gallery</p>
-            </div>
-        </div>
-        <!-- Search Module -->
-        <div class="api-section">
-            <h2>SciTeX-Search API</h2>
-            <p>Advanced LaTeX and mathematical formula search</p>
-            <div class="endpoint">
-                <span class="method method-post">POST</span>
-                <span class="endpoint-path">/api/v1/search/search/</span>
-                <p>Search through LaTeX documents and formulas</p>
-            </div>
-            <div class="endpoint">
-                <span class="method method-post">POST</span>
-                <span class="endpoint-path">/api/v1/search/similar/</span>
-                <p>Find similar mathematical formulas</p>
-            </div>
-            <div class="endpoint">
-                <span class="method method-get">GET</span>
-                <span class="endpoint-path">/api/v1/search/statistics/</span>
-                <p>Get search index statistics</p>
-            </div>
-        </div>
-        <!-- Rate Limiting -->
-        <div class="api-section">
-            <h2>Rate Limiting</h2>
-            <p>API rate limits vary by subscription tier:</p>
-            <ul>
-                <li>
-                    <strong>Free:</strong> 100 requests/hour
-                </li>
-                <li>
-                    <strong>Premium:</strong> 1,000 requests/hour
-                </li>
-                <li>
-                    <strong>Enterprise:</strong> Unlimited
-                </li>
-            </ul>
-        </div>
+<!-- Hero Section -->
+<div class="container pt-4">
+    <section class="page-header page-header--extended">
+        <h1><i class="fas fa-book"></i> API Documentation</h1>
+        <p>Build powerful integrations with SciTeX's REST APIs</p>
+    </section>
+</div>
+<div class="container py-4">
+    <div class="api-layout">
+        {% include "public_app/pages/api-docs-partials/sidebar.html" %}
+        <main class="api-main">
+            {% include "public_app/pages/api-docs-partials/getting-started.html" %}
+            {% include "public_app/pages/api-docs-partials/scholar-api.html" %}
+            {% include "public_app/pages/api-docs-partials/writer-api.html" %}
+            {% include "public_app/pages/api-docs-partials/project-api.html" %}
+            {% include "public_app/pages/api-docs-partials/resources.html" %}
+        </main>
     </div>
+</div>
 {% endblock %}
 {% block extra_js %}
-    <script>
-  // Syntax highlighting for code blocks
-  document.querySelectorAll(".code-block code").forEach((block) => {
-    try {
-      const formatted = JSON.stringify(
-        JSON.parse(block.textContent.trim()),
-        null,
-        2,
-      );
-      block.textContent = formatted;
-    } catch (e) {
-      // Not JSON, leave as is
-    }
-  });
-    </script>
+{% vite_script 'public_app/pages/api-docs' %}
 {% endblock %}

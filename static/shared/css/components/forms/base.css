@@ -1,0 +1,44 @@
+/*
+ * @component Form Base
+ * @description Base form structure including groups and labels
+ * @category Form and Selection
+ * @file /static/shared/css/components/forms/base.css
+ * @darkmode true
+ */
+
+/* =========================
+   Base Form Styles
+   ========================= */
+
+/* Form Group */
+.form-group {
+  margin-bottom: var(--spacing-lg);
+}
+
+/* Form Label */
+.form-label {
+  display: inline-block;
+  margin-bottom: var(--spacing-xs);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Dark mode form label - bluish color for better visibility */
+[data-theme="dark"] .form-label {
+  color: var(--scitex-color-06); /* Pale bluish gray for readability */
+}
+
+/* Helper text (hint/description) */
+.form-text,
+.form-helper-text {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+[data-theme="dark"] .form-text,
+[data-theme="dark"] .form-helper-text {
+  color: var(--scitex-color-05);
+}

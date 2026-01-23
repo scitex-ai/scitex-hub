@@ -6,8 +6,8 @@
  * @author SciTeX Development Team
  */
 
-import { TextOperation } from './ot/operations.js';
-import { OTClient } from './ot/client.js';
+import { TextOperation } from './ot/operations.ts';
+import { OTClient } from './ot/client.ts';
 
 console.log("[DEBUG] WebSocket Collaboration Client loaded");
 

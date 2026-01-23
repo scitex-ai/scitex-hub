@@ -1,0 +1,44 @@
+{
+  "schema": {
+    "name": "scitex.plt.spec",
+    "version": "1.0.0"
+  },
+  "plot_id": "hist2d",
+  "data": {
+    "csv": "hist2d.csv",
+    "format": "wide",
+    "hash": "sha256:5252e39c3493ba98"
+  },
+  "axes": [
+    {
+      "id": "ax0",
+      "bbox": {
+        "x0": 0.25,
+        "y0": 0.2941,
+        "width": 0.5,
+        "height": 0.4118,
+        "space": "panel"
+      },
+      "labels": {
+        "xlabel": "X Position [cm]",
+        "ylabel": "Y Position [cm]",
+        "title": "ax.hist2d()"
+      },
+      "limits": {
+        "x": [
+          -3.2412673400690726,
+          3.9262377064363267
+        ],
+        "y": [
+          -3.9224002516183423,
+          3.529055187570484
+        ]
+      },
+      "role": "main",
+      "linked_to": null
+    }
+  ],
+  "traces": [],
+  "scitex_schema": "scitex.plt.spec",
+  "scitex_schema_version": "1.0.0"
+}

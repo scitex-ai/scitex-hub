@@ -1,16 +1,17 @@
 """API endpoints for Git operations on writer workspace."""
 
 from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
-from ...services.writer_service import WriterService
+from ...decorators import writer_auth_required, writer_project_access_required
+from ...services import WriterService
 import json
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-@login_required
+@writer_auth_required
+@writer_project_access_required
 @require_http_methods(["GET"])
 def git_history_api(request, project_id):
     """Get Git commit history for writer directory.
@@ -46,7 +47,7 @@ def git_history_api(request, project_id):
         max_count = int(request.GET.get("max_count", 50))
         branch = request.GET.get("branch", "HEAD")
 
-        writer_service = WriterService(project_id, request.user.id)
+        writer_service = WriterService(project_id, request.effective_user.id)
         commits = writer_service.git_service.get_commit_history(
             max_count=max_count, branch=branch
         )
@@ -62,7 +63,8 @@ def git_history_api(request, project_id):
         return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 
-@login_required
+@writer_auth_required
+@writer_project_access_required
 @require_http_methods(["GET"])
 def git_diff_api(request, project_id):
     """Get Git diff for specific commit or working directory.
@@ -97,7 +99,7 @@ def git_diff_api(request, project_id):
         commit_sha = request.GET.get("commit_sha")
         compare_to = request.GET.get("compare_to")
 
-        writer_service = WriterService(project_id, request.user.id)
+        writer_service = WriterService(project_id, request.effective_user.id)
         diff_data = writer_service.git_service.get_diff(
             commit_sha=commit_sha, compare_to=compare_to
         )
@@ -109,7 +111,8 @@ def git_diff_api(request, project_id):
         return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 
-@login_required
+@writer_auth_required
+@writer_project_access_required
 @require_http_methods(["GET"])
 def git_status_api(request, project_id):
     """Get current Git repository status.
@@ -129,7 +132,7 @@ def git_status_api(request, project_id):
         }
     """
     try:
-        writer_service = WriterService(project_id, request.user.id)
+        writer_service = WriterService(project_id, request.effective_user.id)
         status = writer_service.git_service.get_status()
 
         return JsonResponse({"success": True, "status": status})
@@ -139,7 +142,8 @@ def git_status_api(request, project_id):
         return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 
-@login_required
+@writer_auth_required
+@writer_project_access_required
 @require_http_methods(["GET"])
 def git_branches_api(request, project_id):
     """Get list of Git branches.
@@ -161,7 +165,7 @@ def git_branches_api(request, project_id):
         }
     """
     try:
-        writer_service = WriterService(project_id, request.user.id)
+        writer_service = WriterService(project_id, request.effective_user.id)
         branches = writer_service.git_service.get_branches()
 
         # Convert datetime objects to ISO format strings
@@ -175,7 +179,8 @@ def git_branches_api(request, project_id):
         return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 
-@login_required
+@writer_auth_required
+@writer_project_access_required
 @require_http_methods(["POST"])
 def git_create_branch_api(request, project_id):
     """Create a new Git branch.
@@ -202,7 +207,7 @@ def git_create_branch_api(request, project_id):
                 {"success": False, "error": "branch_name required"}, status=400
             )
 
-        writer_service = WriterService(project_id, request.user.id)
+        writer_service = WriterService(project_id, request.effective_user.id)
         success = writer_service.git_service.create_branch(
             branch_name=branch_name, from_commit=from_commit
         )
@@ -221,7 +226,8 @@ def git_create_branch_api(request, project_id):
         return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 
-@login_required
+@writer_auth_required
+@writer_project_access_required
 @require_http_methods(["POST"])
 def git_switch_branch_api(request, project_id):
     """Switch to a different Git branch.
@@ -246,7 +252,7 @@ def git_switch_branch_api(request, project_id):
                 {"success": False, "error": "branch_name required"}, status=400
             )
 
-        writer_service = WriterService(project_id, request.user.id)
+        writer_service = WriterService(project_id, request.effective_user.id)
         success = writer_service.git_service.switch_branch(branch_name=branch_name)
 
         if success:
@@ -270,7 +276,8 @@ def git_switch_branch_api(request, project_id):
         return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 
-@login_required
+@writer_auth_required
+@writer_project_access_required
 @require_http_methods(["POST"])
 def git_commit_api(request, project_id):
     """Create a Git commit.
@@ -300,7 +307,7 @@ def git_commit_api(request, project_id):
                 {"success": False, "error": "commit message required"}, status=400
             )
 
-        writer_service = WriterService(project_id, request.user.id)
+        writer_service = WriterService(project_id, request.effective_user.id)
         commit_sha = writer_service.git_service.commit(
             message=message,
             author_name=author_name,

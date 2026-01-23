@@ -5,6 +5,7 @@
     - SciTeX
 {% endblock %}
 {% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/components/page-header.css' %}">
     <style>
   .policy-section {
     padding: var(--spacing-xxl) 0;
@@ -89,14 +90,12 @@
     </style>
 {% endblock %}
 {% block content %}
-    <section class="hero">
-        <div class="container">
-            <div class="hero-content">
-                <h1 class="hero-title">Terms of Use</h1>
-                <p class="hero-description">Please read these terms carefully before using our platform</p>
-            </div>
-        </div>
-    </section>
+    <div class="container pt-4">
+        <section class="page-header">
+            <h1><i class="fas fa-file-contract"></i> Terms of Use</h1>
+            <p>Please read these terms carefully before using our platform</p>
+        </section>
+    </div>
     <section class="policy-section">
         <div class="container policy-container">
             <div class="policy-content">
@@ -385,13 +384,11 @@
                         at:
                     </p>
                     <address>
-                        SciTeX
+                        Yusuke Watanabe
                         <br />
-                        Attn: Legal Department
+                        17 Wattle Road
                         <br />
-                        123 Science Park
-                        <br />
-                        San Francisco, CA 94107
+                        Maidstone, VIC, Australia
                         <br />
                         Email:
                         <a href="mailto:legal@scitex.ai"
@@ -402,7 +399,7 @@
             <div class="policy-meta">
                 <p>
                     <strong>Last Updated:</strong>
-                    <time datetime="2025-05-21">May 21, 2025</time>
+                    <time datetime="2026-01-22">January 22, 2026</time>
                 </p>
             </div>
         </div>

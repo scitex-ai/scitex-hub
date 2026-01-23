@@ -1,0 +1,401 @@
+/**
+ * SciTeX Vis - Scientific Figure Editor
+ * Clean orchestrator delegating to focused modules
+ */
+
+// Fabric.js loaded via CDN
+declare const fabric: any;
+
+// Import all extracted modules
+import { HistoryManager } from './editor/history/HistoryManager.js';
+import { AutoSaveManager } from './editor/io/AutoSave.js';
+import type { EditorState } from './editor/io/AutoSave.js';
+import { CanvasManager } from './editor/core/CanvasManager.js';
+import { ZoomManager } from './editor/transform/ZoomManager.js';
+import { LayerManager } from './editor/transform/LayerManager.js';
+import { FileManager } from './editor/io/FileManager.js';
+import { VersionControl } from './editor/io/VersionControl.js';
+import { GridManager } from './editor/layout/GridManager.js';
+import { PanelManager } from './editor/layout/PanelManager.js';
+import { AlignmentManager } from './editor/layout/AlignmentManager.js';
+import { PropertiesPanel } from './editor/ui/PropertiesPanel.js';
+import { GalleryManager } from './editor/features/GalleryManager.js';
+import { DataTableManager } from './editor/data/DataTableManager.js';
+import { KeyboardEvents } from './editor/events/KeyboardEvents.js';
+import { MouseEvents } from './editor/events/MouseEvents.js';
+import { BasicShapes } from './editor/tools/BasicShapes.js';
+import { ScientificAnnotations } from './editor/tools/ScientificAnnotations.js';
+import { AlignmentTools } from './editor/tools/AlignmentTools.js';
+import { ReferenceGuides } from './editor/tools/ReferenceGuides.js';
+import { ScaleBarTools } from './editor/tools/ScaleBarTools.js';
+import { SignificanceMarkers } from './editor/tools/SignificanceMarkers.js';
+import type { JournalPreset } from './editor/types.js';
+
+console.log("[DEBUG] vis_app/static/vis_app/ts/editor.ts loaded (refactored)");
+
+/**
+ * VisEditor - Main orchestrator class
+ * Delegates to specialized managers for all functionality
+ */
+class VisEditor {
+    // Core canvas
+    private canvas: fabric.Canvas | null = null;
+    private figureId: string | null = null;
+    private currentPreset: JournalPreset | null = null;
+
+    // Manager instances
+    private historyManager: HistoryManager;
+    private autoSaveManager: AutoSaveManager;
+    private canvasManager: CanvasManager;
+    private zoomManager: ZoomManager;
+    private layerManager: LayerManager;
+    private fileManager: FileManager;
+    private versionControl: VersionControl;
+    private gridManager: GridManager;
+    private panelManager: PanelManager;
+    private alignmentManager: AlignmentManager;
+    private propertiesPanel: PropertiesPanel;
+    private galleryManager: GalleryManager;
+    private dataTableManager: DataTableManager;
+    private keyboardEvents: KeyboardEvents;
+    private mouseEvents: MouseEvents;
+
+    // Tool instances
+    private basicShapes: BasicShapes;
+    private scientificAnnotations: ScientificAnnotations;
+    private alignmentTools: AlignmentTools;
+    private referenceGuides: ReferenceGuides;
+    private scaleBarTools: ScaleBarTools;
+    private significanceMarkers: SignificanceMarkers;
+
+    // State
+    private clipboard: any = null;
+    private gridEnabled: boolean = true;
+    private snapEnabled: boolean = true;
+
+    constructor() {
+        console.log('[VisEditor] Initializing refactored editor...');
+        this.initializeCanvas();
+        this.initializeManagers();
+        this.setupEventHandlers();
+        console.log('[VisEditor] Editor initialized successfully');
+    }
+
+    /**
+     * Initialize Fabric.js canvas
+     */
+    private initializeCanvas(): void {
+        const canvasElement = document.getElementById('vis-canvas') as HTMLCanvasElement;
+        if (!canvasElement) {
+            console.error('[VisEditor] Canvas element not found');
+            return;
+        }
+
+        this.canvas = new fabric.Canvas('vis-canvas', {
+            width: 1063,
+            height: 1270,
+            backgroundColor: '#ffffff',
+            selection: true,
+            preserveObjectStacking: true,
+        });
+
+        console.log('[VisEditor] Canvas initialized');
+    }
+
+    /**
+     * Initialize all manager instances
+     */
+    private initializeManagers(): void {
+        if (!this.canvas) return;
+
+        const updateStatus = this.updateStatus.bind(this);
+        const getCSRFToken = this.getCSRFToken.bind(this);
+        const getCurrentPreset = () => this.currentPreset;
+        const getSelectedObjects = () => this.canvas?.getActiveObjects() || [];
+        const saveToHistory = () => this.historyManager?.saveToHistory();
+
+        // Core managers
+        this.historyManager = new HistoryManager(this.canvas, { updateStatus });
+        this.autoSaveManager = new AutoSaveManager(this.canvas, { updateStatus });
+        this.canvasManager = new CanvasManager(this.canvas, { updateStatus });
+
+        // Transform managers
+        this.zoomManager = new ZoomManager(this.canvas, { updateStatus });
+        this.layerManager = new LayerManager(this.canvas, { updateStatus });
+
+        // IO managers
+        this.fileManager = new FileManager(this.canvas, {
+            figureId: this.figureId,
+            gridEnabled: this.gridEnabled,
+            canvasManager: this.canvasManager,
+            autoSaveManager: this.autoSaveManager,
+            updateStatus,
+        });
+
+        this.versionControl = new VersionControl(this.canvas, {
+            figureId: this.figureId,
+            updateStatus,
+            getCSRFToken,
+        });
+
+        // Layout managers
+        this.gridManager = new GridManager(this.canvas, 23.622, {
+            getCurrentPreset,
+            updateStatus,
+        });
+
+        this.panelManager = new PanelManager(this.canvas, {
+            getCurrentPreset,
+            updateStatus,
+        });
+
+        this.alignmentManager = new AlignmentManager(this.canvas, {
+            getSelectedObjects,
+            saveToHistory,
+            updateStatus,
+        });
+
+        // UI managers
+        this.propertiesPanel = new PropertiesPanel(this.canvas, {
+            updateStatus,
+            duplicateObject: this.duplicateObject.bind(this),
+            bringToFront: () => this.layerManager.bringToFront(),
+            bringForward: () => this.layerManager.bringForward(),
+            sendBackward: () => this.layerManager.sendBackward(),
+            sendToBack: () => this.layerManager.sendToBack(),
+        });
+
+        this.galleryManager = new GalleryManager(this.canvas, { updateStatus });
+        this.dataTableManager = new DataTableManager(this.canvas, { updateStatus });
+
+        // Event handlers
+        this.keyboardEvents = new KeyboardEvents({
+            undo: () => this.historyManager.undo(),
+            redo: () => this.historyManager.redo(),
+            delete: this.deleteSelected.bind(this),
+            duplicate: this.duplicateObject.bind(this),
+            copy: this.copy.bind(this),
+            paste: this.paste.bind(this),
+            selectAll: () => {
+                const allObjects = this.canvas?.getObjects().filter((obj: any) =>
+                    !obj.id?.startsWith('grid-') && !obj.id?.startsWith('panel-')
+                );
+                if (allObjects && this.canvas) {
+                    const selection = new fabric.ActiveSelection(allObjects, { canvas: this.canvas });
+                    this.canvas.setActiveObject(selection);
+                    this.canvas.renderAll();
+                }
+            },
+        });
+
+        this.mouseEvents = new MouseEvents(this.canvas);
+
+        // Tools
+        const toolOptions = {
+            getCurrentPreset,
+            saveToHistory,
+            updateStatus,
+        };
+
+        this.basicShapes = new BasicShapes(this.canvas, toolOptions);
+        this.scientificAnnotations = new ScientificAnnotations(this.canvas, toolOptions);
+        this.alignmentTools = new AlignmentTools(this.canvas, toolOptions);
+        this.referenceGuides = new ReferenceGuides(this.canvas, toolOptions);
+        this.scaleBarTools = new ScaleBarTools(this.canvas, toolOptions);
+        this.significanceMarkers = new SignificanceMarkers(this.canvas, toolOptions);
+
+        console.log('[VisEditor] All managers initialized');
+    }
+
+    /**
+     * Setup event handlers for canvas and UI
+     */
+    private setupEventHandlers(): void {
+        if (!this.canvas) return;
+
+        // Canvas events
+        this.canvas.on('selection:created', () => this.propertiesPanel.updatePropertiesPanel());
+        this.canvas.on('selection:updated', () => this.propertiesPanel.updatePropertiesPanel());
+        this.canvas.on('selection:cleared', () => this.propertiesPanel.clearPropertiesPanel());
+        this.canvas.on('object:modified', () => this.historyManager.saveToHistory());
+        this.canvas.on('object:added', () => this.autoSaveManager.scheduleAutoSave());
+        this.canvas.on('object:removed', () => this.autoSaveManager.scheduleAutoSave());
+
+        // Keyboard events
+        this.keyboardEvents.setupEventListeners();
+
+        // Zoom/pan events
+        this.zoomManager.setupWrapperWheelHandling();
+        this.zoomManager.setupRulerDragging();
+
+        // Grid
+        if (this.gridEnabled) {
+            this.gridManager.drawGrid();
+        }
+
+        console.log('[VisEditor] Event handlers setup complete');
+    }
+
+    /**
+     * Update status message
+     */
+    private updateStatus(message: string): void {
+        const statusEl = document.getElementById('status-message');
+        if (statusEl) {
+            statusEl.textContent = message;
+        }
+        console.log(`[VisEditor] ${message}`);
+    }
+
+    /**
+     * Get CSRF token for Django requests
+     */
+    private getCSRFToken(): string {
+        const token = document.querySelector('[name=csrfmiddlewaretoken]') as HTMLInputElement;
+        return token ? token.value : '';
+    }
+
+    /**
+     * Duplicate selected object
+     */
+    private duplicateObject(): void {
+        if (!this.canvas) return;
+
+        const activeObject = this.canvas.getActiveObject();
+        if (!activeObject) {
+            this.updateStatus('No object selected to duplicate');
+            return;
+        }
+
+        activeObject.clone((cloned: any) => {
+            cloned.set({
+                left: (activeObject.left || 0) + 20,
+                top: (activeObject.top || 0) + 20,
+            });
+
+            if (this.canvas) {
+                this.canvas.add(cloned);
+                this.canvas.setActiveObject(cloned);
+                this.canvas.renderAll();
+                this.historyManager.saveToHistory();
+                this.updateStatus('Object duplicated');
+            }
+        });
+    }
+
+    /**
+     * Copy selected object to clipboard
+     */
+    private copy(): void {
+        const activeObject = this.canvas?.getActiveObject();
+        if (activeObject) {
+            activeObject.clone((cloned: any) => {
+                this.clipboard = cloned;
+                this.updateStatus('Object copied');
+            });
+        }
+    }
+
+    /**
+     * Paste object from clipboard
+     */
+    private paste(): void {
+        if (!this.clipboard || !this.canvas) {
+            this.updateStatus('Nothing to paste');
+            return;
+        }
+
+        this.clipboard.clone((cloned: any) => {
+            cloned.set({
+                left: (cloned.left || 0) + 20,
+                top: (cloned.top || 0) + 20,
+            });
+
+            if (this.canvas) {
+                this.canvas.add(cloned);
+                this.canvas.setActiveObject(cloned);
+                this.canvas.renderAll();
+                this.historyManager.saveToHistory();
+                this.updateStatus('Object pasted');
+                this.clipboard = cloned; // Update for next paste
+            }
+        });
+    }
+
+    /**
+     * Delete selected objects
+     */
+    private deleteSelected(): void {
+        const activeObjects = this.canvas?.getActiveObjects();
+        if (activeObjects && activeObjects.length > 0) {
+            activeObjects.forEach((obj: any) => {
+                this.canvas?.remove(obj);
+            });
+            this.canvas?.discardActiveObject();
+            this.canvas?.renderAll();
+            this.historyManager.saveToHistory();
+            this.updateStatus(`Deleted ${activeObjects.length} object(s)`);
+        }
+    }
+}
+
+// Helper functions for data handling (kept outside class for modularity)
+function getSpreadsheetHeaders(): string[] {
+    const table = document.getElementById('data-spreadsheet') as HTMLTableElement;
+    if (!table) return [];
+
+    const headerRow = table.querySelector('thead tr');
+    if (!headerRow) return [];
+
+    const headers: string[] = [];
+    headerRow.querySelectorAll('th').forEach(th => {
+        headers.push((th as HTMLElement).textContent || '');
+    });
+
+    return headers;
+}
+
+function getSpreadsheetData(): number[][] {
+    const table = document.getElementById('data-spreadsheet') as HTMLTableElement;
+    if (!table) return [];
+
+    const bodyRows = table.querySelectorAll('tbody tr');
+    const data: number[][] = [];
+
+    bodyRows.forEach(row => {
+        const rowData: number[] = [];
+        row.querySelectorAll('td').forEach(cell => {
+            const value = parseFloat((cell as HTMLElement).textContent || '0');
+            rowData.push(isNaN(value) ? 0 : value);
+        });
+
+        if (rowData.length > 0) {
+            data.push(rowData);
+        }
+    });
+
+    return data;
+}
+
+// Placeholder functions for UI initialization (to be extracted later)
+function initTabSwitcher() {}
+function initDataInputTabs() {}
+function initSpreadsheet() {}
+function attachRenderListeners() {}
+
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        new VisEditor();
+        initTabSwitcher();
+        initDataInputTabs();
+        initSpreadsheet();
+        attachRenderListeners();
+    });
+} else {
+    new VisEditor();
+    initTabSwitcher();
+    initDataInputTabs();
+    initSpreadsheet();
+    attachRenderListeners();
+}

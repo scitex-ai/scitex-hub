@@ -6,10 +6,16 @@ This directory contains the organized CSS files for the Scholar app, split into 
 
 ```
 css/
-├── index.css       # Main entry point - imports all modules
-├── common.css      # Shared styles (layout, cards, utilities)
-├── bibtex.css      # BibTeX enrichment specific styles
-└── search.css      # Literature search specific styles
+├── index.css           # Main entry point - imports all modules
+├── common.css          # Shared styles (layout, cards, utilities)
+├── bibtex.css          # BibTeX enrichment specific styles
+└── search/             # Literature search styles (modular)
+    ├── index.css       # Search module entry - imports all search files
+    ├── layout.css      # Search page layout
+    ├── form.css        # Search form styles
+    ├── results.css     # Result cards
+    ├── filters.css     # Filter UI
+    └── pagination.css  # Pagination
 ```
 
 ## File Descriptions
@@ -37,17 +43,50 @@ BibTeX-specific styles:
 - Statistics display
 - Progress source animations
 
-### search.css (765 lines)
-Literature search-specific styles:
-- Search input and button styling
-- Search filters (toggles, sliders, accordions)
-- Source-specific toggle colors (CrossRef, PubMed, etc.)
+### search/ (modular directory)
+Literature search-specific styles split into 6 focused modules:
+
+#### search/index.css (~26 lines)
+Entry point that imports all search modules
+- Imports: layout.css, form.css, results.css, filters.css, pagination.css
+
+#### search/layout.css (~153 lines)
+Search page layout and structure:
+- Search hero section
+- Search cards
+- Side panel positioning
+- Tab navigation
+- Scrollbar styling
+
+#### search/form.css (~135 lines)
+Search input and submission:
+- Search input field styling
+- Search button styling
+- Form controls
+- Input groups
+- Focus states
+
+#### search/results.css (~30 lines)
+Search result display:
+- Result cards
+- Selection/export container
+- Results container styling
+
+#### search/filters.css (~506 lines)
+Filter UI components:
+- Toggle buttons
+- Source-specific colors (CrossRef, PubMed, Semantic Scholar, arXiv, OpenAlex)
 - Sort controls and drag-and-drop
-- noUiSlider customization
-- Side panel styling
-- Pagination
-- Search results display
-- Dark mode search adjustments
+- Range sliders (noUiSlider customization)
+- Accordion rows
+- Dark mode filter adjustments
+
+#### search/pagination.css (~66 lines)
+Pagination controls:
+- Pagination styling
+- Page links
+- Active/disabled states
+- Dark mode pagination
 
 ## Migration Notes
 
@@ -98,7 +137,12 @@ The Scholar CSS relies on these central CSS files:
 
 1. **Common styles** → Edit `common.css`
 2. **BibTeX features** → Edit `bibtex.css`
-3. **Search features** → Edit `search.css`
+3. **Search features**:
+   - Search layout → Edit `search/layout.css`
+   - Search form → Edit `search/form.css`
+   - Search results → Edit `search/results.css`
+   - Search filters → Edit `search/filters.css`
+   - Pagination → Edit `search/pagination.css`
 4. **New major sections** → Consider creating a new module and import in `index.css`
 5. **Colors/themes** → Prefer CSS variables from central CSS
 6. **Dark mode** → Use `[data-theme="dark"]` selectors

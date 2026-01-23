@@ -1,0 +1,42 @@
+/**
+ * Server Status - Legends
+ * Health status legend
+ */
+
+/* Health Status Legend */
+.health-legend {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.health-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.health-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.health-indicator-success {
+    background: var(--status-success);
+}
+
+.health-indicator-warning {
+    background: var(--status-warning);
+}
+
+.health-indicator-error {
+    background: var(--status-error);
+}
+
+.health-legend-text {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}

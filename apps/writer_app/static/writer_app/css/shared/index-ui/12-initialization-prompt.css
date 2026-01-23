@@ -1,0 +1,108 @@
+/* =========================================
+   Writer Initialization Overlay - Modern Modal
+   ========================================= */
+
+.writer-init-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.writer-init-modal {
+  background: var(--bg-primary, #0d1117);
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 16px;
+  padding: 3rem 4rem;
+  text-align: center;
+  max-width: 400px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+  animation: modal-appear 0.2s ease-out;
+}
+
+@keyframes modal-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.writer-init-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary, #c9d1d9);
+  margin: 0 0 0.75rem 0;
+}
+
+.writer-init-desc {
+  font-size: 0.95rem;
+  color: var(--text-muted, #8b949e);
+  margin: 0 0 2rem 0;
+  line-height: 1.5;
+}
+
+.writer-init-desc strong {
+  color: var(--text-primary, #c9d1d9);
+}
+
+.writer-init-desc a {
+  color: var(--color-accent-emphasis, #58a6ff);
+  text-decoration: none;
+}
+
+.writer-init-desc a:hover {
+  text-decoration: underline;
+}
+
+.writer-init-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #238636 0%, #2ea043 100%);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.writer-init-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(46, 160, 67, 0.4);
+}
+
+.writer-init-btn:active {
+  transform: translateY(0);
+}
+
+/* Light mode */
+[data-theme="light"] .writer-init-modal {
+  background: #ffffff;
+  border-color: #d0d7de;
+}
+
+[data-theme="light"] .writer-init-title {
+  color: #24292f;
+}
+
+[data-theme="light"] .writer-init-desc {
+  color: #57606a;
+}
+
+[data-theme="light"] .writer-init-desc strong {
+  color: #24292f;
+}

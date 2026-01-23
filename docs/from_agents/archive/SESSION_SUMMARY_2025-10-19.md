@@ -129,7 +129,7 @@ SCITEX_CLOUD_DJANGO_SECRET_KEY=(set)
 ### Sprint 1: Critical Fixes (Week 1-2)
 1. Fix /projects routing error
 2. Improve authentication message display
-3. Implement proper anonymous user handling
+3. Implement proper visitor user handling
 
 ### Sprint 2: Measurement (Week 3-4)
 1. Set up analytics platform

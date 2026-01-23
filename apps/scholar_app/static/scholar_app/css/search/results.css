@@ -1,0 +1,156 @@
+/*
+ * Search Results Styles
+ *
+ * Styles for search result display:
+ * - Result cards
+ * - Selection and export controls
+ * - Results container
+ */
+
+/* Selection/Export div styling */
+.selection-export-container {
+  padding: 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+[data-theme="dark"] .selection-export-container {
+  /* background: var(--scitex-color-01-light); */
+  /* border-color: var(--scitex-color-03); */
+}
+
+.selection-info {
+  /* color: var(--text-primary); */
+  /* font-weight: 500; */
+}
+
+[data-theme="dark"] .selection-info {
+  /* color: var(--scitex-color-06); */
+}
+
+/* =============================================================================
+   PDF Status Badge Styles
+   ============================================================================= */
+
+.pdf-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+  cursor: default;
+  color: var(--text-muted, #6c8ba0);
+  background: transparent;
+  border: 1px solid var(--border-color, #3a3a3a);
+}
+
+.pdf-status-badge i {
+  font-size: 0.75rem;
+}
+
+.pdf-status-badge .pdf-status-text {
+  font-size: 0.65rem;
+}
+
+/* Unknown state - default */
+.pdf-status-badge[data-status="unknown"] {
+  opacity: 0.5;
+}
+
+/* Checking state - spinner */
+.pdf-status-badge[data-status="checking"] {
+  color: var(--text-secondary, #9ca3af);
+}
+
+/* Available state - clickable, green for PDF download (indicates free/available) */
+.pdf-status-badge[data-status="available"] {
+  color: #10b981;
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.pdf-status-badge[data-status="available"]:hover {
+  background: #10b981;
+  color: #fff;
+}
+
+/* Downloading state */
+.pdf-status-badge[data-status="downloading"] {
+  color: #d4a855;
+  border-color: #d4a855;
+}
+
+/* Downloaded state - success */
+.pdf-status-badge[data-status="downloaded"] {
+  color: var(--workspace-icon-primary, #059669);
+  border-color: var(--workspace-icon-primary, #059669);
+  background: rgba(5, 150, 105, 0.1);
+  cursor: pointer;
+}
+
+.pdf-status-badge[data-status="downloaded"]:hover {
+  background: var(--workspace-icon-primary, #059669);
+  color: #fff;
+}
+
+/* Unavailable/Paywalled state - visible but inactive */
+.pdf-status-badge[data-status="unavailable"] {
+  opacity: 0.6;
+  cursor: not-allowed;
+  color: var(--text-muted, #6c8ba0);
+  border-color: var(--border-color, #3a3a3a);
+  background: transparent;
+}
+
+.pdf-status-badge[data-status="unavailable"]:hover {
+  /* No hover effect for inactive badges */
+  background: transparent;
+  color: var(--text-muted, #6c8ba0);
+}
+
+/* Error state */
+.pdf-status-badge[data-status="error"] {
+  color: #ef4444;
+  border-color: #ef4444;
+  opacity: 0.7;
+}
+
+/* Light theme adjustments */
+[data-theme="light"] .pdf-status-badge {
+  border-color: var(--border-color, #d0d7de);
+}
+
+[data-theme="light"] .pdf-status-badge[data-status="downloaded"] {
+  background: rgba(5, 150, 105, 0.15);
+}
+
+/* Action bar PDF button styling */
+.selection-action-bar .action-btn--pdf {
+  color: #ef4444 !important;
+  border-color: #ef4444 !important;
+}
+
+.selection-action-bar .action-btn--pdf:hover {
+  background: #ef4444 !important;
+  color: #fff !important;
+}
+
+/* Toolbar PDF button styling */
+.toolbar-btn--pdf {
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+.toolbar-btn--pdf:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border-color: #ef4444;
+}

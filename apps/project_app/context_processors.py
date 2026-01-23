@@ -4,6 +4,7 @@ Context processors for making common variables available in all templates.
 
 import re
 from django.conf import settings
+from django.utils import timezone
 from apps.project_app.models import Project
 
 
@@ -16,13 +17,91 @@ def version_context(request):
     }
 
 
+def visitor_expiration_context(request):
+    """
+    Add visitor session expiration time and username to context.
+
+    Returns:
+        dict: visitor_expires_at, visitor_username, and is_visitor flag
+    """
+    from apps.project_app.services.visitor_pool import VisitorPool
+    from apps.project_app.models import VisitorAllocation
+    from django.contrib.auth.models import User
+
+    # Check if user is an authenticated visitor (username starts with "visitor-")
+    is_visitor = False
+    if request.user.is_authenticated:
+        is_visitor = request.user.username.startswith("visitor-")
+
+    # For authenticated visitors, get allocation from session
+    if is_visitor:
+        allocation_token = request.session.get(VisitorPool.SESSION_KEY_ALLOCATION_TOKEN)
+        if allocation_token:
+            try:
+                allocation = VisitorAllocation.objects.get(
+                    allocation_token=allocation_token,
+                    is_active=True,
+                    expires_at__gt=timezone.now()
+                )
+                return {
+                    "visitor_expires_at": allocation.expires_at,
+                    "visitor_username": request.user.username,
+                    "is_visitor": True,
+                }
+            except VisitorAllocation.DoesNotExist:
+                pass
+
+        # Authenticated visitor but no valid allocation
+        return {
+            "visitor_expires_at": None,
+            "visitor_username": request.user.username,
+            "is_visitor": True,
+        }
+
+    # For non-authenticated users
+    if not request.user.is_authenticated:
+        allocation_token = request.session.get(VisitorPool.SESSION_KEY_ALLOCATION_TOKEN)
+        if allocation_token:
+            try:
+                allocation = VisitorAllocation.objects.get(
+                    allocation_token=allocation_token,
+                    is_active=True,
+                    expires_at__gt=timezone.now()
+                )
+
+                # Get visitor username
+                visitor_user_id = request.session.get(VisitorPool.SESSION_KEY_VISITOR_ID)
+                visitor_username = None
+                if visitor_user_id:
+                    try:
+                        visitor_user = User.objects.get(id=visitor_user_id)
+                        visitor_username = visitor_user.username
+                    except User.DoesNotExist:
+                        pass
+
+                return {
+                    "visitor_expires_at": allocation.expires_at,
+                    "visitor_username": visitor_username,
+                    "is_visitor": True,
+                }
+            except VisitorAllocation.DoesNotExist:
+                pass
+
+    # Not a visitor
+    return {
+        "visitor_expires_at": None,
+        "visitor_username": None,
+        "is_visitor": False,
+    }
+
+
 def project_context(request):
     """
     Add current project to context if URL matches /<username>/<project-slug>/ pattern.
 
     This makes 'project' available in all templates for context-aware navigation.
 
-    For anonymous users (visitors), provides allocated project from visitor pool.
+    For visitor users (visitors), provides allocated project from visitor pool.
     """
     # Pattern: /<username>/<project-slug>/...
     pattern = r"^/([^/]+)/([^/]+)/"
@@ -73,7 +152,7 @@ def project_context(request):
 
     # Provide default project URL
     # Logged-in users: /<username>/default
-    # Anonymous users: /guest-<session-id>/default
+    # Visitor users: /guest-<session-id>/default
     if request.user.is_authenticated:
         default_project_url = f"/{request.user.username}/default"
     else:
@@ -84,7 +163,7 @@ def project_context(request):
             default_project_url = "/guest/default"
 
     return {
-        "project": project,  # Include visitor project for anonymous users
+        "project": project,  # Include visitor project for visitor users
         "guest_project_url": default_project_url,
         "default_project_url": default_project_url,
         "is_guest_session": not request.user.is_authenticated,

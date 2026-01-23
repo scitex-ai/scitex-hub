@@ -6,7 +6,7 @@
 ORIG_DIR="$(pwd)"
 THIS_DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
 LOG_PATH="$THIS_DIR/.$(basename $0).log"
-echo > "$LOG_PATH"
+echo -e > "$LOG_PATH"
 
 BLACK='\033[0;30m'
 LIGHT_GRAY='\033[0;37m'
@@ -26,15 +26,15 @@ NC='\033[0m'
 LOG_FILE=".setup_env.sh.log"
 
 usage() {
-    echo "Usage: source $0 [--env|-e ENV] [-h|--help]"
+    echo -e "Usage: source $0 [--env|-e ENV] [-h|--help]"
     echo
-    echo "Options:"
-    echo "  --env, -e    Specify environment: dev or prod (default: dev)"
-    echo "  -h, --help   Display this help message"
+    echo -e "Options:"
+    echo -e "  --env, -e    Specify environment: dev or prod (default: dev)"
+    echo -e "  -h, --help   Display this help message"
     echo
-    echo "Example:"
-    echo "  source $0 --env dev"
-    echo "  source $0 -e prod"
+    echo -e "Example:"
+    echo -e "  source $0 --env dev"
+    echo -e "  source $0 -e prod"
     return 1 2> /dev/null || exit 1
 }
 
@@ -60,7 +60,7 @@ setup_environment() {
                 shift
                 ;;
             *)
-                echo "Error: Unknown argument '$1'"
+                echo -e "Error: Unknown argument '$1'"
                 usage
                 ;;
         esac
@@ -74,8 +74,8 @@ setup_environment() {
             else
                 ENV="dev"
             fi
-            echo "Current environment: $ENV"
-            echo "Usage: source $0 --env [dev|prod]"
+            echo -e "Current environment: $ENV"
+            echo -e "Usage: source $0 --env [dev|prod]"
             return 0 2> /dev/null || exit 0
         else
             ENV="dev"
@@ -92,42 +92,42 @@ setup_environment() {
             ENV_FILE="$DOTENVS_DIR/dotenv_prod"
             ;;
         *)
-            echo "Error: Invalid environment '$ENV'"
+            echo -e "Error: Invalid environment '$ENV'"
             usage
             ;;
     esac
 
     if [ ! -f "$ENV_FILE" ]; then
-        echo "Error: Environment file not found: $ENV_FILE"
+        echo -e "Error: Environment file not found: $ENV_FILE"
         return 1 2> /dev/null || exit 1
     fi
 
-    echo "Setting up $ENV environment..."
+    echo -e "Setting up $ENV environment..."
 
     if [ -L "$ENV_LINK" ]; then
         rm "$ENV_LINK"
     fi
 
     ln -sf "$ENV_FILE" "$ENV_LINK"
-    echo "Created symlink: .env -> $ENV_FILE"
-    echo "Loading environment variables..."
+    echo -e "Created symlink: .env -> $ENV_FILE"
+    echo -e "Loading environment variables..."
     source "$ENV_FILE"
-    echo ""
-    echo "SciTeX Cloud - Environment: $ENV"
-    echo "Django Settings: $SCITEX_CLOUD_DJANGO_SETTINGS_MODULE"
+    echo -e ""
+    echo -e "SciTeX Cloud - Environment: $ENV"
+    echo -e "Django Settings: $SCITEX_CLOUD_DJANGO_SETTINGS_MODULE"
 
     if [ "$ENV" = "dev" ]; then
-        echo "Database: $SCITEX_CLOUD_DB_NAME_DEV"
-        echo "DB User: $SCITEX_CLOUD_DB_USER_DEV"
-        echo "DB Host: $SCITEX_CLOUD_DB_HOST_DEV:$SCITEX_CLOUD_DB_PORT_DEV"
+        echo -e "Database: $SCITEX_CLOUD_DB_NAME_DEV"
+        echo -e "DB User: $SCITEX_CLOUD_DB_USER_DEV"
+        echo -e "DB Host: $SCITEX_CLOUD_DB_HOST_DEV:$SCITEX_CLOUD_DB_PORT_DEV"
     else
-        echo "Database: $SCITEX_CLOUD_DB_NAME_PROD"
-        echo "DB User: $SCITEX_CLOUD_DB_USER_PROD"
-        echo "DB Host: $SCITEX_CLOUD_DB_HOST_PROD:$SCITEX_CLOUD_DB_PORT_PROD"
+        echo -e "Database: $SCITEX_CLOUD_DB_NAME_PROD"
+        echo -e "DB User: $SCITEX_CLOUD_DB_USER_PROD"
+        echo -e "DB Host: $SCITEX_CLOUD_DB_HOST_PROD:$SCITEX_CLOUD_DB_PORT_PROD"
     fi
 
-    echo "Logging Level: $SCITEX_LOGGING_LEVEL"
-    echo ""
+    echo -e "Logging Level: $SCITEX_LOGGING_LEVEL"
+    echo -e ""
 
     if command -v pg_isready &> /dev/null; then
         if [ "$ENV" = "dev" ]; then
@@ -139,17 +139,17 @@ setup_environment() {
         fi
 
         if pg_isready -h "$DB_HOST" -p "$DB_PORT" &> /dev/null; then
-            echo "PostgreSQL is ready at $DB_HOST:$DB_PORT"
+            echo -e "PostgreSQL is ready at $DB_HOST:$DB_PORT"
         else
-            echo "PostgreSQL not responding at $DB_HOST:$DB_PORT"
+            echo -e "PostgreSQL not responding at $DB_HOST:$DB_PORT"
         fi
     fi
 
-    echo ""
-    echo "Ready to use! Try:"
-    echo "  python manage.py runserver"
-    echo "  python manage.py migrate"
-    echo ""
+    echo -e ""
+    echo -e "Ready to use! Try:"
+    echo -e "  python manage.py runserver"
+    echo -e "  python manage.py migrate"
+    echo -e ""
 }
 
 main() {

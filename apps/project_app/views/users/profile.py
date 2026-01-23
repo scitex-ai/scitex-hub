@@ -70,7 +70,7 @@ def user_project_list(request, username):
                 models.Q(visibility="public") | models.Q(memberships__user=request.user)
             ).distinct()
         else:
-            # Anonymous users only see public projects
+            # Visitor users only see public projects
             user_projects = user_projects.filter(visibility="public")
 
     user_projects = user_projects.order_by("-updated_at")

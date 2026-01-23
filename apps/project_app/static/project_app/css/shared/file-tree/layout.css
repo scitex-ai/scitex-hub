@@ -1,0 +1,353 @@
+/* ============================================================================= */
+/* FILE TREE - LAYOUT */
+/* ============================================================================= */
+/* Tree structure and spacing */
+/* ============================================================================= */
+
+/* GitHub-style repository header */
+.repo-header {
+  padding: 0.75rem 0 1rem 0; /* Compact GitHub-style padding */
+}
+
+.repo-title {
+  text-decoration: none;
+}
+
+.repo-title:hover {
+  text-decoration: underline;
+}
+
+/* Breadcrumb */
+.breadcrumb-nav {
+  margin-bottom: 1rem;
+}
+
+.breadcrumb {
+  padding: 0;
+  margin: 0;
+}
+
+.breadcrumb-item a {
+  text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+  text-decoration: underline;
+}
+
+/* File browser table - GitHub style */
+.file-browser {
+  overflow: hidden;
+}
+
+.file-browser table,
+.file-browser .file-table {
+  width: 100%;
+  margin: 0;
+  border-collapse: collapse;
+}
+
+.file-browser th {
+  padding: 8px 16px;
+  text-align: left;
+}
+
+.file-browser tbody tr {
+  cursor: pointer;
+}
+
+.file-browser tbody tr:last-child {
+  border-bottom: none;
+}
+
+.file-browser td {
+  padding: 8px 16px;
+  vertical-align: middle;
+}
+
+.file-browser td:first-child {
+  width: 40%;
+}
+
+.file-browser td:nth-child(2) {
+  width: 45%;
+}
+
+.file-browser td:last-child {
+  width: 15%;
+  text-align: right;
+}
+
+/* File table cell styles */
+.file-table-icon {
+  width: 24px;
+  padding-right: 8px;
+}
+
+.file-table-icon svg,
+.file-table-icon img {
+  width: 16px;
+  height: 16px;
+  vertical-align: text-bottom;
+}
+
+/* Sidebar sections */
+.sidebar-section {
+  padding: 0;
+  margin-bottom: 8px;
+}
+
+.sidebar-title {
+  margin-bottom: 8px;
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-fg-muted, #656d76);
+  letter-spacing: 0.5px;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.sidebar-link {
+  text-decoration: none;
+  display: block;
+  padding: 4px 0;
+}
+
+.sidebar-link:hover {
+  text-decoration: underline;
+}
+
+/* File tree children */
+.file-tree-children {
+  display: none;
+  position: relative;
+}
+
+/* Indent guide lines - dashed style matching workspace-files-tree */
+.file-tree-children.expanded {
+  display: block;
+  margin-left: 19px;
+  padding-left: 8px;
+  border-left: 1px dashed rgba(150, 150, 150, 0.35);
+  position: relative;
+}
+
+/* Horizontal connector from vertical guide to each item */
+.file-tree-children.expanded > .file-tree-item {
+  position: relative;
+}
+
+.file-tree-children.expanded > .file-tree-item::before {
+  content: '';
+  position: absolute;
+  left: -9px;
+  top: 50%;
+  width: 8px;
+  height: 1px;
+  border-top: 1px dashed rgba(150, 150, 150, 0.35);
+}
+
+/* Nested indent guides with fading opacity at deeper levels */
+.file-tree-children.expanded .file-tree-children.expanded {
+  border-left-color: rgba(150, 150, 150, 0.3);
+}
+
+.file-tree-children.expanded .file-tree-children.expanded .file-tree-children.expanded {
+  border-left-color: rgba(150, 150, 150, 0.25);
+}
+
+.file-tree-children.expanded .file-tree-children.expanded .file-tree-children.expanded .file-tree-children.expanded {
+  border-left-color: rgba(150, 150, 150, 0.2);
+}
+
+/* Hover effect - brighten guide lines */
+.file-tree-children.expanded:hover {
+  border-left-color: rgba(150, 150, 150, 0.45);
+}
+
+/* Highlight parent guide when hovering on item */
+.file-tree-children.expanded:has(> .file-tree-item:hover),
+.file-tree-children.expanded .file-tree-children.expanded:has(> .file-tree-item:hover),
+.file-tree-children.expanded .file-tree-children.expanded .file-tree-children.expanded:has(> .file-tree-item:hover),
+.file-tree-children.expanded .file-tree-children.expanded .file-tree-children.expanded .file-tree-children.expanded:has(> .file-tree-item:hover) {
+  border-left-color: rgba(180, 180, 180, 0.6);
+}
+
+/* Highlight horizontal connector when hovering */
+.file-tree-children.expanded > .file-tree-item:hover::before {
+  border-top-color: rgba(180, 180, 180, 0.6);
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .file-tree-children.expanded {
+  border-left-color: rgba(200, 200, 200, 0.25);
+}
+
+[data-theme="dark"] .file-tree-children.expanded > .file-tree-item::before {
+  border-top-color: rgba(200, 200, 200, 0.25);
+}
+
+[data-theme="dark"] .file-tree-children.expanded:hover {
+  border-left-color: rgba(200, 200, 200, 0.35);
+}
+
+[data-theme="dark"] .file-tree-children.expanded:has(> .file-tree-item:hover) {
+  border-left-color: rgba(200, 200, 200, 0.5);
+}
+
+[data-theme="dark"] .file-tree-children.expanded > .file-tree-item:hover::before {
+  border-top-color: rgba(200, 200, 200, 0.5);
+}
+
+/* Split button dropdown */
+.btn-group {
+  position: relative;
+  display: inline-flex;
+}
+
+.btn-group > button {
+  margin-left: 0;
+  border-radius: 6px;
+}
+
+.btn-group > button:not(:first-child) {
+  margin-left: -1px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.btn-group > button:not(:last-child):not(.dropdown-toggle-split) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.btn-group > button.dropdown-toggle-split {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.btn-group .dropdown-menu {
+  min-width: 200px;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+}
+
+.btn-group .dropdown-item {
+  padding: 8px 16px;
+  white-space: nowrap;
+}
+
+/* File name and message layout */
+.file-name {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.file-name:hover {
+  text-decoration: underline;
+}
+
+.file-browser .commit-message {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.file-browser .commit-message a {
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.file-browser .commit-message a:hover {
+  text-decoration: underline;
+}
+
+.file-browser .commit-hash {
+  padding: 2px 6px;
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* Tooltip positioning */
+.file-browser .commit-hash::before {
+  content: attr(data-hash);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 10px;
+  white-space: nowrap;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.file-browser .commit-hash:hover::before {
+  opacity: 1;
+}
+
+.file-browser .commit-hash::after {
+  content: "";
+  position: absolute;
+  bottom: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.file-browser .commit-hash:hover::after {
+  opacity: 1;
+}
+
+.file-browser .commit-time {
+  white-space: nowrap;
+}
+
+.empty-directory {
+  text-align: center;
+  padding: 3rem;
+}
+
+.file-tree-name-wrapper {
+  flex: 1;
+  padding: 0 4px;
+}
+
+.file-tree-spacer {
+  width: 12px;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+/* Responsive layout */
+@media (max-width: 1024px) {
+  .repo-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .repo-sidebar {
+    position: static;
+  }
+}

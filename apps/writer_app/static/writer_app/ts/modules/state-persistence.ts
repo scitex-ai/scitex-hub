@@ -10,6 +10,13 @@ console.log(
 interface EditorState {
   doctype?: string;
   sectionId?: string;
+  // Per-doctype section memory
+  sectionPerDoctype?: {
+    manuscript?: string;
+    supplementary?: string;
+    revision?: string;
+    shared?: string;
+  };
   cursorPosition?: {
     lineNumber: number;
     column: number;
@@ -105,6 +112,27 @@ export class StatePersistenceManager {
    */
   public saveSection(sectionId: string): void {
     this.saveState({ sectionId });
+  }
+
+  /**
+   * Save section for a specific doctype
+   */
+  public saveSectionForDoctype(doctype: string, sectionId: string): void {
+    const state = this.loadState();
+    const sectionPerDoctype = state.sectionPerDoctype || {};
+    sectionPerDoctype[doctype as keyof typeof sectionPerDoctype] = sectionId;
+    this.saveState({ sectionPerDoctype, sectionId }); // Also update current sectionId
+    console.log(`[StatePersistence] Saved section for ${doctype}:`, sectionId);
+  }
+
+  /**
+   * Get saved section for a specific doctype
+   */
+  public getSavedSectionForDoctype(doctype: string): string | undefined {
+    const state = this.loadState();
+    const section = state.sectionPerDoctype?.[doctype as keyof typeof state.sectionPerDoctype];
+    console.log(`[StatePersistence] Retrieved section for ${doctype}:`, section);
+    return section;
   }
 
   /**

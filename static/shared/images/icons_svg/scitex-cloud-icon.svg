@@ -1,27 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background rectangle for consistent sizing -->
-  <rect width="64" height="64" fill="none"/>
-  
   <!-- Main cloud shape -->
-  <path d="M52 42H18C13.6 42 10 38.4 10 34C10 29.6 13.6 26 18 26C18.7 26 19.4 26.1 20 26.3C20 26.2 20 26.1 20 26C20 20.5 24.5 16 30 16C34.4 16 38.1 18.8 39.4 22.7C40.3 22.2 41.3 22 42.3 22C46.1 22 49.3 24.9 49.9 28.5C54.4 29.1 58 32.9 58 37.5C58 40.1 56.5 42.3 54.3 43.5" fill="#90b1e2" fill-opacity="0.2"/>
-  
+  <path d="M52 42H18C13.6 42 10 38.4 10 34C10 29.6 13.6 26 18 26C18.7 26 19.4 26.1 20 26.3C20 26.2 20 26.1 20 26C20 20.5 24.5 16 30 16C34.4 16 38.1 18.8 39.4 22.7C40.3 22.2 41.3 22 42.3 22C46.1 22 49.3 24.9 49.9 28.5C54.4 29.1 58 32.9 58 37.5C58 40.1 56.5 42.3 54.3 43.5" fill="currentColor" fill-opacity="0.15"/>
+
   <!-- Cloud outline -->
-  <path d="M52 42H18C13.6 42 10 38.4 10 34C10 29.6 13.6 26 18 26C18.7 26 19.4 26.1 20 26.3C20 26.2 20 26.1 20 26C20 20.5 24.5 16 30 16C34.4 16 38.1 18.8 39.4 22.7C40.3 22.2 41.3 22 42.3 22C46.1 22 49.3 24.9 49.9 28.5C54.4 29.1 58 32.9 58 37.5C58 40.1 56.5 42.3 54.3 43.5" stroke="#4a6baf" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-  
+  <path d="M52 42H18C13.6 42 10 38.4 10 34C10 29.6 13.6 26 18 26C18.7 26 19.4 26.1 20 26.3C20 26.2 20 26.1 20 26C20 20.5 24.5 16 30 16C34.4 16 38.1 18.8 39.4 22.7C40.3 22.2 41.3 22 42.3 22C46.1 22 49.3 24.9 49.9 28.5C54.4 29.1 58 32.9 58 37.5C58 40.1 56.5 42.3 54.3 43.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
   <!-- Server/data elements in the cloud -->
-  <rect x="22" y="30" width="20" height="24" rx="2" fill="#90b1e2" fill-opacity="0.3" stroke="#4a6baf" stroke-width="2"/>
-  
+  <rect x="22" y="30" width="20" height="24" rx="2" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="2.5"/>
+
   <!-- Server rack details -->
-  <line x1="22" y1="36" x2="42" y2="36" stroke="#4a6baf" stroke-width="1.5"/>
-  <line x1="22" y1="42" x2="42" y2="42" stroke="#4a6baf" stroke-width="1.5"/>
-  <line x1="22" y1="48" x2="42" y2="48" stroke="#4a6baf" stroke-width="1.5"/>
-  
+  <line x1="22" y1="36" x2="42" y2="36" stroke="currentColor" stroke-width="2"/>
+  <line x1="22" y1="42" x2="42" y2="42" stroke="currentColor" stroke-width="2"/>
+  <line x1="22" y1="48" x2="42" y2="48" stroke="currentColor" stroke-width="2"/>
+
   <!-- Light indicators -->
-  <circle cx="26" cy="33" r="1" fill="#4a6baf"/>
-  <circle cx="26" cy="39" r="1" fill="#4a6baf"/>
-  <circle cx="26" cy="45" r="1" fill="#4a6baf"/>
-  <circle cx="30" cy="33" r="1" fill="#4a6baf"/>
-  <circle cx="30" cy="39" r="1" fill="#4a6baf"/>
-  <circle cx="30" cy="45" r="1" fill="#4a6baf"/>
+  <circle cx="26" cy="33" r="1.5" fill="currentColor"/>
+  <circle cx="26" cy="39" r="1.5" fill="currentColor"/>
+  <circle cx="26" cy="45" r="1.5" fill="currentColor"/>
+  <circle cx="30" cy="33" r="1.5" fill="currentColor"/>
+  <circle cx="30" cy="39" r="1.5" fill="currentColor"/>
+  <circle cx="30" cy="45" r="1.5" fill="currentColor"/>
 </svg>

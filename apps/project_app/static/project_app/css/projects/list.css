@@ -9,41 +9,18 @@
   margin-top: 2rem;
 }
 
-.project-card {
-  border: 1px solid #e5e5e5;
-  border-radius: 8px;
-  padding: 1.5rem;
-  background: white;
-  transition: border-color 0.2s ease;
-}
-
-.project-card:hover {
-  border-color: #007acc;
-}
-
-.project-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: #333;
-}
-
-.project-description {
-  color: #666;
-  margin-bottom: 1rem;
-  font-size: 0.95rem;
-  line-height: 1.4;
-}
-
+/* Project card uses design system .card--repo class */
+/* Additional project-specific styling */
 .project-meta {
-  font-size: 0.85rem;
-  color: #888;
-  margin-bottom: 1rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-default);
 }
 
 .project-actions {
   display: flex;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .btn-sm {

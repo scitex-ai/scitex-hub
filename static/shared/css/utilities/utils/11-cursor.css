@@ -1,0 +1,14 @@
+/* ========================================================================
+   CURSOR UTILITIES
+   ======================================================================== */
+
+.cursor-auto {
+  cursor: auto !important;
+}
+.cursor-pointer {
+  cursor: pointer !important;
+}
+.cursor-not-allowed {
+  cursor: not-allowed !important;
+}
+

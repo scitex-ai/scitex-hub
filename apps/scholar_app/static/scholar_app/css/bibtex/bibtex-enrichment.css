@@ -1,0 +1,7 @@
+/**
+ * BibTeX Enrichment Styles
+ * This file now imports from modular CSS files
+ * Using Workspace Colors
+ */
+
+@import url('./bibtex-enrichment/index.css');

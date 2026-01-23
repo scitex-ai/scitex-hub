@@ -1,0 +1,163 @@
+/* Products Section */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.product-card {
+  background-color: var(--gray-100);
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-lg);
+  text-align: center;
+  box-shadow: var(--box-shadow-sm);
+  transition: all 0.2s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  position: relative;
+  user-select: none;
+  outline: none;
+}
+
+.product-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--box-shadow-md);
+  background-color: white;
+  border-color: var(--gray-400);
+}
+
+.product-card:active, .product-card.card-active {
+  transform: translateY(0);
+  box-shadow: var(--box-shadow-sm);
+  background-color: var(--gray-200);
+  transition: all 0.1s ease;
+}
+
+.product-card:hover .card-link-indicator {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.product-card:active .card-link-indicator, .product-card.card-active .card-link-indicator {
+  background-color: var(--scitex-color-01-dark);
+  transform: scale(0.95);
+  animation: pulse 0.2s ease-in-out;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.95); }
+  100% { transform: scale(0.98); }
+}
+
+.product-icon {
+  margin-bottom: var(--spacing-md);
+  display: flex;
+  justify-content: center;
+}
+
+.product-card h3 {
+  font-size: 1.25rem;
+  margin-bottom: var(--spacing-sm);
+  color: var(--primary-color);
+}
+
+.product-card p {
+  color: var(--text-color);
+  margin-bottom: var(--spacing-md);
+}
+
+.card-link-indicator {
+  margin-top: auto;
+  padding: 0.5rem;
+  color: var(--primary-color);
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: inline-block;
+  border-radius: 4px;
+  margin-bottom: 0.25rem;
+  position: relative;
+  transform-origin: center;
+  border: 1px solid transparent;
+}
+
+/* Slight button appearance in normal state */
+.product-card .card-link-indicator::before {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  width: 60%;
+  height: 2px;
+  background-color: rgba(var(--primary-color-rgb, 0, 123, 255), 0.2);
+  transform: translateX(-50%);
+  border-radius: 2px;
+  transition: all 0.2s ease;
+}
+
+/* Add a subtle button-like appearance to the card */
+.product-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: var(--gray-300);
+  border-bottom-left-radius: var(--border-radius);
+  border-bottom-right-radius: var(--border-radius);
+  transition: all 0.2s ease;
+}
+
+/* Add inset shadow for pressed appearance */
+.product-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: var(--border-radius);
+  box-shadow: inset 0 0 0 rgba(0, 0, 0, 0);
+  transition: box-shadow 0.2s ease;
+  pointer-events: none;
+}
+
+.product-card.card-active::before {
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Add focus styles for keyboard navigation */
+.product-card:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb, 0, 123, 255), 0.25), var(--box-shadow-sm);
+  border-color: var(--primary-color);
+}
+
+.product-card:focus:not(:focus-visible) {
+  box-shadow: var(--box-shadow-sm);
+  border-color: var(--gray-300);
+}
+
+.product-card:focus-visible {
+  box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb, 0, 123, 255), 0.25), var(--box-shadow-sm);
+  border-color: var(--primary-color);
+}
+
+.product-card:hover::after {
+  background-color: var(--primary-color);
+  height: 4px;
+}
+
+.product-card:active::after, .product-card.card-active::after {
+  background-color: var(--scitex-color-01-dark);
+  height: 2px;
+}
+

@@ -1,0 +1,58 @@
+/* ============================================================================= */
+/* FILE VIEW - RESPONSIVE */
+/* ============================================================================= */
+/* Media queries and responsive styles */
+/* ============================================================================= */
+
+/* Mobile responsive layout for file header */
+@media (max-width: 768px) {
+  .file-header-main,
+  .file-header-commit {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .file-header-left,
+  .file-header-actions,
+  .file-commit-left,
+  .file-commit-center,
+  .file-commit-right {
+    width: 100%;
+  }
+}
+
+/* Mobile responsive layout for commit info */
+@media (max-width: 768px) {
+  .commit-info-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .commit-info-left,
+  .commit-info-center,
+  .commit-info-right {
+    width: 100%;
+  }
+
+  .commit-message {
+    white-space: normal;
+  }
+}
+
+/* Mobile responsive layout for PDF viewer */
+@media (max-width: 768px) {
+  .pdf-sidebar {
+    position: fixed;
+    left: -300px;
+    top: 0;
+    width: 300px;
+    height: 100vh;
+    z-index: 1000;
+    /* Styling moved to central CSS - see static/css/components/pdf-viewer.css */
+    /* transition: left 0.3s ease; */
+  }
+
+  .pdf-sidebar.open {
+    left: 0;
+  }
+}

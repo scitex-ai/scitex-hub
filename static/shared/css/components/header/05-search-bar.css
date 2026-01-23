@@ -1,0 +1,97 @@
+/* Search Bar */
+.header-search {
+  width: 100%;
+  position: relative;
+}
+
+.header-search input {
+  width: 100%;
+  background: var(--bg-page);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xs) 36px var(--spacing-xs) 32px;
+  color: var(--text-primary);
+  font-size: var(--base-font-size);
+  line-height: 20px;
+  transition: all var(--transition-normal) ease;
+  box-shadow: var(--shadow-xs);
+}
+
+.header-search input:focus {
+  outline: none;
+  border-color: var(--scitex-color-04);
+  box-shadow:
+    0 0 0 3px rgba(108, 139, 160, 0.15),
+    0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.header-search input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+.header-search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  pointer-events: none;
+  font-size: 14px;
+  height: 16px;
+  width: 16px;
+  opacity: 0.6;
+  transition: filter 0.2s ease;
+}
+
+/* Dark mode search - automatically handled by semantic tokens */
+[data-theme="dark"] .header-search input {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .header-search input:focus {
+  border-color: var(--scitex-color-05);
+  box-shadow:
+    0 0 0 3px rgba(108, 139, 160, 0.2),
+    0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Search icon in dark mode - bluish tint */
+[data-theme="dark"] .header-search-icon {
+  filter: brightness(1.3) sepia(0.2) saturate(1.3) hue-rotate(180deg);
+  opacity: 0.85;
+}
+
+/* Search Shortcut Badge - GitHub style */
+.search-shortcut-badge {
+  position: absolute;
+  right: var(--spacing-sm);
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 1px var(--spacing-xs);
+  font-size: var(--small-font-size);
+  font-weight: 600;
+  font-family: var(--mono-font-family);
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  pointer-events: none;
+  opacity: 0.6;
+  transition: opacity var(--transition-normal) ease;
+  line-height: 16px;
+  min-width: 20px;
+  text-align: center;
+}
+
+/* Hide badge when input is focused */
+.header-search input:focus ~ .search-shortcut-badge {
+  opacity: 0;
+}
+
+[data-theme="dark"] .search-shortcut-badge {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.5);
+}
+

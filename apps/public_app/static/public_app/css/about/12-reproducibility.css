@@ -1,0 +1,60 @@
+/* Reproducibility Section */
+.about-reproducibility-card {
+  background: linear-gradient(
+    135deg,
+    rgba(26, 42, 64, 0.6) 0%,
+    rgba(20, 35, 55, 0.6) 100%
+  );
+  border-radius: 20px;
+  padding: 2.5rem;
+  border: 1px solid rgba(74, 155, 126, 0.2);
+  max-width: 900px;
+  margin: 0 auto;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+.reproducibility-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.reproducibility-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.25rem;
+  background: rgba(74, 155, 126, 0.08);
+  border-radius: 12px;
+  border: 1px solid rgba(74, 155, 126, 0.1);
+  transition: all 0.3s ease;
+}
+
+.reproducibility-item:hover {
+  background: rgba(74, 155, 126, 0.12);
+  transform: translateY(-2px);
+  border-color: rgba(74, 155, 126, 0.25);
+}
+
+.reproducibility-item i {
+  font-size: 1.5rem;
+  color: #4a9b7e;
+  margin-bottom: 0.6rem;
+  filter: drop-shadow(0 0 6px rgba(74, 155, 126, 0.4));
+}
+
+.reproducibility-item span {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.2rem;
+  font-size: 0.95rem;
+}
+
+.reproducibility-item small {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+

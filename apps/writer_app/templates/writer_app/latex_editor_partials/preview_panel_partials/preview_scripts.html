@@ -1,21 +1,6 @@
-<!-- Preview Panel Manager (TypeScript-compiled) -->
-<script type="module">
-  import { PreviewPanelManager } from '{% static "writer_app/js/editor/preview-panel-manager.js" %}';
-
-  // Server-rendered configuration
-  const previewPanelConfig = {
-    quickCompileUrl: '{% url "writer:quick-compile" %}',
-    compilationStatusUrl:
-      '{% url "writer:compilation-status" job_id="__JOB_ID__" %}',
-    csrfToken: document.querySelector("[name=csrfmiddlewaretoken]").value,
-  };
-
-  // Initialize preview panel when DOM is ready
-  document.addEventListener("DOMContentLoaded", function () {
-    const previewPanel = new PreviewPanelManager(previewPanelConfig);
-    previewPanel.initialize();
-
-    // Store globally for debugging and external access
-    window.previewPanelManager = previewPanel;
-  });
-</script>
+{% load vite %}
+<!-- Preview Panel Manager configuration and script -->
+<div id="preview-panel-config" style="display: none"
+     data-quick-compile-url="{% url 'writer:quick-compile' %}"
+     data-compilation-status-url="{% url 'writer:compilation-status' job_id='__JOB_ID__' %}"></div>
+{% vite_script 'writer_app/editor/preview-panel/index' %}

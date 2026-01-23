@@ -3,7 +3,7 @@
  * Handles Light/Dark mode switching with localStorage persistence and database sync
  */
 
-import { getCsrfToken } from "./csrf.js";
+import { getCsrfToken } from "./csrf";
 
 console.log(
   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/static/ts/utils/theme-switcher.ts loaded",
@@ -113,6 +113,13 @@ function applyTheme(theme: Theme): void {
 
   // Update toggle button if exists
   updateToggleButton();
+
+  // Dispatch custom event for Monaco editor and terminal to listen to
+  const event = new CustomEvent("theme-changed", {
+    detail: { theme },
+  });
+  document.dispatchEvent(event);
+  console.log(`[Theme] Dispatched theme-changed event: ${theme}`);
 }
 
 /**

@@ -1,0 +1,10 @@
+/**
+ * Search Main Styles - Index
+ * Imports all modular CSS files
+ */
+
+@import url('./base.css');
+@import url('./selection-bar.css');
+@import url('./result-cards.css');
+@import url('./empty-state.css');
+@import url('./search-help.css');

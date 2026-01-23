@@ -270,7 +270,7 @@ scitex-cloud/
 ### Critical Bugs
 1. **`/projects` route:** 404 error - "No User matches the given query"
    - Location: `apps.project_app.user_urls.user_profile_wrapper`
-   - Cause: User authentication wrapper failing for anonymous users
+   - Cause: User authentication wrapper failing for visitor users
 
 2. **Authentication UX:** Login page shows both success and error messages simultaneously
 
@@ -337,7 +337,7 @@ python manage.py test
 ### Project-Centric Architecture
 Per `CLAUDE.md`:
 - All features (scholar, code, viz, writer) should link to user/group projects
-- Basic functionality should be available to anonymous users
+- Basic functionality should be available to visitor users
 - No fake data - show real errors as alerts
 
 ### API Keys

@@ -38,6 +38,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     netcat-openbsd \
     openssh-client \
     jq \
+    cron \
+    # Useful CLI tools for development
+    tree \
+    htop \
+    vim \
+    nano \
     # Database (rarely change)
     libpq-dev \
     # LaTeX suite (large, rarely change - install early for caching)
@@ -70,6 +76,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     chromium \
     chromium-driver \
     fonts-liberation \
+    # Microsoft core fonts (Arial, Times New Roman, etc.) for scientific figures
+    fontconfig \
     # Playwright runtime dependencies
     libglib2.0-0t64 \
     libnspr4 \
@@ -92,7 +100,43 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpango-1.0-0 \
     libasound2t64 \
     python3-bibtexparser \
+    # Munge for SLURM authentication
+    munge \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Microsoft core fonts (Arial, Times New Roman, Courier New, etc.)
+# Required for high-quality scientific figures
+# ttf-mscorefonts-installer requires contrib repository in Debian
+RUN sed -i 's/main/main contrib/g' /etc/apt/sources.list.d/debian.sources \
+    && apt-get update \
+    && echo -e "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections \
+    && apt-get install -y --no-install-recommends ttf-mscorefonts-installer \
+    && fc-cache -fv \
+    && rm -rf /var/lib/apt/lists/*
+
+# ============================================
+# SLURM Client (build from source to match host version)
+# ============================================
+# MUST match host SLURM version exactly for munge auth to work
+# Host version: 24.05.5 - check with: sinfo --version
+ARG SLURM_VERSION=24.05.5
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libmunge-dev \
+    libhwloc-dev \
+    libhttp-parser-dev \
+    libjson-c-dev \
+    liblz4-dev \
+    libyaml-dev \
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -L -o /tmp/slurm-${SLURM_VERSION}.tar.bz2 \
+        "https://download.schedmd.com/slurm/slurm-${SLURM_VERSION}.tar.bz2" \
+    && cd /tmp && tar xjf slurm-${SLURM_VERSION}.tar.bz2 \
+    && cd slurm-${SLURM_VERSION} \
+    && ./configure --prefix=/usr --sysconfdir=/etc/slurm \
+    && make -j$(nproc) \
+    && make install \
+    && cd / && rm -rf /tmp/slurm-* \
+    && useradd -r -s /bin/false slurm
 
 # ============================================
 # Tool Installation
@@ -114,10 +158,38 @@ RUN YQ_VERSION=v4.44.3 && \
 # Install inotify-tools (lightweight file watcher for template hot reload)
 RUN apt-get update && apt-get install -y --no-install-recommends inotify-tools && rm -rf /var/lib/apt/lists/*
 
-# Install Node.js and Mermaid CLI
+# ============================================
+# Apptainer/Singularity Installation
+# ============================================
+# Required for secure user terminal sessions (PTY runs inside container)
+# Same architecture as production HPC environment
+# Install from GitHub releases (works on Debian slim)
+RUN APPTAINER_VERSION=1.3.4 && \
+    apt-get update && apt-get install -y --no-install-recommends \
+        uidmap \
+        squashfs-tools \
+        fuse2fs \
+        fuse-overlayfs \
+        libfuse3-dev \
+        libseccomp2 \
+        fakeroot \
+        equivs \
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -L -o /tmp/apptainer.deb \
+        "https://github.com/apptainer/apptainer/releases/download/v${APPTAINER_VERSION}/apptainer_${APPTAINER_VERSION}_amd64.deb" \
+    && echo -e "Creating libfuse3-3 compatibility package..." \
+    && printf "Section: misc\nPriority: optional\nStandards-Version: 3.9.2\nPackage: libfuse3-3\nVersion: 3.17.2\nProvides: libfuse3-3\nDepends: libfuse3-4\nDescription: Compatibility package for libfuse3-3\n This is a transitional package for Debian Trixie.\n" > /tmp/libfuse3-3-compat \
+    && equivs-build /tmp/libfuse3-3-compat \
+    && dpkg -i libfuse3-3_3.17.2_all.deb \
+    && rm libfuse3-3_3.17.2_all.deb /tmp/libfuse3-3-compat \
+    && dpkg -i /tmp/apptainer.deb \
+    && rm /tmp/apptainer.deb \
+    && apptainer --version
+
+# Install Node.js, Mermaid CLI, and TypeScript tools
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs && \
-    npm install -g @mermaid-js/mermaid-cli && \
+    npm install -g @mermaid-js/mermaid-cli typescript && \
     rm -rf /var/lib/apt/lists/*
 
 # Configure ImageMagick (remove PDF security restrictions)
@@ -126,7 +198,7 @@ RUN if [ -f /etc/ImageMagick-6/policy.xml ]; then \
     elif [ -f /etc/ImageMagick-7/policy.xml ]; then \
         sed -i 's/<policy domain="coder" rights="none" pattern="PDF" \/>/<policy domain="coder" rights="read|write" pattern="PDF" \/>/g' /etc/ImageMagick-7/policy.xml; \
     else \
-        echo "⚠️  ImageMagick policy.xml not found, skipping PDF policy update"; \
+        echo -e "⚠️  ImageMagick policy.xml not found, skipping PDF policy update"; \
     fi
 
 # ============================================
@@ -154,6 +226,9 @@ RUN python -m playwright install chromium
 # Copy application code
 COPY . .
 
+# Install Node.js project dependencies (Vite for HMR, TypeScript tools)
+RUN cd /app && npm install
+
 # Copy dev-specific entrypoint and helper scripts
 COPY deployment/docker/docker_dev/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh && \
@@ -173,7 +248,8 @@ RUN pdflatex --version && \
     convert --version && \
     mmdc --version && \
     yq --version && \
-    echo "✅ All scitex.writer dependencies verified"
+    which srun && \
+    echo -e "✅ All scitex.writer dependencies verified (SLURM client installed, config at runtime)"
 
 # ============================================
 # Runtime Configuration

@@ -1,0 +1,32 @@
+/**
+ * Scholar Index Page Inline Styles
+ * Extracted from scholar_app/templates/scholar_app/index.html
+ */
+
+/* Vertical tab container */
+.vertical-tab-container {
+    width: 100%;
+}
+
+/* Vertical tabs styling */
+.scitex-tabs {
+    padding: 0 2rem;
+}
+
+/* Tab content container */
+.vertical-tab-content-container {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+}
+
+/* Tab content panels */
+.vertical-tab-content {
+    width: 100%;
+    overflow: visible;
+}
+
+/* Hidden configuration data element */
+#scholar-config-data {
+    display: none;
+}

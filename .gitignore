@@ -1,6 +1,11 @@
 ### Source: /home/ywatanabe/.git-templates/.gitignore-templates/Custom/Specific.gitignore ###
 .README.md
 TODOS/90_COMPARISON_TABLE.md
+slurm_logs
+
+# SciTeX user data directory (should be in home dir, not project root)
+# This gets accidentally created when Docker uses /app/.scitex/ path
+.scitex/
 
 ### Source: /home/ywatanabe/.git-templates/.gitignore-templates/Custom/Claude.gitignore ###
 .claude
@@ -33,9 +38,11 @@ SCITEX_CLOUD_DJANGO_SETTINGS_MODULE
 # SSH keys directory (user-specific)
 ssh_keys/
 
-# old directories as trash bin
-*old*
-**/*old*
+# old directories as trash bin (use _old suffix, not *old* which matches "folder")
+*_old
+*_old/
+**/*_old
+**/*_old/
 .old
 **/.old
 
@@ -139,6 +146,35 @@ data/ssh_keys/
 **/*.JNB
 **/*.jnb
 
+# ===========================================
+# EXCEPTIONS: Track static assets (not user data)
+# ===========================================
+# Static directory assets should be tracked
+!static/**/*.svg
+!static/**/*.png
+!static/**/*.jpg
+!static/**/*.jpeg
+!static/**/*.gif
+!static/**/*.ico
+!static/**/*.pdf
+!static/**/*.mp4
+
+# App-specific static assets should be tracked
+!apps/*/static/**/*.svg
+!apps/*/static/**/*.png
+!apps/*/static/**/*.jpg
+!apps/*/static/**/*.jpeg
+!apps/*/static/**/*.gif
+!apps/*/static/**/*.ico
+!apps/*/static/**/*.pdf
+!apps/*/static/**/*.mp4
+
+# Template assets should be tracked
+!templates/**/*.svg
+!templates/**/*.png
+!templates/**/*.jpg
+!templates/**/*.gif
+
 ### Source: /home/ywatanabe/.git-templates/.gitignore-templates/Python.gitignore ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -153,10 +189,10 @@ __pycache__/
 build/
 develop-eggs/
 dist/
-downloads/
+# downloads/ - removed, too broad (matches ts/writer/downloads/)
 eggs/
 .eggs/
-lib/
+# lib/ - removed, too broad (matches deployment/docker/common/lib/)
 lib64/
 parts/
 sdist/
@@ -775,6 +811,7 @@ test-paper-project/
 .tmp_sync/
 demo/
 .tsbuild/
+.jsbuild/
 
 # TypeScript Compiled Output (auto-generated, do not commit)
 apps/*/static/*/js/
@@ -804,3 +841,10 @@ RULES/
 
 # Internal documents directory (local only)
 GITIGNORED/
+.legacy/
+**/*_before_*.ts
+tsconfig.tsbuildinfo
+paper/
+tests/ui/artifacts/
+mgmt
+viewed.md

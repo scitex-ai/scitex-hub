@@ -1,0 +1,45 @@
+/* Project Jump Button */
+.project-item-jump-btn {
+  opacity: 0.7;
+  transition: all 0.15s ease;
+}
+
+.project-item-jump-btn:hover {
+  opacity: 1;
+  background: var(--bg-surface);
+  color: var(--color-accent-fg);
+}
+
+.project-item-jump-btn:active {
+  transform: scale(0.95);
+}
+
+/* Files Jump Button */
+.project-files-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 2px solid var(--border-default);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 14px;
+}
+
+.project-files-btn:hover {
+  background: var(--bg-muted);
+  border-color: var(--scitex-color-04);
+  color: var(--text-primary);
+}
+
+/* Dark mode Files button */
+[data-theme="dark"] .project-files-btn:hover {
+  border-color: var(--scitex-color-04);
+}
+

@@ -1417,7 +1417,7 @@ window.saveJobToProject = function (jobId) {
   // Check if user is authenticated
   const isAuthenticated = document.body.dataset.userAuthenticated === "true";
   if (!isAuthenticated) {
-    // Anonymous user - guide them
+    // Visitor user - guide them
     if (
       confirm(
         "To save to a project, you need to:\n\n" +

@@ -261,8 +261,78 @@ class DeviceAccount(models.Model):
         return f"{self.user.username} on device {self.device.device_id[:8]}..."
 
 
+class LoginHistory(models.Model):
+    """
+    Tracks all user login events for security auditing.
+    Stores who logged in, when, from where, and with what device.
+    """
+
+    LOGIN_METHOD_CHOICES = [
+        ("email", "Email/Password"),
+        ("google", "Google OAuth"),
+        ("github", "GitHub OAuth"),
+        ("visitor", "Visitor Account"),
+        ("other", "Other"),
+    ]
+
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="login_history"
+    )
+    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True, help_text="Browser/device info")
+    login_method = models.CharField(
+        max_length=20, choices=LOGIN_METHOD_CHOICES, default="email"
+    )
+    success = models.BooleanField(default=True, help_text="Whether login succeeded")
+    failure_reason = models.CharField(
+        max_length=100, blank=True, help_text="Reason if login failed"
+    )
+
+    class Meta:
+        verbose_name = "Login History"
+        verbose_name_plural = "Login Histories"
+        ordering = ["-timestamp"]
+        indexes = [
+            models.Index(fields=["user", "-timestamp"]),
+            models.Index(fields=["-timestamp"]),
+        ]
+
+    def __str__(self):
+        status = "✓" if self.success else "✗"
+        return f"{status} {self.user.username} @ {self.timestamp.strftime('%Y-%m-%d %H:%M')}"
+
+    @classmethod
+    def log_login(cls, user, request, method="email", success=True, failure_reason=""):
+        """
+        Convenience method to log a login event.
+
+        Usage:
+            LoginHistory.log_login(user, request, method='email')
+        """
+        # Get IP address (handle proxies)
+        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+        if x_forwarded_for:
+            ip_address = x_forwarded_for.split(",")[0].strip()
+        else:
+            ip_address = request.META.get("REMOTE_ADDR")
+
+        # Get user agent
+        user_agent = request.META.get("HTTP_USER_AGENT", "")[:500]  # Limit length
+
+        return cls.objects.create(
+            user=user,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            login_method=method,
+            success=success,
+            failure_reason=failure_reason,
+        )
+
+
 from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
+from django.contrib.auth.signals import user_logged_in
 import logging
 
 logger = logging.getLogger(__name__)
@@ -295,3 +365,34 @@ def delete_gitea_user(sender, instance, **kwargs):
         logger.warning(f"Failed to delete Gitea user {instance.username}: {e}")
     except Exception as e:
         logger.error(f"Error deleting Gitea user {instance.username}: {e}")
+
+
+@receiver(user_logged_in)
+def log_user_login(sender, request, user, **kwargs):
+    """Automatically log when a user logs in"""
+    try:
+        # Determine login method
+        method = "email"  # Default
+        if hasattr(request, "session"):
+            # Check if this was a social login
+            sociallogin = request.session.get("socialaccount_sociallogin")
+            if sociallogin:
+                provider = sociallogin.get("account", {}).get("provider", "")
+                if provider in ["google", "github"]:
+                    method = provider
+
+        # Check if visitor account
+        if user.username.startswith("visitor-"):
+            method = "visitor"
+
+        LoginHistory.log_login(user, request, method=method)
+
+        # Also update UserProfile login tracking
+        if hasattr(user, "auth_profile"):
+            user.auth_profile.last_login_at = timezone.now()
+            user.auth_profile.total_login_count += 1
+            user.auth_profile.save(update_fields=["last_login_at", "total_login_count"])
+
+        logger.info(f"Login recorded: {user.username} via {method}")
+    except Exception as e:
+        logger.error(f"Failed to log login for {user.username}: {e}")

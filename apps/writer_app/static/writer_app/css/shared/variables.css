@@ -1,21 +1,61 @@
-/* Writer App CSS Variables - Using Central Design Tokens */
+/* Writer App CSS Variables - Professional Black-Based Theme Matching vis.css */
 
-:root {
-  /* Colors - Map to central semantic tokens (theme-aware automatically) */
+/* Theme-aware color tokens - matching vis.css pattern */
+:root,
+[data-theme="light"] {
+  --writer-bg: var(--workspace-bg-tertiary, #f6f8fa);
+  --writer-border: var(--workspace-border-default, #8fa4b0);
+  --writer-toolbar-bg: var(--workspace-bg-secondary, #fafbfc);
+  --writer-text-primary: var(--text-primary, #1a2a40);
+  --writer-text-secondary: var(--text-secondary, #34495e);
+  --writer-text-muted: var(--text-muted, #6c8ba0);
+  --writer-hover-bg: var(--workspace-bg-tertiary, #f6f8fa);
+  --writer-active-bg: var(--workspace-bg-elevated);
+  --writer-active-border: var(--workspace-border-hover);
+  --writer-surface: var(--workspace-bg-secondary, #fafbfc);
+
+  /* Legacy compatibility */
   --writer-primary: var(--color-btn-primary-bg);
   --writer-primary-hover: var(--color-btn-primary-hover-bg);
   --writer-secondary: var(--text-secondary);
   --writer-background: var(--bg-page);
-  --writer-surface: var(--bg-surface);
-  --writer-border: var(--border-default);
   --writer-text: var(--text-primary);
-  --writer-text-muted: var(--text-muted);
 
-  /* Editor specific */
-  --editor-bg: #1e1e1e;
-  --editor-text: #d4d4d4;
-  --editor-line-number: #858585;
-  --editor-selection: #264f78;
+}
+
+[data-theme="dark"] {
+  /* Use global workspace colors for consistency with Code/Vis */
+  --writer-bg: var(--workspace-bg-primary);
+  --writer-border: var(--workspace-border-default);
+  --writer-toolbar-bg: var(--workspace-bg-secondary);
+  --writer-text-primary: var(--text-primary);
+  --writer-text-secondary: var(--text-secondary);
+  --writer-text-muted: var(--text-muted);
+  --writer-hover-bg: var(--workspace-bg-tertiary);
+  --writer-active-bg: rgba(255, 255, 255, 0.1);  /* Neutral light overlay instead of blue */
+  --writer-active-border: var(--workspace-border-active, #6a6a6a);  /* Neutral gray instead of blue */
+  --writer-surface: var(--workspace-bg-secondary);
+
+  /* Legacy compatibility */
+  --writer-primary: var(--color-btn-primary-bg);
+  --writer-primary-hover: var(--color-btn-primary-hover-bg);
+  --writer-secondary: var(--text-secondary);
+  --writer-background: var(--workspace-bg-primary);
+  --writer-text: var(--text-primary);
+
+  /* Editor specific - workspace colors in dark mode */
+  --editor-bg: var(--workspace-bg-primary);
+  --editor-text: var(--text-primary);
+  --editor-line-number: var(--text-muted);
+  --editor-selection: rgba(255, 255, 255, 0.15);  /* Neutral selection instead of blue */
+}
+
+:root {
+  /* Editor specific - light mode defaults */
+  --editor-bg: #f6f8fa;
+  --editor-text: #1a2a40;
+  --editor-line-number: #6c8ba0;
+  --editor-selection: rgba(0, 0, 0, 0.05);
 
   /* Spacing */
   --spacing-xs: 0.25rem;

@@ -1,0 +1,148 @@
+/* =========================================
+   LATEX PANEL (Code Editor Style)
+   ========================================= */
+
+.latex-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.latex-panel .panel-header {
+  margin-bottom: 0;
+}
+
+.latex-panel > textarea,
+.latex-panel > .CodeMirror,
+.latex-panel > .CodeMirror-wrap {
+  flex: 1;
+  min-height: 0;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  font-family:
+    "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  background: var(--bg-page) !important;
+  color: var(--text-primary) !important;
+}
+
+/* CodeMirror container - NO padding (critical for cursor alignment) */
+.CodeMirror {
+  padding: 0 !important;
+  margin: 0 !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  height: 100% !important;
+  width: 100% !important;
+  background: var(--bg-page) !important;
+  position: relative !important;
+  box-sizing: border-box !important;
+}
+
+/* CodeMirror content area - padding applied here for cursor accuracy */
+.CodeMirror-lines {
+  padding: 1.5rem !important;
+  margin: 0 !important;
+}
+
+/* CodeMirror line spacing - must be exact */
+.CodeMirror-line {
+  padding: 0 !important;
+  margin: 0 !important;
+  height: auto !important;
+  line-height: 1.5 !important;
+  font-size: inherit !important;
+}
+
+/* Cursor must match exact line dimensions */
+.CodeMirror-cursor {
+  border-left: 2px solid var(--color-accent-fg) !important;
+  margin-left: 0 !important;
+  height: 1.5em !important;
+  line-height: 1.5 !important;
+  top: auto !important;
+}
+
+/* Gutter with matching vertical padding */
+.CodeMirror-gutters {
+  padding: 1.5rem 0 !important;
+  margin: 0 !important;
+  background: var(--bg-page) !important;
+  border-right: 1px solid var(--workspace-border-default) !important;
+  box-sizing: border-box !important;
+}
+
+.CodeMirror-linenumber {
+  padding: 0 8px !important;
+  margin: 0 !important;
+  min-width: 40px !important;
+  text-align: right !important;
+  line-height: 1.5 !important;
+  font-size: inherit !important;
+  height: auto !important;
+}
+
+/* Scrollbar alignment */
+.CodeMirror-scrollbar-filler,
+.CodeMirror-gutter-filler {
+  background: transparent !important;
+}
+
+/* Ensure viewport calculates correctly */
+.CodeMirror-viewports {
+  position: relative !important;
+}
+
+/* Fix for character coordinate calculations */
+.CodeMirror-measure {
+  position: absolute !important;
+  width: 100% !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  visibility: hidden !important;
+  white-space: pre !important;
+}
+
+/* Ensure textarea is visible in dark mode */
+.latex-editor-textarea {
+  background: var(--bg-page) !important;
+  color: var(--text-primary) !important;
+  border: none !important;
+}
+
+/* Monaco Editor Container for Writer */
+/* IMPORTANT: Do NOT set background here - let Monaco use its native vs-dark/vs theme background */
+.writer-monaco-editor {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  /* background intentionally not set - Monaco handles it */
+}
+
+/* Make sure Monaco fills the latex-panel properly */
+.latex-panel .writer-monaco-editor {
+  position: relative;
+}
+
+/* Monaco editor inherits from container - let Monaco control its own background */
+.latex-panel .writer-monaco-editor .monaco-editor {
+  height: 100% !important;
+  width: 100% !important;
+}
+
+/* Show placeholder text when editor is empty */
+.latex-editor-textarea:empty::before {
+  content: "% Start typing your LaTeX content here...\n% Example:\n% \\documentclass{article}\n% \\begin{document}\n% Hello World\n% \\end{document}";
+  color: var(--text-muted);
+  opacity: 0.6;
+  font-style: italic;
+}
+

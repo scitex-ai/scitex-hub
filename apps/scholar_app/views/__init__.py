@@ -90,7 +90,7 @@ from .trending.views import (
 )
 
 # Import bibtex views
-from .bibtex.views import (
+from .bibtex import (
     bibtex_enrichment,
     bibtex_upload,
     bibtex_job_detail,
@@ -103,7 +103,7 @@ from .bibtex.views import (
 )
 
 # Import repository views
-from .repository.views import (
+from .repository import (
     list_repositories,
     create_repository_connection,
     sync_status,

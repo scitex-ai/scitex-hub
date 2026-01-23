@@ -10,7 +10,7 @@ The SciTeX Scholar BibTeX enrichment system includes a comprehensive queue manag
 
 **Implementation:** `apps/scholar_app/bibtex_views.py:87-109`
 
-- Each user (authenticated or anonymous) can only have ONE active or pending job at a time
+- Each user (authenticated or visitor) can only have ONE active or pending job at a time
 - When attempting to upload a new file with an active job, the system returns:
   - HTTP 429 (Too Many Requests) for AJAX requests
   - Error message showing the existing job filename
@@ -164,13 +164,13 @@ if is_owner:
 
 **Security:**
 - Authenticated users: verified by `user` field
-- Anonymous users: verified by `session_key` field
+- Visitor users: verified by `session_key` field
 
-### 7. Anonymous User Support
+### 7. Visitor User Support
 
 **Implementation:** Throughout `bibtex_views.py`
 
-- Anonymous users tracked by Django session key
+- Visitor users tracked by Django session key
 - Same queue rules apply (one job per session)
 - Jobs isolated by session key
 - Prompt to sign up to save results
@@ -191,8 +191,8 @@ class BibTeXEnrichmentJob(models.Model):
         ('cancelled', 'Cancelled'),
     ]
 
-    user = models.ForeignKey(User, ...)  # Null for anonymous
-    session_key = models.CharField(...)   # For anonymous users
+    user = models.ForeignKey(User, ...)  # Null for visitor
+    session_key = models.CharField(...)   # For visitor users
     status = models.CharField(...)
     # ... other fields
 ```
@@ -311,7 +311,7 @@ User C sees:
 ### Manual Testing Checklist
 
 - [ ] Upload file as authenticated user
-- [ ] Upload file as anonymous user
+- [ ] Upload file as visitor user
 - [ ] Try to upload second file with active job (should fail)
 - [ ] Cancel pending job
 - [ ] Cancel processing job

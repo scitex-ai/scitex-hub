@@ -1,91 +1,161 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# Timestamp: 2025-11-30
+# File: /home/ywatanabe/proj/scitex-cloud/tests/conftest.py
+
 """
-Pytest configuration and fixtures for E2E testing.
+Pytest configuration and shared fixtures for SciTeX test suite.
+
+Provides:
+- Django setup
+- Test user credentials
+- Database fixtures
+- Common utilities
 """
 
-import pytest
 import os
 import sys
-import logging
+import time
 from pathlib import Path
 
-# Add project root to Python path
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
+import pytest
 
-# Create necessary directories for Django logging
-logs_dir = project_root / "logs"
-logs_dir.mkdir(exist_ok=True)
+# Project root
+PROJECT_ROOT = Path(__file__).parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
 
-# Set Django settings module
+# Ensure logs directory exists
+(PROJECT_ROOT / "logs").mkdir(exist_ok=True)
+
+# Django settings
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.settings_dev")
-
-# Override Django logging to use simple configuration for tests
 os.environ["DJANGO_LOG_LEVEL"] = "ERROR"
 
-# Setup Django with simplified logging
-import django
-from django.conf import settings
+# Load environment variables
+from dotenv import load_dotenv
 
-# Override logging configuration before Django setup
-if hasattr(settings, 'LOGGING'):
-    settings.LOGGING = {
-        'version': 1,
-        'disable_existing_loggers': False,
-        'handlers': {
-            'console': {
-                'class': 'logging.StreamHandler',
-            },
-        },
-        'root': {
-            'handlers': ['console'],
-            'level': 'ERROR',
-        },
-    }
+ENV_FILE = PROJECT_ROOT / "SECRET" / ".env.dev"
+if ENV_FILE.exists():
+    load_dotenv(ENV_FILE)
 
-django.setup()
+
+# Setup Django (handle missing dependencies gracefully)
+try:
+    import django
+    from django.conf import settings
+
+    if hasattr(settings, "LOGGING"):
+        settings.LOGGING = {
+            "version": 1,
+            "disable_existing_loggers": False,
+            "handlers": {"console": {"class": "logging.StreamHandler"}},
+            "root": {"handlers": ["console"], "level": "ERROR"},
+        }
+
+    django.setup()
+    DJANGO_AVAILABLE = True
+except Exception as e:
+    print(f"[conftest] Django setup skipped: {e}")
+    DJANGO_AVAILABLE = False
+
+
+# =============================================================================
+# Configuration
+# =============================================================================
+
+TEST_USER_USERNAME = os.getenv("SCITEX_CLOUD_TEST_USER_USERNAME", "test-user")
+TEST_USER_PASSWORD = os.getenv("SCITEX_CLOUD_TEST_USER_PASSWORD", "Password123!")
+BASE_URL = os.getenv("SCITEX_BASE_URL", "http://127.0.0.1:8000")
+
+
+# =============================================================================
+# Session-scoped fixtures
+# =============================================================================
 
 
 @pytest.fixture(scope="session")
 def base_url():
     """Base URL for the application."""
-    return os.getenv("BASE_URL", "http://127.0.0.1:8000")
+    return BASE_URL
 
 
 @pytest.fixture(scope="session")
-def browser_context_args(browser_context_args):
-    """Configure browser context for all tests."""
+def test_credentials():
+    """Test user credentials."""
     return {
-        **browser_context_args,
-        "viewport": {"width": 1920, "height": 1080},
-        "ignore_https_errors": True,
-        "locale": "en-US",
-        "timezone_id": "America/New_York",
+        "username": TEST_USER_USERNAME,
+        "password": TEST_USER_PASSWORD,
     }
 
 
-@pytest.fixture(scope="function")
-def context(browser):
-    """Create new browser context for each test (isolation)."""
-    context = browser.new_context()
-    yield context
-    context.close()
+# =============================================================================
+# Function-scoped fixtures
+# =============================================================================
 
 
-@pytest.fixture(scope="function")
-def page(context):
-    """Create new page for each test."""
-    page = context.new_page()
+@pytest.fixture
+def timestamp():
+    """Generate unique timestamp for test data."""
+    return int(time.time() * 1000)
 
-    # Enable console logging capture
-    page.on("console", lambda msg: print(f"[BROWSER {msg.type}] {msg.text}"))
 
-    # Enable error capture
-    page.on("pageerror", lambda err: print(f"[PAGE ERROR] {err}"))
+@pytest.fixture
+def unique_username(timestamp):
+    """Generate unique username for test."""
+    return f"test_user_{timestamp}"
 
-    yield page
-    page.close()
+
+@pytest.fixture
+def unique_email(timestamp):
+    """Generate unique email for test."""
+    return f"test_{timestamp}@example.com"
+
+
+@pytest.fixture
+def new_user_data(unique_username, unique_email):
+    """Generate data for creating a new test user."""
+    return {
+        "username": unique_username,
+        "email": unique_email,
+        "password": "TestPassword123!",
+        "password_confirm": "TestPassword123!",
+    }
+
+
+# =============================================================================
+# Database fixtures
+# =============================================================================
+
+
+@pytest.fixture
+def django_user_model():
+    """Get Django User model."""
+    if not DJANGO_AVAILABLE:
+        pytest.skip("Django not available")
+    from django.contrib.auth import get_user_model
+
+    return get_user_model()
+
+
+@pytest.fixture
+def create_test_user(django_user_model, new_user_data):
+    """Create a test user in the database."""
+    user = django_user_model.objects.create_user(
+        username=new_user_data["username"],
+        email=new_user_data["email"],
+        password=new_user_data["password"],
+    )
+    yield user
+    # Cleanup
+    try:
+        user.delete()
+    except Exception:
+        pass
+
+
+# =============================================================================
+# Cleanup fixtures
+# =============================================================================
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -93,36 +163,17 @@ def cleanup_test_users():
     """Cleanup test users after all tests complete."""
     yield
 
-    # Skip cleanup if running tests from host (database not accessible)
-    # When running in Docker, cleanup will work properly
+    if not DJANGO_AVAILABLE:
+        return
+
     try:
         from django.contrib.auth import get_user_model
-        User = get_user_model()
 
+        User = get_user_model()
         deleted_count, _ = User.objects.filter(
             username__startswith="test_user_"
         ).delete()
-
         if deleted_count > 0:
-            print(f"\n✓ Cleaned up {deleted_count} test user(s)")
+            print(f"\n[Cleanup] Deleted {deleted_count} test user(s)")
     except Exception as e:
-        print(f"\n⚠ Skipping cleanup (database not accessible from host): {e}")
-
-
-@pytest.fixture
-def test_user_data(timestamp):
-    """Generate test user data."""
-    return {
-        "username": f"test_user_{timestamp}",
-        "email": f"test_{timestamp}@example.com",
-        "password": "TestPass123!",
-        "first_name": "Test",
-        "last_name": "User",
-    }
-
-
-@pytest.fixture
-def timestamp():
-    """Generate unique timestamp for test data."""
-    import time
-    return int(time.time())
+        print(f"\n[Cleanup] Skipped (DB not accessible): {e}")

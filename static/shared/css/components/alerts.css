@@ -47,19 +47,41 @@
 
 .warning-banner-title {
   margin-bottom: 0.5rem;
-  font-size: 1rem;
-  font-weight: 700;
+  font-size: 0.95rem;
+  font-weight: 600;
   color: white;
 }
 
 .warning-banner-title strong {
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .warning-banner-description {
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.95);
+  color: rgba(255, 255, 255, 0.9);
   line-height: 1.5;
+}
+
+/* Dark mode for warning banner - same as light mode (uses warning colors) */
+[data-theme="dark"] .warning-banner {
+  background: linear-gradient(135deg, var(--warning-color) 0%, #a07a55 100%);
+  border-bottom: 3px solid var(--warning-color);
+}
+
+[data-theme="dark"] .warning-banner-content {
+  color: white;
+}
+
+[data-theme="dark"] .warning-banner-title {
+  color: white;
+}
+
+[data-theme="dark"] .warning-banner-icon {
+  color: white;
+}
+
+[data-theme="dark"] .warning-banner-description {
+  color: rgba(255, 255, 255, 0.9);
 }
 
 /* =========================

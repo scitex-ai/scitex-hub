@@ -1,0 +1,12 @@
+/**
+ * Shared Data Table Styles
+ *
+ * Used by vis_app and code_app for Excel-like spreadsheet functionality.
+ * Import this in your app's CSS to get full data table styling.
+ */
+
+@import './base.css';
+@import './selection.css';
+@import './editing.css';
+@import './resize.css';
+@import './context-menu.css';

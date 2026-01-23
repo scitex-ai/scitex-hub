@@ -1,0 +1,57 @@
+/* Toolbar buttons - icon-only style matching vis app workspace design */
+.btn-code-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: transparent;
+  border: none; /* Flat workspace design - no borders */
+  border-radius: 0; /* Flat workspace design - no rounded corners */
+  color: var(--workspace-icon-primary); /* Eye-friendly green for all icons */
+  font-size: 14px; /* Consistent size for all buttons */
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-code-action:hover:not(:disabled) {
+  background: var(--workspace-bg-tertiary);
+  color: var(--workspace-icon-hover);
+  transform: translateY(-1px);
+}
+
+.btn-code-action:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-code-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Font Awesome icons in buttons - explicit workspace colors */
+.btn-code-action i {
+  font-size: 14px; /* Same size for all icons */
+  color: var(--workspace-icon-primary); /* Eye-friendly green */
+}
+
+.btn-code-action:hover:not(:disabled) i {
+  color: var(--workspace-icon-hover); /* Darker green on hover */
+}
+
+.btn-code-action:disabled i {
+  color: var(--workspace-icon-muted);
+}
+
+/* Hide text labels in toolbar buttons for icon-only style */
+.btn-code-action:not(.btn-with-text) {
+  padding: 8px;
+  min-width: 36px;
+}
+
+.btn-code-action:not(.btn-with-text) span {
+  display: none;
+}
+

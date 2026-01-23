@@ -1,0 +1,78 @@
+/**
+ * Server Status - Controls
+ * Time span selector, chart mode selector
+ */
+
+/* Time Span Selector */
+.section-title-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.section-title-wrapper .section-title {
+    margin-bottom: 0;
+}
+
+.time-span-selector {
+    display: flex;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+
+.time-span-btn {
+    padding: 0.4rem 0.85rem;
+    border: 1px solid var(--border-default);
+    border-radius: 6px;
+    background: var(--bg-surface);
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.time-span-btn:hover {
+    border-color: var(--scitex-color-04);
+    color: var(--text-primary);
+}
+
+.time-span-btn.active {
+    background: var(--scitex-color-04);
+    border-color: var(--scitex-color-04);
+    color: white;
+}
+
+/* Chart Mode Selector */
+.chart-mode-selector {
+    display: flex;
+    gap: 0.25rem;
+    margin-left: 0.5rem;
+}
+
+.chart-mode-btn {
+    padding: 0.4rem 0.7rem;
+    border: 1px solid var(--border-default);
+    border-radius: 6px;
+    background: var(--bg-surface);
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.chart-mode-btn:hover {
+    border-color: var(--scitex-color-02);
+    color: var(--text-primary);
+}
+
+.chart-mode-btn.active {
+    background: var(--scitex-color-02);
+    border-color: var(--scitex-color-02);
+    color: white;
+}
+
+.chart-mode-btn i {
+    margin-right: 0.25rem;
+}

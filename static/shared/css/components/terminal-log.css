@@ -129,7 +129,7 @@
 
 /* Dark theme ANSI colors (default) */
 .ansi-black {
-  color: var(--color-canvas-inset, #3e3e3e);
+  color: var(--bg-muted);
 }
 .ansi-red {
   color: var(--error-color, #f14c4c);
@@ -150,11 +150,11 @@
   color: #29b8db;
 }
 .ansi-white {
-  color: var(--color-fg-default, #e5e5e5);
+  color: var(--text-primary);
 }
 
 .ansi-bright-black {
-  color: var(--color-fg-muted, #888888);
+  color: var(--text-muted);
 }
 .ansi-bright-red {
   color: var(--error-color, #f14c4c);
@@ -201,7 +201,7 @@
   color: #0e98ba;
 }
 [data-theme="light"] .ansi-white {
-  color: var(--color-fg-default, #333333);
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .ansi-bright-black {

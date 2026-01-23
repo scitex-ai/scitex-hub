@@ -1,0 +1,124 @@
+
+/* Compact Paper Cards - Better space usage */
+.paper-card {
+  padding: 1rem !important;
+  margin-bottom: 0.75rem !important;
+}
+
+.paper-card-header {
+  margin-bottom: 0.5rem !important;
+}
+
+.paper-card-title {
+  line-height: 1.4 !important;
+  margin-bottom: 0.25rem !important;
+}
+
+.paper-card-authors {
+  margin-bottom: 0.4rem !important;
+}
+
+.paper-card-metadata {
+  margin-bottom: 0.5rem !important;
+}
+
+.paper-card-abstract {
+  line-height: 1.5 !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.paper-card-actions {
+  padding-top: 0.5rem !important;
+  gap: 0.5rem !important;
+}
+
+.paper-card-actions a,
+.paper-card-actions button {
+  padding: 0.4rem 0.8rem !important;
+}
+
+/* Abstract Display */
+.abstract-full {
+  line-height: 1.5;
+}
+
+.abstract-toggle {
+  cursor: pointer;
+  text-decoration: none !important;
+}
+
+.abstract-toggle:hover {
+  text-decoration: underline !important;
+}
+
+.abstract-preview {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.abstract-full {
+  display: block;
+}
+
+.abstract-short {
+  display: none;
+}
+
+/* Truncated mode (default) */
+.abstract-preview.mode-truncated .abstract-full {
+  display: none;
+}
+
+.abstract-preview.mode-truncated .abstract-short {
+  display: block;
+}
+
+/* Full mode */
+.abstract-preview.mode-all .abstract-full {
+  display: block;
+}
+
+.abstract-preview.mode-all .abstract-short {
+  display: none;
+}
+
+/* Hidden mode */
+.abstract-preview.mode-none {
+  display: none;
+}
+
+/* Toggle button */
+.abstract-toggle-btn {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  padding: 4px 8px;
+  margin-right: 6px;
+  text-decoration: none;
+  cursor: pointer;
+  display: inline-block;
+  transition: all 0.2s ease;
+}
+
+.abstract-toggle-btn:hover {
+  color: var(--scitex-color-02);
+  background: var(--bg-page);
+  border-color: var(--scitex-color-02);
+}
+
+.abstract-toggle-btn.active {
+  color: var(--scitex-color-06);
+  background: var(--scitex-color-02);
+  border-color: var(--scitex-color-02);
+  font-weight: 600;
+}
+
+/* Impact Factor Badge */
+.impact-factor-badge {
+  background-color: var(--scitex-color-02) !important;
+  color: var(--scitex-color-06) !important;
+}
+

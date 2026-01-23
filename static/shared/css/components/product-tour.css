@@ -1,0 +1,278 @@
+/**
+ * Product Tour Styles
+ * Step-by-step guided walkthrough highlighting UI elements
+ */
+
+/* Overlay backdrop */
+.product-tour-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.product-tour-overlay.visible {
+  opacity: 1;
+}
+
+.product-tour-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+}
+
+/* Highlight overlay - separate element positioned over target */
+.product-tour-highlight-overlay {
+  position: fixed !important;
+  pointer-events: none !important;
+  z-index: 10001 !important;
+  border: 4px solid var(--accent-color, #6366f1) !important;
+  border-radius: 8px !important;
+  box-shadow:
+    0 0 0 4px rgba(99, 102, 241, 0.3),
+    0 0 20px rgba(99, 102, 241, 0.4) !important;
+  animation: product-tour-pulse 2s ease-in-out infinite !important;
+}
+
+/* Legacy class-based highlight (fallback) */
+.product-tour-highlight {
+  position: relative !important;
+  z-index: 10001 !important;
+  box-shadow:
+    0 0 0 4px var(--accent-color, #6366f1),
+    0 0 0 8px rgba(99, 102, 241, 0.3) !important;
+  border-radius: 6px;
+  animation: product-tour-pulse 2s ease-in-out infinite;
+}
+
+@keyframes product-tour-pulse {
+  0%,
+  100% {
+    border-color: var(--accent-color, #6366f1);
+    box-shadow:
+      0 0 0 4px rgba(99, 102, 241, 0.3),
+      0 0 20px rgba(99, 102, 241, 0.4);
+  }
+  50% {
+    border-color: #818cf8;
+    box-shadow:
+      0 0 0 8px rgba(99, 102, 241, 0.2),
+      0 0 30px rgba(99, 102, 241, 0.3);
+  }
+}
+
+/* Tooltip */
+.product-tour-tooltip {
+  position: fixed;
+  z-index: 10002;
+  width: 320px;
+  background: var(--bg-primary, #1a1a2e);
+  border: 1px solid var(--border-color, #333);
+  border-radius: 10px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  pointer-events: auto;
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.product-tour-tooltip.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.product-tour-tooltip-content {
+  padding: 1rem 1.25rem;
+}
+
+.product-tour-tooltip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.product-tour-step-indicator {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #aaa);
+  font-weight: 500;
+}
+
+.product-tour-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: var(--bg-secondary, #252540);
+  border: 1px solid var(--border-color, #333);
+  border-radius: 6px;
+  color: var(--text-secondary, #aaa);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: all 0.2s ease;
+}
+
+.product-tour-close:hover {
+  background: var(--bg-tertiary, #2a2a4a);
+  border-color: var(--accent-color, #6366f1);
+  color: var(--text-primary, #fff);
+}
+
+.product-tour-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+}
+
+.product-tour-description {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary, #aaa);
+  line-height: 1.5;
+}
+
+.product-tour-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.product-tour-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border-color, #333);
+  border-radius: 6px;
+  background: var(--bg-secondary, #252540);
+  color: var(--text-primary, #fff);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.product-tour-btn:hover {
+  background: var(--bg-tertiary, #2a2a4a);
+  border-color: var(--accent-color, #6366f1);
+}
+
+.product-tour-btn.primary {
+  background: var(--accent-color, #6366f1);
+  border-color: var(--accent-color, #6366f1);
+}
+
+.product-tour-btn.primary:hover {
+  background: var(--accent-color-hover, #5855eb);
+}
+
+/* Tooltip arrow */
+.product-tour-arrow {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: var(--bg-primary, #1a1a2e);
+  border: 1px solid var(--border-color, #333);
+  transform: rotate(45deg);
+}
+
+.product-tour-arrow.arrow-top {
+  top: -7px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.product-tour-arrow.arrow-bottom {
+  bottom: -7px;
+  border-left: none;
+  border-top: none;
+}
+
+.product-tour-arrow.arrow-left {
+  left: -7px;
+  border-right: none;
+  border-top: none;
+}
+
+.product-tour-arrow.arrow-right {
+  right: -7px;
+  border-left: none;
+  border-bottom: none;
+}
+
+/* Skip option checkbox */
+.product-tour-skip-option {
+  margin: 0.75rem 0;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border-color, #333);
+}
+
+.product-tour-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary, #aaa);
+  cursor: pointer;
+}
+
+.product-tour-checkbox-label:hover {
+  color: var(--text-primary, #fff);
+}
+
+.product-tour-skip-checkbox {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--accent-color, #6366f1);
+  cursor: pointer;
+}
+
+/* Keymap hint */
+.product-tour-keymap-hint {
+  margin: 0.75rem 0 0;
+  padding-top: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-muted, #666);
+  text-align: center;
+  border-top: 1px solid var(--border-color, #333);
+}
+
+.product-tour-keymap-hint kbd {
+  display: inline-block;
+  padding: 0.15rem 0.4rem;
+  margin: 0 0.15rem;
+  font-size: 0.7rem;
+  font-family: inherit;
+  background: var(--bg-tertiary, #2a2a4a);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 3px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Restart hint */
+.product-tour-restart-hint {
+  margin: 0.5rem 0 0;
+  padding-top: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-muted, #666);
+  text-align: center;
+  border-top: 1px solid var(--border-color, #333);
+}
+
+.product-tour-restart-hint i {
+  margin-right: 0.25rem;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .product-tour-tooltip {
+    width: calc(100vw - 32px);
+    max-width: 320px;
+  }
+}

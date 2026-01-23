@@ -1,5 +1,5 @@
 {% extends "global_base.html" %}
-{% load static %}
+{% load static vite %}
 {% block title %}
     {{ breadcrumb_path }} - {{ project.name }}
 {% endblock %}
@@ -9,7 +9,7 @@
     <link rel="stylesheet"
           href="{% static 'project_app/css/shared/sidebar.css' %}" />
     <link rel="stylesheet"
-          href="{% static 'project_app/css/shared/file-tree.css' %}" />
+          href="{% static 'project_app/css/shared/file-tree/index.css' %}" />
     <link rel="stylesheet"
           href="{% static 'project_app/css/shared/buttons.css' %}" />
 {% endblock %}
@@ -30,6 +30,5 @@
     </div>
     {% include
     "project_app/repository/file_directory_partials/file_directory_scripts.html" %}
-    <script type="module"
-            src="{% static 'project_app/js/shared/project_app.js' %}"></script>
+    {% vite_script 'project_app/shared/project_app' %}
 {% endblock %}

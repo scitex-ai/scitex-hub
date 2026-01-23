@@ -110,8 +110,8 @@
 /* Disabled State */
 .btn-cta:disabled,
 .btn-cta.disabled {
-  background: var(--color-border-muted);
-  color: var(--color-fg-muted);
+  background: var(--border-muted);
+  color: var(--text-muted);
   cursor: not-allowed;
   opacity: 0.6;
   box-shadow: none;

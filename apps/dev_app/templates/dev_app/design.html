@@ -8,7 +8,26 @@
             <link rel="stylesheet" href="{% static 'shared/css/common.css' %}" />
             <link rel="stylesheet"
                   href="{% static 'shared/css/components/code-blocks.css' %}" />
-            <link rel="stylesheet" href="{% static 'dev_app/styles/design.css' %}" />
+            <!-- Design System CSS Modules (refactored from monolithic design.css) -->
+            <link rel="stylesheet" href="{% static 'dev_app/styles/design/00-design.css' %}" />
+            <link rel="stylesheet" href="{% static 'dev_app/styles/design/01-component-library.css' %}" />
+            <link rel="stylesheet" href="{% static 'dev_app/styles/design/02-section-headers.css' %}" />
+            <link rel="stylesheet" href="{% static 'dev_app/styles/design/03-info-box.css' %}" />
+            <link rel="stylesheet" href="{% static 'dev_app/styles/design/04-grid-layouts.css' %}" />
+            <link rel="stylesheet" href="{% static 'dev_app/styles/design/05-flexible-layouts.css' %}" />
+            <link rel="stylesheet" href="{% static 'dev_app/styles/design/06-content-containers.css' %}" />
+            <link rel="stylesheet" href="{% static 'dev_app/styles/design/07-text-utilities.css' %}" />
+            <link rel="stylesheet" href="{% static 'dev_app/styles/design/08-badge-tag.css' %}" />
+            <link rel="stylesheet" href="{% static 'dev_app/styles/design/09-code-blocks.css' %}" />
+            <link rel="stylesheet" href="{% static 'dev_app/styles/design/10-demo-content.css' %}" />
+            <link rel="stylesheet" href="{% static 'dev_app/styles/design/11-row-layouts.css' %}" />
+            <link rel="stylesheet" href="{% static 'dev_app/styles/design/12-section-subsections.css' %}" />
+            <link rel="stylesheet" href="{% static 'dev_app/styles/design/13-component-library-section.css' %}" />
+            <link rel="stylesheet" href="{% static 'dev_app/styles/design/14-dark-mode-demos.css' %}" />
+            <link rel="stylesheet" href="{% static 'dev_app/styles/design/15-dark-mode-displays.css' %}" />
+            <link rel="stylesheet" href="{% static 'dev_app/styles/design/16-button-spacing.css' %}" />
+            <link rel="stylesheet" href="{% static 'dev_app/styles/design/17-theme-buttons.css' %}" />
+            <link rel="stylesheet" href="{% static 'dev_app/styles/design/18-component-buttons.css' %}" />
             <link rel="stylesheet"
                   href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/zenburn.min.css" />
         {% endblock %}
@@ -80,6 +99,7 @@
         typography: '{% url "dev_app:design_typography" %}',
         "code-blocks": '{% url "dev_app:design_code_blocks" %}',
         "terminal-log": '{% url "dev_app:design_terminal_log" %}',
+        terminal: '{% url "dev_app:design_terminal" %}',
         spacing: '{% url "dev_app:design_spacing" %}',
         theme: '{% url "dev_app:design_theme" %}',
         guidelines: '{% url "dev_app:design_guidelines" %}',

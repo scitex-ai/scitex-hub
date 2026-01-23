@@ -1,5 +1,5 @@
 {% extends "global_base.html" %}
-{% load static %}
+{% load static vite %}
 {% comment %}
 Base template for Writer App
 All writer_app templates should extend from this template.
@@ -38,7 +38,7 @@ Features:
     </div>
 {% endblock %}
 {% block extra_js %}
-    <script src="{% static 'writer_app/js/shared/utils.js' %}"></script>
+    {% vite_script 'writer_app/shared/utils' %}
     {% block writer_js %}
     {% endblock %}
 {% endblock %}

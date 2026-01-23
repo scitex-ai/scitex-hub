@@ -1,0 +1,409 @@
+/* ============================================================================
+ * workspace-inline.css
+ * Extracted inline styles from workspace.html template
+ * ============================================================================ */
+
+/* Project data container (hidden) */
+#project-data {
+  display: none;
+}
+
+/* ============================================================================
+ * Visitor Pool Messages
+ * ============================================================================ */
+
+/* Pool exhausted/error wrapper */
+.pool-message-wrapper {
+  padding: 2rem;
+}
+
+.pool-message-content {
+  max-width: 600px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.pool-message-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto;
+  color: var(--text-muted);
+}
+
+.pool-message-title {
+  margin-top: 1rem;
+  color: var(--text-default);
+}
+
+.pool-message-text {
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+}
+
+.pool-message-link {
+  color: var(--scitex-color-04, #58a6ff);
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.pool-message-link:hover {
+  color: var(--scitex-color-05, #79c0ff);
+}
+
+.pool-message-actions {
+  margin-top: 1.5rem;
+}
+
+.pool-message-link.btn-primary-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--workspace-border-active);
+  color: #fff;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+.pool-message-link.btn-primary-link:hover {
+  background: var(--scitex-color-04);
+  color: #fff;
+}
+
+/* ============================================================================
+ * Sidebar Visitor Styles
+ * ============================================================================ */
+
+/* Visitor sidebar title with signup link */
+.sidebar-title-visitor {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.sidebar-visitor-project {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Authenticated user sidebar link */
+.sidebar-title-auth {
+  display: inline-flex;
+}
+
+/* ============================================================================
+ * Toolbar Styles
+ * ============================================================================ */
+
+/* Keybinding mode selector */
+#keybinding-mode {
+  padding: 6px 8px;
+}
+
+/* Terminal shortcuts button spacing */
+#btn-terminal-shortcuts {
+  margin-left: 8px;
+}
+
+/* ============================================================================
+ * Editor Welcome Screen
+ * ============================================================================ */
+
+#welcome-screen {
+  display: none;
+}
+
+.welcome-features-container {
+  margin-top: 32px;
+  max-width: 600px;
+}
+
+.welcome-features-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  text-align: left;
+}
+
+.welcome-feature-card {
+  padding: 16px;
+  background: var(--color-canvas-subtle);
+  border-radius: 6px;
+}
+
+.welcome-feature-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.welcome-feature-icon {
+  color: var(--scitex-color-04);
+}
+
+.welcome-feature-text {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-fg-muted);
+}
+
+.welcome-quickstart {
+  margin-top: 24px;
+  padding: 16px;
+  background: var(--color-accent-subtle);
+  border-left: 3px solid var(--scitex-color-04);
+  border-radius: 4px;
+}
+
+.welcome-quickstart-title {
+  color: var(--color-fg-default);
+}
+
+.welcome-quickstart-list {
+  margin: 8px 0 0 0;
+  padding-left: 20px;
+  font-size: 13px;
+  color: var(--color-fg-muted);
+}
+
+/* ============================================================================
+ * Terminal Styles
+ * ============================================================================ */
+
+#pty-terminal {
+  padding: 0;
+}
+
+/* ============================================================================
+ * Modal Styles
+ * ============================================================================ */
+
+/* Shortcuts modal */
+.shortcuts-modal {
+  max-width: 800px;
+}
+
+.shortcuts-modal-body {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+/* Terminal shortcuts modal */
+.terminal-shortcuts-modal {
+  max-width: 700px;
+}
+
+.terminal-shortcuts-body {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.terminal-shortcuts-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.terminal-shortcuts-table thead tr {
+  background: var(--color-canvas-subtle);
+  border-bottom: 2px solid var(--color-border-default);
+}
+
+.terminal-shortcuts-table th {
+  padding: 8px;
+  text-align: left;
+  font-weight: 600;
+}
+
+.terminal-shortcuts-table .section-header {
+  background: var(--color-canvas-subtle);
+}
+
+.terminal-shortcuts-table .section-header td {
+  padding: 6px 8px;
+  font-weight: bold;
+}
+
+.terminal-shortcuts-table td {
+  padding: 6px 8px;
+}
+
+/* Commit modal */
+.commit-modal {
+  max-width: 600px;
+}
+
+.commit-message-group {
+  margin-bottom: 12px;
+}
+
+.commit-message-label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.commit-message-textarea {
+  width: 100%;
+  resize: vertical;
+  font-family: inherit;
+  padding: 8px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  background: var(--color-canvas-default);
+  color: var(--color-fg-default);
+}
+
+.commit-preview-group {
+  margin-bottom: 12px;
+}
+
+.commit-files-preview {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  padding: 8px;
+  background: var(--color-canvas-subtle);
+  font-size: 12px;
+  font-family: monospace;
+}
+
+.commit-checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.commit-checkbox {
+  cursor: pointer;
+}
+
+.commit-checkbox-label {
+  cursor: pointer;
+  margin: 0;
+}
+
+.commit-submit-btn {
+  background: var(--status-success);
+}
+
+/* Signup warning modal */
+.signup-warning-modal {
+  max-width: 500px;
+}
+
+.signup-modal-title-icon {
+  color: var(--workspace-icon-primary);
+}
+
+.signup-warning-content {
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.signup-warning-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1rem;
+  color: var(--workspace-icon-primary);
+}
+
+.signup-warning-title {
+  margin-bottom: 1rem;
+  color: var(--text-default);
+  font-size: 1.25rem;
+}
+
+.signup-warning-text {
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.signup-benefits-box {
+  background: var(--workspace-bg-secondary);
+  border-left: 3px solid var(--workspace-icon-primary);
+  padding: 1rem;
+  border-radius: 6px;
+  text-align: left;
+  margin-bottom: 1rem;
+}
+
+.signup-benefits-title {
+  color: var(--text-default);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.signup-benefits-icon {
+  color: var(--status-success);
+}
+
+.signup-benefits-list {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.signup-warning-footer {
+  gap: 12px;
+}
+
+.signup-warning-link {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.signup-warning-link-icon {
+  margin-right: 6px;
+}
+
+/* SVG path styles for signup modal */
+.signup-modal-svg-stroke {
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+}
+
+/* ============================================================================
+ * Additional Inline Style Extractions - Complete Refactor
+ * ============================================================================ */
+
+/* Keybinding mode select already styled above, line 74-76 */
+
+/* Terminal shortcuts button already styled above, line 79-81 */
+
+/* PTY terminal already styled above, line 149-151 */
+
+/* Welcome screen already styled above, line 87-89 */
+
+/* Features container already styled above, line 91-94 */
+
+/* Features grid already styled above, line 96-101 */
+
+/* Feature cards already styled above, line 103-107 */
+
+/* Feature headers already styled above, line 109-114 */
+
+/* Feature icons already styled above, line 116-118 */
+
+/* Feature text already styled above, line 120-124 */
+
+/* Quickstart already styled above, line 126-143 */
+
+/* Shortcuts modal already styled above, line 158-165 */
+
+/* Terminal shortcuts modal already styled above, line 168-206 */
+
+/* Commit modal already styled above, line 208-266 */
+
+/* Signup warning modal already styled above, line 269-347 */

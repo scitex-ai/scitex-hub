@@ -6,14 +6,14 @@
                 <article class="repo-item">
                     <div class="repo-header">
                         <h3 class="repo-title">
-                            <a href="{{ star.repository.get_absolute_url }}">{{ star.repository.owner.username }}/{{ star.repository.slug }}</a>
+                            <a href="{{ star.project.get_absolute_url }}">{{ star.project.owner.username }}/{{ star.project.slug }}</a>
                         </h3>
                     </div>
-                    {% if star.repository.description %}<p class="repo-description">{{ star.repository.description }}</p>{% endif %}
+                    {% if star.project.description %}<p class="repo-description">{{ star.project.description }}</p>{% endif %}
                     <div class="repo-meta">
                         <span class="repo-meta-item">
                             <i class="fas fa-star"></i>
-                            Starred {{ star.created_at|timesince }} ago
+                            Starred {{ star.starred_at|timesince }} ago
                         </span>
                     </div>
                 </article>

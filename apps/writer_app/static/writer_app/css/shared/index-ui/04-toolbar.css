@@ -1,0 +1,177 @@
+/* =========================================
+   TOOLBAR IMPROVEMENTS
+   ========================================= */
+
+.writer-toolbar-sticky {
+  background: var(--bg-page);
+  padding: 0.25rem 1rem; /* Reduced from 1rem to 0.25rem 1rem */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.toolbar-left,
+.toolbar-center,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.toolbar-left {
+  flex: 1;
+  min-width: 200px;
+}
+
+.toolbar-center {
+  display: flex;
+  gap: 0.5rem;
+  border-left: 1px solid var(--workspace-border-default);
+  border-right: 1px solid var(--workspace-border-default);
+  padding: 0 0.75rem;
+}
+
+.toolbar-right {
+  justify-content: flex-end;
+}
+
+/* Selector groups - modern flat design */
+.horizontal-selector-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0;
+  border-radius: 0;
+  transition: none;
+  position: relative;
+}
+
+/* No hover effects on group - keep it simple */
+.horizontal-selector-group:hover {
+  /* Modern flat design - no background or shadow */
+}
+
+/* No active state effects */
+.horizontal-selector-group:active {
+  /* Modern flat design - no effects */
+}
+
+/* Simple focus state */
+.horizontal-selector-group:focus-within {
+  /* Let individual elements handle focus */
+}
+
+/* Disabled state */
+.horizontal-selector-group:has(select:disabled),
+.horizontal-selector-group.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* No hover enhancements */
+.horizontal-selector-group:hover .selector-label {
+  /* Modern flat design - no color change */
+}
+
+.horizontal-selector-group:hover .form-select {
+  /* Modern flat design - no border color change */
+}
+
+.horizontal-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: none;
+}
+
+/* No transform effects - modern flat design */
+.horizontal-selector:hover {
+  /* Modern flat design - no scale */
+}
+
+.horizontal-selector:active {
+  /* Modern flat design - no scale */
+}
+
+.selector-label {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  transition: none;
+  user-select: none;
+}
+
+.selector-label:hover {
+  /* Modern flat design - no color or transform change */
+}
+
+.horizontal-selector .form-select {
+  min-width: 140px;
+  font-size: 0.875rem;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+/* Simple hover state - just background */
+.horizontal-selector .form-select:hover {
+  background: var(--workspace-bg-tertiary);
+}
+
+/* Simple focus state */
+.horizontal-selector .form-select:focus {
+  outline: none;
+  background: var(--workspace-bg-tertiary);
+  border-color: var(--workspace-border-default);
+  box-shadow: 0 0 0 3px var(--color-accent-subtle);
+  background: var(--bg-page);
+}
+
+/* Form select active state */
+.horizontal-selector .form-select:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12) inset;
+}
+
+/* Form select disabled state */
+.horizontal-selector .form-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--workspace-bg-secondary);
+}
+
+/* Ensure texfile-selector dropdown is wide enough */
+#texfile-selector {
+  min-width: 150px;
+}
+
+/* Style optgroups in select dropdowns */
+#texfile-selector optgroup {
+  background: var(--bg-page);
+  color: var(--text-primary);
+}
+
+#texfile-selector option {
+  background: var(--bg-page);
+  color: var(--text-primary);
+  padding: 0.25rem 0.5rem;
+}
+
+#texfile-selector option:hover {
+  background: var(--color-accent-subtle);
+  color: var(--text-primary);
+}
+

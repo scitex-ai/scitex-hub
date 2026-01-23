@@ -4,7 +4,7 @@
 
 ## URL Structure
 
-### Anonymous Users (Guests)
+### Visitor Users (Guests)
 ```
 Click any module link → /guest-<16-random-chars>/default/<module>/
 

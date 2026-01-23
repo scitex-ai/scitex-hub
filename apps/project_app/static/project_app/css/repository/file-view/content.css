@@ -1,0 +1,49 @@
+/* ============================================================================= */
+/* FILE VIEW - CONTENT */
+/* ============================================================================= */
+/* Content area styles for file viewer */
+/* ============================================================================= */
+
+.repo-title {
+  text-decoration: none;
+}
+
+.file-name {
+  /* Styling moved to central CSS - see static/css/common/typography-vars.css */
+}
+
+.file-size {
+  /* Styling moved to central CSS - see static/css/common/typography-vars.css */
+}
+
+.no-commits-text {
+  /* Styling moved to central CSS - see static/css/common/typography-vars.css */
+}
+
+.file-info {
+  /* Styling moved to central CSS - see static/css/common/typography-vars.css */
+}
+
+/* Remove borders from inner elements except line number separator */
+.file-content table,
+.highlight table {
+  border: none !important;
+}
+
+.file-content table td,
+.highlight table td {
+  border: none !important;
+}
+
+/* Keep only the line number separator */
+.highlight .linenos,
+.line-numbers .line-number {
+  border-top: none !important;
+  border-bottom: none !important;
+  border-left: none !important;
+}
+
+/* Button group */
+.btn-group .active {
+  /* Styling moved to central CSS - see static/css/components/buttons.css */
+}

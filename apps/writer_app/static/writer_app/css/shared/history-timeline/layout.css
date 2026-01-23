@@ -1,0 +1,164 @@
+/**
+ * History Timeline - Layout
+ *
+ * Container, header, and content area layout
+ */
+
+/* =============================================================================
+ * Container & Layout
+ * ============================================================================= */
+
+#history-timeline-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* =============================================================================
+ * Header
+ * ============================================================================= */
+
+.history-timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: var(--workspace-bg-secondary);
+  border-bottom: 1px solid var(--workspace-border-default);
+  gap: 1rem;
+}
+
+.timeline-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.timeline-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.timeline-count {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background: var(--workspace-bg-tertiary);
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+}
+
+.timeline-header-right {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* =============================================================================
+ * Content Area
+ * ============================================================================= */
+
+.history-timeline-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  transition: all 0.3s ease;
+}
+
+.history-timeline-content.collapsed {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.history-timeline-content.expanded {
+  max-height: none;
+  opacity: 1;
+}
+
+.timeline-entries {
+  padding: 1rem;
+}
+
+/* =============================================================================
+ * Loading & Empty States
+ * ============================================================================= */
+
+.history-timeline-loading,
+.history-timeline-empty,
+.history-timeline-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.history-timeline-loading i,
+.empty-icon i,
+.error-icon i {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.history-timeline-loading i {
+  color: var(--workspace-icon-primary);
+  animation: spin 1s linear infinite;
+}
+
+.empty-icon i {
+  color: var(--scitex-color-05);
+}
+
+.error-icon i {
+  color: var(--status-error);
+}
+
+.empty-message,
+.error-message {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.empty-hint,
+.error-detail {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =============================================================================
+ * Scrollbar Styling
+ * ============================================================================= */
+
+.history-timeline-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.history-timeline-content::-webkit-scrollbar-track {
+  background: var(--workspace-bg-tertiary);
+}
+
+.history-timeline-content::-webkit-scrollbar-thumb {
+  background: var(--scitex-color-05);
+  border-radius: 4px;
+}
+
+.history-timeline-content::-webkit-scrollbar-thumb:hover {
+  background: var(--workspace-icon-primary);
+}

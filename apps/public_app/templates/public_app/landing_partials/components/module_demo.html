@@ -22,6 +22,7 @@
                         controls
                         class="module-demo-video"
                         {% if poster %}poster="{% static poster %}"{% endif %}
+                        onloadedmetadata="this.playbackRate = 4.0"
                         >
                         <source src="{% static video_path %}" type="video/mp4" />
                         Your browser does not support the video tag.
@@ -62,6 +63,7 @@
                         controls
                         class="module-demo-video"
                         {% if poster %}poster="{% static poster %}"{% endif %}
+                        onloadedmetadata="this.playbackRate = 4.0"
                         >
                         <source src="{% static video_path %}" type="video/mp4" />
                         Your browser does not support the video tag.

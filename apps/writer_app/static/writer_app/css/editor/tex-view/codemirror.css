@@ -1,0 +1,250 @@
+/* ========================================
+ * CodeMirror Styling
+ * ======================================== */
+
+/* CodeMirror container styling */
+.CodeMirror {
+  flex: 1;
+  height: 100%; /* Ensure CodeMirror fills available height */
+  background: var(--workspace-bg-primary);
+  font-family:
+    "JetBrains Mono", "Fira Code", "Consolas", "Monaco", "Menlo", "Courier New",
+    monospace;
+  font-size: 14px;
+}
+
+/* CodeMirror line and container - match padding-based approach */
+.CodeMirror-line {
+  line-height: 1.5 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  height: 1.5em !important;
+}
+
+.CodeMirror {
+  line-height: 1.5 !important;
+  font-size: 14px !important;
+}
+
+.CodeMirror-focused {
+  border-color: var(--color-accent-emphasis);
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.05),
+    0 0 0 3px rgba(80, 107, 122, 0.1);
+  outline: none;
+}
+
+/* Custom SciTeX theme for CodeMirror - Light Mode (Default) */
+.cm-s-scitex.CodeMirror {
+  /* background: #ffffff; */ /* Styling from central CSS */
+  /* color: #1a2332; */ /* Styling from central CSS */
+}
+
+.cm-s-scitex .CodeMirror-gutters {
+  /* background: #f6f8fa; */ /* Styling from central CSS */
+  /* border-right: 1px solid #d4e1e8; */ /* Styling from central CSS */
+}
+
+.cm-s-scitex .CodeMirror-linenumber {
+  /* color: #506b7a; */ /* Styling from central CSS */
+}
+
+.cm-s-scitex .CodeMirror-cursor {
+  border-left: 1px solid var(--text-primary);
+}
+
+.cm-s-scitex .CodeMirror-selected {
+  /* background: #d4e1e8; */ /* Styling from central CSS */
+}
+
+.cm-s-scitex .CodeMirror-activeline-background {
+  /* Subtle highlight - only cursor line, not full line background */
+  background: transparent !important;
+}
+
+/* Cursor line indicator - very subtle left border instead of full background */
+.CodeMirror-activeline {
+  background: transparent !important;
+}
+
+/* LaTeX syntax highlighting with SciTeX colors - Light Mode */
+.cm-s-scitex span.cm-comment {
+  /* color: #506b7a; */ /* Styling from central CSS */
+  /* font-style: italic; */ /* Styling from central CSS */
+}
+
+.cm-s-scitex span.cm-keyword {
+  /* color: #34495e; */ /* Styling from central CSS */
+  /* font-weight: bold; */ /* Styling from central CSS */
+}
+
+.cm-s-scitex span.cm-tag {
+  /* color: #34495e; */ /* Styling from central CSS */
+}
+
+.cm-s-scitex span.cm-bracket {
+  /* color: #506b7a; */ /* Styling from central CSS */
+}
+
+.cm-s-scitex span.cm-string {
+  /* color: #506b7a; */ /* Styling from central CSS */
+}
+
+.cm-s-scitex span.cm-number {
+  /* color: #34495e; */ /* Styling from central CSS */
+}
+
+.cm-s-scitex span.cm-variable {
+  /* color: #1a2332; */ /* Styling from central CSS */
+}
+
+.cm-s-scitex span.cm-def {
+  /* color: #34495e; */ /* Styling from central CSS */
+}
+
+.cm-s-scitex span.cm-operator {
+  /* color: #506b7a; */ /* Styling from central CSS */
+}
+
+.cm-s-scitex span.cm-builtin {
+  /* color: #34495e; */ /* Styling from central CSS */
+}
+
+.cm-s-scitex span.cm-attribute {
+  /* color: #506b7a; */ /* Styling from central CSS */
+}
+
+.cm-s-scitex span.cm-header {
+  /* color: #34495e; */ /* Styling from central CSS */
+  /* font-weight: bold; */ /* Styling from central CSS */
+}
+
+.cm-s-scitex span.cm-quote {
+  /* color: #506b7a; */ /* Styling from central CSS */
+  /* font-style: italic; */ /* Styling from central CSS */
+}
+
+.cm-s-scitex span.cm-link {
+  /* color: #34495e; */ /* Styling from central CSS */
+  /* text-decoration: underline; */ /* Styling from central CSS */
+}
+
+.cm-s-scitex span.cm-error {
+  /* color: #d73a49; */ /* Styling from central CSS */
+  /* background: rgba(215, 58, 73, 0.1); */ /* Styling from central CSS */
+}
+
+/* Dark Mode variant (if theme toggle is added later) */
+[data-theme="dark"] .cm-s-scitex.CodeMirror {
+  /* background: #1a2332; */ /* Styling from central CSS */
+  /* color: #d4e1e8; */ /* Styling from central CSS */
+}
+
+[data-theme="dark"] .cm-s-scitex .CodeMirror-gutters {
+  /* background: #1a2332; */ /* Styling from central CSS */
+  /* border-right: 1px solid #34495e; */ /* Styling from central CSS */
+}
+
+[data-theme="dark"] .cm-s-scitex .CodeMirror-linenumber {
+  /* color: #6c8ba0; */ /* Styling from central CSS */
+}
+
+[data-theme="dark"] .cm-s-scitex .CodeMirror-cursor {
+  border-left: 1px solid var(--workspace-border-hover);
+}
+
+[data-theme="dark"] .cm-s-scitex .CodeMirror-selected {
+  /* background: #34495e; */ /* Styling from central CSS */
+}
+
+[data-theme="dark"] .cm-s-scitex .CodeMirror-activeline-background {
+  /* Subtle highlight - only cursor line, not full line background */
+  background: transparent !important;
+}
+
+/* Dark mode cursor line indicator */
+[data-theme="dark"] .CodeMirror-activeline {
+  background: transparent !important;
+}
+
+[data-theme="dark"] .cm-s-scitex span.cm-comment {
+  /* color: #8fa4b0; */ /* Styling from central CSS */
+}
+
+[data-theme="dark"] .cm-s-scitex span.cm-keyword {
+  /* color: #6c8ba0; */ /* Styling from central CSS */
+}
+
+[data-theme="dark"] .cm-s-scitex span.cm-tag {
+  /* color: #6c8ba0; */ /* Styling from central CSS */
+}
+
+[data-theme="dark"] .cm-s-scitex span.cm-bracket {
+  /* color: #b5c7d1; */ /* Styling from central CSS */
+}
+
+[data-theme="dark"] .cm-s-scitex span.cm-string {
+  /* color: #8fa4b0; */ /* Styling from central CSS */
+}
+
+[data-theme="dark"] .cm-s-scitex span.cm-number {
+  /* color: #6c8ba0; */ /* Styling from central CSS */
+}
+
+[data-theme="dark"] .cm-s-scitex span.cm-variable {
+  /* color: #d4e1e8; */ /* Styling from central CSS */
+}
+
+[data-theme="dark"] .cm-s-scitex span.cm-def {
+  /* color: #b5c7d1; */ /* Styling from central CSS */
+}
+
+[data-theme="dark"] .cm-s-scitex span.cm-operator {
+  /* color: #b5c7d1; */ /* Styling from central CSS */
+}
+
+[data-theme="dark"] .cm-s-scitex span.cm-builtin {
+  /* color: #6c8ba0; */ /* Styling from central CSS */
+}
+
+[data-theme="dark"] .cm-s-scitex span.cm-attribute {
+  /* color: #8fa4b0; */ /* Styling from central CSS */
+}
+
+[data-theme="dark"] .cm-s-scitex span.cm-header {
+  /* color: #6c8ba0; */ /* Styling from central CSS */
+}
+
+[data-theme="dark"] .cm-s-scitex span.cm-quote {
+  /* color: #8fa4b0; */ /* Styling from central CSS */
+}
+
+[data-theme="dark"] .cm-s-scitex span.cm-link {
+  /* color: #6c8ba0; */ /* Styling from central CSS */
+}
+
+[data-theme="dark"] .cm-s-scitex span.cm-error {
+  /* color: #ff6b6b; */ /* Styling from central CSS */
+}
+
+/* Word Count Indicator */
+.word-count-indicator {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  /* background: var(--scitex-primary); */ /* Styling from central CSS */
+  /* color: var(--scitex-white); */ /* Styling from central CSS */
+  padding: 0.75rem 1rem;
+  /* border-radius: var(--border-radius); */ /* Styling from central CSS */
+  /* font-size: 0.9rem; */ /* Styling from central CSS */
+  /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); */ /* Styling from central CSS */
+}
+
+/* Toast Container */
+.toast-container {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1050; /* Below Monaco widgets (999999) */
+}
+

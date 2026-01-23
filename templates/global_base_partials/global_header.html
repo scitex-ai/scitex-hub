@@ -1,17 +1,27 @@
 {% load static %}
 <!-- GitHub-Style Global Header -->
+<style>
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.3);
+        opacity: 0.8;
+    }
+}
+</style>
 <header class="global-header">
     <div class="global-header-inner">
         <!-- Left: Logo + Main Navigation -->
         <div class="header-left">
             <!-- Logo -->
-            <a href="/"
-               class="header-logo"
-               data-tooltip="Go to home page">
-                <img src="{% static 'shared/images/scitex_logos/scitex-logo.png' %}"
+            <a href="/" class="header-logo" title="Home">
+                <img src="{% static 'shared/images/scitex_logos/scitex-icons/scitex-icon-navy-inverted.svg' %}"
                      alt="SciTeX"
-                     class="header-logo-img" />
-            </a>
+                     class="header-logo-icon" />
+            </a>             
             <!-- Project Selector (moved here for better visibility) -->
             <div class="header-project-selector-inline">
                 <button id="project-selector-toggle"
@@ -78,7 +88,7 @@
                                                       width: 20px;
                                                       height: 20px;
                                                       border-radius: 3px;
-                                                      color: var(--color-fg-muted);
+                                                      color: var(--text-muted);
                                                       text-decoration: none;
                                                       transition: all 0.15s ease">
                                                 <i class="fas fa-folder-open" style="font-size: 11px"></i>
@@ -131,21 +141,43 @@
             </div>
             <!-- Primary Navigation -->
             <nav class="header-nav">
-                <!-- Files - Direct link to user's repositories -->
+                <!-- Files - Direct link to user's active project -->
                 {% if user.is_authenticated %}
-                    <a href="/{{ user.username }}/"
-                       class="header-nav-item {% if user.username in request.path and 'explore' not in request.path %}active{% endif %}"
-                       data-tooltip="Your repositories">
-                        <i class="fas fa-book-open nav-icon-fa" style="font-size: 16px"></i>
-                        <span class="nav-label">Files</span>
-                    </a>
+                    {% if user.profile.last_active_repository %}
+                        <a href="/files/{{ user.username }}/{{ user.profile.last_active_repository.slug }}/"
+                           class="header-nav-item {% if 'files/' in request.path %}active{% endif %}"
+                           data-tooltip="Your files (Alt+F)"
+                           data-shortcut="F">
+                            <i class="fas fa-book-open nav-icon-fa" style="font-size: 16px"></i>
+                            <span class="nav-label">Files</span>
+                        </a>
+                    {% else %}
+                        <a href="/{{ user.username }}/"
+                           class="header-nav-item {% if user.username in request.path and 'explore' not in request.path %}active{% endif %}"
+                           data-tooltip="Your repositories (Alt+F)"
+                           data-shortcut="F">
+                            <i class="fas fa-book-open nav-icon-fa" style="font-size: 16px"></i>
+                            <span class="nav-label">Files</span>
+                        </a>
+                    {% endif %}
                 {% else %}
-                    <a href="/auth/signup/"
-                       class="header-nav-item"
-                       data-tooltip="Sign up to manage your files">
-                        <i class="fas fa-book-open nav-icon-fa" style="font-size: 16px"></i>
-                        <span class="nav-label">Files</span>
-                    </a>
+                    {% if visitor_username and project %}
+                        <a href="/files/{{ visitor_username }}/{{ project.slug }}/"
+                           class="header-nav-item {% if 'files/' in request.path %}active{% endif %}"
+                           data-tooltip="Your files (Alt+F)"
+                           data-shortcut="F">
+                            <i class="fas fa-book-open nav-icon-fa" style="font-size: 16px"></i>
+                            <span class="nav-label">Files</span>
+                        </a>
+                    {% else %}
+                        <a href="{% url 'auth_app:signup' %}"
+                           class="header-nav-item"
+                           data-tooltip="Sign up to access files"
+                           data-shortcut="F">
+                            <i class="fas fa-book-open nav-icon-fa" style="font-size: 16px; opacity: 0.5;"></i>
+                            <span class="nav-label">Files</span>
+                        </a>
+                    {% endif %}
                 {% endif %}
                 {% comment %} Module links - All users now navigate to dedicated module
         endpoints: - /scholar/ - Scholar app with project selector - /code/ -
@@ -153,42 +185,32 @@
         (project-centric via sessionStorage) - /writer/ - Writer module
                 (project-centric via sessionStorage) {% endcomment %}
                 <!-- Scholar Module -->
-                <a href="/scholar/bibtex/"
+                <a href="/scholar/"
                    class="header-nav-item {% if 'scholar' in request.path %}active{% endif %}"
-                   data-tooltip="Citation Management">
-                    <img src="{% static 'shared/images/icons_svg/scitex-scholar-icon.svg' %}"
-                         alt=""
-                         class="nav-icon" />
+                   data-tooltip="Citation Management (Alt+S)"
+                   data-shortcut="S">
+                    <i class="fas fa-graduation-cap nav-icon-fa" style="font-size: 16px"></i>
                     <span class="nav-label">Scholar</span>
                 </a>
                 <a href="/code/"
                    class="header-nav-item {% if 'code' in request.path %}active{% endif %}"
-                   data-tooltip="Code workspace">
-                    <img src="{% static 'shared/images/icons_svg/scitex-code-icon.svg' %}"
-                         alt=""
-                         class="nav-icon" />
-                    <span class="nav-label">Code</span>
+                   data-tooltip="Console workspace (Alt+C)"
+                   data-shortcut="C">
+                    <i class="fas fa-terminal nav-icon-fa" style="font-size: 16px"></i>
+                    <span class="nav-label">Console</span>
                 </a>
-                <!-- <a href="/vis/"
-                 !--    class="header-nav-item {% if 'vis' in request.path %}active{% endif %}"
-                 !--    data-tooltip="Scientific Figure Editor">
-                 !--     <img src="{% static 'shared/images/icons_svg/scitex-viz-icon.svg' %}"
-                 !--          alt=""
-                 !--          class="nav-icon" />
-                 !--     <span class="nav-label">Vis</span>
-                 !-- </a> -->
-                <a href="/vis/sigma/"
+                <a href="/vis/"
                    class="header-nav-item {% if 'vis' in request.path %}active{% endif %}"
-                   data-tooltip="Scientific Figure Editor">
-                    <img src="{% static 'shared/images/icons_svg/scitex-viz-icon.svg' %}"
-                         alt=""
-                         class="nav-icon" />
-                    <span class="nav-label">Vis</span>
-                </a>                
+                   data-tooltip="Scientific Figure Editor (Alt+V)"
+                   data-shortcut="V">
+                    <i class="fas fa-chart-line nav-icon-fa" style="font-size: 16px"></i>
+                    <span class="nav-label">Visualizer</span>
+                </a>
                 <a href="/writer/"
                    class="header-nav-item {% if 'writer' in request.path %}active{% endif %}"
-                   data-tooltip="Manuscript writing">
-                    <i class="fas fa-pen-nib nav-icon-fa" style="font-size: 16px"></i>
+                   data-tooltip="Manuscript writing (Alt+W)"
+                   data-shortcut="W">
+                    <i class="fas fa-pen nav-icon-fa" style="font-size: 16px"></i>
                     <span class="nav-label">Writer</span>
                 </a>
                 <a href="/tools/"
@@ -274,7 +296,7 @@
                                                   width: 20px;
                                                   height: 20px;
                                                   border-radius: 3px;
-                                                  color: var(--color-fg-muted);
+                                                  color: var(--text-muted);
                                                   text-decoration: none;
                                                   transition: all 0.15s ease">
                                             <i class="fas fa-folder-open" style="font-size: 11px"></i>
@@ -319,7 +341,7 @@
                             </div>
                             <div style="padding: 12px;
                                         font-size: 12px;
-                                        color: var(--color-fg-muted);
+                                        color: var(--text-muted);
                                         line-height: 1.5">
                                 <svg width="14"
                                      height="14"
@@ -396,29 +418,145 @@
             <button id="theme-toggle"
                     class="theme-toggle"
                     data-tooltip="Toggle light/dark theme">🌓</button>
+            <!-- Product Tour -->
+            <button id="product-tour-btn"
+                    class="theme-toggle"
+                    data-tooltip="Product Tour">
+                <i class="fas fa-question-circle"></i>
+            </button>
+            <!-- Keyboard Shortcuts Help (Alt+/ for modal, click for page) -->
+            <a href="/keyboard-shortcuts/"
+               id="shortcuts-help-btn"
+               class="theme-toggle"
+               data-tooltip="Keyboard Shortcuts (Alt+/ for quick view)">
+                <i class="fas fa-keyboard"></i>
+            </a>
+            <!-- Dev-only buttons (hidden in production) -->
+            {% if DEBUG %}
             <!-- Refresh Button (Ctrl+Shift+R alternative) -->
             <button id="page-refresh-btn"
                     class="theme-toggle"
-                    data-tooltip="Refresh page (Ctrl+Shift+R)"
-                    style="font-size: 18px;">
+                    data-tooltip="Refresh page (Ctrl+Shift+R)">
                 <i class="fas fa-sync-alt"></i>
             </button>
-            {% if not user.is_authenticated %}
-                <!-- Visitor Mode indicator -->
-                <span class="header-visitor-badge"
-                      data-tooltip="Your work won't be saved. Sign up to save permanently.">
-                    <svg width="14"
-                         height="14"
-                         viewBox="0 0 16 16"
-                         fill="currentColor"
-                         style="margin-right: 4px;
-                                vertical-align: text-bottom">
-                        <path d="M8 1a.5.5 0 0 1 .5.5v.518A7.001 7.001 0 0 1 14.954 7.5h.518a.5.5 0 0 1 0 1h-.518A7.001 7.001 0 0 1 8.5 14.482v.518a.5.5 0 0 1-1 0v-.518A7.001 7.001 0 0 1 1.046 8.5H.528a.5.5 0 0 1 0-1h.518A7.001 7.001 0 0 1 7.5 2.018V1.5A.5.5 0 0 1 8 1zm-.5 2.02A6.001 6.001 0 0 0 2.02 7.5h.48a.5.5 0 0 1 0 1h-.48A6.001 6.001 0 0 0 7.5 13.98v-.48a.5.5 0 0 1 1 0v.48A6.001 6.001 0 0 0 13.98 8.5h-.48a.5.5 0 0 1 0-1h.48A6.001 6.001 0 0 0 8.5 3.02v.48a.5.5 0 0 1-1 0v-.48z" />
-                    </svg>
-                    Visitor Mode
-                </span>
+            <!-- Clear LocalStorage Button -->
+            <button id="clear-localstorage-btn"
+                    class="theme-toggle"
+                    data-tooltip="Clear localStorage cache"
+                    onclick="if(confirm('Clear all localStorage? This will reset theme preferences and cached data.')) { localStorage.clear(); location.reload(); }">
+                <i class="fas fa-eraser"></i>
+            </button>
+            <!-- Initialize Visitor Pool Button -->
+            <button id="init-visitor-pool-btn"
+                    class="theme-toggle"
+                    data-tooltip="Initialize Visitor Pool (Dev)"
+                    onclick="initVisitorPool()">
+                <i class="fas fa-users-cog"></i>
+            </button>
             {% endif %}
-            {% if user.is_authenticated %}
+            <!-- Server Status with live health indicator -->
+            <a href="/server-status/"
+               id="server-status-btn"
+               class="theme-toggle"
+               data-tooltip="System Status"
+               style="font-size: 18px; position: relative;">
+                <span id="server-status-indicator"
+                      class="status-dot"
+                      style="position: absolute;
+                             top: 8px;
+                             right: 8px;
+                             width: 8px;
+                             height: 8px;
+                             border-radius: 50%;
+                             background: #4caf50;
+                             border: 2px solid var(--bg-page);
+                             box-shadow: 0 0 4px rgba(76, 175, 80, 0.6);"></span>
+                <i class="fas fa-server"></i>
+            </a>
+            {% if is_visitor %}
+                <!-- Visitor Menu (Integrated badge + dropdown) -->
+                <div class="header-user-menu">
+                    <button class="header-user-toggle visitor-button"
+                            id="visitor-menu-toggle"
+                            {% if visitor_expires_at %}
+                            data-expires-at="{{ visitor_expires_at.isoformat }}"
+                            {% endif %}>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 6px;">
+                            <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+                            <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
+                        </svg>
+                        <span id="visitor-mode-text">
+                            {% if visitor_username %}
+                                Visitor #{{ visitor_username|slice:"8:" }}
+                            {% else %}
+                                Visitor Mode
+                            {% endif %}
+                        </span>
+                        {% if visitor_expires_at %}
+                        <span id="visitor-countdown" style="margin-left: 6px; font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 0.9em;">
+                            ⏰ --:--
+                        </span>
+                        {% endif %}
+                        <svg width="12"
+                             height="12"
+                             viewBox="0 0 16 16"
+                             fill="currentColor"
+                             style="margin-left: 6px">
+                            <path d="M4 6l4 4 4-4H4z" />
+                        </svg>
+                    </button>
+                    <div class="header-dropdown" id="visitor-menu-dropdown" style="display: none">
+                        <!-- Visitor Info Header -->
+                        <div class="dropdown-header">
+                            <div class="dropdown-user-info">
+                                <strong>Visitor Mode</strong>
+                                <div class="dropdown-user-username">{{ user.username }}</div>
+                            </div>
+                        </div>
+                        <div style="padding: 12px 16px; font-size: 13px; color: var(--text-muted); line-height: 1.5; background: var(--color-attention-subtle); border-radius: 6px; margin: 8px;">
+                            <svg width="14"
+                                 height="14"
+                                 viewBox="0 0 16 16"
+                                 fill="currentColor"
+                                 style="margin-right: 4px; vertical-align: text-bottom; color: var(--color-attention-fg);">
+                                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+                                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
+                            </svg>
+                            Your work won't be saved permanently. Create an account to keep it!
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <!-- Primary CTA: Sign Up -->
+                        <a href="/auth/signup/" class="dropdown-item" style="background: var(--color-accent-emphasis); color: white; font-weight: 600; text-align: center;">
+                            <svg width="16"
+                                 height="16"
+                                 viewBox="0 0 16 16"
+                                 fill="currentColor"
+                                 style="margin-right: 8px; vertical-align: text-bottom;">
+                                <path d="M8 0a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2H9v6a1 1 0 1 1-2 0V9H1a1 1 0 0 1 0-2h6V1a1 1 0 0 1 1-1z" />
+                            </svg>
+                            Sign Up (Free)
+                        </a>
+                        <a href="/auth/signin/" class="dropdown-item" style="text-align: center;">
+                            <svg width="16"
+                                 height="16"
+                                 viewBox="0 0 16 16"
+                                 fill="currentColor"
+                                 style="margin-right: 8px; vertical-align: text-bottom;">
+                                <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z" />
+                                <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z" />
+                            </svg>
+                            Already have an account? Sign In
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="{% url 'public_app:server_status' %}" class="dropdown-item">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 8px; vertical-align: text-bottom;">
+                                <path d="M0 1.5A.5.5 0 0 1 .5 1h15a.5.5 0 0 1 0 1h-.5v13a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5V14h-1v.5a.5.5 0 0 1-.5.5H9a.5.5 0 0 1-.5-.5V14H8v.5a.5.5 0 0 1-.5.5H5a.5.5 0 0 1-.5-.5V14H4v.5a.5.5 0 0 1-.5.5H.5a.5.5 0 0 1-.5-.5V2H0v-.5zM2 2v12h1v-3a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 .5.5v3h1V2H2zm7 12h1V2H9v12zm4 0v-3h-1v3h1zM4.5 4h-1a.5.5 0 0 0-.5.5v2a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-2A.5.5 0 0 0 4.5 4zm2 0h-1a.5.5 0 0 0-.5.5v2a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-2A.5.5 0 0 0 6.5 4zm2 0h-1a.5.5 0 0 0-.5.5v2a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-2A.5.5 0 0 0 8.5 4zm2 0h-1a.5.5 0 0 0-.5.5v2a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-2A.5.5 0 0 0 10.5 4zm2 0h-1a.5.5 0 0 0-.5.5v2a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 0-.5-.5z" />
+                            </svg>
+                            Server Status
+                        </a>
+                    </div>
+                </div>
+            {% elif user.is_authenticated %}
                 <!-- User Menu -->
                 <div class="header-user-menu">
                     <button class="header-user-toggle" id="user-menu-toggle">
@@ -451,7 +589,7 @@
                             <!-- Switcher dropdown (only shown when multiple accounts) -->
                             <div id="account-switcher-dropdown-wrapper" style="display: none">
                                 <div style="font-size: 12px;
-                                            color: var(--color-fg-muted);
+                                            color: var(--text-muted);
                                             margin-bottom: 8px;
                                             font-weight: 600">
                                     <svg width="14"
@@ -467,10 +605,10 @@
                                 <select id="account-switcher"
                                         style="width: 100%;
                                                padding: 6px 8px;
-                                               border: 1px solid var(--color-border-default);
+                                               border: 1px solid var(--border-default);
                                                border-radius: 6px;
-                                               background: var(--color-canvas-default);
-                                               color: var(--color-fg-default);
+                                               background: var(--bg-page);
+                                               color: var(--text-primary);
                                                margin-bottom: 8px">
                                     <option value="">Loading...</option>
                                 </select>
@@ -538,7 +676,7 @@
                         <a href="https://github.com/SciTeX-AI"
                            class="dropdown-item"
                            target="_blank">
-                            <img src="{% static 'shared/images/scitex_logos/vectorstock/vectorstock_38853699-navy-inverted.svg' %}"
+                            <img src="{% static 'shared/images/scitex_logos/scitex-icons/scitex-icon-navy-inverted.svg' %}"
                                  alt=""
                                  style="display: inline-block;
                                         vertical-align: text-bottom;
@@ -590,534 +728,6 @@
     </div>
 </header>
 <!-- JavaScript for dropdown menu -->
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    // Generic dropdown functionality for all header nav dropdowns
-    const dropdownGroups = document.querySelectorAll(".header-dropdown-group");
 
-    dropdownGroups.forEach((group) => {
-      const toggle = group.querySelector(".header-dropdown-toggle");
-      const dropdown = group.querySelector(".header-nav-dropdown");
-
-      if (toggle && dropdown) {
-        let hideTimeout;
-
-        // Show dropdown on hover over toggle
-        toggle.addEventListener("mouseenter", function () {
-          clearTimeout(hideTimeout);
-
-          // Close other dropdowns first
-          document
-            .querySelectorAll(".header-nav-dropdown")
-            .forEach((otherDropdown) => {
-              if (otherDropdown !== dropdown) {
-                otherDropdown.style.display = "none";
-              }
-            });
-
-          dropdown.style.display = "block";
-        });
-
-        // Keep dropdown open when hovering over it
-        dropdown.addEventListener("mouseenter", function () {
-          clearTimeout(hideTimeout);
-          dropdown.style.display = "block";
-        });
-
-        // Start hide timer when leaving toggle
-        toggle.addEventListener("mouseleave", function () {
-          hideTimeout = setTimeout(() => {
-            dropdown.style.display = "none";
-          }, 200);
-        });
-
-        // Start hide timer when leaving dropdown
-        dropdown.addEventListener("mouseleave", function () {
-          hideTimeout = setTimeout(() => {
-            dropdown.style.display = "none";
-          }, 200);
-        });
-      }
-    });
-
-    // Close all dropdowns when clicking outside
-    document.addEventListener("click", function (e) {
-      if (!e.target.closest(".header-dropdown-group")) {
-        document
-          .querySelectorAll(".header-nav-dropdown")
-          .forEach((dropdown) => {
-            dropdown.style.display = "none";
-          });
-      }
-    });
-
-    // Close all dropdowns when pressing Escape
-    document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape") {
-        document
-          .querySelectorAll(".header-nav-dropdown")
-          .forEach((dropdown) => {
-            dropdown.style.display = "none";
-          });
-      }
-    });
-
-    const userMenuToggle = document.getElementById("user-menu-toggle");
-    const userMenuDropdown = document.getElementById("user-menu-dropdown");
-
-    if (userMenuToggle && userMenuDropdown) {
-      userMenuToggle.addEventListener("click", function (e) {
-        e.stopPropagation();
-        const isVisible = userMenuDropdown.style.display !== "none";
-        userMenuDropdown.style.display = isVisible ? "none" : "block";
-      });
-
-      // Close dropdown when clicking outside
-      document.addEventListener("click", function (e) {
-        if (
-          !userMenuToggle.contains(e.target) &&
-          !userMenuDropdown.contains(e.target)
-        ) {
-          userMenuDropdown.style.display = "none";
-        }
-      });
-
-      // Close dropdown when pressing Escape
-      document.addEventListener("keydown", function (e) {
-        if (e.key === "Escape") {
-          userMenuDropdown.style.display = "none";
-        }
-      });
-    }
-
-    // Global search functionality with autocomplete
-    const globalSearch = document.getElementById("global-search");
-    if (globalSearch) {
-      // Submit on Enter
-      globalSearch.addEventListener("keypress", function (e) {
-        if (e.key === "Enter") {
-          const query = this.value.trim();
-          if (query) {
-            window.location.href = `/search/?q=${encodeURIComponent(query)}`;
-          }
-        }
-      });
-
-      // Autocomplete (debounced)
-      let autocompleteTimeout;
-      globalSearch.addEventListener("input", function (e) {
-        clearTimeout(autocompleteTimeout);
-        const query = this.value.trim();
-
-        if (query.length < 2) {
-          hideAutocomplete();
-          return;
-        }
-
-        autocompleteTimeout = setTimeout(async () => {
-          try {
-            const response = await fetch(
-              `/search/api/autocomplete/?q=${encodeURIComponent(query)}`,
-            );
-            const data = await response.json();
-            showAutocomplete(data.suggestions);
-          } catch (err) {
-            console.error("Autocomplete error:", err);
-          }
-        }, 300); // 300ms debounce
-      });
-    }
-
-    // Autocomplete UI helpers - GitHub-style grouped results
-    function showAutocomplete(suggestions) {
-      let dropdown = document.getElementById("search-autocomplete");
-      if (!dropdown) {
-        dropdown = document.createElement("div");
-        dropdown.id = "search-autocomplete";
-        dropdown.style.cssText = `
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        background: var(--color-canvas-default);
-        border: 1px solid var(--color-border-default);
-        border-radius: 6px;
-        box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-        max-height: 500px;
-        overflow-y: auto;
-        z-index: 1000;
-        margin-top: 8px;
-      `;
-        document.querySelector(".header-search").appendChild(dropdown);
-      }
-
-      if (suggestions.length === 0) {
-        hideAutocomplete();
-        return;
-      }
-
-      // Group suggestions by type
-      const grouped = suggestions.reduce((acc, item) => {
-        const type = item.type || "other";
-        if (!acc[type]) acc[type] = [];
-        acc[type].push(item);
-        return acc;
-      }, {});
-
-      // Render grouped results
-      let html = "";
-      const typeLabels = {
-        users: "Owners",
-        repositories: "Repositories",
-        other: "Other",
-      };
-
-      Object.keys(grouped).forEach((type) => {
-        const label = typeLabels[type] || type;
-        html += `
-        <div style="padding: 8px 12px 4px; font-size: 11px; font-weight: 600; color: var(--color-fg-muted); text-transform: uppercase; letter-spacing: 0.5px;">
-          ${label}
-        </div>
-      `;
-
-        grouped[type].forEach((s) => {
-          html += `
-          <a href="${s.url}" class="search-result-item" style=" display: flex; align-items: center; gap: 12px; padding: 8px 12px; color: var(--color-fg-default); text-decoration: none; border-bottom: 1px solid var(--color-border-muted); " onmouseover="this.style.background='var(--color-canvas-subtle)'" onmouseout="this.style.background='transparent'">
-            <span style="font-size: 16px; opacity: 0.7;">${s.icon || "📄"}</span>
-            <div style="flex: 1; min-width: 0;">
-              <div style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${s.title}</div>
-              ${s.subtitle ? `<div style="font-size: 12px; color: var(--color-fg-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${s.subtitle}</div>` : ""}
-            </div>
-            <div style="font-size: 12px; color: var(--color-fg-muted); white-space: nowrap;">Jump to</div>
-          </a>
-        `;
-        });
-      });
-
-      dropdown.innerHTML = html;
-      dropdown.style.display = "block";
-    }
-
-    function hideAutocomplete() {
-      const dropdown = document.getElementById("search-autocomplete");
-      if (dropdown) {
-        dropdown.style.display = "none";
-      }
-    }
-
-    // Close autocomplete on click outside
-    document.addEventListener("click", function (e) {
-      if (!document.querySelector(".header-search")?.contains(e.target)) {
-        hideAutocomplete();
-      }
-    });
-
-    // Note: Theme toggle functionality is handled by /static/js/theme-switcher.js
-
-    // Project selector dropdown functionality
-    const projectToggle = document.getElementById("project-selector-toggle");
-    const projectDropdown = document.getElementById(
-      "project-selector-dropdown",
-    );
-    const projectItems = document.querySelectorAll(
-      ".dropdown-project-item:not(.dropdown-create-new)",
-    );
-    const projectSelectorText = document.getElementById(
-      "project-selector-text",
-    );
-
-    let currentProjectSlug = null;
-    let currentProjectOwner = null;
-
-    if (projectToggle && projectDropdown) {
-      // Toggle dropdown visibility
-      projectToggle.addEventListener("click", function (e) {
-        e.stopPropagation();
-        const isVisible = projectDropdown.style.display !== "none";
-        projectDropdown.style.display = isVisible ? "none" : "block";
-      });
-
-      // Handle project selection
-      projectItems.forEach((item) => {
-        item.addEventListener("click", function (e) {
-          e.preventDefault();
-          const projectId = this.getAttribute("data-project-id");
-          const projectName = this.getAttribute("data-project-name");
-          const projectSlug = this.getAttribute("data-project-slug");
-          const projectOwner = this.getAttribute("data-project-owner");
-
-          // Update selected state
-          projectItems.forEach((i) => i.classList.remove("active"));
-          this.classList.add("active");
-
-          // Update the check marks
-          document.querySelectorAll(".project-item-check").forEach((check) => {
-            check.style.display = "none";
-          });
-          this.querySelector(".project-item-check").style.display = "inline";
-
-          // Update button text
-          projectSelectorText.textContent = projectName;
-
-          // Store selected project ID, slug, and owner
-          sessionStorage.setItem("scholar_selected_project_id", projectId);
-          currentProjectSlug = projectSlug;
-          currentProjectOwner = projectOwner;
-
-          // Close dropdown
-          projectDropdown.style.display = "none";
-        });
-      });
-
-      // Close dropdown when clicking outside
-      document.addEventListener("click", function (e) {
-        if (
-          !projectToggle.contains(e.target) &&
-          !projectDropdown.contains(e.target)
-        ) {
-          projectDropdown.style.display = "none";
-        }
-      });
-
-      // Keyboard navigation: Alt+P removed to avoid conflict with Emacs C-p/M-p
-      // Users can click the project selector button directly
-
-      // Initialize current project info
-      const selectedItem = document.querySelector(
-        ".dropdown-project-item:not(.dropdown-create-new).active",
-      );
-      if (selectedItem || projectItems.length > 0) {
-        const currentItem = selectedItem || projectItems[0];
-        const projectSlug = currentItem.getAttribute("data-project-slug");
-        const projectOwner = currentItem.getAttribute("data-project-owner");
-        currentProjectSlug = projectSlug;
-        currentProjectOwner = projectOwner;
-      }
-    }
-
-    // Account Switcher (Multi-account support)
-    const accountSwitcher = document.getElementById("account-switcher");
-    const accountSwitcherDropdownWrapper = document.getElementById(
-      "account-switcher-dropdown-wrapper",
-    );
-
-    if (accountSwitcher) {
-      // Load authenticated accounts
-      fetch("/auth/api/authenticated-accounts/")
-        .then((response) => response.json())
-        .then((data) => {
-          const accounts = data.accounts || [];
-          const currentUserId = data.current_user_id;
-
-          if (accounts.length <= 1) {
-            // Hide dropdown selector if only one account, but keep "Add another account" visible
-            if (accountSwitcherDropdownWrapper) {
-              accountSwitcherDropdownWrapper.style.display = "none";
-            }
-            return;
-          }
-
-          // Show dropdown wrapper
-          if (accountSwitcherDropdownWrapper) {
-            accountSwitcherDropdownWrapper.style.display = "block";
-          }
-
-          accountSwitcher.innerHTML =
-            '<option value="">-- Switch to --</option>';
-          accounts.forEach((account) => {
-            const isCurrentUser = account.user_id === currentUserId;
-            const displayName = account.full_name || account.username;
-
-            const option = document.createElement("option");
-            option.value = account.user_id;
-            option.textContent = `${displayName} ${isCurrentUser ? "(current)" : ""}`;
-            option.disabled = isCurrentUser;
-            accountSwitcher.appendChild(option);
-          });
-
-          // Handle account switch
-          accountSwitcher.addEventListener("change", function () {
-            const userId = this.value;
-            if (userId) {
-              const currentUrl = window.location.href;
-              window.location.href = `/auth/switch/${userId}/?next=${encodeURIComponent(currentUrl)}`;
-            }
-          });
-        })
-        .catch((err) => {
-          console.error("Failed to load authenticated accounts:", err);
-          if (accountSwitcherDropdownWrapper) {
-            accountSwitcherDropdownWrapper.style.display = "none";
-          }
-        });
-    }
-
-    // Search Modal Management
-    const searchModal = document.getElementById("search-modal");
-    const searchModalInput = document.getElementById("search-modal-input");
-    const searchModalResults = document.getElementById("search-modal-results");
-    const globalSearchInput = document.getElementById("global-search");
-
-    // Open modal when clicking header search or pressing "/"
-    function openSearchModal() {
-      if (searchModal) {
-        searchModal.style.display = "block";
-        document.body.style.overflow = "hidden";
-        setTimeout(() => {
-          if (searchModalInput) {
-            searchModalInput.focus();
-          }
-        }, 100);
-      }
-    }
-
-    // Close modal
-    function closeSearchModal() {
-      if (searchModal) {
-        searchModal.style.display = "none";
-        document.body.style.overflow = "";
-        if (searchModalInput) {
-          searchModalInput.value = "";
-        }
-        if (searchModalResults) {
-          searchModalResults.innerHTML = "";
-        }
-      }
-    }
-
-    // Click on header search input
-    if (globalSearchInput) {
-      globalSearchInput.addEventListener("click", function (e) {
-        e.preventDefault();
-        openSearchModal();
-      });
-    }
-
-    // Search keyboard shortcuts: only "/" to open global modal
-    // Note: Ctrl+K is reserved for page-specific search (browse, profile, etc.)
-    document.addEventListener("keydown", function (e) {
-      // "/" to open modal (only if not in an input/textarea)
-      if (
-        e.key === "/" &&
-        !["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)
-      ) {
-        e.preventDefault();
-        openSearchModal();
-      }
-
-      // Close modal on Escape
-      if (
-        e.key === "Escape" &&
-        searchModal &&
-        searchModal.style.display === "block"
-      ) {
-        closeSearchModal();
-      }
-    });
-
-    // Close modal when clicking backdrop
-    if (searchModal) {
-      searchModal.addEventListener("click", function (e) {
-        if (
-          e.target.classList.contains("search-modal-backdrop") ||
-          e.target.classList.contains("search-modal")
-        ) {
-          closeSearchModal();
-        }
-      });
-    }
-
-    // Search modal input handler
-    if (searchModalInput) {
-      let searchTimeout;
-      searchModalInput.addEventListener("input", function () {
-        clearTimeout(searchTimeout);
-        const query = this.value.trim();
-
-        if (query.length < 2) {
-          searchModalResults.innerHTML = "";
-          return;
-        }
-
-        searchTimeout = setTimeout(async () => {
-          try {
-            const response = await fetch(
-              `/search/api/autocomplete/?q=${encodeURIComponent(query)}`,
-            );
-            const data = await response.json();
-            showModalResults(data.suggestions || []);
-          } catch (err) {
-            console.error("Search error:", err);
-          }
-        }, 200);
-      });
-    }
-
-    // Show results in modal
-    function showModalResults(suggestions) {
-      if (!searchModalResults) return;
-
-      if (suggestions.length === 0) {
-        searchModalResults.innerHTML =
-          '<div style="padding: 24px; text-align: center; color: var(--color-fg-muted);">No results found</div>';
-        return;
-      }
-
-      // Group suggestions by type
-      const grouped = suggestions.reduce((acc, item) => {
-        const type = item.type || "other";
-        if (!acc[type]) acc[type] = [];
-        acc[type].push(item);
-        return acc;
-      }, {});
-
-      // Render grouped results
-      let html = "";
-      const typeLabels = {
-        users: "Owners",
-        repositories: "Repositories",
-        other: "Other",
-      };
-
-      Object.keys(grouped).forEach((type) => {
-        const label = typeLabels[type] || type;
-        html += `
-        <div class="search-modal-section-header">${label}</div>
-      `;
-
-        grouped[type].forEach((s) => {
-          html += `
-          <a href="${s.url}" class="search-modal-result-item">
-            <span class="search-modal-result-icon">${s.icon || "📄"}</span>
-            <div class="search-modal-result-content">
-              <div class="search-modal-result-title">${s.title}</div>
-              ${s.subtitle ? `<div class="search-modal-result-subtitle">${s.subtitle}</div>` : ""}
-            </div>
-            <div class="search-modal-result-action">Jump to</div>
-          </a>
-        `;
-        });
-      });
-
-      searchModalResults.innerHTML = html;
-    }
-
-    // Page refresh button handler
-    const pageRefreshBtn = document.getElementById("page-refresh-btn");
-    if (pageRefreshBtn) {
-      pageRefreshBtn.addEventListener("click", function (e) {
-        e.preventDefault();
-
-        // Add spinning animation
-        const icon = this.querySelector("i");
-        if (icon) {
-          icon.classList.add("fa-spin");
-        }
-
-        // Hard refresh (bypass cache) like Ctrl+Shift+R
-        window.location.reload(true);
-      });
-    }
-  });
-</script>
-<!-- test change 1763619732 -->
+{% comment %} JavaScript functionality extracted to separate partial {% endcomment %}
+{% include 'global_base_partials/global_header/scripts.html' %}

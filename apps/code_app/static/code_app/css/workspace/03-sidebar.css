@@ -1,0 +1,54 @@
+/* Left Sidebar - unified background with editor and terminal */
+.code-sidebar {
+  width: 280px;
+  min-width: 40px; /* Minimum collapsed width */
+  flex-shrink: 0;
+  background-color: var(--code-bg) !important;
+  border-right: 1px solid var(--code-border);
+  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
+  margin-bottom: 1px;
+  border-radius: 0 !important;
+  border-left: none;
+  border-top: none;
+  overflow: hidden; /* Prevent content from forcing width */
+  display: flex;
+  flex-direction: column;
+  transition: width 0.2s ease, min-width 0.2s ease;
+}
+
+/* Collapsed state for sidebar */
+.code-sidebar.collapsed {
+  width: 40px;
+  min-width: 40px;
+}
+
+.code-sidebar.collapsed .sidebar-content,
+.code-sidebar.collapsed .file-tree-container,
+.code-sidebar.collapsed .file-search-container {
+  display: none;
+}
+
+.code-sidebar.collapsed .sidebar-header {
+  padding: 0 4px;
+  justify-content: center;
+}
+
+.code-sidebar.collapsed .sidebar-header h5 {
+  display: none;
+}
+
+.code-sidebar.collapsed .sidebar-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 4px;
+}
+
+/* Dark mode: unified background with editor and terminal */
+[data-theme="dark"] .code-sidebar,
+[data-theme="dark"] .code-sidebar.repo-sidebar {
+  background-color: var(--workspace-bg-primary) !important;
+  border-right-color: var(--workspace-border-default);
+}
+

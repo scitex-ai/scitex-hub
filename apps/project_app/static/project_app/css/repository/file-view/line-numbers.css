@@ -1,0 +1,35 @@
+/* ============================================================================= */
+/* FILE VIEW - LINE NUMBERS */
+/* ============================================================================= */
+/* Line numbering styles for code display */
+/* ============================================================================= */
+
+/* Plain text with line numbers */
+.line-numbers {
+  display: table;
+  width: 100%;
+}
+
+.line-numbers .line {
+  display: table-row;
+}
+
+.line-numbers .line-number {
+  display: table-cell;
+  padding: 0 1rem;
+  text-align: right;
+  user-select: none;
+  width: 1%;
+  /* Styling moved to central CSS - see static/css/common/code-blocks.css */
+  /* background: var(--color-canvas-subtle); */
+  /* color: var(--color-fg-muted); */
+  /* border-right: 1px solid var(--color-border-default); */
+}
+
+.line-numbers .line-content {
+  display: table-cell;
+  padding: 0 1rem;
+  white-space: pre;
+  /* Styling moved to central CSS - see static/css/common/code-blocks.css */
+  /* color: var(--color-fg-default); */
+}

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Authentication utilities for Writer API views.
 
-Handles both authenticated users and anonymous visitors with demo projects.
+Handles both authenticated users and visitor visitors with demo projects.
 """
 
 from functools import wraps
@@ -14,10 +14,10 @@ logger = logging.getLogger(__name__)
 
 
 def api_login_optional(view_func):
-    """Decorator that allows both authenticated and anonymous users to access API endpoints.
+    """Decorator that allows both authenticated and visitor users to access API endpoints.
 
     For authenticated users: validates project ownership
-    For anonymous users: validates visitor project session
+    For visitor users: validates visitor project session
 
     Returns JSON error (not HTML redirect) if authentication/authorization fails.
     """
@@ -35,19 +35,41 @@ def api_login_optional(view_func):
 
         # Check authentication/authorization
         if request.user.is_authenticated:
-            # Authenticated user - verify ownership or access
-            if project.owner != request.user:
-                # Check if user has access through team/collaboration
-                if not project.team_members.filter(id=request.user.id).exists():
+            # Check if this is a visitor user
+            is_visitor = request.user.username.startswith("visitor-")
+
+            if is_visitor:
+                # Visitor users can only access their assigned project
+                from apps.project_app.services.visitor_pool import VisitorPool
+                visitor_project_id = request.session.get(VisitorPool.SESSION_KEY_PROJECT_ID)
+                if visitor_project_id and int(visitor_project_id) == int(project_id):
+                    # Visitor accessing their assigned project - allow
+                    pass
+                elif project.owner == request.user:
+                    # Visitor owns this project - allow
+                    pass
+                else:
                     return JsonResponse(
                         {
                             "success": False,
-                            "error": "You don't have access to this project",
+                            "error": "Visitors can only access their assigned project",
                         },
                         status=403,
                     )
+            else:
+                # Regular authenticated user - verify ownership or access
+                if project.owner != request.user:
+                    # Check if user has access through team/collaboration
+                    if not project.team_members.filter(id=request.user.id).exists():
+                        return JsonResponse(
+                            {
+                                "success": False,
+                                "error": "You don't have access to this project",
+                            },
+                            status=403,
+                        )
         else:
-            # Anonymous user - verify visitor pool session
+            # Visitor user - verify visitor pool session
             visitor_project_id = request.session.get("visitor_project_id")
             visitor_user_id = request.session.get("visitor_user_id")
 

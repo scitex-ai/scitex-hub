@@ -1,0 +1,129 @@
+/* ========================================================================
+   TEXT UTILITIES
+   ======================================================================== */
+
+/* Text Alignment */
+.text-left {
+  text-align: left !important;
+}
+.text-center {
+  text-align: center !important;
+}
+.text-right {
+  text-align: right !important;
+}
+.text-justify {
+  text-align: justify !important;
+}
+
+/* Font Size */
+.text-xs {
+  font-size: 0.75rem !important;
+  line-height: 1rem !important;
+}
+.text-sm {
+  font-size: 0.875rem !important;
+  line-height: 1.25rem !important;
+}
+.text-base {
+  font-size: 1rem !important;
+  line-height: 1.5rem !important;
+}
+.text-lg {
+  font-size: 1.125rem !important;
+  line-height: 1.75rem !important;
+}
+.text-xl {
+  font-size: 1.25rem !important;
+  line-height: 1.75rem !important;
+}
+.text-2xl {
+  font-size: 1.5rem !important;
+  line-height: 2rem !important;
+}
+.text-3xl {
+  font-size: 1.875rem !important;
+  line-height: 2.25rem !important;
+}
+.text-4xl {
+  font-size: 2.25rem !important;
+  line-height: 2.5rem !important;
+}
+.text-5xl {
+  font-size: 3rem !important;
+  line-height: 1 !important;
+}
+
+/* Font Weight */
+.font-thin {
+  font-weight: 100 !important;
+}
+.font-light {
+  font-weight: 300 !important;
+}
+.font-normal {
+  font-weight: 400 !important;
+}
+.font-medium {
+  font-weight: 500 !important;
+}
+.font-semibold {
+  font-weight: 600 !important;
+}
+.font-bold {
+  font-weight: 700 !important;
+}
+
+/* Font Family */
+.font-mono {
+  font-family:
+    "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New",
+    monospace !important;
+}
+
+/* Text Transform */
+.uppercase {
+  text-transform: uppercase !important;
+}
+.lowercase {
+  text-transform: lowercase !important;
+}
+.capitalize {
+  text-transform: capitalize !important;
+}
+
+/* Text Decoration */
+.underline {
+  text-decoration: underline !important;
+}
+.line-through {
+  text-decoration: line-through !important;
+}
+.no-underline {
+  text-decoration: none !important;
+}
+
+/* Text Links */
+.text-link {
+  color: var(--primary-color) !important;
+  text-decoration: underline !important;
+  transition: color var(--transition-normal);
+  font-weight: 500;
+}
+
+.text-link:hover,
+.text-link:focus {
+  color: var(--secondary-color) !important;
+}
+
+/* Dark mode text links - Use white for maximum visibility */
+[data-theme="dark"] .text-link {
+  color: #ffffff !important; /* Pure white for repository names and important links */
+}
+
+[data-theme="dark"] .text-link:hover,
+[data-theme="dark"] .text-link:focus {
+  color: var(--scitex-color-06) !important; /* Slightly muted on hover */
+  text-decoration: underline !important;
+}
+

@@ -1,0 +1,26 @@
+@media (max-width: 1024px) {
+  .repo-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .repo-layout.sidebar-collapsed,
+  .repo-layout.sidebar-expanded {
+    grid-template-columns: 1fr;
+  }
+
+  .repo-sidebar {
+    /* Layout preserved */
+    position: static;
+    width: 100% !important;
+  }
+
+  .repo-sidebar.collapsed {
+    display: none;
+  }
+
+  .sidebar-toggle-btn {
+    /* Layout preserved */
+    position: fixed;
+    top: 80px;
+  }
+}

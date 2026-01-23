@@ -123,7 +123,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 (
-                    "is_anonymous",
+                    "is_visitor",
                     models.BooleanField(
                         default=False, help_text="Hide donor name if public"
                     ),

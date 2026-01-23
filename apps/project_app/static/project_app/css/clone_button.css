@@ -1,0 +1,425 @@
+/* ============================================
+   SciTeX Code Button Dropdown - Workspace Theme
+   ============================================ */
+
+/* Dropdown menu positioning override */
+.git-clone-button-container .dropdown-menu {
+    min-width: 400px;
+}
+
+/* Ensure dropdown shows when .show class is added */
+.git-clone-button-container .dropdown-menu.show {
+    display: block !important;
+    z-index: 9999 !important;
+}
+
+/* Button group positioning - must be relative for dropdown positioning */
+.git-clone-button-container {
+    position: relative;
+    z-index: 1000;
+}
+
+.git-clone-button-container .btn-group {
+    position: relative;
+}
+
+/* Dropdown menu positioning */
+.git-clone-button-container .dropdown-menu {
+    position: absolute !important;
+    top: 100% !important;
+    right: 0 !important;
+    left: auto !important;
+    margin-top: 4px !important;
+    z-index: 9999 !important;
+}
+
+/* Code Button - Workspace icon style (soft green) */
+.git-clone-button-container .btn-code-success {
+    display: flex;
+    align-items: center;
+    background-color: var(--workspace-icon-primary);
+    border-color: var(--workspace-border-default);
+    color: var(--_white, #fafbfc);
+    font-weight: 500;
+    padding: 5px 16px;
+    font-size: 14px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.git-clone-button-container .btn-code-success:hover {
+    background-color: var(--workspace-icon-hover);
+    border-color: var(--workspace-border-hover);
+    color: var(--_white, #fafbfc);
+}
+
+.git-clone-button-container .btn-code-success:active {
+    background-color: var(--workspace-icon-active);
+    border-color: var(--workspace-border-active);
+}
+
+/* Dropdown Menu - Workspace colors */
+.git-clone-button-container .dropdown-menu {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--workspace-border-default);
+    background-color: var(--workspace-bg-elevated);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+[data-theme="light"] .git-clone-button-container .dropdown-menu {
+    background-color: var(--workspace-bg-elevated);
+    border-color: var(--workspace-border-default);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Tabs Wrapper - Flex container for tabs + help icon */
+.git-clone-button-container .code-dropdown-tabs-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--workspace-border-subtle);
+    background-color: var(--workspace-bg-secondary);
+}
+
+[data-theme="light"] .git-clone-button-container .code-dropdown-tabs-wrapper {
+    border-bottom-color: var(--workspace-border-subtle);
+    background-color: var(--workspace-bg-secondary);
+}
+
+/* Help Icon */
+.git-clone-button-container .code-dropdown-help {
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    border-radius: 6px;
+    transition: color 0.2s ease;
+}
+
+.git-clone-button-container .code-dropdown-help:hover {
+    color: var(--text-primary);
+}
+
+[data-theme="light"] .git-clone-button-container .code-dropdown-help:hover {
+    color: var(--text-primary);
+}
+
+/* Tabs Navigation */
+.git-clone-button-container .code-dropdown-tabs {
+    border-bottom: none;
+    margin-bottom: 0;
+    gap: 0;
+}
+
+.git-clone-button-container .code-dropdown-tabs .nav-link {
+    color: var(--text-muted);
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 400;
+    transition: all 0.2s ease;
+    border-radius: 0;
+    background: transparent;
+}
+
+.git-clone-button-container .code-dropdown-tabs .nav-link:hover {
+    color: var(--text-primary);
+    border-bottom-color: var(--border-muted);
+}
+
+[data-theme="light"] .git-clone-button-container .code-dropdown-tabs .nav-link:hover {
+    color: var(--text-primary);
+    border-bottom-color: var(--border-muted);
+}
+
+.git-clone-button-container .code-dropdown-tabs .nav-link.active {
+    color: var(--text-primary);
+    border-bottom-color: var(--workspace-icon-primary);
+    background-color: transparent;
+    font-weight: 500;
+}
+
+[data-theme="light"] .git-clone-button-container .code-dropdown-tabs .nav-link.active {
+    color: var(--text-primary);
+    border-bottom-color: var(--workspace-icon-primary);
+}
+
+/* Tab Content */
+.git-clone-button-container .tab-content {
+    padding: 16px;
+}
+
+/* Clone Section Header */
+.git-clone-button-container .clone-section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    padding: 12px 16px;
+    margin: -16px -16px 12px -16px;
+    background-color: var(--workspace-bg-tertiary);
+    border-bottom: 1px solid var(--workspace-border-subtle);
+}
+
+[data-theme="light"] .git-clone-button-container .clone-section-header {
+    color: var(--text-primary);
+    background-color: var(--workspace-bg-tertiary);
+}
+
+.git-clone-button-container .clone-icon {
+    color: var(--workspace-icon-primary);
+}
+
+/* Clone Method Sub-tabs (HTTPS, SSH, SciTeX CLI) */
+.git-clone-button-container .clone-method-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--workspace-border-default);
+}
+
+[data-theme="light"] .git-clone-button-container .clone-method-tabs {
+    border-bottom-color: var(--workspace-border-default);
+}
+
+.git-clone-button-container .clone-method-tab {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.git-clone-button-container .clone-method-tab:hover {
+    color: var(--workspace-icon-primary);
+    background-color: rgba(74, 155, 126, 0.05);
+}
+
+[data-theme="light"] .git-clone-button-container .clone-method-tab:hover {
+    color: var(--workspace-icon-primary);
+    background-color: rgba(74, 155, 126, 0.05);
+}
+
+.git-clone-button-container .clone-method-tab.active {
+    color: var(--workspace-icon-primary);
+    border-bottom-color: var(--workspace-icon-primary);
+    font-weight: 600;
+}
+
+[data-theme="light"] .git-clone-button-container .clone-method-tab.active {
+    color: var(--workspace-icon-primary);
+    border-bottom-color: var(--workspace-icon-primary);
+}
+
+[data-theme="dark"] .git-clone-button-container .clone-method-tabs {
+    border-bottom-color: var(--workspace-border-default);
+}
+
+[data-theme="dark"] .git-clone-button-container .clone-method-tab:hover {
+    color: var(--workspace-icon-primary);
+    background-color: rgba(107, 168, 154, 0.1);
+}
+
+[data-theme="dark"] .git-clone-button-container .clone-method-tab.active {
+    color: var(--workspace-icon-primary);
+    border-bottom-color: var(--workspace-icon-primary);
+}
+
+/* Clone Method Panels */
+.git-clone-button-container .clone-method-panel {
+    display: none;
+}
+
+.git-clone-button-container .clone-method-panel.active {
+    display: block;
+}
+
+/* Clone URL Container */
+.git-clone-button-container .clone-url-container {
+    display: flex;
+    align-items: center;
+    background-color: var(--workspace-bg-primary);
+    border: 1px solid var(--workspace-border-default);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+[data-theme="light"] .git-clone-button-container .clone-url-container {
+    background-color: var(--workspace-bg-secondary);
+    border-color: var(--workspace-border-default);
+}
+
+.git-clone-button-container .clone-url-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+    font-size: 12px;
+    padding: 8px 12px;
+    outline: none;
+}
+
+[data-theme="light"] .git-clone-button-container .clone-url-input {
+    color: var(--text-primary);
+}
+
+.git-clone-button-container .clone-copy-btn {
+    background: transparent;
+    border: none;
+    border-left: 1px solid var(--workspace-border-default);
+    color: var(--workspace-icon-secondary);
+    padding: 8px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+[data-theme="light"] .git-clone-button-container .clone-copy-btn {
+    border-left-color: var(--workspace-border-default);
+}
+
+.git-clone-button-container .clone-copy-btn:hover {
+    color: var(--text-primary);
+    background-color: var(--workspace-bg-tertiary);
+}
+
+[data-theme="light"] .git-clone-button-container .clone-copy-btn:hover {
+    color: var(--text-primary);
+    background-color: var(--workspace-bg-tertiary);
+}
+
+.git-clone-button-container .clone-copy-btn.copied {
+    color: var(--workspace-icon-primary);
+}
+
+/* SSH Hint */
+.git-clone-button-container .clone-ssh-hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 8px 0 0 0;
+}
+
+.git-clone-button-container .clone-ssh-hint a {
+    color: var(--color-cta);
+    text-decoration: none;
+}
+
+.git-clone-button-container .clone-ssh-hint a:hover {
+    text-decoration: underline;
+}
+
+/* Divider */
+.git-clone-button-container .clone-divider {
+    border: none;
+    border-top: 1px solid var(--workspace-border-subtle);
+    margin: 16px 0;
+}
+
+[data-theme="light"] .git-clone-button-container .clone-divider {
+    border-top-color: var(--workspace-border-subtle);
+}
+
+/* Action Items (Download ZIP, etc.) */
+.git-clone-button-container .clone-action-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    color: var(--text-primary);
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.15s ease;
+}
+
+[data-theme="light"] .git-clone-button-container .clone-action-item {
+    color: var(--text-primary);
+}
+
+.git-clone-button-container .clone-action-item:hover {
+    color: var(--color-cta);
+}
+
+.git-clone-button-container .clone-action-item svg {
+    color: var(--text-muted);
+}
+
+/* Workspace Empty State */
+.git-clone-button-container .workspace-empty-state {
+    text-align: center;
+    padding: 20px 0;
+}
+
+.git-clone-button-container .workspace-empty-state h6 {
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+[data-theme="light"] .git-clone-button-container .workspace-empty-state h6 {
+    color: var(--text-primary);
+}
+
+.git-clone-button-container .workspace-icon {
+    color: var(--text-muted);
+    opacity: 0.5;
+}
+
+.git-clone-button-container .workspace-ssh-info {
+    background-color: var(--workspace-bg-primary);
+    border: 1px solid var(--workspace-border-default);
+    border-radius: 6px;
+    text-align: left;
+    margin-top: 16px;
+}
+
+[data-theme="light"] .git-clone-button-container .workspace-ssh-info {
+    background-color: var(--workspace-bg-secondary);
+    border-color: var(--workspace-border-default);
+}
+
+.git-clone-button-container .workspace-ssh-info h6 {
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+[data-theme="light"] .git-clone-button-container .workspace-ssh-info h6 {
+    color: var(--text-primary);
+}
+
+/* Success Button in Workspace Tab */
+.git-clone-button-container .workspace-tab-content .btn-success {
+    background-color: var(--workspace-icon-primary);
+    border-color: var(--workspace-border-default);
+    color: var(--_white, #fafbfc);
+}
+
+.git-clone-button-container .workspace-tab-content .btn-success:hover {
+    background-color: var(--workspace-icon-hover);
+}
+
+/* Form controls in workspace tab */
+.git-clone-button-container .workspace-ssh-info .form-control {
+    background-color: var(--workspace-bg-primary);
+    border-color: var(--workspace-border-default);
+    color: var(--text-primary);
+    font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+    font-size: 12px;
+}
+
+[data-theme="light"] .git-clone-button-container .workspace-ssh-info .form-control {
+    background-color: var(--workspace-bg-elevated);
+    border-color: var(--workspace-border-default);
+    color: var(--text-primary);
+}

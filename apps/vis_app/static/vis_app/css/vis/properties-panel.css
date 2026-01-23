@@ -1,0 +1,6 @@
+/* ========================================================================
+   PROPERTIES PANEL
+   This file now imports from modular CSS files
+   ======================================================================== */
+
+@import url('./properties-panel/index.css');

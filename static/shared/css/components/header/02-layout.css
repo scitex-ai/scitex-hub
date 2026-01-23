@@ -1,0 +1,31 @@
+/* Layout Sections */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Project selector inline (in header-left) */
+.header-project-selector-inline {
+  position: relative;
+  margin-right: 8px;
+}
+
+.header-center {
+  flex: 1;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Hide the old project selector that was in the center */
+.header-project-selector {
+  display: none !important;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+

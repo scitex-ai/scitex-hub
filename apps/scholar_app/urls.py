@@ -8,15 +8,19 @@ from django.urls import path
 from django.urls import include
 from rest_framework.routers import DefaultRouter
 from .views.search import views as search_views
-from .views.bibtex import views as bibtex_views
+from .views.search import pdf_download as pdf_views
+from .views import bibtex as bibtex_views
 from .views.workspace import api_key_views
 from .views.workspace import views as workspace_views
 from .views.library import views as library_views
 from .views.export import views as export_views
 from .views.annotation import views as annotation_views
 from .views.trending import views as trending_views
-from .views.repository import views as repository_views
-from .integrations import scitex_search
+from .views import repository as repository_views
+from .integrations import scitex as scitex_search
+from .api import crossref_proxy
+from .api import citation_graph
+from .api import api_keys
 
 app_name = "scholar_app"
 
@@ -43,10 +47,12 @@ urlpatterns = [
         workspace_views.user_default_workspace,
         name="user_default_workspace",
     ),
-    # MVP Simple Interface - Separate pages instead of tabs
-    path("", search_views.index, name="index"),
+    # Unified scholar page with hash-based tabs (#search, #bibtex, #graph)
+    path("", search_views.scholar_unified, name="index"),
+    # Legacy URL redirects (for backwards compatibility)
     path("bibtex/", search_views.scholar_bibtex, name="scholar_bibtex"),
     path("search/", search_views.scholar_search, name="scholar_search"),
+    path("graph/", search_views.scholar_graph, name="scholar_graph"),
     # path('search/', search_views.simple_search, name='simple_search'),
     # path('project/<int:project_id>/search/', search_views.project_search, name='project_search'),
     # path('project/<int:project_id>/library/', search_views.project_library, name='project_library'),
@@ -139,6 +145,32 @@ urlpatterns = [
         "api/search/plos/",
         search_views.api_search_plos,
         name="api_search_plos",
+    ),
+    path(
+        "api/search/crossref/",
+        search_views.api_search_crossref,
+        name="api_search_crossref",
+    ),
+    path(
+        "api/search/crossref-local/",
+        search_views.api_search_crossref_local,
+        name="api_search_crossref_local",
+    ),
+    path(
+        "api/search/openalex/",
+        search_views.api_search_openalex,
+        name="api_search_openalex",
+    ),
+    # Unified RESTful Search API (with command syntax support)
+    path(
+        "api/search/",
+        search_views.api_search_unified,
+        name="api_search_unified",
+    ),
+    path(
+        "api/search/syntax/",
+        search_views.api_search_syntax_help,
+        name="api_search_syntax_help",
     ),
     # SciTeX integrated search endpoints
     path(
@@ -330,6 +362,11 @@ urlpatterns = [
         name="bibtex_cancel_job",
     ),
     path(
+        "api/bibtex/job/<uuid:job_id>/delete/",
+        bibtex_views.bibtex_delete_job,
+        name="bibtex_delete_job",
+    ),
+    path(
         "api/bibtex/job/<uuid:job_id>/save-to-project/",
         bibtex_views.bibtex_save_to_project,
         name="bibtex_save_to_project",
@@ -377,6 +414,95 @@ urlpatterns = [
         "api/repository-connections/create/",
         repository_views.create_repository_connection,
         name="create_repository_connection",
+    ),
+    # CrossRef Local API (Public Access)
+    path(
+        "api/crossref/search/",
+        crossref_proxy.search,
+        name="crossref_api_search",
+    ),
+    path(
+        "api/crossref/citations/",
+        crossref_proxy.citations,
+        name="crossref_api_citations",
+    ),
+    path(
+        "api/crossref/health/",
+        crossref_proxy.health,
+        name="crossref_api_health",
+    ),
+    path(
+        "api/crossref/stats/",
+        crossref_proxy.stats,
+        name="crossref_api_stats",
+    ),
+    # Citation Graph API (Network Analysis)
+    path(
+        "api/citation-graph/network/",
+        citation_graph.build_network,
+        name="citation_graph_network",
+    ),
+    path(
+        "api/citation-graph/related/",
+        citation_graph.get_related_papers,
+        name="citation_graph_related",
+    ),
+    path(
+        "api/citation-graph/paper/",
+        citation_graph.paper_summary,
+        name="citation_graph_paper",
+    ),
+    path(
+        "api/citation-graph/health/",
+        citation_graph.health,
+        name="citation_graph_health",
+    ),
+    # PDF Download API endpoints
+    path(
+        "api/pdf/download/",
+        pdf_views.api_download_pdf,
+        name="api_download_pdf",
+    ),
+    path(
+        "api/pdf/status/",
+        pdf_views.api_check_pdf_status,
+        name="api_check_pdf_status",
+    ),
+    path(
+        "api/pdf/download-bulk/",
+        pdf_views.api_download_pdf_bulk,
+        name="api_download_pdf_bulk",
+    ),
+    path(
+        "api/pdf/serve/",
+        pdf_views.api_serve_pdf,
+        name="api_serve_pdf",
+    ),
+    # API Key Management (RESTful)
+    path(
+        "api/keys/",
+        api_keys.list_api_keys,
+        name="api_keys_list",
+    ),
+    path(
+        "api/keys/create/",
+        api_keys.create_api_key,
+        name="api_keys_create",
+    ),
+    path(
+        "api/keys/<uuid:key_id>/",
+        api_keys.update_api_key,
+        name="api_keys_update",
+    ),
+    path(
+        "api/keys/<uuid:key_id>/delete/",
+        api_keys.delete_api_key,
+        name="api_keys_delete",
+    ),
+    path(
+        "api/keys/info/",
+        api_keys.api_key_info,
+        name="api_keys_info",
     ),
     # Advanced features (for future implementation)
     # path('advanced/dashboard/', views.search_dashboard, name='search_dashboard'),

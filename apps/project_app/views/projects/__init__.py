@@ -7,8 +7,10 @@ Exports all project-related views.
 """
 
 from .list import project_list
-from .detail import project_detail, project_detail_redirect
-from .create import project_create, project_create_from_template
+from .detail import project_detail
+from .detail_redirect import project_detail_redirect
+from .create import project_create
+from .create_template import project_create_from_template
 from .edit import project_edit
 from .delete import project_delete
 from .settings import project_settings

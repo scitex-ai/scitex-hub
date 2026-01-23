@@ -1,0 +1,282 @@
+/* Visitor Status Page Styles */
+
+.visitor-status-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 4rem 2rem;
+}
+
+.status-hero {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.status-hero-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.status-hero-subtitle {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.status-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.status-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.status-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.status-card-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.status-card-value {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.status-card-label {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.slots-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.slot-card {
+    background: var(--bg-surface);
+    border: 2px solid var(--border-default);
+    border-radius: 12px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.slot-card.allocated {
+    border-color: var(--status-warning);
+    background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(255, 152, 0, 0.05) 100%);
+}
+
+.slot-card.free {
+    border-color: var(--status-success);
+    background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(76, 175, 80, 0.05) 100%);
+}
+
+.slot-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.slot-number {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.slot-status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.slot-status-badge.allocated {
+    background: rgba(255, 152, 0, 0.2);
+    color: #ff9800;
+}
+
+.slot-status-badge.free {
+    background: rgba(76, 175, 80, 0.2);
+    color: #4caf50;
+}
+
+.slot-info {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.slot-time-remaining {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    background: rgba(255, 152, 0, 0.1);
+    border-radius: 8px;
+}
+
+.slot-time-remaining i {
+    color: #ff9800;
+}
+
+.info-banner {
+    background: linear-gradient(135deg, rgba(33, 150, 243, 0.1) 0%, rgba(33, 150, 243, 0.05) 100%);
+    border-left: 4px solid #2196f3;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+.info-banner p {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.slot-card.current-user {
+    border-color: var(--workspace-icon-primary);
+    border-width: 3px;
+    background: linear-gradient(135deg, var(--bg-surface) 0%, rgba(5, 150, 105, 0.15) 100%);
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+}
+
+/* Tooltips for status cards */
+.status-card {
+    position: relative;
+    cursor: help;
+}
+
+.status-card::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 1000;
+}
+
+.status-card::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(2px);
+    border: 6px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.9);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 1000;
+}
+
+.status-card:hover::after,
+.status-card:hover::before {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-12px);
+}
+
+.status-card:hover::before {
+    transform: translateX(-50%) translateY(-6px);
+}
+
+/* Inline styles extracted from template */
+
+.status-hero-icon {
+    color: var(--workspace-icon-primary);
+}
+
+.section-title {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+}
+
+.slot-number-icon {
+    margin-right: 0.5rem;
+    color: var(--workspace-icon-primary);
+}
+
+.slot-user-icon {
+    color: #ff9800;
+    margin-right: 0.5rem;
+}
+
+.slot-current-user-badge {
+    color: var(--workspace-icon-primary);
+}
+
+.slot-available-icon {
+    color: #4caf50;
+    margin-right: 0.5rem;
+}
+
+.how-it-works-section {
+    margin-top: 4rem;
+}
+
+.how-it-works-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+}
+
+.how-it-works-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.how-it-works-card-title {
+    font-size: 1.2rem;
+    margin-bottom: 0.75rem;
+    color: var(--text-primary);
+}
+
+.how-it-works-card-icon {
+    color: var(--workspace-icon-primary);
+}
+
+.how-it-works-card-text {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.how-it-works-link {
+    color: var(--workspace-icon-primary);
+}

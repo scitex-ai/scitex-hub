@@ -1,0 +1,6 @@
+/**
+ * Search Main Styles
+ * This file now imports from modular CSS files
+ */
+
+@import url('./search-main/index.css');

@@ -44,7 +44,7 @@
  *       <li><a href="#" class="sidebar-nav-item">Another Link</a></li>
  *     </ul>
  *   </nav>
- *   <div style="flex: 1; padding: 2rem; background: var(--color-canvas-subtle); border-radius: 8px;">
+ *   <div style="flex: 1; padding: 2rem; background: var(--bg-surface); border-radius: 8px;">
  *     <p>Main content area goes here</p>
  *   </div>
  * </div>

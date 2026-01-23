@@ -1,0 +1,75 @@
+/* ============================================================================
+ * Mobile Notice Banner
+ * ============================================================================
+ * Shows a notice on small screens recommending desktop experience
+ * ========================================================================== */
+
+.mobile-notice-banner {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+  color: white;
+  padding: 0.75rem 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.mobile-notice-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.mobile-notice-content i {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.mobile-notice-content span {
+  flex: 1;
+}
+
+.mobile-notice-close {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+}
+
+.mobile-notice-close:hover {
+  opacity: 1;
+}
+
+/* Show only on small screens */
+@media (max-width: 768px) {
+  .mobile-notice-banner {
+    display: block;
+  }
+
+  /* Offset body content when banner is visible */
+  body:has(.mobile-notice-banner:not(.dismissed)) {
+    padding-top: 0;
+  }
+}
+
+/* Hidden state when dismissed */
+.mobile-notice-banner.dismissed {
+  display: none !important;
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .mobile-notice-banner {
+  background: linear-gradient(135deg, #0d1b2a 0%, #1b3a4b 100%);
+}

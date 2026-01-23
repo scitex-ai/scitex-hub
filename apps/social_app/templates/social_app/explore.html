@@ -1,75 +1,48 @@
 {% extends "global_base.html" %}
 {% load static %}
-{% block title %}
-    Explore -
-    SciTeX Cloud
+{% block title %}SciTeX Exploration{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/components/page-header.css' %}">
+    <link rel="stylesheet" href="{% static 'social_app/css/explore-inline.css' %}">
 {% endblock %}
+
 {% block content %}
-    <div class="container"
-         style="max-width: 1280px;
-                margin: 40px auto;
-                padding: 0 20px">
-        <div class="explore-header" style="margin-bottom: 30px">
-            <h1 style="font-size: 32px; font-weight: 600; margin-bottom: 10px">Explore SciTeX</h1>
-            <p style="color: var(--color-fg-muted); font-size: 16px">Discover trending repositories and active researchers</p>
+    <div class="container pt-4">
+        <div class="page-header">
+            <h1><i class="fas fa-compass"></i> Explore SciTeX</h1>
+            <p>Discover trending repositories and active researchers</p>
         </div>
+    </div>
+    <div class="container explore-container">
         <!-- Tabs -->
-        <nav class="explore-tabs"
-             style="border-bottom: 1px solid var(--color-border-default);
-                    margin-bottom: 30px">
+        <nav class="explore-tabs">
             <a href="?tab=repositories"
-               class="tab-link {% if tab == 'repositories' %}active{% endif %}"
-               style="display: inline-block;
-                      padding: 12px 16px;
-                      margin-right: 16px;
-                      color: var(--color-fg-default);
-                      text-decoration: none;
-                      border-bottom: 2px solid {% if tab == 'repositories' %}var(--scitex-color-04){% else %}transparent{% endif %};
-                      font-weight: {% if tab == 'repositories' %}600{% else %}400{% endif %}">📚 Repositories</a>
+               class="tab-link {% if tab == 'repositories' %}active{% endif %}">📚 Repositories</a>
             <a href="?tab=users"
-               class="tab-link {% if tab == 'users' %}active{% endif %}"
-               style="display: inline-block;
-                      padding: 12px 16px;
-                      color: var(--color-fg-default);
-                      text-decoration: none;
-                      border-bottom: 2px solid {% if tab == 'users' %}var(--scitex-color-04){% else %}transparent{% endif %};
-                      font-weight: {% if tab == 'users' %}600{% else %}400{% endif %}">👥 Users</a>
+               class="tab-link {% if tab == 'users' %}active{% endif %}">👥 Users</a>
         </nav>
         <!-- Repositories Tab -->
         {% if tab == 'repositories' %}
             <div class="repositories-grid">
                 {% if repositories %}
                     {% for repo in repositories %}
-                        <article style="padding: 20px;
-                                        border: 1px solid var(--color-border-default);
-                                        border-radius: 6px;
-                                        margin-bottom: 16px;
-                                        background: var(--color-canvas-default);
-                                        transition: border-color 0.2s">
-                            <div style="display: flex;
-                                        justify-content: space-between;
-                                        align-items-start;
-                                        margin-bottom: 12px">
-                                <div style="flex: 1">
-                                    <h3 style="margin: 0; font-size: 18px; font-weight: 600">
+                        <article class="repository-card">
+                            <div class="repository-card-header">
+                                <div class="repository-card-title-wrapper">
+                                    <h3 class="repository-card-title">
                                         <a href="{{ repo.get_absolute_url }}"
-                                           style="color: var(--color-accent-fg);
-                                                  text-decoration: none">{{ repo.owner.username }}/{{ repo.name }}</a>
+                                           class="repository-card-link">{{ repo.owner.username }}/{{ repo.name }}</a>
                                     </h3>
                                 </div>
-                                <div style="display: flex; gap: 8px">
-                                    <span style="color: var(--color-fg-muted); font-size: 14px">⭐ {{ repo.star_count }}</span>
+                                <div class="repository-card-stats">
+                                    <span class="repository-card-star-count">⭐ {{ repo.star_count }}</span>
                                 </div>
                             </div>
                             {% if repo.description %}
-                                <p style="color: var(--color-fg-muted);
-                                          margin: 0 0 12px 0;
-                                          font-size: 14px">{{ repo.description }}</p>
+                                <p class="repository-card-description">{{ repo.description }}</p>
                             {% endif %}
-                            <div style="display: flex;
-                                        gap: 16px;
-                                        font-size: 13px;
-                                        color: var(--color-fg-muted)">
+                            <div class="repository-card-meta">
                                 <span>
                                     {% if repo.visibility == 'public' %}
                                         🌐 Public
@@ -77,90 +50,61 @@
                                         🔒 Private
                                     {% endif %}
                                 </span>
-                                    <span>🐍 Python</span>
-                                    <span>Updated {{ repo.updated_at|timesince }} ago</span>
+                                <span>🐍 Python</span>
+                                <span>Updated {{ repo.updated_at|timesince }} ago</span>
+                            </div>
+                        </article>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <p class="empty-state-title">No public repositories yet</p>
+                        <p>Be the first to create a public research project!</p>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+        <!-- Users Tab -->
+        {% if tab == 'users' %}
+            <div class="users-grid">
+                {% if users %}
+                    {% for user in users %}
+                        <article class="user-card">
+                            <div class="user-card-header">
+                                <div class="user-card-avatar">{{ user.username|slice:":1"|upper }}</div>
+                                <div class="user-card-info">
+                                    <h3 class="user-card-name">
+                                        <a href="/{{ user.username }}/"
+                                           class="user-card-link">
+                                            {{ user.get_full_name|default:user.username }}
+                                        </a>
+                                    </h3>
+                                    <p class="user-card-username">@{{ user.username }}</p>
                                 </div>
-                            </article>
-                        {% endfor %}
-                    {% else %}
-                        <div style="text-align: center;
-                                    padding: 60px 20px;
-                                    color: var(--color-fg-muted)">
-                            <p style="font-size: 18px">No public repositories yet</p>
-                            <p>Be the first to create a public research project!</p>
-                        </div>
-                    {% endif %}
-                </div>
-            {% endif %}
-            <!-- Users Tab -->
-            {% if tab == 'users' %}
-                <div class="users-grid"
-                     style="display: grid;
-                            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-                            gap: 20px">
-                    {% if users %}
-                        {% for user in users %}
-                            <article style="padding: 20px;
-                                            border: 1px solid var(--color-border-default);
-                                            border-radius: 6px;
-                                            background: var(--color-canvas-default)">
-                                <div style="display: flex;
-                                            align-items: center;
-                                            gap: 12px;
-                                            margin-bottom: 12px">
-                                    <div style="width: 48px;
-                                                height: 48px;
-                                                border-radius: 50%;
-                                                background: var(--scitex-color-04);
-                                                display: flex;
-                                                align-items: center;
-                                                justify-content: center;
-                                                color: white;
-                                                font-size: 20px;
-                                                font-weight: 600">{{ user.username|slice:":1"|upper }}</div>
-                                    <div style="flex: 1">
-                                        <h3 style="margin: 0; font-size: 16px; font-weight: 600">
-                                            <a href="/{{ user.username }}/"
-                                               style="color: var(--color-accent-fg);
-                                                      text-decoration: none">
-                                                {{ user.get_full_name|default:user.username }}
-                                            </a>
-                                        </h3>
-                                        <p style="margin: 0; font-size: 14px; color: var(--color-fg-muted)">@{{ user.username }}</p>
-                                    </div>
-                                </div>
-                                {% if user.profile.bio %}
-                                    <p style="color: var(--color-fg-muted);
-                                              font-size: 14px;
-                                              margin-bottom: 12px">{{ user.profile.bio|truncatewords:20 }}</p>
-                                {% endif %}
-                                <div style="display: flex;
-                                            gap: 16px;
-                                            font-size: 13px;
-                                            color: var(--color-fg-muted)">
-                                    <span>
-                                        {% if user.profile.profile_visibility == 'public' %}
-                                            🌐 Public
-                                        {% elif user.profile.profile_visibility == 'restricted' %}
-                                            🚫 Restricted
-                                        {% else %}
-                                            🔒 Private
-                                        {% endif %}
-                                    </span>
-                                    <span>📚 {{ user.repo_count }} repos</span>
-                                    <span>👥 {{ user.follower_count }} followers</span>
-                                </div>
-                            </article>
-                        {% endfor %}
-                    {% else %}
-                        <div style="grid-column: 1 / -1;
-                                    text-align: center;
-                                    padding: 60px 20px;
-                                    color: var(--color-fg-muted)">
-                            <p style="font-size: 18px">No users to display</p>
-                        </div>
-                    {% endif %}
-                </div>
-            {% endif %}
-        </div>
-    {% endblock %}
+                            </div>
+                            {% if user.profile.bio %}
+                                <p class="user-card-bio">{{ user.profile.bio|truncatewords:20 }}</p>
+                            {% endif %}
+                            <div class="user-card-meta">
+                                <span>
+                                    {% if user.profile.profile_visibility == 'public' %}
+                                        🌐 Public
+                                    {% elif user.profile.profile_visibility == 'restricted' %}
+                                        🚫 Restricted
+                                    {% else %}
+                                        🔒 Private
+                                    {% endif %}
+                                </span>
+                                <span>📚 {{ user.repo_count }} repos</span>
+                                <span>👥 {{ user.follower_count }} followers</span>
+                            </div>
+                        </article>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state-grid">
+                        <p class="empty-state-title">No users to display</p>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

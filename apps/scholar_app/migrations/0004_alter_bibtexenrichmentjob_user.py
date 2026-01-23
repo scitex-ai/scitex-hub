@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
             name="user",
             field=models.ForeignKey(
                 blank=True,
-                help_text="User who created this job (null for anonymous users)",
+                help_text="User who created this job (null for visitor users)",
                 null=True,
                 on_delete=django.db.models.deletion.CASCADE,
                 related_name="bibtex_jobs",

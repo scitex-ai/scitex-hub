@@ -14,8 +14,8 @@
 
 /* Settings Navigation Sidebar */
 .settings-nav {
-  background: var(--color-canvas-subtle);
-  border: 1px solid var(--color-border-default);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
   border-radius: 6px;
   padding: 8px;
   position: sticky;
@@ -72,7 +72,7 @@
 .settings-header {
   margin-bottom: 24px;
   padding-bottom: 16px;
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: 1px solid var(--border-default);
 }
 
 .settings-title {
@@ -90,8 +90,8 @@
 
 /* Form Sections */
 .form-section {
-  background: var(--color-canvas-default);
-  border: 1px solid var(--color-border-default);
+  background: var(--bg-page);
+  border: 1px solid var(--border-default);
   border-radius: 6px;
   padding: 24px;
   margin-bottom: 24px;
@@ -107,7 +107,7 @@
 .section-header {
   margin-bottom: 16px;
   padding-bottom: 16px;
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: 1px solid var(--border-default);
 }
 
 .section-title {
@@ -143,9 +143,9 @@
 .form-group textarea {
   width: 100%;
   padding: 8px 12px;
-  border: 2px solid var(--color-border-default);
+  border: 2px solid var(--border-default);
   border-radius: 6px;
-  background: var(--color-canvas-default);
+  background: var(--bg-page);
   color: var(--text-primary);
   font-size: 14px;
   transition: all 0.2s ease;
@@ -187,7 +187,7 @@
   display: flex;
   gap: 12px;
   padding-top: 16px;
-  border-top: 1px solid var(--color-border-default);
+  border-top: 1px solid var(--border-default);
   margin-top: 24px;
 }
 

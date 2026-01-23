@@ -1,0 +1,78 @@
+/* Editor View Tabs */
+.editor-view-tabs {
+  display: flex;
+  background: var(--workspace-bg-secondary);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 6px;
+  padding: 0.25rem;
+  gap: 0.25rem;
+}
+
+.view-tab {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  color: var(--workspace-text-primary);
+  cursor: pointer;
+}
+
+.view-tab:hover {
+  background: var(--workspace-bg-primary);
+}
+
+.view-tab.active {
+  background: var(--color-accent-emphasis);
+  color: var(--color-fg-on-emphasis);
+  font-weight: 500;
+}
+
+/* iOS-style Segmented Control for View Switching */
+.view-switcher {
+  display: inline-flex;
+  background: var(--workspace-bg-secondary);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 6px;
+  padding: 0.2rem;
+  gap: 0.15rem;
+}
+
+.view-switch-btn {
+  padding: 0.4rem 0.75rem;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  font-size: 0.8rem;
+  color: var(--workspace-text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  font-weight: 400;
+}
+
+.view-switch-btn:hover:not(.active) {
+  background: var(--workspace-bg-tertiary);
+  color: var(--workspace-text-primary);
+}
+
+.view-switch-btn.active {
+  background: var(--workspace-bg-quaternary);
+  color: var(--workspace-text-primary);
+  font-weight: 600;
+  box-shadow: 0 0 0 1px var(--workspace-border-active) inset;
+}
+
+.view-switch-btn i {
+  font-size: 0.75rem;
+}
+
+/* Vertical Divider */
+.vertical-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--workspace-border-default);
+  margin: 0 0.5rem;
+}
+

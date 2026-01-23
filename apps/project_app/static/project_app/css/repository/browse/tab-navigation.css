@@ -1,0 +1,14 @@
+/* Tab navigation now uses standardized .scitex-tabs component from design system */
+.repo-tabs {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+
+.scitex-tabs {
+  display: flex;
+  gap: 1.5rem;
+}
+

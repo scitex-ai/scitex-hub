@@ -1,0 +1,114 @@
+/**
+ * Workspace Files Tree - Item States
+ * Selected, active, focused, disabled, and inactive states
+ */
+
+.wft-file.selected,
+.wft-folder.selected {
+  background-color: var(--color-accent-subtle, rgba(47, 129, 247, 0.15));
+}
+
+.wft-file.selected:hover,
+.wft-folder.selected:hover {
+  background-color: var(--color-accent-subtle, rgba(47, 129, 247, 0.2));
+}
+
+/* Currently active/editing file - stronger highlight */
+.wft-file.active,
+.wft-file.editing {
+  background-color: var(--color-accent-subtle, rgba(47, 129, 247, 0.2));
+  font-weight: 500;
+}
+
+/* Focus highlight for folders */
+.wft-folder.focused {
+  background-color: var(--color-accent-subtle, rgba(47, 129, 247, 0.1));
+  outline: 1px solid var(--color-accent-fg, rgba(47, 129, 247, 0.5));
+  outline-offset: -1px;
+}
+
+.wft-file.disabled {
+  opacity: 0.5;
+  filter: grayscale(50%);
+}
+
+.wft-file.disabled .wft-name {
+  color: var(--color-fg-muted, #768390);
+}
+
+/* Inactive items (outside current module's scope but still visible and accessible) */
+.wft-item.inactive {
+  opacity: 0.6;
+  transition: opacity 0.15s ease;
+}
+
+.wft-item.inactive:hover {
+  opacity: 1;
+  background-color: var(--color-canvas-subtle, rgba(127, 127, 127, 0.1));
+}
+
+.wft-item.inactive .wft-name {
+  color: var(--color-fg-muted, #768390);
+  transition: color 0.15s ease;
+}
+
+.wft-item.inactive:hover .wft-name {
+  color: var(--color-fg-default, #e6edf3);
+}
+
+/* Target file indicator badge - hidden for cleaner UI */
+.wft-target-badge {
+  display: none;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Target file - subtle highlight without border */
+.wft-file.target {
+  background-color: var(--color-accent-subtle, rgba(47, 129, 247, 0.15));
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .wft-target-badge {
+  display: none;
+}
+
+[data-theme="dark"] .wft-file.target {
+  background-color: rgba(47, 129, 247, 0.15);
+}
+
+/* Error state */
+.wft-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  color: var(--color-danger-fg, #f85149);
+}
+
+.wft-error i {
+  font-size: 16px;
+}
+
+/* Loading state */
+.wft-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  color: var(--color-fg-muted, #768390);
+}
+
+/* Focus styles for keyboard navigation - disabled to avoid distracting visual changes */
+.wft-item:focus,
+.wft-item:focus-visible {
+  outline: none;
+}
+
+/* Highlight animation for focus target - completely disabled for smoother UX */
+.wft-item.wft-highlight {
+  /* No visual change at all - eliminates all flashing */
+}

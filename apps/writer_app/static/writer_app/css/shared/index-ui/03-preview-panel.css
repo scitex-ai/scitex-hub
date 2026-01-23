@@ -1,0 +1,177 @@
+/* =========================================
+   PREVIEW PANEL (Mirror LaTeX Panel Style)
+   ========================================= */
+
+.preview-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* =========================================
+   RIGHT PANEL VIEW CONTAINERS
+   Base styles for PDF, Citations, Figures, Tables, History, Collaboration views
+   ========================================= */
+
+.right-panel-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.right-panel-view[hidden] {
+  display: none !important;
+}
+
+#pdf-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#pdf-view[hidden] {
+  display: none !important;
+}
+
+#citations-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#citations-view[hidden] {
+  display: none !important;
+}
+
+#figures-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#figures-view[hidden] {
+  display: none !important;
+}
+
+#tables-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#tables-view[hidden] {
+  display: none !important;
+}
+
+#history-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#history-view[hidden] {
+  display: none !important;
+}
+
+#collaboration-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#collaboration-view[hidden] {
+  display: none !important;
+}
+
+.preview-panel .panel-header {
+  margin-bottom: 0;
+}
+
+.text-preview {
+  flex: 1;
+  padding: 0; /* No padding - let PDF viewer fill full space */
+  background: var(--workspace-bg-primary) !important;
+  color: var(--text-primary) !important;
+  overflow-y: auto;
+  font-family: "Georgia", "Cambria", serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  outline: none !important;
+}
+
+[data-theme="dark"] .text-preview {
+  background: var(--workspace-bg-monaco, #1e1e1e) !important;
+}
+
+/* Remove all focus outlines from preview pane */
+.text-preview:focus,
+.text-preview:focus-visible,
+.text-preview *:focus,
+.text-preview *:focus-visible,
+.text-preview iframe:focus,
+.text-preview iframe:focus-visible {
+  outline: none !important;
+}
+
+.text-preview:empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.text-preview:empty::before {
+  content: "Preview will appear here";
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Preview placeholder styling */
+.preview-placeholder {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  flex: 1;
+  color: var(--text-muted);
+  background: var(--workspace-bg-primary);
+}
+
+[data-theme="dark"] .preview-placeholder {
+  background: var(--workspace-bg-primary);
+}
+

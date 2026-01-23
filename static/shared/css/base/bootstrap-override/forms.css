@@ -1,0 +1,68 @@
+/* Bootstrap Override - Form Controls and Buttons */
+
+/* Override Bootstrap button colors - Theme-aware */
+.btn-outline-primary,
+.btn-outline-secondary,
+.btn-outline-dark {
+  color: var(--text-primary);
+  border-color: var(--border-default);
+  background: transparent;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-secondary:hover,
+.btn-outline-dark:hover {
+  color: var(--text-inverse);
+  background: var(--border-default);
+  border-color: var(--border-default);
+}
+
+/* Form controls use appropriate text color per theme */
+.form-control,
+.form-select {
+  color: var(--text-primary);
+  border-color: var(--border-default);
+  background-color: var(--bg-surface);
+}
+
+.form-control:focus,
+.form-select:focus {
+  color: var(--text-primary);
+  border-color: var(--text-primary);
+  background-color: var(--bg-page);
+}
+
+.form-select option {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.form-select optgroup {
+  background-color: var(--bg-muted);
+  color: var(--text-secondary);
+}
+
+/* Dark mode: Use workspace darkish colors instead of bluish */
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+  background-color: var(--workspace-bg-secondary);
+  border-color: var(--workspace-border-default);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus {
+  background-color: var(--workspace-bg-tertiary);
+  border-color: var(--workspace-border-hover);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .form-select option {
+  background-color: var(--workspace-bg-secondary);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .form-select optgroup {
+  background-color: var(--workspace-bg-primary);
+  color: var(--text-secondary);
+}

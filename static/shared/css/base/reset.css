@@ -44,8 +44,8 @@ body {
   text-rendering: optimizeSpeed;
   font-family: var(--base-font-family);
   line-height: var(--base-line-height);
-  color: var(--text-color);
-  background-color: white;
+  color: var(--text-primary);
+  background-color: var(--bg-page);
 }
 
 /* Ensure all elements inherit sans-serif */

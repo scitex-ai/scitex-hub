@@ -1,5 +1,5 @@
 {% extends 'global_base.html' %}
-{% load static %}
+{% load static vite %}
 {% block title %}{% if edit_mode %}Edit{% else %}Create{% endif %} Workflow - {{ project.name }}{% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'project_app/css/project_app.css' %}" />
@@ -18,5 +18,5 @@
     </div>
 {% endblock %}
 {% block extra_js %}
-        <script src="{% static 'project_app/js/workflows/editor.js' %}"></script>
+        {% vite_script 'project_app/workflows/editor' %}
     {% endblock %}

@@ -271,4 +271,11 @@ export class WriterEditor {
   getInstance(): any {
     return this.editor;
   }
+
+  /**
+   * Toggle editor theme (no-op for CodeMirror, implemented for interface compatibility)
+   */
+  toggleEditorTheme(): void {
+    console.warn("[Editor] Theme toggle not supported for CodeMirror editor");
+  }
 }

@@ -1,0 +1,71 @@
+{
+  "schema": {
+    "name": "scitex.plt.spec",
+    "version": "1.0.0"
+  },
+  "plot_id": "matshow",
+  "data": {
+    "csv": "matshow.csv",
+    "format": "wide",
+    "hash": "sha256:45818fe57871b18c"
+  },
+  "axes": [
+    {
+      "id": "ax0",
+      "bbox": {
+        "x0": 0.3,
+        "y0": 0.2941,
+        "width": 0.35,
+        "height": 0.4118,
+        "space": "panel"
+      },
+      "labels": {
+        "xlabel": "Variable",
+        "ylabel": "Variable",
+        "title": "ax.matshow()"
+      },
+      "limits": {
+        "x": [
+          -0.5,
+          4.5
+        ],
+        "y": [
+          4.5,
+          -0.5
+        ]
+      },
+      "role": "main",
+      "linked_to": null
+    },
+    {
+      "id": "ax1",
+      "bbox": {
+        "x0": 0.675,
+        "y0": 0.3353,
+        "width": 0.075,
+        "height": 0.3294,
+        "space": "panel"
+      },
+      "labels": {
+        "xlabel": null,
+        "ylabel": null,
+        "title": null
+      },
+      "limits": {
+        "x": [
+          0.0,
+          1.0
+        ],
+        "y": [
+          -0.2148164329814327,
+          0.9999999999999999
+        ]
+      },
+      "role": "main",
+      "linked_to": null
+    }
+  ],
+  "traces": [],
+  "scitex_schema": "scitex.plt.spec",
+  "scitex_schema_version": "1.0.0"
+}

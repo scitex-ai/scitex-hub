@@ -7,7 +7,7 @@
 
 Successfully clarified and documented system requirements for all SciTeX ecosystem components, with special attention to:
 - SciTeX-Engine's dependency on Claude Code
-- SciTeX-Viz's dependency on Windows and SigmaPlot
+- SciTeX-Viz's dependency on Windows and VisPlot
 - Linux compatibility and Apptainer containerization strategy
 
 ## Completed Tasks
@@ -42,7 +42,7 @@ Successfully clarified and documented system requirements for all SciTeX ecosyst
 
 #### SciTeX-Viz (`/apps/cloud_app/templates/cloud_app/products/viz.html`)
 - Added detailed system requirements section
-- Clearly stated Windows/SigmaPlot dependency
+- Clearly stated Windows/VisPlot dependency
 - Included note about Linux compatibility via Apptainer
 - Mentioned future open-source alternative in development
 
@@ -64,7 +64,7 @@ Successfully clarified and documented system requirements for all SciTeX ecosyst
 
 1. **Containerization Strategy**: All components will be available as Apptainer containers, enabling Linux deployment even for Windows-dependent tools
 
-2. **Licensing Clarity**: Clear distinction between open-source components (MIT/GPL) and proprietary dependencies (Claude Code, SigmaPlot)
+2. **Licensing Clarity**: Clear distinction between open-source components (MIT/GPL) and proprietary dependencies (Claude Code, VisPlot)
 
 3. **Future Direction**: Active development of open-source alternatives to proprietary dependencies, particularly for SciTeX-Viz
 
@@ -75,7 +75,7 @@ Successfully clarified and documented system requirements for all SciTeX ecosyst
 1. Implement Apptainer container definitions for each component
 2. Test containerized versions on various Linux distributions
 3. Create user guides for container deployment
-4. Begin development of open-source SigmaPlot alternative
+4. Begin development of open-source VisPlot alternative
 5. Set up container registry for distribution
 
 ## Impact

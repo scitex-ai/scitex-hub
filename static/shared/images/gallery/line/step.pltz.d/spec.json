@@ -1,0 +1,59 @@
+{
+  "schema": {
+    "name": "scitex.plt.spec",
+    "version": "1.0.0"
+  },
+  "plot_id": "step",
+  "data": {
+    "csv": "step.csv",
+    "format": "wide",
+    "hash": "sha256:b7babc39f2d66734"
+  },
+  "axes": [
+    {
+      "id": "ax0",
+      "bbox": {
+        "x0": 0.25,
+        "y0": 0.2941,
+        "width": 0.5,
+        "height": 0.4118,
+        "space": "panel"
+      },
+      "labels": {
+        "xlabel": "Time [ms]",
+        "ylabel": "Voltage [mV]",
+        "title": "ax.step()"
+      },
+      "limits": {
+        "x": [
+          -0.9500000000000001,
+          19.95
+        ],
+        "y": [
+          -0.2,
+          4.2
+        ]
+      },
+      "role": "main",
+      "linked_to": null
+    }
+  ],
+  "traces": [
+    {
+      "id": "ax0-line-0",
+      "type": "line",
+      "x_col": "ax0_trace-ax0-line-0_x",
+      "y_col": "ax0_trace-ax0-line-0_y",
+      "data_cols": null,
+      "value_col": null,
+      "u_col": null,
+      "v_col": null,
+      "label": "series_0",
+      "group": null,
+      "axes_index": 0,
+      "extra": {}
+    }
+  ],
+  "scitex_schema": "scitex.plt.spec",
+  "scitex_schema_version": "1.0.0"
+}

@@ -7,7 +7,7 @@ Usage:
     python manage.py init_test_user
 
 Or via Docker:
-    docker exec scitex-cloud-dev-web-1 python manage.py init_test_user
+    docker exec scitex-cloud-dev-django-1 python manage.py init_test_user
 """
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model

@@ -1,0 +1,438 @@
+{% extends "global_base.html" %}
+{% block title %}Keyboard Shortcuts - SciTeX{% endblock %}
+{% block meta_description %}
+    Complete keyboard shortcuts reference for SciTeX Cloud.
+    Navigate between modules, edit figures, manage files, and more.
+{% endblock %}
+{% block extra_css %}
+    {% load static %}
+    <style>
+  .shortcuts-page {
+    min-height: 100vh;
+    background: var(--workspace-bg-primary, #0d0d0d);
+    padding: 32px 20px;
+  }
+
+  .shortcuts-container {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .shortcuts-header {
+    margin-bottom: 24px;
+  }
+
+  .shortcuts-header h1 {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-primary, #d4e1e8);
+    margin: 0 0 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .shortcuts-header h1 i {
+    color: var(--workspace-icon-primary, #6ba89a);
+  }
+
+  .shortcuts-header p {
+    color: var(--text-muted, #6c8ba0);
+    font-size: 12px;
+    margin: 0;
+  }
+
+  /* Search box */
+  .shortcuts-search {
+    margin-bottom: 20px;
+    position: relative;
+    max-width: 320px;
+  }
+
+  .shortcuts-search input {
+    width: 100%;
+    padding: 8px 12px 8px 32px;
+    font-size: 12px;
+    border: 1px solid var(--workspace-border-default, #3a3a3a);
+    border-radius: 4px;
+    background: var(--workspace-bg-secondary, #151515);
+    color: var(--text-primary, #d4e1e8);
+    transition: all 0.15s;
+  }
+
+  .shortcuts-search input:focus {
+    outline: none;
+    border-color: var(--workspace-icon-primary, #6ba89a);
+  }
+
+  .shortcuts-search .search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted, #6c8ba0);
+    font-size: 12px;
+  }
+
+  .shortcuts-search .search-hint {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 10px;
+    color: var(--text-muted, #6c8ba0);
+    background: var(--workspace-bg-tertiary, #1a1a1a);
+    padding: 2px 5px;
+    border-radius: 3px;
+  }
+
+  /* Tab navigation */
+  .shortcuts-tabs {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 20px;
+    background: var(--workspace-bg-secondary, #151515);
+    padding: 4px;
+    border-radius: 6px;
+    overflow-x: auto;
+  }
+
+  .shortcuts-tab {
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted, #6c8ba0);
+    background: none;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .shortcuts-tab:hover {
+    color: var(--text-primary, #d4e1e8);
+    background: var(--workspace-bg-tertiary, #1a1a1a);
+  }
+
+  .shortcuts-tab.active {
+    color: var(--text-primary, #d4e1e8);
+    background: var(--workspace-bg-elevated, #1f1f1f);
+  }
+
+  .shortcuts-tab .tab-count {
+    font-size: 10px;
+    background: var(--workspace-bg-tertiary, #1a1a1a);
+    padding: 1px 5px;
+    border-radius: 8px;
+  }
+
+  .shortcuts-tab.active .tab-count {
+    background: var(--workspace-icon-primary, #6ba89a);
+    color: var(--workspace-bg-primary, #0d0d0d);
+  }
+
+  /* Tab content */
+  .shortcuts-tab-content {
+    display: none;
+  }
+
+  .shortcuts-tab-content.active {
+    display: block;
+  }
+
+  /* Context card */
+  .context-card {
+    background: var(--workspace-bg-elevated, #1f1f1f);
+    border: 1px solid var(--workspace-border-default, #3a3a3a);
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .context-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--workspace-border-subtle, #1a1a1a);
+  }
+
+  .context-card-header h2 {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary, #d4e1e8);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .context-card-header .context-icon {
+    font-size: 14px;
+    color: var(--workspace-icon-primary, #6ba89a);
+  }
+
+  .context-description {
+    color: var(--text-muted, #6c8ba0);
+    font-size: 11px;
+    margin-left: auto;
+  }
+
+  /* Grid layout for shortcuts */
+  .shortcuts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+  }
+
+  .shortcuts-section h4 {
+    margin: 0 0 8px 0;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--workspace-icon-primary, #6ba89a);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--workspace-border-subtle, #1a1a1a);
+  }
+
+  .shortcut-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    font-size: 11px;
+    color: var(--text-secondary, #8fa4b0);
+  }
+
+  .shortcut-row kbd {
+    background: var(--workspace-bg-secondary, #151515);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10px;
+    min-width: 54px;
+    text-align: center;
+    color: var(--text-primary, #d4e1e8);
+    border: 1px solid var(--workspace-border-default, #3a3a3a);
+  }
+
+  /* No results */
+  .no-results {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted, #6c8ba0);
+    display: none;
+  }
+
+  .no-results.visible {
+    display: block;
+  }
+
+  .no-results i {
+    font-size: 32px;
+    margin-bottom: 12px;
+    opacity: 0.4;
+  }
+
+  /* Footer hint */
+  .shortcuts-footer {
+    text-align: center;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--workspace-border-subtle, #1a1a1a);
+    color: var(--text-muted, #6c8ba0);
+    font-size: 11px;
+  }
+
+  .shortcuts-footer kbd {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    background: var(--workspace-bg-secondary, #151515);
+    padding: 2px 5px;
+    border-radius: 3px;
+    border: 1px solid var(--workspace-border-default, #3a3a3a);
+    color: var(--text-primary, #d4e1e8);
+  }
+
+  @media (max-width: 768px) {
+    .shortcuts-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .context-card-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    .context-description {
+      margin-left: 0;
+    }
+  }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="shortcuts-page">
+        <div class="shortcuts-container">
+            <div class="shortcuts-header">
+                <h1>
+                    <i class="fas fa-keyboard"></i>
+                    Keyboard Shortcuts
+                </h1>
+                <p>Master SciTeX with efficient keyboard navigation</p>
+            </div>
+
+            <!-- Search -->
+            <div class="shortcuts-search">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="searchInput" placeholder="Search shortcuts...">
+                <span class="search-hint">Ctrl+K</span>
+            </div>
+
+            <!-- Tab Navigation -->
+            <div class="shortcuts-tabs">
+                {% for ctx in contexts %}
+                    <button class="shortcuts-tab {% if forloop.first %}active{% endif %}"
+                            data-tab="{{ ctx.slug }}">
+                        <span class="context-icon">{{ ctx.icon }}</span>
+                        {{ ctx.name }}
+                    </button>
+                {% endfor %}
+            </div>
+
+            <!-- Tab Contents -->
+            {% for ctx in contexts %}
+                <div class="shortcuts-tab-content {% if forloop.first %}active{% endif %}"
+                     id="tab-{{ ctx.slug }}">
+                    <div class="context-card">
+                        <div class="context-card-header">
+                            <h2>
+                                <span class="context-icon">{{ ctx.icon }}</span>
+                                {{ ctx.name }}
+                            </h2>
+                            <span class="context-description">{{ ctx.description }}</span>
+                        </div>
+                        <div class="shortcuts-grid">
+                            {% for section in ctx.sections %}
+                                <div class="shortcuts-section">
+                                    <h4>{{ section.title }}</h4>
+                                    {% for shortcut in section.shortcuts %}
+                                        <div class="shortcut-row" data-search="{{ shortcut.keys|lower }} {{ shortcut.description|lower }} {{ section.title|lower }}">
+                                            <kbd>{{ shortcut.keys }}</kbd>
+                                            {{ shortcut.description }}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+
+            <!-- No Results -->
+            <div class="no-results" id="noResults">
+                <i class="fas fa-search"></i>
+                <p>No shortcuts found matching your search.</p>
+            </div>
+
+            <div class="shortcuts-footer">
+                <p>Press <kbd>Alt+/</kbd> anywhere to open the quick shortcuts modal</p>
+            </div>
+        </div>
+    </div>
+    <script>
+  const searchInput = document.getElementById('searchInput');
+  const tabs = document.querySelectorAll('.shortcuts-tab');
+  const tabContents = document.querySelectorAll('.shortcuts-tab-content');
+  const shortcutRows = document.querySelectorAll('.shortcut-row');
+  const noResults = document.getElementById('noResults');
+
+  // Tab switching
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const tabId = tab.dataset.tab;
+
+      // Clear search
+      if (searchInput.value) {
+        searchInput.value = '';
+        searchInput.dispatchEvent(new Event('input'));
+      }
+
+      // Update tabs
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+
+      // Update content
+      tabContents.forEach(content => {
+        content.classList.remove('active');
+        if (content.id === `tab-${tabId}`) {
+          content.classList.add('active');
+        }
+      });
+    });
+  });
+
+  // Search functionality
+  searchInput.addEventListener('input', (e) => {
+    const query = e.target.value.toLowerCase().trim();
+    let visibleCount = 0;
+    const tabsWithResults = new Set();
+
+    shortcutRows.forEach(row => {
+      const searchText = row.dataset.search || '';
+      const matches = !query || searchText.includes(query);
+      row.style.display = matches ? 'flex' : 'none';
+      if (matches) {
+        visibleCount++;
+        const tabContent = row.closest('.shortcuts-tab-content');
+        if (tabContent) tabsWithResults.add(tabContent.id);
+      }
+    });
+
+    // Show/hide no results
+    noResults.classList.toggle('visible', query && visibleCount === 0);
+
+    if (query) {
+      // Show all tabs with results
+      tabContents.forEach(content => {
+        content.classList.toggle('active', tabsWithResults.has(content.id));
+      });
+      tabs.forEach(tab => {
+        const hasResults = tabsWithResults.has(`tab-${tab.dataset.tab}`);
+        tab.style.opacity = hasResults ? '1' : '0.3';
+        tab.disabled = !hasResults;
+        tab.classList.remove('active');
+      });
+    } else {
+      // Reset to first tab
+      tabContents.forEach((content, i) => {
+        content.classList.toggle('active', i === 0);
+      });
+      tabs.forEach((tab, i) => {
+        tab.style.opacity = '1';
+        tab.disabled = false;
+        tab.classList.toggle('active', i === 0);
+      });
+    }
+  });
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      e.preventDefault();
+      searchInput.focus();
+    }
+    if (e.key === 'Escape' && document.activeElement === searchInput) {
+      searchInput.blur();
+      searchInput.value = '';
+      searchInput.dispatchEvent(new Event('input'));
+    }
+  });
+    </script>
+{% endblock %}

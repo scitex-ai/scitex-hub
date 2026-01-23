@@ -1,0 +1,80 @@
+/* Dark mode: Make demo boxes darker */
+[data-theme="dark"] .demo-box {
+  background-color: var(--bg-800);
+  border-color: var(--border-400);
+}
+
+.color-palette {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.color-swatch {
+  height: 120px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 1.25rem;
+  color: white;
+  font-weight: 500;
+  box-shadow: var(--shadow-md);
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.color-swatch:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.color-swatch strong {
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+  font-family: "SF Mono", "Monaco", "Inconsolata", "Fira Code", monospace;
+}
+
+.color-swatch small {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.typography-demo {
+  margin-bottom: 2rem;
+}
+
+.typography-demo .type-sample {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background-color: var(--bg-100);
+  border: 1px solid var(--border-300);
+  border-radius: 8px;
+  color: var(--text-800);
+}
+
+.typography-demo .type-info {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.component-example {
+}
+
+.component-example h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.component-example .example-display {
+  padding: 2rem;
+  background-color: var(--bg-200);
+  border: 1px solid var(--border-300);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  word-wrap: break-word;
+}
+

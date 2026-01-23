@@ -1,0 +1,58 @@
+/*
+ * Filter Base Styles
+ *
+ * Basic filter container styles and text visibility fixes
+ */
+
+/* Search Filters */
+.simple-filter {
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* Fix text visibility in Literature Search panel */
+#searchPanel .text-muted,
+#searchPanel .form-label,
+#searchPanel small,
+#searchPanel label {
+  /* color: var(--text-secondary) !important; */
+}
+
+#searchPanel .fw-bold,
+#searchPanel .form-label.fw-bold {
+  /* color: var(--text-primary) !important; */
+}
+
+/* Dark mode - bluish colors for filter section labels */
+[data-theme="dark"] #searchPanel .fw-bold,
+[data-theme="dark"] #searchPanel .form-label.fw-bold {
+  /* color: var(--scitex-color-06) !important; */
+}
+
+/* Fix checkbox labels and quick filter buttons */
+#searchPanel .scitex-checkbox-label,
+#searchPanel .scitex-toggle-label {
+  /* color: var(--text-primary) !important; */
+  /* background: var(--bg-surface) !important; */
+  /* border-color: var(--border-default) !important; */
+}
+
+/* Dark mode - bluish colors for checkbox labels */
+[data-theme="dark"] #searchPanel .scitex-checkbox-label,
+[data-theme="dark"] #searchPanel .scitex-toggle-label {
+  /* color: var(--scitex-color-06) !important; */
+  /* background: var(--scitex-color-01-light) !important; */
+  /* border-color: var(--scitex-color-03) !important; */
+}
+
+/* Make checkboxes visible in dark mode */
+#searchPanel .scitex-checkbox {
+  /* accent-color: var(--scitex-color-03); */
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+[data-theme="dark"] #searchPanel .scitex-checkbox {
+  /* accent-color: var(--scitex-color-05); */
+}

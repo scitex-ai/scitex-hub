@@ -1,0 +1,327 @@
+/* ============================================================================= */
+/* FILE BROWSER TABLE - GITHUB STYLE */
+/* ============================================================================= */
+
+/* Container with border and rounded corners */
+.file-browser {
+  /* Layout preserved */
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+  /* Styling moved to central CSS - see static/css/components/cards.css */
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  background: var(--color-canvas-default);
+}
+
+.file-browser-table {
+  /* Layout preserved */
+  width: 100%;
+  margin: 0;
+  border-collapse: collapse;
+  /* Styling moved to central CSS - see static/css/common/typography-vars.css */
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+}
+
+/* Table Header */
+.file-browser-table thead {
+  /* Styling moved to central CSS - see static/css/components/tables.css */
+  background: var(--color-canvas-subtle);
+}
+
+.file-browser-header {
+  /* Layout preserved */
+  padding: 8px 8px;
+  text-align: left;
+  line-height: 1.5;
+  /* Styling moved to central CSS - see static/css/components/tables.css */
+  background: var(--color-canvas-subtle);
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--color-fg-muted);
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.file-browser-name-col {
+  width: 30%;
+}
+
+.file-browser-message-col {
+  width: 50%;
+}
+
+.file-browser-time-col {
+  width: 20%;
+  text-align: right;
+}
+
+/* Table Rows - Full row hover and clickability */
+.file-browser-table tbody tr {
+  /* Styling moved to central CSS - see static/css/components/tables.css */
+  border-top: 1px solid var(--color-border-default);
+}
+
+.file-browser-table tbody tr:first-child {
+  /* Styling moved to central CSS - see static/css/components/tables.css */
+  border-top: none;
+}
+
+.file-browser-row {
+  cursor: pointer;
+  /* Styling moved to central CSS - see static/css/components/tables.css */
+  transition:
+    background-color 0.15s ease-out,
+    box-shadow 0.15s ease-out;
+}
+
+/* GitHub-style subtle hover - light background change */
+.file-browser-row:hover {
+  /* Styling moved to central CSS - see static/css/components/tables.css */
+  background: var(--color-neutral-muted);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.03);
+}
+
+/* Table Cells */
+.file-browser-cell {
+  /* Layout preserved */
+  padding: 8px 8px;
+  vertical-align: middle;
+  line-height: 24px; /* Increased for better alignment */
+  height: 40px; /* Fixed height for consistency */
+  /* Styling moved to central CSS - see static/css/components/tables.css */
+  font-size: 14px;
+  color: var(--color-fg-default);
+}
+
+/* Name Cell with Icon and Text */
+.file-browser-name-cell {
+  width: 30%;
+}
+
+.file-browser-link {
+  /* Layout preserved */
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  line-height: 1; /* Ensure consistent line height */
+  /* Styling moved to central CSS - see static/css/components/buttons.css */
+  color: var(--color-accent-fg);
+  font-weight: 600;
+}
+
+.file-browser-link:hover {
+  text-decoration: underline;
+}
+
+.file-browser-link:hover .file-browser-name {
+  text-decoration: underline;
+}
+
+/* SVG Icons - Octicons */
+.file-browser-icon {
+  /* Layout preserved */
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.octicon-directory {
+  /* Styling moved to central CSS - see static/css/components/icons.css */
+  fill: var(--color-fg-muted);
+  transition: fill 0.2s ease;
+}
+
+.octicon-file {
+  /* Styling moved to central CSS - see static/css/components/icons.css */
+  fill: var(--color-fg-muted);
+  transition: fill 0.2s ease;
+}
+
+/* Hover effects for file browser icons */
+.file-browser-row:hover .octicon-directory {
+  fill: var(--color-accent-fg);
+}
+
+.file-browser-row:hover .octicon-file {
+  fill: var(--color-fg-default);
+}
+
+.clickable-row:hover .octicon-directory {
+  fill: var(--color-accent-fg);
+}
+
+.clickable-row:hover .octicon-file {
+  fill: var(--color-fg-default);
+}
+
+/* Dark theme support */
+[data-theme="dark"] .octicon-directory {
+  fill: var(--color-fg-muted, #8b949e);
+}
+
+[data-theme="dark"] .octicon-file {
+  fill: var(--color-fg-muted, #8b949e);
+}
+
+[data-theme="dark"] .file-browser-row:hover .octicon-directory,
+[data-theme="dark"] .clickable-row:hover .octicon-directory {
+  fill: var(--color-accent-fg, #58a6ff);
+}
+
+[data-theme="dark"] .file-browser-row:hover .octicon-file,
+[data-theme="dark"] .clickable-row:hover .octicon-file {
+  fill: var(--color-fg-default, #e6edf3);
+}
+
+.file-browser-name {
+  /* Styling moved to central CSS - see static/css/common/typography-vars.css */
+  color: var(--color-accent-fg);
+}
+
+/* Commit Message Cell */
+.file-browser-message-cell {
+  /* Layout preserved */
+  width: 50%;
+  line-height: 24px; /* Match cell line height */
+  /* Styling moved to central CSS - see static/css/components/tables.css */
+  color: var(--color-fg-muted);
+  font-size: 12px;
+}
+
+.file-browser-commit-message {
+  /* Layout preserved */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  max-width: calc(100% - 80px);
+  vertical-align: middle;
+  text-decoration: none;
+  /* Styling moved to central CSS - see static/css/common/typography-vars.css */
+  color: var(--color-fg-muted);
+}
+
+.file-browser-commit-message:hover {
+  /* Styling moved to central CSS - see static/css/components/buttons.css */
+  color: var(--color-accent-fg);
+  text-decoration: underline;
+}
+
+.file-browser-no-commit {
+  /* Styling moved to central CSS - see static/css/common/typography-vars.css */
+  color: var(--color-fg-muted);
+  font-style: italic;
+}
+
+/* Commit Hash Badge */
+.file-browser-commit-hash {
+  /* Layout preserved */
+  padding: 2px 6px;
+  white-space: nowrap;
+  margin-left: 8px;
+  display: inline-block;
+  vertical-align: middle;
+  position: relative;
+  text-decoration: none;
+  /* Styling moved to central CSS - see static/css/components/badges.css */
+  font-family: ui-monospace, "Cascadia Code", "Courier New", monospace;
+  font-size: 12px;
+  color: var(--color-fg-muted);
+  background: rgba(175, 184, 193, 0.2);
+  border-radius: 6px;
+}
+
+.file-browser-commit-hash:hover {
+  /* Styling moved to central CSS - see static/css/components/badges.css */
+  color: var(--color-accent-fg);
+  background: var(--color-accent-subtle);
+}
+
+/* Tooltip for full commit hash */
+.file-browser-commit-hash::before {
+  content: attr(data-hash);
+  /* Layout preserved */
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 10px;
+  white-space: nowrap;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  /* Styling moved to central CSS - see static/css/components/tooltips.css */
+  background: #24292f;
+  color: #ffffff;
+  border-radius: 6px;
+  font-size: 11px;
+  box-shadow: 0 8px 24px rgba(31, 35, 40, 0.45);
+  transition: opacity 0.2s ease;
+}
+
+.file-browser-commit-hash:hover::before {
+  opacity: 1;
+}
+
+/* Tooltip arrow */
+.file-browser-commit-hash::after {
+  content: "";
+  /* Layout preserved */
+  position: absolute;
+  bottom: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+  /* Styling moved to central CSS - see static/css/components/tooltips.css */
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid #24292f;
+  transition: opacity 0.2s ease;
+}
+
+.file-browser-commit-hash:hover::after {
+  opacity: 1;
+}
+
+[data-theme="dark"] .file-browser-commit-hash {
+  /* Styling moved to central CSS - see static/css/components/badges.css */
+  background: rgba(110, 118, 129, 0.4);
+}
+
+[data-theme="dark"] .file-browser-commit-hash::before {
+  /* Styling moved to central CSS - see static/css/components/tooltips.css */
+  background: #c9d1d9;
+  color: #0d1117;
+}
+
+[data-theme="dark"] .file-browser-commit-hash::after {
+  /* Styling moved to central CSS - see static/css/components/tooltips.css */
+  border-top-color: #c9d1d9;
+}
+
+/* Dark mode row hover - slightly lighter than background */
+[data-theme="dark"] .file-browser-row:hover {
+  /* Styling moved to central CSS - see static/css/components/tables.css */
+  background: var(--color-neutral-muted);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* Time Cell */
+.file-browser-time-cell {
+  /* Layout preserved */
+  width: 20%;
+  text-align: right;
+  white-space: nowrap;
+  line-height: 24px; /* Match cell line height */
+  /* Styling moved to central CSS - see static/css/components/tables.css */
+  color: var(--color-fg-muted);
+  font-size: 12px;
+}

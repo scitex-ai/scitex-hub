@@ -1,0 +1,142 @@
+/*
+ * Search Layout Styles
+ *
+ * Layout and structural styles for the search page:
+ * - Search hero section
+ * - Search cards
+ * - Side panel positioning
+ * - Search results container
+ */
+
+/* Search Hero Section */
+.search-hero {
+  padding: 1rem 0;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.search-card {
+  padding: 2rem;
+}
+
+/* Search Results Header - Better visibility in dark mode */
+#searchResultsContainer h5,
+.search-results-header h5 {
+  margin-bottom: 1rem;
+}
+
+[data-theme="dark"] #searchResultsContainer h5,
+[data-theme="dark"] .search-results-header h5 {
+  /* color: var(--scitex-color-06) !important; */
+}
+
+/* Tab navigation enhancements */
+.nav-tabs {
+  /* border-bottom: 2px solid var(--border-default); */
+}
+
+.nav-tabs .nav-link {
+  padding: 1rem 1.5rem;
+  margin-right: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.nav-tabs .nav-link:hover {
+  /* color: var(--text-primary); */
+  /* background: var(--bg-surface); */
+  /* border-bottom-color: var(--scitex-color-04); */
+}
+
+.nav-tabs .nav-link.active {
+  /* color: var(--scitex-color-01); */
+  /* background: var(--bg-surface); */
+  /* border-bottom: 3px solid var(--scitex-color-01); */
+  /* font-weight: 600; */
+  /* box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08); */
+}
+
+[data-theme="dark"] .nav-tabs .nav-link.active {
+  /* color: var(--scitex-color-05); */
+  /* background: var(--scitex-color-01-light); */
+  /* border-bottom-color: var(--scitex-color-05); */
+}
+
+/* Scholar Side Panel Styling */
+.scholar-side-panel {
+  padding: 1.5rem;
+  position: sticky;
+  top: 80px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+
+[data-theme="dark"] .scholar-side-panel {
+  /* background: var(--scitex-color-01-light); */
+  /* border-color: var(--scitex-color-03); */
+}
+
+.side-panel-title {
+  padding-bottom: 0.75rem;
+}
+
+[data-theme="dark"] .side-panel-title {
+  /* color: var(--scitex-color-06); */
+  /* border-bottom-color: var(--scitex-color-04); */
+}
+
+/* Adjust accordion rows for side panel */
+.scholar-side-panel .accordion-row {
+  margin-bottom: 1rem !important;
+}
+
+.scholar-side-panel .accordion-row-header {
+  padding: 0.6rem 0.8rem;
+}
+
+.scholar-side-panel .accordion-row-content {
+  padding: 1rem 0.8rem;
+}
+
+/* Theme-Responsive Scrollbar Styles */
+/* Light mode scrollbar */
+.scholar-side-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scholar-side-panel::-webkit-scrollbar-track {
+  background: var(--bg-surface);
+  border-radius: 4px;
+}
+
+.scholar-side-panel::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.scholar-side-panel::-webkit-scrollbar-thumb:hover {
+  background: var(--scitex-color-03);
+}
+
+/* Dark mode scrollbar - more visible */
+[data-theme="dark"] .scholar-side-panel::-webkit-scrollbar-track {
+  background: var(--scitex-color-01-light);
+}
+
+[data-theme="dark"] .scholar-side-panel::-webkit-scrollbar-thumb {
+  background: var(--scitex-color-03);
+}
+
+[data-theme="dark"] .scholar-side-panel::-webkit-scrollbar-thumb:hover {
+  background: var(--scitex-color-04);
+}
+
+/* Firefox scrollbar styling */
+.scholar-side-panel {
+  scrollbar-color: var(--border-default) var(--bg-surface);
+  scrollbar-width: thin;
+}
+
+[data-theme="dark"] .scholar-side-panel {
+  scrollbar-color: var(--scitex-color-03) var(--scitex-color-01-light);
+}

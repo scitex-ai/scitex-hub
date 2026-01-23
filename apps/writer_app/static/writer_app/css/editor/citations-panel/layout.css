@@ -1,0 +1,183 @@
+/* ============================================================================
+ * Citations Panel Layout
+ * ============================================================================
+ * Panel structure, container, and view management
+ * ========================================================================== */
+
+/* Ensure preview-panel uses flexbox column layout */
+.preview-panel {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* Panel container - ensure they take full space when visible */
+/* Use [hidden] attribute for visibility toggle, CSS handles flex layout */
+.right-panel-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1; /* Fill remaining space in flex parent */
+  min-height: 0; /* Allow flex shrinking */
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Hidden attribute hides the panel */
+.right-panel-view[hidden] {
+  display: none !important;
+}
+
+/* PDF view - uses flex to fill space */
+#pdf-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#pdf-view[hidden] {
+  display: none !important;
+}
+
+/* Citations view */
+#citations-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#citations-view[hidden] {
+  display: none !important;
+}
+
+/* Figures view */
+#figures-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#figures-view[hidden] {
+  display: none !important;
+}
+
+/* Tables view */
+#tables-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#tables-view[hidden] {
+  display: none !important;
+}
+
+/* History view */
+#history-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#history-view[hidden] {
+  display: none !important;
+}
+
+/* Collaboration view */
+#collaboration-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#collaboration-view[hidden] {
+  display: none !important;
+}
+
+.citations-panel-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1; /* Take remaining space after header */
+  width: 100%;
+  max-width: 100%;
+  padding: 1rem;
+  background: var(--bg-page);
+  overflow: hidden;
+  position: relative;
+  z-index: 0;
+  box-sizing: border-box;
+  min-height: 0; /* Allow flex shrinking */
+}
+
+/* Summary */
+.citations-summary {
+  padding: 0.5rem 0.75rem;
+  border-left: 3px solid var(--workspace-icon-primary);
+  background: var(--workspace-bg-secondary);
+  border-radius: 4px;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Help Text */
+.citations-help {
+  padding: 0.5rem 0.75rem;
+  background: var(--color-accent-subtle);
+  border-radius: 4px;
+  text-align: center;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Drag Ghost Element */
+.citation-drag-ghost {
+  opacity: 0.8;
+  transform: rotate(2deg);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Drop Zone Indicator on Editor */
+.latex-panel.drag-over {
+  outline: 2px dashed var(--color-accent-emphasis);
+  outline-offset: -4px;
+  background: var(--color-accent-subtle);
+  transition: all 0.2s;
+}
+
+/* Dark theme - workspace colors */
+[data-theme="dark"] .citations-summary {
+  background: var(--workspace-bg-tertiary);
+}
+
+/* Button icon colors - workspace theme */
+.btn i,
+.btn-clear i {
+  color: var(--workspace-icon-primary);
+  transition: color 0.15s ease;
+}
+
+.btn:hover i,
+.btn-clear:hover i {
+  color: var(--workspace-icon-hover);
+}

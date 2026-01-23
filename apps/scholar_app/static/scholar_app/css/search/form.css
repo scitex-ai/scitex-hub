@@ -1,0 +1,167 @@
+/*
+ * Search Form Styles
+ *
+ * Styles for search input and submission:
+ * - Search input field
+ * - Search button
+ * - Form controls
+ * - Input groups
+ */
+
+/* Search Input - Workspace theme */
+.search-input {
+  font-size: 1.25rem;
+  background: var(--workspace-bg-secondary, #151515) !important;
+  border: 1px solid var(--workspace-border-default, #3a3a3a) !important;
+  color: var(--text-primary, #d4e1e8) !important;
+  border-radius: 0 !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-input::placeholder {
+  color: var(--text-muted, #6c8ba0) !important;
+  opacity: 0.7;
+}
+
+.search-input:focus {
+  border-color: var(--workspace-icon-primary, #059669) !important;
+  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15) !important;
+  outline: none;
+}
+
+.search-input:hover:not(:focus) {
+  border-color: var(--workspace-border-hover, #4a4a4a) !important;
+}
+
+/* Light mode search input */
+[data-theme="light"] .search-input {
+  background: var(--workspace-bg-secondary, #ebedef) !important;
+  border-color: var(--workspace-border-default, #b5c7d1) !important;
+  color: var(--text-primary, #1a2a40) !important;
+}
+
+[data-theme="light"] .search-input::placeholder {
+  color: var(--text-muted, #57606a) !important;
+}
+
+[data-theme="light"] .search-input:focus {
+  border-color: var(--workspace-icon-primary, #059669) !important;
+  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.1) !important;
+}
+
+[data-theme="light"] .search-input:hover:not(:focus) {
+  border-color: var(--workspace-border-hover, #a0b0c0) !important;
+}
+
+/* Enhance search input styling */
+.scholar-search-input {
+  border: 1px solid var(--border-default) !important;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.scholar-search-input:focus {
+  border-color: var(--scitex-color-03);
+  box-shadow: 0 0 0 3px rgba(79, 90, 102, 0.1);
+  outline: none;
+}
+
+.scholar-search-input:hover:not(:focus) {
+  border-color: var(--border-muted);
+}
+
+/* Ensure search form has proper styling */
+.scholar-search-form input[type="text"],
+.scholar-search-form input[type="search"] {
+  border: 1px solid var(--border-default) !important;
+  border-radius: 6px;
+  padding: 8px 12px;
+  transition: all 0.2s ease;
+}
+
+.scholar-search-form input[type="text"]:focus,
+.scholar-search-form input[type="search"]:focus {
+  border-color: var(--scitex-color-03);
+  box-shadow: 0 0 0 3px rgba(79, 90, 102, 0.1);
+  outline: none;
+}
+
+/* Search button - Workspace theme */
+.search-btn {
+  padding: 0.75rem 1.5rem;
+  min-height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0 !important;
+  background: var(--workspace-bg-tertiary, #1a1a1a) !important;
+  border: 1px solid var(--workspace-border-default, #3a3a3a) !important;
+  color: var(--text-primary, #d4e1e8) !important;
+  border-radius: 0 !important;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.search-btn:hover {
+  background: var(--workspace-bg-secondary, #151515) !important;
+  border-color: var(--workspace-icon-primary, #059669) !important;
+  color: var(--workspace-icon-primary, #059669) !important;
+}
+
+.search-btn:focus,
+.search-btn:active {
+  background: var(--workspace-bg-secondary, #151515) !important;
+  border-color: var(--workspace-icon-primary, #059669) !important;
+  color: var(--workspace-icon-primary, #059669) !important;
+  box-shadow: none !important;
+}
+
+/* Light mode search button */
+[data-theme="light"] .search-btn {
+  background: var(--workspace-bg-tertiary, #d8dee4) !important;
+  border-color: var(--workspace-border-default, #b5c7d1) !important;
+  color: var(--text-primary, #1a2a40) !important;
+}
+
+[data-theme="light"] .search-btn:hover,
+[data-theme="light"] .search-btn:focus,
+[data-theme="light"] .search-btn:active {
+  background: var(--workspace-bg-secondary, #ebedef) !important;
+  border-color: var(--workspace-icon-primary, #059669) !important;
+  color: var(--workspace-icon-primary, #059669) !important;
+}
+
+/* Ensure search input and button heights match */
+.input-group-lg .form-control {
+  height: auto;
+  min-height: 2.5rem;
+}
+
+/* Override for search input specifically */
+.search-container-full-width .input-group-lg .search-input {
+  min-height: 1rem !important;
+}
+
+/* Fix header button focus states to follow SciTeX design */
+.btn:focus,
+.btn:active,
+.btn.active {
+  /* box-shadow: none !important; */
+}
+
+.btn-primary:focus,
+.btn-primary:active,
+.btn-primary.active {
+  /* background-color: #1a2332 !important; */
+  /* border-color: #1a2332 !important; */
+}
+
+.btn-outline-primary:focus,
+.btn-outline-primary:active,
+.btn-outline-primary.active {
+  /* background-color: #1a2332 !important; */
+  /* border-color: #1a2332 !important; */
+  /* color: white !important; */
+}

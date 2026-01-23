@@ -1,0 +1,97 @@
+/* =========================================
+   PANEL HEADER STYLING (Matching /code/ and /vis/)
+   ========================================= */
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  margin-top: 0 !important;
+  margin-bottom: 0;
+  height: 50px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  background: var(--workspace-bg-primary);
+  border-bottom: 1px solid var(--workspace-border-default);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  gap: 0.5rem;
+  z-index: 10;
+}
+
+.panel-header .header-left,
+.panel-header .header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.preview-btn-inline {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 1em;
+  width: 1em;
+  line-height: 1;
+}
+
+.preview-btn-inline:hover {
+  color: var(--color-accent-fg);
+  transform: rotate(180deg);
+}
+
+.panel-header i {
+  color: var(--workspace-icon-primary); /* Green icon color matching vis */
+  font-size: 0.85rem;
+}
+
+.panel-header span {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* =========================================
+   PANEL TOGGLE BUTTONS
+   ========================================= */
+
+.panel-toggle-btn {
+  background: none;
+  border: 1px solid var(--workspace-border-default, #3a3a3a);
+  border-radius: 4px;
+  color: var(--text-muted, #888);
+  font-size: 0.75rem;
+  padding: 4px 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+}
+
+.panel-toggle-btn:hover {
+  color: var(--workspace-icon-primary, #059669);
+  border-color: var(--workspace-icon-primary, #059669);
+  background: rgba(5, 150, 105, 0.1);
+}
+
+.panel-toggle-btn:active {
+  transform: scale(0.95);
+}
+
+.panel-toggle-btn i {
+  font-size: 0.7rem;
+}
+

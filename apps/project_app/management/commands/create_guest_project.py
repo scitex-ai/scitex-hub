@@ -11,7 +11,7 @@ from apps.project_app.models import Project
 
 
 class Command(BaseCommand):
-    help = "Create or update guest user and demo project for anonymous users"
+    help = "Create or update guest user and demo project for visitor users"
 
     def handle(self, *args, **options):
         # Create or get guest user
@@ -90,6 +90,6 @@ class Command(BaseCommand):
         )
         self.stdout.write(
             self.style.SUCCESS(
-                "Anonymous users will be routed here when clicking module links"
+                "Visitor users will be routed here when clicking module links"
             )
         )

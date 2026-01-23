@@ -1,0 +1,22 @@
+/**
+ * Jobs Panel - Scrollbar
+ * Custom scrollbar styling
+ */
+
+/* Scrollbar styling for jobs list */
+.jobs-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.jobs-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.jobs-list::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb, rgba(0, 0, 0, 0.2));
+  border-radius: 3px;
+}
+
+[data-theme="dark"] .jobs-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}

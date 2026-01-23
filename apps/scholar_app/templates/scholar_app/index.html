@@ -1,50 +1,43 @@
 {% extends "scholar_app/scholar_base.html" %}
-{% load static %}
+{% load static vite %}
 {%block title%}
     SciTeX Scholar - Literature Search
 {% endblock %}
 {% block extra_css %}
+    {{ block.super }}
     <link rel="stylesheet" href="{% static 'shared/css/common.css' %}" />
     <link rel="stylesheet" href="{% static 'scholar_app/css/index.css' %}" />
+    <link rel="stylesheet" href="{% static 'scholar_app/css/index-inline.css' %}" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.css"
           rel="stylesheet" />
 {% endblock %}
 {% block extra_js %}
     <!-- Common Scripts -->
-    <script type="module"
-            src="{% static 'scholar_app/js/common/project-selector.js' %}"></script>
-    <script type="module" src="{% static 'scholar_app/js/common/init-tabs.js' %}"></script>
+    {% vite_script 'scholar_app/common/project-selector' %}
+    {% vite_script 'scholar_app/common/init-tabs' %}
     <!-- External Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.js"></script>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
     <!-- BibTeX Scripts loaded dynamically in bibtex_partials/enrich.html -->
     <!-- Search Scripts -->
-    <script type="module"
-            src="{% static 'scholar_app/js/search/nouislider-init.js' %}"></script>
-    <script type="module"
-            src="{% static 'scholar_app/js/search/panel-toggle.js' %}"></script>
-    <script type="module"
-            src="{% static 'scholar_app/js/search/scitex-search.js' %}"></script>
-    <script type="module"
-            src="{% static 'scholar_app/js/search/advanced-sorting.js' %}"></script>
-    <script type="module" src="{% static 'scholar_app/js/search/drag-sort.js' %}"></script>
-    <script type="module"
-            src="{% static 'scholar_app/js/search/swarm-plots.js' %}"></script>
-    <script type="module"
-            src="{% static 'scholar_app/js/common/scholar-index-main.js' %}"></script>
-    <script type="module"
-            src="{% static 'scholar_app/js/search/seekbar-integration.js' %}"></script>
-    <script type="module" src="{% static 'scholar_app/js/search/search-ui.js' %}"></script>
+    {% vite_script 'scholar_app/search/nouislider-init' %}
+    {% vite_script 'scholar_app/search/panel-toggle' %}
+    {% vite_script 'scholar_app/search/scitex-search' %}
+    {% vite_script 'scholar_app/search/advanced-sorting' %}
+    {% vite_script 'scholar_app/search/drag-sort' %}
+    {% vite_script 'scholar_app/search/swarm-plots' %}
+    {% vite_script 'scholar_app/common/scholar-index-main' %}
+    {% vite_script 'scholar_app/search/seekbar-integration' %}
+    {% vite_script 'scholar_app/search/search-ui' %}
     <!-- Initialization Scripts -->
-    <script type="module"
-            src="{% static 'scholar_app/js/init/swarm-plots-init.js' %}"></script>
+    {% vite_script 'scholar_app/init/swarm-plots-init' %}
 {% endblock %}
 {% block content %}
     <!-- Vertical Tab Layout -->
     <div class="u-mt-2 u-mb-3">
-        <div class="vertical-tab-container" style="width: 100%">
+        <div class="vertical-tab-container">
             <!-- Vertical Tab Navigation -->
-            <div class="scitex-tabs" style="padding: 0 2rem">
+            <div class="scitex-tabs">
                 <a href="#bibtex" class="scitex-tab tab-link" data-tab="bibtex">
                     <i class="fas fa-file-code"></i>
                     <span>BibTeX Enrichment</span>
@@ -55,16 +48,11 @@
                 </a>
             </div>
             <!-- Tab Content Container -->
-            <div class="vertical-tab-content-container"
-                 style="width: 100%;
-                        overflow-x: auto;
-                        overflow-y: visible">
+            <div class="vertical-tab-content-container">
                 <!-- BibTeX Enrichment Tab -->
                 <div class="vertical-tab-content {% if active_tab == 'bibtex' %}active{% endif %}"
                      id="bibtex-tab"
-                     data-tab="bibtex"
-                     style="width: 100%;
-                            overflow: visible">{% include "scholar_app/bibtex_partials/enrich.html" %}</div>
+                     data-tab="bibtex">{% include "scholar_app/bibtex_partials/enrich.html" %}</div>
                 <!-- Literature Search Tab -->
                 <div class="vertical-tab-content {% if active_tab == 'search' %}active{% endif %}"
                      id="search-tab"
@@ -75,48 +63,17 @@
         </div>
     </div>
     <!-- Configuration for JavaScript -->
-    <script>
-  // Django template variables for JavaScript
-  window.SCHOLAR_CONFIG = {
-  urls: {
-  bibtexUpload: '{% url "scholar_app:bibtex_upload" %}',
-  resourceStatus: '{% url "scholar_app:bibtex_resource_status" %}',
-  scitexSearch: '{% url "scholar_app:api_scitex_search" %}',
-  scitexCapabilities: '{% url "scholar_app:api_scitex_capabilities" %}'
-  },
-  user: {
-  isAuthenticated: {% if user.is_authenticated %}true{% else %}false{% endif %}
-  }
-  };
-
-  // Set user projects for save functionality
-  window.userProjects = [
-    {% for project in user_projects %}
-    {
-      id: {{ project.id }},
-      name: "{{ project.name|escapejs }}"
-    }{% if not forloop.last %},{% endif %}
-    {% endfor %}
-  ];
-
-  // Set current project if available
-  window.currentProject = {% if current_project %}{ id: {{ current_project.id }}, name: "{{ current_project.name|escapejs }}" }{% else %}null{% endif %};
-
-  {% if query and results %}
-  // Serialize Django search results for swarm plots
-  window.SCHOLAR_SEARCH_RESULTS = [
-    {% for result in results %}
-    {
-      title: "{{ result.title|escapejs }}",
-      year: {% if result.year %}{{ result.year }}{% else %}null{% endif %},
-      citations: {% if result.citations %}{{ result.citations }}{% else %}0{% endif %},
-      impact_factor: {% if result.impact_factor %}{{ result.impact_factor }}{% else %}null{% endif %},
-      authors: "{{ result.authors|escapejs }}",
-      journal: "{{ result.journal|escapejs }}",
-      url: "{{ result.url|escapejs }}"
-    }{% if not forloop.last %},{% endif %}
-    {% endfor %}
-  ];
-  {% endif %}
-    </script>
+    <div id="scholar-config-data"
+         data-bibtex-upload-url="{% url 'scholar_app:bibtex_upload' %}"
+         data-resource-status-url="{% url 'scholar_app:bibtex_resource_status' %}"
+         data-scitex-search-url="{% url 'scholar_app:api_scitex_search' %}"
+         data-scitex-capabilities-url="{% url 'scholar_app:api_scitex_capabilities' %}"
+         data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}"
+         data-user-projects='[{% for project in user_projects %}{"id": {{ project.id }}, "name": "{{ project.name|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]'
+         data-current-project='{% if current_project %}{"id": {{ current_project.id }}, "name": "{{ current_project.name|escapejs }}"}{% else %}null{% endif %}'
+         {% if query and results %}
+         data-search-results='[{% for result in results %}{"title": "{{ result.title|escapejs }}", "year": {% if result.year %}{{ result.year }}{% else %}null{% endif %}, "citations": {% if result.citations %}{{ result.citations }}{% else %}0{% endif %}, "impact_factor": {% if result.impact_factor %}{{ result.impact_factor }}{% else %}null{% endif %}, "authors": "{{ result.authors|escapejs }}", "journal": "{{ result.journal|escapejs }}", "url": "{{ result.url|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]'
+         {% endif %}>
+    </div>
+    {% vite_script 'scholar_app/scholar-config' %}
 {% endblock %}

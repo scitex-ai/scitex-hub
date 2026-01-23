@@ -85,7 +85,7 @@ class Command(BaseCommand):
                 )
             else:
                 for job in stale_processing:
-                    user = job.user.username if job.user else "anonymous"
+                    user = job.user.username if job.user else "visitor"
                     duration = (timezone.now() - job.started_at).total_seconds() / 60
                     self.stdout.write(
                         f"  - Would fail: {job.original_filename} (user: {user}, running for {duration:.1f} min)"
@@ -122,7 +122,7 @@ class Command(BaseCommand):
                 )
             else:
                 for job in stale_pending:
-                    user = job.user.username if job.user else "anonymous"
+                    user = job.user.username if job.user else "visitor"
                     duration = (timezone.now() - job.created_at).total_seconds() / 60
                     self.stdout.write(
                         f"  - Would fail: {job.original_filename} (user: {user}, pending for {duration:.1f} min)"
@@ -162,7 +162,7 @@ class Command(BaseCommand):
                     )
                 else:
                     for job in old_jobs:
-                        user = job.user.username if job.user else "anonymous"
+                        user = job.user.username if job.user else "visitor"
                         self.stdout.write(
                             f"  - Would delete: {job.original_filename} (user: {user}, completed: {job.completed_at})"
                         )

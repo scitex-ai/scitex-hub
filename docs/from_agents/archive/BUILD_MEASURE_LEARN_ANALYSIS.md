@@ -75,7 +75,7 @@
 ### Critical Issues to Measure
 1. **URL routing errors** (like /projects 404)
 2. **Authentication flow success rate**
-3. **Anonymous user feature access** (vs. authenticated)
+3. **Visitor user feature access** (vs. authenticated)
 
 ---
 
@@ -87,7 +87,7 @@
 1. **Fix /projects URL routing**
    - Error: `apps.project_app.user_urls.user_profile_wrapper`
    - Root cause: User query failing when no user is authenticated
-   - Action: Implement proper anonymous user handling or redirect
+   - Action: Implement proper visitor user handling or redirect
 
 2. **Authentication Flow**
    - Both success and error messages showing simultaneously
@@ -96,7 +96,7 @@
 3. **Guest Access Strategy**
    - Decision needed: Which features should work without login?
    - Current state: Scholar works, Writer/Viz require login
-   - Per CLAUDE.md: "basic functionalities should be offered to anonymous users"
+   - Per CLAUDE.md: "basic functionalities should be offered to visitor users"
 
 ### Design & UX Learnings
 
@@ -110,7 +110,7 @@
 - Projects page needs user-friendly error handling
 - Consider progressive disclosure (try before login)
 - Add onboarding flow for new users
-- Consider demo/sandbox mode for anonymous users
+- Consider demo/sandbox mode for visitor users
 
 ### Technical Architecture Learnings
 
@@ -132,7 +132,7 @@
 1. **Fix Critical Bugs**
    - [ ] Resolve /projects 404 error
    - [ ] Fix authentication message display
-   - [ ] Implement proper anonymous user routing
+   - [ ] Implement proper visitor user routing
 
 2. **Guest Experience**
    - [ ] Define which features work without login

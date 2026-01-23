@@ -1,0 +1,244 @@
+/* ============================================================================
+ * Tables Panel Layout
+ * ============================================================================
+ * Panel structure, containers, search, sort controls, and scrolling
+ * ========================================================================== */
+
+/* Tables view - hidden by default, JS will toggle */
+#tables-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+#tables-view[hidden] {
+  display: none;
+}
+
+.tables-panel-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1; /* Take remaining space after header */
+  width: 100%;
+  max-width: 100%;
+  padding: 1rem;
+  background: var(--bg-page);
+  overflow: hidden;
+  position: relative;
+  z-index: 0;
+  box-sizing: border-box;
+  min-height: 0; /* Allow flex shrinking */
+}
+
+/* Drop Zone for File Upload - Matching workspace theme */
+.media-drop-zone {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: 2px dashed var(--workspace-border-default);
+  border-radius: 8px;
+  background: var(--workspace-bg-secondary);
+}
+
+.media-drop-zone:hover {
+  border-color: var(--workspace-icon-primary);
+  background: var(--workspace-bg-tertiary);
+}
+
+.media-drop-zone.drag-over {
+  background: var(--status-success-bg);
+  border: 2px dashed var(--status-success);
+  box-shadow: 0 0 0 4px rgba(74, 155, 126, 0.1);
+}
+
+.media-drop-zone i {
+  font-size: 48px;
+  margin-bottom: 16px;
+  display: block;
+  opacity: 0.3;
+  color: var(--workspace-icon-secondary);
+  transition: all 0.2s ease;
+}
+
+.media-drop-zone:hover i {
+  color: var(--workspace-icon-primary);
+  opacity: 0.5;
+}
+
+.media-drop-zone p {
+  font-size: 15px;
+  margin: 8px 0 4px;
+  color: var(--text-muted);
+}
+
+.media-drop-zone small {
+  font-size: 13px;
+  opacity: 0.7;
+  display: block;
+}
+
+/* Search Bar */
+.tables-search-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+}
+
+.search-input-wrapper i.fa-search {
+  position: absolute;
+  left: 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  pointer-events: none;
+}
+
+.search-input-wrapper input {
+  width: 100%;
+  padding-left: 2.25rem;
+  padding-right: 2.25rem;
+  font-size: 0.85rem;
+  box-sizing: border-box;
+}
+
+.search-input-wrapper .btn-clear {
+  position: absolute;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  padding: 0.25rem;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.search-input-wrapper .btn-clear:hover {
+  color: var(--workspace-text-primary);
+}
+
+/* Sort Controls */
+.tables-sort-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.tables-sort-controls label {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.tables-sort-controls select {
+  flex: 1;
+  font-size: 0.8rem;
+  min-width: 0;
+}
+
+/* Summary */
+.tables-summary {
+  padding: 0.5rem 0.75rem;
+  border-left: 3px solid var(--workspace-icon-primary);
+  background: var(--workspace-bg-secondary);
+  border-radius: 4px;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Tables List - Scrollable */
+.tables-list {
+  flex: 1;
+  overflow-y: scroll; /* Always show scrollbar */
+  overflow-x: hidden;
+  padding-right: 0.5rem;
+  margin-bottom: 0.75rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-height: 0;
+  max-height: calc(100vh - 300px); /* Ensure scrolling works */
+}
+
+/* Tables Cards Container */
+#tables-cards-container {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Scrollbar Styling - Modern & Visible */
+.tables-list::-webkit-scrollbar {
+  width: 10px;
+}
+
+.tables-list::-webkit-scrollbar-track {
+  background: var(--workspace-bg-secondary);
+  border-radius: 5px;
+  border: 1px solid var(--workspace-border-subtle);
+}
+
+.tables-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--_scitex-02) 0%, var(--_scitex-03) 100%);
+  border-radius: 5px;
+  border: 2px solid var(--workspace-bg-secondary);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tables-list::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--_scitex-03) 0%, var(--_scitex-02) 100%);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Help Text */
+.tables-help {
+  padding: 0.5rem 0.75rem;
+  background: var(--color-accent-subtle);
+  border-radius: 4px;
+  text-align: center;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Button icon colors - workspace theme */
+.btn i,
+.btn-clear i {
+  color: var(--workspace-icon-primary);
+  transition: color 0.15s ease;
+}
+
+.btn:hover i,
+.btn-clear:hover i {
+  color: var(--workspace-icon-hover);
+}
+
+/* Drop Zone Indicator on Editor */
+.latex-panel.drag-over-table {
+  outline: 2px dashed var(--color-success-emphasis);
+  outline-offset: -4px;
+  background: var(--color-success-subtle);
+  transition: all 0.2s;
+}

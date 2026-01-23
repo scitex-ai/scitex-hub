@@ -1,0 +1,113 @@
+/**
+ * Citation Graph - Forms & Buttons
+ * Form controls, inputs, and action buttons
+ */
+
+/* Form Styles */
+.graph-description {
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--text-muted, #6c8ba0);
+  line-height: 1.5;
+}
+
+.graph-form .form-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.form-group--doi {
+  flex: 1;
+}
+
+.form-group--options {
+  width: 140px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary, #a0b3c0);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.input-wrapper {
+  display: flex;
+  gap: 8px;
+}
+
+.form-input,
+.form-select {
+  background: var(--workspace-bg-primary, #0d0d0d);
+  border: 1px solid var(--workspace-border-default, #3a3a3a);
+  color: var(--text-primary, #d4e1e8);
+  padding: 10px 12px;
+  font-size: 14px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.form-input {
+  flex: 1;
+}
+
+.form-input:focus,
+.form-select:focus {
+  outline: none;
+  border-color: var(--workspace-icon-primary, #059669);
+  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15);
+}
+
+.form-input::placeholder {
+  color: var(--text-muted, #6c8ba0);
+}
+
+/* Buttons */
+.btn-build {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--workspace-icon-primary, #059669);
+  border: none;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+
+.btn-build:hover {
+  background: #047857;
+}
+
+.btn-build:active {
+  transform: scale(0.98);
+}
+
+.graph-controls {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-control {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--workspace-bg-primary, #0d0d0d);
+  border: 1px solid var(--workspace-border-default, #3a3a3a);
+  color: var(--text-muted, #6c8ba0);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-control:hover {
+  border-color: var(--workspace-icon-primary, #059669);
+  color: var(--workspace-icon-primary, #059669);
+}

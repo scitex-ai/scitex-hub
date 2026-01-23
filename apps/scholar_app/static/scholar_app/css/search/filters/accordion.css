@@ -1,0 +1,35 @@
+/*
+ * Accordion Styles
+ *
+ * Accordion row headers and styling
+ */
+
+/* Accordion row headers - better visibility */
+.accordion-row-header {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  margin-bottom: 0.5rem;
+  transition: all 0.2s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.accordion-row-header:hover {
+  /* background: var(--bg-muted); */
+  /* border-color: var(--scitex-color-03); */
+}
+
+[data-theme="dark"] .accordion-row-header {
+  /* background: var(--scitex-color-01-light); */
+  /* border-color: var(--scitex-color-03); */
+}
+
+[data-theme="dark"] .accordion-row-header:hover {
+  /* background: var(--scitex-color-02); */
+  /* border-color: var(--scitex-color-04); */
+}
+
+[data-theme="dark"] .accordion-row-header {
+  /* color: var(--scitex-color-06) !important; */
+}

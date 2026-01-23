@@ -1,0 +1,57 @@
+/* CTA Section */
+.about-cta-section {
+  background: linear-gradient(
+    135deg,
+    rgba(26, 42, 64, 0.7) 0%,
+    rgba(20, 35, 55, 0.7) 50%,
+    rgba(26, 42, 64, 0.7) 100%
+  );
+  border-radius: 20px;
+  padding: 3rem 2.5rem;
+  text-align: center;
+  margin-top: 4rem;
+  border: 1px solid rgba(74, 155, 126, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+.about-cta-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(
+      ellipse 60% 40% at 30% 20%,
+      rgba(74, 155, 126, 0.1) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse 50% 30% at 70% 80%,
+      rgba(108, 139, 160, 0.08) 0%,
+      transparent 50%
+    );
+  pointer-events: none;
+}
+
+.about-cta-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+  position: relative;
+  z-index: 1;
+}
+
+.about-cta-text {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+

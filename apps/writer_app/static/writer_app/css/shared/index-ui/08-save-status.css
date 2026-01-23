@@ -1,0 +1,32 @@
+/* =========================================
+   SAVE STATUS INDICATOR
+   ========================================= */
+
+.save-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--workspace-bg-tertiary);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.save-status.saving {
+  color: var(--status-warning);
+}
+
+.save-status.saved {
+  color: var(--color-success-fg);
+}
+
+.save-status.error {
+  color: var(--color-danger-fg);
+}
+
+.save-status i {
+  font-size: 1rem;
+}
+

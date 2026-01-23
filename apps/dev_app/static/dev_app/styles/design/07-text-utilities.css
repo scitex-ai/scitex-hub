@@ -1,0 +1,19 @@
+/* Text Utilities */
+.text-intro {
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.text-label {
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.text-description {
+  color: var(--text-600);
+  display: block;
+  margin-top: 0.5rem;
+}
+

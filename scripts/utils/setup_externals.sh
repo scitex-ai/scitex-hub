@@ -54,7 +54,7 @@ cat > integration_status.json << EOF
     "SciTeX-Viz": {
       "status": "ready",
       "integration": "planned", 
-      "description": "SigmaPlot visualization wrapper"
+      "description": "VisPlot visualization wrapper"
     },
     "SciTeX-Scholar": {
       "status": "ready",

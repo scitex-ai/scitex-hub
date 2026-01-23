@@ -1,0 +1,37 @@
+/* ========================================
+ * Banner and Prompt Styling
+ * ======================================== */
+
+/* Hide demo banner - too obtrusive */
+.alert-banner {
+  display: none !important;
+}
+
+/* Show init prompt prominently when workspace not initialized */
+#writer-init-prompt {
+  display: block !important;
+}
+
+#writer-init-prompt .alert {
+  margin-bottom: 0 !important;
+  border-radius: 0 !important;
+  border: none !important;
+  background: var(--bg-subtle, rgba(212, 225, 232, 0.15)) !important;
+  border-bottom: 1px solid var(--workspace-border-default) !important;
+  padding: 0.75rem 1rem !important;
+}
+
+#writer-init-prompt .alert h5 {
+  font-size: 0.9rem !important;
+  margin: 0 !important;
+}
+
+#writer-init-prompt .alert p {
+  display: none;
+}
+
+#writer-init-prompt .btn {
+  padding: 0.4rem 0.8rem !important;
+  font-size: 0.85rem !important;
+}
+

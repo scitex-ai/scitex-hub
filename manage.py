@@ -31,10 +31,7 @@ def main():
         print("    make ENV=dev start     # Start development environment")
         print("    make ENV=dev restart   # Restart development environment")
         print("    make ENV=dev reload    # Hot reload without reinstall\n")
-        print("  For production:")
-        print("    make ENV=prod start    # Start production environment")
-        print("    make ENV=prod restart  # Restart production environment\n")
-        print("  For NAS:")
+        print("  For NAS deployment:")
         print("    make ENV=nas start     # Start NAS environment")
         print("    make ENV=nas restart   # Restart NAS environment\n")
         print("  Check status:")
@@ -57,7 +54,7 @@ def main():
     # No need to add src directory anymore as it's been replaced by apps
 
     # Use new auto-detection settings module
-    # Set SCITEX_CLOUD_ENV=production for production, defaults to development
+    # Set SCITEX_CLOUD_ENV=nas for NAS deployment, defaults to development
     settings_module = os.environ.get(
         "SCITEX_CLOUD_DJANGO_SETTINGS_MODULE", "config.settings"
     )

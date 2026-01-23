@@ -89,7 +89,7 @@ class EmailService:
                 
                 <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; color: #666; font-size: 14px;">
                     <div style="text-align: center; margin-bottom: 15px;">
-                        <img src="{SITE_URL}/static/shared/images/scitex_logos/vectorstock/vectorstock_38853699-navy-inverted-48x48.png" alt="SciTeX" style="height: 32px; opacity: 0.6;">
+                        <img src="{SITE_URL}/static/shared/images/scitex_logos/scitex-icon/scitex-icon-navy-inverted-48x48.png" alt="SciTeX" style="height: 32px; opacity: 0.6;">
                     </div>
                     <p>If you didn't request this verification, please ignore this email.</p>
                     <p>This is an automated message from SciTeX Cloud.</p>
@@ -185,7 +185,7 @@ class EmailService:
 
                 <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; color: #666; font-size: 14px;">
                     <div style="text-align: center; margin-bottom: 15px;">
-                        <img src="{SITE_URL}/static/shared/images/scitex_logos/vectorstock/vectorstock_38853699-navy-inverted-48x48.png" alt="SciTeX" style="height: 32px; opacity: 0.6;">
+                        <img src="{SITE_URL}/static/shared/images/scitex_logos/scitex-icon/scitex-icon-navy-inverted-48x48.png" alt="SciTeX" style="height: 32px; opacity: 0.6;">
                     </div>
                     <p>Need help getting started? Check out our <a href="{SITE_URL}/docs/">documentation</a> or <a href="{SITE_URL}/contact/">contact support</a>.</p>
                     <p>Happy researching!</p>
@@ -288,7 +288,7 @@ class EmailService:
 
                 <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; color: #666; font-size: 14px;">
                     <div style="text-align: center; margin-bottom: 15px;">
-                        <img src="{SITE_URL}/static/shared/images/scitex_logos/vectorstock/vectorstock_38853699-navy-inverted-48x48.png" alt="SciTeX" style="height: 32px; opacity: 0.6;">
+                        <img src="{SITE_URL}/static/shared/images/scitex_logos/scitex-icon/scitex-icon-navy-inverted-48x48.png" alt="SciTeX" style="height: 32px; opacity: 0.6;">
                     </div>
                     <p>If you didn't request this deletion, please log in immediately and cancel it, then change your password.</p>
                     <p>Need help? Contact us at support@scitex.ai</p>

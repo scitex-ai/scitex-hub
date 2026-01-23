@@ -1,0 +1,28 @@
+/* ========================================================================
+   ACCOUNT SETTINGS PAGE STYLES
+   ======================================================================== */
+
+/* Danger zone styling */
+.danger-zone {
+  border: 1px solid var(--color-danger-emphasis);
+  background: var(--color-canvas-default);
+}
+
+.danger-zone .section-title {
+  color: var(--color-danger-fg);
+}
+
+/* Current email display */
+.current-email-text {
+  font-size: 14px;
+  color: var(--color-fg-muted);
+  margin-bottom: 16px;
+}
+
+.current-email-value {
+  color: var(--color-fg-default);
+  font-weight: 600;
+}
+
+/* Password requirements styling is in shared/css/components/forms/password.css */
+/* Input group styling (buttons + inputs) is in shared/css/components/forms/layout.css */

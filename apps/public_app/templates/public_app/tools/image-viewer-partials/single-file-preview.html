@@ -1,0 +1,12 @@
+<!-- Single file preview (non-bundle) -->
+<div id="singleFilePreview">
+  <img id="imagePreview" src="" alt="Uploaded file" style="display: none;" />
+  <div id="svgPreview" style="display: none; max-width: 100%; overflow: auto; border: 1px solid var(--border-color); border-radius: 4px; background: white;"></div>
+  <canvas id="pdfCanvas" style="display: none;"></canvas>
+
+  <div id="pdfControls" style="display: none; margin-top: 16px;">
+    <button id="prevPage" class="btn btn-primary">← Previous</button>
+    <span style="margin: 0 16px;">Page <span id="currentPage">1</span> / <span id="totalPages">1</span></span>
+    <button id="nextPage" class="btn btn-primary">Next →</button>
+  </div>
+</div>

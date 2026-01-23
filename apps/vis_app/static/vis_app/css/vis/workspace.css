@@ -1,0 +1,6 @@
+/**
+ * Workspace Styles
+ * This file now imports from modular CSS files
+ */
+
+@import url('./workspace/index.css');

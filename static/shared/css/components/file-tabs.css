@@ -1,0 +1,167 @@
+/**
+ * Shared File Tabs Component Styles
+ * Used by Code and Writer apps for consistent tab UI
+ */
+
+/* File tabs container */
+.file-tabs {
+  display: flex;
+  align-items: center;
+  background: var(--workspace-bg-secondary);
+  border-bottom: 1px solid var(--workspace-border-default);
+  overflow-x: auto;
+  overflow-y: hidden;
+  min-height: 36px;
+  padding: 0 8px;
+  gap: 4px;
+}
+
+/* Hide scrollbar but allow scrolling */
+.file-tabs::-webkit-scrollbar {
+  height: 0;
+}
+
+/* Plus button for new file */
+.file-tabs-plus-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 18px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.file-tabs-plus-btn:hover {
+  background: var(--workspace-bg-tertiary);
+  color: var(--workspace-icon-primary);
+}
+
+/* Individual tab */
+.file-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  max-width: 200px;
+  flex-shrink: 0;
+}
+
+.file-tab:hover {
+  background: var(--workspace-bg-tertiary);
+  color: var(--text-primary);
+}
+
+.file-tab.active {
+  background: transparent;
+  color: var(--text-primary);
+  font-weight: 600;
+  border-bottom: 2px solid var(--workspace-icon-primary);
+}
+
+/* Tab icon */
+.file-tab-icon {
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+/* Tab name */
+.file-tab-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Dirty indicator */
+.file-tab-dirty {
+  font-size: 8px;
+  color: var(--status-warning);
+  margin-left: -4px;
+}
+
+/* Close button */
+.file-tab-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  font-size: 16px;
+  line-height: 1;
+  opacity: 0;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all 0.2s ease;
+}
+
+.file-tab:hover .file-tab-close {
+  opacity: 0.7;
+}
+
+.file-tab-close:hover {
+  opacity: 1;
+  background: rgba(var(--workspace-icon-primary-rgb, 5, 150, 105), 0.15);
+  color: var(--workspace-icon-primary);
+}
+
+/* Drag and drop states */
+.file-tab.dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+
+.file-tab.drag-over {
+  border-left: 2px solid var(--workspace-icon-primary);
+  padding-left: 10px;
+}
+
+.file-tab[draggable="true"] {
+  cursor: grab;
+}
+
+.file-tab[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+/* Inline new file input wrapper */
+.inline-new-file-wrapper {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+}
+
+/* Inline inputs for new file and rename */
+.inline-new-file-input,
+.file-tab-rename-input {
+  width: 120px;
+  padding: 4px 8px;
+  font-size: 13px;
+  border: 1px solid var(--workspace-icon-primary);
+  border-radius: 4px;
+  background: var(--workspace-bg-primary);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.inline-new-file-input:focus,
+.file-tab-rename-input:focus {
+  border-color: var(--workspace-icon-hover);
+  box-shadow: 0 0 0 2px rgba(var(--workspace-icon-primary-rgb, 5, 150, 105), 0.2);
+}

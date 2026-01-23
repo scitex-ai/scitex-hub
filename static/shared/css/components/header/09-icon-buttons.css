@@ -1,0 +1,33 @@
+/* Icon Buttons - Enhanced bluish in dark mode */
+.header-icon-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--scitex-color-03); /* Dark muted in light mode */
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.header-icon-btn:hover {
+  background: var(--scitex-color-07);
+  color: var(--scitex-color-01); /* Dark on hover */
+}
+
+/* Dark mode: Brighter bluish icons */
+[data-theme="dark"] .header-icon-btn {
+  color: var(--scitex-color-05); /* Brighter bluish: #8fa4b0 */
+}
+
+[data-theme="dark"] .header-icon-btn:hover {
+  background: var(--scitex-color-01-light);
+  color: var(--scitex-color-06); /* Even brighter bluish on hover: #b5c7d1 */
+}
+
+/* SVG icons within icon buttons get bluish tint in dark mode */
+[data-theme="dark"] .header-icon-btn svg {
+  filter: brightness(1.1) saturate(1.3);
+}
+

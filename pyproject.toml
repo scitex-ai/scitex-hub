@@ -1,3 +1,11 @@
+[project]
+name = "scitex-cloud"
+version = "0.6.1-alpha"
+license = "AGPL-3.0"
+classifiers = [
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+]
+
 [tool.black]
 line-length = 88
 target-version = ['py311']

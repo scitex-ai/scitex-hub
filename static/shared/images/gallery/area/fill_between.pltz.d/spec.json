@@ -1,0 +1,59 @@
+{
+  "schema": {
+    "name": "scitex.plt.spec",
+    "version": "1.0.0"
+  },
+  "plot_id": "fill_between",
+  "data": {
+    "csv": "fill_between.csv",
+    "format": "wide",
+    "hash": "sha256:484a6409a16e1a19"
+  },
+  "axes": [
+    {
+      "id": "ax0",
+      "bbox": {
+        "x0": 0.25,
+        "y0": 0.2941,
+        "width": 0.5,
+        "height": 0.4118,
+        "space": "panel"
+      },
+      "labels": {
+        "xlabel": "Time [s]",
+        "ylabel": "Value",
+        "title": "ax.fill_between()"
+      },
+      "limits": {
+        "x": [
+          -0.5,
+          10.5
+        ],
+        "y": [
+          -1.6493384025373632,
+          1.6496461858110392
+        ]
+      },
+      "role": "main",
+      "linked_to": null
+    }
+  ],
+  "traces": [
+    {
+      "id": "ax0-line-0",
+      "type": "line",
+      "x_col": "ax0_trace-ax0-line-0_x",
+      "y_col": "ax0_trace-ax0-line-0_y",
+      "data_cols": null,
+      "value_col": null,
+      "u_col": null,
+      "v_col": null,
+      "label": "series_0",
+      "group": null,
+      "axes_index": 0,
+      "extra": {}
+    }
+  ],
+  "scitex_schema": "scitex.plt.spec",
+  "scitex_schema_version": "1.0.0"
+}

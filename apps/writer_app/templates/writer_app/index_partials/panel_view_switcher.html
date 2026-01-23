@@ -1,0 +1,47 @@
+<!-- Panel View Switcher Buttons - Shared across all panel headers -->
+<!-- Order: PDF → Citations → Figures → Tables → Collaboration → History -->
+<div class="view-switcher me-2" role="group">
+    <button type="button"
+            class="view-switch-btn{% if active_view == 'pdf' %} active{% endif %}"
+            onclick="switchRightPanel('pdf')"
+            title="PDF Preview">
+        <i class="fas fa-file-pdf"></i>
+        <span class="visually-hidden">PDF Pane</span>
+    </button>
+    <button type="button"
+            class="view-switch-btn{% if active_view == 'citations' %} active{% endif %}"
+            onclick="switchRightPanel('citations')"
+            title="Citations">
+        <i class="fas fa-book"></i>
+        <span class="visually-hidden">Citations Pane</span>
+    </button>
+    <button type="button"
+            class="view-switch-btn{% if active_view == 'figures' %} active{% endif %}"
+            onclick="switchRightPanel('figures')"
+            title="Figures">
+        <i class="fas fa-image"></i>
+        <span class="visually-hidden">Figures Pane</span>
+    </button>
+    <button type="button"
+            class="view-switch-btn{% if active_view == 'tables' %} active{% endif %}"
+            onclick="switchRightPanel('tables')"
+            title="Tables">
+        <i class="fas fa-table"></i>
+        <span class="visually-hidden">Tables Pane</span>
+    </button>
+    <button type="button"
+            id="show-collaboration-btn"
+            class="view-switch-btn{% if active_view == 'collaboration' %} active{% endif %}"
+            onclick="switchRightPanel('collaboration')"
+            title="Collaboration">
+        <i class="fas fa-users"></i>
+        <span class="visually-hidden">Collaboration Pane</span>
+    </button>
+    <button type="button"
+            class="view-switch-btn{% if active_view == 'history' %} active{% endif %}"
+            onclick="switchRightPanel('history')"
+            title="Version History">
+        <i class="fas fa-history"></i>
+        <span class="visually-hidden">History Pane</span>
+    </button>
+</div>

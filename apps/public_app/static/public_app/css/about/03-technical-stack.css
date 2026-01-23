@@ -1,0 +1,53 @@
+/* Technical Stack */
+.about-stack-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.about-stack-card {
+  background: rgba(26, 42, 64, 0.5);
+  border-radius: 16px;
+  padding: 2rem;
+  border: 1px solid rgba(108, 139, 160, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.about-stack-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(74, 155, 126, 0.3);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.stack-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.stack-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.stack-list li {
+  padding: 0.5rem 0;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  border-bottom: 1px solid var(--border-muted);
+}
+
+.stack-list li:last-child {
+  border-bottom: none;
+}
+
+.stack-list li strong {
+  color: var(--text-primary);
+}
+

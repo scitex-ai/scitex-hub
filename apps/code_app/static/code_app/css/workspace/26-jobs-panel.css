@@ -1,0 +1,7 @@
+/**
+ * Jobs Panel Styles
+ * This file now imports from modular CSS files
+ * SLURM job management panel for the code workspace
+ */
+
+@import url('./jobs-panel/index.css');

@@ -1,0 +1,6 @@
+/**
+ * Server Status Page Styles
+ * This file now imports from modular CSS files
+ */
+
+@import url('./server-status/index.css');

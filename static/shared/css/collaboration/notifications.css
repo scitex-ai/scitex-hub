@@ -1,0 +1,98 @@
+/**
+ * Collaboration Notifications
+ * Badges and notification styles
+ */
+
+/* ============================================================================
+ * Collaborative Badge
+ * ========================================================================== */
+
+.collaboration-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.collaboration-badge.active {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+.collaboration-badge.editing {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* ============================================================================
+ * Status Icons and Badges
+ * ========================================================================== */
+
+.status-icon-tiny {
+    font-size: 8px;
+}
+
+.badge-count {
+    background: var(--workspace-border-active);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+/* ============================================================================
+ * Invitation Items
+ * ========================================================================== */
+
+.invitation-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--workspace-bg-secondary);
+    border-radius: 4px;
+    margin-bottom: 6px;
+    border-left: 3px solid var(--workspace-border-active);
+    border: 1px solid var(--workspace-border-default);
+}
+
+.invitation-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.invitation-info strong {
+    font-size: 13px;
+    color: var(--workspace-text-primary);
+}
+
+.pending-invites-compact {
+    margin-top: 8px;
+}
+
+/* ============================================================================
+ * Dark Mode Support
+ * ========================================================================== */
+
+[data-theme="dark"] .collaboration-badge.active {
+    background-color: rgba(25, 118, 210, 0.2);
+    color: #64b5f6;
+}
+
+[data-theme="dark"] .collaboration-badge.editing {
+    background-color: rgba(76, 175, 80, 0.2);
+    color: #81c784;
+}

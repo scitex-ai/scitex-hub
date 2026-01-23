@@ -293,21 +293,25 @@ body {
 }
 
 .repo-item {
-  /* Card styling */
+  /* Card styling - matches .card-clickable standardized design */
   border: 1px solid var(--border-default);
   border-radius: 8px;
   padding: 0.25rem 1.5rem 1rem 1.5rem;
   background: var(--bg-surface);
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: all 0.2s ease-in-out;
   position: relative; /* For clickable overlay */
+  cursor: pointer;
 }
 
 .repo-item:hover {
-  border-color: var(--primary-color, #007acc);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  cursor: pointer; /* Show clickable cursor */
+  background-color: var(--bg-muted);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.repo-item:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
 /* Make entire card clickable via invisible overlay link */

@@ -1,0 +1,29 @@
+/* Bootstrap Override - Typography and Text Colors */
+
+/* Override Bootstrap's default text and background colors */
+body {
+  color: var(--text-primary); /* Dark text for light mode */
+  background-color: var(--bg-page); /* White background for light mode */
+}
+
+[data-theme="dark"] body {
+  color: var(--text-primary); /* Light text for dark mode */
+  background-color: var(--bg-page); /* Dark background for dark mode */
+}
+
+/* Override Bootstrap text colors to use semantic tokens */
+.text-primary {
+  color: var(--text-primary);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.text-dark {
+  color: var(--text-primary);
+}

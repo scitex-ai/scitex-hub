@@ -217,12 +217,12 @@ grep -r "from workspace_app.models import.*Project" apps/
 **Responsibilities:**
 - File/directory management (filesystem operations)
 - SSH service
-- Anonymous user storage
+- Visitor user storage
 - Basic system pages (about, contact, privacy)
 - Dashboard coordination
 
 **Models:** None (or minimal system-level models)
-**Services:** directory_service, filesystem_utils, ssh_service, anonymous_storage
+**Services:** directory_service, filesystem_utils, ssh_service, visitor_storage
 **Views:** core_views (landing, about, dashboard), directory_views, native_file_views
 
 ### cloud_app (Reduced Scope)

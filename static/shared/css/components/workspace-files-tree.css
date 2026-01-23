@@ -1,0 +1,7 @@
+/**
+ * Workspace Files Tree - Styles
+ * This file now imports from modular CSS files
+ * Used across /code/, /vis/, /writer/, /scholar/
+ */
+
+@import url('./workspace-files-tree/index.css');

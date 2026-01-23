@@ -1,0 +1,47 @@
+{% load static vite %}
+<link rel="stylesheet" href="{% static 'scholar_app/css/bibtex/bibtex-status-tiles.css' %}?v={{ request.timestamp|default:'1' }}" />
+<!-- BibTeX Status Tiles - For Right Panel -->
+<div class="bibtex-status-tiles">
+    <!-- Enrichment Progress Tile (always visible, shows status) -->
+    <div id="enrichmentRunningIndicator" class="bibtex-tile bibtex-tile--expanded" data-panel="enrichment-progress">
+        <div class="bibtex-tile__header">
+            <div class="bibtex-tile__title">
+                <div id="progressPulseDot" class="green-pulse-dot" style="display: none;"></div>
+                <i class="fas fa-magic"></i> Enrichment
+            </div>
+        </div>
+        <div class="bibtex-tile__content">
+            <div class="bibtex-progress">
+                <div class="bibtex-progress__bar">
+                    <div id="enrichmentProgressBar" class="bibtex-progress__fill"></div>
+                </div>
+                <div class="bibtex-progress__labels">
+                    <span id="progressPercent">0%</span>
+                    <span id="progressStatus">Waiting for upload...</span>
+                </div>
+            </div>
+            <div id="enrichmentProcessingLog" class="terminal-log terminal-log--medium terminal-log--processing">Ready to enrich your BibTeX file.
+Upload a .bib file to start enrichment.</div>
+        </div>
+    </div>
+
+    <!-- Recent Jobs Tile -->
+    <div class="bibtex-tile bibtex-tile--expanded" data-panel="recent-jobs">
+        <div class="bibtex-tile__header" onclick="toggleBibtexPanel(this)">
+            <div class="bibtex-tile__title">
+                <i class="fas fa-history"></i> Recent Jobs
+            </div>
+            <i class="fas fa-chevron-down bibtex-tile__toggle"></i>
+        </div>
+        <div class="bibtex-tile__content">
+            <div id="recentJobsContainer" class="bibtex-jobs-list">
+                <!-- Jobs loaded dynamically -->
+            </div>
+            <div id="noRecentJobsMessage" class="bibtex-empty-state">
+                <i class="fas fa-inbox"></i>
+                <p>No recent jobs yet</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% vite_script 'scholar_app/bibtex/status-tiles' %}

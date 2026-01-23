@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Tests for apps/writer_app/urls/compilation.py"""
+
+import pytest
+
+# from apps.writer_app.urls.compilation import ...
+
+
+class TestPlaceholder:
+    """Placeholder test class - replace with actual tests."""
+
+    def test_placeholder(self):
+        """Placeholder test - implement actual tests."""
+        pytest.skip("Not implemented yet")
+
+if __name__ == "__main__":
+    import os
+
+    import pytest
+
+    pytest.main([os.path.abspath(__file__)])
+
+# --------------------------------------------------------------------------------
+# Start of Source Code from: apps/writer_app/urls/compilation.py
+# --------------------------------------------------------------------------------
+# from django.urls import path
+# from django.views.generic import TemplateView
+# 
+# urlpatterns = [
+#     path(
+#         "",
+#         TemplateView.as_view(
+#             template_name="writer_app/compilation/compilation_view.html"
+#         ),
+#         name="compilation_view",
+#     ),
+# ]
+
+# --------------------------------------------------------------------------------
+# End of Source Code from: apps/writer_app/urls/compilation.py
+# --------------------------------------------------------------------------------

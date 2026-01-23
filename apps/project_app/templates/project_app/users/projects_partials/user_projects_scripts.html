@@ -1,4 +1,4 @@
-{% load static %}
+{% load static vite %}
 <!-- Pass Django template variables to JavaScript via data attributes -->
 <script>
   // Make profile data available globally for JS modules
@@ -7,4 +7,4 @@
   };
 </script>
 <!-- Load external JavaScript file -->
-<script type="module" src="{% static 'project_app/js/users/profile.js' %}"></script>
+{% vite_script 'project_app/users/profile' %}

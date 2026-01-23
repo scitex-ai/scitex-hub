@@ -58,6 +58,12 @@ from .workflows import (
     WorkflowArtifact,
 )
 
+# Remote project models
+from .remote import (
+    RemoteCredential,
+    RemoteProjectConfig,
+)
+
 # Explicit exports for clarity
 __all__ = [
     # Core models
@@ -65,6 +71,9 @@ __all__ = [
     "ProjectMembership",
     "ProjectPermission",
     "VisitorAllocation",
+    # Remote project models
+    "RemoteCredential",
+    "RemoteProjectConfig",
     # Collaboration models
     "ProjectWatch",
     "ProjectStar",

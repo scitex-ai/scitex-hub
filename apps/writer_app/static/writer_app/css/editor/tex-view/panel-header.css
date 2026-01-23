@@ -1,0 +1,154 @@
+/* LaTeX panel header layout */
+.latex-panel .panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 50px !important;
+  min-height: 50px;
+  max-height: 50px;
+  box-sizing: border-box;
+}
+
+/* Theme selector in panel header */
+.panel-header #theme-selector {
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+  border: 1px solid var(--workspace-border-default);
+  background: var(--workspace-bg-primary);
+  color: var(--workspace-text-primary);
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.panel-header #theme-selector:hover {
+  border-color: var(--workspace-border-hover);
+}
+
+/* Font size selector - ensure text is visible with strong contrast */
+.panel-header #font-size-selector {
+  background-color: var(--workspace-bg-primary) !important;
+  color: var(--workspace-text-primary) !important;
+  min-width: 80px !important;
+  font-weight: 600 !important;
+  border: 1px solid var(--workspace-border-default) !important;
+  padding: 0.3rem 0.6rem !important;
+}
+
+/* Force visible text in both light and dark modes */
+[data-theme="light"] .panel-header #font-size-selector {
+  color: #1a1a1a !important;
+}
+
+[data-theme="dark"] .panel-header #font-size-selector {
+  color: #e0e0e0 !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.panel-header #font-size-selector option {
+  background-color: var(--workspace-bg-primary) !important;
+  color: var(--workspace-text-primary) !important;
+}
+
+/* Word count inline in panel header */
+.word-count-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-left: 0.75rem;
+  padding-left: 0.75rem;
+  border-left: 1px solid var(--workspace-border-default);
+  text-transform: none; /* Override panel-header's uppercase */
+}
+
+.word-count-inline i {
+  font-size: 0.65rem;
+}
+
+/* Hide old word count indicator at bottom */
+.word-count-indicator {
+  display: none;
+}
+
+/* Preview button in panel header */
+.preview-btn-inline {
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+  background: transparent;
+  border: 1px solid var(--workspace-border-default);
+  color: var(--workspace-text-primary);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.preview-btn-inline:hover {
+  background: var(--workspace-bg-secondary);
+  border-color: var(--color-accent-emphasis);
+}
+
+/* Auto preview control in panel header */
+.auto-preview-control-panel {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.7rem;
+}
+
+.auto-preview-control-panel input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
+.auto-preview-control-panel label {
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Status indicator styling */
+.status-indicator {
+  display: flex;
+  align-items: center;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  background: var(--workspace-bg-primary);
+  border: 1px solid var(--workspace-border-default);
+}
+
+/* Countdown indicator styling */
+.countdown-indicator {
+  display: flex;
+  align-items: center;
+}
+
+.countdown-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.countdown-circle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+
+.countdown-text {
+  position: absolute;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-accent-emphasis);
+}
+
+.countdown-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+

@@ -200,14 +200,14 @@
 .hero-silverish-ai-light {
   background: var(--scitex-color-07);
   color: var(--scitex-color-01);
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: 1px solid var(--border-default);
 }
 
 /* Dark theme variant */
 [data-theme="dark"] .hero-silverish-ai-light {
   background: var(--scitex-color-01-dark);
   color: var(--scitex-color-07);
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: 1px solid var(--border-default);
 }
 
 /* Radial Gradient - Focal point effect */

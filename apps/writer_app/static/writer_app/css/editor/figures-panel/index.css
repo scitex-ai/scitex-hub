@@ -1,0 +1,13 @@
+/* ============================================================================
+ * Figures Panel Styles (Main Index)
+ * ============================================================================
+ * Modular CSS for the Figures Panel
+ * Drag-and-drop figure cards for the Writer interface
+ * Toggles with PDF preview and Citations in the right panel
+ * ========================================================================== */
+
+@import url('./layout.css');
+@import url('./gallery.css');
+@import url('./preview.css');
+@import url('./buttons.css');
+@import url('./utilities.css');

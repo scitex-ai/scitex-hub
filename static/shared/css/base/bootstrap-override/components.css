@@ -1,0 +1,397 @@
+/* Bootstrap Override - Components (Cards, Alerts, Tabs/Nav) */
+
+/* =========================
+   Cards
+   ========================= */
+
+.card {
+  color: var(--text-primary);
+  background-color: var(--bg-surface);
+  border-color: var(--border-default);
+}
+
+/* =========================
+   Bootstrap Alerts Override - Match Button Colors
+   ========================= */
+
+.alert {
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+/* Success Alert */
+.alert-success {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.alert-success .btn-close {
+  color: white;
+}
+
+/* Info Alert */
+.alert-info {
+  background-color: var(--info-color);
+  color: white;
+}
+
+.alert-info .btn-close {
+  color: white;
+}
+
+/* Warning Alert */
+.alert-warning {
+  background-color: var(--warning-color);
+  color: white;
+}
+
+.alert-warning .btn-close {
+  color: white;
+}
+
+/* Danger/Error Alert */
+.alert-danger,
+.alert-error {
+  background-color: var(--error-color);
+  color: white;
+}
+
+.alert-danger .btn-close,
+.alert-error .btn-close {
+  color: white;
+}
+
+/* Close button styling */
+.btn-close {
+  position: relative;
+  float: right;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: white;
+  opacity: 0.7;
+  line-height: 1;
+  padding: 0;
+  margin-left: 1rem;
+  flex-shrink: 0;
+  transition: opacity 0.15s ease-in-out;
+}
+
+.btn-close:hover,
+.btn-close:focus {
+  opacity: 1;
+  outline: none;
+}
+
+/* Dark mode - alerts maintain same colors */
+[data-theme="dark"] .alert {
+  color: white;
+}
+
+[data-theme="dark"] .alert-success {
+  background-color: var(--success-color);
+  color: white;
+}
+
+[data-theme="dark"] .alert-info {
+  background-color: var(--info-color);
+  color: white;
+}
+
+[data-theme="dark"] .alert-warning {
+  background-color: var(--warning-color);
+  color: white;
+}
+
+[data-theme="dark"] .alert-danger,
+[data-theme="dark"] .alert-error {
+  background-color: var(--error-color);
+  color: white;
+}
+
+/* =========================
+   Bootstrap Tabs/Nav Override - Modern SciTeX Style
+   ========================= */
+
+/* Base nav styling - modern underline style */
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding-left: 0;
+  margin-bottom: 0;
+  list-style: none;
+}
+
+/* Nav Tabs (default style with underline) */
+.nav-tabs {
+  border-bottom: 1px solid var(--border-muted);
+  margin-bottom: 1.5rem;
+}
+
+.nav-tabs .nav-link {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  position: relative;
+  margin-bottom: -1px;
+  text-decoration: none;
+  outline: none;
+}
+
+.nav-tabs .nav-link:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: -2px;
+}
+
+.nav-tabs .nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 1.25rem;
+  right: 1.25rem;
+  height: 2px;
+  background-color: transparent;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.nav-tabs .nav-link:hover:not(.active):not(.disabled) {
+  color: var(--text-primary);
+}
+
+.nav-tabs .nav-link:hover:not(.active):not(.disabled)::after {
+  background-color: var(--border-default);
+  transform: scaleX(1);
+}
+
+.nav-tabs .nav-link.active {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.nav-tabs .nav-link.active::after {
+  background-color: var(--text-primary);
+  transform: scaleX(1);
+}
+
+.nav-tabs .nav-link.disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Nav Pills - button/pill style */
+.nav-pills {
+  border-bottom: none;
+  gap: 0.5rem;
+}
+
+.nav-pills .nav-link {
+  background-color: var(--bg-muted);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0.625rem 1rem;
+  margin-bottom: 0;
+  color: var(--text-secondary);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  text-decoration: none;
+  outline: none;
+}
+
+.nav-pills .nav-link:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: -2px;
+}
+
+.nav-pills .nav-link:hover:not(.active):not(.disabled) {
+  background-color: var(--bg-surface);
+  border-color: var(--border-default);
+}
+
+.nav-pills .nav-link.active {
+  background-color: var(--text-primary);
+  color: var(--bg-page);
+  border-color: var(--text-primary);
+  font-weight: 600;
+}
+
+.nav-pills .nav-link.disabled {
+  background-color: var(--bg-muted);
+  border-color: transparent;
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Nav Underline - explicit underline style */
+.nav-underline {
+  border-bottom: 1px solid var(--border-muted);
+  margin-bottom: 1.5rem;
+}
+
+.nav-underline .nav-link {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  position: relative;
+  margin-bottom: -1px;
+  text-decoration: none;
+  outline: none;
+}
+
+.nav-underline .nav-link:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: -2px;
+}
+
+.nav-underline .nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 1.25rem;
+  right: 1.25rem;
+  height: 2px;
+  background-color: transparent;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.nav-underline .nav-link:hover:not(.active):not(.disabled) {
+  color: var(--text-primary);
+}
+
+.nav-underline .nav-link:hover:not(.active):not(.disabled)::after {
+  background-color: var(--border-default);
+  transform: scaleX(1);
+}
+
+.nav-underline .nav-link.active {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.nav-underline .nav-link.active::after {
+  background-color: var(--text-primary);
+  transform: scaleX(1);
+}
+
+.nav-underline .nav-link.disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Vertical nav layout */
+.nav.flex-column {
+  flex-direction: column;
+}
+
+.nav.flex-column .nav-link {
+  text-align: left;
+}
+
+/* Dark Mode - Nav Tabs */
+[data-theme="dark"] .nav-tabs {
+  border-bottom-color: var(--border-muted);
+}
+
+[data-theme="dark"] .nav-tabs .nav-link {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"]
+  .nav-tabs
+  .nav-link:hover:not(.active):not(.disabled)::after {
+  background-color: var(--text-secondary);
+}
+
+[data-theme="dark"] .nav-tabs .nav-link:hover:not(.active):not(.disabled) {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .nav-tabs .nav-link.active {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .nav-tabs .nav-link.active::after {
+  background-color: var(--text-primary);
+}
+
+[data-theme="dark"] .nav-tabs .nav-link.disabled {
+  color: var(--text-muted);
+}
+
+/* Dark Mode - Nav Pills */
+[data-theme="dark"] .nav-pills .nav-link {
+  background-color: var(--bg-muted);
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .nav-pills .nav-link:hover:not(.active):not(.disabled) {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: var(--border-default);
+}
+
+[data-theme="dark"] .nav-pills .nav-link.active {
+  background-color: var(--text-primary);
+  color: var(--text-inverse);
+}
+
+/* Dark Mode - Nav Underline */
+[data-theme="dark"] .nav-underline {
+  border-bottom-color: var(--border-muted);
+}
+
+[data-theme="dark"] .nav-underline .nav-link {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .nav-underline .nav-link:hover:not(.active):not(.disabled) {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"]
+  .nav-underline
+  .nav-link:hover:not(.active):not(.disabled)::after {
+  background-color: var(--text-secondary);
+}
+
+[data-theme="dark"] .nav-underline .nav-link.active {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .nav-underline .nav-link.active::after {
+  background-color: var(--text-primary);
+}
+
+[data-theme="dark"] .nav-underline .nav-link.disabled {
+  color: var(--text-muted);
+}

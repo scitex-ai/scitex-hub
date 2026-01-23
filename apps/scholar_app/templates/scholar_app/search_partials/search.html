@@ -1,5 +1,5 @@
 {% load static %}
-<!-- Literature Search - Side Panel Layout -->
+<!-- Literature Search - Full Width Layout (Controls in Right Panel) -->
 <div class="search-container-full-width">
     <form id="literatureSearchForm"
           method="get"
@@ -9,385 +9,131 @@
             <input type="text"
                    name="q"
                    class="form-control search-input"
-                   placeholder="Search literature..."
+                   placeholder='e.g., hippocampus -t human -t -mouse -a Smith -j Nature -ymin 2020'
                    value="{{ query }}"
                    autofocus />
+            <kbd class="search-shortcut-badge">Ctrl+K</kbd>
             <button type="submit" class="btn btn-primary search-btn" id="searchButton">
                 <i class="fas fa-search"></i> Search
             </button>
-        </div>
-        <!-- Two-Column Layout: Side Panel + Results Area -->
-        <div class="row g-4">
-            <!-- Left Side Panel: Filters and Controls -->
-            <div class="col-lg-3">
-                <div class="scholar-side-panel">
-                    <h6 class="side-panel-title mb-3">
-                        <i class="fas fa-filter"></i> Search Controls
-                    </h6>
-                    <!-- Row 1: Sources (Collapsed by default, all engines enabled) -->
-                    <div class="accordion-row mb-3">
-                        <div class="accordion-row-header collapsed"
-                             data-bs-toggle="collapse"
-                             data-bs-target="#sourcesRow"
-                             aria-expanded="false"
-                             aria-controls="sourcesRow">
-                            <div class="d-flex align-items-center gap-2">
-                                <i class="fas fa-database"></i>
-                                <span class="fw-bold">Sources</span>
-                            </div>
-                            <i class="fas fa-chevron-down accordion-arrow"></i>
-                        </div>
-                        <div id="sourcesRow" class="accordion-row-content collapse">
-                            <div style="display: grid;
-                                        grid-template-columns: 1fr 1fr;
-                                        gap: 0.5rem;
-                                        margin-bottom: 0.75rem">
-                                <div class="scitex-toggle-wrapper" style="grid-column: 1 / -1">
-                                    <input class="scitex-toggle all-sources-toggle"
-                                           type="checkbox"
-                                           id="source_all_toggle"
-                                           checked />
-                                    <label class="scitex-toggle-label"
-                                           for="source_all_toggle"
-                                           style="width: 100%">All Sources</label>
-                                </div>
-                            </div>
-                            <div style=" display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; ">
-                                <div class="scitex-toggle-wrapper">
-                                    <input class="scitex-toggle source-toggle"
-                                           type="checkbox"
-                                           name="source_crossref"
-                                           id="source_crossref"
-                                           value="crossref"
-                                           checked />
-                                    <label class="scitex-toggle-label"
-                                           for="source_crossref"
-                                           style="width: 100%;
-                                                  display: block">Crossref</label>
-                                </div>
-                                <div class="scitex-toggle-wrapper">
-                                    <input class="scitex-toggle source-toggle"
-                                           type="checkbox"
-                                           name="source_pubmed"
-                                           id="source_pubmed"
-                                           value="pubmed"
-                                           checked />
-                                    <label class="scitex-toggle-label"
-                                           for="source_pubmed"
-                                           style="width: 100%;
-                                                  display: block">PubMed</label>
-                                </div>
-                                <div class="scitex-toggle-wrapper">
-                                    <input class="scitex-toggle source-toggle"
-                                           type="checkbox"
-                                           name="source_semantic"
-                                           id="source_semantic"
-                                           value="semantic"
-                                           checked />
-                                    <label class="scitex-toggle-label"
-                                           for="source_semantic"
-                                           style="width: 100%;
-                                                  display: block">Semantic</label>
-                                </div>
-                                <div class="scitex-toggle-wrapper">
-                                    <input class="scitex-toggle source-toggle"
-                                           type="checkbox"
-                                           name="source_arxiv"
-                                           id="source_arxiv"
-                                           value="arxiv"
-                                           checked />
-                                    <label class="scitex-toggle-label"
-                                           for="source_arxiv"
-                                           style="width: 100%;
-                                                  display: block">arXiv</label>
-                                </div>
-                                <div class="scitex-toggle-wrapper" style="grid-column: 1 / -1">
-                                    <input class="scitex-toggle source-toggle"
-                                           type="checkbox"
-                                           name="source_openalex"
-                                           id="source_openalex"
-                                           value="openalex"
-                                           checked />
-                                    <label class="scitex-toggle-label"
-                                           for="source_openalex"
-                                           style="width: 100%;
-                                                  display: block">OpenAlex</label>
-                                </div>
-                            </div>
+            <button type="button" class="search-help-btn" id="searchHelpBtn">
+                <i class="fas fa-question-circle"></i>
+            </button>
+            <div class="search-help-popup" id="searchHelpPopup">
+                <div class="search-help-title">Search Operators <span class="search-help-hint">(click to insert)</span></div>
+                <div class="search-help-content">
+                    <div class="search-help-section">
+                        <div class="search-help-label">Filter by field</div>
+                        <div class="search-help-example"><code class="search-chip" data-insert="-t ">-t neural</code> → title contains "neural"</div>
+                        <div class="search-help-example"><code class="search-chip" data-insert="-a ">-a Smith</code> → author is "Smith"</div>
+                        <div class="search-help-example"><code class="search-chip" data-insert="-j ">-j Nature</code> → journal is "Nature"</div>
+                    </div>
+                    <div class="search-help-section">
+                        <div class="search-help-label">Exclude with minus prefix</div>
+                        <div class="search-help-example"><code class="search-chip" data-insert="-t -">-t -mouse</code> → title excludes "mouse"</div>
+                        <div class="search-help-example"><code class="search-chip" data-insert="-a -">-a -Jones</code> → author is not "Jones"</div>
+                    </div>
+                    <div class="search-help-section">
+                        <div class="search-help-label">Year & metrics range</div>
+                        <div class="search-help-example"><code class="search-chip" data-insert="-ymin ">-ymin 2020</code> <code class="search-chip" data-insert="-ymax ">-ymax 2024</code> → year range</div>
+                        <div class="search-help-example"><code class="search-chip" data-insert="-cmin ">-cmin 100</code> → at least 100 citations</div>
+                        <div class="search-help-example"><code class="search-chip" data-insert="-ifmin ">-ifmin 10</code> → impact factor ≥ 10</div>
+                    </div>
+                    <div class="search-help-section">
+                        <div class="search-help-label">Quick filters</div>
+                        <div class="search-help-chips">
+                            <code class="search-chip" data-insert="-ymin 2020 ">Since 2020</code>
+                            <code class="search-chip" data-insert="-cmin 50 ">50+ citations</code>
+                            <code class="search-chip" data-insert="-ifmin 5 ">IF ≥ 5</code>
                         </div>
                     </div>
-                    <!-- Row 2: Filters (Collapsed by default) -->
-                    <div class="accordion-row mb-3">
-                        <div class="accordion-row-header collapsed"
-                             data-bs-toggle="collapse"
-                             data-bs-target="#filtersRow"
-                             aria-expanded="false"
-                             aria-controls="filtersRow">
-                            <div class="d-flex align-items-center gap-2">
-                                <i class="fas fa-sliders-h"></i>
-                                <span class="fw-bold">Filters</span>
-                            </div>
-                            <i class="fas fa-chevron-down accordion-arrow"></i>
-                        </div>
-                        <div id="filtersRow" class="accordion-row-content collapse">
-                            <!-- Year Range - Dual-Range Slider -->
-                            <div class="mb-4">
-                                <label class="form-label fw-bold">
-                                    <i class="fas fa-calendar-alt text-primary"></i> Publication
-                                    Year
-                                </label>
-                                <div class="range-filter-container">
-                                    <!-- Input Fields with Display Values -->
-                                    <div class="d-flex gap-2 align-items-center mb-3">
-                                        <span id="yearMinDisplay" class="badge bg-secondary">{{ request.GET.year_from|default:'1900' }}</span>
-                                        <span class="text-muted">to</span>
-                                        <span id="yearMaxDisplay" class="badge bg-secondary">{{ request.GET.year_to|default:'2025' }}</span>
-                                    </div>
-                                    <!-- noUiSlider Container with Dynamic Range -->
-                                    <div id="yearSlider"
-                                         class="slider-container"
-                                         data-min="{{ filter_ranges.year_min|default:'1900' }}"
-                                         data-max="{{ filter_ranges.year_max|default:'2025' }}"></div>
-                                    <!-- Hidden Inputs for Form Submission -->
-                                    <input type="hidden"
-                                           id="yearFromInput"
-                                           name="year_from"
-                                           value="{{ request.GET.year_from|default:'1900' }}" />
-                                    <input type="hidden"
-                                           id="yearToInput"
-                                           name="year_to"
-                                           value="{{ request.GET.year_to|default:'2025' }}" />
-                                    <div class="d-flex justify-content-between">
-                                        <small class="text-muted">{{ filter_ranges.year_min|default:'1900' }}</small>
-                                        <small class="text-muted">{{ filter_ranges.year_max|default:'2025' }}</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Citation Count Range - Dual-Range Slider -->
-                            <div class="mb-4">
-                                <label class="form-label fw-bold">
-                                    <i class="fas fa-quote-right text-success"></i> Citation Count
-                                </label>
-                                <div class="range-filter-container">
-                                    <!-- Input Fields with Display Values -->
-                                    <div class="d-flex gap-2 align-items-center mb-3">
-                                        <span id="citationsMinDisplay" class="badge bg-secondary">{{ request.GET.min_citations|default:'0' }}</span>
-                                        <span class="text-muted">to</span>
-                                        <span id="citationsMaxDisplay" class="badge bg-secondary">{{
-                                            request.GET.max_citations|default:filter_ranges.citations_max|default:'12000'
-                                        }}</span>
-                                    </div>
-                                    <!-- noUiSlider Container -->
-                                    <div id="citationsSlider"
-                                         class="slider-container"
-                                         data-max="{{ filter_ranges.citations_max|default:'12000' }}"></div>
-                                    <!-- Hidden Inputs for Form Submission -->
-                                    <input type="hidden"
-                                           id="citationsMinInput"
-                                           name="min_citations"
-                                           value="{{ request.GET.min_citations|default:'0' }}" />
-                                    <input type="hidden"
-                                           id="citationsMaxInput"
-                                           name="max_citations"
-                                           value="{{ request.GET.max_citations|default:filter_ranges.citations_max|default:'12000' }}" />
-                                    <div class="d-flex justify-content-between">
-                                        <small class="text-muted">0</small>
-                                        <small class="text-muted">{{ filter_ranges.citations_max|default:'12000' }}+</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Impact Factor Range - Dual-Range Slider -->
-                            <div class="mb-4">
-                                <label class="form-label fw-bold">
-                                    <i class="fas fa-star text-warning"></i> Impact Factor
-                                </label>
-                                <div class="range-filter-container">
-                                    <!-- Input Fields with Display Values -->
-                                    <div class="d-flex gap-2 align-items-center mb-3">
-                                        <span id="impactFactorMinDisplay" class="badge bg-secondary">{{ request.GET.min_impact_factor|default:'0.0' }}</span>
-                                        <span class="text-muted">to</span>
-                                        <span id="impactFactorMaxDisplay" class="badge bg-secondary">{{
-                                            request.GET.max_impact_factor|default:filter_ranges.impact_factor_max|default:'50.0'
-                                        }}</span>
-                                    </div>
-                                    <!-- noUiSlider Container -->
-                                    <div id="impactFactorSlider"
-                                         class="slider-container"
-                                         data-max="{{ filter_ranges.impact_factor_max|default:'50.0' }}"></div>
-                                    <!-- Hidden Inputs for Form Submission -->
-                                    <input type="hidden"
-                                           id="impactFactorMinInput"
-                                           name="min_impact_factor"
-                                           value="{{ request.GET.min_impact_factor|default:'0' }}" />
-                                    <input type="hidden"
-                                           id="impactFactorMaxInput"
-                                           name="max_impact_factor"
-                                           value="{{ request.GET.max_impact_factor|default:filter_ranges.impact_factor_max|default:'50' }}" />
-                                    <div class="d-flex justify-content-between">
-                                        <small class="text-muted">0.0</small>
-                                        <small class="text-muted">{{ filter_ranges.impact_factor_max|default:'50.0'
-                                        }}+</small>
-                                    </div>
-                                <small class="text-muted"><i class="fas fa-external-link-alt"></i>
-                                <a href="https://www.scimagojr.com/journalrank.php"
-                                   target="_blank"
-                                   class="text-decoration-none">ScimagoJR</a></small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Row 3: Sort By (Collapsed by default) -->
-            <div class="accordion-row mb-3">
-                <div class="accordion-row-header collapsed"
-                     data-bs-toggle="collapse"
-                     data-bs-target="#sortRow"
-                     aria-expanded="false"
-                     aria-controls="sortRow">
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="fas fa-sort"></i>
-                        <span class="fw-bold">Sort By</span>
-                    </div>
-                    <i class="fas fa-chevron-down accordion-arrow"></i>
-                </div>
-                <div id="sortRow" class="accordion-row-content collapse">
-                    <div id="dragSortContainer" class="d-flex flex-column gap-2 mb-2">
-                        <div class="sort-item"
-                             draggable="true"
-                             data-field="year"
-                             data-state="none"
-                             title="Click to sort by year (none → ↑ → ↓)&#10;Drag to reorder priority">
-                            <span class="sort-label"><i class="fas fa-calendar"></i> Year</span>
-                            <span class="sort-indicator" data-state="none"></span>
-                        </div>
-                        <div class="sort-item"
-                             draggable="true"
-                             data-field="citations"
-                             data-state="none"
-                             title="Click to sort by citations (none → ↑ → ↓)&#10;Drag to reorder priority">
-                            <span class="sort-label"><i class="fas fa-quote-right"></i> Citations</span>
-                            <span class="sort-indicator" data-state="none"></span>
-                        </div>
-                        <div class="sort-item"
-                             draggable="true"
-                             data-field="impact_factor"
-                             data-state="none"
-                             title="Click to sort by impact factor (none → ↑ → ↓)&#10;Drag to reorder priority">
-                            <span class="sort-label"><i class="fas fa-star"></i> Impact Factor</span>
-                            <span class="sort-indicator" data-state="none"></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Row 4: Details (Collapsed by default) -->
-            <div class="accordion-row mb-3">
-                <div class="accordion-row-header collapsed"
-                     data-bs-toggle="collapse"
-                     data-bs-target="#detailsRow"
-                     aria-expanded="false"
-                     aria-controls="detailsRow">
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="fas fa-list-ul"></i>
-                        <span class="fw-bold">Details</span>
-                    </div>
-                    <i class="fas fa-chevron-down accordion-arrow"></i>
-                </div>
-                <div id="detailsRow" class="accordion-row-content collapse">
-                    <div class="row g-3">
-                        <!-- Author Filter -->
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">
-                                <i class="fas fa-user"></i> Author(s):
-                            </label>
-                            <input type="text"
-                                   name="author"
-                                   class="form-control form-control-sm"
-                                   placeholder="e.g., Smith, Johnson"
-                                   value="{{ request.GET.author }}" />
-                            <small class="text-muted">Separate multiple authors with commas</small>
-                        </div>
-                        <!-- Journal Filter -->
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">
-                                <i class="fas fa-book"></i> Journal:
-                            </label>
-                            <input type="text"
-                                   name="journal"
-                                   class="form-control form-control-sm"
-                                   placeholder="e.g., Nature, Science"
-                                   value="{{ request.GET.journal }}" />
-                            <small class="text-muted">Journal name or partial name</small>
-                        </div>
-                        <!-- Document Type -->
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">
-                                <i class="fas fa-file-alt"></i> Document Type:
-                            </label>
-                            <select name="doc_type" class="form-select form-select-sm">
-                                <option value="" {% if not request.GET.doc_type %}selected{% endif %}>All Types</option>
-                                <option value="article" {% if request.GET.doc_type == "article" %}selected{% endif %}>Research Article</option>
-                                <option value="review" {% if request.GET.doc_type == "review" %}selected{% endif %}>Review</option>
-                                <option value="preprint" {% if request.GET.doc_type == "preprint" %}selected{% endif %}>Preprint</option>
-                                <option value="conference" {% if request.GET.doc_type == "conference" %}selected{% endif %}>Conference Paper</option>
-                            </select>
-                        </div>
-                        <!-- Study Type -->
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">
-                                <i class="fas fa-flask"></i> Study Type:
-                            </label>
-                            <select name="study_type" class="form-select form-select-sm">
-                                <option value="" {% if not request.GET.study_type %}selected{% endif %}>Any</option>
-                                <option value="clinical_trial" {% if request.GET.study_type == "clinical_trial" %}selected{% endif %}>Clinical Trial</option>
-                                <option value="meta_analysis" {% if request.GET.study_type == "meta_analysis" %}selected{% endif %}>Meta-Analysis</option>
-                                <option value="systematic_review" {% if request.GET.study_type == "systematic_review" %}selected{% endif %}>Systematic Review</option>
-                                <option value="case_study" {% if request.GET.study_type == "case_study" %}selected{% endif %}>Case Study</option>
-                            </select>
-                        </div>
-                        <!-- Language -->
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">
-                                <i class="fas fa-language"></i> Language:
-                            </label>
-                            <select name="language" class="form-select form-select-sm">
-                                <option value="" {% if not request.GET.language %}selected{% endif %}>Any Language</option>
-                                <option value="en" {% if request.GET.language == "en" %}selected{% endif %}>English</option>
-                                <option value="ja" {% if request.GET.language == "ja" %}selected{% endif %}>Japanese</option>
-                                <option value="zh" {% if request.GET.language == "zh" %}selected{% endif %}>Chinese</option>
-                                <option value="de" {% if request.GET.language == "de" %}selected{% endif %}>German</option>
-                                <option value="fr" {% if request.GET.language == "fr" %}selected{% endif %}>French</option>
-                            </select>
+                    <div class="search-help-section search-help-shortcuts">
+                        <div class="search-help-label">Keyboard Shortcuts</div>
+                        <div class="search-help-example"><kbd>Ctrl+K</kbd> Focus search</div>
+                        <div class="search-help-example"><kbd>Ctrl+A</kbd> Select all results</div>
+                        <div class="search-help-example"><kbd>Ctrl+C</kbd> Copy BibTeX</div>
+                        <div class="search-help-label" style="margin-top: 8px;">Global Navigation</div>
+                        <div class="search-help-shortcuts-grid">
+                            <span><kbd>Alt+F</kbd> Files</span>
+                            <span><kbd>Alt+S</kbd> Scholar</span>
+                            <span><kbd>Alt+C</kbd> Console</span>
+                            <span><kbd>Alt+V</kbd> Visualizer</span>
+                            <span><kbd>Alt+W</kbd> Writer</span>
+                            <span><kbd>Alt+Z</kbd> Zen</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-    <!-- Right Main Area: Search Results -->
-    <div class="col-lg-9">
-        {# Progressive Loading - Only used for unified search (currently disabled) #}
-        {# {% include "scholar_app/search_partials/progressive_loading.html" %} #}
+
+        <!-- Search Results Area (Full Width) -->
         <div id="scitex-results-container">
+            <!-- Results Header - Always visible -->
+            <div class="results-header" id="resultsHeader">
+                <div class="results-info">
+                    <span class="results-count" id="searchResultsText" title="Results are fetched from multiple engines (PubMed, CrossRef, arXiv, OpenAlex, Semantic Scholar), then deduplicated by DOI/title. The count shows unique papers found.">{% if query %}{{ results|length }} result{{ results|length|pluralize }} for "{{ query }}"{% else %}Ready to search{% endif %} <i class="fas fa-info-circle results-info-icon"></i></span>
+                    {% if results %}<span class="results-source" id="sourceDisplay">· {{ sources_display|default:"selected sources" }}</span>{% endif %}
+                </div>
+                <div class="results-toolbar">
+                    <!-- Abstract Display Toggle -->
+                    <button type="button" class="toolbar-btn" id="abstractToggleBtn" data-mode="truncated" title="Toggle abstract display" {% if not results %}disabled{% endif %}>
+                        Abstract: truncated
+                    </button>
+                    <!-- Save Selected -->
+                    <button type="button" class="toolbar-btn" id="saveSelectedBtn" title="Save selected to library" disabled>
+                        <i class="fas fa-save"></i> Save
+                    </button>
+                    <!-- Open URLs -->
+                    <button type="button" class="toolbar-btn" id="openUrlsBtn" title="Open selected in new tabs" disabled>
+                        <i class="fas fa-external-link-alt"></i> Open URLs
+                    </button>
+                    <!-- Export BibTeX -->
+                    <button type="button" class="toolbar-btn toolbar-btn--primary" id="exportSelectedBibtex" title="Download BibTeX for selected (Ctrl+C to copy)" disabled>
+                        <i class="fas fa-download"></i> BibTeX
+                    </button>
+                    <!-- Download PDFs -->
+                    <button type="button" class="toolbar-btn toolbar-btn--pdf" id="downloadSelectedPdfs" title="Download PDFs for selected (Open Access only)" disabled>
+                        <i class="fas fa-file-pdf"></i> PDFs
+                    </button>
+                </div>
+            </div>
+
             {% if show_results and query %}
-                {% include "scholar_app/search_partials/search_results_header.html" %}
-                <!-- Search Results -->
+                <!-- Search Results (all results, no pagination) -->
                 {% for result in results %}
                     {% include "scholar_app/search_partials/result_card.html" %}
                 {% endfor %}
-                {% include "scholar_app/index_partials/pagination.html" %}
             {% elif show_results %}
                 <!-- Empty state when no query -->
-                <div class="text-center"
-                     style="display: flex;
-                            flex-direction: column;
-                            justify-content: center;
-                            align-items: center;
-                            min-height: 500px">
-                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                    <h5 class="text-muted">Enter a search query to find literature</h5>
+                <div class="search-empty-state" id="searchEmptyState">
+                    <i class="fas fa-search"></i>
+                    <h5>Enter a search query to find literature</h5>
+                    <p class="text-muted">Use the controls in the right panel to filter and sort results</p>
                 </div>
             {% endif %}
         </div>
-    </div>
-</div>
-</form>
+        <!-- Fixed Selection Action Bar -->
+        <div id="selectionActionBar" class="selection-action-bar">
+            <span class="selection-count"><span id="selectedCount">0</span> selected</span>
+            <div class="selection-actions">
+                <button type="button" class="action-btn" id="actionSaveSelected" title="Save to project">
+                    <i class="fas fa-save"></i> Save
+                </button>
+                <button type="button" class="action-btn" id="actionExportBibtex" title="Export BibTeX">
+                    <i class="fas fa-download"></i> BibTeX
+                </button>
+                <button type="button" class="action-btn" id="actionOpenUrls" title="Open URLs">
+                    <i class="fas fa-external-link-alt"></i> Open URLs
+                </button>
+                <button type="button" class="action-btn action-btn--pdf" id="actionDownloadPdfs" title="Download PDFs (Open Access)">
+                    <i class="fas fa-file-pdf"></i> PDFs
+                </button>
+                <button type="button" class="action-btn action-btn--clear" id="actionClearSelection" title="Clear selection">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <!-- Progressive Results Container (JavaScript populates this) -->
+        <div id="progressiveResults" class="progressive-results"></div>
+    </form>
 </div>

@@ -5,7 +5,7 @@ Business logic layer organized by feature domain.
 """
 
 # Core services
-from .writer_service import WriterService
+from .writer import WriterService
 
 try:
     from .editor import DocumentService

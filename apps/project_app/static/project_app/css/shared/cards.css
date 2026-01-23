@@ -79,7 +79,6 @@
 }
 
 .card--interactive:hover {
-  border-color: var(--color-accent-emphasis);
   box-shadow: var(--shadow-md);
   transform: translateY(-2px);
 }

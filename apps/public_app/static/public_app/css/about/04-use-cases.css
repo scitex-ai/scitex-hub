@@ -1,0 +1,49 @@
+/* Use Cases */
+.about-usecases-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+}
+
+.about-usecase-card {
+  background: rgba(26, 42, 64, 0.5);
+  border-radius: 14px;
+  padding: 1.5rem;
+  border: 1px solid rgba(108, 139, 160, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.about-usecase-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(74, 155, 126, 0.4);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.usecase-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.usecase-title i {
+  color: #4a9b7e;
+  filter: drop-shadow(0 0 6px rgba(74, 155, 126, 0.4));
+}
+
+.usecase-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.usecase-list li {
+  padding: 0.4rem 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}

@@ -1,0 +1,68 @@
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .nav-label {
+    display: none;
+  }
+
+  .btn-label {
+    display: none;
+  }
+
+  .header-search {
+    max-width: 300px;
+  }
+
+  .header-nav {
+    gap: 2px;
+  }
+
+  .header-nav-item {
+    padding: 8px;
+  }
+}
+
+@media (max-width: 768px) {
+  .global-header-inner {
+    gap: 8px;
+  }
+
+  .header-center {
+    display: none;
+  }
+
+  .header-left {
+    gap: 8px;
+  }
+
+  .header-nav {
+    display: none; /* Hide main nav on mobile, show in hamburger menu */
+  }
+
+  .header-project-selector {
+    padding: 0 8px;
+    gap: 4px;
+  }
+
+  .project-selector-btn {
+    min-width: 120px;
+    max-width: 160px;
+    font-size: 12px;
+    padding: 4px 6px;
+  }
+
+  .project-files-btn {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .global-header-inner {
+    padding: 0 8px;
+  }
+
+  .header-logo span {
+    display: none;
+  }
+}
+

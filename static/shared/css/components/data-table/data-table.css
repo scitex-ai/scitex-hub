@@ -1,0 +1,505 @@
+/* ========================================
+   DATA TABLE TABS
+   ======================================== */
+.data-tabs-bar {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--vis-bg-secondary);
+    border-bottom: 1px solid var(--workspace-border-muted);
+    padding: 0;
+    height: 32px;
+    min-height: 32px;
+    flex-shrink: 0;
+}
+
+.data-tabs-container {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    overflow-x: auto;
+    flex: 1;
+    scrollbar-width: none;
+    padding: 0 4px;
+}
+
+.data-tabs-container::-webkit-scrollbar {
+    display: none;
+}
+
+.data-tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 400;
+    cursor: grab;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    position: relative;
+    user-select: none;
+}
+
+.data-tab:hover {
+    background: var(--vis-bg-hover);
+    color: var(--text-primary);
+}
+
+.data-tab.active {
+    background: transparent;
+    color: var(--text-primary);
+    font-weight: 500;
+    border-bottom: 2px solid rgba(16, 185, 129, 0.8);
+}
+
+.data-tab.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+}
+
+.data-tab.drag-over {
+    border-left: 2px solid var(--status-success);
+}
+
+.data-tab i {
+    font-size: 10px;
+    color: inherit;
+}
+
+.data-tab-label {
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.data-tab-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    pointer-events: auto;
+    padding: 0;
+    margin-left: 2px;
+    background: transparent;
+    border: none;
+    border-radius: 2px;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.15s ease;
+}
+
+.data-tab:hover .data-tab-close {
+    opacity: 0.7;
+}
+
+.data-tab-close:hover {
+    background: var(--status-error-bg);
+    color: var(--status-error);
+    opacity: 1;
+}
+
+.data-tab-new {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    margin: 2px 4px;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    color: var(--text-muted);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+
+.data-tab-new:hover {
+    background: var(--vis-bg-hover);
+    color: var(--text-primary);
+}
+
+/* Tab modified indicator */
+.data-tab.modified .data-tab-label::after {
+    content: ' *';
+    color: var(--status-warning);
+}
+
+/* ========================================
+   DATA TABLE STYLING
+   ======================================== */
+
+/* Data table container */
+.data-table-container {
+    overflow: auto;
+    height: 100%;
+    position: relative;
+}
+
+/* Main data table */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+/* Table cells with borders */
+.data-table th,
+.data-table td {
+    border: 1px solid var(--workspace-border-default);
+    padding: 6px 8px;
+    text-align: left;
+    white-space: nowrap;
+    color: var(--text-primary);
+}
+
+/* Header cells */
+.data-table th {
+    background: var(--vis-bg-secondary);
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+/* Data cells hover */
+.data-table td:hover {
+    background: var(--vis-bg-hover);
+}
+
+/* Row hover */
+.data-table tbody tr:hover {
+    background: rgba(74, 155, 126, 0.05);
+}
+
+/* Alternating row colors (optional subtle effect) */
+.data-table tbody tr:nth-child(even) {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+[data-theme="dark"] .data-table tbody tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* ========================================================================
+   EDITABLE TABLE STYLES
+   ======================================================================== */
+
+/* Base table structure */
+.editable-table table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+/* Editable cells */
+.editable-table td,
+.editable-table th {
+    border: 1px solid var(--workspace-border-default);
+    padding: 8px;
+    outline: none;
+    transition: background-color 0.15s ease, box-shadow 0.15s ease;
+    position: relative;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    color: var(--text-primary);
+}
+
+.editable-table td:hover,
+.editable-table th:hover {
+    background-color: var(--vis-bg-hover) !important;
+}
+
+/* Selected cells (not editing) */
+.editable-table td.selected,
+.editable-table th.selected {
+    background-color: rgba(74, 155, 126, 0.08) !important;
+    z-index: 1;
+}
+
+/* Selection border overlay (dashed animated border) */
+.selection-border-overlay {
+    position: absolute;
+    pointer-events: none;
+    border: 2px dashed var(--status-success);
+    z-index: 100;
+    animation: marching-ants 0.5s linear infinite;
+}
+
+@keyframes marching-ants {
+    0% {
+        border-offset: 0;
+    }
+    100% {
+        border-offset: 8px;
+    }
+}
+
+/* Fill handle (small square at bottom-right) */
+.fill-handle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: var(--status-success);
+    border: 1px solid white;
+    cursor: crosshair;
+    z-index: 101;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Fill preview (during drag-to-fill) */
+.editable-table td.fill-preview {
+    background-color: rgba(74, 155, 126, 0.15) !important;
+    border: 1px dashed var(--status-success) !important;
+}
+
+/* Highlighted headers (row numbers and column headers when selection active) */
+.editable-table th.header-highlighted,
+.editable-table td.header-highlighted {
+    background-color: rgba(74, 155, 126, 0.2) !important;
+}
+
+/* Cell in edit mode */
+.editable-table [contenteditable="true"] {
+    background-color: var(--vis-bg-primary) !important;
+    color: var(--text-primary) !important;
+    box-shadow: inset 0 0 0 1px rgba(74, 155, 126, 0.5);
+    z-index: 2;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+}
+
+/* Header cells in editable table */
+.editable-table th[contenteditable="true"] {
+    font-weight: 600;
+    background: var(--vis-bg-secondary);
+}
+
+.editable-table th[contenteditable="true"]:focus {
+    background: var(--status-success-bg);
+}
+
+/* Row and column numbers */
+.editable-table .row-number,
+.editable-table .row-number-header {
+    font-weight: 600;
+    font-size: 13px;
+    text-align: center;
+    cursor: default;
+    user-select: none;
+    /* Not sticky - scrolls with table content */
+}
+
+.editable-table .row-number:hover {
+    background: var(--vis-bg-hover) !important;
+}
+
+.editable-table th[data-col] {
+    text-align: center;
+    font-size: 12px;
+    position: relative;
+    min-width: 40px;
+    max-width: 150px;
+}
+
+/* Column header text truncation */
+.editable-table th[data-col] .col-header-text {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-right: 8px; /* Space for resize handle */
+}
+
+/* Cell text truncation */
+.editable-table td[data-col] .cell-text {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Ensure cells respect dynamic width */
+.editable-table td[data-col] {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Fixed table layout for consistent column widths */
+.editable-table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+/* Row number column - fixed width */
+.editable-table .row-number,
+.editable-table .row-number-header {
+    width: 45px !important;
+    min-width: 45px !important;
+    max-width: 45px !important;
+}
+
+/* Table action buttons */
+.btn-add-column,
+.btn-add-row,
+.btn-delete-row {
+    padding: 4px 8px;
+    border: 1px solid var(--workspace-border-default);
+    background: var(--vis-bg-primary);
+    color: var(--text-primary);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.btn-add-column:hover,
+.btn-add-row:hover {
+    background: var(--status-success-bg);
+    color: var(--status-success);
+    border-color: var(--status-success);
+}
+
+.btn-delete-row {
+    color: var(--status-error);
+    font-weight: bold;
+    padding: 2px 8px;
+}
+
+.btn-delete-row:hover {
+    background: var(--status-error-bg);
+    border-color: var(--status-error);
+}
+
+/* Active toggle button state */
+.ribbon-btn.active {
+    background: var(--status-success-bg);
+    color: var(--status-success);
+    border-color: var(--status-success);
+}
+
+/* ========================================================================
+   COLUMN RESIZE HANDLES (Excel-like)
+   ======================================================================== */
+
+/* Column resize handle - invisible but wide hit area */
+.column-resize-handle {
+    position: absolute;
+    right: -4px; /* Extend beyond border for easier grabbing */
+    top: 0;
+    bottom: 0;
+    width: 8px;
+    cursor: col-resize;
+    z-index: 10;
+    background: transparent;
+    transition: background 0.15s ease;
+}
+
+/* Visual feedback on hover */
+.column-resize-handle:hover {
+    background: rgba(74, 155, 126, 0.3);
+}
+
+/* Prevent text selection during resize */
+body.resizing-column {
+    user-select: none !important;
+    cursor: col-resize !important;
+}
+
+/* Highlight column header during resize */
+.editable-table th.resizing {
+    background: rgba(74, 155, 126, 0.1) !important;
+}
+
+/* ========================================================================
+   LIGHT THEME - SOFTER BORDERS
+   ======================================================================== */
+
+[data-theme="light"] .data-table th,
+[data-theme="light"] .data-table td,
+[data-theme="light"] .editable-table th,
+[data-theme="light"] .editable-table td {
+    border-color: #e0e0e0;
+}
+
+[data-theme="light"] .data-table th,
+[data-theme="light"] .editable-table th {
+    background: #f8f9fa;
+}
+
+[data-theme="light"] .editable-table .row-number,
+[data-theme="light"] .editable-table .row-number-header {
+    background: #f8f9fa;
+    color: #666;
+}
+
+[data-theme="light"] .data-table tbody tr:nth-child(even) {
+    background: rgba(0, 0, 0, 0.015);
+}
+
+/* ========================================================================
+   DARK THEME OVERRIDES
+   ======================================================================== */
+
+[data-theme="dark"] .data-table th,
+[data-theme="dark"] .data-table td {
+    border-color: var(--workspace-border-muted, #3c3c3c);
+}
+
+[data-theme="dark"] .editable-table th,
+[data-theme="dark"] .editable-table td {
+    border-color: var(--workspace-border-muted, #3c3c3c);
+}
+
+[data-theme="dark"] .editable-table [contenteditable="true"] {
+    background-color: var(--workspace-bg-primary, #1e1e1e) !important;
+}
+
+/* ========================================================================
+   ELEMENT-CSV SYNCHRONIZATION HIGHLIGHT
+   ======================================================================== */
+
+/* Highlight for columns linked to selected plot element */
+.data-table td.element-highlight,
+.data-table th.element-highlight,
+.editable-table td.element-highlight,
+.editable-table th.element-highlight {
+    background-color: rgba(255, 193, 7, 0.15) !important;
+    box-shadow: inset 0 0 0 2px rgba(255, 193, 7, 0.4);
+}
+
+/* Header highlight for element-linked columns */
+.data-table th.element-highlight,
+.editable-table th.element-highlight {
+    background-color: rgba(255, 193, 7, 0.25) !important;
+    font-weight: 700;
+}
+
+/* Light theme variant */
+[data-theme="light"] .data-table td.element-highlight,
+[data-theme="light"] .data-table th.element-highlight,
+[data-theme="light"] .editable-table td.element-highlight,
+[data-theme="light"] .editable-table th.element-highlight {
+    background-color: rgba(255, 193, 7, 0.12) !important;
+    box-shadow: inset 0 0 0 2px rgba(255, 193, 7, 0.5);
+}
+
+[data-theme="light"] .data-table th.element-highlight,
+[data-theme="light"] .editable-table th.element-highlight {
+    background-color: rgba(255, 193, 7, 0.2) !important;
+}

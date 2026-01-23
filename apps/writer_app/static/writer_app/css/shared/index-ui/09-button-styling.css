@@ -1,0 +1,48 @@
+/* =========================================
+   BUTTON STYLING IN TOOLBAR
+   ========================================= */
+
+.toolbar-left .btn,
+.toolbar-center .btn,
+.toolbar-right .btn {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  border-radius: 4px;
+  border: none; /* No borders for cleaner look */
+  transition: all 0.2s ease;
+}
+
+.toolbar-left .btn-outline-secondary,
+.toolbar-center .btn-outline-secondary,
+.toolbar-right .btn-outline-secondary {
+  background: var(--bg-page);
+  color: var(--text-primary);
+}
+
+.toolbar-left .btn-outline-secondary:hover,
+.toolbar-center .btn-outline-secondary:hover,
+.toolbar-right .btn-outline-secondary:hover {
+  background: var(--workspace-bg-tertiary);
+  color: var(--text-primary);
+}
+
+/* Toolbar button icon colors - workspace theme with soft green */
+.toolbar-left .btn i,
+.toolbar-center .btn i,
+.toolbar-right .btn i {
+  color: var(--workspace-icon-primary); /* Soft green for all icons */
+  transition: color 0.15s ease;
+}
+
+.toolbar-left .btn-outline-secondary i,
+.toolbar-center .btn-outline-secondary i,
+.toolbar-right .btn-outline-secondary i {
+  color: var(--workspace-icon-primary); /* Use same soft green color */
+}
+
+.toolbar-left .btn:hover i,
+.toolbar-center .btn:hover i,
+.toolbar-right .btn:hover i {
+  color: var(--workspace-icon-hover); /* Darker soft green on hover */
+}
+

@@ -1,0 +1,147 @@
+/* Header Container - Light Mode with scattered dots (matches ecosystem) */
+.global-header {
+  background-color: var(--_white); /* Crisp white for professional look */
+  border-bottom: 1px solid var(--border-default);
+  box-shadow: 0 1px 3px rgba(26, 35, 50, 0.04);
+  padding: 0;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.global-header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+  /* Scattered dots pattern - same as ecosystem section */
+  background-image:
+    radial-gradient(circle at 20% 30%, var(--_scitex-04) 2px, transparent 2px),
+    radial-gradient(circle at 60% 70%, var(--_scitex-05) 3px, transparent 3px),
+    radial-gradient(
+      circle at 80% 20%,
+      var(--_scitex-03) 1.5px,
+      transparent 1.5px
+    ),
+    radial-gradient(
+      circle at 40% 80%,
+      var(--_scitex-04) 2.5px,
+      transparent 2.5px
+    ),
+    radial-gradient(circle at 10% 60%, var(--_scitex-05) 2px, transparent 2px);
+  background-size:
+    100px 100px,
+    150px 150px,
+    80px 80px,
+    120px 120px,
+    90px 90px;
+  background-position:
+    0 0,
+    40px 60px,
+    130px 270px,
+    70px 100px,
+    150px 30px;
+}
+
+/* Header Container - Dark Mode with scattered dots (matches ecosystem) */
+[data-theme="dark"] .global-header {
+  background-color: var(--scitex-color-01); /* Dark: #1a2332 */
+  border-bottom: 1px solid var(--scitex-color-04); /* More visible border with accent color */
+  box-shadow: none; /* Remove shadow in dark mode - border provides separation */
+}
+
+[data-theme="dark"] .global-header::before {
+  opacity: 0.3;
+  /* Scattered dots pattern - same as ecosystem section */
+  background-image:
+    radial-gradient(circle at 20% 30%, var(--_scitex-05) 2px, transparent 2px),
+    radial-gradient(circle at 60% 70%, var(--_scitex-06) 3px, transparent 3px),
+    radial-gradient(
+      circle at 80% 20%,
+      var(--_scitex-04) 1.5px,
+      transparent 1.5px
+    ),
+    radial-gradient(
+      circle at 40% 80%,
+      var(--_scitex-05) 2.5px,
+      transparent 2.5px
+    ),
+    radial-gradient(circle at 10% 60%, var(--_scitex-06) 2px, transparent 2px);
+  background-size:
+    100px 100px,
+    150px 150px,
+    80px 80px,
+    120px 120px,
+    90px 90px;
+  background-position:
+    0 0,
+    40px 60px,
+    130px 270px,
+    70px 100px,
+    150px 30px;
+}
+
+/* Icon color variables removed - no longer needed for Explore icon */
+
+/* Ensure header content stays above pattern */
+.global-header-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 16px;
+  height: 64px;
+  transition: height 0.3s ease, opacity 0.3s ease;
+}
+
+/* Header Collapse Toggle Button - position only, uses shared panel-toggle-btn style */
+.header-collapse-toggle {
+  position: fixed;
+  top: 58px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1002;
+  transition: top 0.3s ease, background 0.15s ease, color 0.15s ease;
+  background: var(--color-bg-tertiary, #e5e7eb);
+  border-radius: 0 0 6px 6px;
+  padding: 6px 12px;
+}
+
+.header-collapse-toggle i {
+  transition: transform 0.3s ease;
+}
+
+/* Collapsed Header State */
+.global-header.collapsed {
+  height: 6px;
+  min-height: 6px;
+}
+
+.global-header.collapsed .global-header-inner {
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Toggle button when header is collapsed - using SIBLING selector (~) */
+.global-header.collapsed ~ .header-collapse-toggle {
+  top: 6px;
+  opacity: 0.85;
+}
+
+.global-header.collapsed ~ .header-collapse-toggle i {
+  transform: rotate(180deg);
+}
+
+/* Dark mode background for header toggle */
+[data-theme="dark"] .header-collapse-toggle {
+  background: var(--workspace-bg-tertiary, #2a2a2a);
+}

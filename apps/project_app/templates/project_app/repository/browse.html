@@ -1,21 +1,40 @@
 {% extends 'global_base.html' %}
 {% load static %}
-{% block title %}
-    {{ project.name }} - SciTeX Cloud
-{% endblock %}
 {% block extra_css %}
     <link rel="stylesheet"
           href="{% static 'project_app/css/project_app.css' %}" />
+    <!-- Browse CSS Modules - Refactored 2025-11-28 -->
     <link rel="stylesheet"
-          href="{% static 'project_app/css/repository/browse.css' %}" />
+          href="{% static 'project_app/css/repository/browse/container-header.css' %}?v=20251129" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/branch-dropdown.css' %}?v=20251128" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/icon-utilities.css' %}?v=20251128" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/tab-navigation.css' %}?v=20251128" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/file-browser-table.css' %}?v=20251128" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/readme-rendering.css' %}?v=20251128" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/action-buttons.css' %}?v=20251128" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/sidebar-layout.css' %}?v=20251128" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/file-tree.css' %}?v=20251128" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/split-dropdown.css' %}?v=20251128" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/media-queries.css' %}?v=20251128" />
     <link rel="stylesheet"
           href="{% static 'project_app/css/repository/browse/tabs.css' %}" />
     <link rel="stylesheet"
           href="{% static 'project_app/css/repository/browse/toolbar.css' %}" />
+    <!-- Shared CSS -->
     <link rel="stylesheet"
           href="{% static 'project_app/css/shared/sidebar.css' %}" />
     <link rel="stylesheet"
-          href="{% static 'project_app/css/shared/file-tree.css' %}" />
+          href="{% static 'project_app/css/shared/file-tree/index.css' %}" />
     <link rel="stylesheet"
           href="{% static 'project_app/css/shared/buttons.css' %}" />
 {% endblock %}

@@ -12,7 +12,7 @@ GitHub-style patterns:
 """
 
 from django.urls import path
-from ..views.issues_views import (
+from ..views.issues import (
     issues_list,
     issue_create,
     issue_detail,
@@ -20,8 +20,6 @@ from ..views.issues_views import (
     issue_comment_create,
     issue_label_manage,
     issue_milestone_manage,
-)
-from ..views.api_issues_views import (
     api_issue_search,
     api_issue_comment,
     api_issue_close,

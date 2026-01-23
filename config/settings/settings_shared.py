@@ -18,6 +18,17 @@ from datetime import timedelta
 # ---------------------------------------
 # Functions
 # ---------------------------------------
+def require_env(var_name: str) -> str:
+    """Get required environment variable or raise clear error."""
+    value = os.environ.get(var_name)
+    if value is None:
+        raise EnvironmentError(
+            f"Required environment variable '{var_name}' is not set. "
+            f"Check SECRET/.env.{{ENV}} file."
+        )
+    return value
+
+
 # KEEP THIS AS COMMENT
 def discover_local_apps():
     """Discover all Django apps in the apps directory."""
@@ -64,7 +75,19 @@ def discover_local_apps():
 # ---------------------------------------
 # Metadata
 # ---------------------------------------
-SCITEX_CLOUD_VERSION = "0.3.1-alpha"
+SCITEX_CLOUD_VERSION = "0.5.2-alpha"
+
+# ---------------------------------------
+# Visitor Pool Configuration
+# ---------------------------------------
+SCITEX_CLOUD_VISITOR_POOL_SIZE = int(os.environ.get("SCITEX_CLOUD_VISITOR_POOL_SIZE", 4))
+
+# ---------------------------------------
+# Analytics
+# ---------------------------------------
+# Google Analytics 4 Measurement ID (e.g., G-XXXXXXXXXX)
+# Leave empty to disable tracking
+GOOGLE_ANALYTICS_ID = os.environ.get("SCITEX_CLOUD_GOOGLE_ANALYTICS_ID", "")
 
 # ---------------------------------------
 # Paths
@@ -80,6 +103,9 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [
     BASE_DIR / "static",
+    # TypeScript compiled JS output (Docker-only, see tsconfig/post-build.js)
+    # Maps: .jsbuild/{app_name}/js/* -> /static/{app_name}/js/*
+    BASE_DIR / ".jsbuild",
 ]
 
 # Media files
@@ -121,6 +147,16 @@ THIRD_PARTY_APPS = [
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
     "channels",
+    # Celery (async task queue with fair scheduling)
+    "django_celery_results",
+    "django_celery_beat",
+    # Social authentication (Google, ORCID)
+    "django.contrib.sites",  # Required by allauth
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
+    "allauth.socialaccount.providers.orcid",
 ]
 
 # This installs all the apps (./apps/*_app)
@@ -135,9 +171,22 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "allauth.account.middleware.AccountMiddleware",  # Required by django-allauth
+    "apps.project_app.middleware.VisitorAutoLoginMiddleware",  # Auto-login visitors from any page
+    "apps.project_app.middleware.VisitorExpirationMiddleware",  # Redirect expired visitors to expiration page
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.project_app.middleware.GuestSessionMiddleware",
+]
+
+# ---------------------------------------
+# Authentication Backends
+# ---------------------------------------
+AUTHENTICATION_BACKENDS = [
+    # Django default authentication
+    "django.contrib.auth.backends.ModelBackend",
+    # django-allauth authentication (for social login)
+    "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
 WSGI_APPLICATION = "config.wsgi.application"
@@ -160,9 +209,11 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "apps.project_app.context_processors.version_context",
                 "apps.project_app.context_processors.project_context",
+                "apps.project_app.context_processors.visitor_expiration_context",
                 "config.context_processors.cache_buster",
                 "config.context_processors.debug_mode",
                 "config.context_processors.scitex_version",
+                "config.context_processors.google_analytics",
             ],
         },
     },
@@ -284,6 +335,100 @@ except (ImportError, Exception):
     }
 
 # ---------------------------------------
+# Celery Configuration (Async Task Queue)
+# ---------------------------------------
+CELERY_BROKER_URL = os.getenv("SCITEX_CLOUD_REDIS_URL", "redis://localhost:6379/1")
+CELERY_RESULT_BACKEND = "django-db"
+CELERY_CACHE_BACKEND = "django-cache"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = "UTC"
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes max per task
+CELERY_RESULT_EXTENDED = True
+
+# Task routing to dedicated queues
+CELERY_TASK_ROUTES = {
+    "apps.writer_app.tasks.*": {"queue": "ai_queue"},
+    "apps.scholar_app.tasks.*": {"queue": "search_queue"},
+    "apps.code_app.tasks.*": {"queue": "compute_queue"},
+    "apps.vis_app.tasks.*": {"queue": "vis_queue"},
+}
+
+# Fair scheduling: Rate limits per task (can be overridden per-user in code)
+CELERY_TASK_ANNOTATIONS = {
+    "apps.writer_app.tasks.ai_suggest": {"rate_limit": "10/m"},
+    "apps.writer_app.tasks.ai_generate": {"rate_limit": "5/m"},
+    "apps.scholar_app.tasks.search_papers": {"rate_limit": "30/m"},
+    "apps.scholar_app.tasks.process_pdf": {"rate_limit": "20/m"},
+}
+
+# Worker configuration for fairness
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1  # One task at a time for fair scheduling
+CELERY_WORKER_CONCURRENCY = 4  # Parallel workers
+
+# Beat scheduler for periodic tasks (optional)
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+
+# Periodic task schedule
+CELERY_BEAT_SCHEDULE = {
+    # Collect server metrics every 5 minutes
+    # DISABLED: Task causes Daphne event loop blocking even at 5min intervals
+    # TODO: Refactor to run async or move to separate monitoring service
+    # 'collect-server-metrics': {
+    #     'task': 'apps.public_app.tasks.collect_server_metrics',
+    #     'schedule': 300.0,  # Every 5 minutes
+    #     'options': {
+    #         'expires': 270.0,  # Expire after 4.5 minutes if not started
+    #     },
+    # },
+    # Clean up expired visitor allocations every 5 minutes
+    'cleanup-expired-visitor-allocations': {
+        'task': 'apps.public_app.tasks.cleanup_expired_visitor_allocations',
+        'schedule': 300.0,  # Every 5 minutes (in seconds)
+        'options': {
+            'expires': 270.0,  # Expire after 4.5 minutes if not started
+        },
+    },
+    # Auto-unmount inactive remote projects every 10 minutes
+    # DISABLED: Task not registered (tasks.py not imported when tasks/ directory exists)
+    # 'auto-unmount-remote-projects': {
+    #     'task': 'apps.project_app.tasks.auto_unmount_inactive_remote_projects',
+    #     'schedule': 600.0,  # Every 10 minutes (in seconds)
+    #     'options': {
+    #         'expires': 540.0,  # Expire after 9 minutes if not started
+    #     },
+    # },
+    # Clean up stale mounts every hour
+    # DISABLED: Task not registered (tasks.py not imported when tasks/ directory exists)
+    # 'cleanup-stale-mounts': {
+    #     'task': 'apps.project_app.tasks.cleanup_stale_mounts',
+    #     'schedule': 3600.0,  # Every hour (in seconds)
+    #     'options': {
+    #         'expires': 3540.0,  # Expire after 59 minutes if not started
+    #     },
+    # },
+    # Generate server status charts every 1 minute
+    'generate-status-charts': {
+        'task': 'apps.public_app.tasks.generate_status_charts',
+        'schedule': 60.0,  # Every 1 minute
+        'options': {
+            'expires': 55.0,  # Expire after 55 seconds if not started
+        },
+    },
+    # Check site health every 1 minute and notify on failures
+    # Set SCITEX_CLOUD_HEALTH_NOTIFICATION_RECIPIENT env var to enable email alerts
+    'check-site-health': {
+        'task': 'apps.public_app.tasks.check_site_health',
+        'schedule': 60.0,  # Every 1 minute
+        'options': {
+            'expires': 55.0,  # Expire after 55 seconds if not started
+        },
+    },
+}
+
+# ---------------------------------------
 # Logging
 # ---------------------------------------
 LOGGING = {
@@ -327,25 +472,34 @@ LOGGING = {
         "null": {
             "class": "logging.NullHandler",
         },
-        # SciTeX Console logger (error cascading)
-        "console_file": {
+        # Django app logs
+        "django_file": {
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": str(BASE_DIR / "logs" / "console.log"),
-            "maxBytes": 10485760,  # 10MB
+            "filename": str(BASE_DIR / "logs" / "django.log"),
+            "maxBytes": 5242880,  # 5MB
             "backupCount": 5,
             "formatter": "standard",
             "level": "INFO",
         },
-        # SciTeX Errors logger
-        "error_file": {
+        # Celery task logs
+        "celery_file": {
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": str(BASE_DIR / "logs" / "errors.log"),
-            "maxBytes": 10485760,  # 10MB
+            "filename": str(BASE_DIR / "logs" / "celery.log"),
+            "maxBytes": 5242880,  # 5MB
             "backupCount": 5,
             "formatter": "standard",
-            "level": "ERROR",
+            "level": "INFO",
         },
-        # Git operations logger
+        # SLURM job logs
+        "slurm_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": str(BASE_DIR / "logs" / "slurm.log"),
+            "maxBytes": 5242880,  # 5MB
+            "backupCount": 3,
+            "formatter": "standard",
+            "level": "INFO",
+        },
+        # Git operations logs
         "git_file": {
             "class": "logging.handlers.RotatingFileHandler",
             "filename": str(BASE_DIR / "logs" / "git.log"),
@@ -354,52 +508,134 @@ LOGGING = {
             "formatter": "standard",
             "level": "INFO",
         },
+        # Error logs (all errors)
+        "error_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": str(BASE_DIR / "logs" / "errors.log"),
+            "maxBytes": 5242880,  # 5MB
+            "backupCount": 5,
+            "formatter": "standard",
+            "level": "ERROR",
+        },
+        # App-specific logs
+        "vis_app_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": str(BASE_DIR / "logs" / "vis_app.log"),
+            "maxBytes": 5242880,
+            "backupCount": 3,
+            "formatter": "standard",
+            "level": "DEBUG",
+        },
+        "writer_app_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": str(BASE_DIR / "logs" / "writer_app.log"),
+            "maxBytes": 5242880,
+            "backupCount": 3,
+            "formatter": "standard",
+            "level": "DEBUG",
+        },
+        "scholar_app_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": str(BASE_DIR / "logs" / "scholar_app.log"),
+            "maxBytes": 5242880,
+            "backupCount": 3,
+            "formatter": "standard",
+            "level": "DEBUG",
+        },
+        "code_app_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": str(BASE_DIR / "logs" / "code_app.log"),
+            "maxBytes": 5242880,
+            "backupCount": 3,
+            "formatter": "standard",
+            "level": "DEBUG",
+        },
+        "project_app_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": str(BASE_DIR / "logs" / "project_app.log"),
+            "maxBytes": 5242880,
+            "backupCount": 3,
+            "formatter": "standard",
+            "level": "DEBUG",
+        },
     },
     "loggers": {
+        # Django framework
         "django": {
-            "handlers": ["console"],
+            "handlers": ["django_file", "console"],
             "level": "INFO",
-            "propagate": True,
+            "propagate": False,
         },
         "django.request": {
-            "handlers": ["mail_admins"],
-            "level": "ERROR",
+            "handlers": ["django_file", "error_file"],
+            "level": "INFO",
             "propagate": False,
         },
         "django.security": {
-            "handlers": ["mail_admins"],
+            "handlers": ["error_file"],
             "level": "ERROR",
             "propagate": False,
         },
-        "django.template": {
-            "handlers": ["console"],
-            "level": "INFO",
-            "propagate": True,
-        },
-        "django.db.backends": {
-            "handlers": ["console"],
-            "level": "INFO",
-            "propagate": True,
-        },
-        "scitex": {  # Application-specific logger
-            "handlers": ["console"],
-            "level": "INFO",
-            "propagate": True,
-        },
-        # SciTeX error cascading loggers
-        "scitex.console": {
-            "handlers": ["console_file", "console"],
+        # Celery tasks
+        "celery": {
+            "handlers": ["celery_file", "console"],
             "level": "INFO",
             "propagate": False,
         },
+        "celery.task": {
+            "handlers": ["celery_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        # SLURM jobs
+        "scitex.slurm": {
+            "handlers": ["slurm_file", "console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        # Git operations
+        "scitex.git": {
+            "handlers": ["git_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        # SciTeX app (general)
+        "scitex": {
+            "handlers": ["django_file", "console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        # All errors
         "scitex.errors": {
             "handlers": ["error_file", "console"],
             "level": "ERROR",
             "propagate": False,
         },
-        "scitex.git": {
-            "handlers": ["git_file", "console_file"],
-            "level": "INFO",
+        # App-specific loggers
+        # Usage: logger = logging.getLogger(__name__)  # Auto-routes to correct app log
+        "apps.vis_app": {
+            "handlers": ["vis_app_file", "console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+        "apps.writer_app": {
+            "handlers": ["writer_app_file", "console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+        "apps.scholar_app": {
+            "handlers": ["scholar_app_file", "console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+        "apps.code_app": {
+            "handlers": ["code_app_file", "console"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+        "apps.project_app": {
+            "handlers": ["project_app_file", "console"],
+            "level": "DEBUG",
             "propagate": False,
         },
     },
@@ -408,12 +644,64 @@ LOGGING = {
 # ---------------------------------------
 # Integration
 # ---------------------------------------
-# ORCID OAuth
+# ORCID OAuth (legacy - for profile linking)
 ORCID_CLIENT_ID = os.getenv("ORCID_CLIENT_ID", "")
 ORCID_CLIENT_SECRET = os.getenv("ORCID_CLIENT_SECRET", "")
 ORCID_REDIRECT_URI = os.getenv(
     "ORCID_REDIRECT_URI", "http://localhost:8000/integrations/orcid/callback/"
 )
+
+# ---------------------------------------
+# Django-Allauth Settings (Social Login)
+# ---------------------------------------
+# Required for django-allauth
+SITE_ID = 1
+
+# Allauth account settings
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+ACCOUNT_LOGOUT_ON_GET = True
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = True
+ACCOUNT_AUTHENTICATION_METHOD = "username_email"
+ACCOUNT_EMAIL_VERIFICATION = "optional"  # or "mandatory" for stricter verification
+ACCOUNT_SIGNUP_REDIRECT_URL = LOGIN_REDIRECT_URL
+ACCOUNT_LOGOUT_REDIRECT_URL = LOGOUT_REDIRECT_URL
+
+# Social account settings
+SOCIALACCOUNT_AUTO_SIGNUP = True  # Auto-create account on first social login
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True  # Allow login via email if account exists
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True  # Auto-connect social to existing account
+SOCIALACCOUNT_LOGIN_ON_GET = True  # Allow GET requests for social login (for buttons)
+SOCIALACCOUNT_QUERY_EMAIL = True  # Request email from providers
+
+# Provider-specific settings
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "SCOPE": [
+            "profile",
+            "email",
+        ],
+        "AUTH_PARAMS": {
+            "access_type": "online",
+        },
+        "OAUTH_PKCE_ENABLED": True,
+        "FETCH_USERINFO": True,
+    },
+    "orcid": {
+        # Use sandbox.orcid.org for development, orcid.org for production
+        "BASE_DOMAIN": os.getenv("ORCID_BASE_DOMAIN", "sandbox.orcid.org"),
+        "MEMBER_API": False,  # Set True if you have ORCID member API access
+    },
+}
+
+# Google OAuth credentials (from environment)
+GOOGLE_CLIENT_ID = os.getenv("SCITEX_GOOGLE_CLIENT_ID", "")
+GOOGLE_CLIENT_SECRET = os.getenv("SCITEX_GOOGLE_CLIENT_SECRET", "")
+
+# Custom adapters for SciTeX-specific user handling
+ACCOUNT_ADAPTER = "apps.auth_app.adapters.SciTexAccountAdapter"
+SOCIALACCOUNT_ADAPTER = "apps.auth_app.adapters.SciTexSocialAccountAdapter"
 
 # ---------------------------------------
 # SciTeX Scholar Search Settings
@@ -459,6 +747,20 @@ for location in _WRITER_TEMPLATE_LOCATIONS:
         SCITEX_WRITER_TEMPLATE_PATH = location
         # Template found
         break
+
+# ---------------------------------------
+# CrossRef Local API
+# ---------------------------------------
+CROSSREF_INTERNAL_URL = os.getenv(
+    "CROSSREF_INTERNAL_URL",
+    "http://crossref:3333"
+)
+
+# CrossRef database path for citation graph service
+CROSSREF_DB_PATH = os.getenv(
+    "CROSSREF_DB_PATH",
+    str(Path.home() / "proj/crossref_local/data/crossref.db")
+)
 
 # ---------------------------------------
 # REST Framework

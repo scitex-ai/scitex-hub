@@ -1,52 +1,23 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background circle - transparent -->
-  <circle cx="32" cy="32" r="24" fill="none"/>
-
   <!-- Gear/cog outer -->
-  <path d="M32 12C33.3132 12 34.6136 12.0978 35.8892 12.2857C36.3306 12.3527 36.7256 12.6327 36.9512 13.0401L39.6578 18.0829C40.5183 18.4325 41.3567 18.8246 42.1707 19.2661L47.5461 17.6733C47.9804 17.543 48.4393 17.6423 48.7839 17.9432C50.627 19.5598 52.1965 21.4708 53.4323 23.6001C53.6927 23.9791 53.7465 24.4558 53.5762 24.8825L51.358 30.8053C51.5119 31.8535 51.6 32.9252 51.6 34C51.6 35.0748 51.5119 36.1465 51.358 37.1947L53.5762 43.1175C53.7465 43.5442 53.6927 44.0209 53.4323 44.3999C52.1965 46.5292 50.627 48.4402 48.7839 50.0568C48.4393 50.3577 47.9804 50.457 47.5461 50.3267L42.1707 48.7339C41.3567 49.1754 40.5183 49.5675 39.6578 49.9171L36.9512 54.9599C36.7256 55.3673 36.3306 55.6473 35.8892 55.7143C34.6136 55.9022 33.3132 56 32 56C30.6868 56 29.3864 55.9022 28.1108 55.7143C27.6694 55.6473 27.2744 55.3673 27.0488 54.9599L24.3422 49.9171C23.4817 49.5675 22.6433 49.1754 21.8293 48.7339L16.4539 50.3267C16.0196 50.457 15.5607 50.3577 15.2161 50.0568C13.373 48.4402 11.8035 46.5292 10.5677 44.3999C10.3073 44.0209 10.2535 43.5442 10.4238 43.1175L12.642 37.1947C12.4881 36.1465 12.4 35.0748 12.4 34C12.4 32.9252 12.4881 31.8535 12.642 30.8053L10.4238 24.8825C10.2535 24.4558 10.3073 23.9791 10.5677 23.6001C11.8035 21.4708 13.373 19.5598 15.2161 17.9432C15.5607 17.6423 16.0196 17.543 16.4539 17.6733L21.8293 19.2661C22.6433 18.8246 23.4817 18.4325 24.3422 18.0829L27.0488 13.0401C27.2744 12.6327 27.6694 12.3527 28.1108 12.2857C29.3864 12.0978 30.6868 12 32 12Z" stroke="#4a6baf" stroke-width="2.5"/>
+  <path d="M32 12C33.3132 12 34.6136 12.0978 35.8892 12.2857C36.3306 12.3527 36.7256 12.6327 36.9512 13.0401L39.6578 18.0829C40.5183 18.4325 41.3567 18.8246 42.1707 19.2661L47.5461 17.6733C47.9804 17.543 48.4393 17.6423 48.7839 17.9432C50.627 19.5598 52.1965 21.4708 53.4323 23.6001C53.6927 23.9791 53.7465 24.4558 53.5762 24.8825L51.358 30.8053C51.5119 31.8535 51.6 32.9252 51.6 34C51.6 35.0748 51.5119 36.1465 51.358 37.1947L53.5762 43.1175C53.7465 43.5442 53.6927 44.0209 53.4323 44.3999C52.1965 46.5292 50.627 48.4402 48.7839 50.0568C48.4393 50.3577 47.9804 50.457 47.5461 50.3267L42.1707 48.7339C41.3567 49.1754 40.5183 49.5675 39.6578 49.9171L36.9512 54.9599C36.7256 55.3673 36.3306 55.6473 35.8892 55.7143C34.6136 55.9022 33.3132 56 32 56C30.6868 56 29.3864 55.9022 28.1108 55.7143C27.6694 55.6473 27.2744 55.3673 27.0488 54.9599L24.3422 49.9171C23.4817 49.5675 22.6433 49.1754 21.8293 48.7339L16.4539 50.3267C16.0196 50.457 15.5607 50.3577 15.2161 50.0568C13.373 48.4402 11.8035 46.5292 10.5677 44.3999C10.3073 44.0209 10.2535 43.5442 10.4238 43.1175L12.642 37.1947C12.4881 36.1465 12.4 35.0748 12.4 34C12.4 32.9252 12.4881 31.8535 12.642 30.8053L10.4238 24.8825C10.2535 24.4558 10.3073 23.9791 10.5677 23.6001C11.8035 21.4708 13.373 19.5598 15.2161 17.9432C15.5607 17.6423 16.0196 17.543 16.4539 17.6733L21.8293 19.2661C22.6433 18.8246 23.4817 18.4325 24.3422 18.0829L27.0488 13.0401C27.2744 12.6327 27.6694 12.3527 28.1108 12.2857C29.3864 12.0978 30.6868 12 32 12Z" stroke="currentColor" stroke-width="3"/>
 
   <!-- Inner circle (core) -->
-  <circle cx="32" cy="34" r="10" fill="#90b1e2" fill-opacity="0.6" stroke="#4a6baf" stroke-width="2"/>
+  <circle cx="32" cy="34" r="10" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="2.5"/>
 
   <!-- Neural network connections -->
-  <circle cx="32" cy="34" r="3" fill="#4a6baf"/>
+  <circle cx="32" cy="34" r="3" fill="currentColor"/>
 
   <!-- Connection points (neurons) -->
-  <circle cx="24" cy="26" r="2" fill="#4a6baf"/>
-  <circle cx="40" cy="26" r="2" fill="#4a6baf"/>
-  <circle cx="24" cy="42" r="2" fill="#4a6baf"/>
-  <circle cx="40" cy="42" r="2" fill="#4a6baf"/>
+  <circle cx="24" cy="26" r="2.5" fill="currentColor"/>
+  <circle cx="40" cy="26" r="2.5" fill="currentColor"/>
+  <circle cx="24" cy="42" r="2.5" fill="currentColor"/>
+  <circle cx="40" cy="42" r="2.5" fill="currentColor"/>
 
   <!-- Neural pathways -->
-  <path d="M32 31L24 26" stroke="#4a6baf" stroke-width="1.5"/>
-  <path d="M32 31L40 26" stroke="#4a6baf" stroke-width="1.5"/>
-  <path d="M32 37L24 42" stroke="#4a6baf" stroke-width="1.5"/>
-  <path d="M32 37L40 42" stroke="#4a6baf" stroke-width="1.5"/>
-
-  <!-- Smaller outer connection points -->
-  <circle cx="18" cy="24" r="1.5" fill="#4a6baf"/>
-  <circle cx="46" cy="24" r="1.5" fill="#4a6baf"/>
-  <circle cx="18" cy="44" r="1.5" fill="#4a6baf"/>
-  <circle cx="46" cy="44" r="1.5" fill="#4a6baf"/>
-
-  <!-- Extended connections -->
-  <path d="M24 26L18 24" stroke="#4a6baf" stroke-width="1" stroke-dasharray="2 1"/>
-  <path d="M40 26L46 24" stroke="#4a6baf" stroke-width="1" stroke-dasharray="2 1"/>
-  <path d="M24 42L18 44" stroke="#4a6baf" stroke-width="1" stroke-dasharray="2 1"/>
-  <path d="M40 42L46 44" stroke="#4a6baf" stroke-width="1" stroke-dasharray="2 1"/>
-
-  <!-- Energy pulses -->
-  <circle cx="28" cy="28.5" r="1" fill="#4a6baf">
-    <animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite"/>
-  </circle>
-  <circle cx="36" cy="28.5" r="1" fill="#4a6baf">
-    <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite"/>
-  </circle>
-  <circle cx="28" cy="39.5" r="1" fill="#4a6baf">
-    <animate attributeName="opacity" values="0.3;1;0.3" dur="1.7s" repeatCount="indefinite"/>
-  </circle>
-  <circle cx="36" cy="39.5" r="1" fill="#4a6baf">
-    <animate attributeName="opacity" values="1;0.3;1" dur="1.7s" repeatCount="indefinite"/>
-  </circle>
+  <path d="M32 31L24 26" stroke="currentColor" stroke-width="2"/>
+  <path d="M32 31L40 26" stroke="currentColor" stroke-width="2"/>
+  <path d="M32 37L24 42" stroke="currentColor" stroke-width="2"/>
+  <path d="M32 37L40 42" stroke="currentColor" stroke-width="2"/>
 </svg>

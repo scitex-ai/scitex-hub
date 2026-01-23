@@ -1,0 +1,253 @@
+/* Pricing Page - Alpha Phase Styles */
+/* Separated for maintainability */
+
+/* ============================================
+   Hero Alpha Note
+   ============================================ */
+.alpha-hero-note {
+  color: var(--color-fg-muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.alpha-hero-note a {
+  color: var(--scitex-color-04);
+  text-decoration: underline;
+}
+
+.alpha-hero-note code {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.alpha-inline-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  padding: 0.2rem 0.6rem;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+.alpha-inline-badge i {
+  font-size: 0.65rem;
+}
+
+/* ============================================
+   5-Tier Pricing Cards Layout
+   ============================================ */
+.pricing-cards-wrapper {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+@media (max-width: 1200px) {
+  .pricing-cards-wrapper {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .pricing-cards-wrapper {
+    grid-template-columns: 1fr;
+    max-width: 400px;
+  }
+}
+
+/* ============================================
+   Alpha Badge on Pricing Cards
+   ============================================ */
+.pricing-card .alpha-badge {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  padding: 0.3rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+.pricing-card .alpha-badge i {
+  font-size: 0.65rem;
+}
+
+/* ============================================
+   Alpha Active Cards
+   ============================================ */
+.pricing-card.alpha-active {
+  border: 2px solid rgba(251, 191, 36, 0.5);
+  background: linear-gradient(
+    180deg,
+    rgba(251, 191, 36, 0.08) 0%,
+    var(--color-canvas-default) 30%
+  );
+}
+
+/* ============================================
+   Alpha Disabled / Post-Alpha Cards
+   ============================================ */
+.pricing-card.alpha-disabled {
+  position: relative;
+  opacity: 0.6;
+}
+
+.pricing-card.alpha-disabled .pricing-header,
+.pricing-card.alpha-disabled .pricing-features,
+.pricing-card.alpha-disabled .pricing-cta {
+  filter: grayscale(30%);
+}
+
+.alpha-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.15) 0%,
+    rgba(0, 0, 0, 0.05) 100%
+  );
+  border-radius: inherit;
+  z-index: 5;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 3rem;
+  pointer-events: none;
+}
+
+.alpha-overlay-text {
+  background: rgba(100, 100, 100, 0.9);
+  color: white;
+  padding: 0.3rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Strikethrough for prices */
+.price.strikethrough {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+/* ============================================
+   Compact Comparison Table
+   ============================================ */
+.comparison-table-compact {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.comparison-table-compact th,
+.comparison-table-compact td {
+  padding: 0.6rem 0.5rem;
+  text-align: center;
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.comparison-table-compact th:first-child,
+.comparison-table-compact td:first-child {
+  text-align: left;
+  font-weight: 500;
+}
+
+.comparison-table-compact thead th {
+  font-weight: 600;
+  color: var(--color-fg-default);
+  padding-bottom: 0.75rem;
+}
+
+.comparison-table-compact .fa-check {
+  color: #10b981;
+}
+
+.comparison-table-compact .fa-times {
+  color: var(--color-fg-muted);
+  opacity: 0.4;
+}
+
+.comparison-table-compact .featured-col {
+  background: rgba(251, 191, 36, 0.08);
+}
+
+.comparison-table-compact .muted-col {
+  opacity: 0.4;
+}
+
+/* ============================================
+   5-Column Comparison Table
+   ============================================ */
+.comparison-table-5col th,
+.comparison-table-5col td {
+  padding: 0.75rem 0.5rem;
+  font-size: 0.85rem;
+}
+
+.comparison-table-5col th:first-child,
+.comparison-table-5col td:first-child {
+  text-align: left;
+  min-width: 120px;
+}
+
+/* Alpha columns - highlight */
+.comparison-table .alpha-col {
+  background: rgba(251, 191, 36, 0.08);
+}
+
+.comparison-table thead .alpha-col {
+  background: rgba(251, 191, 36, 0.15);
+  color: #f59e0b;
+}
+
+/* Post-alpha columns - muted */
+.comparison-table .post-alpha-col {
+  opacity: 0.5;
+}
+
+.comparison-table thead .post-alpha-col {
+  color: var(--color-fg-muted);
+}
+
+/* ============================================
+   Responsive
+   ============================================ */
+@media (max-width: 767px) {
+  .alpha-notice {
+    padding: 1.5rem;
+  }
+
+  .alpha-notice-badge {
+    left: 1rem;
+  }
+
+  .alpha-notice-details {
+    grid-template-columns: 1fr;
+  }
+
+  .allocation-status {
+    grid-template-columns: 1fr;
+  }
+}

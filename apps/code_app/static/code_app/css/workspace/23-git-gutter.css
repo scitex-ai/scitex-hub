@@ -1,0 +1,40 @@
+/* Git gutter decorations for Monaco editor */
+.git-gutter-modified {
+  background: rgba(226, 192, 141, 0.3) !important;
+  width: 3px !important;
+  margin-left: 3px;
+}
+
+.git-gutter-added {
+  background: rgba(115, 201, 145, 0.3) !important;
+  width: 3px !important;
+  margin-left: 3px;
+}
+
+.git-gutter-deleted {
+  background: rgba(241, 76, 76, 0.3) !important;
+  width: 3px !important;
+  margin-left: 3px;
+}
+
+.git-glyph-modified {
+  background: var(--status-warning) !important;
+  width: 4px !important;
+  height: 100% !important;
+  margin-left: 2px;
+}
+
+.git-glyph-added {
+  background: var(--status-success) !important;
+  width: 4px !important;
+  height: 100% !important;
+  margin-left: 2px;
+}
+
+.git-glyph-deleted {
+  background: var(--status-error) !important;
+  width: 4px !important;
+  height: 100% !important;
+  margin-left: 2px;
+}
+

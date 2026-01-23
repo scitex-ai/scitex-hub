@@ -1,0 +1,40 @@
+/* Logo */
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--scitex-color-01); /* Dark text in light mode */
+  font-size: 18px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: opacity 0.2s ease;
+  text-decoration: none;
+  position: relative;
+}
+
+.header-logo:hover {
+  opacity: 0.8;
+  text-decoration: none;
+}
+
+/* Tooltip styling is now handled by common/tooltips.css */
+
+.header-logo-img {
+  height: 44px;
+  width: auto;
+  max-width: 200px;
+  object-fit: contain;
+}
+
+.header-logo-icon {
+  height: 36px;
+  width: 36px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+/* Ensure logo link has proper spacing */
+.header-left .header-logo {
+  margin-right: var(--spacing-md, 12px);
+}
+

@@ -1,0 +1,170 @@
+/**
+ * Workspace Files Tree - Context Menu & Drop Zone
+ * Right-click context menu and file drop zone styles
+ */
+
+/* ========== Drop Zone Styles ========== */
+
+/* Drop zone active state (when dragging files over the tree) */
+.workspace-files-tree.wft-drop-zone-active {
+  background: var(--color-accent-subtle, rgba(47, 129, 247, 0.1));
+  outline: 2px dashed var(--color-accent-fg, #58a6ff);
+  outline-offset: -4px;
+}
+
+.workspace-files-tree.wft-drop-zone-active::after {
+  content: 'Drop files here to upload';
+  position: absolute;
+  bottom: 50%;
+  left: 50%;
+  transform: translate(-50%, 50%);
+  padding: 12px 24px;
+  background: var(--color-canvas-overlay, #2d333b);
+  border: 1px solid var(--color-accent-fg, #58a6ff);
+  border-radius: 6px;
+  color: var(--color-accent-fg, #58a6ff);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  z-index: 100;
+  pointer-events: none;
+}
+
+/* Drop target folder highlight */
+.wft-item.wft-drop-target {
+  background: var(--color-accent-subtle, rgba(47, 129, 247, 0.15)) !important;
+  outline: 1px solid var(--color-accent-fg, #58a6ff);
+}
+
+/* Dragging item visual */
+.wft-item.wft-dragging {
+  opacity: 0.6;
+}
+
+/* ========== Context Menu Styles ========== */
+
+.wft-context-menu {
+  background: var(--color-canvas-overlay, #2d333b);
+  border: 1px solid var(--workspace-border-default, #3a3a3a);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  padding: 4px 0;
+  min-width: 180px;
+  z-index: 10000;
+  font-size: 12px;
+}
+
+.wft-context-item {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  cursor: pointer;
+  color: var(--color-fg-default, #e6edf3);
+  transition: background-color 0.1s ease;
+}
+
+.wft-context-item:hover {
+  background: var(--color-accent-subtle, rgba(47, 129, 247, 0.15));
+}
+
+.wft-context-item.disabled {
+  color: var(--color-fg-muted, #768390);
+  cursor: not-allowed;
+}
+
+.wft-context-item.disabled:hover {
+  background: transparent;
+}
+
+.wft-context-icon {
+  width: 20px;
+  text-align: center;
+  margin-right: 8px;
+  color: var(--color-fg-muted, #768390);
+}
+
+.wft-context-item:hover .wft-context-icon {
+  color: var(--color-accent-fg, #58a6ff);
+}
+
+.wft-context-label {
+  flex: 1;
+}
+
+.wft-context-shortcut {
+  color: var(--color-fg-muted, #768390);
+  font-size: 11px;
+  margin-left: 16px;
+}
+
+.wft-context-separator {
+  height: 1px;
+  background: var(--workspace-border-default, #3a3a3a);
+  margin: 4px 8px;
+}
+
+/* ========== Context Menu Item Colors ========== */
+
+/* New file - Blue */
+.wft-context-item.context-new-file .wft-context-icon {
+  color: var(--color-accent-fg, #58a6ff);
+}
+
+/* New folder - Green */
+.wft-context-item.context-new-folder .wft-context-icon {
+  color: var(--color-success-fg, #3fb950);
+}
+
+/* Rename - Yellow/Orange */
+.wft-context-item.context-rename .wft-context-icon {
+  color: var(--color-attention-fg, #d29922);
+}
+
+/* Duplicate - Purple */
+.wft-context-item.context-duplicate .wft-context-icon {
+  color: var(--color-done-fg, #a371f7);
+}
+
+/* Delete - Red */
+.wft-context-item.context-delete .wft-context-icon {
+  color: var(--color-danger-fg, #f85149);
+}
+
+/* Git Stage - Green */
+.wft-context-item.context-git-stage .wft-context-icon {
+  color: var(--color-success-fg, #3fb950);
+}
+
+/* Git Unstage - Yellow/Orange */
+.wft-context-item.context-git-unstage .wft-context-icon {
+  color: var(--color-attention-fg, #d29922);
+}
+
+/* Git Discard - Red */
+.wft-context-item.context-git-discard .wft-context-icon {
+  color: var(--color-danger-fg, #f85149);
+}
+
+/* Git History - Blue */
+.wft-context-item.context-git-history .wft-context-icon {
+  color: var(--color-accent-fg, #58a6ff);
+}
+
+/* Git Diff - Purple */
+.wft-context-item.context-git-diff .wft-context-icon {
+  color: var(--color-done-fg, #a371f7);
+}
+
+/* Hover states - maintain icon colors */
+.wft-context-item.context-new-file:hover .wft-context-icon,
+.wft-context-item.context-new-folder:hover .wft-context-icon,
+.wft-context-item.context-rename:hover .wft-context-icon,
+.wft-context-item.context-duplicate:hover .wft-context-icon,
+.wft-context-item.context-delete:hover .wft-context-icon,
+.wft-context-item.context-git-stage:hover .wft-context-icon,
+.wft-context-item.context-git-unstage:hover .wft-context-icon,
+.wft-context-item.context-git-discard:hover .wft-context-icon,
+.wft-context-item.context-git-history:hover .wft-context-icon,
+.wft-context-item.context-git-diff:hover .wft-context-icon {
+  /* Keep the same color on hover - don't override to accent color */
+}

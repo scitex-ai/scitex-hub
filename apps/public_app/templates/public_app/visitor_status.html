@@ -1,0 +1,122 @@
+{% extends "global_base.html" %}
+{% load static vite %}
+
+{% block title %}Visitor Mode Status - SciTeX{% endblock %}
+
+{% block meta_description %}
+Check the current status of SciTeX visitor mode slots and availability.
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'public_app/css/visitor-status.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="visitor-status-container">
+    <!-- Hero Section -->
+    <div class="status-hero">
+        <h1 class="status-hero-title">
+            <i class="fas fa-users status-hero-icon"></i>
+            Visitor Mode Status
+        </h1>
+    </div>
+
+    <!-- Slots Grid -->
+    <h2 class="section-title">
+        <i class="fas fa-cube"></i> Visitor Slots
+    </h2>
+
+    <div class="slots-grid">
+        {% for allocation in allocations %}
+        <div class="slot-card {{ allocation.status }} {% if allocation.is_current_user %}current-user{% endif %}">
+            <div class="slot-header">
+                <div class="slot-number">
+                    <i class="fas fa-cube slot-number-icon"></i>
+                    Slot #{{ allocation.slot_number }}
+                </div>
+                <span class="slot-status-badge {{ allocation.status }}">
+                    {{ allocation.status|upper }}
+                </span>
+            </div>
+
+            {% if allocation.status == "allocated" %}
+            <div class="slot-info">
+                <i class="fas fa-user slot-user-icon"></i>
+                {{ allocation.visitor_username }}{% if allocation.is_current_user %} <strong class="slot-current-user-badge">(You)</strong>{% endif %}
+            </div>
+            <div class="slot-time-remaining">
+                <i class="fas fa-clock"></i>
+                <span>
+                    Expires in {{ allocation.minutes_remaining }} min
+                </span>
+            </div>
+            {% else %}
+            <div class="slot-info">
+                <i class="fas fa-check-circle slot-available-icon"></i>
+                Available
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- How It Works (Short) -->
+    <div class="how-it-works-section">
+        <h2 class="section-title">
+            <i class="fas fa-info-circle"></i> How It Works
+        </h2>
+
+        <div class="how-it-works-grid">
+            <!-- Slot Allocation -->
+            <div class="how-it-works-card">
+                <h3 class="how-it-works-card-title">
+                    <i class="fas fa-user-tag how-it-works-card-icon"></i>
+                    Slot Allocation
+                </h3>
+                <p class="how-it-works-card-text">
+                    Navigate to any workspace to get assigned a visitor slot (e.g., <code>visitor-001</code>). First-come, first-served.
+                </p>
+            </div>
+
+            <!-- Data Separation -->
+            <div class="how-it-works-card">
+                <h3 class="how-it-works-card-title">
+                    <i class="fas fa-shield-alt how-it-works-card-icon"></i>
+                    Data Privacy
+                </h3>
+                <p class="how-it-works-card-text">
+                    Your data is completely isolated. Each visitor has a private workspace. No one else can see your work.
+                </p>
+            </div>
+
+            <!-- Session Duration -->
+            <div class="how-it-works-card">
+                <h3 class="how-it-works-card-title">
+                    <i class="fas fa-clock how-it-works-card-icon"></i>
+                    60-Minute Sessions
+                </h3>
+                <p class="how-it-works-card-text">
+                    Slots expire after 1 hour. Sign up to migrate your data and get unlimited access.
+                </p>
+            </div>
+
+            <!-- Sign Up -->
+            <div class="how-it-works-card">
+                <h3 class="how-it-works-card-title">
+                    <i class="fas fa-user-plus how-it-works-card-icon"></i>
+                    Keep Your Work
+                </h3>
+                <p class="how-it-works-card-text">
+                    <a href="{% url 'auth_app:signup' %}" class="how-it-works-link">Sign up</a> anytime to save your work permanently. All data auto-migrates.
+                </p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+{% vite_script 'public_app/visitor-status' %}
+{% endblock %}

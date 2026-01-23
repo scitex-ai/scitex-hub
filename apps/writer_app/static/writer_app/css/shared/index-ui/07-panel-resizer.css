@@ -1,0 +1,28 @@
+/* =========================================
+   PANEL RESIZER (Matches Scholar pattern)
+   ========================================= */
+
+/* Panel resizer - 4px hit area, transparent by default, green on hover */
+.panel-resizer {
+  width: 4px;
+  background: transparent;
+  cursor: col-resize;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+
+.panel-resizer:hover,
+.panel-resizer.active {
+  background: var(--workspace-icon-primary, #059669);
+}
+
+/* Ensure writer-editor has proper background */
+.writer-editor {
+  background: var(--workspace-bg-primary) !important;
+}
+
+/* Ensure editor content wrapper has proper background */
+.editor-content-wrapper {
+  background: var(--workspace-bg-primary) !important;
+}
+

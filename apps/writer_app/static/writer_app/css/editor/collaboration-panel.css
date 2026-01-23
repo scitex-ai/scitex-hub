@@ -1,0 +1,22 @@
+/* ============================================================================
+ * Collaboration Panel Styles
+ * ============================================================================
+ * Real-time collaboration interface for the Writer
+ * ========================================================================== */
+
+/* Collaboration panel container - header is in normal flow, no need for top padding */
+.collaboration-panel-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  padding: 0;
+  background: var(--bg-page);
+  overflow: hidden; /* Changed from auto - children handle their own scrolling */
+  box-sizing: border-box;
+}
+
+/* Dark theme */
+[data-theme="dark"] .collaboration-panel-container {
+  background: var(--workspace-bg-primary);
+}

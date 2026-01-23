@@ -148,6 +148,15 @@ export class LatexWrapper {
   }
 
   /**
+   * Check if content contains citation commands
+   */
+  private hasCitations(content: string): boolean {
+    // Match \cite{...}, \citep{...}, \citet{...}, \citeauthor{...}, etc.
+    const citationPattern = /\\cite[ptaA]?\s*\{[^}]+\}/;
+    return citationPattern.test(content);
+  }
+
+  /**
    * Create minimal LaTeX document for preview
    */
   createMinimalDocument(content: string, fontSize: number = 11): string {
@@ -186,11 +195,13 @@ export class LatexWrapper {
     doc += `\\begin{document}\n\n`;
     doc += content;
 
-    // Add bibliography support for citations
-    // bibliographystyle should come before bibliography command
-    doc += `\n\n% Bibliography (automatically included for citation support)\n`;
-    doc += `\\bibliographystyle{plain}\n`;
-    doc += `\\bibliography{bibliography}\n`;
+    // Only add bibliography if content contains citations
+    // This prevents showing an empty References section
+    if (this.hasCitations(content)) {
+      doc += `\n\n% Bibliography (automatically included for citation support)\n`;
+      doc += `\\bibliographystyle{plain}\n`;
+      doc += `\\bibliography{bibliography}\n`;
+    }
 
     doc += `\n\\end{document}\n`;
     return doc;

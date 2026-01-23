@@ -1,6 +1,6 @@
 // Pull request conversation functionality
 
-import { getCsrfToken } from "../utils/csrf.js";
+import { getCsrfToken } from "../utils/csrf";
 
 console.log(
   "[DEBUG] apps/project_app/static/project_app/ts/pull_requests/conversation.ts loaded",

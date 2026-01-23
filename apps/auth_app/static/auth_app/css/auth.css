@@ -189,5 +189,100 @@
 }
 
 /* =========================
+   Social Login Layout
+   ========================= */
+
+.social-login-divider {
+  /* Layout */
+  display: flex;
+  align-items: center;
+  margin: 1.5rem 0;
+  gap: 1rem;
+}
+
+.social-login-divider::before,
+.social-login-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background-color: var(--color-border-default);
+}
+
+.social-login-divider span {
+  /* Layout */
+  padding: 0 0.5rem;
+  /* Styling */
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.social-login-buttons {
+  /* Layout */
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.btn-social {
+  /* Layout */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  width: 100%;
+  /* Styling */
+  border-radius: 6px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border: 1px solid var(--color-border-default);
+  background-color: var(--color-canvas-default);
+  color: var(--color-text-primary);
+}
+
+.btn-social:hover {
+  background-color: var(--color-canvas-subtle);
+  border-color: var(--color-border-emphasis);
+  text-decoration: none;
+  color: var(--color-text-primary);
+}
+
+.btn-social .social-icon {
+  /* Layout */
+  flex-shrink: 0;
+}
+
+/* Google button specific styling */
+.btn-google {
+  /* Keep default styling, Google logo has its own colors */
+}
+
+.btn-google:hover {
+  border-color: #4285F4;
+}
+
+/* ORCID button specific styling */
+.btn-orcid {
+  /* Keep default styling, ORCID logo has its own color */
+}
+
+.btn-orcid:hover {
+  border-color: #A6CE39;
+}
+
+/* Responsive - side by side on larger screens */
+@media (min-width: 480px) {
+  .social-login-buttons {
+    flex-direction: row;
+  }
+
+  .btn-social {
+    flex: 1;
+  }
+}
+
+/* =========================
    END OF AUTH.CSS
    ========================= */

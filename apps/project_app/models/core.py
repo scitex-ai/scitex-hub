@@ -60,6 +60,9 @@ class VisitorAllocation(models.Model):
     allocated_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField(help_text="Allocation expiry time")
     is_active = models.BooleanField(default=True, help_text="Active allocation")
+    last_activity = models.DateTimeField(
+        null=True, blank=True, help_text="Last activity timestamp for idle detection"
+    )
 
     class Meta:
         ordering = ["visitor_number"]

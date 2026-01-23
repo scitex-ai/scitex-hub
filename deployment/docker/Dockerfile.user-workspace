@@ -14,10 +14,14 @@ LABEL version="1.0.0"
 
 # Set timezone
 ENV TZ=UTC
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo -e $TZ > /etc/timezone
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Install system dependencies and Microsoft core fonts (Arial, Times New Roman, etc.)
+RUN sed -i 's/main/main contrib/g' /etc/apt/sources.list.d/debian.sources 2>/dev/null || \
+        sed -i 's/main$/main contrib/' /etc/apt/sources.list && \
+    apt-get update && \
+    echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     # Development tools
     build-essential \
     git \
@@ -39,11 +43,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     bzip2 \
     # Other utilities
     ca-certificates \
+    fontconfig \
+    # Microsoft core fonts for scientific figures
+    ttf-mscorefonts-installer \
+    && fc-cache -fv \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
 RUN useradd -m -u 1000 -s /bin/bash user && \
-    echo "user:user" | chpasswd && \
+    echo -e "user:user" | chpasswd && \
     mkdir -p /home/user/.ssh && \
     chown -R user:user /home/user
 
@@ -79,11 +87,11 @@ USER user
 WORKDIR /home/user
 
 # Configure shell environment
-RUN echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.bashrc && \
-    echo 'alias ll="ls -lah"' >> ~/.bashrc && \
-    echo 'alias python=python3' >> ~/.bashrc && \
-    echo 'alias pip=pip3' >> ~/.bashrc && \
-    echo 'export PS1="\\[\\e[32m\\]\\u@scitex-workspace\\[\\e[m\\]:\\[\\e[34m\\]\\w\\[\\e[m\\]\\$ "' >> ~/.bashrc
+RUN echo -e 'export PATH=$HOME/.local/bin:$PATH' >> ~/.bashrc && \
+    echo -e 'alias ll="ls -lah"' >> ~/.bashrc && \
+    echo -e 'alias python=python3' >> ~/.bashrc && \
+    echo -e 'alias pip=pip3' >> ~/.bashrc && \
+    echo -e 'export PS1="\\[\\e[32m\\]\\u@scitex-workspace\\[\\e[m\\]:\\[\\e[34m\\]\\w\\[\\e[m\\]\\$ "' >> ~/.bashrc
 
 # Create useful directories
 RUN mkdir -p ~/notebooks ~/scripts ~/data

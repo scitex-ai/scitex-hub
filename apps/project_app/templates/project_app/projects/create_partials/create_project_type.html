@@ -1,0 +1,106 @@
+{% load static vite %}
+<!-- Project Type Selection: Local vs Remote -->
+<div class="form-group project-type-container">
+    <label class="form-label">
+        Project Type
+    </label>
+
+    <div class="project-type-options">
+        <!-- Local Project (Default) -->
+        <label class="project-type-card">
+            <input type="radio" name="project_type" value="local" checked>
+            <div>
+                <div class="card-title">
+                    📁 Local Repository
+                </div>
+                <div class="card-description">
+                    Git-enabled, fast, stored on SciTeX Cloud, full version control
+                </div>
+            </div>
+        </label>
+
+        <!-- Remote Project -->
+        <label class="project-type-card">
+            <input type="radio" name="project_type" value="remote">
+            <div>
+                <div class="card-title">
+                    🌐 Remote Filesystem
+                </div>
+                <div class="card-description">
+                    TRAMP-like access, SSH mount, no Git, slower but privacy-preserving
+                </div>
+                <div class="card-warning">
+                    ⚠️ Requires remote credential setup
+                </div>
+            </div>
+        </label>
+    </div>
+</div>
+
+<!-- Remote Project Configuration (Hidden by default) -->
+<div id="remote-project-fields">
+    <h3>
+        Remote Configuration
+    </h3>
+
+    {% if remote_credentials %}
+        <!-- Remote Credential Selection -->
+        <div class="form-group">
+            <label class="form-label" for="remote_credential_id">
+                Remote Credential*
+            </label>
+            <select id="remote_credential_id"
+                    name="remote_credential_id"
+                    class="form-input">
+                <option value="">Select a remote system...</option>
+                {% for cred in remote_credentials %}
+                    <option value="{{ cred.id }}">
+                        {{ cred.name }} ({{ cred.ssh_username }}@{{ cred.ssh_host }})
+                    </option>
+                {% endfor %}
+            </select>
+            <p class="form-help">
+                Select which remote system to connect to
+            </p>
+        </div>
+
+        <!-- Remote Path -->
+        <div class="form-group">
+            <label class="form-label" for="remote_path">
+                Remote Path*
+            </label>
+            <input type="text"
+                   id="remote_path"
+                   name="remote_path"
+                   class="form-input monospace"
+                   placeholder="/home/username/projects/my-project">
+            <p class="form-help">
+                Absolute path on the remote system where your project files are located
+            </p>
+        </div>
+
+        <div class="remote-note">
+            <p>
+                <strong>Note:</strong> Files will be accessed on-demand via SSHFS. No local copy will be stored.
+                Git operations are not available for remote projects.
+            </p>
+        </div>
+
+    {% else %}
+        <!-- No Remote Credentials Available -->
+        <div class="no-credentials-state">
+            <div class="icon">🔑</div>
+            <h4>No remote credentials yet</h4>
+            <p>
+                You need to add a remote credential before creating remote projects
+            </p>
+            <a href="{% url 'accounts_app:ssh_keys' %}#remote-credentials"
+               class="btn btn-primary">
+                Add Remote Credential
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<link rel="stylesheet" href="{% static 'project_app/css/create_project_type.css' %}">
+{% vite_script 'project_app/create_project_type' %}

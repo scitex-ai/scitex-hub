@@ -1,5 +1,5 @@
 {% extends "global_base.html" %}
-{% load static %}
+{% load static vite %}
 {% block title %}
     Account
     Settings
@@ -9,20 +9,8 @@
           href="{% static 'shared/css/layouts/settings-layout.css' %}" />
     <link rel="stylesheet"
           href="{% static 'accounts_app/css/account-modals.css' %}" />
-    <style>
-  /* Account settings danger zone styling */
-  .danger-zone {
-    border: 1px solid var(--color-danger-emphasis);
-    background: var(--color-canvas-default);
-  }
-
-  .danger-zone .section-title {
-    color: var(--color-danger-fg);
-  }
-
-  /* Password requirements styling now in shared/css/components/forms.css */
-  /* Input group styling (buttons + inputs) now in shared/css/components/forms.css */
-    </style>
+    <link rel="stylesheet"
+          href="{% static 'accounts_app/css/account_settings.css' %}" />
 {% endblock %}
 {% block content %}
     <div class="settings-page">
@@ -34,10 +22,9 @@
             <!-- Right Content -->
             <main class="settings-content">
                 {% if messages %}
-                    <div style="margin-bottom: var(--spacing-lg)">
+                    <div class="mb-4">
                         {% for message in messages %}
-                            <div class="alert-banner alert-banner-{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}"
-                                 style="margin-bottom: var(--spacing-md)">
+                            <div class="alert-banner alert-banner-{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}info{% endif %} mb-3">
                                 <div class="warning-banner-container">
                                     <div class="warning-banner-content">
                                         <i class="warning-banner-icon fas fa-{% if message.tags == 'error' %}exclamation-circle{% elif message.tags == 'success' %}check-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
@@ -58,7 +45,7 @@
                         <h2 class="section-title">Change Email</h2>
                         <p class="section-subtitle">Update your email address</p>
                     </div>
-                    <div style="margin-bottom: 16px">
+                    <div class="mb-3">
                         <p class="current-email-text">
                             Current email:
                             <strong class="current-email-value">{{ user.email }}</strong>
@@ -228,5 +215,5 @@
     </div>
 {% endblock %}
 {% block extra_js %}
-    <script src="{% static 'accounts_app/js/account-settings.js' %}"></script>
+    {% vite_script 'accounts_app/account-settings' %}
 {% endblock %}

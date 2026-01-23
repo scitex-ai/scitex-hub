@@ -1,0 +1,82 @@
+/*
+ * @component Button
+ * @description Versatile button component with multiple variants, sizes, and states including loading, icon, and split button variants
+ * @category Form and Selection
+ * @file /static/shared/css/components/buttons/index.css
+ * @darkmode true (see buttons-dark.css)
+ *
+ * @variant btn - Base button class (required)
+ * @variant btn-nav - Navigation button style (like header navigation items: Explore, Scholar, Writer)
+ * @variant btn-primary - Primary action button (main CTA)
+ * @variant btn-secondary - Secondary action button
+ * @variant btn-danger - Destructive action button (red)
+ * @variant btn-success - Success/confirmation button (green)
+ * @variant btn-warning - Warning button (yellow)
+ * @variant btn-info - Informational button (blue)
+ * @variant btn-dark - Dark button for secondary actions
+ * @variant btn-black - Black button for GitHub and prominent external links
+ * @variant btn-text - Text-only button (tertiary/low emphasis)
+ * @variant btn-outline-primary - Outlined primary button
+ * @variant btn-outline-secondary - Outlined secondary button
+ * @variant btn-icon - Icon-only button (square)
+ * @variant btn-with-icon - Button with icon and text
+ * @variant btn-loading - Button with loading spinner
+ * @variant btn-split - Split button with dropdown
+ * @variant btn-group - Multiple buttons grouped together
+ * @variant btn-sm - Small button size
+ * @variant btn-lg - Large button size
+ * @variant btn-block - Full-width block button
+ *
+ * @state default - Normal interactive state
+ * @state hover - Highlighted on mouse over
+ * @state focus - Highlighted when focused (keyboard navigation)
+ * @state disabled - Non-interactive disabled state (opacity reduced)
+ * @state loading - Shows spinner, non-interactive
+ *
+ * @example
+ * <button class="btn btn-nav">Navigation Item</button>
+ * <a href="#" class="btn btn-nav">Link as Nav Item</a>
+ *
+ * @example
+ * <button class="btn btn-primary">Primary</button>
+ * <button class="btn btn-secondary">Secondary</button>
+ * <button class="btn btn-danger">Delete</button>
+ * <button class="btn btn-success">Save</button>
+ *
+ * @example
+ * <button class="btn btn-text">Text Button</button>
+ * <button class="btn btn-outline-primary">Outline</button>
+ *
+ * @example
+ * <button class="btn btn-primary btn-icon">🔍</button>
+ * <button class="btn btn-primary btn-with-icon"><span class="icon">📁</span> Upload</button>
+ *
+ * @example
+ * <button class="btn btn-primary btn-loading"><span class="btn-text">Loading...</span></button>
+ *
+ * @example
+ * <div class="btn-split">
+ *   <button class="btn btn-primary btn-main">Save</button>
+ *   <button class="btn btn-primary btn-dropdown-toggle"></button>
+ *   <div class="dropdown-menu">
+ *     <a href="#" class="dropdown-item">Save and Close</a>
+ *     <a href="#" class="dropdown-item">Save as Draft</a>
+ *   </div>
+ * </div>
+ *
+ * @example
+ * <div class="btn-group">
+ *   <button class="btn btn-primary">Left</button>
+ *   <button class="btn btn-primary">Middle</button>
+ *   <button class="btn btn-primary">Right</button>
+ * </div>
+ */
+
+/* Import all button modules in cascade order */
+@import url("base.css");
+@import url("states.css");
+@import url("sizes.css");
+@import url("variants.css");
+@import url("icons.css");
+@import url("layouts.css");
+@import url("badges.css");

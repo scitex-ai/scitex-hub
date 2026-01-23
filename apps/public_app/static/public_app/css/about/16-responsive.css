@@ -1,0 +1,86 @@
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .about-comparison-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-join-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .about-usecases-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .about-stack-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .about-usecases-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-hero {
+    padding: 4rem 0 3rem;
+  }
+
+  .about-hero-title {
+    font-size: 2.25rem;
+  }
+
+  .about-hero-subtitle {
+    font-size: 1.15rem;
+  }
+
+  .about-section-title {
+    font-size: 1.75rem;
+  }
+
+  .about-democracy-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .reproducibility-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .about-join-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-cta-buttons {
+    flex-direction: column;
+  }
+
+  .about-cta-buttons .btn {
+    width: 100%;
+  }
+
+  .about-workflow {
+    flex-direction: column;
+  }
+
+  .workflow-arrow {
+    transform: rotate(90deg);
+  }
+
+  .about-container {
+    padding: 0 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .about-hero-title {
+    font-size: 1.85rem;
+  }
+
+  .about-section-title {
+    font-size: 1.5rem;
+  }
+
+  .reproducibility-grid {
+    grid-template-columns: 1fr;
+  }
+}

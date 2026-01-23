@@ -1,12 +1,12 @@
 {% extends "global_base.html" %}
-{% load static %}
+{% load static vite %}
 {% block title %}
     PR #{{ pr.number }}: {{ pr.title }} - {{ project.name }}
 {% endblock %}
 {% block extra_css %}
     <link rel="stylesheet"
           href="{% static 'project_app/css/project_app.css' %}" />
-    <link rel="stylesheet" href="{% static 'project_app/css/pr_detail.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/pull_requests/detail.css' %}" />
 {% endblock %}
 {% block content %}
     <div class="container-fluid mt-4"
@@ -41,5 +41,5 @@
     </div>
 {% endblock %}
     {% block extra_js %}
-        <script src="{% static 'project_app/js/pull_requests/detail.js' %}"></script>
+        {% vite_script 'project_app/pull_requests/detail' %}
     {% endblock %}

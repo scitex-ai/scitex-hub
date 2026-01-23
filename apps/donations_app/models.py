@@ -47,7 +47,7 @@ class Donation(models.Model):
     is_public = models.BooleanField(
         default=False, help_text="Show donation publicly on supporters page"
     )
-    is_anonymous = models.BooleanField(
+    is_visitor = models.BooleanField(
         default=False, help_text="Hide donor name if public"
     )
 
@@ -80,8 +80,8 @@ class Donation(models.Model):
 
     def get_display_name(self):
         """Get display name for public listing."""
-        if self.is_anonymous:
-            return "Anonymous"
+        if self.is_visitor:
+            return "Visitor"
         return self.donor_name
 
 

@@ -60,7 +60,7 @@
   font-size: 1rem;
   line-height: 1.5;
   color: var(--text-primary);
-  background-color: var(--color-canvas-default);
+  background-color: var(--bg-page);
   background-clip: padding-box;
   border: 2px solid var(--border-default);
   border-radius: 6px;

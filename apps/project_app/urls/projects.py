@@ -13,7 +13,7 @@ Patterns:
 """
 
 from django.urls import path
-from ..views.project_views import (
+from ..views.projects import (
     project_edit,
     project_delete,
     project_create_from_template,

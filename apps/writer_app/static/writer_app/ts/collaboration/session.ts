@@ -13,9 +13,7 @@ interface CollaboratorPresence {
 }
 
 class CollaborationSessionPage {
-  // @ts-expect-error - Placeholder for future WebSocket implementation
   private _websocket: WebSocket | null = null;
-  // @ts-expect-error - Placeholder for future collaborator tracking
   private _collaborators: Map<number, CollaboratorPresence>;
 
   constructor() {

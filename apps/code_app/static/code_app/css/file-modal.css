@@ -22,8 +22,8 @@
 }
 
 .file-modal {
-  background: var(--color-canvas-default);
-  border: 1px solid var(--color-border-default);
+  background: var(--bg-page);
+  border: 1px solid var(--workspace-border-default);
   border-radius: 8px;
   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4);
   width: 90%;
@@ -45,7 +45,7 @@
 
 .file-modal-header {
   padding: 16px 20px;
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: 1px solid var(--workspace-border-default);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -54,13 +54,13 @@
 .file-modal-title {
   font-size: 16px;
   font-weight: 600;
-  color: var(--color-fg-default);
+  color: var(--text-primary);
 }
 
 .file-modal-close {
   background: none;
   border: none;
-  color: var(--color-fg-muted);
+  color: var(--text-muted);
   cursor: pointer;
   font-size: 20px;
   padding: 4px 8px;
@@ -70,7 +70,7 @@
 
 .file-modal-close:hover {
   background: var(--color-neutral-subtle);
-  color: var(--color-fg-default);
+  color: var(--text-primary);
 }
 
 .file-modal-body {
@@ -86,16 +86,16 @@
   margin-bottom: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: var(--color-fg-default);
+  color: var(--text-primary);
 }
 
 .file-modal-input {
   width: 100%;
   padding: 8px 12px;
-  border: 1px solid var(--color-border-default);
+  border: 1px solid var(--workspace-border-default);
   border-radius: 6px;
-  background: var(--color-canvas-subtle);
-  color: var(--color-fg-default);
+  background: var(--bg-surface);
+  color: var(--text-primary);
   font-size: 14px;
   font-family: 'JetBrains Mono', monospace;
   outline: none;
@@ -111,7 +111,7 @@
 
 .file-modal-footer {
   padding: 16px 20px;
-  border-top: 1px solid var(--color-border-default);
+  border-top: 1px solid var(--workspace-border-default);
   display: flex;
   gap: 8px;
   justify-content: flex-end;
@@ -120,9 +120,9 @@
 .file-modal-btn {
   padding: 8px 16px;
   border-radius: 6px;
-  border: 1px solid var(--color-border-default);
+  border: 1px solid var(--workspace-border-default);
   background: var(--color-btn-bg);
-  color: var(--color-fg-default);
+  color: var(--text-primary);
   font-size: 14px;
   cursor: pointer;
   transition: all 0.2s;

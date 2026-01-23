@@ -1,0 +1,56 @@
+/* ============================================================================= */
+/* FILE TREE - ICONS */
+/* ============================================================================= */
+/* File and folder icon styling */
+/* ============================================================================= */
+
+/* File tree icons */
+.file-tree-icon {
+  width: 16px; /* Compact icon */
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.file-tree-icon svg,
+.icon-folder,
+.icon-file {
+  width: 16px; /* Compact */
+  height: 16px;
+}
+
+/* Icon colors matching main table */
+.icon-folder,
+.file-tree-folder .file-tree-icon {
+  color: var(--color-accent-fg, #0969da);
+}
+
+.icon-file,
+.file-tree-file .file-tree-icon {
+  color: var(--color-fg-muted, #656d76);
+}
+
+/* Chevron icon */
+.file-tree-chevron {
+  width: 20px; /* Larger clickable area */
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 3px;
+  margin-right: 2px;
+  color: var(--color-fg-muted, #656d76);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.file-tree-chevron:hover {
+  background: var(--color-neutral-emphasis, rgba(175, 184, 193, 0.48));
+  color: var(--color-accent-fg, #0969da);
+}
+
+.file-tree-chevron.expanded {
+  transform: rotate(90deg);
+}

@@ -1,0 +1,104 @@
+/* ========================================
+ * Theme-Responsive Scrollbar Styling
+ * Scrollbars adapt to current theme
+ * ======================================== */
+
+/* Default scrollbar styling for all scrollable elements */
+.text-preview::-webkit-scrollbar,
+.latex-editor-textarea::-webkit-scrollbar,
+.CodeMirror::-webkit-scrollbar,
+.compilation-log-inline::-webkit-scrollbar,
+.pdf-preview-viewer::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+/* Light mode scrollbar track */
+.text-preview::-webkit-scrollbar-track,
+.latex-editor-textarea::-webkit-scrollbar-track,
+.CodeMirror::-webkit-scrollbar-track,
+.compilation-log-inline::-webkit-scrollbar-track,
+.pdf-preview-viewer::-webkit-scrollbar-track {
+  background: var(--workspace-bg-secondary);
+}
+
+/* Light mode scrollbar thumb */
+.text-preview::-webkit-scrollbar-thumb,
+.latex-editor-textarea::-webkit-scrollbar-thumb,
+.CodeMirror::-webkit-scrollbar-thumb,
+.compilation-log-inline::-webkit-scrollbar-thumb,
+.pdf-preview-viewer::-webkit-scrollbar-thumb {
+  background: var(--workspace-border-default);
+  border-radius: 5px;
+  border: 2px solid var(--workspace-bg-secondary);
+}
+
+/* Light mode scrollbar thumb hover state */
+.text-preview::-webkit-scrollbar-thumb:hover,
+.latex-editor-textarea::-webkit-scrollbar-thumb:hover,
+.CodeMirror::-webkit-scrollbar-thumb:hover,
+.compilation-log-inline::-webkit-scrollbar-thumb:hover,
+.pdf-preview-viewer::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Dark mode scrollbar styling for PDF preview - REMOVED PDF.js, using iframe */
+[data-theme="dark"] .text-preview::-webkit-scrollbar-track,
+.text-preview[data-pdf-theme="dark"]::-webkit-scrollbar-track,
+[data-theme="dark"] .pdf-preview-viewer::-webkit-scrollbar-track,
+.pdf-preview-viewer[data-pdf-theme="dark"]::-webkit-scrollbar-track,
+[data-theme="dark"] .pdf-preview-container::-webkit-scrollbar-track,
+.pdf-preview-container[data-pdf-theme="dark"]::-webkit-scrollbar-track {
+  background: #2d3339 !important;
+}
+
+[data-theme="dark"] .text-preview::-webkit-scrollbar-thumb,
+.text-preview[data-pdf-theme="dark"]::-webkit-scrollbar-thumb,
+[data-theme="dark"] .pdf-preview-viewer::-webkit-scrollbar-thumb,
+.pdf-preview-viewer[data-pdf-theme="dark"]::-webkit-scrollbar-thumb,
+[data-theme="dark"] .pdf-preview-container::-webkit-scrollbar-thumb,
+.pdf-preview-container[data-pdf-theme="dark"]::-webkit-scrollbar-thumb {
+  background: var(--workspace-border-hover) !important;
+  border: 2px solid var(--workspace-bg-primary) !important;
+}
+
+[data-theme="dark"] .text-preview::-webkit-scrollbar-thumb:hover,
+.text-preview[data-pdf-theme="dark"]::-webkit-scrollbar-thumb:hover,
+[data-theme="dark"] .pdf-preview-viewer::-webkit-scrollbar-thumb:hover,
+.pdf-preview-viewer[data-pdf-theme="dark"]::-webkit-scrollbar-thumb:hover,
+[data-theme="dark"] .pdf-preview-container::-webkit-scrollbar-thumb:hover,
+.pdf-preview-container[data-pdf-theme="dark"]::-webkit-scrollbar-thumb:hover {
+  background: #5a6269 !important;
+}
+
+/* Firefox scrollbar styling (applies to all elements globally) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--workspace-border-default) var(--workspace-bg-secondary);
+}
+
+/* Dark mode Firefox scrollbar for PDF preview */
+[data-theme="dark"] .text-preview,
+.text-preview[data-pdf-theme="dark"] {
+  scrollbar-color: #4a5259 #2d3339;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--workspace-bg-secondary);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--workspace-border-default);
+  border-radius: 5px;
+  border: 2px solid var(--workspace-bg-secondary);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+

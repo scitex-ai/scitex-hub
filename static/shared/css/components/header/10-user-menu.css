@@ -1,0 +1,66 @@
+/* User Menu */
+.header-user-menu {
+  position: relative;
+}
+
+.header-user-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.header-user-toggle:hover {
+  background: var(--scitex-color-07); /* Light hover in light mode */
+}
+
+[data-theme="dark"] .header-user-toggle:hover {
+  background: var(--scitex-color-01-light); /* Dark hover in dark mode */
+}
+
+/* Visitor Button - Elegant transparent orange style */
+.header-user-toggle.visitor-button {
+  background: linear-gradient(135deg, rgba(240, 173, 78, 0.15) 0%, rgba(240, 173, 78, 0.08) 100%);
+  color: #f0ad4e;
+  font-weight: 500;
+  padding: 6px 12px;
+  border: 1px solid rgba(240, 173, 78, 0.3);
+}
+
+.header-user-toggle.visitor-button:hover {
+  background: linear-gradient(135deg, rgba(240, 173, 78, 0.2) 0%, rgba(240, 173, 78, 0.12) 100%);
+  border-color: rgba(240, 173, 78, 0.4);
+}
+
+.header-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--scitex-color-07); /* Light in light mode */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--scitex-color-01); /* Dark text */
+  font-weight: 600;
+  border: 1px solid var(--scitex-color-05);
+  font-size: 14px;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .header-avatar {
+  background: var(--scitex-color-01-light); /* Dark in dark mode */
+  color: var(--scitex-color-06); /* Light text */
+  border-color: var(--scitex-color-02);
+}
+
+.header-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+

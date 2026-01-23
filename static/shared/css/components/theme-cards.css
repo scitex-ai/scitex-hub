@@ -8,8 +8,8 @@
 
 /* Theme Options Container */
 .theme-options {
-  background: var(--color-canvas-default);
-  border: 1px solid var(--color-border-default);
+  background: var(--bg-page);
+  border: 1px solid var(--border-default);
   border-radius: 6px;
   padding: 24px;
 }
@@ -17,7 +17,7 @@
 .theme-section-title {
   font-size: 16px;
   font-weight: 600;
-  color: var(--color-fg-default);
+  color: var(--text-primary);
   margin-bottom: 16px;
 }
 
@@ -30,8 +30,8 @@
 }
 
 .theme-mode-card {
-  background: var(--color-canvas-subtle);
-  border: 2px solid var(--color-border-muted);
+  background: var(--bg-surface);
+  border: 2px solid var(--border-muted);
   border-radius: 6px;
   padding: 16px;
   cursor: pointer;
@@ -56,46 +56,46 @@
 .theme-mode-title {
   font-size: 16px;
   font-weight: 600;
-  color: var(--color-fg-default);
+  color: var(--text-primary);
   margin-bottom: 4px;
 }
 
 .theme-mode-desc {
   font-size: 12px;
-  color: var(--color-fg-muted);
+  color: var(--text-muted);
 }
 
 /* Theme Preview Section */
 .theme-preview {
   margin-top: 24px;
   padding: 16px;
-  background: var(--color-canvas-subtle);
-  border: 1px solid var(--color-border-muted);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-muted);
   border-radius: 6px;
 }
 
 .preview-title {
   font-size: 14px;
   font-weight: 600;
-  color: var(--color-fg-default);
+  color: var(--text-primary);
   margin-bottom: 12px;
 }
 
 .preview-box {
   padding: 24px;
-  background: var(--color-canvas-default);
-  border: 1px solid var(--color-border-default);
+  background: var(--bg-page);
+  border: 1px solid var(--border-default);
   border-radius: 6px;
-  color: var(--color-fg-default);
+  color: var(--text-primary);
 }
 
 .preview-box h3 {
-  color: var(--color-fg-default);
+  color: var(--text-primary);
   margin-bottom: 8px;
 }
 
 .preview-box p {
-  color: var(--color-fg-muted);
+  color: var(--text-muted);
   margin-bottom: 16px;
 }
 
@@ -123,8 +123,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 8px 12px;
-  background: var(--color-canvas-subtle);
-  border: 1px solid var(--color-border-default);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
   border-bottom: none;
   border-radius: 6px 6px 0 0;
 }
@@ -132,7 +132,7 @@
 .code-preview-language {
   font-size: 12px;
   font-weight: 600;
-  color: var(--color-fg-muted);
+  color: var(--text-muted);
   font-family:
     "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New",
     monospace;
@@ -142,7 +142,7 @@
   margin: 0;
   border-radius: 0 0 6px 6px;
   overflow-x: auto;
-  border: 1px solid var(--color-border-default);
+  border: 1px solid var(--border-default);
 }
 
 .code-preview code {

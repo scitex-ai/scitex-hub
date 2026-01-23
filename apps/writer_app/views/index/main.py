@@ -12,7 +12,7 @@ __DIR__ = os.path.dirname(__FILE__)
 
 """Main index view for SciTeX Writer - Simple editor/PDF viewer layout."""
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from ...models import Manuscript
 from apps.project_app.models import Project
@@ -35,8 +35,29 @@ def index_view(request):
     2. Section selector (filtered by document type)
 
     For authenticated users: loads their project
-    For anonymous users: provides demo workspace
+    For visitor users: provides demo workspace
+    If visitor pool is exhausted: redirect to visitor-pool-full page
     """
+    # Check if user is not authenticated (visitor allocation may have failed)
+    if not request.user.is_authenticated:
+        # Check if this is a browser request (has typical browser User-Agent)
+        user_agent = request.META.get('HTTP_USER_AGENT', '')
+        is_browser = any(
+            browser in user_agent
+            for browser in ['Mozilla', 'Chrome', 'Safari', 'Firefox', 'Edge', 'Opera']
+        )
+
+        if is_browser:
+            # Browser request but not authenticated - visitor pool likely exhausted
+            logger.info("[Writer] Browser request not authenticated - redirecting to visitor-pool-full")
+            return redirect('public_app:visitor_pool_full')
+
+        # Non-browser request - return empty page
+        return render(request, "writer_app/index.html", {
+            "is_visitor": True,
+            "writer_initialized": False,
+        })
+
     # Get document type from URL parameter or default to manuscript
     document_type = request.GET.get("doc_type", "manuscript")
 
@@ -46,12 +67,17 @@ def index_view(request):
         document_type = "manuscript"
 
     context = {
-        "is_anonymous": not request.user.is_authenticated,
+        "is_visitor": not request.user.is_authenticated,
         "writer_initialized": False,
         "document_type": document_type,
     }
 
     if request.user.is_authenticated:
+        # Mark as demo if visitor
+        if request.user.username.startswith("visitor-"):
+            context["is_demo"] = True
+            context["visitor_username"] = request.user.username
+
         # Get user's projects for project selector
         user_projects = Project.objects.filter(owner=request.user).order_by("name")
         context["user_projects"] = user_projects
@@ -100,68 +126,6 @@ def index_view(request):
         else:
             # User authenticated but no project selected
             context["needs_project_creation"] = True
-    else:
-        # Anonymous user - allocate from visitor pool
-        from apps.project_app.services.visitor_pool import VisitorPool
-
-        try:
-            visitor_project, visitor_user = VisitorPool.allocate_visitor(
-                request.session
-            )
-        except Exception as e:
-            logger.error(f"[Writer] Visitor pool allocation failed: {e}", exc_info=True)
-            context["pool_error"] = True
-            context["pool_error_message"] = (
-                "Visitor pool not initialized. Please run: python manage.py create_visitor_pool"
-            )
-            context["is_demo"] = True
-            return render(request, "writer_app/index.html", context)
-
-        if not visitor_project:
-            # Pool exhausted
-            logger.warning("[Writer] Visitor pool exhausted - all slots in use")
-            context["pool_exhausted"] = True
-            context["is_demo"] = True
-            return render(request, "writer_app/index.html", context)
-
-        context["is_demo"] = True
-        context["project"] = visitor_project
-        context["visitor_username"] = visitor_user.username if visitor_user else None
-
-        # Get or create manuscript for visitor project
-        # Since project is OneToOneField, only use project for lookup
-        manuscript, manuscript_created = Manuscript.objects.get_or_create(
-            project=visitor_project,
-            defaults={
-                "owner": visitor_project.owner,
-                "title": f"{visitor_project.name} Manuscript",
-                "description": "Try out SciTeX Writer - sign up to save!",
-            },
-        )
-
-        # Check if writer workspace actually exists and update flag if needed
-        if not manuscript.writer_initialized:
-            from apps.project_app.services.project_filesystem import (
-                get_project_filesystem_manager,
-            )
-
-            manager = get_project_filesystem_manager(visitor_project.owner)
-            project_root = manager.get_project_root_path(visitor_project)
-            if project_root:
-                writer_dir = project_root / "scitex" / "writer"
-                manuscript_dir = writer_dir / "01_manuscript"
-                if manuscript_dir.exists():
-                    # Workspace exists - writer_initialized property will auto-detect this
-                    logger.info(
-                        f"Writer workspace detected for visitor project: {visitor_project.slug}"
-                    )
-
-        context["manuscript"] = manuscript
-        context["manuscript_id"] = manuscript.id
-        context["writer_initialized"] = manuscript.writer_initialized
-
-        # Note: Section content is now loaded dynamically via API when user
-        # selects from hierarchical dropdown. No need to pre-load.
 
     return render(request, "writer_app/index.html", context)
 
@@ -169,7 +133,7 @@ def index_view(request):
 def initialize_workspace(request):
     """Initialize Writer workspace for a project.
 
-    Supports both authenticated users and anonymous visitors.
+    Supports both authenticated users and visitor visitors.
 
     POST body:
         {

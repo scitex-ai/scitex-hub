@@ -1,6 +1,7 @@
 /**
  * SciTeX Cloud - Custom Scrollbar Styles
- * Simple themed scrollbars matching the SciTeX color scheme
+ * Theme-responsive scrollbars using workspace color variables
+ * Matches writer page scrollbar appearance
  */
 
 /* Webkit Scrollbar (Chrome, Safari, Edge) */
@@ -10,44 +11,22 @@
 }
 
 *::-webkit-scrollbar-track {
-  background: var(--color-bg-tertiary, #f6f8fa);
-  border-radius: 5px;
+  background: var(--workspace-bg-secondary);
 }
 
 *::-webkit-scrollbar-thumb {
-  background: var(--color-border-default, #d1d5da);
+  background: var(--workspace-border-default);
   border-radius: 5px;
+  border: 2px solid var(--workspace-bg-secondary);
   transition: background 0.2s ease;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: var(--scitex-color-03, #f9c74f);
-}
-
-*::-webkit-scrollbar-thumb:active {
-  background: var(--scitex-color-02, #43aa8b);
+  background: var(--workspace-border-hover);
 }
 
 /* Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-border-default, #d1d5da)
-    var(--color-bg-tertiary, #f6f8fa);
-}
-
-/* Dark mode */
-[data-theme="dark"] *::-webkit-scrollbar-track {
-  background: #1c2128;
-}
-
-[data-theme="dark"] *::-webkit-scrollbar-thumb {
-  background: #3d4451;
-}
-
-[data-theme="dark"] *::-webkit-scrollbar-thumb:hover {
-  background: var(--scitex-color-03, #f9c74f);
-}
-
-[data-theme="dark"] * {
-  scrollbar-color: #3d4451 #1c2128;
+  scrollbar-color: var(--workspace-border-default) var(--workspace-bg-secondary);
 }

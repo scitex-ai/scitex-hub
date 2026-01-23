@@ -48,9 +48,9 @@ class GlobalSearchQueryModelTests(TestCase):
             self.assertEqual(query.search_type, search_type)
 
     def test_user_foreign_key_nullable(self):
-        """Test that user field is nullable for anonymous searches"""
+        """Test that user field is nullable for visitor searches"""
         query = GlobalSearchQuery.objects.create(
-            query_text="anonymous search", search_type="all"
+            query_text="visitor search", search_type="all"
         )
         self.assertIsNone(query.user)
 

@@ -107,7 +107,7 @@ This phase completed the final critical tasks required to make SciTeX-Cloud prod
 - ✅ GitHub-style URL routing working correctly
 
 **User Flow Verified:**
-1. Anonymous user visits `/auth/login/`
+1. Visitor user visits `/auth/login/`
 2. Enters credentials: ywatanabe / REDACTED
 3. Form submits to auth_app.login_view
 4. Django authenticate() validates password

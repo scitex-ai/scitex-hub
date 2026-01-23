@@ -7,7 +7,7 @@ console.log(
   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/panel-resizer.ts loaded",
 );
 
-import { statePersistence } from "./state-persistence.js";
+import { statePersistence } from "./state-persistence";
 
 export class PanelResizer {
   private resizer: HTMLElement | null;
@@ -39,13 +39,15 @@ export class PanelResizer {
     if (!this.resizer) return;
 
     // Force resizer to be visible (CSS might be overridden by other stylesheets)
+    // Use 4px to match Scholar pattern (transparent by default, visible on hover)
     this.resizer.style.width = "4px";
     this.resizer.style.minWidth = "4px";
     this.resizer.style.maxWidth = "4px";
     this.resizer.style.height = "100%";
     this.resizer.style.flexShrink = "0";
     this.resizer.style.flexGrow = "0";
-    console.log("[PanelResizer] Forced resizer dimensions via JS (4px)");
+    this.resizer.style.background = "transparent";
+    console.log("[PanelResizer] Forced resizer dimensions via JS (4px, transparent)");
 
     this.resizer.addEventListener("mousedown", (e) => this.handleMouseDown(e), {
       capture: true,
@@ -212,20 +214,20 @@ export class PanelResizer {
 
       console.log("[PanelResizer] Restored panel width:", leftPercent + "%");
     } else {
-      console.log("[PanelResizer] No saved width, using default 35:65 (editor:preview)");
-      // Set default to 35:65 to give more space to PDF preview for better readability
+      console.log("[PanelResizer] No saved width, using default 50:50 (editor:preview)");
+      // Set default to 50:50 for balanced workspace
       this.resetToDefault();
     }
   }
 
   /**
-   * Reset to default 35:65 split (editor:preview for better PDF readability)
+   * Reset to default 50:50 split (editor:preview for balanced workspace)
    */
   resetToDefault(): void {
     if (!this.leftPanel || !this.rightPanel) return;
 
-    const defaultLeftPercent = 35; // Give significantly more space to PDF preview
-    const defaultRightPercent = 65;
+    const defaultLeftPercent = 50; // Balanced 50:50 split
+    const defaultRightPercent = 50;
 
     this.leftPanel.style.flex = `0 0 ${defaultLeftPercent}%`;
     this.rightPanel.style.flex = `0 0 ${defaultRightPercent}%`;

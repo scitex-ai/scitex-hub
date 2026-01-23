@@ -1,0 +1,22 @@
+/* SVG icon utilities */
+.icon-inline {
+  display: inline-block;
+  vertical-align: text-bottom;
+}
+
+.icon-inline-mr {
+  display: inline-block;
+  vertical-align: text-bottom;
+  margin-right: 4px;
+}
+
+.icon-inline-ml {
+  display: inline-block;
+  vertical-align: text-bottom;
+  margin-left: 4px;
+}
+
+.icon-success {
+  color: var(--color-success-fg);
+}
+

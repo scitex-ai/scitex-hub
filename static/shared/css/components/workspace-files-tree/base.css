@@ -1,0 +1,143 @@
+/**
+ * Workspace Files Tree - Base Styles
+ * Container and tree item base styles
+ */
+
+/* Container */
+.workspace-files-tree {
+  font-family: var(--font-mono, 'JetBrains Mono', 'Monaco', 'Menlo', 'Consolas', monospace);
+  font-size: 13px;
+  line-height: 1.4;
+  overflow: hidden; /* Children handle scrolling */
+  height: 100%;
+  user-select: none;
+  background-color: var(--workspace-bg-monaco, #1e1e1e);
+  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
+  margin-bottom: 1px;
+  position: relative;  /* For absolute positioning of git gutter */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Prevent flash during tree updates by using content-visibility */
+.wft-tree {
+  contain: layout style;
+  position: relative;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0; /* Allow shrinking in flex container */
+  /* Add padding at bottom for right-click on empty space */
+  padding-bottom: 100px;
+}
+
+/* Tree Item Base */
+.wft-item {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px 4px 4px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.1s ease;
+  gap: 4px;
+  min-height: 26px;
+  position: relative;  /* Needed for action buttons positioning */
+}
+
+/* Hide project root - show children directly */
+.wft-item.wft-root {
+  display: none;
+}
+
+.wft-item.wft-root + .wft-children {
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+  border-left: none !important;
+}
+
+.wft-item:hover {
+  background-color: var(--color-canvas-subtle, rgba(127, 127, 127, 0.1));
+}
+
+/* Folder styles */
+.wft-folder {
+  font-weight: 500;
+}
+
+.wft-folder.expanded > .wft-folder-toggle .wft-chevron {
+  transform: rotate(90deg);
+}
+
+/* File styles */
+.wft-file {
+  cursor: pointer;
+}
+
+/* Folder toggle button */
+.wft-folder-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+}
+
+/* Chevron (expand/collapse indicator) */
+.wft-chevron {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  font-size: 10px;
+  line-height: 12px;
+  text-align: center;
+  transition: transform 0.15s ease;
+  color: var(--color-fg-muted, #768390);
+}
+
+.wft-chevron::before {
+  content: '▸';
+}
+
+.wft-chevron.expanded {
+  transform: rotate(90deg);
+}
+
+/* Spacer (for files without chevron) */
+.wft-spacer {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+}
+
+/* Icon */
+.wft-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.wft-icon i {
+  font-size: 14px;
+}
+
+/* Name */
+.wft-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-fg-default, #f0f3f6);
+  font-weight: 400;
+}
+
+/* Symlink indicator */
+.wft-symlink {
+  color: var(--color-fg-muted, #768390);
+  font-size: 11px;
+  margin-left: 4px;
+}

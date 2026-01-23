@@ -1,0 +1,49 @@
+/* ============================================================================
+ * Figure Preview
+ * ============================================================================
+ * Expanded view with detailed preview and metadata
+ * ========================================================================== */
+
+/* Expanded View (Shown on double-click) */
+.figure-expanded-view {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--workspace-border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.figure-expanded-preview {
+  width: 100%;
+  max-height: 300px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--bg-page);
+  border: 1px solid var(--workspace-border-default);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.figure-expanded-preview img {
+  width: 100%;
+  height: auto;
+  max-height: 300px;
+  object-fit: contain;
+}
+
+.figure-expanded-details {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.figure-expanded-details > div {
+  margin-bottom: 0.4rem;
+}
+
+.figure-expanded-details strong {
+  color: var(--workspace-text-primary);
+  font-weight: 600;
+}

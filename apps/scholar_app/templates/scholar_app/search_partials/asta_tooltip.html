@@ -1,65 +1,50 @@
 {% load static %}
-<!-- Helper Message with ASTA Instructions -->
-<div style="background: linear-gradient( 135deg, rgba(var(--info-color-rgb, 107, 143, 179), 0.1) 0%, rgba(var(--scitex-color-03-rgb, 80, 107, 122), 0.1) 100% );
-            border-left: 4px solid var(--info-color);
-            border-radius: 8px;
-            padding: 1rem 1.25rem;
-            margin-bottom: 1.5rem">
-    <div style="display: flex; align-items: center; gap: 0.75rem">
-        <i class="fas fa-lightbulb"
-           style="color: var(--info-color);
-                  font-size: 1.5rem"></i>
-        <div style="flex: 1">
-            <div style="color: var(--color-fg-default);
-                        font-weight: 600;
-                        margin-bottom: 0.5rem;
-                        font-size: 0.95rem">
+<link rel="stylesheet" href="{% static 'scholar_app/css/components/asta-tooltip.css' %}?v=20251202b" />
+<!-- Helper Message with ASTA Instructions - Using Workspace Colors -->
+<div class="asta-tooltip-container">
+    <div class="asta-tooltip-content">
+        <i class="fas fa-lightbulb asta-tooltip-icon"></i>
+        <div class="asta-tooltip-body">
+            <div class="asta-tooltip-title">
                 No BibTeX file?
             </div>
-            <div style="display: flex;
-                        flex-direction: column;
-                        gap: 0.5rem;
-                        color: var(--color-fg-muted);
-                        font-size: 0.9rem">
+            <div class="asta-tooltip-options">
                 <div>
-                    <strong>Option 1:</strong> Find papers at AI2 Asta →
-                    <a href="/tools/asta-citation-scraper/"
-                       style="color: var(--info-color);
-                              font-weight: 600;
-                              text-decoration: underline">
-                        using our bulk download tool
+                    <strong>Option A:</strong> Find papers at
+                    <a href="https://asta.allen.ai/chat"
+                       target="_blank"
+                       rel="noopener noreferrer">
+                        AI2 Asta
                     </a>
+                    using our
+                    <a href="/tools/asta-citation-scraper/">
+                        Bulk Download Tool
+                    </a>
+                    <span class="badge badge-warning badge-sm asta-tooltip-badge">Recommended</span>
                 </div>
                 <div>
-                    <strong>Option 2:</strong>
-                    <a href="/scholar/search/"
-                       style="color: var(--info-color);
-                              font-weight: 600;
-                              text-decoration: underline">
-                        Literature Search
+                    <strong>Option B:</strong> Export from your citation manager
+                </div>
+                <div>
+                    <strong>Option C:</strong> Use our
+                    <a href="/scholar/search/">
+                        Literature Search Tool
                     </a>
                 </div>
             </div>
         </div>
         {% if current_project %}
             <button id="generate-ai2-prompt-scholar-btn"
-                    class="btn btn-sm btn-outline-primary"
-                    style="white-space: nowrap">
+                    class="btn btn-sm btn-outline-secondary asta-generate-prompt-btn">
                 <i class="fas fa-brain me-1"></i>Generate AI Prompt
             </button>
         {% endif %}
     </div>
     {% if not current_project and user.is_authenticated %}
-        <div style="margin-top: 0.75rem;
-                    padding-top: 0.75rem;
-                    border-top: 1px solid rgba(var(--info-color-rgb), 0.2);
-                    font-size: 0.85rem;
-                    color: var(--color-fg-muted)">
+        <div class="asta-tooltip-footer">
             <i class="fas fa-info-circle me-1"></i>
             To generate AI2 prompt from your manuscript, first write your paper in
-            <a href="/writer/"
-               style="color: var(--info-color);
-                      text-decoration: underline">Writer</a>.
+            <a href="/writer/">Writer</a>.
         </div>
     {% endif %}
 </div>

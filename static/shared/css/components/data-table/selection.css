@@ -1,0 +1,78 @@
+/* ========================================================================
+   DATA TABLE SELECTION STYLES
+   ======================================================================== */
+
+/* Selected cells - cells within currentCells range */
+.data-table td.selected,
+.data-table th.selected {
+    background-color: rgba(74, 155, 126, 0.08) !important;
+    z-index: 1;
+}
+
+[data-theme="dark"] .data-table td.selected,
+[data-theme="dark"] .data-table th.selected {
+    background-color: rgba(74, 155, 126, 0.15) !important;
+}
+
+/* Current cell - the active input target (currentCell)
+   Must override .selected when both classes present */
+.data-table td.current,
+.data-table th.current,
+.data-table td.selected.current,
+.data-table th.selected.current {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    z-index: 2;
+}
+
+[data-theme="dark"] .data-table td.current,
+[data-theme="dark"] .data-table th.current,
+[data-theme="dark"] .data-table td.selected.current,
+[data-theme="dark"] .data-table th.selected.current {
+    background-color: rgba(30, 30, 30, 0.95) !important;
+}
+
+/* Editing cell - when currentCell is in edit mode */
+.data-table td.editing,
+.data-table th.editing {
+    background-color: var(--vis-bg-primary, #ffffff) !important;
+    outline: 2px solid var(--status-success, #4a9b7e);
+    outline-offset: -2px;
+    z-index: 3;
+}
+
+[data-theme="dark"] .data-table td.editing,
+[data-theme="dark"] .data-table th.editing {
+    background-color: var(--vis-bg-primary, #1e1e1e) !important;
+}
+
+/* Selection border overlay (solid border like Excel) */
+.selection-border-overlay {
+    position: absolute;
+    pointer-events: none;
+    border: 2px solid var(--status-success, #4a9b7e);
+    z-index: 100;
+}
+
+/* Fill handle (small square at bottom-right) */
+.fill-handle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: var(--status-success, #4a9b7e);
+    border: 1px solid white;
+    cursor: crosshair;
+    z-index: 101;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Fill preview (during drag-to-fill) */
+.data-table td.fill-preview {
+    background-color: rgba(74, 155, 126, 0.15) !important;
+    border: 1px dashed var(--status-success, #4a9b7e) !important;
+}
+
+/* Highlighted headers (row numbers and column headers when selection active) */
+.data-table th.header-highlighted,
+.data-table td.header-highlighted {
+    background-color: rgba(74, 155, 126, 0.2) !important;
+}

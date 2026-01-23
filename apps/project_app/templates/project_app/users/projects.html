@@ -1,77 +1,55 @@
-{% extends 'global_base.html' %}
-{% load static %}
-{% block title %}
-    {{ profile_user.username }} - SciTeX Cloud
-{% endblock %}
-{% block extra_css %}
-    <link rel="stylesheet"
-          href="{% static 'project_app/css/project_app.css' %}" />
-{% endblock %}
-{% block content %}
-    <div class="profile-page">
-        <div class="profile-layout">
-            <!-- Left Sidebar - Profile Info -->
-            {% include 'project_app/users/projects_partials/user_projects_sidebar.html' %}
-            <!-- Right Content Area -->
-            <main class="profile-content">
-                <!-- Navigation Tabs -->
-                {% include 'project_app/users/projects_partials/user_projects_navigation.html' %}
-                {% block profile_content %}
-                <!-- Repository Section Header -->
-                <div class="repo-section-header">
-                    <div class="repo-search">
-                        <input type="text"
-                               placeholder="Find a repository..."
-                               id="repo-search"
-                               class="form-control repo-search-input" />
-                        <kbd class="repo-search-shortcut">Ctrl+K</kbd>
-                    </div>
-                    {% if user.is_authenticated and user == profile_user %}
-                        <a href="{% url 'project_create' %}" class="btn btn-primary">
-                            <i class="fas fa-book"></i>
-                            New
-                        </a>
-                    {% endif %}
-                </div>
-                <!-- Repository List -->
-                {% if projects %}
-                    <div class="repo-list">
-                        {% for project in projects %}
-                            {% include 'project_app/users/projects_partials/user_projects_repo_item.html' %}
-                        {% endfor %}
-                    </div>
-                    <!-- Pagination -->
-                    {% if projects.has_other_pages %}
-                        <nav aria-label="Repository pagination" style="margin-top: 32px">
-                            <div style="display: flex; justify-content: center; gap: 8px">
-                                {% if projects.has_previous %}
-                                    <a href="?page={{ projects.previous_page_number }}"
-                                       class="pagination-link">Previous</a>
-                                {% endif %}
-                                <span class="pagination-info">{{ projects.number }} / {{ projects.paginator.num_pages }}</span>
-                                {% if projects.has_next %}<a href="?page={{ projects.next_page_number }}" class="pagination-link">Next</a>{% endif %}
-                            </div>
-                        </nav>
-                    {% endif %}
-                    {% else %}
-                        <!-- Empty State -->
-                        <div class="empty-state">
-                            <div class="empty-state-icon">
-                                <i class="fas fa-book-open"></i>
-                            </div>
-                            <h3>{{ profile_user.username }} doesn't have any public repositories yet.</h3>
-                            {% if user.is_authenticated and user == profile_user %}
-                                <p>Create your first repository to start building with SciTeX.</p>
-                                <a href="{% url 'project_create' %}" class="btn btn-primary">
-                                    <i class="fas fa-book"></i>
-                                    Create a new repository
-                                </a>
-                            {% endif %}
-                        </div>
-                    {% endif %}
-                {% endblock profile_content %}
-            </main>
+{% extends 'project_app/user_project_list.html' %}
+{% block profile_content %}
+    <!-- Repository Section Header -->
+    <div class="repo-section-header">
+        <div class="repo-search">
+            <input type="text"
+                   placeholder="Find a repository..."
+                   id="repo-search"
+                   class="form-control repo-search-input" />
+            <kbd class="repo-search-shortcut">Ctrl+K</kbd>
         </div>
+        {% if user.is_authenticated and user == profile_user %}
+            <a href="{% url 'project_create' %}" class="btn btn-primary">
+                <i class="fas fa-book"></i>
+                New
+            </a>
+        {% endif %}
     </div>
-    {% include 'project_app/users/projects_partials/user_projects_scripts.html' %}
-{% endblock %}
+    <!-- Repository List -->
+    {% if projects %}
+        <div class="repo-list">
+            {% for project in projects %}
+                {% include 'project_app/users/projects_partials/user_projects_repo_item.html' %}
+            {% endfor %}
+        </div>
+        <!-- Pagination -->
+        {% if projects.has_other_pages %}
+            <nav aria-label="Repository pagination" style="margin-top: 32px">
+                <div style="display: flex; justify-content: center; gap: 8px">
+                    {% if projects.has_previous %}
+                        <a href="?page={{ projects.previous_page_number }}"
+                           class="pagination-link">Previous</a>
+                    {% endif %}
+                    <span class="pagination-info">{{ projects.number }} / {{ projects.paginator.num_pages }}</span>
+                    {% if projects.has_next %}<a href="?page={{ projects.next_page_number }}" class="pagination-link">Next</a>{% endif %}
+                </div>
+            </nav>
+        {% endif %}
+        {% else %}
+            <!-- Empty State -->
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="fas fa-book-open"></i>
+                </div>
+                <h3>{{ profile_user.username }} doesn't have any public repositories yet.</h3>
+                {% if user.is_authenticated and user == profile_user %}
+                    <p>Create your first repository to start building with SciTeX.</p>
+                    <a href="{% url 'project_create' %}" class="btn btn-primary">
+                        <i class="fas fa-book"></i>
+                        Create a new repository
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+{% endblock profile_content %}

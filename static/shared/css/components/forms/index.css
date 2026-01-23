@@ -1,0 +1,76 @@
+/*
+ * @component Form Input
+ * @description Standard form input controls including text fields, textareas, selects, and input groups
+ * @category Form and Selection
+ * @file /static/shared/css/components/forms/index.css
+ * @darkmode true
+ *
+ * @variant form-control - Base input/textarea/select field
+ * @variant form-label - Label for form fields
+ * @variant form-group - Wrapper for label + input with spacing
+ * @variant form-check - Checkbox/radio wrapper
+ * @variant form-check-input - Native checkbox/radio input
+ * @variant form-check-label - Label for checkbox/radio
+ * @variant input-group - Container for input with prefix/suffix
+ * @variant input-group-text - Prefix/suffix text or icon
+ * @variant input-group-prepend - Prefix container
+ * @variant input-group-append - Suffix container
+ * @variant form-control-sm - Small input size
+ * @variant form-control-lg - Large input size
+ *
+ * @state default - Normal interactive state
+ * @state focus - Highlighted border and shadow when focused
+ * @state disabled - Non-interactive disabled state
+ * @state readonly - Read-only state (not editable)
+ * @state valid - Valid input state (green border with checkmark icon)
+ * @state invalid - Invalid input state (red border with error icon)
+ * @state warning - Warning input state (yellow border with warning icon)
+ *
+ * @example
+ * <div class="form-group">
+ *   <label class="form-label" for="email">Email Address</label>
+ *   <input type="email" id="email" class="form-control" placeholder="you@example.com">
+ *   <div class="form-text">We'll never share your email with anyone else.</div>
+ * </div>
+ *
+ * @example
+ * <div class="form-group">
+ *   <label class="form-label" for="username">Username</label>
+ *   <input type="text" id="username" class="form-control is-valid" value="john_doe">
+ *   <div class="valid-feedback">Looks good!</div>
+ * </div>
+ *
+ * @example
+ * <div class="form-group">
+ *   <label class="form-label" for="password">Password</label>
+ *   <input type="password" id="password" class="form-control is-invalid" value="123">
+ *   <div class="invalid-feedback">Password must be at least 8 characters.</div>
+ * </div>
+ *
+ * @example
+ * <div class="form-group">
+ *   <label class="form-label" for="age">Age</label>
+ *   <input type="number" id="age" class="form-control is-warning" value="17">
+ *   <div class="warning-feedback">You must be 18 or older to proceed.</div>
+ * </div>
+ *
+ * @example
+ * <div class="form-group">
+ *   <label class="form-label" for="country">Country</label>
+ *   <select id="country" class="form-control">
+ *     <option>Select country...</option>
+ *     <option>United States</option>
+ *     <option>United Kingdom</option>
+ *     <option>Canada</option>
+ *   </select>
+ * </div>
+ */
+
+/* Import all form modules */
+@import "./base.css";
+@import "./inputs.css";
+@import "./selects.css";
+@import "./layout.css";
+@import "./validation.css";
+@import "./helper-text.css";
+@import "./password.css";

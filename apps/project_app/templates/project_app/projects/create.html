@@ -5,6 +5,7 @@
     <link rel="stylesheet"
           href="{% static 'project_app/css/project_app.css' %}" />
     <link rel="stylesheet" href="{% static 'shared/css/common.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/create.css' %}" />
 {% endblock %}
 {% block content %}
     <div class="create-container">
@@ -18,8 +19,12 @@
                 {% include 'project_app/projects/create_partials/create_name_field.html' %}
                 <!-- Description Field -->
                 {% include 'project_app/projects/create_partials/create_description_field.html' %}
-                <div class="form-group">
-                    <label class="form-label" style="display: block; margin-bottom: 0.75rem">Initialize Repository</label>
+
+                <!-- Project Type Selection (Local vs Remote) -->
+                {% include 'project_app/projects/create_partials/create_project_type.html' %}
+
+                <div class="form-group" id="local-init-options">
+                    <label class="form-label">Initialize Repository</label>
                     {% include 'project_app/projects/create_partials/create_init_options.html' %}
                     {% include 'project_app/projects/create_partials/create_scripts.html' %}
                 </div>

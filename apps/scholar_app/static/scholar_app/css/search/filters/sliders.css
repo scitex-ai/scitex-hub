@@ -1,0 +1,127 @@
+/*
+ * Slider and Range Input Styles
+ *
+ * Range sliders, noUiSlider customization, and spacing
+ */
+
+/* Slider containers */
+.slider-container {
+  margin: 20px 0;
+}
+
+/* Slider Section Spacing - Sufficient margins between sliders */
+.filter-section {
+  margin-bottom: 2.5rem !important;
+}
+
+.filter-section:last-child {
+  margin-bottom: 1rem !important;
+}
+
+.filter-label {
+  margin-bottom: 0.75rem !important;
+}
+
+.filter-range-display {
+  margin-bottom: 1rem !important;
+}
+
+.swarm-plot-container {
+  margin-bottom: 0.5rem !important;
+}
+
+/* noUiSlider SciTeX Brand Color Customization */
+.noUi-target {
+  /* Overall slider background - inherited from parent */
+  border: none;
+  box-shadow: none;
+}
+
+/* Slider track/rail */
+.noUi-base,
+.noUi-connects {
+  background: var(--scitex-color-07);
+  border-radius: 4px;
+}
+
+[data-theme="dark"] .noUi-base,
+[data-theme="dark"] .noUi-connects {
+  background: var(--scitex-color-02);
+}
+
+/* Range/connection color (the filled portion between handles) - use brand success green */
+.noUi-connect {
+  background: var(--success-color);
+}
+
+[data-theme="dark"] .noUi-connect {
+  background: var(--success-color);
+}
+
+/* Handle/thumb styling - use brand success green */
+.noUi-handle {
+  background: white;
+  border: 3px solid var(--success-color);
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+  cursor: grab;
+}
+
+.noUi-handle:hover {
+  background: rgba(40, 167, 69, 0.05);
+  border-color: var(--success-color);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+  cursor: grab;
+}
+
+.noUi-handle:active {
+  cursor: grabbing;
+}
+
+.noUi-handle.noUi-active {
+  background: rgba(40, 167, 69, 0.1);
+  border-color: var(--success-color);
+  box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4);
+}
+
+/* Dark mode handle */
+[data-theme="dark"] .noUi-handle {
+  background: var(--scitex-color-01);
+  border-color: var(--success-color);
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
+}
+
+[data-theme="dark"] .noUi-handle:hover {
+  background: var(--scitex-color-02);
+  border-color: var(--success-color);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+[data-theme="dark"] .noUi-handle.noUi-active {
+  background: var(--scitex-color-02);
+  border-color: var(--success-color);
+  box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4);
+}
+
+/* Tooltip styling on handles */
+.noUi-tooltip {
+  background: var(--scitex-color-01);
+  color: var(--white);
+  border: none;
+  border-radius: 4px;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+[data-theme="dark"] .noUi-tooltip {
+  background: var(--scitex-color-03);
+  color: var(--scitex-color-06);
+}
+
+/* Dark Mode Text Visibility Fixes */
+[data-theme="dark"] .filter-label,
+[data-theme="dark"] .filter-range-display {
+  /* color: var(--scitex-color-06) !important; */
+}

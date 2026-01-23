@@ -30,15 +30,30 @@
 @import url("primitives/z-index.css");
 @import url("layouts/layout.css");
 @import url("primitives/typography.css");
-@import url("utilities/utilities.css");
+
+/* Utility Class Modules (refactored from monolithic utilities.css) */
+@import url("utilities/utils/00-utilities.css");
+@import url("utilities/utils/01-spacing.css");
+@import url("utilities/utils/02-display.css");
+@import url("utilities/utils/03-flexbox.css");
+@import url("utilities/utils/04-grid.css");
+@import url("utilities/utils/05-text.css");
+@import url("utilities/utils/06-width-height.css");
+@import url("utilities/utils/07-border.css");
+@import url("utilities/utils/08-overflow.css");
+@import url("utilities/utils/09-position.css");
+@import url("utilities/utils/10-shadow.css");
+@import url("utilities/utils/11-cursor.css");
+@import url("utilities/utils/12-transition.css");
+@import url("utilities/utils/13-responsive.css");
 
 /* ========================================
    3. COMMON UI COMPONENTS
    ======================================== */
 /* Form Elements */
-@import url("components/forms.css");
+@import url("components/forms/index.css");
 @import url("utilities/autofill.css");
-@import url("components/buttons.css");
+@import url("components/buttons/index.css");
 @import url("components/buttons-dark.css");
 @import url("components/button-cta.css");
 @import url("components/toggles.css");
@@ -56,6 +71,7 @@
 @import url("components/code-blocks.css");
 @import url("components/terminal-log.css");
 @import url("components/theme-cards.css");
+@import url("components/panel-resizer.css");
 @import url("utilities/scrollbars.css");
 @import url("components/module-icons.css");
 
@@ -65,7 +81,6 @@
 /* ========================================
    4. PAGE COMPONENTS
    ======================================== */
-/* Note: header.css (global navigation) is loaded separately in global_head_styles.html */
 @import url("components/logo.css");
 @import url("components/footer.css");
 @import url("components/navbar.css");
@@ -76,7 +91,26 @@
 @import url("components/features.css");
 @import url("components/hero.css");
 @import url("components/alerts.css");
-@import url("components/header.css");
+
+/* Global Header CSS Modules (refactored from monolithic header.css) */
+@import url("components/header/00-header.css");
+@import url("components/header/01-container.css");
+@import url("components/header/02-layout.css");
+@import url("components/header/03-logo.css");
+@import url("components/header/04-nav-icons.css");
+@import url("components/header/05-search-bar.css");
+@import url("components/header/06-navigation.css");
+@import url("components/header/07-action-buttons.css");
+@import url("components/header/08-theme-toggle.css");
+@import url("components/header/09-icon-buttons.css");
+@import url("components/header/10-user-menu.css");
+@import url("components/header/11-dropdown-menu.css");
+@import url("components/header/12-project-selector.css");
+@import url("components/header/13-jump-buttons.css");
+@import url("components/header/14-responsive.css");
+@import url("components/header/15-visitor-badge.css");
+@import url("components/header/16-search-modal.css");
+
 @import url("utilities/background-patterns.css");
 
 /* ========================================

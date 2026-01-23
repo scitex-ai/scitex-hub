@@ -1,0 +1,188 @@
+/* Extracted inline styles from explore.html */
+
+/* Container */
+.explore-container {
+    max-width: 1280px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+/* Header */
+.explore-header {
+    margin-bottom: 30px;
+}
+
+.explore-header h1 {
+    font-size: 32px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.explore-header p {
+    color: var(--color-fg-muted);
+    font-size: 16px;
+}
+
+/* Tabs */
+.explore-tabs {
+    border-bottom: 1px solid var(--color-border-default);
+    margin-bottom: 30px;
+}
+
+.tab-link {
+    display: inline-block;
+    padding: 12px 16px;
+    margin-right: 16px;
+    color: var(--color-fg-default);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    font-weight: 400;
+}
+
+.tab-link.active {
+    border-bottom-color: var(--scitex-color-04);
+    font-weight: 600;
+}
+
+/* Repository Card */
+.repository-card {
+    padding: 20px;
+    border: 1px solid var(--color-border-default);
+    border-radius: 6px;
+    margin-bottom: 16px;
+    background: var(--color-canvas-default);
+    transition: border-color 0.2s;
+}
+
+.repository-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 12px;
+}
+
+.repository-card-title-wrapper {
+    flex: 1;
+}
+
+.repository-card-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.repository-card-link {
+    color: var(--color-accent-fg);
+    text-decoration: none;
+}
+
+.repository-card-stats {
+    display: flex;
+    gap: 8px;
+}
+
+.repository-card-star-count {
+    color: var(--color-fg-muted);
+    font-size: 14px;
+}
+
+.repository-card-description {
+    color: var(--color-fg-muted);
+    margin: 0 0 12px 0;
+    font-size: 14px;
+}
+
+.repository-card-meta {
+    display: flex;
+    gap: 16px;
+    font-size: 13px;
+    color: var(--color-fg-muted);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--color-fg-muted);
+}
+
+.empty-state-title {
+    font-size: 18px;
+}
+
+/* Users Grid */
+.users-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+/* User Card */
+.user-card {
+    padding: 20px;
+    border: 1px solid var(--color-border-default);
+    border-radius: 6px;
+    background: var(--color-canvas-default);
+}
+
+.user-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.user-card-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--scitex-color-04);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.user-card-info {
+    flex: 1;
+}
+
+.user-card-name {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.user-card-link {
+    color: var(--color-accent-fg);
+    text-decoration: none;
+}
+
+.user-card-username {
+    margin: 0;
+    font-size: 14px;
+    color: var(--color-fg-muted);
+}
+
+.user-card-bio {
+    color: var(--color-fg-muted);
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+.user-card-meta {
+    display: flex;
+    gap: 16px;
+    font-size: 13px;
+    color: var(--color-fg-muted);
+}
+
+/* Empty State (Grid Context) */
+.empty-state-grid {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--color-fg-muted);
+}

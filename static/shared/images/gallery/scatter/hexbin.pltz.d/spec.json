@@ -1,0 +1,44 @@
+{
+  "schema": {
+    "name": "scitex.plt.spec",
+    "version": "1.0.0"
+  },
+  "plot_id": "hexbin",
+  "data": {
+    "csv": "hexbin.csv",
+    "format": "wide",
+    "hash": "sha256:60fd1f5c9835f0ef"
+  },
+  "axes": [
+    {
+      "id": "ax0",
+      "bbox": {
+        "x0": 0.25,
+        "y0": 0.2941,
+        "width": 0.5,
+        "height": 0.4118,
+        "space": "panel"
+      },
+      "labels": {
+        "xlabel": "X",
+        "ylabel": "Y",
+        "title": "ax.hexbin()"
+      },
+      "limits": {
+        "x": [
+          -8.629664316309155,
+          8.637339225945123
+        ],
+        "y": [
+          -8.54629661650783,
+          9.791714460078149
+        ]
+      },
+      "role": "main",
+      "linked_to": null
+    }
+  ],
+  "traces": [],
+  "scitex_schema": "scitex.plt.spec",
+  "scitex_schema_version": "1.0.0"
+}

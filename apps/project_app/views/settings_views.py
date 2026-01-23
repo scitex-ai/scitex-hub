@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 def project_settings(request, username, slug):
     """GitHub-style repository settings page"""
     logger.info(
-        f"[Settings VIEW] ===== ENTERED ===== Method: {request.method}, User: {request.user.username if request.user.is_authenticated else 'Anonymous'}, Path: {request.path}"
+        f"[Settings VIEW] ===== ENTERED ===== Method: {request.method}, User: {request.user.username if request.user.is_authenticated else 'Visitor'}, Path: {request.path}"
     )
 
     user = get_object_or_404(User, username=username)

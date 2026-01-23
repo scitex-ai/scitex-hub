@@ -1,0 +1,408 @@
+/* ============================================================================
+ * Figures Gallery
+ * ============================================================================
+ * Figure cards, thumbnails, drag handles, badges, metadata
+ * ========================================================================== */
+
+/* Figure Card - Ultra Modern with Glassmorphism */
+.figure-card {
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(107, 143, 179, 0.05) 50%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(107, 143, 179, 0.2);
+  border-radius: 16px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  cursor: grab;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: visible;
+  display: flex;
+  gap: 1.25rem;
+  box-shadow:
+    0 8px 32px 0 rgba(0, 0, 0, 0.15),
+    0 2px 8px 0 rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+  animation: fadeSlideIn 0.5s ease-out forwards;
+}
+
+/* Figure Drag Handle - Top Left Corner */
+.figure-drag-handle {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  opacity: 0.4;
+  cursor: grab;
+  z-index: 9;
+  transition: opacity 0.2s ease;
+}
+
+.figure-drag-handle i {
+  font-size: 0.75rem;
+}
+
+.figure-card:hover .figure-drag-handle {
+  opacity: 0.7;
+}
+
+.figure-card.dragging .figure-drag-handle {
+  cursor: grabbing;
+  opacity: 1;
+}
+
+/* Figure Thumbnail - Ultra Modern with Neon Border */
+.figure-thumbnail {
+  width: 100px;
+  height: 100px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(107, 143, 179, 0.1) 100%);
+  border: 2px solid rgba(107, 143, 179, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 1.5rem; /* Space for drag handle */
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.15),
+    inset 0 2px 4px rgba(255, 255, 255, 0.05),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+
+.figure-thumbnail::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 12px;
+  padding: 2px;
+  background: linear-gradient(45deg,
+    rgba(107, 143, 179, 0.3),
+    rgba(255, 255, 255, 0.1),
+    rgba(107, 143, 179, 0.3)
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.figure-card:hover .figure-thumbnail {
+  border-color: rgba(107, 143, 179, 0.8);
+  box-shadow:
+    0 8px 24px rgba(107, 143, 179, 0.3),
+    0 0 20px rgba(107, 143, 179, 0.2),
+    inset 0 2px 4px rgba(255, 255, 255, 0.1),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+  transform: scale(1.08) rotateZ(-2deg);
+}
+
+.figure-card:hover .figure-thumbnail::before {
+  opacity: 1;
+}
+
+.figure-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.figure-thumbnail i {
+  font-size: 2rem;
+  color: var(--text-muted);
+  opacity: 0.3;
+}
+
+/* Figure Content */
+.figure-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+  padding-right: 2.5rem; /* Space for checkbox */
+}
+
+/* Upper Right Corner: Checkbox */
+.figure-checkbox-corner {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 10;
+}
+
+/* Figure Checkbox */
+.figure-checkbox {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: var(--workspace-bg-secondary);
+  border: 2px solid var(--workspace-border-default);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.figure-checkbox:hover:not(:disabled) {
+  border-color: var(--_scitex-02);
+  box-shadow: 0 0 0 3px rgba(52, 73, 94, 0.1);
+}
+
+.figure-checkbox:focus {
+  outline: 0;
+  border-color: var(--_scitex-02);
+  box-shadow: 0 0 0 3px rgba(52, 73, 94, 0.15);
+}
+
+.figure-checkbox:checked {
+  background-color: var(--_scitex-02);
+  border-color: var(--_scitex-02);
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="white"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 10px;
+  background-clip: border-box;
+}
+
+/* "In Paper" Badge - Positioned below checkbox */
+.figure-badge {
+  position: absolute;
+  top: 2rem;
+  right: 0.5rem;
+  z-index: 9;
+  background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+  color: white;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow:
+    0 2px 8px rgba(46, 204, 113, 0.3),
+    0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.figure-card:hover .figure-badge {
+  transform: translateY(-2px);
+  box-shadow:
+    0 4px 12px rgba(46, 204, 113, 0.4),
+    0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+/* Figure Label/Key - Ultra Modern Animated Badge */
+.figure-label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: white;
+  background: linear-gradient(135deg,
+    var(--_scitex-02) 0%,
+    var(--_scitex-03) 50%,
+    var(--_scitex-02) 100%
+  );
+  background-size: 200% 200%;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  display: inline-block;
+  max-width: fit-content;
+  box-shadow:
+    0 4px 12px rgba(107, 143, 179, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.figure-label::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transform: rotate(45deg);
+  transition: all 0.6s ease;
+}
+
+.figure-card:hover .figure-label {
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 20px rgba(107, 143, 179, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+  background-position: 100% 0;
+}
+
+.figure-card:hover .figure-label::before {
+  left: 100%;
+}
+
+/* Figure Caption */
+.figure-caption {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--workspace-text-primary);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Figure Metadata */
+.figure-metadata {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.figure-file-name {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.figure-file-size {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.figure-dimensions {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.meta-dot {
+  color: var(--workspace-border-default);
+  flex-shrink: 0;
+}
+
+/* Card Hover States - Ultra Modern with Glow */
+.figure-card:hover {
+  background: linear-gradient(
+    145deg,
+    rgba(107, 143, 179, 0.15) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(107, 143, 179, 0.12) 100%
+  );
+  border-color: rgba(107, 143, 179, 0.6);
+  box-shadow:
+    0 20px 60px rgba(107, 143, 179, 0.25),
+    0 8px 20px rgba(0, 0, 0, 0.15),
+    0 0 0 2px rgba(107, 143, 179, 0.3),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.15),
+    0 0 40px rgba(107, 143, 179, 0.2);
+  transform: translateY(-8px) scale(1.02);
+}
+
+/* Animation for card entrance */
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.figure-card:active {
+  cursor: grabbing;
+}
+
+.figure-card.dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+
+.figure-card.selected {
+  background: linear-gradient(
+    145deg,
+    rgba(107, 143, 179, 0.2) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(107, 143, 179, 0.15) 100%
+  );
+  border-color: rgba(107, 143, 179, 0.8);
+  border-width: 2px;
+  box-shadow:
+    0 12px 40px rgba(107, 143, 179, 0.35),
+    0 0 0 4px rgba(107, 143, 179, 0.2),
+    0 0 60px rgba(107, 143, 179, 0.3),
+    inset 0 2px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -2px 0 rgba(107, 143, 179, 0.2);
+  transform: scale(1.03);
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow:
+      0 12px 40px rgba(107, 143, 179, 0.35),
+      0 0 0 4px rgba(107, 143, 179, 0.2),
+      0 0 60px rgba(107, 143, 179, 0.3),
+      inset 0 2px 0 rgba(255, 255, 255, 0.15),
+      inset 0 -2px 0 rgba(107, 143, 179, 0.2);
+  }
+  50% {
+    box-shadow:
+      0 12px 40px rgba(107, 143, 179, 0.45),
+      0 0 0 4px rgba(107, 143, 179, 0.3),
+      0 0 80px rgba(107, 143, 179, 0.4),
+      inset 0 2px 0 rgba(255, 255, 255, 0.2),
+      inset 0 -2px 0 rgba(107, 143, 179, 0.3);
+  }
+}
+
+/* Drag Ghost Element */
+.figure-drag-ghost {
+  opacity: 0.8;
+  transform: rotate(2deg);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Drop Zone Indicator on Editor */
+.latex-panel.drag-over-figure {
+  outline: 2px dashed var(--color-success-emphasis);
+  outline-offset: -4px;
+  background: var(--color-success-subtle);
+  transition: all 0.2s;
+}

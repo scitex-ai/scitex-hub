@@ -1,1392 +1,956 @@
-{% extends 'global_base.html' %}
-{% load static %}
+{% extends "global_base.html" %}
+{% load static vite %}
 
-{% block title %}Vis - Scientific Figure Editor | SciTeX{% endblock %}
+{% block title %}SciTeX Visualizer{% if current_project %} - {{ current_project.name }}{% endif %}{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'vis_app/css/vis.css' %}?v={{ request.timestamp|default:'9' }}">
+<link rel="stylesheet" href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d">
+<!-- Vis Editor CSS Modules (refactored from monolithic vis.css) -->
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/variables.css' %}">
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/layout.css' %}">
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/ribbon.css' %}">
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/sidebar.css' %}">
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/workspace.css' %}">
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/properties-panel.css' %}">
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/status-bar.css' %}">
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/theme.css' %}">
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/split-view.css' %}">
+<!-- Shared data-table CSS (used by vis, code apps) -->
+<link rel="stylesheet" href="{% static 'shared/css/components/data-table/index.css' %}">
+<link rel="stylesheet" href="{% static 'shared/css/components/data-table/data-table.css' %}">
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/controls.css' %}">
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/drag-drop.css' %}">
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/resize-handles.css' %}">
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/tree.css' %}">
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/scrollbars.css' %}">
+<link rel="stylesheet" href="{% static 'vis_app/css/editor-inline.css' %}">
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/gallery-categories.css' %}">
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/stats.css' %}">
+<link rel="stylesheet" href="{% static 'vis_app/css/vis/bundle-gallery.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="vis-container" data-figure-id="{% if figure %}{{ figure.id }}{% endif %}">
-    <!-- Left Toolbar - Compact (Tools Only) -->
-    <div class="vis-toolbar">
-        <div class="toolbar-section collapsed">
-            <h3 class="toolbar-title collapsible-header">
-                <span>Annotate</span>
-                <i class="fas fa-chevron-right collapse-icon"></i>
-            </h3>
-            <div class="toolbar-content">
-                <button class="tool-btn-compact" data-tool="text" title="Text (T)">
-                    <i class="fas fa-font"></i>
-                    <span class="toolbar-label">Text</span>
-                </button>
-                <button class="tool-btn-compact" data-tool="significance" title="Significance (***)">
-                    <i class="fas fa-asterisk"></i>
-                    <span class="toolbar-label">***</span>
-                </button>
-                <button class="tool-btn-compact" data-tool="scientific-notation" title="Scientific Notation (×10⁻³)">
-                    <i class="fas fa-superscript"></i>
-                    <span class="toolbar-label">×10⁻³</span>
-                </button>
-                <button class="tool-btn-compact" data-tool="scalebar" title="Scale Bar (S)">
-                    <i class="fas fa-ruler-horizontal"></i>
-                    <span class="toolbar-label">Scale</span>
-                </button>
-            </div>
-        </div>
+<div class="vis-editor-container"{% if current_project %} data-project-owner="{{ current_project.owner.username }}" data-project-slug="{{ current_project.slug }}" data-workspace-tree-url="/{{ current_project.owner.username }}/{{ current_project.slug }}/api/file-tree/"{% endif %}>
 
-        <div class="toolbar-section collapsed">
-            <h3 class="toolbar-title collapsible-header">
-                <span>Shapes</span>
-                <i class="fas fa-chevron-right collapse-icon"></i>
-            </h3>
-            <div class="toolbar-content">
-                <button class="tool-btn-compact" data-tool="rect-white" title="Rectangle (W)">
-                    <i class="fas fa-square"></i>
-                    <span class="toolbar-label">Rectangle</span>
-                </button>
-                <button class="tool-btn-compact" data-tool="arrow" title="Arrow (A)">
-                    <i class="fas fa-arrow-right"></i>
-                    <span class="toolbar-label">Arrow</span>
-                </button>
-            </div>
-        </div>
 
-        <div class="toolbar-section collapsed">
-            <h3 class="toolbar-title collapsible-header">
-                <span>Colors</span>
-                <i class="fas fa-chevron-right collapse-icon"></i>
-            </h3>
-            <div class="toolbar-content">
-                <div class="color-palette">
-                    <button class="color-swatch" data-color="rgb(0,128,192)" style="background: rgb(0,128,192);" title="Blue (0, 128, 192)"></button>
-                    <button class="color-swatch" data-color="rgb(255,70,50)" style="background: rgb(255,70,50);" title="Red (255, 70, 50)"></button>
-                    <button class="color-swatch" data-color="rgb(20,180,20)" style="background: rgb(20,180,20);" title="Green (20, 180, 20)"></button>
-                    <button class="color-swatch" data-color="rgb(230,160,20)" style="background: rgb(230,160,20);" title="Yellow (230, 160, 20)"></button>
-                    <button class="color-swatch" data-color="rgb(200,50,255)" style="background: rgb(200,50,255);" title="Purple (200, 50, 255)"></button>
-                    <button class="color-swatch" data-color="rgb(20,200,200)" style="background: rgb(20,200,200);" title="Lightblue (20, 200, 200)"></button>
-                    <button class="color-swatch" data-color="rgb(255,150,200)" style="background: rgb(255,150,200);" title="Pink (255, 150, 200)"></button>
-                    <button class="color-swatch" data-color="rgb(128,0,0)" style="background: rgb(128,0,0);" title="Brown (128, 0, 0)"></button>
-                    <button class="color-swatch" data-color="rgb(0,0,100)" style="background: rgb(0,0,100);" title="Navy (0, 0, 100)"></button>
-                    <button class="color-swatch" data-color="rgb(228,94,50)" style="background: rgb(228,94,50);" title="Orange (228, 94, 50)"></button>
-                    <button class="color-swatch" data-color="rgb(255,255,255)" style="background: rgb(255,255,255); border: 1px solid var(--border-muted);" title="White (255, 255, 255)"></button>
-                    <button class="color-swatch" data-color="rgb(128,128,128)" style="background: rgb(128,128,128);" title="Gray (128, 128, 128)"></button>
-                    <button class="color-swatch" data-color="rgb(0,0,0)" style="background: rgb(0,0,0);" title="Black (0, 0, 0)"></button>
-                    <label class="color-picker-wrapper" title="Color Picker">
-                        <input type="color" id="customColorPicker" class="color-picker-input" value="#0080c0">
-                        <div class="color-picker-button">
-                            <i class="fas fa-eyedropper"></i>
-                        </div>
-                    </label>
-                </div>
-            </div>
-        </div>
-
-        <div class="toolbar-section collapsed">
-            <h3 class="toolbar-title collapsible-header">
-                <span>Reference Objects</span>
-                <i class="fas fa-chevron-right collapse-icon"></i>
-            </h3>
-            <div class="toolbar-content">
-                <button class="tool-btn-compact" data-tool="ref-rect-1" title="Reference Rectangles (30mm, 40mm, 50mm)">
-                    <i class="fas fa-layer-group"></i>
-                    <span class="toolbar-label">Rectangles</span>
-                </button>
-                <button class="tool-btn-compact" data-tool="col-ruler" title="Column Width Ruler (0.5, 1.0, 1.5, 2.0)">
-                    <i class="fas fa-ruler-horizontal"></i>
-                    <span class="toolbar-label">Column Rules</span>
-                </button>
-            </div>
-        </div>
-
-        <div class="toolbar-section collapsed">
-            <h3 class="toolbar-title collapsible-header">
-                <span>Labels</span>
-                <i class="fas fa-chevron-right collapse-icon"></i>
-            </h3>
-            <div class="toolbar-content">
-                <select id="label-style" class="toolbar-select" title="Label case">
-                    <option value="uppercase">A, B, C</option>
-                    <option value="lowercase">a, b, c</option>
-                    <option value="numbers">1, 2, 3</option>
-                </select>
-                <select id="label-order" class="toolbar-select" title="Label order">
-                    <option value="horizontal">Horizontal</option>
-                    <option value="vertical">Vertical</option>
-                    <option value="original">Original</option>
-                    <option value="custom">Custom</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="toolbar-section collapsed">
-            <h3 class="toolbar-title collapsible-header">
-                <span>View</span>
-                <i class="fas fa-chevron-right collapse-icon"></i>
-            </h3>
-            <div class="toolbar-content">
-                <label class="toolbar-checkbox">
-                    <input type="checkbox" id="ruler-toggle" checked>
-                    <span>Ruler</span>
-                </label>
-                <select id="ruler-unit" class="toolbar-select-sm">
-                    <option value="mm">mm</option>
-                    <option value="inches">in</option>
-                </select>
-                <label class="toolbar-checkbox">
-                    <input type="checkbox" id="grid-toggle" checked>
-                    <span>Grid</span>
-                </label>
-                <label class="toolbar-checkbox">
-                    <input type="checkbox" id="snap-toggle" checked>
-                    <span>Snap</span>
-                </label>
-                <label class="toolbar-checkbox">
-                    <input type="checkbox" id="crosshair-toggle">
-                    <span>Crosshair</span>
-                </label>
-                <label class="toolbar-checkbox">
-                    <input type="checkbox" id="dark-canvas-toggle">
-                    <span>Dark</span>
-                </label>
-
-                <!-- Version comparison -->
-                <label class="toolbar-label">Version:</label>
-                <select id="comparison-mode" class="toolbar-select-sm">
-                    <option value="edited">Edited</option>
-                    <option value="original">Original</option>
-                    <option value="split">Split</option>
-                </select>
-                <button class="tool-btn-compact" id="save-as-original-btn" title="Save current state as Original">
-                    <i class="fas fa-bookmark"></i>
-                    <span class="toolbar-label">Save Original</span>
-                </button>
-                <button class="tool-btn-compact" id="versions-btn" title="Version History">
-                    <i class="fas fa-history"></i>
-                    <span class="toolbar-label">History</span>
-                </button>
-
-                <!-- Journal preset -->
-                <label class="toolbar-label">Journal:</label>
-                <select id="journal-preset-header" class="toolbar-select-sm">
-                    <option value="">Custom</option>
-                    {% for preset in journal_presets %}
-                    <option value="{{ preset.id }}">{{ preset.name }} {{ preset.get_column_type_display }}</option>
-                    {% endfor %}
-                </select>
-
-                <!-- Canvas size -->
-                <div class="toolbar-info">
-                    <i class="fas fa-ruler"></i>
-                    <span id="canvas-size">89mm × 60mm</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tips Section -->
-        <div class="toolbar-section collapsed">
-            <h3 class="toolbar-title collapsible-header">
-                <span>Tips</span>
-                <i class="fas fa-chevron-right collapse-icon"></i>
-            </h3>
-            <div class="toolbar-content">
-                <div class="tips-list">
-                    <div class="tip-item">
-                        <div class="tip-title">
-                            <i class="fas fa-mouse-pointer"></i>
-                            <strong>Skewer Selection</strong>
-                        </div>
-                        <p class="tip-desc">Press <kbd>Alt</kbd> + <kbd>Click</kbd> on overlapping objects to choose which one to select. Drag to reorder layers!</p>
-                    </div>
-                    <div class="tip-item">
-                        <div class="tip-title">
-                            <i class="fas fa-copy"></i>
-                            <strong>Quick Duplicate</strong>
-                        </div>
-                        <p class="tip-desc">Hold <kbd>Ctrl</kbd> while dragging to duplicate objects on the fly.</p>
-                    </div>
-                    <div class="tip-item">
-                        <div class="tip-title">
-                            <i class="fas fa-layer-group"></i>
-                            <strong>Layer Order</strong>
-                        </div>
-                        <p class="tip-desc">New objects appear in front. Use <kbd>Ctrl</kbd> + <kbd>]</kbd> / <kbd>[</kbd> to bring forward/backward.</p>
-                    </div>
-                    <div class="tip-item">
-                        <div class="tip-title">
-                            <i class="fas fa-th"></i>
-                            <strong>Snap to Grid</strong>
-                        </div>
-                        <p class="tip-desc">Enable "Snap" in VIEW section for precise alignment to grid points.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- Main Canvas Area -->
+    <!-- ========================================================================
+         MAIN CONTENT AREA
+         ======================================================================== -->
     <div class="vis-main">
-        <div class="vis-header">
-            <div class="vis-header-info">
-                <!-- Mode Switcher -->
-                <div class="view-switcher">
-                    <button class="view-switch-btn active" data-mode="canvas">
-                        <i class="fas fa-paint-brush"></i> Canvas
-                    </button>
-                    <button class="view-switch-btn" data-mode="backend">
-                        <i class="fas fa-code"></i> Plot
-                    </button>
-                </div>
-
-                <!-- Plot Type Wizard Buttons (SigmaPlot-style, shown in Plot mode) -->
-                <div class="plot-type-buttons" id="plot-type-buttons" style="display: none;">
-                    <div class="plot-type-group">
-                        <button class="plot-type-btn" data-plot-type="line" title="Line Plot">
-                            <i class="fas fa-chart-line"></i>
-                            <span>Line</span>
-                        </button>
-                        <button class="plot-type-btn" data-plot-type="scatter" title="Scatter Plot">
-                            <i class="fas fa-braille"></i>
-                            <span>Scatter</span>
-                        </button>
-                        <button class="plot-type-btn" data-plot-type="bar" title="Bar Chart">
-                            <i class="fas fa-chart-bar"></i>
-                            <span>Bar</span>
-                        </button>
-                        <button class="plot-type-btn" data-plot-type="heatmap" title="Heatmap">
-                            <i class="fas fa-th"></i>
-                            <span>Heatmap</span>
-                        </button>
-                        <button class="plot-type-btn" data-plot-type="box" title="Box Plot">
-                            <i class="fas fa-box"></i>
-                            <span>Box</span>
-                        </button>
-                        <button class="plot-type-btn" data-plot-type="violin" title="Violin Plot">
-                            <i class="fas fa-guitar"></i>
-                            <span>Violin</span>
-                        </button>
-                        <button class="plot-type-btn" data-plot-type="histogram" title="Histogram">
-                            <i class="fas fa-chart-area"></i>
-                            <span>Histogram</span>
-                        </button>
-                        <button class="plot-type-btn" id="plot-gallery-toggle" title="Browse Plot Gallery">
-                            <i class="fas fa-th-large"></i>
-                            <span>Gallery</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Plot Gallery Dropdown (integrated into toolbar) -->
-                <div class="plot-gallery-dropdown" id="plot-gallery-dropdown" style="display: none;">
-                    <div class="gallery-dropdown-content">
-                        <div class="gallery-tabs">
-                            <button class="gallery-tab active" data-category="basic" title="Matplotlib Basic">Basic</button>
-                            <button class="gallery-tab" data-category="custom" title="SciTeX Custom">Custom</button>
-                            <button class="gallery-tab" data-category="seaborn" title="Seaborn Integration">Seaborn</button>
-                            <button class="gallery-tab" data-category="multi" title="Multi-Panel">Multi</button>
-                        </div>
-                        <div class="gallery-thumbnails" id="gallery-thumbnails">
-                            <!-- Thumbnails will be dynamically loaded here -->
-                        </div>
-                        <div class="gallery-info" id="gallery-info" style="display: none;">
-                            <div class="gallery-info-header">
-                                <h4 id="gallery-plot-name"></h4>
-                                <button class="gallery-info-close" title="Close">&times;</button>
-                            </div>
-                            <p class="gallery-plot-desc" id="gallery-plot-desc"></p>
-                            <div class="gallery-plot-details">
-                                <div class="gallery-detail-section">
-                                    <strong>Required:</strong>
-                                    <span id="gallery-required-cols"></span>
-                                </div>
-                                <div class="gallery-detail-section">
-                                    <strong>Optional:</strong>
-                                    <span id="gallery-optional-cols"></span>
-                                </div>
-                            </div>
-                            <button class="btn btn-sm btn-primary gallery-use-btn" id="gallery-use-btn">
-                                <i class="fas fa-plus"></i> Add to Canvas
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="vis-header-controls" id="canvas-mode-controls">
-                    <!-- Panel Controls -->
-                    <div class="header-control-group">
-                        <select id="panel-select" class="toolbar-select-sm">
-                            <option value="" selected>Panels...</option>
-                            <option value="split-horizontal">Split Horizontal</option>
-                            <option value="split-vertical">Split Vertical</option>
-                            <option value="remove-panel">Remove Panel</option>
-                            <option value="reset-layout">Reset Layout</option>
-                            <option value="2x2">2×2 Grid</option>
-                            <option value="1x3">1×3 Stack</option>
-                        </select>
-                    </div>
-                    <!-- Alignment & Distribution tools -->
-                    <div class="header-control-group">
-                        <select id="align-select" class="toolbar-select-sm">
-                            <option value="" selected>Align...</option>
-                            <optgroup label="Align">
-                                <option value="left">⬅️ Left</option>
-                                <option value="center">↔️ Center</option>
-                                <option value="right">➡️ Right</option>
-                                <option value="top">⬆️ Top</option>
-                                <option value="middle">↕️ Middle</option>
-                                <option value="bottom">⬇️ Bottom</option>
-                            </optgroup>
-                            <optgroup label="Distribute">
-                                <option value="distribute-h">↔️ Horizontal</option>
-                                <option value="distribute-v">↕️ Vertical</option>
-                            </optgroup>
-                        </select>
-                    </div>
-                    <!-- Zoom controls -->
-                    <div class="header-control-group">
-                        <span id="zoom-level" class="zoom-display" title="Zoom level (Ctrl+Scroll to zoom)">100%</span>
-                        <button class="btn-icon" id="zoom-fit" title="Fit to Window (0)">
-                            <i class="fas fa-compress-arrows-alt"></i>
-                        </button>
-                        <button class="btn-icon" id="shortcuts-btn" title="Keyboard Shortcuts (?)">
-                            <i class="fas fa-keyboard"></i>
-                        </button>
-                    </div>
-                </div>
+        <!-- LEFT SIDEBAR - PROJECT NAVIGATOR -->
+        <div class="vis-sidebar">
+            <div class="sidebar-header">
+                <h5><i class="fas fa-folder-open"></i> Files</h5>
+                <button class="sidebar-toggle-btn" id="sidebar-toggle" title="Toggle sidebar (Zen: F11/Alt+Z)">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
             </div>
-            <div class="vis-header-actions">
-                <button class="btn btn-secondary btn-sm" id="undo-btn" title="Undo (Ctrl+Z)" disabled>
-                    <i class="fas fa-undo"></i>
-                </button>
-                <button class="btn btn-secondary btn-sm" id="redo-btn" title="Redo (Ctrl+Y)" disabled>
-                    <i class="fas fa-redo"></i>
-                </button>
-                <button class="btn btn-secondary" id="save-btn" title="Auto-save enabled">
-                    <i class="fas fa-save"></i>
-                    Save
-                </button>
-                <button class="btn btn-primary btn-export" id="export-png" title="Export as PNG (300 DPI, white background)">
-                    <i class="fas fa-download"></i>
-                    PNG
-                </button>
-                <button class="btn btn-primary btn-export" id="export-tiff" title="Export as TIFF (300 DPI, publication quality)" style="background: var(--status-success);">
-                    <i class="fas fa-download"></i>
-                    TIFF
-                </button>
+            <div class="sidebar-content" id="files-tree">
+                {% if current_project %}
+                <!-- WorkspaceFilesTree will render here -->
+                <div class="wft-loading">Loading...</div>
+                {% elif needs_project_creation %}
+                <div class="tree-empty-state">
+                    <i class="fas fa-folder-plus"></i>
+                    <p>No project selected</p>
+                    <small>Create a project to start visualizing your data.</small>
+                    <div class="empty-state-actions">
+                        <a href="{% url 'project_app:project_create' %}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus"></i> Create Project
+                        </a>
+                    </div>
+                </div>
+                {% else %}
+                <div class="tree-empty-state">
+                    <i class="fas fa-folder-open"></i>
+                    <p>Select a project to view files</p>
+                    <small>Use the project selector in the header to choose a project.</small>
+                </div>
+                {% endif %}
             </div>
         </div>
 
-        <div class="vis-canvas-wrapper" id="canvas-mode-content">
-            <!-- Rulers -->
-            <div class="vis-rulers-area">
-                <div class="ruler-corner ruler-corner-tl"></div>
-                <svg class="ruler ruler-horizontal ruler-top" id="ruler-horizontal"></svg>
-                <div class="ruler-corner ruler-corner-tr"></div>
-                <svg class="ruler ruler-vertical ruler-left" id="ruler-vertical"></svg>
-                <div class="vis-canvas-container">
-                    <canvas id="vis-canvas"></canvas>
-                </div>
-                <svg class="ruler ruler-vertical ruler-right" id="ruler-vertical-right"></svg>
-                <div class="ruler-corner ruler-corner-bl"></div>
-                <svg class="ruler ruler-horizontal ruler-bottom" id="ruler-horizontal-bottom"></svg>
-                <div class="ruler-corner ruler-corner-br"></div>
-            </div>
-        </div>
+        <!-- Sidebar Resizer (auto-initialized via data attributes) -->
+        <div class="panel-resizer" id="sidebar-resizer"
+             data-panel-resizer
+             data-storage-prefix="scitex-vis-"
+             data-target=".vis-sidebar"
+             data-direction="left"
+             data-min-width="40"
+             data-default-width="250"
+             data-storage-key="sidebar-width"
+             data-collapse-key="vis-sidebar-collapsed"
+             data-toggle-btn="sidebar-toggle"></div>
 
-        <!-- Backend Plot Renderer Mode -->
-        <div class="backend-renderer-wrapper" id="backend-mode-content" style="display: none;">
-            <!-- Tab Switcher - Full Width Dedicated Row -->
-            <div style="padding: 0 20px;">
-                <nav class="plot-data-tabs">
-                    <button id="user-data-tab" class="data-tab-btn active" data-tab="user-data">
-                        <i class="fas fa-upload"></i>
-                        <span>From Your Data</span>
-                    </button>
-                    <button id="demo-gallery-tab" class="data-tab-btn" data-tab="demo-gallery">
-                        <i class="fas fa-book"></i>
-                        <span>From Demo Data</span>
-                    </button>
-                </nav>
-            </div>
-
-            <!-- Main Content Grid: Left Side + Right Side -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; flex: 1; min-height: 0; padding: 20px;">
-                <!-- Left Side: Data Input + Data Table + Rendering Area -->
-                <div style="display: flex; flex-direction: column; gap: 16px; overflow-y: auto; overflow-x: hidden;">
-
-                    <!-- FROM YOUR DATA TAB -->
-                    <div id="user-data-section" class="data-section" style="display: block;">
-                        <!-- [TOP] Drag and Drop Area -->
-                        <div id="upload-section" class="data-input-section" style="display: block; margin-bottom: 16px;">
-                            <div id="plot-drop-area" class="plot-drop-area">
-                                <input type="file" id="plot-data-file-input" accept=".csv,.xlsx,.xls" style="display: none;" multiple>
-                                <div class="plot-drop-content">
-                                    <div style="color: var(--text-secondary); font-size: 2.5rem; margin-bottom: 0.75rem;">📊</div>
-                                    <p style="color: var(--text-primary); font-weight: 600; margin-bottom: 0.5rem;">Drag and drop data files</p>
-                                    <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0.5rem 0;">or click to browse files</p>
-                                    <p style="color: var(--text-muted); font-size: 0.75rem; margin-top: 0.75rem;">
-                                        CSV, Excel (.xlsx, .xls)
-                                    </p>
-                                </div>
-                                <div id="plot-uploaded-files" class="plot-uploaded-files" style="display: none;">
-                                    <!-- Uploaded files will be listed here -->
-                                </div>
+        <!-- CENTER WORKSPACE -->
+        <div class="vis-workspace">
+            <!-- Split View: Data Table + Canvas -->
+            <div class="workspace-split-view">
+                <!-- Left: Data Table -->
+                <div class="split-pane split-pane-left" id="data-pane">
+                    <div class="pane-header">
+                        <!-- Data Dropdown (replaces tabs for horizontal space efficiency) -->
+                        <div class="data-dropdown-container" id="data-dropdown-container">
+                            <button class="data-dropdown-toggle" id="data-dropdown-toggle" title="Select data table">
+                                <i class="fas fa-table"></i>
+                                <span class="data-dropdown-label" id="data-dropdown-label">No tables</span>
+                                <i class="fas fa-chevron-down data-dropdown-arrow"></i>
+                            </button>
+                            <div class="data-dropdown-menu" id="data-dropdown-menu">
+                                <!-- Dropdown items will be inserted here by DataTabManager -->
                             </div>
-                        </div>
-
-                        <!-- [SECOND TOP] Plot Data Table (Imported/Manual) -->
-                        <div style="background: var(--bg-surface); border: 2px solid var(--border-color); border-radius: 8px; padding: 12px; margin-bottom: 16px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                                <h4 style="margin: 0; font-size: 13px; font-weight: 600; color: var(--text-primary);">
-                                    <i class="fas fa-table"></i> Plot Data Table
-                                </h4>
-                                <div style="display: flex; gap: 8px;">
-                                    <button id="paste-data-btn" title="Paste from clipboard" style="padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-surface); color: var(--text-primary); cursor: pointer; font-size: 11px;">
-                                        <i class="fas fa-clipboard"></i> Paste
-                                    </button>
-                                    <button id="clear-table-btn" title="Clear all data" style="padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-surface); color: var(--text-primary); cursor: pointer; font-size: 11px;">
-                                        <i class="fas fa-eraser"></i> Clear
-                                    </button>
-                                </div>
-                            </div>
-                            <div id="data-table-container" style="width: 100%; height: 250px; overflow: auto; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-surface);"></div>
-                            <input type="file" id="csv-file-input" accept=".csv,.txt" style="display: none;">
-                        </div>
-
-                        <!-- [THIRD TOP] Rendering Area -->
-                        <div style="background: var(--bg-surface); border: 2px solid var(--border-color); border-radius: 8px; padding: 12px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                                <h4 style="margin: 0; font-size: 13px; font-weight: 600; color: var(--text-primary);">
-                                    <i class="fas fa-image"></i> Plot Preview
-                                </h4>
-                                <button id="backend-render-btn" style="padding: 6px 16px; background: var(--status-success); color: var(--text-inverse); border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">
-                                    <i class="fas fa-play"></i> Render
-                                </button>
-                            </div>
-                            <div id="backend-result-container" style="padding: 12px; background: var(--bg-muted); border-radius: 6px; display: flex; align-items: center; justify-content: center; min-height: 250px; max-height: 400px; overflow: auto; border: 1px solid var(--border-color);">
-                                <p style="color: var(--text-muted); font-size: 12px;">Upload data and click Render to see preview</p>
-                            </div>
-                            <div id="backend-status" style="margin-top: 8px; min-height: 20px;"></div>
-                        </div>
-                    </div>
-                    <!-- End FROM YOUR DATA TAB -->
-
-                    <!-- FROM DEMO DATA TAB -->
-                    <div id="demo-gallery-section" class="data-section" style="display: none;">
-                        <!-- [TOP] Demo Gallery - Aligned with drag-and-drop area height -->
-                        <div style="background: var(--bg-surface); border: 2px dashed var(--border-color); border-radius: 8px; padding: 1.5rem; margin-bottom: 16px; display: flex; flex-direction: column; min-height: 200px;">
-                            <h4 style="margin: 0 0 16px 0; color: var(--text-primary); font-size: 13px; font-weight: 600;">
-                                <i class="fas fa-images"></i> Select a Demo Plot
-                            </h4>
-                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; flex: 1; overflow-y: auto; padding: 4px; align-content: start;">
-                            <!-- Line Plot -->
-                            <div class="demo-gallery-item" data-demo="01_matplotlib_basic/01_plot" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 6px; padding: 8px; cursor: pointer; transition: all 0.2s; position: relative;">
-                                <div style="aspect-ratio: 4/3; background: var(--bg-muted); border-radius: 4px; overflow: hidden; margin-bottom: 6px;">
-                                    <img src="{% static 'vis_app/img/plot_gallery/01_matplotlib_basic/01_plot.jpg' %}" alt="Line Plot" style="width: 100%; height: 100%; object-fit: cover;">
-                                </div>
-                                <p style="margin: 0; font-size: 10px; font-weight: 600; color: var(--text-primary); text-align: center;">Line</p>
-                            </div>
-
-                            <!-- Scatter Plot -->
-                            <div class="demo-gallery-item" data-demo="01_matplotlib_basic/02_scatter" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 6px; padding: 8px; cursor: pointer; transition: all 0.2s;">
-                                <div style="aspect-ratio: 4/3; background: var(--bg-muted); border-radius: 4px; overflow: hidden; margin-bottom: 6px;">
-                                    <img src="{% static 'vis_app/img/plot_gallery/01_matplotlib_basic/02_scatter.jpg' %}" alt="Scatter" style="width: 100%; height: 100%; object-fit: cover;">
-                                </div>
-                                <p style="margin: 0; font-size: 10px; font-weight: 600; color: var(--text-primary); text-align: center;">Scatter</p>
-                            </div>
-
-                            <!-- Bar Plot -->
-                            <div class="demo-gallery-item" data-demo="01_matplotlib_basic/03_bar" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 6px; padding: 8px; cursor: pointer; transition: all 0.2s;">
-                                <div style="aspect-ratio: 4/3; background: var(--bg-muted); border-radius: 4px; overflow: hidden; margin-bottom: 6px;">
-                                    <img src="{% static 'vis_app/img/plot_gallery/01_matplotlib_basic/03_bar.jpg' %}" alt="Bar" style="width: 100%; height: 100%; object-fit: cover;">
-                                </div>
-                                <p style="margin: 0; font-size: 10px; font-weight: 600; color: var(--text-primary); text-align: center;">Bar</p>
-                            </div>
-
-                            <!-- Errorbar Plot -->
-                            <div class="demo-gallery-item" data-demo="01_matplotlib_basic/06_errorbar" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 6px; padding: 8px; cursor: pointer; transition: all 0.2s;">
-                                <div style="aspect-ratio: 4/3; background: var(--bg-muted); border-radius: 4px; overflow: hidden; margin-bottom: 6px;">
-                                    <img src="{% static 'vis_app/img/plot_gallery/01_matplotlib_basic/06_errorbar.jpg' %}" alt="Errorbar" style="width: 100%; height: 100%; object-fit: cover;">
-                                </div>
-                                <p style="margin: 0; font-size: 10px; font-weight: 600; color: var(--text-primary); text-align: center;">Errorbar</p>
-                            </div>
-
-                            <!-- Heatmap -->
-                            <div class="demo-gallery-item" data-demo="02_custom_scitex/01_plot_heatmap" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 6px; padding: 8px; cursor: pointer; transition: all 0.2s;">
-                                <div style="aspect-ratio: 4/3; background: var(--bg-muted); border-radius: 4px; overflow: hidden; margin-bottom: 6px;">
-                                    <img src="{% static 'vis_app/img/plot_gallery/02_custom_scitex/01_plot_heatmap.jpg' %}" alt="Heatmap" style="width: 100%; height: 100%; object-fit: cover;">
-                                </div>
-                                <p style="margin: 0; font-size: 10px; font-weight: 600; color: var(--text-primary); text-align: center;">Heatmap</p>
-                            </div>
-
-                            <!-- Violin Plot -->
-                            <div class="demo-gallery-item" data-demo="02_custom_scitex/04_plot_violin" style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 6px; padding: 8px; cursor: pointer; transition: all 0.2s;">
-                                <div style="aspect-ratio: 4/3; background: var(--bg-muted); border-radius: 4px; overflow: hidden; margin-bottom: 6px;">
-                                    <img src="{% static 'vis_app/img/plot_gallery/02_custom_scitex/04_plot_violin.jpg' %}" alt="Violin" style="width: 100%; height: 100%; object-fit: cover;">
-                                </div>
-                                <p style="margin: 0; font-size: 10px; font-weight: 600; color: var(--text-primary); text-align: center;">Violin</p>
-                            </div>
-                            </div>
-                        </div>
-
-                        <!-- [SECOND TOP] Plot Data Table (From Demo Data) -->
-                        <div style="background: var(--bg-surface); border: 2px solid var(--border-color); border-radius: 8px; padding: 12px; margin-bottom: 16px;">
-                            <h4 style="margin: 0 0 12px 0; color: var(--text-primary); font-size: 13px; font-weight: 600;">
-                                <i class="fas fa-database"></i> Demo Data Table
-                            </h4>
-                            <div id="demo-data-table-container" style="width: 100%; max-height: 250px; overflow: auto; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-surface);">
-                                <p style="padding: 30px 20px; text-align: center; color: var(--text-muted); font-size: 11px;">
-                                    Select a demo from the gallery above to view data
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- [THIRD TOP] Rendering Area -->
-                        <div style="background: var(--bg-surface); border: 2px solid var(--border-color); border-radius: 8px; padding: 12px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                                <h4 style="margin: 0; font-size: 13px; font-weight: 600; color: var(--text-primary);">
-                                    <i class="fas fa-image"></i> Plot Preview
-                                </h4>
-                                <button id="demo-render-btn" style="padding: 6px 16px; background: var(--status-success); color: var(--text-inverse); border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">
-                                    <i class="fas fa-play"></i> Render
-                                </button>
-                            </div>
-                            <div id="demo-result-container" style="padding: 12px; background: var(--bg-muted); border-radius: 6px; display: flex; align-items: center; justify-content: center; min-height: 250px; max-height: 400px; overflow: auto; border: 1px solid var(--border-color);">
-                                <p style="color: var(--text-tertiary); font-size: 12px;">Select a demo and click Render to see preview</p>
-                            </div>
-                            <div id="demo-status" style="margin-top: 8px; min-height: 20px;"></div>
-                        </div>
-                    </div>
-                    <!-- End FROM DEMO DATA TAB -->
-
-                    <!-- Hidden JSON textarea for compatibility -->
-                    <textarea id="backend-json-spec" style="display: none;"></textarea>
-                </div>
-                <!-- End Left Side -->
-
-                <!-- Right Side: Plot Settings + Visual Style Editor -->
-                <div style="display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; gap: 16px;">
-                    <!-- Plot Settings -->
-                    <div style="background: var(--bg-surface); border: 2px solid var(--border-color); border-radius: 8px; padding: 12px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                            <h4 style="margin: 0; font-size: 13px; font-weight: 600; color: var(--text-primary);">
-                                <i class="fas fa-cog"></i> Plot Settings
-                            </h4>
-                            <button id="backend-show-json-btn" style="padding: 4px 12px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-surface); color: var(--text-primary); cursor: pointer; font-size: 11px;">
-                                <i class="fas fa-code"></i> JSON
+                            <button class="data-new-btn" id="data-tab-new" title="New data table">
+                                <i class="fas fa-plus"></i>
                             </button>
                         </div>
-                        <div id="backend-form-controls" style="display: flex; flex-direction: column; gap: 16px;">
-                            <!-- 1. Axis Settings -->
-                            <div class="plot-settings-category">
-                                <h5 style="margin: 0 0 8px 0; font-size: 12px; font-weight: 600; color: var(--status-success); display: flex; align-items: center; gap: 6px;">
-                                    <i class="fas fa-arrows-alt"></i> Axis Settings
-                                </h5>
-                                <table class="backend-settings-table">
-                                    <tr>
-                                        <td class="setting-label">Title</td>
-                                        <td class="setting-control" colspan="2">
-                                            <input type="text" id="plot-title" value="Line Plot Example" class="form-control" style="width: 100%; padding: 6px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-surface); color: var(--text-primary);">
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="setting-label">X Label</td>
-                                        <td class="setting-control" colspan="2">
-                                            <input type="text" id="plot-xlabel" value="X axis" class="form-control" style="width: 100%; padding: 6px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-surface); color: var(--text-primary);">
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="setting-label">Y Label</td>
-                                        <td class="setting-control" colspan="2">
-                                            <input type="text" id="plot-ylabel" value="Y axis" class="form-control" style="width: 100%; padding: 6px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-surface); color: var(--text-primary);">
-                                        </td>
-                                    </tr>
-                                </table>
-                            </div>
-
-                            <!-- 2. Element Settings -->
-                            <div class="plot-settings-category">
-                                <h5 style="margin: 0 0 8px 0; font-size: 12px; font-weight: 600; color: var(--status-success); display: flex; align-items: center; gap: 6px;">
-                                    <i class="fas fa-shapes"></i> Element Settings
-                                </h5>
-                                <table class="backend-settings-table">
-                                    <tr>
-                                        <td class="setting-label">Plot Type</td>
-                                        <td class="setting-control" colspan="2">
-                                            <select id="plot-kind" style="width: 100%; padding: 6px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-surface); color: var(--text-primary);">
-                                                <optgroup label="📊 Basic">
-                                                    <option value="line">Line</option>
-                                                    <option value="scatter">Scatter</option>
-                                                    <option value="bar">Bar</option>
-                                                </optgroup>
-                                                <optgroup label="📈 Statistical">
-                                                    <option value="boxplot">Box Plot</option>
-                                                    <option value="violin">Violin</option>
-                                                    <option value="hist">Histogram</option>
-                                                </optgroup>
-                                                <optgroup label="📉 Error">
-                                                    <option value="errorbar">Error Bar</option>
-                                                </optgroup>
-                                            </select>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="setting-label">Color</td>
-                                        <td class="setting-control" colspan="2">
-                                            <input type="text" id="plot-color" value="blue" class="form-control" style="width: 100%; padding: 6px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-surface); color: var(--text-primary);">
-                                        </td>
-                                    </tr>
-                                </table>
+                        <div class="pane-header-buttons">
+                            <!-- Import/Header/Index moved to right-click context menu -->
+                            <button class="pane-header-btn" id="export-plot-csv-btn" title="Export current plot data as CSV">
+                                <i class="fas fa-file-export"></i>
+                            </button>
+                            <button class="pane-header-btn" id="transform-sort" title="Sort data">
+                                <i class="fas fa-sort"></i>
+                            </button>
+                            <button class="pane-header-btn" id="transform-filter" title="Filter data">
+                                <i class="fas fa-filter"></i>
+                            </button>
+                            <button class="pane-header-btn" id="table-help-btn" title="Show keyboard shortcuts and usage tips">
+                                <i class="fas fa-keyboard"></i>
+                            </button>
+                            <!-- Revert to Original (shown when data is modified) -->
+                            <button class="pane-header-btn revert-btn" id="revert-data-btn" title="Revert to original gallery data" style="display: none;">
+                                <i class="fas fa-undo"></i>
+                                <span>Revert</span>
+                            </button>
+                        </div>
+                        <button class="pane-resize-btn" id="data-pane-toggle" title="Toggle Data Pane">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                    </div>
+                    <div class="pane-content">
+                        <div class="data-table-container" id="data-table-container">
+                            <div class="empty-state" id="data-empty-state">
+                                <i class="fas fa-table"></i>
+                                <p>No data loaded</p>
+                                <small>Import CSV or Excel, or drag & drop files here</small>
                             </div>
                         </div>
-                        <input type="file" id="csv-file-input" accept=".csv,.txt" style="display: none;">
                     </div>
+                </div>
 
-                    <!-- Visual Style Editor -->
-                    <div class="visual-style-editor">
-                        <div style="background: linear-gradient(135deg, #6c8ba0 0%, #506b7a 100%); padding: 16px; border-radius: 8px 8px 0 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                            <h3 style="margin: 0; color: var(--text-inverse); font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                <!-- Resizer between Data Table and Canvas -->
+                <div class="split-resizer panel-resizer" id="split-resizer"
+                     data-panel-resizer
+                     data-storage-prefix="scitex-vis-"
+                     data-target="#data-pane"
+                     data-direction="left"
+                     data-min-width="40"
+                     data-default-width="400"
+                     data-storage-key="data-pane-width"
+                     data-collapse-key="data-pane-collapsed"
+                     data-toggle-btn="data-pane-toggle"></div>
+
+                <!-- Right: Canvas -->
+                <div class="split-pane split-pane-right" id="canvas-pane">
+                    <div class="pane-header">
+                        <button class="pane-resize-btn" id="canvas-pane-toggle" title="Toggle Canvas Pane">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                        <!-- Figure Dropdown (replaces tabs for horizontal space efficiency) -->
+                        <div class="figure-dropdown-container" id="figure-dropdown-container">
+                            <button class="figure-dropdown-toggle" id="figure-dropdown-toggle" title="Select figure">
                                 <i class="fas fa-paint-brush"></i>
-                                <span>Visual Style Editor</span>
-                                <span style="margin-left: auto; font-size: 11px; opacity: 0.9; font-weight: 400;">Apply to Your Data</span>
-                            </h3>
+                                <span class="figure-dropdown-label" id="figure-dropdown-label">No figures</span>
+                                <i class="fas fa-chevron-down figure-dropdown-arrow"></i>
+                            </button>
+                            <div class="figure-dropdown-menu" id="figure-dropdown-menu">
+                                <!-- Dropdown items will be inserted here by CanvasTabManager -->
+                            </div>
+                            <button class="figure-new-btn" id="canvas-tab-new" title="New figure">
+                                <i class="fas fa-plus"></i>
+                            </button>
                         </div>
-
-                        <!-- Style Management Toolbar -->
-                        <div style="background: var(--bg-muted); border: 2px solid var(--vis-border); border-top: none; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
-                            <!-- Import/Export Section - Full Width -->
-                            <div style="display: flex; gap: 12px; align-items: center;">
-                                <button id="import-style-json-btn" style="padding: 8px 16px; background: var(--bg-surface); border: 2px solid var(--border-default); color: var(--text-primary); border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
-                                    <i class="fas fa-file-import"></i>
-                                    <span>Import Style JSON</span>
+                        <!-- Gallery Category Buttons (hover to see plot types) -->
+                        <div class="gallery-categories" id="gallery-categories">
+                            <button class="category-btn" data-category="line" title="Line plots: time series, trends">
+                                <i class="fas fa-chart-line"></i>
+                                <span>Line</span>
+                            </button>
+                            <button class="category-btn" data-category="scatter" title="Scatter & point plots">
+                                <i class="fas fa-braille"></i>
+                                <span>Scatter</span>
+                            </button>
+                            <button class="category-btn" data-category="categorical" title="Bar, box, violin plots">
+                                <i class="fas fa-chart-bar"></i>
+                                <span>Categorical</span>
+                            </button>
+                            <button class="category-btn" data-category="distribution" title="Histograms, KDE, ECDF">
+                                <i class="fas fa-chart-column"></i>
+                                <span>Distribution</span>
+                            </button>
+                            <button class="category-btn" data-category="statistical" title="Mean/CI, error bars">
+                                <i class="fas fa-square-root-variable"></i>
+                                <span>Statistical</span>
+                            </button>
+                            <button class="category-btn" data-category="grid" title="Heatmaps, images, matrices">
+                                <i class="fas fa-th"></i>
+                                <span>Grid</span>
+                            </button>
+                            <button class="category-btn" data-category="area" title="Fill regions, ranges">
+                                <i class="fas fa-chart-area"></i>
+                                <span>Area</span>
+                            </button>
+                            <button class="category-btn" data-category="contour" title="Contour lines">
+                                <i class="fas fa-layer-group"></i>
+                                <span>Contour</span>
+                            </button>
+                            <button class="category-btn" data-category="vector" title="Quiver, streamlines">
+                                <i class="fas fa-arrows-alt"></i>
+                                <span>Vector</span>
+                            </button>
+                            <button class="category-btn" data-category="special" title="Pie, raster, annotations">
+                                <i class="fas fa-shapes"></i>
+                                <span>Special</span>
+                            </button>
+                            <!-- Dev: Plot All button -->
+                            <button class="category-btn dev-btn" id="plot-all-types-btn" title="[Dev] Load all plot types for testing">
+                                <i class="fas fa-th-large"></i>
+                                <span>All</span>
+                            </button>
+                        </div>
+                        <!-- Thumbnail popup (shown on hover) -->
+                        <div class="gallery-popup" id="gallery-popup">
+                            <div class="popup-header">
+                                <span class="popup-title">Select Plot Type</span>
+                                <span class="popup-category"></span>
+                            </div>
+                            <div class="popup-grid" id="popup-grid">
+                                <!-- Thumbnails loaded dynamically -->
+                            </div>
+                        </div>
+                        <div class="pane-header-buttons pane-header-right">
+                            <!-- Debug: Show Hit Regions Toggle -->
+                            <button class="pane-header-btn debug-btn" id="toggle-hit-regions" title="Toggle hit region overlay (debug)">
+                                <i class="fas fa-bullseye"></i>
+                            </button>
+                            <!-- Download Dropdown -->
+                            <div class="dropdown-container" id="download-dropdown">
+                                <button class="pane-header-btn dropdown-toggle" id="download-btn" title="Download figure (PNG, SVG, PDF, JPEG, FIGZ)">
+                                    <i class="fas fa-download"></i>
                                 </button>
-                                <button id="export-style-json-btn" style="padding: 8px 16px; background: var(--bg-surface); border: 2px solid var(--border-default); color: var(--text-primary); border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
-                                    <i class="fas fa-file-export"></i>
-                                    <span>Export Style JSON</span>
+                                <div class="dropdown-menu" id="download-menu">
+                                    <button class="dropdown-item" id="export-png" data-format="png">
+                                        <i class="fas fa-file-image"></i> PNG <span class="format-hint">(300 DPI)</span>
+                                    </button>
+                                    <button class="dropdown-item" id="export-svg" data-format="svg">
+                                        <i class="fas fa-bezier-curve"></i> SVG <span class="format-hint">(Vector)</span>
+                                    </button>
+                                    <button class="dropdown-item" id="export-pdf" data-format="pdf">
+                                        <i class="fas fa-file-pdf"></i> PDF
+                                    </button>
+                                    <button class="dropdown-item" id="export-jpeg" data-format="jpeg">
+                                        <i class="fas fa-file-image"></i> JPEG <span class="format-hint">(95%)</span>
+                                    </button>
+                                    <div class="dropdown-divider"></div>
+                                    <button class="dropdown-item" id="export-figz" data-format="figz">
+                                        <i class="fas fa-file-archive"></i> FIGZ Bundle <span class="format-hint">(.figz)</span>
+                                    </button>
+                                    <button class="dropdown-item" id="export-figz-d" data-format="figz-d">
+                                        <i class="fas fa-folder-open"></i> FIGZ.D Bundle <span class="format-hint">(.figz.d)</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <button class="pane-header-btn" id="btn-save" title="Save plot">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </button>
+                            <!-- Theme Toggle Button (shows warning when in dark mode) -->
+                            <button class="pane-header-btn theme-toggle-btn" id="canvas-theme-toggle" title="Toggle light/dark theme (Export uses white background in dark mode)">
+                                <span class="theme-icon">🌓</span>
+                                <span class="dark-warning" id="toolbar-dark-warning" style="display:none;">Warning</span>
+                            </button>
+                            <!-- Keyboard Shortcuts Help -->
+                            <button class="pane-header-btn" id="btn-shortcuts-help" title="Keyboard shortcuts (?)">
+                                <i class="fas fa-keyboard"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="pane-content canvas-content">
+                        <!-- Rulers Area: 3x3 CSS Grid layout (like vis app) -->
+                        <div class="vis-rulers-area" id="rulers-area">
+                            <!-- Top-left corner (click ruler labels to toggle mm/inch) -->
+                            <div class="ruler-corner ruler-corner-tl"></div>
+                            <!-- Top ruler -->
+                            <svg class="ruler ruler-horizontal ruler-top" id="ruler-h"></svg>
+                            <!-- Top-right corner -->
+                            <div class="ruler-corner ruler-corner-tr"></div>
+                            
+                            <!-- Left ruler -->
+                            <svg class="ruler ruler-vertical ruler-left" id="ruler-v"></svg>
+                            <!-- Canvas container -->
+                            <div class="vis-canvas-container" id="canvas-container">
+                                <canvas id="vis-canvas"></canvas>
+                            </div>
+                            <!-- Right ruler -->
+                            <svg class="ruler ruler-vertical ruler-right" id="ruler-r"></svg>
+
+                            <!-- Bottom-left corner -->
+                            <div class="ruler-corner ruler-corner-bl"></div>
+                            <!-- Bottom ruler -->
+                            <svg class="ruler ruler-horizontal ruler-bottom" id="ruler-b"></svg>
+                            <!-- Bottom-right corner -->
+                            <div class="ruler-corner ruler-corner-br"></div>
+                        </div>
+                        <!-- Dark Mode Warning at Bottom -->
+                        <div class="canvas-mode-warning" id="canvas-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span>Export will use white background for publication</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resizer between Canvas and Properties -->
+                <div class="split-resizer panel-resizer" id="canvas-resizer"
+                     data-panel-resizer
+                     data-storage-prefix="scitex-vis-"
+                     data-target="#canvas-pane"
+                     data-direction="left"
+                     data-min-width="40"
+                     data-default-width="600"
+                     data-storage-key="canvas-pane-width"
+                     data-collapse-key="canvas-pane-collapsed"
+                     data-toggle-btn="canvas-pane-toggle"></div>
+            </div>
+        </div>
+
+        <!-- Properties Resizer (auto-initialized via data attributes) -->
+        <div class="panel-resizer" id="workspace-resizer"
+             data-panel-resizer
+             data-storage-prefix="scitex-vis-"
+             data-target=".vis-properties"
+             data-direction="right"
+             data-min-width="40"
+             data-default-width="320"
+             data-storage-key="properties-width"
+             data-collapse-key="vis-properties-collapsed"
+             data-toggle-btn="properties-toggle"></div>
+
+        <!-- RIGHT DETAILS PANEL -->
+        <div class="vis-properties" id="vis-properties">
+            <div class="properties-header">
+                <button class="properties-toggle-btn panel-toggle-btn right-panel-toggle" id="properties-toggle" title="Toggle details (Zen: F11/Alt+Z)">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <h4>
+                    <i class="fas fa-sliders-h"></i> Details
+                </h4>
+            </div>
+
+            <!-- Selected Item Info -->
+            <div class="selected-item-info">
+                <div class="selected-item-header">
+                    <i class="fas fa-info-circle selected-item-icon"></i>
+                    <span class="selected-item-type">No selection</span>
+                </div>
+                <div class="selected-item-label">Select an item from the tree to view properties</div>
+            </div>
+
+            <!-- Properties Tabs -->
+            <div class="properties-tabs">
+                <button class="properties-tab active" data-tab="current">
+                    <i class="fas fa-edit"></i> Current
+                </button>
+                <button class="properties-tab" data-tab="defaults">
+                    <i class="fas fa-palette"></i> Preset
+                </button>
+            </div>
+
+            <div class="properties-content">
+                <!-- Current Properties Tab Content -->
+                <div id="tab-current" class="properties-tab-content active">
+                    <div id="dynamic-properties" class="dynamic-properties">
+                        <!-- Content will be dynamically populated based on selection -->
+                    </div>
+                </div>
+
+                <!-- Defaults Tab Content -->
+                <div id="tab-defaults" class="properties-tab-content">
+                    <div id="defaults-properties" class="defaults-properties">
+                        <!-- Live Figure Preview -->
+                        <div class="preset-visual-guide preset-figure-preview">
+                            <div class="blueprint-title">
+                                <span>
+                                    <i class="fas fa-chart-line"></i> Style Preview
+                                </span>
+                                <button id="preview-refresh-btn" class="preview-refresh-btn" title="Refresh preview">
+                                    <i class="fas fa-sync-alt"></i> Refresh
                                 </button>
                             </div>
-
-                            <!-- Presets Section - Next Line -->
-                            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-                                <span style="font-size: 11px; color: var(--text-secondary); font-weight: 600;">Presets:</span>
-                                <button class="preset-btn" data-preset="SCITEX_STYLE" style="padding: 6px 12px; background: var(--status-success); color: var(--text-inverse); border: none; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer;">SciTeX</button>
-                                <button class="preset-btn" data-preset="NATURE_STYLE" style="padding: 6px 12px; background: var(--bg-surface); border: 1px solid var(--border-muted); color: var(--text-secondary); border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer;">Nature</button>
-                                <button class="preset-btn" data-preset="SCIENCE_STYLE" style="padding: 6px 12px; background: var(--bg-surface); border: 1px solid var(--border-muted); color: var(--text-secondary); border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer;">Science</button>
-                                <button class="preset-btn" data-preset="CELL_STYLE" style="padding: 6px 12px; background: var(--bg-surface); border: 1px solid var(--border-muted); color: var(--text-secondary); border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer;">Cell</button>
-                                <button class="preset-btn" data-preset="PNAS_STYLE" style="padding: 6px 12px; background: var(--bg-surface); border: 1px solid var(--border-muted); color: var(--text-secondary); border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer;">PNAS</button>
+                            <div class="figure-preview-container">
+                                <img id="live-preview-image" alt="Style Preview" style="display: none; max-width: 100%; height: auto;"/>
+                                <div id="preview-loading-overlay" class="preview-loading" style="display: none;">
+                                    <i class="fas fa-spinner fa-spin"></i> Rendering...
+                                </div>
+                                <div id="preview-placeholder" class="preview-placeholder">
+                                    <i class="fas fa-image"></i>
+                                    <span>Click Refresh to see preview</span>
+                                </div>
+                            </div>
+                            <!-- Quick label editors below preview -->
+                            <div class="preview-label-editors">
+                                <div class="label-editor-row">
+                                    <label>Title</label>
+                                    <input id="diagram-title-input" type="text" value="Title" data-field="title" placeholder="Figure title"/>
+                                </div>
+                                <div class="label-editor-row">
+                                    <label>X Label</label>
+                                    <input id="diagram-xlabel-input" type="text" value="X Label" data-field="xlabel" placeholder="X-axis label"/>
+                                </div>
+                                <div class="label-editor-row">
+                                    <label>Y Label</label>
+                                    <input id="diagram-ylabel-input" type="text" value="Y Label" data-field="ylabel" placeholder="Y-axis label"/>
+                                </div>
+                            </div>
+                            <div class="preview-info">
+                                <span id="preview-timestamp">Click Refresh to see live matplotlib preview</span>
                             </div>
                         </div>
 
-                        <!-- Control Sections Container -->
-                        <div style="background: var(--bg-muted); border: 2px solid var(--vis-border); border-top: none; border-radius: 0 0 8px 8px; padding: 20px;">
-                            <!-- Organized Control Sections -->
-                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
-                                <!-- Dimensions Section -->
-                                <div class="style-card" data-card="dimensions" style="background: var(--bg-surface); border-radius: 6px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                                    <h4 class="style-card-header" data-toggle="dimensions" style="margin: 0 0 12px 0; color: var(--status-success); font-size: 12px; font-weight: 600; border-bottom: 2px solid var(--status-success); padding-bottom: 6px; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
-                                        <span><i class="fas fa-ruler-combined"></i> Dimensions</span>
-                                        <i class="fas fa-chevron-right" style="transition: transform 0.2s; font-size: 10px;"></i>
-                                    </h4>
-                                    <div class="style-card-content" data-content="dimensions" style="display: none; margin-top: 12px;">
-                                        <table class="backend-settings-table" style="width: 100%;">
-                                            <tr>
-                                                <td class="setting-label" style="font-size: 11px; color: var(--text-secondary); padding: 6px 0;">X-Axis Width</td>
-                                                <td class="setting-control" style="padding: 6px 0;">
-                                                    <input type="number" id="fig-width-inline" min="10" max="200" value="35" step="1" data-default="35"
-                                                           style="width: 100%; padding: 6px 8px; border: 1px solid var(--border-muted); border-radius: 4px; font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
-                                                </td>
-                                                <td class="setting-value" style="padding: 6px 0 6px 8px; font-size: 11px; color: var(--text-muted); white-space: nowrap;">
-                                                    mm
-                                                    <button class="setting-reset-btn" data-target="fig-width-inline" title="Reset" style="margin-left: 4px; padding: 4px 8px; font-size: 10px;">
-                                                        <i class="fas fa-undo"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td class="setting-label" style="font-size: 11px; color: var(--text-secondary); padding: 6px 0;">Y-Axis Height</td>
-                                                <td class="setting-control" style="padding: 6px 0;">
-                                                    <input type="number" id="fig-height-inline" min="10" max="200" value="24.5" step="0.5" data-default="24.5"
-                                                           style="width: 100%; padding: 6px 8px; border: 1px solid var(--border-muted); border-radius: 4px; font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
-                                                </td>
-                                                <td class="setting-value" style="padding: 6px 0 6px 8px; font-size: 11px; color: var(--text-muted); white-space: nowrap;">
-                                                    mm
-                                                    <button class="setting-reset-btn" data-target="fig-height-inline" title="Reset" style="margin-left: 4px; padding: 4px 8px; font-size: 10px;">
-                                                        <i class="fas fa-undo"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </div>
-                                </div>
+                        <!-- Preset Selector & Actions -->
+                        <div class="preset-controls">
+                            <div class="preset-selector-row">
+                                <label class="property-label">Style Preset</label>
+                                <select id="preset-selector" class="property-select">
+                                    <option value="">SciTeX Default</option>
+                                </select>
+                            </div>
+                            <div class="preset-actions">
+                                <button id="preset-save-btn" class="scitex-btn scitex-btn-secondary" title="Save to account storage">
+                                    <i class="fas fa-save"></i> Save
+                                </button>
+                                <button id="preset-import-btn" class="scitex-btn scitex-btn-secondary" title="Import YAML from file">
+                                    <i class="fas fa-file-import"></i> Import
+                                </button>
+                                <button id="preset-export-btn" class="scitex-btn scitex-btn-secondary" title="Export current preset as YAML">
+                                    <i class="fas fa-file-export"></i> Export
+                                </button>
+                                <button id="preset-apply-btn" class="scitex-btn scitex-btn-primary" title="Apply changes and refresh preview">
+                                    <i class="fas fa-check"></i> Apply
+                                </button>
+                            </div>
+                        </div>
 
-                                <!-- Typography Section -->
-                                <div class="style-card" data-card="typography" style="background: var(--bg-surface); border-radius: 6px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                                    <h4 class="style-card-header" data-toggle="[^"]*" style="margin: 0 0 12px 0; color: var(--status-success); font-size: 12px; font-weight: 600; border-bottom: 2px solid var(--status-success); padding-bottom: 6px; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
-                                        <span><i class="fas fa-font"></i> Typography</span>
-                                        <i class="fas fa-chevron-right" style="transition: transform 0.2s; font-size: 10px;"></i>
-                                    </h4>
-                                    <div class="style-card-content" data-content="typography" style="display: none; margin-top: 12px;">
-                                        <table class="backend-settings-table" style="width: 100%;">
-                                            <tr>
-                                                <td class="setting-label" style="font-size: 11px; color: var(--text-secondary); padding: 6px 0;">Title Font</td>
-                                                <td class="setting-control" style="padding: 6px 0;">
-                                                    <input type="number" id="style-title-font-main" min="4" max="16" value="8" step="1" data-default="8"
-                                                           style="width: 100%; padding: 6px 8px; border: 1px solid var(--border-muted); border-radius: 4px; font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
-                                                </td>
-                                                <td class="setting-value" style="padding: 6px 0 6px 8px; font-size: 11px; color: var(--text-muted); white-space: nowrap;">
-                                                    pt
-                                                    <button class="setting-reset-btn" data-target="style-title-font-main" title="Reset" style="margin-left: 4px; padding: 4px 8px; font-size: 10px;">
-                                                        <i class="fas fa-undo"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td class="setting-label" style="font-size: 11px; color: var(--text-secondary); padding: 6px 0;">Axis Font</td>
-                                                <td class="setting-control" style="padding: 6px 0;">
-                                                    <input type="number" id="style-axis-font-main" min="4" max="16" value="8" step="1" data-default="8"
-                                                           style="width: 100%; padding: 6px 8px; border: 1px solid var(--border-muted); border-radius: 4px; font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
-                                                </td>
-                                                <td class="setting-value" style="padding: 6px 0 6px 8px; font-size: 11px; color: var(--text-muted); white-space: nowrap;">
-                                                    pt
-                                                    <button class="setting-reset-btn" data-target="style-axis-font-main" title="Reset" style="margin-left: 4px; padding: 4px 8px; font-size: 10px;">
-                                                        <i class="fas fa-undo"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td class="setting-label" style="font-size: 11px; color: var(--text-secondary); padding: 6px 0;">Tick Font</td>
-                                                <td class="setting-control" style="padding: 6px 0;">
-                                                    <input type="number" id="style-tick-font-main" min="4" max="16" value="7" step="1" data-default="7"
-                                                           style="width: 100%; padding: 6px 8px; border: 1px solid var(--border-muted); border-radius: 4px; font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
-                                                </td>
-                                                <td class="setting-value" style="padding: 6px 0 6px 8px; font-size: 11px; color: var(--text-muted); white-space: nowrap;">
-                                                    pt
-                                                    <button class="setting-reset-btn" data-target="style-tick-font-main" title="Reset" style="margin-left: 4px; padding: 4px 8px; font-size: 10px;">
-                                                        <i class="fas fa-undo"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </div>
-                                </div>
-
-                                <!-- Line Properties Section -->
-                                <div class="style-card" data-card="line-properties" style="background: var(--bg-surface); border-radius: 6px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                                    <h4 class="style-card-header" data-toggle="[^"]*" style="margin: 0 0 12px 0; color: var(--status-success); font-size: 12px; font-weight: 600; border-bottom: 2px solid var(--status-success); padding-bottom: 6px; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
-                                        <span><i class="fas fa-grip-lines"></i> Line Properties</span>
-                                        <i class="fas fa-chevron-right" style="transition: transform 0.2s; font-size: 10px;"></i>
-                                    </h4>
-                                    <div class="style-card-content" data-content="line-properties" style="display: none; margin-top: 12px;">
-                                        <table class="backend-settings-table" style="width: 100%;">
-                                            <tr>
-                                                <td class="setting-label" style="font-size: 11px; color: var(--text-secondary); padding: 6px 0;">Line Thickness</td>
-                                                <td class="setting-control" style="padding: 6px 0;">
-                                                    <input type="number" id="style-trace-thickness-main" min="0.05" max="1" value="0.12" step="0.01" data-default="0.12"
-                                                           style="width: 100%; padding: 6px 8px; border: 1px solid var(--border-muted); border-radius: 4px; font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
-                                                </td>
-                                                <td class="setting-value" style="padding: 6px 0 6px 8px; font-size: 11px; color: var(--text-muted); white-space: nowrap;">
-                                                    mm
-                                                    <button class="setting-reset-btn" data-target="style-trace-thickness-main" title="Reset" style="margin-left: 4px; padding: 4px 8px; font-size: 10px;">
-                                                        <i class="fas fa-undo"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td class="setting-label" style="font-size: 11px; color: var(--text-secondary); padding: 6px 0;">Axis Thickness</td>
-                                                <td class="setting-control" style="padding: 6px 0;">
-                                                    <input type="number" id="style-axis-thickness-main" min="0.05" max="1" value="0.2" step="0.05" data-default="0.2"
-                                                           style="width: 100%; padding: 6px 8px; border: 1px solid var(--border-muted); border-radius: 4px; font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
-                                                </td>
-                                                <td class="setting-value" style="padding: 6px 0 6px 8px; font-size: 11px; color: var(--text-muted); white-space: nowrap;">
-                                                    mm
-                                                    <button class="setting-reset-btn" data-target="style-axis-thickness-main" title="Reset" style="margin-left: 4px; padding: 4px 8px; font-size: 10px;">
-                                                        <i class="fas fa-undo"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td class="setting-label" style="font-size: 11px; color: var(--text-secondary); padding: 6px 0;">Tick Length</td>
-                                                <td class="setting-control" style="padding: 6px 0;">
-                                                    <input type="number" id="style-tick-length-main" min="0.1" max="3" value="0.8" step="0.1" data-default="0.8"
-                                                           style="width: 100%; padding: 6px 8px; border: 1px solid var(--border-muted); border-radius: 4px; font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
-                                                </td>
-                                                <td class="setting-value" style="padding: 6px 0 6px 8px; font-size: 11px; color: var(--text-muted); white-space: nowrap;">
-                                                    mm
-                                                    <button class="setting-reset-btn" data-target="style-tick-length-main" title="Reset" style="margin-left: 4px; padding: 4px 8px; font-size: 10px;">
-                                                        <i class="fas fa-undo"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td class="setting-label" style="font-size: 11px; color: var(--text-secondary); padding: 6px 0;">Tick Thickness</td>
-                                                <td class="setting-control" style="padding: 6px 0;">
-                                                    <input type="number" id="style-tick-thickness-main" min="0.05" max="1" value="0.2" step="0.05" data-default="0.2"
-                                                           style="width: 100%; padding: 6px 8px; border: 1px solid var(--border-muted); border-radius: 4px; font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
-                                                </td>
-                                                <td class="setting-value" style="padding: 6px 0 6px 8px; font-size: 11px; color: var(--text-muted); white-space: nowrap;">
-                                                    mm
-                                                    <button class="setting-reset-btn" data-target="style-tick-thickness-main" title="Reset" style="margin-left: 4px; padding: 4px 8px; font-size: 10px;">
-                                                        <i class="fas fa-undo"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </div>
-                                </div>
-
-                                <!-- Additional Fonts Section -->
-                                <div class="style-card" data-card="additional-fonts" style="background: var(--bg-surface); border-radius: 6px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                                    <h4 class="style-card-header" data-toggle="[^"]*" style="margin: 0 0 12px 0; color: var(--status-success); font-size: 12px; font-weight: 600; border-bottom: 2px solid var(--status-success); padding-bottom: 6px; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
-                                        <span><i class="fas fa-text-height"></i> Additional Fonts</span>
-                                        <i class="fas fa-chevron-right" style="transition: transform 0.2s; font-size: 10px;"></i>
-                                    </h4>
-                                    <div class="style-card-content" data-content="additional-fonts" style="display: none; margin-top: 12px;">
-                                        <table class="backend-settings-table" style="width: 100%;">
-                                            <tr>
-                                                <td class="setting-label" style="font-size: 11px; color: var(--text-secondary); padding: 6px 0;">Suptitle Font</td>
-                                                <td class="setting-control" style="padding: 6px 0;">
-                                                    <input type="number" id="style-suptitle-font-main" min="4" max="16" value="8" step="1" data-default="8"
-                                                           style="width: 100%; padding: 6px 8px; border: 1px solid var(--border-muted); border-radius: 4px; font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
-                                                </td>
-                                                <td class="setting-value" style="padding: 6px 0 6px 8px; font-size: 11px; color: var(--text-muted); white-space: nowrap;">
-                                                    pt
-                                                    <button class="setting-reset-btn" data-target="style-suptitle-font-main" title="Reset" style="margin-left: 4px; padding: 4px 8px; font-size: 10px;">
-                                                        <i class="fas fa-undo"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td class="setting-label" style="font-size: 11px; color: var(--text-secondary); padding: 6px 0;">Legend Font</td>
-                                                <td class="setting-control" style="padding: 6px 0;">
-                                                    <input type="number" id="style-legend-font-main" min="4" max="16" value="6" step="1" data-default="6"
-                                                           style="width: 100%; padding: 6px 8px; border: 1px solid var(--border-muted); border-radius: 4px; font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
-                                                </td>
-                                                <td class="setting-value" style="padding: 6px 0 6px 8px; font-size: 11px; color: var(--text-muted); white-space: nowrap;">
-                                                    pt
-                                                    <button class="setting-reset-btn" data-target="style-legend-font-main" title="Reset" style="margin-left: 4px; padding: 4px 8px; font-size: 10px;">
-                                                        <i class="fas fa-undo"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </div>
-                                </div>
-
-                                <!-- Plot Elements Section -->
-                                <div class="style-card" data-card="plot-elements" style="background: var(--bg-surface); border-radius: 6px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                                    <h4 class="style-card-header" data-toggle="[^"]*" style="margin: 0 0 12px 0; color: var(--status-success); font-size: 12px; font-weight: 600; border-bottom: 2px solid var(--status-success); padding-bottom: 6px; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
-                                        <span><i class="fas fa-chart-bar"></i> Plot Elements</span>
-                                        <i class="fas fa-chevron-right" style="transition: transform 0.2s; font-size: 10px;"></i>
-                                    </h4>
-                                    <div class="style-card-content" data-content="plot-elements" style="display: none; margin-top: 12px;">
-                                        <table class="backend-settings-table" style="width: 100%;">
-                                        <tr>
-                                            <td class="setting-label" style="font-size: 11px; color: var(--text-secondary); padding: 6px 0;">Error Bar Thickness</td>
-                                            <td class="setting-control" style="padding: 6px 0;">
-                                                <input type="number" id="style-errorbar-thickness-main" min="0.05" max="1" value="0.2" step="0.05" data-default="0.2"
-                                                       style="width: 100%; padding: 6px 8px; border: 1px solid var(--border-muted); border-radius: 4px; font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
-                                            </td>
-                                            <td class="setting-value" style="padding: 6px 0 6px 8px; font-size: 11px; color: var(--text-muted); white-space: nowrap;">
-                                                mm
-                                                <button class="setting-reset-btn" data-target="style-errorbar-thickness-main" title="Reset" style="margin-left: 4px; padding: 4px 8px; font-size: 10px;">
-                                                    <i class="fas fa-undo"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="setting-label" style="font-size: 11px; color: var(--text-secondary); padding: 6px 0;">Error Bar Cap</td>
-                                            <td class="setting-control" style="padding: 6px 0;">
-                                                <input type="number" id="style-errorbar-cap-main" min="0.1" max="3" value="0.8" step="0.1" data-default="0.8"
-                                                       style="width: 100%; padding: 6px 8px; border: 1px solid var(--border-muted); border-radius: 4px; font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
-                                            </td>
-                                            <td class="setting-value" style="padding: 6px 0 6px 8px; font-size: 11px; color: var(--text-muted); white-space: nowrap;">
-                                                mm
-                                                <button class="setting-reset-btn" data-target="style-errorbar-cap-main" title="Reset" style="margin-left: 4px; padding: 4px 8px; font-size: 10px;">
-                                                    <i class="fas fa-undo"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="setting-label" style="font-size: 11px; color: var(--text-secondary); padding: 6px 0;">Bar Edge Thickness</td>
-                                            <td class="setting-control" style="padding: 6px 0;">
-                                                <input type="number" id="style-bar-edge-thickness-main" min="0.05" max="1" value="0.2" step="0.05" data-default="0.2"
-                                                       style="width: 100%; padding: 6px 8px; border: 1px solid var(--border-muted); border-radius: 4px; font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
-                                            </td>
-                                            <td class="setting-value" style="padding: 6px 0 6px 8px; font-size: 11px; color: var(--text-muted); white-space: nowrap;">
-                                                mm
-                                                <button class="setting-reset-btn" data-target="style-bar-edge-thickness-main" title="Reset" style="margin-left: 4px; padding: 4px 8px; font-size: 10px;">
-                                                    <i class="fas fa-undo"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="setting-label" style="font-size: 11px; color: var(--text-secondary); padding: 6px 0;">KDE Line Thickness</td>
-                                            <td class="setting-control" style="padding: 6px 0;">
-                                                <input type="number" id="style-kde-thickness-main" min="0.05" max="1" value="0.2" step="0.05" data-default="0.2"
-                                                       style="width: 100%; padding: 6px 8px; border: 1px solid var(--border-muted); border-radius: 4px; font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
-                                            </td>
-                                            <td class="setting-value" style="padding: 6px 0 6px 8px; font-size: 11px; color: var(--text-muted); white-space: nowrap;">
-                                                mm
-                                                <button class="setting-reset-btn" data-target="style-kde-thickness-main" title="Reset" style="margin-left: 4px; padding: 4px 8px; font-size: 10px;">
-                                                    <i class="fas fa-undo"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td class="setting-label" style="font-size: 11px; color: var(--text-secondary); padding: 6px 0;">Scatter Size</td>
-                                            <td class="setting-control" style="padding: 6px 0;">
-                                                <input type="number" id="style-scatter-size-main" min="0.1" max="5" value="0.8" step="0.1" data-default="0.8"
-                                                       style="width: 100%; padding: 6px 8px; border: 1px solid var(--border-muted); border-radius: 4px; font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
-                                            </td>
-                                            <td class="setting-value" style="padding: 6px 0 6px 8px; font-size: 11px; color: var(--text-muted); white-space: nowrap;">
-                                                mm
-                                                <button class="setting-reset-btn" data-target="style-scatter-size-main" title="Reset" style="margin-left: 4px; padding: 4px 8px; font-size: 10px;">
-                                                    <i class="fas fa-undo"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                    </div>
-                                </div>
-
-                                <!-- Spacing Section -->
-                                <div class="style-card" data-card="spacing" style="background: var(--bg-surface); border-radius: 6px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); grid-column: span 2;">
-                                    <h4 class="style-card-header" data-toggle="[^"]*" style="margin: 0 0 12px 0; color: var(--status-success); font-size: 12px; font-weight: 600; border-bottom: 2px solid var(--status-success); padding-bottom: 6px; display: flex; justify-content: space-between; cursor: pointer;">
-                                        <span><i class="fas fa-expand-arrows-alt"></i> Spacing</span>
-                                        <i class="fas fa-chevron-right" style="transition: transform 0.2s; font-size: 10px;"></i>
-                                    </h4>
-                                    <div class="style-card-content" data-content="spacing" style="display: none; margin-top: 12px;">
-                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                                        <!-- Padding Controls -->
-                                        <div>
-                                            <h5 style="margin: 0 0 8px 0; color: var(--text-secondary); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Padding (pt)</h5>
-                                            <table class="backend-settings-table" style="width: 100%;">
-                                                <tr>
-                                                    <td class="setting-label" style="font-size: 11px; color: var(--text-secondary); padding: 6px 0;">Title</td>
-                                                    <td class="setting-control" style="padding: 6px 0;">
-                                                        <input type="number" id="style-title-pad-main" min="0" max="10" value="1" step="0.5" data-default="1"
-                                                               style="width: 100%; padding: 6px 8px; border: 1px solid var(--border-muted); border-radius: 4px; font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
-                                                    </td>
-                                                    <td class="setting-value" style="padding: 6px 0 6px 8px; white-space: nowrap;">
-                                                        <button class="setting-reset-btn" data-target="style-title-pad-main" title="Reset" style="padding: 4px 8px; font-size: 10px;">
-                                                            <i class="fas fa-undo"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="setting-label" style="font-size: 11px; color: var(--text-secondary); padding: 6px 0;">Label</td>
-                                                    <td class="setting-control" style="padding: 6px 0;">
-                                                        <input type="number" id="style-label-pad-main" min="0" max="10" value="0.5" step="0.5" data-default="0.5"
-                                                               style="width: 100%; padding: 6px 8px; border: 1px solid var(--border-muted); border-radius: 4px; font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
-                                                    </td>
-                                                    <td class="setting-value" style="padding: 6px 0 6px 8px; white-space: nowrap;">
-                                                        <button class="setting-reset-btn" data-target="style-label-pad-main" title="Reset" style="padding: 4px 8px; font-size: 10px;">
-                                                            <i class="fas fa-undo"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="setting-label" style="font-size: 11px; color: var(--text-secondary); padding: 6px 0;">Tick</td>
-                                                    <td class="setting-control" style="padding: 6px 0;">
-                                                        <input type="number" id="style-tick-pad-main" min="0" max="10" value="2" step="0.5" data-default="2"
-                                                               style="width: 100%; padding: 6px 8px; border: 1px solid var(--border-muted); border-radius: 4px; font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
-                                                    </td>
-                                                    <td class="setting-value" style="padding: 6px 0 6px 8px; white-space: nowrap;">
-                                                        <button class="setting-reset-btn" data-target="style-tick-pad-main" title="Reset" style="padding: 4px 8px; font-size: 10px;">
-                                                            <i class="fas fa-undo"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            </table>
-                                        </div>
-
-                                        <!-- Margin Controls -->
-                                        <div>
-                                            <h5 style="margin: 0 0 8px 0; color: var(--text-secondary); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Margins (mm)</h5>
-                                            <table class="backend-settings-table" style="width: 100%;">
-                                                <tr>
-                                                    <td class="setting-label" style="font-size: 11px; color: var(--text-secondary); padding: 6px 0;">Left</td>
-                                                    <td class="setting-control" style="padding: 6px 0;">
-                                                        <input type="number" id="margin-left-main" min="0" max="100" value="20" step="1" data-default="20"
-                                                               style="width: 100%; padding: 6px 8px; border: 1px solid var(--border-muted); border-radius: 4px; font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
-                                                    </td>
-                                                    <td class="setting-value" style="padding: 6px 0 6px 8px; white-space: nowrap;">
-                                                        <button class="setting-reset-btn" data-target="margin-left-main" title="Reset" style="padding: 4px 8px; font-size: 10px;">
-                                                            <i class="fas fa-undo"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="setting-label" style="font-size: 11px; color: var(--text-secondary); padding: 6px 0;">Right</td>
-                                                    <td class="setting-control" style="padding: 6px 0;">
-                                                        <input type="number" id="margin-right-main" min="0" max="100" value="20" step="1" data-default="20"
-                                                               style="width: 100%; padding: 6px 8px; border: 1px solid var(--border-muted); border-radius: 4px; font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
-                                                    </td>
-                                                    <td class="setting-value" style="padding: 6px 0 6px 8px; white-space: nowrap;">
-                                                        <button class="setting-reset-btn" data-target="margin-right-main" title="Reset" style="padding: 4px 8px; font-size: 10px;">
-                                                            <i class="fas fa-undo"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="setting-label" style="font-size: 11px; color: var(--text-secondary); padding: 6px 0;">Top</td>
-                                                    <td class="setting-control" style="padding: 6px 0;">
-                                                        <input type="number" id="margin-top-main" min="0" max="100" value="20" step="1" data-default="20"
-                                                               style="width: 100%; padding: 6px 8px; border: 1px solid var(--border-muted); border-radius: 4px; font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
-                                                    </td>
-                                                    <td class="setting-value" style="padding: 6px 0 6px 8px; white-space: nowrap;">
-                                                        <button class="setting-reset-btn" data-target="margin-top-main" title="Reset" style="padding: 4px 8px; font-size: 10px;">
-                                                            <i class="fas fa-undo"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="setting-label" style="font-size: 11px; color: var(--text-secondary); padding: 6px 0;">Bottom</td>
-                                                    <td class="setting-control" style="padding: 6px 0;">
-                                                        <input type="number" id="margin-bottom-main" min="0" max="100" value="20" step="1" data-default="20"
-                                                               style="width: 100%; padding: 6px 8px; border: 1px solid var(--border-muted); border-radius: 4px; font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
-                                                    </td>
-                                                    <td class="setting-value" style="padding: 6px 0 6px 8px; white-space: nowrap;">
-                                                        <button class="setting-reset-btn" data-target="margin-bottom-main" title="Reset" style="padding: 4px 8px; font-size: 10px;">
-                                                            <i class="fas fa-undo"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            </table>
-                                        </div>
-
-                                        <!-- Multi-Panel Spacing -->
-                                        <div>
-                                            <h5 style="margin: 16px 0 8px 0; color: var(--text-secondary); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Multi-Panel (mm)</h5>
-                                            <table class="backend-settings-table" style="width: 100%;">
-                                                <tr>
-                                                    <td class="setting-label" style="font-size: 11px; color: var(--text-secondary); padding: 6px 0;">Horizontal Space</td>
-                                                    <td class="setting-control" style="padding: 6px 0;">
-                                                        <input type="number" id="space-w-main" min="0" max="50" value="8" step="1" data-default="8"
-                                                               style="width: 100%; padding: 6px 8px; border: 1px solid var(--border-muted); border-radius: 4px; font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
-                                                    </td>
-                                                    <td class="setting-value" style="padding: 6px 0 6px 8px; white-space: nowrap;">
-                                                        <button class="setting-reset-btn" data-target="space-w-main" title="Reset" style="padding: 4px 8px; font-size: 10px;">
-                                                            <i class="fas fa-undo"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="setting-label" style="font-size: 11px; color: var(--text-secondary); padding: 6px 0;">Vertical Space</td>
-                                                    <td class="setting-control" style="padding: 6px 0;">
-                                                        <input type="number" id="space-h-main" min="0" max="50" value="10" step="1" data-default="10"
-                                                               style="width: 100%; padding: 6px 8px; border: 1px solid var(--border-muted); border-radius: 4px; font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
-                                                    </td>
-                                                    <td class="setting-value" style="padding: 6px 0 6px 8px; white-space: nowrap;">
-                                                        <button class="setting-reset-btn" data-target="space-h-main" title="Reset" style="padding: 4px 8px; font-size: 10px;">
-                                                            <i class="fas fa-undo"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            </table>
-                                        </div>
-                                    </div>
-                                    </div>
-                                </div>
-
-                                <!-- Advanced Settings Section -->
-                                <div class="style-card" data-card="advanced-settings" style="background: var(--bg-surface); border-radius: 6px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); grid-column: span 2;">
-                                    <h4 class="style-card-header" data-toggle="[^"]*" style="margin: 0 0 12px 0; color: var(--status-success); font-size: 12px; font-weight: 600; border-bottom: 2px solid var(--status-success); padding-bottom: 6px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-                                        <span><i class="fas fa-cog"></i> Advanced Settings</span>
-                                        <i class="fas fa-chevron-right" style="transition: transform 0.2s; font-size: 10px;"></i>
-                                    </h4>
-                                    <div class="style-card-content" data-content="advanced-settings" style="display: none; margin-top: 12px;">
-                                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
-                                        <!-- N Ticks -->
-                                        <div>
-                                            <label style="display: block; font-size: 11px; color: var(--text-secondary); font-weight: 600; margin-bottom: 6px;">Target Ticks</label>
-                                            <div style="display: flex; gap: 4px; align-items: center;">
-                                                <input type="number" id="n-ticks-main" min="2" max="10" value="4" step="1" data-default="4"
-                                                       style="width: 100%; padding: 6px 8px; border: 1px solid var(--border-muted); border-radius: 4px; font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
-                                                <button class="setting-reset-btn" data-target="n-ticks-main" title="Reset" style="padding: 4px 8px; font-size: 10px;">
-                                                    <i class="fas fa-undo"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        <!-- DPI -->
-                                        <div>
-                                            <label style="display: block; font-size: 11px; color: var(--text-secondary); font-weight: 600; margin-bottom: 6px;">DPI</label>
-                                            <div style="display: flex; gap: 4px; align-items: center;">
-                                                <input type="number" id="dpi-main" min="72" max="600" value="300" step="1" data-default="300"
-                                                       style="width: 100%; padding: 6px 8px; border: 1px solid var(--border-muted); border-radius: 4px; font-size: 11px; background: var(--bg-surface); color: var(--text-primary);">
-                                                <button class="setting-reset-btn" data-target="dpi-main" title="Reset" style="padding: 4px 8px; font-size: 10px;">
-                                                    <i class="fas fa-undo"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        <!-- Mode -->
-                                        <div>
-                                            <label style="display: block; font-size: 11px; color: var(--text-secondary); font-weight: 600; margin-bottom: 6px;">Mode</label>
-                                            <select id="mode-main" data-default="publication" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border-muted); border-radius: 4px; font-size: 11px; background: var(--bg-surface);">
-                                                <option value="publication" selected>Publication</option>
-                                                <option value="presentation">Presentation</option>
-                                                <option value="draft">Draft</option>
-                                            </select>
-                                        </div>
-
-                                        <!-- Transparent Background -->
-                                        <div>
-                                            <label style="display: block; font-size: 11px; color: var(--text-secondary); font-weight: 600; margin-bottom: 6px;">Transparent BG</label>
-                                            <div style="display: flex; align-items: center; gap: 8px; height: 34px;">
-                                                <input type="checkbox" id="transparent-main" checked data-default="true" style="width: 18px; height: 18px; cursor: pointer;">
-                                                <span style="font-size: 11px; color: var(--text-muted);">Enabled</span>
-                                            </div>
-                                        </div>
-
-                                        <!-- Auto Scale Axes -->
-                                        <div>
-                                            <label style="display: block; font-size: 11px; color: var(--text-secondary); font-weight: 600; margin-bottom: 6px;">Auto Scale Axes</label>
-                                            <div style="display: flex; align-items: center; gap: 8px; height: 34px;">
-                                                <input type="checkbox" id="auto-scale-axes-main" checked data-default="true" style="width: 18px; height: 18px; cursor: pointer;">
-                                                <span style="font-size: 11px; color: var(--text-muted);">Enabled</span>
-                                            </div>
-                                        </div>
-                                        </div>
-                                    </div>
-                                </div>
+                        <!-- YAML Configuration Editor -->
+                        <div class="preset-yaml-editor">
+                            <label class="property-label">
+                                <i class="fas fa-code"></i> YAML Configuration
+                            </label>
+                            <textarea id="preset-yaml-textarea" class="preset-yaml-textarea" spellcheck="false"></textarea>
+                            <div class="yaml-status" id="yaml-status">
+                                <i class="fas fa-info-circle"></i> Edit YAML and click Apply to update preview
                             </div>
                         </div>
                     </div>
                 </div>
-                <div id="dark-canvas-warning" class="dark-canvas-warning" style="display: none;">
-                    <i class="fas fa-eye"></i>
-                    <span>Export: WHITE bg</span>
+
+                <!-- Hidden file input for YAML import -->
+                <input type="file" id="yaml-import-input" accept=".yaml,.yml" style="display: none;">
+
+                <!-- Templates Section (shared across tabs) -->
+                <div id="property-templates" style="display: none;">
+                    <!-- Figure Properties Template (hidden) -->
+                    <template id="template-figure-props">
+                        <div class="property-group">
+                            <label class="property-label">Label</label>
+                            <input type="text" class="property-input" id="prop-figure-label" placeholder="Figure label">
+                        </div>
+                        <div class="property-group">
+                            <label class="property-label">Width (inches)</label>
+                            <input type="number" class="property-input" id="prop-figure-width" value="8" step="0.5">
+                        </div>
+                        <div class="property-group">
+                            <label class="property-label">Height (inches)</label>
+                            <input type="number" class="property-input" id="prop-figure-height" value="6" step="0.5">
+                        </div>
+                    </template>
+
+                    <!-- Axis Properties Template (hidden) -->
+                    <template id="template-axis-props">
+                        <div class="property-group">
+                            <label class="property-label">Label</label>
+                            <input type="text" class="property-input" id="prop-axis-label" placeholder="Axis label">
+                        </div>
+                        <div class="property-group">
+                            <label class="property-label">
+                                <input type="checkbox" id="prop-axis-grid" checked> Show Grid
+                            </label>
+                        </div>
+                        <div class="property-group">
+                            <label class="property-label">
+                                <input type="checkbox" id="prop-axis-log-x"> Log Scale X
+                            </label>
+                        </div>
+                        <div class="property-group">
+                            <label class="property-label">
+                                <input type="checkbox" id="prop-axis-log-y"> Log Scale Y
+                            </label>
+                        </div>
+                    </template>
+
+                    <!-- Labels Properties Template (hidden) -->
+                    <template id="template-labels-props">
+                        <div class="property-group">
+                            <label class="property-label">Title</label>
+                            <input type="text" class="property-input" id="prop-labels-title" placeholder="Plot title">
+                        </div>
+                        <div class="property-group">
+                            <label class="property-label">X Label</label>
+                            <input type="text" class="property-input" id="prop-labels-x" placeholder="X-axis label">
+                        </div>
+                        <div class="property-group">
+                            <label class="property-label">Y Label</label>
+                            <input type="text" class="property-input" id="prop-labels-y" placeholder="Y-axis label">
+                        </div>
+                        <div class="property-group">
+                            <label class="property-label">Font Size</label>
+                            <input type="number" class="property-input" id="prop-labels-fontsize" value="12" min="6" max="24">
+                        </div>
+                    </template>
+
+                    <!-- Plot Properties Template (hidden) -->
+                    <template id="template-plot-props">
+                        <div class="property-group">
+                            <label class="property-label">Plot Type</label>
+                            <select class="property-select" id="prop-plot-type">
+                                <option value="line">Line</option>
+                                <option value="scatter">Scatter</option>
+                                <option value="bar">Bar</option>
+                                <option value="histogram">Histogram</option>
+                                <option value="box">Box</option>
+                            </select>
+                        </div>
+                        <div class="property-group">
+                            <label class="property-label">X-axis Column</label>
+                            <select class="property-select" id="prop-x-column">
+                                <option value="">-- Select --</option>
+                            </select>
+                        </div>
+                        <div class="property-group">
+                            <label class="property-label">Y-axis Column</label>
+                            <select class="property-select" id="prop-y-column">
+                                <option value="">-- Select --</option>
+                            </select>
+                        </div>
+                        <div class="property-group">
+                            <label class="property-label">Color</label>
+                            <input type="color" class="property-color" id="prop-plot-color" value="#4a9b7e">
+                        </div>
+                        <div class="property-group">
+                            <label class="property-label">Line Width</label>
+                            <input type="range" class="property-range" id="prop-line-width" min="0.5" max="5" step="0.5" value="2">
+                            <span class="property-value">2</span>
+                        </div>
+                        <div class="property-group">
+                            <label class="property-label">Marker Size</label>
+                            <input type="range" class="property-range" id="prop-marker-size" min="2" max="20" step="1" value="8">
+                            <span class="property-value">8</span>
+                        </div>
+                    </template>
+
+                    <!-- Guide (Legend/Colorbar) Properties Template (hidden) -->
+                    <template id="template-guide-props">
+                        <div class="property-group">
+                            <label class="property-label">Guide Type</label>
+                            <select class="property-select" id="prop-guide-type">
+                                <option value="legend">Legend</option>
+                                <option value="colorbar">Colorbar</option>
+                            </select>
+                        </div>
+                        <div class="property-group" id="guide-legend-props">
+                            <label class="property-label">
+                                <input type="checkbox" id="prop-show-legend" checked> Show Legend
+                            </label>
+                            <label class="property-label">Position</label>
+                            <select class="property-select" id="prop-legend-position">
+                                <option value="top-right">Top Right</option>
+                                <option value="top-left">Top Left</option>
+                                <option value="bottom-right">Bottom Right</option>
+                                <option value="bottom-left">Bottom Left</option>
+                            </select>
+                        </div>
+                        <div class="property-group" id="guide-colorbar-props">
+                            <label class="property-label">Orientation</label>
+                            <select class="property-select" id="prop-colorbar-orientation">
+                                <option value="vertical">Vertical</option>
+                                <option value="horizontal">Horizontal</option>
+                            </select>
+                        </div>
+                    </template>
+
+                    <!-- Annotation Properties Template (hidden) -->
+                    <template id="template-annotation-props">
+                        <div class="property-group">
+                            <label class="property-label">Annotation Type</label>
+                            <select class="property-select" id="prop-annotation-type">
+                                <option value="text">Text</option>
+                                <option value="arrow">Arrow</option>
+                                <option value="scalebar">Scale Bar</option>
+                            </select>
+                        </div>
+                        <div class="property-group" id="annotation-text-props">
+                            <label class="property-label">Text</label>
+                            <input type="text" class="property-input" id="prop-annotation-text" placeholder="Annotation text">
+                        </div>
+                        <div class="property-group">
+                            <label class="property-label">X Position</label>
+                            <input type="number" class="property-input" id="prop-annotation-x" value="0" step="0.1">
+                        </div>
+                        <div class="property-group">
+                            <label class="property-label">Y Position</label>
+                            <input type="number" class="property-input" id="prop-annotation-y" value="0" step="0.1">
+                        </div>
+                        <div class="property-group">
+                            <label class="property-label">Font Size</label>
+                            <input type="number" class="property-input" id="prop-annotation-fontsize" value="12" min="6" max="24">
+                        </div>
+                    </template>
                 </div>
-            </div>
-            <div style="display: flex; align-items: center; gap: 6px;">
-                <i class="fas fa-search" style="font-size: 10px; color: var(--vis-text-secondary);"></i>
-                <span style="font-size: 11px; color: var(--vis-text-secondary);">Zoom:</span>
-                <span id="canvas-zoom" style="font-family: 'Courier New', monospace; font-weight: 600;">100%</span>
+                <!-- End of Templates Section -->
             </div>
         </div>
     </div>
 
-    <!-- Right Properties Panel -->
-    <div class="vis-properties">
-        <!-- Canvas Mode: Properties -->
-        <div id="canvas-properties-panel">
-            <div class="properties-header">
-                <i class="fas fa-sliders-h"></i> Properties
-            </div>
-            <div id="properties-content" class="properties-content">
-                <p class="properties-empty">Select an object to edit properties</p>
-            </div>
-        </div>
-
-    </div>
 </div>
 
-<!-- New Figure Modal -->
-<div id="new-figure-modal" class="modal" style="display: none;">
+<!-- Hidden file input for import -->
+<input type="file" id="data-file-input" accept=".csv,.xlsx,.xls">
+
+<!-- Customization Modals -->
+<div id="font-modal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h2>Create New Figure</h2>
-            <button class="modal-close">&times;</button>
+            <h3><i class="fas fa-font"></i> Font Settings</h3>
+            <button class="modal-close" data-modal="font-modal">&times;</button>
         </div>
         <div class="modal-body">
-            <form id="new-figure-form" method="post" action="{% url 'vis:create_figure' %}">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label for="figure-title">Title</label>
-                    <input type="text" id="figure-title" name="title" class="form-control" placeholder="Untitled Figure" required>
-                </div>
-                <div class="form-group">
-                    <label for="figure-layout">Initial Layout</label>
-                    <select id="figure-layout" name="layout" class="form-control">
-                        <option value="1x1">Single Panel (1×1)</option>
-                        <option value="2x1">Two Horizontal (2×1)</option>
-                        <option value="1x2">Two Vertical (1×2)</option>
-                        <option value="2x2" selected>Four Panels (2×2)</option>
-                        <option value="1x3">Three Horizontal (1×3)</option>
-                        <option value="3x1">Three Vertical (3×1)</option>
-                    </select>
-                </div>
-            </form>
+            <div class="form-group">
+                <label for="font-family">Font Family</label>
+                <select id="font-family" class="form-control">
+                    <option value="Arial, sans-serif">Arial</option>
+                    <option value="'Times New Roman', serif">Times New Roman</option>
+                    <option value="'Courier New', monospace">Courier New</option>
+                    <option value="Helvetica, sans-serif">Helvetica</option>
+                    <option value="Georgia, serif">Georgia</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="font-size">Font Size (pt)</label>
+                <input type="number" id="font-size" class="form-control" min="6" max="24" value="12">
+            </div>
+            <div class="form-group">
+                <label for="title-font-size">Title Font Size (pt)</label>
+                <input type="number" id="title-font-size" class="form-control" min="10" max="32" value="16">
+            </div>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-secondary modal-close">Cancel</button>
-            <button type="submit" form="new-figure-form" class="btn btn-primary">Create Figure</button>
+            <button class="btn btn-secondary" data-modal="font-modal">Cancel</button>
+            <button class="btn btn-primary" id="apply-font">Apply</button>
         </div>
     </div>
 </div>
 
-<!-- Version History Modal -->
-<div id="version-history-modal" class="modal" style="display: none;">
-    <div class="modal-content" style="max-width: 800px;">
+<div id="colors-modal" class="modal">
+    <div class="modal-content">
         <div class="modal-header">
-            <h2>Version History</h2>
-            <button class="modal-close">&times;</button>
+            <h3><i class="fas fa-palette"></i> Color Settings</h3>
+            <button class="modal-close" data-modal="colors-modal">&times;</button>
         </div>
         <div class="modal-body">
-            <div style="margin-bottom: 16px;">
-                <button id="create-snapshot-btn" class="btn btn-primary btn-sm">
-                    <i class="fas fa-camera"></i>
-                    Create Snapshot
-                </button>
+            <div class="form-group">
+                <label for="line-color">Line Color</label>
+                <input type="color" id="line-color" class="form-control" value="#4a9b7e">
             </div>
-            <div id="versions-list" class="versions-list">
-                <p class="text-muted">Loading versions...</p>
+            <div class="form-group">
+                <label for="grid-color">Grid Color</label>
+                <input type="color" id="grid-color" class="form-control" value="#e1e8ed">
+            </div>
+            <div class="form-group">
+                <label for="bg-color">Background Color</label>
+                <input type="color" id="bg-color" class="form-control" value="#ffffff">
             </div>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-secondary modal-close">Close</button>
+            <button class="btn btn-secondary" data-modal="colors-modal">Cancel</button>
+            <button class="btn btn-primary" id="apply-colors">Apply</button>
+        </div>
+    </div>
+</div>
+
+<div id="size-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-ruler"></i> Size Settings</h3>
+            <button class="modal-close" data-modal="size-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="plot-width">Width (px)</label>
+                <input type="number" id="plot-width" class="form-control" min="400" max="2000" value="800" step="50">
+            </div>
+            <div class="form-group">
+                <label for="plot-height">Height (px)</label>
+                <input type="number" id="plot-height" class="form-control" min="300" max="1500" value="600" step="50">
+            </div>
+            <div class="form-group">
+                <label for="line-width">Line Width (px)</label>
+                <input type="number" id="line-width" class="form-control" min="0.5" max="10" value="2.5" step="0.5">
+            </div>
+            <div class="form-group">
+                <label for="marker-size">Marker Size (px)</label>
+                <input type="number" id="marker-size" class="form-control" min="2" max="20" value="8" step="1">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" data-modal="size-modal">Cancel</button>
+            <button class="btn btn-primary" id="apply-size">Apply</button>
+        </div>
+    </div>
+</div>
+
+<!-- Transform Modals -->
+<div id="sort-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-sort"></i> Sort Data</h3>
+            <button class="modal-close" data-modal="sort-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="sort-column">Sort By Column</label>
+                <select id="sort-column" class="form-control">
+                    <!-- Options populated dynamically -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="sort-order">Order</label>
+                <select id="sort-order" class="form-control">
+                    <option value="asc">Ascending</option>
+                    <option value="desc">Descending</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" data-modal="sort-modal">Cancel</button>
+            <button class="btn btn-primary" id="apply-sort">Sort</button>
+        </div>
+    </div>
+</div>
+
+<div id="filter-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-filter"></i> Filter Data</h3>
+            <button class="modal-close" data-modal="filter-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="filter-column">Column</label>
+                <select id="filter-column" class="form-control">
+                    <!-- Options populated dynamically -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="filter-operator">Operator</label>
+                <select id="filter-operator" class="form-control">
+                    <option value="eq">Equal to (=)</option>
+                    <option value="ne">Not equal to (≠)</option>
+                    <option value="gt">Greater than (>)</option>
+                    <option value="gte">Greater than or equal (≥)</option>
+                    <option value="lt">Less than (<)</option>
+                    <option value="lte">Less than or equal (≤)</option>
+                    <option value="contains">Contains</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="filter-value">Value</label>
+                <input type="text" id="filter-value" class="form-control" placeholder="Enter value">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" data-modal="filter-modal">Cancel</button>
+            <button class="btn btn-primary" id="apply-filter">Apply Filter</button>
+        </div>
+    </div>
+</div>
+
+<div id="compute-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-calculator"></i> Compute Column</h3>
+            <button class="modal-close" data-modal="compute-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="compute-name">New Column Name</label>
+                <input type="text" id="compute-name" class="form-control" placeholder="e.g., Sum_AB">
+            </div>
+            <div class="form-group">
+                <label for="compute-operation">Operation</label>
+                <select id="compute-operation" class="form-control">
+                    <option value="add">Add: A + B</option>
+                    <option value="subtract">Subtract: A - B</option>
+                    <option value="multiply">Multiply: A × B</option>
+                    <option value="divide">Divide: A ÷ B</option>
+                    <option value="sqrt">Square Root: √A</option>
+                    <option value="square">Square: A²</option>
+                    <option value="log">Natural Log: ln(A)</option>
+                    <option value="abs">Absolute Value: |A|</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="compute-column-a">Column A</label>
+                <select id="compute-column-a" class="form-control">
+                    <!-- Options populated dynamically -->
+                </select>
+            </div>
+            <div class="form-group" id="compute-column-b-group">
+                <label for="compute-column-b">Column B</label>
+                <select id="compute-column-b" class="form-control">
+                    <!-- Options populated dynamically -->
+                </select>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" data-modal="compute-modal">Cancel</button>
+            <button class="btn btn-primary" id="apply-compute">Compute</button>
         </div>
     </div>
 </div>
 
 <!-- Keyboard Shortcuts Modal -->
-<div id="keyboard-shortcuts-modal" class="modal" style="display: none;">
-    <div class="modal-content" style="max-width: 700px;">
+<div id="vis-shortcuts-modal" class="modal">
+    <div class="modal-content" style="max-width: 800px;">
         <div class="modal-header">
-            <h2>Keyboard Shortcuts</h2>
-            <button class="modal-close">&times;</button>
+            <h3><i class="fas fa-keyboard"></i> Keyboard Shortcuts</h3>
+            <button class="modal-close" data-modal="vis-shortcuts-modal">&times;</button>
         </div>
         <div class="modal-body">
-            <div class="shortcuts-grid">
-                <div class="shortcuts-section">
-                    <h3>Selection</h3>
-                    <div class="shortcut-row">
-                        <kbd>Alt+Click</kbd>
-                        <span>Select from overlapping objects</span>
-                    </div>
-                    <div class="shortcut-row">
-                        <kbd>Shift+Click</kbd>
-                        <span>Multi-select</span>
-                    </div>
+            <!-- Global Navigation Shortcuts -->
+            <div style="background: var(--color-accent-subtle, #ddf4ff); padding: 12px; border-radius: 6px; margin-bottom: 16px;">
+                <h4 style="margin: 0 0 8px; font-size: 14px;"><i class="fas fa-globe" style="margin-right: 8px;"></i>Global Shortcuts (Always Active)</h4>
+                <div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 13px;">
+                    <span><kbd>Alt+F</kbd> Files</span>
+                    <span><kbd>Alt+S</kbd> Scholar</span>
+                    <span><kbd>Alt+C</kbd> Console</span>
+                    <span><kbd>Alt+V</kbd> Visualizer</span>
+                    <span><kbd>Alt+W</kbd> Writer</span>
+                    <span><kbd>Alt+Z</kbd> Zen Mode</span>
+                    <span><kbd>F11</kbd> Cycle Zen/Fullscreen</span>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                <!-- Canvas Shortcuts -->
+                <div>
+                    <h4 style="color: var(--color-accent-fg); margin-bottom: 8px;"><i class="fas fa-image" style="margin-right: 8px;"></i>Canvas</h4>
+                    <table class="shortcuts-table">
+                        <tr><td><kbd>+</kbd> / <kbd>-</kbd></td><td>Zoom in/out</td></tr>
+                        <tr><td><kbd>0</kbd></td><td>Fit to window</td></tr>
+                        <tr><td><kbd>Ctrl+0</kbd></td><td>Reset canvas size</td></tr>
+                        <tr><td><kbd>G</kbd> / <kbd>Space</kbd></td><td>Toggle grid</td></tr>
+                        <tr><td><kbd>Delete</kbd></td><td>Delete selected</td></tr>
+                        <tr><td><kbd>Ctrl+D</kbd></td><td>Duplicate selected</td></tr>
+                        <tr><td><kbd>Ctrl+A</kbd></td><td>Select all</td></tr>
+                        <tr><td><kbd>Escape</kbd></td><td>Deselect / Exit mode</td></tr>
+                        <tr><td><kbd>Arrow keys</kbd></td><td>Nudge selected</td></tr>
+                        <tr><td><kbd>Shift+Arrow</kbd></td><td>Resize selected</td></tr>
+                    </table>
+
+                    <h4 style="color: var(--color-accent-fg); margin-top: 16px; margin-bottom: 8px;"><i class="fas fa-copy" style="margin-right: 8px;"></i>Copy/Paste</h4>
+                    <table class="shortcuts-table">
+                        <tr><td><kbd>Ctrl+C</kbd></td><td>Copy object</td></tr>
+                        <tr><td><kbd>Ctrl+V</kbd></td><td>Paste object</td></tr>
+                        <tr><td><kbd>Ctrl+Shift+C</kbd></td><td>Copy view (axis limits)</td></tr>
+                        <tr><td><kbd>Ctrl+Shift+V</kbd></td><td>Paste view</td></tr>
+                        <tr><td><kbd>Ctrl+Z</kbd></td><td>Undo</td></tr>
+                        <tr><td><kbd>Ctrl+Y</kbd></td><td>Redo</td></tr>
+                    </table>
                 </div>
 
-                <div class="shortcuts-section">
-                    <h3>Editing</h3>
-                    <div class="shortcut-row">
-                        <kbd>Ctrl+D</kbd>
-                        <span>Duplicate</span>
-                    </div>
-                    <div class="shortcut-row">
-                        <kbd>Del</kbd> / <kbd>Backspace</kbd>
-                        <span>Delete</span>
-                    </div>
-                    <div class="shortcut-row">
-                        <kbd>Ctrl+Z</kbd>
-                        <span>Undo</span>
-                    </div>
-                    <div class="shortcut-row">
-                        <kbd>Ctrl+Y</kbd>
-                        <span>Redo</span>
-                    </div>
-                </div>
+                <!-- Alignment & Grouping -->
+                <div>
+                    <h4 style="color: var(--color-accent-fg); margin-bottom: 8px;"><i class="fas fa-align-center" style="margin-right: 8px;"></i>Alignment (Alt+A then...)</h4>
+                    <table class="shortcuts-table">
+                        <tr><td><kbd>L</kbd></td><td>Align left</td></tr>
+                        <tr><td><kbd>R</kbd></td><td>Align right</td></tr>
+                        <tr><td><kbd>T</kbd></td><td>Align top</td></tr>
+                        <tr><td><kbd>B</kbd></td><td>Align bottom</td></tr>
+                        <tr><td><kbd>C</kbd></td><td>Center horizontally</td></tr>
+                        <tr><td><kbd>M</kbd></td><td>Center vertically</td></tr>
+                        <tr><td><kbd>H</kbd></td><td>Distribute horizontal</td></tr>
+                        <tr><td><kbd>V</kbd></td><td>Distribute vertical</td></tr>
+                    </table>
 
-                <div class="shortcuts-section">
-                    <h3>Grouping</h3>
-                    <div class="shortcut-row">
-                        <kbd>Ctrl+G</kbd>
-                        <span>Group objects</span>
-                    </div>
-                    <div class="shortcut-row">
-                        <kbd>Ctrl+Shift+G</kbd>
-                        <span>Ungroup</span>
-                    </div>
-                    <div class="shortcut-row">
-                        <kbd>Enter</kbd>
-                        <span>Enter group (edit contents)</span>
-                    </div>
-                </div>
+                    <h4 style="color: var(--color-accent-fg); margin-top: 16px; margin-bottom: 8px;"><i class="fas fa-layer-group" style="margin-right: 8px;"></i>Arrange & Group</h4>
+                    <table class="shortcuts-table">
+                        <tr><td><kbd>Alt+F</kbd></td><td>Bring to front</td></tr>
+                        <tr><td><kbd>Alt+B</kbd></td><td>Send to back</td></tr>
+                        <tr><td><kbd>Ctrl+G</kbd></td><td>Group selection</td></tr>
+                        <tr><td><kbd>Ctrl+Shift+G</kbd></td><td>Ungroup</td></tr>
+                    </table>
 
-                <div class="shortcuts-section">
-                    <h3>Layer Order</h3>
-                    <div class="shortcut-row">
-                        <kbd>Ctrl+Shift+]</kbd>
-                        <span>Bring to front</span>
-                    </div>
-                    <div class="shortcut-row">
-                        <kbd>Ctrl+]</kbd>
-                        <span>Bring forward</span>
-                    </div>
-                    <div class="shortcut-row">
-                        <kbd>Ctrl+[</kbd>
-                        <span>Send backward</span>
-                    </div>
-                    <div class="shortcut-row">
-                        <kbd>Ctrl+Shift+[</kbd>
-                        <span>Send to back</span>
-                    </div>
-                </div>
-
-                <div class="shortcuts-section">
-                    <h3>View</h3>
-                    <div class="shortcut-row">
-                        <kbd>+</kbd> / <kbd>=</kbd>
-                        <span>Zoom in</span>
-                    </div>
-                    <div class="shortcut-row">
-                        <kbd>-</kbd>
-                        <span>Zoom out</span>
-                    </div>
-                    <div class="shortcut-row">
-                        <kbd>0</kbd>
-                        <span>Fit to window</span>
-                    </div>
-                    <div class="shortcut-row">
-                        <kbd>Ctrl+Scroll</kbd>
-                        <span>Zoom in/out</span>
-                    </div>
-                </div>
-
-                <div class="shortcuts-section">
-                    <h3>Save & Export</h3>
-                    <div class="shortcut-row">
-                        <kbd>Ctrl+S</kbd>
-                        <span>Save figure</span>
-                    </div>
+                    <h4 style="color: var(--color-accent-fg); margin-top: 16px; margin-bottom: 8px;"><i class="fas fa-expand" style="margin-right: 8px;"></i>Size Mode (Alt+Z then...)</h4>
+                    <table class="shortcuts-table">
+                        <tr><td><kbd>S</kbd></td><td>Match size</td></tr>
+                        <tr><td><kbd>W</kbd></td><td>Match width</td></tr>
+                        <tr><td><kbd>T</kbd></td><td>Match height</td></tr>
+                        <tr><td><kbd>C</kbd></td><td>Multiple crop</td></tr>
+                    </table>
                 </div>
             </div>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-secondary modal-close">Close</button>
+            <button class="btn btn-primary" data-modal="vis-shortcuts-modal">Close</button>
         </div>
     </div>
 </div>
 
-<!-- Skewer Selection Modal -->
-<div id="skewer-modal" class="modal" style="display: none;">
-    <div class="modal-content" style="max-width: 400px;">
-        <div class="modal-header">
-            <h2>Select Object</h2>
-            <button class="modal-close">&times;</button>
-        </div>
-        <div class="modal-body">
-            <p style="margin-bottom: 12px; color: var(--text-secondary); font-size: 13px;">
-                Multiple overlapping objects at this position. Drag to reorder (top = front):
-            </p>
-            <div id="skewer-list" class="skewer-list">
-                <!-- Objects will be dynamically inserted here -->
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary modal-close">Cancel</button>
-            <button type="button" id="skewer-select-btn" class="btn btn-primary">Select</button>
-        </div>
-    </div>
-</div>
+<style>
+.shortcuts-table {
+    width: 100%;
+    font-size: 13px;
+    border-collapse: collapse;
+}
+.shortcuts-table td {
+    padding: 4px 8px;
+    border-bottom: 1px solid var(--border-default, #d0d7de);
+}
+.shortcuts-table td:first-child {
+    width: 45%;
+    white-space: nowrap;
+}
+.shortcuts-table kbd {
+    background: var(--color-neutral-muted, #eaeef2);
+    border: 1px solid var(--border-default, #d0d7de);
+    border-radius: 3px;
+    padding: 2px 5px;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+}
+</style>
+
 {% endblock %}
 
 {% block extra_js %}
-<!-- Load Fabric.js from CDN first -->
+<!-- Vite HMR client (dev only) -->
+{% vite_hmr_client %}
+
+<!-- Panel resizer (auto-initializes from data attributes) -->
+{% vite_script 'shared/workspace-panel-resizer' %}
+
+<!-- Fabric.js for canvas manipulation -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
 
-<!-- Handsontable for data grid -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@13.1.0/dist/handsontable.full.min.css">
-<script src="https://cdn.jsdelivr.net/npm/handsontable@13.1.0/dist/handsontable.full.min.js"></script>
-
-<!-- Load our editor (no module type needed, uses global fabric) -->
-<script src="{% static 'vis_app/js/editor.js' %}"></script>
+<!-- Vis app modules (Vite) -->
+{% vite_script 'vis_app/editor-inline' %}
+{% vite_script 'vis_app/vis-editor' %}
 {% endblock %}
-<!-- test -->

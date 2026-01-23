@@ -1,0 +1,16 @@
+/* Responsive adjustments */
+@media (max-width: 1400px) {
+  .code-terminal-panel {
+    width: 350px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .code-sidebar {
+    width: 240px;
+  }
+  .code-terminal-panel {
+    width: 300px;
+  }
+}
+

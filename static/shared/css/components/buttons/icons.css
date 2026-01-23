@@ -1,0 +1,96 @@
+/*
+ * @component Button Icons
+ * @description Icon button styles and buttons with icons
+ * @file /static/shared/css/components/buttons/icons.css
+ */
+
+/* =========================================
+   ICON BUTTONS
+   ========================================= */
+
+/* Icon-only button (no text) */
+.btn-icon {
+  padding: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+}
+
+.btn-icon.btn-sm {
+  padding: 0.5rem;
+  min-width: 2rem;
+  min-height: 2rem;
+}
+
+.btn-icon.btn-lg {
+  padding: 1rem;
+  min-width: 3rem;
+  min-height: 3rem;
+}
+
+/* Button with icon + text */
+.btn-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-with-icon .icon {
+  font-size: 1.2em;
+}
+
+/* =========================================
+   RESPONSIVE ICON BUTTONS
+   ========================================= */
+
+/* Medium screens (768px - 1023px) - Tablets */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .btn-icon {
+    min-width: 2.35rem;
+    min-height: 2.35rem;
+  }
+}
+
+/* Small screens (480px - 767px) - Mobile landscape */
+@media (max-width: 767px) {
+  .btn-icon {
+    min-width: 2.25rem;
+    min-height: 2.25rem;
+  }
+
+  .btn-with-icon {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .btn-with-icon .icon {
+    font-size: 1em;
+  }
+}
+
+/* Extra small screens (below 480px) - Mobile portrait */
+@media (max-width: 479px) {
+  .btn-icon {
+    min-width: 2rem;
+    min-height: 2rem;
+    padding: 0.5rem;
+  }
+
+  .btn-icon.btn-sm {
+    min-width: 1.75rem;
+    min-height: 1.75rem;
+    padding: 0.35rem;
+  }
+
+  .btn-with-icon {
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.5rem 0.6rem;
+  }
+
+  .btn-with-icon .icon {
+    font-size: 0.9em;
+  }
+}

@@ -8,7 +8,7 @@
     </div>
 
     <!-- Diff viewer (initially hidden, overlays timeline) -->
-    <div id="gitDiffViewer" class="git-diff-viewer" style="display: none; position: absolute; top: 60px; left: 0; right: 0; bottom: 0; background: var(--color-canvas-default); z-index: 10; padding: 16px; overflow-y: auto">
+    <div id="gitDiffViewer" class="git-diff-viewer" style="display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: var(--color-canvas-default); z-index: 10; padding: 16px; overflow-y: auto">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="mb-0">
                 <i class="fas fa-code-branch me-2"></i>Changes
@@ -237,9 +237,9 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 64px 32px;
+    padding: 48px 24px;
     text-align: center;
-    min-height: 500px;
+    min-height: 300px;
     animation: fadeIn 0.4s ease-in;
 }
 
@@ -255,14 +255,14 @@
 }
 
 .git-empty-icon {
-    width: 96px;
-    height: 96px;
+    width: 72px;
+    height: 72px;
     border-radius: 50%;
     background: linear-gradient(135deg, var(--color-accent-subtle) 0%, var(--color-accent-muted) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 28px;
+    margin-bottom: 20px;
     box-shadow: 0 4px 16px rgba(84, 174, 255, 0.15);
     animation: pulse 2s ease-in-out infinite;
 }
@@ -279,24 +279,24 @@
 }
 
 .git-empty-icon i {
-    font-size: 40px;
+    font-size: 32px;
     color: var(--color-accent-emphasis);
 }
 
 .git-empty-title {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 700;
     color: var(--color-fg-default);
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     letter-spacing: -0.02em;
 }
 
 .git-empty-description {
-    font-size: 14px;
+    font-size: 13px;
     color: var(--color-fg-muted);
-    margin-bottom: 28px;
-    max-width: 450px;
-    line-height: 1.7;
+    margin-bottom: 20px;
+    max-width: 400px;
+    line-height: 1.6;
 }
 
 .git-empty-hint {

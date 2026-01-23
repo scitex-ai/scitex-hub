@@ -1,0 +1,126 @@
+/* iOS-style toggle switch for sections */
+/* Using centralized ios-toggle component from /static/shared/css/components/toggles.css */
+/* Section-specific toggle behavior for excluded state */
+
+/* Excluded sections - crossed out and grayed */
+.section-item.excluded {
+  opacity: 0.6;
+}
+
+.section-item.excluded .section-item-name {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+/* Optional sections (not excluded) - use same color as required sections when included */
+.section-item[data-optional="true"]:not(.excluded) {
+  opacity: 1;
+}
+
+.section-item[data-optional="true"]:not(.excluded) .section-item-name {
+  color: var(--workspace-text-primary);
+}
+
+/* Hover states for optional sections */
+.section-item[data-optional="true"]:hover,
+.section-item.excluded:hover {
+  opacity: 1 !important;
+}
+
+.section-item.excluded .ios-toggle-slider {
+  background-color: var(--color-danger-muted);
+}
+
+.section-item.excluded .ios-toggle-slider:before {
+  background-color: var(--color-danger-fg);
+}
+
+/* File icon and link for sections */
+.section-file-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.section-file-link:hover {
+  color: var(--color-accent-fg);
+}
+
+.section-file-icon {
+  font-size: 0.75rem;
+}
+
+/* Special sections (Full Manuscript, etc.) with no visible drag handle - align left */
+.section-item[draggable="false"] .section-drag-handle,
+.section-item .section-drag-handle[style*="visibility: hidden"] {
+  width: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.section-item[draggable="false"],
+.section-item:has(.section-drag-handle[style*="visibility: hidden"]) {
+  padding-left: 10px;
+}
+
+/* Action buttons for Full Manuscript entry */
+.section-item-actions {
+  display: flex;
+  gap: 3px;
+  margin-left: auto;
+}
+
+.section-item-with-actions {
+  padding-right: 6px;
+}
+
+.section-item-actions .btn-xs {
+  padding: 2px 5px;
+  font-size: 10px;
+  line-height: 1;
+  border-radius: 0;
+  min-width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.section-item-actions .btn-xs i {
+  font-size: 10px;
+}
+
+.section-divider {
+  height: 1px;
+  background: var(--workspace-border-default);
+  margin: 4px 0;
+}
+
+.section-action-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  color: var(--color-accent-fg);
+  font-weight: 600;
+  font-size: 0.8rem;
+  transition: background 0.15s ease;
+  text-transform: none; /* Preserve Title Case */
+}
+
+.section-action-item:hover {
+  background: var(--workspace-bg-secondary);
+}
+
+.section-action-item i {
+  font-size: 11px;
+  width: 16px;
+  flex-shrink: 0;
+  text-align: center;
+}
+

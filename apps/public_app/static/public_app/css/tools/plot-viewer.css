@@ -1,0 +1,325 @@
+  .tool-detail-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+
+  .tool-header {
+    text-align: center;
+    padding: 40px 20px;
+    margin-bottom: 40px;
+  }
+
+  .tool-title {
+    font-size: 42px;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+
+  .tool-subtitle {
+    font-size: 18px;
+    color: var(--text-secondary);
+  }
+
+  .tool-breadcrumb {
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+
+  .tool-breadcrumb a {
+    color: #4a9b7e;
+    text-decoration: none;
+  }
+
+  .tool-breadcrumb a:hover {
+    text-decoration: underline;
+  }
+
+  .upload-section {
+    background: var(--card-background);
+    border: 2px dashed var(--border-color);
+    border-radius: 8px;
+    padding: 40px;
+    text-align: center;
+    margin-bottom: 30px;
+    transition: all 0.3s ease;
+  }
+
+  .upload-section:hover {
+    border-color: #4a9b7e;
+    background: var(--hover-background);
+  }
+
+  .upload-input {
+    display: none;
+  }
+
+  .upload-button {
+    background: #4a9b7e;
+    color: white;
+    padding: 12px 32px;
+    border-radius: 6px;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .upload-button:hover {
+    background: #3d8268;
+    transform: translateY(-2px);
+  }
+
+  .plot-container {
+    background: var(--card-background);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .plot-info {
+    background: var(--card-background);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .plot-info h3 {
+    margin-top: 0;
+    color: #4a9b7e;
+  }
+
+  .column-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .column-item {
+    background: var(--hover-background);
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+  }
+
+  .axis-badge {
+    display: inline-block;
+    background: #4a9b7e;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    margin-right: 8px;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+  }
+
+  .stat-card {
+    background: var(--hover-background);
+    padding: 15px;
+    border-radius: 6px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #4a9b7e;
+    margin-top: 5px;
+  }
+
+  .example-link {
+    display: inline-block;
+    margin-top: 15px;
+    color: #4a9b7e;
+    text-decoration: none;
+    font-size: 14px;
+  }
+
+  .example-link:hover {
+    text-decoration: underline;
+  }
+
+  #plotCanvas {
+    display: block;
+    margin: 0 auto;
+    border: 1px solid var(--border-color);
+    background: white;
+    cursor: crosshair;
+  }
+
+  /* Nature figure size indicator */
+  .size-indicator {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 10px;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+  }
+
+  .download-button {
+    background: #4a9b7e;
+    color: white;
+    padding: 8px 20px;
+    border-radius: 4px;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 15px;
+    display: inline-block;
+  }
+
+  .download-button:hover {
+    background: #3d8268;
+  }
+
+  /* Settings Panel */
+  .settings-panel {
+    background: var(--card-background);
+    border-radius: 8px;
+    padding: 25px;
+    margin-bottom: 30px;
+    display: block;
+  }
+
+  .settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .settings-header h3 {
+    margin: 0;
+    color: #4a9b7e;
+  }
+
+  .reset-button {
+    background: #666;
+    color: white;
+    padding: 6px 16px;
+    border-radius: 4px;
+    border: none;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  .reset-button:hover {
+    background: #555;
+  }
+
+  .settings-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+
+  .settings-table th {
+    text-align: left;
+    padding: 12px;
+    background: var(--hover-background);
+    border-bottom: 2px solid var(--border-color);
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-primary);
+  }
+
+  .settings-table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .settings-table tr:hover {
+    background: var(--hover-background);
+  }
+
+  .setting-label-cell {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    min-width: 180px;
+  }
+
+  .setting-slider-cell {
+    width: 50%;
+  }
+
+  .setting-value-cell {
+    font-size: 13px;
+    color: #4a9b7e;
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    min-width: 100px;
+    text-align: right;
+  }
+
+  .setting-input {
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+    background: var(--hover-background);
+    outline: none;
+    -webkit-appearance: none;
+  }
+
+  .setting-input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #4a9b7e;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+
+  .setting-input::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #4a9b7e;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+
+  .setting-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .setting-note {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-style: italic;
+  }
+
+  .settings-category {
+    background: var(--card-background);
+    font-weight: 700;
+    font-size: 14px;
+    color: #4a9b7e;
+  }
+
+  .settings-category td {
+    padding: 8px 12px;
+    border-bottom: 2px solid #4a9b7e;
+  }
+
+  .toggle-settings {
+    display: none; /* Always hidden - settings always visible */
+  }

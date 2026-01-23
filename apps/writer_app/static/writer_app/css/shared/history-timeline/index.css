@@ -1,0 +1,11 @@
+/**
+ * History Timeline Component Styles
+ *
+ * Visual Git-style timeline for manuscript version history
+ * Uses SciTeX brand colors and design system
+ */
+
+@import url("./layout.css");
+@import url("./markers.css");
+@import url("./items.css");
+@import url("./responsive.css");

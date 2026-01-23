@@ -1,0 +1,23 @@
+{% extends 'global_base.html' %}
+{% load static %}
+{% block extra_css %}
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/project_app.css' %}" />
+{% endblock %}
+{% block content %}
+    <div class="profile-page">
+        <div class="profile-layout">
+            <!-- Left Sidebar - Profile Info -->
+            {% include 'project_app/users/projects_partials/user_projects_sidebar.html' %}
+            <!-- Right Content Area -->
+            <main class="profile-content">
+                <!-- Navigation Tabs -->
+                {% include 'project_app/users/projects_partials/user_projects_navigation.html' %}
+                {% block profile_content %}
+                    <!-- Content will be provided by child templates -->
+                {% endblock profile_content %}
+            </main>
+        </div>
+    </div>
+    {% include 'project_app/users/projects_partials/user_projects_scripts.html' %}
+{% endblock %}

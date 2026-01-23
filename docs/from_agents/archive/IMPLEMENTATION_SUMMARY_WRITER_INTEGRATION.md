@@ -45,7 +45,7 @@
 **Smart Header Links**:
 - **In project context** → Links to `/<username>/<project>/<module>/`
 - **Not in project** → Links to `/<username>/` (select/create project)
-- **Anonymous users** → Links to login page
+- **Visitor users** → Links to login page
 
 **Implementation**:
 - Context processor: `apps/workspace_app/context_processors.py`
@@ -69,7 +69,7 @@
 
 ```
 ┌─────────────┐
-│ Anonymous   │
+│ Visitor   │
 │ User        │
 └──────┬──────┘
        │

@@ -1,0 +1,103 @@
+/* Responsive Styles for Demos Page */
+
+@media (max-width: 768px) {
+    .demos-container {
+        padding: 1rem;
+    }
+
+    .demos-hero {
+        padding: 2rem 1rem;
+    }
+
+    .demos-hero-title {
+        font-size: 1.8rem;
+    }
+
+    .demos-hero-subtitle {
+        font-size: 1rem;
+    }
+
+    .demos-section-title {
+        font-size: 1.4rem;
+    }
+
+    /* Architecture diagram */
+    .architecture-diagram {
+        padding: 1rem;
+    }
+
+    .arch-children {
+        margin-left: 1rem;
+        padding-left: 1rem;
+    }
+
+    .arch-module-children {
+        margin-left: 1rem;
+    }
+
+    .arch-interface-list {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    /* Video gallery */
+    .video-gallery {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .video-info {
+        padding: 1rem;
+    }
+
+    .video-links {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .video-link {
+        justify-content: center;
+    }
+
+    /* Repository grid */
+    .repo-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .repo-card {
+        padding: 1rem;
+    }
+
+    .repo-icon {
+        font-size: 1.5rem;
+    }
+
+    .repo-name {
+        font-size: 0.9rem;
+    }
+
+    .repo-desc {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .demos-hero-title {
+        font-size: 1.5rem;
+    }
+
+    .arch-node.arch-root {
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+    }
+
+    .arch-leaf {
+        font-size: 0.85rem;
+        padding: 0.4rem 0.75rem;
+    }
+
+    .repo-grid {
+        grid-template-columns: 1fr;
+    }
+}

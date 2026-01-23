@@ -1,0 +1,338 @@
+/* ============================================================
+   Landing Demos Inline CSS
+   Extracted from: apps/public_app/templates/public_app/landing_partials/landing_demos.html
+   ============================================================ */
+
+/* GitHub Link Button */
+.github-link-btn {
+  transition: all 0.3s ease;
+  padding: 0.5rem 1.5rem;
+}
+
+.github-link-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Modern Carousel */
+.demos-carousel-wrapper {
+  position: relative;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 80px;
+}
+
+.demos-carousel-container {
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.demos-carousel-track {
+  display: flex;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.demos-carousel-slide {
+  flex: 0 0 100%;
+  min-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Modern Navigation Arrows */
+.carousel-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 100;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--scitex-color-06);
+  opacity: 0.7;
+}
+
+.carousel-nav:hover {
+  color: var(--scitex-color-07);
+  opacity: 1;
+  transform: translateY(-50%) scale(1.15);
+}
+
+.carousel-nav i {
+  font-size: 2.5rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.carousel-nav-prev {
+  left: 10px;
+}
+
+.carousel-nav-next {
+  right: 10px;
+}
+
+/* Modern Indicators */
+.carousel-indicators {
+  display: flex !important;
+  justify-content: center !important;
+  gap: 2rem;
+  margin-top: 4rem !important;
+  position: relative !important;
+  bottom: auto !important;
+  left: auto !important;
+  right: auto !important;
+  margin-bottom: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.carousel-indicator-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.carousel-indicator-label:hover .carousel-indicator {
+  background: var(--scitex-color-05);
+  transform: scale(1.3);
+}
+
+.carousel-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--scitex-color-04);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0;
+  opacity: 0.4;
+}
+
+.carousel-indicator.active {
+  background: var(--scitex-color-06);
+  width: 40px;
+  height: 8px;
+  border-radius: 4px;
+  opacity: 1;
+}
+
+.carousel-indicator-label span {
+  font-size: 0.75rem;
+  color: var(--scitex-color-05);
+  transition: all 0.3s ease;
+  font-weight: 500;
+  letter-spacing: 0.025em;
+}
+
+.carousel-indicator-label.active span {
+  color: var(--scitex-color-07);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+/* Module Navigation Cards - Ecosystem Style */
+.module-nav-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 0.6;
+  transform: scale(0.95);
+}
+
+.module-nav-card:hover {
+  opacity: 0.8;
+  transform: scale(0.98) translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+  border-color: var(--scitex-color-04);
+}
+
+.module-nav-card.active {
+  background: var(--color-accent-subtle);
+  border-color: var(--color-accent-emphasis);
+  border-width: 3px;
+  box-shadow: 0 12px 40px rgba(107, 143, 179, 0.4);
+  opacity: 1;
+  transform: scale(1.05) translateY(-8px);
+}
+
+.module-nav-card.active:hover {
+  transform: scale(1.05) translateY(-8px);
+}
+
+.module-nav-card svg {
+  width: 56px;
+  height: 56px;
+  margin-bottom: 1rem;
+  opacity: 0.6;
+  transition: all 0.3s ease;
+  color: var(--_scitex-04) !important; /* Bluish tint */
+}
+
+.module-nav-card:hover svg {
+  opacity: 0.8;
+  color: var(--_scitex-04) !important;
+}
+
+.module-nav-card.active svg {
+  opacity: 1;
+  transform: scale(1.1);
+  color: var(--_scitex-04) !important;
+}
+
+.module-nav-card h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.module-nav-card.active h3 {
+  color: var(--color-accent-emphasis);
+  font-size: 1.6rem;
+}
+
+.module-nav-card p {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.module-nav-card.active p {
+  color: var(--text-primary);
+}
+
+.coming-soon-badge {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: var(--warning-color);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.625rem;
+  font-weight: 600;
+}
+
+/* Dark theme for module cards */
+[data-theme="dark"] .module-nav-card {
+  background-color: var(--scitex-color-02);
+  border-color: var(--scitex-color-03);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .module-nav-card:hover {
+  background-color: var(--scitex-color-03);
+  border-color: var(--scitex-color-04);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .module-nav-card h3 {
+  color: var(--scitex-color-07);
+}
+
+[data-theme="dark"] .module-nav-card p {
+  color: var(--scitex-color-05);
+}
+
+[data-theme="dark"] .module-nav-card svg {
+  color: var(--_scitex-06) !important; /* Lighter bluish tint for dark mode */
+}
+
+[data-theme="dark"] .module-nav-card:hover svg {
+  color: var(--_scitex-06) !important;
+}
+
+[data-theme="dark"] .module-nav-card.active svg {
+  color: var(--_scitex-07) !important; /* Even lighter for active state */
+}
+
+/* Inline style classes for section heading */
+.landing-demos-section-heading {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.landing-demos-section-heading h2 {
+  font-size: 2.5rem;
+  color: var(--color-fg-default);
+  margin-bottom: 1rem;
+}
+
+.landing-demos-section-heading p {
+  font-size: 1.25rem;
+  color: var(--color-fg-muted);
+}
+
+/* Inline style classes for ecosystem modules nav */
+.ecosystem-modules-nav {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 4rem;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Inline style classes for local demo */
+.local-demo-grid {
+  grid-template-columns: 1fr;
+  text-align: center;
+  padding: 3rem;
+}
+
+.local-demo-heading {
+  font-size: 2rem;
+  color: var(--color-fg-default);
+  margin-bottom: 1rem;
+}
+
+.local-demo-description {
+  font-size: 1.125rem;
+  color: var(--color-fg-muted);
+  margin-bottom: 1.5rem;
+}
+
+.local-demo-code {
+  background: var(--color-canvas-subtle, #f6f8fa);
+  border: 1px solid var(--color-border-default, #d0d7de);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+}
+
+.local-demo-code code {
+  background: none;
+  padding: 0;
+  color: var(--color-fg-default);
+}
+
+/* Inline style for carousel nav icons */
+.carousel-nav-icon {
+  font-size: 1.25rem;
+}

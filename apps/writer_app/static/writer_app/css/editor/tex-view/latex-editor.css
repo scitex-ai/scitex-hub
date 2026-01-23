@@ -1,0 +1,37 @@
+/* LaTeX Editor Textarea Styling */
+.latex-editor-textarea {
+  background: var(--workspace-bg-primary) !important;
+  color: var(--workspace-text-primary) !important;
+  border: none !important;
+  padding: 1rem !important;
+  font-family: "Monaco", "Menlo", "Courier New", monospace !important;
+  font-size: 0.95rem !important;
+  line-height: 1.6 !important;
+  resize: none !important;
+}
+
+.latex-editor-textarea::placeholder {
+  color: var(--text-muted) !important;
+}
+
+/* Text Preview Panel Styling */
+.text-preview {
+  flex: 1;
+  background: var(--workspace-bg-primary) !important;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0;
+  color: var(--workspace-text-primary);
+  position: relative;
+  width: 100%;
+  height: 100%;
+  /* Ensure PDF scroll takes priority over page scroll */
+  will-change: scroll-position;
+  outline: none !important;
+}
+
+/* Dark mode - use Monaco editor background color (#1e1e1e) */
+[data-theme="dark"] .text-preview {
+  background: var(--workspace-bg-monaco, #1e1e1e) !important;
+}
+

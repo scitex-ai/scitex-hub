@@ -23,7 +23,7 @@ images/
 │   ├── scitex-logo.png → logo_files/png/Color logo with background.png (symlink)
 │   ├── scitex-logo-transparent.png
 │   ├── scitex-logo-cropped.png
-│   ├── vectorstock_38853699-navy-inverted-192x192.png → vectorstock/... (symlink)
+│   ├── scitex-icon-navy-inverted-192x192.png → scitex-icon/... (symlink)
 │   ├── logo_files/               # Source files for logos (DO NOT EDIT)
 │   │   ├── png/
 │   │   │   ├── Color logo - S.png
@@ -33,17 +33,17 @@ images/
 │   │       ├── Color logo - S.svg
 │   │       ├── Color logo with background.svg
 │   │       └── Monochrome logo.svg
-│   └── vectorstock/              # Vendor logo assets
-│       ├── vectorstock_38853699-navy-inverted.svg
-│       ├── vectorstock_38853699-navy-inverted.ico
-│       ├── vectorstock_38853699-navy-inverted-32x32.png
-│       ├── vectorstock_38853699-navy-inverted-180x180.png
-│       └── vectorstock_38853699-navy-inverted-192x192.png
+│   └── scitex-icon/              # Vendor logo assets
+│       ├── scitex-icon-navy-inverted.svg
+│       ├── scitex-icon-navy-inverted.ico
+│       ├── scitex-icon-navy-inverted-32x32.png
+│       ├── scitex-icon-navy-inverted-180x180.png
+│       └── scitex-icon-navy-inverted-192x192.png
 │
 ├── favicons/                     # Browser and app icons
-│   ├── favicon.ico → ../scitex_logos/vectorstock/... (symlink)
-│   ├── favicon.png → ../scitex_logos/vectorstock/... (symlink)
-│   └── apple-touch-icon.png → ../scitex_logos/vectorstock/... (symlink)
+│   ├── favicon.ico → ../scitex_logos/scitex-icon/... (symlink)
+│   ├── favicon.png → ../scitex_logos/scitex-icon/... (symlink)
+│   └── apple-touch-icon.png → ../scitex_logos/scitex-icon/... (symlink)
 │
 ├── assets/                       # Supporting images and animations
 │   ├── contour_cropped.gif
@@ -104,13 +104,13 @@ Favicons are automatically configured in `global_head_meta.html` and point to:
 Several files are symlinks to avoid duplication:
 - **Icon aliases**: `scitex-scholar-icon.svg` and `scitex-writer-icon.svg` are symlinks to their canonical versions
 - **Logo sources**: `scitex-logo.svg` and `scitex-logo.png` point to `logo_files/` directory
-- **Favicon sources**: All favicons point to `vectorstock/` assets
+- **Favicon sources**: All favicons point to `scitex-icon/` assets
 
 ### Archive Files
 
 The following files are kept for reference but not actively used:
 - `logo_files.zip` - Archive of source logo files
-- `vectorstock_38853699.zip` - Archive of vendor assets
+- `scitex-icon.zip` - Archive of vendor assets
 - `.old/` - Directory with deprecated images
 
 Add these to `.gitignore` if they should not be committed.

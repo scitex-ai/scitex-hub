@@ -1,9 +1,9 @@
-{% load static %}
+{% load static vite %}
 <!-- Highlight.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
 <!-- Custom Language Definitions for Highlight.js -->
-<script src="{% static 'shared/js/utils/highlight-js-bibtex.js' %}"></script>
+{% vite_script 'shared/utils/highlight-js-bibtex' %}
 <!-- Pass Django template variables to JavaScript via data attributes -->
 <script>
   // Make project and file data available globally for JS modules
@@ -12,9 +12,6 @@
     slug: "{{ project.slug }}",
   };
 </script>
-<!-- Load project app shared functionality (sidebar, file tree, etc.) -->
-<script type="module"
-        src="{% static 'project_app/js/shared/project_app.js' %}"></script>
-<!-- Load file view specific functionality -->
-<script type="module"
-        src="{% static 'project_app/js/repository/file_view.js' %}"></script>
+<!-- Load TypeScript modules via Vite -->
+{% vite_script 'project_app/shared/project_app' %}
+{% vite_script 'project_app/repository/file_view' %}

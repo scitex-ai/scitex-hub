@@ -1,0 +1,67 @@
+/*
+ * @component Form Selects
+ * @description Select dropdowns, checkboxes, and radio buttons
+ * @category Form and Selection
+ * @file /static/shared/css/components/forms/selects.css
+ * @darkmode true
+ */
+
+/* =========================
+   Select Dropdowns
+   ========================= */
+
+/* Select - Enhanced border visibility (arrow handled by select.css) */
+select.form-control {
+  padding-right: 2.5rem;
+  appearance: none;
+  /* Enhanced border for better visibility */
+  border-width: 2px;
+  border-style: solid;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* Dark mode select - enhanced border (arrow handled by select.css) */
+[data-theme="dark"] select.form-control {
+  border-width: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+/* Select hover state for better interactivity */
+select.form-control:hover:not(:disabled) {
+  border-color: var(--scitex-color-04);
+  cursor: pointer;
+}
+
+[data-theme="dark"] select.form-control:hover:not(:disabled) {
+  border-color: var(--scitex-color-05);
+}
+
+/* =========================
+   Checkboxes and Radios
+   ========================= */
+
+.form-check {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding-left: 0;
+  margin-bottom: var(--spacing-sm);
+  gap: 0.5rem;
+}
+
+.form-check-input {
+  position: static;
+  margin-top: 0;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.form-check-label {
+  margin-bottom: 0;
+  color: var(--text-primary);
+}
+
+/* Dark mode checkbox/radio labels - bluish color */
+[data-theme="dark"] .form-check-label {
+  color: var(--scitex-color-06);
+}

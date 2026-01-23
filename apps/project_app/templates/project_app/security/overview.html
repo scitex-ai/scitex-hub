@@ -1,5 +1,5 @@
 {% extends 'global_base.html' %}
-{% load static %}
+{% load static vite %}
 {% block title %}
     Security - {{ project.name }}
 {% endblock %}
@@ -28,5 +28,5 @@
     </div>
 {% endblock %}
 {% block extra_js %}
-    <script src="{% static 'project_app/js/security/scan.js' %}"></script>
+    {% vite_script 'project_app/security/scan' %}
 {% endblock %}

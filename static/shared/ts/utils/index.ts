@@ -8,14 +8,14 @@
 console.log(
   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/static/ts/utils/index.ts loaded",
 );
-export { getCsrfToken, createHeadersWithCsrf } from "./csrf.js";
+export { getCsrfToken, createHeadersWithCsrf } from "./csrf";
 
 // Storage utilities
-export { StorageManager, globalStorage, writerStorage } from "./storage.js";
+export { StorageManager, globalStorage, writerStorage } from "./storage";
 
 // API client
-export { ApiClient, apiClient } from "./api.js";
-export type { ApiRequestInit, ApiResponse } from "./api.js";
+export { ApiClient, apiClient } from "./api";
+export type { ApiRequestInit, ApiResponse } from "./api";
 
 // UI utilities
 export {
@@ -27,5 +27,5 @@ export {
   confirm,
   debounce,
   throttle,
-} from "./ui.js";
-export type { ToastType } from "./ui.js";
+} from "./ui";
+export type { ToastType } from "./ui";

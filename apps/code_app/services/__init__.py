@@ -1,17 +1,11 @@
-#!/usr/bin/env python3
-"""
-Services package for SciTeX-Code application.
-Contains business logic and service classes.
-"""
+# -*- coding: utf-8 -*-
+# Timestamp: 2025-11-25 23:15:00
+# Author: ywatanabe
+# File: apps/code_app/services/__init__.py
 
-# Services are imported on-demand to avoid circular dependencies
-# Import specific services as needed using:
-# from apps.code_app.services.jupyter_service import NotebookManager
-# from apps.code_app.services.environment_manager import EnvironmentManager
-# from apps.code_app.services.visualization_pipeline import VisualizationPipeline
+from .slurm_manager import SlurmManager
+from .project_service_manager import ProjectServiceManager
 
-__all__ = [
-    "jupyter_service",
-    "environment_manager",
-    "visualization_pipeline",
-]
+__all__ = ["SlurmManager", "ProjectServiceManager"]
+
+# EOF

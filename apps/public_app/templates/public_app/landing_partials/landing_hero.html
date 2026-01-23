@@ -4,37 +4,98 @@
     <div class="container">
         <div class="hero-wrapper">
             <div class="hero-content">
+                <!-- Text title option (kept for future use)
                 <h1 class="hero-title">SciTeX — Where Research Happens</h1>
-                <p class="hero-bullet-point">From data to publication, all in one platform</p>
+                <p class="hero-bullet-point">From data to publication, all in one.</p>
+                -->
+                <!-- Icon only option (kept for future use)
+                <div class="hero-logo-container">
+                    <img src="{% static 'shared/images/scitex_logos/scitex-icon/scitex-icon-navy-inverted.png' %}"
+                         alt="SciTeX"
+                         class="hero-icon" />
+                </div>
+                -->
+                <!-- Full logo - clean and minimal -->
+                <div class="hero-logo-container">
+                    <img src="{% static 'shared/images/scitex_logos/logo-files/png/scitex-logo-transparent.png' %}"
+                         alt="SciTeX - For Researchers"
+                         class="hero-logo" />
+                </div>
+                <!-- Value proposition and CTA -->
+                <p class="hero-tagline">Research Automation — For Humans and AI</p>
+                <p class="hero-description">Python toolkit + MCP server for literature search, statistics, visualization, and manuscript writing. 70% less code.</p>
                 <div class="hero-badges">
                     <span class="hero-badge badge-success">
                         <i class="fab fa-github"></i> 100% Open Source
                     </span>
-                    <span class="hero-badge badge-primary">
-                        <i class="fas fa-code"></i> AGPL-3.0 License
-                    </span>
-                    <span class="hero-badge badge-secondary">
-                        <i class="fas fa-users"></i> Community-driven
-                    </span>
-                </div>
-            </div>
-            <!-- Hero Image -->
-            <div class="hero-image">
-                <div class="manuscript-preview">
-                    <a href="{% static 'shared/images/manuscript/compiled.pdf' %}#page=2"
-                       target="_blank"
-                       class="manuscript-link">
-                        <div class="manuscript-display">
-                            <img src="{% static 'shared/images/assets/manuscript/page2-02.jpg' %}"
-                                 alt="SciTeX Manuscript Preview"
-                                 class="manuscript-img" />
-                            <div class="manuscript-overlay">
-                                <span class="view-pdf-text">View Full PDF</span>
-                            </div>
-                        </div>
+                    <a href="{% url 'public_app:demos' %}" class="hero-badge badge-warning" style="text-decoration: none;">
+                        <i class="fas fa-play-circle"></i> Watch Demos
                     </a>
                 </div>
             </div>
+            <!-- Hero Demo Video Preview -->
+            <div class="hero-image">
+                <div class="demo-display" id="hero-demo-container" title="Play Demo Movie">
+                    <img src="/media/videos/scitex-automated-research-demo-thumbnail.png"
+                         alt="SciTeX Automated Research Demo"
+                         class="demo-thumbnail"
+                         id="hero-demo-thumbnail"
+                         title="Play Demo Movie" />
+                    <video id="hero-demo-video"
+                           class="demo-video"
+                           poster="/media/videos/scitex-automated-research-demo-thumbnail.png"
+                           preload="auto"
+                           style="display: none;">
+                        <source src="/media/videos/scitex-automated-research-demo.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <div class="demo-description">
+                    <div class="demo-info-left">
+                        <span class="demo-workflow-text">
+                            Demo Movie (40 min): Automated research with SciTeX MCP<br>
+                            Literature Search → Analysis → Graphing → Manuscript
+                        </span>
+                    </div>
+                    <div class="demo-info-right">
+                        <span class="speed-label">Speed:</span>
+                        <select class="speed-select" id="hero-speed-select">
+                            <option value="1">1x</option>
+                            <option value="2">2x</option>
+                            <option value="4">4x</option>
+                            <option value="8" selected>8x</option>
+                            <option value="16">16x</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const container = document.getElementById('hero-demo-container');
+                    const thumbnail = document.getElementById('hero-demo-thumbnail');
+                    const video = document.getElementById('hero-demo-video');
+                    const speedSelect = document.getElementById('hero-speed-select');
+
+                    container.addEventListener('click', function() {
+                        if (video.paused) {
+                            thumbnail.style.display = 'none';
+                            video.style.display = 'block';
+                            video.controls = true;
+                            video.playbackRate = parseFloat(speedSelect.value);
+                            video.play();
+                        }
+                    });
+
+                    speedSelect.addEventListener('change', function() {
+                        video.playbackRate = parseFloat(speedSelect.value);
+                    });
+
+                    video.addEventListener('ended', function() {
+                        thumbnail.style.display = 'block';
+                        video.style.display = 'none';
+                        video.controls = false;
+                    });
+                });
+            </script>
         </div>
     </div>
 </section>

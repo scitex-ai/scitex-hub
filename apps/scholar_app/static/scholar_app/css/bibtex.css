@@ -7,24 +7,28 @@
  * - Statistics display
  */
 
-/* Upload zone styling */
+/* Upload zone styling - Matching /vis/ workspace theme */
 .u-upload-zone {
   position: relative;
-  border: 2px dotted var(--color-border-default);
-  border-radius: 12px;
-  padding: 3rem 2rem;
   text-align: center;
-  background: var(--color-canvas-subtle);
-  transition: all 0.3s;
+  padding: 60px 20px;
+  color: var(--text-muted);
+  transition: all 0.2s ease;
   cursor: pointer;
+  border: 2px dashed var(--workspace-border-default);
+  border-radius: 8px;
+  background: var(--workspace-bg-secondary);
 }
 
 .u-upload-zone:hover {
-  border-color: var(--color-accent-emphasis);
-  border-style: solid;
-  background: var(--color-accent-subtle);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+  border-color: var(--workspace-icon-primary);
+  background: var(--workspace-bg-tertiary);
+}
+
+.u-upload-zone.drag-over {
+  background: var(--status-success-bg);
+  border: 2px dashed var(--status-success);
+  box-shadow: 0 0 0 4px rgba(74, 155, 126, 0.1);
 }
 
 .u-upload-input {
@@ -38,15 +42,30 @@
 }
 
 .u-upload-icon {
-  font-size: 4.5rem;
-  color: var(--color-border-default);
-  margin-bottom: 1rem;
-  transition: all 0.3s;
+  font-size: 48px;
+  margin-bottom: 16px;
+  display: block;
+  opacity: 0.3;
+  color: var(--workspace-icon-secondary);
+  transition: all 0.2s ease;
 }
 
 .u-upload-zone:hover .u-upload-icon {
-  color: var(--color-accent-emphasis);
-  transform: scale(1.1);
+  color: var(--workspace-icon-primary);
+  opacity: 0.5;
+}
+
+.u-upload-zone h3,
+.u-upload-zone p {
+  font-size: 15px;
+  margin: 8px 0 4px;
+  color: var(--text-muted);
+}
+
+.u-upload-zone small {
+  font-size: 13px;
+  opacity: 0.7;
+  display: block;
 }
 
 /* Running Indicator Styles */
@@ -75,15 +94,15 @@
 
 @keyframes pulse-green {
   0% {
-    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+    box-shadow: 0 0 0 0 rgba(74, 155, 126, 0.7);
     transform: scale(1);
   }
   50% {
-    box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+    box-shadow: 0 0 0 10px rgba(74, 155, 126, 0);
     transform: scale(1.1);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+    box-shadow: 0 0 0 0 rgba(74, 155, 126, 0);
     transform: scale(1);
   }
 }
@@ -126,11 +145,11 @@
   0%,
   100% {
     border-color: var(--success-color);
-    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);
+    box-shadow: 0 4px 12px rgba(74, 155, 126, 0.15);
   }
   50% {
     border-color: var(--success-color);
-    box-shadow: 0 4px 20px rgba(34, 197, 94, 0.35);
+    box-shadow: 0 4px 20px rgba(74, 155, 126, 0.35);
   }
 }
 
@@ -159,7 +178,7 @@
 #progressiveLoadingStatus .scitex-card {
   /* border: 2px solid var(--scitex-color-03); */
   /* box-shadow: 0 4px 12px rgba(79, 90, 102, 0.15); */
-  /* background: var(--color-canvas-default); */
+  /* background: var(--bg-page); */
 }
 
 #progressiveLoadingStatus .scitex-card-header {
@@ -181,7 +200,7 @@
 
 #progressiveLoadingStatus .progress-source:hover {
   /* border-color: var(--scitex-color-03); */
-  /* background: var(--color-canvas-default); */
+  /* background: var(--bg-page); */
 }
 
 .spinner-border-sm {
@@ -191,4 +210,27 @@
 #activeSearchCount,
 #totalResultsCount {
   padding: 0.5rem 0.75rem;
+}
+
+/* Enrichment completion message */
+.enrichment-complete-message {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-muted);
+  background: var(--bg-surface);
+}
+
+.enrichment-complete-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  display: block;
+  color: var(--status-success);
+}
+
+.enrichment-complete-title {
+  font-size: 1.1rem;
+}
+
+.enrichment-complete-subtitle {
+  font-size: 0.9rem;
 }

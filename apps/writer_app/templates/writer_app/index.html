@@ -1,6 +1,15 @@
 {% extends "writer_app/writer_base.html" %}
-{% load static %}
+{% load static vite %}
+{% block title %}SciTeX Writer{% if project %} - {{ project.name }}{% endif %}{% endblock %}
 {% block extra_css %}
+    <!-- Critical CSS - loaded immediately (editor, PDF, core UI) -->
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d" />
+    <!-- Shared Panel Resizer CSS (unified with Scholar, Console, Visualizer) -->
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/panel-resizer.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/file-tabs.css' %}?v={{ request.timestamp|default:'1' }}" />
     <link rel="stylesheet"
           href="{% static 'writer_app/css/editor/tex-view-main.css' %}?v={{ request.timestamp|default:'1' }}" />
     <link rel="stylesheet"
@@ -8,27 +17,52 @@
     <link rel="stylesheet"
           href="{% static 'writer_app/css/editor/pdf-view-main.css' %}?v={{ request.timestamp|default:'1' }}" />
     <link rel="stylesheet"
-          href="{% static 'writer_app/css/editor/citations-panel.css' %}?v={{ request.timestamp|default:'1' }}" />
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/editor/figures-panel.css' %}?v={{ request.timestamp|default:'1' }}" />
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/editor/tables-panel.css' %}?v={{ request.timestamp|default:'1' }}" />
-    <link rel="stylesheet"
           href="{% static 'writer_app/css/components/pdfjs-viewer.css' %}?v={{ request.timestamp|default:'1' }}" />
     <link rel="stylesheet"
           href="{% static 'shared/css/components/alerts.css' %}?v={{ request.timestamp|default:'1' }}" />
     <link rel="stylesheet"
           href="{% static 'shared/css/components/terminal-log.css' %}?v={{ request.timestamp|default:'1' }}" />
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/shared/history-timeline.css' %}?v={{ request.timestamp|default:'1' }}" />
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/shared/index-ui-components.css' %}?v=2" />
+
+    <!-- Writer Index UI Components CSS Modules (refactored from monolithic index-ui-components.css) -->
+    <link rel="stylesheet" href="{% static 'writer_app/css/shared/index-ui/00-index-ui.css' %}?v={{ request.timestamp|default:'1' }}" />
+    <link rel="stylesheet" href="{% static 'writer_app/css/shared/index-ui/01-panel-header.css' %}?v={{ request.timestamp|default:'1' }}" />
+    <link rel="stylesheet" href="{% static 'writer_app/css/shared/index-ui/02-latex-panel.css' %}?v={{ request.timestamp|default:'1' }}" />
+    <link rel="stylesheet" href="{% static 'writer_app/css/shared/index-ui/03-preview-panel.css' %}?v={{ request.timestamp|default:'1' }}" />
+    <link rel="stylesheet" href="{% static 'writer_app/css/shared/index-ui/04-toolbar.css' %}?v={{ request.timestamp|default:'1' }}" />
+    <link rel="stylesheet" href="{% static 'writer_app/css/shared/index-ui/05-compilation-output.css' %}?v={{ request.timestamp|default:'1' }}" />
+    <link rel="stylesheet" href="{% static 'writer_app/css/shared/index-ui/06-split-view.css' %}?v={{ request.timestamp|default:'1' }}" />
+    <link rel="stylesheet" href="{% static 'writer_app/css/shared/index-ui/07-panel-resizer.css' %}?v={{ request.timestamp|default:'1' }}" />
+    <link rel="stylesheet" href="{% static 'writer_app/css/shared/index-ui/08-save-status.css' %}?v={{ request.timestamp|default:'1' }}" />
+    <link rel="stylesheet" href="{% static 'writer_app/css/shared/index-ui/09-button-styling.css' %}?v={{ request.timestamp|default:'1' }}" />
+    <link rel="stylesheet" href="{% static 'writer_app/css/shared/index-ui/10-dark-mode.css' %}?v={{ request.timestamp|default:'1' }}" />
+    <link rel="stylesheet" href="{% static 'writer_app/css/shared/index-ui/11-responsive.css' %}?v={{ request.timestamp|default:'1' }}" />
+    <link rel="stylesheet" href="{% static 'writer_app/css/shared/index-ui/12-initialization-prompt.css' %}?v={{ request.timestamp|default:'1' }}" />
+    <link rel="stylesheet" href="{% static 'writer_app/css/shared/index-ui/13-accessibility.css' %}?v={{ request.timestamp|default:'1' }}" />
+    <link rel="stylesheet" href="{% static 'writer_app/css/shared/index-ui/14-workspace-sidebar.css' %}?v={{ request.timestamp|default:'1' }}" />
+    <link rel="stylesheet" href="{% static 'writer_app/css/shared/index-ui/15-details-panel.css' %}?v={{ request.timestamp|default:'1' }}" />
+
     <link rel="stylesheet"
           href="{% static 'writer_app/css/components/status-lamp.css' %}?v={{ request.timestamp|default:'1' }}" />
     <link rel="stylesheet"
           href="{% static 'writer_app/css/components/shortcuts-modal.css' %}?v={{ request.timestamp|default:'1' }}" />
     <link rel="stylesheet"
-          href="{% static 'shared/css/collaboration/collaboration.css' %}?v={{ request.timestamp|default:'1' }}" />
+          href="{% static 'writer_app/css/components/sidebar-controls.css' %}?v={{ request.timestamp|default:'1' }}" />
+    <link rel="stylesheet"
+          href="{% static 'writer_app/css/editor/main-editor-inline.css' %}?v={{ request.timestamp|default:'1' }}" />
+    <!-- File tabs CSS (same as /code/ page) -->
+    <link rel="stylesheet"
+          href="{% static 'writer_app/css/editor/file-tabs.css' %}?v={{ request.timestamp|default:'1' }}" />
+
+    <!-- Panel-specific CSS - will be lazy-loaded when panels are opened -->
+    <!-- Citations panel CSS loaded dynamically on first open -->
+    <!-- Figures panel CSS loaded dynamically on first open -->
+    <!-- Tables panel CSS loaded dynamically on first open -->
+    <!-- Collaboration panel CSS loaded dynamically on first open -->
+    <!-- History panel CSS loaded dynamically on first open -->
+
+    <!-- Monaco Editor CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/editor/editor.main.min.css" />
+
     {% include "writer_app/index_partials/codemirror_css.html" %}
 {% endblock %}
 {% block writer_content %}
@@ -43,7 +77,7 @@
                             <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
                             <h3 class="mb-3">Visitor Pool Not Initialized</h3>
                             <p class="text-muted mb-4">
-                                The visitor pool needs to be set up before anonymous users can try
+                                The visitor pool needs to be set up before visitor users can try
                                 Writer.
                             </p>
                             <div class="alert alert-info text-start mb-4">
@@ -68,28 +102,22 @@
             </div>
         </div>
     {% elif pool_exhausted %}
-        <div id="pool-exhausted-message" class="container py-5">
-            <div class="row justify-content-center">
-                <div class="col-lg-8">
-                    <div class="card shadow-sm border-warning">
-                        <div class="card-body text-center p-5">
-                            <i class="fas fa-users fa-3x text-warning mb-3"></i>
-                            <h3 class="mb-3">High Traffic</h3>
-                            <p class="text-muted mb-4">
-                                All visitor slots are currently in use. Please try again in a few
-                                minutes, or sign up for immediate access.
-                            </p>
-                            <a href="{% url 'auth_app:signup' %}"
-                               class="btn btn-primary btn-lg me-2">
-                                <i class="fas fa-user-plus me-2"></i>Sign Up Now
-                            </a>
-                            <a href="{% url 'auth_app:login' %}"
-                               class="btn btn-outline-primary btn-lg">
-                                <i class="fas fa-sign-in-alt me-2"></i>Log In
-                            </a>
-                        </div>
-                    </div>
-                </div>
+        <div id="pool-exhausted-message" class="writer-fullscreen-message">
+            <div class="message-card">
+                <i class="fas fa-users fa-3x text-warning mb-3"></i>
+                <h3 class="mb-3">High Traffic</h3>
+                <p class="text-muted mb-4">
+                    All visitor slots are currently in use. Please try again in a few
+                    minutes, or sign up for immediate access.
+                </p>
+                <a href="{% url 'auth_app:signup' %}"
+                   class="btn btn-primary btn-lg me-2">
+                    <i class="fas fa-user-plus me-2"></i>Sign Up Now
+                </a>
+                <a href="{% url 'auth_app:login' %}"
+                   class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-sign-in-alt me-2"></i>Log In
+                </a>
             </div>
         </div>
     {% elif needs_project_creation %}
@@ -114,9 +142,76 @@
         </div>
     {% else %}
         {% include "writer_app/index_partials/init_prompt.html" %}
-        <div class="writer-container"
-             {% if not writer_initialized and not is_demo %}hidden{% endif %}>
-            {% include "writer_app/index_partials/main_editor.html" %}
+        <!-- Writer workspace with optional sidebar -->
+        <div class="writer-workspace" {% if not writer_initialized and not is_demo %}hidden{% endif %}>
+            {% if project %}
+            <!-- Left sidebar: File tree -->
+            <aside class="writer-sidebar" id="writer-sidebar">
+                <div class="sidebar-header">
+                    <div class="sidebar-header-content sidebar-header-compact">
+                        <!-- Icon -->
+                        <i class="fas fa-folder-open sidebar-icon"></i>
+                        <!-- Doctype -->
+                        <select id="doctype-selector" class="form-select form-select-sm sidebar-select">
+                            <option value="shared">Shared</option>
+                            <option value="manuscript" selected>Manuscript</option>
+                            <option value="supplementary">Supplementary</option>
+                            <option value="revision">Revision</option>
+                        </select>
+                        <!-- Section (wrapped for dropdown positioning) -->
+                        <div class="section-selector-wrapper">
+                            <button id="section-selector-toggle" class="section-selector-btn" type="button">
+                                <span id="section-selector-text">Loading...</span>
+                                <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
+                                    <path d="M4 6l4 4 4-4H4z"/>
+                                </svg>
+                            </button>
+                            <div id="section-selector-dropdown" class="section-selector-dropdown">
+                                <!-- Sections will be populated here -->
+                            </div>
+                        </div>
+                        <!-- Right: Sidebar Toggle Button (close to resizer) -->
+                        <button id="sidebar-toggle"
+                                class="panel-toggle-btn left-panel-toggle"
+                                title="Toggle sidebar (Zen: F11/Alt+Z)">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="sidebar-content" id="writer-file-tree">
+                    <!-- WorkspaceFilesTree will render here -->
+                    <div class="wft-loading">Loading...</div>
+                </div>
+            </aside>
+            <!-- Sidebar resizer (auto-initialized via data attributes) -->
+            <div class="panel-resizer sidebar-resizer" id="sidebar-resizer"
+                 data-panel-resizer
+                 data-storage-prefix="scitex-writer-"
+                 data-target=".writer-sidebar"
+                 data-direction="left"
+                 data-min-width="40"
+                 data-default-width="250"
+                 data-storage-key="sidebar-width"
+                 data-collapse-key="writer-sidebar-collapsed"
+                 data-toggle-btn="sidebar-toggle"></div>
+            {% endif %}
+            <!-- Main content: editor + preview -->
+            <div class="writer-container">
+                {% include "writer_app/index_partials/main_editor.html" %}
+            </div>
+            <!-- Details resizer (auto-initialized via data attributes) -->
+            <div class="panel-resizer" id="details-resizer"
+                 data-panel-resizer
+                 data-storage-prefix="scitex-writer-"
+                 data-target=".writer-details"
+                 data-direction="right"
+                 data-min-width="40"
+                 data-default-width="280"
+                 data-storage-key="details-width"
+                 data-collapse-key="writer-details-collapsed"
+                 data-toggle-btn="details-toggle"></div>
+            <!-- Details panel (rightmost) -->
+            {% include "writer_app/index_partials/details_panel.html" %}
         </div>
         {% include "writer_app/index_partials/word_count.html" %}
         <!-- Compilation Options Modal (without redundant header) -->
@@ -129,19 +224,7 @@
         {% include "writer_app/index_partials/table_preview_modal.html" %}
     {% endif %}
     {% if not needs_project_creation and not pool_error and not pool_exhausted %}
-        <!-- Editor Loader (TypeScript-compiled) - Handles CodeMirror and Monaco initialization -->
-        <script type="module">
-  import { editorLoader } from '{% static "writer_app/js/loaders/editor-loader.js" %}';
-
-  // Initialize editors (CodeMirror + Monaco) before anything else
-  (async () => {
-    try {
-      await editorLoader.initialize();
-    } catch (error) {
-      console.error("[Writer] Failed to initialize editors:", error);
-    }
-  })();
-        </script>
+        <!-- Editor loading is now handled in writer_app/index.ts -->
         <!-- Initialize global variables for writer app -->
         <script>
   // Pass Django context to JavaScript (must use window. to make it globally accessible)
@@ -156,7 +239,7 @@
       username: {% if user.is_authenticated %}'{{ user.username|escapejs }}'{% else %}null{% endif %},
       visitorUsername: {% if visitor_username %}'{{ visitor_username|escapejs }}'{% else %}null{% endif %},
       isDemo: {% if is_demo %}true{% else %}false{% endif %},
-      isAnonymous: {% if is_anonymous %}true{% else %}false{% endif %},
+      isVisitor: {% if is_visitor %}true{% else %}false{% endif %},
       isAuthenticated: {% if user.is_authenticated %}true{% else %}false{% endif %},
       writerInitialized: {% if writer_initialized %}true{% else %}false{% endif %},
       documentType: '{{ document_type|default:"manuscript" }}',  // Current document type
@@ -182,7 +265,7 @@
   };
 
   // Log visitor allocation info
-  if (window.WRITER_CONFIG.isAnonymous && window.WRITER_CONFIG.visitorUsername) {
+  if (window.WRITER_CONFIG.isVisitor && window.WRITER_CONFIG.visitorUsername) {
       console.log('%c[VisitorPool] ✓ Allocated:', 'color: #4CAF50; font-weight: bold', window.WRITER_CONFIG.visitorUsername);
       console.log('%c[VisitorPool] Project ID:', 'color: #2196F3', window.WRITER_CONFIG.projectId);
       console.log('%c[VisitorPool] Project:', 'color: #2196F3', window.WRITER_CONFIG.projectName);
@@ -209,11 +292,78 @@
     }
   }
         </script>
-        <!-- TypeScript-compiled Writer Application Bundle -->
+        <!-- Writer Application Bundle (Vite) -->
+        {% vite_hmr_client %}
+        {% vite_script 'shared/workspace-panel-resizer' %}
+        {% vite_script 'writer_app/index' %}
+        <!-- Real-Time Collaboration Script - temporarily disabled (file not found)
         <script type="module"
-                src="{% static 'writer_app/js/index.js' %}?v={{ build_id|default:'dev' }}"></script>
-        <!-- Real-Time Collaboration Script (TypeScript-compiled ES6 module) -->
-        <script type="module"
-                src="{% static 'shared/js/collaboration/writer-collaboration.js' %}?v={{ build_id|default:'dev' }}"></script>
+                src="{% static 'shared/js/collaboration/writer/index.js' %}?v={{ build_id|default:'dev' }}"></script>
+        -->
+        {% if project %}
+        <!-- Fallback Panel Switcher (in case TypeScript module hasn't loaded yet) -->
+        <script>
+            // Define switchRightPanel early so onclick handlers work immediately
+            // This will be overridden by the TypeScript module when it loads
+            if (typeof window.switchRightPanel !== 'function') {
+                window.switchRightPanel = function(view) {
+                    console.log('[Writer] switchRightPanel called (inline fallback):', view);
+
+                    const views = ['pdf', 'citations', 'figures', 'tables', 'history', 'collaboration'];
+                    const viewElements = {
+                        pdf: document.getElementById('pdf-view'),
+                        citations: document.getElementById('citations-view'),
+                        figures: document.getElementById('figures-view'),
+                        tables: document.getElementById('tables-view'),
+                        history: document.getElementById('history-view'),
+                        collaboration: document.getElementById('collaboration-view')
+                    };
+
+                    // Hide all views
+                    views.forEach(v => {
+                        const el = viewElements[v];
+                        if (el) el.hidden = true;
+                    });
+
+                    // Show selected view
+                    const targetView = viewElements[view];
+                    if (targetView) {
+                        targetView.hidden = false;
+                        console.log('[Writer] Switched to', view, 'panel');
+                    }
+
+                    // Update button states
+                    document.querySelectorAll('.view-switch-btn').forEach(btn => {
+                        const btnView = btn.getAttribute('onclick')?.match(/switchRightPanel\('(\w+)'\)/)?.[1];
+                        if (btnView === view) {
+                            btn.classList.add('active');
+                        } else {
+                            btn.classList.remove('active');
+                        }
+                    });
+
+                    // Update shared header
+                    const sharedHeader = document.getElementById('right-panel-header');
+                    const targetHeader = document.getElementById(view + '-panel-header');
+                    if (sharedHeader && targetHeader) {
+                        sharedHeader.innerHTML = targetHeader.innerHTML;
+                    }
+                };
+            }
+        </script>
+
+        <!--
+            Workspace Files Tree for Writer
+            NOTE: The inline script has been refactored to external TypeScript modules.
+            All functionality is now handled by:
+            - writer_app/ts/index.ts (main entry point, loaded above)
+            - writer_app/ts/writer/initialization/FileTreeSetup.ts (file tree)
+            - writer_app/ts/writer/ui/sidebar-resizer.ts (sidebar resizing, auto-initializes)
+            - writer_app/ts/writer/config/doctype-config.ts (doctype configuration)
+            - writer_app/ts/writer/sections/section-extraction.ts (section management)
+
+            If you need to debug, check the browser console for [Writer] and [FileTreeSetup] logs.
+        -->
+        {% endif %}
     {% endif %}
 {% endblock %}

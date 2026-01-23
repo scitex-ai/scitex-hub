@@ -1,0 +1,25 @@
+/* Section Headers */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-header h2 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+
+.section-header-icon {
+  display: inline-block;
+  vertical-align: text-bottom;
+  margin-right: 8px;
+  width: 32px;
+  height: 32px;
+}
+
+.section-header-badge {
+  font-size: 0.9rem;
+}
+

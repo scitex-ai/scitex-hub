@@ -98,7 +98,7 @@ class CitationExporter:
             last_name = re.sub(r"[^a-zA-Z]", "", first_author.last_name.lower())
             key_parts.append(last_name)
         else:
-            key_parts.append("anonymous")
+            key_parts.append("visitor")
 
         # Add year
         if paper.publication_date:

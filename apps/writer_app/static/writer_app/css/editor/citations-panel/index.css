@@ -1,0 +1,10 @@
+/* ============================================================================
+ * Citations Panel - Main Entry Point
+ * ============================================================================
+ * Drag-and-drop citation cards for the Writer interface
+ * Toggles with PDF preview in the right panel
+ * ========================================================================== */
+
+@import "./layout.css";
+@import "./search.css";
+@import "./list.css";

@@ -1,0 +1,64 @@
+/* ============================================================================= */
+/* FILE VIEW - TOOLBAR */
+/* ============================================================================= */
+/* Toolbar and action button styles */
+/* ============================================================================= */
+
+/* Code/Blame tabs */
+.file-view-tabs {
+  display: flex;
+  gap: 0;
+}
+
+.file-tab {
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--color-fg-muted);
+  transition:
+    color 0.2s,
+    border-color 0.2s;
+}
+
+.file-tab:hover {
+  color: var(--color-fg-default);
+}
+
+.file-tab.active {
+  color: var(--color-fg-default);
+  border-bottom-color: var(--color-accent-emphasis);
+  font-weight: 600;
+}
+
+/* File info text */
+.file-info-text {
+  font-size: 12px;
+  color: var(--color-fg-muted);
+}
+
+/* Icon-only buttons */
+.btn-icon {
+  padding: 5px 8px;
+  background: var(--color-canvas-default);
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--color-fg-default);
+  transition: background 0.2s;
+}
+
+.btn-icon:hover {
+  background: var(--color-canvas-subtle);
+}
+
+/* PDF controls */
+.pdf-controls {
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}

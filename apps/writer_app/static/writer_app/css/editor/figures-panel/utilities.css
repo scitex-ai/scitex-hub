@@ -1,0 +1,52 @@
+/* ============================================================================
+ * Utilities and Animations
+ * ============================================================================
+ * Animations, drag states, and utility classes
+ * ========================================================================== */
+
+/* Animation for card entrance */
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animation for card selection glow */
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow:
+      0 12px 40px rgba(107, 143, 179, 0.35),
+      0 0 0 4px rgba(107, 143, 179, 0.2),
+      0 0 60px rgba(107, 143, 179, 0.3),
+      inset 0 2px 0 rgba(255, 255, 255, 0.15),
+      inset 0 -2px 0 rgba(107, 143, 179, 0.2);
+  }
+  50% {
+    box-shadow:
+      0 12px 40px rgba(107, 143, 179, 0.45),
+      0 0 0 4px rgba(107, 143, 179, 0.3),
+      0 0 80px rgba(107, 143, 179, 0.4),
+      inset 0 2px 0 rgba(255, 255, 255, 0.2),
+      inset 0 -2px 0 rgba(107, 143, 179, 0.3);
+  }
+}
+
+/* Drag Ghost Element */
+.figure-drag-ghost {
+  opacity: 0.8;
+  transform: rotate(2deg);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Drop Zone Indicator on Editor */
+.latex-panel.drag-over-figure {
+  outline: 2px dashed var(--color-success-emphasis);
+  outline-offset: -4px;
+  background: var(--color-success-subtle);
+  transition: all 0.2s;
+}

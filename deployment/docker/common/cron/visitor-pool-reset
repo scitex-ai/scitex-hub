@@ -1,0 +1,24 @@
+# Cron job for automatic visitor pool reset
+# DISABLED: No longer needed with 1-hour session expiration
+#
+# Previously ran daily at 23:59 (11:59 PM) to reset all visitor sessions
+# Now: Sessions automatically expire after 1 hour, so no daily reset needed
+#
+# Architecture Update (2025-11):
+# - Visitor sessions: 1-hour lifetime with full features
+# - Auto-expiration: Sessions expire naturally, freeing slots automatically
+# - Data migration: Visitor data migrates to user account on signup
+# - No manual reset: Slots rotate automatically as sessions expire
+#
+# If you need to manually clean up expired sessions, run:
+#   python manage.py cleanup_expired_visitor_sessions
+#
+# To re-enable daily reset (not recommended):
+#   Uncomment the line below and install the cron job
+
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+DJANGO_SETTINGS_MODULE=config.settings.settings_dev
+
+# DISABLED: Daily reset not needed with 1-hour sessions
+# 59 23 * * * root cd /app && python manage.py reset_visitor_pool >> /app/logs/visitor-pool-reset.log 2>&1

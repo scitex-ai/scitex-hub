@@ -1,0 +1,269 @@
+/**
+ * Collaboration Base
+ * Core layout and container styles
+ */
+
+/* ============================================================================
+ * Utility Classes
+ * ========================================================================== */
+
+.hidden {
+    display: none !important;
+}
+
+/* ============================================================================
+ * Main Collaboration View
+ * ========================================================================== */
+
+#collaboration-view {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+#collaboration-view[hidden] {
+    display: none;
+}
+
+/* ============================================================================
+ * Panel Header
+ * ========================================================================== */
+
+.collab-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--workspace-border-default);
+    background: var(--workspace-bg-secondary);
+}
+
+.collab-panel-header .header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.collab-panel-header .header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.collab-header-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--workspace-text-primary);
+}
+
+/* ============================================================================
+ * Content Container
+ * ========================================================================== */
+
+.collaboration-content-modern {
+    padding: 0;
+    background: var(--workspace-bg-primary);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex: 1;
+    min-height: 0;
+}
+
+/* ============================================================================
+ * Invite Bar
+ * ========================================================================== */
+
+.invite-bar {
+    padding: 12px 16px;
+    background: var(--workspace-bg-secondary);
+    border-bottom: 1px solid var(--workspace-border-default);
+    flex-shrink: 0;
+}
+
+.invite-input,
+.invite-role-select,
+.invite-send-btn {
+    font-size: 12px;
+}
+
+.invite-bar .invite-input,
+.invite-bar .invite-role-select {
+    background: var(--workspace-bg-primary) !important;
+    color: var(--workspace-text-primary) !important;
+    border-color: var(--workspace-border-default) !important;
+}
+
+.invite-bar .invite-input:focus,
+.invite-bar .invite-role-select:focus {
+    background: var(--workspace-bg-primary) !important;
+    color: var(--workspace-text-primary) !important;
+    border-color: var(--workspace-border-active) !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--workspace-border-active) 15%, transparent) !important;
+}
+
+.invite-bar .input-group-text {
+    background: var(--workspace-bg-secondary) !important;
+    color: var(--workspace-text-secondary) !important;
+    border-color: var(--workspace-border-default) !important;
+}
+
+.invite-role-select {
+    max-width: 90px;
+}
+
+/* ============================================================================
+ * Custom Collaboration Buttons
+ * ========================================================================== */
+
+.collab-invite-send-btn {
+    background: var(--workspace-bg-tertiary);
+    border: 1px solid var(--workspace-border-default);
+    color: var(--workspace-text-primary);
+    padding: 6px 12px;
+    font-size: 13px;
+    transition: all 0.2s ease;
+}
+
+.collab-invite-send-btn:hover {
+    background: var(--workspace-bg-quaternary);
+    border-color: var(--workspace-border-hover);
+    color: var(--workspace-text-primary);
+}
+
+.collab-connect-btn {
+    background: var(--workspace-bg-tertiary);
+    border: 1px solid var(--workspace-border-default);
+    color: var(--workspace-text-primary);
+    transition: all 0.2s ease;
+}
+
+.collab-connect-btn:hover {
+    background: var(--workspace-bg-quaternary);
+    border-color: var(--workspace-border-hover);
+    color: var(--workspace-text-primary);
+}
+
+/* ============================================================================
+ * Two Column Layout
+ * ========================================================================== */
+
+.collab-two-column {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 1px;
+    background: var(--workspace-border-default);
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.collab-column {
+    background: var(--workspace-bg-primary);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+}
+
+/* ============================================================================
+ * Modern Sections
+ * ========================================================================== */
+
+.collab-section-modern {
+    background: var(--workspace-bg-primary);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex: 1;
+    min-height: 0;
+}
+
+.section-title-modern {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--workspace-bg-secondary);
+    border-bottom: 1px solid var(--workspace-border-default);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--workspace-text-secondary);
+    user-select: none;
+    flex-shrink: 0;
+}
+
+.section-title-modern span {
+    flex: 1;
+}
+
+.section-title-modern i {
+    font-size: 10px;
+}
+
+.btn-icon-sm {
+    background: none;
+    border: none;
+    color: var(--workspace-text-secondary);
+    padding: 2px 6px;
+    cursor: pointer;
+    font-size: 10px;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+}
+
+.btn-icon-sm:hover {
+    background: var(--workspace-bg-tertiary);
+    color: var(--workspace-text-primary);
+}
+
+/* ============================================================================
+ * Bootstrap Button Overrides
+ * ========================================================================== */
+
+#collaboration-view .btn-primary,
+#collaboration-view .invite-send-btn,
+#collaboration-panel-header .btn-primary,
+.collab-panel-header .btn-primary {
+    background: var(--workspace-border-active) !important;
+    border-color: var(--workspace-border-active) !important;
+    color: white !important;
+}
+
+#collaboration-view .btn-primary:hover,
+#collaboration-view .invite-send-btn:hover,
+#collaboration-panel-header .btn-primary:hover,
+.collab-panel-header .btn-primary:hover {
+    background: var(--workspace-border-hover) !important;
+    border-color: var(--workspace-border-hover) !important;
+}
+
+#collaboration-view .btn-primary:focus,
+#collaboration-view .invite-send-btn:focus,
+#collaboration-panel-header .btn-primary:focus,
+.collab-panel-header .btn-primary:focus {
+    background: var(--workspace-border-active) !important;
+    border-color: var(--workspace-border-active) !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--workspace-border-active) 15%, transparent) !important;
+}
+
+/* ============================================================================
+ * Empty States
+ * ========================================================================== */
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--workspace-text-secondary);
+}

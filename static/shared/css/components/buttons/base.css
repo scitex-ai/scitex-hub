@@ -1,0 +1,54 @@
+/*
+ * @component Button Base
+ * @description Base button styles and common properties
+ * @file /static/shared/css/components/buttons/base.css
+ */
+
+/* =========================================
+   BASE BUTTON STYLES
+   ========================================= */
+
+.btn {
+  display: inline-block;
+  padding: 0.8rem 1.5rem;
+  margin: var(--spacing-sm);
+  border: 2px solid var(--border-default);
+  background: transparent;
+  color: var(--text-primary);
+  border-radius: var(--border-radius-lg);
+  font-size: 1rem;
+  font-weight: 400;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  transition: all var(--transition-normal);
+  line-height: 1.4;
+}
+
+.btn:hover {
+  background: var(--bg-muted);
+  border-color: var(--scitex-color-04);
+}
+
+/* =========================================
+   PANEL TOGGLE BUTTON
+   Shared style for sidebar, properties, and header toggles
+   ========================================= */
+
+.panel-toggle-btn {
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+  color: var(--text-muted, #6c8ba0);
+  border-radius: 4px;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel-toggle-btn:hover {
+  background: var(--workspace-bg-tertiary, #1a1a1a);
+  color: var(--workspace-icon-primary, #059669);
+}

@@ -46,39 +46,90 @@
 }
 
 .badge-primary {
-  color: var(--white);
-  background-color: var(--primary-color);
+  color: var(--text-inverse);
+  background-color: var(--_scitex-02); /* Navy: #34495e */
 }
 
 .badge-secondary {
-  color: var(--white);
-  background-color: var(--secondary-color);
+  color: var(--text-inverse);
+  background-color: var(--_scitex-04); /* Blue-gray: #6c8ba0 */
 }
 
 .badge-light {
-  color: var(--text-color);
-  background-color: var(--light-color);
-  border: var(--border-width) solid var(--border-color);
+  color: var(--text-primary);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-default);
 }
 
 .badge-success {
-  color: var(--white);
-  background-color: var(--success-color);
+  color: var(--text-inverse);
+  background-color: var(--status-success);
 }
 
 .badge-warning {
-  color: var(--white);
-  background-color: var(--warning-color);
+  color: var(--text-inverse);
+  background-color: var(--status-warning);
 }
 
 .badge-error {
-  color: var(--white);
-  background-color: var(--error-color);
+  color: var(--text-inverse);
+  background-color: var(--status-error);
 }
 
 .badge-info {
+  color: var(--text-inverse);
+  background-color: var(--status-info);
+}
+
+/* =========================
+   Dark Mode Adjustments
+   ========================= */
+
+[data-theme="dark"] .badge-primary {
+  color: var(--_scitex-07);
+  background-color: var(--_scitex-02); /* Navy: #34495e */
+}
+
+[data-theme="dark"] .badge-secondary {
+  color: var(--_scitex-07);
+  background-color: var(--_scitex-04); /* Blue-gray: #6c8ba0 */
+}
+
+[data-theme="dark"] .badge-light {
+  color: var(--text-primary);
+  background-color: var(--workspace-bg-elevated);
+  border-color: var(--workspace-border-default);
+}
+
+[data-theme="dark"] .badge-success {
+  color: var(--_scitex-01);
+  background-color: var(--status-success);
+}
+
+[data-theme="dark"] .badge-warning {
+  color: var(--_scitex-01);
+  background-color: var(--status-warning);
+}
+
+[data-theme="dark"] .badge-error {
   color: var(--white);
-  background-color: var(--info-color);
+  background-color: var(--status-error);
+}
+
+[data-theme="dark"] .badge-info {
+  color: var(--_scitex-01);
+  background-color: var(--status-info);
+}
+
+/* =========================
+   Badge Size Variants
+   ========================= */
+
+/* Small badge variant */
+.badge-sm {
+  font-size: 0.65rem !important;
+  padding: 0.2rem 0.5rem !important;
+  letter-spacing: 0.3px !important;
 }
 
 /* =========================

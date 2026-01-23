@@ -6,9 +6,9 @@ This module automatically loads the appropriate settings based on:
 2. SCITEX_CLOUD_ENV environment variable
 3. Default to development if not specified
 
-Usage:
+Supported environments:
     Development: export SCITEX_CLOUD_ENV=development (or leave unset)
-    Production:  export SCITEX_CLOUD_ENV=production
+    NAS:         export SCITEX_CLOUD_ENV=nas
 """
 
 import os
@@ -17,9 +17,9 @@ import sys
 # Determine which settings to use
 env = os.environ.get('SCITEX_CLOUD_ENV', 'development').lower()
 
-if env == 'production':
-    from .settings_prod import *
-elif env == 'development':
+if env == 'nas':
+    from .settings_nas import *
+elif env in ('development', 'dev'):
     from .settings_dev import *
 else:
     # Fallback to development

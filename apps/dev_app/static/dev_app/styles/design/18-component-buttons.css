@@ -1,0 +1,368 @@
+/* Component example buttons - theme responsive */
+.example-display .btn-outline-primary,
+.example-display .btn-outline-secondary {
+  color: var(--scitex-color-01) !important;
+  border-color: var(--scitex-color-04) !important;
+}
+
+[data-theme="dark"] .example-display .btn-outline-primary,
+[data-theme="dark"] .example-display .btn-outline-secondary {
+  color: var(--scitex-color-07) !important; /* Light text */
+  border-color: var(--scitex-color-05) !important;
+}
+
+.example-display .btn-outline-primary:hover,
+.example-display .btn-outline-secondary:hover {
+  background: var(--scitex-color-02) !important;
+  color: #ffffff !important;
+}
+
+/* Other outline buttons - Light mode defaults */
+.example-display .btn-outline-success {
+  color: var(--scitex-success) !important;
+  border-color: var(--scitex-success) !important;
+  background: transparent !important;
+}
+
+.example-display .btn-outline-danger {
+  color: var(--scitex-error) !important;
+  border-color: var(--scitex-error) !important;
+  background: transparent !important;
+}
+
+.example-display .btn-outline-warning {
+  color: var(--scitex-warning) !important;
+  border-color: var(--scitex-warning) !important;
+  background: transparent !important;
+}
+
+.example-display .btn-outline-info {
+  color: var(--scitex-info) !important;
+  border-color: var(--scitex-info) !important;
+  background: transparent !important;
+}
+
+.example-display .btn-outline-light {
+  color: var(--scitex-color-03) !important;
+  border-color: var(--scitex-color-05) !important;
+  background: transparent !important;
+}
+
+.example-display .btn-outline-dark {
+  color: var(--scitex-color-01) !important;
+  border-color: var(--scitex-color-02) !important;
+  background: transparent !important;
+}
+
+/* Dark mode outline buttons - brighter, more visible */
+[data-theme="dark"] .example-display .btn-outline-success {
+  color: #5fb98c !important; /* Brighter green */
+  border-color: #5fb98c !important;
+}
+
+[data-theme="dark"] .example-display .btn-outline-danger {
+  color: #c99090 !important; /* Brighter red */
+  border-color: #c99090 !important;
+}
+
+[data-theme="dark"] .example-display .btn-outline-warning {
+  color: #d4a876 !important; /* Brighter orange */
+  border-color: #d4a876 !important;
+}
+
+[data-theme="dark"] .example-display .btn-outline-info {
+  color: #89a8c9 !important; /* Brighter blue */
+  border-color: #89a8c9 !important;
+}
+
+[data-theme="dark"] .example-display .btn-outline-light {
+  color: var(--scitex-color-07) !important; /* Very light */
+  border-color: var(--scitex-color-06) !important;
+}
+
+[data-theme="dark"] .example-display .btn-outline-dark {
+  color: var(--scitex-color-06) !important; /* Light for "dark" button */
+  border-color: var(--scitex-color-05) !important;
+}
+
+/* Hover states for all outline buttons */
+.example-display .btn-outline-success:hover {
+  background: var(--scitex-success) !important;
+  color: #ffffff !important;
+}
+
+.example-display .btn-outline-danger:hover {
+  background: var(--scitex-error) !important;
+  color: #ffffff !important;
+}
+
+.example-display .btn-outline-warning:hover {
+  background: var(--scitex-warning) !important;
+  color: #ffffff !important;
+}
+
+.example-display .btn-outline-info:hover {
+  background: var(--scitex-info) !important;
+  color: #ffffff !important;
+}
+
+/* Hero gradient examples - ensure they're visible in dark mode */
+.component-example .example-display {
+  border: 1px solid var(--color-border-default);
+}
+
+/* Table header styling for dark mode */
+[data-theme="dark"] .table-light {
+  background-color: var(
+    --scitex-color-01-light
+  ) !important; /* Darker than default */
+  color: var(--scitex-color-07) !important;
+}
+
+[data-theme="dark"] .table-light th {
+  background-color: var(--scitex-color-01-light) !important;
+  color: var(--scitex-color-07) !important;
+  border-color: var(--scitex-color-02) !important;
+}
+
+[data-theme="dark"] .table {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .table-bordered {
+  border-color: var(--scitex-color-02) !important;
+}
+
+[data-theme="dark"] .table-bordered td,
+[data-theme="dark"] .table-bordered th {
+  border-color: var(--scitex-color-02) !important;
+}
+
+/* Hero Section Dark Mode */
+[data-theme="dark"] .hero-design-system {
+  background: radial-gradient(
+    ellipse at center,
+    #506b7a 0%,
+    #34495e 50%,
+    #1a2332 100%
+  ) !important;
+}
+
+[data-theme="dark"] .hero-design-system h1,
+[data-theme="dark"] .hero-design-system p {
+  color: var(--scitex-color-07) !important;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme="dark"] .hero-btn-primary {
+  background: var(--scitex-color-04) !important;
+  color: var(--scitex-color-01) !important;
+}
+
+[data-theme="dark"] .hero-btn-outline {
+  background: transparent !important;
+  color: var(--scitex-color-07) !important;
+  border-color: var(--scitex-color-06) !important;
+}
+
+[data-theme="dark"] .hero-btn-outline:hover {
+  background: var(--scitex-color-02) !important;
+  color: var(--scitex-color-07) !important;
+}
+
+/* Override hard-coded inline colors with semantic CSS variables */
+
+/* Code/badge backgrounds - #e9ecef light gray */
+code[style*="background: #e9ecef"],
+code[style*="background:#e9ecef"] {
+  background: var(--bg-200) !important; /* Light gray background */
+  color: var(--text-900) !important; /* Dark text */
+  border: 1px solid var(--border-300) !important;
+}
+
+/* Info box backgrounds - #d1ecf1 light cyan */
+[style*="background: #d1ecf1"],
+[style*="background:#d1ecf1"] {
+  background: var(--bg-200) !important;
+  color: var(--text-900) !important;
+  border-color: var(--border-400) !important;
+}
+
+/* Alert/note backgrounds - #f0f8ff light blue */
+[style*="background: #f0f8ff"],
+[style*="background:#f0f8ff"] {
+  background: var(--bg-100) !important;
+  color: var(--text-900) !important;
+}
+
+/* Dark mode specific overrides for code elements */
+[data-theme="dark"] code[style*="background"] {
+  background: var(--bg-700) !important; /* Dark background */
+  color: var(--text-100) !important; /* Light text */
+  border: 1px solid var(--border-400) !important;
+}
+
+/* Dark mode: fix hard-coded #e9ecef backgrounds */
+[data-theme="dark"] [style*="background: #e9ecef"],
+[data-theme="dark"] [style*="background:#e9ecef"] {
+  background: var(--bg-700) !important;
+  color: var(--text-100) !important;
+}
+
+/* Dark mode: fix hard-coded #d1ecf1 backgrounds */
+[data-theme="dark"] [style*="background: #d1ecf1"],
+[data-theme="dark"] [style*="background:#d1ecf1"] {
+  background: var(--bg-800) !important;
+  color: var(--text-100) !important;
+}
+
+/* Dark mode: fix hard-coded #f0f8ff backgrounds */
+[data-theme="dark"] [style*="background: #f0f8ff"],
+[data-theme="dark"] [style*="background:#f0f8ff"] {
+  background: var(--bg-800) !important;
+  color: var(--text-100) !important;
+}
+
+/* Moved from the style in bottom */
+/* Animated gradient for the live processing hero */
+.animated-gradient-hero {
+  background: linear-gradient(
+    -45deg,
+    var(--darkgray-900),
+    var(--darkgray-700),
+    var(--darkgray-500),
+    var(--darkgray-600)
+  );
+  background-size: 400% 400%;
+  animation: gradientShift 8s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Shine animation for demo */
+.hero-shine-demo::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 0%,
+    transparent 40%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 60%,
+    transparent 100%
+  );
+  animation: shineDemo 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes shineDemo {
+  0%,
+  100% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  50% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
+}
+
+/* Enhanced hero examples with better visual hierarchy */
+.design-section .example-display {
+  margin-bottom: 1rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.design-section .example-code {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  background-color: #2d3748;
+  color: #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+/* ============================================================================
+   TAB NAVIGATION COMPONENT - GitHub-style horizontal tabs
+   ============================================================================
+
+   Usage:
+   <div class="scitex-tabs">
+     <a href="#tab1" class="scitex-tab scitex-tab-active">Tab 1</a>
+     <a href="#tab2" class="scitex-tab">Tab 2</a>
+   </div>
+
+   Classes:
+   - .scitex-tabs: Container for tab navigation
+   - .scitex-tab: Individual tab button/link
+   - .scitex-tab-active: Active state for selected tab
+   ============================================================================ */
+
+/* Tab container */
+.scitex-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--color-border-default);
+  padding: 0;
+  margin-bottom: 0;
+  overflow: visible;
+  position: relative;
+}
+
+/* Individual tab */
+.scitex-tab {
+  padding: 0.5rem 1rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  background: transparent;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+/* Tab icon */
+.scitex-tab i {
+  font-size: 16px;
+}
+
+/* Tab hover state */
+.scitex-tab:hover {
+  color: var(--text-primary);
+  border-bottom-color: var(--color-border-default);
+  text-decoration: none;
+}
+
+/* Active tab */
+.scitex-tab-active,
+.scitex-tab.active {
+  color: var(--text-primary);
+  border-bottom: 2px solid var(--scitex-color-03);
+  font-weight: 600;
+}
+
+/* Dark theme active tab */
+[data-theme="dark"] .scitex-tab-active,
+[data-theme="dark"] .scitex-tab.active {
+  border-bottom-color: var(--scitex-color-05);
+}

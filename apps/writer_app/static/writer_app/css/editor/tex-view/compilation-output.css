@@ -1,0 +1,102 @@
+/* Inline Compilation Output */
+.compilation-output {
+  border-top: 1px solid var(--workspace-border-default);
+  background: var(--workspace-bg-secondary);
+  max-height: 300px;
+  display: flex;
+  flex-direction: column;
+}
+
+.compilation-output-header {
+  padding: 0.75rem 1rem;
+  background: var(--workspace-bg-primary);
+  border-bottom: 1px solid var(--workspace-border-default);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--workspace-text-primary);
+}
+
+.compilation-log-inline {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+  font-family: "Consolas", "Monaco", "Courier New", monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  background: var(--bg-muted);
+  color: var(--text-primary);
+}
+
+/* Old styles kept for backward compatibility */
+.text-editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+}
+
+.split-editor {
+  flex: 1;
+  display: flex;
+  gap: 1rem;
+  padding: 2rem;
+  min-height: 0;
+}
+
+.section-title {
+  /* font-size: 1.5rem; */ /* Styling from central CSS */
+  /* font-weight: 600; */ /* Styling from central CSS */
+  /* color: var(--scitex-primary); */ /* Styling from central CSS */
+  margin-bottom: 1rem;
+}
+
+/* Text Editor Textarea */
+.text-editor textarea {
+  flex: 1;
+  /* border: 1px solid var(--workspace-border-default); */ /* Styling from central CSS */
+  /* border-radius: var(--border-radius); */ /* Styling from central CSS */
+  padding: 1.5rem;
+  /* font-family: 'Georgia', serif; */ /* Styling from central CSS */
+  /* font-size: 1rem; */ /* Styling from central CSS */
+  /* line-height: 1.6; */ /* Styling from central CSS */
+  resize: none;
+  outline: none;
+  /* transition: var(--transition); */ /* Styling from central CSS */
+  /* background: var(--bg-page); */ /* Styling from central CSS */
+  /* color: var(--text-primary); */ /* Styling from central CSS */
+}
+
+.text-editor textarea:focus {
+  /* border-color: var(--scitex-accent); */ /* Styling from central CSS */
+  /* box-shadow: 0 0 0 3px rgba(80, 107, 122, 0.1); */ /* Styling from central CSS */
+}
+
+/* LaTeX Editor Textarea */
+.latex-editor-textarea {
+  flex: 1;
+  min-height: 0;
+  padding: 1rem;
+  background: var(--workspace-bg-primary);
+  color: var(--workspace-text-primary);
+  font-family:
+    "JetBrains Mono", "Fira Code", "Consolas", "Monaco", "Menlo", "Courier New",
+    monospace;
+  font-size: 14px;
+  line-height: 1.15;
+  border: none;
+  outline: none;
+  resize: none;
+  overflow-y: auto;
+  transition: all 0.2s ease;
+}
+
+.latex-editor-textarea:focus {
+  outline: none;
+  background: var(--workspace-bg-primary);
+  color: var(--workspace-text-primary);
+}
+

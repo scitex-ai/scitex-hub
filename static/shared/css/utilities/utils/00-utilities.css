@@ -1,0 +1,11 @@
+/* ========================================================================
+   SCITEX UTILITIES - Composable CSS Utility Classes
+   ========================================================================
+
+   Philosophy: Single-purpose, reusable utility classes for rapid UI development
+   Benefits: Consistency, maintainability, no page-specific CSS needed
+
+   Usage: Compose utilities in HTML instead of writing custom CSS
+   Example: <div class="flex items-center justify-between p-4 mb-6">
+   ======================================================================== */
+

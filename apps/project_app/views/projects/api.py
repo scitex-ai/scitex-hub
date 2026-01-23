@@ -172,4 +172,48 @@ def api_project_detail(request, pk):
         return JsonResponse({"success": False, "error": str(e)})
 
 
+@login_required
+@require_http_methods(["POST"])
+def api_switch_active_project(request):
+    """
+    API endpoint to switch the active project for the current user.
+
+    Updates user.profile.last_active_repository to keep frontend and backend in sync.
+    This ensures the project selector shows the correct project across page refreshes.
+    """
+    try:
+        data = json.loads(request.body)
+        project_id = data.get("project_id")
+
+        if not project_id:
+            return JsonResponse({"success": False, "error": "Project ID is required"})
+
+        # Get the project and verify ownership
+        project = get_object_or_404(Project, pk=project_id, owner=request.user)
+
+        # Update the user's last active repository
+        profile = request.user.profile
+        profile.last_active_repository = project
+        profile.save()
+
+        logger.info(f"User {request.user.username} switched to project {project.name}")
+
+        return JsonResponse({
+            "success": True,
+            "project": {
+                "id": project.id,
+                "name": project.name,
+                "slug": project.slug,
+                "owner": project.owner.username,
+            },
+            "message": f"Switched to project {project.name}",
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
+    except Exception as e:
+        logger.error(f"Error switching active project: {e}")
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
+
+
 # EOF

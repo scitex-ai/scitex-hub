@@ -1,0 +1,55 @@
+# CrossRef Local API Service
+# Add this to your main docker-compose.yml or include as override
+
+version: '3.8'
+
+services:
+  crossref-local:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: scitex-crossref-local-nas
+    image: scitex-crossref-local:latest
+    ports:
+      - "3333:3333"
+    volumes:
+      # Mount your existing CrossRef database (read-only)
+      - /home/ywatanabe/proj/crossref_local/data:/data:ro
+    environment:
+      # Database path (inside container)
+      - CROSSREF_DB_PATH=/data/crossref.db
+      # Or find the first .db file
+      # - CROSSREF_DB_PATH=/data/*.db
+
+      # Server configuration
+      - LOG_LEVEL=INFO
+      - WORKERS=4
+      - HOST=0.0.0.0
+      - PORT=3333
+
+      # Performance tuning
+      - ENABLE_QUERY_CACHE=true
+      - CACHE_TTL_SECONDS=3600
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3333/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 40s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - scitex-network
+
+networks:
+  scitex-network:
+    external: true  # Use existing network from main docker-compose
+    # Or create new:
+    # driver: bridge

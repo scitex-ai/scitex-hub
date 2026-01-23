@@ -1,0 +1,18 @@
+/*
+ * Search Filters Styles (Main Module)
+ *
+ * Styles for search filter controls:
+ * - Toggle buttons
+ * - Source-specific colors
+ * - Sort controls
+ * - Range sliders
+ * - Accordions
+ *
+ * This is a modular stylesheet that imports component-specific styles
+ */
+
+@import url('./filters/base.css');
+@import url('./filters/toggles.css');
+@import url('./filters/sort.css');
+@import url('./filters/sliders.css');
+@import url('./filters/accordion.css');

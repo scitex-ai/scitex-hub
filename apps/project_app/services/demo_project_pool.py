@@ -1,7 +1,7 @@
 """
 Visitor Pool Manager
 
-Manages pre-allocated visitor accounts and default projects for anonymous users.
+Manages pre-allocated visitor accounts and default projects for visitor users.
 This is a shared infrastructure service used by Writer, Scholar, Code, etc.
 
 Architecture:
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 class VisitorPool:
     """
-    Manages a pool of pre-allocated visitor accounts for anonymous users.
+    Manages a pool of pre-allocated visitor accounts for visitor users.
 
     Features:
     - Fixed pool size (visitor-001 to visitor-004, rotated automatically)
@@ -46,11 +46,15 @@ class VisitorPool:
     """
 
     VISITOR_USER_PREFIX = "visitor-"
+    DEMO_USER_PREFIX = "demo-"
     DEFAULT_PROJECT_PREFIX = "default-project-"
+    DEMO_PROJECT_PREFIX = "demo-project-"
     POOL_SIZE = 4  # Fixed pool: visitor-001 to visitor-004
     SESSION_LIFETIME_HOURS = 24
+    DEMO_PROJECT_LIFETIME_HOURS = 24
     SESSION_KEY_PROJECT_ID = "visitor_project_id"
     SESSION_KEY_VISITOR_ID = "visitor_user_id"
+    SESSION_KEY_DEMO_USER_ID = "demo_user_id"
     SESSION_KEY_ALLOCATION_TOKEN = "visitor_allocation_token"
 
     @classmethod
@@ -335,3 +339,7 @@ class VisitorPool:
             f"[DemoPool] Cleanup complete: {deleted}/{count} orphaned users removed"
         )
         return deleted
+
+
+# Alias for backward compatibility
+DemoProjectPool = VisitorPool

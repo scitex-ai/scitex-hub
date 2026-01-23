@@ -1,0 +1,42 @@
+/* Deployment/Democracy Section */
+.about-democracy-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.about-democracy-card {
+  background: rgba(26, 42, 64, 0.5);
+  border-radius: 16px;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  border: 1px solid rgba(108, 139, 160, 0.15);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.about-democracy-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.2),
+    0 0 20px rgba(74, 155, 126, 0.1);
+  border-color: rgba(74, 155, 126, 0.4);
+}
+
+.democracy-icon {
+  font-size: 2rem;
+  color: #4a9b7e;
+  margin-bottom: 0.75rem;
+  filter: drop-shadow(0 0 8px rgba(74, 155, 126, 0.4));
+}
+
+.democracy-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+

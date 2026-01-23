@@ -132,7 +132,7 @@ Replace paragraph text with unordered lists:
 <ul class="module-features">
   <li>Publication-quality graphics</li>
   <li>Professional data visualization</li>
-  <li>SigmaPlot integration</li>
+  <li>VisPlot integration</li>
 </ul>
 ```
 

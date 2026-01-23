@@ -1,0 +1,31 @@
+/* Theme Toggle Button */
+.theme-toggle {
+  background: transparent;
+  border: none;
+  color: var(--scitex-color-03);
+  cursor: pointer;
+  font-size: 18px;
+  padding: 6px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-toggle:hover {
+  background: var(--scitex-color-07);
+  color: var(--scitex-color-01);
+}
+
+[data-theme="dark"] .theme-toggle {
+  color: var(--scitex-color-06);
+}
+
+[data-theme="dark"] .theme-toggle:hover {
+  background: var(--scitex-color-01-light);
+  color: var(--scitex-color-07);
+}
+

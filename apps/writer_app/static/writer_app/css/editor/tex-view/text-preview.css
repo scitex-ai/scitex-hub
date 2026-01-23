@@ -1,0 +1,149 @@
+/* Remove all focus outlines from preview pane */
+.text-preview:focus,
+.text-preview:focus-visible,
+.text-preview *:focus,
+.text-preview *:focus-visible,
+.text-preview iframe:focus,
+.text-preview iframe:focus-visible {
+  outline: none !important;
+}
+
+/* Add padding for text-only preview (not PDF) */
+.text-preview:not(:has(.pdf-preview-container, .pdfjs-viewer)) {
+  padding: 1.5rem;
+  white-space: pre-wrap;
+}
+
+/* Remove padding when displaying PDF preview */
+.text-preview .pdf-preview-container {
+  margin: 0 !important;
+  width: 100%;
+  height: 100%;
+  background: #525659; /* Gray background like PDF viewers */
+  padding: 0 !important;
+  box-sizing: border-box;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure PDF viewer fills container and displays at full width */
+.pdf-preview-viewer {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Make pdfjs-viewer fill its parent */
+.pdf-preview-viewer .pdfjs-viewer {
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  min-height: 0;
+}
+
+.pdf-preview-viewer iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+/* Ensure PDF preview starts at the top, not bottom */
+.text-preview:has(.pdf-preview-container),
+.text-preview:has(.pdfjs-viewer) {
+  scroll-behavior: auto;
+  scroll-padding: 0;
+  overflow: hidden !important; /* Prevent scrolling on text-preview when PDF is shown */
+}
+
+/* Add top padding to prevent PDF from being hidden under the overlay header */
+.preview-panel:has(.pdfjs-viewer) .text-preview,
+#pdf-view:has(.pdfjs-viewer) .text-preview {
+  padding-top: 0 !important; /* No padding - pdfjs-viewer will handle spacing */
+}
+
+/* Ensure pdfjs-viewer fills space without padding - header is in normal flow */
+.text-preview .pdfjs-viewer {
+  margin-top: 0 !important;
+  padding-top: 0 !important; /* No padding needed - header is in normal flow */
+}
+
+/* Make preview panel position relative for overlay positioning */
+.preview-panel {
+  position: relative;
+}
+
+/* Keep panel header in normal flow - separate from PDF content */
+#pdf-view:has(.pdf-preview-container) .panel-header,
+#pdf-view:has(.pdfjs-viewer) .panel-header {
+  position: relative !important; /* Normal flow instead of absolute overlay */
+  height: 50px !important;
+  min-height: 50px;
+  max-height: 50px;
+  box-sizing: border-box;
+  background: var(--workspace-bg-primary) !important;
+  border-bottom: 1px solid var(--workspace-border-default); /* Visible separator */
+  flex-shrink: 0; /* Don't shrink in flexbox */
+}
+
+/* No special hover effects needed - header is in normal flow */
+
+/* Keep panel header visible for text preview */
+.preview-panel .panel-header {
+  display: flex;
+  align-items: center;
+  height: 50px !important;
+  min-height: 50px;
+  max-height: 50px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* Ensure LaTeX panel header stays in normal flow */
+.latex-panel .panel-header {
+  position: relative !important;
+  height: 50px !important;
+  min-height: 50px;
+  max-height: 50px;
+  box-sizing: border-box;
+}
+
+.panel-header {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--workspace-text-primary);
+  margin-bottom: 0;
+  padding: 0 16px; /* Match /vis/ padding */
+  height: 50px !important; /* Match /vis/ height */
+  min-height: 50px;
+  max-height: 50px;
+  background: var(--workspace-bg-primary); /* Match /vis/ background */
+  border-bottom: 1px solid var(--workspace-border-default);
+  border-radius: 0; /* No rounded corners - flat like /vis/ */
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.panel-header .header-left,
+.panel-header .header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+

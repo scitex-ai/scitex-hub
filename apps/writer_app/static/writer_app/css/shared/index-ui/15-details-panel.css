@@ -1,0 +1,265 @@
+/* =========================================
+   WRITER DETAILS PANEL (rightmost panel)
+   Collapsible panel with compilation settings and project info
+   ========================================= */
+
+.writer-details {
+  width: 280px;
+  min-width: 40px;
+  max-width: 400px;
+  background: var(--workspace-bg-primary, #0d0d0d);
+  border-left: 1px solid var(--workspace-border-default, #3a3a3a);
+  display: flex;
+  flex-direction: column;
+  transition: width 0.2s ease, min-width 0.2s ease;
+  flex-shrink: 0;
+}
+
+.writer-details.collapsed {
+  width: 40px;
+  min-width: 40px;
+  max-width: 40px;
+}
+
+/* Hide all content except toggle button when collapsed */
+.writer-details.collapsed .details-header h5,
+.writer-details.collapsed .details-content {
+  display: none;
+}
+
+/* Collapsed state - only show toggle button */
+.writer-details.collapsed .details-header {
+  padding: 0;
+  justify-content: center;
+  align-items: center;
+  height: 50px;
+  min-height: 50px;
+}
+
+.writer-details.collapsed .details-header h5 {
+  display: none;
+}
+
+.writer-details.collapsed .details-toggle {
+  width: 100%;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Icon direction is managed by WorkspacePanelResizer - no CSS transform needed */
+
+/* Header - match Scholar properties-header styling */
+.details-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  height: 50px;
+  min-height: 50px;
+  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
+  flex-shrink: 0;
+  background: var(--workspace-bg-secondary, #151515);
+}
+
+.details-header h5 {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary, #e0e0e0);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.details-header h5 i {
+  color: var(--workspace-icon-primary, #059669);
+  font-size: 0.85rem;
+}
+
+.details-toggle {
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+  color: var(--text-muted, #6c8ba0);
+  border-radius: 4px;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.details-toggle:hover {
+  background: var(--workspace-bg-tertiary, #1a1a1a);
+  color: var(--workspace-icon-primary, #059669);
+}
+
+/* Content */
+.details-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+/* Sections */
+.details-section {
+  background: var(--workspace-bg-secondary, #1e1e1e);
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  border: 1px solid var(--workspace-border-default, #3a3a3a);
+}
+
+.details-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  border-radius: 6px 6px 0 0;
+}
+
+.details-section__header:hover {
+  background: var(--workspace-bg-tertiary, #2d2d2d);
+}
+
+.details-section__title {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary, #e0e0e0);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.details-section__title i {
+  color: var(--workspace-icon-primary, #059669);
+  font-size: 0.75rem;
+}
+
+.details-section__toggle {
+  color: var(--text-muted, #888);
+  font-size: 0.7rem;
+  transition: transform 0.2s ease;
+}
+
+.details-section.collapsed .details-section__toggle {
+  transform: rotate(-90deg);
+}
+
+.details-section.collapsed .details-section__content {
+  display: none;
+}
+
+.details-section__content {
+  padding: 0.75rem;
+  border-top: 1px solid var(--workspace-border-default, #3a3a3a);
+}
+
+/* Options (checkboxes) */
+.details-option {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.5rem;
+}
+
+.details-option__label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-primary, #e0e0e0);
+  cursor: pointer;
+}
+
+.details-option__label input[type="checkbox"] {
+  accent-color: var(--workspace-icon-primary, #059669);
+}
+
+.details-option__hint {
+  font-size: 0.7rem;
+  color: var(--text-muted, #888);
+  margin-left: 1.5rem;
+}
+
+/* Info rows */
+.details-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0;
+  font-size: 0.75rem;
+  border-bottom: 1px solid var(--workspace-border-muted, #2a2a2a);
+}
+
+.details-info-row:last-child {
+  border-bottom: none;
+}
+
+.details-info-label {
+  color: var(--text-muted, #888);
+}
+
+.details-info-value {
+  color: var(--text-primary, #e0e0e0);
+  font-weight: 500;
+}
+
+/* Shortcuts */
+.details-shortcut {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.details-shortcut:last-child {
+  margin-bottom: 0;
+}
+
+.details-shortcut kbd {
+  background: var(--workspace-bg-tertiary, #2d2d2d);
+  border: 1px solid var(--workspace-border-default, #3a3a3a);
+  border-radius: 3px;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.7rem;
+  font-family: var(--font-mono, monospace);
+  color: var(--text-primary, #e0e0e0);
+  min-width: 100px;
+  text-align: center;
+}
+
+.details-shortcut span {
+  color: var(--text-muted, #888);
+}
+
+/* Resizer for details panel */
+.details-resizer {
+  width: 4px;
+  background: transparent;
+  cursor: col-resize;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+
+.details-resizer:hover,
+.details-resizer.active {
+  background: var(--workspace-icon-primary, #059669);
+}
+
+/* Light mode */
+[data-theme="light"] .writer-details {
+  background: var(--workspace-bg-primary, #f3f4f6);
+}
+
+[data-theme="light"] .details-header {
+  background: var(--workspace-bg-secondary, #ebedef);
+}
+
+[data-theme="light"] .details-section {
+  background: var(--workspace-bg-secondary, #ebedef);
+}

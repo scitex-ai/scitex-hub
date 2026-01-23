@@ -9,6 +9,12 @@ import os
 import json
 import logging
 
+# Import Celery app to ensure it's loaded when Django starts
+# This allows using @shared_task decorator in apps
+from .celery_app import app as celery_app
+
+__all__ = ('celery_app',)
+
 logger = logging.getLogger(__name__)
 
 # Default configuration

@@ -1,0 +1,71 @@
+{
+  "schema": {
+    "name": "scitex.plt.spec",
+    "version": "1.0.0"
+  },
+  "plot_id": "stx_image",
+  "data": {
+    "csv": "stx_image.csv",
+    "format": "wide",
+    "hash": "sha256:29154d3aad2fa0cd"
+  },
+  "axes": [
+    {
+      "id": "ax0",
+      "bbox": {
+        "x0": 0.25,
+        "y0": 0.2941,
+        "width": 0.457,
+        "height": 0.4118,
+        "space": "panel"
+      },
+      "labels": {
+        "xlabel": "X",
+        "ylabel": "Y",
+        "title": "ax.stx_image()"
+      },
+      "limits": {
+        "x": [
+          -0.5,
+          31.5
+        ],
+        "y": [
+          -0.5,
+          31.5
+        ]
+      },
+      "role": "main",
+      "linked_to": null
+    },
+    {
+      "id": "ax1",
+      "bbox": {
+        "x0": 0.727,
+        "y0": 0.2941,
+        "width": 0.023,
+        "height": 0.4118,
+        "space": "panel"
+      },
+      "labels": {
+        "xlabel": null,
+        "ylabel": null,
+        "title": null
+      },
+      "limits": {
+        "x": [
+          0.0,
+          1.0
+        ],
+        "y": [
+          0.004632023004602859,
+          0.9997176732861306
+        ]
+      },
+      "role": "main",
+      "linked_to": null
+    }
+  ],
+  "traces": [],
+  "scitex_schema": "scitex.plt.spec",
+  "scitex_schema_version": "1.0.0"
+}

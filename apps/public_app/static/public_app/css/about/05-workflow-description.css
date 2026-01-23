@@ -1,0 +1,9 @@
+/* Workflow Description */
+.workflow-description {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0;
+}
+

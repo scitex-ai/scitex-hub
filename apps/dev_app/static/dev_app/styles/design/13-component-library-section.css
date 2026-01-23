@@ -1,0 +1,39 @@
+/* ============================================================================
+   DESIGN SECTION BASE STYLES
+   ============================================================================ */
+
+.design-section {
+  margin-bottom: 4rem;
+}
+
+.design-section h2 {
+  border-bottom: 1px solid var(--border-300);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+  color: var(
+    --text-900
+  ); /* Darkest - adapts to theme (black in light, near-black in dark) */
+}
+
+.design-section h3,
+.design-section h4 {
+  color: var(--text-900); /* Darkest - primary headings */
+}
+
+.design-section p {
+  color: var(--text-800); /* Very dark - body text */
+}
+
+.demo-box {
+  background-color: var(--bg-200);
+  border: 1px solid var(--border-300);
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.demo-box:hover {
+  box-shadow: var(--shadow-md);
+}
+

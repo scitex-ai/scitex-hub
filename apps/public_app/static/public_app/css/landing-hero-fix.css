@@ -68,7 +68,154 @@
   );
 }
 
-/* Responsive adjustments */
+/* Watch Demos badge - eye-catching warning style */
+.hero-badge.badge-warning {
+  background: linear-gradient(135deg, #ff7043 0%, #ff5722 100%);
+  color: white;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 2px 8px rgba(255, 87, 34, 0.4);
+  }
+  50% {
+    box-shadow: 0 4px 16px rgba(255, 87, 34, 0.6);
+  }
+}
+
+/* ============================================================================
+ * Hero Demo Video Preview
+ * ============================================================================ */
+
+.demo-link {
+  display: block;
+  text-decoration: none;
+}
+
+.demo-display {
+  position: relative;
+  cursor: pointer;
+}
+
+.demo-thumbnail {
+  width: 100%;
+  height: auto;
+  display: block;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.demo-overlay {
+  display: none;
+}
+
+.demo-text {
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.demo-duration {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.85rem;
+  font-weight: 400;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  margin-top: 0.25rem;
+}
+
+.demo-workflow {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.75rem;
+  font-weight: 400;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  max-width: 90%;
+  line-height: 1.4;
+}
+
+/* Video element styling */
+.demo-video {
+  width: 100%;
+  height: auto;
+  display: block;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.demo-thumbnail {
+  border-radius: 4px;
+}
+
+/* Description below video */
+.demo-description {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  gap: 1rem;
+}
+
+.demo-info-left {
+  flex: 1;
+  text-align: left;
+}
+
+.demo-info-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.speed-label {
+  font-size: 0.9rem;
+  color: var(--text-primary, #24292f);
+  font-weight: 500;
+}
+
+[data-theme="dark"] .speed-label {
+  color: var(--text-primary, #c9d1d9);
+}
+
+/* Speed select */
+.speed-select {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: 1px solid var(--border-default, #d0d7de);
+  border-radius: 4px;
+  background: var(--bg-secondary, #f6f8fa);
+  color: var(--text-primary, #24292f);
+  cursor: pointer;
+}
+
+[data-theme="dark"] .speed-select {
+  background: var(--bg-tertiary, #21262d);
+  border-color: var(--border-default, #30363d);
+  color: var(--text-primary, #c9d1d9);
+}
+
+.demo-workflow-text {
+  color: var(--text-primary, #24292f);
+  font-size: 1.1rem;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+[data-theme="dark"] .demo-workflow-text {
+  color: var(--text-primary, #c9d1d9);
+}
+
+/* ============================================================================
+ * Responsive adjustments
+ * ============================================================================ */
 @media (max-width: 992px) {
   .hero-landing .hero-content {
     text-align: center !important;
@@ -76,5 +223,156 @@
 
   .hero-landing .hero-badges {
     justify-content: center !important;
+  }
+
+  /* Stack hero content vertically on tablet/mobile */
+  .hero-landing .hero-wrapper {
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+
+  /* Logo/content first, then video on mobile */
+  .hero-landing .hero-content {
+    order: 0 !important;
+  }
+
+  /* Responsive logo sizing for tablet */
+  .hero-landing .hero-logo {
+    max-width: 80%;
+    width: auto;
+  }
+
+  .hero-landing .hero-logo-container {
+    justify-content: center;
+  }
+
+  .hero-landing .hero-image {
+    order: 1 !important;
+    width: 100%;
+    max-width: 500px;
+    margin-top: 2rem;
+  }
+
+  .demo-play-icon {
+    font-size: 3rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .hero-landing {
+    margin-top: 1.5rem;
+  }
+
+  /* Even smaller logo for phones */
+  .hero-landing .hero-logo {
+    max-width: 90%;
+  }
+
+  .hero-landing .hero-badges {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .hero-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .demo-play-icon {
+    font-size: 2.5rem;
+  }
+
+  .demo-text {
+    font-size: 0.9rem;
+  }
+
+  .demo-duration {
+    font-size: 0.75rem;
+  }
+
+  .demo-workflow {
+    font-size: 0.65rem;
+    padding: 0.4rem 0.75rem;
+  }
+}
+
+/* ============================================================================
+ * Hero Tagline and CTA Button
+ * ============================================================================ */
+.hero-tagline {
+  font-size: 1.25rem;
+  color: #24292f;
+  margin: 0.5rem 0 1.5rem 0;
+  font-weight: 600;
+}
+
+[data-theme="dark"] .hero-tagline {
+  color: #ffffff;
+}
+
+.hero-cta-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.hero-cta-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.75rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  border: none;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+}
+
+.hero-cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+  text-decoration: none;
+  color: white;
+}
+
+.hero-cta-button:active {
+  transform: translateY(0);
+}
+
+.hero-cta-note {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #586069);
+}
+
+[data-theme="dark"] .hero-cta-note {
+  color: var(--text-muted, #8b949e);
+}
+
+/* Responsive adjustments for CTA */
+@media (max-width: 992px) {
+  .hero-cta-container {
+    justify-content: center;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .hero-tagline {
+    text-align: center;
+  }
+}
+
+@media (max-width: 576px) {
+  .hero-cta-button {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+  }
+
+  .hero-tagline {
+    font-size: 1.1rem;
   }
 }

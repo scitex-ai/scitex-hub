@@ -13,13 +13,14 @@ __DIR__ = os.path.dirname(__FILE__)
 from django.urls import path
 
 from . import views
-from apps.core_app.views.console_logger import log_console
+from apps.core_app.views.console_logger import log_console, get_console_logs
 
 app_name = "dev_app"
 
 urlpatterns = [
     path("", views.index, name="index"),
     path("api/console/", log_console, name="console_log"),
+    path("api/console/logs/", get_console_logs, name="console_logs_get"),
     path("design/", views.DesignGuidelinesView.as_view(), name="design"),
     path(
         "design/typography/",
@@ -32,6 +33,16 @@ urlpatterns = [
         name="design_colors",
     ),
     path(
+        "design/workspace-colors/",
+        views.DesignWorkspaceColorsView.as_view(),
+        name="design_workspace_colors",
+    ),
+    path(
+        "design/workspace-icons/",
+        views.DesignWorkspaceIconsView.as_view(),
+        name="design_workspace_icons",
+    ),
+    path(
         "design/code-blocks/",
         views.DesignCodeBlocksView.as_view(),
         name="design_code_blocks",
@@ -40,6 +51,11 @@ urlpatterns = [
         "design/terminal-log/",
         views.DesignTerminalLogView.as_view(),
         name="design_terminal_log",
+    ),
+    path(
+        "design/terminal/",
+        views.DesignTerminalView.as_view(),
+        name="design_terminal",
     ),
     path(
         "design/spacing/",
@@ -127,6 +143,21 @@ urlpatterns = [
         "design/alerts/",
         views.DesignAlertsView.as_view(),
         name="design_alerts",
+    ),
+    path(
+        "design/resizer/",
+        views.DesignResizerView.as_view(),
+        name="design_resizer",
+    ),
+    path(
+        "design/icons/",
+        views.DesignIconsView.as_view(),
+        name="design_icons",
+    ),
+    path(
+        "design/all/",
+        views.DesignAllView.as_view(),
+        name="design_all",
     ),
 ]
 

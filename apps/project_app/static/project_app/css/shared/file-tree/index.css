@@ -1,0 +1,12 @@
+/* ============================================================================= */
+/* FILE TREE - INDEX */
+/* ============================================================================= */
+/* Main entry point - imports all file-tree modules */
+/* REFACTORED: Styling CSS commented out, layout CSS preserved */
+/* Styling provided by: static/css/common/*.css and static/css/components/*.css */
+/* ============================================================================= */
+
+@import url('./layout.css');
+@import url('./nodes.css');
+@import url('./icons.css');
+@import url('./interactions.css');

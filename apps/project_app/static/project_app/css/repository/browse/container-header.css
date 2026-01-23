@@ -1,0 +1,134 @@
+/* ============================================================================= */
+/* PROJECT_DETAIL */
+/* ============================================================================= */
+/* REFACTORED: Styling CSS commented out, layout CSS preserved */
+/* Styling provided by: static/css/common/*.css and static/css/components/*.css */
+/* ============================================================================= */
+
+/* Browse page container - GitHub-style max-width */
+.browse-container {
+  max-width: 1280px;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  margin: 0 auto; /* Center the container */
+  padding-bottom: 2rem; /* Space at bottom for scrolling */
+}
+
+/* Ensure browse pages allow normal page-level scrolling (GitHub-like behavior) */
+body:has(.browse-container) {
+  height: auto !important;
+  max-height: none !important;
+  overflow: auto !important;
+}
+
+body:has(.browse-container) #main-content {
+  overflow: visible !important;
+  display: block !important;
+}
+
+/* GitHub-style repository header - Theme-aware */
+.repo-header {
+  padding: 0.75rem 0 1rem 0; /* Compact: 0.75rem top, 1rem bottom */
+  margin-bottom: 1rem; /* Space between header and tabs */
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.repo-header-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Create space between left and right groups */
+  gap: 0.75rem; /* Reduced gap for compact layout */
+  min-height: 40px; /* More compact height */
+}
+
+/* Right side: action buttons + description */
+.repo-header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.repo-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.repo-header-owner {
+  color: var(--color-accent-fg);
+  text-decoration: none;
+  font-weight: 400;
+}
+
+.repo-header-owner:hover {
+  text-decoration: underline;
+}
+
+.repo-header-separator {
+  color: var(--color-fg-muted);
+}
+
+.repo-title {
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: var(--color-accent-fg);
+  text-decoration: none;
+}
+
+.repo-title:hover {
+  text-decoration: underline;
+}
+
+.repo-breadcrumb-item {
+  color: var(--color-accent-fg);
+  text-decoration: none;
+  font-weight: 400;
+}
+
+.repo-breadcrumb-item:hover {
+  text-decoration: underline;
+}
+
+.repo-breadcrumb-current {
+  font-weight: 600;
+  color: var(--color-fg-default);
+}
+
+.repo-branch-selector {
+  margin-left: 0.5rem;
+}
+
+.repo-branch-name {
+  font-weight: 600;
+}
+
+.repo-branch-count-links {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: 0.5rem;
+}
+
+.repo-branch-count-link {
+  color: var(--color-fg-muted);
+  text-decoration: none;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.repo-branch-count-link:hover {
+  color: var(--color-accent-fg);
+}
+
+/* Header action buttons (Watch/Star/Fork) */
+.repo-action-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.repo-description {
+  color: var(--color-fg-muted);
+}
+

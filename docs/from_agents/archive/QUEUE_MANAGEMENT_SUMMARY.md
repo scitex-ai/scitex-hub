@@ -15,13 +15,13 @@ Successfully implemented a comprehensive queue management system for the SciTeX 
 #### Security & Privacy (Lines 556-617)
 - ✅ **Privacy Protection:** Users only see their own job details
 - ✅ **Aggregate Counts:** System shows total active/queued jobs without exposing other users' data
-- ✅ **Owner Verification:** Jobs verified by `user` (authenticated) or `session_key` (anonymous)
+- ✅ **Owner Verification:** Jobs verified by `user` (authenticated) or `session_key` (visitor)
 
 **Changes Made:**
 ```python
 # Before: Showed all users' job details
 for job in active_jobs:
-    user_display = job.user.username if job.user else 'Anonymous'
+    user_display = job.user.username if job.user else 'Visitor'
     active_jobs_list.append({'user': user_display, ...})
 
 # After: Only shows owner's jobs
@@ -148,7 +148,7 @@ The following were already implemented in the codebase:
    - CPU/memory usage tracking
    - Job counts (active/queued/completed)
 
-4. **Anonymous User Support**
+4. **Visitor User Support**
    - Session-based tracking
    - Same constraints as authenticated users
 
@@ -260,7 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 ### Manual Testing
 - [ ] Upload as authenticated user
-- [ ] Upload as anonymous user
+- [ ] Upload as visitor user
 - [ ] Try duplicate upload (should fail with HTTP 429)
 - [ ] Cancel pending job
 - [ ] Cancel processing job

@@ -1,0 +1,81 @@
+/*
+ * @component Form Helper Text
+ * @description Helper text, hints, and validation feedback messages
+ * @category Form and Selection
+ * @file /static/shared/css/components/forms/helper-text.css
+ * @darkmode true
+ *
+ * @variant form-text - Helper/hint text below form controls
+ * @variant form-helper-text - Alias for form-text
+ * @variant valid-feedback - Success message shown on valid input
+ * @variant invalid-feedback - Error message shown on invalid input
+ * @variant warning-feedback - Warning message for cautionary states
+ */
+
+/* =========================
+   Helper & Hint Text
+   ========================= */
+
+.form-text,
+.form-helper-text {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+[data-theme="dark"] .form-text,
+[data-theme="dark"] .form-helper-text {
+  color: var(--scitex-color-05);
+}
+
+/* =========================
+   Valid Feedback
+   ========================= */
+
+.valid-feedback {
+  display: none;
+  width: 100%;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--success-color);
+}
+
+.was-validated .form-control:valid ~ .valid-feedback,
+.form-control.is-valid ~ .valid-feedback {
+  display: block;
+}
+
+/* =========================
+   Invalid Feedback
+   ========================= */
+
+.invalid-feedback {
+  display: none;
+  width: 100%;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--error-color);
+}
+
+.was-validated .form-control:invalid ~ .invalid-feedback,
+.form-control.is-invalid ~ .invalid-feedback {
+  display: block;
+}
+
+/* =========================
+   Warning Feedback
+   ========================= */
+
+.warning-feedback {
+  display: none;
+  width: 100%;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--warning-color);
+}
+
+.form-control.is-warning ~ .warning-feedback {
+  display: block;
+}

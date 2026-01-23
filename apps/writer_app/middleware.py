@@ -4,7 +4,7 @@ Custom middleware for WebSocket authentication.
 
 from channels.db import database_sync_to_async
 from channels.middleware import BaseMiddleware
-from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.models import VisitorUser
 from django.contrib.sessions.models import Session
 from django.contrib.auth import get_user_model
 
@@ -36,7 +36,7 @@ class SessionAuthMiddleware(BaseMiddleware):
             user = await self.get_user_from_session(session_key)
             scope["user"] = user
         else:
-            scope["user"] = AnonymousUser()
+            scope["user"] = VisitorUser()
 
         return await super().__call__(scope, receive, send)
 
@@ -53,4 +53,4 @@ class SessionAuthMiddleware(BaseMiddleware):
         except (Session.DoesNotExist, User.DoesNotExist):
             pass
 
-        return AnonymousUser()
+        return VisitorUser()

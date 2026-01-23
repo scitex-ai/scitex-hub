@@ -1,0 +1,70 @@
+/**
+ * BibTeX Enrichment - Running State
+ * Running card and progress display
+ */
+
+/* Running Card */
+.bibtex-card--running {
+    border-color: var(--success-color, #3fb950);
+    margin-top: 1rem;
+}
+
+.bibtex-running__header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.25rem;
+}
+
+.bibtex-running__info h4 {
+    margin: 0 0 0.5rem 0;
+    color: var(--text-primary, #f0f3f6);
+    font-size: 1.1rem;
+}
+
+.bibtex-running__info p {
+    margin: 0;
+    color: var(--text-muted, #768390);
+    font-size: 0.9rem;
+}
+
+.bibtex-progress {
+    padding: 0 1.25rem 1.25rem;
+}
+
+.bibtex-progress__bar {
+    height: 8px;
+    background: var(--bg-inset, #0d1117);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.bibtex-progress__fill {
+    height: 100%;
+    width: 0%;
+    background: var(--success-color, #3fb950);
+    transition: width 0.3s ease;
+    border-radius: 4px;
+}
+
+.bibtex-progress__labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-muted, #768390);
+}
+
+.bibtex-running__log {
+    border-top: 1px solid var(--border-default, #30363d);
+    padding: 1rem 1.25rem;
+}
+
+.bibtex-running__log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+    color: var(--text-primary, #f0f3f6);
+}

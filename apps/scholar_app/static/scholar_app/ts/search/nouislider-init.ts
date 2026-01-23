@@ -1,14 +1,14 @@
 /**
-
  * noUiSlider Initialization for SciTeX Scholar Filters
  *
  * This file initializes dual-range sliders using the noUiSlider library for filtering
  * scholarly papers by year, citations, and impact factor. The sliders read their initial
  * values from URL parameters and update hidden form inputs when changed.
+ * Now integrated with SwarmPlots for visual filtering.
  *
  * External library: noUiSlider (requires `any` types or @ts-ignore)
  *
- * @version 1.0.0
+ * @version 2.0.0
  */
 
 // @ts-ignore - noUiSlider library types
@@ -31,11 +31,44 @@ interface NoUiSliderElement extends HTMLElement {
 declare global {
   interface Window {
     __nouisliderInitialized?: boolean;
+    SwarmPlots?: {
+      updateFilter: (
+        yearRange: [number, number] | null,
+        citationsRange: [number, number] | null,
+        impactRange: [number, number] | null
+      ) => void;
+      init: (data: any[]) => void;
+      resetFilters: () => void;
+    };
   }
 }
 
 // Export to make this an ES module
 export {};
+
+// Current filter values (for syncing across sliders)
+let currentYearRange: [number, number] | null = null;
+let currentCitationsRange: [number, number] | null = null;
+let currentImpactRange: [number, number] | null = null;
+
+/**
+ * Notify SwarmPlots of filter changes (debounced)
+ */
+let updateTimeout: number | null = null;
+function notifySwarmPlots(): void {
+  if (updateTimeout) {
+    clearTimeout(updateTimeout);
+  }
+  updateTimeout = window.setTimeout(() => {
+    if (window.SwarmPlots && typeof window.SwarmPlots.updateFilter === 'function') {
+      window.SwarmPlots.updateFilter(
+        currentYearRange,
+        currentCitationsRange,
+        currentImpactRange
+      );
+    }
+  }, 100); // 100ms debounce
+}
 
 // Guard against multiple initializations
 if (window.__nouisliderInitialized) {
@@ -86,8 +119,8 @@ if (window.__nouisliderInitialized) {
         yearSlider.noUiSlider.on(
           "update",
           function (values: string[], handle: number): void {
-            const minValue = values[0];
-            const maxValue = values[1];
+            const minValue = parseInt(values[0]);
+            const maxValue = parseInt(values[1]);
 
             const yearFromInput = document.getElementById(
               "yearFromInput",
@@ -102,10 +135,14 @@ if (window.__nouisliderInitialized) {
               "yearMaxDisplay",
             ) as HTMLElement | null;
 
-            if (yearFromInput) yearFromInput.value = minValue;
-            if (yearToInput) yearToInput.value = maxValue;
-            if (yearMinDisplay) yearMinDisplay.textContent = minValue;
-            if (yearMaxDisplay) yearMaxDisplay.textContent = maxValue;
+            if (yearFromInput) yearFromInput.value = String(minValue);
+            if (yearToInput) yearToInput.value = String(maxValue);
+            if (yearMinDisplay) yearMinDisplay.textContent = String(minValue);
+            if (yearMaxDisplay) yearMaxDisplay.textContent = String(maxValue);
+
+            // Update SwarmPlots
+            currentYearRange = [minValue, maxValue];
+            notifySwarmPlots();
           },
         );
 
@@ -165,8 +202,8 @@ if (window.__nouisliderInitialized) {
         citationsSlider.noUiSlider.on(
           "update",
           function (values: string[], handle: number): void {
-            const minValue = values[0];
-            const maxValue = values[1];
+            const minValue = parseInt(values[0]);
+            const maxValue = parseInt(values[1]);
 
             const citationsMinInput = document.getElementById(
               "citationsMinInput",
@@ -181,10 +218,14 @@ if (window.__nouisliderInitialized) {
               "citationsMaxDisplay",
             ) as HTMLElement | null;
 
-            if (citationsMinInput) citationsMinInput.value = minValue;
-            if (citationsMaxInput) citationsMaxInput.value = maxValue;
-            if (citationsMinDisplay) citationsMinDisplay.textContent = minValue;
-            if (citationsMaxDisplay) citationsMaxDisplay.textContent = maxValue;
+            if (citationsMinInput) citationsMinInput.value = String(minValue);
+            if (citationsMaxInput) citationsMaxInput.value = String(maxValue);
+            if (citationsMinDisplay) citationsMinDisplay.textContent = String(minValue);
+            if (citationsMaxDisplay) citationsMaxDisplay.textContent = String(maxValue);
+
+            // Update SwarmPlots
+            currentCitationsRange = [minValue, maxValue];
+            notifySwarmPlots();
           },
         );
 
@@ -243,8 +284,8 @@ if (window.__nouisliderInitialized) {
         impactFactorSlider.noUiSlider.on(
           "update",
           function (values: string[], handle: number): void {
-            const minValue = values[0];
-            const maxValue = values[1];
+            const minValue = parseFloat(values[0]);
+            const maxValue = parseFloat(values[1]);
 
             const impactFactorMinInput = document.getElementById(
               "impactFactorMinInput",
@@ -259,12 +300,16 @@ if (window.__nouisliderInitialized) {
               "impactFactorMaxDisplay",
             ) as HTMLElement | null;
 
-            if (impactFactorMinInput) impactFactorMinInput.value = minValue;
-            if (impactFactorMaxInput) impactFactorMaxInput.value = maxValue;
+            if (impactFactorMinInput) impactFactorMinInput.value = values[0];
+            if (impactFactorMaxInput) impactFactorMaxInput.value = values[1];
             if (impactFactorMinDisplay)
-              impactFactorMinDisplay.textContent = minValue;
+              impactFactorMinDisplay.textContent = values[0];
             if (impactFactorMaxDisplay)
-              impactFactorMaxDisplay.textContent = maxValue;
+              impactFactorMaxDisplay.textContent = values[1];
+
+            // Update SwarmPlots
+            currentImpactRange = [minValue, maxValue];
+            notifySwarmPlots();
           },
         );
 

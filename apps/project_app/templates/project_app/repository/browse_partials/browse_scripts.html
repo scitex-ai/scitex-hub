@@ -1,4 +1,4 @@
-{% load static %}
+{% load static vite %}
 <!-- Project Data (for TypeScript modules) -->
 <div id="project-data"
      style="display: none"
@@ -13,9 +13,8 @@
     slug: "{{ project.slug }}",
   };
 </script>
-<!-- Load external JavaScript files -->
-<script type="module"
-        src="{% static 'project_app/js/shared/project_app.js' %}"></script>
-<script src="{% static 'project_app/js/repository/browse_toolbar.js' %}"></script>
-<script type="module"
-        src="{% static 'project_app/js/repository/colorful-icons.js' %}"></script>
+<!-- Load TypeScript modules via Vite -->
+{% vite_script 'project_app/shared/project_app' %}
+{% vite_script 'project_app/repository/browse_toolbar' %}
+{% vite_script 'project_app/repository/colorful-icons' %}
+{% vite_script 'project_app/repository/file_browser_git_status' %}

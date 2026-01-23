@@ -1,0 +1,159 @@
+/* Component Library-specific Classes */
+.component-section {
+  /* margin-bottom: 5rem; */
+  scroll-margin-top: 100px;
+}
+
+.component-header-badges {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.component-badge-large {
+  font-size: 1rem;
+  padding: 0.5rem 1rem;
+}
+
+.component-badge-date {
+  font-size: 0.9rem;
+}
+
+.component-category-section {
+  margin-bottom: 4rem;
+  scroll-margin-top: 100px;
+}
+
+.component-category-title {
+  color: var(--text-primary);
+  border-bottom: 2px solid var(--border-default);
+  padding-bottom: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.component-example-card {
+  margin-bottom: 3rem;
+  padding: 2rem;
+  background: var(--color-canvas-subtle);
+  border-left: 4px solid var(--scitex-color-04);
+  border-radius: 8px;
+  scroll-margin-top: 120px;
+}
+
+.component-example-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 1rem;
+}
+
+.component-example-title {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.component-example-description {
+  color: var(--text-secondary);
+  margin: 0.5rem 0 0 0;
+}
+
+.component-example-badges {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.component-details {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: var(--color-canvas-default);
+  border-radius: 6px;
+}
+
+.component-details summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.component-variant-list {
+  margin: 1rem 0 0 0;
+  padding-left: 1.5rem;
+}
+
+.component-variant-item {
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.component-variant-code {
+  color: var(--color-accent-fg);
+  background: var(--color-canvas-subtle);
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+}
+
+.component-variant-desc {
+  color: var(--text-secondary);
+}
+
+.component-states-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.component-state-badge {
+  font-size: 0.85rem;
+}
+
+.component-examples-section {
+  margin-top: 2rem;
+}
+
+.component-examples-title {
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+
+.component-example-wrapper {
+  margin-bottom: 2rem;
+}
+
+.component-example-display {
+  padding: 2rem;
+  background: var(--color-canvas-default);
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+}
+
+.component-code-details {
+  background: var(--scitex-color-01);
+  border-radius: 6px;
+  margin-top: 0.5rem;
+}
+
+.component-code-summary {
+  cursor: pointer;
+  padding: 0.75rem 1rem;
+  color: var(--scitex-color-06);
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+
+.component-code-pre {
+  margin: 0;
+  padding: 1rem;
+  background: var(--scitex-color-01-dark);
+  color: var(--scitex-color-07);
+  border-radius: 0 0 6px 6px;
+  overflow-x: auto;
+}
+
+.component-section-divider {
+  margin: 5rem 0;
+  border-color: var(--color-border-default);
+}
+

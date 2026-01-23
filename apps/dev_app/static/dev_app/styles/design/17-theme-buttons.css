@@ -1,0 +1,49 @@
+/* Theme-responsive buttons for navigation */
+.section-btn.btn-outline-primary {
+  color: var(--scitex-color-02) !important;
+  border-color: var(--scitex-color-05) !important;
+  background: var(--color-canvas-default) !important;
+}
+
+.section-btn.btn-outline-primary:hover {
+  color: #ffffff !important;
+  background: var(--scitex-color-03) !important;
+  border-color: var(--scitex-color-03) !important;
+}
+
+.section-btn.btn-success {
+  color: #ffffff !important;
+  background: var(--scitex-success) !important;
+  border-color: var(--scitex-success) !important;
+}
+
+.btn-secondary {
+  color: var(--text-primary) !important;
+  background: var(--scitex-color-05) !important;
+  border-color: var(--scitex-color-05) !important;
+}
+
+.btn-secondary:hover {
+  background: var(--scitex-color-04) !important;
+  border-color: var(--scitex-color-04) !important;
+}
+
+[data-theme="dark"] .section-btn.btn-outline-primary {
+  color: var(--scitex-color-06) !important; /* Light bluish */
+  border-color: var(--scitex-color-04) !important;
+}
+
+[data-theme="dark"] .section-btn.btn-outline-primary:hover {
+  color: #ffffff !important;
+  background: var(--scitex-color-04) !important;
+}
+
+[data-theme="dark"] .btn-secondary {
+  color: var(--scitex-color-01) !important; /* Dark text */
+  background: var(--scitex-color-05) !important;
+}
+
+[data-theme="dark"] .btn-secondary:hover {
+  background: var(--scitex-color-06) !important;
+}
+

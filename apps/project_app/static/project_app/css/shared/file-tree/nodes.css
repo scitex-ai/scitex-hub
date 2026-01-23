@@ -1,0 +1,100 @@
+/* ============================================================================= */
+/* FILE TREE - NODES */
+/* ============================================================================= */
+/* Tree node items and structure */
+/* ============================================================================= */
+
+/* File tree items */
+.file-tree-item {
+  padding: 2px 4px; /* Compact padding */
+  position: relative;
+  border-radius: 3px;
+  transition: all 0.15s ease;
+}
+
+.file-tree-item--folder {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.file-tree-item--file {
+  /* No special styling, inherits from file-tree-item */
+}
+
+/* Folder icon button - visual grouping for chevron and icon */
+.folder-icon-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: inherit;
+  pointer-events: none;
+  transition: all 0.2s ease;
+}
+
+.folder-icon-button:hover {
+  background: var(--color-neutral-subtle, rgba(208, 215, 222, 0.32));
+  border-radius: 4px;
+}
+
+[data-theme="dark"] .folder-icon-button:hover {
+  background: var(--color-neutral-subtle, rgba(110, 118, 129, 0.2));
+}
+
+/* File tree folder and file */
+.file-tree-folder {
+  display: flex;
+  align-items: center;
+  gap: 6px; /* Compact gap */
+}
+
+.file-tree-file {
+  display: flex;
+  align-items: center;
+  gap: 6px; /* Compact gap */
+}
+
+.file-tree-folder-link {
+  text-decoration: none;
+  color: var(--color-fg-default);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.file-tree-folder-link:hover {
+  text-decoration: underline;
+}
+
+.file-tree-file-name {
+  /* Inherits styling from parent */
+}
+
+/* File table name styles */
+.file-table-name {
+  /* Styling moved to central CSS */
+}
+
+.file-table-name a {
+  text-decoration: none;
+}
+
+.file-table-name a:hover {
+  text-decoration: underline;
+}
+
+.file-table-meta {
+  /* Styling moved to central CSS */
+}
+
+.file-table-meta a {
+  text-decoration: none;
+}
+
+.file-table-meta a:hover {
+  text-decoration: underline;
+}

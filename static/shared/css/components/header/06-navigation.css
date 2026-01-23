@@ -1,0 +1,223 @@
+/* Navigation Items */
+.header-nav {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+/* Unified Dropdown Group for nav items with dropdowns */
+.header-dropdown-group {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+/* Dropdown Toggle - looks like regular nav item */
+.header-dropdown-toggle {
+  /* Inherit all nav-item styles, reset button defaults */
+  background: transparent !important;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  text-align: left;
+  /* Additional button resets */
+  outline: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Ensure hover states match regular nav items */
+.header-dropdown-toggle:hover {
+  background: var(--scitex-color-07) !important;
+}
+
+[data-theme="dark"] .header-dropdown-toggle:hover {
+  background: var(--scitex-color-01-light) !important;
+}
+
+/* Active state should match regular nav items */
+.header-dropdown-toggle.active {
+  background: var(--scitex-color-07) !important;
+}
+
+[data-theme="dark"] .header-dropdown-toggle.active {
+  background: var(--scitex-color-01-light) !important;
+}
+
+/* Navigation Badge - for header nav items */
+.nav-badge {
+  display: inline-block;
+  background: var(--success-color);
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 3px;
+  margin-left: 4px;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+[data-theme="dark"] .nav-badge {
+  background: var(--success-color);
+  color: white;
+}
+
+/* Unified Nav Dropdown Menu */
+.header-nav-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 220px;
+  background: #ffffff;
+  border: 1px solid var(--scitex-color-06);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .header-nav-dropdown {
+  background: var(--scitex-color-02);
+  border: 1px solid var(--scitex-color-03);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+/* Unified Nav Dropdown Item */
+.nav-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  color: var(--scitex-color-01);
+  font-size: 14px;
+  text-decoration: none;
+  transition: background 0.2s ease;
+  border-bottom: 1px solid var(--scitex-color-06);
+}
+
+.nav-dropdown-item:has(.dropdown-badge) {
+  justify-content: space-between;
+}
+
+.nav-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.nav-dropdown-item:hover {
+  background: var(--scitex-color-07);
+  color: var(--scitex-color-01);
+  text-decoration: none;
+}
+
+[data-theme="dark"] .nav-dropdown-item {
+  color: #ffffff;
+  border-bottom-color: var(--scitex-color-03);
+}
+
+[data-theme="dark"] .nav-dropdown-item:hover {
+  background: var(--scitex-color-03);
+  color: #ffffff;
+}
+
+/* Dropdown Badge - for dropdown menu items */
+.dropdown-badge {
+  display: inline-block;
+  background: var(--success-color);
+  color: white;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .dropdown-badge {
+  background: var(--success-color);
+  color: white;
+}
+
+.header-nav-item {
+  color: var(--scitex-color-01); /* Dark text in light mode */
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+  font-size: 14px;
+  font-weight: 400;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Increased from 6px for better spacing */
+  text-decoration: none;
+  min-width: fit-content; /* Ensure adequate space */
+  line-height: 1;
+}
+
+.header-nav-item .nav-label {
+  line-height: 20px; /* Match icon height for perfect alignment */
+  display: flex;
+  align-items: center;
+}
+
+.header-nav-item:hover {
+  background: var(--scitex-color-07); /* Light hover in light mode */
+  text-decoration: none;
+}
+
+.header-nav-item.active {
+  background: var(--scitex-color-07);
+  box-shadow: none; /* Remove any shadow effect */
+}
+
+[data-theme="dark"] .header-nav-item {
+  color: var(--scitex-color-07); /* Light text in dark mode */
+}
+
+[data-theme="dark"] .header-nav-item:hover {
+  background: var(--scitex-color-01-light); /* Dark hover */
+}
+
+[data-theme="dark"] .header-nav-item.active {
+  background: var(--scitex-color-01-light);
+  font-weight: 500; /* Slightly bolder text */
+  box-shadow: none; /* Remove any shadow effect */
+}
+
+.header-nav-item i {
+  font-size: 16px;
+}
+
+/* Disabled Navigation Items */
+.header-nav-item-disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  position: relative;
+}
+
+/* Disabled nav items - allow hover visual feedback but no action */
+.header-nav-item-disabled:hover {
+  background: var(--scitex-color-07); /* Light hover in light mode */
+  opacity: 0.6;
+}
+
+[data-theme="dark"] .header-nav-item-disabled:hover {
+  background: var(--scitex-color-01-light); /* Dark hover */
+}
+
+.header-nav-item-disabled .nav-icon,
+.header-nav-item-disabled .nav-icon-svg {
+  opacity: 0.5;
+}
+
+.header-nav-item-disabled:hover .nav-icon,
+.header-nav-item-disabled:hover .nav-icon-svg {
+  opacity: 0.6;
+  transform: none; /* Don't scale up like active items */
+}
+

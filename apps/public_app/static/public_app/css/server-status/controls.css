@@ -1,0 +1,46 @@
+/**
+ * Server Status - Controls
+ * Time span selector and section title controls
+ */
+
+/* Time Span Selector */
+.time-span-selector {
+    display: flex;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+
+.time-span-btn {
+    padding: 0.35rem 0.75rem;
+    border: 1px solid var(--border-default);
+    border-radius: 6px;
+    background: var(--bg-surface);
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.time-span-btn:hover {
+    border-color: var(--scitex-color-04);
+    color: var(--text-primary);
+}
+
+.time-span-btn.active {
+    background: var(--scitex-color-04);
+    border-color: var(--scitex-color-04);
+    color: white;
+}
+
+/* Section Title with Controls */
+.section-title-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.section-title-wrapper .section-title {
+    margin-bottom: 0;
+}

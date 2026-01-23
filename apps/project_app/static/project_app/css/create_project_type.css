@@ -1,0 +1,160 @@
+/* Project Type Selection Styles */
+
+.form-group.project-type-container {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    border: 1px solid var(--color-border-default);
+    border-radius: 6px;
+    background: var(--color-canvas-subtle);
+}
+
+.form-group.project-type-container .form-label {
+    display: block;
+    margin-bottom: 1rem;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.project-type-options {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.project-type-card {
+    display: flex;
+    align-items: start;
+    padding: 1rem;
+    border: 2px solid var(--color-border-default);
+    border-radius: 6px;
+    cursor: pointer;
+    background: var(--color-canvas-default);
+    transition: all 0.2s;
+}
+
+.project-type-card input[type="radio"] {
+    margin-top: 0.25rem;
+    margin-right: 1rem;
+}
+
+.project-type-card .card-title {
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 0.25rem;
+}
+
+.project-type-card .card-description {
+    font-size: 13px;
+    color: var(--color-fg-muted);
+}
+
+.project-type-card .card-warning {
+    font-size: 12px;
+    color: var(--color-attention-fg);
+    margin-top: 0.5rem;
+}
+
+.project-type-card input[type="radio"]:checked + div {
+    color: var(--color-accent-fg);
+}
+
+.project-type-card:has(input:checked) {
+    border-color: var(--color-accent-emphasis);
+    background: var(--color-accent-subtle);
+}
+
+.project-type-card:hover {
+    border-color: var(--color-accent-muted);
+}
+
+/* Remote Project Configuration */
+#remote-project-fields {
+    display: none;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    border: 1px solid var(--color-border-default);
+    border-radius: 6px;
+    background: var(--color-canvas-subtle);
+}
+
+#remote-project-fields h3 {
+    margin: 0 0 1rem 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+#remote-project-fields .form-group {
+    margin-bottom: 1rem;
+}
+
+#remote-project-fields .form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+#remote-project-fields .form-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--color-border-default);
+    border-radius: 6px;
+    background: var(--color-canvas-default);
+}
+
+#remote-project-fields .form-input.monospace {
+    font-family: 'SF Mono', Monaco, monospace;
+}
+
+#remote-project-fields .form-help {
+    font-size: 12px;
+    color: var(--color-fg-muted);
+    margin-top: 0.25rem;
+}
+
+.remote-note {
+    padding: 1rem;
+    background: var(--color-attention-subtle);
+    border: 1px solid var(--color-attention-muted);
+    border-radius: 6px;
+    margin-top: 1rem;
+}
+
+.remote-note p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--color-fg-default);
+}
+
+/* No Remote Credentials State */
+.no-credentials-state {
+    padding: 2rem;
+    text-align: center;
+    background: var(--color-canvas-default);
+    border: 1px dashed var(--color-border-default);
+    border-radius: 6px;
+}
+
+.no-credentials-state .icon {
+    font-size: 48px;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.no-credentials-state h4 {
+    margin: 0 0 0.5rem 0;
+}
+
+.no-credentials-state p {
+    margin: 0 0 1rem 0;
+    color: var(--color-fg-muted);
+    font-size: 14px;
+}
+
+.no-credentials-state .btn {
+    display: inline-block;
+    padding: 8px 16px;
+    background: var(--color-btn-primary-bg);
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+}

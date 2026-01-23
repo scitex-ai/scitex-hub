@@ -1,0 +1,13 @@
+/* Section Subsections */
+.subsection-title {
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  color: var(--text-800);
+}
+
+.subsection-description {
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+

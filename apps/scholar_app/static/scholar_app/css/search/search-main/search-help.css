@@ -1,0 +1,206 @@
+/**
+ * Search Main - Search Help
+ * Help popup, shortcuts, and search chips
+ */
+
+/* Search shortcut badge */
+.input-group .search-shortcut-badge {
+    position: absolute;
+    right: 10rem;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 0.1rem 0.35rem;
+    font-size: 0.75rem;
+    font-family: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, monospace;
+    color: rgba(255, 255, 255, 0.5);
+    background: transparent;
+    opacity: 0.6;
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* Search help button */
+.search-help-btn {
+    position: absolute;
+    right: 8rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: var(--text-muted, #6c8ba0);
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    opacity: 0.6;
+    transition: opacity 0.15s ease;
+    z-index: 10;
+}
+
+.search-help-btn:hover {
+    opacity: 1;
+    color: var(--scitex-color-04);
+}
+
+.input-group {
+    position: relative;
+}
+
+/* Search help popup */
+.search-help-popup {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 0.5rem;
+    background: var(--bg-secondary, #1a1a1a);
+    border: 1px solid var(--border-color, #3a3a3a);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    z-index: 1000;
+    min-width: 340px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.search-help-popup.show {
+    display: block;
+}
+
+.search-help-title {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--text-primary, #d4e1e8);
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.35rem;
+    border-bottom: 1px solid var(--border-muted, #2a2a2a);
+}
+
+.search-help-content {
+    font-size: 0.8rem;
+    color: var(--text-secondary, #6c8ba0);
+    line-height: 1.5;
+}
+
+.search-help-content code {
+    background: var(--bg-muted, #0d0d0d);
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    font-family: ui-monospace, monospace;
+    color: var(--text-primary, #d4e1e8);
+}
+
+.search-help-section {
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-muted, #2a2a2a);
+}
+
+.search-help-section:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.search-help-label {
+    font-weight: 600;
+    color: var(--text-primary, #d4e1e8);
+    font-size: 0.75rem;
+    margin-bottom: 0.35rem;
+}
+
+.search-help-example {
+    font-size: 0.75rem;
+    margin-bottom: 0.2rem;
+    color: var(--text-secondary, #9ca3af);
+}
+
+.search-help-meaning {
+    font-size: 0.7rem;
+    color: var(--text-muted, #6c8ba0);
+    font-style: italic;
+    margin-top: 0.25rem;
+}
+
+[data-theme="light"] .search-help-popup {
+    background: var(--bg-secondary, #f8f9fa);
+    border-color: var(--border-color, #dee2e6);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .search-help-content code {
+    background: var(--bg-muted, #e9ecef);
+}
+
+/* Clickable search chips */
+.search-help-hint {
+    font-size: 0.65rem;
+    font-weight: 400;
+    color: var(--text-muted, #6c8ba0);
+}
+
+.search-chip {
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+}
+
+.search-chip:hover {
+    background: var(--scitex-color-04, #4a8eb0) !important;
+    color: #fff !important;
+    border-color: var(--scitex-color-04, #4a8eb0);
+}
+
+.search-chip:active {
+    transform: scale(0.95);
+}
+
+.search-help-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.35rem;
+}
+
+.search-help-chips .search-chip {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* BibTeX copy feedback toast */
+.bibtex-copy-feedback {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--workspace-icon-primary, #059669);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    z-index: 10000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: opacity 0.3s ease;
+}
+
+/* Keyboard shortcuts section in help popup */
+.search-help-shortcuts kbd {
+    background: var(--color-neutral-muted, #2a2a2a);
+    border: 1px solid var(--border-default, #3a3a3a);
+    border-radius: 3px;
+    padding: 1px 4px;
+    font-size: 0.65rem;
+    font-family: 'JetBrains Mono', monospace;
+    margin-right: 4px;
+}
+
+.search-help-shortcuts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px 8px;
+    font-size: 0.7rem;
+    color: var(--text-secondary, #9ca3af);
+}
+
+[data-theme="light"] .search-help-shortcuts kbd {
+    background: var(--color-neutral-muted, #eaeef2);
+    border-color: var(--border-default, #d0d7de);
+}

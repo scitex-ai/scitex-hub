@@ -50,8 +50,8 @@ body {
 }
 
 .collaboration-toggle.active {
-  background: #28a745;
-  border-color: #28a745;
+  background: var(--status-success);
+  border-color: var(--status-success);
 }
 
 .manuscript-title {
@@ -218,8 +218,8 @@ body {
 }
 
 .text-editor.collaborative-editing {
-  border-color: #28a745;
-  box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+  border-color: var(--status-success);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--status-success) 10%, transparent);
 }
 
 .section-help {
@@ -232,9 +232,9 @@ body {
 }
 
 .collaborative-help {
-  background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
-  border: 1px solid #bbdefb;
-  color: #1976d2;
+  background: var(--workspace-bg-elevated);
+  border: 1px solid var(--workspace-border-default);
+  color: var(--text-primary);
   margin-top: 1rem;
 }
 
@@ -272,7 +272,7 @@ body {
 }
 
 .progress-overview {
-  background: linear-gradient(135deg, #1a2332 0%, #34495e 100%);
+  background: linear-gradient(135deg, var(--workspace-bg-primary) 0%, var(--workspace-bg-secondary) 100%);
   color: white;
   border-radius: 8px;
   padding: 1.5rem;

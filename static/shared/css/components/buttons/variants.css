@@ -1,0 +1,231 @@
+/*
+ * @component Button Variants
+ * @description Button color variants (primary, secondary, text, outline, alert colors)
+ * @file /static/shared/css/components/buttons/variants.css
+ */
+
+/* =========================================
+   DEFAULT VARIANTS
+   ========================================= */
+
+/* Text Button - Minimal styling, styled as hyperlink */
+.btn-text {
+  background-color: transparent;
+  color: var(--primary-color);
+  padding: 0.25rem 0.25rem;
+  border: none;
+  border-radius: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.btn-text:hover,
+.btn-text:focus {
+  color: var(--scitex-color-05);
+  text-decoration: underline;
+}
+
+/* =========================================
+   PRIMARY VARIANTS
+   ========================================= */
+
+/* Primary Button - Main action (bright blue) */
+.btn-primary {
+  background-color: var(--color-btn-primary-bg, #3b82f6);
+  color: var(--color-btn-primary-text, white);
+  border: 1px solid var(--color-btn-primary-border, #3b82f6);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: var(--color-btn-primary-hover-bg, #60a5fa);
+  color: var(--color-btn-primary-text, white);
+}
+
+/* Secondary Button - Alternative action (slate) */
+.btn-secondary {
+  background-color: var(--scitex-color-02);
+  color: white;
+  border: none;
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus {
+  background-color: var(--scitex-color-03);
+  color: white;
+}
+
+/* Light Button - Subtle action */
+.btn-light {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  border: var(--border-width) solid var(--border-default);
+}
+
+.btn-light:hover,
+.btn-light:focus {
+  background-color: var(--bg-muted);
+  border-color: var(--scitex-color-04);
+  color: var(--text-primary);
+}
+
+/* Dark Button - Neutral/Cancel action (dark slate) */
+.btn-dark {
+  background-color: var(--scitex-color-01);
+  color: var(--scitex-color-07);
+  border: none;
+}
+
+.btn-dark:hover,
+.btn-dark:focus {
+  background-color: var(--scitex-color-01-light);
+  color: var(--scitex-color-07);
+}
+
+/* =========================================
+   ALERT VARIANTS
+   ========================================= */
+
+/* Success Button */
+.btn-success {
+  background-color: var(--success-color);
+  color: #fff;
+  border: none;
+}
+
+.btn-success:hover,
+.btn-success:focus {
+  background-color: var(--_success);
+  filter: brightness(0.85);
+  color: #fff;
+}
+
+/* Warning Button */
+.btn-warning {
+  background-color: var(--warning-color);
+  color: #fff;
+  border: none;
+}
+
+.btn-warning:hover,
+.btn-warning:focus {
+  background-color: var(--warning-color);
+  filter: brightness(0.85);
+  color: #fff;
+}
+
+/* Danger/Error Button */
+.btn-error,
+.btn-danger {
+  background-color: var(--error-color);
+  color: #fff;
+  border: none;
+}
+
+.btn-error:hover,
+.btn-error:focus,
+.btn-danger:hover,
+.btn-danger:focus {
+  background-color: var(--error-color);
+  filter: brightness(0.85);
+  color: #fff;
+}
+
+/* Info Button */
+.btn-info {
+  background-color: var(--info-color);
+  color: #fff;
+  border: none;
+}
+
+.btn-info:hover,
+.btn-info:focus {
+  background-color: var(--info-color);
+  filter: brightness(0.85);
+  color: #fff;
+}
+
+/* =========================================
+   OUTLINE VARIANTS
+   ========================================= */
+
+/* Outline Primary Button */
+.btn-outline-primary {
+  background-color: transparent;
+  color: var(--scitex-color-04);
+  border: var(--border-width) solid var(--scitex-color-04);
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus {
+  background-color: var(--scitex-color-04);
+  color: white;
+  border-color: var(--scitex-color-04);
+}
+
+/* Outline Secondary Button */
+.btn-outline-secondary {
+  background-color: transparent;
+  color: var(--scitex-color-02);
+  border: var(--border-width) solid var(--scitex-color-02);
+}
+
+.btn-outline-secondary:hover,
+.btn-outline-secondary:focus {
+  background-color: var(--scitex-color-02);
+  color: white;
+  border-color: var(--scitex-color-02);
+}
+
+/* Outline Light Button */
+.btn-outline-light {
+  background-color: transparent;
+  color: var(--text-primary);
+  border: var(--border-width) solid var(--border-default);
+}
+
+.btn-outline-light:hover,
+.btn-outline-light:focus {
+  background-color: var(--bg-muted);
+  color: var(--text-primary);
+  border-color: var(--scitex-color-04);
+}
+
+/* Outline Dark Button */
+.btn-outline-dark {
+  background-color: transparent;
+  color: var(--scitex-color-01);
+  border: var(--border-width) solid var(--scitex-color-01);
+}
+
+.btn-outline-dark:hover,
+.btn-outline-dark:focus {
+  background-color: var(--scitex-color-01);
+  color: var(--scitex-color-07);
+  border-color: var(--scitex-color-01);
+}
+
+/* =========================================
+   SPECIAL VARIANTS
+   ========================================= */
+
+/* GitHub Button - Black background with white text */
+.btn-github {
+  background-color: #000000;
+  color: white;
+  border: none;
+  font-weight: 500;
+}
+
+.btn-github:hover,
+.btn-github:focus {
+  background-color: #222222;
+  color: white;
+}
+
+.btn-github:disabled,
+.btn-github.disabled {
+  background-color: #666666;
+  color: #999999;
+  opacity: 1;
+}

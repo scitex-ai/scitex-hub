@@ -1,0 +1,15 @@
+/* ============================================================================= */
+/* PROJECT FILE VIEW - INDEX */
+/* ============================================================================= */
+/* Main entry point for file view styles */
+/* REFACTORED: Styling CSS commented out, layout CSS preserved */
+/* Styling provided by: static/css/common/*.css and static/css/components/*.css */
+/* ============================================================================= */
+
+/* Import all file view modules in cascade order */
+@import './layout.css';
+@import './toolbar.css';
+@import './content.css';
+@import './line-numbers.css';
+@import './syntax.css';
+@import './responsive.css';

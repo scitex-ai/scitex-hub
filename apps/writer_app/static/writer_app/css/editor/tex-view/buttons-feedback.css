@@ -1,0 +1,87 @@
+/* ========================================
+ * Button & Interactive Element Feedback
+ * ======================================== */
+
+/* Primary buttons */
+.btn-primary {
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Outline buttons */
+.btn-outline-primary,
+.btn-outline-secondary {
+  transition: all 0.2s ease;
+}
+
+.btn-outline-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-outline-primary:active,
+.btn-outline-secondary:active {
+  transform: translateY(0);
+}
+
+/* Toolbar button groups */
+.toolbar-right .btn,
+.toolbar-left .btn {
+  transition: all 0.2s ease;
+}
+
+.toolbar-right .btn:hover,
+.toolbar-left .btn:hover {
+  background-color: var(--workspace-bg-secondary);
+}
+
+/* PDF Preview Full-Screen Styling - Optimized for Performance */
+.pdf-preview-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: #ffffff;
+  padding: 0 !important;
+  margin: 0 !important;
+  /* Optimize for content changes */
+  contain: layout style paint;
+  will-change: contents;
+  overflow: visible; /* Allow Monaco suggestions to overflow */ /* Prevent any container scrollbars */
+}
+
+.pdf-preview-viewer {
+  flex: 1;
+  overflow: visible; /* Allow Monaco suggestions to overflow */ /* Hide container overflow - embed handles scrolling */
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 !important;
+  margin: 0 auto !important;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+}
+
+.pdf-preview-viewer embed,
+.pdf-preview-viewer iframe {
+  width: 100%;
+  height: 100%; /* Fixed height to enable internal PDF scrolling */
+  box-shadow: none;
+  border: none;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: block;
+}
+

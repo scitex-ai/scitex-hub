@@ -12,7 +12,7 @@ SciTeX-Cloud follows a **modular, domain-driven architecture** with 18 specializ
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    PUBLIC LAYER (Anonymous Users)               │
+│                    PUBLIC LAYER (Visitor Users)               │
 ├─────────────────────────────────────────────────────────────────┤
 │  public_app: Landing pages, vision, pricing, legal              │
 └─────────────────────────────────────────────────────────────────┘
@@ -99,13 +99,13 @@ SciTeX-Cloud follows a **modular, domain-driven architecture** with 18 specializ
   - User dashboard overview
   - File management and directory operations
   - Native file system support
-  - Anonymous session management
+  - Visitor session management
   - Git service integration
 - **Key Services:**
   - GitService: Git operations
   - GiteaSyncService: Gitea synchronization
   - SSHService: SSH key operations
-  - AnonymousStorage: Session data management
+  - VisitorStorage: Session data management
 - **Key Views:** dashboard, directory_browse, project_create
 
 #### project_app

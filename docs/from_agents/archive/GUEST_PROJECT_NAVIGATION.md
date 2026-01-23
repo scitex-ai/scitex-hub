@@ -1,7 +1,7 @@
 # Guest Project & Navigation Flow
 
 **Created**: 2025-10-16
-**Purpose**: Allow anonymous users to try SciTeX features without signup
+**Purpose**: Allow visitor users to try SciTeX features without signup
 
 ## Navigation Logic
 
@@ -15,7 +15,7 @@ The header Scholar/Code/Viz/Writer buttons route users based on their authentica
 ├─────────────────┼──────────────────────┼────────────────────────────────┤
 │ In Project      │ /<user>/<project>/*  │ /<user>/<project>/writer/      │
 │ Logged In       │ Not in project       │ /writer/ (landing page)        │
-│ Anonymous       │ Anywhere             │ /guest/demo-project/writer/    │
+│ Visitor       │ Anywhere             │ /guest/demo-project/writer/    │
 └─────────────────┴──────────────────────┴────────────────────────────────┘
 ```
 
@@ -42,7 +42,7 @@ def project_context(request):
   <a href="/writer/">Writer</a>
 
 {% else %}
-  <!-- Anonymous: go to guest project -->
+  <!-- Visitor: go to guest project -->
   <a href="{{ guest_project_url }}/writer/">Writer</a>
 {% endif %}
 ```
@@ -60,13 +60,13 @@ def project_context(request):
 **Features**:
 - ✅ Try all module features
 - ✅ Pre-populated with example content
-- ⚠️ Read-only for anonymous users
+- ⚠️ Read-only for visitor users
 - ⚠️ Changes not persisted (session-only)
 - 💡 Prompt to sign up to save work
 
 ## User Flow Examples
 
-### Example 1: Anonymous User Exploring
+### Example 1: Visitor User Exploring
 ```
 1. Visit https://scitex.cloud/
 2. Click "Writer" in header
@@ -99,7 +99,7 @@ def project_context(request):
 
 ## Session Persistence for Guests
 
-For anonymous users working in guest project:
+For visitor users working in guest project:
 
 ```python
 # Save work to session
@@ -163,7 +163,7 @@ def migrate_guest_work_to_project(request, new_user, new_project):
 
 ### Permissions
 ```python
-# Anonymous users have read-only access to guest project
+# Visitor users have read-only access to guest project
 # Edits are stored in session only
 # On signup, session data migrates to user's own project
 ```

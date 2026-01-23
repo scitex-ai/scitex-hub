@@ -8,7 +8,7 @@
 ORIG_DIR="$(pwd)"
 THIS_DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
 LOG_PATH="$THIS_DIR/.$(basename $0).log"
-echo > "$LOG_PATH"
+echo -e > "$LOG_PATH"
 
 GIT_ROOT="$(git rev-parse --show-toplevel 2> /dev/null)"
 DOCKER_DIR="$GIT_ROOT/deployment/docker/docker_dev"
@@ -45,11 +45,11 @@ check_django_status() {
     if docker-compose -f docker-compose.dev.yml ps | grep -q "docker_web_1"; then
         STATUS=$(docker-compose -f docker-compose.dev.yml ps docker_web_1 2> /dev/null | grep docker_web_1 | awk '{print $4}')
 
-        if echo "$STATUS" | grep -q "Up"; then
+        if echo -e "$STATUS" | grep -q "Up"; then
             echo_success "  ✓ Container running"
 
             # Check health status
-            if echo "$STATUS" | grep -q "healthy"; then
+            if echo -e "$STATUS" | grep -q "healthy"; then
                 echo_success "  ✓ Health check passed"
             else
                 echo_warning "  ⚠ Health check pending or failing"
@@ -119,7 +119,7 @@ except Exception as e:
     print(f'Failed: {e}')
 " 2> /dev/null | tail -1)
 
-    if echo "$DB_CHECK" | grep -q "Connected"; then
+    if echo -e "$DB_CHECK" | grep -q "Connected"; then
         echo_success "  ✓ Database connection successful"
     else
         echo_error "  ✗ Database connection failed"
@@ -130,7 +130,7 @@ except Exception as e:
     # Migrations status
     echo_info "Migrations:"
     UNAPPLIED=$(docker-compose -f docker-compose.dev.yml exec -T web \
-        python manage.py showmigrations --plan 2> /dev/null | grep -c "\[ \]" || echo "0")
+        python manage.py showmigrations --plan 2> /dev/null | grep -c "\[ \]" || echo -e "0")
 
     if [ "$UNAPPLIED" -eq 0 ]; then
         echo_success "  ✓ All migrations applied"

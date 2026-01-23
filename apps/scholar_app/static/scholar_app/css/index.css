@@ -24,4 +24,4 @@
 /* Import Scholar app CSS modules */
 @import url("common.css");
 @import url("bibtex.css");
-@import url("search.css");
+@import url("search/index.css");

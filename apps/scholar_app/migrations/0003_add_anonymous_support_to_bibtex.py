@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             model_name="bibtexenrichmentjob",
             name="session_key",
             field=models.CharField(
-                blank=True, help_text="For anonymous users", max_length=40, null=True
+                blank=True, help_text="For visitor users", max_length=40, null=True
             ),
         ),
         migrations.AlterField(

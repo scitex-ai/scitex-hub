@@ -10,7 +10,7 @@ Comprehensive platform enhancement and assessment session resulting in significa
 - Created `/docs/SYSTEM_REQUIREMENTS.md`
 - Documented all component dependencies
 - Clarified SciTeX-Engine needs Claude Code
-- Clarified SciTeX-Viz needs Windows/SigmaPlot
+- Clarified SciTeX-Viz needs Windows/VisPlot
 - Outlined Apptainer containerization strategy
 
 ### 2. Product Pages Enhancement ✅

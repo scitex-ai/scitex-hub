@@ -17,10 +17,11 @@ import subprocess
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.models import User
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 
 from apps.project_app.models import Project
 from apps.project_app.services.syntax_highlighting import detect_language
+from .api.permissions import check_project_read_access
 
 logger = logging.getLogger(__name__)
 
@@ -46,14 +47,12 @@ def project_file_view(request, username, slug, file_path):
     user = get_object_or_404(User, username=username)
     project = get_object_or_404(Project, slug=slug, owner=user)
 
-    # Check access
-    has_access = (
-        project.owner == request.user
-        or project.collaborators.filter(id=request.user.id).exists()
-        or getattr(project, "visibility", None) == "public"
-    )
+    # Check access (includes visitor session check)
+    has_access = check_project_read_access(request, project)
 
     if not has_access:
+        if mode in ("raw", "download"):
+            raise Http404("Access denied")
         messages.error(request, "You don't have permission to access this file.")
         return redirect("user_projects:detail", username=username, slug=slug)
 
@@ -66,6 +65,8 @@ def project_file_view(request, username, slug, file_path):
     project_path = manager.get_project_root_path(project)
 
     if not project_path or not project_path.exists():
+        if mode in ("raw", "download"):
+            raise Http404("Project directory not found")
         messages.error(request, "Project directory not found.")
         return redirect("user_projects:detail", username=username, slug=slug)
 
@@ -75,14 +76,21 @@ def project_file_view(request, username, slug, file_path):
     try:
         full_file_path = full_file_path.resolve()
         if not str(full_file_path).startswith(str(project_path.resolve())):
+            if mode in ("raw", "download"):
+                raise Http404("Invalid file path")
             messages.error(request, "Invalid file path.")
             return redirect("user_projects:detail", username=username, slug=slug)
     except Exception:
+        if mode in ("raw", "download"):
+            raise Http404("Invalid file path")
         messages.error(request, "Invalid file path.")
         return redirect("user_projects:detail", username=username, slug=slug)
 
     # Check if file exists and is a file
     if not full_file_path.exists() or not full_file_path.is_file():
+        # For raw/download mode, return 404 instead of redirect (for API/iframe usage)
+        if mode in ("raw", "download"):
+            raise Http404("File not found")
         messages.error(request, "File not found.")
         return redirect("user_projects:detail", username=username, slug=slug)
 
@@ -90,7 +98,7 @@ def project_file_view(request, username, slug, file_path):
     git_info = {}
     try:
         # Get current branch from session or repository
-        from apps.project_app.views.api_views import get_current_branch_from_session
+        from apps.project_app.api_views_module.api_views import get_current_branch_from_session
 
         current_branch = get_current_branch_from_session(request, project)
         git_info["current_branch"] = current_branch

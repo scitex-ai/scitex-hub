@@ -16,7 +16,10 @@ from .file_history import file_history_view
 from .commit_detail import commit_detail
 from .api import (
     api_file_tree,
+    api_create_symlink,
     api_concatenate_directory,
+    api_git_status,
+    api_initialize_scitex_structure,
     api_repository_health,
     api_repository_cleanup,
     api_repository_sync,
@@ -35,7 +38,10 @@ __all__ = [
     "commit_detail",
     # APIs
     "api_file_tree",
+    "api_create_symlink",
     "api_concatenate_directory",
+    "api_git_status",
+    "api_initialize_scitex_structure",
     "api_repository_health",
     "api_repository_cleanup",
     "api_repository_sync",

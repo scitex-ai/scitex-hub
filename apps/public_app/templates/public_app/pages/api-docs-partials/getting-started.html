@@ -1,0 +1,234 @@
+<!-- Introduction -->
+<section id="introduction" class="api-section">
+    <h2>Introduction</h2>
+    <p class="api-lead">
+        The SciTeX API enables you to programmatically access all SciTeX features.
+        Search academic papers, manage your research library, compile LaTeX documents,
+        and integrate with your existing workflows.
+    </p>
+    <div class="api-info-cards">
+        <div class="api-info-card">
+            <div class="api-info-icon"><i class="fas fa-globe"></i></div>
+            <h4>Base URL</h4>
+            <code class="api-base-url" id="site-base-url"></code>
+        </div>
+        <div class="api-info-card">
+            <div class="api-info-icon"><i class="fas fa-code"></i></div>
+            <h4>Format</h4>
+            <span>JSON (REST)</span>
+        </div>
+        <div class="api-info-card">
+            <div class="api-info-icon"><i class="fas fa-lock"></i></div>
+            <h4>Auth</h4>
+            <span>Bearer Token / API Key</span>
+        </div>
+        <div class="api-info-card">
+            <div class="api-info-icon"><i class="fas fa-check-circle"></i></div>
+            <h4>Version</h4>
+            <span>v1 (stable)</span>
+        </div>
+    </div>
+</section>
+
+<!-- Authentication -->
+<section id="authentication" class="api-section">
+    <h2>Authentication</h2>
+    <p>SciTeX uses Bearer token authentication. You can authenticate using either JWT tokens (for user sessions) or API keys (for programmatic access).</p>
+    <div class="api-tabs">
+        <button class="api-tab active" data-tab="auth-jwt">JWT Token</button>
+        <button class="api-tab" data-tab="auth-apikey">API Key</button>
+    </div>
+    <div class="api-tab-content active" id="auth-jwt">
+        <h4>Step 1: Obtain Access Token</h4>
+        <p>Exchange your credentials for an access token:</p>
+        <div class="api-example">
+            <div class="api-example-header">
+                <span class="method method-post">POST</span>
+                <code>/api/token/</code>
+                <button class="copy-btn" data-copy="auth-jwt-request"><i class="fas fa-copy"></i></button>
+            </div>
+            <div class="api-example-body">
+                <h5>Request</h5>
+                <pre><code id="auth-jwt-request">curl -X POST https://scitex.ai/api/token/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "your_username",
+    "password": "your_password"
+  }'</code></pre>
+                <h5>Response</h5>
+                <pre><code>{
+  "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+}</code></pre>
+            </div>
+        </div>
+        <h4>Step 2: Use the Token</h4>
+        <p>Include the access token in the <code>Authorization</code> header:</p>
+        <div class="api-example">
+            <div class="api-example-body">
+                <pre><code>curl https://scitex.ai/scholar/api/search/?q=neural+networks \
+  -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."</code></pre>
+            </div>
+        </div>
+        <div class="api-callout api-callout-info">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                <strong>Token Expiry</strong>
+                <p>Access tokens expire after 60 minutes. Use the refresh token to obtain a new access token without re-authenticating.</p>
+            </div>
+        </div>
+        <h4>Refresh Token</h4>
+        <div class="api-example">
+            <div class="api-example-header">
+                <span class="method method-post">POST</span>
+                <code>/api/token/refresh/</code>
+            </div>
+            <div class="api-example-body">
+                <pre><code>curl -X POST https://scitex.ai/api/token/refresh/ \
+  -H "Content-Type: application/json" \
+  -d '{"refresh": "your_refresh_token"}'</code></pre>
+            </div>
+        </div>
+    </div>
+    <div class="api-tab-content" id="auth-apikey">
+        <h4>Generate an API Key</h4>
+        <p>API keys provide long-lived access for scripts and integrations. Generate your API key at:</p>
+        <p><a href="{% url 'scholar_app:api_keys' %}" class="btn btn-outline-primary btn-sm"><i class="fas fa-key"></i> Manage API Keys</a></p>
+        <h4>Using Your API Key</h4>
+        <div class="api-example">
+            <div class="api-example-body">
+                <pre><code>curl https://scitex.ai/scholar/api/search/?q=machine+learning \
+  -H "Authorization: Bearer sk_live_xxxxxxxxxxxxxxxxxxxx"</code></pre>
+            </div>
+        </div>
+        <div class="api-callout api-callout-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div>
+                <strong>Keep Your API Key Secret</strong>
+                <p>Never expose your API key in client-side code or public repositories. Use environment variables to store keys securely.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Quick Start -->
+<section id="quickstart" class="api-section">
+    <h2>Quick Start</h2>
+    <p>Get up and running in 5 minutes with this example workflow.</p>
+    <div class="api-steps">
+        <div class="api-step">
+            <div class="api-step-number">1</div>
+            <div class="api-step-content">
+                <h4>Search for Papers</h4>
+                <p>Find relevant papers using the unified search API:</p>
+                <div class="api-example">
+                    <div class="api-example-body">
+                        <pre><code>curl "https://scitex.ai/scholar/api/search/?q=deep+learning+neuroscience" \
+  -H "Authorization: Bearer YOUR_TOKEN"</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="api-step">
+            <div class="api-step-number">2</div>
+            <div class="api-step-content">
+                <h4>Save Papers to Library</h4>
+                <p>Add interesting papers to your library:</p>
+                <div class="api-example">
+                    <div class="api-example-body">
+                        <pre><code>curl -X POST "https://scitex.ai/scholar/api/save-paper/" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"doi": "10.1038/s41586-021-03819-2"}'</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="api-step">
+            <div class="api-step-number">3</div>
+            <div class="api-step-content">
+                <h4>Export Citations</h4>
+                <p>Export your library as BibTeX for your manuscript:</p>
+                <div class="api-example">
+                    <div class="api-example-body">
+                        <pre><code>curl "https://scitex.ai/scholar/api/export/bibtex/" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -o references.bib</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Error Handling -->
+<section id="errors" class="api-section">
+    <h2>Error Handling</h2>
+    <p>SciTeX uses conventional HTTP response codes to indicate success or failure.</p>
+    <table class="api-table">
+        <thead>
+            <tr><th>Code</th><th>Status</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+            <tr><td><code class="status-success">200</code></td><td>OK</td><td>Request succeeded</td></tr>
+            <tr><td><code class="status-success">201</code></td><td>Created</td><td>Resource created successfully</td></tr>
+            <tr><td><code class="status-error">400</code></td><td>Bad Request</td><td>Invalid request parameters</td></tr>
+            <tr><td><code class="status-error">401</code></td><td>Unauthorized</td><td>Missing or invalid authentication</td></tr>
+            <tr><td><code class="status-error">403</code></td><td>Forbidden</td><td>Access denied to this resource</td></tr>
+            <tr><td><code class="status-error">404</code></td><td>Not Found</td><td>Resource doesn't exist</td></tr>
+            <tr><td><code class="status-error">429</code></td><td>Too Many Requests</td><td>Rate limit exceeded</td></tr>
+            <tr><td><code class="status-error">500</code></td><td>Server Error</td><td>Something went wrong on our end</td></tr>
+        </tbody>
+    </table>
+    <h4>Error Response Format</h4>
+    <div class="api-example">
+        <div class="api-example-body">
+            <pre><code>{
+  "error": {
+    "code": "invalid_request",
+    "message": "The 'q' parameter is required",
+    "details": {
+      "field": "q",
+      "reason": "missing_required_field"
+    }
+  }
+}</code></pre>
+        </div>
+    </div>
+</section>
+
+<!-- Rate Limits -->
+<section id="rate-limits" class="api-section">
+    <h2>Rate Limits</h2>
+    <p>API rate limits protect the service and ensure fair usage for all users.</p>
+    <div class="api-rate-limits">
+        <div class="rate-limit-card">
+            <h4>Free</h4>
+            <div class="rate-limit-value">100</div>
+            <p>requests/hour</p>
+            <ul class="rate-limit-features"><li>Basic search</li><li>10 papers/export</li></ul>
+        </div>
+        <div class="rate-limit-card featured">
+            <div class="rate-limit-badge">Popular</div>
+            <h4>Pro</h4>
+            <div class="rate-limit-value">1,000</div>
+            <p>requests/hour</p>
+            <ul class="rate-limit-features"><li>All databases</li><li>Unlimited exports</li><li>BibTeX enrichment</li></ul>
+        </div>
+        <div class="rate-limit-card">
+            <h4>Enterprise</h4>
+            <div class="rate-limit-value">Custom</div>
+            <p>unlimited</p>
+            <ul class="rate-limit-features"><li>Dedicated support</li><li>SLA guarantee</li><li>Custom integration</li></ul>
+        </div>
+    </div>
+    <h4>Rate Limit Headers</h4>
+    <p>Check your current rate limit status in the response headers:</p>
+    <div class="api-example">
+        <div class="api-example-body">
+            <pre><code>X-RateLimit-Limit: 1000
+X-RateLimit-Remaining: 985
+X-RateLimit-Reset: 1699574400</code></pre>
+        </div>
+    </div>
+</section>

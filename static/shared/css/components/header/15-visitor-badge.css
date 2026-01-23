@@ -1,0 +1,21 @@
+/* Visitor Mode Badge */
+.header-visitor-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  margin-right: 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--scitex-color-04);
+  background-color: rgba(108, 139, 160, 0.1);
+  border: 1px solid var(--scitex-color-05);
+  white-space: nowrap;
+}
+
+[data-theme="dark"] .header-visitor-badge {
+  color: #f0ad4e;
+  background-color: rgba(240, 173, 78, 0.1);
+  border-color: rgba(240, 173, 78, 0.3);
+}
+

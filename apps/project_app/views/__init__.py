@@ -85,9 +85,23 @@ from .security import (
     security_policy,
 )
 
-# Repository feature (with API endpoints)
+# Repository feature (file browsing and editing views)
 from .repository import (
+    project_directory_dynamic,
+    project_directory,
+    project_file_view,
+    project_file_edit,
+    file_history_view,
+    commit_detail,
+)
+
+# API views (refactored into modular structure)
+from .api import (
     api_file_tree,
+    api_check_name_availability,
+    api_project_list,
+    api_project_create,
+    api_project_detail,
     api_concatenate_directory,
     api_repository_health,
     api_repository_cleanup,
@@ -96,10 +110,8 @@ from .repository import (
 )
 
 # Legacy flat views (to be refactored in future phases)
-from .api_views import *
-from .api_issues_views import *
 from .directory_views import *
-from .pr_views import *
+from .pr import *
 from .integration_views import *
 from .collaboration_views import *
 from .settings_views import *
@@ -122,10 +134,6 @@ __all__ = [
     "project_edit",
     "project_delete",
     "project_settings",
-    "api_check_name_availability",
-    "api_project_list",
-    "api_project_create",
-    "api_project_detail",
     # Users
     "user_profile",
     "user_bio_page",
@@ -164,8 +172,19 @@ __all__ = [
     "security_dependency_graph",
     "api_dependency_tree",
     "security_policy",
-    # Repository APIs
+    # Repository Views
+    "project_directory_dynamic",
+    "project_directory",
+    "project_file_view",
+    "project_file_edit",
+    "file_history_view",
+    "commit_detail",
+    # API Views
     "api_file_tree",
+    "api_check_name_availability",
+    "api_project_list",
+    "api_project_create",
+    "api_project_detail",
     "api_concatenate_directory",
     "api_repository_health",
     "api_repository_cleanup",

@@ -1,0 +1,231 @@
+/* GitHub-style layout with sidebar on LEFT - EXPANDED BY DEFAULT */
+.repo-layout {
+  /* Layout preserved */
+  display: grid;
+  grid-template-columns: 280px 1fr; /* Start expanded by default for better visibility */
+  gap: 16px;
+  margin: 0; /* No margin needed - spacing handled by parent sections */
+  width: 100%; /* Ensure full container width */
+  /* Styling moved to central CSS - see static/css/common/layout.css */
+  transition: grid-template-columns 0.3s ease;
+  /* Ensure layout doesn't constrain page scrolling */
+  min-height: 0;
+}
+
+.repo-layout.sidebar-collapsed {
+  grid-template-columns: 60px 1fr; /* Collapsed width - wider for larger icons */
+}
+
+.repo-layout.sidebar-expanded {
+  grid-template-columns: 280px 1fr; /* Narrower expanded width for better content space */
+}
+
+.repo-main {
+  min-width: 0;
+  /* Allow content to expand naturally - page-level scrolling handles overflow */
+}
+
+.repo-sidebar {
+  /* Layout preserved */
+  position: sticky;
+  top: 80px;
+  align-self: start;
+  overflow-y: auto; /* Vertical scrollbar for file tree */
+  overflow-x: auto; /* Horizontal scrollbar for wide content */
+  max-height: calc(100vh - 150px); /* Match code block height */
+  width: 280px; /* Default expanded width for better visibility */
+  /* Styling moved to central CSS - see static/css/components/sidebar.css */
+  transition: all 0.3s ease;
+}
+
+.repo-sidebar.collapsed {
+  width: 60px; /* Wider for larger icons */
+}
+
+.repo-sidebar.expanded {
+  width: 280px; /* Narrower when expanded for better layout */
+}
+
+/* Sidebar toggle button */
+.sidebar-toggle-btn {
+  /* Layout preserved */
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  /* Styling moved to central CSS - see static/css/components/buttons.css */
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  background: var(--color-canvas-default);
+  color: var(--color-fg-muted);
+  transition: all 0.2s ease;
+}
+
+.sidebar-toggle-btn:hover {
+  transform: scale(1.05);
+  /* Styling moved to central CSS - see static/css/components/buttons.css */
+  background: var(--color-neutral-muted);
+  color: var(--color-accent-fg);
+  border-color: var(--color-accent-fg);
+}
+
+.sidebar-toggle-btn:active {
+  transform: scale(0.95);
+}
+
+.sidebar-toggle-icon {
+  /* Styling moved to central CSS - see static/css/components/icons.css */
+  transition: transform 0.3s ease;
+  font-size: 14px;
+}
+
+.repo-sidebar.collapsed .sidebar-toggle-icon {
+  transform: rotate(180deg);
+}
+
+/* Sidebar sections */
+.sidebar-section {
+  /* Layout preserved */
+  padding: 16px;
+  margin-bottom: 0;
+  position: relative;
+  /* Styling moved to central CSS - see static/css/components/sidebar.css */
+}
+
+.repo-sidebar.collapsed .sidebar-section {
+  /* Layout preserved */
+  padding: 8px;
+  /* Styling moved to central CSS - see static/css/components/sidebar.css */
+  border: none;
+  background: transparent;
+}
+
+.sidebar-section.collapsible {
+  cursor: pointer;
+}
+
+.sidebar-section.collapsible:hover {
+  /* Styling moved to central CSS - see static/css/components/sidebar.css */
+  border-color: var(--color-accent-fg);
+  background: var(--color-neutral-muted);
+}
+
+.sidebar-section.section-collapsed .sidebar-content {
+  display: none;
+}
+
+.sidebar-title {
+  /* Layout preserved */
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* Styling moved to central CSS - see static/css/common/typography-vars.css */
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-fg-default);
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+}
+
+.sidebar-title:hover {
+  /* Styling moved to central CSS - see static/css/common/typography-vars.css */
+  color: var(--color-accent-fg);
+}
+
+.repo-sidebar.collapsed .sidebar-title {
+  /* Layout preserved */
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  margin: 0;
+  /* Styling moved to central CSS - see static/css/common/typography-vars.css */
+  font-size: 10px;
+}
+
+.sidebar-section-chevron {
+  /* Styling moved to central CSS - see static/css/components/icons.css */
+  font-size: 10px;
+  transition: transform 0.2s ease;
+  color: var(--color-fg-muted);
+}
+
+.sidebar-section.section-collapsed .sidebar-section-chevron {
+  transform: rotate(-90deg);
+}
+
+.repo-sidebar.collapsed .sidebar-section-chevron {
+  display: none;
+}
+
+.sidebar-item {
+  /* Layout preserved */
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  margin: 3px 0;
+  /* Styling moved to central CSS - see static/css/components/sidebar.css */
+  font-size: 16px;
+  color: var(--color-fg-muted);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.sidebar-item:hover {
+  /* Styling moved to central CSS - see static/css/components/sidebar.css */
+  background: var(--color-neutral-muted);
+  color: var(--color-fg-default);
+}
+
+.sidebar-item strong {
+  /* Styling moved to central CSS - see static/css/common/typography-vars.css */
+  color: var(--color-fg-default);
+  font-size: 17px;
+}
+
+.repo-sidebar.collapsed .sidebar-item {
+  display: none;
+}
+
+.sidebar-link {
+  /* Layout preserved */
+  display: block;
+  padding: 12px 14px;
+  text-decoration: none;
+  /* Styling moved to central CSS - see static/css/components/buttons.css */
+  color: var(--color-accent-fg);
+  font-size: 16px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.sidebar-link:hover {
+  transform: translateX(3px);
+  text-decoration: none;
+  /* Styling moved to central CSS - see static/css/components/buttons.css */
+  background: var(--color-neutral-muted);
+  color: var(--color-accent-fg);
+}
+
+.repo-sidebar.collapsed .sidebar-link {
+  display: none;
+}
+
+.sidebar-content {
+  /* Styling moved to central CSS - see static/css/components/sidebar.css */
+  transition: opacity 0.3s ease;
+}
+
+.repo-sidebar.collapsed .sidebar-content {
+  /* Layout preserved */
+  display: none;
+  /* Styling moved to central CSS - see static/css/components/sidebar.css */
+  opacity: 0;
+}
+

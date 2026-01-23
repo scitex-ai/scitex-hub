@@ -1,0 +1,53 @@
+/**
+ * History Timeline - Responsive
+ *
+ * Media queries and responsive adaptations
+ */
+
+/* =============================================================================
+ * Responsive Design
+ * ============================================================================= */
+
+@media (max-width: 768px) {
+  .history-timeline-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .timeline-header-left,
+  .timeline-header-right {
+    justify-content: space-between;
+  }
+
+  .timeline-entry {
+    gap: 0.75rem;
+  }
+
+  .timeline-card-actions {
+    flex-wrap: wrap;
+  }
+
+  .version-meta {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .diff-modal {
+    padding: 1rem;
+  }
+
+  .diff-modal-content {
+    max-height: 95vh;
+  }
+
+  .diff-modal-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .diff-modal-controls {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}

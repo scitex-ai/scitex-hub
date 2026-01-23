@@ -25,7 +25,7 @@
 
 /* REPOSITORY FEATURE */
 @import url("repository/browse.css");
-@import url("repository/file_view.css");
+@import url("repository/file-view/index.css");
 @import url("repository/file_edit.css");
 @import url("repository/file_history.css");
 @import url("repository/commit_detail.css");

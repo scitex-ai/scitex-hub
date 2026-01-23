@@ -1,0 +1,17 @@
+/* Demo Content Box */
+.demo-content {
+  background-color: var(--color-canvas-default);
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-default);
+}
+
+.demo-content-text {
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.demo-content-text:last-child {
+  margin-bottom: 0;
+}
+

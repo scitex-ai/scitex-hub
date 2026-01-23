@@ -1,0 +1,92 @@
+/*
+ * @component Button Badges
+ * @description Badge styles (often used with buttons)
+ * @file /static/shared/css/components/buttons/badges.css
+ */
+
+/* =========================================
+   BADGE STYLES
+   ========================================= */
+
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: var(--border-radius);
+}
+
+/* Badge Primary */
+.badge-primary {
+  color: var(--white);
+  background-color: var(--primary-color);
+}
+
+/* Badge Secondary */
+.badge-secondary {
+  color: var(--white);
+  background-color: var(--secondary-color);
+}
+
+/* Badge Light */
+.badge-light {
+  color: var(--text-color);
+  background-color: var(--light-color);
+  border: var(--border-width) solid var(--border-color);
+}
+
+/* Badge Success */
+.badge-success {
+  color: var(--white);
+  background-color: var(--success-color);
+}
+
+/* Badge Warning */
+.badge-warning {
+  color: var(--white);
+  background-color: var(--warning-color);
+}
+
+/* Badge Error */
+.badge-error {
+  color: var(--white);
+  background-color: var(--error-color);
+}
+
+/* Badge Info */
+.badge-info {
+  color: var(--white);
+  background-color: var(--info-color);
+}
+
+/* =========================================
+   RESPONSIVE BADGES
+   ========================================= */
+
+/* Medium screens (768px - 1023px) - Tablets */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .badge {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
+  }
+}
+
+/* Small screens (480px - 767px) - Mobile landscape */
+@media (max-width: 767px) {
+  .badge {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.3rem;
+  }
+}
+
+/* Extra small screens (below 480px) - Mobile portrait */
+@media (max-width: 479px) {
+  .badge {
+    font-size: 0.6rem;
+    padding: 0.1rem 0.25rem;
+  }
+}

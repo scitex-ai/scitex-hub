@@ -1,0 +1,7 @@
+/**
+ * Citation Graph Styles
+ * This file now imports from modular CSS files
+ * Workspace-themed styling for citation network visualization
+ */
+
+@import url('./citation-graph/index.css');

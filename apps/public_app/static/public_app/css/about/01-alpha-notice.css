@@ -1,0 +1,21 @@
+/* Alpha Notice Banner */
+.about-alpha-notice {
+  background: rgba(184, 149, 106, 0.1);
+  border: 1px solid rgba(184, 149, 106, 0.3);
+  border-radius: 10px;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 4rem;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.about-alpha-notice i {
+  color: #d4a853;
+  font-size: 1.1rem;
+  filter: drop-shadow(0 0 6px rgba(212, 168, 83, 0.5));
+}

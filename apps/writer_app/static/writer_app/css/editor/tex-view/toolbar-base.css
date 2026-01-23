@@ -1,0 +1,47 @@
+/* Sticky Toolbar */
+.writer-toolbar-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 50; /* Lowered to stay below Monaco widgets */
+  background: var(--bg-page);
+  padding: 0.25rem 1rem; /* Reduced vertical padding from 0.5rem to 0.25rem */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.toolbar-left,
+.toolbar-center,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.toolbar-center {
+  flex: 1;
+  justify-content: center;
+}
+
+/* Horizontal Selector Group */
+.horizontal-selector-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.horizontal-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.selector-label {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+

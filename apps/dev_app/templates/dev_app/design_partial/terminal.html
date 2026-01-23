@@ -1,0 +1,545 @@
+<!-- XTerm.js Terminal Component -->
+<section class="design-section container-section" id="terminal">
+    <div class="section-header">
+        <h2>
+            <svg class="section-header-icon" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v12.5A1.75 1.75 0 0 1 14.25 16H1.75A1.75 1.75 0 0 1 0 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25V1.75a.25.25 0 0 0-.25-.25Z">
+                </path>
+                <path d="M7.25 8a.749.749 0 0 1-.22.53l-2.25 2.25a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734L5.44 8 3.72 6.28a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215l2.25 2.25c.141.14.22.331.22.53Zm1.5 1.5h3a.75.75 0 0 1 0 1.5h-3a.75.75 0 0 1 0-1.5Z">
+                </path>
+            </svg>
+            XTerm.js Terminal
+        </h2>
+        <span class="badge badge-secondary badge-file-path">/apps/code_app/static/code_app/ts/pty-terminal.ts</span>
+    </div>
+
+    <p class="text-intro">
+        Full-featured interactive terminal component using XTerm.js. Used in the Code workspace
+        for Python execution, shell access, and IPython integration. Terminal colors are centrally
+        managed via CSS custom properties for consistent theming.
+    </p>
+
+    <!-- Terminal Colors Overview -->
+    <div class="demo-box">
+        <h3 class="mb-3">Terminal Color System</h3>
+        <p class="text-muted mb-3">
+            Terminal colors are defined in <code>static/shared/css/primitives/colors.css</code>
+            and automatically adapt to light/dark themes. All 23 ANSI colors are read dynamically
+            from CSS custom properties.
+        </p>
+        <span class="badge badge-secondary badge-file-path">/static/shared/css/primitives/colors.css</span>
+    </div>
+
+    <!-- Base Terminal Colors -->
+    <div class="demo-box mt-4">
+        <h4 class="mb-3">Base Terminal Colors (Dark Theme)</h4>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="p-3 border rounded" style="background-color: var(--terminal-bg); color: var(--terminal-fg);">
+                    <strong>Background</strong>
+                    <small class="d-block text-muted mt-2">--terminal-bg</small>
+                    <code class="d-block mt-1" style="color: var(--terminal-fg);">#1e1e1e</code>
+                    <small class="d-block mt-2">Main terminal background</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-3 border rounded" style="background-color: var(--terminal-fg); color: var(--terminal-bg);">
+                    <strong>Foreground</strong>
+                    <small class="d-block mt-2" style="color: var(--terminal-bg);">--terminal-fg</small>
+                    <code class="d-block mt-1" style="color: var(--terminal-bg);">#e8e8e8</code>
+                    <small class="d-block mt-2" style="color: var(--terminal-bg);">Default text color</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-3 border rounded" style="background-color: var(--terminal-bg); border: 2px solid var(--terminal-cursor) !important;">
+                    <strong style="color: var(--terminal-cursor);">Cursor</strong>
+                    <small class="d-block text-muted mt-2">--terminal-cursor</small>
+                    <code class="d-block mt-1" style="color: var(--terminal-cursor);">#6c8ba0</code>
+                    <small class="d-block text-muted mt-2">Cursor and highlight color</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Standard ANSI Colors -->
+    <div class="demo-box mt-4">
+        <h4 class="mb-3">Standard ANSI Colors (Dark Theme)</h4>
+        <div class="row g-2">
+            <div class="col-md-3">
+                <div class="p-2 text-center" style="background-color: var(--terminal-bg); border: 1px solid var(--border-default); border-radius: 4px;">
+                    <div class="p-3 mb-2 rounded" style="background-color: var(--terminal-black); color: white;">
+                        <strong>Black</strong>
+                    </div>
+                    <small class="d-block text-muted">--terminal-black</small>
+                    <code class="d-block" style="font-size: 0.85rem; color: var(--terminal-fg);">#34495e</code>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-2 text-center" style="background-color: var(--terminal-bg); border: 1px solid var(--border-default); border-radius: 4px;">
+                    <div class="p-3 mb-2 rounded" style="background-color: var(--terminal-red); color: white;">
+                        <strong>Red</strong>
+                    </div>
+                    <small class="d-block text-muted">--terminal-red</small>
+                    <code class="d-block" style="font-size: 0.85rem; color: var(--terminal-fg);">#d49191</code>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-2 text-center" style="background-color: var(--terminal-bg); border: 1px solid var(--border-default); border-radius: 4px;">
+                    <div class="p-3 mb-2 rounded" style="background-color: var(--terminal-green); color: white;">
+                        <strong>Green</strong>
+                    </div>
+                    <small class="d-block text-muted">--terminal-green</small>
+                    <code class="d-block" style="font-size: 0.85rem; color: var(--terminal-fg);">#5fc9a4</code>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-2 text-center" style="background-color: var(--terminal-bg); border: 1px solid var(--border-default); border-radius: 4px;">
+                    <div class="p-3 mb-2 rounded" style="background-color: var(--terminal-yellow); color: black;">
+                        <strong>Yellow</strong>
+                    </div>
+                    <small class="d-block text-muted">--terminal-yellow</small>
+                    <code class="d-block" style="font-size: 0.85rem; color: var(--terminal-fg);">#e8c88c</code>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-2 text-center" style="background-color: var(--terminal-bg); border: 1px solid var(--border-default); border-radius: 4px;">
+                    <div class="p-3 mb-2 rounded" style="background-color: var(--terminal-blue); color: white;">
+                        <strong>Blue</strong>
+                    </div>
+                    <small class="d-block text-muted">--terminal-blue</small>
+                    <code class="d-block" style="font-size: 0.85rem; color: var(--terminal-fg);">#6eb5ff</code>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-2 text-center" style="background-color: var(--terminal-bg); border: 1px solid var(--border-default); border-radius: 4px;">
+                    <div class="p-3 mb-2 rounded" style="background-color: var(--terminal-magenta); color: white;">
+                        <strong>Magenta</strong>
+                    </div>
+                    <small class="d-block text-muted">--terminal-magenta</small>
+                    <code class="d-block" style="font-size: 0.85rem; color: var(--terminal-fg);">#b89cd9</code>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-2 text-center" style="background-color: var(--terminal-bg); border: 1px solid var(--border-default); border-radius: 4px;">
+                    <div class="p-3 mb-2 rounded" style="background-color: var(--terminal-cyan); color: white;">
+                        <strong>Cyan</strong>
+                    </div>
+                    <small class="d-block text-muted">--terminal-cyan</small>
+                    <code class="d-block" style="font-size: 0.85rem; color: var(--terminal-fg);">#72c7d1</code>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-2 text-center" style="background-color: var(--terminal-bg); border: 1px solid var(--border-default); border-radius: 4px;">
+                    <div class="p-3 mb-2 rounded" style="background-color: var(--terminal-white); color: black;">
+                        <strong>White</strong>
+                    </div>
+                    <small class="d-block text-muted">--terminal-white</small>
+                    <code class="d-block" style="font-size: 0.85rem; color: var(--terminal-fg);">#e8e8e8</code>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bright ANSI Colors -->
+    <div class="demo-box mt-4">
+        <h4 class="mb-3">Bright ANSI Colors (Dark Theme)</h4>
+        <div class="row g-2">
+            <div class="col-md-3">
+                <div class="p-2 text-center" style="background-color: var(--terminal-bg); border: 1px solid var(--border-default); border-radius: 4px;">
+                    <div class="p-3 mb-2 rounded" style="background-color: var(--terminal-bright-black); color: white;">
+                        <strong>Bright Black</strong>
+                    </div>
+                    <small class="d-block text-muted">--terminal-bright-black</small>
+                    <code class="d-block" style="font-size: 0.85rem; color: var(--terminal-fg);">#506b7a</code>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-2 text-center" style="background-color: var(--terminal-bg); border: 1px solid var(--border-default); border-radius: 4px;">
+                    <div class="p-3 mb-2 rounded" style="background-color: var(--terminal-bright-red); color: white;">
+                        <strong>Bright Red</strong>
+                    </div>
+                    <small class="d-block text-muted">--terminal-bright-red</small>
+                    <code class="d-block" style="font-size: 0.85rem; color: var(--terminal-fg);">#e8a5a5</code>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-2 text-center" style="background-color: var(--terminal-bg); border: 1px solid var(--border-default); border-radius: 4px;">
+                    <div class="p-3 mb-2 rounded" style="background-color: var(--terminal-bright-green); color: white;">
+                        <strong>Bright Green</strong>
+                    </div>
+                    <small class="d-block text-muted">--terminal-bright-green</small>
+                    <code class="d-block" style="font-size: 0.85rem; color: var(--terminal-fg);">#6fd9b5</code>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-2 text-center" style="background-color: var(--terminal-bg); border: 1px solid var(--border-default); border-radius: 4px;">
+                    <div class="p-3 mb-2 rounded" style="background-color: var(--terminal-bright-yellow); color: black;">
+                        <strong>Bright Yellow</strong>
+                    </div>
+                    <small class="d-block text-muted">--terminal-bright-yellow</small>
+                    <code class="d-block" style="font-size: 0.85rem; color: var(--terminal-fg);">#f5d8a0</code>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-2 text-center" style="background-color: var(--terminal-bg); border: 1px solid var(--border-default); border-radius: 4px;">
+                    <div class="p-3 mb-2 rounded" style="background-color: var(--terminal-bright-blue); color: white;">
+                        <strong>Bright Blue</strong>
+                    </div>
+                    <small class="d-block text-muted">--terminal-bright-blue</small>
+                    <code class="d-block" style="font-size: 0.85rem; color: var(--terminal-fg);">#85c5ff</code>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-2 text-center" style="background-color: var(--terminal-bg); border: 1px solid var(--border-default); border-radius: 4px;">
+                    <div class="p-3 mb-2 rounded" style="background-color: var(--terminal-bright-magenta); color: white;">
+                        <strong>Bright Magenta</strong>
+                    </div>
+                    <small class="d-block text-muted">--terminal-bright-magenta</small>
+                    <code class="d-block" style="font-size: 0.85rem; color: var(--terminal-fg);">#c9b0e8</code>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-2 text-center" style="background-color: var(--terminal-bg); border: 1px solid var(--border-default); border-radius: 4px;">
+                    <div class="p-3 mb-2 rounded" style="background-color: var(--terminal-bright-cyan); color: white;">
+                        <strong>Bright Cyan</strong>
+                    </div>
+                    <small class="d-block text-muted">--terminal-bright-cyan</small>
+                    <code class="d-block" style="font-size: 0.85rem; color: var(--terminal-fg);">#8cd9e0</code>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-2 text-center" style="background-color: var(--terminal-bg); border: 1px solid var(--border-default); border-radius: 4px;">
+                    <div class="p-3 mb-2 rounded" style="background-color: var(--terminal-bright-white); color: black;">
+                        <strong>Bright White</strong>
+                    </div>
+                    <small class="d-block text-muted">--terminal-bright-white</small>
+                    <code class="d-block" style="font-size: 0.85rem; color: var(--terminal-fg);">#f5f5f5</code>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reading Colors from CSS -->
+    <div class="demo-box mt-4">
+        <h3 class="mb-3">Reading Terminal Colors from CSS</h3>
+        <p class="text-muted mb-3">
+            Terminal colors are dynamically read from CSS custom properties, allowing automatic
+            theme adaptation without hardcoding color values in JavaScript.
+        </p>
+        <pre class="code-block" data-language="typescript"><code class="language-typescript">// apps/code_app/static/code_app/ts/pty-terminal.ts
+
+/**
+ * Get terminal theme from CSS custom properties
+ */
+private getThemeFromCSS(): any {
+  const root = document.documentElement;
+  const style = getComputedStyle(root);
+
+  return {
+    background: style.getPropertyValue('--terminal-bg').trim(),
+    foreground: style.getPropertyValue('--terminal-fg').trim(),
+    cursor: style.getPropertyValue('--terminal-cursor').trim(),
+    cursorAccent: style.getPropertyValue('--terminal-cursor-accent').trim(),
+    black: style.getPropertyValue('--terminal-black').trim(),
+    red: style.getPropertyValue('--terminal-red').trim(),
+    green: style.getPropertyValue('--terminal-green').trim(),
+    yellow: style.getPropertyValue('--terminal-yellow').trim(),
+    blue: style.getPropertyValue('--terminal-blue').trim(),
+    magenta: style.getPropertyValue('--terminal-magenta').trim(),
+    cyan: style.getPropertyValue('--terminal-cyan').trim(),
+    white: style.getPropertyValue('--terminal-white').trim(),
+    brightBlack: style.getPropertyValue('--terminal-bright-black').trim(),
+    brightRed: style.getPropertyValue('--terminal-bright-red').trim(),
+    brightGreen: style.getPropertyValue('--terminal-bright-green').trim(),
+    brightYellow: style.getPropertyValue('--terminal-bright-yellow').trim(),
+    brightBlue: style.getPropertyValue('--terminal-bright-blue').trim(),
+    brightMagenta: style.getPropertyValue('--terminal-bright-magenta').trim(),
+    brightCyan: style.getPropertyValue('--terminal-bright-cyan').trim(),
+    brightWhite: style.getPropertyValue('--terminal-bright-white').trim(),
+  };
+}</code></pre>
+    </div>
+
+    <!-- Terminal Initialization -->
+    <div class="demo-box mt-4">
+        <h3 class="mb-3">Terminal Initialization</h3>
+        <p class="text-muted mb-3">
+            Initialize XTerm.js terminal with colors from CSS and set up theme change listeners.
+        </p>
+        <pre class="code-block" data-language="typescript"><code class="language-typescript">// Initialize terminal with CSS colors
+this.term = new Terminal({
+  cursorBlink: true,
+  fontSize: 14,
+  fontFamily: "'JetBrains Mono', 'Monaco', 'Menlo', monospace",
+  theme: this.getThemeFromCSS(),  // Read colors from CSS
+  allowProposedApi: true,
+});</code></pre>
+    </div>
+
+    <!-- Theme Change Handling -->
+    <div class="demo-box mt-4">
+        <h3 class="mb-3">Handling Theme Changes</h3>
+        <p class="text-muted mb-3">
+            Update terminal theme dynamically when the global theme switches between light and dark.
+        </p>
+        <pre class="code-block" data-language="typescript"><code class="language-typescript">/**
+ * Update terminal theme when global theme changes
+ */
+public updateTheme(): void {
+  if (!this.term) {
+    console.warn('[PTY] Cannot update theme - terminal not initialized');
+    return;
+  }
+
+  const newTheme = this.getThemeFromCSS();
+  this.term.options.theme = newTheme;
+  console.log('[PTY] Terminal theme updated from CSS');
+}
+
+// In workspace orchestrator
+document.addEventListener('theme-changed', (event: Event) => {
+  const customEvent = event as CustomEvent<{ theme: string }>;
+
+  // Update terminal theme
+  if (this.ptyManager) {
+    this.ptyManager.updateTheme();
+  }
+});</code></pre>
+    </div>
+
+    <!-- CSS Custom Properties -->
+    <div class="demo-box mt-4">
+        <h3 class="mb-3">CSS Custom Properties Definition</h3>
+        <p class="text-muted mb-3">
+            Define terminal colors in <code>static/shared/css/primitives/colors.css</code> for both light and dark themes.
+        </p>
+        <pre class="code-block" data-language="css"><code class="language-css">/* Light Theme Terminal Colors */
+:root,
+[data-theme="light"] {
+  --terminal-bg: #ffffff;
+  --terminal-fg: #24292f;
+  --terminal-cursor: #0969da;
+  --terminal-cursor-accent: #ffffff;
+  --terminal-black: #24292f;
+  --terminal-red: #cf222e;
+  --terminal-green: #116329;
+  --terminal-yellow: #4d2d00;
+  --terminal-blue: #0969da;
+  --terminal-magenta: #8250df;
+  --terminal-cyan: #1b7c83;
+  --terminal-white: #6e7781;
+  /* ... bright colors ... */
+}
+
+/* Dark Theme Terminal Colors */
+[data-theme="dark"] {
+  --terminal-bg: #1e1e1e;
+  --terminal-fg: #e8e8e8;
+  --terminal-cursor: #6c8ba0;
+  --terminal-cursor-accent: #1e1e1e;
+  --terminal-black: #34495e;
+  --terminal-red: #d49191;
+  --terminal-green: #5fc9a4;
+  --terminal-yellow: #e8c88c;
+  --terminal-blue: #6eb5ff;
+  --terminal-magenta: #b89cd9;
+  --terminal-cyan: #72c7d1;
+  --terminal-white: #e8e8e8;
+  /* ... bright colors ... */
+}</code></pre>
+    </div>
+
+    <!-- Best Practices -->
+    <div class="demo-box mt-4">
+        <h3 class="mb-3">Best Practices</h3>
+        <ul>
+            <li>
+                <strong>Centralize color management</strong> - Define all terminal colors in CSS custom properties for easy theming
+            </li>
+            <li>
+                <strong>Dynamic theme reading</strong> - Use <code>getComputedStyle()</code> to read CSS variables at runtime
+            </li>
+            <li>
+                <strong>Event-driven updates</strong> - Listen for theme-changed events to update terminal colors
+            </li>
+            <li>
+                <strong>Consistent naming</strong> - Use standard ANSI color names (black, red, green, etc.)
+            </li>
+            <li>
+                <strong>Brightness variants</strong> - Provide both normal and bright versions of each color
+            </li>
+            <li>
+                <strong>Contrast ratios</strong> - Ensure sufficient contrast between foreground and background colors
+            </li>
+            <li>
+                <strong>Professional palette</strong> - Use muted, eye-friendly colors for long terminal sessions
+            </li>
+            <li>
+                <strong>Test both themes</strong> - Verify readability in both light and dark modes
+            </li>
+        </ul>
+    </div>
+
+    <!-- Features -->
+    <div class="demo-box mt-4">
+        <h3 class="mb-3">Terminal Features</h3>
+        <div class="row">
+            <div class="col-md-6">
+                <h4 class="h6 mb-3">Core Capabilities</h4>
+                <ul>
+                    <li>Full PTY (pseudo-terminal) support</li>
+                    <li>IPython and Python REPL integration</li>
+                    <li>Shell command execution (bash, zsh, etc.)</li>
+                    <li>Vim and Emacs editing in terminal</li>
+                    <li>Auto-resize on window changes</li>
+                    <li>WebSocket-based real-time communication</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h4 class="h6 mb-3">Enhanced Features</h4>
+                <ul>
+                    <li>Clipboard support (Ctrl+C/Ctrl+V)</li>
+                    <li>Inline image rendering (matplotlib, PIL)</li>
+                    <li>Sixel graphics support</li>
+                    <li>Automatic reconnection on disconnect</li>
+                    <li>Theme-responsive color adaptation</li>
+                    <li>Monospace font optimization</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Color Palette Reference Table -->
+    <div class="demo-box mt-4">
+        <h3 class="mb-3">Complete Color Reference</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>CSS Variable</th>
+                    <th>Dark Theme</th>
+                    <th>Light Theme</th>
+                    <th>Usage</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>--terminal-bg</code></td>
+                    <td><code>#1e1e1e</code></td>
+                    <td><code>#ffffff</code></td>
+                    <td>Background color</td>
+                </tr>
+                <tr>
+                    <td><code>--terminal-fg</code></td>
+                    <td><code>#e8e8e8</code></td>
+                    <td><code>#24292f</code></td>
+                    <td>Default text color</td>
+                </tr>
+                <tr>
+                    <td><code>--terminal-cursor</code></td>
+                    <td><code>#6c8ba0</code></td>
+                    <td><code>#0969da</code></td>
+                    <td>Cursor and selection</td>
+                </tr>
+                <tr>
+                    <td><code>--terminal-black</code></td>
+                    <td><code>#34495e</code></td>
+                    <td><code>#24292f</code></td>
+                    <td>ANSI color 0</td>
+                </tr>
+                <tr>
+                    <td><code>--terminal-red</code></td>
+                    <td><code>#d49191</code></td>
+                    <td><code>#cf222e</code></td>
+                    <td>ANSI color 1 (errors)</td>
+                </tr>
+                <tr>
+                    <td><code>--terminal-green</code></td>
+                    <td><code>#5fc9a4</code></td>
+                    <td><code>#116329</code></td>
+                    <td>ANSI color 2 (success)</td>
+                </tr>
+                <tr>
+                    <td><code>--terminal-yellow</code></td>
+                    <td><code>#e8c88c</code></td>
+                    <td><code>#4d2d00</code></td>
+                    <td>ANSI color 3 (warnings)</td>
+                </tr>
+                <tr>
+                    <td><code>--terminal-blue</code></td>
+                    <td><code>#6eb5ff</code></td>
+                    <td><code>#0969da</code></td>
+                    <td>ANSI color 4 (info)</td>
+                </tr>
+                <tr>
+                    <td><code>--terminal-magenta</code></td>
+                    <td><code>#b89cd9</code></td>
+                    <td><code>#8250df</code></td>
+                    <td>ANSI color 5</td>
+                </tr>
+                <tr>
+                    <td><code>--terminal-cyan</code></td>
+                    <td><code>#72c7d1</code></td>
+                    <td><code>#1b7c83</code></td>
+                    <td>ANSI color 6</td>
+                </tr>
+                <tr>
+                    <td><code>--terminal-white</code></td>
+                    <td><code>#e8e8e8</code></td>
+                    <td><code>#6e7781</code></td>
+                    <td>ANSI color 7</td>
+                </tr>
+                <tr>
+                    <td colspan="4" class="text-center bg-muted"><strong>Bright Colors (8-15)</strong></td>
+                </tr>
+                <tr>
+                    <td><code>--terminal-bright-black</code></td>
+                    <td><code>#506b7a</code></td>
+                    <td><code>#57606a</code></td>
+                    <td>ANSI color 8 (gray)</td>
+                </tr>
+                <tr>
+                    <td><code>--terminal-bright-red</code></td>
+                    <td><code>#e8a5a5</code></td>
+                    <td><code>#a40e26</code></td>
+                    <td>ANSI color 9</td>
+                </tr>
+                <tr>
+                    <td><code>--terminal-bright-green</code></td>
+                    <td><code>#6fd9b5</code></td>
+                    <td><code>#1a7f37</code></td>
+                    <td>ANSI color 10</td>
+                </tr>
+                <tr>
+                    <td><code>--terminal-bright-yellow</code></td>
+                    <td><code>#f5d8a0</code></td>
+                    <td><code>#633c01</code></td>
+                    <td>ANSI color 11</td>
+                </tr>
+                <tr>
+                    <td><code>--terminal-bright-blue</code></td>
+                    <td><code>#85c5ff</code></td>
+                    <td><code>#218bff</code></td>
+                    <td>ANSI color 12</td>
+                </tr>
+                <tr>
+                    <td><code>--terminal-bright-magenta</code></td>
+                    <td><code>#c9b0e8</code></td>
+                    <td><code>#a475f9</code></td>
+                    <td>ANSI color 13</td>
+                </tr>
+                <tr>
+                    <td><code>--terminal-bright-cyan</code></td>
+                    <td><code>#8cd9e0</code></td>
+                    <td><code>#3192aa</code></td>
+                    <td>ANSI color 14</td>
+                </tr>
+                <tr>
+                    <td><code>--terminal-bright-white</code></td>
+                    <td><code>#f5f5f5</code></td>
+                    <td><code>#8c959f</code></td>
+                    <td>ANSI color 15</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>

@@ -1,0 +1,190 @@
+/*
+ * @component Form Layout
+ * @description Input groups and password requirements component
+ * @category Form and Selection
+ * @file /static/shared/css/components/forms/layout.css
+ * @darkmode true
+ */
+
+/* =========================
+   Input Groups
+   ========================= */
+
+.input-group {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  width: 100%;
+}
+
+.input-group > .form-control {
+  position: relative;
+  flex: 1 1 auto;
+  width: 1%;
+  margin: 0;
+}
+
+.input-group-prepend,
+.input-group-append {
+  display: flex;
+}
+
+.input-group-text {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--text-primary);
+  text-align: center;
+  white-space: nowrap;
+  background-color: var(--bg-surface);
+  border: 2px solid var(--border-default);
+}
+
+/* Dark mode input group text - bluish theme */
+[data-theme="dark"] .input-group-text {
+  color: var(--scitex-color-06);
+  background-color: var(--scitex-color-01);
+  border-color: var(--scitex-color-04);
+}
+
+.input-group-prepend .input-group-text {
+  border-right: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.input-group-append .input-group-text {
+  border-left: 0;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.input-group > .form-control:not(:last-child) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.input-group > .form-control:not(:first-child) {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+/* Buttons inside input groups */
+.input-group .btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  border: 2px solid var(--border-default);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] .input-group .btn {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.input-group > .btn:not(:last-child) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right: 0;
+}
+
+.input-group > .btn:not(:first-child) {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left: 0;
+}
+
+/* =========================
+   Password Requirements
+   ========================= */
+
+/**
+ * @component Password Requirements
+ * @description Display password validation requirements with real-time feedback
+ * @category Form and Selection
+ *
+ * @variant password-rules - Container for password requirements list
+ * @variant password-rules-title - Title for requirements section
+ * @variant password-rule - Individual requirement item
+ * @variant password-rule.valid - Requirement is fulfilled (green check)
+ * @variant password-rule.invalid - Requirement is not fulfilled (red X)
+ *
+ * @state default - Red with X icon (unfulfilled requirement)
+ * @state valid - Green with check icon (fulfilled requirement)
+ *
+ * @example
+ * <div class="password-rules">
+ *   <div class="password-rules-title">Password Requirements:</div>
+ *   <div class="password-rule invalid"><i class="fas fa-times"></i> At least 8 characters</div>
+ *   <div class="password-rule valid"><i class="fas fa-check"></i> At least one lowercase letter</div>
+ * </div>
+ */
+
+.password-rules {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  padding: 1rem;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+[data-theme="dark"] .password-rules {
+  background-color: var(--scitex-color-01);
+  border-color: var(--scitex-color-04);
+}
+
+.password-rules-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+[data-theme="dark"] .password-rules-title {
+  color: var(--scitex-color-06);
+}
+
+.password-rule {
+  margin-bottom: 0.4rem;
+  display: flex;
+  align-items: center;
+  transition: color 0.3s ease;
+  /* Default state: Red (unfulfilled) */
+  color: #dc3545;
+}
+
+[data-theme="dark"] .password-rule {
+  color: #ff6b6b;
+}
+
+.password-rule.valid {
+  color: #28a745;
+}
+
+[data-theme="dark"] .password-rule.valid {
+  color: #51cf66;
+}
+
+.password-rule.invalid {
+  color: #dc3545;
+}
+
+[data-theme="dark"] .password-rule.invalid {
+  color: #ff6b6b;
+}
+
+.password-rule i {
+  margin-right: 0.5rem;
+  width: 16px;
+  font-size: 0.75rem;
+}

@@ -1,6 +1,5 @@
 {% extends 'global_base.html' %}
 {% load static %}
-{% block title %}{{ profile_user.get_full_name|default:profile_user.username }} - SciTeX Cloud{% endblock %}
 {% block extra_css %}
         <link rel="stylesheet"
               href="{% static 'project_app/css/project_app.css' %}" />

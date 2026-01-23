@@ -6,7 +6,7 @@
 ORIG_DIR="$(pwd)"
 THIS_DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
 LOG_PATH="$THIS_DIR/.$(basename $0).log"
-echo > "$LOG_PATH"
+echo -e > "$LOG_PATH"
 
 GIT_ROOT="$(git rev-parse --show-toplevel 2> /dev/null)"
 
@@ -24,13 +24,13 @@ echo_header() { echo_info "=== $1 ==="; }
 # ---------------------------------------
 # containers/docker/scripts/verify_scitex_writer.sh
 
-echo "=== Verifying scitex.writer dependencies ==="
+echo -e "=== Verifying scitex.writer dependencies ==="
 
 check_cmd() {
     if command -v $1 &> /dev/null; then
-        echo "✓ $1: $(command -v $1)"
+        echo -e "✓ $1: $(command -v $1)"
     else
-        echo "✗ $1: NOT FOUND"
+        echo -e "✗ $1: NOT FOUND"
         exit 1
     fi
 }
@@ -47,8 +47,8 @@ check_cmd convert # ImageMagick
 check_cmd mmdc    # Mermaid CLI
 
 # Python packages
-python -c "import bibtexparser" && echo "✓ bibtexparser" || echo "✗ bibtexparser"
+python -c "import bibtexparser" && echo -e "✓ bibtexparser" || echo -e "✗ bibtexparser"
 
-echo "=== All dependencies verified! ==="
+echo -e "=== All dependencies verified! ==="
 
 # EOF

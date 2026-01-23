@@ -18,7 +18,7 @@ export interface WriterConfig {
   visitorUsername?: string | null; // Allocated visitor user (e.g., "visitor-015")
   projectSlug: string | null;
   isDemo: boolean;
-  isAnonymous: boolean;
+  isVisitor: boolean;
   writerInitialized: boolean;
   documentType?: string; // Current document type (manuscript, shared, supplementary, revision)
   csrfToken?: string;

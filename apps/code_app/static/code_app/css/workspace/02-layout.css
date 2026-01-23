@@ -1,0 +1,20 @@
+/* Main workspace layout - 3 columns with resizers */
+.code-workspace {
+  display: flex;
+  height: 100%; /* Fill parent container (flex: 1 from global-base.css) */
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  gap: 0;
+  background-color: var(--code-bg);
+  overflow: hidden;
+}
+
+[data-theme="dark"] .code-workspace {
+  background-color: var(--workspace-bg-primary) !important;
+}
+
+/* Panel Resizers - sleek draggable dividers */
+/* Panel resizer now uses standard workspace resizer from shared/css/components/panel-resizer.css */
+/* No custom overrides needed - standard grayish theme works perfectly */
+

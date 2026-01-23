@@ -1,0 +1,59 @@
+/* ============================================================================= */
+/* FILE TREE - INTERACTIONS */
+/* ============================================================================= */
+/* Hover, selection, and interactive states */
+/* ============================================================================= */
+
+/* File tree item hover */
+.file-tree-item:hover {
+  background: var(--color-neutral-subtle, rgba(208, 215, 222, 0.32));
+}
+
+.file-tree-item.active {
+  /* Styling moved to central CSS - see static/css/components/file-tree.css */
+  /* background: var(--color-accent-emphasis, #0969da); */
+  /* color: #ffffff; */
+  /* font-weight: 600; */
+  /* box-shadow: 0 2px 4px rgba(9, 105, 218, 0.2); */
+}
+
+/* File tree icon hover effects */
+.file-tree-file:hover .file-tree-icon {
+  transform: scale(1.05);
+}
+
+.file-tree-folder:hover .file-tree-icon {
+  transform: scale(1.05);
+}
+
+.file-tree-item:hover .file-tree-chevron {
+  /* Styling moved to central CSS - see static/css/components/file-tree.css */
+  /* color: var(--color-accent-fg, #0969da); */
+}
+
+/* File browser row hover - GitHub-style subtle hover */
+.file-browser tbody tr:hover {
+  /* Styling moved to central CSS - see static/css/components/tables.css */
+  /* background-color: var(--color-canvas-subtle); */
+  /* box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.03); */
+}
+
+[data-theme="dark"] .file-browser tbody tr:hover {
+  /* Styling moved to central CSS - see static/css/components/tables.css */
+  /* background-color: rgba(110, 118, 129, 0.1); */
+  /* box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05); */
+}
+
+/* Commit hash hover tooltip */
+.file-browser .commit-hash:hover {
+  /* Styling moved to central CSS - see static/css/components/badges.css */
+  /* color: var(--color-accent-fg); */
+  /* background: var(--color-accent-subtle); */
+}
+
+/* Dropdown hover */
+.btn-group .dropdown-item:hover {
+  /* Styling moved to central CSS - see static/css/components/dropdowns.css */
+  /* background: var(--color-canvas-subtle); */
+  /* color: var(--color-fg-default); */
+}

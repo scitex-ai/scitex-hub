@@ -1,0 +1,14 @@
+/* Grid Layouts */
+.grid-layout {
+  display: grid;
+  gap: 1rem;
+}
+
+.grid-auto-fit {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.grid-auto-fill {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+

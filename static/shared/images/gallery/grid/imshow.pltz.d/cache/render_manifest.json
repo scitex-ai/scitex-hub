@@ -1,0 +1,24 @@
+{
+  "schema": {
+    "name": "scitex.plt.render_manifest",
+    "version": "1.0.0"
+  },
+  "source_hash": "f63753ae75a707cd:b9c6ff4695d1ddd0",
+  "panel_size_mm": [
+    80.0,
+    68.0
+  ],
+  "overview_png": "exports/imshow.png",
+  "overview_svg": "exports/imshow.svg",
+  "hitmap_png": "exports/imshow_hitmap.png",
+  "hitmap_svg": null,
+  "dpi": 150,
+  "render_px": [
+    291,
+    248
+  ],
+  "crop_margin_mm": 1.0,
+  "rendered_at": "2025-12-17T10:52:08.952597",
+  "scitex_schema": "scitex.plt.render_manifest",
+  "scitex_schema_version": "1.0.0"
+}

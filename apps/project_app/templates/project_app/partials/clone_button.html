@@ -1,145 +1,229 @@
-<!-- Git Clone Button Component -->
+{% load static vite %}
+<!-- Git Clone Button Component - GitHub Style -->
 <div class="git-clone-button-container">
     <div class="btn-group">
-        <button type="button" class="btn btn-success" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="fas fa-code me-2"></i>Code
-            <i class="fas fa-caret-down ms-2"></i>
+        <button type="button" class="btn btn-code-success" aria-expanded="false">
+            <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" fill="currentColor" class="me-2">
+                <path d="m11.28 3.22 4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.749.749 0 0 1-1.275-.326.749.749 0 0 1 .215-.734L13.94 8l-3.72-3.72a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215Zm-6.56 0a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042L2.06 8l3.72 3.72a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L.47 8.53a.75.75 0 0 1 0-1.06Z"></path>
+            </svg>
+            Code
+            <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" fill="currentColor" class="ms-2">
+                <path d="m4.427 7.427 3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427Z"></path>
+            </svg>
         </button>
-        <ul class="dropdown-menu dropdown-menu-end p-3" style="min-width: 400px;">
-            <!-- Clone Section Header -->
-            <li class="mb-3">
-                <h6 class="dropdown-header px-0">
-                    <i class="fas fa-clone me-2"></i>Clone
-                </h6>
-            </li>
-
-            <!-- HTTPS -->
-            <li class="mb-3">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <label class="form-label mb-0 fw-bold">HTTPS</label>
-                </div>
-                <div class="input-group input-group-sm">
-                    <input type="text"
-                           class="form-control font-monospace"
-                           value="{{ gitea_https_url }}"
-                           id="gitea-https-url"
-                           readonly>
-                    <button class="btn btn-outline-secondary"
-                            type="button"
-                            onclick="copyToClipboard('gitea-https-url')"
-                            title="Copy HTTPS URL">
-                        <i class="fas fa-copy"></i>
-                    </button>
-                </div>
-            </li>
-
-            <!-- SSH -->
-            <li class="mb-3">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <label class="form-label mb-0 fw-bold">SSH</label>
-                    <small class="text-muted">Use a password-protected SSH key</small>
-                </div>
-                <div class="input-group input-group-sm">
-                    <input type="text"
-                           class="form-control font-monospace"
-                           value="{{ gitea_ssh_url }}"
-                           id="gitea-ssh-url"
-                           readonly>
-                    <button class="btn btn-outline-secondary"
-                            type="button"
-                            onclick="copyToClipboard('gitea-ssh-url')"
-                            title="Copy SSH URL">
-                        <i class="fas fa-copy"></i>
-                    </button>
-                </div>
-            </li>
-
-            <!-- Divider -->
-            <li><hr class="dropdown-divider"></li>
-
-            <!-- GitHub CLI -->
-            <li class="mb-2">
-                <button class="dropdown-item" onclick="showGitHubCLI()">
-                    <i class="fas fa-terminal me-2"></i>Open with GitHub Desktop
-                </button>
-            </li>
-
-            <!-- Download ZIP -->
-            <li>
-                <a class="dropdown-item" href="{{ download_zip_url }}">
-                    <i class="fas fa-download me-2"></i>Download ZIP
+        <div class="dropdown-menu dropdown-menu-end p-0">
+            <!-- Tabs Navigation with Help Icon -->
+            <div class="code-dropdown-tabs-wrapper">
+                <ul class="nav nav-tabs code-dropdown-tabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="local-tab" data-bs-toggle="tab" data-bs-target="#local-panel" type="button" role="tab">
+                            Local
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="workspace-tab" data-bs-toggle="tab" data-bs-target="#workspace-panel" type="button" role="tab">
+                            Workspaces
+                        </button>
+                    </li>
+                </ul>
+                <a href="/docs/cloning/" class="code-dropdown-help" target="_blank" title="Clone help">
+                    <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" fill="currentColor">
+                        <path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.92 6.085h.001a.749.749 0 1 1-1.342-.67c.169-.339.436-.701.849-.977C6.845 4.16 7.369 4 8 4a2.756 2.756 0 0 1 1.637.525c.503.377.863.965.863 1.725 0 .448-.115.83-.329 1.15-.205.307-.47.513-.692.662-.109.072-.22.138-.313.195l-.006.004a6.24 6.24 0 0 0-.26.16.952.952 0 0 0-.276.245.75.75 0 0 1-1.248-.832c.184-.264.42-.489.692-.661.103-.067.207-.132.313-.195l.007-.004c.1-.061.182-.11.258-.161a.969.969 0 0 0 .277-.245C8.96 6.514 9 6.427 9 6.25a.612.612 0 0 0-.262-.525A1.27 1.27 0 0 0 8 5.5c-.369 0-.595.09-.74.187a1.01 1.01 0 0 0-.34.398ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"></path>
+                    </svg>
                 </a>
-            </li>
-        </ul>
+            </div>
+
+            <!-- Tabs Content -->
+            <div class="tab-content">
+                <!-- Local Tab -->
+                <div class="tab-pane fade show active" id="local-panel" role="tabpanel">
+                    <!-- Clone Section Header with Clone Icon -->
+                    <div class="clone-section-header">
+                        <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" fill="currentColor" class="clone-icon">
+                            <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path>
+                            <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
+                        </svg>
+                        <span>Clone</span>
+                    </div>
+
+                    <!-- Clone Method Sub-tabs (HTTPS, SSH, SciTeX CLI) -->
+                    <div class="clone-method-tabs">
+                        <button type="button" class="clone-method-tab active" data-target="https-panel">HTTPS</button>
+                        <button type="button" class="clone-method-tab" data-target="ssh-panel">SSH</button>
+                        <button type="button" class="clone-method-tab" data-target="cli-panel">SciTeX CLI</button>
+                    </div>
+
+                    <!-- HTTPS Panel -->
+                    <div class="clone-method-panel active" id="https-panel">
+                        <div class="clone-url-container">
+                            <input type="text"
+                                   class="clone-url-input"
+                                   value="{{ gitea_https_url }}"
+                                   id="gitea-https-url"
+                                   readonly>
+                            <button class="clone-copy-btn"
+                                    type="button"
+                                    onclick="copyToClipboard('gitea-https-url')"
+                                    title="Copy URL to clipboard">
+                                <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" fill="currentColor">
+                                    <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path>
+                                    <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SSH Panel -->
+                    <div class="clone-method-panel" id="ssh-panel">
+                        <p class="clone-ssh-hint mb-2">
+                            <strong>Via cloudflared tunnel:</strong>
+                        </p>
+                        <div class="clone-url-container mb-2">
+                            <input type="text"
+                                   class="clone-url-input"
+                                   value="git clone gitea.scitex:{{ project.owner.username }}/{{ project.slug }}.git"
+                                   id="gitea-ssh-cloudflared"
+                                   readonly>
+                            <button class="clone-copy-btn"
+                                    type="button"
+                                    onclick="copyToClipboard('gitea-ssh-cloudflared')"
+                                    title="Copy URL to clipboard">
+                                <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" fill="currentColor">
+                                    <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path>
+                                    <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <p class="clone-ssh-hint small text-muted mb-2">
+                            Requires <a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/" target="_blank">cloudflared</a> + SSH config:
+                        </p>
+                        <pre class="bg-dark text-light p-2 rounded small mb-2" style="font-size: 10px;">Host gitea.scitex
+  HostName gitea.scitex.ai
+  User git
+  ProxyCommand cloudflared access ssh --hostname %h</pre>
+                        <hr class="my-2">
+                        <p class="clone-ssh-hint small text-muted mb-1">
+                            <strong>Direct SSH (if available):</strong>
+                        </p>
+                        <div class="clone-url-container">
+                            <input type="text"
+                                   class="clone-url-input"
+                                   value="{{ gitea_ssh_url }}"
+                                   id="gitea-ssh-url"
+                                   readonly>
+                            <button class="clone-copy-btn"
+                                    type="button"
+                                    onclick="copyToClipboard('gitea-ssh-url')"
+                                    title="Copy URL to clipboard">
+                                <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" fill="currentColor">
+                                    <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path>
+                                    <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SciTeX CLI Panel -->
+                    <div class="clone-method-panel" id="cli-panel">
+                        <div class="clone-url-container">
+                            <input type="text"
+                                   class="clone-url-input"
+                                   value="scitex clone {{ project.owner.username }}/{{ project.slug }}"
+                                   id="scitex-cli-command"
+                                   readonly>
+                            <button class="clone-copy-btn"
+                                    type="button"
+                                    onclick="copyToClipboard('scitex-cli-command')"
+                                    title="Copy command to clipboard">
+                                <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" fill="currentColor">
+                                    <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"></path>
+                                    <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <p class="clone-ssh-hint">
+                            <a href="/docs/scitex-cli/" target="_blank">Learn about SciTeX CLI →</a>
+                        </p>
+                    </div>
+
+                    <!-- Divider -->
+                    <hr class="clone-divider">
+
+                    <!-- Open with Desktop / Download ZIP -->
+                    <a class="clone-action-item" href="{{ download_zip_url }}">
+                        <svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" fill="currentColor">
+                            <path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14Z"></path>
+                            <path d="M7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"></path>
+                        </svg>
+                        <span>Download ZIP</span>
+                    </a>
+                </div>
+
+                <!-- Workspace Tab -->
+                <div class="tab-pane fade" id="workspace-panel" role="tabpanel">
+                    <div class="workspace-tab-content">
+                        <div class="workspace-empty-state">
+                            <svg width="48" height="48" viewBox="0 0 16 16" fill="currentColor" class="workspace-icon mb-3">
+                                <path d="M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v9.5A1.75 1.75 0 0 1 14.25 13H8.06l-2.573 2.573A1.458 1.458 0 0 1 3 14.543V13H1.75A1.75 1.75 0 0 1 0 11.25Zm1.75-.25a.25.25 0 0 0-.25.25v9.5c0 .138.112.25.25.25h2a.75.75 0 0 1 .75.75v2.19l2.72-2.72a.749.749 0 0 1 .53-.22h6.5a.25.25 0 0 0 .25-.25v-9.5a.25.25 0 0 0-.25-.25Zm7 2.25v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 9a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/>
+                            </svg>
+                            <h6 class="mb-2">No workspaces</h6>
+                            <p class="text-muted mb-3">You don't have any workspaces with this repository checked out</p>
+
+                            <button class="btn btn-success mb-3" onclick="openWorkspace()">
+                                <i class="fas fa-terminal me-2"></i>Open in Workspace
+                            </button>
+
+                            <div class="workspace-ssh-info p-3 rounded">
+                                <h6 class="mb-2">
+                                    <i class="fas fa-key me-2"></i>SSH Access via Cloudflare Tunnel
+                                </h6>
+                                <p class="small text-muted mb-2">Connect via SSH (secure tunnel, no port forwarding needed):</p>
+                                <div class="mb-2">
+                                    <small class="text-muted">1. Install <a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/" target="_blank">cloudflared</a></small>
+                                </div>
+                                <div class="mb-2">
+                                    <small class="text-muted">2. Add to ~/.ssh/config:</small>
+                                    <pre class="bg-dark text-light p-2 rounded small mb-0">Host scitex
+  HostName ssh.scitex.ai
+  User {{ project.owner.username }}
+  ProxyCommand cloudflared access ssh --hostname %h</pre>
+                                </div>
+                                <div class="input-group input-group-sm mb-2">
+                                    <input type="text"
+                                           class="form-control font-monospace"
+                                           value="ssh scitex"
+                                           id="workspace-ssh-url"
+                                           readonly>
+                                    <button class="btn btn-outline-secondary"
+                                            type="button"
+                                            onclick="copyToClipboard('workspace-ssh-url')"
+                                            title="Copy SSH command">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    SSH key required.
+                                    <a href="/accounts/settings/ssh-keys/" target="_blank" class="text-decoration-none">
+                                        Manage SSH keys →
+                                    </a>
+                                </small>
+                            </div>
+
+                            <div class="mt-3">
+                                <small class="text-muted">
+                                    <a href="/docs/workspaces/" target="_blank" class="text-decoration-none">
+                                        Learn more about workspaces →
+                                    </a>
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-<script>
-function copyToClipboard(elementId) {
-    const input = document.getElementById(elementId);
-    input.select();
-    input.setSelectionRange(0, 99999); // For mobile devices
-
-    // Copy to clipboard
-    navigator.clipboard.writeText(input.value).then(function() {
-        // Show success feedback
-        const button = input.nextElementSibling;
-        const originalHTML = button.innerHTML;
-        button.innerHTML = '<i class="fas fa-check"></i>';
-        button.classList.remove('btn-outline-secondary');
-        button.classList.add('btn-success');
-
-        setTimeout(function() {
-            button.innerHTML = originalHTML;
-            button.classList.remove('btn-success');
-            button.classList.add('btn-outline-secondary');
-        }, 2000);
-    }).catch(function(err) {
-        console.error('Failed to copy:', err);
-        alert('Failed to copy to clipboard');
-    });
-}
-
-function showGitHubCLI() {
-    alert('GitHub Desktop integration coming soon!');
-}
-</script>
-
-<style>
-.git-clone-button-container .dropdown-menu {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-    border: 1px solid var(--color-border-default);
-}
-
-.git-clone-button-container .form-control {
-    font-size: 13px;
-    background-color: var(--color-canvas-subtle);
-    border-color: var(--color-border-default);
-}
-
-.git-clone-button-container .btn-success {
-    background-color: #2da44e;
-    border-color: #2da44e;
-}
-
-.git-clone-button-container .btn-success:hover {
-    background-color: #2c974b;
-    border-color: #2c974b;
-}
-
-.git-clone-button-container .dropdown-header {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--color-fg-default);
-    padding: 0;
-}
-
-.git-clone-button-container .dropdown-item {
-    padding: 8px 12px;
-    font-size: 14px;
-}
-
-.git-clone-button-container .dropdown-item:hover {
-    background-color: var(--color-accent-subtle);
-}
-</style>
+<link rel="stylesheet" href="{% static 'project_app/css/clone_button.css' %}">
+{% vite_script 'project_app/clone_button' %}

@@ -1,0 +1,67 @@
+/*
+ * Pagination Styles
+ *
+ * Styles for search results pagination:
+ * - Pagination controls
+ * - Page links
+ * - Active/disabled states
+ * - Dark mode support
+ */
+
+/* Pagination - Follow SciTeX color palette */
+.pagination {
+  gap: 0.25rem;
+}
+
+.pagination .page-item .page-link {
+  color: var(--scitex-color-01);
+  background-color: var(--bg-page);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.pagination .page-item .page-link:hover {
+  color: var(--scitex-color-06);
+  background-color: var(--scitex-color-02-light);
+  border-color: var(--scitex-color-02);
+}
+
+.pagination .page-item.active .page-link {
+  color: var(--scitex-color-06) !important;
+  background-color: var(--scitex-color-01) !important;
+  border-color: var(--scitex-color-01) !important;
+  font-weight: 700;
+}
+
+.pagination .page-item.disabled .page-link {
+  color: var(--text-secondary);
+  background-color: var(--bg-surface);
+  border-color: var(--border-default);
+  opacity: 0.6;
+}
+
+[data-theme="dark"] .pagination .page-item .page-link {
+  color: var(--scitex-color-05);
+  background-color: var(--scitex-color-01-light);
+  border-color: var(--scitex-color-03);
+}
+
+[data-theme="dark"] .pagination .page-item .page-link:hover {
+  color: var(--scitex-color-06);
+  background-color: var(--scitex-color-02-dark);
+  border-color: var(--scitex-color-04);
+}
+
+[data-theme="dark"] .pagination .page-item.active .page-link {
+  color: var(--scitex-color-06) !important;
+  background-color: var(--scitex-color-02) !important;
+  border-color: var(--scitex-color-04) !important;
+}
+
+[data-theme="dark"] .pagination .page-item.disabled .page-link {
+  color: var(--scitex-color-04);
+  background-color: var(--scitex-color-01-dark);
+  border-color: var(--scitex-color-03);
+}

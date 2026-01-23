@@ -1,0 +1,160 @@
+/* =========================================
+   WRITER WORKSPACE WITH FILE TREE SIDEBAR
+   (Aligned with Scholar/Code/Vis patterns)
+   ========================================= */
+
+.writer-workspace {
+  display: flex;
+  height: 100%; /* Fill parent container (flex: 1 from global-base.css) */
+  overflow: hidden;
+  background: var(--workspace-bg-primary, #0d0d0d);
+  gap: 0; /* No margins between panes */
+}
+
+.writer-sidebar {
+  width: 250px;
+  min-width: 10px; /* Allow shrinking via resizer */
+  background: var(--workspace-bg-primary, #0d0d0d);
+  border-right: none; /* Resizer handles visual separation */
+  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
+  margin-bottom: 1px;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.2s ease, min-width 0.2s ease;
+  flex-shrink: 0;
+}
+
+.writer-sidebar.collapsed {
+  width: 40px;
+  min-width: 40px;
+}
+
+.writer-sidebar.collapsed .sidebar-content {
+  display: none;
+}
+
+.writer-sidebar.collapsed .sidebar-header {
+  height: 100%;
+  padding: 0;
+  justify-content: center;
+  align-items: center;
+  border-bottom: none;
+  flex-direction: column;
+}
+
+/* Hide all content except toggle button when collapsed */
+.writer-sidebar.collapsed .sidebar-header-content {
+  display: none;
+}
+
+.writer-sidebar.collapsed .sidebar-header > *:not(.panel-toggle-btn) {
+  display: none;
+}
+
+.writer-sidebar.collapsed .panel-toggle-btn {
+  width: 100%;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.writer-sidebar .sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--workspace-border-default);
+  background: var(--workspace-bg-secondary);
+}
+
+.writer-sidebar .sidebar-header h5 {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.writer-sidebar .sidebar-header h5 i {
+  color: var(--workspace-icon-primary);
+}
+
+.writer-sidebar .sidebar-toggle {
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: color 0.2s ease;
+}
+
+.writer-sidebar .sidebar-toggle:hover {
+  color: var(--text-primary);
+}
+
+.writer-sidebar .sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--workspace-bg-monaco, #1e1e1e); /* Match tree background */
+  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
+}
+
+.writer-workspace .writer-container {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Resizer handles */
+.sidebar-resizer {
+  width: 4px;
+  background: transparent;
+  cursor: col-resize;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+
+.sidebar-resizer:hover,
+.sidebar-resizer.active {
+  background: var(--workspace-icon-primary, #059669);
+}
+
+/* Light mode overrides */
+[data-theme="light"] .writer-workspace {
+  background: var(--workspace-bg-primary, #f3f4f6);
+}
+
+[data-theme="light"] .writer-sidebar {
+  background: var(--workspace-bg-primary, #f3f4f6);
+}
+
+[data-theme="light"] .writer-sidebar .sidebar-header {
+  background: var(--workspace-bg-secondary, #ebedef);
+  border-bottom-color: var(--workspace-border-default, #b5c7d1);
+}
+
+/* Responsive: hide sidebar on small screens */
+@media (max-width: 768px) {
+  .writer-sidebar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    z-index: 100;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .writer-sidebar.collapsed {
+    display: none;
+  }
+
+  .writer-workspace {
+    flex-direction: column;
+    height: 100%;
+  }
+}

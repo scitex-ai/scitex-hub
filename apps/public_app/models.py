@@ -277,3 +277,63 @@ class Contributor(models.Model):
 
     def __str__(self):
         return f"{self.github_username} ({self.role})"
+
+
+class ServerMetrics(models.Model):
+    """Model for storing server performance metrics over time for analysis."""
+
+    # Timestamp (unique per collection interval)
+    timestamp = models.DateTimeField(db_index=True)
+
+    # CPU metrics
+    cpu_percent = models.FloatField(help_text="CPU usage percentage (0-100)")
+    cpu_cores = models.IntegerField(null=True, blank=True, help_text="Number of physical CPU cores")
+    cpu_cores_logical = models.IntegerField(null=True, blank=True, help_text="Number of logical CPU cores")
+
+    # Memory metrics
+    memory_percent = models.FloatField(help_text="Memory usage percentage (0-100)")
+    memory_used_gb = models.FloatField(help_text="Memory used in GB")
+    memory_total_gb = models.FloatField(help_text="Total memory in GB")
+    memory_available_gb = models.FloatField(help_text="Available memory in GB")
+
+    # Disk metrics
+    disk_percent = models.FloatField(help_text="Disk usage percentage (0-100)")
+    disk_used_gb = models.FloatField(help_text="Disk space used in GB")
+    disk_total_gb = models.FloatField(help_text="Total disk space in GB")
+    disk_read_mb = models.FloatField(help_text="Total disk read in MB since boot")
+    disk_write_mb = models.FloatField(help_text="Total disk write in MB since boot")
+
+    # Network metrics
+    net_sent_mb = models.FloatField(help_text="Total network sent in MB since boot")
+    net_recv_mb = models.FloatField(help_text="Total network received in MB since boot")
+
+    # Optional service status
+    docker_services_running = models.IntegerField(null=True, blank=True, help_text="Number of running Docker services")
+    ssh_gateway_status = models.BooleanField(default=False, help_text="SSH gateway service status")
+    gitea_ssh_status = models.BooleanField(default=False, help_text="Gitea SSH service status")
+    database_status = models.BooleanField(default=False, help_text="Database connection status")
+    redis_status = models.BooleanField(default=False, help_text="Redis cache status")
+
+    # Visitor pool metrics
+    visitor_pool_allocated = models.IntegerField(null=True, blank=True, help_text="Number of allocated visitor slots")
+    visitor_pool_total = models.IntegerField(null=True, blank=True, help_text="Total visitor pool size")
+
+    # User activity metrics
+    active_users_count = models.IntegerField(null=True, blank=True, help_text="Number of currently logged-in users")
+
+    # GPU metrics
+    gpu_percent = models.FloatField(null=True, blank=True, help_text="GPU usage percentage (0-100)")
+
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-timestamp"]
+        indexes = [
+            models.Index(fields=["-timestamp"]),
+        ]
+        verbose_name = "Server Metric"
+        verbose_name_plural = "Server Metrics"
+
+    def __str__(self):
+        return f"Metrics at {self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}"

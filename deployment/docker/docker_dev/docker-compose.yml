@@ -11,15 +11,16 @@ services:
   # ============================================
   # Django Application
   # ============================================
-  web:
+  django:
     build:
       context: ../../..
       dockerfile: deployment/docker/docker_dev/Dockerfile
       cache_from:
-        - scitex-cloud-dev-web:latest
+        - scitex-cloud-dev-django:latest
       args:
         BUILDKIT_INLINE_CACHE: 1
-    image: scitex-cloud-dev-web:latest
+        SLURM_VERSION: ${SCITEX_CLOUD_SLURM_VERSION:-24.05.5}
+    image: scitex-cloud-dev-django:latest
 
     # Volumes - Live code reload
     volumes:
@@ -29,12 +30,15 @@ services:
       # scitex-code package (editable mode) - must exist in parent directory of scitex-cloud
       - ../../../../scitex-code:/scitex-code:cached
 
+      # figrecipe package (editable mode) - must exist in parent directory of scitex-cloud
+      - ../../../../figrecipe:/figrecipe:cached
+
       # Centralized logging - all container logs go here
       - ../../../logs:/app/logs
 
       # Persistent data
       - static_volume:/app/staticfiles
-      - media_volume:/app/media
+      - ../../../media:/app/media:cached
 
       # Cache volumes (speed up rebuilds) - exclude from host mount
       - uv_cache:/root/.cache/uv
@@ -49,14 +53,30 @@ services:
       # User workspace data directory (also serves as user home via symlink)
       - ../../../data/users:/app/data/users
 
+      # Singularity/Apptainer container images for secure PTY terminal
+      - ../../../deployment/singularity:/app/singularity:ro
+
+      # SLURM access (connects to host SLURM for job scheduling)
+      # Mount host's actual slurm.conf for consistency with munge auth
+      - /etc/slurm/slurm.conf:/etc/slurm/slurm.conf:ro
+      - /etc/munge:/etc/munge:ro
+      - /run/munge:/run/munge
+      - /var/log/slurm:/var/log/slurm
+      # Mount host passwd for SLURM UID synchronization (prevents "Security violation" errors)
+      - /etc/passwd:/host/etc/passwd:ro
+
       # Explicitly exclude generated files from host mount (performance)
       - /app/staticfiles
       - /app/.cache
+      # TypeScript compiled JS output - Docker only, never syncs to host
+      - /app/.jsbuild
     
     # Port mapping
     ports:
       - "${SCITEX_CLOUD_HTTP_PORT_DEV:-8000}:8000"
       - "${SCITEX_CLOUD_SSH_PORT_DEV:-2200}:2200"  # SSH gateway for user workspaces
+      - "5678:5678"  # debugpy/pdb port for remote debugging
+      - "5173:5173"  # Vite dev server (HMR)
     
     # Environment
     env_file:
@@ -64,14 +84,17 @@ services:
     
     environment:
       - SCITEX_CLOUD_DJANGO_SETTINGS_MODULE=config.settings.settings_dev
+      - DEBUG=True
+      - DJANGO_DEBUG=True
       - PYTHONUNBUFFERED=1
       - PYTHONDONTWRITEBYTECODE=1
+      - WATCHFILES_FORCE_POLLING=true  # For NFS/network filesystems
       # scitex.writer specific
       - SCITEX_WRITER_CACHE_DIR=/app/.cache
     
     # Service dependencies
     depends_on:
-      db:
+      postgres:
         condition: service_healthy
       redis:
         condition: service_started
@@ -81,6 +104,15 @@ services:
     # Hot reload works natively with Django's autoreload + django-browser-reload
     # "from_docker" argument bypasses the manage.py wrapper safety check
     command: ["python", "manage.py", "runserver", "0.0.0.0:8000", "from_docker"]
+
+    # Allow access to host hardware for monitoring
+    privileged: true
+
+    # Allow access to host services (SSH, SLURM, etc.)
+    # SCITEX_CLOUD_SLURM_HOST should be set in .env to match /etc/slurm/slurm.conf SlurmctldHost
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "${SCITEX_CLOUD_SLURM_HOST:-localhost}:host-gateway"
 
     # Restart policy
     restart: unless-stopped
@@ -100,7 +132,7 @@ services:
   # ============================================
   # PostgreSQL Database
   # ============================================
-  db:
+  postgres:
     image: postgres:15-alpine
 
     volumes:
@@ -121,6 +153,16 @@ services:
       - POSTGRES_DB=${SCITEX_CLOUD_POSTGRES_DB:-scitex_cloud_dev}
       - POSTGRES_USER=${SCITEX_CLOUD_POSTGRES_USER:-scitex_dev}
       - POSTGRES_PASSWORD=${SCITEX_CLOUD_POSTGRES_PASSWORD:-scitex_dev_2025}
+
+    # Enable query logging in development
+    command:
+      - postgres
+      - -c
+      - log_statement=all
+      - -c
+      - log_destination=stderr
+      - -c
+      - logging_collector=off
 
     restart: unless-stopped
     
@@ -145,7 +187,8 @@ services:
     ports:
       - "6379:6379"
     
-    command: redis-server --appendonly yes
+    # More verbose logging in development
+    command: redis-server --appendonly yes --loglevel debug
     
     restart: unless-stopped
     
@@ -155,6 +198,152 @@ services:
       timeout: 3s
       retries: 5
     
+    networks:
+      - scitex-dev
+
+  # ============================================
+  # Celery Worker (Async Task Processing)
+  # ============================================
+  celery_worker:
+    build:
+      context: ../../..
+      dockerfile: deployment/docker/docker_dev/Dockerfile
+      cache_from:
+        - scitex-cloud-dev-django:latest
+      args:
+        SLURM_VERSION: ${SCITEX_CLOUD_SLURM_VERSION:-24.05.5}
+    image: scitex-cloud-dev-django:latest
+
+    volumes:
+      - ../../..:/app:cached
+      - ../../../../scitex-code:/scitex-code:cached
+      - ../../../logs:/app/logs
+
+    env_file:
+      - .env
+
+    environment:
+      - SCITEX_CLOUD_DJANGO_SETTINGS_MODULE=config.settings.settings_dev
+      - PYTHONUNBUFFERED=1
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+    # Run Celery worker with all queues
+    command: >
+      celery -A config --broker=redis://redis:6379/1 worker
+      --loglevel=info
+      --queues=celery,ai_queue,search_queue,compute_queue,vis_queue
+      --concurrency=4
+      --prefetch-multiplier=1
+
+    restart: unless-stopped
+
+    # Override Dockerfile healthcheck (worker doesn't serve HTTP, check redis connectivity)
+    healthcheck:
+      test: ["CMD", "python", "-c", "import redis; r = redis.Redis(host='redis', port=6379); r.ping()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
+    networks:
+      - scitex-dev
+
+  # ============================================
+  # Celery Beat (Periodic Task Scheduler)
+  # ============================================
+  celery_beat:
+    build:
+      context: ../../..
+      dockerfile: deployment/docker/docker_dev/Dockerfile
+      cache_from:
+        - scitex-cloud-dev-django:latest
+      args:
+        SLURM_VERSION: ${SCITEX_CLOUD_SLURM_VERSION:-24.05.5}
+    image: scitex-cloud-dev-django:latest
+
+    volumes:
+      - ../../..:/app:cached
+      - ../../../../scitex-code:/scitex-code:cached
+      - ../../../logs:/app/logs
+
+    env_file:
+      - .env
+
+    environment:
+      - SCITEX_CLOUD_DJANGO_SETTINGS_MODULE=config.settings.settings_dev
+      - PYTHONUNBUFFERED=1
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+    # Run Celery beat scheduler
+    command: celery -A config --broker=redis://redis:6379/1 beat --loglevel=info --scheduler=django_celery_beat.schedulers:DatabaseScheduler
+
+    restart: unless-stopped
+
+    # Override Dockerfile healthcheck (beat doesn't serve HTTP, check redis connectivity via python)
+    healthcheck:
+      test: ["CMD", "python", "-c", "import redis; r = redis.Redis(host='redis', port=6379); r.ping()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
+    networks:
+      - scitex-dev
+
+  # ============================================
+  # Flower (Celery Monitoring Dashboard)
+  # ============================================
+  flower:
+    build:
+      context: ../../..
+      dockerfile: deployment/docker/docker_dev/Dockerfile
+      cache_from:
+        - scitex-cloud-dev-django:latest
+      args:
+        SLURM_VERSION: ${SCITEX_CLOUD_SLURM_VERSION:-24.05.5}
+    image: scitex-cloud-dev-django:latest
+
+    volumes:
+      - ../../..:/app:cached
+      - ../../../../scitex-code:/scitex-code:cached
+
+    ports:
+      - "5555:5555"
+
+    env_file:
+      - .env
+
+    environment:
+      - SCITEX_CLOUD_DJANGO_SETTINGS_MODULE=config.settings.settings_dev
+      - PYTHONUNBUFFERED=1
+
+    depends_on:
+      - redis
+      - celery_worker
+
+    # Run Flower monitoring (--broker must come before flower subcommand)
+    command: celery -A config --broker=redis://redis:6379/1 flower --port=5555
+
+    restart: unless-stopped
+
+    # Override Dockerfile healthcheck (flower serves on port 5555, not 8000)
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5555/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 180s
+
     networks:
       - scitex-dev
 
@@ -171,7 +360,7 @@ services:
     
     ports:
       - "${SCITEX_CLOUD_GITEA_HTTP_PORT_DEV:-3001}:3000"
-      - "${SCITEX_CLOUD_GITEA_SSH_PORT_DEV:-2222}:22"
+      - "${SCITEX_CLOUD_GITEA_SSH_PORT_DEV}:22"
     
     env_file:
       - .env
@@ -188,7 +377,7 @@ services:
       
       # Database connection
       - GITEA__database__DB_TYPE=postgres
-      - GITEA__database__HOST=db:5432
+      - GITEA__database__HOST=postgres:5432
       - GITEA__database__NAME=${SCITEX_CLOUD_POSTGRES_DB:-scitex_cloud_dev}
       - GITEA__database__USER=${SCITEX_CLOUD_POSTGRES_USER:-scitex_dev}
       - GITEA__database__PASSWD=${SCITEX_CLOUD_POSTGRES_PASSWORD:-scitex_dev_2025}
@@ -197,15 +386,18 @@ services:
       - GITEA__server__DOMAIN=gitea
       - GITEA__server__ROOT_URL=http://gitea:3000/
       - GITEA__server__HTTP_PORT=3000
-      
+
       # Security
       - GITEA__security__INSTALL_LOCK=true
       - GITEA__service__DISABLE_REGISTRATION=false
-    
+
+      # Development - Debug logging
+      - GITEA__log__LEVEL=Debug
+
     depends_on:
-      db:
+      postgres:
         condition: service_healthy
-    
+
     restart: unless-stopped
     
     healthcheck:
@@ -215,6 +407,36 @@ services:
       retries: 5
       start_period: 30s
     
+    networks:
+      - scitex-dev
+
+  # ============================================
+  # FigRecipe Editor (Standalone Demo)
+  # ============================================
+  # Interactive figure editor - accessible at fig.scitex.ai or localhost:5500
+  figrecipe-editor:
+    image: python:3.11-slim
+
+    volumes:
+      - ../../../../figrecipe:/figrecipe:cached
+
+    working_dir: /figrecipe
+
+    # Install and run figrecipe editor
+    command: ["bash", "-c", "find /figrecipe -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null; pip install --no-cache-dir -q -e /figrecipe[editor] && python -c 'import figrecipe as fr; fr.edit(source=None, port=5500, host=\"0.0.0.0\", open_browser=False)'"]
+
+    ports:
+      - "5500:5500"
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5500/ping', timeout=5)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
     networks:
       - scitex-dev
 
@@ -235,10 +457,9 @@ volumes:
   # Application data
   static_volume:
     driver: local
-  
-  media_volume:
-    driver: local
-  
+
+  # media now uses host mount (../../../media:/app/media)
+
   # Cache volumes (can be deleted safely)
   uv_cache:
     driver: local

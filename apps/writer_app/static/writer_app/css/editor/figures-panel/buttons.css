@@ -1,0 +1,17 @@
+/* ============================================================================
+ * Button Styles
+ * ============================================================================
+ * Button icon colors and interactions
+ * ========================================================================== */
+
+/* Button icon colors - workspace theme */
+.btn i,
+.btn-clear i {
+  color: var(--workspace-icon-primary);
+  transition: color 0.15s ease;
+}
+
+.btn:hover i,
+.btn-clear:hover i {
+  color: var(--workspace-icon-hover);
+}

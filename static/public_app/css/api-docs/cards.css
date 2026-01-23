@@ -1,0 +1,321 @@
+/**
+ * API Documentation - Cards & Grids
+ * Database cards, export formats, rate limits, SDK cards, changelog
+ */
+
+/* Database Cards */
+.api-database-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.api-database-card {
+    background: var(--color-canvas-subtle);
+    border: 1px solid var(--color-border-default);
+    border-radius: 8px;
+    padding: 1.25rem;
+    transition: all 0.2s ease;
+}
+
+.api-database-card:hover {
+    border-color: var(--scitex-color-01);
+    transform: translateY(-2px);
+}
+
+.api-database-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.api-database-header img {
+    width: 24px;
+    height: 24px;
+}
+
+.api-database-header h4 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.api-database-card p {
+    font-size: 0.8125rem;
+    color: var(--color-fg-muted);
+    margin-bottom: 0.75rem;
+}
+
+.api-database-card code.api-endpoint-mini {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--scitex-color-01);
+    background: transparent;
+    padding: 0;
+}
+
+/* Export Formats */
+.api-export-formats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.api-export-card {
+    background: var(--color-canvas-subtle);
+    border: 1px solid var(--color-border-default);
+    border-radius: 8px;
+    padding: 1.25rem;
+    text-align: center;
+}
+
+.api-export-card h4 {
+    margin: 0 0 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.api-export-card h4 i {
+    color: var(--scitex-color-01);
+}
+
+.api-export-card code {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--scitex-color-01);
+    background: transparent;
+    margin-bottom: 0.5rem;
+}
+
+.api-export-card p {
+    font-size: 0.8125rem;
+    color: var(--color-fg-muted);
+    margin: 0;
+}
+
+/* Rate Limit Cards */
+.api-rate-limits {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.rate-limit-card {
+    background: var(--color-canvas-subtle);
+    border: 1px solid var(--color-border-default);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    position: relative;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.rate-limit-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.rate-limit-card.featured {
+    background: linear-gradient(135deg, var(--scitex-color-01), var(--scitex-color-03));
+    color: white;
+    border: none;
+}
+
+.rate-limit-badge {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #f59e0b;
+    color: white;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    text-transform: uppercase;
+}
+
+.rate-limit-card h4 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.rate-limit-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.rate-limit-card > p {
+    font-size: 0.8125rem;
+    opacity: 0.8;
+    margin: 0 0 1rem;
+}
+
+.rate-limit-features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+}
+
+.rate-limit-features li {
+    font-size: 0.8125rem;
+    padding: 0.25rem 0;
+    opacity: 0.9;
+}
+
+.rate-limit-features li::before {
+    content: "✓ ";
+    color: currentColor;
+    opacity: 0.7;
+}
+
+/* SDK Cards */
+.api-sdk-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.api-sdk-card {
+    background: var(--color-canvas-subtle);
+    border: 1px solid var(--color-border-default);
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.api-sdk-icon {
+    font-size: 2rem;
+    color: var(--scitex-color-01);
+    margin-bottom: 0.75rem;
+}
+
+.api-sdk-card h4 {
+    margin: 0 0 0.5rem;
+}
+
+.api-sdk-card code {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--color-fg-muted);
+    background: transparent;
+    margin-bottom: 0.75rem;
+}
+
+.api-sdk-status {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    border-radius: 12px;
+    text-transform: uppercase;
+}
+
+.api-sdk-status.coming-soon {
+    background: var(--color-canvas-inset);
+    color: var(--color-fg-muted);
+}
+
+/* Changelog */
+.api-changelog {
+    margin: 1.5rem 0;
+}
+
+.api-changelog-entry {
+    display: flex;
+    gap: 1.5rem;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--color-border-default);
+}
+
+.api-changelog-entry:last-child {
+    border-bottom: none;
+}
+
+.api-changelog-date {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--scitex-color-01);
+    min-width: 80px;
+}
+
+.api-changelog-content h4 {
+    margin: 0 0 0.75rem;
+}
+
+.api-changelog-content ul {
+    margin: 0;
+    padding-left: 1.25rem;
+}
+
+.api-changelog-content li {
+    font-size: 0.875rem;
+    color: var(--color-fg-muted);
+    margin-bottom: 0.25rem;
+}
+
+/* CTA Section */
+.api-cta {
+    text-align: center;
+    padding: 3rem 2rem;
+    background: linear-gradient(135deg, var(--scitex-color-01), var(--scitex-color-03));
+    border-radius: 12px;
+    color: white;
+    margin-top: 3rem;
+}
+
+.api-cta h3 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.api-cta > p {
+    font-size: 1.125rem;
+    opacity: 0.9;
+    margin-bottom: 1.5rem;
+}
+
+.api-cta-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.api-cta-buttons .btn {
+    min-width: 160px;
+}
+
+.api-cta-buttons .btn-primary {
+    background: white;
+    color: var(--scitex-color-01);
+    border-color: white;
+}
+
+.api-cta-buttons .btn-primary:hover {
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.api-cta-buttons .btn-outline-primary,
+.api-cta-buttons .btn-outline-secondary {
+    border-color: rgba(255, 255, 255, 0.5);
+    color: white;
+}
+
+.api-cta-buttons .btn-outline-primary:hover,
+.api-cta-buttons .btn-outline-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: white;
+}

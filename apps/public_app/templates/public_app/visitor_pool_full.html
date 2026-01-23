@@ -1,0 +1,479 @@
+{% extends "global_base.html" %}
+{% load static %}
+
+{% block title %}Visitor Slots Full - SciTeX Cloud{% endblock %}
+
+{% block meta_description %}
+All visitor demo slots are currently in use. Create a free account or try again in a few minutes.
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.pool-full-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 4rem 2rem;
+    text-align: center;
+}
+
+.pool-full-icon {
+    font-size: 5rem;
+    color: var(--scitex-color-04);
+    margin-bottom: 2rem;
+}
+
+.pool-full-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.pool-full-subtitle {
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    margin-bottom: 3rem;
+    line-height: 1.6;
+}
+
+.pool-full-info-box {
+    background: linear-gradient(135deg, rgba(88, 166, 255, 0.1) 0%, rgba(88, 166, 255, 0.05) 100%);
+    border-left: 4px solid var(--scitex-color-04);
+    padding: 2rem;
+    border-radius: 12px;
+    margin-bottom: 3rem;
+    text-align: left;
+}
+
+.pool-full-info-box h3 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.pool-full-info-box h3 i {
+    color: var(--scitex-color-04);
+}
+
+.pool-full-info-box ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.pool-full-info-box li {
+    padding: 0.75rem 0;
+    color: var(--text-primary);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.pool-full-info-box li i {
+    color: var(--scitex-color-04);
+    margin-top: 0.25rem;
+    flex-shrink: 0;
+}
+
+.pool-full-status {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: center;
+    gap: 3rem;
+}
+
+.pool-full-notice {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(251, 191, 36, 0.05) 100%);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    text-align: left;
+}
+
+.pool-full-notice > i {
+    color: #fbbf24;
+    font-size: 1.25rem;
+    margin-top: 0.1rem;
+    flex-shrink: 0;
+}
+
+.pool-full-notice strong {
+    color: #fbbf24;
+    font-size: 0.95rem;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.pool-full-notice p {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.pool-full-stat {
+    text-align: center;
+}
+
+.pool-full-stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.pool-full-stat-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+.pool-full-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 1.25rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+    .pool-full-actions {
+        flex-direction: column;
+    }
+}
+
+.pool-full-action-card {
+    position: relative;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: 16px;
+    padding: 1.75rem 2rem;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex: 1;
+}
+
+.pool-full-action-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.02) 100%);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.pool-full-action-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.2);
+    border-color: var(--text-muted);
+    text-decoration: none;
+    color: inherit;
+}
+
+.pool-full-action-card:hover::before {
+    opacity: 1;
+}
+
+.pool-full-action-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+    transition: transform 0.25s ease;
+}
+
+.pool-full-action-card:hover .pool-full-action-icon {
+    transform: scale(1.05);
+}
+
+.pool-full-action-card.primary .pool-full-action-icon {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.pool-full-action-card.secondary .pool-full-action-icon {
+    background: linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-surface) 100%);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-default);
+}
+
+.pool-full-action-content {
+    flex: 1;
+    text-align: left;
+}
+
+.pool-full-action-card h3 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin: 0 0 0.35rem 0;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.pool-full-action-card.primary h3 {
+    color: #10b981;
+}
+
+.pool-full-action-card p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+.pool-full-action-arrow {
+    font-size: 1.25rem;
+    color: var(--text-muted);
+    transition: transform 0.25s ease, color 0.25s ease;
+    opacity: 0.5;
+}
+
+.pool-full-action-card:hover .pool-full-action-arrow {
+    transform: translateX(4px);
+    opacity: 1;
+    color: var(--text-primary);
+}
+
+.pool-full-action-card.primary:hover .pool-full-action-arrow {
+    color: #10b981;
+}
+
+.pool-full-action-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    margin-left: 0.5rem;
+}
+
+/* Dev-only Initialize Pool Button */
+.pool-full-dev-actions {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-default);
+}
+
+.pool-full-dev-actions h4 {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-init-pool {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.btn-init-pool:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+}
+
+.btn-init-pool:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pool-full-container">
+    <!-- Icon -->
+    <div class="pool-full-icon">
+        <i class="fas fa-users"></i>
+    </div>
+
+    <!-- Title -->
+    <h1 class="pool-full-title">All Visitor Slots Are In Use</h1>
+    <p class="pool-full-subtitle">
+        We're experiencing high demand! All {{ pool_size }} visitor demo slots are currently occupied.
+    </p>
+
+    <!-- Pool Status -->
+    <div class="pool-full-status">
+        <div class="pool-full-stat">
+            <div class="pool-full-stat-value">{{ pool_size }}</div>
+            <div class="pool-full-stat-label">Total Slots</div>
+        </div>
+        <div class="pool-full-stat">
+            <div class="pool-full-stat-value">{{ allocated }}</div>
+            <div class="pool-full-stat-label">In Use</div>
+        </div>
+        <div class="pool-full-stat">
+            <div class="pool-full-stat-value">{{ free }}</div>
+            <div class="pool-full-stat-label">Available</div>
+        </div>
+    </div>
+
+    <!-- No Booking Notice -->
+    <div class="pool-full-notice">
+        <i class="fas fa-exclamation-triangle"></i>
+        <div>
+            <strong>No reservation system available</strong>
+            <p>Slot availability depends on when other visitors' sessions expire. Each session lasts up to 60 minutes.</p>
+        </div>
+    </div>
+
+    <!-- Info Box -->
+    <div class="pool-full-info-box">
+        <h3>
+            <i class="fas fa-info-circle"></i>
+            What Can You Do?
+        </h3>
+        <ul>
+            <li>
+                <i class="fas fa-user-plus"></i>
+                <span><strong>Create a free account</strong> for instant, unlimited access with no waiting</span>
+            </li>
+            <li>
+                <i class="fas fa-clock"></i>
+                <span><strong>Wait a few minutes</strong> - visitor sessions last 60 minutes, so slots free up regularly</span>
+            </li>
+            <li>
+                <i class="fas fa-redo"></i>
+                <span><strong>Refresh this page</strong> to check if a slot has become available</span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Actions -->
+    <div class="pool-full-actions">
+        <!-- Primary Action: Sign Up -->
+        <a href="{% url 'auth_app:signup' %}" class="pool-full-action-card primary">
+            <div class="pool-full-action-icon">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <div class="pool-full-action-content">
+                <h3>
+                    Create Account
+                    <span class="pool-full-action-badge">Free</span>
+                </h3>
+                <p>
+                    Get instant access with unlimited sessions and permanent storage.
+                </p>
+            </div>
+            <i class="fas fa-arrow-right pool-full-action-arrow"></i>
+        </a>
+
+        <!-- Secondary Action: Try Again -->
+        <a href="/" class="pool-full-action-card secondary">
+            <div class="pool-full-action-icon">
+                <i class="fas fa-redo"></i>
+            </div>
+            <div class="pool-full-action-content">
+                <h3>Try Again</h3>
+                <p>
+                    Return to homepage and check if a visitor slot is available.
+                </p>
+            </div>
+            <i class="fas fa-arrow-right pool-full-action-arrow"></i>
+        </a>
+    </div>
+
+    {% if DEBUG %}
+    <!-- Dev-only: Initialize Pool Button -->
+    <div class="pool-full-dev-actions">
+        <h4>Developer Tools</h4>
+        <!-- Hidden form to ensure CSRF cookie is set -->
+        <form style="display:none;">{% csrf_token %}</form>
+        <button id="btn-init-pool" class="btn-init-pool" onclick="initializeVisitorPool()">
+            <i class="fas fa-users-cog"></i>
+            Initialize Visitor Pool
+        </button>
+    </div>
+
+    <script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    async function initializeVisitorPool() {
+        const btn = document.getElementById('btn-init-pool');
+        const icon = btn.querySelector('i');
+
+        btn.disabled = true;
+        icon.className = 'fas fa-spinner fa-spin';
+
+        try {
+            const csrfToken = getCookie('csrftoken');
+
+            const response = await fetch('/api/visitor-pool/initialize/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert(`Visitor Pool Initialized!\n\nReset: ${data.reset || 0} directories\nCreated: ${data.created} visitors\nTotal: ${data.total} slots\nFree: ${data.free} available`);
+                window.location.href = '/';
+            } else {
+                alert(`Failed: ${data.error || 'Unknown error'}`);
+            }
+        } catch (error) {
+            console.error('Failed to initialize visitor pool:', error);
+            alert('Failed to initialize visitor pool. Check console.');
+        } finally {
+            btn.disabled = false;
+            icon.className = 'fas fa-users-cog';
+        }
+    }
+    </script>
+    {% endif %}
+</div>
+{% endblock %}

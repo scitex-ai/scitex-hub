@@ -1,0 +1,12 @@
+/* ========================================================================
+   PROPERTIES PANEL - INDEX
+   Imports all modular CSS files for the properties panel
+   ======================================================================== */
+
+@import url('./base.css');
+@import url('./sections.css');
+@import url('./traces.css');
+@import url('./gallery.css');
+@import url('./tabs.css');
+@import url('./defaults.css');
+@import url('./preview.css');

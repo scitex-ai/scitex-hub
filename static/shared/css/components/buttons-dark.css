@@ -10,16 +10,20 @@
 
 [data-theme="dark"] .btn {
   border: none;
-  background-color: var(--scitex-color-04);
-  color: var(--scitex-color-07);
+  background-color: var(--workspace-bg-elevated, #3a3a3a); /* Workspace blackish instead of bluish */
+  color: var(--text-primary, #d4e1e8);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 [data-theme="dark"] .btn:hover {
-  background-color: var(--scitex-color-05);
+  background-color: var(--workspace-border-hover, #4a4a4a); /* Slightly lighter blackish on hover */
   border-color: transparent;
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .btn.active {
+  box-shadow: none; /* Remove shadow for selected/active buttons */
 }
 
 /* =========================================
@@ -45,13 +49,13 @@
 
 /* Primary Button - Dark Mode */
 [data-theme="dark"] .btn-primary {
-  background-color: var(--scitex-color-04);
+  background-color: var(--workspace-bg-elevated, #3a3a3a); /* Workspace blackish */
   color: white;
 }
 
 [data-theme="dark"] .btn-primary:hover,
 [data-theme="dark"] .btn-primary:focus {
-  background-color: var(--scitex-color-05);
+  background-color: var(--workspace-border-hover, #4a4a4a); /* Slightly lighter */
   color: white;
 }
 
@@ -86,52 +90,52 @@
 /* Success Button - Dark Mode */
 [data-theme="dark"] .btn-success {
   background-color: #2d5a3d;
-  color: #7fb09d;
+  color: #fff;
 }
 
 [data-theme="dark"] .btn-success:hover,
 [data-theme="dark"] .btn-success:focus {
-  background-color: #1f4a2f;
-  color: #9ac4b0;
+  background-color: #3d6a4d;
+  color: #fff;
 }
 
 /* Warning Button - Dark Mode */
 [data-theme="dark"] .btn-warning {
   background-color: #5a4a2d;
-  color: #d4b891;
+  color: #fff;
 }
 
 [data-theme="dark"] .btn-warning:hover,
 [data-theme="dark"] .btn-warning:focus {
-  background-color: #4a3a1f;
-  color: #e0c4a3;
+  background-color: #6a5a3d;
+  color: #fff;
 }
 
 /* Danger/Error Button - Dark Mode */
 [data-theme="dark"] .btn-danger,
 [data-theme="dark"] .btn-error {
   background-color: #5a2d2d;
-  color: #d49191;
+  color: #fff;
 }
 
 [data-theme="dark"] .btn-danger:hover,
 [data-theme="dark"] .btn-danger:focus,
 [data-theme="dark"] .btn-error:hover,
 [data-theme="dark"] .btn-error:focus {
-  background-color: #4a1f1f;
-  color: #e0a5a5;
+  background-color: #6a3d3d;
+  color: #fff;
 }
 
 /* Info Button - Dark Mode */
 [data-theme="dark"] .btn-info {
   background-color: #2d4a5a;
-  color: #8db4d4;
+  color: #fff;
 }
 
 [data-theme="dark"] .btn-info:hover,
 [data-theme="dark"] .btn-info:focus {
-  background-color: #1f3a4a;
-  color: #a7c8e0;
+  background-color: #3d5a6a;
+  color: #fff;
 }
 
 /* =========================================
@@ -152,17 +156,17 @@
   color: white;
 }
 
-/* Outline Secondary Button - Dark Mode */
+/* Outline Secondary Button - Dark Mode - Brand blue hover */
 [data-theme="dark"] .btn-outline-secondary {
-  color: var(--scitex-color-03);
+  color: var(--scitex-color-06); /* Lighter text for better visibility */
   border: var(--border-width) solid var(--scitex-color-03);
   background-color: transparent;
 }
 
 [data-theme="dark"] .btn-outline-secondary:hover,
 [data-theme="dark"] .btn-outline-secondary:focus {
-  background-color: var(--scitex-color-03);
-  border: var(--border-width) solid var(--scitex-color-03);
+  background-color: var(--scitex-color-04); /* Brand blue background */
+  border: var(--border-width) solid var(--scitex-color-04); /* Brand blue border */
   color: white;
 }
 
@@ -234,6 +238,7 @@
 
 [data-theme="dark"] .btn-nav.active {
   background: var(--scitex-color-01-light);
+  box-shadow: none; /* Remove shadow for selected state */
 }
 
 /* =========================================

@@ -12,7 +12,7 @@ GitHub-style patterns:
 """
 
 from django.urls import path
-from ..views.pr_views import (
+from ..views.pr import (
     pr_list,
 )
 

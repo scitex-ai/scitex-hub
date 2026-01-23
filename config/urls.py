@@ -26,6 +26,8 @@ from apps.project_app.views import project_create
 from apps.project_app.views import api_check_name_availability
 from apps.project_app.views import accept_invitation
 from apps.project_app.views import decline_invitation
+from apps.project_app.views.projects.api import api_switch_active_project
+from apps.public_app.views import healthz
 
 
 # Functions
@@ -59,6 +61,8 @@ def get_reserved_paths():
             "media",
             "accounts",
             "auth",
+            "files",
+            "healthz",
             "favicon.ico",
             "robots.txt",
             "sitemap.xml",
@@ -88,6 +92,7 @@ def get_reserved_paths():
             "explore",
             "trending",
             "discover",
+            "social",  # Social auth URLs
         ]
     )
 
@@ -103,11 +108,15 @@ RESERVED_PATHS = get_reserved_paths()
 
 # Build URL patterns with correct ordering
 urlpatterns = [
+    # Critical health check endpoint (must come before username catch-all)
+    path("healthz/", healthz, name="healthz"),
     # Basics
     path("", include("apps.public_app.urls")),
     path("admin/", admin.site.urls),
     path("accounts/", include(("apps.accounts_app.urls", "accounts_app"))),
     path("auth/", include(("apps.auth_app.urls", "auth_app"))),
+    # Social authentication (Google, ORCID) via django-allauth
+    path("auth/social/", include("allauth.urls")),
     # Main Modules
     path("scholar/", include(("apps.scholar_app.urls", "scholar_app"))),
     path("code/", include(("apps.code_app.urls", "code_app"))),
@@ -137,6 +146,9 @@ urlpatterns = [
     # API endpoints
     path("api/users/search/", api_search_users, name="api_search_users"),
     path("project/api/check-name/", api_check_name_availability, name="api_check_name"),
+    path("api/project/switch/", api_switch_active_project, name="api_switch_active_project"),
+    # Scholar API endpoints (global /api/scholar/ prefix)
+    path("api/scholar/citation-graph/", include("apps.scholar_app.api.citation_graph_urls")),
     # GitHub-like operations
     # /new - Create new project
     path("new/", project_create, name="project_create"),
@@ -160,6 +172,11 @@ if settings.DEBUG:
         urlpatterns += [
             path("__reload__/", include("django_browser_reload.urls")),
         ]
+
+# Explicit /files/ prefix for development clarity (redundant with /<username>/)
+urlpatterns += [
+    path("files/<str:username>/", include("apps.project_app.urls")),
+]
 
 # GitHub-style username/project URLs (MUST be last to avoid conflicts)
 urlpatterns += [

@@ -1,0 +1,39 @@
+/* Theme-aware color tokens - matching vis.css pattern */
+:root,
+[data-theme="light"] {
+  --code-bg: var(--workspace-bg-tertiary, #f6f8fa);
+  --code-border: var(--workspace-border-default);
+  --code-toolbar-bg: var(--workspace-bg-secondary, #fafbfc);
+  --code-text-primary: var(--text-primary, #1a2a40);
+  --code-text-secondary: var(--text-secondary, #34495e);
+  --code-text-muted: var(--text-muted, #6c8ba0);
+  --code-hover-bg: var(--workspace-bg-tertiary, #f6f8fa);
+  --code-active-bg: rgba(5, 150, 105, 0.1);  /* Green accent matching workspace */
+  --code-active-border: var(--workspace-icon-primary);
+  --code-surface: var(--workspace-bg-secondary, #fafbfc);
+
+  /* Vis variables for shared data-table component */
+  --vis-bg-primary: var(--workspace-bg-secondary, #f3f4f6);
+  --vis-bg-secondary: var(--workspace-bg-tertiary, #ebedef);
+  --vis-bg-hover: var(--workspace-bg-tertiary, #ebedef);
+}
+
+[data-theme="dark"] {
+  /* Use global workspace colors for consistency with Vis/Writer */
+  --code-bg: var(--workspace-bg-primary);
+  --code-border: var(--workspace-border-default);
+  --code-toolbar-bg: var(--workspace-bg-secondary);
+  --code-text-primary: var(--text-primary);
+  --code-text-secondary: var(--text-secondary);
+  --code-text-muted: var(--text-muted);
+  --code-hover-bg: var(--workspace-bg-tertiary);
+  --code-active-bg: rgba(16, 185, 129, 0.15);  /* Bright green for dark mode */
+  --code-active-border: var(--workspace-icon-primary);
+  --code-surface: var(--workspace-bg-secondary);
+
+  /* Vis variables for shared data-table component */
+  --vis-bg-primary: var(--workspace-bg-primary);
+  --vis-bg-secondary: var(--workspace-bg-secondary);
+  --vis-bg-hover: var(--workspace-bg-tertiary);
+}
+

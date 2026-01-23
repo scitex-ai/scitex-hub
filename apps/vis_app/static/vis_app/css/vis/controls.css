@@ -1,0 +1,449 @@
+/* ========================================
+   ZOOM CONTROLS
+   ======================================== */
+.zoom-controls {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px 6px;
+    background: var(--vis-bg-secondary);
+    border-radius: 6px;
+    margin-left: 8px;
+}
+
+.zoom-level {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 48px;
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+}
+
+.zoom-level:hover {
+    background: var(--vis-bg-hover);
+    color: var(--status-success);
+}
+
+.zoom-controls .pane-header-btn {
+    min-width: 28px;
+    height: 28px;
+    padding: 4px;
+}
+
+.zoom-controls .pane-header-btn i {
+    font-size: 12px;
+}
+
+/* Data pane - ensure proper height distribution */
+.split-pane-left .pane-content {
+    overflow: hidden;
+}
+
+/* Canvas pane - use flexbox for warning at bottom */
+.canvas-pane .pane-content {
+    display: flex;
+    flex-direction: column;
+    overflow: auto;  /* Allow scrolling to see full canvas */
+}
+
+/* Canvas Content */
+.canvas-content {
+    background: var(--vis-bg-primary);
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: visible;  /* Allow canvas to extend beyond */
+}
+
+/* Rulers Area: 3x3 CSS Grid layout (exact copy from vis app) */
+.vis-rulers-area {
+    display: grid;
+    grid-template-areas:
+        "corner-tl ruler-h corner-tr"
+        "ruler-v canvas ruler-r"
+        "corner-bl ruler-b corner-br";
+    grid-template-rows: 60px 1fr 60px;
+    grid-template-columns: 60px 1fr 60px;
+    gap: 0;
+    flex: 1;
+    overflow: visible;  /* Allow canvas to extend beyond grid cell */
+    position: relative;  /* For transform-based panning */
+    min-width: fit-content;  /* Expand to fit canvas width */
+    min-height: fit-content;  /* Expand to fit canvas height */
+}
+
+/* Ruler corners */
+.ruler-corner {
+    background-color: var(--vis-ruler-bg);
+    border: none;
+    z-index: 1;
+}
+
+.ruler-corner-tl {
+    grid-area: corner-tl;
+}
+
+.ruler-corner-tr {
+    grid-area: corner-tr;
+}
+
+/* Ruler labels are clickable to toggle mm/inch */
+.ruler-label {
+    cursor: pointer;
+    transition: fill 0.15s ease;
+}
+
+.ruler-label:hover {
+    fill: var(--accent-primary, #4a9b7e) !important;
+}
+
+.ruler-corner-bl {
+    grid-area: corner-bl;
+}
+
+.ruler-corner-br {
+    grid-area: corner-br;
+}
+
+/* Ruler base styles */
+.ruler {
+    background-color: var(--vis-ruler-bg);
+    border: none;
+    z-index: 2;
+}
+
+/* Horizontal rulers */
+.ruler-horizontal {
+    width: 100%;
+    height: 60px;
+}
+
+.ruler-top {
+    grid-area: ruler-h;
+}
+
+.ruler-bottom {
+    grid-area: ruler-b;
+}
+
+/* Vertical rulers */
+.ruler-vertical {
+    width: 60px;
+    height: 100%;
+}
+
+.ruler-left {
+    grid-area: ruler-v;
+}
+
+.ruler-right {
+    grid-area: ruler-r;
+}
+
+/* Canvas container - light background by default */
+.vis-canvas-container {
+    grid-area: canvas;
+    justify-self: start;  /* Align to left (same as /vis/) */
+    align-self: start;    /* Align to top (same as /vis/) */
+    /* Light background for light mode */
+    background: #f0f0f0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    overflow: visible;  /* Must be visible for transform-based floating */
+    padding: 0;  /* No padding - rulers must align perfectly with canvas edges */
+    transition: background 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);  /* Shadow on container, not canvas */
+    width: fit-content;  /* Shrink to canvas size, not grid cell size */
+    height: fit-content;
+    /* No max-width/max-height - allow full canvas to render for panning/zooming */
+}
+
+/* Dark canvas background mode (toggled locally, independent of global theme) */
+.vis-canvas-container[data-canvas-theme="dark"] {
+    background: #1a1a1a;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);  /* Stronger shadow for dark mode */
+}
+
+/* Canvas element itself */
+#vis-canvas {
+    border: none;  /* No border - rulers must align perfectly with canvas edges */
+    /* Background color is set by Fabric.js based on theme */
+    display: block;
+}
+
+/* Canvas Grid Toggle Warning - at bottom of canvas pane */
+.canvas-mode-warning {
+    padding: 8px 12px;
+    background: rgba(255, 193, 7, 0.15);
+    border-top: 1px solid rgba(255, 193, 7, 0.4);
+    border-radius: 0;
+    color: #ffb300;
+    font-size: 11px;
+    display: none;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    margin-top: auto;
+}
+
+/* Show warning only in dark mode */
+[data-theme="dark"] .canvas-mode-warning {
+    display: flex;
+}
+
+.canvas-mode-warning i {
+    font-size: 14px;
+}
+
+
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+}
+
+.empty-state i {
+    font-size: 48px;
+    margin-bottom: 16px;
+    display: block;
+    opacity: 0.3;
+}
+
+.empty-state p {
+    font-size: 15px;
+    margin: 8px 0 4px;
+}
+
+.empty-state small {
+    font-size: 13px;
+    opacity: 0.7;
+}
+
+/* Resizers */
+/* Panel resizer now uses standard workspace resizer from shared/css/components/panel-resizer.css */
+/* No custom overrides needed - standard grayish theme works perfectly */
+
+/* Selected Item Info Header */
+.selected-item-info {
+    background: var(--vis-bg-secondary);
+    border-bottom: 1px solid var(--workspace-border-default);
+    padding: 12px 16px;
+}
+
+.selected-item-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.selected-item-icon {
+    font-size: 16px;
+    color: var(--workspace-icon-primary);
+}
+
+.selected-item-type {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.selected-item-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    padding-left: 24px;
+}
+
+/* Dynamic Properties Panel */
+.dynamic-properties {
+    padding: 16px;
+}
+
+.dynamic-properties:empty::before {
+    content: 'Select an item to view properties';
+    display: block;
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+/* Property Controls */
+.property-group {
+    margin-bottom: 16px;
+}
+
+.property-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+}
+
+.property-select,
+.property-input {
+    width: 100%;
+    padding: 8px;
+    background: var(--vis-bg-primary);
+    border: 1px solid var(--workspace-border-default);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-size: 13px;
+}
+
+.property-select:focus,
+.property-input:focus {
+    outline: none;
+    border-color: var(--status-success);
+}
+
+.property-color {
+    width: 100%;
+    height: 36px;
+    padding: 4px;
+    background: var(--vis-bg-primary);
+    border: 1px solid var(--workspace-border-default);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.property-range {
+    width: calc(100% - 40px);
+    margin-right: 8px;
+}
+
+.property-value {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--status-success);
+}
+
+/* ========================================
+   DROPDOWN CONTROLS
+   ======================================== */
+.dropdown-container {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dropdown-toggle span {
+    font-size: 11px;
+}
+
+.dropdown-toggle .fa-caret-down {
+    font-size: 10px;
+    opacity: 0.7;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 4px;
+    min-width: 120px;
+    background: var(--vis-bg-secondary);
+    border: 1px solid var(--workspace-border-default);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.dropdown-container.open .dropdown-menu {
+    display: block;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 12px;
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    text-align: left;
+}
+
+.dropdown-item:hover {
+    background: var(--vis-bg-hover);
+}
+
+.dropdown-item i {
+    width: 16px;
+    text-align: center;
+    opacity: 0.7;
+}
+
+.dropdown-item .format-hint {
+    margin-left: auto;
+    font-size: 10px;
+    opacity: 0.6;
+    color: var(--vis-text-muted);
+}
+
+.dropdown-divider {
+    height: 1px;
+    margin: 4px 0;
+    background: var(--vis-border);
+}
+
+/* Theme toggle button with dark mode warning */
+.pane-header-btn.theme-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.pane-header-btn.theme-toggle-btn .theme-icon {
+    font-size: 14px;
+}
+
+.pane-header-btn.theme-toggle-btn .dark-warning {
+    display: none;
+    color: #f59e0b;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+/* Debug buttons (e.g., hit region toggle) */
+.pane-header-btn.debug-btn {
+    color: var(--text-secondary, #8b949e);
+    opacity: 0.7;
+}
+
+.pane-header-btn.debug-btn:hover {
+    opacity: 1;
+    color: #f59e0b;
+}
+
+.pane-header-btn.debug-btn.active {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    opacity: 1;
+}
+
+[data-theme="light"] .pane-header-btn.debug-btn.active {
+    background: rgba(245, 158, 11, 0.2);
+    color: #d97706;
+}

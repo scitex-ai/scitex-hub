@@ -11,10 +11,10 @@ Usage:
     python manage.py list_users --active-only
 
 Or via Docker (production):
-    docker exec docker_prod-web-1 python manage.py list_users
+    docker exec scitex-cloud-prod-django-1 python manage.py list_users
 
 Or via Docker (development):
-    docker exec scitex-cloud-dev-web-1 python manage.py list_users
+    docker exec scitex-cloud-dev-django-1 python manage.py list_users
 """
 import json
 from django.core.management.base import BaseCommand

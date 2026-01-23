@@ -10,7 +10,7 @@ Services are organized by domain:
     - git_service: Git operations and version control
     - ssh_service: SSH key management
     - gitea_sync_service: Gitea repository synchronization
-    - anonymous_storage: Anonymous user session storage
+    - visitor_storage: Visitor user session storage
     - filesystem_utils: File system utilities
     - email_service: Email sending and verification
 """

@@ -1,0 +1,160 @@
+/*
+ * Scholar App - Workspace Colors
+ *
+ * Uses CSS variables for theme responsiveness (light/dark mode).
+ * Follows the pattern of code_app, vis_app, and writer_app.
+ */
+
+/* Disable smooth scrolling for Scholar app to prevent auto-scroll behavior */
+html {
+  scroll-behavior: auto !important;
+}
+
+/* ===============================================
+   WORKSPACE COLORS - Theme Responsive
+   Uses CSS variables that respond to data-theme attribute
+   =============================================== */
+
+/* Force workspace background colors for entire scholar page */
+body.scholar-page,
+.scholar-page,
+body.workspace-page.scholar-page {
+  background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
+}
+
+/* Main content area background */
+body.scholar-page #main-content,
+body.scholar-page main,
+body.scholar-page .scholar-workspace {
+  background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
+}
+
+/* Force footer to match */
+body.scholar-page footer,
+body.scholar-page .footer {
+  background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
+  border-top: 1px solid var(--color-border-default) !important;
+}
+
+/* Override any card/panel backgrounds */
+body.scholar-page .card,
+body.scholar-page .panel,
+body.scholar-page .search-card,
+body.scholar-page .result-card,
+body.scholar-page .paper-card,
+body.scholar-page .split-panel,
+body.scholar-page .split-container,
+body.scholar-page .panel-content,
+body.scholar-page .card-body,
+body.scholar-page .bibtex-card,
+body.scholar-page .bibtex-tile {
+  background: var(--workspace-bg-secondary, var(--color-canvas-subtle)) !important;
+  border-color: var(--color-border-default) !important;
+  border-radius: 0 !important;
+}
+
+/* Override panel headers */
+body.scholar-page .panel-header,
+body.scholar-page .card-header,
+body.scholar-page .bibtex-card__header,
+body.scholar-page .bibtex-tile__header {
+  background: var(--workspace-bg-tertiary, var(--color-canvas-inset)) !important;
+  border-color: var(--color-border-default) !important;
+}
+
+/* Remove bluish border-radius (flat design) */
+body.scholar-page .card,
+body.scholar-page .panel,
+body.scholar-page .split-panel {
+  border-radius: 0 !important;
+}
+
+/* BibTeX components - workspace colors */
+body.scholar-page .bibtex-enrichment-container {
+  background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
+  padding: 0 !important;
+}
+
+body.scholar-page .bibtex-card,
+body.scholar-page .bibtex-tile {
+  background: var(--workspace-bg-secondary, var(--color-canvas-subtle)) !important;
+  border-color: var(--color-border-default) !important;
+  border-radius: 0 !important;
+}
+
+body.scholar-page .bibtex-card__header,
+body.scholar-page .bibtex-tile__header {
+  background: var(--workspace-bg-tertiary, var(--color-canvas-inset)) !important;
+  border-color: var(--color-border-default) !important;
+}
+
+body.scholar-page .bibtex-tile__content {
+  border-color: var(--color-border-default) !important;
+  background: var(--workspace-bg-secondary, var(--color-canvas-subtle)) !important;
+}
+
+body.scholar-page .bibtex-dropzone {
+  background: var(--workspace-bg-monaco);
+  border-color: var(--color-border-default);
+  border-radius: 0;
+}
+
+body.scholar-page .bibtex-dropzone:hover {
+  background: var(--workspace-bg-tertiary);
+  border-color: var(--scitex-color-03, var(--workspace-icon-primary));
+}
+
+body.scholar-page .bibtex-status-item {
+  background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
+  border-radius: 0 !important;
+}
+
+body.scholar-page .terminal-log {
+  background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
+  border-color: var(--color-border-default) !important;
+  border-radius: 0 !important;
+}
+
+/* Override bibtex tile icons to use workspace green */
+body.scholar-page .bibtex-tile__title i,
+body.scholar-page .bibtex-card__title i {
+  color: var(--scitex-color-03, var(--workspace-icon-primary)) !important;
+}
+
+/* Scholar workspace panels */
+body.scholar-page .scholar-sidebar,
+body.scholar-page .scholar-main,
+body.scholar-page .scholar-properties {
+  background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
+}
+
+body.scholar-page .scholar-sidebar .sidebar-header,
+body.scholar-page .scholar-main .pane-header,
+body.scholar-page .scholar-properties .properties-header {
+  background: var(--workspace-bg-secondary, var(--color-canvas-subtle)) !important;
+  border-color: var(--color-border-default) !important;
+}
+
+body.scholar-page .scholar-sidebar .sidebar-content,
+body.scholar-page .scholar-sidebar #file-tree,
+body.scholar-page .scholar-properties .properties-content {
+  background: var(--workspace-bg-monaco, #1e1e1e) !important;
+}
+
+/* Pane content no padding for full bleed */
+body.scholar-page .scholar-main .pane-content {
+  padding: 0 !important;
+  margin: 0 !important;
+  background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
+}
+
+/* ===============================================
+   LIGHT THEME OVERRIDES
+   data-theme is set on <html> element
+   =============================================== */
+
+:root[data-theme="light"] body.scholar-page .scholar-sidebar .sidebar-content,
+:root[data-theme="light"] body.scholar-page .scholar-sidebar #file-tree,
+:root[data-theme="light"] body.scholar-page .scholar-properties .properties-content {
+  background: #ffffff !important;
+}

@@ -1,0 +1,134 @@
+<div class="info-panel">
+  <div class="info-section" id="dimensionsSection">
+    <div class="info-title">Dimensions</div>
+    <div class="info-row">
+      <span class="info-label">Width:</span>
+      <span class="info-value" id="pixelWidth">-</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Height:</span>
+      <span class="info-value" id="pixelHeight">-</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Aspect Ratio:</span>
+      <span class="info-value" id="aspectRatio">-</span>
+    </div>
+    <div class="info-row" id="pdfPageCountRow" style="display: none;">
+      <span class="info-label">Total Pages:</span>
+      <span class="info-value" id="pdfPageCount">-</span>
+    </div>
+  </div>
+
+  <div class="info-section">
+    <div class="info-title">DPI (Dots Per Inch)</div>
+    <div class="alert alert-info" id="dpiAlert" style="display: none;">
+      DPI metadata not found. Using default or custom value.
+    </div>
+    <div class="info-row">
+      <span class="info-label">Horizontal DPI:</span>
+      <span class="info-value" id="dpiX">-</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Vertical DPI:</span>
+      <span class="info-value" id="dpiY">-</span>
+    </div>
+    <div class="dpi-input-group">
+      <input type="number" id="customDpi" class="dpi-input" placeholder="Custom DPI (e.g., 300)" value="300" />
+      <button id="applyDpiBtn" class="dpi-btn">Apply DPI</button>
+    </div>
+  </div>
+
+  <div class="info-section">
+    <div class="info-title">Physical Size (@ <span id="usedDpi">300</span> DPI)</div>
+    <div class="info-row">
+      <span class="info-label">Width (mm):</span>
+      <span class="info-value" id="widthMm">-</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Height (mm):</span>
+      <span class="info-value" id="heightMm">-</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Width (inch):</span>
+      <span class="info-value" id="widthInch">-</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Height (inch):</span>
+      <span class="info-value" id="heightInch">-</span>
+    </div>
+  </div>
+
+  <div class="info-section">
+    <div class="info-title">File Information</div>
+    <div class="info-row">
+      <span class="info-label">File Name:</span>
+      <span class="info-value" id="fileName">-</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">File Size:</span>
+      <span class="info-value" id="fileSize">-</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">File Type:</span>
+      <span class="info-value" id="fileType">-</span>
+    </div>
+  </div>
+
+  <div class="info-section">
+    <div class="info-title">Journal Standards (Single Column)</div>
+    <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">Common journal widths @ 300 DPI</div>
+    <div class="info-row">
+      <span class="info-label">Nature/Science:</span>
+      <span class="info-value">89mm (1051px)</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Cell:</span>
+      <span class="info-value">85mm (1004px)</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">PNAS:</span>
+      <span class="info-value">87mm (1028px)</span>
+    </div>
+  </div>
+
+  <div class="info-section" id="bundleInfoSection" style="display: none;">
+    <div class="info-title">Bundle Information</div>
+    <div class="info-row">
+      <span class="info-label">Bundle Type:</span>
+      <span class="info-value" id="bundleType">-</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Contains PNG:</span>
+      <span class="info-value" id="bundleHasPng">-</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Contains SVG:</span>
+      <span class="info-value" id="bundleHasSvg">-</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Contains PDF:</span>
+      <span class="info-value" id="bundleHasPdf">-</span>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Contains Data (CSV):</span>
+      <span class="info-value" id="bundleHasCsv">-</span>
+    </div>
+    <div id="bundlePanelsRow" style="display: none;">
+      <div class="info-label" style="margin-top: 8px;">Panels:</div>
+      <div id="bundlePanelsList" style="font-size: 12px; font-family: monospace; margin-top: 4px;"></div>
+    </div>
+  </div>
+
+  <div class="info-section" id="metadataSection" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+      <div class="info-title" style="margin-bottom: 0;">SciTeX Embedded Metadata</div>
+      <button id="copyMetadataBtn" class="dpi-btn" style="display: none;">
+        <span id="copyBtnText">📋 Copy</span>
+      </button>
+    </div>
+    <div id="metadataStatus" style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">
+      Loading...
+    </div>
+    <pre id="metadataContent" style="background: var(--bg-secondary); padding: 12px; border-radius: 4px; font-size: 12px; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word; max-height: 300px; overflow-y: auto;"></pre>
+  </div>
+</div>

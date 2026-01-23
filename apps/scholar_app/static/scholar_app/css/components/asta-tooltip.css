@@ -1,0 +1,71 @@
+/* ASTA Tooltip Component - Using Monaco/Terminal Background */
+
+.asta-tooltip-container {
+    background: var(--workspace-bg-monaco, var(--terminal-bg, #1e1e1e));
+    border: 1px solid var(--workspace-border-default, #3a3a3a);
+    border-left: 4px solid var(--scitex-color-03, var(--workspace-icon-primary));
+    border-radius: 0;
+    padding: 1rem 1.25rem;
+    margin: 1.25rem;
+}
+
+.asta-tooltip-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.asta-tooltip-icon {
+    color: var(--scitex-color-03, var(--workspace-icon-primary));
+    font-size: 1.5rem;
+}
+
+.asta-tooltip-body {
+    flex: 1;
+}
+
+.asta-tooltip-title {
+    color: var(--text-primary, #d4e1e8);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.asta-tooltip-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    color: var(--text-muted, #6c8ba0);
+    font-size: 0.9rem;
+}
+
+.asta-tooltip-options a {
+    color: var(--scitex-color-03, var(--workspace-icon-primary));
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.asta-tooltip-badge {
+    margin-left: 0.5rem;
+    vertical-align: middle;
+    text-transform: uppercase;
+}
+
+.asta-generate-prompt-btn {
+    white-space: nowrap;
+    border-color: var(--scitex-color-03, var(--workspace-icon-primary));
+    color: var(--scitex-color-03, var(--workspace-icon-primary));
+}
+
+.asta-tooltip-footer {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--workspace-border-default, #3a3a3a);
+    font-size: 0.85rem;
+    color: var(--text-muted, #6c8ba0);
+}
+
+.asta-tooltip-footer a {
+    color: var(--scitex-color-03, var(--workspace-icon-primary));
+    text-decoration: underline;
+}

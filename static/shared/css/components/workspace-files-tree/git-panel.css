@@ -1,0 +1,149 @@
+/**
+ * Workspace Files Tree - Git Panel
+ * Git commit panel, status summary, and buttons
+ */
+
+.wft-git-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px 8px;
+  border-top: 1px solid var(--workspace-border-default, #3a3a3a);
+  background: var(--workspace-bg-secondary, #252526);
+  flex-shrink: 0; /* Don't shrink git panel */
+}
+
+.wft-git-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.wft-git-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-fg-muted, #768390);
+}
+
+.wft-git-panel-title i {
+  font-size: 12px;
+  color: var(--color-danger-fg, #f85149);
+}
+
+.wft-git-panel-actions {
+  display: flex;
+  gap: 2px;
+}
+
+.wft-git-panel-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 3px 6px;
+  font-size: 10px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+/* Primary buttons - use subtle accent color instead of vivid green */
+.wft-git-panel-btn.primary {
+  background: var(--color-canvas-subtle, #2a2a2a);
+  color: var(--color-fg-default, #e6edf3);
+  border: 1px solid var(--workspace-border-default, #3a3a3a);
+}
+
+.wft-git-panel-btn.primary:hover {
+  background: var(--color-accent-subtle, rgba(47, 129, 247, 0.15));
+  border-color: var(--color-accent-muted, rgba(47, 129, 247, 0.4));
+  color: var(--color-accent-fg, #58a6ff);
+}
+
+.wft-git-panel-btn.primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.wft-git-panel-btn.primary:disabled:hover {
+  background: var(--color-canvas-subtle, #2a2a2a);
+  border-color: var(--workspace-border-default, #3a3a3a);
+  color: var(--color-fg-default, #e6edf3);
+}
+
+.wft-git-panel-btn.secondary {
+  background: transparent;
+  color: var(--color-fg-muted, #768390);
+  border: none;
+  padding: 3px 5px;
+}
+
+.wft-git-panel-btn.secondary:hover {
+  background: var(--color-canvas-subtle, rgba(127, 127, 127, 0.15));
+  color: var(--color-fg-default, #e6edf3);
+}
+
+/* Commit message input - compact single line appearance */
+.wft-commit-input {
+  width: 100%;
+  padding: 4px 6px;
+  font-size: 11px;
+  font-family: inherit;
+  background: var(--workspace-bg-monaco, #1e1e1e);
+  border: 1px solid var(--workspace-border-default, #3a3a3a);
+  border-radius: 3px;
+  color: var(--color-fg-default, #e6edf3);
+  resize: none;
+  min-height: 24px;
+  max-height: 60px;
+}
+
+.wft-commit-input:focus {
+  outline: none;
+  border-color: var(--color-accent-fg, #58a6ff);
+}
+
+.wft-commit-input::placeholder {
+  color: var(--color-fg-muted, #768390);
+  font-size: 11px;
+}
+
+/* Git status summary */
+.wft-git-status-summary {
+  display: flex;
+  gap: 8px;
+  font-size: 10px;
+  color: var(--color-fg-muted, #768390);
+}
+
+.wft-git-status-summary span {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.wft-git-status-summary i {
+  font-size: 9px;
+}
+
+.wft-git-status-summary .staged {
+  color: var(--color-success-fg, #3fb950);
+}
+
+.wft-git-status-summary .modified {
+  color: var(--color-attention-fg, #d29922);
+}
+
+.wft-git-status-summary .untracked {
+  color: var(--color-fg-muted, #768390);
+}
+
+.wft-git-status-summary .clean {
+  color: var(--color-success-fg, #3fb950);
+  opacity: 0.8;
+}

@@ -10,7 +10,7 @@ GitHub-style patterns:
 """
 
 from django.urls import path
-from ..views.project_views import (
+from ..views.users import (
     user_profile,
 )
 from ..views.integration_views import (

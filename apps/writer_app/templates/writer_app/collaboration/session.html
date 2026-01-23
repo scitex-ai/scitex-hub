@@ -1,5 +1,5 @@
 {% extends "writer_app/base/app_base.html" %}
-{% load static %}
+{% load static vite %}
 {% comment %}
 Collaborative editing session {% endcomment %}
 {% block writer_css %}
@@ -37,5 +37,5 @@ Collaborative editing session {% endcomment %}
     </div>
 {% endblock %}
 {% block writer_js %}
-    <script src="{% static 'writer_app/js/collaboration/session.js' %}"></script>
+    {% vite_script 'writer_app/collaboration/session' %}
 {% endblock %}

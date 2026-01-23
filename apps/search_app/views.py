@@ -125,7 +125,7 @@ def search_repositories(query, current_user=None, limit=20):
             | Q(memberships__user=current_user)
         ).distinct()
     else:
-        # Anonymous: only public repos
+        # Visitor: only public repos
         repos = repos.filter(visibility="public")
 
     # Apply search filter

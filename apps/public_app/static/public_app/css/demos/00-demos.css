@@ -1,0 +1,156 @@
+/* Demos Page - Base Styles */
+
+.demos-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Hero Section */
+.demos-hero {
+  text-align: center;
+  padding: 3rem 2rem;
+  margin-bottom: 3rem;
+  background: linear-gradient(
+    135deg,
+    var(--bg-surface) 0%,
+    var(--bg-muted) 100%
+  );
+  border-radius: 16px;
+  border: 1px solid var(--border-default);
+}
+
+.demos-hero-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.demos-hero-subtitle {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Section Styling */
+.demos-section {
+  margin-bottom: 4rem;
+}
+
+.demos-section-title {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--border-default);
+}
+
+/* Tab Navigation */
+.demos-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  padding: 0.5rem;
+  background: var(--bg-muted);
+  border-radius: 12px;
+  border: 1px solid var(--border-default);
+}
+
+.demos-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.demos-tab:hover {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.demos-tab.active {
+  background: var(--scitex-color-04);
+  color: white;
+}
+
+.demos-tab i {
+  font-size: 1rem;
+}
+
+/* Tab Content */
+.demos-tab-content {
+  min-height: 400px;
+}
+
+.demos-tab-pane {
+  display: none;
+}
+
+.demos-tab-pane.active {
+  display: block;
+}
+
+/* Placeholder for Coming Soon */
+.demos-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4rem 2rem;
+  background: var(--bg-surface);
+  border: 2px dashed var(--border-default);
+  border-radius: 16px;
+  min-height: 300px;
+}
+
+.demos-placeholder i {
+  font-size: 4rem;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+  opacity: 0.5;
+}
+
+.demos-placeholder h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.demos-placeholder p {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.demos-placeholder-desc {
+  margin-top: 1rem !important;
+  font-size: 0.95rem !important;
+  color: var(--text-secondary) !important;
+  max-width: 400px;
+}
+
+.demos-placeholder-desc code {
+  background: var(--bg-muted);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+/* Dark Mode */
+[data-theme="dark"] .demos-hero {
+  background: linear-gradient(135deg, var(--bg-200) 0%, var(--bg-surface) 100%);
+}

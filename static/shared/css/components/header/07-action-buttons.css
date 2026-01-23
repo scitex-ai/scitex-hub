@@ -1,0 +1,55 @@
+/* Action Buttons - Using semantic tokens */
+.header-btn {
+  background: transparent;
+  border: 2px solid var(--border-default);
+  color: var(--text-primary);
+  padding: 5px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+}
+
+.header-btn:hover {
+  background: var(--bg-muted);
+  border-color: var(--scitex-color-04);
+  text-decoration: none;
+}
+
+/* Dark mode automatically handled by semantic tokens */
+[data-theme="dark"] .header-btn:hover {
+  border-color: var(--scitex-color-04);
+}
+
+.header-btn-primary {
+  background: var(--scitex-color-04);
+  border-color: var(--scitex-color-04);
+  color: var(--text-inverse);
+}
+
+.header-btn-primary:hover {
+  background: var(--scitex-color-03);
+  border-color: var(--scitex-color-03);
+  color: var(--text-inverse);
+}
+
+[data-theme="dark"] .header-btn-primary {
+  background: var(--scitex-color-04);
+  border-color: var(--scitex-color-04);
+  color: var(--text-inverse);
+  opacity: 0.9;
+}
+
+[data-theme="dark"] .header-btn-primary:hover {
+  background: var(--scitex-color-05);
+  border-color: var(--scitex-color-05);
+  color: var(--text-inverse);
+  opacity: 1;
+}
+

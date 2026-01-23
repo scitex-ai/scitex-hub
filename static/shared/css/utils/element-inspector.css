@@ -1,0 +1,328 @@
+/**
+ * Element Inspector Styles
+ * Visual debugging tool for HTML elements
+ */
+
+.element-inspector-box {
+    position: absolute;
+    border: 2px solid;
+    box-sizing: border-box;
+    pointer-events: auto;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: rgba(255, 255, 255, 0.01);
+}
+
+.element-inspector-box:hover {
+    border-width: 3px;
+    background: rgba(59, 130, 246, 0.1);
+    box-shadow:
+        0 0 0 2px rgba(255, 255, 255, 0.6),
+        0 0 15px rgba(59, 130, 246, 0.4);
+}
+
+.element-inspector-box.highlighted {
+    border-width: 4px;
+    z-index: 999999;
+    background: rgba(59, 130, 246, 0.2);
+    box-shadow:
+        0 0 0 3px rgba(255, 255, 255, 0.9),
+        0 0 30px rgba(59, 130, 246, 0.8),
+        inset 0 0 30px rgba(59, 130, 246, 0.3);
+    animation: pulse 1s ease-in-out infinite;
+}
+
+.element-inspector-selected {
+    /* Colors applied dynamically based on depth */
+    transition: outline 0.15s, background 0.15s, box-shadow 0.15s;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        box-shadow:
+            0 0 0 3px rgba(255, 255, 255, 0.9),
+            0 0 30px rgba(59, 130, 246, 0.8),
+            inset 0 0 30px rgba(59, 130, 246, 0.3);
+    }
+    50% {
+        box-shadow:
+            0 0 0 4px rgba(255, 255, 255, 1),
+            0 0 40px rgba(59, 130, 246, 1),
+            inset 0 0 40px rgba(59, 130, 246, 0.4);
+    }
+}
+
+.element-inspector-label {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 1px 4px;
+    font-size: 10px;
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+    border-radius: 2px;
+    white-space: nowrap;
+    pointer-events: auto;
+    cursor: pointer;
+    z-index: 1000000;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    line-height: 1.4;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background 0.2s, transform 0.1s;
+}
+
+.element-inspector-label:hover {
+    background: rgba(30, 30, 30, 0.95);
+    transform: scale(1.05);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+}
+
+.element-inspector-label:active {
+    transform: scale(0.98);
+}
+
+.element-inspector-label.copied {
+    background: rgba(16, 185, 129, 0.9);
+    animation: copied-flash 0.5s ease;
+}
+
+@keyframes copied-flash {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+@keyframes slideIn {
+    from { transform: translateX(400px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(400px); opacity: 0; }
+}
+
+.camera-flash {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: white;
+    pointer-events: none;
+    z-index: 99999999;
+    animation: cameraFlash 0.5s ease-out;
+}
+
+@keyframes cameraFlash {
+    0% { opacity: 0; }
+    15% { opacity: 0.9; }
+    30% { opacity: 0; }
+    45% { opacity: 0.6; }
+    60% { opacity: 0; }
+    100% { opacity: 0; }
+}
+
+.selection-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0, 0, 0, 0.3) !important;
+    pointer-events: none !important;
+    z-index: 2147483646 !important;
+}
+
+/* Force crosshair cursor during selection mode */
+body.element-inspector-selection-mode,
+body.element-inspector-selection-mode * {
+    cursor: crosshair !important;
+}
+
+.selection-rectangle {
+    position: fixed !important;
+    border: 2px dotted rgba(59, 130, 246, 1) !important;
+    background: transparent !important;
+    pointer-events: none !important;
+    z-index: 2147483647 !important;
+    box-shadow: 0 0 0 99999px rgba(0, 0, 0, 0.3) !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.selection-info {
+    position: absolute;
+    bottom: -32px;
+    right: 0;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.98) 0%, rgba(37, 99, 235, 0.98) 100%);
+    color: white;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    border-radius: 6px;
+    pointer-events: none;
+    font-weight: 600;
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.4),
+        0 0 20px rgba(59, 130, 246, 0.3);
+    white-space: nowrap;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(4px);
+}
+
+.selection-toolbar {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    display: flex;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.98);
+    padding: 6px;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    pointer-events: auto;
+}
+
+.selection-toolbar-btn {
+    padding: 6px 12px;
+    border: none;
+    background: rgba(59, 130, 246, 0.1);
+    color: #1e40af;
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.selection-toolbar-btn:hover {
+    background: rgba(59, 130, 246, 0.2);
+    transform: translateY(-1px);
+}
+
+.selection-corners {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.selection-corner {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: white;
+    border: 3px solid rgba(59, 130, 246, 1);
+    border-radius: 2px;
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.4),
+        0 0 12px rgba(59, 130, 246, 0.6);
+    animation: corner-pulse 2s ease-in-out infinite;
+}
+
+@keyframes corner-pulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow:
+            0 2px 8px rgba(0, 0, 0, 0.4),
+            0 0 12px rgba(59, 130, 246, 0.6);
+    }
+    50% {
+        transform: scale(1.2);
+        box-shadow:
+            0 2px 12px rgba(0, 0, 0, 0.5),
+            0 0 18px rgba(59, 130, 246, 0.9);
+    }
+}
+
+.selection-corner.top-left { top: -6px; left: -6px; }
+.selection-corner.top-right { top: -6px; right: -6px; }
+.selection-corner.bottom-left { bottom: -6px; left: -6px; }
+.selection-corner.bottom-right { bottom: -6px; right: -6px; }
+
+.layer-picker-menu {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.98);
+    border: 2px solid #3B82F6;
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    z-index: 100000000;
+    min-width: 250px;
+    max-height: 400px;
+    overflow-y: auto;
+    pointer-events: auto;
+}
+
+.layer-picker-header {
+    padding: 8px 12px;
+    background: #3B82F6;
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.layer-picker-item {
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    font-size: 11px;
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.layer-picker-item:hover {
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.layer-picker-item:active {
+    background: rgba(59, 130, 246, 0.2);
+}
+
+.layer-picker-depth {
+    display: inline-block;
+    width: 30px;
+    text-align: right;
+    color: #666;
+    font-size: 10px;
+}
+
+.layer-picker-tag {
+    color: #CE9178;
+}
+
+.layer-picker-id {
+    color: #4EC9B0;
+    font-weight: bold;
+}
+
+.layer-picker-class {
+    color: #9CDCFE;
+}
+
+.element-inspector-label-id {
+    color: #4EC9B0;
+    font-weight: bold;
+}
+
+.element-inspector-label-class {
+    color: #9CDCFE;
+}
+
+.element-inspector-label-tag {
+    color: #CE9178;
+}
+
+/* Responsive: hide labels on very small screens */
+@media (max-width: 768px) {
+    .element-inspector-label {
+        font-size: 8px;
+        padding: 1px 3px;
+    }
+}

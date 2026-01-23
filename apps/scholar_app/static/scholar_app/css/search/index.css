@@ -1,0 +1,25 @@
+/*
+ * Scholar App - Literature Search Styles Index
+ *
+ * This file imports all modular search CSS files:
+ * - layout.css: Search page layout and structure
+ * - form.css: Search input and submission
+ * - results.css: Result cards and display
+ * - filters.css: Filter UI (toggles, sliders, sort)
+ * - pagination.css: Pagination controls
+ *
+ * Styles specific to the literature search feature:
+ * - Search input and button
+ * - Search filters (toggles, sliders, accordions)
+ * - Source-specific toggle colors
+ * - Sort controls
+ * - Side panel
+ * - Pagination
+ * - Search results display
+ */
+
+@import url("layout.css");
+@import url("form.css");
+@import url("results.css");
+@import url("filters.css");
+@import url("pagination.css");

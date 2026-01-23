@@ -35,7 +35,7 @@ def get_current_project(request, user=None):
         if request.user.is_authenticated:
             user = request.user
         else:
-            # Return None for anonymous users - let caller handle guest creation
+            # Return None for visitor users - let caller handle guest creation
             return None
 
     current_project = None

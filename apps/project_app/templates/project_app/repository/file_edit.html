@@ -1,5 +1,5 @@
 {% extends "global_base.html" %}
-{% load static %}
+{% load static vite %}
 {% block title %}
     Edit {{ file_name }} - {{ project.name }}
 {% endblock %}
@@ -104,5 +104,5 @@
     </div>
 {% endblock %}
 {% block extra_js %}
-    <script src="{% static 'project_app/js/repository/file_edit.js' %}"></script>
+    {% vite_script 'project_app/repository/file_edit' %}
 {% endblock %}

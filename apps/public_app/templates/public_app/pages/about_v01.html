@@ -1,0 +1,384 @@
+{% extends "global_base.html" %}
+{% block title %}
+    About SciTeX - Integrated Research Infrastructure
+{% endblock %}
+{% block meta_description %}
+    SciTeX is an integrated research computing platform with container-based execution,
+    job scheduling, workflow integration, and reproducibility tracking.
+{% endblock %}
+{% block extra_css %}
+    {% load static %}
+    <!-- About Page CSS Modules (refactored from monolithic about.css) -->
+    <link rel="stylesheet" href="{% static 'public_app/css/about/00-about.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/about/01-alpha-notice.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/about/02-context.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/about/03-technical-stack.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/about/04-use-cases.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/about/05-workflow-description.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/about/06-hero.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/about/07-section-styling.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/about/08-comparison.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/about/09-workflow.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/about/10-deployment-democracy.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/about/11-deployment-list.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/about/12-reproducibility.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/about/13-status-card.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/about/14-cta.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/about/15-join-actions.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/about/16-responsive.css' %}" />
+{% endblock %}
+{% block content %}
+    <div class="about-container">
+        <!-- Alpha Notice -->
+        <div class="about-alpha-notice">
+            <i class="fas fa-flask"></i>
+            <span>Alpha Release: Active development. Expect breaking changes.</span>
+        </div>
+
+        <!-- Hero Section -->
+        <header class="about-hero">
+            <div class="about-hero-content">
+                <h1 class="about-hero-title">Integrated Research<br>Infrastructure</h1>
+                <p class="about-hero-subtitle">
+                    Integrated environment for computational research workflows.
+                    From literature to publication with reproducible execution.
+                </p>
+                <div class="about-hero-cta">
+                    <a href="https://github.com/scitex-ai"
+                       class="btn btn-primary btn-lg"
+                       target="_blank">
+                        <i class="fab fa-github"></i> Repository
+                    </a>
+                    <a href="{% url 'public_app:api-docs' %}"
+                       class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-book"></i> API Docs
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Context -->
+        <section class="about-section about-context">
+            <p class="about-context-text">
+                Research workflows typically span multiple disconnected tools:
+                reference managers, text editors, analysis environments, plotting libraries.
+                SciTeX provides integrated infrastructure connecting these components
+                through shared workspaces with reproducible execution.
+            </p>
+        </section>
+
+        <!-- Technical Architecture -->
+        <section class="about-section">
+            <div class="about-section-header">
+                <h2 class="about-section-title">Technical Architecture</h2>
+            </div>
+            <div class="about-comparison-grid">
+                <div class="about-comparison-card about-comparison-old">
+                    <h3 class="about-comparison-title">Traditional Approach</h3>
+                    <div class="about-comparison-items">
+                        <div class="comparison-item">
+                            <span class="comparison-label">Literature</span>
+                            <span class="comparison-value">Standalone managers</span>
+                        </div>
+                        <div class="comparison-item">
+                            <span class="comparison-label">Writing</span>
+                            <span class="comparison-value">Separate editors</span>
+                        </div>
+                        <div class="comparison-item">
+                            <span class="comparison-label">Analysis</span>
+                            <span class="comparison-value">Local scripts</span>
+                        </div>
+                        <div class="comparison-item">
+                            <span class="comparison-label">Visualization</span>
+                            <span class="comparison-value">Manual plotting</span>
+                        </div>
+                        <div class="comparison-item">
+                            <span class="comparison-label">Compute</span>
+                            <span class="comparison-value">Manual job submission</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="about-comparison-card about-comparison-new">
+                    <h3 class="about-comparison-title">SciTeX Infrastructure</h3>
+                    <div class="about-comparison-items">
+                        <div class="comparison-item">
+                            <span class="comparison-label">Scholar</span>
+                            <span class="comparison-value">API integration</span>
+                        </div>
+                        <div class="comparison-item">
+                            <span class="comparison-label">Writer</span>
+                            <span class="comparison-value">LaTeX + CI/CD</span>
+                        </div>
+                        <div class="comparison-item">
+                            <span class="comparison-label">Console</span>
+                            <span class="comparison-value">Container + SLURM</span>
+                        </div>
+                        <div class="comparison-item">
+                            <span class="comparison-label">Visualizer</span>
+                            <span class="comparison-value">Programmatic generation</span>
+                        </div>
+                        <div class="comparison-item">
+                            <span class="comparison-label">Compute</span>
+                            <span class="comparison-value">Integrated scheduling</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Stack -->
+        <section class="about-section">
+            <div class="about-section-header">
+                <h2 class="about-section-title">Technical Stack</h2>
+            </div>
+            <div class="about-stack-grid">
+                <div class="about-stack-card">
+                    <h3 class="stack-title">Execution Infrastructure</h3>
+                    <ul class="stack-list">
+                        <li><strong>Containers:</strong> Apptainer/Singularity (user-customizable)</li>
+                        <li><strong>Scheduling:</strong> SLURM (multi-user resource management)</li>
+                        <li><strong>Platform:</strong> Docker (web services)</li>
+                        <li><strong>Storage:</strong> Standard POSIX filesystems</li>
+                    </ul>
+                </div>
+                <div class="about-stack-card">
+                    <h3 class="stack-title">Language Support</h3>
+                    <ul class="stack-list">
+                        <li><strong>Any language:</strong> via containers</li>
+                        <li><strong>Common:</strong> Python, R, Julia</li>
+                        <li><strong>Scripts:</strong> Shell, Bash</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- SciTeX Workflow -->
+        <section class="about-section about-research-os">
+            <div class="about-section-header">
+                <h2 class="about-section-title">SciTeX Workflow</h2>
+            </div>
+            <div class="about-workflow-container">
+                <div class="about-workflow">
+                    <div class="workflow-step">
+                        <div class="workflow-icon"><i class="fas fa-book"></i></div>
+                        <div class="workflow-label">Scholar</div>
+                    </div>
+                    <div class="workflow-arrow"><i class="fas fa-arrow-right"></i></div>
+                    <div class="workflow-step">
+                        <div class="workflow-icon"><i class="fas fa-pen-fancy"></i></div>
+                        <div class="workflow-label">Writer</div>
+                    </div>
+                    <div class="workflow-arrow"><i class="fas fa-arrow-right"></i></div>
+                    <div class="workflow-step">
+                        <div class="workflow-icon"><i class="fas fa-terminal"></i></div>
+                        <div class="workflow-label">Console</div>
+                    </div>
+                    <div class="workflow-arrow"><i class="fas fa-arrow-right"></i></div>
+                    <div class="workflow-step">
+                        <div class="workflow-icon"><i class="fas fa-chart-line"></i></div>
+                        <div class="workflow-label">Visualizer</div>
+                    </div>
+                    <div class="workflow-arrow"><i class="fas fa-arrow-right"></i></div>
+                    <div class="workflow-step workflow-step-final">
+                        <div class="workflow-icon"><i class="fas fa-file-alt"></i></div>
+                        <div class="workflow-label">Output</div>
+                    </div>
+                </div>
+                <p class="workflow-description">
+                    End-to-end integration from literature review to publication.
+                    Each module shares context through unified workspace.
+                </p>
+            </div>
+        </section>
+
+        <!-- Use Cases -->
+        <section class="about-section">
+            <div class="about-section-header">
+                <h2 class="about-section-title">Use Cases</h2>
+            </div>
+            <div class="about-usecases-grid">
+                <div class="about-usecase-card">
+                    <h3 class="usecase-title"><i class="fas fa-book"></i> Literature Review</h3>
+                    <ul class="usecase-list">
+                        <li>Search and import papers</li>
+                        <li>Annotate and organize</li>
+                        <li>Generate bibliography</li>
+                    </ul>
+                </div>
+                <div class="about-usecase-card">
+                    <h3 class="usecase-title"><i class="fas fa-chart-bar"></i> Data Analysis</h3>
+                    <ul class="usecase-list">
+                        <li>Submit compute jobs</li>
+                        <li>Monitor execution</li>
+                        <li>Retrieve results</li>
+                    </ul>
+                </div>
+                <div class="about-usecase-card">
+                    <h3 class="usecase-title"><i class="fas fa-edit"></i> Manuscript Preparation</h3>
+                    <ul class="usecase-list">
+                        <li>LaTeX compilation</li>
+                        <li>Figure integration</li>
+                        <li>Citation management</li>
+                    </ul>
+                </div>
+                <div class="about-usecase-card">
+                    <h3 class="usecase-title"><i class="fas fa-sync-alt"></i> Reproducible Research</h3>
+                    <ul class="usecase-list">
+                        <li>Version environments</li>
+                        <li>Track parameters</li>
+                        <li>Archive outputs</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Deployment Options -->
+        <section class="about-section">
+            <div class="about-section-header">
+                <h2 class="about-section-title">Deployment Options</h2>
+            </div>
+            <div class="about-democracy-grid">
+                <div class="about-democracy-card">
+                    <div class="democracy-icon"><i class="fas fa-server"></i></div>
+                    <h3 class="democracy-title">Local</h3>
+                    <ul class="deployment-list">
+                        <li>Single server deployment</li>
+                        <li>Direct hardware access</li>
+                        <li>Institutional control</li>
+                    </ul>
+                </div>
+                <div class="about-democracy-card">
+                    <div class="democracy-icon"><i class="fas fa-network-wired"></i></div>
+                    <h3 class="democracy-title">HPC</h3>
+                    <ul class="deployment-list">
+                        <li>Cluster integration</li>
+                        <li>Batch job submission</li>
+                        <li>Shared filesystem</li>
+                    </ul>
+                </div>
+                <div class="about-democracy-card">
+                    <div class="democracy-icon"><i class="fas fa-cloud"></i></div>
+                    <h3 class="democracy-title">Hybrid</h3>
+                    <ul class="deployment-list">
+                        <li>Multi-site federation</li>
+                        <li>SLURM scheduling</li>
+                        <li>Unified interface</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reproducibility Features -->
+        <section class="about-section about-reproducibility">
+            <div class="about-section-header">
+                <h2 class="about-section-title">Reproducibility Features</h2>
+            </div>
+            <div class="about-reproducibility-card">
+                <div class="reproducibility-grid">
+                    <div class="reproducibility-item">
+                        <i class="fas fa-cube"></i>
+                        <span>Container Definitions</span>
+                        <small>Apptainer/Singularity images</small>
+                    </div>
+                    <div class="reproducibility-item">
+                        <i class="fab fa-git-alt"></i>
+                        <span>Code Versioning</span>
+                        <small>Git integration, commit tracking</small>
+                    </div>
+                    <div class="reproducibility-item">
+                        <i class="fas fa-database"></i>
+                        <span>Data Provenance</span>
+                        <small>Input checksums, lineage</small>
+                    </div>
+                    <div class="reproducibility-item">
+                        <i class="fas fa-sliders-h"></i>
+                        <span>Parameter Recording</span>
+                        <small>Execution args, config files</small>
+                    </div>
+                    <div class="reproducibility-item">
+                        <i class="fas fa-archive"></i>
+                        <span>Result Archiving</span>
+                        <small>Output versioning, backups</small>
+                    </div>
+                    <div class="reproducibility-item">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span>Execution Logs</span>
+                        <small>SLURM records, resource metrics</small>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Development Status -->
+        <section class="about-section">
+            <div class="about-section-header">
+                <h2 class="about-section-title">Development Status</h2>
+            </div>
+            <div class="about-status-card">
+                <div class="status-badge">Alpha</div>
+                <div class="status-details">
+                    <div class="status-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Core modules integrated</span>
+                    </div>
+                    <div class="status-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Container execution</span>
+                    </div>
+                    <div class="status-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>SLURM scheduling</span>
+                    </div>
+                    <div class="status-item">
+                        <i class="fas fa-spinner"></i>
+                        <span>UI stabilizing</span>
+                    </div>
+                    <div class="status-item">
+                        <i class="fas fa-spinner"></i>
+                        <span>Documentation expanding</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contributing -->
+        <section class="about-cta-section">
+            <h2 class="about-cta-title">Contributing</h2>
+            <div class="about-join-grid">
+                <div class="about-join-card">
+                    <span class="about-join-icon"><i class="fas fa-bug"></i></span>
+                    <h3 class="about-join-title">Test</h3>
+                    <p class="about-join-text">Deploy, report issues</p>
+                </div>
+                <div class="about-join-card">
+                    <span class="about-join-icon"><i class="fas fa-share-alt"></i></span>
+                    <h3 class="about-join-title">Share</h3>
+                    <p class="about-join-text">Containers, pipelines</p>
+                </div>
+                <div class="about-join-card">
+                    <span class="about-join-icon"><i class="fas fa-code"></i></span>
+                    <h3 class="about-join-title">Develop</h3>
+                    <p class="about-join-text">Code, fixes</p>
+                </div>
+                <div class="about-join-card">
+                    <span class="about-join-icon"><i class="fas fa-comments"></i></span>
+                    <h3 class="about-join-title">Discuss</h3>
+                    <p class="about-join-text">PRs, feedback</p>
+                </div>
+            </div>
+            <div class="about-cta-buttons">
+                <a href="https://github.com/scitex-ai" class="btn btn-primary btn-lg">
+                    <i class="fab fa-github"></i> GitHub
+                </a>
+                <a href="{% url 'public_app:api-docs' %}"
+                   class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-book"></i> Docs
+                </a>
+                <a href="{% url 'public_app:contact' %}"
+                   class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-envelope"></i> Contact
+                </a>
+            </div>
+        </section>
+    </div>
+{% endblock %}

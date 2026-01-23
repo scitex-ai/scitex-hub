@@ -1,0 +1,90 @@
+/* ============================================================================= */
+/* FILE VIEW - SYNTAX HIGHLIGHTING */
+/* ============================================================================= */
+/* Syntax highlighting styles for code display */
+/* ============================================================================= */
+
+/* Syntax highlighting (Pygments) - MOVED TO CENTRAL CSS */
+/* See static/css/common/syntax-highlighting.css for all syntax highlighting styles */
+
+.highlight {
+  border: none;
+  /* Styling moved to central CSS - see static/css/common/syntax-highlighting.css */
+  /* font-size: 13px; */
+  /* background: var(--color-canvas-default); */
+}
+
+.highlight table {
+  border-spacing: 0;
+  width: 100%;
+  border: none;
+}
+
+.highlight .linenos {
+  padding: 0 1rem;
+  text-align: right;
+  user-select: none;
+  vertical-align: top;
+  /* Styling moved to central CSS - see static/css/common/syntax-highlighting.css */
+  /* background: var(--color-canvas-subtle); */
+  /* color: var(--color-fg-muted); */
+  /* border-right: 1px solid var(--color-border-default); */
+}
+
+.highlight .code {
+  padding-left: 1rem;
+  width: 100%;
+}
+
+.highlight pre {
+  margin: 0;
+  padding: 0;
+}
+
+/* Pygments syntax colors - MOVED TO CENTRAL CSS */
+/* See static/css/common/syntax-highlighting.css for all color definitions */
+
+/* CSS Custom Properties for Code Fonts - MOVED TO CENTRAL CSS */
+/* :root {
+    --font-mono: ui-monospace, 'Cascadia Code', 'Cascadia Mono', SFMono-Regular,
+                 'SF Mono', Menlo, Monaco, 'Roboto Mono', 'Source Code Pro',
+                 'Fira Code', 'Fira Mono', Consolas, 'Liberation Mono',
+                 'Courier New', monospace;
+    --code-font-size: 12px;
+    --code-line-height: 20px;
+    --code-font-weight: 400;
+} */
+
+/* :root {
+    --syntax-bg: var(--color-canvas-default);
+    --syntax-comment: #6a737d;
+    --syntax-error: #f97583;
+    --syntax-keyword: #d73a49;
+    --syntax-text: #24292e;
+    --syntax-number: #005cc5;
+    --syntax-string: #032f62;
+    --syntax-class: #6f42c1;
+    --syntax-function: #6f42c1;
+    --syntax-tag: #22863a;
+    --syntax-variable: #e36209;
+} */
+
+/* Dark mode syntax colors - MOVED TO CENTRAL CSS */
+/* [data-theme="dark"] {
+    --syntax-bg: var(--color-canvas-default);
+    --syntax-comment: #8b949e;
+    --syntax-error: #ff7b72;
+    --syntax-keyword: #ff7b72;
+    --syntax-text: #c9d1d9;
+    --syntax-number: #79c0ff;
+    --syntax-string: #a5d6ff;
+    --syntax-class: #d2a8ff;
+    --syntax-function: #d2a8ff;
+    --syntax-tag: #7ee787;
+    --syntax-variable: #ffa657;
+} */
+
+/* All .highlight color classes moved to static/css/common/syntax-highlighting.css */
+/* .highlight { background: var(--syntax-bg); } */
+/* .highlight .hll { background-color: rgba(255, 255, 204, 0.3) } */
+/* ... (60+ lines of syntax highlighting styles) ... */

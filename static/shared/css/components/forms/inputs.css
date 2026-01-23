@@ -1,0 +1,99 @@
+/*
+ * @component Form Inputs
+ * @description Text input fields, textareas, and input sizes
+ * @category Form and Selection
+ * @file /static/shared/css/components/forms/inputs.css
+ * @darkmode true
+ */
+
+/* =========================
+   Form Control (Input/Textarea)
+   ========================= */
+
+/* Form Control */
+.form-control {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  margin: var(--spacing-xs);
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background-color: var(--bg-page);
+  background-clip: padding-box;
+  border: 2px solid var(--border-default);
+  border-radius: 6px;
+  transition:
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Dark mode form controls - bluish theme */
+[data-theme="dark"] .form-control {
+  color: var(--scitex-color-06);
+  background-color: var(--scitex-color-01-light);
+  border-color: var(--scitex-color-04);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.form-control:focus {
+  border-color: var(--scitex-color-04);
+  outline: 0;
+  box-shadow:
+    0 0 0 3px rgba(108, 139, 160, 0.15),
+    0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode focus state - bluish glow */
+[data-theme="dark"] .form-control:focus {
+  border-color: var(--scitex-color-05);
+  box-shadow:
+    0 0 0 3px rgba(108, 139, 160, 0.2),
+    0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.form-control::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.85;
+}
+
+/* Dark mode placeholder - bluish muted color */
+[data-theme="dark"] .form-control::placeholder {
+  color: var(--scitex-color-05);
+  opacity: 0.75;
+}
+
+.form-control:disabled,
+.form-control[readonly] {
+  background-color: var(--bg-surface);
+  opacity: 0.7;
+}
+
+/* Dark mode disabled state */
+[data-theme="dark"] .form-control:disabled,
+[data-theme="dark"] .form-control[readonly] {
+  background-color: var(--scitex-color-01);
+  color: var(--scitex-color-04);
+  opacity: 0.6;
+}
+
+/* =========================
+   Form Sizes
+   ========================= */
+
+.form-control-sm {
+  height: calc(1.5em + 0.5rem + 2px);
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  border-radius: calc(var(--border-radius) * 0.75);
+}
+
+.form-control-lg {
+  height: calc(1.5em + 1rem + 2px);
+  padding: 0.5rem 1rem;
+  font-size: 1.25rem;
+  line-height: 1.5;
+  border-radius: calc(var(--border-radius) * 1.25);
+}

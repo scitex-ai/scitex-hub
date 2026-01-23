@@ -1,0 +1,17 @@
+/* Dark theme support */
+[data-theme="dark"] .terminal-body {
+  background: var(--workspace-bg-primary) !important; /* Match workspace black theme */
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .code-terminal-panel {
+  border-left-color: var(--workspace-border-default); /* Workspace darkish border instead of bluish */
+}
+
+/* Removed duplicate rule - workspace colors already set above at line 220-224 */
+/* [data-theme="dark"] .sidebar-header {
+  border-top-color: var(--border-default);
+  border-bottom-color: var(--border-default);
+} */
+
+

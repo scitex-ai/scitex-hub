@@ -16,6 +16,63 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.2;
+  background-image:
+    radial-gradient(circle at 20% 30%, var(--_scitex-04) 2px, transparent 2px),
+    radial-gradient(circle at 60% 70%, var(--_scitex-05) 3px, transparent 3px),
+    radial-gradient(
+      circle at 80% 20%,
+      var(--_scitex-03) 1.5px,
+      transparent 1.5px
+    ),
+    radial-gradient(
+      circle at 40% 80%,
+      var(--_scitex-04) 2.5px,
+      transparent 2.5px
+    ),
+    radial-gradient(circle at 10% 60%, var(--_scitex-05) 2px, transparent 2px);
+  background-size:
+    100px 100px,
+    150px 150px,
+    80px 80px,
+    120px 120px,
+    90px 90px;
+  background-position:
+    0 0,
+    40px 60px,
+    130px 270px,
+    70px 100px,
+    150px 30px;
+}
+
+[data-theme="dark"] body::before {
+  opacity: 0.15;
+  background-image:
+    radial-gradient(circle at 20% 30%, var(--_scitex-05) 2px, transparent 2px),
+    radial-gradient(circle at 60% 70%, var(--_scitex-06) 3px, transparent 3px),
+    radial-gradient(
+      circle at 80% 20%,
+      var(--_scitex-04) 1.5px,
+      transparent 1.5px
+    ),
+    radial-gradient(
+      circle at 40% 80%,
+      var(--_scitex-05) 2.5px,
+      transparent 2.5px
+    ),
+    radial-gradient(circle at 10% 60%, var(--_scitex-06) 2px, transparent 2px);
 }
 
 /* =========================
@@ -24,6 +81,67 @@ body {
 
 #main-content {
   flex: 1;
+  position: relative;
+  z-index: 1;
+  padding-top: var(--spacing-lg); /* 24px space below header */
+}
+
+/* NOTE: All pages now use this global padding-top for consistency.
+   Avoid adding inline padding-top styles in page templates to prevent double spacing. */
+
+/* =========================
+   Workspace Pages - Maximize Space
+   ========================= */
+
+/* Remove/reduce padding for Code/Vis/Writer pages to maximize workspace */
+body.workspace-page {
+  height: 100vh;  /* Use exact height instead of min-height for workspace pages */
+  max-height: 100vh;  /* Prevent growing beyond viewport */
+  overflow: hidden;  /* Prevent body scrolling - panels handle their own overflow */
+}
+
+body.workspace-page #main-content {
+  padding-top: 0;
+  padding-bottom: 0;
+  /* Make main-content fill remaining space for workspace pages */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;  /* Allow flexbox shrinking */
+}
+
+/* Workspace containers should fill available space */
+body.workspace-page #main-content .code-workspace,
+body.workspace-page #main-content .writer-workspace,
+body.workspace-page #main-content .scholar-workspace,
+body.workspace-page #main-content .vis-workspace,
+body.workspace-page #main-content .vis-editor-container,
+body.workspace-page #main-content .editor-container {
+  flex: 1;
+  min-height: 0; /* Allow shrinking */
+}
+
+body.workspace-page .site-footer {
+  display: none; /* Hide footer completely for workspace pages (Code, Vis, Writer) */
+}
+
+/* =========================
+   Landing Page Override
+   ========================= */
+/* Landing page should NOT have workspace constraints - allow normal scrolling */
+body.workspace-page.landing-page {
+  height: auto;
+  max-height: none;
+  overflow: auto;
+}
+
+body.workspace-page.landing-page #main-content {
+  display: block;
+  overflow: visible;
+}
+
+body.workspace-page.landing-page .site-footer {
+  display: block; /* Show footer on landing page */
 }
 
 /* =========================

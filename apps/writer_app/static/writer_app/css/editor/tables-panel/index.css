@@ -1,0 +1,11 @@
+/* ============================================================================
+ * Tables Panel Styles - Module Index
+ * ============================================================================
+ * Drag-and-drop table cards for the Writer interface
+ * Toggles with PDF preview and Citations in the right panel
+ * ========================================================================== */
+
+@import url('./layout.css');
+@import url('./table.css');
+@import url('./controls.css');
+@import url('./modal.css');

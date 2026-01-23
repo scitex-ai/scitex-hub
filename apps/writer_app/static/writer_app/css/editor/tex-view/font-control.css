@@ -1,0 +1,59 @@
+/* ========================================
+ * Panel Resizer Handle
+ * Draggable divider between editor and preview
+ * ======================================== */
+
+/* Panel resizer uses standard workspace resizer from shared/css/components/panel-resizer.css */
+/* Override z-index to ensure resizer stays behind Monaco editor widgets */
+.panel-resizer,
+.panel-resizer::before,
+.panel-resizer::after,
+.panel-resizer:hover,
+.panel-resizer.active {
+  z-index: 1 !important; /* Stay well below Monaco widgets (999999) */
+}
+
+/* ========================================
+ * Font Size Control Styling
+ * ======================================== */
+
+.font-size-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.font-size-control .form-label {
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.font-size-control .form-range {
+  width: 120px;
+  height: 4px;
+  cursor: pointer;
+  background: var(--workspace-bg-secondary);
+  border-radius: 2px;
+}
+
+.font-size-control .form-range::-webkit-slider-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-accent-emphasis);
+  cursor: pointer;
+  border: 2px solid var(--bg-page);
+}
+
+.font-size-control .form-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-accent-emphasis);
+  cursor: pointer;
+  border: 2px solid var(--bg-page);
+}
+

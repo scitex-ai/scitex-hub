@@ -1,0 +1,15 @@
+/* Sidebar signup link for visitors */
+.sidebar-signup-link {
+  display: block;
+  font-size: 11px;
+  color: var(--workspace-icon-primary);
+  text-decoration: none;
+  margin-left: 22px;
+  transition: color 0.2s ease;
+}
+
+.sidebar-signup-link:hover {
+  color: var(--workspace-icon-hover);
+  text-decoration: none;
+}
+

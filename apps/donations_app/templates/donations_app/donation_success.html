@@ -142,7 +142,7 @@
                     </p>
                     <p class="mb-0">This receipt can be used for tax deduction purposes where applicable.</p>
                 </div>
-                {% if donation.is_public and not donation.is_anonymous %}
+                {% if donation.is_public and not donation.is_visitor %}
                     <div class="share-buttons">
                         <h4>Share Your Support</h4>
                         <a href="https://twitter.com/intent/tweet?text=I%20just%20supported%20%40SciTeX_AI%20to%20help%20make%20scientific%20research%20more%20accessible!%20%23OpenScience&url=https://scitex.ai"

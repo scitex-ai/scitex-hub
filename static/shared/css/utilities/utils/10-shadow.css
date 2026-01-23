@@ -1,0 +1,29 @@
+/* ========================================================================
+   SHADOW UTILITIES
+   ======================================================================== */
+
+.shadow-none {
+  box-shadow: none !important;
+}
+.shadow-sm {
+  box-shadow: var(--box-shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.05)) !important;
+}
+.shadow {
+  box-shadow: var(
+    --box-shadow-md,
+    0 4px 6px -1px rgba(0, 0, 0, 0.1)
+  ) !important;
+}
+.shadow-md {
+  box-shadow: var(
+    --box-shadow-md,
+    0 4px 6px -1px rgba(0, 0, 0, 0.1)
+  ) !important;
+}
+.shadow-lg {
+  box-shadow: var(
+    --box-shadow-lg,
+    0 10px 15px -3px rgba(0, 0, 0, 0.1)
+  ) !important;
+}
+

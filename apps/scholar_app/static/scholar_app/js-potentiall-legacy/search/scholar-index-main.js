@@ -391,7 +391,7 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .catch((error) => console.error("Error saving preferences:", error));
     } else {
-      // For anonymous users, use localStorage
+      // For visitor users, use localStorage
       localStorage.setItem(
         "scholar_source_preferences",
         JSON.stringify(preferences),
@@ -482,7 +482,7 @@ document.addEventListener("DOMContentLoaded", function () {
           loadSourcePreferencesFromStorage();
         });
     } else {
-      // Load from localStorage for anonymous users
+      // Load from localStorage for visitor users
       loadSourcePreferencesFromStorage();
     }
   }

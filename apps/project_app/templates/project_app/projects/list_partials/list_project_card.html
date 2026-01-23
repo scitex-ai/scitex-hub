@@ -1,15 +1,21 @@
 <!-- Project Card Partial -->
-<div class="project-card">
-    <div class="project-title">
-        <a href="{{ project.get_absolute_url }}">{{ project.name }}</a>
+<div class="card card--repo card-clickable">
+    <div class="card-body">
+        <h3 class="card-title">
+            <a href="{{ project.get_absolute_url }}" style="text-decoration: none; color: inherit;">{{ project.name }}</a>
+        </h3>
+        <p class="card-text">{{ project.description|truncatechars:100 }}</p>
+        <div class="project-meta">
+            <small class="text-secondary">Updated: {{ project.updated_at|date:"M j, Y" }}</small>
+        </div>
     </div>
-    <div class="project-description">{{ project.description|truncatechars:100 }}</div>
-    <div class="project-meta">Updated: {{ project.updated_at|date:"M j, Y" }}</div>
-    <div class="project-actions">
-        <a href="{{ project.get_absolute_url }}" class="btn btn-sm btn-primary">Open</a>
-        <a href="{% url 'user_projects:files' username=project.owner.username slug=project.slug %}"
-           class="btn btn-sm btn-secondary">Files</a>
-        <a href="{% url 'user_projects:edit' username=project.owner.username slug=project.slug %}"
-           class="btn btn-sm btn-outline-secondary">Edit</a>
+    <div class="card-footer">
+        <div class="project-actions">
+            <a href="{{ project.get_absolute_url }}" class="btn btn-sm btn-primary">Open</a>
+            <a href="{% url 'user_projects:files' username=project.owner.username slug=project.slug %}"
+               class="btn btn-sm btn-secondary">Files</a>
+            <a href="{% url 'user_projects:edit' username=project.owner.username slug=project.slug %}"
+               class="btn btn-sm btn-outline-secondary">Edit</a>
+        </div>
     </div>
 </div>

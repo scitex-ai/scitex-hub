@@ -145,17 +145,17 @@
   /* border-radius: 4px; */ /* Styling from central CSS */
   /* transition: background 0.2s; */ /* Styling from central CSS */
   /* font-size: 0.8rem; */ /* Styling from central CSS */
-  /* color: var(--color-fg-default); */ /* Styling from central CSS */
+  /* color: var(--text-primary); */ /* Styling from central CSS */
 }
 
 .pdf-outline-item-writer:hover {
-  /* background: var(--color-canvas-subtle); */ /* Styling from central CSS */
+  /* background: var(--workspace-bg-secondary); */ /* Styling from central CSS */
 }
 
 .pdf-outline-child-writer {
   padding-left: 1.5rem;
   /* font-size: 0.75rem; */ /* Styling from central CSS */
-  /* color: var(--color-fg-muted); */ /* Styling from central CSS */
+  /* color: var(--text-muted); */ /* Styling from central CSS */
 }
 
 /* ========================================

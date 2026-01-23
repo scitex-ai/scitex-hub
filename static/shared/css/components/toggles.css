@@ -185,7 +185,7 @@
 }
 
 .ios-toggle-text {
-  color: var(--color-fg-default);
+  color: var(--text-primary);
   font-size: 0.875rem;
   user-select: none;
 }
@@ -214,10 +214,10 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: var(--color-border-default);
+  background-color: var(--border-default);
   transition: 0.2s;
   border-radius: 18px;
-  border: 1px solid var(--color-border-muted);
+  border: 1px solid var(--border-muted);
 }
 
 /* Toggle knob (circular slider) */

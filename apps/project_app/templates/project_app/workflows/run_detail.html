@@ -1,5 +1,5 @@
 {% extends 'global_base.html' %}
-{% load static %}
+{% load static vite %}
 {% block title %}Run #{{ run.run_number }} - {{ workflow.name }} - {{ project.name }}{% endblock %}
 {% block extra_css %}
     <link rel="stylesheet"
@@ -124,5 +124,5 @@
     </div>
 {% endblock %}
 {% block extra_js %}
-    <script src="{% static 'project_app/js/workflows/run_detail.js' %}"></script>
+    {% vite_script 'project_app/workflows/run_detail' %}
 {% endblock %}

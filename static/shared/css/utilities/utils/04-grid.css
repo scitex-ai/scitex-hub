@@ -1,0 +1,32 @@
+/* ========================================================================
+   GRID UTILITIES
+   ======================================================================== */
+
+/* Grid Template Columns */
+.grid-cols-1 {
+  grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+}
+.grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+.grid-cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+.grid-cols-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+.grid-cols-6 {
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+}
+
+/* Grid Auto-fit (Responsive grids) */
+.grid-auto-fit-sm {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+}
+.grid-auto-fit-md {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
+}
+.grid-auto-fit-lg {
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)) !important;
+}
+

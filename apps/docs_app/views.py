@@ -8,71 +8,43 @@ from django.conf import settings
 from pathlib import Path
 
 
-# Documentation paths for each module
-# Note: code/scholar are in scitex_repo at repo root level, not in src/scitex
+# Documentation paths
 DOC_PATHS = {
-    "scholar": "../scitex_repo/docs/_build/html",  # scholar docs in main scitex repo
-    "code": "../scitex_repo/docs/_build/html",  # code docs in main scitex repo
-    "viz": "../SciTeX-Viz/docs/_build/html",
-    "writer": "../neurovista/paper/docs/_build/html",
+    "python": "../scitex-code/docs/sphinx/build/html",  # scitex PyPI package
 }
 
 
 def docs_index(request):
-    """Documentation landing page showing all available modules."""
+    """Documentation landing page."""
     context = {
         "modules": [
             {
-                "name": "Scholar",
-                "slug": "scholar",
-                "description": "Literature search and reference management",
-                "icon": "scitex-scholar-icon.svg",
-                "available": _check_docs_available("scholar"),
+                "name": "Python Package",
+                "slug": "python",
+                "description": "SciTeX Python package (pip install scitex)",
+                "icon": "scitex_logos/scitex-icons/scitex-icon-navy.svg",
+                "available": _check_docs_available("python"),
             },
             {
-                "name": "Code",
-                "slug": "code",
-                "description": "Research computing and analysis utilities",
-                "icon": "scitex-code-icon.svg",
-                "available": _check_docs_available("code"),
-            },
-            {
-                "name": "Viz",
-                "slug": "viz",
-                "description": "Publication-quality visualization tools",
-                "icon": "scitex-viz-icon.svg",
-                "available": _check_docs_available("viz"),
-            },
-            {
-                "name": "Writer",
-                "slug": "writer",
-                "description": "LaTeX manuscript preparation and management",
-                "icon": "scitex-writer-icon.svg",
-                "available": _check_docs_available("writer"),
+                "name": "REST API",
+                "slug": "api",
+                "description": "REST API reference for SciTeX Cloud",
+                "icon": "scitex_logos/scitex-icons/scitex-icon-navy.svg",
+                "available": True,  # Always available (static HTML)
             },
         ]
     }
     return render(request, "docs_app/docs_index.html", context)
 
 
-def docs_scholar(request):
-    """Redirect to Scholar documentation main page."""
-    return _serve_module_docs(request, "scholar", "index.html")
+def docs_python(request):
+    """Serve SciTeX Python package documentation."""
+    return _serve_module_docs(request, "python", "index.html")
 
 
-def docs_code(request):
-    """Redirect to Code documentation main page."""
-    return _serve_module_docs(request, "code", "index.html")
-
-
-def docs_viz(request):
-    """Redirect to Viz documentation main page."""
-    return _serve_module_docs(request, "viz", "index.html")
-
-
-def docs_writer(request):
-    """Redirect to Writer documentation main page."""
-    return _serve_module_docs(request, "writer", "index.html")
+def docs_api(request):
+    """Serve REST API documentation page."""
+    return render(request, "public_app/pages/api_docs.html")
 
 
 def docs_page(request, module, page):
@@ -101,10 +73,7 @@ def _serve_module_docs(request, module, page="index.html"):
     # If docs not built, redirect to GitHub README
     if not doc_base.exists() or not doc_file.exists():
         github_urls = {
-            "scholar": "https://github.com/ywatanabe1989/SciTeX-Code/tree/main/src/scitex/scholar#readme",
-            "code": "https://github.com/ywatanabe1989/SciTeX-Code#readme",
-            "viz": "https://github.com/ywatanabe1989/SciTeX-Viz#readme",
-            "writer": "https://github.com/ywatanabe1989/SciTeX-Writer#readme",
+            "python": "https://github.com/ywatanabe1989/SciTeX-Code#readme",
         }
         return redirect(github_urls.get(module, "https://github.com/SciTeX-AI"))
 

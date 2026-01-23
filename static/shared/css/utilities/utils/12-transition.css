@@ -1,0 +1,17 @@
+/* ========================================================================
+   TRANSITION UTILITIES
+   ======================================================================== */
+
+.transition {
+  transition: all 0.2s ease !important;
+}
+.transition-colors {
+  transition:
+    color 0.2s,
+    background-color 0.2s,
+    border-color 0.2s !important;
+}
+.transition-transform {
+  transition: transform 0.2s !important;
+}
+

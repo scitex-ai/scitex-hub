@@ -1,0 +1,74 @@
+/* ========================================
+ * Responsive Design
+ * ======================================== */
+
+@media (max-width: 1024px) {
+  .writer-toolbar-sticky {
+    flex-wrap: wrap;
+  }
+
+  .toolbar-left,
+  .toolbar-right {
+    gap: 0.5rem;
+  }
+
+  .horizontal-selector-group {
+    flex-wrap: wrap;
+  }
+
+  .save-status .status-text {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .writer-container {
+    flex-direction: column;
+  }
+
+  .writer-toolbar-sticky {
+    padding: 0.25rem; /* Reduced from 0.5rem to match desktop */
+    gap: 0.5rem;
+  }
+
+  .toolbar-center {
+    order: 3;
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
+  .editor-view-tabs {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .view-tab {
+    flex: 1;
+    padding: 0.5rem 0.5rem;
+    font-size: 0.85rem;
+  }
+
+  .text-editor,
+  .latex-editor {
+    margin: 1rem;
+    padding: 1rem;
+  }
+
+  .editor-view {
+    padding: 1rem;
+  }
+
+  .editor-view.split-view {
+    flex-direction: column;
+  }
+
+  /* Hide some toolbar items on small screens */
+  .vertical-divider {
+    display: none;
+  }
+
+  #theme-selector {
+    display: none;
+  }
+}
+

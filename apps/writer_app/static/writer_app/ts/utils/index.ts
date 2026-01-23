@@ -24,7 +24,7 @@ export {
   scrollIntoView,
   getScrollPosition,
   setScrollPosition,
-} from "./dom.utils.js";
+} from "./dom.utils";
 
 // Keyboard utilities
 export {
@@ -33,7 +33,7 @@ export {
   formatShortcut,
   isInputElement,
   type KeyboardShortcut,
-} from "./keyboard.utils.js";
+} from "./keyboard.utils";
 
 // LaTeX utilities
 export {
@@ -42,7 +42,7 @@ export {
   extractTextFromLatex,
   isLatexContent,
   validateLatexSyntax,
-} from "./latex.utils.js";
+} from "./latex.utils";
 
 // Timer and timing utilities
 export {
@@ -52,4 +52,75 @@ export {
   SimpleTimer,
   wait,
   createTimeout,
-} from "./timer.utils.js";
+} from "./timer.utils";
+
+// UI utilities
+export {
+  showToast,
+  getUserContext,
+  updateWordCountDisplay,
+  updateSectionTitleLabel,
+  updatePDFPreviewTitle,
+  updateCommitButtonVisibility,
+} from "./ui";
+
+// Compilation UI utilities
+export {
+  showCompilationProgress,
+  hideCompilationProgress,
+  updateCompilationProgress,
+  appendCompilationLog,
+  updateCompilationLog,
+  showCompilationSuccess,
+  showCompilationError,
+  minimizeCompilationOutput,
+  restoreCompilationOutput,
+  compilationLogs,
+  toggleCompilationPanel,
+  togglePreviewLog,
+  toggleFullLog,
+  handleCompilationLogStart,
+  handleCompilationLogStop,
+  handleCompilationLogClose,
+  updateMinimizedStatus,
+  updateStatusLamp,
+  updateSlimProgress,
+  toggleCompilationDetails,
+  restoreCompilationStatus,
+} from "./compilation-ui";
+
+// Section dropdown utilities
+export {
+  populateSectionDropdownDirect,
+  syncDropdownToSection,
+  syncDropdownsFromPath,
+  handleDocTypeSwitch,
+  toggleSectionVisibility,
+} from "./section-dropdown/index";
+
+// Section management utilities
+export {
+  setupSectionListeners,
+  loadSectionContent,
+  switchSection,
+  updateSectionUI,
+  loadCompiledPDF,
+  setupSectionManagementButtons,
+  clearCompileTimeout,
+} from "./section-management";
+
+// Compilation handler utilities
+export {
+  setupCompilationListeners,
+  handleCompileFull,
+  handleCompile,
+} from "./compilation-handlers";
+
+// Panel management utilities
+export {
+  setupSidebarButtons,
+  setupPDFZoomControls,
+  openPDF,
+  loadPanelCSS,
+  switchRightPanel,
+} from "./panel-management";

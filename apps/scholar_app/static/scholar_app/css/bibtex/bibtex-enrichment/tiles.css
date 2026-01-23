@@ -1,0 +1,117 @@
+/**
+ * BibTeX Enrichment - Tiles
+ * Status tiles and grid
+ */
+
+/* Status Tiles */
+.bibtex-status-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.bibtex-tile {
+    background: var(--workspace-bg-secondary, #151515);
+    border: 1px solid var(--workspace-border-default, #3a3a3a);
+    border-radius: 0;
+    overflow: hidden;
+}
+
+.bibtex-tile__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.875rem 1rem;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    background: var(--workspace-bg-tertiary, #1a1a1a);
+    border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
+}
+
+.bibtex-tile__header:hover {
+    background: var(--workspace-bg-tertiary, #1a1a1a);
+}
+
+.bibtex-tile__title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary, #f0f3f6);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.bibtex-tile__title i {
+    color: var(--workspace-icon-primary, #6ba89a);
+    font-size: 0.9rem;
+}
+
+.bibtex-tile__toggle {
+    color: var(--text-muted, #768390);
+    font-size: 0.75rem;
+    transition: transform 0.2s ease;
+}
+
+.bibtex-tile__content {
+    display: none;
+    padding: 1rem;
+    border-top: 1px solid var(--workspace-border-default, #3a3a3a);
+    background: var(--workspace-bg-secondary, #151515);
+}
+
+.bibtex-tile--expanded .bibtex-tile__content {
+    display: block;
+}
+
+.bibtex-tile--expanded .bibtex-tile__toggle {
+    transform: rotate(180deg);
+}
+
+.bibtex-tile__log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted, #768390);
+}
+
+/* Status Grid */
+.bibtex-status-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 0.75rem;
+}
+
+.bibtex-status-item {
+    text-align: center;
+    padding: 0.75rem;
+    background: var(--workspace-bg-primary, #0d0d0d);
+    border-radius: 0;
+}
+
+.bibtex-status-item__label {
+    font-size: 0.75rem;
+    color: var(--text-muted, #768390);
+    margin-bottom: 0.25rem;
+}
+
+.bibtex-status-item__value {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.bibtex-status-item__value--active {
+    color: var(--success-color, #3fb950);
+}
+
+.bibtex-status-item__value--queued {
+    color: var(--warning-color, #d29922);
+}
+
+.bibtex-refresh-time {
+    font-size: 0.75rem;
+    color: var(--text-muted, #768390);
+}

@@ -3,7 +3,7 @@
 # ============================================
 # Location: /containers/docker_nas/Makefile.nas
 
-.PHONY: help setup build start restart stop down logs ps status rebuild migrate makemigrations shell collectstatic db-shell db-backup verify-health logs-web logs-db logs-redis exec-web exec-db clean-python
+.PHONY: help setup build build-no-cache start restart stop down logs ps status rebuild migrate makemigrations shell collectstatic db-shell db-backup verify-health logs-django logs-db logs-redis exec-django exec-db clean-python
 
 .DEFAULT_GOAL := help
 
@@ -11,7 +11,7 @@
 # Variables
 # ============================================
 COMPOSE := docker compose -f docker-compose.yml
-WEB_CONTAINER := scitex-cloud-nas-web-1
+DJANGO_CONTAINER := scitex-cloud-nas-django-1
 DB_CONTAINER := scitex-cloud-nas-db-1
 REDIS_CONTAINER := scitex-cloud-nas-redis-1
 
@@ -26,57 +26,58 @@ NC := \033[0m
 # Help (default target)
 # ============================================
 help:
-	@echo ""
-	@echo "$(GREEN)╔═══════════════════════════════════════════════════════╗$(NC)"
-	@echo "$(GREEN)║           SciTeX Cloud - NAS Deployment               ║$(NC)"
-	@echo "$(GREEN)╚═══════════════════════════════════════════════════════╝$(NC)"
-	@echo ""
-	@echo "$(YELLOW)📦 NAS-optimized deployment for home/lab servers$(NC)"
-	@echo ""
-	@echo "$(CYAN)🚀 Deployment:$(NC)"
-	@echo "  make start              - Start NAS services"
-	@echo "  make restart            - Restart services"
-	@echo "  make stop               - Stop all services"
-	@echo "  make status             - Show service status"
-	@echo ""
-	@echo "$(CYAN)🐳 Docker Management:$(NC)"
-	@echo "  make build              - Build Docker images"
-	@echo "  make up                 - Start services (no rebuild)"
-	@echo "  make down               - Stop and remove containers"
-	@echo "  make ps                 - Show container status"
-	@echo "  make rebuild            - Clean rebuild"
-	@echo ""
-	@echo "$(CYAN)🐍 Django Management:$(NC)"
-	@echo "  make migrate            - Run database migrations"
-	@echo "  make makemigrations     - Create new migrations"
-	@echo "  make shell              - Open Django shell"
-	@echo "  make collectstatic      - Collect static files"
-	@echo ""
-	@echo "$(CYAN)🗄️  Database:$(NC)"
-	@echo "  make db-shell           - PostgreSQL shell"
-	@echo "  make db-backup          - Backup database"
-	@echo ""
-	@echo "$(CYAN)📋 Logs & Monitoring:$(NC)"
-	@echo "  make logs               - View all service logs"
-	@echo "  make logs-web           - View web container logs"
-	@echo "  make logs-db            - View database logs"
-	@echo "  make logs-redis         - View Redis logs"
-	@echo ""
-	@echo "$(CYAN)🔧 Shell Access:$(NC)"
-	@echo "  make exec-web           - Shell into web container"
-	@echo "  make exec-db            - Shell into database container"
-	@echo ""
-	@echo "$(CYAN)🔍 Health & Monitoring:$(NC)"
-	@echo "  make verify-health      - Check all services health"
-	@echo ""
+	@echo -e ""
+	@echo -e "$(GREEN)╔═══════════════════════════════════════════════════════╗$(NC)"
+	@echo -e "$(GREEN)║           SciTeX Cloud - NAS Deployment               ║$(NC)"
+	@echo -e "$(GREEN)╚═══════════════════════════════════════════════════════╝$(NC)"
+	@echo -e ""
+	@echo -e "$(YELLOW)📦 NAS-optimized deployment for home/lab servers$(NC)"
+	@echo -e ""
+	@echo -e "$(CYAN)🚀 Deployment:$(NC)"
+	@echo -e "  make start              - Start NAS services"
+	@echo -e "  make restart            - Restart services"
+	@echo -e "  make stop               - Stop all services"
+	@echo -e "  make status             - Show service status"
+	@echo -e ""
+	@echo -e "$(CYAN)🐳 Docker Management:$(NC)"
+	@echo -e "  make build              - Build Docker images"
+	@echo -e "  make build-no-cache     - Build images without cache (full rebuild)"
+	@echo -e "  make up                 - Start services (no rebuild)"
+	@echo -e "  make down               - Stop and remove containers"
+	@echo -e "  make ps                 - Show container status"
+	@echo -e "  make rebuild            - Clean rebuild"
+	@echo -e ""
+	@echo -e "$(CYAN)🐍 Django Management:$(NC)"
+	@echo -e "  make migrate            - Run database migrations"
+	@echo -e "  make makemigrations     - Create new migrations"
+	@echo -e "  make shell              - Open Django shell"
+	@echo -e "  make collectstatic      - Collect static files"
+	@echo -e ""
+	@echo -e "$(CYAN)🗄️  Database:$(NC)"
+	@echo -e "  make db-shell           - PostgreSQL shell"
+	@echo -e "  make db-backup          - Backup database"
+	@echo -e ""
+	@echo -e "$(CYAN)📋 Logs & Monitoring:$(NC)"
+	@echo -e "  make logs               - View all service logs"
+	@echo -e "  make logs-django        - View Django container logs"
+	@echo -e "  make logs-db            - View database logs"
+	@echo -e "  make logs-redis         - View Redis logs"
+	@echo -e ""
+	@echo -e "$(CYAN)🔧 Shell Access:$(NC)"
+	@echo -e "  make exec-django        - Shell into Django container"
+	@echo -e "  make exec-db            - Shell into database container"
+	@echo -e ""
+	@echo -e "$(CYAN)🔍 Health & Monitoring:$(NC)"
+	@echo -e "  make verify-health      - Check all services health"
+	@echo -e ""
 
 # ============================================
 # Health Check
 # ============================================
 docker-check-health:
-	@if ! docker ps | grep -q "$(WEB_CONTAINER)"; then \
-		echo "$(RED)❌ Web container not running!$(NC)"; \
-		echo "$(YELLOW)Run 'make start' first.$(NC)"; \
+	@if ! docker ps | grep -q "$(DJANGO_CONTAINER)"; then \
+		echo -e "$(RED)❌ Django container not running!$(NC)"; \
+		echo -e "$(YELLOW)Run 'make start' first.$(NC)"; \
 		exit 1; \
 	fi
 
@@ -84,125 +85,135 @@ docker-check-health:
 # Deployment Commands
 # ============================================
 setup: build up migrate collectstatic
-	@echo "$(GREEN)✅ NAS setup complete!$(NC)"
+	@echo -e "$(GREEN)✅ NAS setup complete!$(NC)"
 
-start: up
-	@echo "$(GREEN)✅ NAS services started$(NC)"
+start:
+	@echo -e "$(CYAN)🚀 Starting NAS services (will build if needed)...$(NC)"
+	$(COMPOSE) up -d --build
+	@echo -e "$(GREEN)✅ NAS services started$(NC)"
 
 restart:
-	@echo "$(CYAN)🔄 Restarting NAS services...$(NC)"
+	@echo -e "$(CYAN)🔄 Restarting NAS services...$(NC)"
 	$(COMPOSE) restart
-	@echo "$(GREEN)✅ Services restarted$(NC)"
+	@# Reload nginx to refresh DNS cache (prevents 502 after container IP changes)
+	@sleep 2 && docker exec scitex-cloud-nas-nginx-1 nginx -s reload 2>/dev/null || true
+	@echo -e "$(GREEN)✅ Services restarted$(NC)"
 
 stop: down
 
 build:
-	@echo "$(CYAN)🏗️  Building NAS images...$(NC)"
+	@echo -e "$(CYAN)🏗️  Building NAS images...$(NC)"
 	$(COMPOSE) build
-	@echo "$(GREEN)✅ Build complete$(NC)"
+	@echo -e "$(GREEN)✅ Build complete$(NC)"
+
+build-no-cache:
+	@echo -e "$(CYAN)🏗️  Building NAS images (no cache)...$(NC)"
+	@echo -e "$(YELLOW)⚠️  This will rebuild from scratch and may take longer.$(NC)"
+	$(COMPOSE) build --no-cache
+	@echo -e "$(GREEN)✅ Build complete$(NC)"
 
 up:
-	@echo "$(CYAN)⬆️  Starting NAS services...$(NC)"
+	@echo -e "$(CYAN)⬆️  Starting NAS services...$(NC)"
 	$(COMPOSE) up -d
-	@echo "$(GREEN)✅ Services started$(NC)"
+	@echo -e "$(GREEN)✅ Services started$(NC)"
 
 down:
-	@echo "$(YELLOW)⬇️  Stopping NAS services...$(NC)"
+	@echo -e "$(YELLOW)⬇️  Stopping NAS services...$(NC)"
 	$(COMPOSE) down
-	@echo "$(GREEN)✅ Services stopped$(NC)"
+	@echo -e "$(GREEN)✅ Services stopped$(NC)"
 
 ps:
-	@echo "$(CYAN)📊 Container Status:$(NC)"
+	@echo -e "$(CYAN)📊 Container Status:$(NC)"
 	$(COMPOSE) ps
 
 status: ps verify-health
 
 rebuild: down build up migrate collectstatic
-	@echo "$(GREEN)✅ Rebuild complete$(NC)"
+	@echo -e "$(GREEN)✅ Rebuild complete$(NC)"
 
 # ============================================
 # Django Management
 # ============================================
 migrate: docker-check-health
-	@echo "$(CYAN)🔄 Running migrations...$(NC)"
-	$(COMPOSE) exec -T web python manage.py migrate
-	@echo "$(GREEN)✅ Migrations applied$(NC)"
+	@echo -e "$(CYAN)🔄 Running migrations...$(NC)"
+	$(COMPOSE) exec -T django python manage.py migrate
+	@echo -e "$(GREEN)✅ Migrations applied$(NC)"
 
 makemigrations: docker-check-health
-	@echo "$(CYAN)📝 Creating migrations...$(NC)"
-	$(COMPOSE) exec -T web python manage.py makemigrations
-	@echo "$(GREEN)✅ Migrations created$(NC)"
+	@echo -e "$(CYAN)📝 Creating migrations...$(NC)"
+	$(COMPOSE) exec -T django python manage.py makemigrations
+	@echo -e "$(GREEN)✅ Migrations created$(NC)"
 
 shell: docker-check-health
-	@echo "$(CYAN)🐍 Opening Django shell...$(NC)"
-	$(COMPOSE) exec web python manage.py shell
+	@echo -e "$(CYAN)🐍 Opening Django shell...$(NC)"
+	$(COMPOSE) exec django python manage.py shell
 
 collectstatic: docker-check-health
-	@echo "$(CYAN)📦 Collecting static files...$(NC)"
-	$(COMPOSE) exec -T web python manage.py collectstatic --noinput
-	@echo "$(GREEN)✅ Static files collected$(NC)"
+	@echo -e "$(CYAN)📦 Collecting static files...$(NC)"
+	$(COMPOSE) exec -T django python manage.py collectstatic --noinput
+	@echo -e "$(GREEN)✅ Static files collected$(NC)"
 
 # ============================================
 # Database Commands
 # ============================================
 db-shell: docker-check-health
-	@echo "$(CYAN)🗄️  Opening PostgreSQL shell...$(NC)"
+	@echo -e "$(CYAN)🗄️  Opening PostgreSQL shell...$(NC)"
 	@$(COMPOSE) exec db psql -U $${SCITEX_CLOUD_POSTGRES_USER} -d $${SCITEX_CLOUD_POSTGRES_DB}
 
 db-backup: docker-check-health
-	@echo "$(CYAN)💾 Backing up NAS database...$(NC)"
+	@echo -e "$(CYAN)💾 Backing up NAS database...$(NC)"
 	@mkdir -p ../../backups
 	@BACKUP_FILE="../../backups/scitex_nas_$$(date +%Y%m%d_%H%M%S).sql" && \
 	$(COMPOSE) exec -T db pg_dump -U $${SCITEX_CLOUD_POSTGRES_USER} $${SCITEX_CLOUD_POSTGRES_DB} > $$BACKUP_FILE && \
 	gzip $$BACKUP_FILE && \
-	echo "$(GREEN)✅ Backup saved to: $$BACKUP_FILE.gz$(NC)"
+	echo -e "$(GREEN)✅ Backup saved to: $$BACKUP_FILE.gz$(NC)"
 
 # ============================================
 # Logs & Monitoring
 # ============================================
 logs:
-	@echo "$(CYAN)📋 Showing NAS logs (Ctrl+C to exit)...$(NC)"
+	@echo -e "$(CYAN)📋 Showing NAS logs (Ctrl+C to exit)...$(NC)"
 	$(COMPOSE) logs -f --tail=100
 
-logs-web:
-	@echo "$(CYAN)📋 Showing web logs...$(NC)"
-	$(COMPOSE) logs -f --tail=100 web
+logs-django:
+	@echo -e "$(CYAN)📋 Showing Django logs...$(NC)"
+	$(COMPOSE) logs -f --tail=100 django
 
 logs-db:
-	@echo "$(CYAN)📋 Showing database logs...$(NC)"
+	@echo -e "$(CYAN)📋 Showing database logs...$(NC)"
 	$(COMPOSE) logs -f --tail=100 db
 
 logs-redis:
-	@echo "$(CYAN)📋 Showing Redis logs...$(NC)"
+	@echo -e "$(CYAN)📋 Showing Redis logs...$(NC)"
 	$(COMPOSE) logs -f --tail=100 redis
 
 # ============================================
 # Shell Access
 # ============================================
-exec-web: docker-check-health
-	@echo "$(CYAN)🐳 Opening shell in web container...$(NC)"
-	$(COMPOSE) exec web /bin/bash
+exec-django: docker-check-health
+	@echo -e "$(CYAN)🐳 Opening shell in Django container...$(NC)"
+	$(COMPOSE) exec django /bin/bash
 
 exec-db: docker-check-health
-	@echo "$(CYAN)🐳 Opening shell in database container...$(NC)"
+	@echo -e "$(CYAN)🐳 Opening shell in database container...$(NC)"
 	$(COMPOSE) exec db /bin/sh
 
 # ============================================
 # Health & Monitoring
 # ============================================
 verify-health:
-	@echo "$(CYAN)🔍 Checking service health...$(NC)"
+	@echo -e "$(CYAN)🔍 Checking service health...$(NC)"
 	@$(COMPOSE) ps | grep -E "(healthy|Up)" && \
-		echo "$(GREEN)✅ All services healthy$(NC)" || \
-		echo "$(RED)❌ Some services unhealthy$(NC)"
+		echo -e "$(GREEN)✅ All services healthy$(NC)" || \
+		echo -e "$(RED)❌ Some services unhealthy$(NC)"
 
 # ============================================
 # Utilities
 # ============================================
 clean-python:
-	@echo "$(CYAN)🧹 Cleaning Python cache files...$(NC)"
+	@echo -e "$(CYAN)🧹 Cleaning Python cache files...$(NC)"
 	find ../../ -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 	find ../../ -type f -name "*.pyc" -delete
-	@echo "$(GREEN)✅ Python cache cleaned$(NC)"
+	@echo -e "$(GREEN)✅ Python cache cleaned$(NC)"
 
 # EOF

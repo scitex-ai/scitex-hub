@@ -1,5 +1,5 @@
 {% extends "writer_app/base/app_base.html" %}
-{% load static %}
+{% load static vite %}
 {% comment %}
 Version control index {% endcomment %}
 {% block writer_css %}
@@ -51,5 +51,5 @@ Version control index {% endcomment %}
     </div>
 {% endblock %}
 {% block writer_js %}
-    <script src="{% static 'writer_app/js/version_control/index.js' %}"></script>
+    {% vite_script 'writer_app/version_control/index' %}
 {% endblock %}

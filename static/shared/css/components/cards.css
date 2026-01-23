@@ -72,10 +72,10 @@
   background-color: var(--bg-surface);
   background-clip: border-box;
   border: 1px solid var(--border-default);
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
-  transition: all 0.2s ease-in-out;
+  transition: all var(--transition-normal) ease-in-out;
 }
 
 /* Card Body */
@@ -93,7 +93,7 @@
 }
 
 .card-header:first-child {
-  border-radius: 7px 7px 0 0;
+  border-radius: calc(var(--radius-xl) - 1px) calc(var(--radius-xl) - 1px) 0 0;
 }
 
 /* Card Footer */

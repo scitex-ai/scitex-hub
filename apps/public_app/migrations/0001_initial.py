@@ -216,7 +216,7 @@ class Migration(migrations.Migration):
                 ),
                 ("transaction_id", models.CharField(blank=True, max_length=255)),
                 ("is_public", models.BooleanField(default=False)),
-                ("is_anonymous", models.BooleanField(default=False)),
+                ("is_visitor", models.BooleanField(default=False)),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("completed_at", models.DateTimeField(blank=True, null=True)),
                 ("message", models.TextField(blank=True)),

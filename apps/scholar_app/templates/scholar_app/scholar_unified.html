@@ -1,0 +1,842 @@
+{% extends 'global_base.html' %}
+{% load static vite %}
+{% block title %}SciTeX Scholar{% endblock %}
+{% block meta_description %}Advanced semantic search for scientific literature{% endblock %}
+{% block extra_css %}
+    <!-- Workspace colors CSS for consistent theming -->
+    <link rel="stylesheet" href="{% static 'shared/css/primitives/colors.css' %}" />
+    <!-- Hero gradients CSS -->
+    <link rel="stylesheet" href="{% static 'shared/css/components/hero.css' %}" />
+    <!-- Workspace files tree CSS -->
+    <link rel="stylesheet" href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d" />
+    <!-- Panel resizer CSS -->
+    <link rel="stylesheet" href="{% static 'shared/css/components/panel-resizer.css' %}" />
+    <!-- App-specific CSS - Modular common styles -->
+    <link rel="stylesheet" href="{% static 'scholar_app/css/common/01-workspace-colors.css' %}?v=1764328804" />
+    <link rel="stylesheet" href="{% static 'scholar_app/css/common/02-layout-system.css' %}?v=1764328804" />
+    <link rel="stylesheet" href="{% static 'scholar_app/css/common/03-badge-system.css' %}?v=1764328804" />
+    <link rel="stylesheet" href="{% static 'scholar_app/css/common/04-card-components.css' %}?v=1764328804" />
+    <link rel="stylesheet" href="{% static 'scholar_app/css/common/05-utilities.css' %}?v=1764328804" />
+    <link rel="stylesheet" href="{% static 'scholar_app/css/common/06-ui-components.css' %}?v=1764328804" />
+    <link rel="stylesheet" href="{% static 'scholar_app/css/common/07-workspace-layout.css' %}?v=1764328804" />
+    <!-- Tab-specific CSS -->
+    <link rel="stylesheet" href="{% static 'shared/css/common.css' %}" />
+    <link rel="stylesheet" href="{% static 'scholar_app/css/index.css' %}" />
+    <link rel="stylesheet" href="{% static 'scholar_app/css/scholar-search-inline.css' %}" />
+    <link rel="stylesheet" href="{% static 'scholar_app/css/search/search-main.css' %}" />
+    <link rel="stylesheet" href="{% static 'shared/css/components/terminal-log.css' %}" />
+    <link rel="stylesheet" href="{% static 'scholar_app/css/graph/citation-graph.css' %}" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.css" rel="stylesheet" />
+    <!-- Workspace colors - responsive to theme -->
+    <style>
+    /* Scholar workspace colors - uses CSS variables for theme responsiveness */
+    body.scholar-page,
+    body.workspace-page.scholar-page,
+    .scholar-page {
+        background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
+    }
+    body.scholar-page #main-content,
+    body.scholar-page .scholar-workspace {
+        background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
+    }
+    .scholar-sidebar,
+    .scholar-main,
+    .scholar-properties {
+        background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
+    }
+    .scholar-sidebar .sidebar-header,
+    .scholar-main .pane-header,
+    .scholar-properties .properties-header {
+        background: var(--workspace-bg-secondary, var(--color-canvas-subtle)) !important;
+        border-color: var(--color-border-default) !important;
+    }
+    .scholar-sidebar .sidebar-content,
+    .scholar-main .pane-content,
+    .scholar-properties .properties-content {
+        background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
+    }
+    .bibtex-card,
+    .bibtex-tile {
+        background: var(--workspace-bg-secondary, var(--color-canvas-subtle)) !important;
+        border-color: var(--color-border-default) !important;
+        border-radius: 0 !important;
+    }
+    .bibtex-card__header,
+    .bibtex-tile__header {
+        background: var(--workspace-bg-tertiary, var(--color-canvas-inset)) !important;
+        border-color: var(--color-border-default) !important;
+    }
+    .bibtex-dropzone {
+        background: var(--workspace-bg-monaco, #1e1e1e) !important;
+        border-color: var(--color-border-default) !important;
+        border-radius: 0 !important;
+    }
+    .bibtex-dropzone:hover {
+        background: var(--workspace-bg-tertiary, #2a2a2a) !important;
+        border-color: var(--workspace-icon-hover, #7eb8aa) !important;
+    }
+    [data-theme="light"] .bibtex-dropzone {
+        background: #f6f8fa !important;
+        border-color: #2ea043 !important;
+    }
+    [data-theme="light"] .bibtex-dropzone:hover {
+        background: #e6ebf0 !important;
+        border-color: #238636 !important;
+    }
+    .bibtex-tile__title i,
+    .bibtex-card__title i,
+    .pane-header h5 i,
+    .properties-header h5 i,
+    .sidebar-header h5 i {
+        color: var(--scitex-color-03, var(--workspace-icon-primary)) !important;
+    }
+    .bibtex-status-item {
+        background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
+        border-radius: 0 !important;
+    }
+    .terminal-log {
+        background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
+        border-radius: 0 !important;
+    }
+    /* Hide footer on scholar workspace */
+    body.scholar-page footer {
+        display: none !important;
+    }
+    /* Tab content visibility */
+    .scholar-tab-content {
+        display: none;
+        height: 100%;
+    }
+    .scholar-tab-content.active {
+        display: flex;
+        flex-direction: column;
+    }
+    .scholar-details-content {
+        display: none;
+    }
+    .scholar-details-content.active {
+        display: block;
+    }
+
+    /* ========================================
+       UNIFIED TAB CONTAINER STYLES
+       Ensures all three tabs have consistent styling
+       with blacky background and green accents
+       ======================================== */
+
+    /* Common container styles for all tabs */
+    .scholar-tab-content > div:first-child {
+        padding: 16px;
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        background: var(--workspace-bg-primary, #0d0d0d);
+    }
+
+    /* Unified card styles across all tabs */
+    .scholar-tab-content .graph-card,
+    .scholar-tab-content .bibtex-card,
+    .scholar-tab-content .search-card {
+        background: var(--workspace-bg-secondary, #151515);
+        border: 1px solid var(--workspace-border-default, #3a3a3a);
+        border-radius: 0;
+    }
+
+    .scholar-tab-content .graph-card__header,
+    .scholar-tab-content .bibtex-card__header,
+    .scholar-tab-content .search-card__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
+        background: var(--workspace-bg-tertiary, #1a1a1a);
+    }
+
+    .scholar-tab-content .graph-card__title,
+    .scholar-tab-content .bibtex-card__title,
+    .scholar-tab-content .search-card__title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary, #d4e1e8);
+    }
+
+    /* Unified icon color - green accent */
+    .scholar-tab-content .graph-card__title i,
+    .scholar-tab-content .bibtex-card__title i,
+    .scholar-tab-content .search-card__title i,
+    .scholar-tab-content .graph-card__header i,
+    .scholar-tab-content .bibtex-dropzone__icon,
+    .scholar-tab-content .sidebar-section__title i {
+        color: var(--workspace-icon-primary, #059669) !important;
+    }
+
+    /* Unified form input styles */
+    .scholar-tab-content .form-input,
+    .scholar-tab-content .form-select,
+    .scholar-tab-content .form-control,
+    .scholar-tab-content .search-input {
+        background: var(--workspace-bg-primary, #0d0d0d) !important;
+        border: 1px solid var(--workspace-border-default, #3a3a3a) !important;
+        color: var(--text-primary, #d4e1e8) !important;
+        padding: 10px 12px;
+        font-size: 14px;
+        border-radius: 0 !important;
+        transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .scholar-tab-content .form-input:focus,
+    .scholar-tab-content .form-select:focus,
+    .scholar-tab-content .form-control:focus,
+    .scholar-tab-content .search-input:focus {
+        outline: none;
+        border-color: var(--workspace-icon-primary, #059669) !important;
+        box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15) !important;
+    }
+
+    .scholar-tab-content .form-input::placeholder,
+    .scholar-tab-content .form-control::placeholder,
+    .scholar-tab-content .search-input::placeholder {
+        color: var(--text-muted, #6c8ba0) !important;
+    }
+
+    /* Unified button styles - green accent */
+    .scholar-tab-content .btn-build,
+    .scholar-tab-content .search-btn,
+    .scholar-tab-content .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        background: var(--workspace-icon-primary, #059669);
+        border: none;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.15s, transform 0.1s;
+        white-space: nowrap;
+        border-radius: 0;
+    }
+
+    .scholar-tab-content .btn-build:hover,
+    .scholar-tab-content .search-btn:hover,
+    .scholar-tab-content .btn-primary:hover {
+        background: #047857;
+    }
+
+    /* Unified empty state styling */
+    .scholar-tab-content .search-empty-state,
+    .scholar-tab-content .bibtex-empty-state,
+    .scholar-tab-content .graph-empty-state {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 300px;
+        text-align: center;
+        color: var(--text-muted, #6c8ba0);
+        padding: 48px;
+    }
+
+    .scholar-tab-content .search-empty-state i,
+    .scholar-tab-content .bibtex-empty-state i,
+    .scholar-tab-content .graph-empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1.5rem;
+        opacity: 0.4;
+        color: var(--workspace-icon-primary, #059669);
+    }
+
+    .scholar-tab-content .search-empty-state h5,
+    .scholar-tab-content .bibtex-empty-state h5,
+    .scholar-tab-content .graph-empty-state h5 {
+        color: var(--text-primary, #d4e1e8);
+        margin-bottom: 0.5rem;
+    }
+
+    /* Details panel consistent styling */
+    .scholar-details-content .sidebar-section,
+    .scholar-details-content .bibtex-tile,
+    .scholar-details-content .accordion-row {
+        background: var(--workspace-bg-secondary, #151515);
+        border: 1px solid var(--workspace-border-default, #3a3a3a);
+        border-radius: 0;
+        margin-bottom: 8px;
+    }
+
+    .scholar-details-content .sidebar-section__header,
+    .scholar-details-content .bibtex-tile__header,
+    .scholar-details-content .accordion-row-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 12px;
+        cursor: pointer;
+        transition: background 0.15s;
+        background: var(--workspace-bg-tertiary, #1a1a1a);
+    }
+
+    .scholar-details-content .sidebar-section__header:hover,
+    .scholar-details-content .bibtex-tile__header:hover,
+    .scholar-details-content .accordion-row-header:hover {
+        background: var(--workspace-bg-secondary, #151515);
+    }
+
+    .scholar-details-content .sidebar-section__title,
+    .scholar-details-content .bibtex-tile__title {
+        margin: 0;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-primary, #d4e1e8);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .scholar-details-content .sidebar-section__title i,
+    .scholar-details-content .bibtex-tile__title i {
+        color: var(--workspace-icon-primary, #059669) !important;
+        font-size: 11px;
+    }
+
+    .scholar-details-content .sidebar-section__content,
+    .scholar-details-content .bibtex-tile__content,
+    .scholar-details-content .accordion-row-content {
+        padding: 12px;
+        border-top: 1px solid var(--workspace-border-default, #3a3a3a);
+        background: var(--workspace-bg-secondary, #151515);
+    }
+
+    /* Light mode unified overrides */
+    [data-theme="light"] .scholar-tab-content > div:first-child {
+        background: var(--workspace-bg-primary, #f3f4f6);
+    }
+
+    [data-theme="light"] .scholar-tab-content .graph-card,
+    [data-theme="light"] .scholar-tab-content .bibtex-card,
+    [data-theme="light"] .scholar-tab-content .search-card,
+    [data-theme="light"] .scholar-details-content .sidebar-section,
+    [data-theme="light"] .scholar-details-content .bibtex-tile {
+        background: var(--workspace-bg-secondary, #ebedef);
+    }
+
+    [data-theme="light"] .scholar-tab-content .form-input,
+    [data-theme="light"] .scholar-tab-content .form-select,
+    [data-theme="light"] .scholar-tab-content .form-control,
+    [data-theme="light"] .scholar-tab-content .search-input {
+        background: var(--workspace-bg-primary, #f3f4f6) !important;
+    }
+
+    /* Tab badge styles */
+    .tab-badge {
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.65rem;
+        font-weight: 600;
+        padding: 2px 6px;
+        border-radius: 3px;
+        margin-left: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
+    .tab-badge--soon {
+        background: rgba(251, 191, 36, 0.15);
+        color: #f59e0b;
+        border: 1px solid rgba(251, 191, 36, 0.3);
+    }
+    [data-theme="light"] .tab-badge--soon {
+        background: rgba(251, 191, 36, 0.2);
+        color: #d97706;
+        border: 1px solid rgba(251, 191, 36, 0.4);
+    }
+    </style>
+{% endblock %}
+{% block content %}
+    <!-- Three-panel layout always active for workspace consistency -->
+    <div class="scholar-workspace">
+        <!-- Left sidebar: File tree (only with project) -->
+        <aside class="scholar-sidebar {% if not current_project %}collapsed{% endif %}" id="scholar-sidebar">
+            <div class="sidebar-header">
+                <h5><i class="fas fa-folder-open"></i> Files</h5>
+                <button class="sidebar-toggle panel-toggle-btn" id="sidebar-toggle" title="Toggle sidebar (Zen: F11/Alt+Z)">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+            <div class="sidebar-content" id="file-tree">
+                {% if current_project %}
+                <!-- WorkspaceFilesTree will render here -->
+                <div class="wft-loading">Loading...</div>
+                {% else %}
+                <div class="sidebar-no-project">
+                    <p class="text-muted">Select a project to browse files</p>
+                </div>
+                {% endif %}
+            </div>
+        </aside>
+        <!-- Sidebar resizer (auto-initialized via data attributes) -->
+        <div class="panel-resizer" id="sidebar-resizer"
+             data-panel-resizer
+             data-storage-prefix="scitex-scholar-"
+             data-target=".scholar-sidebar"
+             data-direction="left"
+             data-min-width="40"
+             data-default-width="250"
+             data-storage-key="sidebar-width"
+             data-collapse-key="scholar-sidebar-collapsed"
+             data-toggle-btn="sidebar-toggle"></div>
+        <!-- Main content area -->
+        <main class="scholar-main">
+            <div class="pane-header">
+                <nav class="scholar-tabs">
+                    <a href="#bibtex"
+                       class="scholar-tab"
+                       data-tab="bibtex">
+                        <i class="fas fa-file-code"></i> BibTeX Enrichment
+                    </a>
+                    <a href="#search"
+                       class="scholar-tab"
+                       data-tab="search">
+                        <i class="fas fa-search"></i> Search
+                    </a>
+                    <a href="#graph"
+                       class="scholar-tab"
+                       data-tab="graph">
+                        <i class="fas fa-project-diagram"></i> Graph
+                        <span class="tab-badge tab-badge--soon">Coming soon</span>
+                    </a>
+                </nav>
+                <div class="pane-header-actions">
+                </div>
+            </div>
+            <div class="pane-content">
+                <!-- Search Tab Content -->
+                <div id="tab-search" class="scholar-tab-content" data-tab="search">
+                    <div class="scholar-search-container">
+                        {% include "scholar_app/search_partials/search.html" with show_results=True %}
+                    </div>
+                    <!-- Configuration for JavaScript -->
+                    <div id="scholar-config-data"
+                         data-bibtex-upload-url="{% url 'scholar_app:bibtex_upload' %}"
+                         data-resource-status-url="{% url 'scholar_app:bibtex_resource_status' %}"
+                         data-scitex-search-url="{% url 'scholar_app:api_scitex_search' %}"
+                         data-scitex-capabilities-url="{% url 'scholar_app:api_scitex_capabilities' %}"
+                         data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}"
+                         data-user-projects='[{% for project in user_projects %}{"id": {{ project.id }}, "name": "{{ project.name|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]'
+                         data-current-project='{% if current_project %}{"id": {{ current_project.id }}, "name": "{{ current_project.name|escapejs }}"}{% else %}null{% endif %}'
+                         {% if query and results %}
+                         data-search-results='[{% for result in results %}{"title": "{{ result.title|escapejs }}", "year": {% if result.year %}{{ result.year }}{% else %}null{% endif %}, "citations": {% if result.citations %}{{ result.citations }}{% else %}0{% endif %}, "impact_factor": {% if result.impact_factor %}{{ result.impact_factor }}{% else %}null{% endif %}, "authors": "{{ result.authors|escapejs }}", "journal": "{{ result.journal|escapejs }}", "url": "{{ result.url|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]'
+                         {% endif %}>
+                    </div>
+                </div>
+
+                <!-- BibTeX Tab Content -->
+                <div id="tab-bibtex" class="scholar-tab-content" data-tab="bibtex">
+                    {% include "scholar_app/bibtex_partials/enrich.html" %}
+                    <!-- AI2 Prompt Modal -->
+                    {% if current_project %}
+                        {% include "writer_app/compilation_view_partials/ai2_modal.html" %}
+                    {% endif %}
+                </div>
+
+                <!-- Graph Tab Content -->
+                <div id="tab-graph" class="scholar-tab-content" data-tab="graph">
+                    <div class="citation-graph-container">
+                        <!-- Input Section -->
+                        <div class="graph-input-section">
+                            <div class="graph-card">
+                                <div class="graph-card__header">
+                                    <div class="graph-card__title">
+                                        <i class="fas fa-project-diagram"></i>
+                                        <span>Citation Network Explorer</span>
+                                    </div>
+                                </div>
+                                <div class="graph-card__body">
+                                    <p class="graph-description">
+                                        Build a citation network from a DOI to discover related papers through bibliographic coupling and co-citation analysis.
+                                    </p>
+                                    <form id="graphForm" class="graph-form">
+                                        <div class="form-row">
+                                            <div class="form-group form-group--doi">
+                                                <label for="doiInput" class="form-label">Enter DOI</label>
+                                                <div class="input-wrapper">
+                                                    <input type="text"
+                                                           id="doiInput"
+                                                           name="doi"
+                                                           class="form-input"
+                                                           placeholder="e.g., 10.1038/s41586-020-2008-3"
+                                                           required>
+                                                    <button type="submit" class="btn-build" id="buildGraphBtn">
+                                                        <i class="fas fa-project-diagram"></i>
+                                                        <span>Build Graph</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="form-group form-group--options">
+                                                <label for="topN" class="form-label">Related Papers</label>
+                                                <select id="topN" name="top_n" class="form-select">
+                                                    <option value="10">10 papers</option>
+                                                    <option value="20" selected>20 papers</option>
+                                                    <option value="30">30 papers</option>
+                                                    <option value="50">50 papers</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Graph Visualization Area -->
+                        <div id="graphVisualization" class="graph-visualization hidden">
+                            <div class="graph-card graph-card--full">
+                                <div class="graph-card__header">
+                                    <div class="graph-card__title">
+                                        <i class="fas fa-share-alt"></i>
+                                        <span id="graphTitle">Citation Network</span>
+                                    </div>
+                                    <div class="graph-controls">
+                                        <button class="btn-control" id="fitViewBtn" title="Fit to View">
+                                            <i class="fas fa-expand"></i>
+                                        </button>
+                                        <button class="btn-control" id="resetZoomBtn" title="Reset Zoom">
+                                            <i class="fas fa-compress-arrows-alt"></i>
+                                        </button>
+                                        <button class="btn-control" id="downloadSvgBtn" title="Download SVG">
+                                            <i class="fas fa-download"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="graph-card__body graph-canvas-wrapper">
+                                    <div id="graphCanvas"></div>
+                                    <!-- Node Details Panel (appears on node click) -->
+                                    <div id="nodeDetailsPanel" class="node-details-panel hidden"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Related Papers List -->
+                        <div id="relatedPapersList" class="related-papers-section hidden">
+                            <div class="graph-card">
+                                <div class="graph-card__header">
+                                    <div class="graph-card__title">
+                                        <i class="fas fa-list-ol"></i>
+                                        <span>Related Papers</span>
+                                    </div>
+                                </div>
+                                <div class="graph-card__body">
+                                    <div id="relatedPapersContent"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Loading State -->
+                        <div id="graphLoading" class="graph-loading hidden">
+                            <div class="loading-spinner">
+                                <div class="spinner-ring"></div>
+                                <div class="spinner-ring"></div>
+                                <div class="spinner-ring"></div>
+                            </div>
+                            <p class="loading-text">Building citation network...</p>
+                        </div>
+
+                        <!-- Error State -->
+                        <div id="graphError" class="graph-error hidden">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p id="graphErrorMessage"></p>
+                            <button class="btn-retry" onclick="document.getElementById('graphError').classList.add('hidden')">
+                                Dismiss
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <!-- Properties resizer (auto-initialized via data attributes) -->
+        <div class="panel-resizer" id="main-resizer"
+             data-panel-resizer
+             data-storage-prefix="scitex-scholar-"
+             data-target=".scholar-properties"
+             data-direction="right"
+             data-min-width="40"
+             data-default-width="320"
+             data-storage-key="properties-width"
+             data-collapse-key="scholar-properties-collapsed"
+             data-toggle-btn="properties-toggle"></div>
+        <!-- Right details panel -->
+        <aside class="scholar-properties" id="scholar-properties">
+            <div class="properties-header">
+                <button class="properties-toggle panel-toggle-btn right-panel-toggle" id="properties-toggle" title="Toggle details (Zen: F11/Alt+Z)">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <h5><i class="fas fa-sliders-h"></i> Details</h5>
+            </div>
+            <div class="properties-content" id="scholar-details-panel">
+                <!-- Search Details -->
+                <div id="details-search" class="scholar-details-content" data-tab="search">
+                    {% include "scholar_app/search_partials/search_controls.html" %}
+                </div>
+
+                <!-- BibTeX Details -->
+                <div id="details-bibtex" class="scholar-details-content" data-tab="bibtex">
+                    {% include "scholar_app/bibtex_partials/status_tiles.html" %}
+                </div>
+
+                <!-- Graph Details -->
+                <div id="details-graph" class="scholar-details-content" data-tab="graph">
+                    <div class="graph-sidebar">
+                        <div class="sidebar-section">
+                            <div class="sidebar-section__header" onclick="this.parentElement.classList.toggle('collapsed')">
+                                <h5 class="sidebar-section__title">
+                                    <i class="fas fa-heartbeat"></i> Service Status
+                                </h5>
+                                <i class="fas fa-chevron-down sidebar-section__toggle"></i>
+                            </div>
+                            <div class="sidebar-section__content">
+                                <div id="serviceStatus">
+                                    <div class="status-indicator status-checking">
+                                        <i class="fas fa-circle-notch fa-spin"></i>
+                                        <span>Checking...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="sidebar-section">
+                            <div class="sidebar-section__header" onclick="this.parentElement.classList.toggle('collapsed')">
+                                <h5 class="sidebar-section__title">
+                                    <i class="fas fa-info-circle"></i> How It Works
+                                </h5>
+                                <i class="fas fa-chevron-down sidebar-section__toggle"></i>
+                            </div>
+                            <div class="sidebar-section__content">
+                                <div class="info-list">
+                                    <div class="info-item">
+                                        <i class="fas fa-link"></i>
+                                        <div>
+                                            <strong>Bibliographic Coupling</strong>
+                                            <p>Papers sharing common references</p>
+                                        </div>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="fas fa-quote-right"></i>
+                                        <div>
+                                            <strong>Co-citation</strong>
+                                            <p>Papers frequently cited together</p>
+                                        </div>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="fas fa-arrow-right"></i>
+                                        <div>
+                                            <strong>Direct Citations</strong>
+                                            <p>Papers citing or cited by seed</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="sidebar-section">
+                            <div class="sidebar-section__header" onclick="this.parentElement.classList.toggle('collapsed')">
+                                <h5 class="sidebar-section__title">
+                                    <i class="fas fa-keyboard"></i> Controls
+                                </h5>
+                                <i class="fas fa-chevron-down sidebar-section__toggle"></i>
+                            </div>
+                            <div class="sidebar-section__content">
+                                <div class="controls-list">
+                                    <div class="control-item">
+                                        <kbd>Scroll</kbd>
+                                        <span>Zoom in/out</span>
+                                    </div>
+                                    <div class="control-item">
+                                        <kbd>Drag</kbd>
+                                        <span>Pan view</span>
+                                    </div>
+                                    <div class="control-item">
+                                        <kbd>Drag Node</kbd>
+                                        <span>Move node</span>
+                                    </div>
+                                    <div class="control-item">
+                                        <kbd>Click Node</kbd>
+                                        <span>View details</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    {{ block.super }}
+    <!-- Panel resizer (auto-initializes from data attributes) -->
+    {% vite_script 'shared/workspace-panel-resizer' %}
+    {% if current_project %}
+    <!-- Scholar workspace initialization with project context -->
+    <script id="scholar-project-config" type="application/json">
+        {
+            "username": "{{ current_project.owner.username|escapejs }}",
+            "slug": "{{ current_project.slug|escapejs }}"
+        }
+    </script>
+    {% vite_script 'scholar_app/scholar-workspace-init' %}
+    {% endif %}
+
+    <!-- Global configuration -->
+    <script>
+    // Django template variables for JavaScript
+    window.SCHOLAR_CONFIG = {
+        urls: {
+            bibtexUpload: '{% url "scholar_app:bibtex_upload" %}',
+            resourceStatus: '{% url "scholar_app:bibtex_resource_status" %}',
+            scitexSearch: '{% url "scholar_app:api_scitex_search" %}',
+            scitexCapabilities: '{% url "scholar_app:api_scitex_capabilities" %}'
+        },
+        user: {
+            isAuthenticated: {% if user.is_authenticated %}true{% else %}false{% endif %}
+        }{% if current_project %},
+        projectId: {{ current_project.id }}{% endif %}
+    };
+
+    window.CITATION_GRAPH_CONFIG = {
+        urls: {
+            buildNetwork: '{% url "scholar_app:citation_graph_network" %}',
+            relatedPapers: '{% url "scholar_app:citation_graph_related" %}',
+            paperSummary: '{% url "scholar_app:citation_graph_paper" %}',
+            health: '{% url "scholar_app:citation_graph_health" %}'
+        }
+    };
+
+    // Initialize SCHOLAR_SEARCH_RESULTS from data attribute
+    (function() {
+        const configEl = document.getElementById('scholar-config-data');
+        if (configEl && configEl.dataset.searchResults) {
+            try {
+                window.SCHOLAR_SEARCH_RESULTS = JSON.parse(configEl.dataset.searchResults);
+                console.log('[Scholar Config] Loaded', window.SCHOLAR_SEARCH_RESULTS.length, 'search results');
+            } catch (e) {
+                console.warn('[Scholar Config] Failed to parse search results:', e);
+            }
+        }
+    })();
+    </script>
+
+    {% vite_script 'scholar_app/scholar-config' %}
+
+    <!-- Common Scripts -->
+    {% vite_script 'scholar_app/common/project-selector' %}
+
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
+
+    <!-- Search Scripts -->
+    {% vite_script 'scholar_app/search/nouislider-init' %}
+    {% vite_script 'scholar_app/search/panel-toggle' %}
+    {% vite_script 'scholar_app/search/advanced-sorting' %}
+    {% vite_script 'scholar_app/search/drag-sort' %}
+    {% vite_script 'scholar_app/search/swarm-plots' %}
+    {% vite_script 'scholar_app/common/scholar-index-main' %}
+    {% vite_script 'scholar_app/search/seekbar-integration' %}
+    {% vite_script 'scholar_app/search/search-ui' %}
+    {% vite_script 'scholar_app/search/scitex-search' %}
+    {% vite_script 'scholar_app/init/swarm-plots-init' %}
+
+    <!-- BibTeX Scripts -->
+    {% if current_project %}
+        {% vite_script 'scholar_app/bibtex/scholar-ai2-integration' %}
+    {% endif %}
+
+    <!-- Graph Scripts -->
+    {% vite_script 'scholar_app/graph/citation-graph' %}
+
+    <!-- Tab Switching Script -->
+    <script>
+    (function() {
+        const TAB_ORDER = ['bibtex', 'search', 'graph'];
+        const DEFAULT_TAB = 'bibtex';
+
+        function getActiveTab() {
+            const hash = window.location.hash.slice(1);
+            return TAB_ORDER.includes(hash) ? hash : DEFAULT_TAB;
+        }
+
+        function switchTab(tabName) {
+            // Update tab navigation
+            document.querySelectorAll('.scholar-tab').forEach(tab => {
+                if (tab.dataset.tab === tabName) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+
+            // Update main content
+            document.querySelectorAll('.scholar-tab-content').forEach(content => {
+                if (content.dataset.tab === tabName) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+
+            // Update details panel
+            document.querySelectorAll('.scholar-details-content').forEach(content => {
+                if (content.dataset.tab === tabName) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+
+            // Trigger resize for components that need it (like graphs)
+            window.dispatchEvent(new Event('resize'));
+        }
+
+        function init() {
+            // Handle tab clicks
+            document.querySelectorAll('.scholar-tab').forEach(tab => {
+                tab.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const tabName = this.dataset.tab;
+                    window.location.hash = tabName;
+                    switchTab(tabName);
+                });
+            });
+
+            // Handle hash changes (back/forward navigation)
+            window.addEventListener('hashchange', function() {
+                switchTab(getActiveTab());
+            });
+
+            // Initial tab activation
+            const activeTab = getActiveTab();
+            if (!window.location.hash) {
+                window.location.hash = DEFAULT_TAB;
+            }
+            switchTab(activeTab);
+        }
+
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    })();
+
+    // Panel Toggle - REMOVED: Now handled by WorkspacePanelResizer
+    // The sidebar-toggle and properties-toggle buttons are managed by
+    // static/shared/ts/components/workspace-panel-resizer.ts
+    // which provides unified panel resizing and collapse functionality.
+    </script>
+{% endblock %}

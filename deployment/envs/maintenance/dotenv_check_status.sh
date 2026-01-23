@@ -7,8 +7,8 @@ ORIG_DIR="$(pwd)"
 THIS_DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
 LOG_PATH="$THIS_DIR/.$(basename $0).log"
 ERR_PATH="$THIS_DIR/.$(basename $0).err"
-echo > "$LOG_PATH"
-echo > "$ERR_PATH"
+echo -e > "$LOG_PATH"
+echo -e > "$ERR_PATH"
 
 BLACK='\033[0;30m'
 LIGHT_GRAY='\033[0;37m'

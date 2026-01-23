@@ -1,0 +1,82 @@
+/* Split-screen layout styles */
+.split-container {
+  display: flex;
+  gap: 1rem;
+  transition: all 0.6s ease;
+  margin-bottom: 2rem;
+}
+
+.split-panel {
+  flex: 1;
+  min-height: 600px;
+  transition: all 0.6s ease;
+  position: relative;
+}
+
+.split-panel.expanded {
+  flex: 3;
+}
+
+.split-panel.collapsed {
+  flex: 0.3;
+  min-width: 80px;
+}
+
+.panel-header {
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.panel-title {
+  /* font-size: 1.3rem; */
+  /* font-weight: 700; */
+}
+
+/* Show BibTeX Enrichment as selected/active by default (primary feature) */
+#bibtexPanel .panel-header {
+  /* background: var(--scitex-color-01); */
+  /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); */
+}
+
+#bibtexPanel.collapsed .panel-header {
+  /* background: var(--scitex-color-02); */
+  /* box-shadow: none; */
+}
+
+#searchPanel .panel-header {
+  /* background: var(--scitex-color-02); */
+}
+
+#searchPanel:not(.collapsed) .panel-header {
+  /* background: var(--scitex-color-01); */
+  /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); */
+}
+
+.panel-content {
+  padding: 2rem;
+  min-height: 750px;
+  display: flex;
+  flex-direction: column;
+}
+
+.search-card-inner {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.collapsed .panel-content {
+  display: none;
+}
+
+.collapsed .panel-header {
+  writing-mode: vertical-lr;
+  text-orientation: mixed;
+  min-height: 400px;
+  justify-content: center;
+}
+

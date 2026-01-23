@@ -60,14 +60,20 @@ class Command(BaseCommand):
             )
             return
 
-        # Reset all visitor workspaces
-        self.stdout.write(self.style.WARNING("This will reset ALL visitor workspaces"))
-        self.stdout.write("All visitor data will be cleared!")
-        confirm = input("Continue? (yes/no): ")
+        # Reset all visitor workspaces - hard reset at 23:59 daily
+        self.stdout.write(self.style.WARNING("Resetting ALL visitor allocations..."))
 
-        if confirm.lower() != "yes":
-            self.stdout.write("Aborted")
-            return
+        # Deactivate all allocations
+        from apps.project_app.models import VisitorAllocation
 
-        # TODO: Implement full pool reset
-        self.stdout.write(self.style.WARNING("Full pool reset not yet implemented"))
+        deactivated_count = VisitorAllocation.objects.filter(is_active=True).update(is_active=False)
+
+        self.stdout.write(
+            self.style.SUCCESS(f"✓ Reset complete: {deactivated_count} allocations freed")
+        )
+
+        # Show updated status
+        status = VisitorPool.get_pool_status()
+        self.stdout.write(
+            f"\nPool status: {status['free']}/{status['total']} slots free"
+        )

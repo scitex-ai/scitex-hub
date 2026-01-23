@@ -1,27 +1,15 @@
 {% load static %}
 <footer class="site-footer">
     <div class="container">
-        <div class="footer-content">
-            <div class="footer-section">
-                <div style="display: flex;
-                            align-items: center;
-                            gap: 10px;
-                            padding: 12px 16px;
-                            background-color: transparent;
-                            border-radius: 8px;
-                            margin-bottom: var(--spacing-sm);
-                            width: fit-content">
-                    <img src="{% static 'shared/images/scitex_logos/vectorstock/vectorstock_38853699-navy-inverted-192x192.png' %}"
-                         alt="SciTeX Logo"
-                         style="width: 40px;
-                                height: 40px" />
-                    <h3 style="margin: 0">SciTeX</h3>
+        <div class="footer-content footer-5-columns">
+            <!-- Column 1: Brand -->
+            <div class="footer-section footer-brand">
+                <div class="footer-logo">
+                    <img src="{% static 'shared/images/scitex_logos/scitex-icon/scitex-icon-navy-inverted-192x192.png' %}"
+                         alt="SciTeX Logo" />
+                    <h3>SciTeX</h3>
                 </div>
-                <p style="font-size: 0.875rem;
-                          color: var(--text-secondary);
-                          margin-bottom: var(--spacing-sm)">
-                    <span class="footer-text" data-key="tagline">Where Research Happens</span>
-                </p>
+                <p class="footer-tagline">Where Research Happens</p>
                 <div class="footer-social">
                     <a href="https://github.com/SciTeX-AI" title="GitHub"><i class="fab fa-github"></i></a>
                     <a href="https://join.slack.com/t/scitex-ai/shared_invite/zt-2zbwx67n3-L6aaBdGKPMYZbBxl6yjXRA"
@@ -33,200 +21,122 @@
                     <a href="https://www.tiktok.com/@scitex_ai" title="TikTok"><i class="fab fa-tiktok"></i></a>
                     <a href="https://www.twitch.tv/scitex_ai" title="Twitch"><i class="fab fa-twitch"></i></a>
                 </div>
+                <p class="footer-copyright">&copy; 2025–2026 SciTeX. All rights reserved. <span class="footer-version">v{{ SCITEX_CLOUD_VERSION }}</span></p>
             </div>
+
+            <!-- Column 2: Community -->
             <div class="footer-section">
-                <h3 class="footer-text" data-key="community">Community</h3>
+                <h3>Community</h3>
                 <ul class="footer-links">
-                    <li>
-                        <a href="{% url 'public_app:about' %}"><span class="footer-text" data-key="about">About</span></a>
-                    </li>
-                    <li>
-                        <a href="{% url 'public_app:contributors' %}"><span class="footer-text" data-key="contributors">Contributors</span></a>
-                    </li>
-                    <li>
-                        <a href="{% url 'public_app:releases' %}"><span class="footer-text" data-key="releases">Releases</span></a>
-                    </li>
+                    <li><a href="{% url 'public_app:about' %}">About</a></li>
+                    <li><a href="{% url 'public_app:contributors' %}">Contributors</a></li>
+                    <li><a href="{% url 'public_app:releases' %}">Releases</a></li>
+                    <li><a href="{% url 'public_app:pricing' %}">Pricing</a></li>
                 </ul>
             </div>
+
+            <!-- Column 3: Developers -->
             <div class="footer-section">
-                <h3 class="footer-text" data-key="legal">Legal</h3>
+                <h3>Developers</h3>
                 <ul class="footer-links">
-                    <li>
-                        <a href="{% url 'public_app:terms' %}"><span class="footer-text" data-key="terms">Terms</span></a>
-                    </li>
-                    <li>
-                        <a href="{% url 'public_app:privacy' %}"><span class="footer-text" data-key="privacy">Privacy</span></a>
-                    </li>
-                    <li>
-                        <a href="{% url 'public_app:cookies' %}"><span class="footer-text" data-key="cookies">Cookies</span></a>
-                    </li>
+                    <li><a href="{% url 'public_app:api-docs' %}">API Docs</a></li>
+                    <li><a href="{% url 'dev_app:design' %}">Design System</a></li>
+                    <li><a href="{% url 'public_app:server_status' %}">Status</a></li>
                 </ul>
             </div>
+
+            <!-- Column 4: Legal -->
+            <div class="footer-section">
+                <h3>Legal</h3>
+                <ul class="footer-links">
+                    <li><a href="{% url 'public_app:terms' %}">Terms</a></li>
+                    <li><a href="{% url 'public_app:privacy' %}">Privacy</a></li>
+                    <li><a href="{% url 'public_app:cookies' %}">Cookies</a></li>
+                </ul>
+            </div>
+
+            <!-- Column 5: Support -->
             <div class="footer-section">
                 <h3>Support</h3>
                 <ul class="footer-links">
-                    <li>
-                    <a href="{% url 'public_app:donate' %}"><i class="fas fa-heart"></i>
-                    <span class="footer-text" data-key="donate">Donate</span></a>
-            </li>
-            <li>
-                <a href="{% url 'public_app:contact' %}"><span class="footer-text" data-key="contact">Contact</span></a>
-            </li>
-        </ul>
-    </div>
-</div>
-<div class="footer-bottom">
-    <div style="display: flex;
-                justify-content: space-between;
-                align-items: center;
-                flex-wrap: wrap;
-                gap: 8px">
-        <p style="margin: 0; font-size: 13px">
-            &copy; 2025 SciTeX.
-            <span class="footer-text" data-key="rights">All rights reserved</span>. |
-            <a href="mailto:support@scitex.ai"
-               class="email-link"
-               aria-label="Email support"
-               style="text-decoration: none">support@scitex.ai</a>
-        </p>
-        <div class="language-selector">
-            <select id="footerLanguage"
-                    onchange="changeFooterLanguage(this.value)"
-                    style="padding: 4px 8px;
-                           border: 1px solid var(--color-border-default);
-                           border-radius: 4px;
-                           background: var(--color-canvas-default);
-                           color: var(--color-fg-default);
-                           font-size: 12px">
-                <option value="en">English</option>
-                <option value="ja">日本語</option>
-                <option value="pt">Português (Brasil)</option>
-                <option value="es">Español (América Latina)</option>
-                <option value="ko">한국어</option>
-            </select>
+                    <li><a href="{% url 'public_app:donate' %}"><i class="fas fa-heart"></i> Donate</a></li>
+                    <li><a href="{% url 'public_app:contact' %}">Contact</a></li>
+                    <li><a href="mailto:support@scitex.ai">support@scitex.ai</a></li>
+                </ul>
+            </div>
         </div>
     </div>
-</div>
-</div>
-<style>
-    .footer-bottom .email-link {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    .footer-bottom .email-link:hover {
-      color: #007bff;
-      text-decoration: underline;
-    }
-</style>
-<script>
-    const footerTranslations = {
-      en: {
-        tagline: "Where Research Happens",
-        tools: "Tools",
-        community: "Community",
-        about: "About Us",
-        contributors: "Contributors",
-        publications: "Publications",
-        donate: "Donate",
-        contact: "Contact",
-        legal: "Legal",
-        terms: "Terms of Use",
-        privacy: "Privacy Policy",
-        cookies: "Cookie Policy",
-        rights: "All rights reserved",
-        releases: "Releases",
-      },
-      pt: {
-        tagline: "Onde a Pesquisa Acontece",
-        tools: "Ferramentas",
-        community: "Comunidade",
-        about: "Sobre Nós",
-        contributors: "Contribuidores",
-        publications: "Publicações",
-        donate: "Doar",
-        contact: "Contato",
-        legal: "Legal",
-        terms: "Termos de Uso",
-        privacy: "Política de Privacidade",
-        cookies: "Política de Cookies",
-        rights: "Todos os direitos reservados",
-        releases: "Lançamentos",
-      },
-      es: {
-        tagline: "Donde Sucede la Investigación",
-        tools: "Herramientas",
-        community: "Comunidad",
-        about: "Acerca de Nosotros",
-        contributors: "Contribuyentes",
-        publications: "Publicaciones",
-        donate: "Donar",
-        contact: "Contacto",
-        legal: "Legal",
-        terms: "Términos de Uso",
-        privacy: "Política de Privacidad",
-        cookies: "Política de Cookies",
-        rights: "Todos los derechos reservados",
-        releases: "Lanzamientos",
-      },
-      ja: {
-        tagline: "研究が生まれる場所",
-        tools: "ツール",
-        community: "コミュニティ",
-        about: "私たちについて",
-        contributors: "貢献者",
-        publications: "出版物",
-        donate: "寄付",
-        contact: "お問い合わせ",
-        legal: "法的情報",
-        terms: "利用規約",
-        privacy: "プライバシーポリシー",
-        cookies: "クッキーポリシー",
-        rights: "無断転載禁止",
-        releases: "リリースノート",
-      },
-      ko: {
-        tagline: "연구가 일어나는 곳",
-        tools: "도구",
-        community: "커뮤니티",
-        about: "회사 소개",
-        contributors: "기여자",
-        publications: "출판물",
-        donate: "기부하기",
-        contact: "문의하기",
-        legal: "법률",
-        terms: "이용 약관",
-        privacy: "개인정보 처리방침",
-        cookies: "쿠키 정책",
-        rights: "판권 소유",
-        releases: "릴리스 노트",
-      },
-    };
-
-    function changeFooterLanguage(lang) {
-      const translations = footerTranslations[lang];
-      if (!translations) return;
-
-      // Update all elements with footer-text class and data-key
-      document.querySelectorAll(".footer-text[data-key]").forEach((element) => {
-        const key = element.getAttribute("data-key");
-        if (translations[key]) {
-          element.textContent = translations[key];
-        }
-      });
-
-      // Save preference to localStorage
-      localStorage.setItem("footerLanguage", lang);
-    }
-
-    // Load saved language preference on page load
-    document.addEventListener("DOMContentLoaded", function () {
-      const savedLang = localStorage.getItem("footerLanguage") || "en";
-      const select = document.getElementById("footerLanguage");
-      if (select) {
-        select.value = savedLang;
-        changeFooterLanguage(savedLang);
-      }
-    });
-</script>
 </footer>
+
+<style>
+.footer-5-columns {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+    gap: 40px;
+}
+
+.footer-brand {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.footer-logo img {
+    width: 40px;
+    height: 40px;
+}
+
+.footer-logo h3 {
+    margin: 0;
+}
+
+.footer-tagline {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.footer-copyright {
+    font-size: 0.75rem;
+    color: var(--text-tertiary, var(--text-secondary));
+    margin: 0;
+    margin-top: auto;
+}
+
+@media (max-width: 992px) {
+    .footer-5-columns {
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: 30px;
+    }
+
+    .footer-brand {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 576px) {
+    .footer-5-columns {
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+
+    .footer-brand {
+        grid-column: 1 / -1;
+        text-align: center;
+    }
+
+    .footer-logo {
+        justify-content: center;
+    }
+
+    .footer-social {
+        justify-content: center;
+    }
+}
+</style>

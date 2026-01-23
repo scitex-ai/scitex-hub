@@ -1,0 +1,297 @@
+/* ========================================================================
+   DEFAULTS PROPERTIES PANEL
+   ======================================================================== */
+
+.defaults-properties {
+    padding: 16px;
+}
+
+.defaults-section {
+    margin-bottom: 16px;
+}
+
+.defaults-section:last-child {
+    margin-bottom: 0;
+}
+
+.defaults-section-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.defaults-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 8px;
+    font-size: 12px;
+    background: var(--vis-bg-primary);
+    border: 1px solid var(--vis-border);
+    border-radius: 4px;
+    margin-bottom: 4px;
+}
+
+[data-theme="dark"] .defaults-item {
+    background: var(--workspace-bg-primary);
+    border-color: var(--workspace-border-default);
+}
+
+.defaults-item:last-child {
+    margin-bottom: 0;
+}
+
+.defaults-item-key {
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.defaults-item-value {
+    color: var(--text-primary);
+    font-family: monospace;
+    font-size: 11px;
+}
+
+/* Preset selector and actions */
+.defaults-preset-selector {
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--vis-border);
+}
+
+[data-theme="dark"] .defaults-preset-selector {
+    border-bottom-color: var(--workspace-border-default);
+}
+
+.defaults-preset-actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.defaults-preset-actions .scitex-btn {
+    margin-bottom: 0;
+    padding: 8px 12px;
+    font-size: 11px;
+}
+
+/* Unit switcher */
+.defaults-unit-switcher {
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--vis-border);
+}
+
+[data-theme="dark"] .defaults-unit-switcher {
+    border-bottom-color: var(--workspace-border-default);
+}
+
+.unit-buttons {
+    display: flex;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.unit-btn {
+    flex: 1;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: var(--vis-bg-primary);
+    border: 1px solid var(--vis-border);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+[data-theme="dark"] .unit-btn {
+    background: var(--workspace-bg-primary);
+    border-color: var(--workspace-border-default);
+}
+
+.unit-btn:hover {
+    background: var(--vis-bg-hover);
+    color: var(--text-primary);
+}
+
+.unit-btn.active {
+    background: var(--accent-primary);
+    color: white;
+    border-color: var(--accent-primary);
+}
+
+/* Editable defaults items */
+.defaults-item.editable {
+    flex-direction: column;
+    gap: 4px;
+}
+
+.defaults-item.editable .defaults-item-key {
+    font-size: 10px;
+}
+
+.defaults-item.editable input {
+    width: 100%;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-family: monospace;
+    border: 1px solid var(--vis-border);
+    border-radius: 3px;
+    background: var(--vis-bg-tertiary);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .defaults-item.editable input {
+    background: var(--workspace-bg-tertiary);
+    border-color: var(--workspace-border-default);
+}
+
+.defaults-item.editable input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.2);
+}
+
+/* Defaults table layout */
+.defaults-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 8px;
+}
+
+.defaults-table thead {
+    background: var(--vis-bg-tertiary);
+    border-bottom: 2px solid var(--vis-border);
+}
+
+[data-theme="dark"] .defaults-table thead {
+    background: var(--workspace-bg-tertiary);
+    border-bottom-color: var(--workspace-border-default);
+}
+
+.defaults-table th {
+    padding: 6px 8px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.defaults-table th:last-child {
+    width: 60px;
+    text-align: center;
+}
+
+.defaults-row {
+    border-bottom: 1px solid var(--vis-border);
+    transition: background 0.15s ease;
+}
+
+[data-theme="dark"] .defaults-row {
+    border-bottom-color: var(--workspace-border-default);
+}
+
+.defaults-row:hover {
+    background: var(--vis-bg-hover);
+}
+
+.defaults-row:last-child {
+    border-bottom: none;
+}
+
+.defaults-label {
+    padding: 8px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: help;
+}
+
+.defaults-value {
+    padding: 4px 8px;
+}
+
+.defaults-value input.preset-input {
+    width: 100%;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-family: monospace;
+    border: 1px solid var(--vis-border);
+    border-radius: 3px;
+    background: var(--vis-bg-primary);
+    color: var(--text-primary);
+    transition: all 0.15s ease;
+}
+
+[data-theme="dark"] .defaults-value input.preset-input {
+    background: var(--workspace-bg-primary);
+    border-color: var(--workspace-border-default);
+}
+
+.defaults-value input.preset-input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.2);
+    background: var(--vis-bg-tertiary);
+}
+
+[data-theme="dark"] .defaults-value input.preset-input:focus {
+    background: var(--workspace-bg-tertiary);
+}
+
+.defaults-unit {
+    padding: 8px;
+    font-size: 10px;
+    color: var(--text-muted);
+    text-align: center;
+    font-weight: 500;
+    font-family: monospace;
+}
+
+/* Checkbox styling in table */
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--accent-primary);
+}
+
+.checkbox-label span {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-family: monospace;
+}
+
+.checkbox-label input[type="checkbox"]:checked + span {
+    color: var(--accent-primary);
+}
+
+/* Highlight flash animation for table rows */
+@keyframes highlight-flash {
+    0%, 100% { background: transparent; }
+    50% { background: rgba(var(--accent-rgb), 0.2); }
+}
+
+.defaults-row.highlight-flash {
+    animation: highlight-flash 1s ease;
+}

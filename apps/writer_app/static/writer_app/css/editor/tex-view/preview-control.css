@@ -1,0 +1,43 @@
+/* ========================================
+ * Auto Preview Control Styling
+ * ======================================== */
+
+.auto-preview-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.auto-preview-control .form-check-input {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  cursor: pointer;
+  border-color: var(--workspace-border-default);
+  background-color: var(--bg-page);
+}
+
+.auto-preview-control .form-check-input:checked {
+  background-color: var(--color-accent-emphasis);
+  border-color: var(--color-accent-emphasis);
+}
+
+.auto-preview-control .form-check-label {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
+/* Dark theme - workspace colors */
+[data-theme="dark"] .panel-header {
+  background: var(--workspace-bg-primary) !important;
+}
+
+[data-theme="dark"] .preview-panel:has(.pdf-preview-container) .panel-header,
+[data-theme="dark"] .preview-panel:has(.pdfjs-viewer) .panel-header,
+[data-theme="dark"] #pdf-view:has(.pdf-preview-container) .panel-header,
+[data-theme="dark"] #pdf-view:has(.pdfjs-viewer) .panel-header {
+  background: var(--workspace-bg-primary) !important;
+}

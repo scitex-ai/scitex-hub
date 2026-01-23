@@ -3,7 +3,7 @@
  * Functions for closing and reopening issues
  */
 
-import { getCsrfToken } from "../utils/csrf.js";
+import { getCsrfToken } from "../utils/csrf";
 
 console.log(
   "[DEBUG] apps/project_app/static/project_app/ts/issues/detail.ts loaded",

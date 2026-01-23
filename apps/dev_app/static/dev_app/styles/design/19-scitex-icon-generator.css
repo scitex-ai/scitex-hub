@@ -1,0 +1,191 @@
+/* SciTeX Icon Generator Styles */
+
+.scitex-icon-gen-container {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1.5rem;
+}
+
+.scitex-icon-gen-controls {
+  flex: 1;
+  min-width: 300px;
+  max-width: 400px;
+}
+
+.scitex-icon-gen-preview {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.scitex-icon-gen-section {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--scitex-color-02, #34495e);
+  border-radius: 8px;
+}
+
+.scitex-icon-gen-section-title {
+  color: var(--scitex-highlight, #4a9b7e);
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.scitex-icon-gen-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.scitex-icon-gen-row:last-child {
+  margin-bottom: 0;
+}
+
+.scitex-icon-gen-row label {
+  color: var(--scitex-color-01, #e5e7eb);
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.scitex-icon-gen-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--scitex-highlight, #4a9b7e);
+}
+
+.scitex-icon-gen-row input[type="text"] {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid var(--scitex-color-03, #506b7a);
+  border-radius: 4px;
+  background: var(--scitex-color-01-dark, #1a2a40);
+  color: var(--scitex-color-01, #e5e7eb);
+  font-size: 0.875rem;
+}
+
+.scitex-icon-gen-row input[type="text"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.scitex-icon-gen-row select {
+  padding: 0.5rem;
+  border: 1px solid var(--scitex-color-03, #506b7a);
+  border-radius: 4px;
+  background: var(--scitex-color-01-dark, #1a2a40);
+  color: var(--scitex-color-01, #e5e7eb);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.scitex-icon-gen-row select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.scitex-icon-gen-colors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.scitex-icon-gen-color-btn {
+  width: 28px;
+  height: 28px;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+  padding: 0;
+}
+
+.scitex-icon-gen-color-btn:hover {
+  transform: scale(1.1);
+}
+
+.scitex-icon-gen-color-btn.active {
+  border-color: var(--scitex-highlight, #4a9b7e);
+  box-shadow: 0 0 0 2px rgba(74, 155, 126, 0.3);
+}
+
+.scitex-icon-gen-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.scitex-icon-gen-actions .btn {
+  flex: 1;
+  min-width: 120px;
+}
+
+.scitex-icon-gen-preview-container {
+  width: 100%;
+  max-width: 350px;
+  aspect-ratio: 1;
+  background: repeating-conic-gradient(#3a3a3a 0% 25%, #2a2a2a 0% 50%) 50% / 20px 20px;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scitex-icon-gen-preview-container svg {
+  width: 100%;
+  height: 100%;
+}
+
+.scitex-icon-gen-filename {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background: var(--scitex-color-02, #34495e);
+  border-radius: 4px;
+  font-family: "Consolas", "Monaco", monospace;
+  font-size: 0.875rem;
+  color: var(--scitex-highlight, #4a9b7e);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .scitex-icon-gen-container {
+    flex-direction: column;
+  }
+
+  .scitex-icon-gen-controls {
+    max-width: none;
+  }
+
+  .scitex-icon-gen-preview-container {
+    max-width: 280px;
+  }
+}
+
+/* Light mode adjustments */
+[data-theme="light"] .scitex-icon-gen-section {
+  background: #f3f4f6;
+}
+
+[data-theme="light"] .scitex-icon-gen-row input[type="text"],
+[data-theme="light"] .scitex-icon-gen-row select {
+  background: #ffffff;
+  border-color: #d1d5db;
+  color: #1f2937;
+}
+
+[data-theme="light"] .scitex-icon-gen-preview-container {
+  background: repeating-conic-gradient(#e5e7eb 0% 25%, #f3f4f6 0% 50%) 50% / 20px 20px;
+}
+
+[data-theme="light"] .scitex-icon-gen-filename {
+  background: #e5e7eb;
+  color: #2d5f4d;
+}
