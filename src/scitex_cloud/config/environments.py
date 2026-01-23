@@ -61,8 +61,8 @@ def get_environment(name: Optional[str] = None) -> Environment:
             )
         return ENVIRONMENTS[name]
 
-    # Auto-detect from SCITEX_ENV or default to dev
-    env_name = os.environ.get("SCITEX_ENV", "dev")
+    # Auto-detect from SCITEX_CLOUD_ENV or default to dev
+    env_name = os.environ.get("SCITEX_CLOUD_ENV", "dev")
     return ENVIRONMENTS.get(env_name, ENVIRONMENTS["dev"])
 
 

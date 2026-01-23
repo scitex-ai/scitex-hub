@@ -95,27 +95,27 @@ class TestGetEnvironment:
 
     def test_auto_detect_default(self):
         """Test auto-detect defaults to dev."""
-        # Ensure SCITEX_ENV is not set
-        old_value = os.environ.pop("SCITEX_ENV", None)
+        # Ensure SCITEX_CLOUD_ENV is not set
+        old_value = os.environ.pop("SCITEX_CLOUD_ENV", None)
         try:
             env = get_environment(None)
             assert env.name == "dev"
         finally:
             if old_value:
-                os.environ["SCITEX_ENV"] = old_value
+                os.environ["SCITEX_CLOUD_ENV"] = old_value
 
     def test_auto_detect_from_env_var(self):
-        """Test auto-detect from SCITEX_ENV."""
-        old_value = os.environ.get("SCITEX_ENV")
+        """Test auto-detect from SCITEX_CLOUD_ENV."""
+        old_value = os.environ.get("SCITEX_CLOUD_ENV")
         try:
-            os.environ["SCITEX_ENV"] = "nas"
+            os.environ["SCITEX_CLOUD_ENV"] = "nas"
             env = get_environment(None)
             assert env.name == "nas"
         finally:
             if old_value:
-                os.environ["SCITEX_ENV"] = old_value
+                os.environ["SCITEX_CLOUD_ENV"] = old_value
             else:
-                os.environ.pop("SCITEX_ENV", None)
+                os.environ.pop("SCITEX_CLOUD_ENV", None)
 
 
 # EOF
