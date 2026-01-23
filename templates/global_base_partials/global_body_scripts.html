@@ -1,127 +1,126 @@
 {% load static vite %}
+<!-- Template cleanup (removes stray Django template text from linter reformatting) -->
+{% vite_script 'shared/utils/template-cleanup' %}
 <!-- Bootstrap 5 JavaScript Bundle (includes Popper) -->
 <!-- Wrapped to prevent AMD conflicts with Monaco Editor's RequireJS loader -->
 <script>
-  (function () {
-    // Temporarily disable AMD define to prevent Bootstrap from registering as AMD module
-    var originalDefine = window.define;
-    var originalRequire = window.require;
-    window.define = undefined;
-    window.require = undefined;
+    (function() {
+        // Temporarily disable AMD define to prevent Bootstrap from registering as AMD module
+        var originalDefine = window.define;
+        var originalRequire = window.require;
+        window.define = undefined;
+        window.require = undefined;
 
-    // Load Bootstrap
-    var script = document.createElement("script");
-    script.src =
-      "https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js";
-    script.integrity =
-      "sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4";
-    script.crossOrigin = "visitor";
-    script.onload = function () {
-      // Restore AMD after Bootstrap loads
-      window.define = originalDefine;
-      window.require = originalRequire;
-      console.log("[Bootstrap] Loaded successfully without AMD conflicts");
-    };
-    document.head.appendChild(script);
-  })();
+        // Load Bootstrap
+        var script = document.createElement("script");
+        script.src =
+            "https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js";
+        script.integrity =
+            "sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4";
+        script.crossOrigin = "visitor";
+        script.onload = function() {
+            // Restore AMD after Bootstrap loads
+            window.define = originalDefine;
+            window.require = originalRequire;
+            console.log("[Bootstrap] Loaded successfully without AMD conflicts");
+        };
+        document.head.appendChild(script);
+    })();
 </script>
 <!-- Global Autocomplete Disabler -->
 <script>
-  /**
-   * GLOBAL POLICY: Disable autocomplete by default
-   *
-   * Prevents inappropriate autofill (e.g., username in repository name field).
-   * To enable autocomplete on specific fields, add autocomplete="on", "email", etc.
-   */
-  (function () {
-    "use strict";
+    /**
+     * GLOBAL POLICY: Disable autocomplete by default
+     *
+     * Prevents inappropriate autofill (e.g., username in repository name field).
+     * To enable autocomplete on specific fields, add autocomplete="on", "email", etc.
+     */
+    (function() {
+        "use strict";
 
-    function disableAutocompleteGlobally() {
-      // Get all forms
-      const forms = document.querySelectorAll("form");
+        function disableAutocompleteGlobally() {
+            // Get all forms
+            const forms = document.querySelectorAll("form");
 
-      forms.forEach(function (form) {
-        // Check if form explicitly has autocomplete="on" or specific value
-        const formAutocomplete = form.getAttribute("autocomplete");
-        const formWantsAutocomplete =
-          formAutocomplete && formAutocomplete !== "off";
+            forms.forEach(function(form) {
+                // Check if form explicitly has autocomplete="on" or specific value
+                const formAutocomplete = form.getAttribute("autocomplete");
+                const formWantsAutocomplete =
+                    formAutocomplete && formAutocomplete !== "off";
 
-        // Set form-level autocomplete
-        if (!formWantsAutocomplete) {
-          form.setAttribute("autocomplete", "off");
+                // Set form-level autocomplete
+                if (!formWantsAutocomplete) {
+                    form.setAttribute("autocomplete", "off");
+                }
+
+                // Process all inputs
+                const inputs = form.querySelectorAll("input, textarea, select");
+                inputs.forEach(function(input) {
+                    const inputAutocomplete = input.getAttribute("autocomplete");
+
+                    // List of valid autocomplete values that should be preserved
+                    const validAutocompleteValues = [
+                        "on",
+                        "email",
+                        "username",
+                        "current-password",
+                        "new-password",
+                        "name",
+                        "given-name",
+                        "family-name",
+                        "tel",
+                        "url",
+                        "street-address",
+                        "postal-code",
+                        "country",
+                        "cc-number",
+                        "cc-exp",
+                        "cc-csc",
+                    ];
+
+                    // Only preserve autocomplete if it's explicitly set to a valid value
+                    const shouldPreserveAutocomplete =
+                        inputAutocomplete &&
+                        validAutocompleteValues.includes(inputAutocomplete);
+
+                    if (!shouldPreserveAutocomplete) {
+                        input.setAttribute("autocomplete", "off");
+                        // Also add autocomplete="off" as property to override browser behavior
+                        input.autocomplete = "off";
+                    }
+                });
+            });
         }
 
-        // Process all inputs
-        const inputs = form.querySelectorAll("input, textarea, select");
-        inputs.forEach(function (input) {
-          const inputAutocomplete = input.getAttribute("autocomplete");
+        // Run on page load
+        document.addEventListener("DOMContentLoaded", disableAutocompleteGlobally);
 
-          // List of valid autocomplete values that should be preserved
-          const validAutocompleteValues = [
-            "on",
-            "email",
-            "username",
-            "current-password",
-            "new-password",
-            "name",
-            "given-name",
-            "family-name",
-            "tel",
-            "url",
-            "street-address",
-            "postal-code",
-            "country",
-            "cc-number",
-            "cc-exp",
-            "cc-csc",
-          ];
+        // Also run when content is dynamically added
+        if (window.MutationObserver) {
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.addedNodes.length) {
+                        disableAutocompleteGlobally();
+                    }
+                });
+            });
 
-          // Only preserve autocomplete if it's explicitly set to a valid value
-          const shouldPreserveAutocomplete =
-            inputAutocomplete &&
-            validAutocompleteValues.includes(inputAutocomplete);
-
-          if (!shouldPreserveAutocomplete) {
-            input.setAttribute("autocomplete", "off");
-            // Also add autocomplete="off" as property to override browser behavior
-            input.autocomplete = "off";
-          }
-        });
-      });
-    }
-
-    // Run on page load
-    document.addEventListener("DOMContentLoaded", disableAutocompleteGlobally);
-
-    // Also run when content is dynamically added
-    if (window.MutationObserver) {
-      const observer = new MutationObserver(function (mutations) {
-        mutations.forEach(function (mutation) {
-          if (mutation.addedNodes.length) {
-            disableAutocompleteGlobally();
-          }
-        });
-      });
-
-      document.addEventListener("DOMContentLoaded", function () {
-        observer.observe(document.body, {
-          childList: true,
-          subtree: true,
-        });
-      });
-    }
-  })();
+            document.addEventListener("DOMContentLoaded", function() {
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true,
+                });
+            });
+        }
+    })();
 </script>
 <!-- Vite HMR client (dev only) -->
 {% vite_hmr_client %}
-
 <!-- Theme Switcher (Vite) -->
 {% vite_script 'shared/utils/theme-switcher' %}
-
 <!-- Highlight.js for syntax highlighting and line numbers -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
-
 <!-- Global utility scripts (Vite) -->
 {% vite_script 'shared/utils/tooltip-auto-position' %}
 {% vite_script 'shared/utils/main' %}
@@ -129,17 +128,41 @@
 {% vite_script 'shared/code-blocks' %}
 {% vite_script 'shared/utils/django-messages' %}
 {% vite_script 'shared/components/confirm-modal' %}
-
 <!-- Development Tools (only in DEBUG mode) -->
 {% if DEBUG %}
     {% vite_script 'shared/utils/element-inspector' %}
 {% endif %}
-
 <!-- Global Header Scripts (Vite) -->
 {% vite_script 'shared/components/header' %}
-
 <!-- Analytics (module usage tracking) -->
 {% vite_script 'shared/utils/analytics' %}
-
 <!-- Visitor Session Heartbeat -->
 {% vite_script 'shared/utils/visitor-heartbeat' %}
+<!-- First Visit Navigator (modal with module cards) -->
+{% vite_script 'shared/components/first-visit-navigator' %}
+<!-- Product Tour (step-by-step guided walkthrough) -->
+{% vite_script 'shared/components/product-tour' %}
+<!-- Cookie Consent Banner -->
+{% vite_script 'shared/components/cookie-consent' %}
+<!-- Mobile Notice Banner Dismiss -->
+<script>
+    (function() {
+        const STORAGE_KEY = "scitex_mobile_notice_dismissed";
+        const banner = document.getElementById("mobile-notice-banner");
+        const closeBtn = document.getElementById("mobile-notice-close");
+
+        if (!banner || !closeBtn) return;
+
+        // Check if already dismissed
+        if (localStorage.getItem(STORAGE_KEY) === "true") {
+            banner.classList.add("dismissed");
+            return;
+        }
+
+        // Handle dismiss
+        closeBtn.addEventListener("click", function() {
+            banner.classList.add("dismissed");
+            localStorage.setItem(STORAGE_KEY, "true");
+        });
+    })();
+</script>
