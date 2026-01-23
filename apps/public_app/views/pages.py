@@ -4,6 +4,7 @@
 # File: /home/ywatanabe/proj/scitex-cloud/apps/public_app/views/pages.py
 # ----------------------------------------
 from __future__ import annotations
+
 import os
 
 __FILE__ = "./apps/public_app/views/pages.py"
@@ -34,6 +35,7 @@ def demos(request):
 def video_player(request, video_id):
     """Video player page with 4x default speed."""
     videos = {
+        # Local MCP demos
         "figrecipe": {
             "title": "Graphing by AI Agent (figrecipe v0.14.0)",
             "url": "/media/videos/figrecipe-v0.14.0-demo.mp4",
@@ -54,16 +56,42 @@ def video_player(request, video_id):
             "url": "/media/videos/scitex-automated-research-demo.mp4",
             "description": "scitex MCP enables AI agents to conduct full research workflows: literature search, experiment, analysis, figure generation, manuscript writing, and revision.",
         },
+        # Local Python demos
+        "scholar-module": {
+            "title": "scitex.scholar Demo",
+            "url": "/static/public_app/videos/landing/scholar-demo.mp4",
+            "description": "Literature discovery & enrichment. Search 167M+ academic works via local database. Automatic PDF download with institutional credentials.",
+        },
+        "writer-module": {
+            "title": "scitex.writer Demo",
+            "url": "/static/public_app/videos/landing/writer-demo.mp4",
+            "description": "LaTeX manuscript writing with automated compilation. Integrates with BibTeX for citation management.",
+        },
+        "console-module": {
+            "title": "scitex.{session,plt,io} Demo",
+            "url": "/static/public_app/videos/landing/console-demo.mp4",
+            "description": "Reproducible experiment tracking with @stx.session decorator. Publication-ready figures and universal file I/O.",
+        },
+        "visualizer-module": {
+            "title": "scitex.plt Demo",
+            "url": "/static/public_app/videos/landing/visualizer-demo.mp4",
+            "description": "Publication-ready scientific figures with reproducible recipes. Auto-exports data CSV alongside plots.",
+        },
     }
     video = videos.get(video_id)
     if not video:
         from django.http import Http404
+
         raise Http404("Video not found")
-    return render(request, "public_app/pages/video_player.html", {
-        "video_title": video["title"],
-        "video_url": video["url"],
-        "video_description": video["description"],
-    })
+    return render(
+        request,
+        "public_app/pages/video_player.html",
+        {
+            "video_title": video["title"],
+            "video_url": video["url"],
+            "video_description": video["description"],
+        },
+    )
 
 
 def publications(request):
@@ -97,6 +125,7 @@ def donate(request):
                         "email"
                     ]
                     from django.shortcuts import redirect
+
                     return redirect("cloud_app:verify-email")
                 else:
                     messages.error(
@@ -130,9 +159,11 @@ def donate(request):
 
                     # Send confirmation email
                     from .utils import send_donation_confirmation
+
                     send_donation_confirmation(donation)
 
                     from django.shortcuts import redirect
+
                     return redirect(
                         "cloud_app:donation-success", donation_id=donation.id
                     )
@@ -141,6 +172,7 @@ def donate(request):
                     # Redirect to PayPal
                     messages.info(request, "Redirecting to PayPal...")
                     from django.shortcuts import redirect
+
                     return redirect(
                         "cloud_app:donate"
                     )  # Would redirect to PayPal in production
@@ -148,6 +180,7 @@ def donate(request):
                 elif donation.payment_method == "github":
                     # Redirect to GitHub Sponsors
                     from django.shortcuts import redirect
+
                     return redirect("https://github.com/sponsors/SciTex-AI")
 
     else:
@@ -213,8 +246,8 @@ def keyboard_shortcuts(request):
                     "shortcuts": [
                         {"keys": "Alt+F", "description": "Files"},
                         {"keys": "Alt+S", "description": "Scholar"},
-                        {"keys": "Alt+C", "description": "Code"},
-                        {"keys": "Alt+V", "description": "Vis"},
+                        {"keys": "Alt+C", "description": "Console"},
+                        {"keys": "Alt+V", "description": "Visualizer"},
                         {"keys": "Alt+W", "description": "Writer"},
                         {"keys": "Alt+Z", "description": "Zen Mode"},
                     ],
@@ -269,10 +302,10 @@ def keyboard_shortcuts(request):
             ],
         },
         {
-            "name": "Code",
+            "name": "Console",
             "slug": "code",
             "icon": "💻",
-            "description": "Code editor",
+            "description": "Terminal workspace",
             "sections": [
                 {
                     "title": "Files",
@@ -299,7 +332,7 @@ def keyboard_shortcuts(request):
             ],
         },
         {
-            "name": "Vis",
+            "name": "Visualizer",
             "slug": "vis",
             "icon": "📊",
             "description": "Figure editor",

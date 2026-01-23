@@ -16,6 +16,7 @@ Note: In development, Vite dev server must be running (npm run dev).
 
 import json
 from pathlib import Path
+
 from django import template
 from django.conf import settings
 from django.utils.safestring import mark_safe
@@ -215,6 +216,10 @@ def _entry_to_ts_path(entry_name: str) -> str:
         'shared/components/seekbar': 'static/shared/ts/components/seekbar.ts',
         'shared/utils/highlight-js-bibtex': 'static/shared/ts/utils/highlight-js-bibtex.ts',
         'shared/workspace-panel-resizer': 'static/shared/ts/components/workspace-panel-resizer.ts',
+        'shared/utils/analytics': 'static/shared/ts/utils/analytics.ts',
+        'shared/utils/visitor-heartbeat': 'static/shared/ts/utils/visitor-heartbeat.ts',
+        'shared/components/first-visit-navigator': 'static/shared/ts/components/first-visit-navigator.ts',
+        'shared/components/product-tour': 'static/shared/ts/components/product-tour.ts',
     }
     return mappings.get(entry_name, f'{entry_name}.ts')
 

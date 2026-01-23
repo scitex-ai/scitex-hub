@@ -90,6 +90,39 @@ All visitor demo slots are currently in use. Create a free account or try again 
     gap: 3rem;
 }
 
+.pool-full-notice {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(251, 191, 36, 0.05) 100%);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    text-align: left;
+}
+
+.pool-full-notice > i {
+    color: #fbbf24;
+    font-size: 1.25rem;
+    margin-top: 0.1rem;
+    flex-shrink: 0;
+}
+
+.pool-full-notice strong {
+    color: #fbbf24;
+    font-size: 0.95rem;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.pool-full-notice p {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin: 0;
+    line-height: 1.5;
+}
+
 .pool-full-stat {
     text-align: center;
 }
@@ -310,6 +343,15 @@ All visitor demo slots are currently in use. Create a free account or try again 
         <div class="pool-full-stat">
             <div class="pool-full-stat-value">{{ free }}</div>
             <div class="pool-full-stat-label">Available</div>
+        </div>
+    </div>
+
+    <!-- No Booking Notice -->
+    <div class="pool-full-notice">
+        <i class="fas fa-exclamation-triangle"></i>
+        <div>
+            <strong>No reservation system available</strong>
+            <p>Slot availability depends on when other visitors' sessions expire. Each session lasts up to 60 minutes.</p>
         </div>
     </div>
 
