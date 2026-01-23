@@ -1,87 +1,12 @@
-# SciTeX Cloud Requirements (without uwsgi)
-# Production dependencies
-
-# Django core (LTS)
-Django==5.2.7
-djangorestframework==3.16.1
-django-cors-headers==4.9.0
-django-extensions==4.1
-django-browser-reload==1.12.1
-djangorestframework-simplejwt==5.3.0
-
-# Database
-psycopg2-binary==2.9.9
-
-# Server
-gunicorn==21.2.0
-daphne==4.1.2  # ASGI server for WebSocket support (PTY terminal)
-# uwsgi==2.0.25  # Install separately with system packages
-fastapi>=0.109.0  # For citation graph microservice (port 3334)
-uvicorn[standard]>=0.27.0  # ASGI server for FastAPI
-python-multipart>=0.0.6  # FastAPI multipart form support
-
-# Security
-django-axes==6.3.0
-python-decouple==3.8
-
-# Authentication
-PyJWT==2.8.0
-cryptography==42.0.5
-django-allauth[socialaccount]==65.3.0
-
-# Integrations
-requests>=2.31.0
-feedparser==6.0.10
-
-# Browser automation (for scholar app)
-playwright==1.48.0
-
-# Container management (for workspace app)
-docker==7.1.0
-paramiko==3.4.0  # SSH gateway for user workspaces
-
-# E2E Testing
-pytest>=8.4.1
-pytest-playwright>=0.7.1
-pytest-base-url>=2.1.0
-pytest-asyncio>=1.2.0
-
-# Utilities
-python-dotenv==1.0.1
-whitenoise==6.11.0
-
-# Development tools (optional in production)
-ipython==8.22.2
-django-debug-toolbar==6.0.0
-djlint==1.36.4
-
-# Monitoring and logging
-sentry-sdk==1.45.0
-
-# WebSocket support (for real-time collaboration)
-channels==4.3.1
-channels-redis==4.3.0
-
-# Task queue (async jobs with fair scheduling)
-celery[redis]==5.4.0
-django-celery-results==2.5.1
-django-celery-beat==2.8.1  # Django 5.2 compatible
-flower==2.0.1  # Celery monitoring dashboard
-
-# UI utilities
-django-widget-tweaks==1.5.0
-
-# Language Detection
-pygments
-
-# Jupyter notebook support
-nbformat>=5.9.0
-nbconvert>=7.0.0
-
-# GUI Tools (for icon generator and development utilities)
-dearpygui>=1.11.0
-cairosvg>=2.7.0
-Pillow>=10.0.0
-
-# Local packages (installed at runtime, not build time)
-# -e /scitex-code  # Installed via entrypoint script
+# SciTeX Cloud Requirements
+# All dependencies are now managed in pyproject.toml
+#
+# Usage:
+#   pip install -e .              # CLI only
+#   pip install -e .[django]      # Django app
+#   pip install -e .[test]        # Testing
+#   pip install -e .[gui]         # GUI tools
+#   pip install -e .[all]         # Everything
+#
+# For Docker builds:
+-e .[django,test]

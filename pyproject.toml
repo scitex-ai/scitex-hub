@@ -23,6 +23,70 @@ dev = [
     "black>=23.0",
     "ruff>=0.1.0",
 ]
+django = [
+    # Django core
+    "Django>=5.2",
+    "djangorestframework>=3.16",
+    "django-cors-headers>=4.9",
+    "django-extensions>=4.1",
+    "django-browser-reload>=1.12",
+    "djangorestframework-simplejwt>=5.3",
+    # Database
+    "psycopg2-binary>=2.9",
+    # Server
+    "gunicorn>=21.2",
+    "daphne>=4.1",
+    "fastapi>=0.109",
+    "uvicorn[standard]>=0.27",
+    "python-multipart>=0.0.6",
+    # Security
+    "django-axes>=6.3",
+    "python-decouple>=3.8",
+    # Authentication
+    "PyJWT>=2.8",
+    "cryptography>=42.0",
+    "django-allauth[socialaccount]>=65.3",
+    # Integrations
+    "requests>=2.31",
+    "feedparser>=6.0",
+    # Browser automation
+    "playwright>=1.48",
+    # Container management
+    "docker>=7.1",
+    "paramiko>=3.4",
+    # Utilities
+    "python-dotenv>=1.0",
+    "whitenoise>=6.11",
+    # WebSocket support
+    "channels>=4.3",
+    "channels-redis>=4.3",
+    # Task queue
+    "celery[redis]>=5.4",
+    "django-celery-results>=2.5",
+    "django-celery-beat>=2.8",
+    "flower>=2.0",
+    # UI utilities
+    "django-widget-tweaks>=1.5",
+    # Language detection
+    "pygments",
+    # Jupyter support
+    "nbformat>=5.9",
+    "nbconvert>=7.0",
+]
+test = [
+    "pytest>=8.4",
+    "pytest-playwright>=0.7",
+    "pytest-base-url>=2.1",
+    "pytest-asyncio>=1.2",
+]
+gui = [
+    "dearpygui>=1.11",
+    "cairosvg>=2.7",
+    "Pillow>=10.0",
+]
+all = [
+    "scitex-cloud[django,test,gui,dev]",
+]
 
 [project.scripts]
 scitex-cloud = "scitex_cloud.cli.main:main"
