@@ -6,7 +6,7 @@
 
   .hero-landing .hero-content {
     text-align: center;
-    order: 1;
+    order: 0; /* Logo/content first on mobile */
   }
 
   .hero-landing .hero-buttons {
@@ -14,7 +14,7 @@
   }
 
   .hero-landing .hero-image {
-    order: 0;
+    order: 1; /* Video second on mobile */
     margin-bottom: var(--spacing-lg);
   }
 

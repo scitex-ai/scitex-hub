@@ -76,7 +76,8 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 2px 8px rgba(255, 87, 34, 0.4);
   }
   50% {
@@ -87,18 +88,6 @@
 /* ============================================================================
  * Hero Demo Video Preview
  * ============================================================================ */
-.demo-preview {
-  position: relative;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.demo-preview:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
-}
 
 .demo-link {
   display: block;
@@ -107,6 +96,7 @@
 
 .demo-display {
   position: relative;
+  cursor: pointer;
 }
 
 .demo-thumbnail {
@@ -118,34 +108,7 @@
 }
 
 .demo-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  opacity: 1;
-  transition: opacity 0.3s ease, background 0.3s ease;
-}
-
-.demo-preview:hover .demo-overlay {
-  background: rgba(0, 0, 0, 0.5);
-}
-
-.demo-play-icon {
-  font-size: 4rem;
-  color: white;
-  margin-bottom: 0.5rem;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-  transition: transform 0.3s ease;
-}
-
-.demo-preview:hover .demo-play-icon {
-  transform: scale(1.1);
+  display: none;
 }
 
 .demo-text {
@@ -176,6 +139,80 @@
   line-height: 1.4;
 }
 
+/* Video element styling */
+.demo-video {
+  width: 100%;
+  height: auto;
+  display: block;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.demo-thumbnail {
+  border-radius: 4px;
+}
+
+/* Description below video */
+.demo-description {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  gap: 1rem;
+}
+
+.demo-info-left {
+  flex: 1;
+  text-align: left;
+}
+
+.demo-info-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.speed-label {
+  font-size: 0.9rem;
+  color: var(--text-primary, #24292f);
+  font-weight: 500;
+}
+
+[data-theme="dark"] .speed-label {
+  color: var(--text-primary, #c9d1d9);
+}
+
+/* Speed select */
+.speed-select {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border: 1px solid var(--border-default, #d0d7de);
+  border-radius: 4px;
+  background: var(--bg-secondary, #f6f8fa);
+  color: var(--text-primary, #24292f);
+  cursor: pointer;
+}
+
+[data-theme="dark"] .speed-select {
+  background: var(--bg-tertiary, #21262d);
+  border-color: var(--border-default, #30363d);
+  color: var(--text-primary, #c9d1d9);
+}
+
+.demo-workflow-text {
+  color: var(--text-primary, #24292f);
+  font-size: 1.1rem;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+[data-theme="dark"] .demo-workflow-text {
+  color: var(--text-primary, #c9d1d9);
+}
+
 /* ============================================================================
  * Responsive adjustments
  * ============================================================================ */
@@ -194,7 +231,23 @@
     align-items: center !important;
   }
 
+  /* Logo/content first, then video on mobile */
+  .hero-landing .hero-content {
+    order: 0 !important;
+  }
+
+  /* Responsive logo sizing for tablet */
+  .hero-landing .hero-logo {
+    max-width: 80%;
+    width: auto;
+  }
+
+  .hero-landing .hero-logo-container {
+    justify-content: center;
+  }
+
   .hero-landing .hero-image {
+    order: 1 !important;
     width: 100%;
     max-width: 500px;
     margin-top: 2rem;
@@ -208,6 +261,11 @@
 @media (max-width: 576px) {
   .hero-landing {
     margin-top: 1.5rem;
+  }
+
+  /* Even smaller logo for phones */
+  .hero-landing .hero-logo {
+    max-width: 90%;
   }
 
   .hero-landing .hero-badges {
@@ -243,13 +301,13 @@
  * ============================================================================ */
 .hero-tagline {
   font-size: 1.25rem;
-  color: var(--text-secondary, #586069);
+  color: #24292f;
   margin: 0.5rem 0 1.5rem 0;
-  font-weight: 400;
+  font-weight: 600;
 }
 
 [data-theme="dark"] .hero-tagline {
-  color: var(--text-muted, #8b949e);
+  color: #ffffff;
 }
 
 .hero-cta-container {

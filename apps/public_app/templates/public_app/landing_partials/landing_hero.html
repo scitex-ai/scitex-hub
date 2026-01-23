@@ -24,12 +24,6 @@
                 <!-- Value proposition and CTA -->
                 <p class="hero-tagline">Research Automation — For Humans and AI</p>
                 <p class="hero-description">Python toolkit + MCP server for literature search, statistics, visualization, and manuscript writing. 70% less code.</p>
-                <div class="hero-cta-container">
-                    <a href="{% url 'workspace_app:dashboard' %}" class="hero-cta-button">
-                        <i class="fas fa-rocket"></i> Start Automating
-                    </a>
-                    <span class="hero-cta-note">No sign-up required</span>
-                </div>
                 <div class="hero-badges">
                     <span class="hero-badge badge-success">
                         <i class="fab fa-github"></i> 100% Open Source
@@ -41,23 +35,67 @@
             </div>
             <!-- Hero Demo Video Preview -->
             <div class="hero-image">
-                <div class="demo-preview">
-                    <a href="{% url 'public_app:video_player' 'scitex-automated-research' %}"
-                       class="demo-link">
-                        <div class="demo-display">
-                            <img src="/media/videos/scitex-automated-research-demo-thumbnail.png"
-                                 alt="SciTeX Automated Research Demo"
-                                 class="demo-thumbnail" />
-                            <div class="demo-overlay">
-                                <span class="demo-workflow">
-                                    Demo: 40-min automated research with SciTeX MCP server<br>
-                                    Literature Search → Analysis → Graphing → Manuscript
-                                </span>
-                            </div>
-                        </div>
-                    </a>
+                <div class="demo-display" id="hero-demo-container" title="Play Demo Movie">
+                    <img src="/media/videos/scitex-automated-research-demo-thumbnail.png"
+                         alt="SciTeX Automated Research Demo"
+                         class="demo-thumbnail"
+                         id="hero-demo-thumbnail"
+                         title="Play Demo Movie" />
+                    <video id="hero-demo-video"
+                           class="demo-video"
+                           poster="/media/videos/scitex-automated-research-demo-thumbnail.png"
+                           preload="auto"
+                           style="display: none;">
+                        <source src="/media/videos/scitex-automated-research-demo.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <div class="demo-description">
+                    <div class="demo-info-left">
+                        <span class="demo-workflow-text">
+                            Demo Movie (40 min): Automated research with SciTeX MCP<br>
+                            Literature Search → Analysis → Graphing → Manuscript
+                        </span>
+                    </div>
+                    <div class="demo-info-right">
+                        <span class="speed-label">Speed:</span>
+                        <select class="speed-select" id="hero-speed-select">
+                            <option value="1">1x</option>
+                            <option value="2">2x</option>
+                            <option value="4">4x</option>
+                            <option value="8" selected>8x</option>
+                            <option value="16">16x</option>
+                        </select>
+                    </div>
                 </div>
             </div>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const container = document.getElementById('hero-demo-container');
+                    const thumbnail = document.getElementById('hero-demo-thumbnail');
+                    const video = document.getElementById('hero-demo-video');
+                    const speedSelect = document.getElementById('hero-speed-select');
+
+                    container.addEventListener('click', function() {
+                        if (video.paused) {
+                            thumbnail.style.display = 'none';
+                            video.style.display = 'block';
+                            video.controls = true;
+                            video.playbackRate = parseFloat(speedSelect.value);
+                            video.play();
+                        }
+                    });
+
+                    speedSelect.addEventListener('change', function() {
+                        video.playbackRate = parseFloat(speedSelect.value);
+                    });
+
+                    video.addEventListener('ended', function() {
+                        thumbnail.style.display = 'block';
+                        video.style.display = 'none';
+                        video.controls = false;
+                    });
+                });
+            </script>
         </div>
     </div>
 </section>
