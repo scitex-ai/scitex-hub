@@ -28,10 +28,13 @@
                                 <option value="revision">Revision</option>
                             </select>
                             <div class="custom-section-selector hidden">
-                                <button id="section-selector-toggle" class="section-selector-btn" type="button">
+                                <button id="section-selector-toggle"
+                                        class="section-selector-btn"
+                                        type="button">
                                     <span id="section-selector-text">Loading...</span>
                                 </button>
-                                <div id="section-selector-dropdown" class="section-selector-dropdown hidden"></div>
+                                <div id="section-selector-dropdown"
+                                     class="section-selector-dropdown hidden"></div>
                             </div>
                             <!-- Git Operations -->
                             <div class="git-operations-container">
@@ -54,13 +57,18 @@
                                 <span id="current-word-count">0</span> words
                             </div>
                             <!-- Keyboard Shortcuts Button -->
-                            <button id="shortcuts-btn" class="btn btn-sm btn-outline-secondary" title="View keyboard shortcuts" data-bs-toggle="modal" data-bs-target="#shortcuts-modal">
+                            <button id="shortcuts-btn"
+                                    class="btn btn-sm btn-outline-secondary"
+                                    title="View keyboard shortcuts"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#shortcuts-modal">
                                 <i class="fas fa-keyboard"></i>
                             </button>
                         </div>
                         <div class="header-right">
                             <!-- Font Size Controls -->
-                            <select id="font-size-select" class="form-select form-select-sm"
+                            <select id="font-size-select"
+                                    class="form-select form-select-sm"
                                     aria-label="Font Size">
                                 <option value="12">12px</option>
                                 <option value="13">13px</option>
@@ -73,7 +81,9 @@
                                 <option value="20">20px</option>
                             </select>
                             <!-- Monaco Editor Theme Toggle -->
-                            <button id="monaco-theme-toggle" class="btn btn-sm btn-outline-secondary" title="Toggle editor theme">
+                            <button id="monaco-theme-toggle"
+                                    class="btn btn-sm btn-outline-secondary"
+                                    title="Toggle editor theme">
                                 <span class="theme-icon">🌙</span>
                             </button>
                             <!-- Keybinding Selector - Hidden (not working with Monaco) -->
@@ -81,7 +91,8 @@
                                 <i class="fas fa-keyboard"></i>
                                 <span class="visually-hidden">Keybinding</span>
                             </label>
-                            <select id="keybinding-selector" class="form-select form-select-sm hidden-selector"
+                            <select id="keybinding-selector"
+                                    class="form-select form-select-sm hidden-selector"
                                     aria-label="Keybinding">
                                 <option value="default">Keymap: Default</option>
                             </select>
@@ -90,7 +101,8 @@
                                 <i class="fas fa-palette"></i>
                                 <span class="visually-hidden">Theme</span>
                             </label>
-                            <select id="theme-selector" class="form-select form-select-sm hidden-selector"
+                            <select id="theme-selector"
+                                    class="form-select form-select-sm hidden-selector"
                                     aria-label="Theme">
                                 <option value="vs-dark" selected>Dark</option>
                             </select>
@@ -105,7 +117,7 @@
                     <!-- Hidden textarea for fallback/compatibility -->
                     <textarea id="latex-editor-textarea"
                               class="latex-editor-textarea"
-                              style="display: none;"
+                              style="display: none"
                               placeholder="LaTeX code..."></textarea>
                 </div>
                 <!-- Resizable Panel Divider -->
@@ -126,49 +138,59 @@
                         </div>
                         <!-- Rest of header content will be dynamically updated by switchRightPanel() -->
                     </div>
-
                     <!-- PDF View (default visible) -->
                     <div id="pdf-view" class="right-panel-view">
                         <!-- PDF Header (hidden template - content copied to shared header) -->
-                        <div class="panel-header panel-header-template" id="pdf-panel-header" style="display: none !important;">
+                        <div class="panel-header panel-header-template"
+                             id="pdf-panel-header"
+                             style="display: none !important">
                             <div class="header-left">
                                 <!-- View Toggle -->
                                 {% include "writer_app/index_partials/panel_view_switcher.html" with active_view="pdf" %}
                                 <!-- Compile Button (hidden, triggered from dropdown) -->
-                                <button id="compile-btn-toolbar" class="btn btn-sm btn-primary hidden"
+                                <button id="compile-btn-toolbar"
+                                        class="btn btn-sm btn-primary hidden"
                                         title="Compile entire manuscript to PDF (all sections combined)">
                                     <i class="fas fa-rocket me-1"></i><span id="compile-btn-text">Compile Full Manuscript</span>
                                 </button>
                             </div>
                             <div class="header-right">
-                                <!-- 1. Preview Compilation Status LED -->
-                                <div class="status-indicator-group" onclick="togglePreviewLog()" title="Preview status (click to view log)">
-                                    <span class="status-indicator-label">Preview</span>
-                                    <span class="status-lamp-dot"
-                                          id="preview-status-lamp"
-                                          data-status="idle"></span>
-                                </div>
-                                <!-- 2. Full Compilation Status LED -->
-                                <div class="status-indicator-group" onclick="toggleFullLog()" title="Full compilation status (click to view log)">
-                                    <span class="status-indicator-label">Full</span>
-                                    <span class="status-lamp-dot"
-                                          id="fullcompile-status-lamp"
-                                          data-status="idle"></span>
+                                <!-- Compilation Status Indicators (wrapped for tour highlight) -->
+                                <div class="compilation-status-indicators">
+                                    <!-- 1. Preview Compilation Status LED -->
+                                    <div class="status-indicator-group"
+                                         onclick="togglePreviewLog()"
+                                         title="Preview status (click to view log)">
+                                        <span class="status-indicator-label">Preview</span>
+                                        <span class="status-lamp-dot" id="preview-status-lamp" data-status="idle"></span>
+                                    </div>
+                                    <!-- 2. Full Compilation Status LED -->
+                                    <div class="status-indicator-group"
+                                         onclick="toggleFullLog()"
+                                         title="Full compilation status (click to view log)">
+                                        <span class="status-indicator-label">Full</span>
+                                        <span class="status-lamp-dot"
+                                              id="fullcompile-status-lamp"
+                                              data-status="idle"></span>
+                                    </div>
                                 </div>
                                 <!-- 3. Compilation Settings Gear -->
-                                <button id="compilation-settings-btn" class="btn btn-sm btn-outline-secondary" title="Compilation Settings">
+                                <button id="compilation-settings-btn"
+                                        class="btn btn-sm btn-outline-secondary"
+                                        title="Compilation Settings">
                                     <i class="fas fa-cog"></i>
                                 </button>
-                                
                                 <!-- Hidden checkboxes (controlled by settings modal) -->
                                 <input type="checkbox"
-                                       id="auto-preview-checkbox-panel" class="form-check-input hidden"
+                                       id="auto-preview-checkbox-panel"
+                                       class="form-check-input hidden"
                                        checked />
                                 <input type="checkbox"
-                                       id="auto-fullcompile-checkbox" class="form-check-input hidden" />
-                                
+                                       id="auto-fullcompile-checkbox"
+                                       class="form-check-input hidden" />
                                 <!-- 4. PDF Zoom Selector (Size Dropdown) -->
-                                <select id="pdf-zoom-select" class="form-select form-select-sm"
+                                <select id="pdf-zoom-select"
+                                        class="form-select form-select-sm"
                                         aria-label="PDF Zoom Level">
                                     <option value="fit-width" selected>Fit to Width</option>
                                     <option value="50">50%</option>
@@ -178,7 +200,6 @@
                                     <option value="150">150%</option>
                                     <option value="200">200%</option>
                                 </select>
-
                                 <!-- 4.5 PDF Pan Mode Toggle Button -->
                                 <button id="pdf-pan-mode-btn"
                                         class="btn btn-sm btn-outline-secondary"
@@ -188,14 +209,12 @@
                                         data-bs-placement="bottom">
                                     <i class="fas fa-hand-paper"></i>
                                 </button>
-
                                 <!-- 5. PDF Theme Toggle (Light/Dark) -->
                                 <button id="pdf-color-mode-btn"
                                         class="btn btn-sm btn-outline-secondary"
                                         title="PDF Theme: Light (Click to toggle)">
                                     <span class="theme-icon">☀️</span>
                                 </button>
-                                
                                 <!-- 6. Download Current PDF Button -->
                                 <button id="download-btn-toolbar"
                                         class="btn btn-sm btn-outline-secondary"
@@ -214,7 +233,9 @@
                     <!-- Citations View (hidden by default) -->
                     <div id="citations-view" class="right-panel-view" hidden>
                         <!-- Citations Header (hidden template - content copied to shared header) -->
-                        <div class="panel-header panel-header-template" id="citations-panel-header" style="display: none !important;">
+                        <div class="panel-header panel-header-template"
+                             id="citations-panel-header"
+                             style="display: none !important">
                             <div class="header-left">
                                 <!-- View Toggle -->
                                 {% include "writer_app/index_partials/panel_view_switcher.html" with active_view="citations" %}
@@ -259,7 +280,9 @@
                     <!-- Figures View (hidden by default) -->
                     <div id="figures-view" class="right-panel-view" hidden>
                         <!-- Figures Header (hidden template - content copied to shared header) -->
-                        <div class="panel-header panel-header-template" id="figures-panel-header" style="display: none !important;">
+                        <div class="panel-header panel-header-template"
+                             id="figures-panel-header"
+                             style="display: none !important">
                             <div class="header-left">
                                 <!-- View Toggle -->
                                 {% include "writer_app/index_partials/panel_view_switcher.html" with active_view="figures" %}
@@ -305,7 +328,9 @@
                     <!-- Tables View (hidden by default) -->
                     <div id="tables-view" class="right-panel-view" hidden>
                         <!-- Tables Panel Header (hidden template - content copied to shared header) -->
-                        <div class="panel-header panel-header-template" id="tables-panel-header" style="display: none !important;">
+                        <div class="panel-header panel-header-template"
+                             id="tables-panel-header"
+                             style="display: none !important">
                             <div class="header-left">
                                 {% include "writer_app/index_partials/panel_view_switcher.html" with active_view="tables" %}
                             </div>
@@ -322,7 +347,9 @@
                     <!-- History View (hidden by default) -->
                     <div id="history-view" class="right-panel-view" hidden>
                         <!-- History Panel Header (hidden template - content copied to shared header) -->
-                        <div class="panel-header panel-header-template" id="history-panel-header" style="display: none !important;">
+                        <div class="panel-header panel-header-template"
+                             id="history-panel-header"
+                             style="display: none !important">
                             <div class="header-left">
                                 {% include "writer_app/index_partials/panel_view_switcher.html" with active_view="history" %}
                             </div>
@@ -332,7 +359,9 @@
                                     <option value="main">Current Branch</option>
                                 </select>
                                 <!-- Refresh Button -->
-                                <button id="gitRefreshBtn" class="btn btn-sm btn-outline-secondary" title="Refresh history">
+                                <button id="gitRefreshBtn"
+                                        class="btn btn-sm btn-outline-secondary"
+                                        title="Refresh history">
                                     <i class="fas fa-sync-alt"></i>
                                 </button>
                                 <!-- Git Status Badge -->
@@ -344,15 +373,13 @@
                         <!-- History Content -->
                         {% include "writer_app/index_partials/history_panel.html" %}
                     </div>
-
                     <!-- Collaboration View (hidden by default) -->
                     {% include "writer_app/index_partials/collaboration_pane.html" %}
                 </div>
             </div>
         </div>
         <!-- Inline Compilation Output (Initially Hidden) -->
-        <div id="compilation-output"
-             class="compilation-output">
+        <div id="compilation-output" class="compilation-output">
             <!-- Compilation Log Toolbar -->
             <div id="compilation-log-toolbar">
                 <div>
@@ -394,8 +421,9 @@
                 <!-- Will be populated dynamically with alert-banner classes -->
             </div>
             <!-- Log Output (direct display without header/wrapper) -->
-            <div id="compilation-log-inline"
-                 class="terminal-log terminal-log--medium">Click "Compile" to start compilation...</div>
+            <div id="compilation-log-inline" class="terminal-log terminal-log--medium">
+                Click "Compile" to start compilation...
+            </div>
             <!-- Success/Error Messages -->
             <div id="compilation-result-inline"></div>
         </div>
@@ -412,8 +440,7 @@
                             class="btn btn-outline-primary w-100 mb-2">
                         <i class="fas fa-bolt me-2"></i>Quick Compile (text only)
                     </button>
-                    <button id="stop-compile-btn"
-                            class="btn btn-danger w-100">
+                    <button id="stop-compile-btn" class="btn btn-danger w-100">
                         <i class="fas fa-stop me-2"></i>Stop
                     </button>
                 </div>
@@ -599,8 +626,7 @@
     </div>
 </div>
 <!-- Git Commit Modal -->
-<div class="scitex-modal-overlay"
-     id="git-commit-modal">
+<div class="scitex-modal-overlay" id="git-commit-modal">
     <div class="scitex-modal-content">
         <div class="scitex-modal-header">
             <h3>
@@ -610,8 +636,7 @@
         </div>
         <div class="scitex-modal-body">
             <div class="mb-3">
-                <label for="commit-message-input"
-                       class="form-label">Commit Message</label>
+                <label for="commit-message-input" class="form-label">Commit Message</label>
                 <input type="text"
                        id="commit-message-input"
                        class="form-control"
@@ -659,8 +684,8 @@
                     <div class="d-flex flex-wrap gap-3">
                         <span><kbd>Alt+F</kbd> Files</span>
                         <span><kbd>Alt+S</kbd> Scholar</span>
-                        <span><kbd>Alt+C</kbd> Code</span>
-                        <span><kbd>Alt+V</kbd> Vis</span>
+                        <span><kbd>Alt+C</kbd> Console</span>
+                        <span><kbd>Alt+V</kbd> Visualizer</span>
                         <span><kbd>Alt+W</kbd> Writer</span>
                         <span><kbd>Alt+Z</kbd> Zen Mode</span>
                         <span><kbd>F11</kbd> Cycle Zen/Fullscreen</span>

@@ -1,7 +1,8 @@
 /* Status Lamp Component - Unified status indicators */
 
 /* Status indicators container (holds multiple indicator groups) */
-.status-indicators-container {
+.status-indicators-container,
+.compilation-status-indicators {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -30,7 +31,9 @@
   cursor: pointer;
   text-decoration: underline;
   text-decoration-style: dotted;
-  transition: color 0.2s ease, text-decoration 0.2s ease;
+  transition:
+    color 0.2s ease,
+    text-decoration 0.2s ease;
 }
 
 .status-indicator-link-btn:hover {
@@ -49,7 +52,9 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  transition: background 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    background 0.3s ease,
+    box-shadow 0.3s ease;
   display: inline-block;
   cursor: pointer;
 }
