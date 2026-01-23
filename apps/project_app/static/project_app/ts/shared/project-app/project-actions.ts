@@ -4,13 +4,14 @@
  */
 
 import { getCsrfToken } from "../../utils/csrf";
+import { showNotification } from "./utils";
 
 // =============================================================================
 
 /**
  * Load project statistics (watch/star/fork counts)
  */
-async function loadProjectStats() {
+export async function loadProjectStats() {
   const watchCount = document.getElementById("watch-count");
   const starCount = document.getElementById("star-count");
   const forkCount = document.getElementById("fork-count");
@@ -63,7 +64,7 @@ async function loadProjectStats() {
 /**
  * Handle watch button click
  */
-async function handleWatch(event: Event) {
+export async function handleWatch(event: Event) {
   const btn = event.currentTarget as HTMLElement;
   const pathParts = window.location.pathname
     .split("/")
@@ -98,10 +99,7 @@ async function handleWatch(event: Event) {
 
       showNotification(data.message, "success");
     } else {
-      showNotification(
-        data.error || "Failed to update watch status",
-        "error",
-      );
+      showNotification(data.error || "Failed to update watch status", "error");
     }
   } catch (error) {
     console.error("Error toggling watch:", error);
@@ -112,7 +110,7 @@ async function handleWatch(event: Event) {
 /**
  * Handle star button click
  */
-async function handleStar(event: Event) {
+export async function handleStar(event: Event) {
   const btn = event.currentTarget as HTMLElement;
   const pathParts = window.location.pathname
     .split("/")
@@ -158,7 +156,7 @@ async function handleStar(event: Event) {
 /**
  * Handle fork button click
  */
-async function handleFork(event: Event) {
+export async function handleFork(event: Event) {
   if (
     !confirm(
       "Fork this repository? This will create a copy under your account.",
@@ -213,4 +211,3 @@ async function handleFork(event: Event) {
     btn.disabled = false;
   }
 }
-

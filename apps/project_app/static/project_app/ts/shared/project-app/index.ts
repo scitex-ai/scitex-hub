@@ -51,15 +51,17 @@ document.addEventListener("DOMContentLoaded", function () {
 // Expose functions to global scope for inline onclick handlers in templates
 (window as any).toggleSidebarSection = SidebarManager.toggleSidebarSection;
 (window as any).toggleFolder = FileTreeManager.toggleFolder;
-(window as any).toggleWatch = ProjectActions.toggleWatch;
-(window as any).toggleStar = ProjectActions.toggleStar;
-(window as any).handleForkAction = ProjectActions.handleForkAction;
-(window as any).handleProjectCreate = ProjectForms.handleProjectCreate;
-(window as any).handleProjectSettings = ProjectForms.handleProjectSettings;
-(window as any).handleProjectDelete = ProjectForms.handleProjectDelete;
 (window as any).handleFileUpload = FileManager.handleFileUpload;
-(window as any).handleFileDownload = FileManager.handleFileDownload;
-(window as any).copyProjectToClipboard = DirectoryOps.copyProjectToClipboard;
-(window as any).searchUserRepos = UserProfile.searchUserRepos;
 (window as any).showNotification = Utils.showNotification;
-(window as any).confirmAction = Utils.confirmAction;
+// Init functions for form handling
+(window as any).initProjectCreateForm = ProjectForms.initProjectCreateForm;
+(window as any).initProjectSettingsForm = ProjectForms.initProjectSettingsForm;
+(window as any).initProjectDeleteForm = ProjectForms.initProjectDeleteForm;
+(window as any).showDeleteModal = ProjectForms.showDeleteModal;
+(window as any).hideDeleteModal = ProjectForms.hideDeleteModal;
+(window as any).submitDelete = ProjectForms.submitDelete;
+// Directory operations
+(window as any).toggleBranchDropdown = DirectoryOps.toggleBranchDropdown;
+(window as any).toggleAddFileDropdown = DirectoryOps.toggleAddFileDropdown;
+(window as any).toggleCopyDropdown = DirectoryOps.toggleCopyDropdown;
+(window as any).closeAllDropdowns = DirectoryOps.closeAllDropdowns;

@@ -3,6 +3,7 @@ Middleware for SciTeX Cloud.
 """
 
 import logging
+
 from django.contrib.auth import login
 
 logger = logging.getLogger(__name__)
@@ -32,38 +33,38 @@ class VisitorAutoLoginMiddleware:
         path = request.path
         skip_paths = (
             # System paths
-            '/static/',
-            '/media/',
-            '/favicon.ico',
-            '/robots.txt',
-            '/sitemap.xml',
-            '/healthz/',
-            '/admin/',
-            '/__debug__/',
+            "/static/",
+            "/media/",
+            "/favicon.ico",
+            "/robots.txt",
+            "/sitemap.xml",
+            "/healthz/",
+            "/admin/",
+            "/__debug__/",
             # API endpoints
-            '/api/',
+            "/api/",
             # Visitor management pages
-            '/visitor-pool-full/',
-            '/visitor-expired/',
-            '/visitor-restart/',
+            "/visitor-pool-full/",
+            "/visitor-expired/",
+            "/visitor-restart/",
             # Public marketing/info pages (no login required)
-            '/about/',
-            '/pricing/',
-            '/contact/',
-            '/donate/',
-            '/publications/',
-            '/contributors/',
-            '/releases/',
-            '/demos/',
+            "/about/",
+            "/pricing/",
+            "/contact/",
+            "/donate/",
+            "/publications/",
+            "/contributors/",
+            "/releases/",
+            "/demos/",
             # Legal pages
-            '/privacy/',
-            '/terms/',
-            '/cookies/',
+            "/privacy/",
+            "/terms/",
+            "/cookies/",
             # Documentation
-            '/api-docs/',
-            '/keyboard-shortcuts/',
+            "/api-docs/",
+            "/keyboard-shortcuts/",
             # Tools (client-side, no login needed)
-            '/tools/',
+            "/tools/",
         )
 
         if any(path.startswith(p) for p in skip_paths):
@@ -71,26 +72,41 @@ class VisitorAutoLoginMiddleware:
 
         # Skip non-browser requests (bots, health checks, automated scripts)
         # Use User-Agent based detection (standard pattern)
-        user_agent = request.META.get('HTTP_USER_AGENT', '')
+        user_agent = request.META.get("HTTP_USER_AGENT", "")
 
         # Check if it's a real browser
         is_browser = any(
             browser in user_agent
-            for browser in ['Mozilla', 'Chrome', 'Safari', 'Firefox', 'Edge', 'Opera']
+            for browser in ["Mozilla", "Chrome", "Safari", "Firefox", "Edge", "Opera"]
         )
 
         # Skip if not a browser (includes curl, wget, empty UA, bots, crawlers)
         if not is_browser:
             return self.get_response(request)
 
+        # Check for cookie consent before allocating visitor slot
+        # Users must accept cookies (essential or all) before we allocate a session
+        if not request.COOKIES.get("scitex_consent"):
+            # No consent given yet - don't allocate visitor slot
+            # User can still browse public pages, they just need to consent first
+            return self.get_response(request)
+
         # Auto-login as visitor for real browser requests
         try:
             from apps.project_app.services.visitor_pool import VisitorPool
 
-            visitor_project, visitor_user = VisitorPool.allocate_visitor(request.session)
+            visitor_project, visitor_user = VisitorPool.allocate_visitor(
+                request.session
+            )
             if visitor_user:
-                login(request, visitor_user, backend='django.contrib.auth.backends.ModelBackend')
-                logger.info(f"[Middleware] Auto-logged in visitor: {visitor_user.username} for {path}")
+                login(
+                    request,
+                    visitor_user,
+                    backend="django.contrib.auth.backends.ModelBackend",
+                )
+                logger.info(
+                    f"[Middleware] Auto-logged in visitor: {visitor_user.username} for {path}"
+                )
         except Exception as e:
             logger.error(f"[Middleware] Visitor auto-login failed: {e}")
 
@@ -119,24 +135,24 @@ class VisitorExpirationMiddleware:
             return self.get_response(request)
 
         # Skip if not a visitor user
-        if not request.user.username.startswith('visitor-'):
+        if not request.user.username.startswith("visitor-"):
             return self.get_response(request)
 
         # Skip certain paths to avoid redirect loops and allow access to essential pages
         path = request.path
         skip_paths = (
-            '/visitor-expired/',  # The expiration page itself
-            '/visitor-restart/',  # Restart session flow
-            '/visitor-pool-full/',  # Pool exhausted page
-            '/static/',
-            '/media/',
-            '/favicon.ico',
-            '/logout/',
-            '/signup/',
-            '/login/',
-            '/auth/',  # All auth pages
-            '/api/',
-            '/__debug__/',
+            "/visitor-expired/",  # The expiration page itself
+            "/visitor-restart/",  # Restart session flow
+            "/visitor-pool-full/",  # Pool exhausted page
+            "/static/",
+            "/media/",
+            "/favicon.ico",
+            "/logout/",
+            "/signup/",
+            "/login/",
+            "/auth/",  # All auth pages
+            "/api/",
+            "/__debug__/",
         )
 
         if any(path.startswith(p) for p in skip_paths):
@@ -144,20 +160,22 @@ class VisitorExpirationMiddleware:
 
         # Check if visitor's allocation is expired
         try:
-            from apps.project_app.services.visitor_pool import VisitorPool
-            from apps.project_app.models import VisitorAllocation
-            from django.utils import timezone
-            from django.shortcuts import redirect
             from django.contrib.auth import logout
+            from django.shortcuts import redirect
+            from django.utils import timezone
 
-            allocation_token = request.session.get(VisitorPool.SESSION_KEY_ALLOCATION_TOKEN)
+            from apps.project_app.models import VisitorAllocation
+            from apps.project_app.services.visitor_pool import VisitorPool
+
+            allocation_token = request.session.get(
+                VisitorPool.SESSION_KEY_ALLOCATION_TOKEN
+            )
             is_expired = False
 
             if allocation_token:
                 try:
                     allocation = VisitorAllocation.objects.get(
-                        allocation_token=allocation_token,
-                        is_active=True
+                        allocation_token=allocation_token, is_active=True
                     )
                     # Check if allocation is expired
                     is_expired = allocation.expires_at <= timezone.now()
@@ -179,11 +197,17 @@ class VisitorExpirationMiddleware:
                 logout(request)
 
                 # Try to allocate a new visitor slot immediately
-                visitor_project, visitor_user = VisitorPool.allocate_visitor(request.session)
+                visitor_project, visitor_user = VisitorPool.allocate_visitor(
+                    request.session
+                )
 
                 if visitor_user:
                     # Successfully allocated new slot - log in and continue
-                    login(request, visitor_user, backend='django.contrib.auth.backends.ModelBackend')
+                    login(
+                        request,
+                        visitor_user,
+                        backend="django.contrib.auth.backends.ModelBackend",
+                    )
                     logger.info(
                         f"[Middleware] Auto-reallocated to {visitor_user.username} for {path}"
                     )
@@ -192,10 +216,10 @@ class VisitorExpirationMiddleware:
                 else:
                     # Pool exhausted - redirect to expiration page as fallback
                     logger.warning(
-                        f"[Middleware] Pool exhausted during auto-reallocation, showing expiration page"
+                        "[Middleware] Pool exhausted during auto-reallocation, showing expiration page"
                     )
-                    request.session['visitor_next_url'] = request.get_full_path()
-                    return redirect('public_app:visitor_expired')
+                    request.session["visitor_next_url"] = request.get_full_path()
+                    return redirect("public_app:visitor_expired")
 
         except Exception as e:
             logger.error(f"[Middleware] Error in auto-reallocation: {e}")
