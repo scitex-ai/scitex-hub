@@ -11,7 +11,11 @@ import { showToast } from "../utils/ui";
  */
 export function setupWorkspaceInitialization(config: any): void {
   const initBtn = document.getElementById("init-writer-btn");
-  if (!initBtn) return;
+  if (!initBtn) {
+    console.log("[Writer] Init button not found");
+    return;
+  }
+  console.log("[Writer] Workspace init button handler attached");
 
   // Setup project selector
   const repoSelector = document.getElementById(
@@ -43,8 +47,7 @@ export function setupWorkspaceInitialization(config: any): void {
     }
 
     initBtn.setAttribute("disabled", "true");
-    initBtn.innerHTML =
-      '<i class="fas fa-spinner fa-spin me-2"></i>Creating workspace...';
+    initBtn.innerHTML = "Cloning...";
 
     try {
       const response = await fetch("/writer/api/initialize-workspace/", {
@@ -72,8 +75,7 @@ export function setupWorkspaceInitialization(config: any): void {
           "error",
         );
         initBtn.removeAttribute("disabled");
-        initBtn.innerHTML =
-          '<i class="fas fa-rocket me-2"></i>Create Workspace';
+        initBtn.innerHTML = "Clone Template";
       }
     } catch (error) {
       showToast(
@@ -81,7 +83,7 @@ export function setupWorkspaceInitialization(config: any): void {
         "error",
       );
       initBtn.removeAttribute("disabled");
-      initBtn.innerHTML = '<i class="fas fa-rocket me-2"></i>Create Workspace';
+      initBtn.innerHTML = "Clone Template";
     }
   });
 }

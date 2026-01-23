@@ -145,8 +145,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   console.log("[Writer] Config:", config);
 
   // Check if workspace is initialized
-  if (!config.writerInitialized && !config.isDemo) {
-    console.log("[Writer] Workspace not initialized - skipping editor setup");
+  if (!config.writerInitialized) {
+    console.log("[Writer] Workspace not initialized - showing init prompt");
     setupWorkspaceInitialization(config);
     return;
   }
@@ -167,7 +167,9 @@ async function initializeEditor(config: any): Promise<void> {
   componentInitializer.setupGitHistoryManager();
 
   // Zen Mode is initialized globally in main.ts with auto-detection
-  console.log('[Writer] Zen Mode available (F11 or Alt+Z to toggle, ESC to exit)');
+  console.log(
+    "[Writer] Zen Mode available (F11 or Alt+Z to toggle, ESC to exit)",
+  );
 
   // Setup state management
   const state = createDefaultEditorState(config);
@@ -269,7 +271,10 @@ function finalizeEditorSetup(
       currentSection.endsWith("/compiled_pdf") ||
       currentSection.endsWith("/compiled_tex");
     if (!isCompiledSection && pdfPreviewManager) {
-      console.log("[Writer] Triggering initial PDF preview for:", currentSection);
+      console.log(
+        "[Writer] Triggering initial PDF preview for:",
+        currentSection,
+      );
       setTimeout(() => {
         pdfPreviewManager.compileQuick(content, currentSection);
       }, 500);
@@ -282,7 +287,9 @@ function finalizeEditorSetup(
   });
 
   console.log("[Writer] Editor initialized successfully");
-  console.log(`[Writer] Using editor type: ${editor?.getEditorType?.() || "CodeMirror"}`);
+  console.log(
+    `[Writer] Using editor type: ${editor?.getEditorType?.() || "CodeMirror"}`,
+  );
 
   // Restore saved pane state
   setTimeout(() => restorePaneState(), 300);
@@ -293,14 +300,21 @@ function finalizeEditorSetup(
  */
 function restorePaneState(): void {
   try {
-    const validPanels = ['pdf', 'citations', 'figures', 'tables', 'history', 'collaboration'];
+    const validPanels = [
+      "pdf",
+      "citations",
+      "figures",
+      "tables",
+      "history",
+      "collaboration",
+    ];
     const paneMap: Record<string, string> = {
-      pdf: 'pdf',
-      citations: 'citations',
-      figures: 'figures',
-      tables: 'tables',
-      history: 'history',
-      collaboration: 'collaboration',
+      pdf: "pdf",
+      citations: "citations",
+      figures: "figures",
+      tables: "tables",
+      history: "history",
+      collaboration: "collaboration",
     };
 
     let targetPane: string | null = null;
@@ -315,7 +329,7 @@ function restorePaneState(): void {
     // Priority 2: Check URL query parameters
     if (!targetPane) {
       const urlParams = new URLSearchParams(window.location.search);
-      targetPane = urlParams.get('panel');
+      targetPane = urlParams.get("panel");
       if (!targetPane) {
         // Check shorthand parameters
         for (const [param, pane] of Object.entries(paneMap)) {
@@ -334,7 +348,7 @@ function restorePaneState(): void {
 
     // Priority 4: Default to PDF if nothing else
     if (!targetPane) {
-      targetPane = 'pdf';
+      targetPane = "pdf";
     }
 
     // Switch to target pane
@@ -365,7 +379,15 @@ const globalPanelSwitcher = new PanelSwitcher();
 (window as any).handleDownloadSectionPDF = handleDownloadSectionPDF;
 
 // Export switchRightPanel using PanelSwitcher module
-(window as any).switchRightPanel = (view: "pdf" | "citations" | "figures" | "tables" | "history" | "collaboration") => {
+(window as any).switchRightPanel = (
+  view:
+    | "pdf"
+    | "citations"
+    | "figures"
+    | "tables"
+    | "history"
+    | "collaboration",
+) => {
   globalPanelSwitcher.switchPanel(view);
 };
 
