@@ -1,356 +1,484 @@
-{% extends "global_base.html" %}
-{% load static %}
-{% block title %}
-    Pricing - SciTeX
-{% endblock %}
-{% block meta_description %}
-    SciTeX pricing plans for researchers, labs, and institutions.
-    Where Research Happens.
-{% endblock %}
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'shared/css/components/page-header.css' %}">
-<link rel="stylesheet" href="{% static 'public_app/css/pricing.css' %}">
-{% endblock %}
-{% block content %}
-    <!-- Hero Section -->
-    <div class="container pt-4">
-        <section class="page-header page-header--extended">
-            <h1><i class="fas fa-tags"></i> SciTeX Pricing</h1>
-            <p>Where Research Happens.</p>
-        </section>
+{% extends "global_base.html" %} {% load static %} {% block title %}Pricing -
+SciTeX{% endblock %} {% block meta_description %}SciTeX pricing plans for
+researchers, labs, and institutions.{% endblock %} {% block extra_css %}
+<link
+  rel="stylesheet"
+  href="{% static 'shared/css/components/page-header.css' %}"
+/>
+<link rel="stylesheet" href="{% static 'public_app/css/pricing.css' %}" />
+<link rel="stylesheet" href="{% static 'public_app/css/pricing-alpha.css' %}" />
+{% endblock %} {% block content %}
+<!-- Hero Section -->
+<div class="container pt-4">
+  <section class="page-header page-header--extended">
+    <h1><i class="fas fa-tags"></i> Pricing</h1>
+    <p class="alpha-hero-note">
+      <span class="alpha-inline-badge"><i class="fas fa-flask"></i> Alpha</span>
+      All features free during development. No data persistence guarantee.
+      <a href="https://github.com/ywatanabe1989/scitex">Self-host</a> for
+      production.
+    </p>
+  </section>
+</div>
+
+<!-- Pricing Cards -->
+<div class="container py-4">
+  <div class="pricing-cards-wrapper">
+    <!-- Visitor -->
+    <div class="pricing-card alpha-active">
+      <div class="alpha-badge"><i class="fas fa-flask"></i> Alpha</div>
+      <div class="pricing-header">
+        <h3 class="plan-name">Visitor</h3>
+        <div class="plan-price">
+          <span class="price">$0</span>
+        </div>
+        <p class="plan-description">No signup required</p>
+      </div>
+      <div class="pricing-features">
+        <ul>
+          <li><i class="fas fa-check"></i> 60-min session</li>
+          <li><i class="fas fa-check"></i> Temporary workspace</li>
+          <li><i class="fas fa-check"></i> 1 project, 500 MB</li>
+          <li><i class="fas fa-check"></i> Basic features</li>
+        </ul>
+      </div>
+      <div class="pricing-cta">
+        <a
+          href="{% url 'writer_app:index' %}"
+          class="btn btn-outline-primary btn-block"
+          >Try Now</a
+        >
+      </div>
     </div>
 
-    <!-- Pricing Cards -->
-    <div class="container py-5">
-        <div class="row justify-content-center">
-            <!-- Free Plan -->
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="pricing-card">
-                    <div class="pricing-header">
-                        <h3 class="plan-name">Free</h3>
-                        <div class="plan-price">
-                            <span class="price">$0</span>
-                            <span class="period">/ forever</span>
-                        </div>
-                        <p class="plan-description">For visitors exploring SciTeX.</p>
-                    </div>
-                    <div class="pricing-features">
-                        <ul>
-                            <li><i class="fas fa-check"></i> 60-minute sessions</li>
-                            <li><i class="fas fa-check"></i> Temporary workspace</li>
-                            <li><i class="fas fa-check"></i> 1 project</li>
-                            <li><i class="fas fa-check"></i> 500 MB storage</li>
-                            <li><i class="fas fa-check"></i> Basic PDF compile</li>
-                            <li><i class="fas fa-check"></i> BibTeX enrichment (20 entries)</li>
-                            <li><i class="fas fa-check"></i> Low-res figure export</li>
-                            <li><i class="fas fa-check"></i> AppTainer runs (&le; 20 sec)</li>
-                            <li><i class="fas fa-check"></i> Access to all modules (limited)</li>
-                        </ul>
-                    </div>
-                    <div class="pricing-cta">
-                        <a href="{% url 'writer_app:index' %}" class="btn btn-outline-primary btn-block">
-                            Try Free
-                        </a>
-                        <p class="cta-note">No signup required</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Pro Plan -->
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="pricing-card featured">
-                    <div class="featured-badge">Most Popular</div>
-                    <div class="pricing-header">
-                        <h3 class="plan-name">Pro</h3>
-                        <div class="plan-price">
-                            <span class="price">$12</span>
-                            <span class="period">/ month</span>
-                        </div>
-                        <p class="plan-description">For individual researchers, PhD students, and postdocs.</p>
-                    </div>
-                    <div class="pricing-features">
-                        <p class="features-intro">Everything in Free, plus:</p>
-                        <ul>
-                            <li><i class="fas fa-check"></i> Unlimited sessions</li>
-                            <li><i class="fas fa-check"></i> Unlimited PDF compilation</li>
-                            <li><i class="fas fa-check"></i> Journal templates (Nature, IEEE, Elsevier...)</li>
-                            <li><i class="fas fa-check"></i> Full BibTeX enrichment</li>
-                            <li><i class="fas fa-check"></i> Unlimited figure creation</li>
-                            <li><i class="fas fa-check"></i> High-res export: PNG, TIFF, PDF, SVG</li>
-                            <li><i class="fas fa-check"></i> Long-running AppTainer jobs</li>
-                            <li><i class="fas fa-check"></i> Persistent environments</li>
-                            <li><i class="fas fa-check"></i> AI tools (rewrite, summarize, cite)</li>
-                            <li><i class="fas fa-check"></i> Project version history</li>
-                            <li><i class="fas fa-check"></i> 20 GB cloud storage</li>
-                            <li><i class="fas fa-check"></i> Unlimited projects</li>
-                        </ul>
-                    </div>
-                    <div class="pricing-cta">
-                        <a href="{% url 'public_app:contact' %}" class="btn btn-primary btn-block">
-                            Upgrade to Pro
-                        </a>
-                        <p class="cta-note">Publish-ready workflow</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Team / Lab Plan -->
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="pricing-card">
-                    <div class="pricing-header">
-                        <h3 class="plan-name">Team / Lab</h3>
-                        <div class="plan-price">
-                            <span class="price">$29</span>
-                            <span class="period">/ user / month</span>
-                        </div>
-                        <p class="plan-description">For labs, student groups, and research teams.</p>
-                    </div>
-                    <div class="pricing-features">
-                        <p class="features-intro">Everything in Pro, plus:</p>
-                        <ul>
-                            <li><i class="fas fa-check"></i> Shared projects</li>
-                            <li><i class="fas fa-check"></i> 200 GB pooled storage</li>
-                            <li><i class="fas fa-check"></i> Lab-level permissions</li>
-                            <li><i class="fas fa-check"></i> Private templates</li>
-                            <li><i class="fas fa-check"></i> SLURM / HPC job submission</li>
-                            <li><i class="fas fa-check"></i> Team-wide AI quotas</li>
-                            <li><i class="fas fa-check"></i> SSO (Google, ORCID)</li>
-                            <li><i class="fas fa-check"></i> Priority compute queue</li>
-                            <li><i class="fas fa-check"></i> Comments & track changes</li>
-                        </ul>
-                    </div>
-                    <div class="pricing-cta">
-                        <a href="{% url 'public_app:contact' %}" class="btn btn-outline-primary btn-block">
-                            Contact Sales
-                        </a>
-                        <p class="cta-note">Build, write, analyze, publish together</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Enterprise Plan -->
-            <div class="col-lg-3 col-md-6 mb-4">
-                <div class="pricing-card enterprise">
-                    <div class="pricing-header">
-                        <h3 class="plan-name">Enterprise</h3>
-                        <div class="plan-price">
-                            <span class="price">Custom</span>
-                            <span class="period">pricing</span>
-                        </div>
-                        <p class="plan-description">For universities, institutions, and companies.</p>
-                    </div>
-                    <div class="pricing-features">
-                        <p class="features-intro">Everything in Team, plus:</p>
-                        <ul>
-                            <li><i class="fas fa-check"></i> On-prem deployment</li>
-                            <li><i class="fas fa-check"></i> Institutional HPC integration</li>
-                            <li><i class="fas fa-check"></i> Custom compute limits</li>
-                            <li><i class="fas fa-check"></i> HIPAA / GDPR compliance</li>
-                            <li><i class="fas fa-check"></i> Private cloud / VPC</li>
-                            <li><i class="fas fa-check"></i> Institutional storage (TB+)</li>
-                            <li><i class="fas fa-check"></i> Custom onboarding & support</li>
-                        </ul>
-                    </div>
-                    <div class="pricing-cta">
-                        <a href="{% url 'public_app:contact' %}" class="btn btn-outline-primary btn-block">
-                            Contact Enterprise
-                        </a>
-                        <p class="cta-note">Enterprise-grade research infrastructure</p>
-                    </div>
-                </div>
-            </div>
+    <!-- Registered -->
+    <div class="pricing-card alpha-active featured">
+      <div class="alpha-badge"><i class="fas fa-flask"></i> Alpha</div>
+      <div class="pricing-header">
+        <h3 class="plan-name">Registered</h3>
+        <div class="plan-price">
+          <span class="price">$0</span>
         </div>
+        <p class="plan-description">Free signup</p>
+      </div>
+      <div class="pricing-features">
+        <ul>
+          <li><i class="fas fa-check"></i> Unlimited sessions</li>
+          <li><i class="fas fa-check"></i> Persistent storage</li>
+          <li><i class="fas fa-check"></i> 50 projects, 50 GB</li>
+          <li><i class="fas fa-check"></i> Full features</li>
+        </ul>
+      </div>
+      <div class="pricing-cta">
+        <a href="{% url 'auth_app:signup' %}" class="btn btn-primary btn-block"
+          >Sign Up Free</a
+        >
+      </div>
     </div>
 
-    <!-- Feature Comparison Table -->
-    <div class="container py-5">
-        <h2 class="text-center mb-5" style="color: var(--color-fg-default);">Feature Comparison</h2>
-        <div class="table-responsive">
-            <table class="comparison-table">
-                <thead>
-                    <tr>
-                        <th>Feature</th>
-                        <th>Free</th>
-                        <th class="featured-col">Pro</th>
-                        <th>Team</th>
-                        <th>Enterprise</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>PDF Compile</td>
-                        <td><span class="value-limited">Limited</span></td>
-                        <td class="featured-col"><span class="value-unlimited">Unlimited</span></td>
-                        <td><span class="value-unlimited">Unlimited</span></td>
-                        <td><span class="value-unlimited">Unlimited</span></td>
-                    </tr>
-                    <tr>
-                        <td>BibTeX Enrichment</td>
-                        <td><span class="value-limited">20 entries</span></td>
-                        <td class="featured-col"><span class="value-unlimited">Unlimited</span></td>
-                        <td><span class="value-unlimited">Unlimited</span></td>
-                        <td><span class="value-unlimited">Unlimited</span></td>
-                    </tr>
-                    <tr>
-                        <td>Abstract/URL/IF Metadata</td>
-                        <td><i class="fas fa-times text-muted"></i></td>
-                        <td class="featured-col"><i class="fas fa-check text-success"></i></td>
-                        <td><i class="fas fa-check text-success"></i></td>
-                        <td><i class="fas fa-check text-success"></i></td>
-                    </tr>
-                    <tr>
-                        <td>Figure Creation</td>
-                        <td><span class="value-limited">2 figures</span></td>
-                        <td class="featured-col"><span class="value-unlimited">Unlimited</span></td>
-                        <td><span class="value-unlimited">Unlimited</span></td>
-                        <td><span class="value-unlimited">Unlimited</span></td>
-                    </tr>
-                    <tr>
-                        <td>High-Res Export</td>
-                        <td><i class="fas fa-times text-muted"></i></td>
-                        <td class="featured-col"><i class="fas fa-check text-success"></i></td>
-                        <td><i class="fas fa-check text-success"></i></td>
-                        <td><i class="fas fa-check text-success"></i></td>
-                    </tr>
-                    <tr>
-                        <td>AppTainer Compute</td>
-                        <td><span class="value-limited">20 sec</span></td>
-                        <td class="featured-col"><span class="value-unlimited">Long-running</span></td>
-                        <td><span class="value-unlimited">Long-running</span></td>
-                        <td><span class="value-unlimited">Long-running</span></td>
-                    </tr>
-                    <tr>
-                        <td>GPU Access</td>
-                        <td><i class="fas fa-times text-muted"></i></td>
-                        <td class="featured-col"><i class="fas fa-check text-success"></i></td>
-                        <td><i class="fas fa-check text-success"></i></td>
-                        <td><span class="value-custom">Custom</span></td>
-                    </tr>
-                    <tr>
-                        <td>SLURM / HPC</td>
-                        <td><i class="fas fa-times text-muted"></i></td>
-                        <td class="featured-col"><i class="fas fa-times text-muted"></i></td>
-                        <td><i class="fas fa-check text-success"></i></td>
-                        <td><i class="fas fa-check text-success"></i></td>
-                    </tr>
-                    <tr>
-                        <td>Storage</td>
-                        <td><span class="value-limited">500 MB</span></td>
-                        <td class="featured-col"><span class="value-unlimited">20 GB</span></td>
-                        <td><span class="value-unlimited">200 GB</span></td>
-                        <td><span class="value-custom">Custom</span></td>
-                    </tr>
-                    <tr>
-                        <td>Projects</td>
-                        <td><span class="value-limited">1</span></td>
-                        <td class="featured-col"><span class="value-unlimited">Unlimited</span></td>
-                        <td><span class="value-unlimited">Unlimited</span></td>
-                        <td><span class="value-unlimited">Unlimited</span></td>
-                    </tr>
-                    <tr>
-                        <td>Collaboration</td>
-                        <td><i class="fas fa-times text-muted"></i></td>
-                        <td class="featured-col"><i class="fas fa-times text-muted"></i></td>
-                        <td><i class="fas fa-check text-success"></i></td>
-                        <td><i class="fas fa-check text-success"></i></td>
-                    </tr>
-                    <tr>
-                        <td>Private Templates</td>
-                        <td><i class="fas fa-times text-muted"></i></td>
-                        <td class="featured-col"><i class="fas fa-times text-muted"></i></td>
-                        <td><i class="fas fa-check text-success"></i></td>
-                        <td><i class="fas fa-check text-success"></i></td>
-                    </tr>
-                    <tr>
-                        <td>SSO (Google/ORCID)</td>
-                        <td><i class="fas fa-times text-muted"></i></td>
-                        <td class="featured-col"><i class="fas fa-times text-muted"></i></td>
-                        <td><i class="fas fa-check text-success"></i></td>
-                        <td><i class="fas fa-check text-success"></i></td>
-                    </tr>
-                    <tr>
-                        <td>On-Premise Deployment</td>
-                        <td><i class="fas fa-times text-muted"></i></td>
-                        <td class="featured-col"><i class="fas fa-times text-muted"></i></td>
-                        <td><i class="fas fa-times text-muted"></i></td>
-                        <td><i class="fas fa-check text-success"></i></td>
-                    </tr>
-                    <tr>
-                        <td>Custom Compute</td>
-                        <td><i class="fas fa-times text-muted"></i></td>
-                        <td class="featured-col"><i class="fas fa-times text-muted"></i></td>
-                        <td><i class="fas fa-times text-muted"></i></td>
-                        <td><i class="fas fa-check text-success"></i></td>
-                    </tr>
-                </tbody>
-            </table>
+    <!-- Pro -->
+    <div class="pricing-card alpha-active">
+      <div class="alpha-badge"><i class="fas fa-flask"></i> Alpha</div>
+      <div class="pricing-header">
+        <h3 class="plan-name">Pro</h3>
+        <div class="plan-price">
+          <span class="price"><s>$16</s> $0</span>
+          <span class="period">/ mo</span>
         </div>
+        <p class="plan-description">Individual researchers</p>
+      </div>
+      <div class="pricing-features">
+        <ul>
+          <li><i class="fas fa-check"></i> 4 CPU / 16 GB RAM</li>
+          <li><i class="fas fa-check"></i> Priority compute</li>
+          <li><i class="fas fa-check"></i> All journal templates</li>
+          <li><i class="fas fa-check"></i> 100 GB storage</li>
+        </ul>
+      </div>
+      <div class="pricing-cta">
+        <a
+          href="{% url 'auth_app:signup' %}"
+          class="btn btn-outline-primary btn-block"
+          >Sign Up Free</a
+        >
+      </div>
     </div>
 
-    <!-- Why This Pricing Section -->
-    <div class="container py-5">
-        <div class="pricing-philosophy">
-            <h2 class="text-center mb-4">Why This Pricing Works</h2>
-            <div class="row">
-                <div class="col-md-4 mb-4">
-                    <div class="philosophy-card">
-                        <div class="philosophy-icon"><i class="fas fa-unlock"></i></div>
-                        <h4>No Feature Blocking</h4>
-                        <p>Researchers can try everything. High conversion because you experience the full platform.</p>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-4">
-                    <div class="philosophy-card">
-                        <div class="philosophy-icon"><i class="fas fa-expand-arrows-alt"></i></div>
-                        <h4>Scale-Based Limits</h4>
-                        <p>Heavy usage &rarr; Pro. Teams &rarr; Lab. Universities &rarr; Enterprise. Simple and fair.</p>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-4">
-                    <div class="philosophy-card">
-                        <div class="philosophy-icon"><i class="fas fa-code-branch"></i></div>
-                        <h4>100% Open Source</h4>
-                        <p>Self-host for free. Cloud plans fund development while keeping the codebase open.</p>
-                    </div>
-                </div>
-            </div>
+    <!-- Team / Lab -->
+    <div class="pricing-card alpha-active">
+      <div class="alpha-badge"><i class="fas fa-flask"></i> Alpha</div>
+      <div class="pricing-header">
+        <h3 class="plan-name">Team / Lab</h3>
+        <div class="plan-price">
+          <span class="price"><s>$32</s> $0</span>
+          <span class="period">/ user / mo</span>
         </div>
+        <p class="plan-description">Research teams</p>
+      </div>
+      <div class="pricing-features">
+        <ul>
+          <li><i class="fas fa-check"></i> Shared projects</li>
+          <li><i class="fas fa-check"></i> Team permissions</li>
+          <li><i class="fas fa-check"></i> SLURM / HPC</li>
+          <li><i class="fas fa-check"></i> 500 GB pooled</li>
+        </ul>
+      </div>
+      <div class="pricing-cta">
+        <a
+          href="{% url 'auth_app:signup' %}"
+          class="btn btn-outline-primary btn-block"
+          >Sign Up Free</a
+        >
+      </div>
     </div>
 
-    <!-- FAQ Section -->
-    <div class="container py-5">
-        <h2 class="text-center mb-5" style="color: var(--color-fg-default);">Frequently Asked Questions</h2>
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <div class="faq-item">
-                    <h5><i class="fas fa-question-circle"></i> Can I cancel anytime?</h5>
-                    <p>Yes. All plans are month-to-month with no long-term commitment. Cancel anytime from your account settings.</p>
-                </div>
-                <div class="faq-item">
-                    <h5><i class="fas fa-question-circle"></i> Is there a student discount?</h5>
-                    <p>Yes! Students with valid .edu emails get 50% off Pro plans. Contact us with your institution email.</p>
-                </div>
-                <div class="faq-item">
-                    <h5><i class="fas fa-question-circle"></i> Can I self-host SciTeX?</h5>
-                    <p>Absolutely. SciTeX is 100% open source under MIT license. Self-host on your own infrastructure for free.</p>
-                </div>
-                <div class="faq-item">
-                    <h5><i class="fas fa-question-circle"></i> What happens to my data if I downgrade?</h5>
-                    <p>Your data is always yours. When downgrading, you can export everything. We provide a 30-day grace period.</p>
-                </div>
-            </div>
+    <!-- Enterprise -->
+    <div class="pricing-card alpha-active">
+      <div class="alpha-badge"><i class="fas fa-flask"></i> Alpha</div>
+      <div class="pricing-header">
+        <h3 class="plan-name">Enterprise</h3>
+        <div class="plan-price">
+          <span class="price">$64</span>
+          <span class="period">/ mo</span>
         </div>
+        <p class="plan-description">Institutions</p>
+      </div>
+      <div class="pricing-features">
+        <ul>
+          <li><i class="fas fa-check"></i> On-prem deploy support</li>
+          <li><i class="fas fa-check"></i> HPC integration</li>
+          <li><i class="fas fa-check"></i> HIPAA / GDPR</li>
+          <li><i class="fas fa-check"></i> Custom storage</li>
+        </ul>
+      </div>
+      <div class="pricing-cta">
+        <a
+          href="{% url 'public_app:contact' %}"
+          class="btn btn-outline-primary btn-block"
+          >Contact Us</a
+        >
+      </div>
     </div>
+  </div>
+</div>
 
-    <!-- CTA Section -->
-    <section class="pricing-cta-section">
-        <div class="container text-center">
-            <h2>Ready to Transform Your Research Workflow?</h2>
-            <p class="lead">Start with Free. Upgrade when you're ready.</p>
-            <div class="mt-4">
-                <a href="{% url 'writer_app:index' %}" class="btn btn-light btn-lg mx-2">Try Free Now</a>
-                <a href="{% url 'public_app:contact' %}" class="btn btn-outline-light btn-lg mx-2">Talk to Sales</a>
-            </div>
-        </div>
-    </section>
+<!-- Comparison Table -->
+<div class="container py-4">
+  <div class="table-responsive">
+    <table class="comparison-table comparison-table-compact">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Visitor</th>
+          <th class="featured-col">Registered</th>
+          <th>Pro</th>
+          <th>Team</th>
+          <th>Enterprise</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Pricing Row -->
+        <tr class="section-header">
+          <td colspan="6">
+            <strong><i class="fas fa-dollar-sign"></i> Pricing</strong>
+          </td>
+        </tr>
+        <tr>
+          <td>Price</td>
+          <td>$0/mo</td>
+          <td class="featured-col">$0/mo</td>
+          <td><s>$16</s> $0/mo</td>
+          <td><s>$32</s> $0/user/mo</td>
+          <td>$64/mo</td>
+        </tr>
+        <!-- Resources -->
+        <tr class="section-header">
+          <td colspan="6">
+            <strong><i class="fas fa-server"></i> Resources</strong>
+          </td>
+        </tr>
+        <tr>
+          <td>Session Duration</td>
+          <td>60 min</td>
+          <td class="featured-col">Unlimited</td>
+          <td>Unlimited</td>
+          <td>Unlimited</td>
+          <td>Unlimited</td>
+        </tr>
+        <tr>
+          <td>Projects</td>
+          <td>1</td>
+          <td class="featured-col">Unlimited</td>
+          <td>Unlimited</td>
+          <td>Unlimited</td>
+          <td>Unlimited</td>
+        </tr>
+        <tr>
+          <td>Storage</td>
+          <td>500 MB</td>
+          <td class="featured-col">50 GB</td>
+          <td>100 GB</td>
+          <td>50 GB/user</td>
+          <td>Custom</td>
+        </tr>
+        <tr>
+          <td>Compute (CPU / RAM)</td>
+          <td>2 / 8 GB</td>
+          <td class="featured-col">2 / 8 GB</td>
+          <td>4 / 16 GB</td>
+          <td>4 / 16 GB</td>
+          <td>Custom</td>
+        </tr>
+        <tr>
+          <td>Priority Queue</td>
+          <td><i class="fas fa-times"></i></td>
+          <td class="featured-col"><i class="fas fa-times"></i></td>
+          <td><i class="fas fa-check"></i></td>
+          <td><i class="fas fa-check"></i></td>
+          <td><i class="fas fa-check"></i></td>
+        </tr>
+        <!-- Scholar Module -->
+        <tr class="section-header">
+          <td colspan="6">
+            <strong><i class="fas fa-book"></i> Scholar Module</strong>
+          </td>
+        </tr>
+        <tr>
+          <td>PDF / BibTeX Management</td>
+          <td><i class="fas fa-check"></i></td>
+          <td class="featured-col"><i class="fas fa-check"></i></td>
+          <td><i class="fas fa-check"></i></td>
+          <td><i class="fas fa-check"></i></td>
+          <td><i class="fas fa-check"></i></td>
+        </tr>
+        <tr>
+          <td>CrossRef / DOI Resolution</td>
+          <td><i class="fas fa-check"></i></td>
+          <td class="featured-col"><i class="fas fa-check"></i></td>
+          <td><i class="fas fa-check"></i></td>
+          <td><i class="fas fa-check"></i></td>
+          <td><i class="fas fa-check"></i></td>
+        </tr>
+        <tr>
+          <td>PDF Auto-Download</td>
+          <td>10/day</td>
+          <td class="featured-col">50/day</td>
+          <td>Unlimited</td>
+          <td>Unlimited</td>
+          <td>Unlimited</td>
+        </tr>
+        <!-- Visualizer Module -->
+        <tr class="section-header">
+          <td colspan="6">
+            <strong><i class="fas fa-chart-bar"></i> Visualizer Module</strong>
+          </td>
+        </tr>
+        <tr>
+          <td>High-Res Export (300 DPI)</td>
+          <td><i class="fas fa-check"></i></td>
+          <td class="featured-col"><i class="fas fa-check"></i></td>
+          <td><i class="fas fa-check"></i></td>
+          <td><i class="fas fa-check"></i></td>
+          <td><i class="fas fa-check"></i></td>
+        </tr>
+        <tr>
+          <td>Publication Templates</td>
+          <td>Basic</td>
+          <td class="featured-col">Basic</td>
+          <td>All journals</td>
+          <td>All journals</td>
+          <td>Custom</td>
+        </tr>
+        <!-- Writer Module -->
+        <tr class="section-header">
+          <td colspan="6">
+            <strong><i class="fas fa-pen"></i> Writer Module</strong>
+          </td>
+        </tr>
+        <tr>
+          <td>LaTeX Compilation</td>
+          <td><i class="fas fa-check"></i></td>
+          <td class="featured-col"><i class="fas fa-check"></i></td>
+          <td><i class="fas fa-check"></i></td>
+          <td><i class="fas fa-check"></i></td>
+          <td><i class="fas fa-check"></i></td>
+        </tr>
+        <tr>
+          <td>Journal Templates</td>
+          <td>5</td>
+          <td class="featured-col">20</td>
+          <td>All</td>
+          <td>All</td>
+          <td>Custom</td>
+        </tr>
+        <!-- Console Module -->
+        <tr class="section-header">
+          <td colspan="6">
+            <strong><i class="fas fa-terminal"></i> Console Module</strong>
+          </td>
+        </tr>
+        <tr>
+          <td>Python / R Execution</td>
+          <td><i class="fas fa-check"></i></td>
+          <td class="featured-col"><i class="fas fa-check"></i></td>
+          <td><i class="fas fa-check"></i></td>
+          <td><i class="fas fa-check"></i></td>
+          <td><i class="fas fa-check"></i></td>
+        </tr>
+        <tr>
+          <td>SLURM / HPC Integration</td>
+          <td><i class="fas fa-times"></i></td>
+          <td class="featured-col"><i class="fas fa-times"></i></td>
+          <td><i class="fas fa-times"></i></td>
+          <td><i class="fas fa-check"></i></td>
+          <td><i class="fas fa-check"></i></td>
+        </tr>
+        <!-- AI Features -->
+        <tr class="section-header">
+          <td colspan="6">
+            <strong><i class="fas fa-robot"></i> AI Features</strong>
+          </td>
+        </tr>
+        <tr>
+          <td>AI Tools (User's API Keys)</td>
+          <td><i class="fas fa-check"></i></td>
+          <td class="featured-col"><i class="fas fa-check"></i></td>
+          <td><i class="fas fa-check"></i></td>
+          <td><i class="fas fa-check"></i></td>
+          <td><i class="fas fa-check"></i></td>
+        </tr>
+        <tr>
+          <td>AI Credits (Included)</td>
+          <td><i class="fas fa-times"></i></td>
+          <td class="featured-col"><i class="fas fa-times"></i></td>
+          <td>$10/mo</td>
+          <td>$20/user/mo</td>
+          <td>Custom</td>
+        </tr>
+        <!-- Collaboration -->
+        <tr class="section-header">
+          <td colspan="6">
+            <strong><i class="fas fa-users"></i> Collaboration</strong>
+          </td>
+        </tr>
+        <tr>
+          <td>Team Workspaces</td>
+          <td><i class="fas fa-times"></i></td>
+          <td class="featured-col"><i class="fas fa-times"></i></td>
+          <td><i class="fas fa-times"></i></td>
+          <td><i class="fas fa-check"></i></td>
+          <td><i class="fas fa-check"></i></td>
+        </tr>
+        <tr>
+          <td>Shared Projects</td>
+          <td><i class="fas fa-times"></i></td>
+          <td class="featured-col"><i class="fas fa-times"></i></td>
+          <td><i class="fas fa-times"></i></td>
+          <td><i class="fas fa-check"></i></td>
+          <td><i class="fas fa-check"></i></td>
+        </tr>
+        <tr>
+          <td>Role-Based Permissions</td>
+          <td><i class="fas fa-times"></i></td>
+          <td class="featured-col"><i class="fas fa-times"></i></td>
+          <td><i class="fas fa-times"></i></td>
+          <td><i class="fas fa-check"></i></td>
+          <td><i class="fas fa-check"></i></td>
+        </tr>
+        <!-- Enterprise -->
+        <tr class="section-header">
+          <td colspan="6">
+            <strong><i class="fas fa-building"></i> Enterprise</strong>
+          </td>
+        </tr>
+        <tr>
+          <td>On-Premise Deploy Support</td>
+          <td><i class="fas fa-times"></i></td>
+          <td class="featured-col"><i class="fas fa-times"></i></td>
+          <td><i class="fas fa-times"></i></td>
+          <td><i class="fas fa-times"></i></td>
+          <td><i class="fas fa-check"></i></td>
+        </tr>
+        <tr>
+          <td>SSO / SAML Integration</td>
+          <td><i class="fas fa-times"></i></td>
+          <td class="featured-col"><i class="fas fa-times"></i></td>
+          <td><i class="fas fa-times"></i></td>
+          <td><i class="fas fa-times"></i></td>
+          <td><i class="fas fa-check"></i></td>
+        </tr>
+        <tr>
+          <td>HIPAA / GDPR Compliance</td>
+          <td><i class="fas fa-times"></i></td>
+          <td class="featured-col"><i class="fas fa-times"></i></td>
+          <td><i class="fas fa-times"></i></td>
+          <td><i class="fas fa-times"></i></td>
+          <td><i class="fas fa-check"></i></td>
+        </tr>
+        <tr>
+          <td>SLA & Priority Support</td>
+          <td><i class="fas fa-times"></i></td>
+          <td class="featured-col"><i class="fas fa-times"></i></td>
+          <td><i class="fas fa-times"></i></td>
+          <td><i class="fas fa-times"></i></td>
+          <td><i class="fas fa-check"></i></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- FAQ Section -->
+<div class="container py-5">
+  <h2 class="text-center mb-4 faq-section-title">FAQ</h2>
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="faq-item">
+        <h5>
+          <i class="fas fa-question-circle"></i> What happens to my data during
+          alpha?
+        </h5>
+        <p>
+          No guarantee. Back up important work. For production, self-host or use
+          <code>pip install scitex</code> locally.
+        </p>
+      </div>
+      <div class="faq-item">
+        <h5><i class="fas fa-question-circle"></i> Can I self-host SciTeX?</h5>
+        <p>
+          Yes. 100% open source under MIT license. Self-host on your own
+          infrastructure for free.
+        </p>
+      </div>
+      <div class="faq-item">
+        <h5>
+          <i class="fas fa-question-circle"></i> When will paid plans be
+          available?
+        </h5>
+        <p>
+          After alpha phase. Timeline TBD based on stability and community
+          feedback.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA Section -->
+<section class="pricing-cta-section">
+  <div class="container text-center">
+    <h2>Try SciTeX Now</h2>
+    <p class="lead">Sign up to keep your work</p>
+    <div class="mt-4">
+      <a
+        href="{% url 'writer_app:index' %}"
+        class="btn btn-outline-light btn-lg mx-2"
+        >Try as Visitor</a
+      >
+      <a href="{% url 'auth_app:signup' %}" class="btn btn-light btn-lg mx-2"
+        >Sign Up Free</a
+      >
+    </div>
+  </div>
+</section>
 {% endblock %}
