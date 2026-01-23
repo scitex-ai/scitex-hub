@@ -1,10 +1,41 @@
 [project]
 name = "scitex-cloud"
-version = "0.6.1-alpha"
-license = "AGPL-3.0"
-classifiers = [
-    "License :: OSI Approved :: GNU Affero General Public License v3",
+version = "0.1.0"
+description = "SciTeX Cloud - Deployment and management CLI for SciTeX"
+readme = "README.md"
+license = {text = "AGPL-3.0"}
+requires-python = ">=3.11"
+authors = [
+    {name = "SciTeX Team", email = "contact@scitex.ai"},
 ]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "click>=8.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "black>=23.0",
+    "ruff>=0.1.0",
+]
+
+[project.scripts]
+scitex-cloud = "scitex_cloud.cli.main:main"
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"
 
 [tool.black]
 line-length = 88
