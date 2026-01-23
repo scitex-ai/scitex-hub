@@ -2,9 +2,9 @@
 {% if "/scholar/" in request.path %}
     Scholar{% if current_project %} - {{ current_project.slug }}{% endif %}
 {% elif "/code/" in request.path %}
-    Code{% if current_project %} - {{ current_project.slug }}{% endif %}
+    Console{% if current_project %} - {{ current_project.slug }}{% endif %}
 {% elif "/vis/" in request.path %}
-    Vis{% if current_project %} - {{ current_project.slug }}{% endif %}
+    Visualizer{% if current_project %} - {{ current_project.slug }}{% endif %}
 {% elif "/writer/" in request.path %}
     Writer{% if current_project %} - {{ current_project.slug }}{% endif %}
 {% elif "/tools/" in request.path %}

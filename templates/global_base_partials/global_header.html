@@ -194,17 +194,17 @@
                 </a>
                 <a href="/code/"
                    class="header-nav-item {% if 'code' in request.path %}active{% endif %}"
-                   data-tooltip="Code workspace (Alt+C)"
+                   data-tooltip="Console workspace (Alt+C)"
                    data-shortcut="C">
                     <i class="fas fa-terminal nav-icon-fa" style="font-size: 16px"></i>
-                    <span class="nav-label">Code</span>
+                    <span class="nav-label">Console</span>
                 </a>
                 <a href="/vis/"
                    class="header-nav-item {% if 'vis' in request.path %}active{% endif %}"
                    data-tooltip="Scientific Figure Editor (Alt+V)"
                    data-shortcut="V">
                     <i class="fas fa-chart-line nav-icon-fa" style="font-size: 16px"></i>
-                    <span class="nav-label">Vis</span>
+                    <span class="nav-label">Visualizer</span>
                 </a>
                 <a href="/writer/"
                    class="header-nav-item {% if 'writer' in request.path %}active{% endif %}"
@@ -418,6 +418,12 @@
             <button id="theme-toggle"
                     class="theme-toggle"
                     data-tooltip="Toggle light/dark theme">🌓</button>
+            <!-- Product Tour -->
+            <button id="product-tour-btn"
+                    class="theme-toggle"
+                    data-tooltip="Product Tour">
+                <i class="fas fa-question-circle"></i>
+            </button>
             <!-- Keyboard Shortcuts Help (Alt+/ for modal, click for page) -->
             <a href="/keyboard-shortcuts/"
                id="shortcuts-help-btn"

@@ -8,7 +8,7 @@ console.log("[DEBUG] shortcuts-modal.ts loaded");
 /**
  * App context types
  */
-type AppContext = 'global' | 'files' | 'scholar' | 'code' | 'vis' | 'writer';
+type AppContext = "global" | "files" | "scholar" | "code" | "vis" | "writer";
 
 /**
  * Shortcut definition
@@ -32,165 +32,163 @@ interface ShortcutSection {
 const CONTEXT_SECTIONS: Record<AppContext, ShortcutSection[]> = {
   global: [
     {
-      title: 'Global Navigation',
+      title: "Global Navigation",
       shortcuts: [
-        { keys: 'Alt+F', description: 'Files' },
-        { keys: 'Alt+S', description: 'Scholar' },
-        { keys: 'Alt+C', description: 'Code' },
-        { keys: 'Alt+V', description: 'Vis' },
-        { keys: 'Alt+W', description: 'Writer' },
-        { keys: 'Alt+Z', description: 'Zen Mode' },
+        { keys: "Alt+F", description: "Files" },
+        { keys: "Alt+S", description: "Scholar" },
+        { keys: "Alt+C", description: "Console" },
+        { keys: "Alt+V", description: "Visualizer" },
+        { keys: "Alt+W", description: "Writer" },
+        { keys: "Alt+Z", description: "Zen Mode" },
       ],
     },
   ],
   files: [
     {
-      title: 'Navigation',
+      title: "Navigation",
       shortcuts: [
-        { keys: 'Enter', description: 'Open item' },
-        { keys: 'Backspace', description: 'Parent folder' },
-        { keys: '/', description: 'Focus search' },
+        { keys: "Enter", description: "Open item" },
+        { keys: "Backspace", description: "Parent folder" },
+        { keys: "/", description: "Focus search" },
       ],
     },
     {
-      title: 'File Actions',
+      title: "File Actions",
       shortcuts: [
-        { keys: 'Ctrl+N', description: 'New file' },
-        { keys: 'Ctrl+Shift+N', description: 'New folder' },
-        { keys: 'F2', description: 'Rename' },
-        { keys: 'Del', description: 'Delete' },
+        { keys: "Ctrl+N", description: "New file" },
+        { keys: "Ctrl+Shift+N", description: "New folder" },
+        { keys: "F2", description: "Rename" },
+        { keys: "Del", description: "Delete" },
       ],
     },
   ],
   scholar: [
     {
-      title: 'Search',
+      title: "Search",
       shortcuts: [
-        { keys: 'Ctrl+F', description: 'Focus search' },
-        { keys: 'Enter', description: 'Search' },
+        { keys: "Ctrl+F", description: "Focus search" },
+        { keys: "Enter", description: "Search" },
       ],
     },
     {
-      title: 'Citations',
+      title: "Citations",
       shortcuts: [
-        { keys: 'Ctrl+S', description: 'Save to library' },
-        { keys: 'Ctrl+C', description: 'Copy citation' },
+        { keys: "Ctrl+S", description: "Save to library" },
+        { keys: "Ctrl+C", description: "Copy citation" },
       ],
     },
   ],
   code: [
     {
-      title: 'Files',
+      title: "Files",
       shortcuts: [
-        { keys: 'Ctrl+S', description: 'Save file' },
-        { keys: 'Ctrl+N', description: 'New file' },
-        { keys: 'Ctrl+Tab', description: 'Next tab' },
-        { keys: 'Ctrl+Shift+Tab', description: 'Prev tab' },
+        { keys: "Ctrl+S", description: "Save file" },
+        { keys: "Ctrl+N", description: "New file" },
+        { keys: "Ctrl+Tab", description: "Next tab" },
+        { keys: "Ctrl+Shift+Tab", description: "Prev tab" },
       ],
     },
     {
-      title: 'Terminal',
+      title: "Terminal",
       shortcuts: [
-        { keys: 'Ctrl+Shift+T', description: 'New terminal' },
-        { keys: 'Ctrl+`', description: 'Toggle terminal' },
+        { keys: "Ctrl+Shift+T", description: "New terminal" },
+        { keys: "Ctrl+`", description: "Toggle terminal" },
       ],
     },
     {
-      title: 'View',
-      shortcuts: [
-        { keys: 'Ctrl+B', description: 'Toggle sidebar' },
-      ],
+      title: "View",
+      shortcuts: [{ keys: "Ctrl+B", description: "Toggle sidebar" }],
     },
   ],
   vis: [
     {
-      title: 'Basic',
+      title: "Basic",
       shortcuts: [
-        { keys: 'Ctrl+C', description: 'Copy object' },
-        { keys: 'Ctrl+V', description: 'Paste object' },
-        { keys: 'Ctrl+D', description: 'Duplicate' },
-        { keys: 'Ctrl+Z', description: 'Undo' },
-        { keys: 'Ctrl+Y', description: 'Redo' },
-        { keys: 'Del', description: 'Delete selected' },
-        { keys: 'Arrow', description: 'Move 1px' },
-        { keys: 'Shift+Arrow', description: 'Move 10px' },
+        { keys: "Ctrl+C", description: "Copy object" },
+        { keys: "Ctrl+V", description: "Paste object" },
+        { keys: "Ctrl+D", description: "Duplicate" },
+        { keys: "Ctrl+Z", description: "Undo" },
+        { keys: "Ctrl+Y", description: "Redo" },
+        { keys: "Del", description: "Delete selected" },
+        { keys: "Arrow", description: "Move 1px" },
+        { keys: "Shift+Arrow", description: "Move 10px" },
       ],
     },
     {
-      title: 'Align (Alt+A → ...)',
+      title: "Align (Alt+A → ...)",
       shortcuts: [
-        { keys: 'L', description: 'Left' },
-        { keys: 'R', description: 'Right' },
-        { keys: 'T', description: 'Top' },
-        { keys: 'B', description: 'Bottom' },
-        { keys: 'H', description: 'Distribute H (equal)' },
-        { keys: 'V', description: 'Distribute V (equal)' },
-        { keys: 'C', description: 'Center horizontal' },
-        { keys: 'M', description: 'Center vertical' },
+        { keys: "L", description: "Left" },
+        { keys: "R", description: "Right" },
+        { keys: "T", description: "Top" },
+        { keys: "B", description: "Bottom" },
+        { keys: "H", description: "Distribute H (equal)" },
+        { keys: "V", description: "Distribute V (equal)" },
+        { keys: "C", description: "Center horizontal" },
+        { keys: "M", description: "Center vertical" },
       ],
     },
     {
-      title: 'Align by Axis (Alt+Shift+A → ...)',
+      title: "Align by Axis (Alt+Shift+A → ...)",
       shortcuts: [
-        { keys: 'L', description: 'Y-Axis (Left edge)' },
-        { keys: 'R', description: 'Right edge' },
-        { keys: 'T', description: 'Top edge' },
-        { keys: 'B', description: 'X-Axis (Bottom edge)' },
-        { keys: 'C', description: 'Horizontal center' },
-        { keys: 'M', description: 'Vertical center' },
-        { keys: 'S', description: 'Stack vertically' },
+        { keys: "L", description: "Y-Axis (Left edge)" },
+        { keys: "R", description: "Right edge" },
+        { keys: "T", description: "Top edge" },
+        { keys: "B", description: "X-Axis (Bottom edge)" },
+        { keys: "C", description: "Horizontal center" },
+        { keys: "M", description: "Vertical center" },
+        { keys: "S", description: "Stack vertically" },
       ],
     },
     {
-      title: 'Size (Alt+Z → ...)',
+      title: "Size (Alt+Z → ...)",
       shortcuts: [
-        { keys: 'S', description: 'Match Size' },
-        { keys: 'W', description: 'Match Width' },
-        { keys: 'T', description: 'Match Height (Tall)' },
-        { keys: 'C', description: 'Multiple Crop' },
+        { keys: "S", description: "Match Size" },
+        { keys: "W", description: "Match Width" },
+        { keys: "T", description: "Match Height (Tall)" },
+        { keys: "C", description: "Multiple Crop" },
       ],
     },
     {
-      title: 'Arrange',
+      title: "Arrange",
       shortcuts: [
-        { keys: 'Alt+F', description: 'Bring to Front' },
-        { keys: 'Alt+B', description: 'Send to Back' },
+        { keys: "Alt+F", description: "Bring to Front" },
+        { keys: "Alt+B", description: "Send to Back" },
       ],
     },
     {
-      title: 'View',
+      title: "View",
       shortcuts: [
-        { keys: '+', description: 'Zoom in' },
-        { keys: '-', description: 'Zoom out' },
-        { keys: '0', description: 'Fit to window' },
-        { keys: 'G', description: 'Toggle grid' },
-        { keys: 'Alt+T', description: 'Toggle theme' },
+        { keys: "+", description: "Zoom in" },
+        { keys: "-", description: "Zoom out" },
+        { keys: "0", description: "Fit to window" },
+        { keys: "G", description: "Toggle grid" },
+        { keys: "Alt+T", description: "Toggle theme" },
       ],
     },
     {
-      title: 'Group',
+      title: "Group",
       shortcuts: [
-        { keys: 'Ctrl+G', description: 'Group' },
-        { keys: 'Ctrl+Shift+G', description: 'Ungroup' },
+        { keys: "Ctrl+G", description: "Group" },
+        { keys: "Ctrl+Shift+G", description: "Ungroup" },
       ],
     },
   ],
   writer: [
     {
-      title: 'Document',
+      title: "Document",
       shortcuts: [
-        { keys: 'Ctrl+S', description: 'Save' },
-        { keys: 'Ctrl+B', description: 'Bold' },
-        { keys: 'Ctrl+I', description: 'Italic' },
-        { keys: 'Ctrl+K', description: 'Insert link' },
+        { keys: "Ctrl+S", description: "Save" },
+        { keys: "Ctrl+B", description: "Bold" },
+        { keys: "Ctrl+I", description: "Italic" },
+        { keys: "Ctrl+K", description: "Insert link" },
       ],
     },
     {
-      title: 'Insert',
+      title: "Insert",
       shortcuts: [
-        { keys: 'Ctrl+Shift+C', description: 'Citation' },
-        { keys: 'Ctrl+Shift+E', description: 'Equation' },
-        { keys: 'Ctrl+Shift+F', description: 'Figure' },
+        { keys: "Ctrl+Shift+C", description: "Citation" },
+        { keys: "Ctrl+Shift+E", description: "Equation" },
+        { keys: "Ctrl+Shift+F", description: "Figure" },
       ],
     },
   ],
@@ -201,12 +199,12 @@ const CONTEXT_SECTIONS: Record<AppContext, ShortcutSection[]> = {
  */
 function detectContext(): AppContext {
   const path = window.location.pathname;
-  if (path.startsWith('/files/')) return 'files';
-  if (path.startsWith('/scholar/')) return 'scholar';
-  if (path.startsWith('/code/')) return 'code';
-  if (path.startsWith('/vis/')) return 'vis';
-  if (path.startsWith('/writer/')) return 'writer';
-  return 'global';
+  if (path.startsWith("/files/")) return "files";
+  if (path.startsWith("/scholar/")) return "scholar";
+  if (path.startsWith("/code/")) return "code";
+  if (path.startsWith("/vis/")) return "vis";
+  if (path.startsWith("/writer/")) return "writer";
+  return "global";
 }
 
 /**
@@ -214,12 +212,12 @@ function detectContext(): AppContext {
  */
 function getContextName(context: AppContext): string {
   const names: Record<AppContext, string> = {
-    global: 'Global',
-    files: 'Files',
-    scholar: 'Scholar',
-    code: 'Code',
-    vis: 'Vis',
-    writer: 'Writer',
+    global: "Global",
+    files: "Files",
+    scholar: "Scholar",
+    code: "Console",
+    vis: "Visualizer",
+    writer: "Writer",
   };
   return names[context];
 }
@@ -228,14 +226,22 @@ function getContextName(context: AppContext): string {
  * Generate shortcuts HTML for sections
  */
 function generateSectionsHTML(sections: ShortcutSection[]): string {
-  return sections.map(section => `
+  return sections
+    .map(
+      (section) => `
     <div class="shortcuts-section">
       <h4>${section.title}</h4>
-      ${section.shortcuts.map(s => `
+      ${section.shortcuts
+        .map(
+          (s) => `
         <div class="shortcut-row"><kbd>${s.keys}</kbd> ${s.description}</div>
-      `).join('')}
+      `,
+        )
+        .join("")}
     </div>
-  `).join('');
+  `,
+    )
+    .join("");
 }
 
 /**
@@ -243,7 +249,7 @@ function generateSectionsHTML(sections: ShortcutSection[]): string {
  */
 export function showShortcutsModal(): void {
   // Remove existing modal
-  const existing = document.getElementById('shortcuts-modal-global');
+  const existing = document.getElementById("shortcuts-modal-global");
   if (existing) {
     existing.remove();
     return; // Toggle behavior
@@ -254,13 +260,13 @@ export function showShortcutsModal(): void {
 
   // Build sections - always include global, then context-specific
   const allSections: ShortcutSection[] = [...CONTEXT_SECTIONS.global];
-  if (context !== 'global') {
+  if (context !== "global") {
     allSections.push(...CONTEXT_SECTIONS[context]);
   }
 
   // Create modal
-  const modal = document.createElement('div');
-  modal.id = 'shortcuts-modal-global';
+  const modal = document.createElement("div");
+  modal.id = "shortcuts-modal-global";
   modal.innerHTML = `
     <div class="shortcuts-modal-content">
       <div class="shortcuts-modal-header">
@@ -304,37 +310,39 @@ export function showShortcutsModal(): void {
 
   // Animate in
   requestAnimationFrame(() => {
-    modal.style.opacity = '1';
+    modal.style.opacity = "1";
   });
 
   // Close handlers
   const closeModal = () => {
-    modal.style.opacity = '0';
+    modal.style.opacity = "0";
     setTimeout(() => modal.remove(), 200);
   };
 
-  modal.querySelector('.shortcuts-modal-close')?.addEventListener('click', closeModal);
-  modal.addEventListener('click', (e) => {
+  modal
+    .querySelector(".shortcuts-modal-close")
+    ?.addEventListener("click", closeModal);
+  modal.addEventListener("click", (e) => {
     if (e.target === modal) closeModal();
   });
 
   // Escape key closes
   const escHandler = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
+    if (e.key === "Escape") {
       closeModal();
-      document.removeEventListener('keydown', escHandler);
+      document.removeEventListener("keydown", escHandler);
     }
   };
-  document.addEventListener('keydown', escHandler);
+  document.addEventListener("keydown", escHandler);
 }
 
 /**
  * Toggle shortcuts modal
  */
 export function toggleShortcutsModal(): void {
-  const existing = document.getElementById('shortcuts-modal-global');
+  const existing = document.getElementById("shortcuts-modal-global");
   if (existing) {
-    existing.style.opacity = '0';
+    existing.style.opacity = "0";
     setTimeout(() => existing.remove(), 200);
   } else {
     showShortcutsModal();
