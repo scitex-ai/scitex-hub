@@ -38,7 +38,7 @@ services:
 
       # Persistent data
       - static_volume:/app/staticfiles
-      - media_volume:/app/media
+      - ../../../media:/app/media:cached
 
       # Cache volumes (speed up rebuilds) - exclude from host mount
       - uv_cache:/root/.cache/uv
@@ -431,7 +431,7 @@ services:
     restart: unless-stopped
 
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5500/ping"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5500/ping', timeout=5)"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -457,10 +457,9 @@ volumes:
   # Application data
   static_volume:
     driver: local
-  
-  media_volume:
-    driver: local
-  
+
+  # media now uses host mount (../../../media:/app/media)
+
   # Cache volumes (can be deleted safely)
   uv_cache:
     driver: local
