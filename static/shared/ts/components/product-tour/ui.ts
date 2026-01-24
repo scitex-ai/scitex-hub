@@ -17,26 +17,14 @@ export function createTooltip(): HTMLElement {
     <div class="product-tour-tooltip-content">
       <div class="product-tour-tooltip-header">
         <span class="product-tour-step-indicator"></span>
-        <button class="product-tour-close" title="Skip tour"><i class="fas fa-times"></i></button>
+        <button class="product-tour-close" title="Close (Esc)"><i class="fas fa-times"></i></button>
       </div>
       <h3 class="product-tour-title"></h3>
       <p class="product-tour-description"></p>
-      <div class="product-tour-skip-option">
-        <label class="product-tour-checkbox-label">
-          <input type="checkbox" class="product-tour-skip-checkbox">
-          <span>Don't show on startup</span>
-        </label>
-      </div>
       <div class="product-tour-actions">
-        <button class="product-tour-btn product-tour-prev">Previous</button>
-        <button class="product-tour-btn product-tour-next primary">Next</button>
+        <button class="product-tour-btn product-tour-prev">&larr; Previous</button>
+        <button class="product-tour-btn product-tour-next primary">Next &rarr;</button>
       </div>
-      <p class="product-tour-keymap-hint">
-        <kbd>←</kbd> Previous <kbd>→</kbd> Next <kbd>Esc</kbd> Close
-      </p>
-      <p class="product-tour-restart-hint">
-        <i class="fas fa-question-circle"></i> Restart anytime via header button
-      </p>
     </div>
     <div class="product-tour-arrow"></div>
   `;

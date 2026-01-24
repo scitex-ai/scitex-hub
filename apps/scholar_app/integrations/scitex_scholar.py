@@ -14,11 +14,11 @@ The scitex.scholar package provides:
 - Individual search engines: ArXiv, PubMed, CrossRef, Semantic Scholar, OpenAlex
 """
 
-import logging
 import asyncio
-from pathlib import Path
-from typing import Dict, Any, List, Optional
+import logging
 from functools import lru_cache
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 from django.conf import settings
 
@@ -26,14 +26,17 @@ logger = logging.getLogger(__name__)
 
 # Try to import scitex.scholar
 try:
+    from scitex.scholar import ScholarConfig
     from scitex.scholar.pipelines.SearchQueryParser import SearchQueryParser
     from scitex.scholar.search_engines.ScholarSearchEngine import ScholarSearchEngine
-    from scitex.scholar import ScholarConfig
+
     SCITEX_SCHOLAR_AVAILABLE = True
 except ImportError:
     SCITEX_SCHOLAR_AVAILABLE = False
     ScholarConfig = None
-    logger.warning("scitex.scholar package not available, falling back to Django-only search")
+    logger.warning(
+        "scitex.scholar package not available, falling back to Django-only search"
+    )
 
 
 def get_user_scitex_dir(user, session_key: Optional[str] = None) -> Path:
@@ -41,7 +44,8 @@ def get_user_scitex_dir(user, session_key: Optional[str] = None) -> Path:
     Get the user-specific SCITEX directory path.
 
     Resolution order:
-    1. SCITEX_USER_DATA_ROOT env var (for containerized per-user setups)
+    1. SCITEX_CLOUD_USER_DATA_ROOT env var (for containerized per-user setups)
+       (falls back to legacy SCITEX_USER_DATA_ROOT)
     2. USER_DATA_ROOT Django setting
     3. Default: {BASE_DIR}/data/users/{username}/.scitex
 
@@ -57,17 +61,20 @@ def get_user_scitex_dir(user, session_key: Optional[str] = None) -> Path:
     """
     import os
 
-    base_dir = getattr(settings, 'BASE_DIR', Path.cwd())
+    base_dir = getattr(settings, "BASE_DIR", Path.cwd())
 
     # Check for containerized setup with per-user $HOME
-    user_data_root = os.environ.get('SCITEX_USER_DATA_ROOT')
+    # Support both new (SCITEX_CLOUD_*) and legacy (SCITEX_*) names
+    user_data_root = os.environ.get("SCITEX_CLOUD_USER_DATA_ROOT") or os.environ.get(
+        "SCITEX_USER_DATA_ROOT"
+    )
     if user_data_root:
         # Containerized environment - use the provided root directly
         # Assumes $HOME or similar is already set per-user
         user_scitex_dir = Path(user_data_root) / ".scitex"
     else:
         # Shared process - use explicit user directory
-        user_data_root_setting = getattr(settings, 'USER_DATA_ROOT', None)
+        user_data_root_setting = getattr(settings, "USER_DATA_ROOT", None)
         if user_data_root_setting:
             base_path = Path(user_data_root_setting)
         else:
@@ -77,7 +84,9 @@ def get_user_scitex_dir(user, session_key: Optional[str] = None) -> Path:
             user_scitex_dir = base_path / user.username / ".scitex"
         elif session_key:
             # Anonymous user with session
-            user_scitex_dir = Path(base_dir) / "data" / "visitor" / session_key / ".scitex"
+            user_scitex_dir = (
+                Path(base_dir) / "data" / "visitor" / session_key / ".scitex"
+            )
         else:
             # Fallback for anonymous without session
             user_scitex_dir = Path(base_dir) / "data" / "visitor" / "shared" / ".scitex"
@@ -86,7 +95,7 @@ def get_user_scitex_dir(user, session_key: Optional[str] = None) -> Path:
     return user_scitex_dir
 
 
-def get_scholar_config(user=None) -> Optional['ScholarConfig']:
+def get_scholar_config(user=None) -> Optional["ScholarConfig"]:
     """
     Get a ScholarConfig instance with user-specific paths.
 
@@ -107,7 +116,7 @@ def get_scholar_config(user=None) -> Optional['ScholarConfig']:
 
 
 @lru_cache(maxsize=1)
-def get_search_engine(email: Optional[str] = None) -> Optional['ScholarSearchEngine']:
+def get_search_engine(email: Optional[str] = None) -> Optional["ScholarSearchEngine"]:
     """
     Get a cached instance of ScholarSearchEngine.
 
@@ -121,7 +130,7 @@ def get_search_engine(email: Optional[str] = None) -> Optional['ScholarSearchEng
         return None
 
     return ScholarSearchEngine(
-        default_mode='parallel',
+        default_mode="parallel",
         use_cache=True,
         email=email,
     )
@@ -155,22 +164,22 @@ def parse_query_scitex(query: str) -> Dict[str, Any]:
     if not SCITEX_SCHOLAR_AVAILABLE:
         # Fallback to simple parsing
         return {
-            'keyword_query': query,
-            'positive_keywords': query.split(),
-            'negative_keywords': [],
+            "keyword_query": query,
+            "positive_keywords": query.split(),
+            "negative_keywords": [],
         }
 
     parser = SearchQueryParser(query)
     filters = parser.get_filters()
-    filters['keyword_query'] = parser.get_keyword_query()
-    filters['original_query'] = query
+    filters["keyword_query"] = parser.get_keyword_query()
+    filters["original_query"] = query
 
     return filters
 
 
 async def search_async(
     query: str,
-    mode: str = 'parallel',
+    mode: str = "parallel",
     max_results: int = 100,
     email: Optional[str] = None,
 ) -> Dict[str, Any]:
@@ -189,9 +198,9 @@ async def search_async(
     engine = get_search_engine(email)
     if not engine:
         return {
-            'results': [],
-            'metadata': {'error': 'scitex.scholar not available'},
-            'stats': {},
+            "results": [],
+            "metadata": {"error": "scitex.scholar not available"},
+            "stats": {},
         }
 
     return await engine.search(
@@ -204,7 +213,7 @@ async def search_async(
 
 def search_sync(
     query: str,
-    mode: str = 'parallel',
+    mode: str = "parallel",
     max_results: int = 100,
     email: Optional[str] = None,
 ) -> Dict[str, Any]:
@@ -226,9 +235,7 @@ def search_sync(
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
 
-    return loop.run_until_complete(
-        search_async(query, mode, max_results, email)
-    )
+    return loop.run_until_complete(search_async(query, mode, max_results, email))
 
 
 def get_supported_sources() -> List[str]:
@@ -236,7 +243,7 @@ def get_supported_sources() -> List[str]:
     engine = get_search_engine()
     if engine:
         return engine.get_supported_engines()
-    return ['pubmed', 'arxiv', 'semantic_scholar', 'crossref', 'openalex']
+    return ["pubmed", "arxiv", "semantic_scholar", "crossref", "openalex"]
 
 
 def get_engine_statistics() -> Dict[str, Any]:
@@ -255,14 +262,14 @@ def is_available() -> bool:
 # Mapping between Django filter names and scitex filter names
 FILTER_MAPPING = {
     # Django name -> scitex name
-    'year_min': 'year_start',
-    'year_max': 'year_end',
-    'citations_min': 'min_citations',
-    'citations_max': 'max_citations',
-    'impact_factor_min': 'min_impact_factor',
-    'impact_factor_max': 'max_impact_factor',
-    'title_includes': 'positive_keywords',
-    'title_excludes': 'negative_keywords',
+    "year_min": "year_start",
+    "year_max": "year_end",
+    "citations_min": "min_citations",
+    "citations_max": "max_citations",
+    "impact_factor_min": "min_impact_factor",
+    "impact_factor_max": "max_impact_factor",
+    "title_includes": "positive_keywords",
+    "title_excludes": "negative_keywords",
 }
 
 
@@ -288,7 +295,9 @@ def convert_django_filters_to_scitex(django_filters: Dict[str, Any]) -> Dict[str
     return scitex_filters
 
 
-def convert_scitex_results_to_django(scitex_results: Dict[str, Any]) -> List[Dict[str, Any]]:
+def convert_scitex_results_to_django(
+    scitex_results: Dict[str, Any],
+) -> List[Dict[str, Any]]:
     """
     Convert scitex search results to Django SearchIndex-compatible format.
 
@@ -298,32 +307,34 @@ def convert_scitex_results_to_django(scitex_results: Dict[str, Any]) -> List[Dic
     Returns:
         List of paper dictionaries compatible with Django templates
     """
-    if not scitex_results or 'results' not in scitex_results:
+    if not scitex_results or "results" not in scitex_results:
         return []
 
     django_results = []
-    for paper in scitex_results['results']:
+    for paper in scitex_results["results"]:
         # Skip papers without titles
-        title = (paper.get('title') or '').strip()
+        title = (paper.get("title") or "").strip()
         if not title:
             continue
-        django_results.append({
-            'id': paper.get('id'),
-            'title': title,
-            'authors': paper.get('authors', ''),
-            'abstract': paper.get('abstract', ''),
-            'journal': paper.get('journal', ''),
-            'year': paper.get('year') or paper.get('publication_year'),
-            'doi': paper.get('doi'),
-            'pmid': paper.get('pmid'),
-            'arxiv_id': paper.get('arxiv_id'),
-            'url': paper.get('url') or paper.get('external_url'),
-            'pdf_url': paper.get('pdf_url'),
-            'source': paper.get('source', 'scitex'),
-            'citations': paper.get('citations') or paper.get('citation_count'),
-            'impact_factor': paper.get('impact_factor'),
-            'open_access': paper.get('open_access', False),
-        })
+        django_results.append(
+            {
+                "id": paper.get("id"),
+                "title": title,
+                "authors": paper.get("authors", ""),
+                "abstract": paper.get("abstract", ""),
+                "journal": paper.get("journal", ""),
+                "year": paper.get("year") or paper.get("publication_year"),
+                "doi": paper.get("doi"),
+                "pmid": paper.get("pmid"),
+                "arxiv_id": paper.get("arxiv_id"),
+                "url": paper.get("url") or paper.get("external_url"),
+                "pdf_url": paper.get("pdf_url"),
+                "source": paper.get("source", "scitex"),
+                "citations": paper.get("citations") or paper.get("citation_count"),
+                "impact_factor": paper.get("impact_factor"),
+                "open_access": paper.get("open_access", False),
+            }
+        )
 
     return django_results
 

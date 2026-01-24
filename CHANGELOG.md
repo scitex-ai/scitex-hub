@@ -5,6 +5,31 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0-alpha] - 2025-01-25
+
+### Added
+- **scitex-cloud pip package**: New CLI tool for deployment and management (v0.1.0)
+  - `scitex-cloud status` - Check deployment status
+  - `scitex-cloud deploy` - Deploy to environments
+  - Installable via `pip install -e .[dev]`
+
+### Changed
+- **Env Var Standardization**: Unified naming convention with backward compatibility
+  - `SCITEX_GOOGLE_*` → `SCITEX_SOCIAL_GOOGLE_*` (social auth credentials)
+  - `SCITEX_QUOTA_SLURM_*` / `SCITEX_SLURM_*` → `SCITEX_CLOUD_SLURM_*`
+  - `SCITEX_USER_DATA_ROOT` → `SCITEX_CLOUD_USER_DATA_ROOT`
+  - `SCITEX_CITATION_GRAPH_PROXY_URL` → `SCITEX_SCHOLAR_CITATION_GRAPH_PROXY_URL`
+  - `SCITEX_CODE_PATH` → `SCITEX_CLOUD_CODE_PATH`
+  - `SCITEX_ENV` → `SCITEX_CLOUD_ENV`
+
+- **Landing Page Tour**: Simplified to step-by-step format for better UX
+
+- **Dependencies**: Moved to pyproject.toml extras for cleaner installation
+
+### Fixed
+- Audit fixes for scitex-cloud package structure
+
+
 ## [0.5.2-alpha] - 2025-12-17
 
 ### Added

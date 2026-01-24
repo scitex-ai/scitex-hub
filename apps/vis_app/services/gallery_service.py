@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 # Base path to scitex-code examples
-SCITEX_CODE_PATH = Path(os.environ.get(
+SCITEX_CODE_PATH = Path(os.environ.get("SCITEX_CLOUD_CODE_PATH") or os.environ.get(
     'SCITEX_CODE_PATH',
     '/home/ywatanabe/proj/scitex-code'
 ))
