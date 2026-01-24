@@ -696,8 +696,8 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 # Google OAuth credentials (from environment)
-GOOGLE_CLIENT_ID = os.getenv("SCITEX_GOOGLE_CLIENT_ID", "")
-GOOGLE_CLIENT_SECRET = os.getenv("SCITEX_GOOGLE_CLIENT_SECRET", "")
+GOOGLE_CLIENT_ID = os.getenv("SCITEX_SOCIAL_GOOGLE_CLIENT_ID") or os.getenv("SCITEX_GOOGLE_CLIENT_ID", "")
+GOOGLE_CLIENT_SECRET = os.getenv("SCITEX_SOCIAL_GOOGLE_CLIENT_SECRET") or os.getenv("SCITEX_GOOGLE_CLIENT_SECRET", "")
 
 # Custom adapters for SciTeX-specific user handling
 ACCOUNT_ADAPTER = "apps.auth_app.adapters.SciTexAccountAdapter"

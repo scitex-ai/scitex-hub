@@ -8,9 +8,9 @@ This command creates the necessary Site and SocialApp entries
 for Google and ORCID OAuth providers.
 """
 
-from django.core.management.base import BaseCommand
 from django.conf import settings
 from django.contrib.sites.models import Site
+from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
@@ -84,7 +84,7 @@ class Command(BaseCommand):
             else:
                 self.stdout.write(
                     self.style.WARNING(
-                        "   Skipped Google (SCITEX_GOOGLE_CLIENT_ID/SECRET not set)"
+                        "   Skipped Google (SCITEX_SOCIAL_GOOGLE_CLIENT_ID/SECRET not set)"
                     )
                 )
 
@@ -125,14 +125,20 @@ class Command(BaseCommand):
 
         self.stdout.write("\nNext steps:")
         self.stdout.write("1. Get OAuth credentials from providers:")
-        self.stdout.write("   - Google: https://console.cloud.google.com/apis/credentials")
+        self.stdout.write(
+            "   - Google: https://console.cloud.google.com/apis/credentials"
+        )
         self.stdout.write("   - ORCID: https://orcid.org/developer-tools")
         self.stdout.write("\n2. Set environment variables:")
-        self.stdout.write("   - SCITEX_GOOGLE_CLIENT_ID")
-        self.stdout.write("   - SCITEX_GOOGLE_CLIENT_SECRET")
+        self.stdout.write("   - SCITEX_SOCIAL_GOOGLE_CLIENT_ID")
+        self.stdout.write("   - SCITEX_SOCIAL_GOOGLE_CLIENT_SECRET")
         self.stdout.write("   - ORCID_CLIENT_ID")
         self.stdout.write("   - ORCID_CLIENT_SECRET")
-        self.stdout.write(f"\n3. Add redirect URIs in provider consoles:")
-        self.stdout.write(f"   - Google: https://{domain}/auth/social/google/login/callback/")
-        self.stdout.write(f"   - ORCID: https://{domain}/auth/social/orcid/login/callback/")
+        self.stdout.write("\n3. Add redirect URIs in provider consoles:")
+        self.stdout.write(
+            f"   - Google: https://{domain}/auth/social/google/login/callback/"
+        )
+        self.stdout.write(
+            f"   - ORCID: https://{domain}/auth/social/orcid/login/callback/"
+        )
         self.stdout.write("\n4. Re-run this command after setting credentials")
