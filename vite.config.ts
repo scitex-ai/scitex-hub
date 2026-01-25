@@ -448,10 +448,6 @@ export default defineConfig({
           __dirname,
           "static/shared/ts/utils/visitor-heartbeat.ts",
         ),
-        "shared/components/first-visit-navigator": resolve(
-          __dirname,
-          "static/shared/ts/components/first-visit-navigator.ts",
-        ),
         "shared/components/product-tour": resolve(
           __dirname,
           "static/shared/ts/components/product-tour.ts",

@@ -194,10 +194,13 @@ function startTour(config?: PageTourConfig): void {
       return;
     }
     if (e.key === "Escape") {
+      e.preventDefault();
       endTour(false);
     } else if (e.key === "ArrowRight" || e.key === "Enter") {
+      e.preventDefault();
       nextStep();
     } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
       prevStep();
     }
   };
