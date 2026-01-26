@@ -11,19 +11,20 @@ GitHub-style patterns:
 """
 
 from django.urls import path
-from ..views.security_views import (
-    security_overview,
-    security_alerts,
-    security_alert_detail,
-    security_policy_edit,
-    security_advisories,
+
+from ..views.security import (
+    api_dependency_tree,
+    create_fix_pr,
     dependency_graph,
-    scan_history,
-    trigger_security_scan,
     dismiss_alert,
     reopen_alert,
-    create_fix_pr,
-    api_dependency_tree,
+    scan_history,
+    security_advisories,
+    security_alert_detail,
+    security_alerts,
+    security_overview,
+    security_policy_edit,
+    trigger_security_scan,
 )
 
 # No app_name here - namespace is provided by parent (user_projects)
