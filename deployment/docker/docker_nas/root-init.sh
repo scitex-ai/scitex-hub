@@ -100,6 +100,16 @@ if [ -d "/app/data/users" ]; then
     fi
 fi
 
+# ============================================
+# Fix Vite staticfiles permissions
+# ============================================
+# Fix ownership instead of deleting (preserve built files)
+if [ -d "/app/staticfiles/vite" ]; then
+    chown -R scitex:scitex /app/staticfiles/vite 2>/dev/null || true
+    chmod -R 755 /app/staticfiles/vite 2>/dev/null || true
+    echo "✅ Vite staticfiles permissions fixed"
+fi
+
 echo "✅ Root initialization complete"
 echo ""
 

@@ -230,6 +230,10 @@ export default defineConfig({
           __dirname,
           "apps/public_app/static/public_app/ts/pages/release-timeline.ts",
         ),
+        "public_app/pages/visitor-pool-full": resolve(
+          __dirname,
+          "apps/public_app/static/public_app/ts/pages/visitor-pool-full.ts",
+        ),
 
         // Accounts app
         "accounts_app/profile": resolve(

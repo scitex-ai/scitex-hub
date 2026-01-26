@@ -26,7 +26,7 @@
                 <div class="ecosystem-card">
                     <div class="ecosystem-card-header">
                         <h3><i class="fab fa-python"></i> scitex</h3>
-                        <span class="version-badge">v2.14.0</span>
+                        <span class="version-badge">v2.15.1</span>
                     </div>
                     <p class="ecosystem-desc">Python toolkit + MCP server for research automation</p>
                     <ul class="ecosystem-highlights">
@@ -38,14 +38,14 @@
                         <a href="https://pypi.org/project/scitex/" target="_blank"><i class="fab fa-python"></i> PyPI</a>
                         <a href="https://github.com/ywatanabe1989/scitex-code/releases" target="_blank"><i class="fab fa-github"></i> Releases</a>
                     </div>
-                    <span class="release-date">January 15, 2025</span>
+                    <span class="release-date">January 24, 2026</span>
                 </div>
 
                 <!-- figrecipe -->
                 <div class="ecosystem-card">
                     <div class="ecosystem-card-header">
                         <h3><i class="fas fa-chart-bar"></i> figrecipe</h3>
-                        <span class="version-badge">v0.16.2</span>
+                        <span class="version-badge">v0.19.0</span>
                     </div>
                     <p class="ecosystem-desc">Reproducible scientific figures as first-class objects</p>
                     <ul class="ecosystem-highlights">
@@ -57,14 +57,14 @@
                         <a href="https://pypi.org/project/figrecipe/" target="_blank"><i class="fab fa-python"></i> PyPI</a>
                         <a href="https://github.com/ywatanabe1989/figrecipe/releases" target="_blank"><i class="fab fa-github"></i> Releases</a>
                     </div>
-                    <span class="release-date">January 19, 2025</span>
+                    <span class="release-date">January 25, 2026</span>
                 </div>
 
                 <!-- crossref-local -->
                 <div class="ecosystem-card">
                     <div class="ecosystem-card-header">
                         <h3><i class="fas fa-database"></i> crossref-local</h3>
-                        <span class="version-badge">v0.3.1</span>
+                        <span class="version-badge">v0.4.0</span>
                     </div>
                     <p class="ecosystem-desc">Local database of 167M+ academic works</p>
                     <ul class="ecosystem-highlights">
@@ -75,7 +75,7 @@
                     <div class="ecosystem-links">
                         <a href="https://github.com/ywatanabe1989/crossref-local/releases" target="_blank"><i class="fab fa-github"></i> Releases</a>
                     </div>
-                    <span class="release-date">January 14, 2025</span>
+                    <span class="release-date">January 24, 2026</span>
                 </div>
 
                 <!-- scitex-writer -->
@@ -122,11 +122,11 @@
 
         <div class="stats-box">
             <div class="stat-item">
-                <span class="stat-number">1205</span>
+                <span class="stat-number">1790</span>
                 <span class="stat-label">Total Commits</span>
             </div>
             <div class="stat-item">
-                <span class="stat-number">7</span>
+                <span class="stat-number">8</span>
                 <span class="stat-label">Months of Development</span>
             </div>
             <div class="stat-item">
@@ -147,8 +147,40 @@
         </div>
         <div class="release-month">
             <div class="month-header">
-                <h2>December 2025 — v0.5.2-alpha</h2>
+                <h2>January 2026 — v0.6.5-alpha</h2>
                 <span class="month-badge">Latest Release</span>
+            </div>
+            <ul class="feature-list">
+                <li class="feature-item">
+                    <h3>🔐 Signup Page Access Fix</h3>
+                    <p>
+                        Fixed signup page incorrectly redirecting to visitor-pool-full. The signup
+                        page is now always accessible without authentication requirement, allowing
+                        users to create accounts regardless of visitor pool status.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>🍪 Visitor Pool Full Page Improvements</h3>
+                    <p>
+                        Fixed NoReverseMatch error for 'landing' URL by updating redirect to 'index'.
+                        Added cookie consent detection to show appropriate messages for both
+                        "no cookies" and "pool exhausted" scenarios.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>🐳 NAS Docker Build Improvements</h3>
+                    <p>
+                        Pinned uv to version 0.4.0 for compatibility, switched from requirements.txt
+                        to pyproject.toml extras, updated scitex from 2.10.3 to 2.15.1 with targeted
+                        extras. Added clean-static Makefile target and improved Vite rebuild detection.
+                    </p>
+                </li>
+            </ul>
+        </div>
+        <div class="release-month">
+            <div class="month-header">
+                <h2>December 2025 — v0.5.2-alpha</h2>
+                <span class="month-badge">Logging & Refactoring</span>
             </div>
             <ul class="feature-list">
                 <li class="feature-item">

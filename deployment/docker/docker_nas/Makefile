@@ -3,7 +3,7 @@
 # ============================================
 # Location: /containers/docker_nas/Makefile.nas
 
-.PHONY: help setup build build-no-cache start restart stop down logs ps status rebuild migrate makemigrations shell collectstatic db-shell db-backup verify-health logs-django logs-db logs-redis exec-django exec-db clean-python
+.PHONY: help setup build build-no-cache start restart stop down logs ps status rebuild clean-static migrate makemigrations shell collectstatic db-shell db-backup verify-health logs-django logs-db logs-redis exec-django exec-db clean-python
 
 .DEFAULT_GOAL := help
 
@@ -45,7 +45,8 @@ help:
 	@echo -e "  make up                 - Start services (no rebuild)"
 	@echo -e "  make down               - Stop and remove containers"
 	@echo -e "  make ps                 - Show container status"
-	@echo -e "  make rebuild            - Clean rebuild"
+	@echo -e "  make rebuild            - Clean rebuild (clears static volume)"
+	@echo -e "  make clean-static       - Clear static files volume only"
 	@echo -e ""
 	@echo -e "$(CYAN)🐍 Django Management:$(NC)"
 	@echo -e "  make migrate            - Run database migrations"
@@ -128,8 +129,13 @@ ps:
 
 status: ps verify-health
 
-rebuild: down build up migrate collectstatic
+rebuild: down clean-static build up migrate collectstatic
 	@echo -e "$(GREEN)✅ Rebuild complete$(NC)"
+
+clean-static:
+	@echo -e "$(CYAN)🧹 Clearing static files volume...$(NC)"
+	@docker volume rm scitex-cloud-nas_static_volume 2>/dev/null || true
+	@echo -e "$(GREEN)✅ Static volume cleared$(NC)"
 
 # ============================================
 # Django Management

@@ -5,6 +5,17 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.5-alpha] - 2026-01-26
+
+### Fixed
+- **Signup Page**: Now accessible without authentication (was incorrectly redirecting)
+- **Visitor Pool Full**: Fixed NoReverseMatch for 'landing', added cookie consent detection
+- **Demos Page CSS**: Added cache-busting params for Cloudflare caching issues
+
+### Changed
+- **NAS Docker**: Pinned uv 0.4.0, pyproject.toml extras, scitex 2.15.1, improved Vite rebuild
+
+
 ## [0.6.0-alpha] - 2025-01-25
 
 ### Added
@@ -502,35 +513,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Redundant configuration files
 
 ## [0.2.0-alpha] - 2025-10-23
-
-### Documentation & Performance
-- Added README.md files for all 18 apps with clear single-responsibility descriptions
-- Optimized database queries in search_app (eliminated N+1 queries)
-- Optimized database queries in code_app editor view
-- Fixed model duplication issues across apps
+- Added README.md files for all 18 apps, optimized database queries
 - Completed core_app → workspace_app migration
-- All Django migrations applied successfully
-- Authentication verified and working
-
-### App Documentation
-Complete documentation for:
-- accounts_app, auth_app, code_app, dev_app
-- docs_app, donations_app, gitea_app, integrations_app
-- organizations_app, permissions_app, project_app, public_app
-- scholar_app, search_app, social_app, vis_app, writer_app, workspace_app
 
 ## [0.1.2-alpha] - 2025-10-23
-
-### Initial Release Features
-- Complete SciTeX Cloud platform foundation
-- Scholar module for literature management
-- Writer module for LaTeX collaboration
-- Code module for analysis
-- Viz module for visualization
-- User authentication and authorization
-- Project management system
-- Git repository integration via Gitea
-- Docker-based deployment
+- Initial release: Scholar, Writer, Code, Viz modules with Docker deployment
 
 [0.5.1-alpha]: https://github.com/ywatanabe1989/scitex-cloud/compare/v0.5.0-alpha...v0.5.1-alpha
 [0.5.0-alpha]: https://github.com/ywatanabe1989/scitex-cloud/compare/v0.4.9-alpha...v0.5.0-alpha

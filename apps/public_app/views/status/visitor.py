@@ -79,25 +79,39 @@ def visitor_pool_full(request):
     """
     Visitor pool full page.
 
-    Shown when all visitor demo slots are currently in use.
-    Provides clear explanation and options to sign up or wait.
-    Redirects to home if slots are actually available.
+    Shown when:
+    1. All visitor demo slots are currently in use (pool exhausted)
+    2. User hasn't accepted cookies (can't allocate visitor session)
+
+    Provides clear explanation and options to sign up or accept cookies.
     """
     from django.conf import settings
+
+    # Check if user has cookie consent
+    has_cookie_consent = request.COOKIES.get("scitex_consent")
 
     # Get pool status
     pool_status = VisitorPool.get_pool_status()
     free_slots = pool_status.get("free", 0)
 
-    # If slots are available, redirect to home instead of showing this page
-    if free_slots > 0:
-        return redirect("public_app:landing")
+    # Determine reason for being here
+    if not has_cookie_consent:
+        # User hasn't accepted cookies - show cookies required message
+        reason = "no_cookies"
+    elif free_slots > 0:
+        # Slots available and has cookies - redirect to home (middleware will allocate)
+        return redirect("public_app:index")
+    else:
+        # Pool actually exhausted
+        reason = "pool_full"
 
     context = {
         "pool_size": pool_status.get("total", 4),
         "allocated": pool_status.get("allocated", 0),
         "free": free_slots,
         "DEBUG": settings.DEBUG,
+        "reason": reason,
+        "has_cookie_consent": has_cookie_consent,
     }
 
     return render(request, "public_app/visitor_pool_full.html", context)
