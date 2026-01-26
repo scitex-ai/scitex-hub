@@ -2,29 +2,38 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="description"
-      content="{% block meta_description %}SciTeX - The complete scientific research platform for researchers and academics{% endblock %}" />
+      content="{% block meta_description %}{{ META_DESCRIPTION_DEFAULT }}{% endblock %}" />
 <!-- Inline theme application - Prevents flash of unstyled content -->
 <script>
-  (function () {
-    const theme = localStorage.getItem("scitex-theme-preference") || "light";
-    if (theme === "dark") {
-      document.documentElement.setAttribute("data-theme", "dark");
-      document.documentElement.setAttribute("data-color-mode", "dark");
-    } else {
-      document.documentElement.setAttribute("data-theme", "light");
-      document.documentElement.setAttribute("data-color-mode", "light");
-    }
-  })();
+    (function() {
+        const theme = localStorage.getItem("scitex-theme-preference") || "light";
+        if (theme === "dark") {
+            document.documentElement.setAttribute("data-theme", "dark");
+            document.documentElement.setAttribute("data-color-mode", "dark");
+        } else {
+            document.documentElement.setAttribute("data-theme", "light");
+            document.documentElement.setAttribute("data-color-mode", "light");
+        }
+    })();
 </script>
 <!-- Console Logger (Development Only) - Captures browser console to ./logs/console.log -->
 {% vite_script 'shared/utils/console-interceptor' %}
-<!-- Favicon -->
-<link rel="icon"
-      type="image/png"
-      href="{% static 'shared/images/favicons/favicon.png' %}?v=2" />
-<link rel="shortcut icon"
-      type="image/png"
-      href="{% static 'shared/images/favicons/favicon.png' %}?v=2" />
+<!-- Favicon (navy for dev, inverted for prod) -->
+{% if DEBUG %}
+    <link rel="icon"
+          type="image/png"
+          href="{% static 'shared/images/favicons/favicon-dev.png' %}?v=4" />
+    <link rel="shortcut icon"
+          type="image/png"
+          href="{% static 'shared/images/favicons/favicon-dev.png' %}?v=4" />
+{% else %}
+    <link rel="icon"
+          type="image/png"
+          href="{% static 'shared/images/favicons/favicon.png' %}?v=2" />
+    <link rel="shortcut icon"
+          type="image/png"
+          href="{% static 'shared/images/favicons/favicon.png' %}?v=2" />
+{% endif %}
 <link rel="apple-touch-icon"
       href="{% static 'shared/images/favicons/apple-touch-icon.png' %}?v=2" />
 {% if user.is_authenticated %}
@@ -35,30 +44,34 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://scitex.ai/" />
 <meta property="og:title"
-      content="{% block og_title %}SciTeX - Scientific Research Platform{% endblock %}" />
+      content="{% block og_title %}{{ OG_TITLE }}{% endblock %}" />
 <meta property="og:description"
-      content="{% block og_description %}Accelerate your scientific research with SciTeX - an integrated ecosystem of tools from hypothesis to publication{% endblock %}" />
+      content="{% block og_description %}{{ OG_DESCRIPTION }}{% endblock %}" />
 <meta property="og:image"
       content="{% block og_image %}https://scitex.ai/static/shared/images/scitex-og-image.png{% endblock %}" />
 <!-- Twitter -->
 <meta property="twitter:card" content="summary_large_image" />
 <meta property="twitter:url" content="https://scitex.ai/" />
 <meta property="twitter:title"
-      content="{% block twitter_title %}SciTeX - Scientific Research Platform{% endblock %}" />
+      content="{% block twitter_title %}{{ OG_TITLE }}{% endblock %}" />
 <meta property="twitter:description"
-      content="{% block twitter_description %}Accelerate your scientific research with SciTeX - an integrated ecosystem of tools from hypothesis to publication{% endblock %}" />
+      content="{% block twitter_description %}{{ OG_DESCRIPTION }}{% endblock %}" />
 <meta property="twitter:image"
       content="{% block twitter_image %}https://scitex.ai/static/shared/images/scitex-og-image.png{% endblock %}" />
 <!-- Google Analytics 4 -->
 {% if GOOGLE_ANALYTICS_ID %}
-<script async src="https://www.googletagmanager.com/gtag/js?id={{ GOOGLE_ANALYTICS_ID }}"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', '{{ GOOGLE_ANALYTICS_ID }}', {
-    'anonymize_ip': true,
-    'cookie_flags': 'SameSite=None;Secure'
-  });
-</script>
+    <script async
+            src="https://www.googletagmanager.com/gtag/js?id={{ GOOGLE_ANALYTICS_ID }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+        gtag('js', new Date());
+        gtag('config', '{{ GOOGLE_ANALYTICS_ID }}', {
+            'anonymize_ip': true,
+            'cookie_flags': 'SameSite=None;Secure'
+        });
+    </script>
 {% endif %}
