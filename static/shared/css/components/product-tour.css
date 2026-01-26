@@ -269,6 +269,43 @@
   margin-right: 0.25rem;
 }
 
+/* Tour button hint - persistent highlight during tour */
+.tour-active-hint {
+  position: relative;
+  z-index: 10003 !important;
+  animation: tour-btn-pulse 2s ease-in-out infinite !important;
+  box-shadow:
+    0 0 0 4px var(--accent-color, #6366f1),
+    0 0 0 8px rgba(99, 102, 241, 0.3),
+    0 0 20px rgba(99, 102, 241, 0.5) !important;
+  border-radius: 8px !important;
+}
+
+@keyframes tour-btn-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 4px var(--accent-color, #6366f1),
+      0 0 0 8px rgba(99, 102, 241, 0.3),
+      0 0 20px rgba(99, 102, 241, 0.5);
+  }
+  50% {
+    box-shadow:
+      0 0 0 6px var(--accent-color, #6366f1),
+      0 0 0 12px rgba(99, 102, 241, 0.2),
+      0 0 30px rgba(99, 102, 241, 0.6);
+  }
+}
+
+/* Restart hint tooltip - positioned under tour button */
+.product-tour-restart-tooltip {
+  width: 280px;
+}
+
+.product-tour-restart-tooltip .product-tour-description {
+  margin-bottom: 0;
+}
+
 /* Responsive */
 @media (max-width: 480px) {
   .product-tour-tooltip {

@@ -8,14 +8,14 @@ export const LANDING_TOUR_STEPS: TourStep[] = [
     selector: ".header-project-selector-inline, .project-selector-btn",
     title: "Project Selector",
     description:
-      "Switch between your research projects. All modules work within the selected project context.",
+      "Your current project context. We've prepared 'default-project' as a demo template so you can explore Scholar, Console, Visualizer, Writer, and other modules right away.",
     position: "bottom",
   },
   {
     selector: '[data-shortcut="F"]',
     title: "Files",
     description:
-      "Manage your research files and data. Browse, upload, and organize your project files.",
+      "Git-based file management with GitHub-like collaboration. Browse, commit, and organize files with Issues and Pull Requests for team research.",
     position: "bottom",
   },
   {
@@ -27,8 +27,9 @@ export const LANDING_TOUR_STEPS: TourStep[] = [
   },
   {
     selector: '[data-shortcut="C"]',
-    title: "Console",
-    description: "Run code in your own Apptainer container environment.",
+    title: "Console (Experimental)",
+    description:
+      "Your own isolated Apptainer container. Customize and switch containers freely. See /server-status for current resource availability.",
     position: "bottom",
   },
   {
