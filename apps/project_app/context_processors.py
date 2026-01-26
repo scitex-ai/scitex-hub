@@ -3,8 +3,10 @@ Context processors for making common variables available in all templates.
 """
 
 import re
+
 from django.conf import settings
 from django.utils import timezone
+
 from apps.project_app.models import Project
 
 
@@ -22,11 +24,18 @@ def visitor_expiration_context(request):
     Add visitor session expiration time and username to context.
 
     Returns:
-        dict: visitor_expires_at, visitor_username, and is_visitor flag
+        dict: visitor_expires_at, visitor_username, is_visitor flag,
+              visitor_cpus, visitor_memory_gb
     """
-    from apps.project_app.services.visitor_pool import VisitorPool
-    from apps.project_app.models import VisitorAllocation
     from django.contrib.auth.models import User
+
+    from apps.project_app.models import VisitorAllocation
+    from apps.project_app.services.visitor_pool import VisitorPool
+    from config.settings.quotas import SLURM_QUOTAS
+
+    # Get resource quotas
+    visitor_cpus = SLURM_QUOTAS.get("interactive_cpus", 2)
+    visitor_memory_gb = SLURM_QUOTAS.get("interactive_memory_gb", 4)
 
     # Check if user is an authenticated visitor (username starts with "visitor-")
     is_visitor = False
@@ -41,12 +50,14 @@ def visitor_expiration_context(request):
                 allocation = VisitorAllocation.objects.get(
                     allocation_token=allocation_token,
                     is_active=True,
-                    expires_at__gt=timezone.now()
+                    expires_at__gt=timezone.now(),
                 )
                 return {
                     "visitor_expires_at": allocation.expires_at,
                     "visitor_username": request.user.username,
                     "is_visitor": True,
+                    "visitor_cpus": visitor_cpus,
+                    "visitor_memory_gb": visitor_memory_gb,
                 }
             except VisitorAllocation.DoesNotExist:
                 pass
@@ -56,6 +67,8 @@ def visitor_expiration_context(request):
             "visitor_expires_at": None,
             "visitor_username": request.user.username,
             "is_visitor": True,
+            "visitor_cpus": visitor_cpus,
+            "visitor_memory_gb": visitor_memory_gb,
         }
 
     # For non-authenticated users
@@ -66,11 +79,13 @@ def visitor_expiration_context(request):
                 allocation = VisitorAllocation.objects.get(
                     allocation_token=allocation_token,
                     is_active=True,
-                    expires_at__gt=timezone.now()
+                    expires_at__gt=timezone.now(),
                 )
 
                 # Get visitor username
-                visitor_user_id = request.session.get(VisitorPool.SESSION_KEY_VISITOR_ID)
+                visitor_user_id = request.session.get(
+                    VisitorPool.SESSION_KEY_VISITOR_ID
+                )
                 visitor_username = None
                 if visitor_user_id:
                     try:
@@ -83,6 +98,8 @@ def visitor_expiration_context(request):
                     "visitor_expires_at": allocation.expires_at,
                     "visitor_username": visitor_username,
                     "is_visitor": True,
+                    "visitor_cpus": visitor_cpus,
+                    "visitor_memory_gb": visitor_memory_gb,
                 }
             except VisitorAllocation.DoesNotExist:
                 pass
@@ -92,6 +109,8 @@ def visitor_expiration_context(request):
         "visitor_expires_at": None,
         "visitor_username": None,
         "is_visitor": False,
+        "visitor_cpus": visitor_cpus,
+        "visitor_memory_gb": visitor_memory_gb,
     }
 
 
