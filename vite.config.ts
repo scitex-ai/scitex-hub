@@ -464,6 +464,10 @@ export default defineConfig({
           __dirname,
           "static/shared/ts/components/cookie-consent.ts",
         ),
+        "shared/components/project-selector": resolve(
+          __dirname,
+          "static/shared/ts/components/project-selector.ts",
+        ),
       },
       output: {
         entryFileNames: "[name]-[hash].js",
