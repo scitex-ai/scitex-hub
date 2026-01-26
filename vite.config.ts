@@ -214,6 +214,10 @@ export default defineConfig({
           __dirname,
           "apps/public_app/static/public_app/ts/landing/module-cards.ts",
         ),
+        "public_app/landing/hero-demo": resolve(
+          __dirname,
+          "apps/public_app/static/public_app/ts/landing/hero-demo.ts",
+        ),
         "public_app/tools/plot-viewer/index": resolve(
           __dirname,
           "apps/public_app/static/public_app/ts/tools/plot-viewer/index.ts",

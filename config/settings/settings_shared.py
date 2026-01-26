@@ -214,6 +214,7 @@ TEMPLATES = [
                 "config.context_processors.debug_mode",
                 "config.context_processors.scitex_version",
                 "config.context_processors.google_analytics",
+                "config.context_processors.site_branding",
             ],
         },
     },

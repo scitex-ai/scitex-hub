@@ -93,3 +93,20 @@ def google_analytics(request):
     Only sends tracking data if GOOGLE_ANALYTICS_ID is configured.
     """
     return {"GOOGLE_ANALYTICS_ID": getattr(settings, "GOOGLE_ANALYTICS_ID", "")}
+
+
+def site_branding(request):
+    """
+    Expose site branding constants to all templates.
+    Single source of truth: config/branding.py
+    """
+    from config import branding
+
+    return {
+        "SITE_NAME": branding.SITE_NAME,
+        "SITE_TAGLINE": branding.SITE_TAGLINE,
+        "SITE_DESCRIPTION": branding.SITE_DESCRIPTION,
+        "META_DESCRIPTION_DEFAULT": branding.META_DESCRIPTION_DEFAULT,
+        "OG_TITLE": branding.OG_TITLE,
+        "OG_DESCRIPTION": branding.OG_DESCRIPTION,
+    }

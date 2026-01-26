@@ -5,11 +5,9 @@
             <!-- Column 1: Brand -->
             <div class="footer-section footer-brand">
                 <div class="footer-logo">
-                    <img src="{% static 'shared/images/scitex_logos/scitex-icon/scitex-icon-navy-inverted-192x192.png' %}"
-                         alt="SciTeX Logo" />
                     <h3>SciTeX</h3>
                 </div>
-                <p class="footer-tagline">Where Research Happens</p>
+                <p class="footer-tagline">{{ SITE_TAGLINE }}</p>
                 <div class="footer-social">
                     <a href="https://github.com/SciTeX-AI" title="GitHub"><i class="fab fa-github"></i></a>
                     <a href="https://join.slack.com/t/scitex-ai/shared_invite/zt-2zbwx67n3-L6aaBdGKPMYZbBxl6yjXRA"
@@ -21,122 +19,145 @@
                     <a href="https://www.tiktok.com/@scitex_ai" title="TikTok"><i class="fab fa-tiktok"></i></a>
                     <a href="https://www.twitch.tv/scitex_ai" title="Twitch"><i class="fab fa-twitch"></i></a>
                 </div>
-                <p class="footer-copyright">&copy; 2025–2026 SciTeX. All rights reserved. <span class="footer-version">v{{ SCITEX_CLOUD_VERSION }}</span></p>
+                <p class="footer-copyright">
+                    &copy; 2025–2026 SciTeX. All rights reserved. <span class="footer-version">v{{ SCITEX_CLOUD_VERSION }}</span>
+                </p>
             </div>
-
             <!-- Column 2: Community -->
             <div class="footer-section">
                 <h3>Community</h3>
                 <ul class="footer-links">
-                    <li><a href="{% url 'public_app:about' %}">About</a></li>
-                    <li><a href="{% url 'public_app:contributors' %}">Contributors</a></li>
-                    <li><a href="{% url 'public_app:releases' %}">Releases</a></li>
-                    <li><a href="{% url 'public_app:pricing' %}">Pricing</a></li>
+                    <li>
+                        <a href="{% url 'public_app:about' %}">About</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'public_app:contributors' %}">Contributors</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'public_app:releases' %}">Releases</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'public_app:pricing' %}">Pricing</a>
+                    </li>
                 </ul>
             </div>
-
             <!-- Column 3: Developers -->
             <div class="footer-section">
                 <h3>Developers</h3>
                 <ul class="footer-links">
-                    <li><a href="{% url 'public_app:api-docs' %}">API Docs</a></li>
-                    <li><a href="{% url 'dev_app:design' %}">Design System</a></li>
-                    <li><a href="{% url 'public_app:server_status' %}">Status</a></li>
+                    <li>
+                        <a href="{% url 'public_app:api-docs' %}">API Docs</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'dev_app:design' %}">Design System</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'public_app:server_status' %}">Status</a>
+                    </li>
                 </ul>
             </div>
-
             <!-- Column 4: Legal -->
             <div class="footer-section">
                 <h3>Legal</h3>
                 <ul class="footer-links">
-                    <li><a href="{% url 'public_app:terms' %}">Terms</a></li>
-                    <li><a href="{% url 'public_app:privacy' %}">Privacy</a></li>
-                    <li><a href="{% url 'public_app:cookies' %}">Cookies</a></li>
+                    <li>
+                        <a href="{% url 'public_app:terms' %}">Terms</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'public_app:privacy' %}">Privacy</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'public_app:cookies' %}">Cookies</a>
+                    </li>
                 </ul>
             </div>
-
             <!-- Column 5: Support -->
             <div class="footer-section">
                 <h3>Support</h3>
                 <ul class="footer-links">
-                    <li><a href="{% url 'public_app:donate' %}"><i class="fas fa-heart"></i> Donate</a></li>
-                    <li><a href="{% url 'public_app:contact' %}">Contact</a></li>
-                    <li><a href="mailto:support@scitex.ai">support@scitex.ai</a></li>
+                    <li>
+                        <a href="{% url 'public_app:donate' %}"><i class="fas fa-heart"></i> Donate</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'public_app:contact' %}">Contact</a>
+                    </li>
+                    <li>
+                        <a href="mailto:support@scitex.ai">support@scitex.ai</a>
+                    </li>
                 </ul>
             </div>
         </div>
     </div>
 </footer>
-
 <style>
-.footer-5-columns {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
-    gap: 40px;
-}
-
-.footer-brand {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.footer-logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.footer-logo img {
-    width: 40px;
-    height: 40px;
-}
-
-.footer-logo h3 {
-    margin: 0;
-}
-
-.footer-tagline {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    margin: 0;
-}
-
-.footer-copyright {
-    font-size: 0.75rem;
-    color: var(--text-tertiary, var(--text-secondary));
-    margin: 0;
-    margin-top: auto;
-}
-
-@media (max-width: 992px) {
     .footer-5-columns {
-        grid-template-columns: 2fr 1fr 1fr;
-        gap: 30px;
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+        gap: 40px;
     }
 
     .footer-brand {
-        grid-column: 1 / -1;
-    }
-}
-
-@media (max-width: 576px) {
-    .footer-5-columns {
-        grid-template-columns: 1fr 1fr;
-        gap: 24px;
-    }
-
-    .footer-brand {
-        grid-column: 1 / -1;
-        text-align: center;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
     }
 
     .footer-logo {
-        justify-content: center;
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
 
-    .footer-social {
-        justify-content: center;
+    .footer-logo img {
+        width: 40px;
+        height: 40px;
     }
-}
+
+    .footer-logo h3 {
+        margin: 0;
+    }
+
+    .footer-tagline {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    .footer-copyright {
+        font-size: 0.75rem;
+        color: var(--text-tertiary, var(--text-secondary));
+        margin: 0;
+        margin-top: auto;
+    }
+
+    @media (max-width: 992px) {
+        .footer-5-columns {
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 30px;
+        }
+
+        .footer-brand {
+            grid-column: 1 / -1;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .footer-5-columns {
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .footer-brand {
+            grid-column: 1 / -1;
+            text-align: center;
+        }
+
+        .footer-logo {
+            justify-content: center;
+        }
+
+        .footer-social {
+            justify-content: center;
+        }
+    }
 </style>

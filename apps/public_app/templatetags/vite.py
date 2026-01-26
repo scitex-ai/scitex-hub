@@ -225,5 +225,9 @@ def _entry_to_ts_path(entry_name: str) -> str:
         "shared/utils/analytics": "static/shared/ts/utils/analytics.ts",
         "shared/utils/visitor-heartbeat": "static/shared/ts/utils/visitor-heartbeat.ts",
         "shared/components/product-tour": "static/shared/ts/components/product-tour.ts",
+        "shared/components/cookie-consent": "static/shared/ts/components/cookie-consent.ts",
+        # Landing page
+        "public_app/landing/hero-demo": "apps/public_app/static/public_app/ts/landing/hero-demo.ts",
+        "public_app/pages/visitor-pool-full": "apps/public_app/static/public_app/ts/pages/visitor-pool-full.ts",
     }
     return mappings.get(entry_name, f"{entry_name}.ts")
