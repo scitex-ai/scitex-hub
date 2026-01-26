@@ -1,25 +1,20 @@
 {% load static %}
-<link rel="stylesheet" href="{% static 'scholar_app/css/components/asta-tooltip.css' %}?v=20251202b" />
+<link rel="stylesheet"
+      href="{% static 'scholar_app/css/components/asta-tooltip.css' %}?v=20251202b" />
 <!-- Helper Message with ASTA Instructions - Using Workspace Colors -->
 <div class="asta-tooltip-container">
     <div class="asta-tooltip-content">
         <i class="fas fa-lightbulb asta-tooltip-icon"></i>
         <div class="asta-tooltip-body">
-            <div class="asta-tooltip-title">
-                No BibTeX file?
-            </div>
+            <div class="asta-tooltip-title">No BibTeX file?</div>
             <div class="asta-tooltip-options">
                 <div>
                     <strong>Option A:</strong> Find papers at
                     <a href="https://asta.allen.ai/chat"
                        target="_blank"
-                       rel="noopener noreferrer">
-                        AI2 Asta
-                    </a>
+                       rel="noopener noreferrer">AI2 Asta</a>
                     using our
-                    <a href="/tools/asta-citation-scraper/">
-                        Bulk Download Tool
-                    </a>
+                    <a href="/tools/asta-citation-scraper/">Bulk Download Tool</a>
                     <span class="badge badge-warning badge-sm asta-tooltip-badge">Recommended</span>
                 </div>
                 <div>
@@ -27,16 +22,15 @@
                 </div>
                 <div>
                     <strong>Option C:</strong> Use our
-                    <a href="/scholar/search/">
-                        Literature Search Tool
-                    </a>
+                    <a href="/scholar/search/">Literature Search Tool</a>
                 </div>
             </div>
         </div>
         {% if current_project %}
             <button id="generate-ai2-prompt-scholar-btn"
-                    class="btn btn-sm btn-outline-secondary asta-generate-prompt-btn">
-                <i class="fas fa-brain me-1"></i>Generate AI Prompt
+                    class="btn btn-sm btn-outline-secondary asta-generate-prompt-btn"
+                    title="Generate search prompt for AI2 Asta from your current project manuscript">
+                <i class="fas fa-brain me-1"></i>Generate Asta Prompt
             </button>
         {% endif %}
     </div>
