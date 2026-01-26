@@ -27,20 +27,20 @@ USER_DATA_ROOT = Path(getattr(settings, "USER_DATA_ROOT", "/app/data/users"))
 # =============================================================================
 
 # SLURM settings for interactive sessions (from env vars)
-# Support both new (SCITEX_CLOUD_*) and legacy (SCITEX_QUOTA_*) names
+# Support both new (SCITEX_CLOUD_*) and legacy (SCITEX_CLOUD_QUOTA_*) names
 SLURM_PARTITION = os.environ.get(
     "SCITEX_CLOUD_SLURM_INTERACTIVE_PARTITION"
-) or os.environ.get("SCITEX_QUOTA_SLURM_INTERACTIVE_PARTITION", "express")
+) or os.environ.get("SCITEX_CLOUD_QUOTA_SLURM_INTERACTIVE_PARTITION", "express")
 SLURM_TIME_LIMIT = os.environ.get(
     "SCITEX_CLOUD_SLURM_INTERACTIVE_TIME_LIMIT"
-) or os.environ.get("SCITEX_QUOTA_SLURM_INTERACTIVE_TIME_LIMIT", "04:00:00")
+) or os.environ.get("SCITEX_CLOUD_QUOTA_SLURM_INTERACTIVE_TIME_LIMIT", "04:00:00")
 SLURM_CPUS = int(
     os.environ.get("SCITEX_CLOUD_SLURM_INTERACTIVE_CPUS")
-    or os.environ.get("SCITEX_QUOTA_SLURM_INTERACTIVE_CPUS", 2)
+    or os.environ.get("SCITEX_CLOUD_QUOTA_SLURM_INTERACTIVE_CPUS", 2)
 )
 SLURM_MEMORY_GB = int(
     os.environ.get("SCITEX_CLOUD_SLURM_INTERACTIVE_MEMORY_GB")
-    or os.environ.get("SCITEX_QUOTA_SLURM_INTERACTIVE_MEMORY_GB", 4)
+    or os.environ.get("SCITEX_CLOUD_QUOTA_SLURM_INTERACTIVE_MEMORY_GB", 4)
 )
 
 # SLURM host paths - jobs run on compute nodes, not inside Docker
