@@ -58,8 +58,20 @@ else
 fi
 
 # Build TypeScript files with Vite (production build)
+# Note: Vite staticfiles permissions are fixed in root-init.sh (runs as root)
+
 # Check if build is needed by comparing source files vs build output
-if [ ! -d "staticfiles/vite" ] || [ "vite.config.ts" -nt "staticfiles/vite/.build-timestamp" ]; then
+VITE_REBUILD_NEEDED=false
+if [ ! -d "staticfiles/vite" ]; then
+    VITE_REBUILD_NEEDED=true
+elif [ "vite.config.ts" -nt "staticfiles/vite/.build-timestamp" ]; then
+    VITE_REBUILD_NEEDED=true
+elif [ -n "$(find static apps -name '*.ts' -newer staticfiles/vite/.build-timestamp 2>/dev/null | head -1)" ]; then
+    # Check if any TS source file is newer than the build (in static/ and apps/)
+    VITE_REBUILD_NEEDED=true
+fi
+
+if [ "$VITE_REBUILD_NEEDED" = true ]; then
     echo_info "Building TypeScript files with Vite..."
     npm run build
     touch staticfiles/vite/.build-timestamp

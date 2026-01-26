@@ -18,17 +18,8 @@ def signup(request):
 
     logger = logging.getLogger(__name__)
 
-    # Check visitor pool for unauthenticated users (browser requests only)
-    # Middleware should have auto-logged in visitor, if not authenticated then pool is likely exhausted
-    if not request.user.is_authenticated:
-        user_agent = request.META.get('HTTP_USER_AGENT', '')
-        is_browser = any(
-            browser in user_agent
-            for browser in ['Mozilla', 'Chrome', 'Safari', 'Firefox', 'Edge', 'Opera']
-        )
-        if is_browser:
-            logger.info("[Signup] Browser request not authenticated - redirecting to visitor-pool-full")
-            return redirect('public_app:visitor_pool_full')
+    # Signup page should always be accessible - no authentication required
+    # Users come here specifically to create an account
 
     if request.method == "POST":
         form = SignupForm(request.POST)

@@ -65,6 +65,8 @@ class VisitorAutoLoginMiddleware:
             "/keyboard-shortcuts/",
             # Tools (client-side, no login needed)
             "/tools/",
+            # Auth pages
+            "/auth/",
         )
 
         if any(path.startswith(p) for p in skip_paths):

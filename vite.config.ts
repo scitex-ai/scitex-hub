@@ -230,6 +230,10 @@ export default defineConfig({
           __dirname,
           "apps/public_app/static/public_app/ts/pages/release-timeline.ts",
         ),
+        "public_app/pages/visitor-pool-full": resolve(
+          __dirname,
+          "apps/public_app/static/public_app/ts/pages/visitor-pool-full.ts",
+        ),
 
         // Accounts app
         "accounts_app/profile": resolve(
@@ -447,10 +451,6 @@ export default defineConfig({
         "shared/utils/visitor-heartbeat": resolve(
           __dirname,
           "static/shared/ts/utils/visitor-heartbeat.ts",
-        ),
-        "shared/components/first-visit-navigator": resolve(
-          __dirname,
-          "static/shared/ts/components/first-visit-navigator.ts",
         ),
         "shared/components/product-tour": resolve(
           __dirname,
