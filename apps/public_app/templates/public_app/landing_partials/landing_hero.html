@@ -10,9 +10,7 @@
                 -->
                 <!-- Icon only option (kept for future use)
                 <div class="hero-logo-container">
-                    <img src="{% static 'shared/images/scitex_logos/scitex-icon/scitex-icon-navy-inverted.png' %}"
-                         alt="SciTeX"
-                         class="hero-icon" />
+                    <img src="{% static 'shared/images/scitex_logos/scitex-icon/scitex-icon-navy-inverted.png' %}" alt="SciTeX" class="hero-icon" />
                 </div>
                 -->
                 <!-- Full logo - clean and minimal -->
@@ -22,13 +20,17 @@
                          class="hero-logo" />
                 </div>
                 <!-- Value proposition and CTA -->
-                <p class="hero-tagline">Research Automation — For Humans and AI</p>
-                <p class="hero-description">Python toolkit + MCP server for literature search, statistics, visualization, and manuscript writing. 70% less code.</p>
+                <p class="hero-tagline">{{ SITE_TAGLINE }}</p>
+                <p class="hero-description">
+                    Python toolkit + MCP server for literature search, statistics, visualization, and manuscript writing. 70% less code.
+                </p>
                 <div class="hero-badges">
                     <span class="hero-badge badge-success">
                         <i class="fab fa-github"></i> 100% Open Source
                     </span>
-                    <a href="{% url 'public_app:demos' %}" class="hero-badge badge-warning" style="text-decoration: none;">
+                    <a href="{% url 'public_app:demos' %}"
+                       class="hero-badge badge-warning"
+                       style="text-decoration: none">
                         <i class="fas fa-play-circle"></i> Watch Demos
                     </a>
                 </div>
@@ -41,19 +43,24 @@
                          class="demo-thumbnail"
                          id="hero-demo-thumbnail"
                          title="Play Demo Movie" />
+                    <div class="demo-play-overlay" id="hero-play-overlay">
+                        <i class="fas fa-play"></i>
+                    </div>
                     <video id="hero-demo-video"
                            class="demo-video"
                            poster="/media/videos/scitex-automated-research-demo-thumbnail.png"
                            preload="auto"
-                           style="display: none;">
-                        <source src="/media/videos/scitex-automated-research-demo.mp4" type="video/mp4">
+                           style="display: none">
+                        <source src="/media/videos/scitex-automated-research-demo.mp4"
+                                type="video/mp4">
                     </video>
                 </div>
                 <div class="demo-description">
                     <div class="demo-info-left">
                         <span class="demo-workflow-text">
-                            Demo Movie (40 min): Automated research with SciTeX MCP<br>
-                            Literature Search → Analysis → Graphing → Manuscript
+                            [DEMO] Automated Research with SciTeX MCP Server in 40 min
+                            <br>
+                            Literature Search → Analysis → Graphing → Manuscript → Revision
                         </span>
                     </div>
                     <div class="demo-info-right">
@@ -68,34 +75,6 @@
                     </div>
                 </div>
             </div>
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    const container = document.getElementById('hero-demo-container');
-                    const thumbnail = document.getElementById('hero-demo-thumbnail');
-                    const video = document.getElementById('hero-demo-video');
-                    const speedSelect = document.getElementById('hero-speed-select');
-
-                    container.addEventListener('click', function() {
-                        if (video.paused) {
-                            thumbnail.style.display = 'none';
-                            video.style.display = 'block';
-                            video.controls = true;
-                            video.playbackRate = parseFloat(speedSelect.value);
-                            video.play();
-                        }
-                    });
-
-                    speedSelect.addEventListener('change', function() {
-                        video.playbackRate = parseFloat(speedSelect.value);
-                    });
-
-                    video.addEventListener('ended', function() {
-                        thumbnail.style.display = 'block';
-                        video.style.display = 'none';
-                        video.controls = false;
-                    });
-                });
-            </script>
         </div>
     </div>
 </section>

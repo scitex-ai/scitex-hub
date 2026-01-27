@@ -14,23 +14,24 @@ Status Views Package
 Server and visitor status monitoring.
 """
 
-from .server import server_status
 from .api import (
-    server_status_api,
     healthz,
     server_health_status_api,
-    server_metrics_history_api,
     server_metrics_export_csv,
-)
-from .visitor import (
-    visitor_status,
-    visitor_restart_session,
-    visitor_expired,
-    visitor_pool_full,
-    visitor_pool_initialize_api,
-    visitor_heartbeat_api,
+    server_metrics_history_api,
+    server_status_api,
+    visitor_resources_api,
 )
 from .charts import render_metric_chart
+from .server import server_status
+from .visitor import (
+    visitor_expired,
+    visitor_heartbeat_api,
+    visitor_pool_full,
+    visitor_pool_initialize_api,
+    visitor_restart_session,
+    visitor_status,
+)
 
 __all__ = [
     "server_status",
@@ -45,6 +46,7 @@ __all__ = [
     "visitor_pool_full",
     "visitor_pool_initialize_api",
     "visitor_heartbeat_api",
+    "visitor_resources_api",
     "render_metric_chart",
 ]
 

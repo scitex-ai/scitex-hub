@@ -28,11 +28,12 @@ Note: This replaces the old user_urls.py and urls.py files.
 The main config/urls.py includes this at: path('<str:username>/', include('apps.project_app.urls'))
 """
 
-from django.urls import path, include
+from django.urls import include, path
+
 from .. import views
 from ..api_views_module import api_views
-from ..views import security_views
 from ..views import pr as pr_views
+from ..views import security as security_views
 
 app_name = "user_projects"
 

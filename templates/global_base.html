@@ -27,9 +27,7 @@
                     <div class="django-alert alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}"
                          role="alert">
                         {{ message|safe }}
-                        <button type="button"
-                                class="alert-close-btn"
-                                aria-label="Close">&times;</button>
+                        <button type="button" class="alert-close-btn" aria-label="Close">&times;</button>
                     </div>
                 {% endfor %}
             </div>
@@ -44,18 +42,16 @@
                 <div class="cookie-consent-text">
                     <i class="fas fa-cookie-bite cookie-consent-icon"></i>
                     <p class="cookie-consent-message">
-                        We use cookies to enable demo sessions. Without cookies, you'll need to
+                        We use cookies to enable a 1-hour visitor session with a ready-to-use demo project. Without cookies, you'll need to
                         <a href="{% url 'auth_app:signup' %}">create an account</a> to use Files, Scholar, Writer, and other features.
                         <a href="{% url 'public_app:cookies' %}">Learn more</a>
                     </p>
                 </div>
                 <div class="cookie-consent-actions">
-                    <button id="cookie-consent-decline" class="cookie-consent-btn cookie-consent-btn-decline">
-                        Decline
-                    </button>
-                    <button id="cookie-consent-accept" class="cookie-consent-btn cookie-consent-btn-accept">
-                        Accept Cookies
-                    </button>
+                    <button id="cookie-consent-decline"
+                            class="cookie-consent-btn cookie-consent-btn-decline">Decline</button>
+                    <button id="cookie-consent-accept"
+                            class="cookie-consent-btn cookie-consent-btn-accept">Accept Cookies</button>
                 </div>
             </div>
         </div>

@@ -16,6 +16,8 @@ import {
   positionTooltip,
   highlightElement,
   clearHighlights,
+  showRestartHint,
+  hideRestartHint,
 } from "./ui";
 
 console.log("[ProductTour] Module loaded");
@@ -134,6 +136,9 @@ function endTour(completed: boolean = false): void {
 
   clearHighlights();
 
+  // Hide restart hint tooltip
+  hideRestartHint();
+
   // Fade out and remove
   tourTooltip?.classList.remove("visible");
   tourOverlay?.classList.remove("visible");
@@ -163,6 +168,9 @@ function startTour(config?: PageTourConfig): void {
 
   isActive = true;
   currentStep = 0;
+
+  // Show restart hint tooltip under tour button
+  showRestartHint();
 
   // Create elements
   tourOverlay = createOverlay();

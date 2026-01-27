@@ -1,6 +1,0 @@
-#!/bin/bash
-# SciTeX Cloud Server Control
-# Wrapper script for easy server management
-
-# Execute the main server script
-exec "$(dirname "$0")/scripts/scitex_server.sh" "$@"

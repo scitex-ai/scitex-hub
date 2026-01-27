@@ -55,10 +55,10 @@ if __name__ == "__main__":
 # # =============================================================================
 # 
 # # SLURM settings for interactive sessions (from env vars)
-# SLURM_PARTITION = os.environ.get('SCITEX_QUOTA_SLURM_INTERACTIVE_PARTITION', 'express')
-# SLURM_TIME_LIMIT = os.environ.get('SCITEX_QUOTA_SLURM_INTERACTIVE_TIME_LIMIT', '04:00:00')
-# SLURM_CPUS = int(os.environ.get('SCITEX_QUOTA_SLURM_INTERACTIVE_CPUS', 2))
-# SLURM_MEMORY_GB = int(os.environ.get('SCITEX_QUOTA_SLURM_INTERACTIVE_MEMORY_GB', 4))
+# SLURM_PARTITION = os.environ.get('SCITEX_CLOUD_QUOTA_SLURM_INTERACTIVE_PARTITION', 'express')
+# SLURM_TIME_LIMIT = os.environ.get('SCITEX_CLOUD_QUOTA_SLURM_INTERACTIVE_TIME_LIMIT', '04:00:00')
+# SLURM_CPUS = int(os.environ.get('SCITEX_CLOUD_QUOTA_SLURM_INTERACTIVE_CPUS', 2))
+# SLURM_MEMORY_GB = int(os.environ.get('SCITEX_CLOUD_QUOTA_SLURM_INTERACTIVE_MEMORY_GB', 4))
 # 
 # # SLURM host paths - jobs run on compute nodes, not inside Docker
 # # These paths must be accessible from the SLURM compute nodes

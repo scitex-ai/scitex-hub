@@ -214,6 +214,10 @@ export default defineConfig({
           __dirname,
           "apps/public_app/static/public_app/ts/landing/module-cards.ts",
         ),
+        "public_app/landing/hero-demo": resolve(
+          __dirname,
+          "apps/public_app/static/public_app/ts/landing/hero-demo.ts",
+        ),
         "public_app/tools/plot-viewer/index": resolve(
           __dirname,
           "apps/public_app/static/public_app/ts/tools/plot-viewer/index.ts",
@@ -459,6 +463,10 @@ export default defineConfig({
         "shared/components/cookie-consent": resolve(
           __dirname,
           "static/shared/ts/components/cookie-consent.ts",
+        ),
+        "shared/components/project-selector": resolve(
+          __dirname,
+          "static/shared/ts/components/project-selector.ts",
         ),
       },
       output: {

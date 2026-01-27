@@ -4,6 +4,7 @@
 # File: /home/ywatanabe/proj/scitex-cloud/apps/public_app/urls.py
 # ----------------------------------------
 from __future__ import annotations
+
 import os
 
 __FILE__ = "./apps/public_app/urls.py"
@@ -45,16 +46,45 @@ urlpatterns = [
     path("server-status/", views.server_status, name="server_status"),
     path("api/server-status/", views.server_status_api, name="server_status_api"),
     path("healthz/", views.healthz, name="healthz"),
-    path("api/server-health/", views.server_health_status_api, name="server_health_status_api"),
-    path("api/server-metrics/history/", views.server_metrics_history_api, name="server_metrics_history"),
-    path("api/server-metrics/export/", views.server_metrics_export_csv, name="server_metrics_export"),
-    path("api/server-metrics/chart/<str:metric_type>/", views.render_metric_chart, name="server_metrics_chart"),
+    path(
+        "api/server-health/",
+        views.server_health_status_api,
+        name="server_health_status_api",
+    ),
+    path(
+        "api/server-metrics/history/",
+        views.server_metrics_history_api,
+        name="server_metrics_history",
+    ),
+    path(
+        "api/server-metrics/export/",
+        views.server_metrics_export_csv,
+        name="server_metrics_export",
+    ),
+    path(
+        "api/server-metrics/chart/<str:metric_type>/",
+        views.render_metric_chart,
+        name="server_metrics_chart",
+    ),
     path("visitor-status/", views.visitor_status, name="visitor_status"),
     path("visitor-expired/", views.visitor_expired, name="visitor_expired"),
     path("visitor-restart/", views.visitor_restart_session, name="visitor_restart"),
     path("visitor-pool-full/", views.visitor_pool_full, name="visitor_pool_full"),
-    path("api/visitor-pool/initialize/", views.visitor_pool_initialize_api, name="visitor_pool_initialize_api"),
-    path("api/visitor/heartbeat/", views.visitor_heartbeat_api, name="visitor_heartbeat_api"),
+    path(
+        "api/visitor-pool/initialize/",
+        views.visitor_pool_initialize_api,
+        name="visitor_pool_initialize_api",
+    ),
+    path(
+        "api/visitor/heartbeat/",
+        views.visitor_heartbeat_api,
+        name="visitor_heartbeat_api",
+    ),
+    path(
+        "api/visitor/resources/",
+        views.visitor_resources_api,
+        name="visitor_resources_api",
+    ),
     # SciTeX API Key Management
     path("api-keys/", views.scitex_api_keys, name="scitex_api_keys"),
     # Release Notes

@@ -1,16 +1,19 @@
 {% load static %}
 <!-- GitHub-Style Global Header -->
 <style>
-@keyframes pulse {
-    0%, 100% {
-        transform: scale(1);
-        opacity: 1;
+    @keyframes pulse {
+
+        0%,
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        50% {
+            transform: scale(1.3);
+            opacity: 0.8;
+        }
     }
-    50% {
-        transform: scale(1.3);
-        opacity: 0.8;
-    }
-}
 </style>
 <header class="global-header">
     <div class="global-header-inner">
@@ -21,7 +24,7 @@
                 <img src="{% static 'shared/images/scitex_logos/scitex-icons/scitex-icon-navy-inverted.svg' %}"
                      alt="SciTeX"
                      class="header-logo-icon" />
-            </a>             
+            </a>
             <!-- Project Selector (moved here for better visibility) -->
             <div class="header-project-selector-inline">
                 <button id="project-selector-toggle"
@@ -174,7 +177,9 @@
                            class="header-nav-item"
                            data-tooltip="Sign up to access files"
                            data-shortcut="F">
-                            <i class="fas fa-book-open nav-icon-fa" style="font-size: 16px; opacity: 0.5;"></i>
+                            <i class="fas fa-book-open nav-icon-fa"
+                               style="font-size: 16px;
+                                      opacity: 0.5"></i>
                             <span class="nav-label">Files</span>
                         </a>
                     {% endif %}
@@ -433,33 +438,34 @@
             </a>
             <!-- Dev-only buttons (hidden in production) -->
             {% if DEBUG %}
-            <!-- Refresh Button (Ctrl+Shift+R alternative) -->
-            <button id="page-refresh-btn"
-                    class="theme-toggle"
-                    data-tooltip="Refresh page (Ctrl+Shift+R)">
-                <i class="fas fa-sync-alt"></i>
-            </button>
-            <!-- Clear LocalStorage Button -->
-            <button id="clear-localstorage-btn"
-                    class="theme-toggle"
-                    data-tooltip="Clear localStorage cache"
-                    onclick="if(confirm('Clear all localStorage? This will reset theme preferences and cached data.')) { localStorage.clear(); location.reload(); }">
-                <i class="fas fa-eraser"></i>
-            </button>
-            <!-- Initialize Visitor Pool Button -->
-            <button id="init-visitor-pool-btn"
-                    class="theme-toggle"
-                    data-tooltip="Initialize Visitor Pool (Dev)"
-                    onclick="initVisitorPool()">
-                <i class="fas fa-users-cog"></i>
-            </button>
+                <!-- Refresh Button (Ctrl+Shift+R alternative) -->
+                <button id="page-refresh-btn"
+                        class="theme-toggle"
+                        data-tooltip="Refresh page (Ctrl+Shift+R)">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <!-- Clear LocalStorage Button -->
+                <button id="clear-localstorage-btn"
+                        class="theme-toggle"
+                        data-tooltip="Clear localStorage cache"
+                        onclick="if(confirm('Clear all localStorage? This will reset theme preferences and cached data.')) { localStorage.clear(); location.reload(); }">
+                    <i class="fas fa-eraser"></i>
+                </button>
+                <!-- Initialize Visitor Pool Button -->
+                <button id="init-visitor-pool-btn"
+                        class="theme-toggle"
+                        data-tooltip="Initialize Visitor Pool (Dev)"
+                        onclick="initVisitorPool()">
+                    <i class="fas fa-users-cog"></i>
+                </button>
             {% endif %}
             <!-- Server Status with live health indicator -->
             <a href="/server-status/"
                id="server-status-btn"
                class="theme-toggle"
                data-tooltip="System Status"
-               style="font-size: 18px; position: relative;">
+               style="font-size: 18px;
+                      position: relative">
                 <span id="server-status-indicator"
                       class="status-dot"
                       style="position: absolute;
@@ -470,7 +476,7 @@
                              border-radius: 50%;
                              background: #4caf50;
                              border: 2px solid var(--bg-page);
-                             box-shadow: 0 0 4px rgba(76, 175, 80, 0.6);"></span>
+                             box-shadow: 0 0 4px rgba(76, 175, 80, 0.6)"></span>
                 <i class="fas fa-server"></i>
             </a>
             {% if is_visitor %}
@@ -478,12 +484,14 @@
                 <div class="header-user-menu">
                     <button class="header-user-toggle visitor-button"
                             id="visitor-menu-toggle"
-                            {% if visitor_expires_at %}
-                            data-expires-at="{{ visitor_expires_at.isoformat }}"
-                            {% endif %}>
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 6px;">
-                            <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
-                            <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
+                            {% if visitor_expires_at %}data-expires-at="{{ visitor_expires_at.isoformat }}"{% endif %}>
+                        <svg width="16"
+                             height="16"
+                             viewBox="0 0 16 16"
+                             fill="currentColor"
+                             style="margin-right: 6px">
+                            <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
+                            <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z" />
                         </svg>
                         <span id="visitor-mode-text">
                             {% if visitor_username %}
@@ -493,9 +501,11 @@
                             {% endif %}
                         </span>
                         {% if visitor_expires_at %}
-                        <span id="visitor-countdown" style="margin-left: 6px; font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 0.9em;">
-                            ⏰ --:--
-                        </span>
+                            <span id="visitor-countdown"
+                                  style="margin-left: 6px;
+                                         font-family: 'JetBrains Mono', monospace;
+                                         font-weight: 600;
+                                         font-size: 0.9em">⏰ --:--</span>
                         {% endif %}
                         <svg width="12"
                              height="12"
@@ -505,7 +515,9 @@
                             <path d="M4 6l4 4 4-4H4z" />
                         </svg>
                     </button>
-                    <div class="header-dropdown" id="visitor-menu-dropdown" style="display: none">
+                    <div class="header-dropdown"
+                         id="visitor-menu-dropdown"
+                         style="display: none">
                         <!-- Visitor Info Header -->
                         <div class="dropdown-header">
                             <div class="dropdown-user-info">
@@ -513,46 +525,74 @@
                                 <div class="dropdown-user-username">{{ user.username }}</div>
                             </div>
                         </div>
-                        <div style="padding: 12px 16px; font-size: 13px; color: var(--text-muted); line-height: 1.5; background: var(--color-attention-subtle); border-radius: 6px; margin: 8px;">
+                        <div style="padding: 12px 16px;
+                                    font-size: 13px;
+                                    color: var(--text-muted);
+                                    line-height: 1.5;
+                                    background: var(--color-attention-subtle);
+                                    border-radius: 6px;
+                                    margin: 8px">
                             <svg width="14"
                                  height="14"
                                  viewBox="0 0 16 16"
                                  fill="currentColor"
-                                 style="margin-right: 4px; vertical-align: text-bottom; color: var(--color-attention-fg);">
-                                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
-                                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
+                                 style="margin-right: 4px;
+                                        vertical-align: text-bottom;
+                                        color: var(--color-attention-fg)">
+                                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
+                                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z" />
                             </svg>
-                            Your work won't be saved permanently. Create an account to keep it!
+                            Your work will be kept only during this session. To save to disk for future sessions, create an account.
+                        </div>
+                        <!-- Allocated Resources -->
+                        <div style="padding: 8px 16px;
+                                    font-size: 12px;
+                                    color: var(--text-muted);
+                                    display: flex;
+                                    gap: 12px;
+                                    justify-content: center">
+                            <span title="CPU cores allocated">
+                                <i class="fas fa-microchip" style="margin-right: 4px; opacity: 0.7;"></i>
+                                {{ visitor_cpus|default:"2" }} CPU
+                            </span>
+                            <span title="Memory allocated">
+                                <i class="fas fa-memory" style="margin-right: 4px; opacity: 0.7;"></i>
+                                {{ visitor_memory_gb|default:"4" }} GB
+                            </span>
+                            <span title="Session duration">
+                                <i class="fas fa-clock" style="margin-right: 4px; opacity: 0.7;"></i>
+                                1 hour
+                            </span>
                         </div>
                         <div class="dropdown-divider"></div>
                         <!-- Primary CTA: Sign Up -->
-                        <a href="/auth/signup/" class="dropdown-item" style="background: var(--color-accent-emphasis); color: white; font-weight: 600; text-align: center;">
+                        <a href="/auth/signup/"
+                           class="dropdown-item"
+                           style="background: var(--color-accent-emphasis);
+                                  color: white;
+                                  font-weight: 600;
+                                  text-align: center">
                             <svg width="16"
                                  height="16"
                                  viewBox="0 0 16 16"
                                  fill="currentColor"
-                                 style="margin-right: 8px; vertical-align: text-bottom;">
+                                 style="margin-right: 8px;
+                                        vertical-align: text-bottom">
                                 <path d="M8 0a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2H9v6a1 1 0 1 1-2 0V9H1a1 1 0 0 1 0-2h6V1a1 1 0 0 1 1-1z" />
                             </svg>
                             Sign Up (Free)
                         </a>
-                        <a href="/auth/signin/" class="dropdown-item" style="text-align: center;">
+                        <a href="/auth/signin/" class="dropdown-item" style="text-align: center">
                             <svg width="16"
                                  height="16"
                                  viewBox="0 0 16 16"
                                  fill="currentColor"
-                                 style="margin-right: 8px; vertical-align: text-bottom;">
+                                 style="margin-right: 8px;
+                                        vertical-align: text-bottom">
                                 <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z" />
                                 <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z" />
                             </svg>
-                            Already have an account? Sign In
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <a href="{% url 'public_app:server_status' %}" class="dropdown-item">
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="margin-right: 8px; vertical-align: text-bottom;">
-                                <path d="M0 1.5A.5.5 0 0 1 .5 1h15a.5.5 0 0 1 0 1h-.5v13a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5V14h-1v.5a.5.5 0 0 1-.5.5H9a.5.5 0 0 1-.5-.5V14H8v.5a.5.5 0 0 1-.5.5H5a.5.5 0 0 1-.5-.5V14H4v.5a.5.5 0 0 1-.5.5H.5a.5.5 0 0 1-.5-.5V2H0v-.5zM2 2v12h1v-3a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 .5.5v3h1V2H2zm7 12h1V2H9v12zm4 0v-3h-1v3h1zM4.5 4h-1a.5.5 0 0 0-.5.5v2a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-2A.5.5 0 0 0 4.5 4zm2 0h-1a.5.5 0 0 0-.5.5v2a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-2A.5.5 0 0 0 6.5 4zm2 0h-1a.5.5 0 0 0-.5.5v2a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-2A.5.5 0 0 0 8.5 4zm2 0h-1a.5.5 0 0 0-.5.5v2a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-2A.5.5 0 0 0 10.5 4zm2 0h-1a.5.5 0 0 0-.5.5v2a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 0-.5-.5z" />
-                            </svg>
-                            Server Status
+                            Sign In
                         </a>
                     </div>
                 </div>
@@ -728,6 +768,5 @@
     </div>
 </header>
 <!-- JavaScript for dropdown menu -->
-
 {% comment %} JavaScript functionality extracted to separate partial {% endcomment %}
 {% include 'global_base_partials/global_header/scripts.html' %}

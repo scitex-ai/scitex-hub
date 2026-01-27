@@ -145,3 +145,98 @@ export function clearHighlights(): void {
     el.classList.remove("product-tour-highlight");
   });
 }
+
+// Restart hint tooltip (shown under tour button during tour)
+let restartHintTooltip: HTMLElement | null = null;
+let tourBtnHighlight: HTMLElement | null = null;
+
+export function showRestartHint(): void {
+  const tourBtn = document.getElementById("product-tour-btn");
+  if (!tourBtn || restartHintTooltip) return;
+
+  // Create tooltip with same style as main tour tooltip
+  restartHintTooltip = document.createElement("div");
+  restartHintTooltip.className =
+    "product-tour-tooltip product-tour-restart-tooltip";
+  restartHintTooltip.innerHTML = `
+    <div class="product-tour-tooltip-content">
+      <div class="product-tour-tooltip-header">
+        <span class="product-tour-step-indicator" style="color: var(--accent-color, #6366f1);">
+          <i class="fas fa-redo"></i> Tip
+        </span>
+      </div>
+      <h3 class="product-tour-title">Restart Tour Anytime</h3>
+      <p class="product-tour-description">Click this button to restart the tour whenever you need a refresher.</p>
+    </div>
+    <div class="product-tour-arrow arrow-top"></div>
+  `;
+  document.body.appendChild(restartHintTooltip);
+
+  // Create highlight overlay for tour button (same style as main tour highlights)
+  tourBtnHighlight = document.createElement("div");
+  tourBtnHighlight.className = "product-tour-highlight-overlay";
+  document.body.appendChild(tourBtnHighlight);
+
+  const rect = tourBtn.getBoundingClientRect();
+  tourBtnHighlight.style.position = "fixed";
+  tourBtnHighlight.style.boxSizing = "border-box";
+  tourBtnHighlight.style.top = `${rect.top}px`;
+  tourBtnHighlight.style.left = `${rect.left}px`;
+  tourBtnHighlight.style.width = `${rect.width}px`;
+  tourBtnHighlight.style.height = `${rect.height}px`;
+  tourBtnHighlight.style.pointerEvents = "none";
+  tourBtnHighlight.style.zIndex = "10001";
+  tourBtnHighlight.style.border = "4px solid var(--accent-color, #6366f1)";
+  tourBtnHighlight.style.borderRadius = "8px";
+  tourBtnHighlight.style.boxShadow =
+    "inset 0 0 20px rgba(99, 102, 241, 0.3), 0 0 20px rgba(99, 102, 241, 0.4)";
+  tourBtnHighlight.style.animation =
+    "product-tour-pulse 2s ease-in-out infinite";
+
+  // Position below the tour button
+  requestAnimationFrame(() => {
+    if (!restartHintTooltip || !tourBtn) return;
+    const rect = tourBtn.getBoundingClientRect();
+    const tooltipRect = restartHintTooltip.getBoundingClientRect();
+    const gap = 12;
+
+    let top = rect.bottom + gap;
+    let left = rect.left + rect.width / 2 - tooltipRect.width / 2;
+
+    // Keep within viewport
+    const padding = 16;
+    left = Math.max(
+      padding,
+      Math.min(left, window.innerWidth - tooltipRect.width - padding),
+    );
+
+    restartHintTooltip.style.top = `${top}px`;
+    restartHintTooltip.style.left = `${left}px`;
+
+    // Position arrow
+    const arrow = restartHintTooltip.querySelector(
+      ".product-tour-arrow",
+    ) as HTMLElement;
+    if (arrow) {
+      const arrowLeft = rect.left + rect.width / 2 - left;
+      arrow.style.left = `${Math.max(20, Math.min(arrowLeft, tooltipRect.width - 20))}px`;
+    }
+
+    restartHintTooltip.classList.add("visible");
+  });
+}
+
+export function hideRestartHint(): void {
+  if (restartHintTooltip) {
+    restartHintTooltip.classList.remove("visible");
+    setTimeout(() => {
+      restartHintTooltip?.remove();
+      restartHintTooltip = null;
+    }, 300);
+  }
+  // Remove highlight overlay from tour button
+  if (tourBtnHighlight) {
+    tourBtnHighlight.remove();
+    tourBtnHighlight = null;
+  }
+}

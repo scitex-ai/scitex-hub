@@ -54,9 +54,10 @@
 {% block content %}
     {% include 'public_app/landing_partials/landing_hero.html' %}
     {% include 'public_app/landing_partials/landing_warning_bunner.html' %}
-    {% include 'public_app/landing_partials/landing_commitment.html' %}
+    {# {% include 'public_app/landing_partials/landing_commitment.html' %} #}
 {% endblock %}
 {% block extra_js %}
-    <!-- Module cards via Vite -->
+    <!-- Landing page scripts via Vite -->
     {% vite_script 'public_app/landing/module-cards' %}
+    {% vite_script 'public_app/landing/hero-demo' %}
 {% endblock %}
