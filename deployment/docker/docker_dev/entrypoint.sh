@@ -50,25 +50,25 @@ sync_slurm_uid || echo_warning "SLURM UID sync skipped - terminal may have issue
 # Install SciTeX in Editable Mode (Optional)
 # ============================================
 try_scitex_installation_in_editable_mode() {
-    if [ -d "/scitex-code" ]; then
+    if [ -d "/scitex-python" ]; then
         # Check if scitex-code is a valid Python project
-        if [ -f "/scitex-code/pyproject.toml" ] || [ -f "/scitex-code/setup.py" ]; then
-            # Check if scitex is already installed in editable mode from /scitex-code
-            if pip show -f scitex 2>/dev/null | grep -q "/scitex-code"; then
+        if [ -f "/scitex-python/pyproject.toml" ] || [ -f "/scitex-python/setup.py" ]; then
+            # Check if scitex is already installed in editable mode from /scitex-python
+            if pip show -f scitex 2>/dev/null | grep -q "/scitex-python"; then
                 echo -e "${GREEN}✅ Scitex already installed in editable mode${NC}"
             else
                 echo_info "Installing scitex (editable mode)..."
 
-                uv pip install -e "/scitex-code[dl,ml,jupyter,neuro,web,scholar,writer,dev]" --link-mode=copy >/dev/null
+                uv pip install -e "/scitex-python[all]" --link-mode=copy >/dev/null
             fi
             verify_scitex_package
         else
-            echo -e "⚠️  WARNING: /scitex-code exists but is not a valid Python package"
+            echo -e "⚠️  WARNING: /scitex-python exists but is not a valid Python package"
             echo -e "   (missing pyproject.toml or setup.py at root)"
             echo -e "   Skipping scitex package installation..."
         fi
     else
-        echo -e "⚠️  WARNING: /scitex-code not mounted!"
+        echo -e "⚠️  WARNING: /scitex-python not mounted!"
         echo -e "   Skipping scitex package installation..."
     fi
 }
@@ -84,7 +84,7 @@ try_figrecipe_installation_in_editable_mode() {
                 echo -e "${GREEN}✅ figrecipe already installed in editable mode${NC}"
             else
                 echo_info "Installing figrecipe (editable mode)..."
-                uv pip install -e "/figrecipe" --link-mode=copy >/dev/null
+                uv pip install -e "/figrecipe[all]" --link-mode=copy >/dev/null
             fi
         else
             echo -e "⚠️  WARNING: /figrecipe exists but is not a valid Python package"
@@ -105,7 +105,7 @@ try_scitex_writer_installation_in_editable_mode() {
                 echo -e "${GREEN}✅ scitex-writer already installed in editable mode${NC}"
             else
                 echo_info "Installing scitex-writer (editable mode)..."
-                uv pip install -e "/scitex-writer" --link-mode=copy >/dev/null
+                uv pip install -e "/scitex-writer[all]" --link-mode=copy >/dev/null
             fi
         else
             echo -e "⚠️  WARNING: /scitex-writer exists but is not a valid Python package"
@@ -115,6 +115,48 @@ try_scitex_writer_installation_in_editable_mode() {
     fi
 }
 try_scitex_writer_installation_in_editable_mode
+
+# ============================================
+# Install crossref-local in Editable Mode (Optional)
+# ============================================
+try_crossref_local_installation_in_editable_mode() {
+    if [ -d "/crossref-local" ]; then
+        if [ -f "/crossref-local/pyproject.toml" ] || [ -f "/crossref-local/setup.py" ]; then
+            if pip show -f crossref-local 2>/dev/null | grep -q "/crossref-local"; then
+                echo -e "${GREEN}✅ crossref-local already installed in editable mode${NC}"
+            else
+                echo_info "Installing crossref-local (editable mode)..."
+                uv pip install -e "/crossref-local[all]" --link-mode=copy >/dev/null
+            fi
+        else
+            echo -e "⚠️  WARNING: /crossref-local exists but is not a valid Python package"
+        fi
+    else
+        echo -e "⚠️  WARNING: /crossref-local not mounted, skipping..."
+    fi
+}
+try_crossref_local_installation_in_editable_mode
+
+# ============================================
+# Install socialia in Editable Mode (Optional)
+# ============================================
+try_socialia_installation_in_editable_mode() {
+    if [ -d "/socialia" ]; then
+        if [ -f "/socialia/pyproject.toml" ] || [ -f "/socialia/setup.py" ]; then
+            if pip show -f socialia 2>/dev/null | grep -q "/socialia"; then
+                echo -e "${GREEN}✅ socialia already installed in editable mode${NC}"
+            else
+                echo_info "Installing socialia (editable mode)..."
+                uv pip install -e "/socialia[all]" --link-mode=copy >/dev/null
+            fi
+        else
+            echo -e "⚠️  WARNING: /socialia exists but is not a valid Python package"
+        fi
+    else
+        echo -e "⚠️  WARNING: /socialia not mounted, skipping..."
+    fi
+}
+try_socialia_installation_in_editable_mode
 
 add_insufficient_python_packages() {
     pip install pygments >/dev/null 2>&1 || true
@@ -278,26 +320,36 @@ fi
 # No separate watcher needed - visitor pool init is now optimized with fast-path
 
 # ============================================
-# Start Background Services (First Start Only)
+# Start Background Services (if not already running)
 # ============================================
-# Background services persist across hot-reload restarts
-if [ ! -f "$MIGRATION_SENTINEL" ]; then
-    # Start SSH Gateway (Background)
-    start_ssh_gateway() {
+# Check if process is running by checking port or process name
+
+# Start SSH Gateway (Background) - check if port 2200 is in use
+start_ssh_gateway_if_needed() {
+    if ! nc -z 127.0.0.1 2200 2>/dev/null; then
         echo_info "Starting SSH gateway on port 2200..."
         nohup python manage.py run_ssh_gateway \
             --port 2200 \
             --host 0.0.0.0 \
             >/app/logs/ssh-gateway.log 2>&1 &
         SSH_GATEWAY_PID=$!
-        echo_success "SSH gateway started (PID: $SSH_GATEWAY_PID)"
-        echo -e "   Port: 2200"
-        echo -e "   Log: tail -f /app/logs/ssh-gateway.log"
-    }
-    start_ssh_gateway
+        sleep 1 # Give it a moment to start
+        if nc -z 127.0.0.1 2200 2>/dev/null; then
+            echo_success "SSH gateway started (PID: $SSH_GATEWAY_PID)"
+            echo -e "   Port: 2200"
+            echo -e "   Log: tail -f /app/logs/ssh-gateway.log"
+        else
+            echo -e "${YELLOW}⚠️  SSH gateway may have failed to start - check logs${NC}"
+        fi
+    else
+        echo_success "SSH gateway already running on port 2200"
+    fi
+}
+start_ssh_gateway_if_needed
 
-    # Start Gitea Auto-Sync Daemon (Background)
-    start_gitea_auto_sync() {
+# Start Gitea Auto-Sync Daemon (Background) - check if process exists
+start_gitea_auto_sync_if_needed() {
+    if ! pgrep -f "auto_sync_workspaces" >/dev/null 2>&1; then
         echo_info "Starting Gitea auto-sync daemon (interval: 15 min)..."
         nohup python manage.py auto_sync_workspaces \
             --daemon \
@@ -307,11 +359,11 @@ if [ ! -f "$MIGRATION_SENTINEL" ]; then
         echo_success "Auto-sync daemon started (PID: $AUTO_SYNC_PID)"
         echo -e "   Interval: 15 minutes (900s)"
         echo -e "   Log: tail -f /app/logs/auto-sync.log"
-    }
-    start_gitea_auto_sync
-else
-    echo_info "Hot-reload restart - background services already running"
-fi
+    else
+        echo_success "Gitea auto-sync daemon already running"
+    fi
+}
+start_gitea_auto_sync_if_needed
 
 # ============================================
 # Start Application
