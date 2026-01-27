@@ -518,6 +518,7 @@
                                         <button type="submit" class="btn-build" id="buildGraphBtn">
                                             <i class="fas fa-project-diagram"></i>
                                             <span>Build Graph</span>
+                                            <span class="tab-badge tab-badge--soon">Coming soon</span>
                                         </button>
                                     </div>
                                 </div>
@@ -732,65 +733,22 @@
         </script>
         {% vite_script 'scholar_app/scholar-workspace-init' %}
     {% endif %}
-    <!-- Global configuration -->
-    <script>
-        // Django template variables for JavaScript
-        window.SCHOLAR_CONFIG = {
-            urls: {
-                bibtexUpload: '{% url "scholar_app:bibtex_upload" %}',
-                resourceStatus: '{% url "scholar_app:bibtex_resource_status" %}',
-                scitexSearch: '{% url "scholar_app:api_scitex_search" %}',
-                scitexCapabilities: '{% url "scholar_app:api_scitex_capabilities" %}'
-            },
-            user: {
-                isAuthenticated: {
-                    %
-                    if user.is_authenticated %
-                }
-                true {
-                    %
-                    else %
-                }
-                false {
-                    %
-                    endif %
-                }
-            } {
-                %
-                if current_project %
-            },
-            projectId: {
-                {
-                    current_project.id
-                }
-            } {
-                %
-                endif %
-            }
-        };
-
-        window.CITATION_GRAPH_CONFIG = {
-            urls: {
-                buildNetwork: '{% url "scholar_app:citation_graph_network" %}',
-                relatedPapers: '{% url "scholar_app:citation_graph_related" %}',
-                paperSummary: '{% url "scholar_app:citation_graph_paper" %}',
-                health: '{% url "scholar_app:citation_graph_health" %}'
-            }
-        };
-
-        // Initialize SCHOLAR_SEARCH_RESULTS from data attribute
-        (function() {
-            const configEl = document.getElementById('scholar-config-data');
-            if (configEl && configEl.dataset.searchResults) {
-                try {
-                    window.SCHOLAR_SEARCH_RESULTS = JSON.parse(configEl.dataset.searchResults);
-                    console.log('[Scholar Config] Loaded', window.SCHOLAR_SEARCH_RESULTS.length, 'search results');
-                } catch (e) {
-                    console.warn('[Scholar Config] Failed to parse search results:', e);
-                }
-            }
-        })();
-    </script>
+    <!-- Global configuration - using data attributes to avoid formatter issues -->
+    <div id="scholar-global-config"
+         class="hidden"
+         data-url-bibtex-upload="{% url 'scholar_app:bibtex_upload' %}"
+         data-url-resource-status="{% url 'scholar_app:bibtex_resource_status' %}"
+         data-url-scitex-search="{% url 'scholar_app:api_scitex_search' %}"
+         data-url-scitex-capabilities="{% url 'scholar_app:api_scitex_capabilities' %}"
+         data-user-is-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}"
+         {% if current_project %}data-project-id="{{ current_project.id }}"{% endif %}></div>
+    <!-- Citation Graph Config -->
+    <div id="citation-graph-config"
+         class="hidden"
+         data-url-build-network="{% url 'scholar_app:citation_graph_network' %}"
+         data-url-related-papers="{% url 'scholar_app:citation_graph_related' %}"
+         data-url-paper-summary="{% url 'scholar_app:citation_graph_paper' %}"
+         data-url-health="{% url 'scholar_app:citation_graph_health' %}"></div>
     {% vite_script 'scholar_app/scholar-config' %}
     <!-- Common Scripts -->
     {% vite_script 'scholar_app/common/project-selector' %}

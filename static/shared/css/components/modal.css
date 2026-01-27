@@ -13,8 +13,9 @@
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  padding-top: 5vh;
   z-index: 10000;
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -53,7 +54,8 @@
 
 /* Dark mode */
 [data-theme="dark"] .scitex-modal-content {
-  background: var(--scitex-color-02, #1a1d24);
+  background: var(--scitex-color-01, #0d1117);
+  border: 1px solid var(--scitex-color-03, #2d3139);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
 }
 
@@ -189,4 +191,49 @@
 
 [data-theme="dark"] .scitex-btn-secondary:hover {
   background: var(--scitex-color-03, #2d3139);
+}
+
+/* Modal textarea styling */
+.scitex-modal-body textarea {
+  width: 100%;
+  min-height: 250px;
+  padding: 12px;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  resize: vertical;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .scitex-modal-body textarea {
+  background: var(--scitex-color-02, #1a1d24);
+  border-color: var(--scitex-color-04, #3d4450);
+  color: #c9d1d9;
+}
+
+/* Modal info box styling */
+.scitex-modal-body .info-box {
+  padding: 12px;
+  background: var(--bg-accent-subtle);
+  border-radius: 6px;
+  border-left: 4px solid var(--scitex-color-05);
+  font-size: 13px;
+}
+
+[data-theme="dark"] .scitex-modal-body .info-box {
+  background: var(--scitex-color-02, #1a1d24);
+  border-left-color: var(--scitex-color-05, #4a90d9);
+}
+
+.scitex-modal-body .info-box-title {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.scitex-modal-body .info-box-list {
+  margin: 0;
+  padding-left: 1.5rem;
 }

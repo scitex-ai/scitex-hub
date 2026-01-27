@@ -6,6 +6,9 @@
         <div class="scitex-modal-header">
             <h3>
                 <i class="fas fa-brain me-2"></i>AI2 Asta Prompt
+                <small class="ms-2" style="font-size: 12px; font-weight: normal; opacity: 0.7;">
+                    <i class="fas fa-pen-fancy me-1"></i>Generated from Writer module
+                </small>
             </h3>
             <button type="button"
                     class="scitex-modal-close"
@@ -46,20 +49,14 @@
                               font-size: 14px">
                     <i class="fas fa-file-alt me-1"></i>Generated Prompt:
                 </label>
-                <textarea id="ai2PromptText" readonly style=" width: 100%; min-height: 300px; padding: 12px; border: 1px solid var(--color-border-default); border-radius: 6px; font-family: monospace; font-size: 13px; resize: vertical; background: var(--color-canvas-subtle); ">
-Generating prompt...
-                </textarea>
+                <textarea id="ai2PromptText" readonly>Generating prompt...</textarea>
             </div>
             <!-- Next steps -->
-            <div style="padding: 12px;
-                        background: var(--color-accent-subtle);
-                        border-radius: 6px;
-                        border-left: 4px solid var(--scitex-color-05);
-                        font-size: 13px">
-                <strong style="display: block; margin-bottom: 0.5rem">
+            <div class="info-box">
+                <strong class="info-box-title">
                     <i class="fas fa-info-circle me-1"></i>Next Steps:
                 </strong>
-                <ol id="ai2NextSteps" style="margin: 0; padding-left: 1.5rem">
+                <ol id="ai2NextSteps" class="info-box-list">
                     <li>
                         Visit
                         <a href="https://asta.allen.ai/chat/" target="_blank" rel="noopener">https://asta.allen.ai/chat/</a>

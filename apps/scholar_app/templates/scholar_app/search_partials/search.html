@@ -15,29 +15,48 @@
             <kbd class="search-shortcut-badge">Ctrl+K</kbd>
             <button type="submit" class="btn btn-primary search-btn" id="searchButton">
                 <i class="fas fa-search"></i> Search
+                <span class="tab-badge tab-badge--experimental">Experimental</span>
             </button>
             <button type="button" class="search-help-btn" id="searchHelpBtn">
                 <i class="fas fa-question-circle"></i>
             </button>
             <div class="search-help-popup" id="searchHelpPopup">
-                <div class="search-help-title">Search Operators <span class="search-help-hint">(click to insert)</span></div>
+                <div class="search-help-title">
+                    Search Operators <span class="search-help-hint">(click to insert)</span>
+                </div>
                 <div class="search-help-content">
                     <div class="search-help-section">
                         <div class="search-help-label">Filter by field</div>
-                        <div class="search-help-example"><code class="search-chip" data-insert="-t ">-t neural</code> → title contains "neural"</div>
-                        <div class="search-help-example"><code class="search-chip" data-insert="-a ">-a Smith</code> → author is "Smith"</div>
-                        <div class="search-help-example"><code class="search-chip" data-insert="-j ">-j Nature</code> → journal is "Nature"</div>
+                        <div class="search-help-example">
+                            <code class="search-chip" data-insert="-t ">-t neural</code> → title contains "neural"
+                        </div>
+                        <div class="search-help-example">
+                            <code class="search-chip" data-insert="-a ">-a Smith</code> → author is "Smith"
+                        </div>
+                        <div class="search-help-example">
+                            <code class="search-chip" data-insert="-j ">-j Nature</code> → journal is "Nature"
+                        </div>
                     </div>
                     <div class="search-help-section">
                         <div class="search-help-label">Exclude with minus prefix</div>
-                        <div class="search-help-example"><code class="search-chip" data-insert="-t -">-t -mouse</code> → title excludes "mouse"</div>
-                        <div class="search-help-example"><code class="search-chip" data-insert="-a -">-a -Jones</code> → author is not "Jones"</div>
+                        <div class="search-help-example">
+                            <code class="search-chip" data-insert="-t -">-t -mouse</code> → title excludes "mouse"
+                        </div>
+                        <div class="search-help-example">
+                            <code class="search-chip" data-insert="-a -">-a -Jones</code> → author is not "Jones"
+                        </div>
                     </div>
                     <div class="search-help-section">
                         <div class="search-help-label">Year & metrics range</div>
-                        <div class="search-help-example"><code class="search-chip" data-insert="-ymin ">-ymin 2020</code> <code class="search-chip" data-insert="-ymax ">-ymax 2024</code> → year range</div>
-                        <div class="search-help-example"><code class="search-chip" data-insert="-cmin ">-cmin 100</code> → at least 100 citations</div>
-                        <div class="search-help-example"><code class="search-chip" data-insert="-ifmin ">-ifmin 10</code> → impact factor ≥ 10</div>
+                        <div class="search-help-example">
+                            <code class="search-chip" data-insert="-ymin ">-ymin 2020</code> <code class="search-chip" data-insert="-ymax ">-ymax 2024</code> → year range
+                        </div>
+                        <div class="search-help-example">
+                            <code class="search-chip" data-insert="-cmin ">-cmin 100</code> → at least 100 citations
+                        </div>
+                        <div class="search-help-example">
+                            <code class="search-chip" data-insert="-ifmin ">-ifmin 10</code> → impact factor ≥ 10
+                        </div>
                     </div>
                     <div class="search-help-section">
                         <div class="search-help-label">Quick filters</div>
@@ -49,9 +68,15 @@
                     </div>
                     <div class="search-help-section search-help-shortcuts">
                         <div class="search-help-label">Keyboard Shortcuts</div>
-                        <div class="search-help-example"><kbd>Ctrl+K</kbd> Focus search</div>
-                        <div class="search-help-example"><kbd>Ctrl+A</kbd> Select all results</div>
-                        <div class="search-help-example"><kbd>Ctrl+C</kbd> Copy BibTeX</div>
+                        <div class="search-help-example">
+                            <kbd>Ctrl+K</kbd> Focus search
+                        </div>
+                        <div class="search-help-example">
+                            <kbd>Ctrl+A</kbd> Select all results
+                        </div>
+                        <div class="search-help-example">
+                            <kbd>Ctrl+C</kbd> Copy BibTeX
+                        </div>
                         <div class="search-help-label" style="margin-top: 8px;">Global Navigation</div>
                         <div class="search-help-shortcuts-grid">
                             <span><kbd>Alt+F</kbd> Files</span>
@@ -65,39 +90,66 @@
                 </div>
             </div>
         </div>
-
         <!-- Search Results Area (Full Width) -->
         <div id="scitex-results-container">
             <!-- Results Header - Always visible -->
             <div class="results-header" id="resultsHeader">
                 <div class="results-info">
-                    <span class="results-count" id="searchResultsText" title="Results are fetched from multiple engines (PubMed, CrossRef, arXiv, OpenAlex, Semantic Scholar), then deduplicated by DOI/title. The count shows unique papers found.">{% if query %}{{ results|length }} result{{ results|length|pluralize }} for "{{ query }}"{% else %}Ready to search{% endif %} <i class="fas fa-info-circle results-info-icon"></i></span>
-                    {% if results %}<span class="results-source" id="sourceDisplay">· {{ sources_display|default:"selected sources" }}</span>{% endif %}
+                    <span class="results-count"
+                          id="searchResultsText"
+                          title="Results are fetched from multiple engines (PubMed, CrossRef, arXiv, OpenAlex, Semantic Scholar), then deduplicated by DOI/title. The count shows unique papers found.">
+                        {% if query %}
+                            {{ results|length }} result{{ results|length|pluralize }} for "{{ query }}"
+                        {% else %}
+                            Ready to search
+                        {% endif %}
+                        <i class="fas fa-info-circle results-info-icon"></i></span>
+                    {% if results %}
+                        <span class="results-source" id="sourceDisplay">· {{ sources_display|default:"selected sources" }}</span>
+                    {% endif %}
                 </div>
                 <div class="results-toolbar">
                     <!-- Abstract Display Toggle -->
-                    <button type="button" class="toolbar-btn" id="abstractToggleBtn" data-mode="truncated" title="Toggle abstract display" {% if not results %}disabled{% endif %}>
-                        Abstract: truncated
-                    </button>
+                    <button type="button"
+                            class="toolbar-btn"
+                            id="abstractToggleBtn"
+                            data-mode="truncated"
+                            title="Toggle abstract display"
+                            {% if not results %}disabled{% endif %}>Abstract: truncated</button>
                     <!-- Save Selected -->
-                    <button type="button" class="toolbar-btn" id="saveSelectedBtn" title="Save selected to library" disabled>
+                    <button type="button"
+                            class="toolbar-btn"
+                            id="saveSelectedBtn"
+                            title="Save selected to library"
+                            disabled>
                         <i class="fas fa-save"></i> Save
                     </button>
                     <!-- Open URLs -->
-                    <button type="button" class="toolbar-btn" id="openUrlsBtn" title="Open selected in new tabs" disabled>
+                    <button type="button"
+                            class="toolbar-btn"
+                            id="openUrlsBtn"
+                            title="Open selected in new tabs"
+                            disabled>
                         <i class="fas fa-external-link-alt"></i> Open URLs
                     </button>
                     <!-- Export BibTeX -->
-                    <button type="button" class="toolbar-btn toolbar-btn--primary" id="exportSelectedBibtex" title="Download BibTeX for selected (Ctrl+C to copy)" disabled>
+                    <button type="button"
+                            class="toolbar-btn toolbar-btn--primary"
+                            id="exportSelectedBibtex"
+                            title="Download BibTeX for selected (Ctrl+C to copy)"
+                            disabled>
                         <i class="fas fa-download"></i> BibTeX
                     </button>
                     <!-- Download PDFs -->
-                    <button type="button" class="toolbar-btn toolbar-btn--pdf" id="downloadSelectedPdfs" title="Download PDFs for selected (Open Access only)" disabled>
+                    <button type="button"
+                            class="toolbar-btn toolbar-btn--pdf"
+                            id="downloadSelectedPdfs"
+                            title="Download PDFs for selected (Open Access only)"
+                            disabled>
                         <i class="fas fa-file-pdf"></i> PDFs
                     </button>
                 </div>
             </div>
-
             {% if show_results and query %}
                 <!-- Search Results (all results, no pagination) -->
                 {% for result in results %}
@@ -116,19 +168,34 @@
         <div id="selectionActionBar" class="selection-action-bar">
             <span class="selection-count"><span id="selectedCount">0</span> selected</span>
             <div class="selection-actions">
-                <button type="button" class="action-btn" id="actionSaveSelected" title="Save to project">
+                <button type="button"
+                        class="action-btn"
+                        id="actionSaveSelected"
+                        title="Save to project">
                     <i class="fas fa-save"></i> Save
                 </button>
-                <button type="button" class="action-btn" id="actionExportBibtex" title="Export BibTeX">
+                <button type="button"
+                        class="action-btn"
+                        id="actionExportBibtex"
+                        title="Export BibTeX">
                     <i class="fas fa-download"></i> BibTeX
                 </button>
-                <button type="button" class="action-btn" id="actionOpenUrls" title="Open URLs">
+                <button type="button"
+                        class="action-btn"
+                        id="actionOpenUrls"
+                        title="Open URLs">
                     <i class="fas fa-external-link-alt"></i> Open URLs
                 </button>
-                <button type="button" class="action-btn action-btn--pdf" id="actionDownloadPdfs" title="Download PDFs (Open Access)">
+                <button type="button"
+                        class="action-btn action-btn--pdf"
+                        id="actionDownloadPdfs"
+                        title="Download PDFs (Open Access)">
                     <i class="fas fa-file-pdf"></i> PDFs
                 </button>
-                <button type="button" class="action-btn action-btn--clear" id="actionClearSelection" title="Clear selection">
+                <button type="button"
+                        class="action-btn action-btn--clear"
+                        id="actionClearSelection"
+                        title="Clear selection">
                     <i class="fas fa-times"></i>
                 </button>
             </div>

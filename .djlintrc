@@ -3,7 +3,7 @@
   "blank_line_after_tag": "load,extends",
   "close_void_tags": true,
   "format_css": true,
-  "format_js": true,
+  "format_js": false,
   "ignore": "H006,H030,H031",
   "include": "H017,H035",
   "indent_css": 4,
