@@ -1,14 +1,14 @@
 """
 LaTeX compilation operations for Writer.
 
-Thin wrapper delegating to scitex_writer.compile for all compilation.
+Thin wrapper delegating to scitex.writer.compile for all compilation.
+Django should import from scitex (the main interface), not directly from scitex_writer.
 """
 
 from typing import Callable, Optional
 
-from scitex_writer import compile as sw_compile
-
 from scitex import logging
+from scitex.writer import compile as sw_compile
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class CompilationMixin:
     """Mixin for compilation-related operations.
 
-    Delegates to scitex_writer.compile (single source of truth).
+    Delegates to scitex.writer.compile (single source of truth).
     """
 
     def compile_preview(
@@ -29,10 +29,10 @@ class CompilationMixin:
     ) -> dict:
         """Compile a quick preview of provided LaTeX content.
 
-        Delegates to scitex_writer.compile.content().
+        Delegates to scitex.writer.compile.content().
         """
         try:
-            # Delegate to scitex_writer (single source of truth)
+            # Delegate to scitex.writer (single source of truth)
             result = sw_compile.content(
                 latex_content=latex_content,
                 project_dir=str(self.writer_dir),

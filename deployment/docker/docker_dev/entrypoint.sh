@@ -3,12 +3,9 @@
 # Timestamp: "2025-11-05 19:08:34 (ywatanabe)"
 # File: ./deployment/docker/docker_dev/entrypoint.sh
 
-ORIG_DIR="$(pwd)"
-THIS_DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
-LOG_PATH="$THIS_DIR/.$(basename $0).log"
+THIS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LOG_PATH="$THIS_DIR/.$(basename "$0").log"
 echo -e >"$LOG_PATH"
-
-GIT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
 
 GRAY='\033[0;90m'
 GREEN='\033[0;32m'
@@ -97,6 +94,27 @@ try_figrecipe_installation_in_editable_mode() {
     fi
 }
 try_figrecipe_installation_in_editable_mode
+
+# ============================================
+# Install scitex-writer in Editable Mode (Optional)
+# ============================================
+try_scitex_writer_installation_in_editable_mode() {
+    if [ -d "/scitex-writer" ]; then
+        if [ -f "/scitex-writer/pyproject.toml" ] || [ -f "/scitex-writer/setup.py" ]; then
+            if pip show -f scitex-writer 2>/dev/null | grep -q "/scitex-writer"; then
+                echo -e "${GREEN}✅ scitex-writer already installed in editable mode${NC}"
+            else
+                echo_info "Installing scitex-writer (editable mode)..."
+                uv pip install -e "/scitex-writer" --link-mode=copy >/dev/null
+            fi
+        else
+            echo -e "⚠️  WARNING: /scitex-writer exists but is not a valid Python package"
+        fi
+    else
+        echo -e "⚠️  WARNING: /scitex-writer not mounted, skipping..."
+    fi
+}
+try_scitex_writer_installation_in_editable_mode
 
 add_insufficient_python_packages() {
     pip install pygments >/dev/null 2>&1 || true
