@@ -1,5 +1,5 @@
 <!-- ---
-!-- Timestamp: 2026-01-28 08:32:15
+!-- Timestamp: 2026-01-28 08:33:36
 !-- Author: ywatanabe
 !-- File: /home/ywatanabe/proj/scitex-cloud/docs/SCITEX_ECOSYSTEM.md
 !-- --- -->
@@ -50,7 +50,7 @@ https://github.com/socialia
   - File/function/class names
   - CLI commands
   - MCP tools
-- README.md should have similar formats
+- README.md should have formats similar to that of scitex-python
 
 ## Useful Tools
 ### scitex.writer delegation (should be exactly same)

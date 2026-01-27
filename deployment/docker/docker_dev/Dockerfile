@@ -204,14 +204,15 @@ RUN if [ -f /etc/ImageMagick-6/policy.xml ]; then \
 # ============================================
 # Python Dependencies
 # ============================================
-# Copy requirements first - changes less than app code
+# Copy pyproject.toml and src/ for dependency installation (cached layer)
 
-# Copy only requirements.txt (layer cached until requirements change)
-COPY requirements.txt .
+# Copy project definition and minimal source for package install
+COPY pyproject.toml ./
+COPY src/ ./src/
 
 # Install SciTeX Cloud Python dependencies with cache mount
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system -r requirements.txt
+    uv pip install --system ".[django,test]"
 
 # Install Playwright browsers (must persist in image for runtime use)
 # Note: We already have chromium and dependencies installed above,

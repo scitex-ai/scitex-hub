@@ -1,5 +1,5 @@
 # SciTeX Cloud Requirements
-# All dependencies are now managed in pyproject.toml
+# All dependencies are managed in pyproject.toml
 #
 # Usage:
 #   pip install -e .              # CLI only
@@ -8,5 +8,4 @@
 #   pip install -e .[gui]         # GUI tools
 #   pip install -e .[all]         # Everything
 #
-# For Docker builds:
--e .[django,test]
+# Docker builds use pyproject.toml directly (see Dockerfile)

@@ -27,14 +27,12 @@ services:
       # Main application code (hot reload with cached mode for performance)
       - ../../..:/app:cached
 
-      # scitex-code package (editable mode) - must exist in parent directory of scitex-cloud
-      - ../../../../scitex-code:/scitex-code:cached
-
-      # figrecipe package (editable mode) - must exist in parent directory of scitex-cloud
+      # SciTeX ecosystem packages (editable mode) - must exist in ~/proj/
+      - ../../../../scitex-python:/scitex-python:cached
       - ../../../../figrecipe:/figrecipe:cached
-
-      # scitex-writer package (editable mode) - must exist in parent directory of scitex-cloud
       - ../../../../scitex-writer:/scitex-writer:cached
+      - ../../../../crossref-local:/crossref-local:cached
+      - ../../../../socialia:/socialia:cached
 
       # Centralized logging - all container logs go here
       - ../../../logs:/app/logs
@@ -219,9 +217,11 @@ services:
 
     volumes:
       - ../../..:/app:cached
-      - ../../../../scitex-code:/scitex-code:cached
+      - ../../../../scitex-python:/scitex-python:cached
       - ../../../../figrecipe:/figrecipe:cached
       - ../../../../scitex-writer:/scitex-writer:cached
+      - ../../../../crossref-local:/crossref-local:cached
+      - ../../../../socialia:/socialia:cached
       - ../../../logs:/app/logs
 
     env_file:
@@ -273,9 +273,11 @@ services:
 
     volumes:
       - ../../..:/app:cached
-      - ../../../../scitex-code:/scitex-code:cached
+      - ../../../../scitex-python:/scitex-python:cached
       - ../../../../figrecipe:/figrecipe:cached
       - ../../../../scitex-writer:/scitex-writer:cached
+      - ../../../../crossref-local:/crossref-local:cached
+      - ../../../../socialia:/socialia:cached
       - ../../../logs:/app/logs
 
     env_file:
@@ -322,9 +324,11 @@ services:
 
     volumes:
       - ../../..:/app:cached
-      - ../../../../scitex-code:/scitex-code:cached
+      - ../../../../scitex-python:/scitex-python:cached
       - ../../../../figrecipe:/figrecipe:cached
       - ../../../../scitex-writer:/scitex-writer:cached
+      - ../../../../crossref-local:/crossref-local:cached
+      - ../../../../socialia:/socialia:cached
 
     ports:
       - "5555:5555"
