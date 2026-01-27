@@ -33,6 +33,9 @@ services:
       # figrecipe package (editable mode) - must exist in parent directory of scitex-cloud
       - ../../../../figrecipe:/figrecipe:cached
 
+      # scitex-writer package (editable mode) - must exist in parent directory of scitex-cloud
+      - ../../../../scitex-writer:/scitex-writer:cached
+
       # Centralized logging - all container logs go here
       - ../../../logs:/app/logs
 
@@ -217,6 +220,8 @@ services:
     volumes:
       - ../../..:/app:cached
       - ../../../../scitex-code:/scitex-code:cached
+      - ../../../../figrecipe:/figrecipe:cached
+      - ../../../../scitex-writer:/scitex-writer:cached
       - ../../../logs:/app/logs
 
     env_file:
@@ -269,6 +274,8 @@ services:
     volumes:
       - ../../..:/app:cached
       - ../../../../scitex-code:/scitex-code:cached
+      - ../../../../figrecipe:/figrecipe:cached
+      - ../../../../scitex-writer:/scitex-writer:cached
       - ../../../logs:/app/logs
 
     env_file:
@@ -316,6 +323,8 @@ services:
     volumes:
       - ../../..:/app:cached
       - ../../../../scitex-code:/scitex-code:cached
+      - ../../../../figrecipe:/figrecipe:cached
+      - ../../../../scitex-writer:/scitex-writer:cached
 
     ports:
       - "5555:5555"
