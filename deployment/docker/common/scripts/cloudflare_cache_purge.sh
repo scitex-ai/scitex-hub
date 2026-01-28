@@ -55,7 +55,7 @@ purge_all() {
         -H "Content-Type: application/json" \
         --data '{"purge_everything":true}')
 
-    if echo "$response" | grep -q '"success":true'; then
+    if echo "$response" | grep -q '"success":\s*true'; then
         echo -e "${GREEN}✅ All cache purged successfully${NC}"
         return 0
     else
@@ -87,7 +87,7 @@ purge_static() {
         -H "Content-Type: application/json" \
         --data "{\"files\":${json_files}}")
 
-    if echo "$response" | grep -q '"success":true'; then
+    if echo "$response" | grep -q '"success":\s*true'; then
         echo -e "${GREEN}✅ Static file cache purged (${#urls[@]} files)${NC}"
         return 0
     else
@@ -117,7 +117,7 @@ purge_urls() {
         -H "Content-Type: application/json" \
         --data "{\"files\":${json_files}}")
 
-    if echo "$response" | grep -q '"success":true'; then
+    if echo "$response" | grep -q '"success":\s*true'; then
         echo -e "${GREEN}✅ URLs purged successfully${NC}"
         return 0
     else
