@@ -58,11 +58,16 @@ function hideBanner(banner: HTMLElement): void {
   }, 300);
 }
 
+declare function gtag(...args: unknown[]): void;
+
 function handleAccept(banner: HTMLElement): void {
   setConsent(true);
   hideBanner(banner);
-  // Enable analytics if needed
-  console.log("[Cookie Consent] Accepted");
+  // Enable analytics via GA4 consent mode
+  if (typeof gtag === "function") {
+    gtag("consent", "update", { analytics_storage: "granted" });
+  }
+  console.log("[Cookie Consent] Accepted - analytics enabled");
 }
 
 function handleDecline(banner: HTMLElement): void {

@@ -1,8 +1,8 @@
 /**
  * Analytics Utility Module
- * Centralized Google Analytics 4 event tracking for SciTeX modules
+ * Centralized Umami event tracking for SciTeX modules
  *
- * Privacy-conscious: Only tracks module usage counts, never content or PII
+ * Privacy-conscious: Umami doesn't use cookies and only tracks anonymous events
  */
 
 // Module categories for consistent naming
@@ -49,19 +49,23 @@ export type ModuleEvent =
 
 declare global {
   interface Window {
-    gtag?: (...args: any[]) => void;
+    umami?: {
+      track: (eventName: string, data?: Record<string, unknown>) => void;
+    };
   }
 }
 
 /**
- * Check if Google Analytics is available
+ * Check if Umami is available
  */
-function isGtagAvailable(): boolean {
-  return typeof window !== "undefined" && typeof window.gtag === "function";
+function isUmamiAvailable(): boolean {
+  return (
+    typeof window !== "undefined" && typeof window.umami?.track === "function"
+  );
 }
 
 /**
- * Track a generic event to Google Analytics
+ * Track a generic event to Umami
  * @param eventName - The event name (e.g., 'module_view', 'file_upload')
  * @param category - The module category (e.g., 'files', 'scholar')
  * @param label - Optional label for additional context (avoid PII)
@@ -69,21 +73,21 @@ function isGtagAvailable(): boolean {
 export function trackEvent(
   eventName: ModuleEvent | string,
   category: ModuleCategory | string,
-  label?: string
+  label?: string,
 ): void {
-  if (!isGtagAvailable()) {
+  if (!isUmamiAvailable()) {
     return;
   }
 
-  const params: Record<string, string> = {
-    event_category: category,
+  const data: Record<string, string> = {
+    category,
   };
 
   if (label) {
-    params.event_label = label;
+    data.label = label;
   }
 
-  window.gtag!("event", eventName, params);
+  window.umami!.track(eventName, data);
 }
 
 /**
@@ -99,7 +103,7 @@ export function trackModuleView(module: ModuleCategory): void {
  * Track file operations (without file names for privacy)
  */
 export function trackFileOperation(
-  operation: "file_upload" | "file_download" | "folder_create"
+  operation: "file_upload" | "file_download" | "folder_create",
 ): void {
   trackEvent(operation, "files");
 }
@@ -108,7 +112,7 @@ export function trackFileOperation(
  * Track scholar actions (without search queries for privacy)
  */
 export function trackScholarAction(
-  action: "paper_search" | "paper_save" | "citation_export"
+  action: "paper_search" | "paper_save" | "citation_export",
 ): void {
   trackEvent(action, "scholar");
 }
@@ -117,7 +121,7 @@ export function trackScholarAction(
  * Track code actions
  */
 export function trackCodeAction(
-  action: "code_run" | "code_save" | "terminal_open"
+  action: "code_run" | "code_save" | "terminal_open",
 ): void {
   trackEvent(action, "code");
 }
@@ -133,7 +137,7 @@ export function trackVisAction(action: "chart_create" | "chart_export"): void {
  * Track writer actions
  */
 export function trackWriterAction(
-  action: "document_create" | "document_export"
+  action: "document_create" | "document_export",
 ): void {
   trackEvent(action, "writer");
 }
@@ -157,7 +161,7 @@ export function initAutoTracking(): void {
     const trackElement = document.querySelector("[data-track-module]");
     if (trackElement) {
       const module = trackElement.getAttribute(
-        "data-track-module"
+        "data-track-module",
       ) as ModuleCategory;
       if (module) {
         trackModuleView(module);

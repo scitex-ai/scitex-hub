@@ -1,4 +1,5 @@
 {% extends "auth_app/auth_base.html" %}
+
 {% block title %}
     Verify Your Email -
     SciTeX
@@ -134,11 +135,9 @@
 
     userEmailSpan.textContent = email;
 
-    // Google Analytics: Track sign_up event (user completed registration form)
-    if (typeof gtag === 'function') {
-      gtag('event', 'sign_up', {
-        'method': 'email'
-      });
+    // Umami: Track sign_up event (user completed registration form)
+    if (typeof umami !== 'undefined') {
+      umami.track('sign_up', { method: 'email' });
     }
 
     // Setup OTP digit inputs
@@ -239,12 +238,9 @@
           if (data.success) {
             showSuccess("Email verified! Redirecting...");
             localStorage.removeItem("pending-verification-email");
-            // Google Analytics: Track email_verified event (true conversion)
-            if (typeof gtag === 'function') {
-              gtag('event', 'email_verified', {
-                'event_category': 'engagement',
-                'event_label': 'signup_completion'
-              });
+            // Umami: Track email_verified event (true conversion)
+            if (typeof umami !== 'undefined') {
+              umami.track('email_verified');
             }
             setTimeout(
               () => (window.location.href = data.redirect_url || "/dashboard/"),
