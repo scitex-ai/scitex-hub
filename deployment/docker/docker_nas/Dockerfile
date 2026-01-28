@@ -44,7 +44,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # Install scitex from PyPI (targeted extras - [all] requires Rust compiler)
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system "scitex[cli,scholar,plt,stats,io,writer,audio,capture,diagram]==2.15.1"
+    uv pip install --system "scitex[cli,scholar,plt,stats,io,writer,audio,capture,diagram]==2.15.2"
 
 # Install Playwright browsers
 RUN --mount=type=cache,target=/root/.cache/ms-playwright \

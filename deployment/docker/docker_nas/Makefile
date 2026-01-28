@@ -3,7 +3,7 @@
 # ============================================
 # Location: /containers/docker_nas/Makefile.nas
 
-.PHONY: help setup build build-no-cache start restart stop down logs ps status rebuild clean-static migrate makemigrations shell collectstatic db-shell db-backup verify-health logs-django logs-db logs-redis exec-django exec-db clean-python
+.PHONY: help setup build build-no-cache start restart stop down logs ps status rebuild clean-static migrate makemigrations shell collectstatic db-shell db-backup verify-health logs-django logs-db logs-redis exec-django exec-db clean-python cache-purge cache-purge-all cache-purge-static
 
 .DEFAULT_GOAL := help
 
@@ -14,6 +14,8 @@ COMPOSE := docker compose -f docker-compose.yml
 DJANGO_CONTAINER := scitex-cloud-nas-django-1
 DB_CONTAINER := scitex-cloud-nas-db-1
 REDIS_CONTAINER := scitex-cloud-nas-redis-1
+MAKEFILE_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+SCRIPTS_DIR := $(MAKEFILE_DIR)../common/scripts
 
 # Colors for output
 GREEN := \033[0;32m
@@ -70,6 +72,10 @@ help:
 	@echo -e ""
 	@echo -e "$(CYAN)🔍 Health & Monitoring:$(NC)"
 	@echo -e "  make verify-health      - Check all services health"
+	@echo -e ""
+	@echo -e "$(CYAN)☁️  Cloudflare Cache:$(NC)"
+	@echo -e "  make cache-purge        - Purge static files cache (after deploy)"
+	@echo -e "  make cache-purge-all    - Purge entire Cloudflare cache"
 	@echo -e ""
 
 # ============================================
@@ -129,13 +135,26 @@ ps:
 
 status: ps verify-health
 
-rebuild: down clean-static build up migrate collectstatic
+rebuild: down clean-static build up migrate collectstatic cache-purge-static
 	@echo -e "$(GREEN)✅ Rebuild complete$(NC)"
 
 clean-static:
 	@echo -e "$(CYAN)🧹 Clearing static files volume...$(NC)"
 	@docker volume rm scitex-cloud-nas_static_volume 2>/dev/null || true
 	@echo -e "$(GREEN)✅ Static volume cleared$(NC)"
+
+# ============================================
+# Cloudflare Cache Management
+# ============================================
+cache-purge: cache-purge-static
+
+cache-purge-static:
+	@echo -e "$(CYAN)☁️  Purging Cloudflare static cache...$(NC)"
+	@bash "$(SCRIPTS_DIR)/cloudflare_cache_purge.sh" static || echo -e "$(YELLOW)⚠️  Cache purge skipped (credentials not configured)$(NC)"
+
+cache-purge-all:
+	@echo -e "$(CYAN)☁️  Purging ALL Cloudflare cache...$(NC)"
+	@bash "$(SCRIPTS_DIR)/cloudflare_cache_purge.sh" all || echo -e "$(YELLOW)⚠️  Cache purge skipped (credentials not configured)$(NC)"
 
 # ============================================
 # Django Management
