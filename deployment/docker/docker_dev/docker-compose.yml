@@ -138,6 +138,8 @@ services:
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      # Init scripts run on first startup (creates umami database)
+      - ./init-umami-db.sql:/docker-entrypoint-initdb.d/init-umami-db.sql:ro
 
     # Shared memory for Postgres performance (prevents "out of shared memory" errors)
     shm_size: 256mb
@@ -420,6 +422,37 @@ services:
       retries: 5
       start_period: 30s
     
+    networks:
+      - scitex-dev
+
+  # ============================================
+  # Umami Analytics (Privacy-focused)
+  # ============================================
+  umami:
+    image: ghcr.io/umami-software/umami:postgresql-latest
+
+    ports:
+      - "${SCITEX_CLOUD_UMAMI_PORT_DEV:-3300}:3000"
+
+    environment:
+      - DATABASE_URL=postgresql://${SCITEX_CLOUD_POSTGRES_USER:-scitex_dev}:${SCITEX_CLOUD_POSTGRES_PASSWORD:-scitex_dev_2025}@postgres:5432/umami
+      - DATABASE_TYPE=postgresql
+      - APP_SECRET=${SCITEX_CLOUD_UMAMI_APP_SECRET:-scitex-umami-secret-2026}
+      - DISABLE_TELEMETRY=1
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    restart: unless-stopped
+
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/api/heartbeat"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
     networks:
       - scitex-dev
 

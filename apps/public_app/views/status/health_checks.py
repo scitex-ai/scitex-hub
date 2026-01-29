@@ -130,8 +130,9 @@ def check_ssh_services(status_data):
     })
 
     # Gitea SSH - via cloudflared at gitea.scitex.ai
-    # Default is 22 (Gitea's internal SSH port in Docker)
-    gitea_ssh_port = int(getattr(settings, 'SCITEX_CLOUD_GITEA_SSH_PORT', 22))
+    # Inside Docker: use internal port 22 (gitea container's SSH)
+    # Outside Docker: use external mapped port from settings (default 2222)
+    gitea_ssh_port = 22 if Path('/.dockerenv').exists() else int(getattr(settings, 'SCITEX_CLOUD_GITEA_SSH_PORT', 2222))
     is_functional, banner_or_error = _check_ssh_banner(gitea_ssh_host, gitea_ssh_port)
     status_data["ssh_services"].append({
         "name": "Gitea SSH (Git operations)",

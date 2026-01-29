@@ -1,128 +1,132 @@
 {% extends "global_base.html" %}
+
 {% load static %}
+
 {% block title %}
     Cookie
     Policy - SciTeX
 {% endblock %}
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'shared/css/components/page-header.css' %}">
+    <link rel="stylesheet" href="{% static 'shared/css/components/page-header.css' %}" />
     <style>
-  .policy-section {
-    padding: var(--spacing-xxl) 0;
-  }
+        .policy-section {
+            padding: var(--spacing-xxl) 0;
+        }
 
-  .policy-container {
-    max-width: 800px;
-    margin: 0 auto;
-  }
+        .policy-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
 
-  .policy-content {
-    background-color: var(--bg-surface);
-    border-radius: var(--border-radius-lg);
-    padding: var(--spacing-xl);
-    box-shadow: var(--box-shadow-sm);
-    color: var(--text-primary);
-  }
+        .policy-content {
+            background-color: var(--bg-surface);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-xl);
+            box-shadow: var(--box-shadow-sm);
+            color: var(--text-primary);
+        }
 
-  .policy-content h2 {
-    color: var(--text-primary);
-    margin-top: var(--spacing-xl);
-    margin-bottom: var(--spacing-md);
-    padding-bottom: var(--spacing-xs);
-    border-bottom: 1px solid var(--border-muted);
-  }
+        .policy-content h2 {
+            color: var(--text-primary);
+            margin-top: var(--spacing-xl);
+            margin-bottom: var(--spacing-md);
+            padding-bottom: var(--spacing-xs);
+            border-bottom: 1px solid var(--border-muted);
+        }
 
-  .policy-content h2:first-child {
-    margin-top: 0;
-  }
+        .policy-content h2:first-child {
+            margin-top: 0;
+        }
 
-  .policy-content h3 {
-    color: var(--text-primary);
-    margin-top: var(--spacing-lg);
-    margin-bottom: var(--spacing-sm);
-  }
+        .policy-content h3 {
+            color: var(--text-primary);
+            margin-top: var(--spacing-lg);
+            margin-bottom: var(--spacing-sm);
+        }
 
-  .policy-content h4 {
-    color: var(--text-primary);
-    margin-top: var(--spacing-md);
-    margin-bottom: var(--spacing-sm);
-  }
+        .policy-content h4 {
+            color: var(--text-primary);
+            margin-top: var(--spacing-md);
+            margin-bottom: var(--spacing-sm);
+        }
 
-  .policy-content p {
-    margin-bottom: var(--spacing-md);
-    color: var(--text-secondary);
-  }
+        .policy-content p {
+            margin-bottom: var(--spacing-md);
+            color: var(--text-secondary);
+        }
 
-  .policy-content ul,
-  .policy-content ol {
-    margin-bottom: var(--spacing-md);
-    padding-left: 2rem;
-    color: var(--text-secondary);
-  }
+        .policy-content ul,
+        .policy-content ol {
+            margin-bottom: var(--spacing-md);
+            padding-left: 2rem;
+            color: var(--text-secondary);
+        }
 
-  .policy-content li {
-    margin-bottom: var(--spacing-xs);
-  }
+        .policy-content li {
+            margin-bottom: var(--spacing-xs);
+        }
 
-  .policy-content a {
-    color: #3498db;
-    text-decoration: none;
-  }
+        .policy-content a {
+            color: #3498db;
+            text-decoration: none;
+        }
 
-  .policy-content a:hover {
-    text-decoration: underline;
-  }
+        .policy-content a:hover {
+            text-decoration: underline;
+        }
 
-  .policy-content .highlight {
-    background-color: var(--color-accent-subtle);
-    padding: var(--spacing-md);
-    border-radius: var(--border-radius);
-    margin: var(--spacing-lg) 0;
-    border-left: 3px solid var(--text-primary);
-  }
+        .policy-content .highlight {
+            background-color: var(--color-accent-subtle);
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius);
+            margin: var(--spacing-lg) 0;
+            border-left: 3px solid var(--text-primary);
+        }
 
-  .policy-meta {
-    text-align: center;
-    margin-top: var(--spacing-lg);
-    color: var(--text-muted);
-    font-size: 0.9rem;
-  }
+        .policy-meta {
+            text-align: center;
+            margin-top: var(--spacing-lg);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
 
-  address {
-    font-style: normal;
-    color: var(--text-secondary);
-    line-height: 1.8;
-  }
+        address {
+            font-style: normal;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
 
-  .cookie-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: var(--spacing-lg) 0;
-  }
+        .cookie-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: var(--spacing-lg) 0;
+        }
 
-  .cookie-table th,
-  .cookie-table td {
-    padding: 0.75rem;
-    text-align: left;
-    border-bottom: 1px solid var(--border-muted);
-    color: var(--text-secondary);
-  }
+        .cookie-table th,
+        .cookie-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-muted);
+            color: var(--text-secondary);
+        }
 
-  .cookie-table th {
-    background-color: var(--bg-muted);
-    font-weight: 600;
-    color: var(--text-primary);
-  }
+        .cookie-table th {
+            background-color: var(--bg-muted);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
 
-  .cookie-table tr:hover {
-    background-color: var(--bg-muted);
-  }
+        .cookie-table tr:hover {
+            background-color: var(--bg-muted);
+        }
     </style>
 {% endblock %}
 {% block content %}
     <div class="container pt-4">
         <section class="page-header">
-            <h1><i class="fas fa-cookie-bite"></i> Cookie Policy</h1>
+            <h1>
+                <i class="fas fa-cookie-bite"></i> Cookie Policy
+            </h1>
             <p>Understanding how we use cookies to improve your experience</p>
         </section>
     </div>
@@ -162,33 +166,26 @@
                         website.
                     </p>
                     <h2 id="types-of-cookies">Types of Cookies We Use</h2>
+                    <p>
+                        SciTeX uses only <strong>essential cookies</strong> that are necessary
+                        for the website to function. We do not use any tracking, advertising,
+                        or third-party analytics cookies.
+                    </p>
                     <ul>
                         <li>
                             <strong>Essential Cookies:</strong> These cookies are necessary for
                             the website to function and cannot be switched off in our systems.
-                            They are usually only set in response to actions made by you which
-                            amount to a request for services, such as setting your privacy
-                            preferences, logging in, or filling in forms.
-                        </li>
-                        <li>
-                            <strong>Performance Cookies:</strong> These cookies allow us to
-                            count visits and traffic sources so we can measure and improve the
-                            performance of our site. They help us to know which pages are the
-                            most and least popular and see how visitors move around the site.
-                        </li>
-                        <li>
-                            <strong>Functionality Cookies:</strong> These cookies enable the
-                            website to provide enhanced functionality and personalization. They
-                            may be set by us or by third-party providers whose services we have
-                            added to our pages.
-                        </li>
-                        <li>
-                            <strong>Targeting Cookies:</strong> These cookies may be set through
-                            our site by our advertising partners. They may be used by those
-                            companies to build a profile of your interests and show you relevant
-                            advertisements on other sites.
+                            They are only set in response to actions made by you which
+                            amount to a request for services, such as logging in or filling in forms.
                         </li>
                     </ul>
+                    <div class="highlight" role="note">
+                        <p>
+                            <strong>Privacy-First Analytics:</strong> We use Umami, a privacy-focused
+                            analytics solution that does not use cookies or collect personal data.
+                            This means you can browse SciTeX without being tracked across websites.
+                        </p>
+                    </div>
                     <h2 id="cookies-we-use">Cookies We Use</h2>
                     <p>The specific cookies we use on the SciTeX platform include:</p>
                     <table class="cookie-table">
@@ -213,50 +210,13 @@
                                 <td>Helps protect against Cross-Site Request Forgery attacks</td>
                                 <td>Session</td>
                             </tr>
-                            <tr>
-                                <td>preferences</td>
-                                <td>Functionality</td>
-                                <td>Stores your site preferences and settings</td>
-                                <td>1 year</td>
-                            </tr>
-                            <tr>
-                                <td>_ga</td>
-                                <td>Performance</td>
-                                <td>Google Analytics cookie used to distinguish users</td>
-                                <td>2 years</td>
-                            </tr>
-                            <tr>
-                                <td>_gid</td>
-                                <td>Performance</td>
-                                <td>Google Analytics cookie used to distinguish users</td>
-                                <td>24 hours</td>
-                            </tr>
-                            <tr>
-                                <td>_gat</td>
-                                <td>Performance</td>
-                                <td>Google Analytics cookie used to throttle request rate</td>
-                                <td>1 minute</td>
-                            </tr>
-                            <tr>
-                                <td>remember_login</td>
-                                <td>Functionality</td>
-                                <td>Remembers if you checked "Remember me" at login</td>
-                                <td>30 days</td>
-                            </tr>
-                            <tr>
-                                <td>recently_viewed</td>
-                                <td>Functionality</td>
-                                <td>Tracks recently viewed research papers and content</td>
-                                <td>30 days</td>
-                            </tr>
-                            <tr>
-                                <td>cookie_consent</td>
-                                <td>Essential</td>
-                                <td>Records your cookie consent preferences</td>
-                                <td>1 year</td>
-                            </tr>
                         </tbody>
                     </table>
+                    <p>
+                        <strong>Note:</strong> We use localStorage (browser storage) for user
+                        preferences like theme settings. This is not a cookie and does not
+                        track you across websites.
+                    </p>
                     <h2 id="how-we-use-cookies">How We Use Cookies</h2>
                     <p>We use cookies for the following purposes:</p>
                     <h3>Authentication and Security</h3>
@@ -272,11 +232,11 @@
                         personalize the platform for you, including remembering your preferred
                         dark/light mode, language preferences, and custom dashboard layouts.
                     </p>
-                    <h3>Analytics and Research</h3>
+                    <h3>Analytics</h3>
                     <p>
-                        Cookies help us understand how visitors interact with our platform. We
-                        can use this information to analyze and measure how visitors use our
-                        services so we can improve them and develop new features.
+                        We use Umami, a privacy-focused analytics platform that does not use
+                        cookies. Umami collects anonymous, aggregate data about page visits
+                        without tracking individual users or storing personal information.
                     </p>
                     <h3>Research Functionality</h3>
                     <p>
@@ -367,7 +327,7 @@
             <div class="policy-meta">
                 <p>
                     <strong>Last Updated:</strong>
-                    <time datetime="2025-05-21">May 21, 2025</time>
+                    <time datetime="2026-01-29">January 29, 2026</time>
                 </p>
             </div>
         </div>

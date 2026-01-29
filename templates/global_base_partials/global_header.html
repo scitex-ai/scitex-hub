@@ -1,4 +1,5 @@
 {% load static %}
+
 <!-- GitHub-Style Global Header -->
 <style>
     @keyframes pulse {
@@ -76,10 +77,7 @@
                                             data-project-slug="{{ project.slug }}"
                                             data-project-owner="{{ project.owner.username }}">
                                         <span class="project-item-name">{{ project.name }}</span>
-                                        <div style="display: flex;
-                                                    align-items: center;
-                                                    gap: 4px;
-                                                    margin-left: auto">
+                                        <div style="display: flex; align-items: center; gap: 4px; margin-left: auto">
                                             <a href="/{{ project.owner.username }}/{{ project.slug }}/"
                                                class="project-item-jump-btn"
                                                title="Go to {{ project.name }} repository"
@@ -128,8 +126,7 @@
                             </div>
                         </div>
                         <div class="dropdown-divider"></div>
-                        <a href="/auth/signup/"
-                           class="dropdown-project-item dropdown-create-new">
+                        <a href="/auth/signup/" class="dropdown-project-item dropdown-create-new">
                             <svg width="14"
                                  height="14"
                                  viewBox="0 0 16 16"
@@ -177,9 +174,7 @@
                            class="header-nav-item"
                            data-tooltip="Sign up to access files"
                            data-shortcut="F">
-                            <i class="fas fa-book-open nav-icon-fa"
-                               style="font-size: 16px;
-                                      opacity: 0.5"></i>
+                            <i class="fas fa-book-open nav-icon-fa" style="font-size: 16px; opacity: 0.5"></i>
                             <span class="nav-label">Files</span>
                         </a>
                     {% endif %}
@@ -286,10 +281,7 @@
                                         data-project-slug="{{ project.slug }}"
                                         data-project-owner="{{ project.owner.username }}">
                                     <span class="project-item-name">{{ project.name }}</span>
-                                    <div style="display: flex;
-                                                align-items: center;
-                                                gap: 4px;
-                                                margin-left: auto">
+                                    <div style="display: flex; align-items: center; gap: 4px; margin-left: auto">
                                         <a href="/{{ project.owner.username }}/{{ project.slug }}/"
                                            class="project-item-jump-btn"
                                            title="Go to {{ project.name }} repository"
@@ -363,8 +355,7 @@
                         <div class="dropdown-divider"></div>
                     {% endif %}
                     <!-- Sign up to save (visitors) -->
-                    <a href="/auth/signup/"
-                       class="dropdown-project-item dropdown-create-new">
+                    <a href="/auth/signup/" class="dropdown-project-item dropdown-create-new">
                         <svg width="14"
                              height="14"
                              viewBox="0 0 16 16"
@@ -420,13 +411,9 @@
         <!-- Right: Actions + User Menu -->
         <div class="header-right">
             <!-- Theme Toggle (always visible) -->
-            <button id="theme-toggle"
-                    class="theme-toggle"
-                    data-tooltip="Toggle light/dark theme">🌓</button>
+            <button id="theme-toggle" class="theme-toggle" data-tooltip="Toggle light/dark theme">🌓</button>
             <!-- Product Tour -->
-            <button id="product-tour-btn"
-                    class="theme-toggle"
-                    data-tooltip="Product Tour">
+            <button id="product-tour-btn" class="theme-toggle" data-tooltip="Product Tour">
                 <i class="fas fa-question-circle"></i>
             </button>
             <!-- Keyboard Shortcuts Help (Alt+/ for modal, click for page) -->
@@ -460,7 +447,7 @@
                 </button>
             {% endif %}
             <!-- Server Status with live health indicator -->
-            <a href="/server-status/"
+            <a href="{% url 'public_app:server_status' %}"
                id="server-status-btn"
                class="theme-toggle"
                data-tooltip="System Status"
@@ -515,9 +502,7 @@
                             <path d="M4 6l4 4 4-4H4z" />
                         </svg>
                     </button>
-                    <div class="header-dropdown"
-                         id="visitor-menu-dropdown"
-                         style="display: none">
+                    <div class="header-dropdown" id="visitor-menu-dropdown" style="display: none">
                         <!-- Visitor Info Header -->
                         <div class="dropdown-header">
                             <div class="dropdown-user-info">
@@ -713,9 +698,7 @@
                         </a>
                         <div class="dropdown-divider"></div>
                         <!-- Support & Community -->
-                        <a href="https://github.com/SciTeX-AI"
-                           class="dropdown-item"
-                           target="_blank">
+                        <a href="https://github.com/SciTeX-AI" class="dropdown-item" target="_blank">
                             <img src="{% static 'shared/images/scitex_logos/scitex-icons/scitex-icon-navy-inverted.svg' %}"
                                  alt=""
                                  style="display: inline-block;
@@ -757,12 +740,8 @@
                 </div>
             {% else %}
                 <!-- Not logged in -->
-                <a href="/auth/signin/"
-                   class="header-btn"
-                   data-tooltip="Sign in to your account">Sign in</a>
-                <a href="/auth/signup/"
-                   class="header-btn"
-                   data-tooltip="Create a new account">Sign up</a>
+                <a href="/auth/signin/" class="header-btn" data-tooltip="Sign in to your account">Sign in</a>
+                <a href="/auth/signup/" class="header-btn" data-tooltip="Create a new account">Sign up</a>
             {% endif %}
         </div>
     </div>

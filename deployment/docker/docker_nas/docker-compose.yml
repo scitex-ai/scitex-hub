@@ -49,6 +49,9 @@ services:
       # CrossRef database for citation graph service (read-only)
       - /home/ywatanabe/proj/crossref_local/data:/data/crossref:ro
 
+      # Live-editable announcement banner (no rebuild needed)
+      - ../../../apps/public_app/templates/public_app/landing_partials/landing_announcement.html:/app/apps/public_app/templates/public_app/landing_partials/landing_announcement.html:ro
+
     ports:
       - "${SCITEX_CLOUD_SSH_PORT_NAS:-2200}:2200"  # SSH gateway for user workspaces
 

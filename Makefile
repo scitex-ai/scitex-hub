@@ -617,6 +617,10 @@ setup-pytest:
 setup-testing: setup-pytest setup-vitest
 	@echo -e "$(GREEN)✅ All testing infrastructure setup complete$(NC)"
 
+# Umami Analytics Setup
+setup-umami:
+	@./scripts/setup/setup_umami.sh $(env)
+
 test-unit:
 	@./scripts/testing/run_tests.sh unit
 

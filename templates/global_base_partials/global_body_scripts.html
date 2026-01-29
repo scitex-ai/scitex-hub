@@ -1,4 +1,5 @@
 {% load static vite %}
+
 <!-- Template cleanup (removes stray Django template text from linter reformatting) -->
 {% vite_script 'shared/utils/template-cleanup' %}
 <!-- Bootstrap 5 JavaScript Bundle (includes Popper) -->
@@ -142,8 +143,6 @@
 {% vite_script 'shared/utils/visitor-heartbeat' %}
 <!-- Product Tour (step-by-step guided walkthrough) -->
 {% vite_script 'shared/components/product-tour' %}
-<!-- Cookie Consent Banner -->
-{% vite_script 'shared/components/cookie-consent' %}
 <!-- Mobile Notice Banner Dismiss -->
 <script>
     (function() {

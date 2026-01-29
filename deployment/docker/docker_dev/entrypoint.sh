@@ -272,6 +272,25 @@ else
 fi
 
 # ============================================
+# Initialize Test User (Development Only)
+# ============================================
+# Create test-user for development and E2E testing
+initialize_test_user() {
+    local username="${SCITEX_CLOUD_TEST_USER_USERNAME:-test-user}"
+    local password="${SCITEX_CLOUD_TEST_USER_PASSWORD:-Password123!}"
+    local email="test@example.com"
+
+    echo_info "Ensuring test user exists: $username"
+    python manage.py init_test_user \
+        --username="$username" \
+        --email="$email" \
+        --password="$password" \
+        2>&1 | grep -v "ERRO\|WARN" || true
+    echo_success "Test user ready: $username"
+}
+initialize_test_user
+
+# ============================================
 # Generate Plot Gallery to Static Directory
 # ============================================
 # Generate scitex.plt gallery examples into static/shared/images/gallery

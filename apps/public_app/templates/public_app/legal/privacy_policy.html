@@ -1,98 +1,102 @@
 {% extends "global_base.html" %}
+
 {% load static %}
+
 {% block title %}
     Privacy
     Policy - SciTeX
 {% endblock %}
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'shared/css/components/page-header.css' %}">
+    <link rel="stylesheet" href="{% static 'shared/css/components/page-header.css' %}" />
     <style>
-  .policy-section {
-    padding: var(--spacing-xxl) 0;
-  }
+        .policy-section {
+            padding: var(--spacing-xxl) 0;
+        }
 
-  .policy-container {
-    max-width: 800px;
-    margin: 0 auto;
-  }
+        .policy-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
 
-  .policy-content {
-    background-color: var(--bg-surface);
-    border-radius: var(--border-radius-lg);
-    padding: var(--spacing-xl);
-    box-shadow: var(--box-shadow-sm);
-    color: var(--text-primary);
-  }
+        .policy-content {
+            background-color: var(--bg-surface);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-xl);
+            box-shadow: var(--box-shadow-sm);
+            color: var(--text-primary);
+        }
 
-  .policy-content h2 {
-    color: var(--text-primary);
-    margin-top: var(--spacing-xl);
-    margin-bottom: var(--spacing-md);
-    padding-bottom: var(--spacing-xs);
-    border-bottom: 1px solid var(--border-muted);
-  }
+        .policy-content h2 {
+            color: var(--text-primary);
+            margin-top: var(--spacing-xl);
+            margin-bottom: var(--spacing-md);
+            padding-bottom: var(--spacing-xs);
+            border-bottom: 1px solid var(--border-muted);
+        }
 
-  .policy-content h2:first-child {
-    margin-top: 0;
-  }
+        .policy-content h2:first-child {
+            margin-top: 0;
+        }
 
-  .policy-content h3 {
-    color: var(--text-primary);
-    margin-top: var(--spacing-lg);
-    margin-bottom: var(--spacing-sm);
-  }
+        .policy-content h3 {
+            color: var(--text-primary);
+            margin-top: var(--spacing-lg);
+            margin-bottom: var(--spacing-sm);
+        }
 
-  .policy-content p {
-    margin-bottom: var(--spacing-md);
-    color: var(--text-secondary);
-  }
+        .policy-content p {
+            margin-bottom: var(--spacing-md);
+            color: var(--text-secondary);
+        }
 
-  .policy-content ul,
-  .policy-content ol {
-    margin-bottom: var(--spacing-md);
-    padding-left: 2rem;
-    color: var(--text-secondary);
-  }
+        .policy-content ul,
+        .policy-content ol {
+            margin-bottom: var(--spacing-md);
+            padding-left: 2rem;
+            color: var(--text-secondary);
+        }
 
-  .policy-content li {
-    margin-bottom: var(--spacing-xs);
-  }
+        .policy-content li {
+            margin-bottom: var(--spacing-xs);
+        }
 
-  .policy-content a {
-    color: #3498db;
-    text-decoration: none;
-  }
+        .policy-content a {
+            color: #3498db;
+            text-decoration: none;
+        }
 
-  .policy-content a:hover {
-    text-decoration: underline;
-  }
+        .policy-content a:hover {
+            text-decoration: underline;
+        }
 
-  .policy-content .highlight {
-    background-color: var(--color-accent-subtle);
-    padding: var(--spacing-md);
-    border-radius: var(--border-radius);
-    margin: var(--spacing-lg) 0;
-    border-left: 3px solid var(--text-primary);
-  }
+        .policy-content .highlight {
+            background-color: var(--color-accent-subtle);
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius);
+            margin: var(--spacing-lg) 0;
+            border-left: 3px solid var(--text-primary);
+        }
 
-  .policy-meta {
-    text-align: center;
-    margin-top: var(--spacing-lg);
-    color: var(--text-muted);
-    font-size: 0.9rem;
-  }
+        .policy-meta {
+            text-align: center;
+            margin-top: var(--spacing-lg);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
 
-  address {
-    font-style: normal;
-    color: var(--text-secondary);
-    line-height: 1.8;
-  }
+        address {
+            font-style: normal;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
     </style>
 {% endblock %}
 {% block content %}
     <div class="container pt-4">
         <section class="page-header">
-            <h1><i class="fas fa-shield-alt"></i> Privacy Policy</h1>
+            <h1>
+                <i class="fas fa-shield-alt"></i> Privacy Policy
+            </h1>
             <p>Learn how we collect, use, and protect your information</p>
         </section>
     </div>
@@ -263,37 +267,34 @@
                     </p>
                     <h2 id="cookies">Cookies and Tracking Technologies</h2>
                     <p>
-                        We may use cookies, web beacons, tracking pixels, and other tracking
-                        technologies on the platform to help customize the platform and
-                        improve your experience. When you access the platform, your personal
-                        information is not collected through the use of tracking technology.
-                        Most browsers are set to accept cookies by default. You can remove or
-                        reject cookies, but be aware that such action could affect the
-                        availability and functionality of the platform.
+                        SciTeX uses only essential cookies required for the platform to function
+                        (session management and security). We do not use tracking cookies,
+                        advertising cookies, or third-party analytics cookies.
+                    </p>
+                    <p>
+                        For analytics, we use Umami, a privacy-focused solution that does not
+                        use cookies or collect personal data. This means no consent banner is
+                        required and your browsing is not tracked across websites.
                     </p>
                     <h3 id="analytics">Analytics Services</h3>
                     <p>
-                        We use Google Analytics 4 to collect anonymous, aggregate information
-                        about how users interact with our platform. This includes:
+                        We use <a href="https://umami.is" target="_blank" rel="noopener">Umami</a>,
+                        a privacy-focused analytics solution. Unlike traditional analytics platforms,
+                        Umami:
                     </p>
                     <ul>
-                        <li>Pages and features visited (e.g., Scholar, Code, Writer modules)</li>
-                        <li>General usage patterns and trends</li>
-                        <li>Approximate geographic location (country/region level)</li>
-                        <li>Device type and browser information</li>
+                        <li>Does not use cookies</li>
+                        <li>Does not collect personal data or IP addresses</li>
+                        <li>Does not track users across websites</li>
+                        <li>Is fully GDPR compliant without requiring consent banners</li>
                     </ul>
                     <p>
-                        This data is collected with IP anonymization enabled and does not include
-                        any personal content such as search queries, document contents, file names,
-                        or code. Google Analytics uses cookies to distinguish unique users.
-                        You can opt out of Google Analytics by installing the
-                        <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener">
-                        Google Analytics Opt-out Browser Add-on</a>.
+                        Umami collects only anonymous, aggregate statistics such as page views,
+                        referrer sources, device types, and general geographic regions. This data
+                        cannot be used to identify individual users.
                     </p>
                     <h3 id="login-history">Account Security Logging</h3>
-                    <p>
-                        For your security, we maintain a log of account login activity, including:
-                    </p>
+                    <p>For your security, we maintain a log of account login activity, including:</p>
                     <ul>
                         <li>Date and time of login</li>
                         <li>IP address</li>
@@ -383,15 +384,14 @@
                         Maidstone, VIC, Australia
                         <br />
                         Email:
-                        <a href="mailto:legal@scitex.ai"
-                           aria-label="Email SciTeX at legal@scitex.ai">legal@scitex.ai</a>
+                        <a href="mailto:legal@scitex.ai" aria-label="Email SciTeX at legal@scitex.ai">legal@scitex.ai</a>
                     </address>
                 </article>
             </div>
             <div class="policy-meta">
                 <p>
                     <strong>Last Updated:</strong>
-                    <time datetime="2026-01-22">January 22, 2026</time>
+                    <time datetime="2026-01-29">January 29, 2026</time>
                 </p>
             </div>
         </div>

@@ -85,9 +85,12 @@ SCITEX_CLOUD_VISITOR_POOL_SIZE = int(os.environ.get("SCITEX_CLOUD_VISITOR_POOL_S
 # ---------------------------------------
 # Analytics
 # ---------------------------------------
-# Google Analytics 4 Measurement ID (e.g., G-XXXXXXXXXX)
+# Analytics (Umami - privacy-focused, no cookies)
+# Umami Website ID (get from your Umami dashboard)
 # Leave empty to disable tracking
-GOOGLE_ANALYTICS_ID = os.environ.get("SCITEX_CLOUD_GOOGLE_ANALYTICS_ID", "")
+UMAMI_WEBSITE_ID = os.environ.get("SCITEX_CLOUD_UMAMI_WEBSITE_ID", "")
+# Umami script URL (default: cloud.umami.is, or self-hosted URL)
+UMAMI_SCRIPT_URL = os.environ.get("SCITEX_CLOUD_UMAMI_SCRIPT_URL", "https://cloud.umami.is/script.js")
 
 # ---------------------------------------
 # Paths
@@ -213,7 +216,7 @@ TEMPLATES = [
                 "config.context_processors.cache_buster",
                 "config.context_processors.debug_mode",
                 "config.context_processors.scitex_version",
-                "config.context_processors.google_analytics",
+                "config.context_processors.umami_analytics",
                 "config.context_processors.site_branding",
             ],
         },

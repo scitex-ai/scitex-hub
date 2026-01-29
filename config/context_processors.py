@@ -87,12 +87,17 @@ def get_scitex_cloud_version():
     return getattr(settings, "SCITEX_CLOUD_VERSION", "0.0.0")
 
 
-def google_analytics(request):
+def umami_analytics(request):
     """
-    Expose Google Analytics Measurement ID to templates.
-    Only sends tracking data if GOOGLE_ANALYTICS_ID is configured.
+    Expose Umami Analytics configuration to templates.
+    Umami is privacy-focused and does not use cookies.
     """
-    return {"GOOGLE_ANALYTICS_ID": getattr(settings, "GOOGLE_ANALYTICS_ID", "")}
+    return {
+        "UMAMI_WEBSITE_ID": getattr(settings, "UMAMI_WEBSITE_ID", ""),
+        "UMAMI_SCRIPT_URL": getattr(
+            settings, "UMAMI_SCRIPT_URL", "https://cloud.umami.is/script.js"
+        ),
+    }
 
 
 def site_branding(request):

@@ -139,5 +139,43 @@ ignore = [
 indent = 4
 profile = "django"
 max_line_length = 120
+max_attribute_length = 80
 format_css = true
-format_js = true
+format_js = false
+close_void_tags = true
+blank_line_after_tag = "load,extends"
+ignore = "H006,H030,H031"
+include = "H017,H035"
+use_gitignore = true
+linter_output_format = "{filename}:{line}: {message} ({code})"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--verbose",
+    "--strict-markers",
+    "--tb=short",
+    "--capture=no",
+    "--browser=chromium",
+    "--headed",
+    "--slowmo=50",
+    "--video=retain-on-failure",
+    "--screenshot=only-on-failure",
+]
+markers = [
+    "e2e: End-to-end tests using browser automation",
+    "slow: Tests that take a long time to run",
+    "auth: Authentication and authorization tests",
+    "user: User management tests",
+    "integration: Integration tests",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+    "ignore::pytest.PytestConfigWarning",
+]
+log_cli = true
+log_cli_level = "INFO"
