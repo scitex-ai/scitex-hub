@@ -1,7 +1,12 @@
 {% load static %}
-<!-- Favicon now in global_head_meta.html -->
-<link rel="alternate icon"
-      href="{% static 'shared/images/favicons/favicon.png' %}" />
+<!-- Favicon alternate icon (conditional based on DEBUG) -->
+{% if DEBUG %}
+    <link rel="alternate icon"
+          href="{% static 'shared/images/favicons/favicon-dev.svg' %}?v=7" />
+{% else %}
+    <link rel="alternate icon"
+          href="{% static 'shared/images/favicons/favicon.png' %}?v=2" />
+{% endif %}
 <!-- Preconnect to external resources for faster loading -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
