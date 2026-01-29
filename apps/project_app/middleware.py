@@ -86,12 +86,8 @@ class VisitorAutoLoginMiddleware:
         if not is_browser:
             return self.get_response(request)
 
-        # Check for cookie consent before allocating visitor slot
-        # Users must accept cookies (essential or all) before we allocate a session
-        if not request.COOKIES.get("scitex_consent"):
-            # No consent given yet - don't allocate visitor slot
-            # User can still browse public pages, they just need to consent first
-            return self.get_response(request)
+        # Note: Cookie consent check removed - SciTeX uses privacy-focused Umami
+        # analytics and only essential session cookies (no tracking/advertising)
 
         # Auto-login as visitor for real browser requests
         try:
