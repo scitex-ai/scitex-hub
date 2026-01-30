@@ -20,7 +20,9 @@ export function updateVisitorCountdowns(): void {
       span.textContent = `Expires in ${remainingMinutes} min`;
     } else {
       span.textContent = 'Expired';
-      setTimeout(() => location.reload(), 1000);
+      // Redirect to expired page instead of reloading (prevents infinite reload loop)
+      // Use replace() to prevent back button returning to polling page
+      window.location.replace('/visitor-expired/');
     }
   });
 }

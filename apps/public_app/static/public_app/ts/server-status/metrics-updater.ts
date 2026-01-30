@@ -15,12 +15,36 @@ let lastNetRecv: number | null = null;
 let lastTimestamp: number | null = null;
 let gpuAvailable: boolean | null = null;
 
+export interface MetricsResult {
+  success: boolean;
+  sessionExpired?: boolean;
+  error?: string;
+}
+
 /**
  * Update all metric current values from API
  */
-export async function updateMetrics(): Promise<void> {
+export async function updateMetrics(): Promise<MetricsResult> {
   try {
     const response = await fetch('/api/server-status/');
+
+    // Check for session expiration (redirects to visitor-expired)
+    if (response.status === 401 || response.status === 403) {
+      console.log('[metrics-updater] Session expired (401/403)');
+      return { success: false, sessionExpired: true };
+    }
+
+    // Check for redirect to visitor-expired page
+    if (response.redirected && response.url.includes('visitor-expired')) {
+      console.log('[metrics-updater] Redirected to visitor-expired');
+      return { success: false, sessionExpired: true };
+    }
+
+    if (!response.ok) {
+      console.warn(`[metrics-updater] API returned ${response.status}`);
+      return { success: false, error: `HTTP ${response.status}` };
+    }
+
     const data: ServerMetrics = await response.json();
     const timestamp = data.timestamp;
 
@@ -122,7 +146,10 @@ export async function updateMetrics(): Promise<void> {
     lastNetRecv = data.net_recv_mb_total;
     lastTimestamp = timestamp;
 
+    return { success: true };
+
   } catch (error) {
     console.error('[metrics-updater] Error fetching metrics:', error);
+    return { success: false, error: String(error) };
   }
 }

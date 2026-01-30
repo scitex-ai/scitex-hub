@@ -7,6 +7,7 @@
  * - Theme-aware chart loading
  * - Real-time metric value updates
  * - Visitor countdown timers
+ * - Session expiration detection (stops polling to prevent server overload)
  */
 
 import { updateMetrics } from './server-status/metrics-updater.ts';
@@ -16,6 +17,36 @@ console.log('[DEBUG] server-status.ts loaded');
 
 // State
 let currentTimeSpanMinutes = 60;
+
+// Track intervals for cleanup on session expiration
+let chartIntervalId: number | null = null;
+let metricsIntervalId: number | null = null;
+let countdownIntervalId: number | null = null;
+let consecutiveErrors = 0;
+const MAX_CONSECUTIVE_ERRORS = 5;
+
+/**
+ * Stop all polling intervals (called when session expires or too many errors)
+ */
+function stopAllPolling(reason: string): void {
+  console.log(`[server-status] Stopping all polling: ${reason}`);
+
+  if (chartIntervalId) {
+    clearInterval(chartIntervalId);
+    chartIntervalId = null;
+  }
+  if (metricsIntervalId) {
+    clearInterval(metricsIntervalId);
+    metricsIntervalId = null;
+  }
+  if (countdownIntervalId) {
+    clearInterval(countdownIntervalId);
+    countdownIntervalId = null;
+  }
+}
+
+// Expose stop function globally for other modules
+(window as unknown as Record<string, unknown>).stopServerStatusPolling = stopAllPolling;
 
 /**
  * Get current theme from document
@@ -88,6 +119,28 @@ function setupThemeListener(): void {
 }
 
 /**
+ * Wrapper for updateMetrics that tracks errors and stops polling if too many failures
+ */
+async function safeUpdateMetrics(): Promise<void> {
+  try {
+    const result = await updateMetrics();
+    // Check if session expired (returned from metrics-updater)
+    if (result && result.sessionExpired) {
+      stopAllPolling('Session expired');
+      window.location.replace('/visitor-expired/');
+      return;
+    }
+    consecutiveErrors = 0; // Reset on success
+  } catch {
+    consecutiveErrors++;
+    console.warn(`[server-status] Metrics error (${consecutiveErrors}/${MAX_CONSECUTIVE_ERRORS})`);
+    if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+      stopAllPolling('Too many consecutive errors');
+    }
+  }
+}
+
+/**
  * Initialize server status page
  */
 function initializeServerStatus(): void {
@@ -99,11 +152,11 @@ function initializeServerStatus(): void {
   updateChartImages();
 
   // Refresh charts every 60 seconds (matches Celery generation interval)
-  setInterval(updateChartImages, 60000);
+  chartIntervalId = window.setInterval(updateChartImages, 60000);
 
   // Update metric values every 2 seconds
-  updateMetrics();
-  setInterval(updateMetrics, 2000);
+  safeUpdateMetrics();
+  metricsIntervalId = window.setInterval(safeUpdateMetrics, 2000);
 
   console.log('[server-status] Initialized - charts refresh every 60s, metrics every 2s');
 }
@@ -113,6 +166,6 @@ window.addEventListener('load', function() {
   initializeServerStatus();
 
   // Update visitor pool countdowns every second
-  setInterval(updateVisitorCountdowns, 1000);
   updateVisitorCountdowns();
+  countdownIntervalId = window.setInterval(updateVisitorCountdowns, 1000);
 });
