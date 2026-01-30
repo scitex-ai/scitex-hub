@@ -171,10 +171,8 @@ def resend_otp_api(request):
                 }
             )
 
-        # Invalidate old verifications
-        EmailVerification.objects.filter(email=email, is_verified=False).update(
-            is_verified=True
-        )  # Mark old ones as used
+        # Delete old unverified verification records (don't mark as verified)
+        EmailVerification.objects.filter(email=email, is_verified=False).delete()
 
         # Create new verification
         verification = EmailVerification.objects.create(
