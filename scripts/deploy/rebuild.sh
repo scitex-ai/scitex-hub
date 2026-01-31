@@ -53,7 +53,8 @@ fi
 # Set docker directory and compose command based on environment
 if [ "$ENV" = "staging" ]; then
     DOCKER_DIR="$PROJECT_ROOT/deployment/docker"
-    COMPOSE_CMD="docker compose -f docker-compose.yml -f docker-compose.staging.yml"
+    export SCITEX_ENV=staging
+    COMPOSE_CMD="docker compose --env-file ./envs/.env.staging -f docker-compose.yml -f docker-compose.staging.yml"
 else
     DOCKER_DIR="$PROJECT_ROOT/deployment/docker/docker_${ENV}"
     COMPOSE_CMD="docker compose"
