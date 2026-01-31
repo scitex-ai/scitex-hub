@@ -310,6 +310,17 @@ def handle_client(client: socket.socket, addr: tuple, host_key: paramiko.RSAKey)
 
         logger.info(f"Session ended for user: {server.username}")
 
+    except paramiko.SSHException as e:
+        # Health checks connect and read banner but don't complete SSH handshake
+        # This is expected behavior - log at DEBUG for localhost, WARNING for others
+        error_msg = str(e)
+        if "Error reading SSH protocol banner" in error_msg:
+            if addr[0] == "127.0.0.1":
+                logger.debug(f"Health check probe from {addr[0]} (no SSH handshake)")
+            else:
+                logger.warning(f"Connection from {addr[0]} closed without SSH handshake")
+        else:
+            logger.error(f"SSH error handling client {addr[0]}: {e}", exc_info=True)
     except Exception as e:
         logger.error(f"Error handling client {addr[0]}: {e}", exc_info=True)
     finally:
