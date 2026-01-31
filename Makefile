@@ -109,7 +109,12 @@ SHELL := /bin/bash
 # ============================================
 # Configuration
 # ============================================
-VALID_ENVS := dev staging prod
+VALID_ENVS := dev stag staging prod
+
+# Normalize ENV aliases (stag -> staging)
+ifeq ($(ENV),stag)
+  override ENV := staging
+endif
 
 # Docker directory (unified structure)
 DOCKER_BASE_DIR := deployment/docker
@@ -426,27 +431,22 @@ start:
 		fi; \
 		echo ""; \
 	fi
-	@# Stop all other environments to ensure exclusivity
+	@# Stop conflicting environments (dev only; allow prod/staging/nas to coexist)
 	@cd $(DOCKER_BASE_DIR) && \
-	for env in $(VALID_ENVS); do \
+	for env in dev; do \
 		if [ "$$env" != "$(ENV)" ]; then \
 			echo -e "$(CYAN)Checking $$env...$(NC)"; \
-			if [ "$$env" = "dev" ]; then \
-				COMPOSE="docker compose"; \
-			elif [ "$$env" = "staging" ]; then \
-				COMPOSE="docker compose -f docker-compose.yml -f docker-compose.staging.yml"; \
-			else \
-				COMPOSE="docker compose -f docker-compose.yml -f docker-compose.prod.yml"; \
-			fi; \
+			COMPOSE="docker compose"; \
 			export SCITEX_ENV=$$env; \
 			if $$COMPOSE ps -q 2>/dev/null | grep -q .; then \
-				echo -e "  $(YELLOW)Stopping $$env containers...$(NC)"; \
+				echo -e "  $(YELLOW)Stopping $$env containers (conflicts with $(ENV))...$(NC)"; \
 				$$COMPOSE down --remove-orphans 2>/dev/null || true; \
 			else \
 				echo -e "  $(GREEN)✓ $$env already stopped$(NC)"; \
 			fi; \
 		fi; \
 	done
+	@# Note: prod and staging can run in parallel (different ports, different volumes)
 	@echo -e ""
 	@# Start the requested environment
 	@echo -e "$(CYAN)Starting $(ENV) services...$(NC)"
