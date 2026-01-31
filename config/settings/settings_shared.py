@@ -218,6 +218,7 @@ TEMPLATES = [
                 "config.context_processors.scitex_version",
                 "config.context_processors.umami_analytics",
                 "config.context_processors.site_branding",
+                "config.context_processors.scitex_env",
             ],
         },
     },
@@ -671,6 +672,9 @@ ACCOUNT_AUTHENTICATION_METHOD = "username_email"
 ACCOUNT_EMAIL_VERIFICATION = "optional"  # or "mandatory" for stricter verification
 ACCOUNT_SIGNUP_REDIRECT_URL = LOGIN_REDIRECT_URL
 ACCOUNT_LOGOUT_REDIRECT_URL = LOGOUT_REDIRECT_URL
+
+# Allow authenticated users (like expired visitors) to access signup/login pages
+ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 
 # Social account settings
 SOCIALACCOUNT_AUTO_SIGNUP = True  # Auto-create account on first social login

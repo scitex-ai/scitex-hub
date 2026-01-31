@@ -3,7 +3,7 @@
 # rebuild.sh - Full rebuild of SciTeX Cloud environment
 # ==============================================================================
 # Usage: ./scripts/deploy/rebuild.sh <env>
-#   env: dev, nas, or prod
+#   env: dev, nas, staging, or prod
 #
 # REBUILD_STEPS (single source of truth - used by 'make help-commands'):
 #   1. down          - Stop services (docker compose down)
@@ -39,18 +39,25 @@ ENV="${1:-}"
 if [ -z "$ENV" ]; then
     echo -e "${RED}Error: Environment required${NC}"
     echo "Usage: $0 <env>"
-    echo "  env: dev, nas, or prod"
+    echo "  env: dev, nas, staging, or prod"
     exit 1
 fi
 
 # Validate environment value
-if [[ ! "$ENV" =~ ^(dev|nas|prod)$ ]]; then
+if [[ ! "$ENV" =~ ^(dev|nas|staging|prod)$ ]]; then
     echo -e "${RED}Error: Invalid environment '$ENV'${NC}"
-    echo "Valid environments: dev, nas, prod"
+    echo "Valid environments: dev, nas, staging, prod"
     exit 1
 fi
 
-DOCKER_DIR="$PROJECT_ROOT/deployment/docker/docker_${ENV}"
+# Set docker directory and compose command based on environment
+if [ "$ENV" = "staging" ]; then
+    DOCKER_DIR="$PROJECT_ROOT/deployment/docker"
+    COMPOSE_CMD="docker compose -f docker-compose.yml -f docker-compose.staging.yml"
+else
+    DOCKER_DIR="$PROJECT_ROOT/deployment/docker/docker_${ENV}"
+    COMPOSE_CMD="docker compose"
+fi
 
 # Check docker directory exists
 if [ ! -d "$DOCKER_DIR" ]; then
@@ -78,11 +85,11 @@ echo -e "${CYAN}🔄 Rebuilding ${ENV} environment...${NC}"
 # Step 1: Stop services
 echo -e "${CYAN}  1. Stopping ${ENV}...${NC}"
 cd "$DOCKER_DIR"
-docker compose down --remove-orphans 2>/dev/null || true
+$COMPOSE_CMD down --remove-orphans 2>/dev/null || true
 
 # Step 2: Build images
 echo -e "${CYAN}  2. Building Docker images...${NC}"
-docker compose build
+$COMPOSE_CMD build
 
 # Step 3: Clear vite timestamp (forces TypeScript rebuild)
 echo -e "${CYAN}  3. Clearing vite timestamp (forces TypeScript rebuild)...${NC}"
@@ -91,7 +98,7 @@ docker run --rm -v "scitex-cloud-${ENV}_static_volume:/staticfiles" alpine \
 
 # Step 4: Start services
 echo -e "${CYAN}  4. Starting services...${NC}"
-docker compose up -d
+$COMPOSE_CMD up -d
 
 # Step 5: Purge Cloudflare cache
 echo -e "${CYAN}  5. Purging Cloudflare cache...${NC}"
