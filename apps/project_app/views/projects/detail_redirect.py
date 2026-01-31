@@ -19,7 +19,7 @@ def project_detail_redirect(request, pk=None, slug=None):
         # Redirect from /projects/id/123/ to /username/project-name/
         project = get_object_or_404(Project, pk=pk, owner=request.user)
         return redirect(
-            "project_app:detail",
+            "user_projects:detail",
             username=project.owner.username,
             slug=project.slug,
             permanent=True,
@@ -28,13 +28,13 @@ def project_detail_redirect(request, pk=None, slug=None):
         # Redirect from /projects/project-name/ to /username/project-name/
         project = get_object_or_404(Project, slug=slug, owner=request.user)
         return redirect(
-            "project_app:detail",
+            "user_projects:detail",
             username=project.owner.username,
             slug=project.slug,
             permanent=True,
         )
     else:
-        return redirect("project_app:list")
+        return redirect("user_projects:list", username=request.user.username)
 
 
 # EOF

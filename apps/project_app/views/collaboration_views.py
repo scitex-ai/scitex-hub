@@ -32,7 +32,7 @@ def project_members(request, username, slug):
             request,
             "You don't have permission to manage members for this project.",
         )
-        return redirect("project_app:detail", username=username, slug=slug)
+        return redirect("user_projects:detail", username=username, slug=slug)
 
     context = {
         "project": project,
