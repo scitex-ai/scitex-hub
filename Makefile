@@ -450,33 +450,7 @@ build-no-cache:
 	@echo -e "$(GREEN)✅ Build complete for $(ENV)$(NC)"
 
 rebuild: validate-docker
-	@# NAS safety check
-	@if [ "$(ENV)" = "nas" ]; then \
-		echo ""; \
-		echo -e "$(RED)⚠️  WARNING: NAS rebuild!$(NC)"; \
-		echo -e "$(YELLOW)   This will cause downtime.$(NC)"; \
-		echo ""; \
-		printf "Type 'yes' to confirm: "; \
-		read confirm; \
-		if [ "$$confirm" != "yes" ]; then \
-			echo -e "$(YELLOW)❌ Rebuild cancelled$(NC)"; \
-			exit 1; \
-		fi; \
-	fi
-	@echo -e ""
-	@echo -e "$(CYAN)🔄 Rebuilding $(ENV) environment...$(NC)"
-	@echo -e "  1. Stopping $(ENV)..."
-	@$(MAKE) --no-print-directory ENV=$(ENV) stop
-	@echo -e "  2. Building images..."
-	@cd $(DOCKER_DIR) && $(MAKE) -f Makefile build
-	@echo -e "  3. Clearing vite timestamp (forces TypeScript rebuild on start)..."
-	@docker run --rm -v scitex-cloud-$(ENV)_static_volume:/staticfiles alpine rm -f /staticfiles/vite/.build-timestamp 2>/dev/null || true
-	@echo -e "  4. Starting $(ENV)..."
-	@cd $(DOCKER_DIR) && $(MAKE) -f Makefile up
-	@echo -e "  5. Purging Cloudflare cache..."
-	@./deployment/docker/common/scripts/cloudflare_cache_purge.sh all 2>/dev/null || echo -e "$(YELLOW)   ⚠️ Cache purge skipped (no API credentials)$(NC)"
-	@echo -e ""
-	@echo -e "$(GREEN)✅ $(ENV) rebuild complete$(NC)"
+	@./scripts/deploy/rebuild.sh $(ENV)
 	@$(MAKE) --no-print-directory validate
 
 rebuild-no-cache: validate-docker
