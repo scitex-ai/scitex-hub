@@ -29,9 +29,40 @@ def signup(request):
             password = form.cleaned_data["password"]
 
             # Check if email is already registered
-            if User.objects.filter(email=email).exists():
-                messages.error(request, "An account with this email already exists.")
-                return render(request, "auth_app/signup.html", {"form": form})
+            existing_user = User.objects.filter(email=email).first()
+            if existing_user:
+                # Check if it's an unverified account with expired verification
+                if not existing_user.is_active:
+                    from ..models import EmailVerification
+                    from django.utils import timezone
+                    from datetime import timedelta
+
+                    # Check if verification has expired (default: 1 hour after registration)
+                    verification_timeout = timedelta(hours=1)
+                    account_expired = (
+                        timezone.now() - existing_user.date_joined > verification_timeout
+                    )
+
+                    if account_expired:
+                        # Delete the expired unverified account to allow re-registration
+                        logger.info(
+                            f"Deleting expired unverified account for email: {email}"
+                        )
+                        existing_user.delete()
+                    else:
+                        # Account not yet expired, prompt to verify
+                        messages.warning(
+                            request,
+                            f"An unverified account exists with this email. "
+                            f"Please check your inbox or wait 1 hour for the account to expire."
+                        )
+                        from django.urls import reverse
+
+                        verify_url = reverse("auth_app:verify-email")
+                        return redirect(f"{verify_url}?email={email}")
+                else:
+                    messages.error(request, "An account with this email already exists.")
+                    return render(request, "auth_app/signup.html", {"form": form})
 
             # Create inactive user (cannot log in until email verified)
             user = User.objects.create_user(
@@ -101,7 +132,7 @@ def signup(request):
                     logger.info(f"Verification email sent to {email}")
                     messages.success(
                         request,
-                        f"Account created! Please check {email} for a verification code.",
+                        f"Account created! Please check {email} for a verification code. You have 1 hour to verify.",
                     )
                     # Redirect to email verification page
                     from django.urls import reverse

@@ -20,6 +20,11 @@ class VisitorHeartbeat {
   private isIdle: boolean = false;
 
   constructor() {
+    // Don't run on visitor-expired page (prevents redirect loop)
+    if (window.location.pathname.includes('visitor-expired')) {
+      return;
+    }
+
     // Only run for visitor users
     const isVisitor = document.body.dataset.userType === 'visitor';
     if (!isVisitor) {
@@ -82,10 +87,11 @@ class VisitorHeartbeat {
         if (data.remaining_seconds <= 300 && data.remaining_seconds > 240) {
           this.showSessionWarning(data.remaining_seconds);
         }
-      } else if (response.status === 404) {
-        // Session expired - reload to trigger auto-reallocation
-        console.log('[Heartbeat] Session expired, reloading for auto-reallocation');
-        window.location.reload();
+      } else if (response.status === 404 || response.status === 401 || response.status === 403) {
+        // Session expired - redirect to expired page (not reload to prevent infinite loop)
+        console.log('[Heartbeat] Session expired, redirecting to visitor-expired');
+        this.destroy(); // Stop heartbeat before redirect
+        window.location.replace('/visitor-expired/');
       }
     } catch (error) {
       console.warn('[Heartbeat] Error:', error);

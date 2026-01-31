@@ -450,29 +450,7 @@ build-no-cache:
 	@echo -e "$(GREEN)✅ Build complete for $(ENV)$(NC)"
 
 rebuild: validate-docker
-	@# NAS safety check
-	@if [ "$(ENV)" = "nas" ]; then \
-		echo ""; \
-		echo -e "$(RED)⚠️  WARNING: NAS rebuild!$(NC)"; \
-		echo -e "$(YELLOW)   This will cause downtime.$(NC)"; \
-		echo ""; \
-		printf "Type 'yes' to confirm: "; \
-		read confirm; \
-		if [ "$$confirm" != "yes" ]; then \
-			echo -e "$(YELLOW)❌ Rebuild cancelled$(NC)"; \
-			exit 1; \
-		fi; \
-	fi
-	@echo -e ""
-	@echo -e "$(CYAN)🔄 Rebuilding $(ENV) environment...$(NC)"
-	@echo -e "  1. Stopping $(ENV)..."
-	@$(MAKE) --no-print-directory ENV=$(ENV) stop
-	@echo -e "  2. Building images..."
-	@cd $(DOCKER_DIR) && $(MAKE) -f Makefile build
-	@echo -e "  3. Starting $(ENV)..."
-	@cd $(DOCKER_DIR) && $(MAKE) -f Makefile up
-	@echo -e ""
-	@echo -e "$(GREEN)✅ $(ENV) rebuild complete$(NC)"
+	@./scripts/deploy/rebuild.sh $(ENV)
 	@$(MAKE) --no-print-directory validate
 
 rebuild-no-cache: validate-docker

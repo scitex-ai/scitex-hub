@@ -76,6 +76,10 @@ if [ "$VITE_REBUILD_NEEDED" = true ]; then
     npm run build
     touch staticfiles/vite/.build-timestamp
     echo_success "TypeScript build complete"
+    # Re-run collectstatic to pick up new vite output
+    echo_info "Collecting static files (post-vite)..."
+    python manage.py collectstatic --noinput --clear 2>&1 | tail -1
+    echo_success "Static files collected"
 else
     echo_info "TypeScript build already up to date"
 fi

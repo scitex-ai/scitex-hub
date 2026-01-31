@@ -82,7 +82,7 @@ class EmailService:
                     <p><strong>Important:</strong></p>
                     <ul>
                         <li>This code expires in {context["expires_minutes"]} minutes</li>
-                        <li>You have 3 attempts to enter the correct code</li>
+                        <li>Your account must be verified within 1 hour or it will be deleted</li>
                         <li>Do not share this code with anyone</li>
                     </ul>
                 </div>
@@ -110,7 +110,7 @@ class EmailService:
             
             Important:
             - This code expires in {context["expires_minutes"]} minutes
-            - You have 3 attempts to enter the correct code
+            - Your account must be verified within 1 hour or it will be deleted
             - Do not share this code with anyone
             
             If you didn't request this verification, please ignore this email.
