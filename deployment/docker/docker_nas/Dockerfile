@@ -31,7 +31,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install uv (pinned to 0.4.0 - older version without project detection requirement)
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
-    mv /root/.cargo/bin/uv /usr/local/bin/uv
+    mv /root/.local/bin/uv /usr/local/bin/uv
 
 # Copy project files needed for dependency installation
 COPY pyproject.toml README.md ./
