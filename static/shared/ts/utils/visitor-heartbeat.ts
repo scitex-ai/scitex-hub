@@ -20,6 +20,11 @@ class VisitorHeartbeat {
   private isIdle: boolean = false;
 
   constructor() {
+    // Don't run on visitor-expired page (prevents redirect loop)
+    if (window.location.pathname.includes('visitor-expired')) {
+      return;
+    }
+
     // Only run for visitor users
     const isVisitor = document.body.dataset.userType === 'visitor';
     if (!isVisitor) {
