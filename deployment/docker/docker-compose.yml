@@ -51,6 +51,30 @@ services:
       - scitex-network
 
   # ============================================
+  # PgBouncer Connection Pooler
+  # ============================================
+  pgbouncer:
+    image: edoburu/pgbouncer:v1.25.1-p0
+    volumes:
+      - ./common/pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+      - ./common/pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt:ro
+    env_file:
+      - ./envs/.env.${SCITEX_ENV:-dev}
+    environment:
+      DATABASE_URL: postgresql://${SCITEX_CLOUD_POSTGRES_USER:-scitex}:${SCITEX_CLOUD_POSTGRES_PASSWORD:-scitex_2025}@postgres:5432/${SCITEX_CLOUD_POSTGRES_DB:-scitex_cloud}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "localhost", "-p", "6432"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - scitex-network
+
+  # ============================================
   # Redis Cache
   # ============================================
   redis:

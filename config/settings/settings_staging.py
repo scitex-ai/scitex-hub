@@ -77,18 +77,22 @@ CSRF_TRUSTED_ORIGINS = os.environ.get(
 # ---------------------------------------
 # Database
 # ---------------------------------------
-# PostgreSQL for staging (separate from dev and prod)
+# PostgreSQL for staging via PgBouncer (separate from dev and prod)
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": os.environ.get("SCITEX_CLOUD_POSTGRES_DB", "scitex_cloud_staging"),
         "USER": os.environ.get("SCITEX_CLOUD_POSTGRES_USER", "scitex_staging"),
         "PASSWORD": os.environ.get("SCITEX_CLOUD_POSTGRES_PASSWORD", "scitex_staging_2025"),
-        "HOST": os.environ.get("SCITEX_CLOUD_DB_HOST", "postgres"),
-        "PORT": os.environ.get("SCITEX_CLOUD_DB_PORT", "5432"),
+        # Connect via PgBouncer for connection pooling
+        "HOST": os.environ.get("SCITEX_CLOUD_DB_HOST", "pgbouncer"),
+        "PORT": os.environ.get("SCITEX_CLOUD_DB_PORT", "6432"),
         "ATOMIC_REQUESTS": True,
-        "CONN_MAX_AGE": 60,
+        # CONN_MAX_AGE=0: Let PgBouncer handle connection pooling
+        "CONN_MAX_AGE": 0,
         "CONN_HEALTH_CHECKS": True,
+        # Disable server-side cursors (incompatible with PgBouncer transaction pooling)
+        "DISABLE_SERVER_SIDE_CURSORS": True,
         "OPTIONS": {
             "connect_timeout": 10,
         },

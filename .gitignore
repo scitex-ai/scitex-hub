@@ -809,6 +809,9 @@ containers/docker/.env.dev
 # New deployment structure env files (contain secrets)
 deployment/docker/envs/.env*
 !deployment/docker/envs/.env.example
+
+# PgBouncer userlist (contains database credentials)
+deployment/docker/common/pgbouncer/userlist.txt
 docs/to_claude/
 logs/
 test-paper-project/
