@@ -22,6 +22,8 @@ SHELL := /bin/bash
 
 .PHONY: \
 	help \
+	help-commands \
+	help-all \
 	status \
 	status-live \
 	validate-docker \
@@ -118,6 +120,15 @@ BLUE := \033[0;34m
 NC := \033[0m
 
 # ============================================
+# Command Definitions (Single Source of Truth)
+# ============================================
+# restart/build: defined here
+# rebuild: steps defined in scripts/deploy/rebuild.sh (use --steps to extract)
+
+CMD_RESTART := docker compose restart
+CMD_BUILD := docker compose build
+
+# ============================================
 # Environment Validation - NO DEFAULTS!
 # ============================================
 # Accept both env= and ENV= (convert lowercase to uppercase)
@@ -135,7 +146,7 @@ ifdef ENV
 else
   # ENV not specified - only allow non-operational commands
   ifneq ($(MAKECMDGOALS),)
-    ifneq ($(filter-out help status validate-docker stop-all force-stop-all format format-python format-web format-shell lint lint-web check-file-sizes check-assets check-host ensure-executable slurm-start slurm-stop slurm-restart slurm-status slurm-fix slurm-resume slurm-reset crossref-status crossref-check crossref-rebuild-check crossref-next-steps crossref-create-title-index crossref-create-author-index info regenerate-gallery sync-tests sync-tests-move sync-ts-tests sync-ts-tests-move setup-vitest test-ts test-ts-watch test-ts-ui test-ts-coverage setup-pytest setup-testing test-unit test-db test-api test-ui test-ui-headed test-python test-all test-status,$(MAKECMDGOALS)),)
+    ifneq ($(filter-out help help-commands help-all status validate-docker stop-all force-stop-all format format-python format-web format-shell lint lint-web check-file-sizes check-assets check-host ensure-executable slurm-start slurm-stop slurm-restart slurm-status slurm-fix slurm-resume slurm-reset crossref-status crossref-check crossref-rebuild-check crossref-next-steps crossref-create-title-index crossref-create-author-index info regenerate-gallery sync-tests sync-tests-move sync-ts-tests sync-ts-tests-move setup-vitest test-ts test-ts-watch test-ts-ui test-ts-coverage setup-pytest setup-testing test-unit test-db test-api test-ui test-ui-headed test-python test-all test-status,$(MAKECMDGOALS)),)
       $(error ❌ ENV not specified! Use: make ENV=<dev|nas> <command>)
     endif
   endif
@@ -172,99 +183,142 @@ validate-docker:
 validate: validate-docker
 
 # ============================================
-# Help
+# Help (Short - Default)
 # ============================================
 help:
 	@echo -e ""
+	@echo -e "$(GREEN)SciTeX Cloud$(NC) - Environment: $(CYAN)dev$(NC) | $(CYAN)nas$(NC)"
+	@echo -e ""
+	@echo -e "$(CYAN)Common Commands:$(NC)"
+	@echo -e "  make status                  Show what's running"
+	@echo -e "  make ENV=<env> start         Start environment"
+	@echo -e "  make ENV=<env> rebuild       Rebuild (for code changes)"
+	@echo -e "  make ENV=<env> logs          View logs"
+	@echo -e "  make ENV=<env> shell         Django shell"
+	@echo -e "  make stop-all                Stop everything"
+	@echo -e ""
+	@echo -e "$(CYAN)More:$(NC)"
+	@echo -e "  make help-commands           Explain restart vs build vs rebuild"
+	@echo -e "  make help-all                Full command list"
+	@echo -e ""
+
+# ============================================
+# Help - Command Explanations
+# ============================================
+help-commands:
+	@echo -e ""
 	@echo -e "$(GREEN)╔═══════════════════════════════════════════════════════╗$(NC)"
-	@echo -e "$(GREEN)║      SciTeX Cloud - Environment Orchestrator          ║$(NC)"
+	@echo -e "$(GREEN)║         restart vs build vs rebuild                   ║$(NC)"
 	@echo -e "$(GREEN)╚═══════════════════════════════════════════════════════╝$(NC)"
 	@echo -e ""
-	@$(MAKE) --no-print-directory status
+	@echo -e "$(YELLOW)Key concept:$(NC) Code is COPIED into Docker image at build time."
+	@echo -e "             Therefore, $(RED)restart does NOT apply code changes$(NC)."
 	@echo -e ""
-	@echo -e "$(CYAN)📋 Core Commands:$(NC)"
-	@echo -e "  make status                       # Show active environment"
-	@echo -e "  make validate                     # Validate state consistency"
-	@echo -e "  make ENV=<env> start              # Start environment (stops others)"
-	@echo -e "  make ENV=<env> switch             # Switch environment cleanly"
-	@echo -e "  make ENV=<env> stop               # Stop specific environment"
-	@echo -e "  make stop-all                     # Stop all environments"
+	@echo -e "$(CYAN)┌─────────────────────────────────────────────────────────┐$(NC)"
+	@echo -e "$(CYAN)│ restart $(NC)- Restart containers (same image)"
+	@echo -e "$(CYAN)├─────────────────────────────────────────────────────────┤$(NC)"
+	@echo -e "$(CYAN)│$(NC) Command: $(YELLOW)$(CMD_RESTART)$(NC)"
+	@echo -e "$(CYAN)│$(NC) Use for: Service hung, need quick restart"
+	@echo -e "$(CYAN)│$(NC) $(RED)Does NOT apply code changes$(NC)"
+	@echo -e "$(CYAN)└─────────────────────────────────────────────────────────┘$(NC)"
+	@echo -e ""
+	@echo -e "$(CYAN)┌─────────────────────────────────────────────────────────┐$(NC)"
+	@echo -e "$(CYAN)│ build $(NC)- Build Docker images"
+	@echo -e "$(CYAN)├─────────────────────────────────────────────────────────┤$(NC)"
+	@echo -e "$(CYAN)│$(NC) Command: $(YELLOW)$(CMD_BUILD)$(NC)"
+	@echo -e "$(CYAN)│$(NC) Use for: Build image only (need 'up' to start)"
+	@echo -e "$(CYAN)│$(NC) $(GREEN)Code changes included in new image$(NC)"
+	@echo -e "$(CYAN)└─────────────────────────────────────────────────────────┘$(NC)"
+	@echo -e ""
+	@echo -e "$(CYAN)┌─────────────────────────────────────────────────────────┐$(NC)"
+	@echo -e "$(CYAN)│ rebuild $(NC)- Full rebuild cycle (for code changes)"
+	@echo -e "$(CYAN)├─────────────────────────────────────────────────────────┤$(NC)"
+	@echo -e "$(CYAN)│$(NC) Steps (from scripts/deploy/rebuild.sh):"
+	@./scripts/deploy/rebuild.sh --steps | while read line; do echo -e "$(CYAN)│$(NC)   $(YELLOW)$$line$(NC)"; done
+	@echo -e "$(CYAN)│$(NC)"
+	@echo -e "$(CYAN)│$(NC) $(GREEN)★ Use this for deploying code changes$(NC)"
+	@echo -e "$(CYAN)└─────────────────────────────────────────────────────────┘$(NC)"
+	@echo -e ""
+	@echo -e "$(YELLOW)TL;DR:$(NC) After editing Python/JS code, run: $(GREEN)make ENV=nas rebuild$(NC)"
+	@echo -e ""
+
+# ============================================
+# Help (Full Command List)
+# ============================================
+help-all:
+	@echo -e ""
+	@echo -e "$(GREEN)╔═══════════════════════════════════════════════════════╗$(NC)"
+	@echo -e "$(GREEN)║      SciTeX Cloud - Full Command Reference            ║$(NC)"
+	@echo -e "$(GREEN)╚═══════════════════════════════════════════════════════╝$(NC)"
+	@echo -e ""
+	@echo -e "$(CYAN)📋 Core:$(NC)"
+	@echo -e "  status                       Show active environment"
+	@echo -e "  validate                     Validate state consistency"
+	@echo -e "  ENV=<env> start              Start environment (stops others)"
+	@echo -e "  ENV=<env> switch             Switch environment cleanly"
+	@echo -e "  ENV=<env> stop               Stop specific environment"
+	@echo -e "  stop-all                     Stop all environments"
 	@echo -e ""
 	@echo -e "$(CYAN)🔧 Build & Deploy:$(NC)"
-	@echo -e "  make ENV=<env> build              # Build images"
-	@echo -e "  make ENV=<env> rebuild            # Rebuild (stops, builds, starts)"
-	@echo -e "  make ENV=<env> rebuild-no-cache   # Rebuild without cache (for dependency fixes)"
-	@echo -e "  make ENV=<env> setup              # Full setup (build + migrate)"
+	@echo -e "  ENV=<env> build              Build images"
+	@echo -e "  ENV=<env> rebuild            Full rebuild (for code changes)"
+	@echo -e "  ENV=<env> rebuild-no-cache   Rebuild without cache"
+	@echo -e "  ENV=<env> setup              Full setup (build + migrate)"
 	@echo -e ""
 	@echo -e "$(CYAN)🐍 Django:$(NC)"
-	@echo -e "  make ENV=<env> migrate            # Run migrations"
-	@echo -e "  make ENV=<env> shell              # Django shell"
-	@echo -e "  make ENV=<env> collectstatic      # Collect static files"
+	@echo -e "  ENV=<env> migrate            Run migrations"
+	@echo -e "  ENV=<env> makemigrations     Create migrations"
+	@echo -e "  ENV=<env> shell              Django shell"
+	@echo -e "  ENV=<env> collectstatic      Collect static files"
+	@echo -e "  ENV=<env> createsuperuser    Create admin user"
 	@echo -e ""
-	@echo -e "$(CYAN)🔄 Reset & Fresh Start:$(NC)"
-	@echo -e "  make ENV=dev fresh-start          # Complete reset: DB + Gitea + Files (dev only)"
-	@echo -e "  make ENV=dev fresh-start-confirm  # Skip confirmation (use with caution)"
+	@echo -e "$(CYAN)🗄️  Database:$(NC)"
+	@echo -e "  ENV=<env> db-shell           PostgreSQL shell"
+	@echo -e "  ENV=<env> db-backup          Backup database"
+	@echo -e "  ENV=dev db-reset             Reset database (dev only)"
 	@echo -e ""
-	@echo -e "$(CYAN)📊 Monitoring:$(NC)"
-	@echo -e "  make ENV=<env> logs               # View logs"
-	@echo -e "  make ENV=<env> ps                 # Container status"
+	@echo -e "$(CYAN)📋 Logs:$(NC)"
+	@echo -e "  ENV=<env> logs               All logs"
+	@echo -e "  ENV=<env> logs-web           Web container logs"
+	@echo -e "  ENV=<env> logs-db            Database logs"
+	@echo -e "  ENV=<env> logs-gitea         Gitea logs"
+	@echo -e "  ENV=<env> ps                 Container status"
 	@echo -e ""
-	@echo -e "$(CYAN)📊 CrossRef Database:$(NC)"
-	@echo -e "  make crossref-status              # Check citations rebuild progress"
-	@echo -e "  make crossref-check               # Check if rebuild is complete"
-	@echo -e "  make crossref-next-steps          # Show next optimization steps"
+	@echo -e "$(CYAN)🔧 Shell Access:$(NC)"
+	@echo -e "  ENV=<env> exec-web           Shell into web container"
+	@echo -e "  ENV=<env> exec-db            Shell into database"
+	@echo -e "  ENV=<env> exec-gitea         Shell into Gitea"
+	@echo -e "  ENV=<env> list-envs          List environment variables"
 	@echo -e ""
-	@echo -e "$(CYAN)💡 Examples:$(NC)"
-	@echo -e "  make status                       # Check what's running"
-	@echo -e "  make ENV=dev start                # Start development"
-	@echo -e "  make ENV=nas switch               # Switch to NAS"
-	@echo -e "  make ENV=nas rebuild              # Rebuild NAS environment"
-	@echo -e "  make crossref-status              # Check CrossRef rebuild"
-	@echo -e ""
-	@echo -e "$(CYAN)🔧 Utilities:$(NC)"
-	@echo -e "  make ENV=<env> exec-web           # Shell into web container"
-	@echo -e "  make ENV=<env> exec-db            # Shell into database container"
-	@echo -e "  make ENV=<env> exec <cmd>         # Execute command in web container"
-	@echo -e "  make ENV=<env> list-envs          # List environment variables"
-	@echo -e "  make ensure-executable            # Ensure all scripts have +x permission"
-	@echo -e "  make sync-tests                   # Sync Python test stubs with apps/"
-	@echo -e "  make sync-tests-move              # Sync Python tests, move stale files"
-	@echo -e "  make sync-ts-tests                # Sync TypeScript test stubs"
-	@echo -e "  make sync-ts-tests-move           # Sync TS tests, move stale files"
+	@echo -e "$(CYAN)🔄 Reset (dev only):$(NC)"
+	@echo -e "  ENV=dev fresh-start          Complete reset: DB + Gitea + Files"
+	@echo -e "  ENV=dev fresh-start-confirm  Skip confirmation"
 	@echo -e ""
 	@echo -e "$(CYAN)🧪 Testing:$(NC)"
-	@echo -e "  make setup-testing                # Install all test dependencies"
-	@echo -e "  make setup-pytest                 # Install Python testing (pytest + playwright)"
-	@echo -e "  make setup-vitest                 # Install TypeScript testing (vitest)"
-	@echo -e ""
-	@echo -e "$(CYAN)🐍 Python Testing:$(NC)"
-	@echo -e "  make test-unit                    # Run unit tests (no DB)"
-	@echo -e "  make test-db                      # Run database tests"
-	@echo -e "  make test-api                     # Run API endpoint tests"
-	@echo -e "  make test-ui                      # Run UI tests (headless)"
-	@echo -e "  make test-ui-headed               # Run UI tests (visible browser)"
-	@echo -e "  make test-python                  # Run all Python tests"
-	@echo -e ""
-	@echo -e "$(CYAN)📘 TypeScript Testing:$(NC)"
-	@echo -e "  make test-ts                      # Run TypeScript tests (single run)"
-	@echo -e "  make test-ts-watch                # Run tests in watch mode"
-	@echo -e "  make test-ts-ui                   # Open Vitest visual UI"
-	@echo -e "  make test-ts-coverage             # Run tests with coverage report"
-	@echo -e ""
-	@echo -e "$(CYAN)🚀 All Tests:$(NC)"
-	@echo -e "  make test-all                     # Run all tests (Python + TypeScript)"
-	@echo -e "  make test-status                  # Show test infrastructure status"
+	@echo -e "  setup-testing                Install all test deps"
+	@echo -e "  test-unit                    Unit tests"
+	@echo -e "  test-db                      Database tests"
+	@echo -e "  test-api                     API tests"
+	@echo -e "  test-ui                      UI tests (headless)"
+	@echo -e "  test-python                  All Python tests"
+	@echo -e "  test-ts                      TypeScript tests"
+	@echo -e "  test-all                     All tests"
 	@echo -e ""
 	@echo -e "$(CYAN)✨ Code Quality:$(NC)"
-	@echo -e "  make lint                         # Check code without changes (SAFE - read-only)"
-	@echo -e "  make lint-web                     # Check web files without changes (SAFE)"
-	@echo -e "  make check-file-sizes             # Check for files >300 lines (detailed report)"
-	@echo -e "  make check-host                   # Check host requirements (users, SLURM)"
-	@echo -e "  make format                       # Format & lint all code (⚠️  MODIFIES FILES)"
-	@echo -e "  make format-python                # Format & lint Python with Ruff"
-	@echo -e "  make format-web                   # Format & lint web (⚠️  MODIFIES FILES)"
-	@echo -e "  make format-shell                 # Format & lint shell scripts"
-	@echo -e "  make clean-js                     # Remove stale compiled JS from TS directories"
+	@echo -e "  lint                         Check code (read-only)"
+	@echo -e "  format                       Format code (modifies files)"
+	@echo -e "  check-file-sizes             Check for large files"
+	@echo -e ""
+	@echo -e "$(CYAN)📊 CrossRef:$(NC)"
+	@echo -e "  crossref-status              Check rebuild progress"
+	@echo -e "  crossref-check               Check if complete"
+	@echo -e "  crossref-next-steps          Show optimization steps"
+	@echo -e ""
+	@echo -e "$(CYAN)🖥️  SLURM:$(NC)"
+	@echo -e "  slurm-start                  Start SLURM services"
+	@echo -e "  slurm-stop                   Stop SLURM services"
+	@echo -e "  slurm-status                 Check SLURM status"
+	@echo -e "  slurm-fix                    Fix SLURM issues"
 	@echo -e ""
 
 # ============================================

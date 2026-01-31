@@ -5,15 +5,21 @@
 # Usage: ./scripts/deploy/rebuild.sh <env>
 #   env: dev, nas, or prod
 #
-# What this does:
-#   1. Stop services
-#   2. Build Docker images (with new code)
-#   3. Clear vite timestamp (forces TypeScript rebuild)
-#   4. Start services (entrypoint runs: npm install → vite build → collectstatic)
-#   5. Purge Cloudflare cache (if credentials configured)
+# REBUILD_STEPS (single source of truth - used by 'make help-commands'):
+#   1. down          - Stop services (docker compose down)
+#   2. build         - Build Docker images (code COPIED into image)
+#   3. clear-vite    - Clear vite timestamp (forces TypeScript rebuild)
+#   4. up            - Start services (docker compose up -d)
+#   5. cache-purge   - Purge Cloudflare cache
 #
 # No manual steps needed after running this script.
 # ==============================================================================
+
+# Print steps and exit (used by Makefile help-commands)
+if [ "$1" = "--steps" ]; then
+    grep -A5 "^# REBUILD_STEPS" "$0" | grep "^#   [0-9]" | sed 's/^#   //'
+    exit 0
+fi
 
 set -e
 
