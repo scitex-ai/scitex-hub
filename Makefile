@@ -473,6 +473,8 @@ rebuild: validate-docker
 	@docker run --rm -v scitex-cloud-$(ENV)_static_volume:/staticfiles alpine rm -f /staticfiles/vite/.build-timestamp 2>/dev/null || true
 	@echo -e "  4. Starting $(ENV)..."
 	@cd $(DOCKER_DIR) && $(MAKE) -f Makefile up
+	@echo -e "  5. Purging Cloudflare cache..."
+	@./deployment/docker/common/scripts/cloudflare_cache_purge.sh all 2>/dev/null || echo -e "$(YELLOW)   ⚠️ Cache purge skipped (no API credentials)$(NC)"
 	@echo -e ""
 	@echo -e "$(GREEN)✅ $(ENV) rebuild complete$(NC)"
 	@$(MAKE) --no-print-directory validate
