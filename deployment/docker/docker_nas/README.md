@@ -19,7 +19,7 @@ make ENV=nas rebuild  # Full rebuild (causes downtime)
 | SciTeX Cloud | http://localhost:8000 | https://scitex.ai | - |
 | Gitea | http://localhost:3000 | https://gitea.scitex.ai | - |
 | CrossRef API | http://localhost:3333 | https://crossref.scitex.ai | - |
-| Umami Analytics | http://localhost:3300 | https://analytics.scitex.ai | admin / umami |
+| Umami Analytics | http://localhost:3300 | https://umami.scitex.ai | admin / umami |
 | Flower (Celery) | http://localhost:5555 | - | - |
 
 ## Cloudflare Tunnel Setup
@@ -61,8 +61,8 @@ For each service, add a public hostname in the tunnel configuration:
 - Service Type: HTTP
 - URL: nginx:80
 
-#### Umami Analytics (analytics.scitex.ai)
-- Subdomain: analytics
+#### Umami Analytics (umami.scitex.ai)
+- Subdomain: umami
 - Domain: scitex.ai
 - Service Type: HTTP
 - URL: nginx:80
@@ -90,7 +90,7 @@ docker logs scitex-cloud-nas-cloudflared-1
 
 ### Access & Login
 - Local: http://localhost:3300
-- Public: https://analytics.scitex.ai (after Cloudflare setup)
+- Public: https://umami.scitex.ai
 - Default login: `admin` / `umami`
 - **IMPORTANT: Change password immediately after first login!**
 
