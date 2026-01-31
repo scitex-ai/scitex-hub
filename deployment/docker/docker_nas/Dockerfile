@@ -42,9 +42,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --system ".[django,test]" && \
     uv pip install --system daphne==4.1.2 psycopg2-binary
 
-# Install scitex from PyPI (targeted extras - [all] requires Rust compiler)
+# Install scitex from PyPI with all extras
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system "scitex[cli,scholar,plt,stats,io,writer,audio,capture,diagram]==2.15.2"
+    uv pip install --system "scitex[all]"
 
 # Install Playwright browsers
 RUN --mount=type=cache,target=/root/.cache/ms-playwright \
