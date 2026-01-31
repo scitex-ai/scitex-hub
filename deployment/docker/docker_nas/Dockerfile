@@ -44,7 +44,8 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # Install scitex from PyPI with all extras
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system "scitex[all]"
+    uv pip install --system numpy && \
+    uv pip install --system "scitex[cli,scholar,plt,stats,io,writer,audio,capture,diagram]"
 
 # Install Playwright browsers
 RUN --mount=type=cache,target=/root/.cache/ms-playwright \
