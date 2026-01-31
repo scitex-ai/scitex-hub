@@ -1,0 +1,227 @@
+# ============================================
+# SciTeX Cloud - Staging Override
+# ============================================
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.staging.yml up -d
+#   Or: make ENV=staging up
+#
+# Features:
+#   - Production-like setup (daphne, copied code)
+#   - Different ports from prod (no conflicts)
+#   - No Cloudflare tunnel (direct access)
+#   - Separate database
+
+name: scitex-cloud-staging
+
+services:
+  # ============================================
+  # Django Application (Staging)
+  # ============================================
+  django:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/Dockerfile.prod
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+    image: scitex-cloud-staging-django:latest
+    entrypoint: ["/root-init.sh", "/entrypoint.sh"]
+    command: ["daphne", "-b", "0.0.0.0", "-p", "8000", "--access-log", "-", "--verbosity", "1", "config.asgi:application"]
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+      - scitex_config_volume:/app/.scitex
+      # User workspace
+      - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
+      # Singularity container
+      - ../../deployment/singularity:/app/singularity:ro
+      # Docker socket
+      - /var/run/docker.sock:/var/run/docker.sock
+      # SLURM access (optional - can be disabled for staging)
+      - /etc/slurm/slurm.conf:/etc/slurm/slurm.conf:ro
+      - /etc/munge:/etc/munge:ro
+      - /run/munge:/run/munge
+      - /var/log/slurm:/var/log/slurm
+      - /etc/passwd:/host/etc/passwd:ro
+      # TypeScript output
+      - /app/.jsbuild
+    ports:
+      - "${SCITEX_CLOUD_HTTP_PORT:-8013}:8000"   # Staging port
+      - "${SCITEX_CLOUD_SSH_PORT:-2213}:2200"    # Staging SSH
+    env_file:
+      - ./envs/.env.staging
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.settings_staging
+      SCITEX_CLOUD_DJANGO_SETTINGS_MODULE: config.settings.settings_staging
+      SCITEX_CLOUD_ENV: staging
+      PYTHONPATH: /home/scitex/.local/lib/python3.11/site-packages:/app
+      SCITEX_DIR: /app/.scitex
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "${SCITEX_CLOUD_SLURM_HOST:-localhost}:host-gateway"
+    privileged: true
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 180s
+    networks:
+      - scitex-network
+
+  # ============================================
+  # PostgreSQL (Staging overrides)
+  # ============================================
+  postgres:
+    ports:
+      - "5434:5432"   # Staging postgres port
+    command: postgres -c max_connections=100 -c shared_buffers=64MB
+    restart: unless-stopped
+
+  # ============================================
+  # Redis (Staging overrides)
+  # ============================================
+  redis:
+    ports:
+      - "6380:6379"   # Staging redis port
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+
+  # ============================================
+  # Celery Worker (Staging)
+  # ============================================
+  celery_worker:
+    image: scitex-cloud-staging-django:latest
+    entrypoint: ["/entrypoint.sh"]
+    command: >
+      celery -A config --broker=redis://redis:6379/1 worker
+      --loglevel=info
+      --queues=celery,ai_queue,search_queue,compute_queue,vis_queue
+      --concurrency=4
+      --prefetch-multiplier=1
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+      - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
+      - ../../deployment/singularity:/app/singularity:ro
+      - /etc/slurm/slurm.conf:/etc/slurm/slurm.conf:ro
+      - /etc/munge:/etc/munge:ro
+      - /run/munge:/run/munge
+      - /var/log/slurm:/var/log/slurm
+      - /etc/passwd:/host/etc/passwd:ro
+    env_file:
+      - ./envs/.env.staging
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.settings_staging
+      SCITEX_CLOUD_DJANGO_SETTINGS_MODULE: config.settings.settings_staging
+      SCITEX_CLOUD_ENV: staging
+      PYTHONUNBUFFERED: 1
+      SCITEX_DIR: /app/.scitex
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "${SCITEX_CLOUD_SLURM_HOST:-localhost}:host-gateway"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import redis; r = redis.Redis(host='redis', port=6379); r.ping()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    networks:
+      - scitex-network
+
+  # ============================================
+  # Celery Beat (Staging)
+  # ============================================
+  celery_beat:
+    image: scitex-cloud-staging-django:latest
+    entrypoint: ["/entrypoint.sh"]
+    command: celery -A config --broker=redis://redis:6379/1 beat --loglevel=info --scheduler=django_celery_beat.schedulers:DatabaseScheduler
+    volumes:
+      - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
+    env_file:
+      - ./envs/.env.staging
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.settings_staging
+      SCITEX_CLOUD_DJANGO_SETTINGS_MODULE: config.settings.settings_staging
+      SCITEX_CLOUD_ENV: staging
+      PYTHONUNBUFFERED: 1
+      SCITEX_DIR: /app/.scitex
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import redis; r = redis.Redis(host='redis', port=6379); r.ping()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    networks:
+      - scitex-network
+
+  # ============================================
+  # Flower (Staging)
+  # ============================================
+  flower:
+    image: scitex-cloud-staging-django:latest
+    entrypoint: ["/entrypoint.sh"]
+    command: celery -A config --broker=redis://redis:6379/1 flower --port=5555
+    ports:
+      - "5556:5555"   # Staging flower port
+    env_file:
+      - ./envs/.env.staging
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.settings_staging
+      SCITEX_CLOUD_DJANGO_SETTINGS_MODULE: config.settings.settings_staging
+      SCITEX_CLOUD_ENV: staging
+      PYTHONUNBUFFERED: 1
+      SCITEX_DIR: /app/.scitex
+    depends_on:
+      - redis
+      - celery_worker
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5555/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 180s
+    networks:
+      - scitex-network
+
+  # ============================================
+  # Gitea (Staging overrides)
+  # ============================================
+  gitea:
+    ports:
+      - "${SCITEX_CLOUD_GITEA_HTTP_PORT:-3013}:3000"   # Staging gitea HTTP
+      - "${SCITEX_CLOUD_GITEA_SSH_PORT:-2232}:22"      # Staging gitea SSH
+    restart: unless-stopped
+
+  # ============================================
+  # Umami (Staging overrides)
+  # ============================================
+  umami:
+    ports:
+      - "${SCITEX_CLOUD_UMAMI_PORT:-3313}:3000"   # Staging umami port
+    restart: unless-stopped
+
+# ============================================
+# Additional Staging Volumes
+# ============================================
+volumes:
+  scitex_config_volume:
+    driver: local
