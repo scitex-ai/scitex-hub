@@ -469,7 +469,9 @@ rebuild: validate-docker
 	@$(MAKE) --no-print-directory ENV=$(ENV) stop
 	@echo -e "  2. Building images..."
 	@cd $(DOCKER_DIR) && $(MAKE) -f Makefile build
-	@echo -e "  3. Starting $(ENV)..."
+	@echo -e "  3. Clearing vite timestamp (forces TypeScript rebuild on start)..."
+	@docker run --rm -v scitex-cloud-$(ENV)_static_volume:/staticfiles alpine rm -f /staticfiles/vite/.build-timestamp 2>/dev/null || true
+	@echo -e "  4. Starting $(ENV)..."
 	@cd $(DOCKER_DIR) && $(MAKE) -f Makefile up
 	@echo -e ""
 	@echo -e "$(GREEN)✅ $(ENV) rebuild complete$(NC)"
