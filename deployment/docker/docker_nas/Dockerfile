@@ -44,9 +44,8 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # Install scitex from PyPI with all extras
 # Use --refresh to force fresh package resolution (avoid stale cache picking old versions)
-# Also install scitex-writer and crossref-local (separate packages)
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system --refresh "scitex[all]==2.16.0" scitex-writer crossref-local
+    uv pip install --system --refresh "scitex[all]==2.16.0"
 
 # Install Playwright browsers
 RUN --mount=type=cache,target=/root/.cache/ms-playwright \
