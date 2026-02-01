@@ -190,39 +190,6 @@
                             issue to get started.
                         {% endif %}
                     </p>
-                    {% if issue_templates %}
-                        <!-- Button to open modal (empty state) -->
-                        <button type="button"
-                                class="btn btn-success"
-                                onclick="openNewIssueModal()"
-                                style="display: flex;
-                                       align-items: center;
-                                       gap: 4px">
-                            <svg width="16"
-                                 height="16"
-                                 viewBox="0 0 16 16"
-                                 fill="currentColor"
-                                 style="display: inline-block;
-                                        vertical-align: text-bottom">
-                                <path d="M7.75 2a.75.75 0 0 1 .75.75V7h4.25a.75.75 0 0 1 0 1.5H8.5v4.25a.75.75 0 0 1-1.5 0V8.5H2.75a.75.75 0 0 1 0-1.5H7V2.75A.75.75 0 0 1 7.75 2Z" />
-                            </svg>
-                            New issue
-                        </button>
-                    {% else %}
-                        <a href="{% url 'user_projects:issue_create' username=project.owner.username slug=project.slug %}"
-                           class="btn btn-success">
-                            <svg width="16"
-                                 height="16"
-                                 viewBox="0 0 16 16"
-                                 fill="currentColor"
-                                 style="display: inline-block;
-                                        vertical-align: text-bottom;
-                                        margin-right: 4px">
-                                <path d="M7.75 2a.75.75 0 0 1 .75.75V7h4.25a.75.75 0 0 1 0 1.5H8.5v4.25a.75.75 0 0 1-1.5 0V8.5H2.75a.75.75 0 0 1 0-1.5H7V2.75A.75.75 0 0 1 7.75 2Z" />
-                            </svg>
-                            New issue
-                        </a>
-                    {% endif %}
                 </div>
             {% endif %}
         </div>
@@ -265,7 +232,7 @@
                                    color: #8b95a5;
                                    padding: 4px 8px;
                                    line-height: 1;
-                                   border-radius: 4px;"
+                                   border-radius: 4px"
                             onmouseover="this.style.background='#2a3142'"
                             onmouseout="this.style.background='none'">&times;</button>
                 </div>
