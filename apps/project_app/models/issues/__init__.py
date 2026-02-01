@@ -6,7 +6,7 @@ Exports all models for backward compatibility:
 """
 
 from .issue import Issue, IssueComment
-from .metadata import IssueLabel, IssueMilestone
+from .metadata import IssueLabel, IssueMilestone, IssueTemplate
 from .tracking import IssueAssignment, IssueEvent
 
 __all__ = [
@@ -16,6 +16,7 @@ __all__ = [
     # metadata.py
     "IssueLabel",
     "IssueMilestone",
+    "IssueTemplate",
     # tracking.py
     "IssueAssignment",
     "IssueEvent",

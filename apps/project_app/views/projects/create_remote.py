@@ -36,7 +36,7 @@ def create_remote_project(request, name, description, remote_credential_id, remo
     # Validate inputs
     if not all([name, remote_credential_id, remote_path]):
         messages.error(request, "All fields are required for remote projects")
-        return redirect("project_app:create")
+        return redirect("project_create")
 
     # Get remote credential
     try:
@@ -45,13 +45,13 @@ def create_remote_project(request, name, description, remote_credential_id, remo
         )
     except RemoteCredential.DoesNotExist:
         messages.error(request, "Invalid remote credential selected")
-        return redirect("project_app:create")
+        return redirect("project_create")
 
     # Validate repository name
     is_valid, error_message = Project.validate_repository_name(name)
     if not is_valid:
         messages.error(request, error_message)
-        return redirect("project_app:create")
+        return redirect("project_create")
 
     # Check if name already exists for this user
     if Project.objects.filter(name=name, owner=request.user).exists():
@@ -59,14 +59,14 @@ def create_remote_project(request, name, description, remote_credential_id, remo
             request,
             f'You already have a project named "{name}". Please choose a different name.',
         )
-        return redirect("project_app:create")
+        return redirect("project_create")
 
     # Generate slug
     slug = Project.generate_unique_slug(name, owner=request.user)
 
     # Test SSH connection before creating project
     if not _test_ssh_connection(request, credential, remote_path):
-        return redirect("project_app:create")
+        return redirect("project_create")
 
     # Create remote project
     return _create_remote_project_db(request, name, description, credential, remote_path, slug)
@@ -179,7 +179,7 @@ def _create_remote_project_db(request, name, description, credential, remote_pat
     except Exception as e:
         logger.error(f"Failed to create remote project: {e}")
         messages.error(request, f"Failed to create remote project: {str(e)}")
-        return redirect("project_app:create")
+        return redirect("project_create")
 
 
 # EOF

@@ -115,3 +115,23 @@ def site_branding(request):
         "OG_TITLE": branding.OG_TITLE,
         "OG_DESCRIPTION": branding.OG_DESCRIPTION,
     }
+
+
+def scitex_env(request):
+    """
+    Expose SCITEX_CLOUD_ENV to templates for environment-specific rendering.
+    Values: 'development', 'staging', 'nas', 'production'
+    """
+    env = os.environ.get("SCITEX_CLOUD_ENV", "development").lower()
+    # Normalize aliases
+    if env in ("dev",):
+        env = "development"
+    elif env in ("stag",):
+        env = "staging"
+    elif env in ("prod",):
+        env = "production"
+    return {
+        "SCITEX_ENV": env,
+        "IS_STAGING": env == "staging",
+        "IS_PRODUCTION": env in ("production", "nas"),
+    }

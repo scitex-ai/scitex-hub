@@ -163,6 +163,37 @@ class Issue(models.Model):
             issue=self, user=user, event_type="reopened", created_at=timezone.now()
         )
 
+    def get_absolute_url(self):
+        """Get URL for this issue"""
+        from django.urls import reverse
+
+        return reverse(
+            "user_projects:issue_detail",
+            kwargs={
+                "username": self.project.owner.username,
+                "slug": self.project.slug,
+                "issue_number": self.number,
+            },
+        )
+
+    def can_edit(self, user):
+        """Check if user can edit this issue"""
+        if not user.is_authenticated:
+            return False
+        # Author or project owner/editor can edit
+        return user == self.author or self.project.can_edit(user)
+
+    def can_comment(self, user):
+        """Check if user can comment on this issue"""
+        if not user.is_authenticated:
+            return False
+        # Anyone who can view the project can comment
+        return self.project.can_view(user)
+
+    def get_comment_count(self):
+        """Get number of comments"""
+        return self.comments.count()
+
 
 class IssueComment(models.Model):
     """

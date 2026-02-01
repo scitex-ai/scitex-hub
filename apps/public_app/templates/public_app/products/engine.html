@@ -1,13 +1,10 @@
 {% extends "public_app/cloud_base.html" %}
+
 {% load static %}
-{%block title%}
-    SciTeX Engine - AI Research Assistant for Emacs
-{% endblock %}
-{% block
-    meta_description %}
-    SciTeX Engine - AI-powered research assistant integrated with
-    Emacs for intelligent code generation, document editing, and research workflow
-    automation.
+
+{% block title %}SciTeX Engine - AI Research Assistant for Emacs{% endblock %}
+{% block meta_description %}
+    SciTeX Engine - AI-powered research assistant integrated with Emacs for intelligent code generation, document editing, and research workflow automation.
 {% endblock %}
 {% block extra_css %}<!-- Page-specific CSS removed - now using utilities and components -->{% endblock %}
 {% block content %}
@@ -234,8 +231,7 @@
                     assistance.
                 </p>
                 <div class="cta-buttons">
-                    <a href="https://github.com/ywatanabe1989/emacs-claude-code"
-                       class="btn btn-black">View on GitHub</a>
+                    <a href="https://github.com/ywatanabe1989/emacs-claude-code" class="btn btn-black">View on GitHub</a>
                     <a href="{% url 'public_app:signup' %}" class="btn btn-secondary">Get Started</a>
                 </div>
             </div>

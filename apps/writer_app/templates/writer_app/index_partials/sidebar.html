@@ -41,9 +41,7 @@
                         </a>
                     {% endif %}
                 </div>
-                <div class="collaborators-list"
-                     style="max-height: 150px;
-                            overflow-y: auto">
+                <div class="collaborators-list" style="max-height: 150px; overflow-y: auto">
                     <!-- Owner -->
                     <div class="collaborator-item"
                          style="padding: 6px 8px;
@@ -69,8 +67,7 @@
                     </div>
                     <!-- Collaborators -->
                     {% for membership in project.memberships.all %}
-                        {% if membership.user !=
-                            project.owner %}
+                        {% if membership.user != project.owner %}
                             <div class="collaborator-item"
                                  style="padding: 6px 8px;
                                         display: flex;
@@ -95,9 +92,7 @@
                             </div>
                         {% endif %}
                     {% endfor %}
-                    {% if project.memberships.count == 0 or
-                        project.memberships.count == 1 and project.memberships.first.user ==
-                        project.owner %}
+                    {% if project.memberships.count == 0 or project.memberships.count == 1 and project.memberships.first.user == project.owner %}
                         <div style="padding: 12px 8px;
                                     text-align: center;
                                     color: var(--color-fg-muted);
@@ -146,9 +141,7 @@
                     title="Add/Remove Sections">
                 <i class="fas fa-plus"></i>
             </button>
-            <button id="close-section-panel"
-                    class="btn btn-sm btn-outline-secondary"
-                    title="Close">
+            <button id="close-section-panel" class="btn btn-sm btn-outline-secondary" title="Close">
                 <i class="fas fa-times"></i>
             </button>
         </div>

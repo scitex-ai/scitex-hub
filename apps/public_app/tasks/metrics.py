@@ -56,11 +56,12 @@ def _get_service_status() -> tuple[bool, bool, bool, bool]:
 
 
 def _get_docker_count() -> int | None:
-    """Get running Docker container count."""
+    """Get running Docker container count with timeout protection."""
     try:
         import docker
 
-        client = docker.from_env()
+        # Use timeout to prevent blocking if Docker daemon is slow
+        client = docker.from_env(timeout=5)
         containers = client.containers.list()
         return len(containers)
     except Exception:

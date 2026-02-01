@@ -1,0 +1,328 @@
+# ============================================
+# SciTeX Cloud - Production Override
+# ============================================
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#   Or: make ENV=prod up
+#
+# Features:
+#   - Daphne ASGI server
+#   - Code COPIED into image (no hot reload)
+#   - Nginx reverse proxy
+#   - Cloudflare tunnel
+#   - No debug ports
+
+name: scitex-cloud-prod
+
+services:
+  # ============================================
+  # Django Application (Production)
+  # ============================================
+  django:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/Dockerfile.prod
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+    image: scitex-cloud-prod-django:latest
+    entrypoint: ["/root-init.sh", "/entrypoint.sh"]
+    command: ["daphne", "-b", "0.0.0.0", "-p", "8000", "--access-log", "-", "--verbosity", "1", "config.asgi:application"]
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+      - scitex_config_volume:/app/.scitex
+      # scitex-code for citation_graph module (until published to PyPI)
+      - /home/ywatanabe/proj/scitex-code/src/scitex/scholar/citation_graph:/usr/local/lib/python3.11/site-packages/scitex/scholar/citation_graph:ro
+      # User workspace
+      - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
+      # Singularity container
+      - ../../deployment/singularity:/app/singularity:ro
+      # Docker socket
+      - /var/run/docker.sock:/var/run/docker.sock
+      # SLURM access
+      - /etc/slurm/slurm.conf:/etc/slurm/slurm.conf:ro
+      - /etc/munge:/etc/munge:ro
+      - /run/munge:/run/munge
+      - /var/log/slurm:/var/log/slurm
+      - /var/spool/slurmctld:/var/spool/slurmctld:ro
+      - /etc/passwd:/host/etc/passwd:ro
+      # TypeScript output
+      - /app/.jsbuild
+      # CrossRef database
+      - /home/ywatanabe/proj/crossref_local/data:/data/crossref:ro
+      # Live-editable announcement banner
+      - ../../apps/public_app/templates/public_app/landing_partials/landing_announcement.html:/app/apps/public_app/templates/public_app/landing_partials/landing_announcement.html:ro
+    ports:
+      - "${SCITEX_CLOUD_SSH_PORT:-2200}:2200"
+    expose:
+      - "8000"
+    env_file:
+      - ./envs/.env.prod
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.settings_prod
+      SCITEX_CLOUD_DJANGO_SETTINGS_MODULE: config.settings.settings_prod
+      SCITEX_CLOUD_ENV: prod
+      PYTHONPATH: /home/scitex/.local/lib/python3.11/site-packages:/app
+      CROSSREF_DB_PATH: /data/crossref/crossref.db
+      SCITEX_DIR: /app/.scitex
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "${SCITEX_CLOUD_SLURM_HOST:-DXP480TPLUS-994}:host-gateway"
+    privileged: true
+    devices:
+      - /dev/fuse:/dev/fuse
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 300s
+    networks:
+      - scitex-network
+
+  # ============================================
+  # PostgreSQL (Prod overrides)
+  # ============================================
+  postgres:
+    command: postgres -c max_connections=200 -c shared_buffers=128MB
+    restart: always
+
+  # ============================================
+  # Redis (Prod overrides)
+  # ============================================
+  redis:
+    command: redis-server --appendonly yes
+    restart: always
+
+  # ============================================
+  # Celery Worker (Production)
+  # ============================================
+  celery_worker:
+    image: scitex-cloud-prod-django:latest
+    entrypoint: ["/entrypoint.sh"]
+    command: >
+      celery -A config --broker=redis://redis:6379/1 worker
+      --loglevel=info
+      --queues=celery,ai_queue,search_queue,compute_queue,vis_queue
+      --concurrency=8
+      --prefetch-multiplier=1
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+      - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
+      - ../../deployment/singularity:/app/singularity:ro
+      - /etc/slurm/slurm.conf:/etc/slurm/slurm.conf:ro
+      - /etc/munge:/etc/munge:ro
+      - /run/munge:/run/munge
+      - /var/log/slurm:/var/log/slurm
+      - /etc/passwd:/host/etc/passwd:ro
+      - /home/ywatanabe/proj/scitex-code/src/scitex/scholar/citation_graph:/usr/local/lib/python3.11/site-packages/scitex/scholar/citation_graph:ro
+    env_file:
+      - ./envs/.env.prod
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.settings_prod
+      SCITEX_CLOUD_DJANGO_SETTINGS_MODULE: config.settings.settings_prod
+      SCITEX_CLOUD_ENV: prod
+      PYTHONUNBUFFERED: 1
+      SCITEX_DIR: /app/.scitex
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "${SCITEX_CLOUD_SLURM_HOST:-DXP480TPLUS-994}:host-gateway"
+    restart: always
+    healthcheck:
+      test: ["CMD", "python", "-c", "import redis; r = redis.Redis(host='redis', port=6379); r.ping()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    networks:
+      - scitex-network
+
+  # ============================================
+  # Celery Beat (Production)
+  # ============================================
+  celery_beat:
+    image: scitex-cloud-prod-django:latest
+    entrypoint: ["/entrypoint.sh"]
+    command: celery -A config --broker=redis://redis:6379/1 beat --loglevel=info --scheduler=django_celery_beat.schedulers:DatabaseScheduler
+    volumes:
+      - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
+    env_file:
+      - ./envs/.env.prod
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.settings_prod
+      SCITEX_CLOUD_DJANGO_SETTINGS_MODULE: config.settings.settings_prod
+      SCITEX_CLOUD_ENV: prod
+      PYTHONUNBUFFERED: 1
+      SCITEX_DIR: /app/.scitex
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: always
+    healthcheck:
+      test: ["CMD", "python", "-c", "import redis; r = redis.Redis(host='redis', port=6379); r.ping()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    networks:
+      - scitex-network
+
+  # ============================================
+  # Flower (Production)
+  # ============================================
+  flower:
+    image: scitex-cloud-prod-django:latest
+    entrypoint: ["/entrypoint.sh"]
+    command: celery -A config --broker=redis://redis:6379/1 flower --port=5555
+    ports:
+      - "5555:5555"
+    env_file:
+      - ./envs/.env.prod
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.settings_prod
+      SCITEX_CLOUD_DJANGO_SETTINGS_MODULE: config.settings.settings_prod
+      SCITEX_CLOUD_ENV: prod
+      PYTHONUNBUFFERED: 1
+      SCITEX_DIR: /app/.scitex
+    depends_on:
+      - redis
+      - celery_worker
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5555/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 180s
+    networks:
+      - scitex-network
+
+  # ============================================
+  # Gitea (Prod overrides)
+  # ============================================
+  gitea:
+    ports:
+      - "${SCITEX_CLOUD_GITEA_HTTP_PORT:-3000}:3000"
+      - "${SCITEX_CLOUD_GITEA_SSH_PORT}:22"
+    restart: always
+
+  # ============================================
+  # Umami (Prod overrides)
+  # ============================================
+  umami:
+    ports:
+      - "${SCITEX_CLOUD_UMAMI_PORT:-3300}:3000"
+    restart: always
+
+  # ============================================
+  # CrossRef API (Prod only)
+  # ============================================
+  crossref:
+    build:
+      context: ./crossref_local
+      dockerfile: Dockerfile
+    image: scitex-crossref-prod:latest
+    ports:
+      - "3333:3333"
+    volumes:
+      - /home/ywatanabe/proj/crossref-local/data:/data:ro
+    environment:
+      CROSSREF_DB_PATH: /data/crossref.db
+      LOG_LEVEL: info
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "--max-time", "25", "http://localhost:3333/health"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+      start_period: 120s
+    networks:
+      - scitex-network
+
+  # ============================================
+  # WebSocket SSH Proxy (Prod only)
+  # ============================================
+  ws_ssh_proxy:
+    build:
+      context: ./ws_ssh_proxy
+      dockerfile: Dockerfile
+    image: scitex-ws-ssh-proxy:latest
+    expose:
+      - "8022"
+    depends_on:
+      - django
+    restart: always
+    healthcheck:
+      test: ["CMD", "websocat", "--version"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - scitex-network
+
+  # ============================================
+  # Nginx Reverse Proxy (Prod only)
+  # ============================================
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./common/nginx/nginx_prod.conf:/etc/nginx/nginx.conf:ro
+      - ./common/nginx/error-pages:/etc/nginx/error-pages:ro
+      - static_volume:/app/staticfiles:ro
+      - media_volume:/app/media:ro
+    depends_on:
+      - django
+      - gitea
+      - crossref
+      - ws_ssh_proxy
+    restart: always
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -s -o /dev/null -w '%{http_code}' http://localhost:80/ | grep -qE '^(200|502|503)$'"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
+    networks:
+      - scitex-network
+
+  # ============================================
+  # Cloudflare Tunnel (Prod only)
+  # ============================================
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate run --token ${SCITEX_CLOUD_CLOUDFLARE_TUNNEL_TOKEN}
+    env_file:
+      - ./envs/.env.prod
+    restart: always
+    depends_on:
+      - nginx
+    healthcheck:
+      test: ["CMD", "cloudflared", "version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - scitex-network
+
+# ============================================
+# Additional Prod Volumes
+# ============================================
+volumes:
+  scitex_config_volume:
+    driver: local

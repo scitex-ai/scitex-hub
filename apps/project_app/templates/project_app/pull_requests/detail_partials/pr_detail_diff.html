@@ -4,10 +4,7 @@
         <h6>
             <i class="bi bi-file-earmark-diff"></i>
             {{ changed_files|length }} file
-            {% if changed_files|length != 1 %}
-                s
-            {% endif
-            %}
+            {% if changed_files|length != 1 %}s{% endif %}
             changed
         </h6>
     </div>

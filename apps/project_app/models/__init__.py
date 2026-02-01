@@ -9,59 +9,59 @@ Following Django organization best practices:
 """
 
 # Repository models (Project, ProjectMembership - split from core)
-from .repository import (
-    Project,
-    ProjectMembership,
-)
-
 # Core models (ProjectPermission, VisitorAllocation)
 from .core import (
     ProjectPermission,
     VisitorAllocation,
 )
 
-# Collaboration models (Watch, Star, Fork, Invitation)
-from .projects import (
-    ProjectWatch,
-    ProjectStar,
-    ProjectFork,
-    ProjectInvitation,
-)
-
 # Issue models
 from .issues import (
     Issue,
+    IssueAssignment,
     IssueComment,
+    IssueEvent,
     IssueLabel,
     IssueMilestone,
-    IssueAssignment,
-    IssueEvent,
+    IssueTemplate,
+)
+
+# Collaboration models (Watch, Star, Fork, Invitation)
+from .projects import (
+    ProjectFork,
+    ProjectInvitation,
+    ProjectStar,
+    ProjectWatch,
 )
 
 # Pull Request models
 from .pull_requests import (
     PullRequest,
-    PullRequestReview,
     PullRequestComment,
     PullRequestCommit,
-    PullRequestLabel,
     PullRequestEvent,
-)
-
-# Workflow models (CI/CD workflows)
-from .workflows import (
-    Workflow,
-    WorkflowRun,
-    WorkflowJob,
-    WorkflowStep,
-    WorkflowSecret,
-    WorkflowArtifact,
+    PullRequestLabel,
+    PullRequestReview,
 )
 
 # Remote project models
 from .remote import (
     RemoteCredential,
     RemoteProjectConfig,
+)
+from .repository import (
+    Project,
+    ProjectMembership,
+)
+
+# Workflow models (CI/CD workflows)
+from .workflows import (
+    Workflow,
+    WorkflowArtifact,
+    WorkflowJob,
+    WorkflowRun,
+    WorkflowSecret,
+    WorkflowStep,
 )
 
 # Explicit exports for clarity
@@ -86,6 +86,7 @@ __all__ = [
     "IssueMilestone",
     "IssueAssignment",
     "IssueEvent",
+    "IssueTemplate",
     # Pull Request models
     "PullRequest",
     "PullRequestReview",

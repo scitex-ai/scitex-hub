@@ -3,17 +3,23 @@
 # rebuild.sh - Full rebuild of SciTeX Cloud environment
 # ==============================================================================
 # Usage: ./scripts/deploy/rebuild.sh <env>
-#   env: dev, nas, or prod
+#   env: dev, nas, staging, or prod
 #
-# What this does:
-#   1. Stop services
-#   2. Build Docker images (with new code)
-#   3. Clear vite timestamp (forces TypeScript rebuild)
-#   4. Start services (entrypoint runs: npm install → vite build → collectstatic)
-#   5. Purge Cloudflare cache (if credentials configured)
+# REBUILD_STEPS (single source of truth - used by 'make help-commands'):
+#   1. down          - Stop services (docker compose down)
+#   2. build         - Build Docker images (code COPIED into image)
+#   3. clear-vite    - Clear vite timestamp (forces TypeScript rebuild)
+#   4. up            - Start services (docker compose up -d)
+#   5. cache-purge   - Purge Cloudflare cache
 #
 # No manual steps needed after running this script.
 # ==============================================================================
+
+# Print steps and exit (used by Makefile help-commands)
+if [ "$1" = "--steps" ]; then
+    grep -A5 "^# REBUILD_STEPS" "$0" | grep "^#   [0-9]" | sed 's/^#   //'
+    exit 0
+fi
 
 set -e
 
@@ -33,18 +39,26 @@ ENV="${1:-}"
 if [ -z "$ENV" ]; then
     echo -e "${RED}Error: Environment required${NC}"
     echo "Usage: $0 <env>"
-    echo "  env: dev, nas, or prod"
+    echo "  env: dev, nas, staging, or prod"
     exit 1
 fi
 
 # Validate environment value
-if [[ ! "$ENV" =~ ^(dev|nas|prod)$ ]]; then
+if [[ ! "$ENV" =~ ^(dev|nas|staging|prod)$ ]]; then
     echo -e "${RED}Error: Invalid environment '$ENV'${NC}"
-    echo "Valid environments: dev, nas, prod"
+    echo "Valid environments: dev, nas, staging, prod"
     exit 1
 fi
 
-DOCKER_DIR="$PROJECT_ROOT/deployment/docker/docker_${ENV}"
+# Set docker directory and compose command based on environment
+if [ "$ENV" = "staging" ]; then
+    DOCKER_DIR="$PROJECT_ROOT/deployment/docker"
+    export SCITEX_ENV=staging
+    COMPOSE_CMD="docker compose --env-file ./envs/.env.staging -f docker-compose.yml -f docker-compose.staging.yml"
+else
+    DOCKER_DIR="$PROJECT_ROOT/deployment/docker/docker_${ENV}"
+    COMPOSE_CMD="docker compose"
+fi
 
 # Check docker directory exists
 if [ ! -d "$DOCKER_DIR" ]; then
@@ -72,11 +86,11 @@ echo -e "${CYAN}🔄 Rebuilding ${ENV} environment...${NC}"
 # Step 1: Stop services
 echo -e "${CYAN}  1. Stopping ${ENV}...${NC}"
 cd "$DOCKER_DIR"
-docker compose down --remove-orphans 2>/dev/null || true
+$COMPOSE_CMD down --remove-orphans 2>/dev/null || true
 
 # Step 2: Build images
 echo -e "${CYAN}  2. Building Docker images...${NC}"
-docker compose build
+$COMPOSE_CMD build
 
 # Step 3: Clear vite timestamp (forces TypeScript rebuild)
 echo -e "${CYAN}  3. Clearing vite timestamp (forces TypeScript rebuild)...${NC}"
@@ -85,7 +99,7 @@ docker run --rm -v "scitex-cloud-${ENV}_static_volume:/staticfiles" alpine \
 
 # Step 4: Start services
 echo -e "${CYAN}  4. Starting services...${NC}"
-docker compose up -d
+$COMPOSE_CMD up -d
 
 # Step 5: Purge Cloudflare cache
 echo -e "${CYAN}  5. Purging Cloudflare cache...${NC}"

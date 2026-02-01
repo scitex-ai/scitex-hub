@@ -9,12 +9,17 @@ import json
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 
-from ....models import Issue, Project
+from ....models import Issue
+from ....utils.project_lookup import get_project_by_owner_slug
 
 
 def get_project_and_issue(username: str, slug: str, issue_number: int):
-    """Get project and issue objects or raise 404."""
-    project = get_object_or_404(Project, owner__username=username, slug=slug)
+    """
+    Get project and issue objects or raise 404.
+
+    Supports both user-owned and organization-owned projects.
+    """
+    project = get_project_by_owner_slug(username, slug)
     issue = get_object_or_404(Issue, project=project, number=issue_number)
     return project, issue
 

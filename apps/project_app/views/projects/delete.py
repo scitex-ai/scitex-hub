@@ -23,7 +23,7 @@ def project_delete(request, username, slug):
     # Only project owner can delete
     if project.owner != request.user:
         messages.error(request, "You don't have permission to delete this project.")
-        return redirect("project_app:detail", username=username, slug=slug)
+        return redirect("user_projects:detail", username=username, slug=slug)
 
     if request.method == "POST":
         # Verify confirmation text matches "username/slug"
@@ -44,7 +44,7 @@ def project_delete(request, username, slug):
         project_name = project.name
         project.delete()
         messages.success(request, f'Project "{project_name}" deleted successfully')
-        return redirect("project_app:list")
+        return redirect("user_projects:list", username=request.user.username)
 
     context = {"project": project}
     return render(request, "project_app/projects/delete.html", context)

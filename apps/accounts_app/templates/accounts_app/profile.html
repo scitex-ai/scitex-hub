@@ -1,5 +1,7 @@
 {% extends "global_base.html" %}
+
 {% load static vite %}
+
 {% block title %}
     My Profile -
     SciTeX
@@ -29,15 +31,11 @@
                 <div class="profile-section">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h2>Profile Information</h2>
-                        <button class="btn btn-outline-primary"
-                                id="editProfileBtn"
-                                onclick="toggleEditMode()">
+                        <button class="btn btn-outline-primary" id="editProfileBtn" onclick="toggleEditMode()">
                             <i class="fas fa-edit"></i> Edit Profile
                         </button>
                     </div>
-                    <form id="profileForm"
-                          method="post"
-                          action="{% url'core:api-user-profile' %}">
+                    <form id="profileForm" method="post" action="{% url 'core:api-user-profile' %}">
                         {% csrf_token %}
                         <div class="row">
                             <div class="col-md-6">
@@ -74,30 +72,29 @@
                             <div class="profile-value">{{ profile.academic_title|default:"Not set" }}</div>
                             <select name="academic_title" class="form-control profile-input">
                                 <option value="">Select title</option>
-                                <option
-                                    value="undergraduate"
-                                    {% if profile.academic_title == "undergraduate" %}selected{% endif %}
-                                    >Undergraduate Student</option>
-                                <option
-                                    value="graduate"
-                                    {% if profile.academic_title == "graduate" %}selected{% endif %}
-                                    >Graduate Student</option>
-                                <option
-                                    value="phd_candidate"
-                                    {% if profile.academic_title == "phd_candidate" %}selected{% endif %}
-                                    >PhD Candidate</option>
-                                <option
-                                    value="postdoc"
-                                    {% if profile.academic_title == "postdoc" %}selected{% endif %}
-                                    >Postdoctoral Researcher</option>
-                                <option
-                                    value="professor"
-                                    {% if profile.academic_title == "professor" %}selected{% endif %}
-                                    >Professor</option>
-                                <option
-                                    value="researcher"
-                                    {% if profile.academic_title == "researcher" %}selected{% endif %}
-                                    >Research Scientist</option>
+                                <option value="undergraduate"
+                                        {% if profile.academic_title == "undergraduate" %}selected{% endif %}>
+                                    Undergraduate Student
+                                </option>
+                                <option value="graduate"
+                                        {% if profile.academic_title == "graduate" %}selected{% endif %}>
+                                    Graduate Student
+                                </option>
+                                <option value="phd_candidate"
+                                        {% if profile.academic_title == "phd_candidate" %}selected{% endif %}>
+                                    PhD Candidate
+                                </option>
+                                <option value="postdoc" {% if profile.academic_title == "postdoc" %}selected{% endif %}>
+                                    Postdoctoral Researcher
+                                </option>
+                                <option value="professor"
+                                        {% if profile.academic_title == "professor" %}selected{% endif %}>
+                                    Professor
+                                </option>
+                                <option value="researcher"
+                                        {% if profile.academic_title == "researcher" %}selected{% endif %}>
+                                    Research Scientist
+                                </option>
                             </select>
                         </div>
                         <div class="profile-field">
@@ -148,8 +145,7 @@
                         </div>
                     </div>
                     <div class="mt-3">
-                        <a href="{% url 'auth_app:forgot-password' %}"
-                           class="btn btn-outline-secondary">
+                        <a href="{% url 'auth_app:forgot-password' %}" class="btn btn-outline-secondary">
                             <i class="fas fa-key"></i> Change Password
                         </a>
                     </div>
@@ -160,8 +156,7 @@
                             Once you delete your account, there is no going back. Please be
                             certain.
                         </p>
-                        <a href="{% url 'auth_app:delete-account' %}"
-                           class="btn btn-outline-danger">
+                        <a href="{% url 'auth_app:delete-account' %}" class="btn btn-outline-danger">
                             <i class="fas fa-trash-alt"></i> Delete Account
                         </a>
                     </div>
@@ -174,17 +169,19 @@
                     <h3>
                         <i class="fas fa-server"></i> Allocated Resources
                     </h3>
-
                     <!-- Projects Breakdown -->
                     <div class="stats-card stats-card-projects">
                         <div class="stats-number">{{ resources.total_projects }}</div>
                         <div class="stats-label">Total Projects</div>
                         <div class="stats-breakdown">
-                            <div><i class="fas fa-folder"></i> {{ resources.local_projects }} Local</div>
-                            <div><i class="fas fa-cloud"></i> {{ resources.remote_projects }} Remote</div>
+                            <div>
+                                <i class="fas fa-folder"></i> {{ resources.local_projects }} Local
+                            </div>
+                            <div>
+                                <i class="fas fa-cloud"></i> {{ resources.remote_projects }} Remote
+                            </div>
                         </div>
                     </div>
-
                     <!-- Storage Usage -->
                     <div class="stats-card stats-card-storage">
                         <div class="stats-number">{{ resources.storage_used }}</div>
@@ -193,39 +190,39 @@
                             <i class="fas fa-database"></i> Local projects only
                         </div>
                     </div>
-
                     <!-- SSH Credentials -->
                     <div class="stats-card stats-card-ssh">
                         <div class="stats-number">{{ resources.total_ssh_keys }}</div>
                         <div class="stats-label">SSH Keys</div>
                         <div class="stats-breakdown">
-                            <div><i class="fas fa-terminal"></i> {{ resources.workspace_ssh_keys }} Workspace</div>
-                            <div><i class="fab fa-git-alt"></i> {{ resources.git_ssh_keys }} Git</div>
+                            <div>
+                                <i class="fas fa-terminal"></i> {{ resources.workspace_ssh_keys }} Workspace
+                            </div>
+                            <div>
+                                <i class="fab fa-git-alt"></i> {{ resources.git_ssh_keys }} Git
+                            </div>
                         </div>
                     </div>
-
                     <!-- Remote Credentials -->
                     {% if resources.remote_credentials > 0 %}
-                    <div class="stats-card stats-card-remote">
-                        <div class="stats-number">{{ resources.remote_credentials }}</div>
-                        <div class="stats-label">Remote Credentials</div>
-                        <div class="stats-breakdown">
-                            <i class="fas fa-key"></i> For remote projects
+                        <div class="stats-card stats-card-remote">
+                            <div class="stats-number">{{ resources.remote_credentials }}</div>
+                            <div class="stats-label">Remote Credentials</div>
+                            <div class="stats-breakdown">
+                                <i class="fas fa-key"></i> For remote projects
+                            </div>
                         </div>
-                    </div>
                     {% endif %}
-
                     <!-- Active Services -->
                     {% if resources.active_services > 0 %}
-                    <div class="stats-card stats-card-services">
-                        <div class="stats-number">{{ resources.active_services }}</div>
-                        <div class="stats-label">Active Services</div>
-                        <div class="stats-breakdown">
-                            <i class="fas fa-cogs"></i> TensorBoard, Jupyter, etc.
+                        <div class="stats-card stats-card-services">
+                            <div class="stats-number">{{ resources.active_services }}</div>
+                            <div class="stats-label">Active Services</div>
+                            <div class="stats-breakdown">
+                                <i class="fas fa-cogs"></i> TensorBoard, Jupyter, etc.
+                            </div>
                         </div>
-                    </div>
                     {% endif %}
-
                     <!-- Collaborations -->
                     <div class="stats-card stats-card-collaborations">
                         <div class="stats-number">{{ resources.total_collaborations }}</div>
@@ -234,13 +231,14 @@
                             <i class="fas fa-users"></i> Projects you collaborate on
                         </div>
                     </div>
-
                     <!-- Quick Actions -->
                     <div class="stats-quick-actions">
-                        <a href="{% url 'accounts_app:ssh_keys' %}" class="btn btn-outline-primary btn-sm w-100 mb-2">
+                        <a href="{% url 'accounts_app:ssh_keys' %}"
+                           class="btn btn-outline-primary btn-sm w-100 mb-2">
                             <i class="fas fa-key"></i> Manage SSH Keys
                         </a>
-                        <a href="{% url 'user_projects:create' %}" class="btn btn-outline-success btn-sm w-100">
+                        <a href="{% url 'user_projects:create' %}"
+                           class="btn btn-outline-success btn-sm w-100">
                             <i class="fas fa-plus"></i> Create New Project
                         </a>
                     </div>
@@ -248,37 +246,31 @@
                 <div class="profile-section">
                     <h3>Privacy Settings</h3>
                     <div class="form-check mb-2">
-                        <input
-                            class="form-check-input"
-                            type="checkbox"
-                            id="publicProfile"
-                            {% if profile.is_public %}checked{% endif %}
-                            />
-                            <label class="form-check-label" for="publicProfile">Make profile public</label>
-                        </div>
-                        <div class="form-check mb-2">
-                            <input
-                                class="form-check-input"
-                                type="checkbox"
-                                id="showEmail"
-                                {% if profile.show_email %}checked{% endif %}
-                                />
-                                <label class="form-check-label" for="showEmail">Show email to other users</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input
-                                    class="form-check-input"
-                                    type="checkbox"
-                                    id="allowMessages"
-                                    {% if profile.allow_messages %}checked{% endif %}
-                                    />
-                                    <label class="form-check-label" for="allowMessages">Allow messages from other users</label>
-                                </div>
-                            </div>
-                        </div>
+                        <input class="form-check-input"
+                               type="checkbox"
+                               id="publicProfile"
+                               {% if profile.is_public %}checked{% endif %} />
+                        <label class="form-check-label" for="publicProfile">Make profile public</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input"
+                               type="checkbox"
+                               id="showEmail"
+                               {% if profile.show_email %}checked{% endif %} />
+                        <label class="form-check-label" for="showEmail">Show email to other users</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input"
+                               type="checkbox"
+                               id="allowMessages"
+                               {% if profile.allow_messages %}checked{% endif %} />
+                        <label class="form-check-label" for="allowMessages">Allow messages from other users</label>
                     </div>
                 </div>
-            {% endblock %}
-            {% block extra_js %}
-                {% vite_script 'accounts_app/profile' %}
-            {% endblock %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block extra_js %}
+    {% vite_script 'accounts_app/profile' %}
+{% endblock %}

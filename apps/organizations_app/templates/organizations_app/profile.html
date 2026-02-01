@@ -1,0 +1,213 @@
+{% extends 'global_base.html' %}
+
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'project_app/css/project_app.css' %}" />
+    <style>
+        .org-profile-page {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px 16px;
+        }
+
+        .org-header {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border-color, #e1e4e8);
+        }
+
+        .org-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 6px;
+            background: var(--bg-secondary, #f6f8fa);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: var(--text-secondary, #586069);
+        }
+
+        .org-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+
+        .org-info h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0 0 8px 0;
+        }
+
+        .org-info .org-slug {
+            color: var(--text-secondary, #586069);
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .org-info .org-description {
+            color: var(--text-primary, #24292e);
+            margin-bottom: 12px;
+        }
+
+        .org-stats {
+            display: flex;
+            gap: 16px;
+            font-size: 14px;
+            color: var(--text-secondary, #586069);
+        }
+
+        .org-stats a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .org-stats a:hover {
+            color: var(--link-color, #0366d6);
+        }
+
+        .org-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        .repo-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .repo-list {
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--border-color, #e1e4e8);
+            border-radius: 6px;
+        }
+
+        .repo-item {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color, #e1e4e8);
+        }
+
+        .repo-item:last-child {
+            border-bottom: none;
+        }
+
+        .repo-item h3 {
+            margin: 0 0 4px 0;
+            font-size: 16px;
+        }
+
+        .repo-item h3 a {
+            color: var(--link-color, #0366d6);
+            text-decoration: none;
+        }
+
+        .repo-item h3 a:hover {
+            text-decoration: underline;
+        }
+
+        .repo-item .repo-description {
+            color: var(--text-secondary, #586069);
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .repo-item .repo-meta {
+            font-size: 12px;
+            color: var(--text-tertiary, #6a737d);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--text-secondary, #586069);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="org-profile-page">
+        <!-- Organization Header -->
+        <div class="org-header">
+            <div class="org-avatar">
+                {% if organization.avatar %}
+                    <img src="{{ organization.avatar.url }}" alt="{{ organization.name }}" />
+                {% else %}
+                    <i class="fas fa-building"></i>
+                {% endif %}
+            </div>
+            <div class="org-info">
+                <h1>{{ organization.name }}</h1>
+                <div class="org-slug">@{{ organization.slug }}</div>
+                {% if organization.description %}<p class="org-description">{{ organization.description }}</p>{% endif %}
+                <div class="org-stats">
+                    <span><i class="fas fa-users"></i> {{ member_count }} member{{ member_count|pluralize }}</span>
+                    {% if organization.website %}
+                        <a href="{{ organization.website }}" target="_blank" rel="noopener">
+                            <i class="fas fa-link"></i> {{ organization.website }}
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <!-- Organization Content -->
+        <div class="org-content">
+            <div class="repo-section-header">
+                <h2>Repositories</h2>
+                {% if is_admin %}
+                    <a href="{% url 'project_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> New repository
+                    </a>
+                {% endif %}
+            </div>
+            {% if projects %}
+                <div class="repo-list">
+                    {% for project in projects %}
+                        <div class="repo-item">
+                            <h3>
+                                <a href="/{{ project.owner.username }}/{{ project.slug }}/">{{ project.owner.username }}/{{ project.name }}</a>
+                            </h3>
+                            {% if project.description %}<p class="repo-description">{{ project.description|truncatewords:30 }}</p>{% endif %}
+                            <div class="repo-meta">Updated {{ project.updated_at|timesince }} ago</div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <!-- Pagination -->
+                {% if projects.has_other_pages %}
+                    <nav aria-label="Repository pagination" style="margin-top: 24px">
+                        <div style="display: flex; justify-content: center; gap: 8px">
+                            {% if projects.has_previous %}
+                                <a href="?page={{ projects.previous_page_number }}" class="btn btn-secondary">Previous</a>
+                            {% endif %}
+                            <span style="padding: 8px 12px">{{ projects.number }} / {{ projects.paginator.num_pages }}</span>
+                            {% if projects.has_next %}
+                                <a href="?page={{ projects.next_page_number }}" class="btn btn-secondary">Next</a>
+                            {% endif %}
+                        </div>
+                    </nav>
+                {% endif %}
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-folder-open"></i>
+                    </div>
+                    <h3>No public repositories yet</h3>
+                    <p>This organization doesn't have any public repositories.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

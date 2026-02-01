@@ -294,6 +294,34 @@ Check the current status of SciTeX Cloud services and infrastructure.
         </div>
     </div>
 
+    <!-- Package Versions -->
+    <div class="status-section">
+        <h2 class="section-title has-tooltip" data-tooltip="Versions of SciTeX ecosystem packages currently running in this deployment.">
+            <i class="fas fa-code-branch"></i> Package Versions
+        </h2>
+        <div class="services-grid">
+            {% for pkg in status_data.package_versions %}
+            <div class="service-card {% if pkg.is_installed %}healthy{% else %}warning{% endif %}">
+                <div class="service-header">
+                    <div class="service-name">
+                        <i class="fas {{ pkg.icon }}"></i> {{ pkg.name }}
+                    </div>
+                    <span class="version-badge {% if pkg.is_installed %}version-installed{% else %}version-missing{% endif %}">
+                        {{ pkg.version }}
+                    </span>
+                </div>
+                <div class="service-details">
+                    <div><strong>Package:</strong> <code>{{ pkg.package }}</code></div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="service-card warning">
+                <p>Could not detect package versions</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
     <!-- Database & Cache -->
     <div class="status-section">
         <h2 class="section-title has-tooltip" data-tooltip="PostgreSQL: Main database (health = 'SELECT 1' query succeeds). Redis: Session storage and cache (health = cache.set/get works).">

@@ -6,25 +6,20 @@ placeholder='Enter email' icon='fa-envelope' label='Email Address' required=True
     {% if label %}
         <label for="{{ id }}" class="form-label">
             {{ label }}
-            {% if required %}
-                <span class="text-danger">*</span>
-            {% endif
-            %}
+            {% if required %}<span class="text-danger">*</span>{% endif %}
         </label>
     {% endif %}
     <div class="input-group">
         {% if icon %}<span class="input-group-text"><i class="fas {{ icon }}"></i></span>{% endif %}
-        <input
-            type="{{ type|default:'text' }}"
-            class="form-control"
-            id="{{ id }}"
-            name="{{ name }}"
-            placeholder="{{ placeholder }}"
-{% if required %}required{% endif %}
-{% if minlength %}minlength="{{ minlength }}" {% endif %}
-{% if maxlength %}maxlength="{{ maxlength }}" {% endif %}
-{% if pattern %}pattern="{{ pattern }}" {% endif %}
-            />
-        </div>
-        {% if help_text %}<small class="form-text text-muted">{{ help_text }}</small>{% endif %}
+        <input type="{{ type|default:'text' }}"
+               class="form-control"
+               id="{{ id }}"
+               name="{{ name }}"
+               placeholder="{{ placeholder }}"
+               {% if required %}required{% endif %}
+               {% if minlength %}minlength="{{ minlength }}"{% endif %}
+               {% if maxlength %}maxlength="{{ maxlength }}"{% endif %}
+               {% if pattern %}pattern="{{ pattern }}"{% endif %} />
     </div>
+    {% if help_text %}<small class="form-text text-muted">{{ help_text }}</small>{% endif %}
+</div>

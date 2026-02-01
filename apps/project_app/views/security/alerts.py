@@ -2,15 +2,17 @@
 Security alerts views for SciTeX projects
 """
 
-from django.shortcuts import render, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.http import HttpResponseForbidden, JsonResponse
-from django.views.decorators.http import require_http_methods
-from django.core.paginator import Paginator
 import logging
 
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from django.http import HttpResponseForbidden, JsonResponse
+from django.shortcuts import get_object_or_404, render
+from django.views.decorators.http import require_http_methods
+
 from apps.project_app.models import Project
+
 # TODO: Fix when security models are properly structured
 # from apps.project_app.models.security import SecurityAlert
 
@@ -79,6 +81,7 @@ def security_alert_detail(request, username, slug, alert_id):
     context = {
         "project": project,
         "alert": alert,
+        "can_edit": project.can_edit(request.user),
     }
 
     return render(request, "project_app/security/alert_detail.html", context)

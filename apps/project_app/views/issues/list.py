@@ -2,14 +2,15 @@
 Issue list view for SciTeX projects
 """
 
-from django.shortcuts import render, get_object_or_404
-from django.http import Http404
-from django.db.models import Q, Count
-from django.core.paginator import Paginator
-import subprocess
 import logging
+import subprocess
 
-from apps.project_app.models import Project
+from django.core.paginator import Paginator
+from django.db.models import Count, Q
+from django.http import Http404
+from django.shortcuts import render
+
+from apps.project_app.utils.project_lookup import get_project_by_owner_slug
 
 logger = logging.getLogger(__name__)
 
@@ -18,8 +19,10 @@ def issues_list(request, username, slug):
     """
     List all issues for a project with filtering
     Similar to GitHub issues list
+
+    Supports both user-owned and organization-owned projects.
     """
-    project = get_object_or_404(Project, owner__username=username, slug=slug)
+    project = get_project_by_owner_slug(username, slug)
 
     # Check permissions
     if not project.can_view(request.user):
@@ -93,6 +96,9 @@ def issues_list(request, username, slug):
     labels = project.issue_labels.all()
     milestones = project.issue_milestones.filter(state="open")
 
+    # Get issue templates for new issue dropdown
+    issue_templates = project.issue_templates.filter(is_active=True).order_by("order")
+
     # Count statistics
     open_count = project.issues.filter(state="open").count()
     closed_count = project.issues.filter(state="closed").count()
@@ -151,6 +157,7 @@ def issues_list(request, username, slug):
         },
         "branches": branches,
         "current_branch": current_branch,
+        "issue_templates": issue_templates,
     }
 
     return render(request, "project_app/issues/list.html", context)

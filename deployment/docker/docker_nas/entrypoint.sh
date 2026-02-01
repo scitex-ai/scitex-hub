@@ -77,24 +77,50 @@ if [ "$VITE_REBUILD_NEEDED" = true ]; then
     touch staticfiles/vite/.build-timestamp
     echo_success "TypeScript build complete"
     # Re-run collectstatic to pick up new vite output
+    # NOTE: Do NOT use --clear here - it would delete the vite output!
     echo_info "Collecting static files (post-vite)..."
-    python manage.py collectstatic --noinput --clear 2>&1 | tail -1
+    python manage.py collectstatic --noinput 2>&1 | tail -1
     echo_success "Static files collected"
 else
     echo_info "TypeScript build already up to date"
 fi
 
 # ============================================
-# Start SSH Gateway (Background)
+# Start Terminal Broker (Background) - Required for PTY operations
 # ============================================
-echo_info "Starting SSH gateway on port 2200..."
-python manage.py run_ssh_gateway --port 2200 --host 0.0.0.0 &
-SSH_GATEWAY_PID=$!
-sleep 2
-if kill -0 $SSH_GATEWAY_PID 2>/dev/null; then
-    echo_success "SSH gateway started (PID: $SSH_GATEWAY_PID)"
+# The terminal broker handles pty.fork() in a separate process from Daphne.
+# This prevents asyncio/signal conflicts that can cause deadlocks.
+# Skip for celery workers - they don't handle terminal WebSockets
+if [[ ! "$*" =~ "celery" ]]; then
+    echo_info "Starting terminal broker..."
+    python manage.py run_terminal_broker &
+    TERMINAL_BROKER_PID=$!
+    sleep 1
+    if kill -0 $TERMINAL_BROKER_PID 2>/dev/null; then
+        echo_success "Terminal broker started (PID: $TERMINAL_BROKER_PID)"
+    else
+        echo_warning "Terminal broker failed to start - terminals will use fallback mode"
+    fi
 else
-    echo_warning "SSH gateway failed to start - workspace SSH access may be unavailable"
+    echo_info "Skipping terminal broker (celery worker)"
+fi
+
+# ============================================
+# Start SSH Gateway (Background) - Only for main Django app
+# ============================================
+# Skip SSH gateway for celery workers - they don't need it
+if [[ ! "$*" =~ "celery" ]]; then
+    echo_info "Starting SSH gateway on port 2200..."
+    python manage.py run_ssh_gateway --port 2200 --host 0.0.0.0 &
+    SSH_GATEWAY_PID=$!
+    sleep 2
+    if kill -0 $SSH_GATEWAY_PID 2>/dev/null; then
+        echo_success "SSH gateway started (PID: $SSH_GATEWAY_PID)"
+    else
+        echo_warning "SSH gateway failed to start - workspace SSH access may be unavailable"
+    fi
+else
+    echo_info "Skipping SSH gateway (celery worker)"
 fi
 
 # ============================================

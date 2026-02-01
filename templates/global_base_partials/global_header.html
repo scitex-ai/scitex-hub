@@ -20,11 +20,21 @@
     <div class="global-header-inner">
         <!-- Left: Logo + Main Navigation -->
         <div class="header-left">
-            <!-- Logo -->
+            <!-- Logo (matches favicon: green=dev, orange=staging, standard=prod) -->
             <a href="/" class="header-logo" title="Home">
-                <img src="{% static 'shared/images/scitex_logos/scitex-icons/scitex-icon-navy-inverted.svg' %}"
-                     alt="SciTeX"
-                     class="header-logo-icon" />
+                {% if DEBUG %}
+                    <img src="{% static 'shared/images/favicons/favicon-dev.svg' %}"
+                         alt="SciTeX (Dev)"
+                         class="header-logo-icon" />
+                {% elif IS_STAGING %}
+                    <img src="{% static 'shared/images/favicons/favicon-staging.svg' %}"
+                         alt="SciTeX (Staging)"
+                         class="header-logo-icon" />
+                {% else %}
+                    <img src="{% static 'shared/images/scitex_logos/scitex-icons/scitex-icon-navy-inverted.svg' %}"
+                         alt="SciTeX"
+                         class="header-logo-icon" />
+                {% endif %}
             </a>
             <!-- Project Selector (moved here for better visibility) -->
             <div class="header-project-selector-inline">
@@ -161,8 +171,8 @@
                         </a>
                     {% endif %}
                 {% else %}
-                    {% if visitor_username and project %}
-                        <a href="/files/{{ visitor_username }}/{{ project.slug }}/"
+                    {% if visitor_username %}
+                        <a href="/files/{{ visitor_username }}/"
                            class="header-nav-item {% if 'files/' in request.path %}active{% endif %}"
                            data-tooltip="Your files (Alt+F)"
                            data-shortcut="F">

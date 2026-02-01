@@ -1,13 +1,11 @@
 {% extends 'global_base.html' %}
+
 {% load static %}
-{% block title %}
-    Security Policy - {{ project.name }}
-{% endblock %}
+
+{% block title %}Security Policy - {{ project.name }}{% endblock %}
 {% block extra_css %}
-    <link rel="stylesheet"
-          href="{% static 'project_app/css/project_app.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'project_app/css/shared/buttons.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/project_app.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/shared/buttons.css' %}" />
 {% endblock %}
 {% block content %}
     <div class="container-fluid browse-container">
@@ -15,7 +13,7 @@
         {% include 'project_app/repository/browse_partials/browse_tabs.html' with active_tab='security' %}
         {% include 'project_app/security_overview_partials/security_overview_tabs.html' with active_tab='policy' %}
         <h2 class="mb-3">Security Policy</h2>
-        {% if project.can_edit user %}
+        {% if can_edit %}
             <form method="post">
                 {% csrf_token %}
                 <div class="mb-3">

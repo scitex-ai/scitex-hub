@@ -1,8 +1,6 @@
 {% extends "public_app/cloud_base.html" %}
-{% block title %}
-    API Keys
-{% endblock
-%}
+
+{% block title %}API Keys{% endblock %}
 {% block content %}
     <div style="max-width: 800px; margin: 0 auto; padding: 2rem">
         <h1 style="color: var(--color-fg-default); margin-bottom: 2rem">Get API Key</h1>
@@ -80,18 +78,14 @@
                                 border: 1px solid var(--color-border-default);
                                 border-radius: 6px;
                                 margin-bottom: 1rem">
-                        <div style="display: flex;
-                                    justify-content: space-between;
-                                    align-items: center">
+                        <div style="display: flex; justify-content: space-between; align-items: center">
                             <div>
                                 <div style="font-weight: 600; color: var(--color-fg-default)">{{ key.name }}</div>
                                 <div style="font-family: monospace;
                                             color: var(--color-fg-muted);
                                             font-size: 0.9rem;
                                             margin-top: 0.25rem">{{ key.key_prefix }}••••••••</div>
-                                <div style="font-size: 0.85rem;
-                                            color: var(--color-fg-muted);
-                                            margin-top: 0.25rem">
+                                <div style="font-size: 0.85rem; color: var(--color-fg-muted); margin-top: 0.25rem">
                                     Created: {{ key.created_at|date:"Y-m-d" }}
                                     {% if key.last_used_at %}| Last used: {{ key.last_used_at|date:"Y-m-d" }}{% endif %}
                                 </div>
@@ -137,9 +131,7 @@
                     </div>
                 {% endfor %}
             {% else %}
-                <p style="color: var(--color-fg-muted);
-                          text-align: center;
-                          padding: 2rem">No keys yet. Create one above.</p>
+                <p style="color: var(--color-fg-muted); text-align: center; padding: 2rem">No keys yet. Create one above.</p>
             {% endif %}
         </div>
     </div>

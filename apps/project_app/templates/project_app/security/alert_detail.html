@@ -1,11 +1,11 @@
 {% extends 'global_base.html' %}
+
 {% load static vite %}
+
 {% block title %}{{ alert.title }} - Security - {{ project.name }}{% endblock %}
 {% block extra_css %}
-    <link rel="stylesheet"
-          href="{% static 'project_app/css/project_app.css' %}">
-    <link rel="stylesheet"
-          href="{% static 'project_app/css/shared/buttons.css' %}">
+    <link rel="stylesheet" href="{% static 'project_app/css/project_app.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/shared/buttons.css' %}" />
 {% endblock %}
 {% block content %}
     <div class="container-fluid"
@@ -46,8 +46,7 @@
                     <div class="mb-4">
                         <h5>CVE ID</h5>
                         <p>
-                            <a href="https://nvd.nist.gov/vuln/detail/{{ alert.cve_id }}"
-                               target="_blank">{{ alert.cve_id }}</a>
+                            <a href="https://nvd.nist.gov/vuln/detail/{{ alert.cve_id }}" target="_blank">{{ alert.cve_id }}</a>
                         </p>
                     </div>
                 {% endif %}
@@ -73,7 +72,7 @@
                         {% endif %}
                     </p>
                 </div>
-                {% if project.can_edit user %}
+                {% if can_edit %}
                     <div class="mt-4">
                         {% if alert.status == 'open' %}
                             <button class="btn btn-warning" onclick="dismissAlert()">Dismiss Alert</button>

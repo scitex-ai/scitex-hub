@@ -12,8 +12,7 @@
                 <span class="page-link disabled">‹ Previous</span>
             {% endif %}
             {% for num in commits.paginator.page_range %}
-                {% if
-                    commits.number == num %}
+                {% if commits.number == num %}
                     <span class="page-link active">{{ num }}</span>
                 {% elif num > commits.number|add:'-3' and num < commits.number|add:'3' %}
                     <a href="?page={{ num }}{% if author_filter %}&author={{ author_filter }}{% endif %}"

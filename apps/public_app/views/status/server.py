@@ -26,6 +26,7 @@ from .health_checks import (
     check_redis,
     check_disk,
 )
+from .package_versions import check_package_versions
 from .compute_resources import (
     check_slurm_status,
     check_container_runtime_status,
@@ -78,6 +79,9 @@ def server_status(request):
 
     # Get registered users count
     check_registered_users_count(status_data)
+
+    # Check package versions
+    check_package_versions(status_data)
 
     context = {
         "status_data": status_data,
