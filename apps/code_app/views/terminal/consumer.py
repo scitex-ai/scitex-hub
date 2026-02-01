@@ -44,6 +44,26 @@ from .workspace import ensure_workspace
 
 logger = logging.getLogger(__name__)
 
+# Install SIGCHLD handler to auto-reap zombie children
+# This prevents zombie accumulation if disconnect() doesn't run properly
+def _sigchld_handler(signum, frame):
+    """Reap all zombie children without blocking."""
+    while True:
+        try:
+            pid, _ = os.waitpid(-1, os.WNOHANG)
+            if pid == 0:
+                break
+        except ChildProcessError:
+            break
+
+# Only install if not already handled
+try:
+    if signal.getsignal(signal.SIGCHLD) == signal.SIG_DFL:
+        signal.signal(signal.SIGCHLD, _sigchld_handler)
+except (ValueError, OSError):
+    # Signal handling not available in this context (e.g., not main thread)
+    pass
+
 
 class TerminalConsumer(AsyncWebsocketConsumer):
     """
@@ -231,9 +251,18 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 
         if self.pid and self.pid > 0:
             try:
-                os.kill(self.pid, 9)
+                os.kill(self.pid, signal.SIGTERM)
             except ProcessLookupError:
                 pass
+
+            # Reap zombie process to prevent accumulation
+            # This is critical - without waitpid(), child becomes zombie
+            try:
+                await asyncio.to_thread(os.waitpid, self.pid, os.WNOHANG)
+            except ChildProcessError:
+                pass  # Already reaped
+            except Exception as e:
+                logger.debug(f"waitpid error (non-critical): {e}")
 
         if self.fd:
             try:
