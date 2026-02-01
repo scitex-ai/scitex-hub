@@ -45,91 +45,23 @@
                         </a>
                     </div>
                     {% if issue_templates %}
-                        <!-- Dropdown button for templates -->
-                        <div class="new-issue-dropdown" style="position: relative; display: inline-block;">
-                            <button type="button"
-                                    class="btn btn-success"
-                                    onclick="toggleNewIssueDropdown()"
-                                    style="display: flex;
-                                           align-items: center;
-                                           gap: 4px">
-                                <svg width="16"
-                                     height="16"
-                                     viewBox="0 0 16 16"
-                                     fill="currentColor"
-                                     style="display: inline-block;
-                                            vertical-align: text-bottom">
-                                    <path d="M7.75 2a.75.75 0 0 1 .75.75V7h4.25a.75.75 0 0 1 0 1.5H8.5v4.25a.75.75 0 0 1-1.5 0V8.5H2.75a.75.75 0 0 1 0-1.5H7V2.75A.75.75 0 0 1 7.75 2Z" />
-                                </svg>
-                                New issue
-                                <svg width="12"
-                                     height="12"
-                                     viewBox="0 0 16 16"
-                                     fill="currentColor"
-                                     style="margin-left: 4px">
-                                    <path d="m4.427 7.427 3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427Z" />
-                                </svg>
-                            </button>
-                            <div id="newIssueDropdown"
-                                 class="new-issue-dropdown-menu"
-                                 style="display: none;
-                                        position: absolute;
-                                        right: 0;
-                                        top: 100%;
-                                        margin-top: 4px;
-                                        min-width: 300px;
-                                        background: var(--bg-primary);
-                                        border: 1px solid var(--border-color);
-                                        border-radius: 6px;
-                                        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-                                        z-index: 100">
-                                <div style="padding: 8px 12px;
-                                            border-bottom: 1px solid var(--border-color);
-                                            font-weight: 600;
-                                            font-size: 12px;
-                                            color: var(--text-secondary)">Choose a template</div>
-                                {% for template in issue_templates %}
-                                    <a href="{% url 'user_projects:issue_create' username=project.owner.username slug=project.slug %}?template={{ template.id }}"
-                                       style="display: flex;
-                                              align-items: flex-start;
-                                              gap: 12px;
-                                              padding: 10px 12px;
-                                              text-decoration: none;
-                                              color: var(--text-primary);
-                                              border-bottom: 1px solid var(--border-color)"
-                                       onmouseover="this.style.background='var(--bg-secondary)'"
-                                       onmouseout="this.style.background='transparent'">
-                                        <i class="fas {{ template.icon }}"
-                                           style="color: var(--accent-primary);
-                                                  width: 16px;
-                                                  margin-top: 2px"></i>
-                                        <div>
-                                            <strong style="display: block;">{{ template.name }}</strong>
-                                            <small style="color: var(--text-secondary);">{{ template.description }}</small>
-                                        </div>
-                                    </a>
-                                {% endfor %}
-                                <a href="{% url 'user_projects:issue_create' username=project.owner.username slug=project.slug %}?template=blank"
-                                   style="display: flex;
-                                          align-items: flex-start;
-                                          gap: 12px;
-                                          padding: 10px 12px;
-                                          text-decoration: none;
-                                          color: var(--text-primary);
-                                          border-radius: 0 0 6px 6px"
-                                   onmouseover="this.style.background='var(--bg-secondary)'"
-                                   onmouseout="this.style.background='transparent'">
-                                    <i class="fas fa-file"
-                                       style="color: var(--text-muted);
-                                              width: 16px;
-                                              margin-top: 2px"></i>
-                                    <div>
-                                        <strong style="display: block;">Open a blank issue</strong>
-                                        <small style="color: var(--text-secondary);">Create an issue from scratch</small>
-                                    </div>
-                                </a>
-                            </div>
-                        </div>
+                        <!-- Button to open modal -->
+                        <button type="button"
+                                class="btn btn-success"
+                                onclick="openNewIssueModal()"
+                                style="display: flex;
+                                       align-items: center;
+                                       gap: 4px">
+                            <svg width="16"
+                                 height="16"
+                                 viewBox="0 0 16 16"
+                                 fill="currentColor"
+                                 style="display: inline-block;
+                                        vertical-align: text-bottom">
+                                <path d="M7.75 2a.75.75 0 0 1 .75.75V7h4.25a.75.75 0 0 1 0 1.5H8.5v4.25a.75.75 0 0 1-1.5 0V8.5H2.75a.75.75 0 0 1 0-1.5H7V2.75A.75.75 0 0 1 7.75 2Z" />
+                            </svg>
+                            New issue
+                        </button>
                     {% else %}
                         <a href="{% url 'user_projects:issue_create' username=project.owner.username slug=project.slug %}"
                            class="btn btn-success">
@@ -259,92 +191,23 @@
                         {% endif %}
                     </p>
                     {% if issue_templates %}
-                        <!-- Dropdown button for templates (empty state) -->
-                        <div class="new-issue-dropdown" style="position: relative; display: inline-block;">
-                            <button type="button"
-                                    class="btn btn-success"
-                                    onclick="toggleNewIssueDropdownEmpty()"
-                                    style="display: flex;
-                                           align-items: center;
-                                           gap: 4px">
-                                <svg width="16"
-                                     height="16"
-                                     viewBox="0 0 16 16"
-                                     fill="currentColor"
-                                     style="display: inline-block;
-                                            vertical-align: text-bottom">
-                                    <path d="M7.75 2a.75.75 0 0 1 .75.75V7h4.25a.75.75 0 0 1 0 1.5H8.5v4.25a.75.75 0 0 1-1.5 0V8.5H2.75a.75.75 0 0 1 0-1.5H7V2.75A.75.75 0 0 1 7.75 2Z" />
-                                </svg>
-                                New issue
-                                <svg width="12"
-                                     height="12"
-                                     viewBox="0 0 16 16"
-                                     fill="currentColor"
-                                     style="margin-left: 4px">
-                                    <path d="m4.427 7.427 3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427Z" />
-                                </svg>
-                            </button>
-                            <div id="newIssueDropdownEmpty"
-                                 class="new-issue-dropdown-menu"
-                                 style="display: none;
-                                        position: absolute;
-                                        left: 50%;
-                                        transform: translateX(-50%);
-                                        top: 100%;
-                                        margin-top: 4px;
-                                        min-width: 300px;
-                                        background: var(--bg-primary);
-                                        border: 1px solid var(--border-color);
-                                        border-radius: 6px;
-                                        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-                                        z-index: 100">
-                                <div style="padding: 8px 12px;
-                                            border-bottom: 1px solid var(--border-color);
-                                            font-weight: 600;
-                                            font-size: 12px;
-                                            color: var(--text-secondary)">Choose a template</div>
-                                {% for template in issue_templates %}
-                                    <a href="{% url 'user_projects:issue_create' username=project.owner.username slug=project.slug %}?template={{ template.id }}"
-                                       style="display: flex;
-                                              align-items: flex-start;
-                                              gap: 12px;
-                                              padding: 10px 12px;
-                                              text-decoration: none;
-                                              color: var(--text-primary);
-                                              border-bottom: 1px solid var(--border-color)"
-                                       onmouseover="this.style.background='var(--bg-secondary)'"
-                                       onmouseout="this.style.background='transparent'">
-                                        <i class="fas {{ template.icon }}"
-                                           style="color: var(--accent-primary);
-                                                  width: 16px;
-                                                  margin-top: 2px"></i>
-                                        <div>
-                                            <strong style="display: block;">{{ template.name }}</strong>
-                                            <small style="color: var(--text-secondary);">{{ template.description }}</small>
-                                        </div>
-                                    </a>
-                                {% endfor %}
-                                <a href="{% url 'user_projects:issue_create' username=project.owner.username slug=project.slug %}?template=blank"
-                                   style="display: flex;
-                                          align-items: flex-start;
-                                          gap: 12px;
-                                          padding: 10px 12px;
-                                          text-decoration: none;
-                                          color: var(--text-primary);
-                                          border-radius: 0 0 6px 6px"
-                                   onmouseover="this.style.background='var(--bg-secondary)'"
-                                   onmouseout="this.style.background='transparent'">
-                                    <i class="fas fa-file"
-                                       style="color: var(--text-muted);
-                                              width: 16px;
-                                              margin-top: 2px"></i>
-                                    <div>
-                                        <strong style="display: block;">Open a blank issue</strong>
-                                        <small style="color: var(--text-secondary);">Create an issue from scratch</small>
-                                    </div>
-                                </a>
-                            </div>
-                        </div>
+                        <!-- Button to open modal (empty state) -->
+                        <button type="button"
+                                class="btn btn-success"
+                                onclick="openNewIssueModal()"
+                                style="display: flex;
+                                       align-items: center;
+                                       gap: 4px">
+                            <svg width="16"
+                                 height="16"
+                                 viewBox="0 0 16 16"
+                                 fill="currentColor"
+                                 style="display: inline-block;
+                                        vertical-align: text-bottom">
+                                <path d="M7.75 2a.75.75 0 0 1 .75.75V7h4.25a.75.75 0 0 1 0 1.5H8.5v4.25a.75.75 0 0 1-1.5 0V8.5H2.75a.75.75 0 0 1 0-1.5H7V2.75A.75.75 0 0 1 7.75 2Z" />
+                            </svg>
+                            New issue
+                        </button>
                     {% else %}
                         <a href="{% url 'user_projects:issue_create' username=project.owner.username slug=project.slug %}"
                            class="btn btn-success">
@@ -365,29 +228,135 @@
         </div>
     </div>
     {% include 'project_app/repository/browse_partials/browse_scripts.html' %}
+    <!-- New Issue Template Modal -->
+    {% if issue_templates %}
+        <div id="newIssueModal"
+             class="modal-overlay"
+             style="display: none;
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0,0,0,0.5);
+                    z-index: 1000;
+                    justify-content: center;
+                    align-items: center">
+            <div class="modal-content"
+                 style="background: var(--bg-primary);
+                        border: 1px solid var(--border-color);
+                        border-radius: 12px;
+                        max-width: 600px;
+                        width: 90%;
+                        max-height: 80vh;
+                        overflow-y: auto;
+                        box-shadow: 0 16px 48px rgba(0,0,0,0.3)">
+                <div style="padding: 1.5rem;
+                            border-bottom: 1px solid var(--border-color);
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center">
+                    <h2 style="margin: 0; font-size: 1.25rem;">New Issue</h2>
+                    <button onclick="closeNewIssueModal()"
+                            style="background: none;
+                                   border: none;
+                                   font-size: 1.5rem;
+                                   cursor: pointer;
+                                   color: var(--text-muted);
+                                   padding: 0;
+                                   line-height: 1">&times;</button>
+                </div>
+                <div style="padding: 1rem;">
+                    <p style="margin: 0 0 1rem; color: var(--text-secondary); font-size: 0.9rem;">
+                        <i class="fas fa-file-alt"></i> Choose a template to get started:
+                    </p>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                        {% for template in issue_templates %}
+                            <a href="{% url 'user_projects:issue_create' username=project.owner.username slug=project.slug %}?template={{ template.id }}"
+                               class="template-option"
+                               style="display: flex;
+                                      align-items: center;
+                                      gap: 1rem;
+                                      padding: 1rem;
+                                      background: var(--bg-secondary);
+                                      border: 1px solid var(--border-color);
+                                      border-radius: 8px;
+                                      text-decoration: none;
+                                      color: var(--text-primary);
+                                      transition: border-color 0.2s, background 0.2s"
+                               onmouseover="this.style.borderColor='var(--accent-primary)'; this.style.background='var(--bg-tertiary)'"
+                               onmouseout="this.style.borderColor='var(--border-color)'; this.style.background='var(--bg-secondary)'">
+                                <i class="fas {{ template.icon }}"
+                                   style="font-size: 1.5rem;
+                                          color: var(--accent-primary);
+                                          width: 32px;
+                                          text-align: center"></i>
+                                <div style="flex: 1;">
+                                    <strong style="display: block; margin-bottom: 0.25rem;">{{ template.name }}</strong>
+                                    <small style="color: var(--text-secondary);">{{ template.description }}</small>
+                                </div>
+                                <i class="fas fa-chevron-right" style="color: var(--text-muted);"></i>
+                            </a>
+                        {% endfor %}
+                        <a href="{% url 'user_projects:issue_create' username=project.owner.username slug=project.slug %}?template=blank"
+                           class="template-option"
+                           style="display: flex;
+                                  align-items: center;
+                                  gap: 1rem;
+                                  padding: 1rem;
+                                  background: var(--bg-secondary);
+                                  border: 1px solid var(--border-color);
+                                  border-radius: 8px;
+                                  text-decoration: none;
+                                  color: var(--text-primary);
+                                  transition: border-color 0.2s, background 0.2s"
+                           onmouseover="this.style.borderColor='var(--accent-primary)'; this.style.background='var(--bg-tertiary)'"
+                           onmouseout="this.style.borderColor='var(--border-color)'; this.style.background='var(--bg-secondary)'">
+                            <i class="fas fa-file"
+                               style="font-size: 1.5rem;
+                                      color: var(--text-muted);
+                                      width: 32px;
+                                      text-align: center"></i>
+                            <div style="flex: 1;">
+                                <strong style="display: block; margin-bottom: 0.25rem;">Blank Issue</strong>
+                                <small style="color: var(--text-secondary);">Create an issue from scratch</small>
+                            </div>
+                            <i class="fas fa-chevron-right" style="color: var(--text-muted);"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
     <script>
-        function toggleNewIssueDropdown() {
-            const dropdown = document.getElementById('newIssueDropdown');
-            const dropdownEmpty = document.getElementById('newIssueDropdownEmpty');
-            if (dropdownEmpty) dropdownEmpty.style.display = 'none';
-            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        function openNewIssueModal() {
+            const modal = document.getElementById('newIssueModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
         }
 
-        function toggleNewIssueDropdownEmpty() {
-            const dropdown = document.getElementById('newIssueDropdownEmpty');
-            const dropdownMain = document.getElementById('newIssueDropdown');
-            if (dropdownMain) dropdownMain.style.display = 'none';
-            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        function closeNewIssueModal() {
+            const modal = document.getElementById('newIssueModal');
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+            }
         }
 
-        // Close dropdown when clicking outside
+        // Close modal when clicking overlay background
         document.addEventListener('click', function(event) {
-            const dropdown = document.getElementById('newIssueDropdown');
-            const dropdownEmpty = document.getElementById('newIssueDropdownEmpty');
-            const button = event.target.closest('.new-issue-dropdown');
-            if (!button) {
-                if (dropdown) dropdown.style.display = 'none';
-                if (dropdownEmpty) dropdownEmpty.style.display = 'none';
+            const modal = document.getElementById('newIssueModal');
+            if (event.target === modal) {
+                closeNewIssueModal();
+            }
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeNewIssueModal();
             }
         });
     </script>
