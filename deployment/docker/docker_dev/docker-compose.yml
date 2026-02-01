@@ -457,34 +457,20 @@ services:
       - scitex-dev
 
   # ============================================
-  # FigRecipe Editor (Standalone Demo)
+  # FigRecipe Editor (Standalone Demo) - DISABLED
   # ============================================
-  # Interactive figure editor - accessible at fig.scitex.ai or localhost:5500
-  figrecipe-editor:
-    image: python:3.11-slim
-
-    volumes:
-      - ../../../../figrecipe:/figrecipe:cached
-
-    working_dir: /figrecipe
-
-    # Install and run figrecipe editor
-    command: ["bash", "-c", "find /figrecipe -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null; pip install --no-cache-dir -q -e /figrecipe[editor] && python -c 'import figrecipe as fr; fr.edit(source=None, port=5500, host=\"0.0.0.0\", open_browser=False)'"]
-
-    ports:
-      - "5500:5500"
-
-    restart: unless-stopped
-
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5500/ping', timeout=5)"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 60s
-
-    networks:
-      - scitex-dev
+  # Interactive figure editing will be integrated into /vis/ page instead.
+  # The standalone fr.edit() remains available in figrecipe/scitex.plt.
+  # figrecipe-editor:
+  #   image: python:3.11-slim
+  #   volumes:
+  #     - ../../../../figrecipe:/figrecipe:cached
+  #   working_dir: /figrecipe
+  #   command: ["bash", "-c", "pip install -e /figrecipe[editor] && python -c 'import figrecipe as fr; fr.edit(port=5500, host=\"0.0.0.0\", open_browser=False)'"]
+  #   ports:
+  #     - "5500:5500"
+  #   networks:
+  #     - scitex-dev
 
 # ============================================
 # Volumes
