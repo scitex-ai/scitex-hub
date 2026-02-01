@@ -171,8 +171,8 @@
                         </a>
                     {% endif %}
                 {% else %}
-                    {% if visitor_username and project %}
-                        <a href="/files/{{ visitor_username }}/{{ project.slug }}/"
+                    {% if visitor_username %}
+                        <a href="/files/{{ visitor_username }}/"
                            class="header-nav-item {% if 'files/' in request.path %}active{% endif %}"
                            data-tooltip="Your files (Alt+F)"
                            data-shortcut="F">
