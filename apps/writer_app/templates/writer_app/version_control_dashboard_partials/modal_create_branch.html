@@ -23,18 +23,14 @@
                               placeholder="Describe the purpose of this branch..."></textarea>
                 </div>
                 <div class="text-right mt-1-5">
-                    <button type="button"
-                            class="btn-secondary"
-                            onclick="closeModal('createBranchModal')">Cancel</button>
+                    <button type="button" class="btn-secondary" onclick="closeModal('createBranchModal')">Cancel</button>
                     <button type="submit" class="btn-primary">Create Branch</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-{% endblock %}
-{% block extra_js %}
-    <script>
+<script>
   // Version Control Index JavaScript
   const manuscriptId = {{ manuscript.id }};
   let currentDiffVersions = null;
@@ -271,5 +267,4 @@
           }
       });
   }
-    </script>
-{% endblock %}
+</script>

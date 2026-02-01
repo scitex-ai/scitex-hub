@@ -1,3 +1,5 @@
+{% load math_filters %}
+
 <!-- Version History -->
 <div class="index-section">
     <div class="section-header">
@@ -31,8 +33,7 @@
                                     </span>
                                 {% elif version.word_count_delta < 0 %}
                                     <span class="stat-item stat-negative">
-                                        <i class="fas fa-minus"></i> {{ version.word_count_delta|abs }}
-                                        words
+                                        <i class="fas fa-minus"></i> {{ version.word_count_delta|abs_value }} words
                                     </span>
                                 {% endif %}
                             </div>
@@ -41,8 +42,7 @@
                             <button class="btn-sm btn-outline" onclick="viewDiff('{{ version.id }}')">
                                 <i class="fas fa-eye"></i> Diff
                             </button>
-                            <button class="btn-sm btn-outline"
-                                    onclick="rollbackToVersion('{{ version.id }}')">
+                            <button class="btn-sm btn-outline" onclick="rollbackToVersion('{{ version.id }}')">
                                 <i class="fas fa-undo"></i> Rollback
                             </button>
                         </div>
