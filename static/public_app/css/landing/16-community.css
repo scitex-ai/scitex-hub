@@ -1,0 +1,132 @@
+/* Landing Community Feedback Section */
+.landing-community {
+  padding: 60px 0;
+  background: var(--bg-muted);
+  border-top: 1px solid var(--border-default);
+}
+
+.community-content {
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.community-header {
+  margin-bottom: 32px;
+}
+
+.community-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 12px 0;
+}
+
+.community-subtitle {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.community-links {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.community-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+  min-width: 220px;
+}
+
+.community-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
+}
+
+.community-link i {
+  font-size: 1.5rem;
+  width: 32px;
+  text-align: center;
+}
+
+.community-link-bug i {
+  color: #dc3545;
+}
+
+.community-link-feature i {
+  color: #ffc107;
+}
+
+.community-link-discuss i {
+  color: #0d6efd;
+}
+
+.community-link .link-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.community-link .link-text strong {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.community-link .link-text small {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.community-note {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.community-note i {
+  margin-right: 6px;
+}
+
+.community-note a {
+  color: var(--link-color);
+  text-decoration: none;
+}
+
+.community-note a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .landing-community {
+    padding: 40px 0;
+  }
+
+  .community-title {
+    font-size: 1.5rem;
+  }
+
+  .community-links {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .community-link {
+    width: 100%;
+    max-width: 300px;
+  }
+}
