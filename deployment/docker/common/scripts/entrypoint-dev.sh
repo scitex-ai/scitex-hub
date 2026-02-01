@@ -343,6 +343,29 @@ fi
 # ============================================
 # Check if process is running by checking port or process name
 
+# Start Terminal Broker (Background) - PTY operations in separate process
+# This prevents asyncio/signal conflicts that can cause Daphne deadlocks
+start_terminal_broker_if_needed() {
+    local socket_path="/tmp/scitex-terminal-broker.sock"
+    if [ ! -S "$socket_path" ]; then
+        echo_info "Starting terminal broker..."
+        nohup python manage.py run_terminal_broker \
+            >/app/logs/terminal-broker.log 2>&1 &
+        BROKER_PID=$!
+        sleep 1
+        if [ -S "$socket_path" ]; then
+            echo_success "Terminal broker started (PID: $BROKER_PID)"
+            echo -e "   Socket: $socket_path"
+            echo -e "   Log: tail -f /app/logs/terminal-broker.log"
+        else
+            echo_warning "Terminal broker may have failed - using fallback mode"
+        fi
+    else
+        echo_success "Terminal broker already running"
+    fi
+}
+start_terminal_broker_if_needed
+
 # Start SSH Gateway (Background) - check if port 2200 is in use
 start_ssh_gateway_if_needed() {
     if ! nc -z 127.0.0.1 2200 2>/dev/null; then

@@ -2,25 +2,22 @@
 Real PTY Terminal for Code Workspace
 WebSocket-based interactive terminal with full PTY support
 
-Architecture:
-    Django WebSocket → srun --pty → Apptainer shell → User workspace
+Architecture (preferred - via broker):
+    Django WebSocket → Terminal Broker (Unix Socket) → srun --pty → Apptainer shell
+
+Architecture (fallback - direct, deprecated):
+    Django WebSocket → pty.fork() → srun --pty → Apptainer shell
+
+The broker architecture is preferred because:
+- pty.fork() runs in a separate process, not in Daphne's asyncio loop
+- SIGCHLD handling is clean and reliable
+- No risk of asyncio/signal conflicts that cause deadlocks
 
 Security:
     - SLURM handles resource isolation (CPU, memory, time)
     - Apptainer provides container isolation (no root, UID preserved)
     - Filesystem quotas at OS level
     - No Docker socket exposure
-
-Resource Fairness:
-    - SLURM fair-share scheduling
-    - Per-user accounting
-    - express partition for interactive (priority)
-    - Configurable limits per partition
-
-Maintainability:
-    - Single resource management system (SLURM)
-    - Same architecture for interactive + batch jobs
-    - Dev fallback when SLURM unavailable
 """
 
 import asyncio
@@ -37,6 +34,7 @@ from apps.project_app.models import Project
 
 from .config import USER_DATA_ROOT
 from .execution import (
+    check_slurm_status,
     exec_slurm_shell,
     select_container,
 )
@@ -44,8 +42,23 @@ from .workspace import ensure_workspace
 
 logger = logging.getLogger(__name__)
 
-# Install SIGCHLD handler to auto-reap zombie children
-# This prevents zombie accumulation if disconnect() doesn't run properly
+# Check if broker is available at module load
+_BROKER_AVAILABLE = None
+
+
+async def _check_broker():
+    """Check if terminal broker is available."""
+    global _BROKER_AVAILABLE
+    if _BROKER_AVAILABLE is None:
+        try:
+            from apps.code_app.services.terminal_client import is_broker_available
+            _BROKER_AVAILABLE = await is_broker_available()
+        except Exception:
+            _BROKER_AVAILABLE = False
+    return _BROKER_AVAILABLE
+
+
+# Fallback: SIGCHLD handler for direct pty.fork() mode
 def _sigchld_handler(signum, frame):
     """Reap all zombie children without blocking."""
     while True:
@@ -56,12 +69,12 @@ def _sigchld_handler(signum, frame):
         except ChildProcessError:
             break
 
-# Only install if not already handled
+
+# Only install if not already handled (for fallback mode)
 try:
     if signal.getsignal(signal.SIGCHLD) == signal.SIG_DFL:
         signal.signal(signal.SIGCHLD, _sigchld_handler)
 except (ValueError, OSError):
-    # Signal handling not available in this context (e.g., not main thread)
     pass
 
 
@@ -69,7 +82,8 @@ class TerminalConsumer(AsyncWebsocketConsumer):
     """
     WebSocket consumer for PTY terminal.
 
-    Spawns interactive shell via SLURM + Apptainer for:
+    Spawns interactive shell via Terminal Broker (preferred) or direct
+    pty.fork() (fallback). Uses SLURM + Apptainer for:
     - Security: Container isolation, no root access
     - Fairness: SLURM scheduling, per-user limits
     - Consistency: Same architecture dev/prod/HPC
@@ -78,9 +92,13 @@ class TerminalConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         """Accept WebSocket connection and spawn PTY"""
         self.user = self.scope["user"]
+        # Broker mode attributes
+        self.broker_client = None
+        # Direct mode attributes (fallback)
         self.pid = None
         self.fd = None
         self.reader_task = None
+        self.use_broker = False
 
         # Get project ID from query params
         query_params = dict(
@@ -95,7 +113,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
         if not project_id:
             await self.accept()
             await self.send(text_data="\x1b[1;31m❌ No project specified\x1b[0m\r\n")
-            await self.close(code=4002)  # Project not found
+            await self.close(code=4002)
             return
 
         try:
@@ -109,7 +127,6 @@ class TerminalConsumer(AsyncWebsocketConsumer):
                     lambda: self.user in self.project.collaborators.all()
                 )
             else:
-                # For visitors, check allocated project
                 session = self.scope.get("session", {})
                 visitor_project_id = session.get("visitor_project_id")
                 has_access = (
@@ -121,62 +138,111 @@ class TerminalConsumer(AsyncWebsocketConsumer):
                 await self.send(
                     text_data="\x1b[1;31m❌ Access denied - no permission for this project\x1b[0m\r\n"
                 )
-                await self.close(code=4001)  # Access denied
+                await self.close(code=4001)
                 return
 
         except Project.DoesNotExist:
             await self.accept()
             await self.send(text_data="\x1b[1;31m❌ Project not found\x1b[0m\r\n")
-            await self.close(code=4002)  # Project not found
+            await self.close(code=4002)
             return
 
         await self.accept()
-        await self.spawn_pty()
 
-    async def spawn_pty(self):
-        """Spawn PTY via SLURM + Apptainer (with dev fallback)"""
+        # Try broker first, fall back to direct mode
+        if await _check_broker():
+            logger.info("Using terminal broker for PTY")
+            self.use_broker = True
+            await self._spawn_via_broker()
+        else:
+            logger.warning("Terminal broker unavailable, using direct pty.fork() (deprecated)")
+            self.use_broker = False
+            await self._spawn_direct()
+
+    async def _spawn_via_broker(self):
+        """Spawn PTY via Terminal Broker (preferred method)."""
         username = self.project.owner.username
         project_slug = self.project.slug
-
-        # User workspace paths
         user_data_dir = USER_DATA_ROOT / username
         project_dir = user_data_dir / "proj" / project_slug
 
-        # Ensure directories exist
         await ensure_workspace(user_data_dir, username, project_slug)
 
-        # Select container (priority: project → user → base)
         container_path = await asyncio.to_thread(
             select_container, user_data_dir, project_dir
         )
 
-        # Check SLURM status
-        from .execution import check_slurm_status
+        slurm_available, slurm_status = await asyncio.to_thread(check_slurm_status)
+        if not slurm_available:
+            logger.error(f"SLURM unavailable ({slurm_status})")
+            await self.send(text_data=f"\x1b[1;31m❌ SLURM unavailable: {slurm_status}\x1b[0m\r\n")
+            await self.close(code=4003)
+            return
+
+        try:
+            from apps.code_app.services.terminal_client import TerminalBrokerClient
+
+            self.broker_client = TerminalBrokerClient()
+            if not await self.broker_client.connect():
+                raise Exception("Failed to connect to broker")
+
+            # Set output callback to forward to WebSocket
+            def on_output(data: bytes):
+                asyncio.create_task(
+                    self.send(text_data=data.decode("utf-8", errors="replace"))
+                )
+
+            self.broker_client.set_output_callback(on_output)
+
+            session_id = await self.broker_client.spawn(
+                username=username,
+                user_data_dir=user_data_dir,
+                project_dir=project_dir,
+                container_path=container_path,
+                project_slug=project_slug,
+            )
+
+            if not session_id:
+                raise Exception("Failed to spawn terminal session")
+
+            logger.info(f"Terminal session started via broker: {session_id}")
+
+        except Exception as e:
+            logger.error(f"Broker spawn failed: {e}")
+            await self.send(text_data=f"\x1b[1;31m❌ Failed to start terminal: {e}\x1b[0m\r\n")
+            await self.close(code=4003)
+
+    async def _spawn_direct(self):
+        """Spawn PTY directly via pty.fork() (fallback, deprecated)."""
+        username = self.project.owner.username
+        project_slug = self.project.slug
+        user_data_dir = USER_DATA_ROOT / username
+        project_dir = user_data_dir / "proj" / project_slug
+
+        await ensure_workspace(user_data_dir, username, project_slug)
+
+        container_path = await asyncio.to_thread(
+            select_container, user_data_dir, project_dir
+        )
 
         slurm_available, slurm_status = await asyncio.to_thread(check_slurm_status)
-
         if not slurm_available:
             logger.error(f"SLURM unavailable ({slurm_status})")
             await self.close(code=4003)
             return
 
-        # Block signals during PTY fork to prevent "Interrupted system call" errors
-        # This is a known SLURM issue (SchedMD Bug #3979) where signals can
-        # interrupt the accept() call during PTY setup
+        # Block signals during PTY fork to prevent "Interrupted system call"
         old_mask = signal.pthread_sigmask(
             signal.SIG_BLOCK,
             {signal.SIGCHLD, signal.SIGWINCH, signal.SIGINT, signal.SIGTERM},
         )
 
         try:
-            # Create PTY
             self.pid, self.fd = pty.fork()
 
             if self.pid == 0:
-                # Child process - restore signal mask before exec
                 signal.pthread_sigmask(signal.SIG_SETMASK, old_mask)
                 try:
-                    # SLURM availability already checked above, so this should always succeed
                     exec_slurm_shell(
                         username,
                         user_data_dir,
@@ -184,31 +250,25 @@ class TerminalConsumer(AsyncWebsocketConsumer):
                         container_path,
                         project_slug,
                     )
-                    # exec_slurm_shell never returns on success
                 except Exception as e:
-                    # Write error to stderr (will be captured by parent via PTY)
                     import sys
-
                     sys.stderr.write(
                         f"\x1b[1;31m❌ Failed to start terminal: {e}\x1b[0m\r\n"
                     )
                     sys.stderr.flush()
-                os._exit(1)  # Only reached if exec fails
+                os._exit(1)
         finally:
-            # Parent process - restore signal mask
             if self.pid != 0:
                 signal.pthread_sigmask(signal.SIG_SETMASK, old_mask)
 
-        # Parent process - read from PTY
         if self.pid != 0:
-            self.reader_task = asyncio.create_task(self.read_pty())
+            self.reader_task = asyncio.create_task(self._read_pty_direct())
 
-    async def read_pty(self):
-        """Read from PTY and send to WebSocket"""
+    async def _read_pty_direct(self):
+        """Read from PTY and send to WebSocket (direct mode)."""
         try:
             while True:
                 r, _, _ = await asyncio.to_thread(select.select, [self.fd], [], [], 0.1)
-
                 if r:
                     try:
                         data = await asyncio.to_thread(os.read, self.fd, 4096)
@@ -217,7 +277,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
                                 text_data=data.decode("utf-8", errors="replace")
                             )
                         else:
-                            break  # EOF
+                            break
                     except OSError:
                         break
         except Exception as e:
@@ -226,49 +286,62 @@ class TerminalConsumer(AsyncWebsocketConsumer):
             await self.close()
 
     async def receive(self, text_data):
-        """Receive data from WebSocket and write to PTY"""
+        """Receive data from WebSocket and write to PTY."""
         try:
             if text_data.startswith("resize:"):
                 _, rows, cols = text_data.split(":")
-                await self.resize_pty(int(rows), int(cols))
+                await self._resize(int(rows), int(cols))
             else:
-                await asyncio.to_thread(os.write, self.fd, text_data.encode("utf-8"))
+                await self._write_input(text_data.encode("utf-8"))
         except Exception as e:
             logger.error(f"PTY write error: {e}")
 
-    async def resize_pty(self, rows: int, cols: int):
-        """Resize PTY window"""
-        try:
-            # tcsetwinsize expects a two-item tuple (rows, cols)
-            await asyncio.to_thread(termios.tcsetwinsize, self.fd, (rows, cols))
-        except Exception as e:
-            logger.error(f"PTY resize error: {e}")
+    async def _write_input(self, data: bytes):
+        """Write input to terminal."""
+        if self.use_broker and self.broker_client:
+            await self.broker_client.send_input(data)
+        elif self.fd is not None:
+            await asyncio.to_thread(os.write, self.fd, data)
+
+    async def _resize(self, rows: int, cols: int):
+        """Resize terminal."""
+        if self.use_broker and self.broker_client:
+            await self.broker_client.resize(rows, cols)
+        elif self.fd is not None:
+            try:
+                await asyncio.to_thread(termios.tcsetwinsize, self.fd, (rows, cols))
+            except Exception as e:
+                logger.error(f"PTY resize error: {e}")
 
     async def disconnect(self, close_code):
-        """Clean up on disconnect"""
-        if self.reader_task:
-            self.reader_task.cancel()
+        """Clean up on disconnect."""
+        if self.use_broker and self.broker_client:
+            # Broker mode cleanup
+            await self.broker_client.close()
+            self.broker_client = None
+        else:
+            # Direct mode cleanup
+            if self.reader_task:
+                self.reader_task.cancel()
 
-        if self.pid and self.pid > 0:
-            try:
-                os.kill(self.pid, signal.SIGTERM)
-            except ProcessLookupError:
-                pass
+            if self.pid and self.pid > 0:
+                try:
+                    os.kill(self.pid, signal.SIGTERM)
+                except ProcessLookupError:
+                    pass
 
-            # Reap zombie process to prevent accumulation
-            # This is critical - without waitpid(), child becomes zombie
-            try:
-                await asyncio.to_thread(os.waitpid, self.pid, os.WNOHANG)
-            except ChildProcessError:
-                pass  # Already reaped
-            except Exception as e:
-                logger.debug(f"waitpid error (non-critical): {e}")
+                try:
+                    await asyncio.to_thread(os.waitpid, self.pid, os.WNOHANG)
+                except ChildProcessError:
+                    pass
+                except Exception as e:
+                    logger.debug(f"waitpid error (non-critical): {e}")
 
-        if self.fd:
-            try:
-                os.close(self.fd)
-            except OSError:
-                pass
+            if self.fd:
+                try:
+                    os.close(self.fd)
+                except OSError:
+                    pass
 
 
 # EOF

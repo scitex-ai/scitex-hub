@@ -86,6 +86,26 @@ else
 fi
 
 # ============================================
+# Start Terminal Broker (Background) - Required for PTY operations
+# ============================================
+# The terminal broker handles pty.fork() in a separate process from Daphne.
+# This prevents asyncio/signal conflicts that can cause deadlocks.
+# Skip for celery workers - they don't handle terminal WebSockets
+if [[ ! "$*" =~ "celery" ]]; then
+    echo_info "Starting terminal broker..."
+    python manage.py run_terminal_broker &
+    TERMINAL_BROKER_PID=$!
+    sleep 1
+    if kill -0 $TERMINAL_BROKER_PID 2>/dev/null; then
+        echo_success "Terminal broker started (PID: $TERMINAL_BROKER_PID)"
+    else
+        echo_warning "Terminal broker failed to start - terminals will use fallback mode"
+    fi
+else
+    echo_info "Skipping terminal broker (celery worker)"
+fi
+
+# ============================================
 # Start SSH Gateway (Background) - Only for main Django app
 # ============================================
 # Skip SSH gateway for celery workers - they don't need it
