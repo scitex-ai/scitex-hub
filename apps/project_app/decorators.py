@@ -32,7 +32,7 @@ def project_required(view_func):
                 request,
                 "You need to create a project first. Projects help organize your research work across Scholar, Writer, Code, and Viz modules.",
             )
-            return redirect("project_app:create")
+            return redirect("project_create")
 
         return view_func(request, *args, **kwargs)
 

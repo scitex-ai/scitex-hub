@@ -67,7 +67,7 @@ services:
       - CROSSREF_DB_PATH=/data/crossref/crossref.db
       - SCITEX_DIR=/app/.scitex
     depends_on:
-      postgres:
+      pgbouncer:
         condition: service_healthy
       redis:
         condition: service_started
@@ -97,6 +97,8 @@ services:
     image: postgres:15-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      # Init scripts run on first startup (creates umami database)
+      - ./init-umami-db.sql:/docker-entrypoint-initdb.d/init-umami-db.sql:ro
 
     # Shared memory for Postgres performance
     shm_size: 256mb
@@ -115,6 +117,28 @@ services:
       - scitex-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${SCITEX_CLOUD_POSTGRES_USER} -d ${SCITEX_CLOUD_POSTGRES_DB}"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # PgBouncer connection pooler - prevents "too many clients" errors
+  pgbouncer:
+    image: edoburu/pgbouncer:v1.25.1-p0
+    volumes:
+      - ../common/pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+      - ../common/pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt:ro
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://${SCITEX_CLOUD_POSTGRES_USER}:${SCITEX_CLOUD_POSTGRES_PASSWORD}@postgres:5432/${SCITEX_CLOUD_POSTGRES_DB}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: always
+    networks:
+      - scitex-network
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "localhost", "-p", "6432"]
       interval: 10s
       timeout: 3s
       retries: 5
@@ -169,7 +193,7 @@ services:
       - SCITEX_DIR=/app/.scitex
 
     depends_on:
-      postgres:
+      pgbouncer:
         condition: service_healthy
       redis:
         condition: service_started
@@ -209,7 +233,7 @@ services:
       - SCITEX_DIR=/app/.scitex
 
     depends_on:
-      postgres:
+      pgbouncer:
         condition: service_healthy
       redis:
         condition: service_started
@@ -282,6 +306,29 @@ services:
       timeout: 30s
       retries: 3
       start_period: 120s
+
+  # Umami - Privacy-focused web analytics
+  umami:
+    image: ghcr.io/umami-software/umami:postgresql-latest
+    ports:
+      - "${SCITEX_CLOUD_UMAMI_PORT_NAS:-3300}:3000"
+    environment:
+      - DATABASE_URL=postgresql://${SCITEX_CLOUD_POSTGRES_USER}:${SCITEX_CLOUD_POSTGRES_PASSWORD}@postgres:5432/umami
+      - DATABASE_TYPE=postgresql
+      - APP_SECRET=${SCITEX_CLOUD_UMAMI_APP_SECRET:-scitex-umami-secret-2026}
+      - DISABLE_TELEMETRY=1
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: always
+    networks:
+      - scitex-network
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://127.0.0.1:3000/api/heartbeat"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
   # WebSocket to SSH Proxy - Enables SSH access via Cloudflare Tunnel
   # Users connect with: ssh -o ProxyCommand='websocat wss://scitex.ai/ws/ssh/' user@localhost

@@ -19,7 +19,7 @@
 </script>
 <!-- Console Logger (Development Only) - Captures browser console to ./logs/console.log -->
 {% vite_script 'shared/utils/console-interceptor' %}
-<!-- Favicon (navy for dev, inverted for prod) -->
+<!-- Favicon (green camo for dev, orange camo for staging, standard for prod) -->
 {% if DEBUG %}
     <link rel="icon"
           type="image/svg+xml"
@@ -27,6 +27,13 @@
     <link rel="shortcut icon"
           type="image/svg+xml"
           href="{% static 'shared/images/favicons/favicon-dev.svg' %}?v=7" />
+{% elif IS_STAGING %}
+    <link rel="icon"
+          type="image/svg+xml"
+          href="{% static 'shared/images/favicons/favicon-staging.svg' %}?v=1" />
+    <link rel="shortcut icon"
+          type="image/svg+xml"
+          href="{% static 'shared/images/favicons/favicon-staging.svg' %}?v=1" />
 {% else %}
     <link rel="icon"
           type="image/png"

@@ -27,7 +27,7 @@ def project_settings(request, username, slug):
     # Only project owner can access settings
     if project.owner != request.user:
         messages.error(request, "You don't have permission to access project settings.")
-        return redirect("project_app:detail", username=username, slug=slug)
+        return redirect("user_projects:detail", username=username, slug=slug)
 
     if request.method == "POST":
         # Handle settings updates

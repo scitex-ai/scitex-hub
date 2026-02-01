@@ -1,0 +1,20 @@
+/* ============================================================================= */
+/* PROJECT REPOSITORY BROWSE - INDEX */
+/* ============================================================================= */
+/* Main entry point for repository browse styles */
+/* ============================================================================= */
+
+/* Import all browse modules in cascade order */
+@import './browse/sidebar-layout.css';
+@import './browse/container-header.css';
+@import './browse/toolbar.css';
+@import './browse/action-buttons.css';
+@import './browse/branch-dropdown.css';
+@import './browse/split-dropdown.css';
+@import './browse/tab-navigation.css';
+@import './browse/tabs.css';
+@import './browse/file-tree.css';
+@import './browse/file-browser-table.css';
+@import './browse/readme-rendering.css';
+@import './browse/icon-utilities.css';
+@import './browse/media-queries.css';

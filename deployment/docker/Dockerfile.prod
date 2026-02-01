@@ -1,0 +1,313 @@
+# syntax=docker/dockerfile:1.4
+# ============================================
+# SciTeX Cloud - Production Image
+# ============================================
+# Multi-stage build optimized for size, security, and cache efficiency
+
+# ============================================
+# Stage 1: Python Dependencies Builder
+# ============================================
+FROM python:3.11-slim AS python-builder
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    UV_SYSTEM_PYTHON=1 \
+    UV_HTTP_TIMEOUT=600
+
+WORKDIR /build
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    git \
+    curl \
+    # SLURM build dependencies
+    libmunge-dev \
+    libmunge2 \
+    munge \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv (pinned to 0.4.0 - older version without project detection requirement)
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
+    mv /root/.local/bin/uv /usr/local/bin/uv
+
+# Copy project files needed for dependency installation
+COPY pyproject.toml README.md ./
+COPY src/ ./src/
+
+# Install Python dependencies from pyproject.toml
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --system ".[django,test]" && \
+    uv pip install --system daphne==4.1.2 psycopg2-binary
+
+# Install scitex from PyPI with all extras
+# Use --refresh to force fresh package resolution (avoid stale cache picking old versions)
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --system --refresh "scitex[all]==2.16.2"
+
+# Install Playwright browsers
+RUN --mount=type=cache,target=/root/.cache/ms-playwright \
+    python -m playwright install chromium && \
+    python -m playwright install-deps
+
+# ============================================
+# SLURM Client (build from source to match host)
+# ============================================
+# MUST match host SLURM version exactly for munge auth
+ARG SLURM_VERSION=24.05.5
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libmunge-dev \
+    libhwloc-dev \
+    libhttp-parser-dev \
+    libjson-c-dev \
+    liblz4-dev \
+    libyaml-dev \
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -L -o /tmp/slurm-${SLURM_VERSION}.tar.bz2 \
+        "https://download.schedmd.com/slurm/slurm-${SLURM_VERSION}.tar.bz2" \
+    && cd /tmp && tar xjf slurm-${SLURM_VERSION}.tar.bz2 \
+    && cd slurm-${SLURM_VERSION} \
+    && ./configure --prefix=/usr --sysconfdir=/etc/slurm \
+    && make -j$(nproc) \
+    && make install \
+    && cd / && rm -rf /tmp/slurm-* \
+    && useradd -r -s /bin/false slurm
+
+# ============================================
+# Apptainer/Singularity (for status checks)
+# ============================================
+# NAS uses Debian Bookworm which has libfuse3-3 natively (no compatibility package needed)
+RUN APPTAINER_VERSION=1.3.4 && \
+    apt-get update && apt-get install -y --no-install-recommends \
+        uidmap \
+        squashfs-tools \
+        fuse2fs \
+        fuse-overlayfs \
+        libseccomp2 \
+        fakeroot \
+    && curl -L -o /tmp/apptainer.deb \
+        "https://github.com/apptainer/apptainer/releases/download/v${APPTAINER_VERSION}/apptainer_${APPTAINER_VERSION}_amd64.deb" \
+    && dpkg -i /tmp/apptainer.deb \
+    && rm /tmp/apptainer.deb \
+    && rm -rf /var/lib/apt/lists/* \
+    && apptainer --version
+
+# ============================================
+# Stage 2: Node.js Tools Builder
+# ============================================
+FROM node:20-slim AS node-builder
+
+# Install Mermaid CLI
+RUN npm install -g @mermaid-js/mermaid-cli
+
+# ============================================
+# Stage 3: System Tools Builder
+# ============================================
+FROM alpine:latest AS tool-builder
+
+# Install yq (YAML parser)
+RUN YQ_VERSION=v4.44.3 && \
+    YQ_BINARY=yq_linux_amd64 && \
+    wget https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${YQ_BINARY} -O /usr/local/bin/yq && \
+    chmod +x /usr/local/bin/yq
+
+# ============================================
+# Stage 4: Runtime (Final Minimal Image)
+# ============================================
+FROM python:3.11-slim AS runtime
+
+LABEL maintainer="ywatanabe@scitex.ai"
+LABEL description="SciTeX Cloud - NAS"
+LABEL version="0.1.0-alpha"
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    SCITEX_CLOUD_DJANGO_SETTINGS_MODULE=config.settings.settings_nas
+
+WORKDIR /app
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    # Core runtime
+    curl \
+    netcat-openbsd \
+    jq \
+    git \
+    gosu \
+    # Docker client (for status checks and workspace management)
+    docker.io \
+    # Apptainer runtime dependencies (for fakeroot/user namespaces)
+    uidmap \
+    fuse-overlayfs \
+    # Munge for SLURM auth
+    munge \
+    # Database runtime library (not dev package)
+    libpq5 \
+    # LaTeX runtime
+    texlive-latex-base \
+    texlive-latex-extra \
+    texlive-latex-recommended \
+    texlive-fonts-recommended \
+    texlive-fonts-extra \
+    texlive-bibtex-extra \
+    texlive-science \
+    texlive-pictures \
+    texlive-plain-generic \
+    # bibtex is included in texlive-bibtex-extra
+    latexdiff \
+    latexmk \
+    ghostscript \
+    poppler-utils \
+    # Image processing runtime
+    imagemagick \
+    # Browser runtime (Chromium for Mermaid/Playwright)
+    chromium \
+    fonts-liberation \
+    fontconfig \
+    # Playwright runtime libraries (minimal set) - NAS compatible (no t64 suffix)
+    libglib2.0-0 \
+    libnspr4 \
+    libnss3 \
+    libdbus-1-3 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libxcb1 \
+    libxkbcommon0 \
+    libatspi2.0-0 \
+    libx11-6 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxext6 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libcairo2 \
+    libpango-1.0-0 \
+    libasound2 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Microsoft core fonts (Arial, Times New Roman, etc.) for scientific figures
+RUN sed -i 's/main/main contrib/g' /etc/apt/sources.list.d/debian.sources 2>/dev/null || \
+        sed -i 's/main$/main contrib/' /etc/apt/sources.list && \
+    apt-get update && \
+    echo -e "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ttf-mscorefonts-installer && \
+    fc-cache -fv && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy Python packages from builder (avoids rebuilding)
+COPY --from=python-builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=python-builder /usr/local/bin /usr/local/bin
+# Copy Playwright cache if it exists (use wildcard to avoid failure if missing)
+COPY --from=python-builder /root/.cache/ms-playwright* /root/.cache/
+
+# Copy SLURM binaries and libraries from builder
+# Note: SLURM binaries start with 's' (sinfo, squeue, sbatch, srun, etc.)
+COPY --from=python-builder /usr/bin/sinfo /usr/bin/sinfo
+COPY --from=python-builder /usr/bin/squeue /usr/bin/squeue
+COPY --from=python-builder /usr/bin/sbatch /usr/bin/sbatch
+COPY --from=python-builder /usr/bin/scancel /usr/bin/scancel
+COPY --from=python-builder /usr/bin/srun /usr/bin/srun
+COPY --from=python-builder /usr/bin/sacct /usr/bin/sacct
+COPY --from=python-builder /usr/bin/scontrol /usr/bin/scontrol
+# Copy SLURM libraries (libslurm.so, etc.)
+COPY --from=python-builder /usr/lib/libslurm* /usr/lib/
+COPY --from=python-builder /usr/lib/libpmi* /usr/lib/
+# Copy SLURM plugin directory (must preserve directory structure for PluginDir)
+COPY --from=python-builder /usr/lib/slurm /usr/lib/slurm
+# Create /etc/slurm directory (config mounted from host at runtime)
+RUN mkdir -p /etc/slurm
+
+# Copy Apptainer from builder (binaries, libraries, and config)
+COPY --from=python-builder /usr/bin/apptainer /usr/bin/apptainer
+COPY --from=python-builder /usr/bin/singularity /usr/bin/singularity
+COPY --from=python-builder /usr/libexec/apptainer /usr/libexec/apptainer
+COPY --from=python-builder /etc/apptainer /etc/apptainer
+# Create Apptainer runtime directories
+RUN mkdir -p /var/lib/apptainer/mnt/session && chmod 755 /var/lib/apptainer
+
+# Install Node.js and npm properly (needed for TypeScript build)
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y --no-install-recommends nodejs && \
+    npm install -g @mermaid-js/mermaid-cli && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy yq from tool-builder
+COPY --from=tool-builder /usr/local/bin/yq /usr/local/bin/yq
+
+# Configure ImageMagick (PDF policy) - check if file exists first
+RUN if [ -f /etc/ImageMagick-6/policy.xml ]; then \
+        sed -i 's/<policy domain="coder" rights="none" pattern="PDF" \/>/<policy domain="coder" rights="read|write" pattern="PDF" \/>/g' /etc/ImageMagick-6/policy.xml || true; \
+    fi
+
+# Create non-root user and directories
+RUN useradd -m -u 1000 scitex && \
+    # Create slurm system user (for SLURM commands)
+    useradd -r -s /bin/false slurm && \
+    # Change docker group GID from 103 to 121 (to match host docker socket)
+    groupmod -g 121 docker && \
+    # Add scitex to docker group for Docker socket access
+    usermod -aG docker scitex && \
+    mkdir -p /app/staticfiles /app/media /app/logs /app/run /app/.cache/containers && \
+    chown -R scitex:scitex /app && \
+    # Setup subuid/subgid for apptainer fakeroot (required for newuidmap/newgidmap)
+    echo -e "scitex:100000:65536" >> /etc/subuid && \
+    echo -e "scitex:100000:65536" >> /etc/subgid
+
+# Copy package.json first for npm caching (changes less often than code)
+COPY --chown=scitex:scitex package.json ./
+
+# Install npm dependencies at build time (cached layer)
+RUN --mount=type=cache,target=/root/.npm \
+    npm install && \
+    touch node_modules/.install-timestamp
+
+# Copy application code (last - changes most frequently)
+COPY --chown=scitex:scitex . .
+
+# Note: Vite build runs at runtime because static_volume mount hides build-time files
+# npm install is cached above, vite build is fast (~10s)
+
+# Copy production entrypoint scripts
+COPY deployment/docker/common/scripts/root-init.sh /root-init.sh
+COPY deployment/docker/common/scripts/entrypoint-prod.sh /entrypoint.sh
+RUN chmod +x /root-init.sh /entrypoint.sh
+
+# Verify critical tools as scitex user (fail fast)
+USER scitex
+RUN pdflatex --version && \
+    bibtex --version && \
+    convert --version && \
+    yq --version && \
+    python --version && \
+    echo -e "✅ Production image verified"
+
+# Switch back to root for runtime initialization (root-init.sh will drop to scitex)
+USER root
+
+# ============================================
+# Runtime Configuration
+# ============================================
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8000/ || exit 1
+
+EXPOSE 8000
+
+# Root-level initialization (fixes SLURM UID, munge group, then drops to scitex user)
+ENTRYPOINT ["/root-init.sh", "/entrypoint.sh"]
+# Use Daphne (ASGI) for WebSocket support (PTY terminal, collaborative editing)
+CMD ["daphne", \
+     "-b", "0.0.0.0", \
+     "-p", "8000", \
+     "--access-log", "-", \
+     "--proxy-headers", \
+     "config.asgi:application"]
+
+# EOF

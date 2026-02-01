@@ -99,7 +99,7 @@ else:
     DB_PASSWORD = os.environ.get("SCITEX_CLOUD_DB_PASSWORD_NAS")
 
     if DB_PASSWORD and DB_PASSWORD != "CHANGE-THIS-DATABASE-PASSWORD-FOR-NAS":
-        # Remote PostgreSQL (for NAS deployment)
+        # Remote PostgreSQL via PgBouncer (for NAS deployment)
         DATABASES = {
             "default": {
                 "ENGINE": "django.db.backends.postgresql",
@@ -110,15 +110,19 @@ else:
                     "SCITEX_CLOUD_DB_USER_NAS", "scitex_nas"
                 ),
                 "PASSWORD": DB_PASSWORD,
+                # Connect via PgBouncer for connection pooling
                 "HOST": os.environ.get(
-                    "SCITEX_CLOUD_DB_HOST_NAS", "postgres"
+                    "SCITEX_CLOUD_DB_HOST_NAS", "pgbouncer"
                 ),
-                "PORT": os.environ.get("SCITEX_CLOUD_DB_PORT_NAS", "5432"),
+                "PORT": os.environ.get("SCITEX_CLOUD_DB_PORT_NAS", "6432"),
                 "ATOMIC_REQUESTS": True,
-                # Connection pooling: 60s keeps connections alive for reuse
-                # but releases them faster than 600s to prevent exhaustion
-                "CONN_MAX_AGE": 60,
+                # CONN_MAX_AGE=0: Let PgBouncer handle connection pooling
+                # This closes Django connections after each request, allowing
+                # PgBouncer to efficiently manage the actual PostgreSQL connections
+                "CONN_MAX_AGE": 0,
                 "CONN_HEALTH_CHECKS": True,  # Django 4.1+ connection health checks
+                # Disable server-side cursors (incompatible with PgBouncer transaction pooling)
+                "DISABLE_SERVER_SIDE_CURSORS": True,
                 "OPTIONS": {
                     "connect_timeout": 10,
                     "options": "-c statement_timeout=30000",
@@ -126,18 +130,20 @@ else:
             }
         }
     else:
-        # Fallback to environment variables (for docker-compose)
+        # Fallback to environment variables (for docker-compose via PgBouncer)
         DATABASES = {
             "default": {
                 "ENGINE": "django.db.backends.postgresql",
                 "NAME": os.environ.get("POSTGRES_DB", "scitex_cloud_nas"),
                 "USER": os.environ.get("POSTGRES_USER", "scitex_nas"),
                 "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "CHANGE_THIS_IN_NAS"),
-                "HOST": os.environ.get("SCITEX_CLOUD_DB_HOST_NAS", "postgres"),
-                "PORT": os.environ.get("SCITEX_CLOUD_DB_PORT_NAS", "5432"),
+                # Connect via PgBouncer for connection pooling
+                "HOST": os.environ.get("SCITEX_CLOUD_DB_HOST_NAS", "pgbouncer"),
+                "PORT": os.environ.get("SCITEX_CLOUD_DB_PORT_NAS", "6432"),
                 "ATOMIC_REQUESTS": True,
-                "CONN_MAX_AGE": 60,
+                "CONN_MAX_AGE": 0,
                 "CONN_HEALTH_CHECKS": True,
+                "DISABLE_SERVER_SIDE_CURSORS": True,
             }
         }
 

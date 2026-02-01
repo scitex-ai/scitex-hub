@@ -30,8 +30,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv (pinned to 0.4.0 - older version without project detection requirement)
-RUN curl -LsSf https://astral.sh/uv/0.4.0/install.sh | sh && \
-    mv /root/.cargo/bin/uv /usr/local/bin/uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
+    mv /root/.local/bin/uv /usr/local/bin/uv
 
 # Copy project files needed for dependency installation
 COPY pyproject.toml README.md ./
@@ -42,9 +42,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --system ".[django,test]" && \
     uv pip install --system daphne==4.1.2 psycopg2-binary
 
-# Install scitex from PyPI (targeted extras - [all] requires Rust compiler)
+# Install scitex from PyPI with all extras
+# Use --refresh to force fresh package resolution (avoid stale cache picking old versions)
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system "scitex[cli,scholar,plt,stats,io,writer,audio,capture,diagram]==2.15.2"
+    uv pip install --system --refresh "scitex[all]==2.16.2"
 
 # Install Playwright browsers
 RUN --mount=type=cache,target=/root/.cache/ms-playwright \

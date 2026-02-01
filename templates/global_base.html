@@ -6,6 +6,10 @@
         <title>{% include 'global_base_partials/page_title.html' %}</title>
         {% include 'global_base_partials/global_head_meta.html' %}
         {% include 'global_base_partials/global_head_styles.html' %}
+        <!-- Umami Analytics (privacy-focused, no cookies) -->
+        {% if UMAMI_WEBSITE_ID %}
+        <script defer src="{{ UMAMI_SCRIPT_URL }}" data-website-id="{{ UMAMI_WEBSITE_ID }}"></script>
+        {% endif %}
         {% block head_extra %}{% endblock %}
         {% block extra_css %}{% endblock %}
     </head>

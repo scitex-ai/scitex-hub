@@ -1,0 +1,167 @@
+# ============================================
+# SciTeX Cloud - Base Docker Compose
+# ============================================
+# Common services shared across all environments
+#
+# Usage:
+#   Dev:     docker compose up                    (auto-loads docker-compose.override.yml)
+#   Staging: docker compose -f docker-compose.yml -f docker-compose.staging.yml up
+#   Prod:    docker compose -f docker-compose.yml -f docker-compose.prod.yml up
+#
+# Or use: make ENV=dev|staging|prod up
+
+# ============================================
+# YAML Anchors for shared configurations
+# ============================================
+x-common-env: &common-env
+  PYTHONUNBUFFERED: 1
+  PYTHONDONTWRITEBYTECODE: 1
+
+x-healthcheck-redis: &healthcheck-redis
+  test: ["CMD", "redis-cli", "ping"]
+  interval: 10s
+  timeout: 3s
+  retries: 5
+
+x-healthcheck-postgres: &healthcheck-postgres
+  test: ["CMD-SHELL", "pg_isready -U ${SCITEX_CLOUD_POSTGRES_USER} -d ${SCITEX_CLOUD_POSTGRES_DB}"]
+  interval: 10s
+  timeout: 3s
+  retries: 5
+
+services:
+  # ============================================
+  # PostgreSQL Database
+  # ============================================
+  postgres:
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./common/postgres/init-umami-db.sql:/docker-entrypoint-initdb.d/init-umami-db.sql:ro
+    shm_size: 256mb
+    env_file:
+      - ./envs/.env.${SCITEX_ENV:-dev}
+    environment:
+      POSTGRES_DB: ${SCITEX_CLOUD_POSTGRES_DB:-scitex_cloud}
+      POSTGRES_USER: ${SCITEX_CLOUD_POSTGRES_USER:-scitex}
+      POSTGRES_PASSWORD: ${SCITEX_CLOUD_POSTGRES_PASSWORD:-scitex_2025}
+    restart: unless-stopped
+    healthcheck: *healthcheck-postgres
+    networks:
+      - scitex-network
+
+  # ============================================
+  # PgBouncer Connection Pooler
+  # ============================================
+  pgbouncer:
+    image: edoburu/pgbouncer:v1.25.1-p0
+    volumes:
+      - ./common/pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+      - ./common/pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt:ro
+    env_file:
+      - ./envs/.env.${SCITEX_ENV:-dev}
+    environment:
+      DATABASE_URL: postgresql://${SCITEX_CLOUD_POSTGRES_USER:-scitex}:${SCITEX_CLOUD_POSTGRES_PASSWORD:-scitex_2025}@postgres:5432/${SCITEX_CLOUD_POSTGRES_DB:-scitex_cloud}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "localhost", "-p", "6432"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - scitex-network
+
+  # ============================================
+  # Redis Cache
+  # ============================================
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck: *healthcheck-redis
+    networks:
+      - scitex-network
+
+  # ============================================
+  # Gitea Git Server
+  # ============================================
+  gitea:
+    image: gitea/gitea:latest
+    volumes:
+      - gitea_data:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    env_file:
+      - ./envs/.env.${SCITEX_ENV:-dev}
+    environment:
+      USER_UID: 1000
+      USER_GID: 1000
+      GITEA__database__DB_TYPE: postgres
+      GITEA__database__HOST: postgres:5432
+      GITEA__database__NAME: ${SCITEX_CLOUD_POSTGRES_DB:-scitex_cloud}
+      GITEA__database__USER: ${SCITEX_CLOUD_POSTGRES_USER:-scitex}
+      GITEA__database__PASSWD: ${SCITEX_CLOUD_POSTGRES_PASSWORD:-scitex_2025}
+      GITEA__security__INSTALL_LOCK: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+    networks:
+      - scitex-network
+
+  # ============================================
+  # Umami Analytics (Privacy-focused)
+  # ============================================
+  umami:
+    image: ghcr.io/umami-software/umami:postgresql-latest
+    env_file:
+      - ./envs/.env.${SCITEX_ENV:-dev}
+    environment:
+      DATABASE_URL: postgresql://${SCITEX_CLOUD_POSTGRES_USER:-scitex}:${SCITEX_CLOUD_POSTGRES_PASSWORD:-scitex_2025}@postgres:5432/umami
+      DATABASE_TYPE: postgresql
+      APP_SECRET: ${SCITEX_CLOUD_UMAMI_APP_SECRET:-scitex-umami-secret-2026}
+      DISABLE_TELEMETRY: 1
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/api/heartbeat"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - scitex-network
+
+# ============================================
+# Volumes (base definitions)
+# ============================================
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  gitea_data:
+    driver: local
+  static_volume:
+    driver: local
+  media_volume:
+    driver: local
+
+# ============================================
+# Networks
+# ============================================
+networks:
+  scitex-network:
+    driver: bridge

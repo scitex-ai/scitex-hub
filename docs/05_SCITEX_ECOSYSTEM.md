@@ -1,102 +1,8 @@
 <!-- ---
-!-- Timestamp: 2026-01-31 06:39:58
+!-- Timestamp: 2026-02-01 02:34:02
 !-- Author: ywatanabe
-!-- File: /home/ywatanabe/proj/scitex-cloud/docs/05_SCITEX_ECOSYSTEM.md
+!-- File: /ssh:nas:/home/ywatanabe/proj/scitex-cloud/docs/05_SCITEX_ECOSYSTEM.md
 !-- --- -->
-
-# SciTeX Ecosystem
-
-SciTeX integrates standalone packages that can be used independently or through the unified `scitex` interface.
-
-## Local Locations
-Use develop and editable installation
-
-```
-~/proj/scitex-python
-~/proj/scitex-cloud
-~/proj/scitex-writer
-~/proj/figrecipe
-~/proj/crossref-local
-~/proj/openalex-local
-```
-
-origin
-git@github.com:ywatanabe1989/scitex-python.git
-git@github.com:ywatanabe1989/scitex-cloud.git
-git@github.com:ywatanabe1989/scitex-writer.git
-git@github.com:ywatanabe1989/figrecipe.git
-git@github.com:ywatanabe1989/crossref-local.git
-git@github.com:ywatanabe1989/openalex-local.git
-
-scitex
-git@github.com:scitex-ai/scitex-python.git
-git@github.com:scitex-ai/scitex-cloud.git
-git@github.com:scitex-ai/scitex-writer.git
-git@github.com:scitex-ai/figrecipe.git
-git@github.com:scitex-ai/crossref-local.git
-git@github.com:scitex-ai/openalex-local.git
-
-
-## Packages
-
-| Package                                                           | scitex Module                    | Description                              | Status     |
-|-------------------------------------------------------------------|----------------------------------|------------------------------------------|------------|
-| [figrecipe](https://github.com/ywatanabe1989/figrecipe)           | `scitex.plt`                     | Publication-ready matplotlib figures     | Integrated |
-| [crossref-local](https://github.com/ywatanabe1989/crossref-local) | `scitex.scholar.crossref_scitex` | Local CrossRef database (167M+ papers)   | Integrated |
-| [openalex-local](https://github.com/ywatanabe1989/openalex-local) | `scitex.scholar.openalex_scitex` | Local OpenAlex database (250M+ papers)   | Integrated |
-| [socialia](https://github.com/ywatanabe1989/socialia)             | `scitex.social`                  | Social media posting (Twitter, LinkedIn) | Integrated |
-| [scitex-writer](https://github.com/ywatanabe1989/scitex-writer)   | `scitex.writer`                  | LaTeX manuscript compilation             | Integrated |
-
-## Architecture
-
-```
-scitex (umbrella)
-├── scitex.plt      ← figrecipe
-├── scitex.social   ← socialia
-├── scitex.scholar  ← crossref-local + openalex-local
-└── scitex.writer   ← scitex-writer
-```
-
-### Integration Pattern
-
-- **Thin Wrapper**: Delegate without modification
-- **Single Source of Truth**: Downstream packages are authoritative
-- **Branding**: Apply `scitex.*` namespace via environment variables
-
-### Usage
-
-```python
-# Via scitex (recommended)
-import scitex as stx
-fig, ax = stx.plt.subplots()
-
-# Standalone (also works)
-import figrecipe as fr
-fig, ax = fr.subplots()
-```
-
-### CLI
-
-```bash
-# Via scitex
-scitex writer compile manuscript
-scitex social post "Hello"
-
-# Standalone
-scitex-writer compile manuscript
-socialia post "Hello"
-```
-
-## Port Scheme
-
-SciTeX uses `3129X` (sa-i-te-ku-su = 3-1-2-9):
-
-| Port  | Service        |
-|-------|----------------|
-| 31290 | scitex-cloud   |
-| 31291 | crossref-local |
-| 31292 | openalex-local |
-| 31293 | scitex-audio   |
 
 # SciTeX Family
 
@@ -194,11 +100,12 @@ os.environ.setdefault("FIGRECIPE_BRAND", "scitex.plt")
 
 SciTeX uses `3129X` (sa-i-te-ku-su = 3-1-2-9):
 
-| Port  | Service        |
-|-------|----------------|
-| 31290 | scitex-cloud   |
+| Port | Service |
+|------|---------|
+| 31290 | scitex-cloud (production) |
 | 31291 | crossref-local |
-| 31292 | openalex-local |
-| 31293 | scitex-audio   |
+| 31292 | openalex |
+| 31293 | scitex-audio |
+| 31294 | scitex-cloud-staging |
 
 <!-- EOF -->
