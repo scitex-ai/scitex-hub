@@ -104,27 +104,38 @@ class TerminalSession:
                 SLURM_USER_DATA_ROOT,
             )
 
+            # Convert Docker paths to host paths for SLURM
+            # SLURM jobs run on compute nodes (host), not inside Docker
+            # Docker: /app/data/users/{username} -> Host: /opt/scitex/data/users/{username}
+            host_user_dir = SLURM_USER_DATA_ROOT / self.username
+            host_project_dir = host_user_dir / "proj" / self.project_slug
+
             # Build environment
             env = os.environ.copy()
-            env["HOME"] = str(self.user_data_dir)
+            env["HOME"] = f"/home/{self.username}"
             env["USER"] = self.username
             env["LOGNAME"] = self.username
             env["TERM"] = "xterm-256color"
             env["SHELL"] = "/bin/bash"
 
-            # Build srun command
+            # Build srun command (using HOST paths, not Docker paths)
             cmd = [
                 "srun",
                 f"--partition={SLURM_PARTITION}",
                 f"--cpus-per-task={SLURM_CPUS}",
                 f"--mem={SLURM_MEMORY_GB}G",
                 f"--time={SLURM_TIME_LIMIT}",
+                f"--job-name=terminal_{self.username}",
+                "--chdir=/tmp",
                 "--pty",
                 "apptainer", "shell",
-                "--bind", f"{self.user_data_dir}:{self.user_data_dir}",
-                "--bind", f"{SLURM_USER_DATA_ROOT}:{SLURM_USER_DATA_ROOT}",
-                "--home", str(self.user_data_dir),
-                "--pwd", str(self.project_dir),
+                "--containall",
+                "--cleanenv",
+                "--writable-tmpfs",
+                "--hostname", "scitex-cloud",
+                "--home", f"{host_user_dir}:/home/{self.username}",
+                "--bind", f"{host_project_dir}:/home/{self.username}/proj/{self.project_slug}:rw",
+                "--pwd", f"/home/{self.username}/proj/{self.project_slug}",
                 self.container_path,
             ]
 
