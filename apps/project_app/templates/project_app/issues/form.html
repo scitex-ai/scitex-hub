@@ -15,59 +15,140 @@
         <h2 style="margin: 2rem 0 1rem">
             {% if edit_mode %}
                 Edit Issue #{{ issue.number }}
+            {% elif selected_template %}
+                <i class="fas {{ selected_template.icon }}"></i>
+                {{ selected_template.name }}
             {% else %}
                 New Issue
             {% endif %}
         </h2>
-        <form method="POST">
-            {% csrf_token %}
-            <div class="form-group" style="margin-bottom: 1rem">
-                <label for="title">Title</label>
-                <input type="text"
-                       name="title"
-                       id="title"
-                       class="form-control"
-                       value="{% if edit_mode %}{{ issue.title }}{% endif %}"
-                       placeholder="Issue title"
-                       required />
+        {% if not edit_mode and templates and not selected_template %}
+            <!-- Template Selector (like GitHub's "New issue" dropdown) -->
+            <div class="issue-template-selector"
+                 style="margin-bottom: 1.5rem;
+                        padding: 1rem;
+                        background: var(--bg-secondary);
+                        border-radius: 8px">
+                <p style="margin-bottom: 1rem; color: var(--text-secondary);">
+                    <i class="fas fa-file-alt"></i> Choose a template to get started:
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    {% for template in templates %}
+                        <a href="?template={{ template.id }}"
+                           style="display: flex;
+                                  align-items: center;
+                                  gap: 0.75rem;
+                                  padding: 0.75rem 1rem;
+                                  background: var(--bg-primary);
+                                  border: 1px solid var(--border-color);
+                                  border-radius: 6px;
+                                  text-decoration: none;
+                                  color: var(--text-primary);
+                                  transition: border-color 0.2s"
+                           onmouseover="this.style.borderColor='var(--accent-primary)'"
+                           onmouseout="this.style.borderColor='var(--border-color)'">
+                            <i class="fas {{ template.icon }}"
+                               style="font-size: 1.25rem;
+                                      color: var(--accent-primary);
+                                      width: 24px"></i>
+                            <div>
+                                <strong>{{ template.name }}</strong>
+                                <br />
+                                <small style="color: var(--text-secondary);">{{ template.description }}</small>
+                            </div>
+                            <i class="fas fa-chevron-right"
+                               style="margin-left: auto;
+                                      color: var(--text-muted)"></i>
+                        </a>
+                    {% endfor %}
+                    <a href="?template=blank"
+                       style="display: flex;
+                              align-items: center;
+                              gap: 0.75rem;
+                              padding: 0.75rem 1rem;
+                              background: var(--bg-primary);
+                              border: 1px solid var(--border-color);
+                              border-radius: 6px;
+                              text-decoration: none;
+                              color: var(--text-primary);
+                              transition: border-color 0.2s"
+                       onmouseover="this.style.borderColor='var(--accent-primary)'"
+                       onmouseout="this.style.borderColor='var(--border-color)'">
+                        <i class="fas fa-file"
+                           style="font-size: 1.25rem;
+                                  color: var(--text-muted);
+                                  width: 24px"></i>
+                        <div>
+                            <strong>Blank Issue</strong>
+                            <br />
+                            <small style="color: var(--text-secondary);">Create an issue from scratch</small>
+                        </div>
+                        <i class="fas fa-chevron-right"
+                           style="margin-left: auto;
+                                  color: var(--text-muted)"></i>
+                    </a>
+                </div>
             </div>
-            <div class="form-group" style="margin-bottom: 1rem">
-                <label for="description">Description</label>
-                <textarea name="description" id="description" class="form-control" rows="10" placeholder="Leave a comment">
-{% if edit_mode %}{{ issue.description }}{% endif %}</textarea>
-            </div>
-            {% if not edit_mode %}
+        {% endif %}
+        {% if edit_mode or selected_template or not templates or request.GET.template == 'blank' %}
+            <form method="POST">
+                {% csrf_token %}
                 <div class="form-group" style="margin-bottom: 1rem">
-                    <label for="labels">Labels (optional)</label>
-                    <select name="labels" id="labels" class="form-control" multiple>
-                        {% for label in labels %}<option value="{{ label.id }}">{{ label.name }}</option>{% endfor %}
-                    </select>
+                    <label for="title">Title</label>
+                    <input type="text"
+                           name="title"
+                           id="title"
+                           class="form-control"
+                           value="{% if edit_mode %}{{ issue.title }}{% elif prefilled_title %}{{ prefilled_title }} {% endif %}"
+                           placeholder="Issue title"
+                           required />
                 </div>
                 <div class="form-group" style="margin-bottom: 1rem">
-                    <label for="milestone">Milestone (optional)</label>
-                    <select name="milestone" id="milestone" class="form-control">
-                        <option value="">No milestone</option>
-                        {% for milestone in milestones %}<option value="{{ milestone.id }}">{{ milestone.title }}</option>{% endfor %}
-                    </select>
+                    <label for="description">Description</label>
+                    <textarea name="description"
+                              id="description"
+                              class="form-control"
+                              rows="10"
+                              placeholder="Leave a comment">{% if edit_mode %}{{ issue.description }}{% elif prefilled_description %}{{ prefilled_description }}{% endif %}</textarea>
                 </div>
-                <div class="form-group" style="margin-bottom: 1rem">
-                    <label for="assignees">Assignees (optional)</label>
-                    <select name="assignees" id="assignees" class="form-control" multiple>
-                        {% for user in assignable_users %}<option value="{{ user.id }}">{{ user.username }}</option>{% endfor %}
-                    </select>
+                {% if not edit_mode %}
+                    <div class="form-group" style="margin-bottom: 1rem">
+                        <label for="labels">Labels (optional)</label>
+                        <select name="labels" id="labels" class="form-control" multiple>
+                            {% for label in labels %}
+                                <option value="{{ label.id }}"
+                                        {% if label.id in preselected_labels %}selected{% endif %}>
+                                    {{ label.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem">
+                        <label for="milestone">Milestone (optional)</label>
+                        <select name="milestone" id="milestone" class="form-control">
+                            <option value="">No milestone</option>
+                            {% for milestone in milestones %}<option value="{{ milestone.id }}">{{ milestone.title }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem">
+                        <label for="assignees">Assignees (optional)</label>
+                        <select name="assignees" id="assignees" class="form-control" multiple>
+                            {% for user in assignable_users %}<option value="{{ user.id }}">{{ user.username }}</option>{% endfor %}
+                        </select>
+                    </div>
+                {% endif %}
+                <div style="display: flex; gap: 0.5rem">
+                    <button type="submit" class="btn btn-primary">
+                        {% if edit_mode %}
+                            Update issue
+                        {% else %}
+                            Submit new issue
+                        {% endif %}
+                    </button>
+                    <a href="{% if edit_mode %}{{ issue.get_absolute_url }}{% else %}{% url 'user_projects:issue_list' username=project.owner.username slug=project.slug %}{% endif %}"
+                       class="btn btn-secondary">Cancel</a>
                 </div>
-            {% endif %}
-            <div style="display: flex; gap: 0.5rem">
-                <button type="submit" class="btn btn-primary">
-                    {% if edit_mode %}
-                        Update issue
-                    {% else %}
-                        Submit new issue
-                    {% endif %}
-                </button>
-                <a href="{% if edit_mode %}{{ issue.get_absolute_url }}{% else %}{% url 'user_projects:issue_list' username=project.owner.username slug=project.slug %}{% endif %}"
-                   class="btn btn-secondary">Cancel</a>
-            </div>
-        </form>
+            </form>
+        {% endif %}
     </div>
 {% endblock %}

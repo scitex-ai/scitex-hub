@@ -16,6 +16,7 @@ from apps.project_app.models import (
     IssueEvent,
     IssueLabel,
     IssueMilestone,
+    IssueTemplate,
 )
 from apps.project_app.utils.project_lookup import get_project_by_owner_slug
 
@@ -87,6 +88,7 @@ def issue_create(request, username, slug):
     # GET request - show form
     labels = project.issue_labels.all()
     milestones = project.issue_milestones.filter(state="open")
+    templates = project.issue_templates.filter(is_active=True)
 
     # Get potential assignees
     potential_assignees = project.memberships.select_related("user").values_list(
@@ -96,11 +98,34 @@ def issue_create(request, username, slug):
         Q(id__in=potential_assignees) | Q(id=project.owner.id)
     ).distinct()
 
+    # Check if template was selected (from template selector)
+    template_id = request.GET.get("template")
+    selected_template = None
+    prefilled_title = ""
+    prefilled_description = ""
+    preselected_labels = []
+
+    if template_id:
+        try:
+            selected_template = templates.get(id=template_id)
+            prefilled_title = selected_template.title_prefix
+            prefilled_description = selected_template.body_template
+            preselected_labels = list(
+                selected_template.labels.values_list("id", flat=True)
+            )
+        except IssueTemplate.DoesNotExist:
+            pass
+
     context = {
         "project": project,
         "labels": labels,
         "milestones": milestones,
         "assignable_users": assignable_users,
+        "templates": templates,
+        "selected_template": selected_template,
+        "prefilled_title": prefilled_title,
+        "prefilled_description": prefilled_description,
+        "preselected_labels": preselected_labels,
     }
 
     return render(request, "project_app/issues/form.html", context)
