@@ -1,191 +1,187 @@
 {% extends "global_base.html" %}
+
 {% load static %}
-{% block title %}
-    Published
-    Papers Using SciTeX - Scientific Research Platform
-{% endblock %}
-{% block
-    meta_description %}
-    Explore scientific papers and research published using the
-    SciTeX platform. See how researchers around the world are accelerating their
-    scientific discoveries with our tools.
+
+{% block title %}Published Papers Using SciTeX - Scientific Research Platform{% endblock %}
+{% block meta_description %}
+    Explore scientific papers and research published using the SciTeX platform. See how researchers around the world are accelerating their scientific discoveries with our tools.
 {% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'shared/css/components/hero.css' %}" />
     <style>
-  .papers-header {
-    background-color: #eef2ff;
-    padding: 3rem 0;
-    margin-bottom: 3rem;
-    border-radius: 0 0 8px 8px;
-  }
+        .papers-header {
+            background-color: #eef2ff;
+            padding: 3rem 0;
+            margin-bottom: 3rem;
+            border-radius: 0 0 8px 8px;
+        }
 
-  .paper-card {
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-    margin-bottom: 2rem;
-    padding: 1.5rem;
-    transition: transform 0.3s ease;
-  }
+        .paper-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            transition: transform 0.3s ease;
+        }
 
-  .paper-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-  }
+        .paper-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
 
-  .paper-title {
-    color: #2c3e50;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-  }
+        .paper-title {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
 
-  .paper-authors {
-    color: #666;
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
-  }
+        .paper-authors {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
 
-  .paper-journal {
-    font-style: italic;
-    color: #4a6baf;
-    margin-bottom: 1rem;
-    font-size: 0.9rem;
-  }
+        .paper-journal {
+            font-style: italic;
+            color: #4a6baf;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
 
-  .paper-abstract {
-    margin-bottom: 1rem;
-    color: #333;
-  }
+        .paper-abstract {
+            margin-bottom: 1rem;
+            color: #333;
+        }
 
-  .paper-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-bottom: 1rem;
-    color: #666;
-    font-size: 0.85rem;
-  }
+        .paper-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            color: #666;
+            font-size: 0.85rem;
+        }
 
-  .paper-meta span {
-    display: flex;
-    align-items: center;
-  }
+        .paper-meta span {
+            display: flex;
+            align-items: center;
+        }
 
-  .paper-meta i {
-    margin-right: 0.25rem;
-  }
+        .paper-meta i {
+            margin-right: 0.25rem;
+        }
 
-  .paper-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-  }
+        .paper-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
 
-  .paper-tag {
-    display: inline-block;
-    padding: 0.25rem 0.75rem;
-    border-radius: 30px;
-    font-size: 0.75rem;
-    background-color: #e9ecef;
-    color: #495057;
-  }
+        .paper-tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            background-color: #e9ecef;
+            color: #495057;
+        }
 
-  .paper-tag.field {
-    background-color: #e3f2fd;
-    color: #0d47a1;
-  }
+        .paper-tag.field {
+            background-color: #e3f2fd;
+            color: #0d47a1;
+        }
 
-  .paper-tag.component {
-    background-color: #e8f5e9;
-    color: #1b5e20;
-  }
+        .paper-tag.component {
+            background-color: #e8f5e9;
+            color: #1b5e20;
+        }
 
-  .paper-actions {
-    display: flex;
-    gap: 1rem;
-  }
+        .paper-actions {
+            display: flex;
+            gap: 1rem;
+        }
 
-  .featured-badge {
-    display: inline-block;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    background-color: #4a6baf;
-    color: white;
-    font-size: 0.75rem;
-    margin-left: 0.5rem;
-    vertical-align: middle;
-  }
+        .featured-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            background-color: #4a6baf;
+            color: white;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+            vertical-align: middle;
+        }
 
-  .publish-cta {
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    padding: 2rem;
-    text-align: center;
-    margin-top: 3rem;
-    margin-bottom: 2rem;
-  }
+        .publish-cta {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 3rem;
+            margin-bottom: 2rem;
+        }
 
-  .filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-bottom: 2rem;
-  }
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
 
-  .filter-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
 
-  .filter-label {
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: #495057;
-  }
+        .filter-label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #495057;
+        }
 
-  .filter-options {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
+        .filter-options {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
 
-  .filter-option {
-    padding: 0.25rem 0.75rem;
-    border-radius: 30px;
-    font-size: 0.8rem;
-    background-color: #e9ecef;
-    color: #495057;
-    cursor: pointer;
-  }
+        .filter-option {
+            padding: 0.25rem 0.75rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            background-color: #e9ecef;
+            color: #495057;
+            cursor: pointer;
+        }
 
-  .filter-option.active {
-    background-color: #4a6baf;
-    color: white;
-  }
+        .filter-option.active {
+            background-color: #4a6baf;
+            color: white;
+        }
 
-  .search-box {
-    margin-bottom: 2rem;
-  }
+        .search-box {
+            margin-bottom: 2rem;
+        }
 
-  .search-box input {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
-    border: 1px solid #ced4da;
-  }
+        .search-box input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            border: 1px solid #ced4da;
+        }
 
-  @media (max-width: 768px) {
-    .paper-actions {
-      flex-direction: column;
-    }
+        @media (max-width: 768px) {
+            .paper-actions {
+                flex-direction: column;
+            }
 
-    .filters {
-      flex-direction: column;
-    }
-  }
+            .filters {
+                flex-direction: column;
+            }
+        }
     </style>
 {% endblock %}
 {% block content %}

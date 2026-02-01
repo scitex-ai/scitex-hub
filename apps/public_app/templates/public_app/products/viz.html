@@ -1,12 +1,9 @@
 {% extends "public_app/cloud_base.html" %}
+
 {% load static %}
-{%block title%}
-    SciTeX-Viz - Interactive Scientific Visualization
-{% endblock %}
-{% block
-    extra_css %}
-    <!-- Page-specific CSS removed - now using utilities and components -->
-{% endblock %}
+
+{% block title %}SciTeX-Viz - Interactive Scientific Visualization{% endblock %}
+{% block extra_css %}<!-- Page-specific CSS removed - now using utilities and components -->{% endblock %}
 {% block content %}
     <div class="product-detail">
         <div class="container">
@@ -217,8 +214,7 @@
                     research communication.
                 </p>
                 <div class="cta-buttons">
-                    <a href="https://github.com/ywatanabe1989/SigMacro"
-                       class="btn btn-black">View on GitHub</a>
+                    <a href="https://github.com/ywatanabe1989/SigMacro" class="btn btn-black">View on GitHub</a>
                     <a href="{% url 'public_app:demo' %}" class="btn btn-secondary">Interactive Demo</a>
                 </div>
             </div>
