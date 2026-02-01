@@ -5,6 +5,25 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.11-alpha] - 2026-02-02
+
+### Added
+- **Publication model**: Database-driven publications page with Django model
+  - `Publication` model stores DOI, title, authors, journal, abstract, URLs
+  - `abstract_display` property shows fallback: "Abstract not available in our database"
+  - `sync_publications` management command syncs from YAML/CrossRef to database
+  - Admin interface for managing publications
+
+### Changed
+- **Publications page**: Now reads from database instead of YAML/API calls
+- **Footer**: Reorganized sections (Premium under Support, Publications under Community)
+
+### Technical
+- Feature requests created for scitex-python:
+  - #141: Citation style management
+  - #142: Strip HTML/JATS tags from CrossRef abstracts
+
+
 ## [0.6.5-alpha] - 2026-01-26
 
 ### Fixed

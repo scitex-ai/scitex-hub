@@ -1,0 +1,35 @@
+# Publications using SciTeX
+# For published papers: just add DOI - metadata auto-resolved
+# For unpublished: add manual entry
+
+stats:
+  publication_count: 5
+  institutions: "3+"
+  countries: 2
+
+# Papers with DOI - metadata fetched automatically
+papers_doi:
+  - doi: "10.1016/j.neunet.2023.12.009"
+    code_url: "https://github.com/yanagisawa-lab/eeg-dementia-classification"
+
+  - doi: "10.1088/1741-2552/ac3266"
+    code_url: "https://github.com/ywatanabe1989/towards-threshold-invariance-in-defining-hippocampal-ripples"
+
+  - doi: "10.12688/f1000research.145100.1"
+    code_url: "https://github.com/ywatanabe1989/intestelligence"
+
+# Papers without DOI (preprints, in preparation)
+papers_manual:
+  - title: "gPAC: GPU-Accelerated Phase-Amplitude Coupling Analysis"
+    authors: "Yusuke Watanabe, Takufumi Yanagisawa"
+    journal: "In preparation"
+    abstract: "GPU-accelerated framework for phase-amplitude coupling analysis in large-scale neural data."
+    paper_url: null
+    code_url: "https://github.com/ywatanabe1989/gpac"
+
+  - title: "Hippocampal Neural Fluctuations During Working Memory"
+    authors: "Yusuke Watanabe, Yuji Ikegaya, Takufumi Yanagisawa"
+    journal: "bioRxiv (preprint), 2024"
+    abstract: "Intracranial study on hippocampal dynamics during working memory tasks in humans."
+    paper_url: null
+    code_url: "https://github.com/ywatanabe1989/ripple-wm-code"

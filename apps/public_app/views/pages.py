@@ -37,6 +37,11 @@ def about(request):
     return render(request, "public_app/pages/about.html")
 
 
+def open_source(request):
+    """Why open source matters for SciTeX and scientific research."""
+    return render(request, "public_app/pages/open_source.html")
+
+
 def demos(request):
     """SciTeX demos page - architecture diagram, videos, and repository links."""
     return render(request, "public_app/pages/demos.html")
@@ -73,8 +78,42 @@ def video_player(request, video_id):
 
 
 def publications(request):
-    """Publications page."""
-    return render(request, "public_app/pages/publications.html")
+    """Publications page - display publications from database.
+
+    Data is populated via: python manage.py sync_publications
+    """
+    from ..models import Publication
+
+    publications_qs = Publication.objects.filter(is_active=True)
+
+    # Build stats
+    stats = {
+        "publication_count": publications_qs.count(),
+        "institutions": "3+",
+        "countries": 2,
+    }
+
+    # Convert to template-friendly format
+    papers = [
+        {
+            "title": pub.title,
+            "authors": pub.authors,
+            "journal": pub.journal_citation,
+            "abstract": pub.abstract_display,
+            "paper_url": pub.paper_url,
+            "code_url": pub.code_url,
+        }
+        for pub in publications_qs
+    ]
+
+    return render(
+        request,
+        "public_app/pages/publications.html",
+        {
+            "stats": stats,
+            "papers": papers,
+        },
+    )
 
 
 def fundraising(request):

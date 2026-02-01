@@ -1,11 +1,12 @@
 from django.contrib import admin
+
 from .models import (
-    SubscriptionPlan,
-    Subscription,
-    CloudResource,
     APIKey,
-    ServiceIntegration,
+    CloudResource,
     Contributor,
+    ServiceIntegration,
+    Subscription,
+    SubscriptionPlan,
 )
 
 # EmailVerification admin now in apps.auth_app.admin
@@ -154,3 +155,40 @@ class ContributorAdmin(admin.ModelAdmin):
         ),
         ("Timestamps", {"fields": ("created_at", "updated_at")}),
     )
+
+
+from .models import Publication  # noqa: E402
+
+
+@admin.register(Publication)
+class PublicationAdmin(admin.ModelAdmin):
+    list_display = [
+        "title_short",
+        "year",
+        "status",
+        "is_active",
+        "display_order",
+        "updated_at",
+    ]
+    list_filter = ["status", "is_active", "year"]
+    search_fields = ["title", "authors", "doi", "journal"]
+    readonly_fields = ["created_at", "updated_at"]
+    list_editable = ["is_active", "display_order"]
+    fieldsets = (
+        ("Identifiers", {"fields": ("doi",)}),
+        (
+            "Metadata",
+            {"fields": ("title", "authors", "journal", "year", "volume", "page")},
+        ),
+        ("Content", {"fields": ("abstract",)}),
+        ("URLs", {"fields": ("paper_url", "code_url")}),
+        (
+            "Display",
+            {"fields": ("status", "is_featured", "is_active", "display_order")},
+        ),
+        ("Timestamps", {"fields": ("created_at", "updated_at")}),
+    )
+
+    @admin.display(description="Title")
+    def title_short(self, obj):
+        return obj.title[:60] + "..." if len(obj.title) > 60 else obj.title
