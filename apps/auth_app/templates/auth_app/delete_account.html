@@ -1,45 +1,41 @@
 {% extends "auth_app/auth_base.html" %}
+
 {% load static %}
-{%block title%}
-    Delete Account - SciTeX
-{% endblock %}
-{% block meta_description %}
-    Permanently
-    delete your SciTeX account. This action cannot be undone.
-{% endblock %}
-{% block
-    auth_extra_css %}
+
+{% block title %}Delete Account - SciTeX{% endblock %}
+{% block meta_description %}Permanently delete your SciTeX account. This action cannot be undone.{% endblock %}
+{% block auth_extra_css %}
     <style>
-  .danger-zone {
-    border: 2px solid #dc3545;
-    border-radius: 8px;
-    padding: 2rem;
-    background-color: #fff5f5;
-    margin-top: 2rem;
-  }
+        .danger-zone {
+            border: 2px solid #dc3545;
+            border-radius: 8px;
+            padding: 2rem;
+            background-color: #fff5f5;
+            margin-top: 2rem;
+        }
 
-  .danger-icon {
-    font-size: 3rem;
-    color: #dc3545;
-    text-align: center;
-    margin-bottom: 1rem;
-  }
+        .danger-icon {
+            font-size: 3rem;
+            color: #dc3545;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
 
-  .warning-list {
-    background-color: #fff;
-    border-left: 4px solid #dc3545;
-    padding: 1rem;
-    margin: 1rem 0;
-  }
+        .warning-list {
+            background-color: #fff;
+            border-left: 4px solid #dc3545;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
 
-  .warning-list li {
-    margin-bottom: 0.5rem;
-  }
+        .warning-list li {
+            margin-bottom: 0.5rem;
+        }
 
-  .confirm-input {
-    font-family: monospace;
-    font-weight: bold;
-  }
+        .confirm-input {
+            font-family: monospace;
+            font-weight: bold;
+        }
     </style>
 {% endblock %}
 {% block auth_content %}
