@@ -3,6 +3,7 @@ Django admin configuration for organizations_app.
 """
 
 from django.contrib import admin
+
 from .models import (
     Organization,
     OrganizationMembership,
@@ -26,9 +27,10 @@ class ResearchGroupInline(admin.TabularInline):
 
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
-    list_display = ["name", "website", "member_count", "created_at"]
-    search_fields = ["name", "description"]
+    list_display = ["name", "slug", "website", "member_count", "created_at"]
+    search_fields = ["name", "slug", "description"]
     list_filter = ["created_at"]
+    prepopulated_fields = {"slug": ("name",)}
     inlines = [OrganizationMembershipInline, ResearchGroupInline]
 
     def member_count(self, obj):

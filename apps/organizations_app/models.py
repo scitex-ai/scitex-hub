@@ -7,8 +7,8 @@ Extracted from workspace_app and project_app to resolve model duplication.
 See: project_management/MODEL_DUPLICATION_DECISION.md
 """
 
-from django.db import models
 from django.contrib.auth.models import User
+from django.db import models
 
 
 class Organization(models.Model):
@@ -17,11 +17,27 @@ class Organization(models.Model):
 
     Canonical source for Organization model - previously duplicated in
     workspace_app and project_app.
+
+    Organizations can own projects just like users (GitHub-style).
+    URL pattern: /<slug>/ (e.g., /scitex-ai/)
     """
 
     name = models.CharField(max_length=200)
+    slug = models.SlugField(
+        max_length=100,
+        unique=True,
+        null=True,
+        blank=True,
+        help_text="URL-friendly identifier (e.g., 'scitex-ai')",
+    )
     description = models.TextField(blank=True)
     website = models.URLField(blank=True)
+    avatar = models.ImageField(
+        upload_to="organization_avatars/",
+        blank=True,
+        null=True,
+        help_text="Organization avatar/logo",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -35,6 +51,43 @@ class Organization(models.Model):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        """Auto-generate slug from name if not provided"""
+        if not self.slug:
+            from django.utils.text import slugify
+
+            base_slug = slugify(self.name)
+            slug = base_slug
+            counter = 1
+            while Organization.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = slug
+        super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        """Get URL for this organization's profile page"""
+        return f"/{self.slug}/"
+
+    def can_edit(self, user):
+        """Check if user can edit this organization"""
+        if not user.is_authenticated:
+            return False
+        membership = self.memberships.filter(user=user).first()
+        return membership and membership.role == "admin"
+
+    def can_create_project(self, user):
+        """Check if user can create projects for this organization"""
+        if not user.is_authenticated:
+            return False
+        membership = self.memberships.filter(user=user).first()
+        return membership and membership.role in ["admin", "member"]
+
+    @property
+    def username(self):
+        """Compatibility property for URL generation (same as slug)"""
+        return self.slug
 
 
 class OrganizationMembership(models.Model):
