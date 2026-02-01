@@ -120,7 +120,7 @@ MEDIA_ROOT = BASE_DIR / "media"
 # ---------------------------------------
 # Authentication settings
 LOGIN_URL = "/auth/login/"
-LOGIN_REDIRECT_URL = "/core/"  # Redirects to dashboard
+LOGIN_REDIRECT_URL = "/"  # Redirects to home (logged-in users see their dashboard)
 LOGOUT_REDIRECT_URL = "/"
 
 
@@ -650,8 +650,8 @@ LOGGING = {
 # Integration
 # ---------------------------------------
 # ORCID OAuth (legacy - for profile linking)
-ORCID_CLIENT_ID = os.getenv("ORCID_CLIENT_ID", "")
-ORCID_CLIENT_SECRET = os.getenv("ORCID_CLIENT_SECRET", "")
+ORCID_CLIENT_ID = os.getenv("SCITEX_CLOUD_ORCID_CLIENT_ID") or os.getenv("ORCID_CLIENT_ID", "")
+ORCID_CLIENT_SECRET = os.getenv("SCITEX_CLOUD_ORCID_CLIENT_SECRET") or os.getenv("ORCID_CLIENT_SECRET", "")
 ORCID_REDIRECT_URI = os.getenv(
     "ORCID_REDIRECT_URI", "http://localhost:8000/integrations/orcid/callback/"
 )
@@ -704,8 +704,8 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 # Google OAuth credentials (from environment)
-GOOGLE_CLIENT_ID = os.getenv("SCITEX_SOCIAL_GOOGLE_CLIENT_ID") or os.getenv("SCITEX_GOOGLE_CLIENT_ID", "")
-GOOGLE_CLIENT_SECRET = os.getenv("SCITEX_SOCIAL_GOOGLE_CLIENT_SECRET") or os.getenv("SCITEX_GOOGLE_CLIENT_SECRET", "")
+GOOGLE_CLIENT_ID = os.getenv("SCITEX_CLOUD_GOOGLE_CLIENT_ID") or os.getenv("SCITEX_GOOGLE_CLIENT_ID", "")
+GOOGLE_CLIENT_SECRET = os.getenv("SCITEX_CLOUD_GOOGLE_CLIENT_SECRET") or os.getenv("SCITEX_GOOGLE_CLIENT_SECRET", "")
 
 # Custom adapters for SciTeX-specific user handling
 ACCOUNT_ADAPTER = "apps.auth_app.adapters.SciTexAccountAdapter"
