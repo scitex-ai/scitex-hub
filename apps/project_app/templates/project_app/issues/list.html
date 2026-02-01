@@ -238,36 +238,39 @@
                     left: 0;
                     right: 0;
                     bottom: 0;
-                    background: rgba(0,0,0,0.5);
+                    background: rgba(0,0,0,0.75);
                     z-index: 1000;
                     justify-content: center;
                     align-items: center">
             <div class="modal-content"
-                 style="background: var(--bg-primary);
-                        border: 1px solid var(--border-color);
+                 style="background: #1a1f2e;
+                        border: 1px solid #3d4663;
                         border-radius: 12px;
-                        max-width: 600px;
+                        max-width: 500px;
                         width: 90%;
                         max-height: 80vh;
                         overflow-y: auto;
-                        box-shadow: 0 16px 48px rgba(0,0,0,0.3)">
-                <div style="padding: 1.5rem;
-                            border-bottom: 1px solid var(--border-color);
+                        box-shadow: 0 16px 48px rgba(0,0,0,0.5)">
+                <div style="padding: 1.25rem 1.5rem;
+                            border-bottom: 1px solid #3d4663;
                             display: flex;
                             justify-content: space-between;
                             align-items: center">
-                    <h2 style="margin: 0; font-size: 1.25rem;">New Issue</h2>
+                    <h2 style="margin: 0; font-size: 1.1rem; color: #e8eaed;">New Issue</h2>
                     <button onclick="closeNewIssueModal()"
                             style="background: none;
                                    border: none;
-                                   font-size: 1.5rem;
+                                   font-size: 1.25rem;
                                    cursor: pointer;
-                                   color: var(--text-muted);
-                                   padding: 0;
-                                   line-height: 1">&times;</button>
+                                   color: #8b95a5;
+                                   padding: 4px 8px;
+                                   line-height: 1;
+                                   border-radius: 4px;"
+                            onmouseover="this.style.background='#2a3142'"
+                            onmouseout="this.style.background='none'">&times;</button>
                 </div>
-                <div style="padding: 1rem;">
-                    <p style="margin: 0 0 1rem; color: var(--text-secondary); font-size: 0.9rem;">
+                <div style="padding: 1.25rem;">
+                    <p style="margin: 0 0 1rem; color: #8b95a5; font-size: 0.85rem;">
                         <i class="fas fa-file-alt"></i> Choose a template to get started:
                     </p>
                     <div style="display: flex; flex-direction: column; gap: 0.5rem;">
@@ -276,52 +279,52 @@
                                class="template-option"
                                style="display: flex;
                                       align-items: center;
-                                      gap: 1rem;
-                                      padding: 1rem;
-                                      background: var(--bg-secondary);
-                                      border: 1px solid var(--border-color);
+                                      gap: 0.875rem;
+                                      padding: 0.875rem 1rem;
+                                      background: #252b3b;
+                                      border: 1px solid #3d4663;
                                       border-radius: 8px;
                                       text-decoration: none;
-                                      color: var(--text-primary);
-                                      transition: border-color 0.2s, background 0.2s"
-                               onmouseover="this.style.borderColor='var(--accent-primary)'; this.style.background='var(--bg-tertiary)'"
-                               onmouseout="this.style.borderColor='var(--border-color)'; this.style.background='var(--bg-secondary)'">
+                                      color: #e8eaed;
+                                      transition: border-color 0.15s, background 0.15s"
+                               onmouseover="this.style.borderColor='#5c8be8'; this.style.background='#2a3142'"
+                               onmouseout="this.style.borderColor='#3d4663'; this.style.background='#252b3b'">
                                 <i class="fas {{ template.icon }}"
-                                   style="font-size: 1.5rem;
-                                          color: var(--accent-primary);
-                                          width: 32px;
+                                   style="font-size: 1.25rem;
+                                          color: #5c8be8;
+                                          width: 28px;
                                           text-align: center"></i>
                                 <div style="flex: 1;">
-                                    <strong style="display: block; margin-bottom: 0.25rem;">{{ template.name }}</strong>
-                                    <small style="color: var(--text-secondary);">{{ template.description }}</small>
+                                    <strong style="display: block; margin-bottom: 0.125rem; font-size: 0.9rem;">{{ template.name }}</strong>
+                                    <small style="color: #8b95a5; font-size: 0.8rem;">{{ template.description }}</small>
                                 </div>
-                                <i class="fas fa-chevron-right" style="color: var(--text-muted);"></i>
+                                <i class="fas fa-chevron-right" style="color: #5c6370; font-size: 0.75rem;"></i>
                             </a>
                         {% endfor %}
                         <a href="{% url 'user_projects:issue_create' username=project.owner.username slug=project.slug %}?template=blank"
                            class="template-option"
                            style="display: flex;
                                   align-items: center;
-                                  gap: 1rem;
-                                  padding: 1rem;
-                                  background: var(--bg-secondary);
-                                  border: 1px solid var(--border-color);
+                                  gap: 0.875rem;
+                                  padding: 0.875rem 1rem;
+                                  background: #252b3b;
+                                  border: 1px solid #3d4663;
                                   border-radius: 8px;
                                   text-decoration: none;
-                                  color: var(--text-primary);
-                                  transition: border-color 0.2s, background 0.2s"
-                           onmouseover="this.style.borderColor='var(--accent-primary)'; this.style.background='var(--bg-tertiary)'"
-                           onmouseout="this.style.borderColor='var(--border-color)'; this.style.background='var(--bg-secondary)'">
+                                  color: #e8eaed;
+                                  transition: border-color 0.15s, background 0.15s"
+                           onmouseover="this.style.borderColor='#5c8be8'; this.style.background='#2a3142'"
+                           onmouseout="this.style.borderColor='#3d4663'; this.style.background='#252b3b'">
                             <i class="fas fa-file"
-                               style="font-size: 1.5rem;
-                                      color: var(--text-muted);
-                                      width: 32px;
+                               style="font-size: 1.25rem;
+                                      color: #5c6370;
+                                      width: 28px;
                                       text-align: center"></i>
                             <div style="flex: 1;">
-                                <strong style="display: block; margin-bottom: 0.25rem;">Blank Issue</strong>
-                                <small style="color: var(--text-secondary);">Create an issue from scratch</small>
+                                <strong style="display: block; margin-bottom: 0.125rem; font-size: 0.9rem;">Blank Issue</strong>
+                                <small style="color: #8b95a5; font-size: 0.8rem;">Create an issue from scratch</small>
                             </div>
-                            <i class="fas fa-chevron-right" style="color: var(--text-muted);"></i>
+                            <i class="fas fa-chevron-right" style="color: #5c6370; font-size: 0.75rem;"></i>
                         </a>
                     </div>
                 </div>
