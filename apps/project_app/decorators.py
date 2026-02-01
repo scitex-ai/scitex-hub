@@ -3,8 +3,10 @@ Decorators for project-based access control.
 """
 
 from functools import wraps
-from django.shortcuts import redirect, get_object_or_404
+
 from django.contrib import messages
+from django.shortcuts import redirect
+
 from .models import Project
 
 
@@ -43,8 +45,12 @@ def project_access_required(view_func):
     """
     Decorator to check if user has access to a specific project.
 
-    Expects username and slug in kwargs.
+    Expects username (or org-slug) and slug in kwargs.
     Checks visibility (public/private) and user permissions.
+
+    Supports both:
+    - User-owned projects: /<username>/<slug>/
+    - Organization-owned projects: /<org-slug>/<slug>/
 
     Usage:
         @login_required
@@ -56,11 +62,10 @@ def project_access_required(view_func):
 
     @wraps(view_func)
     def wrapper(request, username, slug, *args, **kwargs):
-        from django.contrib.auth.models import User
+        from apps.project_app.utils.project_lookup import get_project_by_owner_slug
 
-        # Get user and project
-        user = get_object_or_404(User, username=username)
-        project = get_object_or_404(Project, slug=slug, owner=user)
+        # Get project (supports both user and organization ownership)
+        project = get_project_by_owner_slug(username, slug)
 
         # Check access based on visibility
         if hasattr(project, "visibility"):

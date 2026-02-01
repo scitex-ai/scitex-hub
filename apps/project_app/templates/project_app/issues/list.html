@@ -1,15 +1,12 @@
 {% extends 'global_base.html' %}
+
 {% load static %}
-{% block title %}
-    Issues - {{ project.name }} - SciTeX Cloud
-{% endblock %}
+
+{% block title %}Issues - {{ project.name }} - SciTeX Cloud{% endblock %}
 {% block extra_css %}
-    <link rel="stylesheet"
-          href="{% static 'project_app/css/project_app.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'project_app/css/issues_list.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'project_app/css/shared/buttons.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/project_app.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/issues_list.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/shared/buttons.css' %}" />
 {% endblock %}
 {% block content %}
     <div class="container-fluid browse-container">
@@ -18,178 +15,176 @@
         <!-- Issues Filters and List -->
         <div class="tab-content-spacing">
             <div class="issues-header">
-            <div style="display: flex;
-                        justify-content: space-between;
-                        align-items: center">
-                <div class="issues-stats">
-                    <a href="?state=open"
-                       class="issues-tab {% if state_filter == 'open' %}active{% endif %}">
+                <div style="display: flex; justify-content: space-between; align-items: center">
+                    <div class="issues-stats">
+                        <a href="?state=open"
+                           class="issues-tab {% if state_filter == 'open' %}active{% endif %}">
+                            <svg width="16"
+                                 height="16"
+                                 viewBox="0 0 16 16"
+                                 fill="currentColor"
+                                 style="display: inline-block;
+                                        vertical-align: text-bottom">
+                                <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" />
+                                <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z" />
+                            </svg>
+                            {{ open_count }} Open
+                        </a>
+                        <a href="?state=closed"
+                           class="issues-tab {% if state_filter == 'closed' %}active{% endif %}">
+                            <svg width="16"
+                                 height="16"
+                                 viewBox="0 0 16 16"
+                                 fill="currentColor"
+                                 style="display: inline-block;
+                                        vertical-align: text-bottom">
+                                <path d="M11.28 6.78a.75.75 0 0 0-1.06-1.06L7.25 8.69 5.78 7.22a.75.75 0 0 0-1.06 1.06l2 2a.75.75 0 0 0 1.06 0l3.5-3.5Z" />
+                                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0Zm-1.5 0a6.5 6.5 0 1 0-13 0 6.5 6.5 0 0 0 13 0Z" />
+                            </svg>
+                            {{ closed_count }} Closed
+                        </a>
+                    </div>
+                    <a href="{% url 'user_projects:issue_create' username=project.owner.username slug=project.slug %}"
+                       class="btn btn-success">
                         <svg width="16"
                              height="16"
                              viewBox="0 0 16 16"
                              fill="currentColor"
                              style="display: inline-block;
-                                    vertical-align: text-bottom">
-                            <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" />
-                            <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z" />
+                                    vertical-align: text-bottom;
+                                    margin-right: 4px">
+                            <path d="M7.75 2a.75.75 0 0 1 .75.75V7h4.25a.75.75 0 0 1 0 1.5H8.5v4.25a.75.75 0 0 1-1.5 0V8.5H2.75a.75.75 0 0 1 0-1.5H7V2.75A.75.75 0 0 1 7.75 2Z" />
                         </svg>
-                        {{ open_count }} Open
-                    </a>
-                    <a href="?state=closed"
-                       class="issues-tab {% if state_filter == 'closed' %}active{% endif %}">
-                        <svg width="16"
-                             height="16"
-                             viewBox="0 0 16 16"
-                             fill="currentColor"
-                             style="display: inline-block;
-                                    vertical-align: text-bottom">
-                            <path d="M11.28 6.78a.75.75 0 0 0-1.06-1.06L7.25 8.69 5.78 7.22a.75.75 0 0 0-1.06 1.06l2 2a.75.75 0 0 0 1.06 0l3.5-3.5Z" />
-                            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0Zm-1.5 0a6.5 6.5 0 1 0-13 0 6.5 6.5 0 0 0 13 0Z" />
-                        </svg>
-                        {{ closed_count }} Closed
+                        New issue
                     </a>
                 </div>
-                <a href="{% url 'user_projects:create' username=project.owner.username slug=project.slug %}"
-                   class="btn btn-success">
-                    <svg width="16"
-                         height="16"
-                         viewBox="0 0 16 16"
-                         fill="currentColor"
-                         style="display: inline-block;
-                                vertical-align: text-bottom;
-                                margin-right: 4px">
-                        <path d="M7.75 2a.75.75 0 0 1 .75.75V7h4.25a.75.75 0 0 1 0 1.5H8.5v4.25a.75.75 0 0 1-1.5 0V8.5H2.75a.75.75 0 0 1 0-1.5H7V2.75A.75.75 0 0 1 7.75 2Z" />
-                    </svg>
-                    New issue
-                </a>
+                <!-- Search bar -->
+                <form method="GET" class="issues-search" style="margin-top: 1rem">
+                    <input type="search"
+                           name="q"
+                           value="{{ search_query }}"
+                           placeholder="Search all issues..." />
+                    <input type="hidden" name="state" value="{{ state_filter }}" />
+                    <button type="submit" class="btn btn-sm btn-primary">Search</button>
+                </form>
             </div>
-            <!-- Search bar -->
-            <form method="GET" class="issues-search" style="margin-top: 1rem">
-                <input type="search"
-                       name="q"
-                       value="{{ search_query }}"
-                       placeholder="Search all issues..." />
-                <input type="hidden" name="state" value="{{ state_filter }}" />
-                <button type="submit" class="btn btn-sm btn-primary">Search</button>
-            </form>
-        </div>
-        <!-- Issues List -->
-        {% if issues %}
-            <div class="issue-list">
-                {% for issue in issues %}
-                    <div class="issue-item">
-                        <div class="issue-main">
-                            <div class="issue-icon {% if issue.state == 'open' %}open{% else %}closed{% endif %}">
-                                {% if issue.state == 'open' %}
-                                    <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
-                                        <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" />
-                                        <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z" />
-                                    </svg>
-                                {% else %}
-                                    <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
-                                        <path d="M11.28 6.78a.75.75 0 0 0-1.06-1.06L7.25 8.69 5.78 7.22a.75.75 0 0 0-1.06 1.06l2 2a.75.75 0 0 0 1.06 0l3.5-3.5Z" />
-                                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0Zm-1.5 0a6.5 6.5 0 1 0-13 0 6.5 6.5 0 0 0 13 0Z" />
-                                    </svg>
-                                {% endif %}
-                            </div>
-                            <div class="issue-content">
-                                <div class="issue-title-row">
-                                    <a href="{% url 'user_projects:detail' username=project.owner.username slug=project.slug issue_number=issue.number %}"
-                                       class="issue-title">{{ issue.title }}</a>
-                                    {% if issue.labels.all %}
-                                        <div class="issue-labels">
-                                            {% for label in issue.labels.all %}
-                                                <span class="issue-label" style="background-color: {{ label.color }};">{{ label.name }}</span>
-                                            {% endfor %}
-                                        </div>
+            <!-- Issues List -->
+            {% if issues %}
+                <div class="issue-list">
+                    {% for issue in issues %}
+                        <div class="issue-item">
+                            <div class="issue-main">
+                                <div class="issue-icon {% if issue.state == 'open' %}open{% else %}closed{% endif %}">
+                                    {% if issue.state == 'open' %}
+                                        <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
+                                            <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" />
+                                            <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z" />
+                                        </svg>
+                                    {% else %}
+                                        <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
+                                            <path d="M11.28 6.78a.75.75 0 0 0-1.06-1.06L7.25 8.69 5.78 7.22a.75.75 0 0 0-1.06 1.06l2 2a.75.75 0 0 0 1.06 0l3.5-3.5Z" />
+                                            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0Zm-1.5 0a6.5 6.5 0 1 0-13 0 6.5 6.5 0 0 0 13 0Z" />
+                                        </svg>
                                     {% endif %}
                                 </div>
-                                <div class="issue-meta">
-                                    #{{ issue.number }} opened {{ issue.created_at|timesince }} ago by
-                                    <a href="/{{ issue.author.username }}/">{{ issue.author.username }}</a>
-                                    {% if issue.get_comment_count > 0 %}
-                                        <span style="margin-left: 1rem">
-                                            <svg width="16"
-                                                 height="16"
-                                                 viewBox="0 0 16 16"
-                                                 fill="currentColor"
-                                                 style="display: inline-block;
-                                                        vertical-align: text-bottom">
-                                                <path d="M0 2.75C0 1.784.784 1 1.75 1h12.5c.966 0 1.75.784 1.75 1.75v8.5A1.75 1.75 0 0 1 14.25 13H8.06l-2.573 2.573A1.458 1.458 0 0 1 3 14.543V13H1.75A1.75 1.75 0 0 1 0 11.25Zm1.75-.25a.25.25 0 0 0-.25.25v8.5c0 .138.112.25.25.25h2a.75.75 0 0 1 .75.75v2.19l2.72-2.72a.749.749 0 0 1 .53-.22h6.5a.25.25 0 0 0 .25-.25v-8.5a.25.25 0 0 0-.25-.25Z" />
-                                            </svg>
-                                            {{ issue.get_comment_count }}
-                                        </span>
-                                    {% endif %}
-                                    {% if issue.milestone %}
-                                        <span style="margin-left: 1rem">
-                                            <svg width="16"
-                                                 height="16"
-                                                 viewBox="0 0 16 16"
-                                                 fill="currentColor"
-                                                 style="display: inline-block;
-                                                        vertical-align: text-bottom">
-                                                <path d="M7.75 0a.75.75 0 0 1 .75.75V3h3.634c.414 0 .814.147 1.13.414l2.07 1.75a1.75 1.75 0 0 1 0 2.672l-2.07 1.75a1.75 1.75 0 0 1-1.13.414H8.5v5.25a.75.75 0 1 1-1.5 0V10H2.75A1.75 1.75 0 0 1 1 8.25v-3.5C1 3.784 1.784 3 2.75 3H7V.75A.75.75 0 0 1 7.75 0Z" />
-                                            </svg>
-                                            {{ issue.milestone.title }}
-                                        </span>
-                                    {% endif %}
+                                <div class="issue-content">
+                                    <div class="issue-title-row">
+                                        <a href="{% url 'user_projects:issue_detail' username=project.owner.username slug=project.slug issue_number=issue.number %}"
+                                           class="issue-title">{{ issue.title }}</a>
+                                        {% if issue.labels.all %}
+                                            <div class="issue-labels">
+                                                {% for label in issue.labels.all %}
+                                                    <span class="issue-label" style="background-color: {{ label.color }};">{{ label.name }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="issue-meta">
+                                        #{{ issue.number }} opened {{ issue.created_at|timesince }} ago by
+                                        <a href="/{{ issue.author.username }}/">{{ issue.author.username }}</a>
+                                        {% if issue.get_comment_count > 0 %}
+                                            <span style="margin-left: 1rem">
+                                                <svg width="16"
+                                                     height="16"
+                                                     viewBox="0 0 16 16"
+                                                     fill="currentColor"
+                                                     style="display: inline-block;
+                                                            vertical-align: text-bottom">
+                                                    <path d="M0 2.75C0 1.784.784 1 1.75 1h12.5c.966 0 1.75.784 1.75 1.75v8.5A1.75 1.75 0 0 1 14.25 13H8.06l-2.573 2.573A1.458 1.458 0 0 1 3 14.543V13H1.75A1.75 1.75 0 0 1 0 11.25Zm1.75-.25a.25.25 0 0 0-.25.25v8.5c0 .138.112.25.25.25h2a.75.75 0 0 1 .75.75v2.19l2.72-2.72a.749.749 0 0 1 .53-.22h6.5a.25.25 0 0 0 .25-.25v-8.5a.25.25 0 0 0-.25-.25Z" />
+                                                </svg>
+                                                {{ issue.get_comment_count }}
+                                            </span>
+                                        {% endif %}
+                                        {% if issue.milestone %}
+                                            <span style="margin-left: 1rem">
+                                                <svg width="16"
+                                                     height="16"
+                                                     viewBox="0 0 16 16"
+                                                     fill="currentColor"
+                                                     style="display: inline-block;
+                                                            vertical-align: text-bottom">
+                                                    <path d="M7.75 0a.75.75 0 0 1 .75.75V3h3.634c.414 0 .814.147 1.13.414l2.07 1.75a1.75 1.75 0 0 1 0 2.672l-2.07 1.75a1.75 1.75 0 0 1-1.13.414H8.5v5.25a.75.75 0 1 1-1.5 0V10H2.75A1.75 1.75 0 0 1 1 8.25v-3.5C1 3.784 1.784 3 2.75 3H7V.75A.75.75 0 0 1 7.75 0Z" />
+                                                </svg>
+                                                {{ issue.milestone.title }}
+                                            </span>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                    {% endfor %}
+                </div>
+                <!-- Pagination -->
+                {% if issues.has_other_pages %}
+                    <div class="pagination">
+                        {% if issues.has_previous %}
+                            <a href="?page=1&state={{ state_filter }}&q={{ search_query }}">First</a>
+                            <a href="?page={{ issues.previous_page_number }}&state={{ state_filter }}&q={{ search_query }}">Previous</a>
+                        {% endif %}
+                        <span class="current">Page {{ issues.number }} of {{ issues.paginator.num_pages }}</span>
+                        {% if issues.has_next %}
+                            <a href="?page={{ issues.next_page_number }}&state={{ state_filter }}&q={{ search_query }}">Next</a>
+                            <a href="?page={{ issues.paginator.num_pages }}&state={{ state_filter }}&q={{ search_query }}">Last</a>
+                        {% endif %}
                     </div>
-                {% endfor %}
-            </div>
-            <!-- Pagination -->
-            {% if issues.has_other_pages %}
-                <div class="pagination">
-                    {% if issues.has_previous %}
-                        <a href="?page=1&state={{ state_filter }}&q={{ search_query }}">First</a>
-                        <a href="?page={{ issues.previous_page_number }}&state={{ state_filter }}&q={{ search_query }}">Previous</a>
-                    {% endif %}
-                    <span class="current">Page {{ issues.number }} of {{ issues.paginator.num_pages }}</span>
-                    {% if issues.has_next %}
-                        <a href="?page={{ issues.next_page_number }}&state={{ state_filter }}&q={{ search_query }}">Next</a>
-                        <a href="?page={{ issues.paginator.num_pages }}&state={{ state_filter }}&q={{ search_query }}">Last</a>
-                    {% endif %}
+                {% endif %}
+            {% else %}
+                <!-- Empty State -->
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <svg width="48" height="48" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" />
+                            <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z" />
+                        </svg>
+                    </div>
+                    <h3 class="empty-state-title">No issues found</h3>
+                    <p class="empty-state-description">
+                        {% if search_query %}
+                            No issues matched your search. Try adjusting your
+                            filters or search terms.
+                        {% elif state_filter == 'closed' %}
+                            There are no
+                            closed issues yet.
+                        {% else %}
+                            There are no open issues yet. Create a new
+                            issue to get started.
+                        {% endif %}
+                    </p>
+                    <a href="{% url 'user_projects:issue_create' username=project.owner.username slug=project.slug %}"
+                       class="btn btn-success">
+                        <svg width="16"
+                             height="16"
+                             viewBox="0 0 16 16"
+                             fill="currentColor"
+                             style="display: inline-block;
+                                    vertical-align: text-bottom;
+                                    margin-right: 4px">
+                            <path d="M7.75 2a.75.75 0 0 1 .75.75V7h4.25a.75.75 0 0 1 0 1.5H8.5v4.25a.75.75 0 0 1-1.5 0V8.5H2.75a.75.75 0 0 1 0-1.5H7V2.75A.75.75 0 0 1 7.75 2Z" />
+                        </svg>
+                        New issue
+                    </a>
                 </div>
             {% endif %}
-        {% else %}
-            <!-- Empty State -->
-            <div class="empty-state">
-                <div class="empty-state-icon">
-                    <svg width="48" height="48" viewBox="0 0 16 16" fill="currentColor">
-                        <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" />
-                        <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z" />
-                    </svg>
-                </div>
-                <h3 class="empty-state-title">No issues found</h3>
-                <p class="empty-state-description">
-                    {% if search_query %}
-                        No issues matched your search. Try adjusting your
-                        filters or search terms.
-                    {% elif state_filter == 'closed' %}
-                        There are no
-                        closed issues yet.
-                    {% else %}
-                        There are no open issues yet. Create a new
-                        issue to get started.
-                    {% endif %}
-                </p>
-                <a href="{% url 'user_projects:create' username=project.owner.username slug=project.slug %}"
-                   class="btn btn-success">
-                    <svg width="16"
-                         height="16"
-                         viewBox="0 0 16 16"
-                         fill="currentColor"
-                         style="display: inline-block;
-                                vertical-align: text-bottom;
-                                margin-right: 4px">
-                        <path d="M7.75 2a.75.75 0 0 1 .75.75V7h4.25a.75.75 0 0 1 0 1.5H8.5v4.25a.75.75 0 0 1-1.5 0V8.5H2.75a.75.75 0 0 1 0-1.5H7V2.75A.75.75 0 0 1 7.75 2Z" />
-                    </svg>
-                    New issue
-                </a>
-            </div>
-        {% endif %}
         </div>
     </div>
     {% include 'project_app/repository/browse_partials/browse_scripts.html' %}

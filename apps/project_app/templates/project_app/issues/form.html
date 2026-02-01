@@ -1,14 +1,14 @@
 {% extends 'global_base.html' %}
+
 {% load static %}
+
 {% block title %}
-    {% if
-        edit_mode %}
+    {% if edit_mode %}
         Edit Issue
     {% else %}
         New Issue
     {% endif %}
-    - {{ project.name }} -
-    SciTeX Cloud
+    - {{ project.name }} - SciTeX Cloud
 {% endblock %}
 {% block content %}
     <div class="container-fluid" style="max-width: 900px">
@@ -17,8 +17,7 @@
                 Edit Issue #{{ issue.number }}
             {% else %}
                 New Issue
-            {% endif
-            %}
+            {% endif %}
         </h2>
         <form method="POST">
             {% csrf_token %}
@@ -66,7 +65,7 @@
                         Submit new issue
                     {% endif %}
                 </button>
-                <a href="{% if edit_mode %}{{ issue.get_absolute_url }}{% else %}{% url 'user_projects:issues_list' username=project.owner.username slug=project.slug %}{% endif %}"
+                <a href="{% if edit_mode %}{{ issue.get_absolute_url }}{% else %}{% url 'user_projects:issue_list' username=project.owner.username slug=project.slug %}{% endif %}"
                    class="btn btn-secondary">Cancel</a>
             </div>
         </form>

@@ -12,6 +12,7 @@ GitHub-style patterns:
 """
 
 from django.urls import path
+
 from ..views.pr import (
     pr_list,
 )
@@ -21,5 +22,5 @@ from ..views.pr import (
 urlpatterns = [
     # Pull Request list only
     # Individual PRs are at /pull/ (singular) not /pulls/
-    path("", pr_list, name="list"),
+    path("", pr_list, name="pr_list"),
 ]

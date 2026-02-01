@@ -2,14 +2,16 @@
 Security policy views for SciTeX projects
 """
 
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.http import HttpResponseForbidden
-from django.views.decorators.http import require_http_methods
 import logging
 
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseForbidden
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_http_methods
+
 from apps.project_app.models import Project
+
 # TODO: Fix when security models are properly structured
 # from apps.project_app.models.security import SecurityPolicy
 
@@ -54,6 +56,7 @@ def security_policy(request, username, slug):
         "project": project,
         "policy": policy,
         "created": created,
+        "can_edit": project.can_edit(request.user),
     }
 
     return render(request, "project_app/security/policy.html", context)

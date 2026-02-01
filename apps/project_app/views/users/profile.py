@@ -4,20 +4,21 @@
 User Profile Views
 
 Handle user profile and bio pages.
+Also handles organization profile pages (GitHub-style).
 """
 
-from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.db import models
 from django.http import Http404
+from django.shortcuts import get_object_or_404, render
 
 from ...models import Project
 
 
 def user_profile(request, username):
     """
-    User profile page (GitHub-style /<username>/)
+    User or organization profile page (GitHub-style /<username>/ or /<org-slug>/)
 
     Public view - no login required (like GitHub)
 
@@ -33,26 +34,77 @@ def user_profile(request, username):
     if username.lower() in [path.lower() for path in RESERVED_PATHS]:
         raise Http404("This path is reserved and not a valid username")
 
-    user = get_object_or_404(User, username=username)
-    tab = request.GET.get("tab", "repositories")  # Default to repositories
+    # First, try to find a user with this username
+    try:
+        user = User.objects.get(username=username)
+        tab = request.GET.get("tab", "repositories")  # Default to repositories
 
-    if tab == "repositories":
-        return user_project_list(request, username)
-    elif tab == "overview":
-        from .overview import user_overview
+        if tab == "repositories":
+            return user_project_list(request, username)
+        elif tab == "overview":
+            from .overview import user_overview
 
-        return user_overview(request, username)
-    elif tab == "projects":
-        from .board import user_projects_board
+            return user_overview(request, username)
+        elif tab == "projects":
+            from .board import user_projects_board
 
-        return user_projects_board(request, username)
-    elif tab == "stars":
-        from .stars import user_stars
+            return user_projects_board(request, username)
+        elif tab == "stars":
+            from .stars import user_stars
 
-        return user_stars(request, username)
-    else:
-        # Invalid tab - redirect to repositories
-        return user_project_list(request, username)
+            return user_stars(request, username)
+        else:
+            # Invalid tab - redirect to repositories
+            return user_project_list(request, username)
+    except User.DoesNotExist:
+        # Not a user, check if it's an organization
+        from apps.organizations_app.models import Organization
+
+        try:
+            org = Organization.objects.get(slug=username)
+            return organization_profile(request, org)
+        except Organization.DoesNotExist:
+            raise Http404("User or organization not found")
+
+
+def organization_profile(request, org):
+    """
+    Organization profile page (GitHub-style /<org-slug>/)
+
+    Shows organization info and public projects.
+    """
+    # Get organization's projects (via memberships or direct ownership)
+    # For now, organizations don't directly own projects, but we can
+    # show projects from all org members
+    member_ids = org.members.values_list("id", flat=True)
+
+    # Get projects from organization members
+    org_projects = Project.objects.filter(owner_id__in=member_ids)
+
+    # Filter by visibility for non-members
+    is_member = request.user.is_authenticated and request.user in org.members.all()
+    if not is_member:
+        org_projects = org_projects.filter(visibility="public")
+
+    org_projects = org_projects.order_by("-updated_at")
+
+    # Pagination
+    paginator = Paginator(org_projects, 12)
+    page_number = request.GET.get("page")
+    projects = paginator.get_page(page_number)
+
+    context = {
+        "organization": org,
+        "projects": projects,
+        "is_member": is_member,
+        "is_admin": org.can_edit(request.user)
+        if request.user.is_authenticated
+        else False,
+        "member_count": org.members.count(),
+        "active_tab": "repositories",
+    }
+
+    return render(request, "organizations_app/profile.html", context)
 
 
 def user_project_list(request, username):

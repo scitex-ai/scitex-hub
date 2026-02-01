@@ -2,30 +2,32 @@
 Issue form views (create, edit, comment) for SciTeX projects
 """
 
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import Http404
-from django.db.models import Q
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.db.models import Q
+from django.http import Http404
+from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.project_app.models import (
-    Project,
     Issue,
+    IssueAssignment,
     IssueComment,
+    IssueEvent,
     IssueLabel,
     IssueMilestone,
-    IssueAssignment,
-    IssueEvent,
 )
+from apps.project_app.utils.project_lookup import get_project_by_owner_slug
 
 
 @login_required
 def issue_create(request, username, slug):
     """
     Create a new issue
+
+    Supports both user-owned and organization-owned projects.
     """
-    project = get_object_or_404(Project, owner__username=username, slug=slug)
+    project = get_project_by_owner_slug(username, slug)
 
     # Check permissions (can view = can create issues)
     if not project.can_view(request.user):
@@ -108,8 +110,10 @@ def issue_create(request, username, slug):
 def issue_edit(request, username, slug, issue_number):
     """
     Edit an existing issue
+
+    Supports both user-owned and organization-owned projects.
     """
-    project = get_object_or_404(Project, owner__username=username, slug=slug)
+    project = get_project_by_owner_slug(username, slug)
     issue = get_object_or_404(Issue, project=project, number=issue_number)
 
     # Check permissions
@@ -163,8 +167,10 @@ def issue_edit(request, username, slug, issue_number):
 def issue_comment_create(request, username, slug, issue_number):
     """
     Add a comment to an issue
+
+    Supports both user-owned and organization-owned projects.
     """
-    project = get_object_or_404(Project, owner__username=username, slug=slug)
+    project = get_project_by_owner_slug(username, slug)
     issue = get_object_or_404(Issue, project=project, number=issue_number)
 
     # Check permissions

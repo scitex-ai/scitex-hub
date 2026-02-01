@@ -1,118 +1,112 @@
 {% extends 'global_base.html' %}
+
 {% load static vite %}
-{% block title %}
-    #{{ issue.number }}: {{ issue.title }} - {{ project.name }} - SciTeX Cloud
+
+{% block title %}#{{ issue.number }}: {{ issue.title }} - {{ project.name }} - SciTeX Cloud{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'project_app/css/project_app.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/shared/buttons.css' %}" />
 {% endblock %}
-    {% block extra_css %}
-        <link rel="stylesheet"
-              href="{% static 'project_app/css/project_app.css' %}" />
-        <link rel="stylesheet"
-              href="{% static 'project_app/css/shared/buttons.css' %}" />
-    {% endblock %}
-    {% block content %}
-        <div class="container-fluid"
-             style="max-width: 1280px"
-             data-issue-close-url="{% url 'user_projects:api_issue_close' username=project.owner.username slug=project.slug issue_number=issue.number %}"
-             data-issue-reopen-url="{% url 'user_projects:api_issue_reopen' username=project.owner.username slug=project.slug issue_number=issue.number %}">
-            <!-- Breadcrumb -->
-            <div style="padding: 1rem 0">
-                <a href="/{{ project.owner.username }}/"
-                   style="color: var(--color-accent-fg);
-                          text-decoration: none">{{ project.owner.username }}</a>
-                <span style="color: var(--color-fg-muted)">/</span>
-                <a href="/{{ project.owner.username }}/{{ project.slug }}/"
-                   style="color: var(--color-accent-fg);
-                          text-decoration: none">{{ project.name }}</a>
-                <span style="color: var(--color-fg-muted)">/</span>
-                <a href="{% url 'user_projects:list' username=project.owner.username slug=project.slug %}"
-                   style="color: var(--color-accent-fg);
-                          text-decoration: none">Issues</a>
-                <span style="color: var(--color-fg-muted)">/</span>
-                <span style="color: var(--color-fg-default); font-weight: 600">#{{ issue.number }}</span>
-            </div>
-            <!-- Issue Header -->
-            <div class="issue-header">
-                <h1 class="issue-title">
-                    {{ issue.title }}
-                    <span class="issue-number">#{{ issue.number }}</span>
-                </h1>
-                <div class="issue-state-badge {% if issue.state == 'open' %}open{% else %}closed{% endif %}">
-                    {% if issue.state == 'open' %}
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                            <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" />
-                            <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z" />
-                        </svg>
-                        Open
-                    {% else %}
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                            <path d="M11.28 6.78a.75.75 0 0 0-1.06-1.06L7.25 8.69 5.78 7.22a.75.75 0 0 0-1.06 1.06l2 2a.75.75 0 0 0 1.06 0l3.5-3.5Z" />
-                            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0Zm-1.5 0a6.5 6.5 0 1 0-13 0 6.5 6.5 0 0 0 13 0Z" />
-                        </svg>
-                        Closed
-                    {% endif %}
-                </div>
-                <div class="issue-meta">
-                    <a href="/{{ issue.author.username }}/">{{ issue.author.username }}</a>
-                    opened this issue {{ issue.created_at|timesince }} ago
-                    {% if
-                        issue.comments.count > 0 %}
-                        · {{ issue.comments.count }} comment{{
-                        issue.comments.count|pluralize }}
-                    {% endif %}
-                </div>
-            </div>
-            <!-- Issue Body -->
-            <div class="issue-body">
-                <div class="comment-box">
-                    <div class="comment-header">
-                        <div>
-                            <span class="comment-author">{{ issue.author.username }}</span>
-                            <span class="comment-date">commented {{ issue.created_at|timesince }} ago</span>
-                        </div>
-                    </div>
-                    <div class="comment-body">{{ issue.description|linebreaks }}</div>
-                </div>
-                <!-- Comments -->
-                {% for comment in comments %}
-                    <div class="comment-box" id="comment-{{ comment.id }}">
-                        <div class="comment-header">
-                            <div>
-                                <span class="comment-author">{{ comment.author.username }}</span>
-                                <span class="comment-date">commented {{ comment.created_at|timesince }} ago</span>
-                            </div>
-                        </div>
-                        <div class="comment-body">{{ comment.content|linebreaks }}</div>
-                    </div>
-                {% endfor %}
-                <!-- New Comment Form -->
-                {% if can_comment %}
-                    <div class="new-comment-form">
-                        <form method="POST"
-                              action="{% url 'user_projects:comment_create' username=project.owner.username slug=project.slug issue_number=issue.number %}">
-                            {% csrf_token %}
-                            <textarea name="content"
-                                      class="new-comment-textarea"
-                                      placeholder="Leave a comment..."
-                                      required></textarea>
-                            <div style="display: flex;
-                                        justify-content: flex-end;
-                                        gap: 0.5rem;
-                                        margin-top: 0.5rem">
-                                {% if can_edit %}
-                                    {% if issue.state == 'open' %}
-                                        <button type="button" class="btn-close-issue" onclick="closeIssue()">Close issue</button>
-                                    {% else %}
-                                        <button type="button" class="btn-reopen-issue" onclick="reopenIssue()">Reopen issue</button>
-                                    {% endif %}
-                                {% endif %}
-                                <button type="submit" class="btn btn-primary">Comment</button>
-                            </div>
-                        </form>
-                    </div>
+{% block content %}
+    <div class="container-fluid"
+         style="max-width: 1280px"
+         data-issue-close-url="{% url 'user_projects:issue_api_close' username=project.owner.username slug=project.slug issue_number=issue.number %}"
+         data-issue-reopen-url="{% url 'user_projects:issue_api_reopen' username=project.owner.username slug=project.slug issue_number=issue.number %}">
+        <!-- Breadcrumb -->
+        <div style="padding: 1rem 0">
+            <a href="/{{ project.owner.username }}/"
+               style="color: var(--color-accent-fg);
+                      text-decoration: none">{{ project.owner.username }}</a>
+            <span style="color: var(--color-fg-muted)">/</span>
+            <a href="/{{ project.owner.username }}/{{ project.slug }}/"
+               style="color: var(--color-accent-fg);
+                      text-decoration: none">{{ project.name }}</a>
+            <span style="color: var(--color-fg-muted)">/</span>
+            <a href="{% url 'user_projects:issue_list' username=project.owner.username slug=project.slug %}"
+               style="color: var(--color-accent-fg);
+                      text-decoration: none">Issues</a>
+            <span style="color: var(--color-fg-muted)">/</span>
+            <span style="color: var(--color-fg-default); font-weight: 600">#{{ issue.number }}</span>
+        </div>
+        <!-- Issue Header -->
+        <div class="issue-header">
+            <h1 class="issue-title">
+                {{ issue.title }}
+                <span class="issue-number">#{{ issue.number }}</span>
+            </h1>
+            <div class="issue-state-badge {% if issue.state == 'open' %}open{% else %}closed{% endif %}">
+                {% if issue.state == 'open' %}
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" />
+                        <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z" />
+                    </svg>
+                    Open
+                {% else %}
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M11.28 6.78a.75.75 0 0 0-1.06-1.06L7.25 8.69 5.78 7.22a.75.75 0 0 0-1.06 1.06l2 2a.75.75 0 0 0 1.06 0l3.5-3.5Z" />
+                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0Zm-1.5 0a6.5 6.5 0 1 0-13 0 6.5 6.5 0 0 0 13 0Z" />
+                    </svg>
+                    Closed
                 {% endif %}
             </div>
+            <div class="issue-meta">
+                <a href="/{{ issue.author.username }}/">{{ issue.author.username }}</a>
+                opened this issue {{ issue.created_at|timesince }} ago
+                {% if issue.comments.count > 0 %}· {{ issue.comments.count }} comment{{ issue.comments.count|pluralize }}{% endif %}
+            </div>
         </div>
-    {% endblock %}
-    {% block extra_js %}
-        {% vite_script 'project_app/issues/detail' %}
-    {% endblock %}
+        <!-- Issue Body -->
+        <div class="issue-body">
+            <div class="comment-box">
+                <div class="comment-header">
+                    <div>
+                        <span class="comment-author">{{ issue.author.username }}</span>
+                        <span class="comment-date">commented {{ issue.created_at|timesince }} ago</span>
+                    </div>
+                </div>
+                <div class="comment-body">{{ issue.description|linebreaks }}</div>
+            </div>
+            <!-- Comments -->
+            {% for comment in comments %}
+                <div class="comment-box" id="comment-{{ comment.id }}">
+                    <div class="comment-header">
+                        <div>
+                            <span class="comment-author">{{ comment.author.username }}</span>
+                            <span class="comment-date">commented {{ comment.created_at|timesince }} ago</span>
+                        </div>
+                    </div>
+                    <div class="comment-body">{{ comment.content|linebreaks }}</div>
+                </div>
+            {% endfor %}
+            <!-- New Comment Form -->
+            {% if can_comment %}
+                <div class="new-comment-form">
+                    <form method="POST"
+                          action="{% url 'user_projects:issue_comment_create' username=project.owner.username slug=project.slug issue_number=issue.number %}">
+                        {% csrf_token %}
+                        <textarea name="content"
+                                  class="new-comment-textarea"
+                                  placeholder="Leave a comment..."
+                                  required></textarea>
+                        <div style="display: flex;
+                                    justify-content: flex-end;
+                                    gap: 0.5rem;
+                                    margin-top: 0.5rem">
+                            {% if can_edit %}
+                                {% if issue.state == 'open' %}
+                                    <button type="button" class="btn-close-issue" onclick="closeIssue()">Close issue</button>
+                                {% else %}
+                                    <button type="button" class="btn-reopen-issue" onclick="reopenIssue()">Reopen issue</button>
+                                {% endif %}
+                            {% endif %}
+                            <button type="submit" class="btn btn-primary">Comment</button>
+                        </div>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+{% block extra_js %}
+    {% vite_script 'project_app/issues/detail' %}
+{% endblock %}

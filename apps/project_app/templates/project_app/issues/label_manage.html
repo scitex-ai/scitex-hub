@@ -1,7 +1,6 @@
 {% extends 'global_base.html' %}
-{% block title %}
-    Manage Labels - {{ project.name }} - SciTeX Cloud
-{% endblock %}
+
+{% block title %}Manage Labels - {{ project.name }} - SciTeX Cloud{% endblock %}
 {% block content %}
     <div class="container" style="max-width: 900px; padding: 2rem 0">
         <h2>Manage Labels</h2>
@@ -9,7 +8,7 @@
             Label management interface - Create, edit, and delete labels for your
             project issues.
         </p>
-        <a href="{% url 'user_projects:issues_list' username=project.owner.username slug=project.slug %}"
+        <a href="{% url 'user_projects:issue_list' username=project.owner.username slug=project.slug %}"
            class="btn btn-secondary">Back to Issues</a>
     </div>
 {% endblock %}

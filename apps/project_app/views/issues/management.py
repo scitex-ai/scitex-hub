@@ -2,25 +2,27 @@
 Issue label and milestone management views for SciTeX projects
 """
 
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import Http404
+from django.contrib.auth.decorators import login_required
 from django.db.models import Count
+from django.http import Http404
+from django.shortcuts import redirect, render
 
 from apps.project_app.models import (
-    Project,
     IssueLabel,
     IssueMilestone,
 )
+from apps.project_app.utils.project_lookup import get_project_by_owner_slug
 
 
 @login_required
 def issue_label_manage(request, username, slug):
     """
     Manage issue labels for a project
+
+    Supports both user-owned and organization-owned projects.
     """
-    project = get_object_or_404(Project, owner__username=username, slug=slug)
+    project = get_project_by_owner_slug(username, slug)
 
     # Check permissions
     if not project.can_edit(request.user):
@@ -90,8 +92,10 @@ def issue_label_manage(request, username, slug):
 def issue_milestone_manage(request, username, slug):
     """
     Manage issue milestones for a project
+
+    Supports both user-owned and organization-owned projects.
     """
-    project = get_object_or_404(Project, owner__username=username, slug=slug)
+    project = get_project_by_owner_slug(username, slug)
 
     # Check permissions
     if not project.can_edit(request.user):

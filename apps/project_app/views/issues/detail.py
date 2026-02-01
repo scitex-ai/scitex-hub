@@ -2,20 +2,23 @@
 Issue detail view for SciTeX projects
 """
 
-from django.shortcuts import render, get_object_or_404
-from django.http import Http404
-from django.db.models import Q
 from django.contrib.auth.models import User
+from django.db.models import Q
+from django.http import Http404
+from django.shortcuts import get_object_or_404, render
 
-from apps.project_app.models import Project, Issue
+from apps.project_app.models import Issue
+from apps.project_app.utils.project_lookup import get_project_by_owner_slug
 
 
 def issue_detail(request, username, slug, issue_number):
     """
     Display a single issue with all comments and events
     Similar to GitHub issue detail page
+
+    Supports both user-owned and organization-owned projects.
     """
-    project = get_object_or_404(Project, owner__username=username, slug=slug)
+    project = get_project_by_owner_slug(username, slug)
     issue = get_object_or_404(
         Issue.objects.select_related("author", "milestone", "closed_by"),
         project=project,
