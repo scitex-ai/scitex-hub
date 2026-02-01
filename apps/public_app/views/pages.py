@@ -15,7 +15,7 @@ from __future__ import annotations
 from django.http import Http404
 from django.shortcuts import render
 
-from .pages_data import KEYBOARD_SHORTCUTS_DATA, VIDEO_CATALOG
+from .pages_data import KEYBOARD_SHORTCUTS_DATA, OG_BASE_URL, VIDEO_CATALOG
 from .pages_donate import donate
 
 # Re-export donate for backward compatibility
@@ -43,10 +43,21 @@ def demos(request):
 
 
 def video_player(request, video_id):
-    """Video player page with 4x default speed."""
+    """Video player page with 4x default speed and Open Graph meta tags."""
     video = VIDEO_CATALOG.get(video_id)
     if not video:
         raise Http404("Video not found")
+
+    # Build absolute URL for current page
+    page_url = f"{OG_BASE_URL}/demos/watch/{video_id}/"
+
+    # Build absolute thumbnail URL (use video-specific or default)
+    thumbnail = video.get("thumbnail")
+    if thumbnail:
+        og_image = f"{OG_BASE_URL}{thumbnail}"
+    else:
+        og_image = f"{OG_BASE_URL}/static/shared/images/scitex-og-image.png"
+
     return render(
         request,
         "public_app/pages/video_player.html",
@@ -54,6 +65,9 @@ def video_player(request, video_id):
             "video_title": video["title"],
             "video_url": video["url"],
             "video_description": video["description"],
+            "video_id": video_id,
+            "og_url": page_url,
+            "og_image": og_image,
         },
     )
 

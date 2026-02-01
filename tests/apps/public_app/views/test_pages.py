@@ -1,354 +1,257 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Tests for apps/public_app/views/pages.py"""
+"""Tests for apps/public_app/views/pages.py
+
+Tests Open Graph meta tags for video player pages (GitHub Issue #25).
+
+Note: Tests that require Django will be skipped if Django is not available.
+"""
+
+import os
+import sys
 
 import pytest
 
-# from apps.public_app.views.pages import ...
+# Check if Django is available
+DJANGO_AVAILABLE = False
+try:
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.settings_dev")
+    import django
+
+    django.setup()
+    DJANGO_AVAILABLE = True
+except Exception:
+    pass
 
 
-class TestPlaceholder:
-    """Placeholder test class - replace with actual tests."""
+class TestVideoCatalogStructure:
+    """Test VIDEO_CATALOG data structure (no Django required)."""
 
-    def test_placeholder(self):
-        """Placeholder test - implement actual tests."""
-        pytest.skip("Not implemented yet")
+    @pytest.fixture(autouse=True)
+    def setup_path(self):
+        """Add project root to path for imports."""
+        project_root = os.path.dirname(
+            os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+        )
+        if project_root not in sys.path:
+            sys.path.insert(0, project_root)
+
+    def test_og_base_url_is_https(self):
+        """OG_BASE_URL should use HTTPS for production."""
+        # Direct import from pages_data (bypassing views/__init__.py)
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location(
+            "pages_data",
+            os.path.join(
+                os.path.dirname(__file__),
+                "../../../../apps/public_app/views/pages_data.py",
+            ),
+        )
+        # We need to mock the pages_shortcuts import
+        import sys
+
+        sys.modules["apps.public_app.views.pages_shortcuts"] = type(sys)(
+            "pages_shortcuts"
+        )
+        sys.modules[
+            "apps.public_app.views.pages_shortcuts"
+        ].KEYBOARD_SHORTCUTS_DATA = []
+
+        # Now manually parse the file to extract OG_BASE_URL
+        pages_data_path = os.path.join(
+            os.path.dirname(__file__),
+            "../../../../apps/public_app/views/pages_data.py",
+        )
+        pages_data_path = os.path.abspath(pages_data_path)
+
+        with open(pages_data_path) as f:
+            content = f.read()
+
+        # Extract OG_BASE_URL
+        import re
+
+        match = re.search(r'OG_BASE_URL\s*=\s*["\']([^"\']+)["\']', content)
+        assert match, "OG_BASE_URL not found in pages_data.py"
+        og_base_url = match.group(1)
+
+        assert og_base_url.startswith("https://"), (
+            f"OG_BASE_URL should be HTTPS: {og_base_url}"
+        )
+        assert "scitex.ai" in og_base_url
+
+    def test_video_catalog_structure(self):
+        """VIDEO_CATALOG should have correct structure."""
+        import re
+
+        # Parse the file to extract VIDEO_CATALOG structure
+        pages_data_path = os.path.join(
+            os.path.dirname(__file__),
+            "../../../../apps/public_app/views/pages_data.py",
+        )
+        pages_data_path = os.path.abspath(pages_data_path)
+
+        with open(pages_data_path) as f:
+            content = f.read()
+
+        # Check required videos exist
+        mcp_demos = [
+            "figrecipe",
+            "crossref-local",
+            "scitex-writer",
+            "scitex-automated-research",
+        ]
+        for video_id in mcp_demos:
+            assert f'"{video_id}"' in content, f"Missing MCP demo: {video_id}"
+
+        # Check required fields are present
+        required_patterns = [
+            r'"title":\s*"',
+            r'"url":\s*"',
+            r'"description":\s*\(',
+            r'"thumbnail":\s*',  # Can be None or string
+        ]
+        for pattern in required_patterns:
+            assert re.search(pattern, content), f"Missing pattern: {pattern}"
+
+    def test_thumbnails_are_png(self):
+        """Thumbnails should be PNG files."""
+        pages_data_path = os.path.join(
+            os.path.dirname(__file__),
+            "../../../../apps/public_app/views/pages_data.py",
+        )
+        pages_data_path = os.path.abspath(pages_data_path)
+
+        with open(pages_data_path) as f:
+            content = f.read()
+
+        import re
+
+        # Find all thumbnail definitions that are not None
+        thumbnails = re.findall(r'"thumbnail":\s*"([^"]+)"', content)
+        for thumb in thumbnails:
+            assert thumb.endswith(".png"), f"Thumbnail should be PNG: {thumb}"
+            assert thumb.startswith("/"), f"Thumbnail should be absolute path: {thumb}"
+
+
+@pytest.mark.skipif(not DJANGO_AVAILABLE, reason="Django not available")
+class TestVideoPlayerView:
+    """Test video_player view function (requires Django)."""
+
+    @pytest.fixture
+    def rf(self):
+        """Request factory for creating mock requests."""
+        from django.test import RequestFactory
+
+        return RequestFactory()
+
+    def test_video_player_returns_200_for_valid_video(self, rf):
+        """video_player should return 200 for valid video ID."""
+        from apps.public_app.views.pages import video_player
+
+        request = rf.get("/demos/watch/figrecipe/")
+        response = video_player(request, "figrecipe")
+        assert response.status_code == 200
+
+    def test_video_player_raises_404_for_invalid_video(self, rf):
+        """video_player should raise 404 for invalid video ID."""
+        from django.http import Http404
+
+        from apps.public_app.views.pages import video_player
+
+        request = rf.get("/demos/watch/nonexistent/")
+        with pytest.raises(Http404):
+            video_player(request, "nonexistent")
+
+    def test_video_player_context_contains_og_fields(self, rf):
+        """video_player should pass OG metadata to template."""
+        from apps.public_app.views.pages import video_player
+
+        request = rf.get("/demos/watch/figrecipe/")
+        response = video_player(request, "figrecipe")
+
+        # For TemplateResponse, we need to check the context differently
+        if hasattr(response, "context_data"):
+            context = response.context_data
+        else:
+            # Render the response to access context
+            response.render()
+            context = response.context_data
+
+        assert "video_title" in context
+        assert "video_description" in context
+        assert "og_url" in context
+        assert "og_image" in context
+
+    def test_og_url_is_absolute(self, rf):
+        """og_url should be an absolute URL with HTTPS."""
+        from apps.public_app.views.pages import video_player
+
+        request = rf.get("/demos/watch/figrecipe/")
+        response = video_player(request, "figrecipe")
+        response.render()
+        context = response.context_data
+
+        og_url = context["og_url"]
+        assert og_url.startswith("https://")
+        assert "/demos/watch/figrecipe/" in og_url
+
+
+@pytest.mark.skipif(not DJANGO_AVAILABLE, reason="Django not available")
+@pytest.mark.django_db
+class TestVideoPlayerIntegration:
+    """Integration tests for video player page with OG meta tags."""
+
+    @pytest.fixture
+    def client(self):
+        """Django test client."""
+        from django.test import Client
+
+        return Client()
+
+    def test_video_page_contains_og_meta_tags(self, client):
+        """Video page HTML should contain Open Graph meta tags."""
+        response = client.get("/demos/watch/figrecipe/")
+        assert response.status_code == 200
+
+        content = response.content.decode("utf-8")
+
+        # Check OG meta tags exist
+        assert 'property="og:title"' in content
+        assert 'property="og:description"' in content
+        assert 'property="og:image"' in content
+        assert 'property="og:url"' in content
+        assert 'property="og:type"' in content
+
+    def test_video_page_contains_twitter_meta_tags(self, client):
+        """Video page HTML should contain Twitter Card meta tags."""
+        response = client.get("/demos/watch/figrecipe/")
+        content = response.content.decode("utf-8")
+
+        # Check Twitter meta tags exist
+        assert 'name="twitter:card"' in content
+        assert 'name="twitter:title"' in content
+        assert 'name="twitter:description"' in content
+        assert 'name="twitter:image"' in content
+        assert 'name="twitter:site"' in content
+        assert "@SciTeX_AI" in content
+
+    def test_og_image_contains_absolute_url(self, client):
+        """OG image meta tag should contain absolute URL."""
+        import re
+
+        response = client.get("/demos/watch/figrecipe/")
+        content = response.content.decode("utf-8")
+
+        # Find og:image content
+        match = re.search(r'property="og:image"\s+content="([^"]+)"', content)
+        assert match, "og:image meta tag not found"
+
+        og_image_url = match.group(1)
+        assert og_image_url.startswith("https://"), (
+            f"OG image should be HTTPS: {og_image_url}"
+        )
+
 
 if __name__ == "__main__":
-    import os
-
-    import pytest
-
-    pytest.main([os.path.abspath(__file__)])
-
-# --------------------------------------------------------------------------------
-# Start of Source Code from: apps/public_app/views/pages.py
-# --------------------------------------------------------------------------------
-# #!/usr/bin/env python3
-# # -*- coding: utf-8 -*-
-# # Timestamp: "2025-11-28 21:31:00 (ywatanabe)"
-# # File: /home/ywatanabe/proj/scitex-cloud/apps/public_app/views/pages.py
-# # ----------------------------------------
-# from __future__ import annotations
-# import os
-# 
-# __FILE__ = "./apps/public_app/views/pages.py"
-# __DIR__ = os.path.dirname(__FILE__)
-# # ----------------------------------------
-# 
-# """
-# Information Pages Views
-# 
-# Handles about, publications, contributors, donate, and fundraising pages.
-# """
-# 
-# from django.db import models
-# from django.shortcuts import render
-# from django.utils import timezone
-# 
-# 
-# def about(request):
-#     """SciTeX about page - purpose, mission, vision, and values."""
-#     return render(request, "public_app/pages/about.html")
-# 
-# 
-# def publications(request):
-#     """Publications page."""
-#     return render(request, "public_app/pages/publications.html")
-# 
-# 
-# def donate(request):
-#     """Donate page view with payment processing."""
-# 
-#     from django.contrib import messages
-# 
-#     from ..forms import DonationForm, EmailVerificationForm
-#     from ..models import Donation, DonationTier
-# 
-#     # Get donation tiers
-#     tiers = (
-#         DonationTier.objects.filter(is_active=True)
-#         if DonationTier.objects.exists()
-#         else []
-#     )
-# 
-#     if request.method == "POST":
-#         # Check if this is email verification request
-#         if "verify_email" in request.POST:
-#             email_form = EmailVerificationForm(request.POST)
-#             if email_form.is_valid():
-#                 if email_form.send_verification_email():
-#                     messages.success(request, "Verification code sent to your email!")
-#                     request.session["verification_email"] = email_form.cleaned_data[
-#                         "email"
-#                     ]
-#                     from django.shortcuts import redirect
-#                     return redirect("cloud_app:verify-email")
-#                 else:
-#                     messages.error(
-#                         request,
-#                         "Failed to send verification email. Please try again.",
-#                     )
-# 
-#         # Process donation
-#         elif "process_donation" in request.POST:
-#             form = DonationForm(request.POST)
-#             if form.is_valid():
-#                 donation = form.save(commit=False)
-# 
-#                 # If user is authenticated, link to user
-#                 if request.user.is_authenticated:
-#                     donation.user = request.user
-# 
-#                 # Save donation as pending
-#                 donation.save()
-# 
-#                 # Here you would integrate with payment processor
-#                 # For now, we'll simulate successful payment
-#                 if donation.payment_method == "credit_card":
-#                     # Simulate Stripe payment
-#                     transaction_id = f"STRIPE_{donation.id}_{timezone.now().strftime('%Y%m%d%H%M%S')}"
-#                     donation.complete_donation(transaction_id)
-#                     messages.success(
-#                         request,
-#                         f"Thank you for your ${donation.amount} donation!",
-#                     )
-# 
-#                     # Send confirmation email
-#                     from .utils import send_donation_confirmation
-#                     send_donation_confirmation(donation)
-# 
-#                     from django.shortcuts import redirect
-#                     return redirect(
-#                         "cloud_app:donation-success", donation_id=donation.id
-#                     )
-# 
-#                 elif donation.payment_method == "paypal":
-#                     # Redirect to PayPal
-#                     messages.info(request, "Redirecting to PayPal...")
-#                     from django.shortcuts import redirect
-#                     return redirect(
-#                         "cloud_app:donate"
-#                     )  # Would redirect to PayPal in production
-# 
-#                 elif donation.payment_method == "github":
-#                     # Redirect to GitHub Sponsors
-#                     from django.shortcuts import redirect
-#                     return redirect("https://github.com/sponsors/SciTex-AI")
-# 
-#     else:
-#         form = DonationForm()
-# 
-#     # Get recent public donations
-#     recent_donations = (
-#         Donation.objects.filter(
-#             is_public=True, is_visitor=False, status="completed"
-#         ).select_related("user")[:10]
-#         if Donation.objects.exists()
-#         else []
-#     )
-# 
-#     # Calculate funding progress
-#     current_year = timezone.now().year
-#     year_donations = (
-#         Donation.objects.filter(
-#             status="completed", created_at__year=current_year
-#         ).aggregate(total=models.Sum("amount"))["total"]
-#         or 0
-#         if Donation.objects.exists()
-#         else 0
-#     )
-# 
-#     funding_goal = 75000  # $75,000 annual goal
-#     funding_percentage = min(100, int((year_donations / funding_goal) * 100))
-# 
-#     context = {
-#         "form": form,
-#         "tiers": tiers,
-#         "recent_donations": recent_donations,
-#         "year_donations": year_donations,
-#         "funding_goal": funding_goal,
-#         "funding_percentage": funding_percentage,
-#     }
-# 
-#     return render(request, "public_app/pages/donate.html", context)
-# 
-# 
-# def fundraising(request):
-#     """Fundraising and sustainability page."""
-#     return render(request, "public_app/pages/fundraising.html")
-# 
-# 
-# def pricing(request):
-#     """SciTeX pricing page - subscription plans and feature comparison."""
-#     return render(request, "public_app/pages/pricing.html")
-# 
-# 
-# def keyboard_shortcuts(request):
-#     """Keyboard shortcuts reference page with tabs by context and search."""
-#     # Define shortcuts organized by context (mirrors shortcuts-modal.ts)
-#     contexts = [
-#         {
-#             "name": "Global",
-#             "slug": "global",
-#             "icon": "🌐",
-#             "description": "Navigation shortcuts available everywhere in SciTeX",
-#             "shortcuts": [
-#                 {"keys": "Alt + Z", "description": "Toggle Zen Mode"},
-#                 {"keys": "Alt + F", "description": "Go to Files"},
-#                 {"keys": "Alt + S", "description": "Go to Scholar"},
-#                 {"keys": "Alt + C", "description": "Go to Code"},
-#                 {"keys": "Alt + V", "description": "Go to Vis"},
-#                 {"keys": "Alt + W", "description": "Go to Writer"},
-#                 {"keys": "Alt + /", "description": "Show keyboard shortcuts help"},
-#                 {"keys": "F11", "description": "Cycle Zen/Fullscreen modes"},
-#                 {"keys": "Esc", "description": "Exit Zen/Fullscreen mode"},
-#                 {"keys": "/", "description": "Focus search (when not in input)"},
-#             ],
-#         },
-#         {
-#             "name": "Files",
-#             "slug": "files",
-#             "icon": "📁",
-#             "description": "File browser navigation and management",
-#             "shortcuts": [
-#                 {"keys": "Enter", "description": "Open selected file/folder"},
-#                 {"keys": "Backspace", "description": "Go to parent folder"},
-#                 {"keys": "Ctrl + N", "description": "New file"},
-#                 {"keys": "Ctrl + Shift + N", "description": "New folder"},
-#                 {"keys": "F2", "description": "Rename selected"},
-#                 {"keys": "Delete", "description": "Delete selected"},
-#             ],
-#         },
-#         {
-#             "name": "Scholar",
-#             "slug": "scholar",
-#             "icon": "🎓",
-#             "description": "Literature search and citation management",
-#             "shortcuts": [
-#                 {"keys": "Ctrl + F", "description": "Focus search"},
-#                 {"keys": "Enter", "description": "Search / Open selected"},
-#                 {"keys": "Ctrl + S", "description": "Save to library"},
-#                 {"keys": "Ctrl + C", "description": "Copy citation"},
-#             ],
-#         },
-#         {
-#             "name": "Code",
-#             "slug": "code",
-#             "icon": "💻",
-#             "description": "Code editor and terminal shortcuts",
-#             "shortcuts": [
-#                 {"keys": "Ctrl + S", "description": "Save current file"},
-#                 {"keys": "Ctrl + N", "description": "New file"},
-#                 {"keys": "Ctrl + Tab", "description": "Next file tab"},
-#                 {"keys": "Ctrl + Shift + Tab", "description": "Previous file tab"},
-#                 {"keys": "Ctrl + Shift + T", "description": "New terminal tab"},
-#                 {"keys": "Ctrl + `", "description": "Toggle terminal"},
-#                 {"keys": "Ctrl + B", "description": "Toggle sidebar"},
-#             ],
-#         },
-#         {
-#             "name": "Vis Editor",
-#             "slug": "vis",
-#             "icon": "📊",
-#             "description": "Visual figure editor and canvas manipulation",
-#             "shortcuts": [
-#                 {"keys": "Ctrl + S", "description": "Save figure"},
-#                 {"keys": "Ctrl + Z", "description": "Undo"},
-#                 {"keys": "Ctrl + Y", "description": "Redo"},
-#                 {"keys": "Ctrl + C", "description": "Copy selection"},
-#                 {"keys": "Ctrl + V", "description": "Paste"},
-#                 {"keys": "Delete", "description": "Delete selected"},
-#                 {"keys": "Ctrl + A", "description": "Select all"},
-#                 {"keys": "Ctrl + D", "description": "Duplicate selected"},
-#                 {"keys": "G", "description": "Toggle grid"},
-#                 {"keys": "Alt + A", "description": "Align mode (then L/R/T/B/C)"},
-#                 {"keys": "+ / -", "description": "Zoom in/out"},
-#                 {"keys": "0", "description": "Zoom to fit"},
-#                 {"keys": "Arrow keys", "description": "Nudge selected (Shift for larger)"},
-#             ],
-#         },
-#         {
-#             "name": "Writer",
-#             "slug": "writer",
-#             "icon": "✍️",
-#             "description": "Scientific document editor shortcuts",
-#             "shortcuts": [
-#                 {"keys": "Ctrl + S", "description": "Save document"},
-#                 {"keys": "Ctrl + B", "description": "Bold"},
-#                 {"keys": "Ctrl + I", "description": "Italic"},
-#                 {"keys": "Ctrl + K", "description": "Insert link"},
-#                 {"keys": "Ctrl + Shift + C", "description": "Insert citation"},
-#                 {"keys": "Ctrl + Shift + E", "description": "Insert equation"},
-#                 {"keys": "Ctrl + Shift + F", "description": "Insert figure"},
-#             ],
-#         },
-#     ]
-# 
-#     # Calculate total shortcuts
-#     total_shortcuts = sum(len(ctx["shortcuts"]) for ctx in contexts)
-# 
-#     context = {
-#         "contexts": contexts,
-#         "total_shortcuts": total_shortcuts,
-#     }
-# 
-#     return render(request, "public_app/pages/keyboard_shortcuts.html", context)
-# 
-# 
-# def contributors(request):
-#     """Contributors page - show SciTeX team and contributors."""
-#     from ..models import Contributor
-# 
-#     # Get core team members from database
-#     core_team_db = Contributor.objects.filter(is_core_team=True)
-# 
-#     # Get community contributors from database
-#     contributors_db = Contributor.objects.filter(is_core_team=False)
-# 
-#     # Convert to template-friendly format
-#     core_team = []
-#     for member in core_team_db:
-#         core_team.append(
-#             {
-#                 "name": member.name,
-#                 "username": member.github_username,
-#                 "role": member.get_role_display(),
-#                 "avatar_url": member.avatar_url,
-#                 "github_url": member.github_url,
-#                 "contributions": member.contributions_description
-#                 or f"{member.contributions} contributions",
-#             }
-#         )
-# 
-#     contributors = []
-#     for contributor in contributors_db:
-#         contributors.append(
-#             {
-#                 "name": contributor.name,
-#                 "username": contributor.github_username,
-#                 "role": (
-#                     contributor.get_role_display()
-#                     if contributor.role != "contributor"
-#                     else None
-#                 ),
-#                 "avatar_url": contributor.avatar_url,
-#                 "github_url": contributor.github_url,
-#                 "contributions": contributor.contributions_description
-#                 or f"{contributor.contributions} contributions",
-#             }
-#         )
-# 
-#     context = {
-#         "core_team": core_team,
-#         "contributors": contributors,
-#     }
-# 
-#     return render(request, "public_app/pages/contributors.html", context)
-# 
-# 
-# # EOF
-
-# --------------------------------------------------------------------------------
-# End of Source Code from: apps/public_app/views/pages.py
-# --------------------------------------------------------------------------------
+    pytest.main([os.path.abspath(__file__), "-v"])

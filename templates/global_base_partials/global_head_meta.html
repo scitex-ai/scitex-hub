@@ -48,21 +48,23 @@
     <meta name="user-registration-date" content="{{ user.date_joined|date:'c' }}" />
 {% endif %}
 <!-- Open Graph / Facebook -->
-<meta property="og:type" content="website" />
-<meta property="og:url" content="https://scitex.ai/" />
+<meta property="og:type" content="{% block og_type %}website{% endblock %}" />
+<meta property="og:url" content="{% block og_url %}https://scitex.ai/{% endblock %}" />
 <meta property="og:title" content="{% block og_title %}{{ OG_TITLE }}{% endblock %}" />
 <meta property="og:description"
       content="{% block og_description %}{{ OG_DESCRIPTION }}{% endblock %}" />
 <meta property="og:image"
       content="{% block og_image %}https://scitex.ai/static/shared/images/scitex-og-image.png{% endblock %}" />
 <!-- Twitter -->
-<meta property="twitter:card" content="summary_large_image" />
-<meta property="twitter:url" content="https://scitex.ai/" />
-<meta property="twitter:title"
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:site" content="@SciTeX_AI" />
+<meta name="twitter:url"
+      content="{% block twitter_url %}https://scitex.ai/{% endblock %}" />
+<meta name="twitter:title"
       content="{% block twitter_title %}{{ OG_TITLE }}{% endblock %}" />
-<meta property="twitter:description"
+<meta name="twitter:description"
       content="{% block twitter_description %}{{ OG_DESCRIPTION }}{% endblock %}" />
-<meta property="twitter:image"
+<meta name="twitter:image"
       content="{% block twitter_image %}https://scitex.ai/static/shared/images/scitex-og-image.png{% endblock %}" />
 <!-- Umami Analytics (privacy-focused, no cookies) -->
 {% if UMAMI_WEBSITE_ID %}
