@@ -96,6 +96,9 @@ def issues_list(request, username, slug):
     labels = project.issue_labels.all()
     milestones = project.issue_milestones.filter(state="open")
 
+    # Get issue templates for new issue dropdown
+    issue_templates = project.issue_templates.filter(is_active=True).order_by("order")
+
     # Count statistics
     open_count = project.issues.filter(state="open").count()
     closed_count = project.issues.filter(state="closed").count()
@@ -154,6 +157,7 @@ def issues_list(request, username, slug):
         },
         "branches": branches,
         "current_branch": current_branch,
+        "issue_templates": issue_templates,
     }
 
     return render(request, "project_app/issues/list.html", context)
