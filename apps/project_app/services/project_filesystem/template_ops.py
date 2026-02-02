@@ -5,13 +5,13 @@ Handles template cloning, copying, and customization for projects.
 Delegates README and config generation to readme_config_ops.
 """
 
+import logging
 import shutil
 from pathlib import Path
 from typing import Optional, Tuple
-import logging
 
-from .readme_config_ops import ReadmeConfigOperationsManager
 from ...models import Project
+from .readme_config_ops import ReadmeConfigOperationsManager
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +73,9 @@ class TemplateOperationsManager:
             if not project_path.parent.exists():
                 project_path.parent.mkdir(parents=True, exist_ok=True)
 
-            if template_type == "research":
+            if template_type == "minimal":
+                return self._copy_minimal_template(project_path, project)
+            elif template_type == "research":
                 return self._copy_research_template(project_path, project)
             else:
                 return self._copy_git_template(project_path, project, template_type)
@@ -90,11 +92,9 @@ class TemplateOperationsManager:
         """Copy research template from local master or GitHub."""
         from django.conf import settings
 
-        template_master = Path(getattr(
-            settings,
-            "VISITOR_TEMPLATE_PATH",
-            "/app/templates/research-master"
-        ))
+        template_master = Path(
+            getattr(settings, "VISITOR_TEMPLATE_PATH", "/app/templates/research-master")
+        )
 
         if not template_master.exists():
             logger.info(
@@ -102,11 +102,9 @@ class TemplateOperationsManager:
                 "falling back to git clone"
             )
             from scitex.template import clone_research as clone_template
+
             success = clone_template(
-                str(project_path),
-                git_strategy=None,
-                branch=None,
-                tag=None
+                str(project_path), git_strategy=None, branch=None, tag=None
             )
         else:
             logger.info(
@@ -121,6 +119,53 @@ class TemplateOperationsManager:
 
         return success
 
+    def _copy_minimal_template(self, project_path: Path, project: Project) -> bool:
+        """Copy minimal SciTeX template from local directory."""
+        template_master = Path("/app/templates/research-master-minimal")
+
+        if not template_master.exists():
+            logger.error(f"Minimal template not found at {template_master}")
+            return False
+
+        logger.info(
+            f"Copying minimal template from {template_master} to {project_path}"
+        )
+        shutil.copytree(template_master, project_path, symlinks=True)
+
+        self._customize_minimal_template(project_path, project)
+        logger.info(f"Successfully created minimal template at {project_path}")
+        return True
+
+    def _customize_minimal_template(self, project_path: Path, project: Project):
+        """Customize minimal template with project-specific information."""
+        try:
+            # Update title.tex
+            title_file = project_path / "scitex" / "writer" / "00_shared" / "title.tex"
+            if title_file.exists():
+                title_file.write_text(
+                    f"%% -*- coding: utf-8 -*-\n\\title{{{project.name}}}\n\n%%%% EOF\n"
+                )
+
+            # Update authors.tex if owner has name
+            if project.owner:
+                author_name = project.owner.get_full_name() or project.owner.username
+                author_file = (
+                    project_path / "scitex" / "writer" / "00_shared" / "authors.tex"
+                )
+                if author_file.exists():
+                    author_file.write_text(
+                        f"%% -*- coding: utf-8 -*-\n"
+                        f"\\author[1]{{{author_name}\\corref{{cor1}}}}\n\n"
+                        f"\\address[1]{{Institution, Department, City, Country}}\n\n"
+                        f"\\cortext[cor1]{{Corresponding author.}}\n\n"
+                        f"%%%% EOF\n"
+                    )
+
+            logger.info(f"Customized minimal template for project: {project.name}")
+
+        except Exception as e:
+            logger.error(f"Error customizing minimal template: {e}")
+
     def _copy_git_template(
         self, project_path: Path, project: Project, template_type: str
     ) -> bool:
@@ -130,20 +175,21 @@ class TemplateOperationsManager:
         elif template_type == "singularity":
             from scitex.template import clone_singularity as clone_template
         else:
-            logger.info(f"Unknown template type: {template_type}, defaulting to research")
+            logger.info(
+                f"Unknown template type: {template_type}, defaulting to research"
+            )
             from scitex.template import clone_research as clone_template
 
         logger.info(f"Cloning {template_type} template from GitHub to {project_path}")
         success = clone_template(
-            str(project_path),
-            git_strategy=None,
-            branch=None,
-            tag=None
+            str(project_path), git_strategy=None, branch=None, tag=None
         )
 
         if success:
             self._customize_template_for_project(project_path, project, template_type)
-            logger.info(f"Successfully created {template_type} template at {project_path}")
+            logger.info(
+                f"Successfully created {template_type} template at {project_path}"
+            )
 
         return success
 
@@ -219,5 +265,7 @@ class TemplateOperationsManager:
                 return False, None
 
         except Exception as e:
-            logger.error(f"Error initializing SciTeX Writer template: {e}", exc_info=True)
+            logger.error(
+                f"Error initializing SciTeX Writer template: {e}", exc_info=True
+            )
             return False, None
