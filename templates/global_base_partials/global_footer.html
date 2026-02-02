@@ -18,6 +18,9 @@
                        title="LinkedIn (Founder)"><i class="fab fa-linkedin-in"></i></a>
                     <a href="https://www.youtube.com/@SciTeX-Official" title="YouTube"><i class="fab fa-youtube"></i></a>
                 </div>
+                <p class="footer-contact">
+                    <a href="mailto:support@scitex.ai"><i class="fas fa-envelope"></i> support@scitex.ai</a>
+                </p>
                 <p class="footer-copyright">
                     &copy; 2025–2026 SciTeX. All rights reserved. <span class="footer-version">v{{ SCITEX_CLOUD_VERSION }}</span>
                 </p>
@@ -33,13 +36,7 @@
                         <a href="{% url 'public_app:contributors' %}">Contributors</a>
                     </li>
                     <li>
-                        <a href="{% url 'public_app:releases' %}">Releases</a>
-                    </li>
-                    <li>
-                        <a href="{% url 'public_app:pricing' %}">Pricing</a>
-                    </li>
-                    <li>
-                        <a href="/scitex-ai/scitex-cloud/issues">Issues (Bug / Feature)</a>
+                        <a href="{% url 'public_app:publications' %}">Publications</a>
                     </li>
                 </ul>
             </div>
@@ -49,6 +46,9 @@
                 <ul class="footer-links">
                     <li>
                         <a href="{% url 'public_app:api-docs' %}">API Docs</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'public_app:releases' %}">Releases</a>
                     </li>
                     <li>
                         <a href="{% url 'dev_app:design' %}">Design System</a>
@@ -78,12 +78,36 @@
                 <h3>Support</h3>
                 <ul class="footer-links">
                     <li>
-                        <a href="mailto:support@scitex.ai">support@scitex.ai</a>
+                        <a href="{% url 'public_app:pricing' %}">Premium</a>
+                    </li>
+                    <li>
+                        <a href="/scitex-ai/scitex-cloud/issues">Bug Reports & Feature Requests</a>
                     </li>
                 </ul>
             </div>
         </div>
     </div>
+    <!-- Dev-only buttons (hidden in production) -->
+    {% if DEBUG %}
+        <div class="footer-dev-tools">
+            <span class="dev-tools-label">Dev Tools:</span>
+            <button id="page-refresh-btn" class="dev-tool-btn" title="Refresh page (Ctrl+Shift+R)">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+            <button id="clear-localstorage-btn"
+                    class="dev-tool-btn"
+                    title="Clear localStorage cache"
+                    onclick="if(confirm('Clear all localStorage? This will reset theme preferences and cached data.')) { localStorage.clear(); location.reload(); }">
+                <i class="fas fa-eraser"></i> Clear Cache
+            </button>
+            <button id="init-visitor-pool-btn"
+                    class="dev-tool-btn"
+                    title="Initialize Visitor Pool (Dev)"
+                    onclick="initVisitorPool()">
+                <i class="fas fa-users-cog"></i> Init Visitors
+            </button>
+        </div>
+    {% endif %}
 </footer>
 <style>
     .footer-5-columns {
@@ -117,6 +141,25 @@
         font-size: 0.875rem;
         color: var(--text-secondary);
         margin: 0;
+    }
+
+    .footer-contact {
+        font-size: 0.85rem;
+        margin: 0;
+    }
+
+    .footer-contact a {
+        color: var(--text-secondary);
+        text-decoration: none;
+    }
+
+    .footer-contact a:hover {
+        color: var(--color-accent-fg);
+    }
+
+    .footer-contact i {
+        margin-right: 6px;
+        opacity: 0.7;
     }
 
     .footer-copyright {
@@ -155,5 +198,50 @@
         .footer-social {
             justify-content: center;
         }
+    }
+
+    /* Dev Tools Bar */
+    .footer-dev-tools {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 6px 16px;
+        background: transparent;
+        border-top: 1px solid var(--border-muted, rgba(128, 128, 128, 0.2));
+        font-size: 0.75rem;
+        opacity: 0.6;
+    }
+
+    .footer-dev-tools:hover {
+        opacity: 1;
+    }
+
+    .dev-tools-label {
+        font-weight: 500;
+        color: var(--text-muted, #888);
+    }
+
+    .dev-tool-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 8px;
+        border: 1px solid var(--border-muted, rgba(128, 128, 128, 0.3));
+        border-radius: 3px;
+        background: transparent;
+        color: var(--text-muted, #888);
+        font-size: 0.7rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+
+    .dev-tool-btn:hover {
+        background: var(--bg-secondary, rgba(128, 128, 128, 0.1));
+        color: var(--text-primary, #333);
+    }
+
+    .dev-tool-btn i {
+        font-size: 0.65rem;
     }
 </style>

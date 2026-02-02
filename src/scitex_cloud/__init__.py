@@ -10,7 +10,7 @@ Usage:
     scitex-cloud --help
 """
 
-__version__ = "0.6.10-alpha"
+__version__ = "0.6.11-alpha"
 __author__ = "SciTeX Team"
 
 from .config.environments import Environment, get_environment

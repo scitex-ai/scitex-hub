@@ -7,38 +7,40 @@ Handle project creation with various initialization options.
 """
 
 from __future__ import annotations
-import logging
-from pathlib import Path
 
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
+import logging
+
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect, render
 from django.utils.safestring import mark_safe
-from django.conf import settings
 
 from ...models import Project, RemoteCredential
-from .create_remote import create_remote_project
+from .create_handlers import (
+    handle_empty_creation,
+    handle_git_clone,
+    handle_gitea_creation,
+    handle_github_import,
+    handle_scitex_initialization,
+    handle_template_creation,
+)
 from .create_helpers import (
+    generate_unique_slug,
     get_available_templates,
     validate_project_name,
     verify_gitea_availability,
-    generate_unique_slug,
 )
-from .create_handlers import (
-    handle_gitea_creation,
-    handle_github_import,
-    handle_template_creation,
-    handle_git_clone,
-    handle_empty_creation,
-    handle_scitex_initialization,
-)
+from .create_remote import create_remote_project
 
 logger = logging.getLogger(__name__)
 
 
 @login_required
 def project_create(request):
-    """Create new project"""
+    """Create new project with GitLab-style landing page"""
+    # Get creation type from query param for GET requests
+    create_type = request.GET.get("type", None)
+
     if request.method == "POST":
         name = request.POST.get("name", "").strip()
         description = request.POST.get("description", "").strip()
@@ -71,33 +73,54 @@ def project_create(request):
         if not name and git_url and init_type in ["github", "git"]:
             name = Project.extract_repo_name_from_url(git_url)
 
+        # Determine which template to use for error display
+        error_template_map = {
+            "gitea": "project_app/projects/create_blank.html",
+            "template": "project_app/projects/create_template.html",
+            "github": "project_app/projects/create_import.html",
+            "git": "project_app/projects/create_import.html",
+        }
+        error_template = error_template_map.get(
+            init_type, "project_app/projects/create_blank.html"
+        )
+
         # Validate project name
         is_valid, error_msg = validate_project_name(request, name)
         if not is_valid:
             messages.error(request, error_msg)
             available_templates = get_available_templates()
+            remote_credentials = RemoteCredential.objects.filter(
+                user=request.user, is_active=True
+            ).order_by("name")
             context = {
                 "available_templates": available_templates,
+                "remote_credentials": remote_credentials,
                 "name": name,
                 "description": description,
                 "init_type": init_type,
                 "git_url": git_url,
             }
-            return render(request, "project_app/projects/create.html", context)
+            return render(request, error_template, context)
 
         # Generate slug and verify Gitea availability
         unique_slug = generate_unique_slug(name, request.user)
-        is_available, gitea_msg = verify_gitea_availability(request, request.user, unique_slug)
+        is_available, gitea_msg = verify_gitea_availability(
+            request, request.user, unique_slug
+        )
         if not is_available:
             messages.error(request, mark_safe(gitea_msg))
             available_templates = get_available_templates()
+            remote_credentials = RemoteCredential.objects.filter(
+                user=request.user, is_active=True
+            ).order_by("name")
             context = {
                 "available_templates": available_templates,
+                "remote_credentials": remote_credentials,
                 "name": name,
                 "description": description,
                 "init_type": init_type,
             }
-            return render(request, "project_app/projects/create.html", context)
+            return render(request, error_template, context)
         elif gitea_msg:  # Warning case
             messages.warning(request, gitea_msg)
 
@@ -140,7 +163,7 @@ def project_create(request):
             slug=project.slug,
         )
 
-    # GET request - get available templates and remote credentials
+    # GET request - route to appropriate template based on type param
     available_templates = get_available_templates()
     remote_credentials = RemoteCredential.objects.filter(
         user=request.user, is_active=True
@@ -150,7 +173,17 @@ def project_create(request):
         "available_templates": available_templates,
         "remote_credentials": remote_credentials,
     }
-    return render(request, "project_app/projects/create.html", context)
+
+    # Route to specific form template based on type parameter
+    template_map = {
+        "blank": "project_app/projects/create_blank.html",
+        "template": "project_app/projects/create_template.html",
+        "import": "project_app/projects/create_import.html",
+        "remote": "project_app/projects/create_remote.html",
+    }
+
+    template_name = template_map.get(create_type, "project_app/projects/create.html")
+    return render(request, template_name, context)
 
 
 # EOF

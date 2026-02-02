@@ -2,536 +2,222 @@
 
 {% load static %}
 
-{% block title %}Published Papers Using SciTeX - Scientific Research Platform{% endblock %}
-{% block meta_description %}
-    Explore scientific papers and research published using the SciTeX platform. See how researchers around the world are accelerating their scientific discoveries with our tools.
-{% endblock %}
+{% block title %}Publications Using SciTeX{% endblock %}
+{% block meta_description %}Research papers published using SciTeX tools.{% endblock %}
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'shared/css/components/hero.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/about/00-about.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/about/02-context.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'public_app/css/about/07-section-styling.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/demos/00-demos.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/about/16-responsive.css' %}" />
     <style>
-        .papers-header {
-            background-color: #eef2ff;
-            padding: 3rem 0;
-            margin-bottom: 3rem;
-            border-radius: 0 0 8px 8px;
-        }
-
         .paper-card {
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-            margin-bottom: 2rem;
-            padding: 1.5rem;
-            transition: transform 0.3s ease;
-        }
-
-        .paper-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+            background: var(--color-canvas-subtle);
+            border: 1px solid var(--color-border-default);
+            border-radius: 6px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
         }
 
         .paper-title {
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
             font-weight: 600;
+            color: var(--color-fg-default);
+            margin-bottom: 0.5rem;
         }
 
         .paper-authors {
-            color: #666;
             font-size: 0.9rem;
-            margin-bottom: 0.5rem;
+            color: var(--color-fg-muted);
+            margin-bottom: 0.25rem;
         }
 
         .paper-journal {
-            font-style: italic;
-            color: #4a6baf;
-            margin-bottom: 1rem;
             font-size: 0.9rem;
+            font-style: italic;
+            color: var(--color-accent-fg);
+            margin-bottom: 0.75rem;
         }
 
         .paper-abstract {
+            font-size: 0.9rem;
+            color: var(--color-fg-muted);
             margin-bottom: 1rem;
-            color: #333;
-        }
-
-        .paper-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            color: #666;
-            font-size: 0.85rem;
-        }
-
-        .paper-meta span {
-            display: flex;
-            align-items: center;
-        }
-
-        .paper-meta i {
-            margin-right: 0.25rem;
-        }
-
-        .paper-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .paper-tag {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 30px;
-            font-size: 0.75rem;
-            background-color: #e9ecef;
-            color: #495057;
-        }
-
-        .paper-tag.field {
-            background-color: #e3f2fd;
-            color: #0d47a1;
-        }
-
-        .paper-tag.component {
-            background-color: #e8f5e9;
-            color: #1b5e20;
+            line-height: 1.5;
         }
 
         .paper-actions {
             display: flex;
-            gap: 1rem;
+            flex-wrap: wrap;
+            gap: 0.75rem;
         }
 
-        .featured-badge {
-            display: inline-block;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            background-color: #4a6baf;
-            color: white;
-            font-size: 0.75rem;
-            margin-left: 0.5rem;
-            vertical-align: middle;
+        .paper-actions a {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+            border: 1px solid var(--color-border-default);
+            border-radius: 6px;
+            color: var(--color-fg-default);
+            text-decoration: none;
+            transition: all 0.15s ease;
         }
 
-        .publish-cta {
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            padding: 2rem;
+        .paper-actions a:hover {
+            border-color: var(--color-accent-fg);
+            color: var(--color-accent-fg);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
             text-align: center;
-            margin-top: 3rem;
-            margin-bottom: 2rem;
+            margin: 2rem 0;
         }
 
-        .filters {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin-bottom: 2rem;
+        .stats-grid .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-accent-fg);
         }
 
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .filter-label {
-            font-weight: 600;
+        .stats-grid .stat-label {
             font-size: 0.9rem;
-            color: #495057;
+            color: var(--color-fg-muted);
         }
 
-        .filter-options {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
+        .submit-form {
+            max-width: 500px;
         }
 
-        .filter-option {
-            padding: 0.25rem 0.75rem;
-            border-radius: 30px;
-            font-size: 0.8rem;
-            background-color: #e9ecef;
-            color: #495057;
-            cursor: pointer;
+        .form-group {
+            margin-bottom: 1rem;
         }
 
-        .filter-option.active {
-            background-color: #4a6baf;
-            color: white;
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--color-fg-default);
+            margin-bottom: 0.4rem;
         }
 
-        .search-box {
-            margin-bottom: 2rem;
-        }
-
-        .search-box input {
+        .form-group input {
             width: 100%;
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            border: 1px solid #ced4da;
+            padding: 0.6rem 0.8rem;
+            font-size: 0.9rem;
+            border: 1px solid var(--color-border-default);
+            border-radius: 6px;
+            background: var(--color-canvas-default);
+            color: var(--color-fg-default);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--color-accent-fg);
+            box-shadow: 0 0 0 2px var(--color-accent-subtle);
+        }
+
+        .submit-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: white;
+            background: var(--scitex-color-03, #506b7a);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .submit-btn:hover {
+            background: var(--scitex-color-02, #3d5a6a);
         }
 
         @media (max-width: 768px) {
-            .paper-actions {
-                flex-direction: column;
-            }
-
-            .filters {
-                flex-direction: column;
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
     </style>
 {% endblock %}
 {% block content %}
-    <!-- Hero Section -->
-    <section class="hero-section hero-silverish-ai-light">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-8 text-center">
-                    <h1 class="hero-title">SciTeX Publications</h1>
-                    <p class="hero-subtitle">Discover how researchers worldwide are using SciTeX to advance science</p>
-                </div>
-            </div>
-        </div>
-    </section>
-    <div class="container">
-        <div class="search-box">
-            <input type="text"
-                   placeholder="Search papers by title, author, journal, or keywords..." />
-        </div>
-        <div class="filters">
-            <div class="filter-group">
-                <span class="filter-label">Field:</span>
-                <div class="filter-options">
-                    <span class="filter-option active">All</span>
-                    <span class="filter-option">Physics</span>
-                    <span class="filter-option">Biology</span>
-                    <span class="filter-option">Chemistry</span>
-                    <span class="filter-option">Computer Science</span>
-                    <span class="filter-option">Medicine</span>
-                </div>
-            </div>
-            <div class="filter-group">
-                <span class="filter-label">Year:</span>
-                <div class="filter-options">
-                    <span class="filter-option active">All</span>
-                    <span class="filter-option">2025</span>
-                    <span class="filter-option">2024</span>
-                    <span class="filter-option">2023</span>
-                </div>
-            </div>
-            <div class="filter-group">
-                <span class="filter-label">SciTeX Component:</span>
-                <div class="filter-options">
-                    <span class="filter-option active">All</span>
-                    <span class="filter-option">Cloud</span>
-                    <span class="filter-option">Code</span>
-                    <span class="filter-option">Doc</span>
-                    <span class="filter-option">Engine</span>
-                    <span class="filter-option">Viz</span>
-                </div>
-            </div>
-        </div>
-        <div class="papers-list">
-            <div class="paper-card">
-                <h3 class="paper-title">
-                    gPAC: GPU-Accelerated Phase-Amplitude Coupling Analysis for Large-Scale
-                    Neural Data <span class="featured-badge">Featured</span>
-                </h3>
-                <p class="paper-authors">
-                    Yusuke Watanabe<sup>1,2</sup>, Takufumi Yanagisawa<sup>1,3</sup>
-                </p>
-                <p class="paper-journal">Journal of Neural Engineering (in submission), 2024</p>
-                <div class="paper-tags">
-                    <span class="paper-tag field">Neuroscience</span>
-                    <span class="paper-tag field">Computational Biology</span>
-                    <span class="paper-tag component">SciTeX-Engine</span>
-                    <span class="paper-tag component">SciTeX-Code</span>
-                    <span class="paper-tag component">SciTeX-Viz</span>
-                    <span class="paper-tag component">SciTeX-Writer</span>
-                </div>
-                <p class="paper-abstract">
-                    We present gPAC, a GPU-accelerated framework for phase-amplitude
-                    coupling analysis in large-scale neural data. This work demonstrates the
-                    complete SciTeX ecosystem: data analysis with SciTeX-Engine, code
-                    management with SciTeX-Code, visualization generation with SciTeX-Viz,
-                    and manuscript preparation with SciTeX-Writer. The integration enabled
-                    efficient processing of high-density electrocorticography data and
-                    streamlined the publication workflow.
-                </p>
-                <div class="paper-meta">
-                    <span><i class="fas fa-calendar"></i> Submitted: November 2024</span>
-                    <span><i class="fas fa-university"></i> Osaka University & University of
-                    Melbourne</span>
-                    <span><i class="fas fa-eye"></i> Views: 1,247</span>
-                </div>
-                <div class="paper-actions">
-                    <a href="https://github.com/ywatanabe1989/gpac"
-                       class="btn btn-sm btn-outline-primary"
-                       target="_blank"><i class="fab fa-github"></i> gPAC Source Code</a>
-                    <a href="#" class="btn btn-sm btn-outline-secondary"><i class="fas fa-file-pdf"></i> Preprint (Coming Soon)</a>
-                </div>
-            </div>
-            <div class="paper-card">
-                <h3 class="paper-title">
-                    A deep learning model for the detection of various dementia and MCI
-                    pathologies based on resting-state electroencephalography data: A
-                    retrospective multicentre study
-                </h3>
-                <p class="paper-authors">
-                    Yusuke Watanabe, Y. Miyazaki, M. Hata, R. Fukuma, Y. Aoki, H. Kazui, T.
-                    Araki, D. Taomoto, Y. Satake, T. Suehiro, S. Sato, H. Kanemoto, K.
-                    Yoshiyama, R. Ishii, T. Harada, H. Kishima, M. Ikeda, T. Yanagisawa
-                </p>
-                <p class="paper-journal">Neural Networks, 2024; 171: 242-250</p>
-                <div class="paper-tags">
-                    <span class="paper-tag field">Machine Learning</span>
-                    <span class="paper-tag field">Neuroscience</span>
-                    <span class="paper-tag field">Clinical Research</span>
-                    <span class="paper-tag component">SciTeX-Code</span>
-                    <span class="paper-tag component">SciTeX-Viz</span>
-                </div>
-                <p class="paper-abstract">
-                    Dementia and mild cognitive impairment (MCI) represent significant
-                    health challenges in an aging population. This study evaluates the
-                    generalizability of a deep convolutional neural network (DCNN) trained
-                    on EEG data from a single hospital. The DCNN achieved balanced
-                    accuracies of 0.927, 0.805, and 0.920 across three hospitals in
-                    classifying individuals as healthy or as having AD, DLB, or iNPH. The
-                    model could also differentiate between dementia types and identify MCI
-                    pathologies with balanced accuracy of 0.715, suggesting shared EEG
-                    signatures between MCI and dementia. The research pipeline was
-                    implemented using SciTeX-Code for machine learning development and
-                    SciTeX-Viz for publication-ready visualizations.
-                </p>
-                <div class="paper-meta">
-                    <span><i class="fas fa-calendar"></i> Published: 2024</span>
-                    <span><i class="fas fa-university"></i> Multiple institutions including
-                    Osaka University</span>
-                    <span><i class="fas fa-quote-right"></i> DOI:
-                        <a href="https://doi.org/10.1016/j.neunet.2023.12.009" target="_blank">10.1016/j.neunet.2023.12.009</a></span>
-                </div>
-                <div class="paper-actions">
-                    <a href="https://doi.org/10.1016/j.neunet.2023.12.009"
-                       class="btn btn-sm btn-outline-primary"
-                       target="_blank"><i class="fas fa-external-link-alt"></i> View Paper</a>
-                    <a href="https://github.com/yanagisawa-lab/eeg-dementia-classification"
-                       class="btn btn-sm btn-outline-secondary"
-                       target="_blank"><i class="fab fa-github"></i> Analysis Code</a>
-                </div>
-            </div>
-            <div class="paper-card">
-                <h3 class="paper-title">Towards threshold invariance in defining hippocampal ripples</h3>
-                <p class="paper-authors">Yusuke Watanabe, M. Okada, Y. Ikegaya</p>
-                <p class="paper-journal">Journal of Neural Engineering, 2021; 18(6): 066012</p>
-                <div class="paper-tags">
-                    <span class="paper-tag field">Neuroscience</span>
-                    <span class="paper-tag field">Signal Processing</span>
-                    <span class="paper-tag field">Methodology</span>
-                    <span class="paper-tag component">SciTeX-Code</span>
-                    <span class="paper-tag component">SciTeX-Viz</span>
-                </div>
-                <p class="paper-abstract">
-                    This methodological study addresses the challenge of threshold-dependent
-                    detection of hippocampal ripples in neural recordings. The research
-                    employed SciTeX-Code for implementing novel detection algorithms and
-                    statistical analysis, along with SciTeX-Viz for generating
-                    publication-quality figures showing ripple detection accuracy across
-                    different threshold parameters.
-                </p>
-                <div class="paper-meta">
-                    <span><i class="fas fa-calendar"></i> Published: 2021</span>
-                    <span><i class="fas fa-university"></i> University of Tokyo</span>
-                    <span><i class="fas fa-quote-right"></i> DOI:
-                        <a href="https://doi.org/10.1088/1741-2552/ac3266" target="_blank">10.1088/1741-2552/ac3266</a></span>
-                </div>
-                <div class="paper-actions">
-                    <a href="https://doi.org/10.1088/1741-2552/ac3266"
-                       class="btn btn-sm btn-outline-primary"
-                       target="_blank"><i class="fas fa-external-link-alt"></i> View Paper</a>
-                    <a href="https://github.com/ywatanabe1989/towards-threshold-invariance-in-defining-hippocampal-ripples"
-                       class="btn btn-sm btn-outline-secondary"
-                       target="_blank"><i class="fab fa-github"></i> Analysis Code</a>
-                </div>
-            </div>
-            <div class="paper-card">
-                <h3 class="paper-title">
-                    Hippocampal Neural Fluctuations Between Memory Encoding and Retrieval
-                    States During a Working Memory Task in Humans
-                </h3>
-                <p class="paper-authors">
-                    Yusuke Watanabe<sup>a,*</sup>, Yuji Ikegaya<sup>b,c,d</sup>, Takufumi
-                    Yanagisawa<sup>a,e</sup>
-                </p>
-                <p class="paper-journal">bioRxiv (preprint), 2024</p>
-                <div class="paper-tags">
-                    <span class="paper-tag field">Neuroscience</span>
-                    <span class="paper-tag field">Memory Research</span>
-                    <span class="paper-tag field">Cognitive Science</span>
-                    <span class="paper-tag component">SciTeX-Code</span>
-                    <span class="paper-tag component">SciTeX-Viz</span>
-                    <span class="paper-tag component">SciTeX-Writer</span>
-                </div>
-                <p class="paper-abstract">
-                    We investigated hippocampal neural dynamics during working memory tasks
-                    in humans using intracranial recordings. This study utilized SciTeX-Code
-                    for data analysis pipelines, SciTeX-Viz for neural signal visualization
-                    and publication-ready figures, and SciTeX-Writer for manuscript
-                    preparation. The research demonstrates distinct neural fluctuation
-                    patterns between memory encoding and retrieval states in the human
-                    hippocampus.
-                </p>
-                <div class="paper-meta">
-                    <span><i class="fas fa-calendar"></i> Submitted: 2024</span>
-                    <span><i class="fas fa-university"></i> Osaka University, University of
-                    Tokyo, NICT</span>
-                    <span><i class="fas fa-eye"></i> Views: 892</span>
-                </div>
-                <div class="paper-actions">
-                    <a href="#" class="btn btn-sm btn-outline-primary"><i class="fas fa-external-link-alt"></i> View bioRxiv Preprint</a>
-                    <a href="https://github.com/ywatanabe1989/ripple-wm-code"
-                       class="btn btn-sm btn-outline-secondary"
-                       target="_blank"><i class="fab fa-github"></i> Analysis Code</a>
-                </div>
-            </div>
-        </div>
-        <div class="publish-cta">
-            <h2>Published Using SciTeX?</h2>
-            <p class="lead">Help us showcase your research and inspire other scientists</p>
-            <p>
-                If you've published a paper where SciTeX tools were part of your workflow,
-                we'd love to feature your work.
-            </p>
-            <a href="{% url 'public_app:contact' %}" class="btn btn-primary">Submit Your Publication</a>
-        </div>
-        <!-- Open Source Code Repository Section -->
-        <div class="publication-stats">
-            <h3 class="text-center mb-4">Open Source Research Code</h3>
-            <p class="text-center text-muted mb-4">Reproducible research code developed with SciTeX platform</p>
-            <div class="row">
-                <div class="col-md-6 mb-4">
-                    <div class="paper-card">
-                        <h5>
-                            <i class="fab fa-github me-2"></i> Dementia Classification
-                        </h5>
-                        <p class="text-muted mb-3">Dementia subtype classification based on EEG data</p>
-                        <a href="https://github.com/yanagisawa-lab/eeg-dementia-classification"
-                           class="btn btn-sm btn-outline-primary"
-                           target="_blank">
-                            <i class="fab fa-github"></i> eeg-dementia-classification
-                        </a>
+    <div class="about-container">
+        <header class="demos-hero">
+            <h1 class="demos-hero-title">Publications Using SciTeX</h1>
+        </header>
+        <article class="about-narrative">
+            <section class="about-section">
+                <h2>Impact</h2>
+                <div class="stats-grid">
+                    <div>
+                        <div class="stat-value">{{ stats.publication_count }}</div>
+                        <div class="stat-label">Publication Count</div>
+                    </div>
+                    <div>
+                        <div class="stat-value">{{ stats.institutions }}</div>
+                        <div class="stat-label">Institutions</div>
+                    </div>
+                    <div>
+                        <div class="stat-value">{{ stats.countries }}</div>
+                        <div class="stat-label">Countries</div>
                     </div>
                 </div>
-                <div class="col-md-6 mb-4">
+            </section>
+            <section class="about-section">
+                <h2>Published Works</h2>
+                {% for paper in papers %}
                     <div class="paper-card">
-                        <h5>
-                            <i class="fab fa-github me-2"></i> Hippocampal Ripples
-                        </h5>
-                        <p class="text-muted mb-3">Hippocampal sharp-wave ripples detection using CNN</p>
-                        <a href="https://github.com/ywatanabe1989/ripple_detector_CNN"
-                           class="btn btn-sm btn-outline-primary me-2"
-                           target="_blank">
-                            <i class="fab fa-github"></i> ripple_detector_CNN
-                        </a>
-                        <a href="https://github.com/ywatanabe1989/towards-threshold-invariance-in-defining-hippocampal-ripples"
-                           class="btn btn-sm btn-outline-secondary"
-                           target="_blank">
-                            <i class="fab fa-github"></i> threshold-invariance
-                        </a>
+                        <h3 class="paper-title">{{ paper.title }}</h3>
+                        <p class="paper-authors">{{ paper.authors }}</p>
+                        <p class="paper-journal">{{ paper.journal }}</p>
+                        <p class="paper-abstract">{{ paper.abstract }}</p>
+                        <div class="paper-actions">
+                            {% if paper.paper_url %}
+                                <a href="{{ paper.paper_url }}" target="_blank">
+                                    <i class="fas fa-external-link-alt"></i> Paper
+                                </a>
+                            {% endif %}
+                            {% if paper.code_url %}
+                                <a href="{{ paper.code_url }}" target="_blank">
+                                    <i class="fab fa-github"></i> Code
+                                </a>
+                            {% endif %}
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-6 mb-4">
-                    <div class="paper-card">
-                        <h5>
-                            <i class="fab fa-github me-2"></i> Working Memory
-                        </h5>
-                        <p class="text-muted mb-3">Hippocampal sharp-wave ripples during working memory tasks in humans</p>
-                        <a href="https://github.com/ywatanabe1989/ripple-wm-code"
-                           class="btn btn-sm btn-outline-primary"
-                           target="_blank">
-                            <i class="fab fa-github"></i> ripple-wm-code
-                        </a>
+                {% empty %}
+                    <p>No publications yet.</p>
+                {% endfor %}
+            </section>
+            <section class="about-section">
+                <h2>Submit Your Work</h2>
+                <p style="margin-bottom: 1.5rem;">Published research using SciTeX? We'd love to feature it.</p>
+                <form action="mailto:support@scitex.ai"
+                      method="GET"
+                      enctype="text/plain"
+                      class="submit-form">
+                    <div class="form-group">
+                        <label for="user-email">Email</label>
+                        <input type="email" id="user-email" name="from" placeholder="your@email.com" required />
                     </div>
-                </div>
-                <div class="col-md-6 mb-4">
-                    <div class="paper-card">
-                        <h5>
-                            <i class="fab fa-github me-2"></i> Signal Processing
-                        </h5>
-                        <p class="text-muted mb-3">GPU-accelerated phase-amplitude coupling calculation</p>
-                        <a href="https://github.com/ywatanabe1989/gpac"
-                           class="btn btn-sm btn-outline-primary"
-                           target="_blank">
-                            <i class="fab fa-github"></i> gpac
-                        </a>
+                    <div class="form-group">
+                        <label for="paper-doi">DOI or Link</label>
+                        <input type="text"
+                               id="paper-doi"
+                               name="subject"
+                               placeholder="https://doi.org/... or paper URL"
+                               required />
                     </div>
-                </div>
-            </div>
-        </div>
-        <div class="publication-stats">
-            <h3 class="text-center mb-4">SciTeX in Research</h3>
-            <div class="row text-center">
-                <div class="col-md-3 mb-4">
-                    <div class="h2 text-primary">4</div>
-                    <div>Research Publications</div>
-                </div>
-                <div class="col-md-3 mb-4">
-                    <div class="h2 text-primary">6+</div>
-                    <div>Research Institutions</div>
-                </div>
-                <div class="col-md-3 mb-4">
-                    <div class="h2 text-primary">2</div>
-                    <div>Countries (Japan, Australia)</div>
-                </div>
-                <div class="col-md-3 mb-4">
-                    <div class="h2 text-primary">5+</div>
-                    <div>Open Source Repositories</div>
-                </div>
-            </div>
-        </div>
+                    <button type="submit" class="submit-btn">Submit</button>
+                </form>
+            </section>
+        </article>
     </div>
-{% endblock %}
-{% block extra_js %}
-    <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    // Filter functionality
-    const filterOptions = document.querySelectorAll(".filter-option");
-
-    filterOptions.forEach((option) => {
-      option.addEventListener("click", function () {
-        // Deactivate siblings
-        const siblings = this.parentElement.querySelectorAll(".filter-option");
-        siblings.forEach((sib) => sib.classList.remove("active"));
-
-        // Activate clicked option
-        this.classList.add("active");
-
-        // In a real implementation, we would filter the papers here
-        // For now, we'll just log the selected filters
-        const selectedFilters = {};
-        document.querySelectorAll(".filter-group").forEach((group) => {
-          const label = group
-            .querySelector(".filter-label")
-            .textContent.trim()
-            .slice(0, -1);
-          const activeOption = group.querySelector(
-            ".filter-option.active",
-          ).textContent;
-          selectedFilters[label] = activeOption;
-        });
-
-        console.log("Filtering by:", selectedFilters);
-      });
-    });
-
-    // Search functionality
-    const searchInput = document.querySelector(".search-box input");
-    searchInput.addEventListener("input", function () {
-      // In a real implementation, we would search the papers here
-      console.log("Searching for:", this.value);
-    });
-  });
-    </script>
 {% endblock %}

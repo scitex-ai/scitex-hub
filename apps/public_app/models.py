@@ -1,15 +1,16 @@
-from django.db import models
-from django.contrib.auth.models import User
-from django.utils import timezone
 import uuid
 
-# Donation models moved to apps.donations_app.models
-# Import here for backwards compatibility
-from apps.donations_app.models import Donation, DonationTier  # noqa
+from django.contrib.auth.models import User
+from django.db import models
+from django.utils import timezone
 
 # EmailVerification model moved to apps.auth_app.models
 # Import here for backwards compatibility
 from apps.auth_app.models import EmailVerification  # noqa
+
+# Donation models moved to apps.donations_app.models
+# Import here for backwards compatibility
+from apps.donations_app.models import Donation, DonationTier  # noqa
 
 # EmailVerification, Donation and DonationTier model definitions moved to their respective apps
 # Import statements at top of file provide backwards compatibility
@@ -279,6 +280,71 @@ class Contributor(models.Model):
         return f"{self.github_username} ({self.role})"
 
 
+class Publication(models.Model):
+    """Model for publications using SciTeX."""
+
+    STATUS_CHOICES = [
+        ("published", "Published"),
+        ("preprint", "Preprint"),
+        ("in_preparation", "In Preparation"),
+    ]
+
+    # Identifiers
+    doi = models.CharField(max_length=255, unique=True, blank=True, null=True)
+
+    # Metadata
+    title = models.CharField(max_length=500)
+    authors = models.TextField(help_text="Comma-separated author names")
+    journal = models.CharField(max_length=255, blank=True)
+    year = models.IntegerField(null=True, blank=True)
+    volume = models.CharField(max_length=50, blank=True)
+    page = models.CharField(max_length=50, blank=True)
+    abstract = models.TextField(blank=True)
+
+    # URLs
+    paper_url = models.URLField(blank=True, null=True)
+    code_url = models.URLField(blank=True, null=True)
+
+    # Status and display
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default="published"
+    )
+    is_featured = models.BooleanField(default=False)
+    display_order = models.IntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["display_order", "-year", "title"]
+        verbose_name = "Publication"
+        verbose_name_plural = "Publications"
+
+    def __str__(self):
+        return f"{self.title[:50]}... ({self.year or 'N/A'})"
+
+    @property
+    def journal_citation(self):
+        """Build journal citation string."""
+        parts = [self.journal] if self.journal else []
+        if self.year:
+            parts.append(str(self.year))
+        if self.volume:
+            parts.append(f"; {self.volume}")
+        if self.page:
+            parts.append(f": {self.page}")
+        return ", ".join(parts[:2]) + "".join(parts[2:]) if parts else ""
+
+    @property
+    def abstract_display(self):
+        """Return abstract or fallback message."""
+        if self.abstract:
+            return self.abstract
+        return "Abstract not available in our database. Please see journal site."
+
+
 class ServerMetrics(models.Model):
     """Model for storing server performance metrics over time for analysis."""
 
@@ -287,8 +353,12 @@ class ServerMetrics(models.Model):
 
     # CPU metrics
     cpu_percent = models.FloatField(help_text="CPU usage percentage (0-100)")
-    cpu_cores = models.IntegerField(null=True, blank=True, help_text="Number of physical CPU cores")
-    cpu_cores_logical = models.IntegerField(null=True, blank=True, help_text="Number of logical CPU cores")
+    cpu_cores = models.IntegerField(
+        null=True, blank=True, help_text="Number of physical CPU cores"
+    )
+    cpu_cores_logical = models.IntegerField(
+        null=True, blank=True, help_text="Number of logical CPU cores"
+    )
 
     # Memory metrics
     memory_percent = models.FloatField(help_text="Memory usage percentage (0-100)")
@@ -308,21 +378,37 @@ class ServerMetrics(models.Model):
     net_recv_mb = models.FloatField(help_text="Total network received in MB since boot")
 
     # Optional service status
-    docker_services_running = models.IntegerField(null=True, blank=True, help_text="Number of running Docker services")
-    ssh_gateway_status = models.BooleanField(default=False, help_text="SSH gateway service status")
-    gitea_ssh_status = models.BooleanField(default=False, help_text="Gitea SSH service status")
-    database_status = models.BooleanField(default=False, help_text="Database connection status")
+    docker_services_running = models.IntegerField(
+        null=True, blank=True, help_text="Number of running Docker services"
+    )
+    ssh_gateway_status = models.BooleanField(
+        default=False, help_text="SSH gateway service status"
+    )
+    gitea_ssh_status = models.BooleanField(
+        default=False, help_text="Gitea SSH service status"
+    )
+    database_status = models.BooleanField(
+        default=False, help_text="Database connection status"
+    )
     redis_status = models.BooleanField(default=False, help_text="Redis cache status")
 
     # Visitor pool metrics
-    visitor_pool_allocated = models.IntegerField(null=True, blank=True, help_text="Number of allocated visitor slots")
-    visitor_pool_total = models.IntegerField(null=True, blank=True, help_text="Total visitor pool size")
+    visitor_pool_allocated = models.IntegerField(
+        null=True, blank=True, help_text="Number of allocated visitor slots"
+    )
+    visitor_pool_total = models.IntegerField(
+        null=True, blank=True, help_text="Total visitor pool size"
+    )
 
     # User activity metrics
-    active_users_count = models.IntegerField(null=True, blank=True, help_text="Number of currently logged-in users")
+    active_users_count = models.IntegerField(
+        null=True, blank=True, help_text="Number of currently logged-in users"
+    )
 
     # GPU metrics
-    gpu_percent = models.FloatField(null=True, blank=True, help_text="GPU usage percentage (0-100)")
+    gpu_percent = models.FloatField(
+        null=True, blank=True, help_text="GPU usage percentage (0-100)"
+    )
 
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)

@@ -130,10 +130,10 @@ class Command(BaseCommand):
         )
         self.stdout.write("   - ORCID: https://orcid.org/developer-tools")
         self.stdout.write("\n2. Set environment variables:")
-        self.stdout.write("   - SCITEX_SOCIAL_GOOGLE_CLIENT_ID")
-        self.stdout.write("   - SCITEX_SOCIAL_GOOGLE_CLIENT_SECRET")
-        self.stdout.write("   - ORCID_CLIENT_ID")
-        self.stdout.write("   - ORCID_CLIENT_SECRET")
+        self.stdout.write("   - SCITEX_CLOUD_GOOGLE_CLIENT_ID")
+        self.stdout.write("   - SCITEX_CLOUD_GOOGLE_CLIENT_SECRET")
+        self.stdout.write("   - SCITEX_CLOUD_ORCID_CLIENT_ID")
+        self.stdout.write("   - SCITEX_CLOUD_ORCID_CLIENT_SECRET")
         self.stdout.write("\n3. Add redirect URIs in provider consoles:")
         self.stdout.write(
             f"   - Google: https://{domain}/auth/social/google/login/callback/"
