@@ -54,7 +54,8 @@ try_scitex_installation_in_editable_mode() {
         # Check if scitex-code is a valid Python project
         if [ -f "/scitex-python/pyproject.toml" ] || [ -f "/scitex-python/setup.py" ]; then
             # Check if scitex is already installed in editable mode from /scitex-python
-            if pip show -f scitex 2>/dev/null | grep -q "/scitex-python"; then
+            # Use pip show without -f flag (much faster)
+            if pip show scitex 2>/dev/null | grep -q "Location:.*scitex-python"; then
                 echo -e "${GREEN}✅ Scitex already installed in editable mode${NC}"
             else
                 echo_info "Installing scitex (editable mode)..."
@@ -80,7 +81,7 @@ try_scitex_installation_in_editable_mode
 try_figrecipe_installation_in_editable_mode() {
     if [ -d "/figrecipe" ]; then
         if [ -f "/figrecipe/pyproject.toml" ] || [ -f "/figrecipe/setup.py" ]; then
-            if pip show -f figrecipe 2>/dev/null | grep -q "/figrecipe"; then
+            if pip show figrecipe 2>/dev/null | grep -q "Location:.*figrecipe"; then
                 echo -e "${GREEN}✅ figrecipe already installed in editable mode${NC}"
             else
                 echo_info "Installing figrecipe (editable mode)..."
@@ -101,7 +102,7 @@ try_figrecipe_installation_in_editable_mode
 try_scitex_writer_installation_in_editable_mode() {
     if [ -d "/scitex-writer" ]; then
         if [ -f "/scitex-writer/pyproject.toml" ] || [ -f "/scitex-writer/setup.py" ]; then
-            if pip show -f scitex-writer 2>/dev/null | grep -q "/scitex-writer"; then
+            if pip show scitex-writer 2>/dev/null | grep -q "Location:.*scitex-writer"; then
                 echo -e "${GREEN}✅ scitex-writer already installed in editable mode${NC}"
             else
                 echo_info "Installing scitex-writer (editable mode)..."
@@ -122,7 +123,7 @@ try_scitex_writer_installation_in_editable_mode
 try_crossref_local_installation_in_editable_mode() {
     if [ -d "/crossref-local" ]; then
         if [ -f "/crossref-local/pyproject.toml" ] || [ -f "/crossref-local/setup.py" ]; then
-            if pip show -f crossref-local 2>/dev/null | grep -q "/crossref-local"; then
+            if pip show crossref-local 2>/dev/null | grep -q "Location:.*crossref-local"; then
                 echo -e "${GREEN}✅ crossref-local already installed in editable mode${NC}"
             else
                 echo_info "Installing crossref-local (editable mode)..."
@@ -143,7 +144,7 @@ try_crossref_local_installation_in_editable_mode
 try_openalex_local_installation_in_editable_mode() {
     if [ -d "/openalex-local" ]; then
         if [ -f "/openalex-local/pyproject.toml" ] || [ -f "/openalex-local/setup.py" ]; then
-            if pip show -f openalex-local 2>/dev/null | grep -q "/openalex-local"; then
+            if pip show openalex-local 2>/dev/null | grep -q "Location:.*openalex-local"; then
                 echo -e "${GREEN}✅ openalex-local already installed in editable mode${NC}"
             else
                 echo_info "Installing openalex-local (editable mode)..."
@@ -164,7 +165,7 @@ try_openalex_local_installation_in_editable_mode
 try_socialia_installation_in_editable_mode() {
     if [ -d "/socialia" ]; then
         if [ -f "/socialia/pyproject.toml" ] || [ -f "/socialia/setup.py" ]; then
-            if pip show -f socialia 2>/dev/null | grep -q "/socialia"; then
+            if pip show socialia 2>/dev/null | grep -q "Location:.*socialia"; then
                 echo -e "${GREEN}✅ socialia already installed in editable mode${NC}"
             else
                 echo_info "Installing socialia (editable mode)..."
