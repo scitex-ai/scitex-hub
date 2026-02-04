@@ -231,14 +231,8 @@ export function addResultToProgressive(result: SearchResult): void {
   // Update toolbar state (debounced to avoid O(n²) queries)
   debouncedToolbarUpdate();
 
-  // Animate
-  resultCard.style.opacity = "0";
-  resultCard.style.transform = "translateY(20px)";
-  setTimeout(() => {
-    resultCard.style.transition = "all 0.3s ease";
-    resultCard.style.opacity = "1";
-    resultCard.style.transform = "translateY(0)";
-  }, 50);
+  // Animation disabled for performance - 1997 setTimeout calls was causing 75+ second lag
+  // Cards now appear instantly
 }
 
 /**
