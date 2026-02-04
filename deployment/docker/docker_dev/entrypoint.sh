@@ -180,7 +180,11 @@ try_socialia_installation_in_editable_mode() {
 try_socialia_installation_in_editable_mode
 
 add_insufficient_python_packages() {
-    pip install pygments >/dev/null 2>&1 || true
+    # Check if pygments is already installed before attempting to install
+    if ! python -c "import pygments" 2>/dev/null; then
+        echo_info "Installing pygments..."
+        pip install --no-cache-dir pygments >/dev/null 2>&1 || true
+    fi
 }
 add_insufficient_python_packages
 
