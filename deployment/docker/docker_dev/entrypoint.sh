@@ -138,6 +138,27 @@ try_crossref_local_installation_in_editable_mode() {
 try_crossref_local_installation_in_editable_mode
 
 # ============================================
+# Install openalex-local in Editable Mode (Optional)
+# ============================================
+try_openalex_local_installation_in_editable_mode() {
+    if [ -d "/openalex-local" ]; then
+        if [ -f "/openalex-local/pyproject.toml" ] || [ -f "/openalex-local/setup.py" ]; then
+            if pip show -f openalex-local 2>/dev/null | grep -q "/openalex-local"; then
+                echo -e "${GREEN}✅ openalex-local already installed in editable mode${NC}"
+            else
+                echo_info "Installing openalex-local (editable mode)..."
+                uv pip install -e "/openalex-local[all]" --link-mode=copy >/dev/null
+            fi
+        else
+            echo -e "⚠️  WARNING: /openalex-local exists but is not a valid Python package"
+        fi
+    else
+        echo -e "⚠️  WARNING: /openalex-local not mounted, skipping..."
+    fi
+}
+try_openalex_local_installation_in_editable_mode
+
+# ============================================
 # Install socialia in Editable Mode (Optional)
 # ============================================
 try_socialia_installation_in_editable_mode() {
@@ -162,6 +183,44 @@ add_insufficient_python_packages() {
     pip install pygments >/dev/null 2>&1 || true
 }
 add_insufficient_python_packages
+
+# ============================================
+# Pre-generate Matplotlib Font Cache (Runtime - First Start Only)
+# ============================================
+# Generate font cache after scitex is installed to avoid 10+ minute startup delay
+# This only runs once - cache persists in container filesystem
+generate_matplotlib_font_cache() {
+    local cache_marker="/root/.cache/matplotlib/.fontcache_generated"
+
+    if [ -f "$cache_marker" ]; then
+        echo_info "Matplotlib font cache already generated"
+        return 0
+    fi
+
+    echo_info "Generating matplotlib font cache (one-time, ~30 seconds)..."
+    python -c "
+import os
+os.environ['MPLBACKEND'] = 'Agg'
+try:
+    import matplotlib.pyplot as plt
+    plt.figure()
+    print('Font cache generated successfully')
+except Exception as e:
+    print(f'Font cache generation failed: {e}')
+" 2>&1 | grep -v "WARN\|building the font cache" || true
+
+    # Mark as generated
+    mkdir -p "$(dirname "$cache_marker")"
+    touch "$cache_marker"
+    echo_success "Matplotlib font cache ready"
+}
+
+# Only run on first start (not on hot-reload restarts)
+if [ ! -f "$MIGRATION_SENTINEL" ]; then
+    generate_matplotlib_font_cache
+else
+    echo_info "Hot-reload restart - matplotlib cache already generated"
+fi
 
 # ============================================
 # Vite Dev Server (HMR - Hot Module Replacement)
@@ -272,7 +331,7 @@ else
 fi
 
 # ============================================
-# Initialize Test User (Development Only)
+# Initialize Test User (Development Only - First Start Only)
 # ============================================
 # Create test-user for development and E2E testing
 initialize_test_user() {
@@ -288,7 +347,12 @@ initialize_test_user() {
         2>&1 | grep -v "ERRO\|WARN" || true
     echo_success "Test user ready: $username"
 }
-initialize_test_user
+# Only run on first start (not on hot-reload restarts)
+if [ ! -f "$MIGRATION_SENTINEL" ]; then
+    initialize_test_user
+else
+    echo_info "Hot-reload restart - test user already initialized"
+fi
 
 # ============================================
 # Generate Plot Gallery to Static Directory

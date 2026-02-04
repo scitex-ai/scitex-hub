@@ -220,16 +220,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 RUN python -m playwright install chromium
 
 # ============================================
-# Pre-generate Matplotlib Font Cache
-# ============================================
-# Build font cache during image build to avoid 10+ minute startup delay
-# This bakes the cache into the image so containers start immediately
-RUN echo "Pre-generating matplotlib font cache..." && \
-    mkdir -p /root/.cache/matplotlib && \
-    python -c "import matplotlib.pyplot as plt; plt.figure(); print('Font cache generated')" && \
-    echo "✅ Matplotlib font cache ready"
-
-# ============================================
 # Node.js Dependencies
 # ============================================
 # Install Node dependencies BEFORE copying application code for better caching
