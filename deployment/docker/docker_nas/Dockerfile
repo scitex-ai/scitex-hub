@@ -47,6 +47,12 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --system --refresh "scitex[all]==2.16.2"
 
+# Pre-generate matplotlib font cache (avoids 10+ minute startup delay)
+RUN echo "Pre-generating matplotlib font cache..." && \
+    mkdir -p /root/.cache/matplotlib && \
+    python -c "import matplotlib.pyplot as plt; plt.figure(); print('Font cache generated')" && \
+    echo "✅ Matplotlib font cache ready"
+
 # Install Playwright browsers
 RUN --mount=type=cache,target=/root/.cache/ms-playwright \
     python -m playwright install chromium && \
@@ -206,6 +212,8 @@ COPY --from=python-builder /usr/local/lib/python3.11/site-packages /usr/local/li
 COPY --from=python-builder /usr/local/bin /usr/local/bin
 # Copy Playwright cache if it exists (use wildcard to avoid failure if missing)
 COPY --from=python-builder /root/.cache/ms-playwright* /root/.cache/
+# Copy matplotlib font cache from builder (if it exists)
+COPY --from=python-builder /root/.cache/matplotlib* /root/.cache/ 2>/dev/null || true
 
 # Copy SLURM binaries and libraries from builder
 # Note: SLURM binaries start with 's' (sinfo, squeue, sbatch, srun, etc.)
