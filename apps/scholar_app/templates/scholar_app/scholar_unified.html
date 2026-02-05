@@ -1,19 +1,19 @@
 {% extends 'global_base.html' %}
+
 {% load static vite %}
+
 {% block title %}SciTeX Scholar{% endblock %}
 {% block meta_description %}Advanced semantic search for scientific literature{% endblock %}
 {% block extra_css %}
     <!-- Workspace colors CSS for consistent theming -->
-    <link rel="stylesheet"
-          href="{% static 'shared/css/primitives/colors.css' %}" />
+    <link rel="stylesheet" href="{% static 'shared/css/primitives/colors.css' %}" />
     <!-- Hero gradients CSS -->
     <link rel="stylesheet" href="{% static 'shared/css/components/hero.css' %}" />
     <!-- Workspace files tree CSS -->
     <link rel="stylesheet"
           href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d" />
     <!-- Panel resizer CSS -->
-    <link rel="stylesheet"
-          href="{% static 'shared/css/components/panel-resizer.css' %}" />
+    <link rel="stylesheet" href="{% static 'shared/css/components/panel-resizer.css' %}" />
     <!-- App-specific CSS - Modular common styles -->
     <link rel="stylesheet"
           href="{% static 'scholar_app/css/common/01-workspace-colors.css' %}?v=1764328804" />
@@ -34,12 +34,11 @@
     <link rel="stylesheet" href="{% static 'scholar_app/css/index.css' %}" />
     <link rel="stylesheet"
           href="{% static 'scholar_app/css/scholar-search-inline.css' %}" />
+    <link rel="stylesheet" href="{% static 'scholar_app/css/search/search-main.css' %}" />
     <link rel="stylesheet"
-          href="{% static 'scholar_app/css/search/search-main.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'shared/css/components/terminal-log.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'scholar_app/css/graph/citation-graph.css' %}" />
+          href="{% static 'scholar_app/css/search/results-header.css' %}" />
+    <link rel="stylesheet" href="{% static 'shared/css/components/terminal-log.css' %}" />
+    <link rel="stylesheet" href="{% static 'scholar_app/css/graph/citation-graph.css' %}" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.css"
           rel="stylesheet" />
     <!-- Workspace colors - responsive to theme -->
@@ -447,12 +446,11 @@
         <main class="scholar-main">
             <div class="pane-header">
                 <nav class="scholar-tabs">
-                    <a href="#bibtex" class="scholar-tab" data-tab="bibtex">
-                        <i class="fas fa-file-code"></i> BibTeX Enrichment
-                    </a>
                     <a href="#search" class="scholar-tab" data-tab="search">
                         <i class="fas fa-search"></i> Search
-                        <span class="tab-badge tab-badge--experimental">Experimental</span>
+                    </a>
+                    <a href="#bibtex" class="scholar-tab" data-tab="bibtex">
+                        <i class="fas fa-wand-magic-sparkles"></i> Metadata Enrichment
                     </a>
                     <a href="#graph" class="scholar-tab" data-tab="graph">
                         <i class="fas fa-project-diagram"></i> Graph
@@ -514,7 +512,7 @@
                                                name="doi"
                                                class="form-input"
                                                placeholder="e.g., 10.1038/s41586-020-2008-3"
-                                               required>
+                                               required />
                                         <button type="submit" class="btn-build" id="buildGraphBtn">
                                             <i class="fas fa-project-diagram"></i>
                                             <span>Build Graph</span>
@@ -775,8 +773,8 @@
     <!-- Tab Switching Script -->
     <script>
         (function() {
-            const TAB_ORDER = ['bibtex', 'search', 'graph'];
-            const DEFAULT_TAB = 'bibtex';
+            const TAB_ORDER = ['search', 'bibtex', 'graph'];
+            const DEFAULT_TAB = 'search';
 
             function getActiveTab() {
                 const hash = window.location.hash.slice(1);

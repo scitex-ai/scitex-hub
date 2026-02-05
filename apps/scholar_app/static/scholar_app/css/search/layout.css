@@ -140,3 +140,60 @@
 [data-theme="dark"] .scholar-side-panel {
   scrollbar-color: var(--scitex-color-03) var(--scitex-color-01-light);
 }
+
+/* Main search pane scrollbar - wider for easier grabbing */
+.scholar-main .pane-content::-webkit-scrollbar,
+#scitex-results-container::-webkit-scrollbar,
+#progressiveResults::-webkit-scrollbar {
+  width: 18px;
+}
+
+.scholar-main .pane-content::-webkit-scrollbar-track,
+#scitex-results-container::-webkit-scrollbar-track,
+#progressiveResults::-webkit-scrollbar-track {
+  background: var(--bg-surface, #1a1a1a);
+  border-radius: 0;
+}
+
+.scholar-main .pane-content::-webkit-scrollbar-thumb,
+#scitex-results-container::-webkit-scrollbar-thumb,
+#progressiveResults::-webkit-scrollbar-thumb {
+  background: var(--border-default, #3a3a3a);
+  border-radius: 6px;
+  border: 2px solid var(--bg-surface, #1a1a1a);
+}
+
+.scholar-main .pane-content::-webkit-scrollbar-thumb:hover,
+#scitex-results-container::-webkit-scrollbar-thumb:hover,
+#progressiveResults::-webkit-scrollbar-thumb:hover {
+  background: var(--scitex-color-04, #4a8eb0);
+}
+
+/* Dark mode */
+[data-theme="dark"] .scholar-main .pane-content::-webkit-scrollbar-track,
+[data-theme="dark"] #scitex-results-container::-webkit-scrollbar-track,
+[data-theme="dark"] #progressiveResults::-webkit-scrollbar-track {
+  background: var(--scitex-color-01-light, #151515);
+}
+
+[data-theme="dark"] .scholar-main .pane-content::-webkit-scrollbar-thumb,
+[data-theme="dark"] #scitex-results-container::-webkit-scrollbar-thumb,
+[data-theme="dark"] #progressiveResults::-webkit-scrollbar-thumb {
+  background: var(--scitex-color-03, #3a5a6a);
+  border-color: var(--scitex-color-01-light, #151515);
+}
+
+/* Firefox - use auto width instead of thin */
+.scholar-main .pane-content,
+#scitex-results-container,
+#progressiveResults {
+  scrollbar-width: auto;
+  scrollbar-color: var(--border-default, #3a3a3a) var(--bg-surface, #1a1a1a);
+}
+
+[data-theme="dark"] .scholar-main .pane-content,
+[data-theme="dark"] #scitex-results-container,
+[data-theme="dark"] #progressiveResults {
+  scrollbar-color: var(--scitex-color-03, #3a5a6a)
+    var(--scitex-color-01-light, #151515);
+}

@@ -46,6 +46,8 @@ export interface PaperData {
   abstract: string;
   doi: string;
   source: string;
+  citations?: number;
+  impactFactor?: number;
 }
 
 /**

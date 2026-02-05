@@ -1,66 +1,284 @@
 {% load static vite %}
+
 <!-- Search Controls for Right Panel -->
 <div class="search-controls-panel">
-    <!-- Sources & Status (combined) -->
-    <div class="ctrl-section search-status-section expanded" id="section-sources">
+    <!-- Sorters -->
+    <div class="ctrl-section" id="section-sort">
         <div class="ctrl-header">
-            <span class="ctrl-title">
-                <i class="fas fa-database"></i> Sources
-            </span>
+            <span class="ctrl-title"><i class="fas fa-sort"></i> Sorters</span>
+            <i class="fas fa-chevron-down ctrl-chevron"></i>
+        </div>
+        <div class="ctrl-content">
+            <div class="sort-toggles">
+                <button type="button" class="sort-toggle-btn" data-field="year" data-direction="none">
+                    <span class="sort-label">Year</span>
+                    <span class="sort-indicator"></span>
+                </button>
+                <button type="button"
+                        class="sort-toggle-btn"
+                        data-field="citations"
+                        data-direction="none">
+                    <span class="sort-label">Citations</span>
+                    <span class="sort-indicator"></span>
+                </button>
+                <button type="button"
+                        class="sort-toggle-btn"
+                        data-field="impact_factor"
+                        data-direction="none">
+                    <span class="sort-label">Impact Factor</span>
+                    <span class="sort-indicator"></span>
+                </button>
+            </div>
+            <input type="hidden"
+                   id="sortFieldInput"
+                   name="sort_by"
+                   form="literatureSearchForm"
+                   value="" />
+            <input type="hidden"
+                   id="sortDirectionInput"
+                   name="sort_dir"
+                   form="literatureSearchForm"
+                   value="" />
+        </div>
+    </div>
+    <!-- Filters -->
+    <div class="ctrl-section" id="section-filters">
+        <div class="ctrl-header">
+            <span class="ctrl-title"><i class="fas fa-filter"></i> Filters</span>
+            <i class="fas fa-chevron-down ctrl-chevron"></i>
+        </div>
+        <div class="ctrl-content">
+            <div class="filter-block">
+                <div class="filter-row">
+                    <span class="filter-name"><i class="fas fa-calendar"></i> Year</span>
+                    <span class="filter-value"><span id="yearMinDisplay">{{ request.GET.year_from|default:'1900' }}</span> – <span id="yearMaxDisplay">{{ request.GET.year_to|default:'2025' }}</span></span>
+                </div>
+                <div id="yearSwarmPlot" class="swarm-plot-container"></div>
+                <div id="yearSlider"
+                     class="filter-slider"
+                     data-min="{{ filter_ranges.year_min|default:'1900' }}"
+                     data-max="{{ filter_ranges.year_max|default:'2025' }}"></div>
+                <input type="hidden"
+                       id="yearFromInput"
+                       name="year_from"
+                       form="literatureSearchForm"
+                       value="{{ request.GET.year_from|default:'1900' }}" />
+                <input type="hidden"
+                       id="yearToInput"
+                       name="year_to"
+                       form="literatureSearchForm"
+                       value="{{ request.GET.year_to|default:'2025' }}" />
+            </div>
+            <div class="filter-block">
+                <div class="filter-row">
+                    <span class="filter-name"><i class="fas fa-quote-right"></i> Citations</span>
+                    <span class="filter-value"><span id="citationsMinDisplay">{{ request.GET.min_citations|default:'0' }}</span> – <span id="citationsMaxDisplay">{{ request.GET.max_citations|default:filter_ranges.citations_max|default:'128' }}</span></span>
+                </div>
+                <div id="citationsSwarmPlot" class="swarm-plot-container"></div>
+                <div id="citationsSlider"
+                     class="filter-slider"
+                     data-max="{{ filter_ranges.citations_max|default:'128' }}"></div>
+                <input type="hidden"
+                       id="citationsMinInput"
+                       name="min_citations"
+                       form="literatureSearchForm"
+                       value="{{ request.GET.min_citations|default:'0' }}" />
+                <input type="hidden"
+                       id="citationsMaxInput"
+                       name="max_citations"
+                       form="literatureSearchForm"
+                       value="{{ request.GET.max_citations|default:filter_ranges.citations_max|default:'128' }}" />
+            </div>
+            <div class="filter-block">
+                <div class="filter-row">
+                    <span class="filter-name"><i class="fas fa-star"></i> IF</span>
+                    <span class="filter-value"><span id="impactFactorMinDisplay">{{ request.GET.min_impact_factor|default:'0.0' }}</span> – <span id="impactFactorMaxDisplay">{{ request.GET.max_impact_factor|default:filter_ranges.impact_factor_max|default:'50.0' }}</span></span>
+                </div>
+                <div id="impactFactorSwarmPlot" class="swarm-plot-container"></div>
+                <div id="impactFactorSlider"
+                     class="filter-slider"
+                     data-max="{{ filter_ranges.impact_factor_max|default:'50.0' }}"></div>
+                <input type="hidden"
+                       id="impactFactorMinInput"
+                       name="min_impact_factor"
+                       form="literatureSearchForm"
+                       value="{{ request.GET.min_impact_factor|default:'0' }}" />
+                <input type="hidden"
+                       id="impactFactorMaxInput"
+                       name="max_impact_factor"
+                       form="literatureSearchForm"
+                       value="{{ request.GET.max_impact_factor|default:filter_ranges.impact_factor_max|default:'50' }}" />
+            </div>
+        </div>
+    </div>
+    <!-- Sources & Status -->
+    <div class="ctrl-section search-status-section" id="section-sources">
+        <div class="ctrl-header">
+            <span class="ctrl-title"><i class="fas fa-database"></i> Sources</span>
             <div class="search-status-leds">
-                <span class="search-led" id="ledPubmed" data-source="pubmed" data-status="idle" title="PubMed"></span>
-                <span class="search-led" id="ledArxiv" data-source="arxiv" data-status="idle" title="arXiv"></span>
-                <span class="search-led" id="ledSemantic" data-source="semantic" data-status="idle" title="Semantic Scholar"></span>
-                <span class="search-led" id="ledCrossref" data-source="crossref" data-status="idle" title="Crossref"></span>
-                <span class="search-led" id="ledCrossrefLocal" data-source="crossref_local" data-status="idle" title="Crossref (SciTeX local)"></span>
-                <span class="search-led" id="ledOpenalex" data-source="openalex" data-status="idle" title="OpenAlex"></span>
+                <span class="search-led"
+                      id="ledCrossrefLocal"
+                      data-source="crossref_local"
+                      data-status="checking"
+                      title="Crossref (SciTeX) - Checking..."></span>
+                <span class="search-led"
+                      id="ledOpenalexLocal"
+                      data-source="openalex_local"
+                      data-status="checking"
+                      title="OpenAlex (SciTeX) - Checking..."></span>
+                <span class="search-led"
+                      id="ledPubmed"
+                      data-source="pubmed"
+                      data-status="ready"
+                      title="PubMed - External API"></span>
+                <span class="search-led"
+                      id="ledArxiv"
+                      data-source="arxiv"
+                      data-status="ready"
+                      title="arXiv - External API"></span>
+                <span class="search-led"
+                      id="ledSemantic"
+                      data-source="semantic"
+                      data-status="ready"
+                      title="Semantic Scholar - External API"></span>
+                <span class="search-led"
+                      id="ledCrossref"
+                      data-source="crossref"
+                      data-status="ready"
+                      title="Crossref API - External API"></span>
+                <span class="search-led"
+                      id="ledOpenalex"
+                      data-source="openalex"
+                      data-status="ready"
+                      title="OpenAlex API - External API"></span>
             </div>
             <i class="fas fa-chevron-down ctrl-chevron"></i>
         </div>
         <div class="ctrl-content">
             <!-- Source toggles with inline status -->
             <div class="source-grid" id="sourceProgressList">
-                <label class="source-item"><input type="checkbox" class="all-sources-toggle" id="source_all_toggle" form="literatureSearchForm" checked /><span>All</span></label>
-                <label class="source-item source-active" data-source="pubmed" title="NCBI PubMed - biomedical literature">
-                    <input type="checkbox" class="source-toggle" name="source_pubmed" form="literatureSearchForm" value="pubmed" checked />
+                <!-- LOCAL DATABASES (Fast, Recommended) -->
+                <label class="source-item source-active source-recommended"
+                       data-source="crossref_local"
+                       title="Crossref database on SciTeX server (~47M citations) - Fast, unlimited">
+                    <input type="checkbox"
+                           class="source-toggle"
+                           name="source_crossref_local"
+                           form="literatureSearchForm"
+                           value="crossref_local"
+                           checked />
+                    <span>Crossref (SciTeX)</span>
+                    <span class="source-ready-indicator"
+                          id="readyCrossrefLocal"
+                          data-status="checking"
+                          title="Checking availability...">&#9679;</span>
+                    <small class="rate-limit">&#8734;</small>
+                    <span class="source-status"><span class="spinner-border spinner-border-sm"></span><span class="count"></span></span>
+                </label>
+                <label class="source-item source-active source-recommended"
+                       data-source="openalex_local"
+                       title="OpenAlex database on SciTeX server (~284M works) - Fast, unlimited">
+                    <input type="checkbox"
+                           class="source-toggle"
+                           name="source_openalex_local"
+                           form="literatureSearchForm"
+                           value="openalex_local" />
+                    <span>OpenAlex (SciTeX)</span>
+                    <span class="source-ready-indicator"
+                          id="readyOpenalexLocal"
+                          data-status="checking"
+                          title="Checking availability...">&#9679;</span>
+                    <small class="rate-limit">&#8734;</small>
+                    <span class="source-status"><span class="spinner-border spinner-border-sm"></span><span class="count"></span></span>
+                </label>
+                <!-- EXTERNAL APIs (Slower, Rate Limited) -->
+                <div class="source-divider">
+                    <span>External APIs (slower, limited results)</span>
+                </div>
+                <label class="source-item source-active"
+                       data-source="pubmed"
+                       title="NCBI PubMed - biomedical literature">
+                    <input type="checkbox"
+                           class="source-toggle"
+                           name="source_pubmed"
+                           form="literatureSearchForm"
+                           value="pubmed" />
                     <span>PubMed</span>
+                    <span class="source-ready-indicator"
+                          data-status="external"
+                          title="External API - always available">&#9679;</span>
                     <small class="rate-limit">3/s</small>
                     <span class="source-status"><span class="spinner-border spinner-border-sm"></span><span class="count"></span></span>
                 </label>
-                <label class="source-item source-active" data-source="arxiv" title="arXiv - physics, math, CS preprints">
-                    <input type="checkbox" class="source-toggle" name="source_arxiv" form="literatureSearchForm" value="arxiv" checked />
+                <label class="source-item source-active"
+                       data-source="arxiv"
+                       title="arXiv - physics, math, CS preprints">
+                    <input type="checkbox"
+                           class="source-toggle"
+                           name="source_arxiv"
+                           form="literatureSearchForm"
+                           value="arxiv" />
                     <span>arXiv</span>
+                    <span class="source-ready-indicator"
+                          data-status="external"
+                          title="External API - always available">&#9679;</span>
                     <small class="rate-limit">3/s</small>
                     <span class="source-status"><span class="spinner-border spinner-border-sm"></span><span class="count"></span></span>
                 </label>
-                <label class="source-item source-active" data-source="semantic" title="Semantic Scholar - AI-powered academic search">
-                    <input type="checkbox" class="source-toggle" name="source_semantic" form="literatureSearchForm" value="semantic" checked />
+                <label class="source-item source-active"
+                       data-source="semantic"
+                       title="Semantic Scholar - AI-powered academic search">
+                    <input type="checkbox"
+                           class="source-toggle"
+                           name="source_semantic"
+                           form="literatureSearchForm"
+                           value="semantic" />
                     <span>Semantic</span>
+                    <span class="source-ready-indicator"
+                          data-status="external"
+                          title="External API - always available">&#9679;</span>
                     <small class="rate-limit">1/s</small>
                     <span class="source-status"><span class="spinner-border spinner-border-sm"></span><span class="count"></span></span>
                 </label>
-                <label class="source-item source-active" data-source="crossref" title="Crossref - DOI metadata registry">
-                    <input type="checkbox" class="source-toggle" name="source_crossref" form="literatureSearchForm" value="crossref" checked />
+                <label class="source-item source-active"
+                       data-source="crossref"
+                       title="Crossref - DOI metadata registry">
+                    <input type="checkbox"
+                           class="source-toggle"
+                           name="source_crossref"
+                           form="literatureSearchForm"
+                           value="crossref" />
                     <span>Crossref</span>
+                    <span class="source-ready-indicator"
+                          data-status="external"
+                          title="External API - always available">&#9679;</span>
                     <small class="rate-limit">50/s</small>
                     <span class="source-status"><span class="spinner-border spinner-border-sm"></span><span class="count"></span></span>
                 </label>
-                <label class="source-item source-active" data-source="crossref_local" title="CrossRef database running locally on SciTeX server - unlimited, fast">
-                    <input type="checkbox" class="source-toggle" name="source_crossref_local" form="literatureSearchForm" value="crossref_local" checked />
-                    <span>Crossref (SciTeX)</span>
-                    <small class="rate-limit">∞</small>
-                    <span class="source-status"><span class="spinner-border spinner-border-sm"></span><span class="count"></span></span>
-                </label>
-                <label class="source-item source-active" data-source="openalex" title="OpenAlex - open catalog of scholarly works">
-                    <input type="checkbox" class="source-toggle" name="source_openalex" form="literatureSearchForm" value="openalex" checked />
+                <label class="source-item source-active"
+                       data-source="openalex"
+                       title="OpenAlex - open catalog of scholarly works">
+                    <input type="checkbox"
+                           class="source-toggle"
+                           name="source_openalex"
+                           form="literatureSearchForm"
+                           value="openalex" />
                     <span>OpenAlex</span>
+                    <span class="source-ready-indicator"
+                          data-status="external"
+                          title="External API - always available">&#9679;</span>
                     <small class="rate-limit">10/s</small>
                     <span class="source-status"><span class="spinner-border spinner-border-sm"></span><span class="count"></span></span>
                 </label>
             </div>
             <div class="source-options">
-                <label class="source-option" title="Bypass cached results and fetch fresh data from all sources">
-                    <input type="checkbox" id="ignoreCacheToggle" name="ignore_cache" form="literatureSearchForm" value="true" />
+                <label class="source-option"
+                       title="Bypass cached results and fetch fresh data from all sources">
+                    <input type="checkbox"
+                           id="ignoreCacheToggle"
+                           name="ignore_cache"
+                           form="literatureSearchForm"
+                           value="true" />
                     <i class="fas fa-sync-alt"></i>
                     <span>Ignore cache</span>
                 </label>
@@ -70,782 +288,13 @@
                 <span>Rate limits shown per source. Your email is used for API requests to receive higher rate limits.</span>
             </div>
             <!-- Log output -->
-            <div id="searchLog" class="terminal-log terminal-log--compact">Ready to search.
-Enter a query and press Enter to start.</div>
-        </div>
-    </div>
-
-    <!-- Sort -->
-    <div class="ctrl-section expanded" id="section-sort">
-        <div class="ctrl-header">
-            <span class="ctrl-title"><i class="fas fa-sort"></i> Sort By</span>
-            <i class="fas fa-chevron-down ctrl-chevron"></i>
-        </div>
-        <div class="ctrl-content">
-            <div class="sort-toggles">
-                <button type="button" class="sort-toggle-btn" data-field="year" data-direction="none">
-                    <span class="sort-label">Year</span>
-                    <span class="sort-indicator"></span>
-                </button>
-                <button type="button" class="sort-toggle-btn" data-field="citations" data-direction="none">
-                    <span class="sort-label">Citations</span>
-                    <span class="sort-indicator"></span>
-                </button>
-                <button type="button" class="sort-toggle-btn" data-field="impact_factor" data-direction="none">
-                    <span class="sort-label">Impact Factor</span>
-                    <span class="sort-indicator"></span>
-                </button>
-            </div>
-            <input type="hidden" id="sortFieldInput" name="sort_by" form="literatureSearchForm" value="" />
-            <input type="hidden" id="sortDirectionInput" name="sort_dir" form="literatureSearchForm" value="" />
-        </div>
-    </div>
-
-    <!-- Filters -->
-    <div class="ctrl-section expanded" id="section-filters">
-        <div class="ctrl-header">
-            <span class="ctrl-title"><i class="fas fa-sliders-h"></i> Filters</span>
-            <i class="fas fa-chevron-down ctrl-chevron"></i>
-        </div>
-        <div class="ctrl-content">
-            <!-- Year -->
-            <div class="filter-block">
-                <div class="filter-row">
-                    <span class="filter-name"><i class="fas fa-calendar"></i> Year</span>
-                    <span class="filter-value"><span id="yearMinDisplay">{{ request.GET.year_from|default:'1900' }}</span> – <span id="yearMaxDisplay">{{ request.GET.year_to|default:'2025' }}</span></span>
+            {% spaceless %}
+                <div id="searchLog" class="terminal-log terminal-log--compact">
+                    Ready to search. Enter a query and press Enter to start.
                 </div>
-                <div id="yearSwarmPlot" class="swarm-plot-container"></div>
-                <div id="yearSlider" class="filter-slider" data-min="{{ filter_ranges.year_min|default:'1900' }}" data-max="{{ filter_ranges.year_max|default:'2025' }}"></div>
-                <input type="hidden" id="yearFromInput" name="year_from" form="literatureSearchForm" value="{{ request.GET.year_from|default:'1900' }}" />
-                <input type="hidden" id="yearToInput" name="year_to" form="literatureSearchForm" value="{{ request.GET.year_to|default:'2025' }}" />
-            </div>
-
-            <!-- Citations -->
-            <div class="filter-block">
-                <div class="filter-row">
-                    <span class="filter-name"><i class="fas fa-quote-right"></i> Citations</span>
-                    <span class="filter-value"><span id="citationsMinDisplay">{{ request.GET.min_citations|default:'0' }}</span> – <span id="citationsMaxDisplay">{{ request.GET.max_citations|default:filter_ranges.citations_max|default:'128' }}</span></span>
-                </div>
-                <div id="citationsSwarmPlot" class="swarm-plot-container"></div>
-                <div id="citationsSlider" class="filter-slider" data-max="{{ filter_ranges.citations_max|default:'128' }}"></div>
-                <input type="hidden" id="citationsMinInput" name="min_citations" form="literatureSearchForm" value="{{ request.GET.min_citations|default:'0' }}" />
-                <input type="hidden" id="citationsMaxInput" name="max_citations" form="literatureSearchForm" value="{{ request.GET.max_citations|default:filter_ranges.citations_max|default:'128' }}" />
-            </div>
-
-            <!-- Impact Factor -->
-            <div class="filter-block">
-                <div class="filter-row">
-                    <span class="filter-name"><i class="fas fa-star"></i> IF</span>
-                    <span class="filter-value"><span id="impactFactorMinDisplay">{{ request.GET.min_impact_factor|default:'0.0' }}</span> – <span id="impactFactorMaxDisplay">{{ request.GET.max_impact_factor|default:filter_ranges.impact_factor_max|default:'50.0' }}</span></span>
-                </div>
-                <div id="impactFactorSwarmPlot" class="swarm-plot-container"></div>
-                <div id="impactFactorSlider" class="filter-slider" data-max="{{ filter_ranges.impact_factor_max|default:'50.0' }}"></div>
-                <input type="hidden" id="impactFactorMinInput" name="min_impact_factor" form="literatureSearchForm" value="{{ request.GET.min_impact_factor|default:'0' }}" />
-                <input type="hidden" id="impactFactorMaxInput" name="max_impact_factor" form="literatureSearchForm" value="{{ request.GET.max_impact_factor|default:filter_ranges.impact_factor_max|default:'50' }}" />
-            </div>
+            {% endspaceless %}
         </div>
     </div>
 </div>
-
 {% vite_script 'scholar_app/search/search-controls' %}
-
-<style>
-.search-controls-panel {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;  /* 24px between sections */
-    padding: 1rem;
-}
-
-/* Collapsible sections */
-.ctrl-section {
-    border: 1px solid var(--workspace-border-default, #3a3a3a);
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.ctrl-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.6rem 0.85rem;
-    background: #1d2127;
-    cursor: pointer;
-    user-select: none;
-    border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
-}
-
-.ctrl-header:hover {
-    background: #252a31;
-}
-
-.ctrl-title {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--text-primary, #d4e1e8);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-}
-
-.ctrl-title i {
-    color: var(--scitex-color-04, #6c8ba0);
-    font-size: 0.7rem;
-}
-
-.ctrl-chevron {
-    color: var(--text-muted, #6c8ba0);
-    font-size: 0.65rem;
-    transition: transform 0.2s ease;
-}
-
-.ctrl-section.expanded .ctrl-chevron {
-    transform: rotate(180deg);
-}
-
-.ctrl-content {
-    display: none;
-    padding: 1rem;
-    background: var(--workspace-bg-secondary, #151515);
-}
-
-.ctrl-section.expanded .ctrl-content {
-    display: block;
-}
-
-/* Source grid */
-.source-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-}
-
-.source-item {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.3rem 0.4rem;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    font-size: 0.7rem;
-    color: var(--text-primary, #d4e1e8);
-    transition: all 0.15s ease;
-}
-
-.source-item:hover {
-    background: var(--workspace-bg-tertiary, #1a1a1a);
-}
-
-.source-item input[type="checkbox"] {
-    width: 12px;
-    height: 12px;
-    margin: 0;
-    accent-color: var(--workspace-icon-primary, #059669);
-}
-
-/* Source status indicators - inline with checkbox */
-.source-item .source-status {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    margin-left: auto;
-    font-family: ui-monospace, monospace;
-    font-size: 0.65rem;
-    color: var(--text-muted, #6c8ba0);
-}
-
-.source-item .source-status .spinner-border-sm {
-    display: none;
-    width: 10px;
-    height: 10px;
-    border-width: 1px;
-    color: var(--workspace-icon-primary, #059669);
-}
-
-.source-item .source-status .count:empty {
-    display: none;
-}
-
-.source-item.searching .source-status .spinner-border-sm {
-    display: inline-block;
-}
-
-.source-item.searching {
-    color: var(--text-primary, #d4e1e8);
-    background: rgba(5, 150, 105, 0.1);
-}
-
-.source-item.success .source-status .count {
-    color: var(--workspace-icon-primary, #059669);
-}
-
-.source-item.error .source-status .count {
-    color: var(--color-error, #ef4444);
-}
-
-.source-item.source-coming {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.source-item.source-coming span::after {
-    content: '*';
-    color: var(--text-muted, #6c8ba0);
-    font-size: 0.6rem;
-    margin-left: 2px;
-}
-
-/* Rate limit indicator */
-.rate-limit {
-    color: var(--text-muted, #6c8ba0);
-    font-size: 0.6rem;
-    font-weight: 500;
-    margin-left: 4px;
-}
-
-/* Source options (cache toggle, etc.) */
-.source-options {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-top: 0.75rem;
-    padding-top: 0.75rem;
-    border-top: 1px solid var(--workspace-border-default, #2a2a2a);
-}
-
-.source-option {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    cursor: pointer;
-    font-size: 0.7rem;
-    color: var(--text-muted, #6c8ba0);
-    transition: color 0.15s ease;
-}
-
-.source-option:hover {
-    color: var(--text-primary, #d4e1e8);
-}
-
-.source-option input[type="checkbox"] {
-    width: 12px;
-    height: 12px;
-    margin: 0;
-    accent-color: var(--scitex-color-04, #6c8ba0);
-}
-
-.source-option input[type="checkbox"]:checked + i {
-    color: var(--scitex-color-04, #6c8ba0);
-}
-
-.source-option i {
-    font-size: 0.65rem;
-    color: var(--text-muted, #6c8ba0);
-}
-
-/* Source notice */
-.source-notice {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.5rem;
-    margin-top: 0.75rem;
-    padding: 0.5rem;
-    background: rgba(108, 139, 160, 0.1);
-    border-radius: 3px;
-    font-size: 0.65rem;
-    color: var(--text-muted, #6c8ba0);
-    line-height: 1.4;
-}
-
-.source-notice i {
-    color: var(--scitex-color-04, #6c8ba0);
-    margin-top: 0.1rem;
-    flex-shrink: 0;
-}
-
-
-/* Terminal log for search */
-.terminal-log {
-    background: var(--workspace-bg-primary, #0d0d0d);
-    border: 1px solid var(--workspace-border-default, #3a3a3a);
-    border-radius: 2px;
-    padding: 0.5rem;
-    font-family: ui-monospace, "Cascadia Code", monospace;
-    font-size: 0.65rem;
-    line-height: 1.4;
-    color: var(--text-secondary, #6c8ba0);
-    overflow-y: auto;
-    white-space: pre-wrap;
-    word-break: break-word;
-}
-
-.terminal-log--small {
-    max-height: 100px;
-}
-
-.terminal-log--medium {
-    max-height: 180px;
-}
-
-/* Search Status LED indicators */
-.search-status-leds {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    margin-left: auto;
-    margin-right: 0.5rem;
-}
-
-.search-led {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--text-muted, #6c757d);
-    transition: background 0.3s ease, box-shadow 0.3s ease;
-    cursor: default;
-}
-
-.search-led[data-status="idle"] {
-    background: var(--text-muted, #6c757d);
-    opacity: 0.5;
-}
-
-.search-led[data-status="searching"] {
-    background: #28a745;
-    animation: led-pulse 1s ease-in-out infinite;
-}
-
-.search-led[data-status="success"] {
-    background: #28a745;
-    box-shadow: 0 0 4px rgba(40, 167, 69, 0.5);
-}
-
-.search-led[data-status="error"] {
-    background: #dc3545;
-}
-
-@keyframes led-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-}
-
-[data-theme="light"] .terminal-log {
-    background: var(--workspace-bg-primary, #f3f4f6);
-}
-
-/* Filter blocks - add spacing between Year/Citations/IF */
-.filter-block {
-    margin-bottom: 1.25rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--workspace-border-default, #2a2a2a);
-}
-
-.filter-block:last-child {
-    margin-bottom: 0;
-    padding-bottom: 0;
-    border-bottom: none;
-}
-
-/* Filter rows - inline layout */
-.filter-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.35rem 0;
-    font-size: 0.75rem;
-}
-
-.filter-name {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    color: var(--text-primary, #d4e1e8);
-}
-
-.filter-name i {
-    color: var(--workspace-icon-primary, #059669);
-    font-size: 0.65rem;
-}
-
-.filter-value {
-    color: var(--text-muted, #6c8ba0);
-    font-size: 0.7rem;
-}
-
-.filter-slider {
-    margin: 0.25rem 0 0.5rem 0;
-    height: 6px;
-}
-
-/* Swarm plot containers */
-.swarm-plot-container {
-    height: 60px;
-    margin: 0.25rem 0;
-    background: var(--workspace-bg-primary, #0d0d0d);
-    border: 1px solid var(--workspace-border-default, #3a3a3a);
-    border-radius: 2px;
-}
-
-/* Slider styling - workspace theme */
-.search-controls-panel .noUi-target {
-    background: var(--workspace-bg-tertiary, #1a1a1a) !important;
-    border: 1px solid var(--workspace-border-default, #3a3a3a) !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    height: 6px !important;
-}
-
-.search-controls-panel .noUi-connect {
-    background: var(--workspace-icon-primary, #059669) !important;
-}
-
-.search-controls-panel .noUi-handle {
-    background: var(--workspace-bg-secondary, #151515) !important;
-    border: 2px solid var(--workspace-icon-primary, #059669) !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    cursor: ew-resize;
-    width: 12px !important;
-    height: 12px !important;
-    top: -4px !important;
-    right: -6px !important;
-}
-
-.search-controls-panel .noUi-handle::before,
-.search-controls-panel .noUi-handle::after {
-    display: none !important;
-}
-
-/* Advanced fields */
-.adv-field {
-    margin-bottom: 0.5rem;
-}
-
-.adv-field:last-child {
-    margin-bottom: 0;
-}
-
-.adv-field label {
-    display: block;
-    font-size: 0.7rem;
-    color: var(--text-muted, #6c8ba0);
-    margin-bottom: 0.2rem;
-}
-
-.adv-field input,
-.adv-field select {
-    width: 100%;
-    padding: 0.3rem 0.4rem;
-    font-size: 0.75rem;
-    background: var(--workspace-bg-primary, #0d0d0d);
-    border: 1px solid var(--workspace-border-default, #3a3a3a);
-    color: var(--text-primary, #d4e1e8);
-    border-radius: 0;
-}
-
-.adv-field input:focus,
-.adv-field select:focus {
-    outline: none;
-    border-color: var(--workspace-icon-primary, #059669);
-}
-
-.adv-field input::placeholder {
-    color: var(--text-muted, #6c8ba0);
-    opacity: 0.7;
-}
-
-/* Light mode */
-[data-theme="light"] .ctrl-header {
-    background: #e8ecf0;
-    border-bottom-color: var(--workspace-border-default, #c5cdd5);
-}
-
-[data-theme="light"] .ctrl-header:hover {
-    background: #dde3e9;
-}
-
-[data-theme="light"] .filter-block {
-    border-bottom-color: var(--workspace-border-default, #d0d7de);
-}
-
-[data-theme="light"] .ctrl-title {
-    color: var(--text-primary, #1a2a40);
-}
-
-[data-theme="light"] .ctrl-content {
-    background: var(--workspace-bg-secondary, #ebedef);
-}
-
-[data-theme="light"] .source-item {
-    background: var(--workspace-bg-primary, #f3f4f6);
-    border-color: var(--workspace-border-default, #b5c7d1);
-    color: var(--text-primary, #1a2a40);
-}
-
-[data-theme="light"] .source-item:hover {
-    background: var(--workspace-bg-tertiary, #d8dee4);
-}
-
-[data-theme="light"] .filter-name {
-    color: var(--text-primary, #1a2a40);
-}
-
-[data-theme="light"] .adv-field input,
-[data-theme="light"] .adv-field select {
-    background: var(--workspace-bg-primary, #f3f4f6);
-    border-color: var(--workspace-border-default, #b5c7d1);
-    color: var(--text-primary, #1a2a40);
-}
-
-[data-theme="light"] .search-controls-panel .noUi-target {
-    background: var(--workspace-bg-tertiary, #d8dee4) !important;
-    border-color: var(--workspace-border-default, #b5c7d1) !important;
-}
-
-[data-theme="light"] .search-controls-panel .noUi-handle {
-    background: var(--workspace-bg-secondary, #ebedef) !important;
-}
-
-/* Sort toggle buttons */
-.sort-toggles {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-}
-
-.sort-toggle-btn {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.5rem 0.65rem;
-    cursor: pointer;
-    font-size: 0.75rem;
-    color: var(--text-secondary, #6c8ba0);
-    background: var(--workspace-bg-primary, #0d0d0d);
-    border: 1px solid var(--workspace-border-default, #3a3a3a);
-    border-radius: 3px;
-    transition: all 0.15s ease;
-}
-
-.sort-toggle-btn:hover {
-    background: var(--workspace-bg-tertiary, #1a1a1a);
-    border-color: var(--workspace-border-hover, #4a4a4a);
-}
-
-.sort-toggle-btn.active {
-    color: var(--text-primary, #d4e1e8);
-    border-color: var(--scitex-color-04, #6c8ba0);
-    background: rgba(108, 139, 160, 0.1);
-}
-
-.sort-label {
-    font-weight: 500;
-}
-
-.sort-indicator {
-    font-size: 0.7rem;
-    min-width: 1rem;
-    text-align: center;
-}
-
-.sort-indicator i {
-    color: var(--scitex-color-04, #6c8ba0);
-}
-
-.sort-priority {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 14px;
-    height: 14px;
-    margin-left: 0.35rem;
-    font-size: 0.6rem;
-    font-weight: 700;
-    background: var(--scitex-color-04, #6c8ba0);
-    color: var(--workspace-bg-primary, #0d0d0d);
-    border-radius: 50%;
-}
-
-[data-theme="light"] .sort-toggle-btn {
-    color: var(--text-secondary, #586069);
-    background: var(--workspace-bg-primary, #f3f4f6);
-    border-color: var(--workspace-border-default, #b5c7d1);
-}
-
-[data-theme="light"] .sort-toggle-btn:hover {
-    background: var(--workspace-bg-tertiary, #d8dee4);
-}
-
-[data-theme="light"] .sort-toggle-btn.active {
-    color: var(--text-primary, #1a2a40);
-    background: rgba(108, 139, 160, 0.15);
-}
-</style>
-
-<script>
-// Multi-criteria sort with priority (most recent = highest priority)
-document.addEventListener('DOMContentLoaded', function() {
-    const sortBtns = document.querySelectorAll('.sort-toggle-btn');
-    const sortFieldInput = document.getElementById('sortFieldInput');
-    const sortDirInput = document.getElementById('sortDirectionInput');
-
-    // Store original order for reset
-    let originalOrder = [];
-    const resultsContainer = document.getElementById('scitex-results-container');
-    if (resultsContainer) {
-        originalOrder = Array.from(resultsContainer.querySelectorAll('.result-card-compact, .result-card'));
-    }
-
-    // Sort criteria stack: [{field, direction, priority}] - higher priority = sort first
-    let sortCriteria = [];
-    let priorityCounter = 0;
-
-    function updateSortInputs() {
-        // For form submission, use primary sort (highest priority)
-        const primary = sortCriteria.length > 0
-            ? sortCriteria.reduce((a, b) => a.priority > b.priority ? a : b)
-            : null;
-        if (primary) {
-            sortFieldInput.value = primary.field;
-            sortDirInput.value = primary.direction;
-        } else {
-            sortFieldInput.value = '';
-            sortDirInput.value = '';
-        }
-    }
-
-    function updatePriorityBadges() {
-        // Show priority numbers on active buttons
-        sortBtns.forEach(btn => {
-            const field = btn.dataset.field;
-            const criterion = sortCriteria.find(c => c.field === field);
-            const badge = btn.querySelector('.sort-priority');
-
-            if (criterion && sortCriteria.length > 1) {
-                // Calculate display priority (1 = highest)
-                const sorted = [...sortCriteria].sort((a, b) => b.priority - a.priority);
-                const displayPriority = sorted.findIndex(c => c.field === field) + 1;
-
-                if (!badge) {
-                    const newBadge = document.createElement('span');
-                    newBadge.className = 'sort-priority';
-                    newBadge.textContent = displayPriority;
-                    btn.querySelector('.sort-label').appendChild(newBadge);
-                } else {
-                    badge.textContent = displayPriority;
-                }
-            } else if (badge) {
-                badge.remove();
-            }
-        });
-    }
-
-    function getCardValue(card, field) {
-        if (field === 'year') {
-            const yearEl = card.querySelector('.result-year');
-            return yearEl ? parseInt(yearEl.textContent) || 0 : 0;
-        } else if (field === 'citations') {
-            const citEl = card.querySelector('.result-citations');
-            if (citEl) {
-                const match = citEl.textContent.match(/[\d,]+/);
-                return match ? parseInt(match[0].replace(/,/g, '')) : 0;
-            }
-            return 0;
-        } else if (field === 'impact_factor') {
-            const ifEl = card.querySelector('.result-if');
-            if (ifEl) {
-                const match = ifEl.textContent.match(/[\d.]+/);
-                return match ? parseFloat(match[0]) : 0;
-            }
-            return 0;
-        }
-        return 0;
-    }
-
-    function sortResults() {
-        if (!resultsContainer) return;
-
-        const cards = Array.from(resultsContainer.querySelectorAll('.result-card-compact, .result-card'));
-        if (cards.length === 0) return;
-
-        if (sortCriteria.length === 0) {
-            // Restore original order
-            originalOrder.forEach(card => {
-                if (card.parentNode === resultsContainer) {
-                    resultsContainer.appendChild(card);
-                }
-            });
-            return;
-        }
-
-        // Sort by criteria (highest priority first)
-        const sortedCriteria = [...sortCriteria].sort((a, b) => b.priority - a.priority);
-
-        cards.sort((a, b) => {
-            for (const criterion of sortedCriteria) {
-                const valA = getCardValue(a, criterion.field);
-                const valB = getCardValue(b, criterion.field);
-
-                if (valA !== valB) {
-                    const diff = criterion.direction === 'desc' ? valB - valA : valA - valB;
-                    if (diff !== 0) return diff;
-                }
-            }
-            return 0;
-        });
-
-        // Reorder in DOM
-        cards.forEach(card => {
-            resultsContainer.appendChild(card);
-        });
-    }
-
-    sortBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const currentDir = this.dataset.direction;
-            const indicator = this.querySelector('.sort-indicator');
-            const field = this.dataset.field;
-            let nextDir;
-
-            // Cycle: none → desc → asc → none
-            if (currentDir === 'none') {
-                nextDir = 'desc';
-                indicator.innerHTML = '<i class="fas fa-arrow-down"></i>';
-                this.classList.add('active');
-
-                // Add to criteria with new highest priority
-                priorityCounter++;
-                sortCriteria.push({ field, direction: nextDir, priority: priorityCounter });
-
-            } else if (currentDir === 'desc') {
-                nextDir = 'asc';
-                indicator.innerHTML = '<i class="fas fa-arrow-up"></i>';
-
-                // Update direction and boost priority
-                const criterion = sortCriteria.find(c => c.field === field);
-                if (criterion) {
-                    criterion.direction = nextDir;
-                    priorityCounter++;
-                    criterion.priority = priorityCounter;
-                }
-
-            } else {
-                nextDir = 'none';
-                indicator.innerHTML = '';
-                this.classList.remove('active');
-
-                // Remove from criteria
-                sortCriteria = sortCriteria.filter(c => c.field !== field);
-            }
-
-            this.dataset.direction = nextDir;
-            updateSortInputs();
-            updatePriorityBadges();
-            sortResults();
-        });
-    });
-});
-</script>
+{% vite_script 'scholar_app/search/source-health-check' %}

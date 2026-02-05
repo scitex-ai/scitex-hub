@@ -55,6 +55,11 @@ def api_docs(request):
         _get_user_api_key(request.user) if request.user.is_authenticated else None
     )
 
+    # Test password for dev mode only (for API docs examples)
+    test_password = ""
+    if settings.DEBUG and request.user.is_authenticated:
+        test_password = getattr(settings, "TEST_USER_PASSWORD", "")
+
     return render(
         request,
         "public_app/pages/api_docs_section.html",
@@ -66,6 +71,8 @@ def api_docs(request):
             "campaign_token": get_active_campaign_token(),
             "user_api_key": user_api_key,
             "version": version,
+            "test_password": test_password,
+            "debug": settings.DEBUG,
         },
     )
 
@@ -92,6 +99,11 @@ def api_docs_section(request, section):
         _get_user_api_key(request.user) if request.user.is_authenticated else None
     )
 
+    # Test password for dev mode only (for API docs examples)
+    test_password = ""
+    if settings.DEBUG and request.user.is_authenticated:
+        test_password = getattr(settings, "TEST_USER_PASSWORD", "")
+
     return render(
         request,
         "public_app/pages/api_docs_section.html",
@@ -103,6 +115,8 @@ def api_docs_section(request, section):
             "campaign_token": get_active_campaign_token(),
             "user_api_key": user_api_key,
             "version": version,
+            "test_password": test_password,
+            "debug": settings.DEBUG,
         },
     )
 

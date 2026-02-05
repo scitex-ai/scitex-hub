@@ -1,599 +1,685 @@
 {% extends "global_base.html" %}
+
 {% load static vite %}
 
 {% block title %}Server Status - SciTeX Cloud{% endblock %}
-
-{% block meta_description %}
-Check the current status of SciTeX Cloud services and infrastructure.
-{% endblock %}
-
+{% block meta_description %}Check the current status of SciTeX Cloud services and infrastructure.{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'public_app/css/server-status.css' %}">
+    <link rel="stylesheet" href="{% static 'public_app/css/demos/00-demos.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/server-status.css' %}" />
 {% endblock %}
-
-{% block extra_js %}
-<!-- Charts are pre-rendered by backend (matplotlib) -->
-{% endblock %}
-
+{% block extra_js %}<!-- Charts are pre-rendered by backend (matplotlib) -->{% endblock %}
 {% block content %}
-<div class="server-status-container">
-    <!-- Hero Section -->
-    <div class="status-hero">
-        <h1 class="status-hero-title">
-            <i class="fas fa-server"></i> Server Status
-        </h1>
-        <p class="status-hero-subtitle">
-            Real-time monitoring of SciTeX Cloud infrastructure and services
-        </p>
-
+    <div class="demos-container">
+        <header class="minimal-hero">
+            <h1 class="minimal-hero-title">
+                <i class="fas fa-server"></i> Server Status
+            </h1>
+            <p class="minimal-hero-subtitle">Real-time monitoring of SciTeX Cloud infrastructure and services</p>
+        </header>
     </div>
-
-    <!-- Unified System Metrics -->
-    <div class="status-section">
-        <div class="section-title-wrapper">
-            <h2 class="section-title has-tooltip" id="metricsTitle" data-tooltip="Real-time metrics from the entire host computer (all processes, not just SciTeX). Charts update every 2 seconds.">
-                <i class="fas fa-chart-area"></i> System Metrics
+    <div class="server-status-container">
+        <!-- Unified System Metrics -->
+        <div class="status-section">
+            <div class="section-title-wrapper">
+                <h2 class="section-title has-tooltip"
+                    id="metricsTitle"
+                    data-tooltip="Real-time metrics from the entire host computer (all processes, not just SciTeX). Charts update every 2 seconds.">
+                    <i class="fas fa-chart-area"></i> System Metrics
+                </h2>
+                <div class="time-span-selector" id="timeSpanSelector">
+                    <button class="time-span-btn active" data-minutes="60">1 Hour</button>
+                    <button class="time-span-btn" data-minutes="360">6 Hours</button>
+                    <button class="time-span-btn" data-minutes="1440">24 Hours</button>
+                </div>
+                <!-- Chart mode selector removed - using matplotlib only -->
+            </div>
+            <div class="services-grid metrics-grid">
+                <!-- CPU Chart -->
+                <div class="metric-card">
+                    <div class="metric-label">
+                        <span>
+                            <i class="fas fa-microchip metric-icon-cpu"></i> CPU Usage
+                        </span>
+                        <span id="cpuCurrentValue" class="metric-current-value metric-current-value-cpu">--</span>
+                    </div>
+                    <img id="cpuChartImg"
+                         class="metric-chart matplotlib-chart"
+                         data-metric="cpu"
+                         src="/api/server-metrics/chart/cpu/?minutes=60" />
+                    {% if status_data.system.cpu_cores %}
+                        <div class="metric-info">
+                            {{ status_data.system.cpu_cores }} cores ({{ status_data.system.cpu_cores_logical }} logical)
+                            {% if status_data.system.cpu_name %}
+                                <br />
+                                {{ status_data.system.cpu_name|truncatechars:50 }}
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+                <!-- Memory Chart -->
+                <div class="metric-card">
+                    <div class="metric-label">
+                        <span>
+                            <i class="fas fa-memory metric-icon-memory"></i> Memory Usage
+                        </span>
+                        <span id="memoryCurrentValue"
+                              class="metric-current-value metric-current-value-memory">--</span>
+                    </div>
+                    <img id="memoryChartImg"
+                         class="metric-chart matplotlib-chart"
+                         data-metric="memory"
+                         src="/api/server-metrics/chart/memory/?minutes=60" />
+                    {% if status_data.system.memory_total_gb %}
+                        <div class="metric-info">
+                            {{ status_data.system.memory_available_gb }} GB / {{ status_data.system.memory_total_gb }} GB available
+                        </div>
+                    {% endif %}
+                </div>
+                <!-- Disk Chart -->
+                <div class="metric-card">
+                    <div class="metric-label">
+                        <span>
+                            <i class="fas fa-hdd metric-icon-disk"></i> Disk Usage
+                        </span>
+                        <span id="diskCurrentValue" class="metric-current-value metric-current-value-disk">--</span>
+                    </div>
+                    <img id="diskChartImg"
+                         class="metric-chart matplotlib-chart"
+                         data-metric="disk"
+                         src="/api/server-metrics/chart/disk/?minutes=60" />
+                    {% if status_data.disk.total_tb %}
+                        <div class="metric-info">{{ status_data.disk.used_tb }} TB / {{ status_data.disk.total_tb }} TB used</div>
+                    {% endif %}
+                </div>
+                <!-- GPU Chart -->
+                <div class="metric-card">
+                    <div class="metric-label">
+                        <span>
+                            <i class="fas fa-desktop metric-icon-gpu"></i> GPU Usage
+                        </span>
+                        <span id="gpuCurrentValue" class="metric-current-value metric-current-value-gpu">--</span>
+                    </div>
+                    <img id="gpuChartImg"
+                         class="metric-chart matplotlib-chart"
+                         data-metric="gpu"
+                         src="/api/server-metrics/chart/gpu/?minutes=60" />
+                    <div id="gpuStatus" class="metric-info">
+                        <i class="fas fa-circle-notch fa-spin"></i> Detecting GPU...
+                    </div>
+                </div>
+                <!-- Disk I/O Chart -->
+                <div class="metric-card">
+                    <div class="metric-label">
+                        <span>
+                            <i class="fas fa-exchange-alt metric-icon-disk-io"></i> Disk I/O Rate
+                        </span>
+                        <span id="diskIoCurrentValue"
+                              class="metric-current-value metric-current-value-disk-io">--</span>
+                    </div>
+                    <img id="diskIoChartImg"
+                         class="metric-chart matplotlib-chart"
+                         data-metric="disk_io"
+                         src="/api/server-metrics/chart/disk_io/?minutes=60" />
+                    {% if status_data.system.disk_read_mb %}
+                        <div class="metric-info">
+                            Total: ↓{{ status_data.system.disk_read_mb }} MB read, ↑{{ status_data.system.disk_write_mb }} MB written
+                        </div>
+                    {% endif %}
+                </div>
+                <!-- Network I/O Chart -->
+                <div class="metric-card">
+                    <div class="metric-label">
+                        <span>
+                            <i class="fas fa-network-wired metric-icon-network"></i> Network I/O Rate
+                        </span>
+                        <span id="netIoCurrentValue"
+                              class="metric-current-value metric-current-value-network">--</span>
+                    </div>
+                    <img id="netIoChartImg"
+                         class="metric-chart matplotlib-chart"
+                         data-metric="net_io"
+                         src="/api/server-metrics/chart/net_io/?minutes=60" />
+                    {% if status_data.system.net_sent_mb %}
+                        <div class="metric-info">
+                            Total: ↑{{ status_data.system.net_sent_mb }} MB sent, ↓{{ status_data.system.net_recv_mb }} MB received
+                        </div>
+                    {% endif %}
+                </div>
+                <!-- Visitor Pool Chart -->
+                <div class="metric-card">
+                    <div class="metric-label">
+                        <span class="has-tooltip"
+                              data-tooltip="Shows how many visitor slots are currently allocated. When full, new visitor users must wait for a slot to free up (sessions expire after 60 minutes).">
+                            <i class="fas fa-users metric-icon-visitor-pool"></i> Visitor Pool
+                        </span>
+                        <span id="visitorPoolCurrentValue"
+                              class="metric-current-value metric-current-value-visitor-pool">--</span>
+                    </div>
+                    <img id="visitorPoolChartImg"
+                         class="metric-chart matplotlib-chart"
+                         data-metric="visitor_pool"
+                         src="/api/server-metrics/chart/visitor_pool/?minutes=60" />
+                    <div class="metric-info">Visitor visitor sessions (1h lifetime each)</div>
+                </div>
+                <!-- Active Users Chart -->
+                <div class="metric-card">
+                    <div class="metric-label">
+                        <span class="has-tooltip"
+                              data-tooltip="Registered users with active sessions (not visitors). Counted based on Django session activity within the last 15 minutes.">
+                            <i class="fas fa-user-check metric-icon-users"></i> Active Users
+                        </span>
+                        <span id="activeUsersCurrentValue"
+                              class="metric-current-value metric-current-value-users">--</span>
+                    </div>
+                    <img id="activeUsersChartImg"
+                         class="metric-chart matplotlib-chart"
+                         data-metric="active_users"
+                         src="/api/server-metrics/chart/active_users/?minutes=60" />
+                    <div class="metric-info">Currently active / {{ status_data.registered_users.total }} registered users</div>
+                </div>
+            </div>
+        </div>
+        <!-- Docker Services -->
+        <div class="status-section">
+            <h2 class="section-title has-tooltip"
+                data-tooltip="Containers managed by docker-compose. Health determined by Docker's built-in healthcheck commands (e.g., 'curl http://localhost:PORT/' for web services).">
+                <i class="fab fa-docker"></i> Docker Services
             </h2>
-            <div class="time-span-selector" id="timeSpanSelector">
-                <button class="time-span-btn active" data-minutes="60">1 Hour</button>
-                <button class="time-span-btn" data-minutes="360">6 Hours</button>
-                <button class="time-span-btn" data-minutes="1440">24 Hours</button>
-            </div>
-            <!-- Chart mode selector removed - using matplotlib only -->
-        </div>
-        <div class="services-grid metrics-grid">
-            <!-- CPU Chart -->
-            <div class="metric-card">
-                <div class="metric-label">
-                    <span>
-                        <i class="fas fa-microchip metric-icon-cpu"></i> CPU Usage
-                    </span>
-                    <span id="cpuCurrentValue" class="metric-current-value metric-current-value-cpu">--</span>
-                </div>
-                <img id="cpuChartImg" class="metric-chart matplotlib-chart" data-metric="cpu" src="/api/server-metrics/chart/cpu/?minutes=60" />
-                {% if status_data.system.cpu_cores %}
-                <div class="metric-info">
-                    {{ status_data.system.cpu_cores }} cores ({{ status_data.system.cpu_cores_logical }} logical)
-                    {% if status_data.system.cpu_name %}
-                    <br>{{ status_data.system.cpu_name|truncatechars:50 }}
-                    {% endif %}
-                </div>
-                {% endif %}
-            </div>
-
-            <!-- Memory Chart -->
-            <div class="metric-card">
-                <div class="metric-label">
-                    <span>
-                        <i class="fas fa-memory metric-icon-memory"></i> Memory Usage
-                    </span>
-                    <span id="memoryCurrentValue" class="metric-current-value metric-current-value-memory">--</span>
-                </div>
-                <img id="memoryChartImg" class="metric-chart matplotlib-chart" data-metric="memory" src="/api/server-metrics/chart/memory/?minutes=60" />
-                {% if status_data.system.memory_total_gb %}
-                <div class="metric-info">
-                    {{ status_data.system.memory_available_gb }} GB / {{ status_data.system.memory_total_gb }} GB available
-                </div>
-                {% endif %}
-            </div>
-
-            <!-- Disk Chart -->
-            <div class="metric-card">
-                <div class="metric-label">
-                    <span>
-                        <i class="fas fa-hdd metric-icon-disk"></i> Disk Usage
-                    </span>
-                    <span id="diskCurrentValue" class="metric-current-value metric-current-value-disk">--</span>
-                </div>
-                <img id="diskChartImg" class="metric-chart matplotlib-chart" data-metric="disk" src="/api/server-metrics/chart/disk/?minutes=60" />
-                {% if status_data.disk.total_tb %}
-                <div class="metric-info">
-                    {{ status_data.disk.used_tb }} TB / {{ status_data.disk.total_tb }} TB used
-                </div>
-                {% endif %}
-            </div>
-
-            <!-- GPU Chart -->
-            <div class="metric-card">
-                <div class="metric-label">
-                    <span>
-                        <i class="fas fa-desktop metric-icon-gpu"></i> GPU Usage
-                    </span>
-                    <span id="gpuCurrentValue" class="metric-current-value metric-current-value-gpu">--</span>
-                </div>
-                <img id="gpuChartImg" class="metric-chart matplotlib-chart" data-metric="gpu" src="/api/server-metrics/chart/gpu/?minutes=60" />
-                <div id="gpuStatus" class="metric-info">
-                    <i class="fas fa-circle-notch fa-spin"></i> Detecting GPU...
-                </div>
-            </div>
-
-            <!-- Disk I/O Chart -->
-            <div class="metric-card">
-                <div class="metric-label">
-                    <span>
-                        <i class="fas fa-exchange-alt metric-icon-disk-io"></i> Disk I/O Rate
-                    </span>
-                    <span id="diskIoCurrentValue" class="metric-current-value metric-current-value-disk-io">--</span>
-                </div>
-                <img id="diskIoChartImg" class="metric-chart matplotlib-chart" data-metric="disk_io" src="/api/server-metrics/chart/disk_io/?minutes=60" />
-                {% if status_data.system.disk_read_mb %}
-                <div class="metric-info">
-                    Total: ↓{{ status_data.system.disk_read_mb }} MB read, ↑{{ status_data.system.disk_write_mb }} MB written
-                </div>
-                {% endif %}
-            </div>
-
-            <!-- Network I/O Chart -->
-            <div class="metric-card">
-                <div class="metric-label">
-                    <span>
-                        <i class="fas fa-network-wired metric-icon-network"></i> Network I/O Rate
-                    </span>
-                    <span id="netIoCurrentValue" class="metric-current-value metric-current-value-network">--</span>
-                </div>
-                <img id="netIoChartImg" class="metric-chart matplotlib-chart" data-metric="net_io" src="/api/server-metrics/chart/net_io/?minutes=60" />
-                {% if status_data.system.net_sent_mb %}
-                <div class="metric-info">
-                    Total: ↑{{ status_data.system.net_sent_mb }} MB sent, ↓{{ status_data.system.net_recv_mb }} MB received
-                </div>
-                {% endif %}
-            </div>
-
-            <!-- Visitor Pool Chart -->
-            <div class="metric-card">
-                <div class="metric-label">
-                    <span class="has-tooltip" data-tooltip="Shows how many visitor slots are currently allocated. When full, new visitor users must wait for a slot to free up (sessions expire after 60 minutes).">
-                        <i class="fas fa-users metric-icon-visitor-pool"></i> Visitor Pool
-                    </span>
-                    <span id="visitorPoolCurrentValue" class="metric-current-value metric-current-value-visitor-pool">--</span>
-                </div>
-                <img id="visitorPoolChartImg" class="metric-chart matplotlib-chart" data-metric="visitor_pool" src="/api/server-metrics/chart/visitor_pool/?minutes=60" />
-                <div class="metric-info">
-                    Visitor visitor sessions (1h lifetime each)
-                </div>
-            </div>
-
-            <!-- Active Users Chart -->
-            <div class="metric-card">
-                <div class="metric-label">
-                    <span class="has-tooltip" data-tooltip="Registered users with active sessions (not visitors). Counted based on Django session activity within the last 15 minutes.">
-                        <i class="fas fa-user-check metric-icon-users"></i> Active Users
-                    </span>
-                    <span id="activeUsersCurrentValue" class="metric-current-value metric-current-value-users">--</span>
-                </div>
-                <img id="activeUsersChartImg" class="metric-chart matplotlib-chart" data-metric="active_users" src="/api/server-metrics/chart/active_users/?minutes=60" />
-                <div class="metric-info">
-                    Currently active / {{ status_data.registered_users.total }} registered users
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Docker Services -->
-    <div class="status-section">
-        <h2 class="section-title has-tooltip" data-tooltip="Containers managed by docker-compose. Health determined by Docker's built-in healthcheck commands (e.g., 'curl http://localhost:PORT/' for web services).">
-            <i class="fab fa-docker"></i> Docker Services
-        </h2>
-        <div class="services-grid">
-            {% for service in status_data.services %}
-            <div class="service-card {{ service.health_class }} has-tooltip"
-                 data-tooltip="Health Check: Docker healthcheck command verifies service is responding. {% if 'django' in service.name|lower %}curl http://localhost:8000/{% elif 'nginx' in service.name|lower %}curl http://localhost:80/{% elif 'postgres' in service.name|lower or 'db' in service.name|lower %}pg_isready command{% elif 'redis' in service.name|lower %}redis-cli ping{% elif 'gitea' in service.name|lower %}curl http://localhost:3000/{% elif 'flower' in service.name|lower %}curl http://localhost:5555/{% elif 'celery' in service.name|lower %}Python redis ping test{% elif 'cloudflared' in service.name|lower %}cloudflared version check{% endif %}">
-                <div class="service-header">
-                    <div class="service-name">
-                        <i class="fas fa-cube"></i> {{ service.name|title }}
+            <div class="services-grid">
+                {% for service in status_data.services %}
+                    <div class="service-card {{ service.health_class }} has-tooltip"
+                         data-tooltip="Health Check: Docker healthcheck command verifies service is responding. {% if 'django' in service.name|lower %}curl http://localhost:8000/{% elif 'nginx' in service.name|lower %}curl http://localhost:80/{% elif 'postgres' in service.name|lower or 'db' in service.name|lower %}pg_isready command{% elif 'redis' in service.name|lower %}redis-cli ping{% elif 'gitea' in service.name|lower %}curl http://localhost:3000/{% elif 'flower' in service.name|lower %}curl http://localhost:5555/{% elif 'celery' in service.name|lower %}Python redis ping test{% elif 'cloudflared' in service.name|lower %}cloudflared version check{% endif %}">
+                        <div class="service-header">
+                            <div class="service-name">
+                                <i class="fas fa-cube"></i> {{ service.name|title }}
+                            </div>
+                            <span class="status-badge {{ service.health_class }}">
+                                <i class="fas fa-circle"></i>
+                                {% if service.health_status %}
+                                    {{ service.health_status|upper }}
+                                {% else %}
+                                    {{ service.status|upper }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="service-details">
+                            {% if service.health_status and service.health_status != 'healthy' %}
+                                <div>
+                                    <strong>Container:</strong> {{ service.status }}
+                                </div>
+                            {% endif %}
+                            {% if service.image %}
+                                <div>
+                                    <strong>Image:</strong> {{ service.image }}
+                                </div>
+                            {% endif %}
+                            {% if service.error %}
+                                <div class="error-message">
+                                    <strong>Error:</strong> {{ service.error }}
+                                </div>
+                            {% endif %}
+                        </div>
                     </div>
-                    <span class="status-badge {{ service.health_class }}">
-                        <i class="fas fa-circle"></i>
-                        {% if service.health_status %}
-                            {{ service.health_status|upper }}
-                        {% else %}
-                            {{ service.status|upper }}
+                {% empty %}
+                    <div class="service-card warning">
+                        <p>No Docker services detected</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        <!-- SSH Services -->
+        <div class="status-section">
+            <h2 class="section-title has-tooltip"
+                data-tooltip="SSH gateways for terminal and Git access via Cloudflare Tunnel. Health checked by SSH banner verification. All services use key-based authentication only (no passwords).">
+                <i class="fas fa-key"></i> SSH Services
+            </h2>
+            <div class="services-grid">
+                {% for ssh in status_data.ssh_services %}
+                    <div class="service-card {{ ssh.health_class }} has-tooltip"
+                         data-tooltip="Health Check: SSH banner verification on port {{ ssh.port }}. Returns healthy if SSH protocol banner is received.">
+                        <div class="service-header">
+                            <div class="service-name">
+                                <i class="fas fa-terminal"></i> {{ ssh.name }}
+                            </div>
+                            <span class="status-badge {{ ssh.health_class }}">
+                                <i class="fas fa-circle"></i>
+                                {% if ssh.health_class == 'healthy' %}
+                                    HEALTHY
+                                {% elif ssh.health_class == 'unhealthy' %}
+                                    UNHEALTHY
+                                {% else %}
+                                    {{ ssh.status|upper }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="service-details">
+                            <div>
+                                <strong>Port:</strong> {{ ssh.port }}
+                            </div>
+                            {% if ssh.public_url %}
+                                <div>
+                                    <strong>Public:</strong> {{ ssh.public_url }}
+                                </div>
+                            {% endif %}
+                            {% if ssh.banner %}
+                                <div>
+                                    <strong>Banner:</strong> <code>{{ ssh.banner|truncatechars:40 }}</code>
+                                </div>
+                            {% endif %}
+                            <div>
+                                <strong>Auth:</strong> SSH Key Only (via cloudflared)
+                            </div>
+                            {% if ssh.error %}
+                                <div class="error-message">
+                                    <strong>Error:</strong> {{ ssh.error }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <!-- SSH Authentication Info -->
+            <div class="info-box info-box-with-margin">
+                <p>
+                    <i class="fas fa-info-circle"></i>
+                    <strong>SSH Authentication:</strong> All SSH services use key-based authentication via cloudflared tunnel.
+                    <a href="/accounts/settings/ssh-keys/">Manage your SSH keys →</a>
+                </p>
+            </div>
+        </div>
+        <!-- API Services -->
+        <div class="status-section">
+            <h2 class="section-title has-tooltip"
+                data-tooltip="External API services. Health checked by HTTP request to health/version endpoints.">
+                <i class="fas fa-plug"></i> API Services
+            </h2>
+            <div class="services-grid">
+                {% for api in status_data.api_services %}
+                    <div class="service-card {{ api.health_class }} has-tooltip"
+                         data-tooltip="Health Check: HTTP GET request to service endpoint. Returns healthy if HTTP 200 response received.">
+                        <div class="service-header">
+                            <div class="service-name">
+                                <i class="fas fa-globe"></i> {{ api.name }}
+                            </div>
+                            <span class="status-badge {{ api.health_class }}">
+                                <i class="fas fa-circle"></i>
+                                {% if api.health_class == 'healthy' %}
+                                    HEALTHY
+                                {% elif api.health_class == 'unhealthy' %}
+                                    UNHEALTHY
+                                {% else %}
+                                    {{ api.status|upper }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="service-details">
+                            <div>
+                                <strong>Internal:</strong> {{ api.url }}
+                            </div>
+                            {% if api.public_url %}
+                                <div>
+                                    <strong>Public:</strong> <a href="{{ api.public_url }}" target="_blank">{{ api.public_url }}</a>
+                                </div>
+                            {% endif %}
+                            {% if api.details %}
+                                <div>
+                                    <strong>Version:</strong> {{ api.details }}
+                                </div>
+                            {% endif %}
+                            {% if api.response_time_ms %}
+                                <div>
+                                    <strong>Response:</strong> {{ api.response_time_ms }}ms
+                                </div>
+                            {% endif %}
+                            {% if api.error %}
+                                <div class="error-message">
+                                    <strong>Error:</strong> {{ api.error }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        <!-- Package Versions -->
+        <div class="status-section">
+            <h2 class="section-title has-tooltip"
+                data-tooltip="Versions of SciTeX ecosystem packages currently running in this deployment.">
+                <i class="fas fa-code-branch"></i> Package Versions
+            </h2>
+            <div class="services-grid">
+                {% for pkg in status_data.package_versions %}
+                    <div class="service-card {% if pkg.is_installed %}healthy{% else %}warning{% endif %}">
+                        <div class="service-header">
+                            <div class="service-name">
+                                <i class="fas {{ pkg.icon }}"></i> {{ pkg.name }}
+                            </div>
+                            <span class="version-badge {% if pkg.is_installed %}version-installed{% else %}version-missing{% endif %}">
+                                {{ pkg.version }}
+                            </span>
+                        </div>
+                        <div class="service-details">
+                            <div>
+                                <strong>Package:</strong> <code>{{ pkg.package }}</code>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="service-card warning">
+                        <p>Could not detect package versions</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        <!-- Database & Cache -->
+        <div class="status-section">
+            <h2 class="section-title has-tooltip"
+                data-tooltip="PostgreSQL: Main database (health = 'SELECT 1' query succeeds). Redis: Session storage and cache (health = cache.set/get works).">
+                <i class="fas fa-database"></i> Database & Cache
+            </h2>
+            <div class="services-grid">
+                <!-- PostgreSQL -->
+                <div class="service-card {{ status_data.database.health_class }} has-tooltip"
+                     data-tooltip="Health Check: Executes 'SELECT 1' query. Returns healthy if database connection succeeds and query returns result.">
+                    <div class="service-header">
+                        <div class="service-name">
+                            <i class="fas fa-database"></i> PostgreSQL
+                        </div>
+                        <span class="status-badge {{ status_data.database.health_class }}">
+                            <i class="fas fa-circle"></i>
+                            {% if status_data.database.health_class == 'healthy' %}
+                                HEALTHY
+                            {% elif status_data.database.health_class == 'unhealthy' %}
+                                UNHEALTHY
+                            {% else %}
+                                {{ status_data.database.status|upper }}
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="service-details">
+                        {% if status_data.database.backend %}
+                            <div>
+                                <strong>Backend:</strong> {{ status_data.database.backend }}
+                            </div>
                         {% endif %}
-                    </span>
-                </div>
-                <div class="service-details">
-                    {% if service.health_status and service.health_status != 'healthy' %}
-                    <div><strong>Container:</strong> {{ service.status }}</div>
-                    {% endif %}
-                    {% if service.image %}
-                    <div><strong>Image:</strong> {{ service.image }}</div>
-                    {% endif %}
-                    {% if service.error %}
-                    <div class="error-message"><strong>Error:</strong> {{ service.error }}</div>
-                    {% endif %}
-                </div>
-            </div>
-            {% empty %}
-            <div class="service-card warning">
-                <p>No Docker services detected</p>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-
-    <!-- SSH Services -->
-    <div class="status-section">
-        <h2 class="section-title has-tooltip" data-tooltip="SSH gateways for terminal and Git access via Cloudflare Tunnel. Health checked by SSH banner verification. All services use key-based authentication only (no passwords).">
-            <i class="fas fa-key"></i> SSH Services
-        </h2>
-        <div class="services-grid">
-            {% for ssh in status_data.ssh_services %}
-            <div class="service-card {{ ssh.health_class }} has-tooltip"
-                 data-tooltip="Health Check: SSH banner verification on port {{ ssh.port }}. Returns healthy if SSH protocol banner is received.">
-                <div class="service-header">
-                    <div class="service-name">
-                        <i class="fas fa-terminal"></i> {{ ssh.name }}
+                        {% if status_data.database.name %}
+                            <div>
+                                <strong>Database:</strong> {{ status_data.database.name }}
+                            </div>
+                        {% endif %}
+                        {% if status_data.database.error %}
+                            <div class="error-message">
+                                <strong>Error:</strong> {{ status_data.database.error }}
+                            </div>
+                        {% endif %}
                     </div>
-                    <span class="status-badge {{ ssh.health_class }}">
-                        <i class="fas fa-circle"></i>
-                        {% if ssh.health_class == 'healthy' %}HEALTHY{% elif ssh.health_class == 'unhealthy' %}UNHEALTHY{% else %}{{ ssh.status|upper }}{% endif %}
-                    </span>
                 </div>
-                <div class="service-details">
-                    <div><strong>Port:</strong> {{ ssh.port }}</div>
-                    {% if ssh.public_url %}
-                    <div><strong>Public:</strong> {{ ssh.public_url }}</div>
-                    {% endif %}
-                    {% if ssh.banner %}
-                    <div><strong>Banner:</strong> <code>{{ ssh.banner|truncatechars:40 }}</code></div>
-                    {% endif %}
-                    <div><strong>Auth:</strong> SSH Key Only (via cloudflared)</div>
-                    {% if ssh.error %}
-                    <div class="error-message"><strong>Error:</strong> {{ ssh.error }}</div>
-                    {% endif %}
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-
-        <!-- SSH Authentication Info -->
-        <div class="info-box info-box-with-margin">
-            <p>
-                <i class="fas fa-info-circle"></i>
-                <strong>SSH Authentication:</strong> All SSH services use key-based authentication via cloudflared tunnel.
-                <a href="/accounts/settings/ssh-keys/">Manage your SSH keys →</a>
-            </p>
-        </div>
-    </div>
-
-    <!-- API Services -->
-    <div class="status-section">
-        <h2 class="section-title has-tooltip" data-tooltip="External API services. Health checked by HTTP request to health/version endpoints.">
-            <i class="fas fa-plug"></i> API Services
-        </h2>
-        <div class="services-grid">
-            {% for api in status_data.api_services %}
-            <div class="service-card {{ api.health_class }} has-tooltip"
-                 data-tooltip="Health Check: HTTP GET request to service endpoint. Returns healthy if HTTP 200 response received.">
-                <div class="service-header">
-                    <div class="service-name">
-                        <i class="fas fa-globe"></i> {{ api.name }}
+                <!-- Redis -->
+                <div class="service-card {{ status_data.redis.health_class }} has-tooltip"
+                     data-tooltip="Health Check: Performs cache.set() and cache.get() operations. Returns healthy if both operations succeed.">
+                    <div class="service-header">
+                        <div class="service-name">
+                            <i class="fas fa-memory"></i> Redis Cache
+                        </div>
+                        <span class="status-badge {{ status_data.redis.health_class }}">
+                            <i class="fas fa-circle"></i>
+                            {% if status_data.redis.health_class == 'healthy' %}
+                                HEALTHY
+                            {% elif status_data.redis.health_class == 'unhealthy' %}
+                                UNHEALTHY
+                            {% else %}
+                                {{ status_data.redis.status|upper }}
+                            {% endif %}
+                        </span>
                     </div>
-                    <span class="status-badge {{ api.health_class }}">
-                        <i class="fas fa-circle"></i>
-                        {% if api.health_class == 'healthy' %}HEALTHY{% elif api.health_class == 'unhealthy' %}UNHEALTHY{% else %}{{ api.status|upper }}{% endif %}
-                    </span>
-                </div>
-                <div class="service-details">
-                    <div><strong>Internal:</strong> {{ api.url }}</div>
-                    {% if api.public_url %}
-                    <div><strong>Public:</strong> <a href="{{ api.public_url }}" target="_blank">{{ api.public_url }}</a></div>
-                    {% endif %}
-                    {% if api.details %}
-                    <div><strong>Version:</strong> {{ api.details }}</div>
-                    {% endif %}
-                    {% if api.response_time_ms %}
-                    <div><strong>Response:</strong> {{ api.response_time_ms }}ms</div>
-                    {% endif %}
-                    {% if api.error %}
-                    <div class="error-message"><strong>Error:</strong> {{ api.error }}</div>
-                    {% endif %}
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-
-    <!-- Package Versions -->
-    <div class="status-section">
-        <h2 class="section-title has-tooltip" data-tooltip="Versions of SciTeX ecosystem packages currently running in this deployment.">
-            <i class="fas fa-code-branch"></i> Package Versions
-        </h2>
-        <div class="services-grid">
-            {% for pkg in status_data.package_versions %}
-            <div class="service-card {% if pkg.is_installed %}healthy{% else %}warning{% endif %}">
-                <div class="service-header">
-                    <div class="service-name">
-                        <i class="fas {{ pkg.icon }}"></i> {{ pkg.name }}
+                    <div class="service-details">
+                        <div>
+                            <strong>Purpose:</strong> Session & Cache
+                        </div>
+                        {% if status_data.redis.error %}
+                            <div class="error-message">
+                                <strong>Error:</strong> {{ status_data.redis.error }}
+                            </div>
+                        {% endif %}
                     </div>
-                    <span class="version-badge {% if pkg.is_installed %}version-installed{% else %}version-missing{% endif %}">
-                        {{ pkg.version }}
-                    </span>
-                </div>
-                <div class="service-details">
-                    <div><strong>Package:</strong> <code>{{ pkg.package }}</code></div>
-                </div>
-            </div>
-            {% empty %}
-            <div class="service-card warning">
-                <p>Could not detect package versions</p>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-
-    <!-- Database & Cache -->
-    <div class="status-section">
-        <h2 class="section-title has-tooltip" data-tooltip="PostgreSQL: Main database (health = 'SELECT 1' query succeeds). Redis: Session storage and cache (health = cache.set/get works).">
-            <i class="fas fa-database"></i> Database & Cache
-        </h2>
-        <div class="services-grid">
-            <!-- PostgreSQL -->
-            <div class="service-card {{ status_data.database.health_class }} has-tooltip"
-                 data-tooltip="Health Check: Executes 'SELECT 1' query. Returns healthy if database connection succeeds and query returns result.">
-                <div class="service-header">
-                    <div class="service-name">
-                        <i class="fas fa-database"></i> PostgreSQL
-                    </div>
-                    <span class="status-badge {{ status_data.database.health_class }}">
-                        <i class="fas fa-circle"></i>
-                        {% if status_data.database.health_class == 'healthy' %}HEALTHY{% elif status_data.database.health_class == 'unhealthy' %}UNHEALTHY{% else %}{{ status_data.database.status|upper }}{% endif %}
-                    </span>
-                </div>
-                <div class="service-details">
-                    {% if status_data.database.backend %}
-                    <div><strong>Backend:</strong> {{ status_data.database.backend }}</div>
-                    {% endif %}
-                    {% if status_data.database.name %}
-                    <div><strong>Database:</strong> {{ status_data.database.name }}</div>
-                    {% endif %}
-                    {% if status_data.database.error %}
-                    <div class="error-message"><strong>Error:</strong> {{ status_data.database.error }}</div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Redis -->
-            <div class="service-card {{ status_data.redis.health_class }} has-tooltip"
-                 data-tooltip="Health Check: Performs cache.set() and cache.get() operations. Returns healthy if both operations succeed.">
-                <div class="service-header">
-                    <div class="service-name">
-                        <i class="fas fa-memory"></i> Redis Cache
-                    </div>
-                    <span class="status-badge {{ status_data.redis.health_class }}">
-                        <i class="fas fa-circle"></i>
-                        {% if status_data.redis.health_class == 'healthy' %}HEALTHY{% elif status_data.redis.health_class == 'unhealthy' %}UNHEALTHY{% else %}{{ status_data.redis.status|upper }}{% endif %}
-                    </span>
-                </div>
-                <div class="service-details">
-                    <div><strong>Purpose:</strong> Session & Cache</div>
-                    {% if status_data.redis.error %}
-                    <div class="error-message"><strong>Error:</strong> {{ status_data.redis.error }}</div>
-                    {% endif %}
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Computational Services (SLURM & Apptainer) -->
-    <div class="status-section">
-        <h2 class="section-title has-tooltip" data-tooltip="SLURM: Job scheduler and resource manager (health = 'sinfo' command returns partitions). Apptainer: Secure container runtime for user code execution (health = version command succeeds).">
-            <i class="fas fa-server"></i> Computational Services
-        </h2>
-        <div class="services-grid">
-            <!-- SLURM -->
-            <div class="service-card {{ status_data.slurm.health_class }} has-tooltip"
-                 data-tooltip="Health Checks: {{ status_data.slurm.message|default:'SLURM status check' }}. Tests: 1) SLURM services (sinfo command), 2) scitex user exists (UID 1000), 3) Job execution (actual SLURM job test). All must pass for HEALTHY status.">
-                <div class="service-header">
-                    <div class="service-name">
-                        <i class="fas fa-tasks"></i> Slurm
+        <!-- Computational Services (SLURM & Apptainer) -->
+        <div class="status-section">
+            <h2 class="section-title has-tooltip"
+                data-tooltip="SLURM: Job scheduler and resource manager (health = 'sinfo' command returns partitions). Apptainer: Secure container runtime for user code execution (health = version command succeeds).">
+                <i class="fas fa-server"></i> Computational Services
+            </h2>
+            <div class="services-grid">
+                <!-- SLURM -->
+                <div class="service-card {{ status_data.slurm.health_class }} has-tooltip"
+                     data-tooltip="Health Checks: {{ status_data.slurm.message|default:'SLURM status check' }}. Tests: 1) SLURM services (sinfo command), 2) scitex user exists (UID 1000), 3) Job execution (actual SLURM job test). All must pass for HEALTHY status.">
+                    <div class="service-header">
+                        <div class="service-name">
+                            <i class="fas fa-tasks"></i> Slurm
+                        </div>
+                        <span class="status-badge {{ status_data.slurm.health_class }}">
+                            <i class="fas fa-circle"></i>
+                            {% if status_data.slurm.health_class == 'healthy' %}
+                                HEALTHY
+                            {% elif status_data.slurm.health_class == 'unhealthy' %}
+                                DOWN
+                            {% else %}
+                                {{ status_data.slurm.status|upper }}
+                            {% endif %}
+                        </span>
                     </div>
-                    <span class="status-badge {{ status_data.slurm.health_class }}">
-                        <i class="fas fa-circle"></i>
-                        {% if status_data.slurm.health_class == 'healthy' %}HEALTHY{% elif status_data.slurm.health_class == 'unhealthy' %}DOWN{% else %}{{ status_data.slurm.status|upper }}{% endif %}
-                    </span>
+                    <div class="service-details">
+                        <div>
+                            <strong>Purpose:</strong> Job Scheduling & Resource Management
+                        </div>
+                        {% if status_data.slurm.partitions %}
+                            <div>
+                                <strong>Partitions:</strong> {{ status_data.slurm.partitions }}
+                            </div>
+                        {% endif %}
+                        {% if status_data.slurm.error %}
+                            <div class="error-message">
+                                <strong>Error:</strong> {{ status_data.slurm.error }}
+                            </div>
+                        {% endif %}
+                        {% if not status_data.slurm.is_running and not status_data.slurm.error %}
+                            <div class="warning-message">
+                                <strong>Hint:</strong> Run <code>make slurm-start</code> to start
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
-                <div class="service-details">
-                    <div><strong>Purpose:</strong> Job Scheduling & Resource Management</div>
-                    {% if status_data.slurm.partitions %}
-                    <div><strong>Partitions:</strong> {{ status_data.slurm.partitions }}</div>
-                    {% endif %}
-                    {% if status_data.slurm.error %}
-                    <div class="error-message"><strong>Error:</strong> {{ status_data.slurm.error }}</div>
-                    {% endif %}
-                    {% if not status_data.slurm.is_running and not status_data.slurm.error %}
-                    <div class="warning-message"><strong>Hint:</strong> Run <code>make slurm-start</code> to start</div>
-                    {% endif %}
+                <!-- Apptainer/Singularity -->
+                <div class="service-card {{ status_data.apptainer.health_class }} has-tooltip"
+                     data-tooltip="Health Check: Executes 'apptainer --version' command. Returns healthy if command succeeds and returns version string.">
+                    <div class="service-header">
+                        <div class="service-name">
+                            <i class="fas fa-box"></i> {{ status_data.apptainer.command|default:"Apptainer"|title }}
+                        </div>
+                        <span class="status-badge {{ status_data.apptainer.health_class }}">
+                            <i class="fas fa-circle"></i>
+                            {% if status_data.apptainer.health_class == 'healthy' %}
+                                HEALTHY
+                            {% elif status_data.apptainer.health_class == 'unhealthy' %}
+                                ERROR
+                            {% else %}
+                                {{ status_data.apptainer.status|upper }}
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="service-details">
+                        <div>
+                            <strong>Purpose:</strong> Secure Container Runtime
+                        </div>
+                        {% if status_data.apptainer.version %}
+                            <div>
+                                <strong>Version:</strong> {{ status_data.apptainer.version }}
+                            </div>
+                        {% endif %}
+                        {% if status_data.apptainer.error %}
+                            <div class="error-message">
+                                <strong>Error:</strong> {{ status_data.apptainer.error }}
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
-
-            <!-- Apptainer/Singularity -->
-            <div class="service-card {{ status_data.apptainer.health_class }} has-tooltip"
-                 data-tooltip="Health Check: Executes 'apptainer --version' command. Returns healthy if command succeeds and returns version string.">
-                <div class="service-header">
-                    <div class="service-name">
-                        <i class="fas fa-box"></i> {{ status_data.apptainer.command|default:"Apptainer"|title }}
-                    </div>
-                    <span class="status-badge {{ status_data.apptainer.health_class }}">
-                        <i class="fas fa-circle"></i>
-                        {% if status_data.apptainer.health_class == 'healthy' %}HEALTHY{% elif status_data.apptainer.health_class == 'unhealthy' %}ERROR{% else %}{{ status_data.apptainer.status|upper }}{% endif %}
-                    </span>
-                </div>
-                <div class="service-details">
-                    <div><strong>Purpose:</strong> Secure Container Runtime</div>
-                    {% if status_data.apptainer.version %}
-                    <div><strong>Version:</strong> {{ status_data.apptainer.version }}</div>
-                    {% endif %}
-                    {% if status_data.apptainer.error %}
-                    <div class="error-message"><strong>Error:</strong> {{ status_data.apptainer.error }}</div>
-                    {% endif %}
-                </div>
+            <!-- HPC Info -->
+            <div class="info-box info-box-with-margin">
+                <p>
+                    <i class="fas fa-info-circle"></i>
+                    <strong>HPC Terminal:</strong> User terminals run inside Apptainer containers via SLURM for security and resource management.
+                </p>
             </div>
         </div>
-
-        <!-- HPC Info -->
-        <div class="info-box info-box-with-margin">
-            <p>
-                <i class="fas fa-info-circle"></i>
-                <strong>HPC Terminal:</strong> User terminals run inside Apptainer containers via SLURM for security and resource management.
-            </p>
-        </div>
-    </div>
-
-    <!-- Visitor Pool Slots -->
-    <div class="status-section">
-        <h2 class="section-title has-tooltip" data-tooltip="Visitor users get temporary visitor slots (visitor-001, visitor-002, etc.) with 60-minute sessions. Pool size configured via SCITEX_CLOUD_VISITOR_POOL_SIZE in .env file.">
-            <i class="fas fa-users"></i> Visitor Pool
-            {% if status_data.visitor_pool.pool_status %}
-            <span class="visitor-pool-status-count">
-                {{ status_data.visitor_pool.pool_status.allocated }}/{{ status_data.visitor_pool.pool_status.total }} slots allocated
-            </span>
-            {% endif %}
-        </h2>
-
-        {% if status_data.visitor_pool.allocations %}
-        <div class="slots-grid">
-            {% for allocation in status_data.visitor_pool.allocations %}
-            <div class="slot-card {{ allocation.status }} {% if allocation.is_current_user %}current-user{% endif %}">
-                <div class="slot-header">
-                    <div class="slot-number">
-                        <i class="fas fa-cube allocation-project-icon"></i>
-                        Slot #{{ allocation.slot_number }}
-                    </div>
-                    <span class="slot-status-badge {{ allocation.status }}">
-                        {{ allocation.status|upper }}
+        <!-- Visitor Pool Slots -->
+        <div class="status-section">
+            <h2 class="section-title has-tooltip"
+                data-tooltip="Visitor users get temporary visitor slots (visitor-001, visitor-002, etc.) with 60-minute sessions. Pool size configured via SCITEX_CLOUD_VISITOR_POOL_SIZE in .env file.">
+                <i class="fas fa-users"></i> Visitor Pool
+                {% if status_data.visitor_pool.pool_status %}
+                    <span class="visitor-pool-status-count">
+                        {{ status_data.visitor_pool.pool_status.allocated }}/{{ status_data.visitor_pool.pool_status.total }} slots allocated
                     </span>
-                </div>
-
-                {% if allocation.status == "allocated" %}
-                <div class="slot-info">
-                    <i class="fas fa-user allocation-visitor-icon"></i>
-                    {{ allocation.visitor_username }}{% if allocation.is_current_user %} <strong class="allocation-current-user">(You)</strong>{% endif %}
-                </div>
-                <div class="slot-time-remaining" data-expires="{{ allocation.expires_at|date:'c' }}">
-                    <i class="fas fa-clock"></i>
-                    <span>
-                        Expires in {{ allocation.minutes_remaining }} min
-                    </span>
-                </div>
-                {% else %}
-                <div class="slot-info">
-                    <i class="fas fa-check-circle allocation-active-icon"></i>
-                    Available
-                </div>
                 {% endif %}
+            </h2>
+            {% if status_data.visitor_pool.allocations %}
+                <div class="slots-grid">
+                    {% for allocation in status_data.visitor_pool.allocations %}
+                        <div class="slot-card {{ allocation.status }} {% if allocation.is_current_user %}current-user{% endif %}">
+                            <div class="slot-header">
+                                <div class="slot-number">
+                                    <i class="fas fa-cube allocation-project-icon"></i>
+                                    Slot #{{ allocation.slot_number }}
+                                </div>
+                                <span class="slot-status-badge {{ allocation.status }}">{{ allocation.status|upper }}</span>
+                            </div>
+                            {% if allocation.status == "allocated" %}
+                                <div class="slot-info">
+                                    <i class="fas fa-user allocation-visitor-icon"></i>
+                                    {{ allocation.visitor_username }}
+                                    {% if allocation.is_current_user %}<strong class="allocation-current-user">(You)</strong>{% endif %}
+                                </div>
+                                <div class="slot-time-remaining" data-expires="{{ allocation.expires_at|date:'c' }}">
+                                    <i class="fas fa-clock"></i>
+                                    <span>Expires in {{ allocation.minutes_remaining }} min</span>
+                                </div>
+                            {% else %}
+                                <div class="slot-info">
+                                    <i class="fas fa-check-circle allocation-active-icon"></i>
+                                    Available
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="info-box info-box-with-margin">
+                    <p>
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Could not load visitor pool status.
+                    </p>
+                </div>
+            {% endif %}
+            <!-- How It Works -->
+            <div class="visitor-pool-section">
+                <h3 class="visitor-pool-title">
+                    <i class="fas fa-info-circle"></i> How Visitor Mode Works
+                </h3>
+                <div class="visitor-pool-grid">
+                    <!-- Slot Allocation -->
+                    <div class="info-card">
+                        <h4 class="visitor-pool-card-title">
+                            <i class="fas fa-user-tag visitor-pool-icon"></i>
+                            Slot Allocation
+                        </h4>
+                        <p class="visitor-pool-card-text">
+                            Navigate to any workspace to get assigned a visitor slot (e.g., <code>visitor-001</code>). First-come, first-served.
+                        </p>
+                    </div>
+                    <!-- Data Separation -->
+                    <div class="info-card">
+                        <h4 class="visitor-pool-card-title">
+                            <i class="fas fa-shield-alt visitor-pool-icon"></i>
+                            Data Privacy
+                        </h4>
+                        <p class="visitor-pool-card-text">
+                            Your data is completely isolated. Each visitor has a private workspace. No one else can see your work.
+                        </p>
+                    </div>
+                    <!-- Session Duration -->
+                    <div class="info-card">
+                        <h4 class="visitor-pool-card-title">
+                            <i class="fas fa-clock visitor-pool-icon"></i>
+                            60-Minute Sessions
+                        </h4>
+                        <p class="visitor-pool-card-text">Slots expire after 1 hour. Sign up to migrate your data and get unlimited access.</p>
+                    </div>
+                    <!-- Sign Up -->
+                    <div class="info-card">
+                        <h4 class="visitor-pool-card-title">
+                            <i class="fas fa-user-plus visitor-pool-icon"></i>
+                            Keep Your Work
+                        </h4>
+                        <p class="visitor-pool-card-text">
+                            <a href="{% url 'auth_app:signup' %}" class="visitor-pool-link">Sign up</a> anytime to save your work permanently. All data auto-migrates.
+                        </p>
+                    </div>
+                </div>
             </div>
-            {% endfor %}
         </div>
-        {% else %}
-        <div class="info-box info-box-with-margin">
-            <p>
-                <i class="fas fa-exclamation-triangle"></i>
-                Could not load visitor pool status.
-            </p>
-        </div>
-        {% endif %}
-
-        <!-- How It Works -->
-        <div class="visitor-pool-section">
-            <h3 class="visitor-pool-title">
-                <i class="fas fa-info-circle"></i> How Visitor Mode Works
-            </h3>
-
-            <div class="visitor-pool-grid">
-                <!-- Slot Allocation -->
-                <div class="info-card">
-                    <h4 class="visitor-pool-card-title">
-                        <i class="fas fa-user-tag visitor-pool-icon"></i>
-                        Slot Allocation
-                    </h4>
-                    <p class="visitor-pool-card-text">
-                        Navigate to any workspace to get assigned a visitor slot (e.g., <code>visitor-001</code>). First-come, first-served.
-                    </p>
+        <!-- Architecture Diagrams -->
+        <div class="status-section">
+            <h2 class="section-title">
+                <i class="fas fa-sitemap"></i> System Architecture
+            </h2>
+            <!-- Module Integration -->
+            <div class="architecture-card">
+                <h3 class="architecture-title">
+                    <i class="fas fa-puzzle-piece"></i> Module Integration
+                </h3>
+                <p class="architecture-description">
+                    SciTeX Cloud modules (Writer, Scholar, Console, Visualizer) with central Files hub and AI Engine integration
+                </p>
+                <div class="architecture-diagram-container">
+                    <object type="image/svg+xml"
+                            data="{% static 'public_app/images/architecture/ARCHITECTURE_01.svg' %}"
+                            class="architecture-svg architecture-svg-module">
+                        <img src="{% static 'public_app/images/architecture/ARCHITECTURE_01.svg' %}"
+                             alt="Module Integration Architecture" />
+                    </object>
                 </div>
-
-                <!-- Data Separation -->
-                <div class="info-card">
-                    <h4 class="visitor-pool-card-title">
-                        <i class="fas fa-shield-alt visitor-pool-icon"></i>
-                        Data Privacy
-                    </h4>
-                    <p class="visitor-pool-card-text">
-                        Your data is completely isolated. Each visitor has a private workspace. No one else can see your work.
-                    </p>
+            </div>
+            <!-- Infrastructure Diagram -->
+            <div class="architecture-card">
+                <h3 class="architecture-title">
+                    <i class="fas fa-network-wired"></i> Infrastructure Deployment
+                </h3>
+                <p class="architecture-description">
+                    Complete infrastructure stack showing Docker services, host services (SLURM, Munge, Apptainer), and network architecture
+                </p>
+                <div class="architecture-diagram-container">
+                    <object type="image/svg+xml"
+                            data="{% static 'public_app/images/architecture/ARCHITECTURE_02.svg' %}"
+                            class="architecture-svg architecture-svg-infra">
+                        <img src="{% static 'public_app/images/architecture/ARCHITECTURE_02.svg' %}"
+                             alt="Infrastructure Architecture" />
+                    </object>
                 </div>
-
-                <!-- Session Duration -->
-                <div class="info-card">
-                    <h4 class="visitor-pool-card-title">
-                        <i class="fas fa-clock visitor-pool-icon"></i>
-                        60-Minute Sessions
-                    </h4>
-                    <p class="visitor-pool-card-text">
-                        Slots expire after 1 hour. Sign up to migrate your data and get unlimited access.
-                    </p>
-                </div>
-
-                <!-- Sign Up -->
-                <div class="info-card">
-                    <h4 class="visitor-pool-card-title">
-                        <i class="fas fa-user-plus visitor-pool-icon"></i>
-                        Keep Your Work
-                    </h4>
-                    <p class="visitor-pool-card-text">
-                        <a href="{% url 'auth_app:signup' %}" class="visitor-pool-link">Sign up</a> anytime to save your work permanently. All data auto-migrates.
-                    </p>
-                </div>
+            </div>
+            <!-- Architecture Info -->
+            <div class="info-box info-box-with-margin">
+                <p>
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Documentation:</strong> Detailed architecture documentation available at
+                    <a href="{% static 'public_app/docs/ARCHITECTURE/ARCHITECTURE_00.md' %}"
+                       target="_blank">ARCHITECTURE_00.md</a>
+                </p>
             </div>
         </div>
     </div>
-
-    <!-- Architecture Diagrams -->
-    <div class="status-section">
-        <h2 class="section-title">
-            <i class="fas fa-sitemap"></i> System Architecture
-        </h2>
-
-        <!-- Module Integration -->
-        <div class="architecture-card">
-            <h3 class="architecture-title">
-                <i class="fas fa-puzzle-piece"></i> Module Integration
-            </h3>
-            <p class="architecture-description">
-                SciTeX Cloud modules (Writer, Scholar, Console, Visualizer) with central Files hub and AI Engine integration
-            </p>
-            <div class="architecture-diagram-container">
-                <object type="image/svg+xml" data="{% static 'public_app/images/architecture/ARCHITECTURE_01.svg' %}" class="architecture-svg architecture-svg-module">
-                    <img src="{% static 'public_app/images/architecture/ARCHITECTURE_01.svg' %}" alt="Module Integration Architecture" />
-                </object>
-            </div>
-        </div>
-
-        <!-- Infrastructure Diagram -->
-        <div class="architecture-card">
-            <h3 class="architecture-title">
-                <i class="fas fa-network-wired"></i> Infrastructure Deployment
-            </h3>
-            <p class="architecture-description">
-                Complete infrastructure stack showing Docker services, host services (SLURM, Munge, Apptainer), and network architecture
-            </p>
-            <div class="architecture-diagram-container">
-                <object type="image/svg+xml" data="{% static 'public_app/images/architecture/ARCHITECTURE_02.svg' %}" class="architecture-svg architecture-svg-infra">
-                    <img src="{% static 'public_app/images/architecture/ARCHITECTURE_02.svg' %}" alt="Infrastructure Architecture" />
-                </object>
-            </div>
-        </div>
-
-        <!-- Architecture Info -->
-        <div class="info-box info-box-with-margin">
-            <p>
-                <i class="fas fa-info-circle"></i>
-                <strong>Documentation:</strong> Detailed architecture documentation available at
-                <a href="{% static 'public_app/docs/ARCHITECTURE/ARCHITECTURE_00.md' %}" target="_blank">ARCHITECTURE_00.md</a>
-            </p>
-        </div>
-    </div>
-</div>
-
-{% vite_script 'public_app/server-status' %}
+    {% vite_script 'public_app/server-status' %}
 {% endblock %}

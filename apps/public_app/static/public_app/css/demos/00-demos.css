@@ -6,8 +6,10 @@
   padding: 2rem;
 }
 
-/* Hero Section */
-.demos-hero {
+/* Hero Section - DEPRECATED: Use .minimal-hero from shared/css/components/minimal-hero.css */
+/* Kept for backwards compatibility - will be removed in future */
+.demos-hero,
+.minimal-hero {
   text-align: center;
   padding: 3rem 2rem;
   margin-bottom: 3rem;
@@ -20,14 +22,16 @@
   border: 1px solid var(--border-default);
 }
 
-.demos-hero-title {
+.demos-hero-title,
+.minimal-hero-title {
   font-size: 2.5rem;
   font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 1rem;
 }
 
-.demos-hero-subtitle {
+.demos-hero-subtitle,
+.minimal-hero-subtitle {
   font-size: 1.2rem;
   color: var(--text-secondary);
   max-width: 600px;
@@ -151,6 +155,7 @@
 }
 
 /* Dark Mode */
-[data-theme="dark"] .demos-hero {
+[data-theme="dark"] .demos-hero,
+[data-theme="dark"] .minimal-hero {
   background: linear-gradient(135deg, var(--bg-200) 0%, var(--bg-surface) 100%);
 }

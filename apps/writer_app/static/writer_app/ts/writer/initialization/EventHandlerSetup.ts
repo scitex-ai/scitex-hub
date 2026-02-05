@@ -77,45 +77,52 @@ export class EventHandlerSetup {
    * Setup PDF color mode toggle button
    */
   private setupPDFColorModeToggle(): void {
-    const colorModeBtn = document.getElementById("pdf-color-mode-btn");
     let isTogglingTheme = false;
 
-    if (colorModeBtn) {
-      colorModeBtn.addEventListener("click", () => {
-        // Prevent rapid clicking
-        if (isTogglingTheme) {
-          console.log(
-            "[EventHandlerSetup] Theme toggle in progress, ignoring click",
-          );
-          return;
-        }
-
-        isTogglingTheme = true;
-
-        // Toggle color mode
-        const newMode =
-          this.pdfScrollZoomHandler.getColorMode() === "dark"
-            ? "light"
-            : "dark";
-        console.log("[EventHandlerSetup] PDF color mode switching to:", newMode);
-
-        // Update handler state and button
-        this.pdfScrollZoomHandler.setColorMode(newMode);
-
-        // Immediately switch PDF display (pass content for compilation if needed)
-        const currentContent = this.editor?.getContent();
-        const currentSection = this.state?.currentSection;
-        this.pdfPreviewManager.setColorMode(
-          newMode,
-          currentContent,
-          currentSection,
+    // Create toggle function
+    const toggleColorMode = () => {
+      // Prevent rapid clicking
+      if (isTogglingTheme) {
+        console.log(
+          "[EventHandlerSetup] Theme toggle in progress, ignoring click",
         );
+        return;
+      }
 
-        // Allow next toggle after short delay
-        setTimeout(() => {
-          isTogglingTheme = false;
-        }, 500);
-      });
+      isTogglingTheme = true;
+
+      // Toggle color mode
+      const newMode =
+        this.pdfScrollZoomHandler.getColorMode() === "dark"
+          ? "light"
+          : "dark";
+      console.log("[EventHandlerSetup] PDF color mode switching to:", newMode);
+
+      // Update handler state and button
+      this.pdfScrollZoomHandler.setColorMode(newMode);
+
+      // Immediately switch PDF display (pass content for compilation if needed)
+      const currentContent = this.editor?.getContent();
+      const currentSection = this.state?.currentSection;
+      this.pdfPreviewManager.setColorMode(
+        newMode,
+        currentContent,
+        currentSection,
+      );
+
+      // Allow next toggle after short delay
+      setTimeout(() => {
+        isTogglingTheme = false;
+      }, 500);
+    };
+
+    // Expose globally for onclick handler
+    (window as any).togglePdfColorMode = toggleColorMode;
+
+    // Also attach to button directly for redundancy
+    const colorModeBtn = document.getElementById("pdf-color-mode-btn");
+    if (colorModeBtn) {
+      colorModeBtn.addEventListener("click", toggleColorMode);
     }
   }
 

@@ -23,6 +23,7 @@ urlpatterns = [
     path("cloud/", lambda request: redirect("public_app:index"), name="cloud"),
     # Concept and vision pages
     path("about/", views.about, name="about"),
+    path("open-source/", views.open_source, name="open_source"),
     path("demos/", views.demos, name="demos"),
     path("demos/watch/<str:video_id>/", views.video_player, name="video_player"),
     # path("vision/", views.vision, name="vision"),
@@ -42,6 +43,16 @@ urlpatterns = [
     path("demo/", views.demo, name="demo"),
     # API documentation
     path("api-docs/", views.api_docs, name="api-docs"),
+    path(
+        "api-docs/<str:section>/",
+        views.api_docs_section,
+        name="api-docs-section",
+    ),
+    path(
+        "api-docs/scitex-cloud-api-docs.<str:fmt>",
+        views.api_docs_download,
+        name="api-docs-download",
+    ),
     # Status pages
     path("server-status/", views.server_status, name="server_status"),
     path("api/server-status/", views.server_status_api, name="server_status_api"),

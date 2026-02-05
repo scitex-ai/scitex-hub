@@ -9,10 +9,42 @@
  * - Ctrl+C to copy BibTeX
  */
 
-import { PaperData } from "./types";
+import { PaperData, SearchResult } from "./types";
+import { getAllFetchedResults } from "./pagination";
+import { getCurrentSearchQuery } from "./scitex-search";
 
 // Re-export PaperData for backwards compatibility
 export type { PaperData };
+
+/**
+ * Convert SearchResult to PaperData format
+ */
+function searchResultToPaperData(result: SearchResult): PaperData {
+  const externalUrl =
+    result.externalUrl || (result.doi ? `https://doi.org/${result.doi}` : "");
+  return {
+    title: result.title || "Unknown",
+    url: externalUrl,
+    authors: result.authors || "",
+    journal: result.journal || "",
+    year: String(result.year || ""),
+    abstract: result.abstract || "",
+    doi: result.doi || "",
+    source: result.source || "",
+    citations: result.citations || 0,
+    impactFactor: result.impact_factor
+      ? parseFloat(String(result.impact_factor))
+      : 0,
+  };
+}
+
+/**
+ * Get all fetched papers as PaperData
+ */
+export function getAllPapers(): PaperData[] {
+  const results = getAllFetchedResults();
+  return results.map(searchResultToPaperData);
+}
 
 /**
  * Get data from selected paper cards
@@ -20,29 +52,57 @@ export type { PaperData };
 export function getSelectedPapers(): PaperData[] {
   const selected: PaperData[] = [];
   document.querySelectorAll(".result-card").forEach((card) => {
-    const checkbox = card.querySelector(".paper-select") as HTMLInputElement;
+    // Support both class names: .paper-select (JS-created) and .paper-select-checkbox (HTML template)
+    const checkbox = card.querySelector(
+      ".paper-select, .paper-select-checkbox",
+    ) as HTMLInputElement;
     if (checkbox && checkbox.checked) {
-      const titleEl = card.querySelector(
-        ".result-title a"
-      ) as HTMLAnchorElement;
-      const metaEl = card.querySelector(".result-meta");
-      const snippetEl = card.querySelector(".result-snippet") as HTMLElement;
-      const yearEl = card.querySelector(".year-badge");
+      const cardEl = card as HTMLElement;
+
+      // Support both JS-created cards and HTML template cards
+      // JS cards: .result-title a, HTML cards: .result-title-link
+      const titleEl = (card.querySelector(".result-title a") ||
+        card.querySelector(".result-title-link")) as HTMLAnchorElement;
+
+      // JS cards: .result-meta .authors, HTML cards: .result-authors-inline
+      const authors =
+        card.querySelector(".result-meta .authors")?.textContent?.trim() ||
+        card.querySelector(".result-authors-inline")?.textContent?.trim() ||
+        "";
+
+      // JS cards: .journal-badge, HTML cards: .result-journal
+      const journal =
+        card.querySelector(".journal-badge")?.textContent?.trim() ||
+        card.querySelector(".result-journal")?.textContent?.trim() ||
+        "";
+
+      // JS cards: .year-badge, HTML cards: .result-year
+      const year =
+        card.querySelector(".year-badge")?.textContent?.trim() ||
+        card.querySelector(".result-year")?.textContent?.trim() ||
+        "";
+
+      // JS cards: .result-snippet, HTML cards: .result-abstract
+      const snippetEl = (card.querySelector(".result-snippet") ||
+        card.querySelector(".result-abstract")) as HTMLElement;
 
       selected.push({
         title: titleEl?.textContent?.trim() || "Unknown",
         url: titleEl?.href || "",
-        authors: metaEl?.querySelector(".authors")?.textContent?.trim() || "",
-        journal:
-          metaEl?.querySelector(".journal-badge")?.textContent?.trim() || "",
-        year: yearEl?.textContent?.trim() || "",
+        authors: authors,
+        journal: journal,
+        year: year,
         abstract:
           snippetEl?.dataset?.fullAbstract ||
           snippetEl?.textContent?.trim() ||
           "",
-        doi: (card as HTMLElement).dataset?.doi || "",
+        doi: cardEl.dataset?.doi || "",
         source:
-          metaEl?.querySelector(".source-badge")?.textContent?.trim() || "",
+          card.querySelector(".source-badge")?.textContent?.trim() ||
+          cardEl.dataset?.source ||
+          "",
+        citations: parseInt(cardEl.dataset?.citations || "0") || 0,
+        impactFactor: parseFloat(cardEl.dataset?.impactFactor || "0") || 0,
       });
     }
   });
@@ -68,7 +128,7 @@ export function generateBibtexKey(paper: PaperData): string {
  */
 export function generateBibtexEntry(
   paper: PaperData,
-  includeAbstract: boolean = false
+  includeAbstract: boolean = false,
 ): string {
   const key = generateBibtexKey(paper);
   const authors = paper.authors || "Unknown";
@@ -77,6 +137,8 @@ export function generateBibtexEntry(
   const year = paper.year || "";
   const doi = paper.doi || "";
   const abstract = paper.abstract || "";
+  const citations = paper.citations || 0;
+  const impactFactor = paper.impactFactor || 0;
 
   let entry = `@article{${key},\n`;
   entry += `  author = {${authors}},\n`;
@@ -84,11 +146,164 @@ export function generateBibtexEntry(
   if (journal) entry += `  journal = {${journal}},\n`;
   if (year) entry += `  year = {${year}},\n`;
   if (doi) entry += `  doi = {${doi}},\n`;
+  // Custom fields for metrics (widely supported by reference managers)
+  entry += `  citations = {${citations}},\n`;
+  entry += `  impactfactor = {${impactFactor.toFixed(1)}},\n`;
   if (includeAbstract && abstract) {
     entry += `  abstract = {${abstract.substring(0, 500)}${abstract.length > 500 ? "..." : ""}},\n`;
   }
   entry += `}`;
   return entry;
+}
+
+/**
+ * Generate JSON export for papers
+ */
+export function generateJsonExport(papers: PaperData[]): string {
+  return JSON.stringify(papers, null, 2);
+}
+
+/**
+ * Generate plain text export for papers
+ */
+export function generateTextExport(papers: PaperData[]): string {
+  return papers
+    .map((paper, index) => {
+      const lines = [`[${index + 1}] ${paper.title || "Unknown"}`];
+      if (paper.authors) lines.push(`Authors: ${paper.authors}`);
+      if (paper.journal) {
+        const journalClean = paper.journal.replace(/\s*\(IF.*\)/, "");
+        lines.push(`Journal: ${journalClean}`);
+      }
+      if (paper.year) lines.push(`Year: ${paper.year}`);
+      // Always include metrics for clarity
+      lines.push(`Citations: ${paper.citations || 0}`);
+      lines.push(`Impact Factor: ${(paper.impactFactor || 0).toFixed(1)}`);
+      if (paper.doi) lines.push(`DOI: ${paper.doi}`);
+      if (paper.url) lines.push(`URL: ${paper.url}`);
+      if (paper.abstract) {
+        const truncatedAbstract =
+          paper.abstract.length > 300
+            ? paper.abstract.substring(0, 300) + "..."
+            : paper.abstract;
+        lines.push(`Abstract: ${truncatedAbstract}`);
+      }
+      return lines.join("\n");
+    })
+    .join("\n\n---\n\n");
+}
+
+/**
+ * Escape CSV field value (handle quotes and commas)
+ */
+function escapeCsvField(value: string): string {
+  if (!value) return "";
+  // If contains comma, newline, or quote, wrap in quotes and escape internal quotes
+  if (value.includes(",") || value.includes("\n") || value.includes('"')) {
+    return `"${value.replace(/"/g, '""')}"`;
+  }
+  return value;
+}
+
+/**
+ * Generate CSV export for papers
+ */
+export function generateCsvExport(papers: PaperData[]): string {
+  const headers = [
+    "Title",
+    "Authors",
+    "Journal",
+    "Year",
+    "Citations",
+    "Impact Factor",
+    "DOI",
+    "URL",
+    "Source",
+    "Abstract",
+  ];
+  const rows = papers.map((paper) => [
+    escapeCsvField(paper.title || ""),
+    escapeCsvField(paper.authors || ""),
+    escapeCsvField(paper.journal?.replace(/\s*\(IF.*\)/, "") || ""),
+    escapeCsvField(paper.year || ""),
+    escapeCsvField(String(paper.citations || 0)),
+    escapeCsvField(paper.impactFactor ? paper.impactFactor.toFixed(1) : "0"),
+    escapeCsvField(paper.doi || ""),
+    escapeCsvField(paper.url || ""),
+    escapeCsvField(paper.source || ""),
+    escapeCsvField(paper.abstract || ""),
+  ]);
+
+  return [headers.join(","), ...rows.map((row) => row.join(","))].join("\n");
+}
+
+/**
+ * Export papers in specified format
+ * Uses all fetched results (not just rendered ones)
+ */
+/**
+ * Normalize query for filename (lowercase, replace spaces with hyphens, remove special chars)
+ */
+function normalizeQueryForFilename(query: string): string {
+  return query
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "") // Remove special characters
+    .replace(/\s+/g, "-") // Replace spaces with hyphens
+    .replace(/-+/g, "-") // Collapse multiple hyphens
+    .substring(0, 50) // Limit length
+    .replace(/^-|-$/g, ""); // Remove leading/trailing hyphens
+}
+
+export function exportPapers(format: "bibtex" | "json" | "text" | "csv"): void {
+  // Use all fetched results for export (not just rendered/selected)
+  const papers = getAllPapers();
+  if (papers.length === 0) {
+    alert("No search results to export. Please run a search first.");
+    return;
+  }
+
+  let content: string;
+  let filename: string;
+  let mimeType: string;
+
+  // Build filename: scitex-scholar-<timestamp>-<normalized-query>.<ext>
+  const timestamp = new Date().toISOString().slice(0, 19).replace(/[T:]/g, "-");
+  const query = getCurrentSearchQuery();
+  const normalizedQuery = normalizeQueryForFilename(query) || "export";
+  const baseName = `scitex-scholar-${timestamp}-${normalizedQuery}`;
+
+  switch (format) {
+    case "bibtex":
+      content = papers.map((p) => generateBibtexEntry(p, true)).join("\n\n");
+      filename = `${baseName}.bib`;
+      mimeType = "text/plain";
+      break;
+    case "json":
+      content = generateJsonExport(papers);
+      filename = `${baseName}.json`;
+      mimeType = "application/json";
+      break;
+    case "csv":
+      content = generateCsvExport(papers);
+      filename = `${baseName}.csv`;
+      mimeType = "text/csv";
+      break;
+    case "text":
+      content = generateTextExport(papers);
+      filename = `${baseName}.txt`;
+      mimeType = "text/plain";
+      break;
+  }
+
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 /**
@@ -110,153 +325,67 @@ export function showCopyFeedback(message: string): void {
 }
 
 /**
- * Update toolbar button states based on selection
+ * Update toolbar button states based on selection and results
  */
 export function updateToolbarState(): void {
+  // Support both class names: .paper-select (JS-created) and .paper-select-checkbox (HTML template)
   const selectedCount = document.querySelectorAll(
-    ".result-card .paper-select:checked"
+    ".result-card .paper-select:checked, .result-card .paper-select-checkbox:checked",
   ).length;
+  const hasResults = document.querySelectorAll(".result-card").length > 0;
 
-  // Update toolbar buttons
-  const buttons = [
+  // Update selection-dependent buttons
+  const selectionButtons = [
     "saveSelectedBtn",
     "openUrlsBtn",
     "exportSelectedBibtex",
     "downloadSelectedPdfs",
   ];
-  buttons.forEach((id) => {
+  selectionButtons.forEach((id) => {
     const btn = document.getElementById(id) as HTMLButtonElement;
     if (btn) btn.disabled = selectedCount === 0;
   });
 
-  // Update fixed selection action bar
-  const actionBar = document.getElementById("selectionActionBar");
-  const countEl = document.getElementById("selectedCount");
-  if (actionBar) {
-    if (selectedCount > 0) {
-      actionBar.classList.add("visible");
-      if (countEl) countEl.textContent = String(selectedCount);
-    } else {
-      actionBar.classList.remove("visible");
-    }
-  }
-}
-
-/**
- * Initialize abstract toggle button
- */
-function initAbstractToggle(): void {
-  const btn = document.getElementById(
-    "abstractToggleBtn"
+  // Enable abstract toggle when results exist
+  const abstractBtn = document.getElementById(
+    "abstractToggleBtn",
   ) as HTMLButtonElement;
-  btn?.addEventListener("click", function () {
-    const modes = ["truncated", "full", "none"];
-    const currentMode = this.dataset.mode || "truncated";
-    const nextIndex = (modes.indexOf(currentMode) + 1) % modes.length;
-    const nextMode = modes[nextIndex];
-    this.dataset.mode = nextMode;
-    this.textContent = "Abstract: " + (nextMode === "none" ? "no" : nextMode);
-
-    document.querySelectorAll(".result-snippet").forEach((el) => {
-      const elem = el as HTMLElement;
-      if (nextMode === "none") {
-        elem.style.display = "none";
-      } else if (nextMode === "full") {
-        elem.style.display = "block";
-        elem.classList.add("expanded");
-        elem.dataset.expanded = "true";
-      } else {
-        elem.style.display = "block";
-        elem.classList.remove("expanded");
-        elem.dataset.expanded = "false";
-      }
-    });
-  });
+  if (abstractBtn) abstractBtn.disabled = !hasResults;
 }
 
+// Note: Button handlers (abstract toggle, save, open URLs, export) are now
+// implemented in toolbar-handlers.ts to avoid duplicate event listeners
+
 /**
- * Initialize save selected button
+ * Initialize selection change listener
+ * Called from toolbar-handlers.ts
  */
-function initSaveSelected(): void {
-  document.getElementById("saveSelectedBtn")?.addEventListener("click", () => {
-    const papers = getSelectedPapers();
-    if (papers.length === 0) {
-      alert("No papers selected. Click on papers to select them.");
-      return;
+export function initSelectionListener(): void {
+  // Only attach once
+  if ((document as any).__selectionListenerAttached) return;
+  (document as any).__selectionListenerAttached = true;
+
+  document.addEventListener("change", (e) => {
+    const target = e.target as HTMLElement;
+    // Handle both class names
+    if (
+      target.classList.contains("paper-select") ||
+      target.classList.contains("paper-select-checkbox")
+    ) {
+      updateToolbarState();
     }
-    const saved = JSON.parse(
-      localStorage.getItem("scitex_saved_papers") || "[]"
-    );
-    const newPapers = papers.filter(
-      (p) => !saved.some((s: PaperData) => s.title === p.title)
-    );
-    saved.push(...newPapers);
-    localStorage.setItem("scitex_saved_papers", JSON.stringify(saved));
-    alert(
-      `Saved ${newPapers.length} paper(s) to library. (${papers.length - newPapers.length} already saved)`
-    );
   });
-}
-
-/**
- * Initialize open URLs button
- */
-function initOpenUrls(): void {
-  document.getElementById("openUrlsBtn")?.addEventListener("click", () => {
-    const papers = getSelectedPapers();
-    if (papers.length === 0) {
-      alert("No papers selected. Click on papers to select them.");
-      return;
-    }
-    if (papers.length > 10) {
-      if (
-        !confirm(
-          `Open ${papers.length} URLs? This may be blocked by your browser.`
-        )
-      )
-        return;
-    }
-    papers.forEach((paper, i) => {
-      if (paper.url && paper.url !== "#") {
-        setTimeout(() => window.open(paper.url, "_blank"), i * 100);
-      }
-    });
-  });
-}
-
-/**
- * Initialize BibTeX export button
- */
-function initBibtexExport(): void {
-  document
-    .getElementById("exportSelectedBibtex")
-    ?.addEventListener("click", () => {
-      const papers = getSelectedPapers();
-      if (papers.length === 0) {
-        alert("No papers selected. Click on papers to select them.");
-        return;
-      }
-
-      const bibtexContent = papers
-        .map((p) => generateBibtexEntry(p, true))
-        .join("\n\n");
-
-      const blob = new Blob([bibtexContent], { type: "text/plain" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `scitex_export_${new Date().toISOString().slice(0, 10)}.bib`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    });
 }
 
 /**
  * Initialize Ctrl+C to copy BibTeX
+ * Called from toolbar-handlers.ts
  */
-function initCopyShortcut(): void {
+export function initCopyShortcut(): void {
+  // Only attach once
+  if ((document as any).__copyShortcutAttached) return;
+  (document as any).__copyShortcutAttached = true;
+
   document.addEventListener("keydown", (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === "c") {
       const selection = window.getSelection();
@@ -278,7 +407,7 @@ function initCopyShortcut(): void {
         .writeText(bibtexContent)
         .then(() => {
           showCopyFeedback(
-            `Copied ${papers.length} BibTeX ${papers.length === 1 ? "entry" : "entries"} to clipboard`
+            `Copied ${papers.length.toLocaleString()} BibTeX ${papers.length === 1 ? "entry" : "entries"} to clipboard`,
           );
         })
         .catch((err) => {
@@ -288,30 +417,5 @@ function initCopyShortcut(): void {
   });
 }
 
-/**
- * Initialize selection change listener
- */
-function initSelectionListener(): void {
-  document.addEventListener("change", (e) => {
-    const target = e.target as HTMLElement;
-    if (target.classList.contains("paper-select")) {
-      updateToolbarState();
-    }
-  });
-}
-
-/**
- * Initialize all toolbar functionality
- */
-export function initResultsToolbar(): void {
-  initAbstractToggle();
-  initSaveSelected();
-  initOpenUrls();
-  initBibtexExport();
-  initCopyShortcut();
-  initSelectionListener();
-  updateToolbarState();
-}
-
-// Auto-initialize on DOMContentLoaded
-document.addEventListener("DOMContentLoaded", initResultsToolbar);
+// Note: Initialization is handled by toolbar-handlers.ts
+// Do not auto-initialize here to avoid duplicate handlers

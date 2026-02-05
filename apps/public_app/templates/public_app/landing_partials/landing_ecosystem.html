@@ -1,152 +1,180 @@
 {% load static %}
-<!-- Integrated Ecosystem Section -->
-<!-- <section class="landing-section section-ecosystem" id="ecosystem"> -->
+
+<!-- SciTeX Ecosystem Section -->
 <section class="landing-section section-ecosystem bg-pattern bg-pattern-dots-scattered bg-pattern-subtle"
          id="ecosystem">
     <div class="container">
         <div class="section-heading">
             <h2>SciTeX Ecosystem</h2>
-            <p>From data to publication — all in one</p>
+            <p>Open-source packages for scientific research automation</p>
         </div>
-        <!-- Research Modules (4 cards) -->
-        <div class="ecosystem-modules-grid">
-            <!-- Scholar - Scattered dots (discovery/exploration theme) -->
-            <div class="module-card-simple bg-pattern bg-pattern-dots-radial bg-pattern-subtle">
-                <a href="{% url 'docs:python' %}" class="module-card-link">
-                    <div class="module-icon">
-                        <img src="{% static 'shared/images/icons_svg/scitex-scholar-icon.svg' %}"
-                             alt="SciTeX Scholar"
-                             width="48"
-                             height="48" />
-                    </div>
-                    <h3>Scholar</h3>
-                    <p class="module-tagline">Literature discovery & abstract enrichment for LLM integration</p>
-                </a>
-                <a href="https://github.com/ywatanabe1989/SciTeX-Code/tree/main/src/scitex/scholar"
-                   target="_blank"
-                   class="module-github-btn">
-                    <i class="fab fa-github"></i> View on GitHub
-                </a>
-            </div>
-            <!-- Writer - Grid pattern (structured writing theme) -->
-            <div class="module-card-simple bg-pattern bg-pattern-dots-radial bg-pattern-subtle">
-                <a href="{% url 'docs:python' %}" class="module-card-link">
-                    <div class="module-icon">
-                        <img src="{% static 'shared/images/icons_svg/scitex-writer-icon.svg' %}"
-                             alt="SciTeX Writer"
-                             width="48"
-                             height="48" />
-                    </div>
-                    <h3>Writer</h3>
-                    <p class="module-tagline">
-                        LaTeX manuscript writing module for fact-based scientific writing
-                        with LLM support
-                    </p>
-                </a>
-                <a href="https://github.com/ywatanabe1989/SciTeX-Writer"
-                   target="_blank"
-                   class="module-github-btn">
-                    <i class="fab fa-github"></i> View on GitHub
-                </a>
-            </div>
-            <!-- Code - Circuit pattern (technical/code theme) -->
-            <div class="module-card-simple bg-pattern bg-pattern-dots-radial bg-pattern-subtle">
-                <div class="module-card-link-disabled">
-                    <div class="module-icon">
-                        <img src="{% static 'shared/images/icons_svg/scitex-code-icon.svg' %}"
-                             alt="SciTeX Code"
-                             width="48"
-                             height="48" />
-                    </div>
-                    <h3>
-                        Code
-                        <span class="badge badge-warning"
-                              style="font-size: 0.65rem;
-                                     margin-left: 0.5rem;
-                                     vertical-align: middle">Coming Soon</span>
-                    </h3>
-                    <p class="module-tagline">
-                        Data analysis module with standardized and reproducible file
-                        organizations
-                    </p>
-                </div>
-                <a href="https://github.com/ywatanabe1989/SciTeX-Code"
-                   target="_blank"
-                   class="module-github-btn">
-                    <i class="fab fa-github"></i> View on GitHub
-                </a>
-            </div>
-            <!-- Viz - Medium dots (data points theme) -->
-            <div class="module-card-simple bg-pattern bg-pattern-dots-radial bg-pattern-subtle">
-                <div class="module-card-link-disabled">
-                    <div class="module-icon">
-                        <img src="{% static 'shared/images/icons_svg/scitex-viz-icon.svg' %}"
-                             alt="SciTeX Viz"
-                             width="48"
-                             height="48" />
-                    </div>
-                    <h3>
-                        Viz
-                        <span class="badge badge-warning"
-                              style="font-size: 0.65rem;
-                                     margin-left: 0.5rem;
-                                     vertical-align: middle">Coming Soon</span>
-                    </h3>
-                    <p class="module-tagline">Publication-quality graphing using VisPlot</p>
-                </div>
-                <a href="https://github.com/ywatanabe1989/SciTeX-Viz"
-                   target="_blank"
-                   class="module-github-btn">
-                    <i class="fab fa-github"></i> View on GitHub
-                </a>
-            </div>
+        <!-- Ecosystem Packages Table -->
+        <div class="ecosystem-packages-table">
+            <table class="packages-table">
+                <thead>
+                    <tr>
+                        <th>Package</th>
+                        <th>SciTeX Module</th>
+                        <th>Description</th>
+                        <th>Links</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- scitex-python (main package) -->
+                    <tr>
+                        <td class="package-name">
+                            <strong>scitex-python</strong>
+                            <span class="badge badge-primary">Core</span>
+                        </td>
+                        <td>
+                            <code>scitex</code>
+                        </td>
+                        <td>Main Python package with unified API for scientific research</td>
+                        <td class="package-links">
+                            <a href="https://github.com/ywatanabe1989/scitex-python"
+                               target="_blank"
+                               class="link-btn github-btn"
+                               title="View on GitHub">
+                                <i class="fab fa-github"></i>
+                            </a>
+                            <a href="https://scitex-python.readthedocs.io"
+                               target="_blank"
+                               class="link-btn docs-btn"
+                               title="Read the Docs">
+                                <i class="fas fa-book"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <!-- scitex-cloud -->
+                    <tr>
+                        <td class="package-name">
+                            <strong>scitex-cloud</strong>
+                        </td>
+                        <td>
+                            <code>—</code>
+                        </td>
+                        <td>Django web application (this site)</td>
+                        <td class="package-links">
+                            <a href="https://github.com/ywatanabe1989/scitex-cloud"
+                               target="_blank"
+                               class="link-btn github-btn"
+                               title="View on GitHub">
+                                <i class="fab fa-github"></i>
+                            </a>
+                            <a href="https://scitex-cloud.readthedocs.io"
+                               target="_blank"
+                               class="link-btn docs-btn"
+                               title="Read the Docs">
+                                <i class="fas fa-book"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <!-- figrecipe -->
+                    <tr>
+                        <td class="package-name">
+                            <strong>figrecipe</strong>
+                        </td>
+                        <td>
+                            <code>scitex.plt</code>
+                        </td>
+                        <td>Publication-ready matplotlib figures with auto CSV export</td>
+                        <td class="package-links">
+                            <a href="https://github.com/ywatanabe1989/figrecipe"
+                               target="_blank"
+                               class="link-btn github-btn"
+                               title="View on GitHub">
+                                <i class="fab fa-github"></i>
+                            </a>
+                            <a href="https://figrecipe.readthedocs.io"
+                               target="_blank"
+                               class="link-btn docs-btn"
+                               title="Read the Docs">
+                                <i class="fas fa-book"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <!-- scitex-writer -->
+                    <tr>
+                        <td class="package-name">
+                            <strong>scitex-writer</strong>
+                        </td>
+                        <td>
+                            <code>scitex.writer</code>
+                        </td>
+                        <td>LaTeX manuscript compilation with journal templates</td>
+                        <td class="package-links">
+                            <a href="https://github.com/ywatanabe1989/scitex-writer"
+                               target="_blank"
+                               class="link-btn github-btn"
+                               title="View on GitHub">
+                                <i class="fab fa-github"></i>
+                            </a>
+                            <a href="https://scitex-writer.readthedocs.io"
+                               target="_blank"
+                               class="link-btn docs-btn"
+                               title="Read the Docs">
+                                <i class="fas fa-book"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <!-- crossref-local -->
+                    <tr>
+                        <td class="package-name">
+                            <strong>crossref-local</strong>
+                        </td>
+                        <td>
+                            <code>scitex.scholar.crossref_scitex</code>
+                        </td>
+                        <td>Local CrossRef database (167M+ papers)</td>
+                        <td class="package-links">
+                            <a href="https://github.com/ywatanabe1989/crossref-local"
+                               target="_blank"
+                               class="link-btn github-btn"
+                               title="View on GitHub">
+                                <i class="fab fa-github"></i>
+                            </a>
+                            <a href="https://crossref-local.readthedocs.io"
+                               target="_blank"
+                               class="link-btn docs-btn"
+                               title="Read the Docs">
+                                <i class="fas fa-book"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <!-- openalex-local -->
+                    <tr>
+                        <td class="package-name">
+                            <strong>openalex-local</strong>
+                        </td>
+                        <td>
+                            <code>scitex.scholar.openalex_scitex</code>
+                        </td>
+                        <td>Local OpenAlex database (250M+ papers)</td>
+                        <td class="package-links">
+                            <a href="https://github.com/ywatanabe1989/openalex-local"
+                               target="_blank"
+                               class="link-btn github-btn"
+                               title="View on GitHub">
+                                <i class="fab fa-github"></i>
+                            </a>
+                            <a href="https://openalex-local.readthedocs.io"
+                               target="_blank"
+                               class="link-btn docs-btn"
+                               title="Read the Docs">
+                                <i class="fas fa-book"></i>
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
-        <!-- Deployment Options (2 cards) -->
-        <div class="ecosystem-deployment-simple">
-            <p class="deployment-intro">Deploy on your terms:</p>
-            <div class="deployment-grid">
-                <!-- SciTeX Local Card - Stripes (local/desktop theme) -->
-                <div class="module-card-simple bg-pattern bg-pattern-dots-radial bg-pattern-subtle">
-                    <a href="https://github.com/ywatanabe1989/emacs-claude-code"
-                       target="_blank"
-                       class="module-card-link">
-                        <div class="module-icon">
-                            <img src="{% static 'shared/images/icons_svg/scitex-engine-icon.svg' %}"
-                                 alt="SciTeX Local"
-                                 width="48"
-                                 height="48" />
-                        </div>
-                        <h3>SciTeX Local</h3>
-                        <p class="module-tagline">
-                            Full control, no internet required. Connectable with ssh and git
-                            to the cloud system.
-                        </p>
-                    </a>
-                    <a href="https://github.com/SciTeX-AI"
-                       target="_blank"
-                       class="module-github-btn">
-                        <i class="fab fa-github"></i> View on GitHub
-                    </a>
-                </div>
-                <!-- SciTeX Cloud Card - Radial dots (cloud/network theme) -->
-                <div class="module-card-simple bg-pattern bg-pattern-dots-radial bg-pattern-subtle">
-                    <a href="{% url 'public_app:about' %}" class="module-card-link">
-                        <div class="module-icon">
-                            <img src="{% static 'shared/images/icons_svg/scitex-cloud-icon.svg' %}"
-                                 alt="SciTeX Cloud"
-                                 width="48"
-                                 height="48" />
-                        </div>
-                        <h3>SciTeX Cloud</h3>
-                        <p class="module-tagline">Web interface source code lively hosted by scitex.ai here</p>
-                    </a>
-                    <a href="https://github.com/ywatanabe1989/SciTeX-Cloud"
-                       target="_blank"
-                       class="module-github-btn">
-                        <i class="fab fa-github"></i> View on GitHub
-                    </a>
-                </div>
-            </div>
+        <!-- GitHub Organization Link -->
+        <div class="ecosystem-cta">
+            <a href="https://github.com/ywatanabe1989"
+               target="_blank"
+               class="btn btn-outline-primary btn-lg">
+                <i class="fab fa-github"></i> View All Repositories
+            </a>
         </div>
     </div>
 </section>

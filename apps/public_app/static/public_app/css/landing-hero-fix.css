@@ -236,6 +236,61 @@
   color: var(--text-primary, #c9d1d9);
 }
 
+/* Demo badge */
+.demo-badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: white;
+  background: linear-gradient(135deg, #ff7043 0%, #ff5722 100%);
+  border-radius: 4px;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+/* Watch More Demos link */
+.watch-more-demos {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-primary, #24292f);
+  text-decoration: none;
+  border: 1px solid var(--border-default, #d0d7de);
+  border-radius: 6px;
+  background: var(--bg-secondary, #f6f8fa);
+  transition: all 0.2s ease;
+}
+
+.watch-more-demos:hover {
+  background: var(--bg-tertiary, #eaeef2);
+  border-color: var(--border-active, #0969da);
+  color: var(--color-accent-fg, #0969da);
+  text-decoration: none;
+}
+
+.watch-more-demos i {
+  color: #ff5722;
+}
+
+[data-theme="dark"] .watch-more-demos {
+  color: var(--text-primary, #c9d1d9);
+  background: var(--bg-tertiary, #21262d);
+  border-color: var(--border-default, #30363d);
+}
+
+[data-theme="dark"] .watch-more-demos:hover {
+  background: var(--bg-secondary, #30363d);
+  border-color: var(--color-accent-fg, #58a6ff);
+  color: var(--color-accent-fg, #58a6ff);
+}
+
 /* ============================================================================
  * Responsive adjustments
  * ============================================================================ */

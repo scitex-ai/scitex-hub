@@ -16,7 +16,6 @@ import requests
 from django.core.cache import cache
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-
 from scitex import logging
 
 from .api_utils import _build_result_guidance
@@ -57,7 +56,7 @@ def api_search_openalex(request):
             "User-Agent": "SciTeX/1.0 (https://scitex.ai; mailto:contact@scitex.ai)"
         }
 
-        response = requests.get(url, params=params, headers=headers, timeout=30)
+        response = requests.get(url, params=params, headers=headers, timeout=180)
         response.raise_for_status()
         data = response.json()
 

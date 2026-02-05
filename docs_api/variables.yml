@@ -1,0 +1,5 @@
+# MkDocs variables for SciTeX API documentation
+# These can be overridden via environment variables
+
+# Default values for development
+# Production: SCITEX_API_BASE_URL=https://scitex.ai

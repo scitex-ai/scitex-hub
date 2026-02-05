@@ -313,9 +313,7 @@ function initializeResultSelection(): void {
     });
   }
 
-  if (exportSelectedBtn) {
-    exportSelectedBtn.addEventListener("click", exportSelectedPapers);
-  }
+  // Export handler moved to toolbar-handlers.ts (with dropdown)
 
   // Add event listeners to checkboxes
   document.querySelectorAll(".paper-select-checkbox").forEach((cb) => {

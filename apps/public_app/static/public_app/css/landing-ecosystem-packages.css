@@ -1,0 +1,218 @@
+/* ============================================================================
+ * Landing Page - Ecosystem Packages Table Styles
+ * ============================================================================
+ * Sleek, minimal styling for the SciTeX ecosystem packages table
+ * ========================================================================== */
+
+/* Packages Table Container */
+.ecosystem-packages-table {
+  max-width: 900px;
+  margin: 0 auto 2.5rem;
+  overflow-x: auto;
+}
+
+.packages-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: transparent;
+}
+
+/* Header - minimal, no background */
+.packages-table thead th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 500;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid var(--border-light, rgba(128, 128, 128, 0.2));
+}
+
+/* Cells */
+.packages-table td {
+  padding: 1rem;
+  color: var(--text-secondary);
+  vertical-align: middle;
+  border-bottom: 1px solid var(--border-light, rgba(128, 128, 128, 0.1));
+  transition: background-color 0.15s ease;
+}
+
+.packages-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.packages-table tbody tr:hover td {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+/* Package name column */
+.packages-table .package-name {
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.packages-table .package-name strong {
+  font-weight: 600;
+}
+
+.packages-table .package-name .badge {
+  margin-left: 0.5rem;
+  font-size: 0.65rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  vertical-align: middle;
+  background: linear-gradient(135deg, var(--_scitex-04), var(--_scitex-05));
+  color: white;
+  font-weight: 500;
+}
+
+/* Code styling - subtle */
+.packages-table code {
+  background: transparent;
+  padding: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-family: "SF Mono", Monaco, "Cascadia Code", monospace;
+}
+
+/* Links column */
+.packages-table .package-links {
+  display: flex;
+  gap: 0.625rem;
+  white-space: nowrap;
+}
+
+/* Link Buttons - ghost/outline style */
+.link-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  border: 1px solid transparent;
+}
+
+.link-btn.github-btn {
+  background-color: transparent;
+  color: var(--text-secondary);
+  border-color: var(--border-default, rgba(128, 128, 128, 0.3));
+}
+
+.link-btn.github-btn:hover {
+  background-color: #24292e;
+  color: white;
+  border-color: #24292e;
+  transform: translateY(-1px);
+}
+
+.link-btn.docs-btn {
+  background-color: transparent;
+  color: var(--_scitex-04);
+  border-color: var(--_scitex-04);
+}
+
+.link-btn.docs-btn:hover {
+  background-color: var(--_scitex-04);
+  color: white;
+  transform: translateY(-1px);
+}
+
+/* ============================================================================
+ * DARK MODE
+ * ========================================================================== */
+
+[data-theme="dark"] .packages-table thead th {
+  color: var(--scitex-color-05);
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .packages-table td {
+  color: var(--scitex-color-05);
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="dark"] .packages-table tbody tr:hover td {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+[data-theme="dark"] .packages-table .package-name {
+  color: var(--scitex-color-07);
+}
+
+[data-theme="dark"] .packages-table code {
+  color: var(--scitex-color-05);
+}
+
+[data-theme="dark"] .link-btn.github-btn {
+  color: var(--scitex-color-05);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .link-btn.github-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+[data-theme="dark"] .link-btn.docs-btn {
+  color: var(--scitex-color-06);
+  border-color: var(--scitex-color-04);
+}
+
+[data-theme="dark"] .link-btn.docs-btn:hover {
+  background-color: var(--scitex-color-04);
+  color: white;
+}
+
+/* Ecosystem CTA */
+.ecosystem-cta {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+.ecosystem-cta .btn {
+  font-size: 0.9rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 6px;
+}
+
+.ecosystem-cta .btn i {
+  margin-right: 0.5rem;
+}
+
+/* ============================================================================
+ * RESPONSIVE DESIGN
+ * ========================================================================== */
+
+@media (max-width: 768px) {
+  .packages-table thead th,
+  .packages-table td {
+    padding: 0.75rem 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .packages-table th:nth-child(2),
+  .packages-table td:nth-child(2) {
+    display: none;
+  }
+
+  .link-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .packages-table th:nth-child(3),
+  .packages-table td:nth-child(3) {
+    display: none;
+  }
+}

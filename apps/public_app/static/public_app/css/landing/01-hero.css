@@ -1,7 +1,8 @@
 /* Hero Section */
 .hero-landing {
   /* Darker bluish gradient for better contrast and modern feel */
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     var(--scitex-color-02) 0%,
     var(--scitex-color-03) 35%,
     var(--scitex-color-04) 70%,
@@ -12,13 +13,38 @@
   overflow: hidden;
   /* Layered pattern: scattered dots + radial gradient for depth */
   background-image:
-    radial-gradient(circle at 20% 30%, rgba(181, 199, 209, 0.2) 2px, transparent 2px),
-    radial-gradient(circle at 60% 70%, rgba(181, 199, 209, 0.15) 3px, transparent 3px),
-    radial-gradient(circle at 80% 20%, rgba(212, 225, 232, 0.25) 1.5px, transparent 1.5px),
-    radial-gradient(circle at 40% 80%, rgba(181, 199, 209, 0.18) 2.5px, transparent 2.5px),
-    radial-gradient(circle at 10% 60%, rgba(212, 225, 232, 0.2) 2px, transparent 2px),
-    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 70%),
-    linear-gradient(135deg,
+    radial-gradient(
+      circle at 20% 30%,
+      rgba(181, 199, 209, 0.2) 2px,
+      transparent 2px
+    ),
+    radial-gradient(
+      circle at 60% 70%,
+      rgba(181, 199, 209, 0.15) 3px,
+      transparent 3px
+    ),
+    radial-gradient(
+      circle at 80% 20%,
+      rgba(212, 225, 232, 0.25) 1.5px,
+      transparent 1.5px
+    ),
+    radial-gradient(
+      circle at 40% 80%,
+      rgba(181, 199, 209, 0.18) 2.5px,
+      transparent 2.5px
+    ),
+    radial-gradient(
+      circle at 10% 60%,
+      rgba(212, 225, 232, 0.2) 2px,
+      transparent 2px
+    ),
+    radial-gradient(
+      circle at 50% 50%,
+      rgba(255, 255, 255, 0.1) 0%,
+      transparent 70%
+    ),
+    linear-gradient(
+      135deg,
       var(--scitex-color-04) 0%,
       var(--scitex-color-05) 35%,
       var(--scitex-color-06) 70%,
@@ -44,28 +70,59 @@
 
 /* Scattered random dots pattern for hero - light mode */
 .hero-landing::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0.3;
-    background-image:
-        radial-gradient(circle at 20% 30%, rgba(181, 199, 209, 0.4) 2px, transparent 2px),
-        radial-gradient(circle at 60% 70%, rgba(212, 225, 232, 0.5) 3px, transparent 3px),
-        radial-gradient(circle at 80% 20%, rgba(143, 164, 176, 0.3) 1.5px, transparent 1.5px),
-        radial-gradient(circle at 40% 80%, rgba(181, 199, 209, 0.4) 2.5px, transparent 2.5px),
-        radial-gradient(circle at 10% 60%, rgba(212, 225, 232, 0.5) 2px, transparent 2px);
-    background-size: 100px 100px, 150px 150px, 80px 80px, 120px 120px, 90px 90px;
-    background-position: 0 0, 40px 60px, 130px 270px, 70px 100px, 150px 30px;
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.3;
+  background-image:
+    radial-gradient(
+      circle at 20% 30%,
+      rgba(181, 199, 209, 0.4) 2px,
+      transparent 2px
+    ),
+    radial-gradient(
+      circle at 60% 70%,
+      rgba(212, 225, 232, 0.5) 3px,
+      transparent 3px
+    ),
+    radial-gradient(
+      circle at 80% 20%,
+      rgba(143, 164, 176, 0.3) 1.5px,
+      transparent 1.5px
+    ),
+    radial-gradient(
+      circle at 40% 80%,
+      rgba(181, 199, 209, 0.4) 2.5px,
+      transparent 2.5px
+    ),
+    radial-gradient(
+      circle at 10% 60%,
+      rgba(212, 225, 232, 0.5) 2px,
+      transparent 2px
+    );
+  background-size:
+    100px 100px,
+    150px 150px,
+    80px 80px,
+    120px 120px,
+    90px 90px;
+  background-position:
+    0 0,
+    40px 60px,
+    130px 270px,
+    70px 100px,
+    150px 30px;
 }
 
 /* Dark theme - very dark gradient with scattered dots */
 [data-theme="dark"] .hero-landing {
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     #0d111c 0%,
     var(--scitex-color-01) 35%,
     var(--scitex-color-02) 70%,
@@ -74,15 +131,45 @@
 }
 
 [data-theme="dark"] .hero-landing::before {
-    opacity: 0.25;
-    background-image:
-        radial-gradient(circle at 20% 30%, rgba(108, 139, 160, 0.5) 2px, transparent 2px),
-        radial-gradient(circle at 60% 70%, rgba(143, 164, 176, 0.6) 3px, transparent 3px),
-        radial-gradient(circle at 80% 20%, rgba(80, 107, 122, 0.4) 1.5px, transparent 1.5px),
-        radial-gradient(circle at 40% 80%, rgba(108, 139, 160, 0.5) 2.5px, transparent 2.5px),
-        radial-gradient(circle at 10% 60%, rgba(143, 164, 176, 0.6) 2px, transparent 2px);
-    background-size: 100px 100px, 150px 150px, 80px 80px, 120px 120px, 90px 90px;
-    background-position: 0 0, 40px 60px, 130px 270px, 70px 100px, 150px 30px;
+  opacity: 0.25;
+  background-image:
+    radial-gradient(
+      circle at 20% 30%,
+      rgba(108, 139, 160, 0.5) 2px,
+      transparent 2px
+    ),
+    radial-gradient(
+      circle at 60% 70%,
+      rgba(143, 164, 176, 0.6) 3px,
+      transparent 3px
+    ),
+    radial-gradient(
+      circle at 80% 20%,
+      rgba(80, 107, 122, 0.4) 1.5px,
+      transparent 1.5px
+    ),
+    radial-gradient(
+      circle at 40% 80%,
+      rgba(108, 139, 160, 0.5) 2.5px,
+      transparent 2.5px
+    ),
+    radial-gradient(
+      circle at 10% 60%,
+      rgba(143, 164, 176, 0.6) 2px,
+      transparent 2px
+    );
+  background-size:
+    100px 100px,
+    150px 150px,
+    80px 80px,
+    120px 120px,
+    90px 90px;
+  background-position:
+    0 0,
+    40px 60px,
+    130px 270px,
+    70px 100px,
+    150px 30px;
 }
 
 /* Ensure hero content stays above pattern */
@@ -109,7 +196,13 @@
   margin-bottom: var(--spacing-md);
   line-height: 1.1;
   /* Modern gradient text effect - Horizontal sweep */
-  background: linear-gradient(90deg, var(--_scitex-01) 0%, var(--_scitex-03) 35%, var(--_scitex-04) 65%, var(--_scitex-05) 100%);
+  background: linear-gradient(
+    90deg,
+    var(--_scitex-01) 0%,
+    var(--_scitex-03) 35%,
+    var(--_scitex-04) 65%,
+    var(--_scitex-05) 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -118,7 +211,13 @@
 
 /* Dark theme override - Bright to brighter sweep */
 [data-theme="dark"] .hero-landing .hero-title {
-  background: linear-gradient(90deg, var(--_scitex-04) 0%, var(--_scitex-05) 35%, var(--_scitex-06) 65%, var(--_scitex-07) 100%);
+  background: linear-gradient(
+    90deg,
+    var(--_scitex-04) 0%,
+    var(--_scitex-05) 35%,
+    var(--_scitex-06) 65%,
+    var(--_scitex-07) 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -161,12 +260,6 @@
   height: auto;
   opacity: 0.95;
   filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-.hero-landing .hero-logo:hover {
-  opacity: 1;
-  transform: scale(1.02);
 }
 
 /* Dark theme - invert or adjust logo visibility */
@@ -174,4 +267,3 @@
   opacity: 0.95;
   filter: drop-shadow(0 2px 12px rgba(0, 0, 0, 0.3));
 }
-

@@ -16,7 +16,13 @@ Exports all view functions for URL routing.
 
 # Landing and marketing pages
 # API and developer pages
-from .api import api_docs, releases_view, scitex_api_keys
+from .api import (
+    api_docs,
+    api_docs_download,
+    api_docs_section,
+    releases_view,
+    scitex_api_keys,
+)
 from .landing import index, premium_subscription
 
 # Legal pages
@@ -30,6 +36,7 @@ from .pages import (
     donate,
     fundraising,
     keyboard_shortcuts,
+    open_source,
     pricing,
     publications,
     video_player,
@@ -92,6 +99,7 @@ __all__ = [
     # Pages
     "about",
     "demos",
+    "open_source",
     "video_player",
     "publications",
     "donate",
@@ -121,6 +129,8 @@ __all__ = [
     "render_metric_chart",
     # API
     "api_docs",
+    "api_docs_section",
+    "api_docs_download",
     "scitex_api_keys",
     "releases_view",
     # Tools

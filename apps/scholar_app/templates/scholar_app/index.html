@@ -1,8 +1,8 @@
 {% extends "scholar_app/scholar_base.html" %}
+
 {% load static vite %}
-{%block title%}
-    SciTeX Scholar - Literature Search
-{% endblock %}
+
+{% block title %}SciTeX Scholar - Literature Search{% endblock %}
 {% block extra_css %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'shared/css/common.css' %}" />
@@ -38,42 +38,41 @@
         <div class="vertical-tab-container">
             <!-- Vertical Tab Navigation -->
             <div class="scitex-tabs">
-                <a href="#bibtex" class="scitex-tab tab-link" data-tab="bibtex">
-                    <i class="fas fa-file-code"></i>
-                    <span>BibTeX Enrichment</span>
-                </a>
                 <a href="#search" class="scitex-tab tab-link" data-tab="search">
                     <i class="fas fa-search"></i>
                     <span>Literature Search</span>
                 </a>
+                <a href="#bibtex" class="scitex-tab tab-link" data-tab="bibtex">
+                    <i class="fas fa-wand-magic-sparkles"></i>
+                    <span>Metadata Enrichment</span>
+                </a>
             </div>
             <!-- Tab Content Container -->
             <div class="vertical-tab-content-container">
-                <!-- BibTeX Enrichment Tab -->
-                <div class="vertical-tab-content {% if active_tab == 'bibtex' %}active{% endif %}"
-                     id="bibtex-tab"
-                     data-tab="bibtex">{% include "scholar_app/bibtex_partials/enrich.html" %}</div>
                 <!-- Literature Search Tab -->
                 <div class="vertical-tab-content {% if active_tab == 'search' %}active{% endif %}"
                      id="search-tab"
                      data-tab="search">
                     {% include "scholar_app/search_partials/search.html" with show_results=True %}
                 </div>
+                <!-- BibTeX Enrichment Tab -->
+                <div class="vertical-tab-content {% if active_tab == 'bibtex' %}active{% endif %}"
+                     id="bibtex-tab"
+                     data-tab="bibtex">{% include "scholar_app/bibtex_partials/enrich.html" %}</div>
             </div>
         </div>
     </div>
     <!-- Configuration for JavaScript -->
-    <div id="scholar-config-data"
-         data-bibtex-upload-url="{% url 'scholar_app:bibtex_upload' %}"
-         data-resource-status-url="{% url 'scholar_app:bibtex_resource_status' %}"
-         data-scitex-search-url="{% url 'scholar_app:api_scitex_search' %}"
-         data-scitex-capabilities-url="{% url 'scholar_app:api_scitex_capabilities' %}"
-         data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}"
-         data-user-projects='[{% for project in user_projects %}{"id": {{ project.id }}, "name": "{{ project.name|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]'
-         data-current-project='{% if current_project %}{"id": {{ current_project.id }}, "name": "{{ current_project.name|escapejs }}"}{% else %}null{% endif %}'
-         {% if query and results %}
-         data-search-results='[{% for result in results %}{"title": "{{ result.title|escapejs }}", "year": {% if result.year %}{{ result.year }}{% else %}null{% endif %}, "citations": {% if result.citations %}{{ result.citations }}{% else %}0{% endif %}, "impact_factor": {% if result.impact_factor %}{{ result.impact_factor }}{% else %}null{% endif %}, "authors": "{{ result.authors|escapejs }}", "journal": "{{ result.journal|escapejs }}", "url": "{{ result.url|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]'
-         {% endif %}>
-    </div>
-    {% vite_script 'scholar_app/scholar-config' %}
+    <div id="scholar-config-data" data-bibtex-upload-url="{% url 'scholar_app:bibtex_upload' %}" data-resource-status-url="{% url 'scholar_app:bibtex_resource_status' %}" data-scitex-search-url="{% url 'scholar_app:api_scitex_search' %}" data-scitex-capabilities-url="{% url 'scholar_app:api_scitex_capabilities' %}" data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}" data-user-projects='[{% for project in user_projects %}{"id": {{ project.id }}, "name": "{{ project.name|escapejs }}"}
+        {% if not forloop.last %},{% endif %}
+    {% endfor %}
+    ]' data-current-project='{% if current_project %}{"id": {{ current_project.id }}, "name": "{{ current_project.name|escapejs }}"}
+{% else %}
+    null
+{% endif %}
+' {% if query and results %} data-search-results='[{% for result in results %}{"title": "{{ result.title|escapejs }}", "year": {% if result.year %}{{ result.year }}{% else %}null{% endif %}, "citations": {% if result.citations %}{{ result.citations }}{% else %}0{% endif %}, "impact_factor": {% if result.impact_factor %}{{ result.impact_factor }}{% else %}null{% endif %}, "authors": "{{ result.authors|escapejs }}", "journal": "{{ result.journal|escapejs }}", "url": "{{ result.url|escapejs }}"}
+{% if not forloop.last %},{% endif %}
+{% endfor %}
+]' {% endif %}></div>
+{% vite_script 'scholar_app/scholar-config' %}
 {% endblock %}

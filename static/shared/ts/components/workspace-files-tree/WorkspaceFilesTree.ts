@@ -69,7 +69,7 @@ export class WorkspaceFilesTree {
     this.stateManager = new TreeStateManager(
       config.username,
       config.slug,
-      config.mode
+      config.mode,
     );
     this.filter = new TreeFilter(config.mode, {
       allowedExtensions: config.allowedExtensions,
@@ -79,7 +79,7 @@ export class WorkspaceFilesTree {
     this.renderer = new TreeRenderer(
       this.config,
       this.stateManager,
-      this.filter
+      this.filter,
     );
 
     this.fileActions = new FileActions(
@@ -89,14 +89,14 @@ export class WorkspaceFilesTree {
       () => this.getCsrfToken(),
       () => this.rerender(),
       (type, detail) => this.emitEvent(type, detail),
-      () => this.refresh()
+      () => this.refresh(),
     );
 
     this.gitActions = new GitActions(
       this.config,
       () => this.getCsrfToken(),
       () => this.refresh(),
-      (message, type) => this.showMessage(message, type)
+      (message, type) => this.showMessage(message, type),
     );
 
     this.eventHandlers = new EventHandlers(
@@ -109,32 +109,32 @@ export class WorkspaceFilesTree {
       (folderPath) => this.fileActions.createNewFile(folderPath),
       (folderPath) => this.fileActions.createNewFolder(folderPath),
       (path) => this.fileActions.copyFile(path),
-      (action, path) => this.handleGitAction(action, path)
+      (action, path) => this.handleGitAction(action, path),
     );
 
     this.directoryFilterHandler = new DirectoryFilterHandler(() =>
-      this.rerender()
+      this.rerender(),
     );
     this.selectionHandler = new SelectionHandler(
       this.stateManager,
       () => this.container,
       () => this.treeData,
       () => this.rerender(),
-      (path) => this.fileActions.selectFile(path)
+      (path) => this.fileActions.selectFile(path),
     );
     this.pathNavigator = new PathNavigator(
       this.stateManager,
       () => this.container,
       () => this.rerender(),
       () => this.treeData,
-      (path) => this.selectionHandler.updateClasses(path)
+      (path) => this.selectionHandler.updateClasses(path),
     );
 
     this.undoRedoHandler = new UndoRedoHandler(
       this.config,
       () => this.getCsrfToken(),
       () => this.refresh(),
-      (message, type) => this.showMessage(message, type)
+      (message, type) => this.showMessage(message, type),
     );
 
     this.dragDropHandlers = new DragDropHandlers(
@@ -143,10 +143,10 @@ export class WorkspaceFilesTree {
       () => this.refresh(),
       (message, type) => this.showMessage(message, type),
       () => this.selectionHandler.getSelectedPaths(),
-      (path) => this.stateManager.isSelected(path)
+      (path) => this.stateManager.isSelected(path),
     );
     this.dragDropHandlers.setRecordOperation((op) =>
-      this.undoRedoHandler.recordOperation(op)
+      this.undoRedoHandler.recordOperation(op),
     );
 
     this.clipboardHandler = new ClipboardHandler(
@@ -155,10 +155,10 @@ export class WorkspaceFilesTree {
       () => this.refresh(),
       (message, type) => this.showMessage(message, type),
       () => this.selectionHandler.getSelectedPaths(),
-      (path) => this.isItemDirectory(path)
+      (path) => this.isItemDirectory(path),
     );
     this.clipboardHandler.setRecordOperation((op) =>
-      this.undoRedoHandler.recordOperation(op)
+      this.undoRedoHandler.recordOperation(op),
     );
 
     this.contextMenuHandler = new ContextMenuHandler(
@@ -166,27 +166,29 @@ export class WorkspaceFilesTree {
       () => this.clipboardHandler.hasClipboard(),
       (path) => this.isItemDirectory(path),
       () => this.undoRedoHandler.canUndo(),
-      () => this.undoRedoHandler.canRedo()
+      () => this.undoRedoHandler.canRedo(),
     );
 
     this.searchHandler = new SearchHandler(
       () => this.rerender(),
-      () => this.treeData
+      () => this.treeData,
     );
-    this.searchHandler.setExpandCallback((path) => this.stateManager.expand(path));
+    this.searchHandler.setExpandCallback((path) =>
+      this.stateManager.expand(path),
+    );
 
     this.fileOperations = new TreeFileOperations(
       this.config,
       () => this.getCsrfToken(),
       () => this.refresh(),
       (message, type) => this.showMessage(message, type),
-      (path) => this.stateManager.expand(path)
+      (path) => this.stateManager.expand(path),
     );
 
     this.dataLoader = new TreeDataLoader(
       this.config,
       this.stateManager,
-      (message) => this.showError(message)
+      (message) => this.showError(message),
     );
 
     // Initialize git action dispatcher
@@ -194,7 +196,7 @@ export class WorkspaceFilesTree {
       this.gitActions,
       () => this.refresh(),
       () => this.container,
-      (msg, type) => this.showMessage(msg, type)
+      (msg, type) => this.showMessage(msg, type),
     );
 
     this.stateManager.subscribe(() => this.rerender());
@@ -214,7 +216,7 @@ export class WorkspaceFilesTree {
 
   private async handleContextMenuAction(
     action: string,
-    path: string
+    path: string,
   ): Promise<void> {
     if (this.contextMenuActionHandler) {
       await this.contextMenuActionHandler.handle(action, path);
@@ -226,8 +228,12 @@ export class WorkspaceFilesTree {
     if (!this.container)
       return console.error(`Container #${this.config.containerId} not found`);
 
-    if (this.config.className) this.container.classList.add(this.config.className);
+    if (this.config.className)
+      this.container.classList.add(this.config.className);
     this.container.classList.add("workspace-files-tree");
+
+    // Show loading skeleton immediately for better perceived performance
+    this.container.innerHTML = this.renderer.renderLoadingSkeleton();
 
     this.resizeHandler = new ResizeHandler(this.container, this.config.mode);
     this.resizeHandler.initialize();
@@ -248,8 +254,9 @@ export class WorkspaceFilesTree {
         showMessage: (msg, type) => this.showMessage(msg, type),
         downloadFile: (path) => this.fileOperations.downloadFile(path),
         extractBundle: (path) => this.fileOperations.extractBundle(path),
-        promptCreateSymlink: (path) => this.fileOperations.promptCreateSymlink(path),
-      }
+        promptCreateSymlink: (path) =>
+          this.fileOperations.promptCreateSymlink(path),
+      },
     );
 
     // Initialize search UI handler
@@ -260,7 +267,7 @@ export class WorkspaceFilesTree {
         setSearchQuery: (query) => this.setSearchQuery(query),
         clearSearch: () => this.clearSearch(),
         selectFile: (path) => this.selectFile(path),
-      }
+      },
     );
 
     // Initialize workspace keyboard handler
@@ -282,7 +289,7 @@ export class WorkspaceFilesTree {
           this.handleContextMenuAction(action, path),
         refresh: () => this.refresh(),
         getTreeData: () => this.treeData,
-      }
+      },
     );
     this.workspaceKeyboardHandler.initialize();
 
@@ -297,10 +304,7 @@ export class WorkspaceFilesTree {
     if (event && (event.ctrlKey || event.metaKey || event.shiftKey)) {
       this.selectionHandler.handleClick(path, event);
     } else {
-      this.selectionHandler.handleClick(
-        path,
-        event || new MouseEvent("click")
-      );
+      this.selectionHandler.handleClick(path, event || new MouseEvent("click"));
     }
   }
 
@@ -398,7 +402,7 @@ export class WorkspaceFilesTree {
         this.stateManager,
         this.container,
         (path) => this.fileActions.toggleFolder(path),
-        (path) => this.fileActions.selectFile(path)
+        (path) => this.fileActions.selectFile(path),
       );
       this.boundKeyboardHandler = (e: KeyboardEvent) =>
         this.keyboardHandlers?.handleKeyboard(e);
@@ -423,7 +427,7 @@ export class WorkspaceFilesTree {
   private emitEvent(type: string, detail: any): void {
     if (!this.container) return;
     this.container.dispatchEvent(
-      new CustomEvent(type, { detail, bubbles: true })
+      new CustomEvent(type, { detail, bubbles: true }),
     );
     if (type === "file-select" && this.config.onFileSelect) {
       const item = TreeUtils.findItem(detail.path, this.treeData);
@@ -447,7 +451,7 @@ export class WorkspaceFilesTree {
   }
   async focusDirectory(
     targetPath: string,
-    collapseOthersAtLevel = true
+    collapseOthersAtLevel = true,
   ): Promise<void> {
     await this.pathNavigator.focusDirectory(targetPath, collapseOthersAtLevel);
   }
@@ -480,7 +484,7 @@ export class WorkspaceFilesTree {
 
   private showMessage(
     message: string,
-    type: "success" | "error" | "info"
+    type: "success" | "error" | "info",
   ): void {
     showTreeMessage(message, type);
   }

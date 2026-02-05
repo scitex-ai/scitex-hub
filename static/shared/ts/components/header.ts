@@ -4,7 +4,7 @@
  */
 
 // Storage key for header collapse state
-const HEADER_COLLAPSE_STORAGE_KEY = 'scitex-header-collapsed';
+const HEADER_COLLAPSE_STORAGE_KEY = "scitex-header-collapsed";
 
 function initializeHeader(): void {
   // Initialize header collapse toggle
@@ -82,7 +82,9 @@ function initializeHeader(): void {
 
   // User menu dropdown (regular users)
   const userMenuToggle = document.getElementById("user-menu-toggle");
-  const userMenuDropdown = document.getElementById("user-menu-dropdown") as HTMLElement;
+  const userMenuDropdown = document.getElementById(
+    "user-menu-dropdown",
+  ) as HTMLElement;
 
   if (userMenuToggle && userMenuDropdown) {
     userMenuToggle.addEventListener("click", function (e) {
@@ -111,7 +113,9 @@ function initializeHeader(): void {
 
   // Visitor menu dropdown (visitors)
   const visitorMenuToggle = document.getElementById("visitor-menu-toggle");
-  const visitorMenuDropdown = document.getElementById("visitor-menu-dropdown") as HTMLElement;
+  const visitorMenuDropdown = document.getElementById(
+    "visitor-menu-dropdown",
+  ) as HTMLElement;
 
   if (visitorMenuToggle && visitorMenuDropdown) {
     visitorMenuToggle.addEventListener("click", function (e) {
@@ -153,7 +157,7 @@ function initializeHeader(): void {
       // Hard refresh (bypass cache) like Ctrl+Shift+R
       // Use cache-busting URL parameter to force fresh load of all resources
       const url = new URL(window.location.href);
-      url.searchParams.set('_cache_bust', Date.now().toString());
+      url.searchParams.set("_cache_bust", Date.now().toString());
       window.location.href = url.toString();
     });
   }
@@ -214,15 +218,17 @@ function initializeHeader(): void {
   }
 
   // Server Health Status Live Indicator
-  const serverStatusIndicator = document.getElementById('server-status-indicator') as HTMLElement;
-  const serverStatusBtn = document.getElementById('server-status-btn');
+  const serverStatusIndicator = document.getElementById(
+    "server-status-indicator",
+  ) as HTMLElement;
+  const serverStatusBtn = document.getElementById("server-status-btn");
 
   if (serverStatusIndicator && serverStatusBtn) {
-    let lastStatus = 'healthy';
+    let lastStatus = "healthy";
 
     async function updateServerHealth(): Promise<void> {
       try {
-        const response = await fetch('/api/server-health/');
+        const response = await fetch("/api/server-health/");
         const data = await response.json();
 
         const status = data.status; // "healthy" | "warning" | "error" | "starting"
@@ -230,20 +236,23 @@ function initializeHeader(): void {
         const timestamp = data.timestamp; // ISO timestamp from API
 
         // Format timestamp for display
-        let timeStr = 'now';
+        let timeStr = "now";
         if (timestamp) {
           const date = new Date(timestamp);
-          timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          timeStr = date.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
         }
 
         // Build tooltip: LED color indicates server status
-        let statusMsg = 'healthy';
-        if (status === 'starting') {
-          statusMsg = 'starting up';
-        } else if (status === 'warning') {
-          statusMsg = 'warning';
-        } else if (status === 'error') {
-          statusMsg = 'error';
+        let statusMsg = "healthy";
+        if (status === "starting") {
+          statusMsg = "starting up";
+        } else if (status === "warning") {
+          statusMsg = "warning";
+        } else if (status === "error") {
+          statusMsg = "error";
         }
         let statusTooltip = `LED: ${statusMsg} at ${timeStr}`;
 
@@ -251,36 +260,44 @@ function initializeHeader(): void {
         if (data.services) {
           const serviceDetails: string[] = [];
           // Infrastructure services
-          if (data.services.database !== 'healthy') {
+          if (data.services.database !== "healthy") {
             serviceDetails.push(`Database: ${data.services.database}`);
           }
-          if (data.services.redis !== 'healthy') {
+          if (data.services.redis !== "healthy") {
             serviceDetails.push(`Redis: ${data.services.redis}`);
           }
-          if (data.services.slurm !== 'healthy') {
+          if (data.services.slurm !== "healthy") {
             serviceDetails.push(`SLURM: ${data.services.slurm}`);
           }
-          if (data.services.apptainer !== 'healthy') {
+          if (data.services.apptainer !== "healthy") {
             serviceDetails.push(`Apptainer: ${data.services.apptainer}`);
           }
           // Docker containers
-          if (data.services.flower && data.services.flower !== 'healthy') {
+          if (data.services.flower && data.services.flower !== "healthy") {
             serviceDetails.push(`Flower: ${data.services.flower}`);
           }
-          if (data.services.celery_worker && data.services.celery_worker !== 'healthy') {
-            serviceDetails.push(`Celery Worker: ${data.services.celery_worker}`);
+          if (
+            data.services.celery_worker &&
+            data.services.celery_worker !== "healthy"
+          ) {
+            serviceDetails.push(
+              `Celery Worker: ${data.services.celery_worker}`,
+            );
           }
-          if (data.services.celery_beat && data.services.celery_beat !== 'healthy') {
+          if (
+            data.services.celery_beat &&
+            data.services.celery_beat !== "healthy"
+          ) {
             serviceDetails.push(`Celery Beat: ${data.services.celery_beat}`);
           }
-          if (data.services.gitea && data.services.gitea !== 'healthy') {
+          if (data.services.gitea && data.services.gitea !== "healthy") {
             serviceDetails.push(`Gitea: ${data.services.gitea}`);
           }
-          if (data.services.nginx && data.services.nginx !== 'healthy') {
+          if (data.services.nginx && data.services.nginx !== "healthy") {
             serviceDetails.push(`Nginx: ${data.services.nginx}`);
           }
           if (serviceDetails.length > 0) {
-            statusTooltip += ' - ' + serviceDetails.join(', ');
+            statusTooltip += " - " + serviceDetails.join(", ");
           }
         }
 
@@ -288,38 +305,38 @@ function initializeHeader(): void {
         serverStatusIndicator.style.background = statusColor;
 
         // Calculate shadow color (semi-transparent version of status color)
-        const shadowColor = statusColor.replace('#', '');
+        const shadowColor = statusColor.replace("#", "");
         const r = parseInt(shadowColor.substring(0, 2), 16);
         const g = parseInt(shadowColor.substring(2, 4), 16);
         const b = parseInt(shadowColor.substring(4, 6), 16);
         serverStatusIndicator.style.boxShadow = `0 0 4px rgba(${r}, ${g}, ${b}, 0.6)`;
 
-        serverStatusBtn.setAttribute('data-tooltip', statusTooltip);
+        serverStatusBtn.setAttribute("data-tooltip", statusTooltip);
 
         // Remove any existing animation class
-        serverStatusIndicator.classList.remove('status-flash');
+        serverStatusIndicator.classList.remove("status-flash");
 
         // Add flashing animation for "starting" state
-        if (status === 'starting') {
-          serverStatusIndicator.classList.add('status-flash');
+        if (status === "starting") {
+          serverStatusIndicator.classList.add("status-flash");
         }
 
         // If status changed, add pulse animation
         if (lastStatus !== status) {
-          serverStatusIndicator.style.animation = 'pulse 0.5s ease-in-out';
+          serverStatusIndicator.style.animation = "pulse 0.5s ease-in-out";
           setTimeout(() => {
-            serverStatusIndicator.style.animation = '';
+            serverStatusIndicator.style.animation = "";
           }, 500);
           lastStatus = status;
         }
-
       } catch (error) {
-        console.error('Failed to fetch server health:', error);
+        console.error("Failed to fetch server health:", error);
         // Show offline indicator
-        serverStatusIndicator.style.background = '#9e9e9e';
-        serverStatusIndicator.style.boxShadow = '0 0 4px rgba(158, 158, 158, 0.6)';
-        serverStatusBtn.setAttribute('data-tooltip', 'Health check failed');
-        serverStatusIndicator.classList.remove('status-flash');
+        serverStatusIndicator.style.background = "#9e9e9e";
+        serverStatusIndicator.style.boxShadow =
+          "0 0 4px rgba(158, 158, 158, 0.6)";
+        serverStatusBtn.setAttribute("data-tooltip", "Health check failed");
+        serverStatusIndicator.classList.remove("status-flash");
       }
     }
 
@@ -331,13 +348,13 @@ function initializeHeader(): void {
 
 // Get CSRF token from cookie
 function getCsrfToken(): string {
-  const name = 'csrftoken';
-  let cookieValue = '';
-  if (document.cookie && document.cookie !== '') {
-    const cookies = document.cookie.split(';');
+  const name = "csrftoken";
+  let cookieValue = "";
+  if (document.cookie && document.cookie !== "") {
+    const cookies = document.cookie.split(";");
     for (let i = 0; i < cookies.length; i++) {
       const cookie = cookies[i].trim();
-      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+      if (cookie.substring(0, name.length + 1) === name + "=") {
         cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
         break;
       }
@@ -349,15 +366,17 @@ function getCsrfToken(): string {
 // Initialize Visitor Pool function (Dev only)
 // Makes API call to reset and initialize the visitor pool
 async function initVisitorPool(): Promise<void> {
-  const btn = document.getElementById('init-visitor-pool-btn') as HTMLButtonElement | null;
-  const originalIcon = 'fa-users-cog';
+  const btn = document.getElementById(
+    "init-visitor-pool-btn",
+  ) as HTMLButtonElement | null;
+  const originalIcon = "fa-users-cog";
 
   if (btn) {
     btn.disabled = true;
-    btn.style.opacity = '0.6';
-    const icon = btn.querySelector('i');
+    btn.style.opacity = "0.6";
+    const icon = btn.querySelector("i");
     if (icon) {
-      icon.className = 'fas fa-spinner fa-spin';
+      icon.className = "fas fa-spinner fa-spin";
     }
   }
 
@@ -365,11 +384,11 @@ async function initVisitorPool(): Promise<void> {
     // Get CSRF token from cookie
     const csrfToken = getCsrfToken();
 
-    const response = await fetch('/api/visitor-pool/initialize/', {
-      method: 'POST',
+    const response = await fetch("/api/visitor-pool/initialize/", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrfToken,
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken,
       },
     });
 
@@ -378,47 +397,51 @@ async function initVisitorPool(): Promise<void> {
     if (response.ok) {
       // Show success with checkmark briefly
       if (btn) {
-        const icon = btn.querySelector('i');
+        const icon = btn.querySelector("i");
         if (icon) {
-          icon.className = 'fas fa-check';
-          icon.style.color = '#22c55e';
+          icon.className = "fas fa-check";
+          icon.style.color = "#22c55e";
         }
       }
-      alert(`Visitor Pool Initialized!\n\nReset: ${data.reset || 0} directories\nCreated: ${data.created} visitors\nTotal: ${data.total} slots\nFree: ${data.free} available`);
+      alert(
+        `Visitor Pool Initialized!\n\nReset: ${data.reset || 0} directories\nCreated: ${data.created} visitors\nTotal: ${data.total} slots\nFree: ${data.free} available`,
+      );
       // Reload to pick up new visitor allocation
       window.location.reload();
     } else {
       // Show error with X icon
       if (btn) {
-        const icon = btn.querySelector('i');
+        const icon = btn.querySelector("i");
         if (icon) {
-          icon.className = 'fas fa-times';
-          icon.style.color = '#ef4444';
+          icon.className = "fas fa-times";
+          icon.style.color = "#ef4444";
         }
       }
-      alert(`Failed to initialize visitor pool: ${data.error || 'Unknown error'}`);
+      alert(
+        `Failed to initialize visitor pool: ${data.error || "Unknown error"}`,
+      );
     }
   } catch (error) {
-    console.error('Failed to initialize visitor pool:', error);
+    console.error("Failed to initialize visitor pool:", error);
     // Show error with X icon
     if (btn) {
-      const icon = btn.querySelector('i');
+      const icon = btn.querySelector("i");
       if (icon) {
-        icon.className = 'fas fa-times';
-        icon.style.color = '#ef4444';
+        icon.className = "fas fa-times";
+        icon.style.color = "#ef4444";
       }
     }
-    alert('Failed to initialize visitor pool. Check console for details.');
+    alert("Failed to initialize visitor pool. Check console for details.");
   } finally {
     // Restore button after delay (unless page reloads)
     setTimeout(() => {
       if (btn) {
         btn.disabled = false;
-        btn.style.opacity = '1';
-        const icon = btn.querySelector('i');
+        btn.style.opacity = "1";
+        const icon = btn.querySelector("i");
         if (icon) {
           icon.className = `fas ${originalIcon}`;
-          icon.style.color = '';
+          icon.style.color = "";
         }
       }
     }, 2000);
@@ -429,39 +452,62 @@ async function initVisitorPool(): Promise<void> {
 (window as any).initVisitorPool = initVisitorPool;
 
 /**
+ * Update header toggle button tooltip based on current state
+ */
+function updateHeaderToggleTooltip(
+  toggleBtn: HTMLButtonElement,
+  isCollapsed: boolean,
+): void {
+  const tooltip = isCollapsed ? "Show header" : "Hide header";
+  toggleBtn.setAttribute("data-tooltip", tooltip);
+  toggleBtn.setAttribute("aria-label", tooltip);
+}
+
+/**
  * Initialize header collapse/expand functionality
  * Button is OUTSIDE header (sibling element) so it remains visible when header collapses
  */
 function initializeHeaderCollapse(): void {
-  const header = document.querySelector('.global-header') as HTMLElement;
-  const toggleBtn = document.getElementById('header-collapse-toggle') as HTMLButtonElement;
+  const header = document.querySelector(".global-header") as HTMLElement;
+  const toggleBtn = document.getElementById(
+    "header-collapse-toggle",
+  ) as HTMLButtonElement;
 
   if (!header || !toggleBtn) return;
 
   // Restore saved state
-  const isCollapsed = localStorage.getItem(HEADER_COLLAPSE_STORAGE_KEY) === 'true';
+  const isCollapsed =
+    localStorage.getItem(HEADER_COLLAPSE_STORAGE_KEY) === "true";
   if (isCollapsed) {
-    header.classList.add('collapsed');
+    header.classList.add("collapsed");
   }
 
+  // Set initial tooltip
+  updateHeaderToggleTooltip(toggleBtn, isCollapsed);
+
   // Toggle on click
-  toggleBtn.addEventListener('click', () => {
-    const willCollapse = !header.classList.contains('collapsed');
-    header.classList.toggle('collapsed');
+  toggleBtn.addEventListener("click", () => {
+    const willCollapse = !header.classList.contains("collapsed");
+    header.classList.toggle("collapsed");
+
+    // Update tooltip dynamically
+    updateHeaderToggleTooltip(toggleBtn, willCollapse);
 
     // Save state
     localStorage.setItem(HEADER_COLLAPSE_STORAGE_KEY, willCollapse.toString());
 
     // Dispatch custom event for panel synchronization
-    window.dispatchEvent(new CustomEvent('header-collapse-changed', {
-      detail: { collapsed: willCollapse }
-    }));
+    window.dispatchEvent(
+      new CustomEvent("header-collapse-changed", {
+        detail: { collapsed: willCollapse },
+      }),
+    );
   });
 }
 
 // Initialize immediately if DOM is ready, otherwise wait
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initializeHeader);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initializeHeader);
 } else {
   initializeHeader();
 }

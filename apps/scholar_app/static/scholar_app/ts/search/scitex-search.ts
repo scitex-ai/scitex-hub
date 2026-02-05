@@ -11,47 +11,39 @@ import { searchHistory } from "./SearchHistoryManager";
 import { searchLog } from "./SearchLogManager";
 import { SearchResult, SourceConfig } from "./types";
 import { addResultToProgressive, toggleSelectAll } from "./result-card";
-import { updateToolbarState } from "./results-toolbar";
 import { setupToolbarHandlers } from "./toolbar-handlers";
+import { updateLimitInfo } from "./limit-info-display";
+import { showNoResultsMessage } from "./no-results";
+import { showSearchLoading } from "./search-loading";
+import {
+  resetPagination,
+  addResultsToPagination,
+  renderInitialBatch,
+} from "./pagination";
+import {
+  showToolbarStatus,
+  hideToolbarStatus,
+  updateToolbarStatus,
+  updateProgressStep,
+  updateSearchStats,
+  clearSearchStats,
+} from "./toolbar-status";
 
 console.log("[DEBUG] scitex-search.ts loaded (refactored)");
 
-// Re-export for backwards compatibility
-export {};
-
 // Track active searches for completion detection
 let activeSearches = 0;
+let totalSources = 0;
+let completedSources = 0;
 let totalResults = 0;
 let currentSearchQuery = "";
+let searchStartTime = 0;
 
 /**
- * Create results header with toolbar buttons
+ * Get current search query (for export filename)
  */
-function createResultsHeader(query: string): string {
-  return `
-    <div class="results-header" id="progressiveResultsHeader">
-      <div class="results-info">
-        <span class="results-count" id="progressiveResultsText">Searching for "${query}"...</span>
-      </div>
-      <div class="results-toolbar">
-        <button type="button" class="toolbar-btn" id="abstractToggleBtn" data-mode="truncated" title="Toggle abstract display">
-          Abstract: truncated
-        </button>
-        <button type="button" class="toolbar-btn" id="saveSelectedBtn" title="Save selected to library" disabled>
-          <i class="fas fa-save"></i> Save
-        </button>
-        <button type="button" class="toolbar-btn" id="openUrlsBtn" title="Open selected in new tabs" disabled>
-          <i class="fas fa-external-link-alt"></i> Open URLs
-        </button>
-        <button type="button" class="toolbar-btn toolbar-btn--primary" id="exportSelectedBibtex" title="Download BibTeX for selected" disabled>
-          <i class="fas fa-download"></i> BibTeX
-        </button>
-        <button type="button" class="toolbar-btn toolbar-btn--pdf" id="downloadSelectedPdfs" title="Download PDFs for selected (Open Access only)" disabled>
-          <i class="fas fa-file-pdf"></i> PDFs
-        </button>
-      </div>
-    </div>
-  `;
+export function getCurrentSearchQuery(): string {
+  return currentSearchQuery;
 }
 
 /**
@@ -67,7 +59,7 @@ function updateResultsCount(
     document.getElementById("searchResultsText");
   if (textEl) {
     const sourceText = sourcesInfo ? ` from ${sourcesInfo}` : "";
-    textEl.textContent = `${count} result${count !== 1 ? "s" : ""} for "${query}"${sourceText}`;
+    textEl.textContent = `${count.toLocaleString()} result${count !== 1 ? "s" : ""} for "${query}"${sourceText}`;
   }
 }
 
@@ -124,10 +116,28 @@ function resetProgressIndicators(): void {
  */
 function checkSearchCompletion(): void {
   activeSearches--;
+  completedSources++;
   updateResultsCount(totalResults, currentSearchQuery);
+  updateProgressStep(completedSources, totalSources);
+
+  // Update stats as results come in
+  const elapsed = Math.floor((Date.now() - searchStartTime) / 1000);
+  updateSearchStats(totalResults, elapsed);
+
   if (activeSearches <= 0) {
     searchLog.hideSearching();
-    searchLog.log(`✓ Search complete. Total: ${totalResults} results`);
+    searchLog.log(
+      `✓ Search complete. Total: ${totalResults.toLocaleString()} results`,
+    );
+    updateToolbarStatus(`${totalResults.toLocaleString()}`, true);
+
+    // Show no results message if empty
+    if (totalResults === 0) {
+      showNoResultsMessage(currentSearchQuery);
+    } else {
+      // Select all papers by default after search completes
+      toggleSelectAll(true);
+    }
   }
 }
 
@@ -159,6 +169,9 @@ function buildSearchUrl(
 /**
  * Search a single source
  */
+// Timeout for search requests (3 minutes)
+const SEARCH_TIMEOUT_MS = 180000;
+
 function searchSource(source: SourceConfig, query: string): void {
   const ignoreCacheToggle = document.getElementById(
     "ignoreCacheToggle",
@@ -171,8 +184,15 @@ function searchSource(source: SourceConfig, query: string): void {
 
   searchLog.log(`→ ${source.name}: Fetching${cacheNote}...`);
 
-  fetch(url)
-    .then((response) => response.json())
+  // Create abort controller for timeout
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), SEARCH_TIMEOUT_MS);
+
+  fetch(url, { signal: controller.signal })
+    .then((response) => {
+      clearTimeout(timeoutId);
+      return response.json();
+    })
     .then((data: any) => {
       const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
 
@@ -183,13 +203,25 @@ function searchSource(source: SourceConfig, query: string): void {
 
         searchLog.updateSourceStatus(source.name, "success", count);
 
-        let logMessage = `✓ ${source.name}: ${count} results (${elapsed}s)${cachedNote}`;
+        let logMessage = `✓ ${source.name}: ${count.toLocaleString()} results (${elapsed}s)${cachedNote}`;
 
-        // Log limit_info_chain if available (backend propagates capped_reason)
+        // Log limit_info_chain - always show limit reasons from each stage
         if (data.limit_info_chain && Array.isArray(data.limit_info_chain)) {
           data.limit_info_chain.forEach((li: any) => {
+            // Show capped warning if capped, otherwise show limit info
             if (li.capped && li.capped_reason) {
               logMessage += `\n  ⚠️  ${li.capped_reason}`;
+            } else if (li.limit_reason) {
+              logMessage += `\n  📊 ${li.limit_reason}`;
+            } else if (li.stage && li.returned !== undefined) {
+              // Fallback: construct message from available fields
+              const availableText = li.total_available
+                ? ` of ${li.total_available} available`
+                : "";
+              const limitText = li.configured_limit
+                ? ` (limit=${li.configured_limit})`
+                : "";
+              logMessage += `\n  📊 ${li.stage}: ${li.returned}${availableText}${limitText}`;
             }
           });
         }
@@ -221,20 +253,25 @@ function searchSource(source: SourceConfig, query: string): void {
 
         searchLog.log(logMessage);
 
-        if (data.results && Array.isArray(data.results)) {
-          // Limit initial render to 100 cards to prevent browser freeze
-          // (2000+ DOM elements causes 75+ second lag)
-          const RENDER_LIMIT = 100;
-          const resultsToRender = data.results.slice(0, RENDER_LIMIT);
-          const remaining = data.results.length - RENDER_LIMIT;
+        // Update visible limit info in header
+        if (data.limit_info_chain && Array.isArray(data.limit_info_chain)) {
+          updateLimitInfo(
+            source.name,
+            data.limit_info_chain,
+            data.total_available,
+            count,
+          );
+        }
 
-          resultsToRender.forEach((result: SearchResult) => {
-            addResultToProgressive(result);
-          });
+        if (data.results && Array.isArray(data.results)) {
+          // Store results for pagination and render initial batch
+          addResultsToPagination(data.results);
+          const rendered = renderInitialBatch(data.results);
+          const remaining = data.results.length - rendered;
 
           if (remaining > 0) {
             searchLog.log(
-              `  📊 Showing first ${RENDER_LIMIT} of ${data.results.length} results (${remaining} more available)`,
+              `  📊 Showing first ${rendered.toLocaleString()} of ${data.results.length.toLocaleString()} (${remaining.toLocaleString()} more via "Load More")`,
             );
           }
         }
@@ -272,9 +309,14 @@ function searchSource(source: SourceConfig, query: string): void {
       checkSearchCompletion();
     })
     .catch((error: Error) => {
+      clearTimeout(timeoutId);
       const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
       searchLog.updateSourceStatus(source.name, "error");
-      searchLog.log(`✗ ${source.name}: ${error.message} (${elapsed}s)`);
+      const errorMsg =
+        error.name === "AbortError"
+          ? `Timeout after ${SEARCH_TIMEOUT_MS / 1000}s`
+          : error.message;
+      searchLog.log(`✗ ${source.name}: ${errorMsg} (${elapsed}s)`);
       checkSearchCompletion();
     });
 }
@@ -322,12 +364,15 @@ function startUnifiedSearch(query: string): void {
   console.log("[SciTeX Search] Starting unified search for:", query);
 
   currentSearchQuery = query;
+  searchStartTime = Date.now();
 
   searchLog.clear();
   searchLog.resetAllSources();
   searchLog.showSearching();
   searchLog.log(`Starting search: "${query}"`);
   totalResults = 0;
+  clearSearchStats();
+  resetPagination();
 
   const selectedCheckboxes = document.querySelectorAll(
     ".source-toggle:checked",
@@ -343,6 +388,7 @@ function startUnifiedSearch(query: string): void {
   if (sourcesToSearch.length === 0) {
     searchLog.log("✗ No sources selected");
     searchLog.hideSearching();
+    hideToolbarStatus();
     alert("Please select at least one search source.");
     resetProgressIndicators();
     return;
@@ -350,6 +396,10 @@ function startUnifiedSearch(query: string): void {
 
   searchLog.log(`Querying ${sourcesToSearch.length} sources in parallel...`);
   activeSearches = sourcesToSearch.length;
+  totalSources = sourcesToSearch.length;
+  completedSources = 0;
+  // Note: showToolbarStatus is called after header is inserted in form submit handler
+  updateProgressStep(0, totalSources);
 
   sourcesToSearch.forEach((source) => {
     searchLog.updateSourceStatus(source.name, "searching");
@@ -400,31 +450,23 @@ document.addEventListener("DOMContentLoaded", function () {
       window.saveSourcePreferences();
     }
 
-    // Hide regular results container
-    const resultsContainer = document.getElementById(
-      "scitex-results-container",
-    );
-    if (resultsContainer) resultsContainer.style.display = "none";
+    // Keep toolbar visible but clear result cards and empty state
+    // The toolbar in #resultsHeader is the single source of truth
+    const resultsHeader = document.getElementById("resultsHeader");
+    if (resultsHeader) resultsHeader.style.display = "flex";
+
     document.querySelectorAll(".result-card").forEach((card) => {
       (card as HTMLElement).style.display = "none";
     });
     const emptyState = document.getElementById("searchEmptyState");
     if (emptyState) emptyState.style.display = "none";
 
-    // Show progressive interface
-    const progressiveLoadingStatus = document.getElementById(
-      "progressiveLoadingStatus",
-    ) as HTMLElement | null;
-    if (progressiveLoadingStatus)
-      progressiveLoadingStatus.style.display = "block";
+    // Show progressive results container with loading quote
+    showSearchLoading();
 
-    if (progressiveResults) {
-      progressiveResults.style.display = "block";
-      progressiveResults.innerHTML = "";
-      const headerHtml = createResultsHeader(query);
-      progressiveResults.insertAdjacentHTML("beforeend", headerHtml);
-      setupToolbarHandlers();
-    }
+    // Setup handlers on existing toolbar and start timer
+    setupToolbarHandlers();
+    showToolbarStatus();
 
     // Reset progress indicators
     document.querySelectorAll(".progress-source").forEach((source) => {

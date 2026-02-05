@@ -54,7 +54,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const hasSearchQuery =
       urlParams.get("q") !== null && urlParams.get("q").trim() !== "";
 
-    let initialTab = "bibtex"; // Default tab
+    let initialTab = "search"; // Default tab
 
     // Priority 1: If there's a search query, always show search tab
     if (hasSearchQuery) {

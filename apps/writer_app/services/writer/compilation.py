@@ -5,12 +5,26 @@ Thin wrapper delegating to scitex.writer.compile for all compilation.
 Django should import from scitex (the main interface), not directly from scitex_writer.
 """
 
-from typing import Callable, Optional
+from typing import TYPE_CHECKING, Callable, Optional
 
 from scitex import logging
-from scitex.writer import compile as sw_compile
+
+if TYPE_CHECKING:
+    pass
 
 logger = logging.getLogger(__name__)
+
+# Lazy import helper
+_sw_compile = None
+
+
+def _get_sw_compile():
+    global _sw_compile
+    if _sw_compile is None:
+        from scitex.writer import compile as _compile
+
+        _sw_compile = _compile
+    return _sw_compile
 
 
 class CompilationMixin:
@@ -33,6 +47,7 @@ class CompilationMixin:
         """
         try:
             # Delegate to scitex.writer (single source of truth)
+            sw_compile = _get_sw_compile()
             result = sw_compile.content(
                 latex_content=latex_content,
                 project_dir=str(self.writer_dir),

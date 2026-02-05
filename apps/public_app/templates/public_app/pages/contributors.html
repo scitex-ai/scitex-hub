@@ -53,6 +53,30 @@
             color: var(--color-fg-muted);
         }
 
+        .contributor-bio {
+            font-size: 0.85rem;
+            color: var(--color-fg-muted);
+            margin-top: 0.25rem;
+            line-height: 1.4;
+        }
+
+        .founder-badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            padding: 0.15rem 0.4rem;
+            background: var(--color-success-subtle, #dafbe1);
+            color: var(--color-success-fg, #1a7f37);
+            border-radius: 3px;
+            margin-left: 0.5rem;
+        }
+
+        [data-theme="dark"] .founder-badge {
+            background: rgba(46, 160, 67, 0.15);
+            color: #3fb950;
+        }
+
         .contribute-ways {
             margin: 2rem 0;
         }
@@ -75,8 +99,8 @@
 {% endblock %}
 {% block content %}
     <div class="about-container">
-        <header class="demos-hero">
-            <h1 class="demos-hero-title">Contributors</h1>
+        <header class="minimal-hero">
+            <h1 class="minimal-hero-title">Contributors</h1>
         </header>
         <article class="about-narrative">
             <section class="about-section">
@@ -87,8 +111,14 @@
                             <i class="fas fa-user"></i>
                         </div>
                         <div class="contributor-details">
-                            <div class="contributor-name">Yusuke Watanabe</div>
+                            <div class="contributor-name">
+                                Yusuke Watanabe
+                                <span class="founder-badge">Founder</span>
+                            </div>
                             <div class="contributor-role">ywatanabe@scitex.ai</div>
+                            <div class="contributor-bio">
+                                Neuroscientist building tools to make research more reproducible. Believes scientific computing should be open, verifiable, and accessible to everyone.
+                            </div>
                         </div>
                     </div>
                     <div class="contributor-item">
@@ -98,9 +128,18 @@
                         <div class="contributor-details">
                             <div class="contributor-name">Claude Code</div>
                             <div class="contributor-role">AI pair programmer</div>
+                            <div class="contributor-bio">
+                                Anthropic's AI assistant. Helps with code, documentation, and problem-solving across the entire codebase.
+                            </div>
                         </div>
                     </div>
                 </div>
+            </section>
+            <section class="about-section">
+                <h2>Core Members</h2>
+                <p style="color: var(--color-fg-muted); font-style: italic;">
+                    No core members yet—you could be the first. We're looking for researchers and developers who want to shape the future of scientific computing tools.
+                </p>
             </section>
             <section class="about-section">
                 <h2>How to Contribute</h2>

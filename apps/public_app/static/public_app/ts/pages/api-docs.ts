@@ -10,6 +10,8 @@ interface ApiSettings {
   campaignToken: string;
   userApiKey: string;
   isAuthenticated: boolean;
+  username: string;
+  testPassword: string;
 }
 
 let apiSettings: ApiSettings | null = null;
@@ -31,6 +33,8 @@ function loadApiSettings(): ApiSettings {
         campaignToken: "",
         userApiKey: "",
         isAuthenticated: false,
+        username: "",
+        testPassword: "",
       };
     }
   }
@@ -78,18 +82,22 @@ function maskToken(token: string): string {
 
 /**
  * Inject General/Private switcher into every code example
- * - General: Shows generic placeholders (YOUR_TOKEN, your_username)
- * - Private: Shows masked token with eye toggle to reveal, copies actual token
+ * - General: Shows generic placeholders (YOUR_TOKEN, your_username, your_password)
+ * - Private: Shows actual username and token (masked with eye toggle), password as <YOUR_PASSWORD>
  */
 function injectCodeExampleSwitchers(): void {
   const settings = loadApiSettings();
 
-  // Determine the actual token to use
+  // Determine the actual values to use
   const actualToken =
     settings.userApiKey || settings.campaignToken || "YOUR_TOKEN";
   const maskedToken = maskToken(actualToken);
+  // Username is not sensitive - show it directly
+  const actualUsername = settings.username || "your_username";
+  // Password: always use placeholder (user passwords cannot be retrieved from Django)
+  const passwordPlaceholder = "<YOUR_PASSWORD>";
 
-  document.querySelectorAll(".api-example").forEach((example, idx) => {
+  document.querySelectorAll(".api-example").forEach((example) => {
     const header = example.querySelector(".api-example-header");
     const codeBlock = example.querySelector("pre code");
 
@@ -131,15 +139,21 @@ function injectCodeExampleSwitchers(): void {
     }
 
     // Prepare content versions
+    // Display: password always shows as <YOUR_PASSWORD> (user must replace manually)
     const privateMaskedContent = originalContent
       .replace(/YOUR_TOKEN/g, maskedToken)
       .replace(/your-api-key/gi, maskedToken)
-      .replace(/sk_live_xxxxxxxxxxxxxxxxxxxx/g, maskedToken);
+      .replace(/sk_live_xxxxxxxxxxxxxxxxxxxx/g, maskedToken)
+      .replace(/your_username/g, actualUsername)
+      .replace(/your_password/g, passwordPlaceholder);
 
+    // Copy: same as display (password as placeholder)
     const privateActualContent = originalContent
       .replace(/YOUR_TOKEN/g, actualToken)
       .replace(/your-api-key/gi, actualToken)
-      .replace(/sk_live_xxxxxxxxxxxxxxxxxxxx/g, actualToken);
+      .replace(/sk_live_xxxxxxxxxxxxxxxxxxxx/g, actualToken)
+      .replace(/your_username/g, actualUsername)
+      .replace(/your_password/g, passwordPlaceholder);
 
     // State tracking
     let currentMode = "general";
@@ -315,8 +329,12 @@ function setupCopyButtons(): void {
 
       // Check if parent example has copyContent (for private mode with actual token)
       const example = target.closest(".api-example") as HTMLElement | null;
+
+      // Explicitly check for non-empty string (empty string is falsy)
       const copyContent =
-        example?.dataset.copyContent || target.textContent || "";
+        example?.dataset.copyContent && example.dataset.copyContent.length > 0
+          ? example.dataset.copyContent
+          : target.textContent || "";
 
       if (copyContent) {
         navigator.clipboard.writeText(copyContent).then(() => {

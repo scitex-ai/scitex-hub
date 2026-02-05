@@ -84,6 +84,8 @@ def visitor_pool_full(request):
     2. User hasn't accepted cookies (can't allocate visitor session)
 
     Provides clear explanation and options to sign up or accept cookies.
+
+    In DEBUG mode: Auto-resets pool when full (development convenience).
     """
     from django.conf import settings
 
@@ -104,6 +106,22 @@ def visitor_pool_full(request):
     else:
         # Pool actually exhausted
         reason = "pool_full"
+
+        # DEV MODE: Auto-reset pool when full for development convenience
+        if settings.DEBUG:
+            logger.info("[VisitorPool] DEV MODE: Auto-resetting full visitor pool")
+            try:
+                # Free all allocations (quick reset)
+                freed = VisitorAllocation.objects.filter(is_active=True).update(
+                    is_active=False
+                )
+                logger.info(f"[VisitorPool] DEV MODE: Freed {freed} allocations")
+
+                # Redirect to home - middleware will allocate new slot
+                return redirect("public_app:index")
+            except Exception as e:
+                logger.error(f"[VisitorPool] DEV MODE: Auto-reset failed: {e}")
+                # Fall through to show pool full page
 
     context = {
         "pool_size": pool_status.get("total", 4),

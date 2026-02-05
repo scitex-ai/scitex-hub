@@ -4,10 +4,10 @@
 # File: /home/ywatanabe/proj/scitex-cloud/config/settings/settings_dev.py
 # ----------------------------------------
 from __future__ import annotations
+
 import os
-__FILE__ = (
-    "./config/settings/settings_dev.py"
-)
+
+__FILE__ = "./config/settings/settings_dev.py"
 __DIR__ = os.path.dirname(__FILE__)
 # ----------------------------------------
 
@@ -15,10 +15,11 @@ __DIR__ = os.path.dirname(__FILE__)
 Development settings for SciTeX Cloud project.
 """
 
-from scitex.context import quiet
-from .settings_shared import *
-from dotenv import load_dotenv
 import socket
+
+from dotenv import load_dotenv
+
+from .settings_shared import *
 
 
 # ---------------------------------------
@@ -63,9 +64,7 @@ DEBUG = os.getenv("SCITEX_CLOUD_DJANGO_DEBUG", "True").lower() in [
 # SciTeX Settings
 # ---------------------------------------
 # Use develp for writer template in development
-SCITEX_WRITER_TEMPLATE_BRANCH = os.getenv(
-    "SCITEX_WRITER_TEMPLATE_BRANCH", "develop"
-)
+SCITEX_WRITER_TEMPLATE_BRANCH = os.getenv("SCITEX_WRITER_TEMPLATE_BRANCH", "develop")
 SCITEX_WRITER_TEMPLATE_TAG = os.getenv("SCITEX_WRITER_TEMPLATE_TAG", None)
 SECRET_KEY = os.getenv("SCITEX_CLOUD_DJANGO_SECRET_KEY")
 ALLOWED_HOSTS = os.getenv(
@@ -75,7 +74,7 @@ ALLOWED_HOSTS = os.getenv(
 
 # Add WSL2 dynamic IP support (172.x.x.x range)
 # This allows access from any WSL2 IP which can change on restart
-import socket
+
 try:
     wsl_ip = socket.gethostbyname(socket.gethostname())
     if wsl_ip not in ALLOWED_HOSTS:
@@ -108,15 +107,19 @@ STATICFILES_DIRS = [
     # Note: .jsbuild is excluded in dev mode - Vite handles TypeScript transpilation
 ]
 
+
 # django-browser-reload configuration
 # Note: Templates, CSS, and JS files are watched to trigger browser reload
 # Visitor pool initialization is now optimized with fast-path check
 def _get_extra_watch_files():
     """Dynamically get files to watch for browser reload."""
     import glob
+
     files = []
     # Watch templates for browser reload (visitor pool init is now fast)
-    files.extend(glob.glob(str(BASE_DIR / "apps/*/templates/**/*.html"), recursive=True))
+    files.extend(
+        glob.glob(str(BASE_DIR / "apps/*/templates/**/*.html"), recursive=True)
+    )
     files.extend(glob.glob(str(BASE_DIR / "templates/**/*.html"), recursive=True))
     # Watch compiled CSS/JS from TypeScript
     files.extend(glob.glob(str(BASE_DIR / "static/**/*.css"), recursive=True))
@@ -124,6 +127,7 @@ def _get_extra_watch_files():
     files.extend(glob.glob(str(BASE_DIR / "static/**/*.js"), recursive=True))
     files.extend(glob.glob(str(BASE_DIR / "apps/*/static/**/*.js"), recursive=True))
     return files
+
 
 DJANGO_BROWSER_RELOAD_EXTRA_FILES = _get_extra_watch_files()
 
@@ -136,7 +140,9 @@ DEVELOPMENT_APPS = [
     "django_extensions",
 ]
 
-INSTALLED_APPS = DEVELOPMENT_APPS + INSTALLED_APPS  # Daphne must be before django.contrib.staticfiles
+INSTALLED_APPS = (
+    DEVELOPMENT_APPS + INSTALLED_APPS
+)  # Daphne must be before django.contrib.staticfiles
 
 # ASGI Application
 ASGI_APPLICATION = "config.asgi.application"
@@ -154,11 +160,7 @@ if os.environ.get("SCITEX_CLOUD_USE_SQLITE_DEV"):
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR
-            / "data"
-            / "db"
-            / "sqlite"
-            / "scitex_cloud_dev.db",
+            "NAME": BASE_DIR / "data" / "db" / "sqlite" / "scitex_cloud_dev.db",
         }
     }
 else:
@@ -166,9 +168,7 @@ else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.environ.get(
-                "SCITEX_CLOUD_DB_NAME_DEV", "scitex_cloud_dev"
-            ),
+            "NAME": os.environ.get("SCITEX_CLOUD_DB_NAME_DEV", "scitex_cloud_dev"),
             "USER": os.environ.get("SCITEX_CLOUD_DB_USER_DEV", "scitex_dev"),
             "PASSWORD": os.environ.get(
                 "SCITEX_CLOUD_DB_PASSWORD_DEV", "scitex_dev_2025"
@@ -293,12 +293,18 @@ LOGGING.update(
 # Celery Beat Schedule Override for Development
 # ---------------------------------------
 # Faster chart generation in development (10 seconds instead of 60)
-CELERY_BEAT_SCHEDULE['generate-status-charts'] = {
-    'task': 'apps.public_app.tasks.generate_status_charts',
-    'schedule': 10.0,  # Every 10 seconds in development
-    'options': {
-        'expires': 9.0,  # Expire after 9 seconds if not started
+CELERY_BEAT_SCHEDULE["generate-status-charts"] = {
+    "task": "apps.public_app.tasks.generate_status_charts",
+    "schedule": 10.0,  # Every 10 seconds in development
+    "options": {
+        "expires": 9.0,  # Expire after 9 seconds if not started
     },
 }
+
+# ---------------------------------------
+# Test User Credentials for API Docs Examples
+# ---------------------------------------
+# Used to populate API docs code examples in Private mode (dev only)
+TEST_USER_PASSWORD = os.environ.get("TEST_USER_PASSWORD", "Password123!")
 
 # EOF

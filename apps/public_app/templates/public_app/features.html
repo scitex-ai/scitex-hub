@@ -1,5 +1,7 @@
 {% extends "global_base.html" %}
+
 {% load static %}
+
 {% block title %}
     Features -
     SciTeX Cloud
@@ -10,99 +12,99 @@
     researchers and academics
 {% endblock %}
 {% block extra_css %}
+    <link rel="stylesheet" href="{% static 'public_app/css/demos/00-demos.css' %}" />
     <style>
-  .feature-section {
-    padding: 5rem 0;
-  }
+        .feature-section {
+            padding: 5rem 0;
+        }
 
-  .feature-section:nth-child(even) {
-    background-color: var(--light-gray);
-  }
+        .feature-section:nth-child(even) {
+            background-color: var(--light-gray);
+        }
 
-  .feature-heading {
-    text-align: center;
-    margin-bottom: 3rem;
-  }
+        .feature-heading {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
 
-  .feature-heading h2 {
-    font-size: 2.5rem;
-    color: var(--primary-color);
-    margin-bottom: 1rem;
-  }
+        .feature-heading h2 {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
 
-  .feature-heading p {
-    font-size: 1.25rem;
-    color: var(--text-light);
-    max-width: 800px;
-    margin: 0 auto;
-  }
+        .feature-heading p {
+            font-size: 1.25rem;
+            color: var(--text-light);
+            max-width: 800px;
+            margin: 0 auto;
+        }
 
-  .feature-card {
-    background-color: white;
-    border-radius: var(--border-radius);
-    box-shadow: var(--box-shadow-sm);
-    padding: 2rem;
-    height: 100%;
-    transition:
-      transform var(--transition-normal),
-      box-shadow var(--transition-normal);
-  }
+        .feature-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow-sm);
+            padding: 2rem;
+            height: 100%;
+            transition:
+                transform var(--transition-normal),
+                box-shadow var(--transition-normal);
+        }
 
-  .feature-card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--box-shadow-md);
-  }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--box-shadow-md);
+        }
 
-  .feature-icon {
-    font-size: 2.5rem;
-    color: var(--primary-color);
-    margin-bottom: 1rem;
-    display: inline-block;
-  }
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            display: inline-block;
+        }
 
-  .feature-card h3 {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-    color: var(--primary-color);
-  }
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
 
-  .feature-card p {
-    color: var(--text-color);
-    margin-bottom: 1.5rem;
-  }
+        .feature-card p {
+            color: var(--text-color);
+            margin-bottom: 1.5rem;
+        }
 
-  .feature-list {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-  }
+        .feature-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
 
-  .feature-list li {
-    position: relative;
-    padding-left: 1.5rem;
-    margin-bottom: 0.5rem;
-  }
+        .feature-list li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
 
-  .feature-list li::before {
-    content: "✓";
-    position: absolute;
-    left: 0;
-    color: var(--success-color);
-    font-weight: bold;
-  }
+        .feature-list li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--success-color);
+            font-weight: bold;
+        }
     </style>
 {% endblock %}
 {% block content %}
-    <!-- Hero Section -->
-    <section class="hero-section">
-        <div class="container text-center py-5">
-            <h1 class="display-4 mb-3">Powerful Features for Scientific Research</h1>
-            <p class="lead mb-4">
+    <div class="demos-container">
+        <header class="minimal-hero">
+            <h1 class="minimal-hero-title">Powerful Features for Scientific Research</h1>
+            <p class="minimal-hero-subtitle">
                 SciTeX Cloud provides a comprehensive suite of tools designed to
                 accelerate your research workflow
             </p>
-        </div>
-    </section>
+        </header>
+    </div>
     <!-- Research Management Features -->
     <section class="feature-section">
         <div class="container">
@@ -281,8 +283,7 @@
             </p>
             <div class="d-flex justify-content-center gap-3 flex-wrap">
                 <a href="{% url 'public_app:signup' %}" class="btn btn-lg btn-primary">Get Started Free</a>
-                <a href="{% url 'public_app:demo' %}"
-                   class="btn btn-lg btn-outline-primary">Watch Demo</a>
+                <a href="{% url 'public_app:demo' %}" class="btn btn-lg btn-outline-primary">Watch Demo</a>
             </div>
         </div>
     </section>

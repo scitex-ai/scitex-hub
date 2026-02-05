@@ -1,0 +1,84 @@
+/*
+ * @component Minimal Hero
+ * @description Simple, clean hero section for content pages
+ * @category Layout Components
+ * @file /static/shared/css/components/minimal-hero.css
+ *
+ * @variant minimal-hero - Container with subtle gradient background
+ * @variant minimal-hero-title - Large heading (2.5rem, bold)
+ * @variant minimal-hero-subtitle - Secondary text (1.2rem)
+ *
+ * @example
+ * <header class="minimal-hero">
+ *   <h1 class="minimal-hero-title">Page Title</h1>
+ *   <p class="minimal-hero-subtitle">Optional description text</p>
+ * </header>
+ */
+
+/* =========================
+   Minimal Hero - Standard for content pages
+   ========================= */
+
+.minimal-hero {
+  text-align: center;
+  padding: 3rem 2rem;
+  margin-bottom: 3rem;
+  background: linear-gradient(
+    135deg,
+    var(--bg-surface) 0%,
+    var(--bg-muted) 100%
+  );
+  border-radius: 16px;
+  border: 1px solid var(--border-default);
+}
+
+.minimal-hero-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.minimal-hero-subtitle {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+/* Dark Mode */
+[data-theme="dark"] .minimal-hero {
+  background: linear-gradient(135deg, var(--bg-200) 0%, var(--bg-surface) 100%);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .minimal-hero {
+    padding: 2rem 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .minimal-hero-title {
+    font-size: 2rem;
+  }
+
+  .minimal-hero-subtitle {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .minimal-hero {
+    padding: 1.5rem 1rem;
+    border-radius: 12px;
+  }
+
+  .minimal-hero-title {
+    font-size: 1.75rem;
+  }
+
+  .minimal-hero-subtitle {
+    font-size: 1rem;
+  }
+}
