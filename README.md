@@ -15,12 +15,70 @@
 Open-source scientific research platform for researchers and academics.
 
 🌐 **Live**: https://scitex.ai
-📦 **Package**: `pip install scitex[web,scholar,writer,dev]`
+📦 **Package**: `pip install scitex-cloud`
 🔧 **Status**: Alpha (data may be lost)
 
 ---
 
-## Quick Start
+## CLI Package
+
+The `scitex-cloud` package provides CLI tools and MCP server for AI integration.
+
+```bash
+# Install
+pip install scitex-cloud[mcp]
+
+# CLI Commands
+scitex-cloud -h                    # Help
+scitex-cloud gitea list            # List repositories
+scitex-cloud gitea clone user/repo # Clone repository
+scitex-cloud mcp start             # Start MCP server
+scitex-cloud mcp list-tools        # List 23 available tools
+```
+
+<details>
+<summary><b>Python API</b></summary>
+
+```python
+import scitex_cloud
+
+# Cloud client for API access
+client = scitex_cloud.CloudClient()
+client.scholar_search("neural networks")
+client.enrich_bibtex("@article{...}")
+```
+
+</details>
+
+<details>
+<summary><b>MCP Server (AI Integration)</b></summary>
+
+```bash
+# Start MCP server (for Claude Desktop/Code)
+scitex-cloud mcp start              # stdio (local)
+scitex-cloud mcp start -t http      # HTTP (remote)
+
+# Claude Desktop config (~/.config/claude/claude_desktop_config.json):
+{
+  "mcpServers": {
+    "scitex-cloud": {
+      "command": "scitex-cloud",
+      "args": ["mcp", "start"],
+      "env": {"SCITEX_CLOUD_API_KEY": "your-key"}
+    }
+  }
+}
+```
+
+**23 MCP Tools Available:**
+- `cloud_*` (14): clone, create, list, push, pull, pr, issue, etc.
+- `api_*` (9): scholar_search, crossref_search, enrich_bibtex, etc.
+
+</details>
+
+---
+
+## Web Platform Quick Start
 
 <details open>
 <summary><b>Docker (Recommended)</b></summary>

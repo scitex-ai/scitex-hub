@@ -9,12 +9,15 @@ Usage:
     pip install scitex-cloud
     scitex-cloud --help
 
-API:
+Python API:
     >>> import scitex_cloud
-    >>> scitex_cloud.get_version()
-    '0.7.0a0'
-    >>> scitex_cloud.health_check()
-    {'status': 'healthy', ...}
+    >>> client = scitex_cloud.CloudClient()
+    >>> client.scholar_search("neural networks")
+    >>> client.enrich_bibtex("@article{...}")
+
+MCP Server:
+    scitex-cloud serve              # stdio (Claude Desktop)
+    scitex-cloud serve -t sse       # SSE (remote)
 """
 
 from __future__ import annotations
@@ -40,6 +43,7 @@ def _get_version() -> str:
 __version__ = _get_version()
 __author__ = "SciTeX Team"
 
+from .api import CloudClient
 from .config.environments import Environment, get_environment
 from .utils.docker import DockerManager
 
@@ -83,6 +87,7 @@ __all__ = [
     "__version__",
     "get_version",
     "health_check",
+    "CloudClient",
     "Environment",
     "get_environment",
     "DockerManager",

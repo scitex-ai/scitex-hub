@@ -100,4 +100,79 @@ class TestLogsCommand:
         assert "--tail" in result.output
 
 
+class TestGiteaCommand:
+    """Tests for gitea command group."""
+
+    def test_gitea_help(self, runner):
+        """Test gitea --help."""
+        result = runner.invoke(main, ["gitea", "--help"])
+        assert result.exit_code == 0
+        assert "clone" in result.output
+        assert "create" in result.output
+        assert "list" in result.output
+
+    def test_gitea_subcommands_help(self, runner):
+        """Test gitea subcommands have help."""
+        subcommands = ["clone", "create", "list", "search", "push", "pull", "status"]
+        for cmd in subcommands:
+            result = runner.invoke(main, ["gitea", cmd, "--help"])
+            assert result.exit_code == 0
+
+
+class TestMcpCommand:
+    """Tests for mcp command group."""
+
+    def test_mcp_help(self, runner):
+        """Test mcp --help."""
+        result = runner.invoke(main, ["mcp", "--help"])
+        assert result.exit_code == 0
+        assert "start" in result.output
+        assert "doctor" in result.output
+        assert "list-tools" in result.output
+        assert "installation" in result.output
+
+    def test_mcp_start_help(self, runner):
+        """Test mcp start --help."""
+        result = runner.invoke(main, ["mcp", "start", "--help"])
+        assert result.exit_code == 0
+        assert "--transport" in result.output
+        assert "--host" in result.output
+        assert "--port" in result.output
+
+    def test_mcp_list_tools(self, runner):
+        """Test mcp list-tools shows tools."""
+        result = runner.invoke(main, ["mcp", "list-tools"])
+        assert result.exit_code == 0
+        assert "cloud" in result.output.lower() or "api" in result.output.lower()
+
+    def test_mcp_list_tools_json(self, runner):
+        """Test mcp list-tools --json."""
+        result = runner.invoke(main, ["mcp", "list-tools", "--json"])
+        assert result.exit_code == 0
+        assert '"name": "scitex-cloud"' in result.output
+
+
+class TestListPythonApisCommand:
+    """Tests for list-python-apis command."""
+
+    def test_list_python_apis_help(self, runner):
+        """Test list-python-apis --help."""
+        result = runner.invoke(main, ["list-python-apis", "--help"])
+        assert result.exit_code == 0
+        assert "--verbose" in result.output
+
+
+class TestHelpRecursive:
+    """Tests for --help-recursive option."""
+
+    def test_help_recursive(self, runner):
+        """Test --help-recursive shows all commands."""
+        result = runner.invoke(main, ["--help-recursive"])
+        assert result.exit_code == 0
+        # Should show subcommands for groups
+        assert "gitea" in result.output
+        assert "mcp" in result.output
+        assert "docker" in result.output
+
+
 # EOF

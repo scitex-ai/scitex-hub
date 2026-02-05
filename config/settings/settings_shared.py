@@ -75,7 +75,21 @@ def discover_local_apps():
 # ---------------------------------------
 # Metadata
 # ---------------------------------------
-SCITEX_CLOUD_VERSION = "0.7.0-alpha"
+def _get_version():
+    """Read version from pyproject.toml (single source of truth)."""
+    from pathlib import Path
+    try:
+        import tomllib
+    except ImportError:
+        import tomli as tomllib
+    pyproject = Path(__file__).resolve().parent.parent.parent / "pyproject.toml"
+    if pyproject.exists():
+        with open(pyproject, "rb") as f:
+            data = tomllib.load(f)
+            return data.get("project", {}).get("version", "unknown")
+    return "unknown"
+
+SCITEX_CLOUD_VERSION = _get_version()
 
 # ---------------------------------------
 # Visitor Pool Configuration

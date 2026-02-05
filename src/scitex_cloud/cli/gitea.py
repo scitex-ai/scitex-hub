@@ -311,8 +311,8 @@ def status():
 @click.option(
     "-a",
     "--api-key",
-    envvar="SCITEX_API_KEY",
-    help="SciTeX API key (or set SCITEX_API_KEY)",
+    envvar="SCITEX_CLOUD_API_KEY",
+    help="SciTeX API key (or set SCITEX_CLOUD_API_KEY)",
 )
 @click.option("--no-cache", is_flag=True, help="Disable cache")
 @click.option("--url", default="https://scitex.cloud", help="SciTeX Cloud URL")
@@ -324,7 +324,7 @@ def enrich(input_file, output_file, api_key, no_cache, url):
 
     if not api_key:
         click.echo("Error: API key required", err=True)
-        click.echo("Set SCITEX_API_KEY or use --api-key", err=True)
+        click.echo("Set SCITEX_CLOUD_API_KEY or use --api-key", err=True)
         sys.exit(1)
     click.echo(f"Enriching: {input_file}")
     with open(input_file, "rb") as f:
