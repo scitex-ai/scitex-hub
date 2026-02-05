@@ -4,6 +4,7 @@
 # File: /home/ywatanabe/proj/scitex-cloud/apps/dev_app/urls.py
 # ----------------------------------------
 from __future__ import annotations
+
 import os
 
 __FILE__ = "./apps/dev_app/urls.py"
@@ -12,13 +13,18 @@ __DIR__ = os.path.dirname(__FILE__)
 
 from django.urls import path
 
+from apps.core_app.views.console_logger import get_console_logs, log_console
+
 from . import views
-from apps.core_app.views.console_logger import log_console, get_console_logs
 
 app_name = "dev_app"
 
 urlpatterns = [
     path("", views.index, name="index"),
+    path("tests/", views.TestMonitorView.as_view(), name="tests"),
+    path(
+        "tests/<str:category>/", views.TestMonitorView.as_view(), name="tests_category"
+    ),
     path("api/console/", log_console, name="console_log"),
     path("api/console/logs/", get_console_logs, name="console_logs_get"),
     path("design/", views.DesignGuidelinesView.as_view(), name="design"),

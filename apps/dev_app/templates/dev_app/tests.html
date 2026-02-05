@@ -1,0 +1,176 @@
+{% extends "global_base.html" %}
+
+{% load static %}
+
+{% block title %}API Tests - SciTeX{% endblock %}
+{% block meta_description %}API health check and test monitoring dashboard{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'dev_app/styles/tests.css' %}" />
+{% endblock %}
+{% block content %}
+    <!-- Hero Section -->
+    <section class="tests-hero">
+        <div class="container">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h1>
+                        <i class="fas fa-vial"></i> API Test Monitor
+                    </h1>
+                    <p class="text-muted mb-0">Real-time health checks for RESTful API endpoints</p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-outline-secondary btn-sm"
+                            onclick="copyAllResults()"
+                            title="Copy results">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                    <a href="{% url 'dev_app:tests' %}"
+                       class="btn btn-outline-primary btn-sm refresh-btn">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </a>
+                </div>
+            </div>
+            <div class="tests-summary">
+                <div class="stat passed">
+                    <i class="fas fa-check-circle"></i>
+                    <span>{{ passed }} passed</span>
+                </div>
+                <div class="stat failed">
+                    <i class="fas fa-times-circle"></i>
+                    <span>{{ failed }} failed</span>
+                </div>
+                <div class="stat total">
+                    <i class="fas fa-list"></i>
+                    <span>{{ total }} total</span>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Main Content with Sidebar -->
+    <div class="container py-4">
+        <div class="tests-layout">
+            <!-- Sidebar Navigation -->
+            <aside class="tests-sidebar">
+                <nav class="tests-nav">
+                    <a href="{% url 'dev_app:tests' %}"
+                       class="tests-nav-item {% if not current_category %}active{% endif %}">
+                        <i class="fas fa-list"></i>
+                        <span>All Tests</span>
+                        <span class="nav-stats {% if all_passed %}all-pass{% else %}has-fail{% endif %}">{{ passed }}/{{ total }}</span>
+                    </a>
+                    {% for category in categories %}
+                        <div class="tests-nav-section">
+                            <a href="{% url 'dev_app:tests_category' category.key %}"
+                               class="tests-nav-item {% if current_category == category.key %}active{% endif %}">
+                                <i class="{{ category.icon }}"></i>
+                                <span>{{ category.name }}</span>
+                                {% with passed_count=category.results|length %}
+                                    {% with failed_count=0 %}
+                                        <span class="nav-stats {% if category.all_passed %}all-pass{% else %}has-fail{% endif %}">
+                                            {{ category.passed_count }}/{{ category.results|length }}
+                                        </span>
+                                    {% endwith %}
+                                {% endwith %}
+                            </a>
+                        </div>
+                    {% endfor %}
+                </nav>
+            </aside>
+            <!-- Main Content -->
+            <main class="tests-main">
+                {% if all_passed %}
+                    <div class="all-passed-banner">
+                        <i class="fas fa-check-circle fa-lg"></i>
+                        <strong>All {{ total }} tests passed!</strong>
+                    </div>
+                {% else %}
+                    <div class="has-failures-banner">
+                        <i class="fas fa-exclamation-triangle fa-lg"></i>
+                        <strong>{{ failed }} test(s) failed</strong>
+                    </div>
+                {% endif %}
+                {% for category in display_categories %}
+                    <section class="test-category" id="{{ category.key }}">
+                        <h2 class="tests-section-title">
+                            <i class="{{ category.icon }}"></i> {{ category.name }}
+                        </h2>
+                        {% for result in category.results %}
+                            <div class="test-card {% if result.passed %}passed{% else %}failed{% endif %}"
+                                 data-endpoint="{{ result.endpoint }}"
+                                 data-method="{{ result.method }}"
+                                 data-status="{{ result.actual_status }}">
+                                <div class="test-info">
+                                    <div class="test-name">{{ result.name }}</div>
+                                    <div class="test-endpoint">
+                                        <span class="test-method {{ result.method }}">{{ result.method }}</span>
+                                        <code>{{ result.endpoint }}</code>
+                                    </div>
+                                    {% if result.error %}
+                                        <div class="test-error">
+                                            <i class="fas fa-exclamation-circle"></i> {{ result.error }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="test-status">
+                                    <span class="test-http-code">
+                                        {% if result.actual_status %}
+                                            HTTP {{ result.actual_status }}
+                                        {% else %}
+                                            --
+                                        {% endif %}
+                                    </span>
+                                    <span class="test-badge {% if result.passed %}passed{% else %}failed{% endif %}">
+                                        {% if result.passed %}
+                                            <i class="fas fa-check"></i> PASS
+                                        {% else %}
+                                            <i class="fas fa-times"></i> FAIL
+                                        {% endif %}
+                                    </span>
+                                    <span class="test-duration">{{ result.duration_ms }}ms</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </section>
+                {% endfor %}
+            </main>
+        </div>
+    </div>
+{% endblock %}
+{% block extra_js %}
+    <script>
+function copyAllResults() {
+    const results = [];
+    results.push('# API Test Results');
+    results.push('');
+    results.push(`Passed: {{ passed }}/${​{ total }}`);
+    results.push(`Failed: {{ failed }}/${​{ total }}`);
+    results.push('');
+
+    document.querySelectorAll('.test-category').forEach(category => {
+        const title = category.querySelector('.tests-section-title').textContent.trim();
+        results.push(`## ${title}`);
+        results.push('');
+
+        category.querySelectorAll('.test-card').forEach(card => {
+            const name = card.querySelector('.test-name').textContent.trim();
+            const method = card.dataset.method;
+            const endpoint = card.dataset.endpoint;
+            const status = card.dataset.status || '--';
+            const passed = card.classList.contains('passed') ? 'PASS' : 'FAIL';
+            const duration = card.querySelector('.test-duration').textContent.trim();
+
+            results.push(`- [${passed}] ${name}`);
+            results.push(`  ${method} ${endpoint} → HTTP ${status} (${duration})`);
+        });
+        results.push('');
+    });
+
+    navigator.clipboard.writeText(results.join('\n')).then(() => {
+        const btn = document.querySelector('[onclick="copyAllResults()"]');
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        setTimeout(() => { btn.innerHTML = originalHTML; }, 2000);
+    });
+}
+    </script>
+{% endblock %}
