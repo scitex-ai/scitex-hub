@@ -8,14 +8,25 @@ Usage:
 
 Or via Docker:
     docker exec scitex-cloud-dev-django-1 python manage.py init_test_user
+
+Environment Variables (from SECRET/.env.dev):
+    SCITEX_CLOUD_TEST_USER_USERNAME - Test user username (default: test-user)
+    SCITEX_CLOUD_TEST_USER_PASSWORD - Test user password (default: Password123!)
+    SCITEX_CLOUD_TEST_USER_EMAIL    - Test user email (default: test@example.com)
 """
 
 import logging
+import os
 
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 
 logger = logging.getLogger(__name__)
+
+# Default values from environment variables
+DEFAULT_USERNAME = os.getenv("SCITEX_CLOUD_TEST_USER_USERNAME", "test-user")
+DEFAULT_PASSWORD = os.getenv("SCITEX_CLOUD_TEST_USER_PASSWORD", "Password123!")
+DEFAULT_EMAIL = os.getenv("SCITEX_CLOUD_TEST_USER_EMAIL", "test@example.com")
 
 
 class Command(BaseCommand):
@@ -25,20 +36,20 @@ class Command(BaseCommand):
         parser.add_argument(
             "--username",
             type=str,
-            default="test-user",
-            help="Username for the test user (default: test-user)",
+            default=DEFAULT_USERNAME,
+            help=f"Username for the test user (default: {DEFAULT_USERNAME})",
         )
         parser.add_argument(
             "--password",
             type=str,
-            default="Password123!",
-            help="Password for the test user (default: Password123!)",
+            default=DEFAULT_PASSWORD,
+            help="Password for the test user (from SCITEX_CLOUD_TEST_USER_PASSWORD)",
         )
         parser.add_argument(
             "--email",
             type=str,
-            default="test@example.com",
-            help="Email for the test user (default: test@example.com)",
+            default=DEFAULT_EMAIL,
+            help=f"Email for the test user (default: {DEFAULT_EMAIL})",
         )
 
     def handle(self, *args, **options):
