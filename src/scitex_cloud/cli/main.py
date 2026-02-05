@@ -10,6 +10,7 @@ from .. import __version__
 from .completion import completion
 from .deploy import deploy
 from .docker import docker
+from .gitea import gitea
 from .setup import setup
 from .status import logs, status
 
@@ -36,6 +37,7 @@ def main(ctx):
 main.add_command(setup)
 main.add_command(deploy)
 main.add_command(docker)
+main.add_command(gitea)
 main.add_command(status)
 main.add_command(logs)
 main.add_command(completion)
