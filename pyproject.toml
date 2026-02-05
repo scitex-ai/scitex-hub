@@ -1,6 +1,6 @@
 [project]
 name = "scitex-cloud"
-version = "0.6.11a0"
+version = "0.7.0a0"
 description = "SciTeX Cloud - Deployment and management CLI for SciTeX"
 readme = "README.md"
 license = {text = "AGPL-3.0"}
@@ -69,9 +69,13 @@ django = [
     "django-widget-tweaks>=1.5",
     # Language detection
     "pygments",
+    # Journal impact factors
+    "impact-factor>=1.1",
     # Jupyter support
     "nbformat>=5.9",
     "nbconvert>=7.0",
+    # PDF generation
+    "weasyprint>=60.0",
 ]
 test = [
     "pytest>=8.4",

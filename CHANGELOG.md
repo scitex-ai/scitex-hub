@@ -5,6 +5,30 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0-alpha] - 2026-02-05
+
+### Added
+- **API Test Monitoring Dashboard**: Real-time health check page at `/dev/tests/`
+  - Sidebar navigation matching design system pattern
+  - 16 tests across 5 categories (Core, Pages, Modules, Scholar API, Auth API)
+  - Category filtering via URL (`/dev/tests/core/`, `/dev/tests/scholar-api/`, etc.)
+  - Copy button for human/AI-readable test results
+  - Pass/fail statistics per category
+- **RESTful API Testing**: `make test-restful-apis` target for public API tests
+- **Test user environment variables**: `init_test_user` command reads from `SECRET/.env.dev`
+
+### Fixed
+- **JWT Token Endpoints**: Added CSRF exemption for `/api/token/` and `/api/token/refresh/`
+  - Enables curl/API access without session cookies
+
+### Changed
+- **Footer Reorganization**: 4-column layout with API Tests link in Developers section
+  - Premium moved to Community
+  - Bug Reports moved to Developers (two-column)
+  - Support section consolidated
+
+---
+
 ## [0.6.11-alpha] - 2026-02-02
 
 ### Added
