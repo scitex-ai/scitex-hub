@@ -781,6 +781,7 @@ local_settings.py
 production_settings.py
 *_local.py
 !apps/scholar_app/views/search/api_crossref_local.py
+!apps/scholar_app/views/search/api_openalex_local.py
 settings_production.py
 
 # Sensitive documentation files (strategic docs only)
