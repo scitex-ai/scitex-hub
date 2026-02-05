@@ -4,18 +4,15 @@
  * Coordinates the unified search system for SciTeX Scholar that aggregates
  * results from multiple academic sources (PubMed, Google Scholar, arXiv, etc.)
  *
- * @version 2.0.0 - Refactored for modularity
+ * @version 2.1.0 - Backend as single source of truth for limits
  */
 
 import { searchHistory } from "./SearchHistoryManager";
 import { searchLog } from "./SearchLogManager";
 import { SearchResult, SourceConfig } from "./types";
 import { addResultToProgressive, toggleSelectAll } from "./result-card";
-import {
-  updateToolbarState,
-  getSelectedPapers,
-  generateBibtexEntry,
-} from "./results-toolbar";
+import { updateToolbarState } from "./results-toolbar";
+import { setupToolbarHandlers } from "./toolbar-handlers";
 
 console.log("[DEBUG] scitex-search.ts loaded (refactored)");
 
@@ -63,7 +60,7 @@ function createResultsHeader(query: string): string {
 function updateResultsCount(
   count: number,
   query: string,
-  sourcesInfo?: string
+  sourcesInfo?: string,
 ): void {
   const textEl =
     document.getElementById("progressiveResultsText") ||
@@ -91,7 +88,7 @@ function setupKeyboardShortcuts(): void {
 
         const allCards = document.querySelectorAll(".result-card");
         const selectedCards = document.querySelectorAll(
-          ".result-card .paper-select:checked"
+          ".result-card .paper-select:checked",
         );
         const allSelected =
           allCards.length === selectedCards.length && allCards.length > 0;
@@ -103,221 +100,6 @@ function setupKeyboardShortcuts(): void {
 }
 
 /**
- * Setup toolbar button handlers
- */
-function setupToolbarHandlers(): void {
-  // Abstract toggle button
-  document
-    .getElementById("abstractToggleBtn")
-    ?.addEventListener("click", function (this: HTMLElement) {
-      const modes = ["truncated", "full", "none"];
-      const currentMode = this.dataset.mode || "truncated";
-      const nextIndex = (modes.indexOf(currentMode) + 1) % modes.length;
-      const nextMode = modes[nextIndex];
-      this.dataset.mode = nextMode;
-      this.textContent =
-        "Abstract: " + (nextMode === "none" ? "no" : nextMode);
-
-      document.querySelectorAll(".result-snippet").forEach((el) => {
-        const snippetEl = el as HTMLElement;
-        if (nextMode === "none") {
-          snippetEl.style.display = "none";
-        } else if (nextMode === "full") {
-          snippetEl.style.display = "block";
-          snippetEl.classList.add("expanded");
-          snippetEl.dataset.expanded = "true";
-        } else {
-          snippetEl.style.display = "block";
-          snippetEl.classList.remove("expanded");
-          snippetEl.dataset.expanded = "false";
-        }
-      });
-    });
-
-  // Save Selected button
-  document
-    .getElementById("saveSelectedBtn")
-    ?.addEventListener("click", function () {
-      const papers = getSelectedPapers();
-      if (papers.length === 0) {
-        alert("No papers selected. Click on papers to select them.");
-        return;
-      }
-      const saved = JSON.parse(
-        localStorage.getItem("scitex_saved_papers") || "[]"
-      );
-      const newPapers = papers.filter(
-        (p) => !saved.some((s: { title: string }) => s.title === p.title)
-      );
-      saved.push(...newPapers);
-      localStorage.setItem("scitex_saved_papers", JSON.stringify(saved));
-      alert(
-        `Saved ${newPapers.length} paper(s) to library. (${papers.length - newPapers.length} already saved)`
-      );
-    });
-
-  // Open URLs button
-  document
-    .getElementById("openUrlsBtn")
-    ?.addEventListener("click", function () {
-      const papers = getSelectedPapers();
-      if (papers.length === 0) {
-        alert("No papers selected. Click on papers to select them.");
-        return;
-      }
-      if (papers.length > 10) {
-        if (
-          !confirm(
-            `Open ${papers.length} URLs? This may be blocked by your browser.`
-          )
-        )
-          return;
-      }
-      papers.forEach((paper, i) => {
-        if (paper.url && paper.url !== "#") {
-          setTimeout(() => window.open(paper.url, "_blank"), i * 100);
-        }
-      });
-    });
-
-  // BibTeX export button
-  document
-    .getElementById("exportSelectedBibtex")
-    ?.addEventListener("click", function () {
-      const papers = getSelectedPapers();
-      if (papers.length === 0) {
-        alert("No papers selected. Click on papers to select them.");
-        return;
-      }
-
-      const bibtexContent = papers
-        .map((p) => generateBibtexEntry(p, true))
-        .join("\n\n");
-      const blob = new Blob([bibtexContent], { type: "text/plain" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `scitex_export_${new Date().toISOString().slice(0, 10)}.bib`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    });
-
-  // PDF download buttons
-  setupPdfDownloadHandlers();
-
-  // Fixed action bar handlers
-  setupActionBarHandlers();
-}
-
-/**
- * Setup PDF download button handlers
- */
-function setupPdfDownloadHandlers(): void {
-  const handlePdfDownload = async (btn: HTMLButtonElement) => {
-    if (window.pdfDownloadManager) {
-      btn.disabled = true;
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
-
-      const result = await window.pdfDownloadManager.downloadSelected();
-
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fas fa-file-pdf"></i> PDFs';
-
-      alert(`Downloaded: ${result.success}, Failed: ${result.failed}`);
-    } else {
-      alert("PDF download not available");
-    }
-  };
-
-  document
-    .getElementById("downloadSelectedPdfs")
-    ?.addEventListener("click", function () {
-      handlePdfDownload(this as HTMLButtonElement);
-    });
-
-  document
-    .getElementById("actionDownloadPdfs")
-    ?.addEventListener("click", function () {
-      handlePdfDownload(this as HTMLButtonElement);
-    });
-}
-
-/**
- * Setup fixed selection action bar handlers
- */
-function setupActionBarHandlers(): void {
-  // Save Selected
-  document
-    .getElementById("actionSaveSelected")
-    ?.addEventListener("click", function () {
-      const papers = getSelectedPapers();
-      if (papers.length === 0) return;
-      const saved = JSON.parse(
-        localStorage.getItem("scitex_saved_papers") || "[]"
-      );
-      const newPapers = papers.filter(
-        (p) => !saved.some((s: { title: string }) => s.title === p.title)
-      );
-      saved.push(...newPapers);
-      localStorage.setItem("scitex_saved_papers", JSON.stringify(saved));
-      alert(
-        `Saved ${newPapers.length} paper(s) to library. (${papers.length - newPapers.length} already saved)`
-      );
-    });
-
-  // Export BibTeX
-  document
-    .getElementById("actionExportBibtex")
-    ?.addEventListener("click", function () {
-      const papers = getSelectedPapers();
-      if (papers.length === 0) return;
-
-      const bibtexContent = papers
-        .map((p) => generateBibtexEntry(p, false))
-        .join("\n\n");
-      const blob = new Blob([bibtexContent], { type: "text/plain" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `scitex_export_${new Date().toISOString().slice(0, 10)}.bib`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    });
-
-  // Open URLs
-  document
-    .getElementById("actionOpenUrls")
-    ?.addEventListener("click", function () {
-      const papers = getSelectedPapers();
-      if (papers.length === 0) return;
-      if (papers.length > 10) {
-        if (
-          !confirm(
-            `Open ${papers.length} URLs? This may be blocked by your browser.`
-          )
-        )
-          return;
-      }
-      papers.forEach((paper, i) => {
-        if (paper.url && paper.url !== "#") {
-          setTimeout(() => window.open(paper.url, "_blank"), i * 100);
-        }
-      });
-    });
-
-  // Clear Selection
-  document
-    .getElementById("actionClearSelection")
-    ?.addEventListener("click", function () {
-      toggleSelectAll(false);
-    });
-}
-
-/**
  * Reset progress indicators
  */
 function resetProgressIndicators(): void {
@@ -326,7 +108,9 @@ function resetProgressIndicators(): void {
 
   document.querySelectorAll(".progress-source").forEach((source) => {
     const badge = source.querySelector(".badge") as HTMLElement | null;
-    const spinner = source.querySelector(".spinner-border") as HTMLElement | null;
+    const spinner = source.querySelector(
+      ".spinner-border",
+    ) as HTMLElement | null;
     const count = source.querySelector(".count") as HTMLElement | null;
 
     if (badge) badge.className = "badge bg-light";
@@ -348,16 +132,41 @@ function checkSearchCompletion(): void {
 }
 
 /**
+ * Build URL for search request
+ * maxResults=0 means "use server default" (backend as single source of truth)
+ */
+function buildSearchUrl(
+  source: SourceConfig,
+  query: string,
+  ignoreCache: boolean,
+): string {
+  const params = new URLSearchParams();
+  params.set("q", query);
+
+  // Only send max_results if explicitly set (non-zero)
+  // Zero means "use server default" - backend controls the limit
+  if (source.maxResults > 0) {
+    params.set("max_results", source.maxResults.toString());
+  }
+
+  if (ignoreCache) {
+    params.set("ignore_cache", "true");
+  }
+
+  return `${source.endpoint}?${params.toString()}`;
+}
+
+/**
  * Search a single source
  */
 function searchSource(source: SourceConfig, query: string): void {
   const ignoreCacheToggle = document.getElementById(
-    "ignoreCacheToggle"
+    "ignoreCacheToggle",
   ) as HTMLInputElement | null;
-  const ignoreCache = ignoreCacheToggle?.checked ? "&ignore_cache=true" : "";
-  const cacheNote = ignoreCacheToggle?.checked ? " (no cache)" : "";
+  const ignoreCache = ignoreCacheToggle?.checked ?? false;
+  const cacheNote = ignoreCache ? " (no cache)" : "";
 
-  const url = `${source.endpoint}?q=${encodeURIComponent(query)}&max_results=${source.maxResults}${ignoreCache}`;
+  const url = buildSearchUrl(source, query, ignoreCache);
   const startTime = Date.now();
 
   searchLog.log(`→ ${source.name}: Fetching${cacheNote}...`);
@@ -376,6 +185,16 @@ function searchSource(source: SourceConfig, query: string): void {
 
         let logMessage = `✓ ${source.name}: ${count} results (${elapsed}s)${cachedNote}`;
 
+        // Log limit_info_chain if available (backend propagates capped_reason)
+        if (data.limit_info_chain && Array.isArray(data.limit_info_chain)) {
+          data.limit_info_chain.forEach((li: any) => {
+            if (li.capped && li.capped_reason) {
+              logMessage += `\n  ⚠️  ${li.capped_reason}`;
+            }
+          });
+        }
+
+        // Legacy result_guidance support
         const guidance =
           data.result_guidance?.per_source_limits?.[source.name] ||
           data.result_guidance;
@@ -403,9 +222,21 @@ function searchSource(source: SourceConfig, query: string): void {
         searchLog.log(logMessage);
 
         if (data.results && Array.isArray(data.results)) {
-          data.results.forEach((result: SearchResult) => {
+          // Limit initial render to 100 cards to prevent browser freeze
+          // (2000+ DOM elements causes 75+ second lag)
+          const RENDER_LIMIT = 100;
+          const resultsToRender = data.results.slice(0, RENDER_LIMIT);
+          const remaining = data.results.length - RENDER_LIMIT;
+
+          resultsToRender.forEach((result: SearchResult) => {
             addResultToProgressive(result);
           });
+
+          if (remaining > 0) {
+            searchLog.log(
+              `  📊 Showing first ${RENDER_LIMIT} of ${data.results.length} results (${remaining} more available)`,
+            );
+          }
         }
 
         // Log deduplication info
@@ -414,7 +245,7 @@ function searchSource(source: SourceConfig, query: string): void {
           if (dedup.removed > 0) {
             setTimeout(() => {
               searchLog.log(
-                `\n📌 Deduplication: ${dedup.removed} duplicate(s) removed`
+                `\n📌 Deduplication: ${dedup.removed} duplicate(s) removed`,
               );
               searchLog.log(`   ${dedup.explanation}`);
             }, 100);
@@ -425,12 +256,10 @@ function searchSource(source: SourceConfig, query: string): void {
         if (activeSearches === 1 && data.result_guidance?.rate_limiting) {
           const rateLimitInfo = data.result_guidance.rate_limiting;
           setTimeout(() => {
-            searchLog.log(
-              `\n🛡️  Rate Limiting: ${rateLimitInfo.explanation}`
-            );
+            searchLog.log(`\n🛡️  Rate Limiting: ${rateLimitInfo.explanation}`);
             if (rateLimitInfo.details) {
               searchLog.log(
-                `   Remaining: ${rateLimitInfo.details.remaining}/${rateLimitInfo.details.limit} requests`
+                `   Remaining: ${rateLimitInfo.details.remaining}/${rateLimitInfo.details.limit} requests`,
               );
             }
           }, 200);
@@ -451,6 +280,42 @@ function searchSource(source: SourceConfig, query: string): void {
 }
 
 /**
+ * Source configurations
+ * maxResults: 0 = use server default (backend controls limit)
+ * maxResults: N = request at most N results
+ */
+const ALL_SOURCES: SourceConfig[] = [
+  { name: "pubmed", endpoint: "/scholar/api/search/pubmed/", maxResults: 50 },
+  { name: "arxiv", endpoint: "/scholar/api/search/arxiv/", maxResults: 50 },
+  {
+    name: "semantic",
+    endpoint: "/scholar/api/search/semantic/",
+    maxResults: 25,
+  },
+  {
+    name: "crossref",
+    endpoint: "/scholar/api/search/crossref/",
+    maxResults: 50,
+  },
+  // Local sources: maxResults=0 means backend controls the limit
+  {
+    name: "crossref_local",
+    endpoint: "/scholar/api/search/crossref-local/",
+    maxResults: 0,
+  },
+  {
+    name: "openalex",
+    endpoint: "/scholar/api/search/openalex/",
+    maxResults: 50,
+  },
+  {
+    name: "openalex_local",
+    endpoint: "/scholar/api/search/openalex-local/",
+    maxResults: 0,
+  },
+];
+
+/**
  * Start unified search across all sources
  */
 function startUnifiedSearch(query: string): void {
@@ -465,23 +330,14 @@ function startUnifiedSearch(query: string): void {
   totalResults = 0;
 
   const selectedCheckboxes = document.querySelectorAll(
-    ".source-toggle:checked"
+    ".source-toggle:checked",
   ) as NodeListOf<HTMLInputElement>;
   const selectedSourceValues = Array.from(selectedCheckboxes).map(
-    (cb) => cb.value
+    (cb) => cb.value,
   );
 
-  const allSources: SourceConfig[] = [
-    { name: "pubmed", endpoint: "/scholar/api/search/pubmed/", maxResults: 50 },
-    { name: "arxiv", endpoint: "/scholar/api/search/arxiv/", maxResults: 50 },
-    { name: "semantic", endpoint: "/scholar/api/search/semantic/", maxResults: 25 },
-    { name: "crossref", endpoint: "/scholar/api/search/crossref/", maxResults: 50 },
-    { name: "crossref_local", endpoint: "/scholar/api/search/crossref-local/", maxResults: 100 },
-    { name: "openalex", endpoint: "/scholar/api/search/openalex/", maxResults: 50 },
-  ];
-
-  const sourcesToSearch = allSources.filter((source) =>
-    selectedSourceValues.includes(source.name)
+  const sourcesToSearch = ALL_SOURCES.filter((source) =>
+    selectedSourceValues.includes(source.name),
   );
 
   if (sourcesToSearch.length === 0) {
@@ -500,7 +356,7 @@ function startUnifiedSearch(query: string): void {
     searchSource(source, query);
   });
 
-  allSources.forEach((source) => {
+  ALL_SOURCES.forEach((source) => {
     if (!selectedSourceValues.includes(source.name)) {
       searchLog.updateSourceStatus(source.name, "idle");
     }
@@ -512,18 +368,18 @@ document.addEventListener("DOMContentLoaded", function () {
   console.log("[SciTeX Search] Initializing unified search system...");
 
   const searchForm = document.getElementById(
-    "literatureSearchForm"
+    "literatureSearchForm",
   ) as HTMLFormElement | null;
   const searchInput = document.querySelector(
-    'input[name="q"]'
+    'input[name="q"]',
   ) as HTMLInputElement | null;
   const progressiveResults = document.getElementById(
-    "progressiveResults"
+    "progressiveResults",
   ) as HTMLElement | null;
 
   if (!searchForm || !searchInput) {
     console.log(
-      "[SciTeX Search] Search form not found, skipping initialization"
+      "[SciTeX Search] Search form not found, skipping initialization",
     );
     return;
   }
@@ -545,7 +401,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Hide regular results container
-    const resultsContainer = document.getElementById("scitex-results-container");
+    const resultsContainer = document.getElementById(
+      "scitex-results-container",
+    );
     if (resultsContainer) resultsContainer.style.display = "none";
     document.querySelectorAll(".result-card").forEach((card) => {
       (card as HTMLElement).style.display = "none";
@@ -555,7 +413,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Show progressive interface
     const progressiveLoadingStatus = document.getElementById(
-      "progressiveLoadingStatus"
+      "progressiveLoadingStatus",
     ) as HTMLElement | null;
     if (progressiveLoadingStatus)
       progressiveLoadingStatus.style.display = "block";
@@ -571,7 +429,9 @@ document.addEventListener("DOMContentLoaded", function () {
     // Reset progress indicators
     document.querySelectorAll(".progress-source").forEach((source) => {
       const badge = source.querySelector(".badge") as HTMLElement | null;
-      const spinner = source.querySelector(".spinner-border") as HTMLElement | null;
+      const spinner = source.querySelector(
+        ".spinner-border",
+      ) as HTMLElement | null;
       const count = source.querySelector(".count") as HTMLElement | null;
 
       if (badge) badge.className = "badge bg-secondary";

@@ -10,6 +10,16 @@
 import { SearchResult } from "./types";
 import { updateToolbarState } from "./results-toolbar";
 
+// Debounce toolbar updates to avoid O(n²) DOM queries when adding many cards
+let toolbarUpdateTimeout: ReturnType<typeof setTimeout> | null = null;
+function debouncedToolbarUpdate(): void {
+  if (toolbarUpdateTimeout) clearTimeout(toolbarUpdateTimeout);
+  toolbarUpdateTimeout = setTimeout(() => {
+    updateToolbarState();
+    toolbarUpdateTimeout = null;
+  }, 100); // Update at most every 100ms
+}
+
 /**
  * Escape HTML to prevent XSS
  */
@@ -35,13 +45,15 @@ export function createResultCard(result: SearchResult): HTMLElement {
   // Build meta info
   const metaParts: string[] = [];
   if (result.authors) {
-    metaParts.push(`<span class="authors">${escapeHtml(result.authors)}</span>`);
+    metaParts.push(
+      `<span class="authors">${escapeHtml(result.authors)}</span>`,
+    );
   }
   // Journal + IF as single warning badge
   if (result.journal) {
     const ifText = result.impact_factor ? ` (IF ${result.impact_factor})` : "";
     metaParts.push(
-      `<span class="journal-badge">${escapeHtml(result.journal)}${ifText}</span>`
+      `<span class="journal-badge">${escapeHtml(result.journal)}${ifText}</span>`,
     );
   }
   if (result.citations && result.citations > 0) {
@@ -51,7 +63,7 @@ export function createResultCard(result: SearchResult): HTMLElement {
   // Source badge
   if (result.source) {
     metaParts.push(
-      `<span class="source-badge">${result.source.toUpperCase()}</span>`
+      `<span class="source-badge">${result.source.toUpperCase()}</span>`,
     );
   }
 
@@ -65,7 +77,7 @@ export function createResultCard(result: SearchResult): HTMLElement {
     result.source === "plos";
   const pdfBadgeData = `data-status="unknown" data-doi="${result.doi || ""}" data-arxiv-id="${result.arxivId || ""}" data-pmid="${result.pmid || ""}" data-is-open-access="${isOpenAccess}" data-source="${result.source || ""}" data-pdf-url="${result.pdf_url || ""}"`;
   metaParts.push(
-    `<span class="pdf-status-badge" ${pdfBadgeData} title="PDF status"><i class="fas fa-file-pdf"></i><span class="pdf-status-text">PDF</span></span>`
+    `<span class="pdf-status-badge" ${pdfBadgeData} title="PDF status"><i class="fas fa-file-pdf"></i><span class="pdf-status-text">PDF</span></span>`,
   );
 
   // Abstract
@@ -119,7 +131,7 @@ export function createResultCard(result: SearchResult): HTMLElement {
 
   // Setup abstract expansion handler
   const snippetEl = cardDiv.querySelector(
-    ".result-snippet.expandable"
+    ".result-snippet.expandable",
   ) as HTMLElement | null;
   if (snippetEl) {
     snippetEl.addEventListener("click", (e: MouseEvent) => {
@@ -138,7 +150,7 @@ export function createResultCard(result: SearchResult): HTMLElement {
  */
 export function updateCardSelectedState(
   card: HTMLElement,
-  selected: boolean
+  selected: boolean,
 ): void {
   if (selected) {
     card.classList.add("selected");
@@ -153,7 +165,7 @@ export function updateCardSelectedState(
  */
 export function setupCardSelectionHandlers(card: HTMLElement): void {
   const checkbox = card.querySelector(
-    ".paper-select"
+    ".paper-select",
   ) as HTMLInputElement | null;
 
   // Click on card body toggles selection (not on checkbox or links)
@@ -203,7 +215,7 @@ export function setupCardSelectionHandlers(card: HTMLElement): void {
  */
 export function addResultToProgressive(result: SearchResult): void {
   const progressiveResults = document.getElementById(
-    "progressiveResults"
+    "progressiveResults",
   ) as HTMLElement | null;
   if (!progressiveResults) {
     console.warn("[SciTeX Search] Progressive results container not found");
@@ -216,17 +228,11 @@ export function addResultToProgressive(result: SearchResult): void {
   // Setup selection handlers
   setupCardSelectionHandlers(resultCard);
 
-  // Update toolbar state
-  updateToolbarState();
+  // Update toolbar state (debounced to avoid O(n²) queries)
+  debouncedToolbarUpdate();
 
-  // Animate
-  resultCard.style.opacity = "0";
-  resultCard.style.transform = "translateY(20px)";
-  setTimeout(() => {
-    resultCard.style.transition = "all 0.3s ease";
-    resultCard.style.opacity = "1";
-    resultCard.style.transform = "translateY(0)";
-  }, 50);
+  // Animation disabled for performance - 1997 setTimeout calls was causing 75+ second lag
+  // Cards now appear instantly
 }
 
 /**
@@ -235,7 +241,7 @@ export function addResultToProgressive(result: SearchResult): void {
 export function toggleSelectAll(selectAll: boolean): void {
   document.querySelectorAll(".result-card").forEach((card) => {
     const checkbox = card.querySelector(
-      ".paper-select"
+      ".paper-select",
     ) as HTMLInputElement | null;
     if (checkbox) {
       checkbox.checked = selectAll;

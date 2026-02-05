@@ -1,0 +1,26 @@
+<!-- API Docs Sidebar Navigation (Section-based) -->
+<aside class="api-sidebar">
+    <nav class="api-nav">
+        {% for section in sections %}
+            <div class="api-nav-section {% if current_section == section.key %}active-section{% endif %}">
+                <h4>
+                    <a href="{% url 'public_app:api-docs-section' section.key %}"
+                       {% if current_section == section.key %}class="active"{% endif %}>
+                        <span class="nav-emoji">{{ section.emoji }}</span>
+                        <span class="nav-text">{{ section.text }}</span>
+                    </a>
+                    {% if section.badge %}<span class="badge-new">{{ section.badge }}</span>{% endif %}
+                </h4>
+                {% if current_section == section.key %}
+                    <ul>
+                        {% for sub in section.subsections %}
+                            <li>
+                                <a href="#{{ sub.id }}" class="subsection-link" data-target="{{ sub.id }}">{{ sub.emoji }} {{ sub.title }}</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </nav>
+</aside>

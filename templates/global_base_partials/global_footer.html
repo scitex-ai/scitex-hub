@@ -2,7 +2,7 @@
 
 <footer class="site-footer">
     <div class="container">
-        <div class="footer-content footer-5-columns">
+        <div class="footer-content footer-4-columns">
             <!-- Column 1: Brand -->
             <div class="footer-section footer-brand">
                 <div class="footer-logo">
@@ -38,25 +38,38 @@
                     <li>
                         <a href="{% url 'public_app:publications' %}">Publications</a>
                     </li>
+                    <li>
+                        <a href="{% url 'public_app:pricing' %}">Premium</a>
+                    </li>
                 </ul>
             </div>
-            <!-- Column 3: Developers -->
-            <div class="footer-section">
+            <!-- Column 3: Developers (two-column layout) -->
+            <div class="footer-section footer-section-wide">
                 <h3>Developers</h3>
-                <ul class="footer-links">
-                    <li>
-                        <a href="{% url 'public_app:api-docs' %}">API Docs</a>
-                    </li>
-                    <li>
-                        <a href="{% url 'public_app:releases' %}">Releases</a>
-                    </li>
-                    <li>
-                        <a href="{% url 'dev_app:design' %}">Design System</a>
-                    </li>
-                    <li>
-                        <a href="{% url 'public_app:server_status' %}">Server Status</a>
-                    </li>
-                </ul>
+                <div class="footer-links-2col">
+                    <ul class="footer-links">
+                        <li>
+                            <a href="{% url 'public_app:api-docs' %}">API Docs</a>
+                        </li>
+                        <li>
+                            <a href="{% url 'public_app:releases' %}">Releases</a>
+                        </li>
+                        <li>
+                            <a href="{% url 'dev_app:design' %}">Design System</a>
+                        </li>
+                        <li>
+                            <a href="{% url 'public_app:server_status' %}">Server Status</a>
+                        </li>
+                    </ul>
+                    <ul class="footer-links">
+                        <li>
+                            <a href="{% url 'dev_app:tests' %}">API Tests</a>
+                        </li>
+                        <li>
+                            <a href="/scitex-ai/scitex-cloud/issues">Bug Reports</a>
+                        </li>
+                    </ul>
+                </div>
             </div>
             <!-- Column 4: Legal -->
             <div class="footer-section">
@@ -70,18 +83,6 @@
                     </li>
                     <li>
                         <a href="{% url 'public_app:cookies' %}">Cookies</a>
-                    </li>
-                </ul>
-            </div>
-            <!-- Column 5: Support -->
-            <div class="footer-section">
-                <h3>Support</h3>
-                <ul class="footer-links">
-                    <li>
-                        <a href="{% url 'public_app:pricing' %}">Premium</a>
-                    </li>
-                    <li>
-                        <a href="/scitex-ai/scitex-cloud/issues">Bug Reports & Feature Requests</a>
                     </li>
                 </ul>
             </div>
@@ -110,10 +111,20 @@
     {% endif %}
 </footer>
 <style>
-    .footer-5-columns {
+    .footer-4-columns {
         display: grid;
-        grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+        grid-template-columns: 2fr 1fr 2fr 1fr;
         gap: 40px;
+    }
+
+    .footer-links-2col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0 20px;
+    }
+
+    .footer-section-wide {
+        /* Wider section for two-column content */
     }
 
     .footer-brand {
@@ -170,7 +181,7 @@
     }
 
     @media (max-width: 992px) {
-        .footer-5-columns {
+        .footer-4-columns {
             grid-template-columns: 2fr 1fr 1fr;
             gap: 30px;
         }
@@ -178,10 +189,14 @@
         .footer-brand {
             grid-column: 1 / -1;
         }
+
+        .footer-links-2col {
+            grid-template-columns: 1fr;
+        }
     }
 
     @media (max-width: 576px) {
-        .footer-5-columns {
+        .footer-4-columns {
             grid-template-columns: 1fr 1fr;
             gap: 24px;
         }

@@ -4,10 +4,10 @@
 # File: /home/ywatanabe/proj/scitex-cloud/config/urls.py
 # ----------------------------------------
 from __future__ import annotations
+
 import os
-__FILE__ = (
-    "./config/urls.py"
-)
+
+__FILE__ = "./config/urls.py"
 __DIR__ = os.path.dirname(__FILE__)
 # ----------------------------------------
 
@@ -18,14 +18,18 @@ URL Configuration for SciTeX Cloud project.
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import include
-from django.urls import path
+from django.urls import include, path
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import RedirectView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
 from apps.accounts_app.api.user_views import api_search_users
-from apps.project_app.views import project_create
-from apps.project_app.views import api_check_name_availability
-from apps.project_app.views import accept_invitation
-from apps.project_app.views import decline_invitation
+from apps.project_app.views import (
+    accept_invitation,
+    api_check_name_availability,
+    decline_invitation,
+    project_create,
+)
 from apps.project_app.views.projects.api import api_switch_active_project
 from apps.public_app.views import healthz
 
@@ -146,9 +150,32 @@ urlpatterns = [
     # API endpoints
     path("api/users/search/", api_search_users, name="api_search_users"),
     path("project/api/check-name/", api_check_name_availability, name="api_check_name"),
-    path("api/project/switch/", api_switch_active_project, name="api_switch_active_project"),
+    path(
+        "api/project/switch/",
+        api_switch_active_project,
+        name="api_switch_active_project",
+    ),
     # Scholar API endpoints (global /api/scholar/ prefix)
-    path("api/scholar/citation-graph/", include("apps.scholar_app.api.citation_graph_urls")),
+    path(
+        "api/scholar/citation-graph/",
+        include("apps.scholar_app.api.citation_graph_urls"),
+    ),
+    # Public Scholar API (v1) - accessible without scholar/ prefix
+    path(
+        "api/v1/scholar/",
+        include("apps.scholar_app.urls.public_api"),
+    ),
+    # JWT Token endpoints (for programmatic API access) - CSRF exempt for curl/API clients
+    path(
+        "api/token/",
+        csrf_exempt(TokenObtainPairView.as_view()),
+        name="token_obtain_pair",
+    ),
+    path(
+        "api/token/refresh/",
+        csrf_exempt(TokenRefreshView.as_view()),
+        name="token_refresh",
+    ),
     # GitHub-like operations
     # /new - Create new project
     path("new/", project_create, name="project_create"),
@@ -184,16 +211,11 @@ urlpatterns += [
 ]
 
 # Custom error handlers (imported from apps)
-from apps.public_app.error_views import handler404
 
 
 # Serve static and media files during development
 if settings.DEBUG:
-    urlpatterns += static(
-        settings.STATIC_URL, document_root=settings.STATIC_ROOT
-    )
-    urlpatterns += static(
-        settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
-    )
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # EOF

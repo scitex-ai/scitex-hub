@@ -1,6 +1,25 @@
 import { defineConfig, Plugin } from "vite";
-import { resolve } from "path";
+import { resolve, dirname, basename } from "path";
 import * as fs from "fs";
+
+/**
+ * Generate entry points from directory
+ * Usage: generateEntries("apps/scholar_app/static/scholar_app/ts/search", "scholar_app/search")
+ */
+function generateEntries(dir: string, prefix: string): Record<string, string> {
+  const entries: Record<string, string> = {};
+  const fullDir = resolve(__dirname, dir);
+  if (fs.existsSync(fullDir)) {
+    const files = fs
+      .readdirSync(fullDir)
+      .filter((f) => f.endsWith(".ts") && !f.startsWith("_"));
+    for (const file of files) {
+      const name = file.replace(".ts", "");
+      entries[`${prefix}/${name}`] = resolve(fullDir, file);
+    }
+  }
+  return entries;
+}
 
 /**
  * Plugin to resolve /static/ absolute paths to actual file locations
@@ -276,13 +295,10 @@ export default defineConfig({
           __dirname,
           "apps/scholar_app/static/scholar_app/ts/graph/citation-graph.ts",
         ),
-        "scholar_app/search/search-controls": resolve(
-          __dirname,
-          "apps/scholar_app/static/scholar_app/ts/search/search-controls.ts",
-        ),
-        "scholar_app/search/scitex-search": resolve(
-          __dirname,
-          "apps/scholar_app/static/scholar_app/ts/search/scitex-search.ts",
+        // Scholar app search - all TS files in search directory (auto-discovered)
+        ...generateEntries(
+          "apps/scholar_app/static/scholar_app/ts/search",
+          "scholar_app/search",
         ),
 
         // Project app - additional

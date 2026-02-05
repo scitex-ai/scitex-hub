@@ -68,6 +68,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     chktex \
     ghostscript \
     poppler-utils \
+    # Document conversion (markdown to PDF)
+    pandoc \
     perl \
     parallel \
     # Image processing
@@ -220,15 +222,21 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 RUN python -m playwright install chromium
 
 # ============================================
+# Node.js Dependencies
+# ============================================
+# Install Node dependencies BEFORE copying application code for better caching
+# This layer is only invalidated when package.json/package-lock.json changes
+
+COPY package.json package-lock.json* ./
+RUN npm install
+
+# ============================================
 # Application Code
 # ============================================
 # Copy application last - changes most frequently
 
 # Copy application code
 COPY . .
-
-# Install Node.js project dependencies (Vite for HMR, TypeScript tools)
-RUN cd /app && npm install
 
 # Copy dev-specific entrypoint and helper scripts
 COPY deployment/docker/docker_dev/entrypoint.sh /entrypoint.sh

@@ -1,0 +1,44 @@
+%% -*- coding: utf-8 -*-
+%% Supplementary Material Base Template
+\UseRawInputEncoding
+
+%% ----------------------------------------
+%% SETTINGS
+%% ----------------------------------------
+\input{./02_supplementary/contents/latex_styles/columns}
+\input{./02_supplementary/contents/latex_styles/packages}
+\input{./02_supplementary/contents/latex_styles/formatting}
+
+%% ----------------------------------------
+%% START of DOCUMENT
+%% ----------------------------------------
+\begin{document}
+
+\title{Supplementary Material}
+\maketitle
+
+%% ----------------------------------------
+%% SUPPLEMENTARY TEXT
+%% ----------------------------------------
+\input{./02_supplementary/contents/supplementary_text}
+
+%% ----------------------------------------
+%% SUPPLEMENTARY TABLES
+%% ----------------------------------------
+\clearpage
+\section*{Supplementary Tables}
+\input{./02_supplementary/contents/tables/compiled/FINAL}
+
+%% ----------------------------------------
+%% SUPPLEMENTARY FIGURES
+%% ----------------------------------------
+\clearpage
+\section*{Supplementary Figures}
+\input{./02_supplementary/contents/figures/compiled/FINAL}
+
+%% ----------------------------------------
+%% END of DOCUMENT
+%% ----------------------------------------
+\end{document}
+
+%%%% EOF

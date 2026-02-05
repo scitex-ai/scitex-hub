@@ -54,7 +54,8 @@ try_scitex_installation_in_editable_mode() {
         # Check if scitex-code is a valid Python project
         if [ -f "/scitex-python/pyproject.toml" ] || [ -f "/scitex-python/setup.py" ]; then
             # Check if scitex is already installed in editable mode from /scitex-python
-            if pip show -f scitex 2>/dev/null | grep -q "/scitex-python"; then
+            # Use pip show without -f flag (much faster)
+            if pip show scitex 2>/dev/null | grep -q "Location:.*scitex-python"; then
                 echo -e "${GREEN}✅ Scitex already installed in editable mode${NC}"
             else
                 echo_info "Installing scitex (editable mode)..."
@@ -80,7 +81,7 @@ try_scitex_installation_in_editable_mode
 try_figrecipe_installation_in_editable_mode() {
     if [ -d "/figrecipe" ]; then
         if [ -f "/figrecipe/pyproject.toml" ] || [ -f "/figrecipe/setup.py" ]; then
-            if pip show -f figrecipe 2>/dev/null | grep -q "/figrecipe"; then
+            if pip show figrecipe 2>/dev/null | grep -q "Location:.*figrecipe"; then
                 echo -e "${GREEN}✅ figrecipe already installed in editable mode${NC}"
             else
                 echo_info "Installing figrecipe (editable mode)..."
@@ -101,7 +102,7 @@ try_figrecipe_installation_in_editable_mode
 try_scitex_writer_installation_in_editable_mode() {
     if [ -d "/scitex-writer" ]; then
         if [ -f "/scitex-writer/pyproject.toml" ] || [ -f "/scitex-writer/setup.py" ]; then
-            if pip show -f scitex-writer 2>/dev/null | grep -q "/scitex-writer"; then
+            if pip show scitex-writer 2>/dev/null | grep -q "Location:.*scitex-writer"; then
                 echo -e "${GREEN}✅ scitex-writer already installed in editable mode${NC}"
             else
                 echo_info "Installing scitex-writer (editable mode)..."
@@ -122,7 +123,7 @@ try_scitex_writer_installation_in_editable_mode
 try_crossref_local_installation_in_editable_mode() {
     if [ -d "/crossref-local" ]; then
         if [ -f "/crossref-local/pyproject.toml" ] || [ -f "/crossref-local/setup.py" ]; then
-            if pip show -f crossref-local 2>/dev/null | grep -q "/crossref-local"; then
+            if pip show crossref-local 2>/dev/null | grep -q "Location:.*crossref-local"; then
                 echo -e "${GREEN}✅ crossref-local already installed in editable mode${NC}"
             else
                 echo_info "Installing crossref-local (editable mode)..."
@@ -138,12 +139,33 @@ try_crossref_local_installation_in_editable_mode() {
 try_crossref_local_installation_in_editable_mode
 
 # ============================================
+# Install openalex-local in Editable Mode (Optional)
+# ============================================
+try_openalex_local_installation_in_editable_mode() {
+    if [ -d "/openalex-local" ]; then
+        if [ -f "/openalex-local/pyproject.toml" ] || [ -f "/openalex-local/setup.py" ]; then
+            if pip show openalex-local 2>/dev/null | grep -q "Location:.*openalex-local"; then
+                echo -e "${GREEN}✅ openalex-local already installed in editable mode${NC}"
+            else
+                echo_info "Installing openalex-local (editable mode)..."
+                uv pip install -e "/openalex-local[all]" --link-mode=copy >/dev/null
+            fi
+        else
+            echo -e "⚠️  WARNING: /openalex-local exists but is not a valid Python package"
+        fi
+    else
+        echo -e "⚠️  WARNING: /openalex-local not mounted, skipping..."
+    fi
+}
+try_openalex_local_installation_in_editable_mode
+
+# ============================================
 # Install socialia in Editable Mode (Optional)
 # ============================================
 try_socialia_installation_in_editable_mode() {
     if [ -d "/socialia" ]; then
         if [ -f "/socialia/pyproject.toml" ] || [ -f "/socialia/setup.py" ]; then
-            if pip show -f socialia 2>/dev/null | grep -q "/socialia"; then
+            if pip show socialia 2>/dev/null | grep -q "Location:.*socialia"; then
                 echo -e "${GREEN}✅ socialia already installed in editable mode${NC}"
             else
                 echo_info "Installing socialia (editable mode)..."
@@ -159,9 +181,51 @@ try_socialia_installation_in_editable_mode() {
 try_socialia_installation_in_editable_mode
 
 add_insufficient_python_packages() {
-    pip install pygments >/dev/null 2>&1 || true
+    # Check if pygments is already installed before attempting to install
+    if ! python -c "import pygments" 2>/dev/null; then
+        echo_info "Installing pygments..."
+        pip install --no-cache-dir pygments >/dev/null 2>&1 || true
+    fi
 }
 add_insufficient_python_packages
+
+# ============================================
+# Pre-generate Matplotlib Font Cache (Runtime - First Start Only)
+# ============================================
+# Generate font cache after scitex is installed to avoid 10+ minute startup delay
+# This only runs once - cache persists in container filesystem
+generate_matplotlib_font_cache() {
+    local cache_marker="/root/.cache/matplotlib/.fontcache_generated"
+
+    if [ -f "$cache_marker" ]; then
+        echo_info "Matplotlib font cache already generated"
+        return 0
+    fi
+
+    echo_info "Generating matplotlib font cache (one-time, ~30 seconds)..."
+    python -c "
+import os
+os.environ['MPLBACKEND'] = 'Agg'
+try:
+    import matplotlib.pyplot as plt
+    plt.figure()
+    print('Font cache generated successfully')
+except Exception as e:
+    print(f'Font cache generation failed: {e}')
+" 2>&1 | grep -v "WARN\|building the font cache" || true
+
+    # Mark as generated
+    mkdir -p "$(dirname "$cache_marker")"
+    touch "$cache_marker"
+    echo_success "Matplotlib font cache ready"
+}
+
+# Only run on first start (not on hot-reload restarts)
+if [ ! -f "$MIGRATION_SENTINEL" ]; then
+    generate_matplotlib_font_cache
+else
+    echo_info "Hot-reload restart - matplotlib cache already generated"
+fi
 
 # ============================================
 # Vite Dev Server (HMR - Hot Module Replacement)
@@ -272,7 +336,7 @@ else
 fi
 
 # ============================================
-# Initialize Test User (Development Only)
+# Initialize Test User (Development Only - First Start Only)
 # ============================================
 # Create test-user for development and E2E testing
 initialize_test_user() {
@@ -288,7 +352,12 @@ initialize_test_user() {
         2>&1 | grep -v "ERRO\|WARN" || true
     echo_success "Test user ready: $username"
 }
-initialize_test_user
+# Only run on first start (not on hot-reload restarts)
+if [ ! -f "$MIGRATION_SENTINEL" ]; then
+    initialize_test_user
+else
+    echo_info "Hot-reload restart - test user already initialized"
+fi
 
 # ============================================
 # Generate Plot Gallery to Static Directory

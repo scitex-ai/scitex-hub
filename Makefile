@@ -697,6 +697,9 @@ test-db:
 test-api:
 	@./scripts/testing/run_tests.sh api
 
+test-restful-apis:
+	@./scripts/testing/run_tests.sh restful-apis
+
 test-ui:
 	@./scripts/testing/run_tests.sh ui
 

@@ -7,13 +7,14 @@
 # Usage: ./scripts/testing/run_tests.sh <category> [options]
 #
 # Categories:
-#   unit      - Python unit tests (no DB, no network)
-#   db        - Python database tests (Django ORM)
-#   api       - Python API endpoint tests
-#   ui        - Browser-based UI tests (Playwright)
-#   python    - All Python tests (unit + db + api)
-#   ts        - TypeScript tests (Vitest)
-#   all       - All tests (Python + TypeScript)
+#   unit         - Python unit tests (no DB, no network)
+#   db           - Python database tests (Django ORM)
+#   api          - Python API endpoint tests
+#   restful-apis - Public RESTful API tests (/api/v1/*)
+#   ui           - Browser-based UI tests (Playwright)
+#   python       - All Python tests (unit + db + api)
+#   ts           - TypeScript tests (Vitest)
+#   all          - All tests (Python + TypeScript)
 #
 # Options:
 #   --headed  - Run UI tests with visible browser
@@ -38,7 +39,7 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 # =============================================================================
 
 check_pytest() {
-    if ! pip3 show pytest &> /dev/null; then
+    if ! pip3 show pytest &>/dev/null; then
         echo -e "${RED}❌ Pytest not installed${NC}"
         echo -e "${YELLOW}   Run: make setup-pytest${NC}"
         return 1
@@ -47,7 +48,7 @@ check_pytest() {
 }
 
 check_playwright() {
-    if ! pip3 show pytest-playwright &> /dev/null; then
+    if ! pip3 show pytest-playwright &>/dev/null; then
         echo -e "${RED}❌ Pytest-playwright not installed${NC}"
         echo -e "${YELLOW}   Run: make setup-pytest${NC}"
         return 1
@@ -62,7 +63,7 @@ check_playwright() {
 
 check_vitest() {
     cd "$PROJECT_ROOT"
-    if ! npm list vitest --depth=0 &> /dev/null; then
+    if ! npm list vitest --depth=0 &>/dev/null; then
         echo -e "${RED}❌ Vitest not installed${NC}"
         echo -e "${YELLOW}   Run: make setup-vitest${NC}"
         return 1
@@ -90,7 +91,8 @@ run_unit_tests() {
     cd "$PROJECT_ROOT"
 
     local test_dir="tests/unit"
-    local test_count=$(find "$test_dir" -name "test_*.py" 2>/dev/null | wc -l)
+    local test_count
+    test_count=$(find "$test_dir" -name "test_*.py" 2>/dev/null | wc -l)
 
     if [ "$test_count" -eq 0 ]; then
         echo -e "${YELLOW}⚠️  No unit tests found in ${test_dir}/${NC}"
@@ -99,7 +101,7 @@ run_unit_tests() {
     fi
 
     echo -e "${CYAN}   Found ${test_count} test file(s) in ${test_dir}/${NC}"
-    pytest "$test_dir/" $pytest_args
+    pytest "$test_dir/" "$pytest_args"
 }
 
 run_db_tests() {
@@ -118,7 +120,8 @@ run_db_tests() {
     cd "$PROJECT_ROOT"
 
     local test_dir="tests/db"
-    local test_count=$(find "$test_dir" -name "test_*.py" 2>/dev/null | wc -l)
+    local test_count
+    test_count=$(find "$test_dir" -name "test_*.py" 2>/dev/null | wc -l)
 
     if [ "$test_count" -eq 0 ]; then
         echo -e "${YELLOW}⚠️  No database tests found in ${test_dir}/${NC}"
@@ -127,7 +130,7 @@ run_db_tests() {
     fi
 
     echo -e "${CYAN}   Found ${test_count} test file(s) in ${test_dir}/${NC}"
-    pytest "$test_dir/" $pytest_args
+    pytest "$test_dir/" "$pytest_args"
 }
 
 run_api_tests() {
@@ -146,7 +149,8 @@ run_api_tests() {
     cd "$PROJECT_ROOT"
 
     local test_dir="tests/api"
-    local test_count=$(find "$test_dir" -name "test_*.py" 2>/dev/null | wc -l)
+    local test_count
+    test_count=$(find "$test_dir" -name "test_*.py" 2>/dev/null | wc -l)
 
     if [ "$test_count" -eq 0 ]; then
         echo -e "${YELLOW}⚠️  No API tests found in ${test_dir}/${NC}"
@@ -154,7 +158,33 @@ run_api_tests() {
     fi
 
     echo -e "${CYAN}   Found ${test_count} test file(s) in ${test_dir}/${NC}"
-    pytest "$test_dir/" $pytest_args
+    pytest "$test_dir/" "$pytest_args"
+}
+
+run_restful_api_tests() {
+    local verbose="$1"
+
+    echo -e "${CYAN}🧪 Running Public RESTful API tests...${NC}"
+    echo ""
+
+    if ! check_pytest; then
+        return 1
+    fi
+
+    local pytest_args="-v --tb=short"
+    [ "$verbose" = "true" ] && pytest_args="-vv --tb=long"
+
+    cd "$PROJECT_ROOT"
+
+    local test_file="tests/api/scholar/test_public_api.py"
+
+    if [ ! -f "$test_file" ]; then
+        echo -e "${RED}❌ RESTful API test file not found: ${test_file}${NC}"
+        return 1
+    fi
+
+    echo -e "${CYAN}   Testing public API endpoints: /api/v1/scholar/*${NC}"
+    pytest "$test_file" "$pytest_args"
 }
 
 run_ui_tests() {
@@ -175,7 +205,8 @@ run_ui_tests() {
     cd "$PROJECT_ROOT"
 
     local test_dir="tests/ui"
-    local test_count=$(find "$test_dir" -name "test_*.py" 2>/dev/null | wc -l)
+    local test_count
+    test_count=$(find "$test_dir" -name "test_*.py" 2>/dev/null | wc -l)
 
     if [ "$test_count" -eq 0 ]; then
         echo -e "${RED}❌ No UI tests found in ${test_dir}/${NC}"
@@ -184,7 +215,7 @@ run_ui_tests() {
     fi
 
     echo -e "${CYAN}   Found ${test_count} test file(s) in ${test_dir}/${NC}"
-    pytest "$test_dir/" $pytest_args
+    pytest "$test_dir/" "$pytest_args"
 }
 
 run_python_tests() {
@@ -224,7 +255,8 @@ run_ts_tests() {
     cd "$PROJECT_ROOT"
 
     local test_dir="tests/ts"
-    local test_count=$(find "$test_dir" -name "*.test.ts" 2>/dev/null | wc -l)
+    local test_count
+    test_count=$(find "$test_dir" -name "*.test.ts" 2>/dev/null | wc -l)
 
     if [ "$test_count" -eq 0 ]; then
         echo -e "${YELLOW}⚠️  No TypeScript tests found in ${test_dir}/${NC}"
@@ -281,7 +313,7 @@ show_status() {
         echo -e "  pytest:           ${RED}❌ Not installed${NC}"
     fi
 
-    if pip3 show pytest-playwright &> /dev/null; then
+    if pip3 show pytest-playwright &>/dev/null; then
         echo -e "  pytest-playwright:${GREEN}✅ Installed${NC}"
     else
         echo -e "  pytest-playwright:${RED}❌ Not installed${NC}"
@@ -298,7 +330,7 @@ show_status() {
     # TypeScript testing
     echo -e "${CYAN}TypeScript Testing:${NC}"
     cd "$PROJECT_ROOT"
-    if npm list vitest --depth=0 &> /dev/null; then
+    if npm list vitest --depth=0 &>/dev/null; then
         echo -e "  vitest:           ${GREEN}✅ Installed${NC}"
     else
         echo -e "  vitest:           ${RED}❌ Not installed${NC}"
@@ -308,11 +340,12 @@ show_status() {
 
     # Test counts - explicit paths only
     echo -e "${CYAN}Test Files (explicit paths):${NC}"
-    local unit_count=$(find "$PROJECT_ROOT/tests/unit" -name "test_*.py" 2>/dev/null | wc -l)
-    local db_count=$(find "$PROJECT_ROOT/tests/db" -name "test_*.py" 2>/dev/null | wc -l)
-    local api_count=$(find "$PROJECT_ROOT/tests/api" -name "test_*.py" 2>/dev/null | wc -l)
-    local ui_count=$(find "$PROJECT_ROOT/tests/ui" -name "test_*.py" 2>/dev/null | wc -l)
-    local ts_count=$(find "$PROJECT_ROOT/tests/ts" -name "*.test.ts" 2>/dev/null | wc -l)
+    local unit_count db_count api_count ui_count ts_count
+    unit_count=$(find "$PROJECT_ROOT/tests/unit" -name "test_*.py" 2>/dev/null | wc -l)
+    db_count=$(find "$PROJECT_ROOT/tests/db" -name "test_*.py" 2>/dev/null | wc -l)
+    api_count=$(find "$PROJECT_ROOT/tests/api" -name "test_*.py" 2>/dev/null | wc -l)
+    ui_count=$(find "$PROJECT_ROOT/tests/ui" -name "test_*.py" 2>/dev/null | wc -l)
+    ts_count=$(find "$PROJECT_ROOT/tests/ts" -name "*.test.ts" 2>/dev/null | wc -l)
 
     echo -e "  tests/unit/:      ${CYAN}$unit_count${NC} files"
     echo -e "  tests/db/:        ${CYAN}$db_count${NC} files"
@@ -321,7 +354,8 @@ show_status() {
     echo -e "  tests/ts/:        ${CYAN}$ts_count${NC} files"
 
     # Legacy locations warning
-    local apps_count=$(find "$PROJECT_ROOT/tests/apps" -name "test_*.py" 2>/dev/null | wc -l)
+    local apps_count
+    apps_count=$(find "$PROJECT_ROOT/tests/apps" -name "test_*.py" 2>/dev/null | wc -l)
     if [ "$apps_count" -gt 0 ]; then
         echo ""
         echo -e "${YELLOW}⚠️  Legacy tests found:${NC}"
@@ -345,13 +379,14 @@ usage() {
     echo "Usage: $0 <category> [options]"
     echo ""
     echo "Categories:"
-    echo "  unit      Run Python unit tests (tests/unit/)"
-    echo "  db        Run Python database tests (tests/db/)"
-    echo "  api       Run Python API tests (tests/api/)"
-    echo "  ui        Run UI tests - Playwright (tests/ui/)"
-    echo "  python    Run all Python tests"
-    echo "  ts        Run TypeScript tests (tests/ts/)"
-    echo "  all       Run all tests"
+    echo "  unit         Run Python unit tests (tests/unit/)"
+    echo "  db           Run Python database tests (tests/db/)"
+    echo "  api          Run Python API tests (tests/api/)"
+    echo "  restful-apis Run Public RESTful API tests (/api/v1/*)"
+    echo "  ui           Run UI tests - Playwright (tests/ui/)"
+    echo "  python       Run all Python tests"
+    echo "  ts           Run TypeScript tests (tests/ts/)"
+    echo "  all          Run all tests"
     echo ""
     echo "Options:"
     echo "  --headed  Run UI tests with visible browser"
@@ -369,30 +404,30 @@ main() {
     # Parse all arguments
     for arg in "$@"; do
         case $arg in
-            --verbose|-v)
-                verbose="true"
-                ;;
-            --headed)
-                headed="true"
-                ;;
-            --check|status)
-                check_only="true"
-                ;;
-            --help|-h)
-                usage
-                exit 0
-                ;;
-            -*)
-                echo -e "${RED}❌ Unknown option: $arg${NC}"
-                usage
-                exit 1
-                ;;
-            *)
-                # First non-option argument is the category
-                if [ -z "$category" ]; then
-                    category="$arg"
-                fi
-                ;;
+        --verbose | -v)
+            verbose="true"
+            ;;
+        --headed)
+            headed="true"
+            ;;
+        --check | status)
+            check_only="true"
+            ;;
+        --help | -h)
+            usage
+            exit 0
+            ;;
+        -*)
+            echo -e "${RED}❌ Unknown option: $arg${NC}"
+            usage
+            exit 1
+            ;;
+        *)
+            # First non-option argument is the category
+            if [ -z "$category" ]; then
+                category="$arg"
+            fi
+            ;;
         esac
     done
 
@@ -404,39 +439,42 @@ main() {
 
     # Run tests
     case "$category" in
-        unit)
-            run_unit_tests "$verbose"
-            ;;
-        db)
-            run_db_tests "$verbose"
-            ;;
-        api)
-            run_api_tests "$verbose"
-            ;;
-        ui)
-            run_ui_tests "$verbose" "$headed"
-            ;;
-        python)
-            run_python_tests "$verbose"
-            ;;
-        ts|typescript)
-            run_ts_tests "$verbose"
-            ;;
-        all)
-            run_all_tests "$verbose"
-            ;;
-        "")
-            echo -e "${RED}❌ No test category specified${NC}"
-            echo ""
-            usage
-            exit 1
-            ;;
-        *)
-            echo -e "${RED}❌ Unknown category: $category${NC}"
-            echo ""
-            usage
-            exit 1
-            ;;
+    unit)
+        run_unit_tests "$verbose"
+        ;;
+    db)
+        run_db_tests "$verbose"
+        ;;
+    api)
+        run_api_tests "$verbose"
+        ;;
+    restful-apis)
+        run_restful_api_tests "$verbose"
+        ;;
+    ui)
+        run_ui_tests "$verbose" "$headed"
+        ;;
+    python)
+        run_python_tests "$verbose"
+        ;;
+    ts | typescript)
+        run_ts_tests "$verbose"
+        ;;
+    all)
+        run_all_tests "$verbose"
+        ;;
+    "")
+        echo -e "${RED}❌ No test category specified${NC}"
+        echo ""
+        usage
+        exit 1
+        ;;
+    *)
+        echo -e "${RED}❌ Unknown category: $category${NC}"
+        echo ""
+        usage
+        exit 1
+        ;;
     esac
 }
 
