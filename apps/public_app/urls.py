@@ -62,6 +62,7 @@ urlpatterns = [
         views.server_health_status_api,
         name="server_health_status_api",
     ),
+    path("api/versions/", views.versions_api, name="versions_api"),
     path(
         "api/server-metrics/history/",
         views.server_metrics_history_api,
