@@ -18,7 +18,7 @@ source "${SCRIPT_DIR}/../scripts/lib/colors.sh" 2>/dev/null || {
 # ============================================
 echo -e "${BLUE}📊 Environment Status:${NC}"
 RUNNING=$(docker ps --format '{{.Names}}' 2>/dev/null | \
-    grep -oE 'scitex-cloud-(dev|prod|nas)-' | \
+    grep -oE 'scitex-cloud-(dev|staging|prod|nas)-' | \
     sed 's/scitex-cloud-//' | \
     sed 's/-//' | \
     sort -u | \
@@ -37,7 +37,7 @@ echo ""
 # ============================================
 echo -e "${BLUE}🐳 Running Containers:${NC}"
 CONTAINERS=$(docker ps --format "table {{.Names}}\t{{.Status}}" 2>/dev/null | \
-    grep -E "scitex-cloud-(dev|prod|nas)-" || echo "")
+    grep -E "scitex-cloud-(dev|staging|prod|nas)-" || echo "")
 if [ -n "$CONTAINERS" ]; then
     echo "$CONTAINERS" | while read line; do echo "  $line"; done
 else
