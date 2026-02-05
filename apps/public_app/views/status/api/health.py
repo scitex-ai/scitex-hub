@@ -20,6 +20,16 @@ from ..health_checks import (
 
 logger = logging.getLogger("scitex")
 
+# Packages to report in version API
+ECOSYSTEM_PACKAGES = [
+    "scitex",
+    "figrecipe",
+    "crossref-local",
+    "openalex-local",
+    "scitex-writer",
+    "socialia",
+]
+
 
 def healthz(request):
     """
@@ -179,6 +189,41 @@ def _build_services_dict(status_data: dict) -> dict:
         "citation_graph_mode": citation_graph.get("mode", "unknown"),
         "user_data_permissions": user_data_perms.get("health_class", "unknown"),
     }
+
+
+def versions_api(request):
+    """API endpoint returning installed package versions for ecosystem health dashboard.
+
+    Returns JSON with installed versions of scitex ecosystem packages.
+    Used by scitex dev dashboard to show Docker environment versions.
+    """
+    from importlib.metadata import PackageNotFoundError, version
+
+    from django.conf import settings
+
+    packages = {}
+    for pkg in ECOSYSTEM_PACKAGES:
+        try:
+            packages[pkg] = {"installed": version(pkg), "status": "ok"}
+        except PackageNotFoundError:
+            packages[pkg] = {"installed": None, "status": "not_installed"}
+        except Exception as e:
+            packages[pkg] = {"installed": None, "status": "error", "error": str(e)}
+
+    # Include scitex-cloud version from settings
+    cloud_version = getattr(settings, "SCITEX_CLOUD_VERSION", "unknown")
+    packages["scitex-cloud"] = {"installed": cloud_version, "status": "ok"}
+
+    # Include environment info
+    env = getattr(settings, "SCITEX_ENV", "unknown")
+
+    return JsonResponse(
+        {
+            "packages": packages,
+            "environment": env,
+            "timestamp": timezone.now().isoformat(),
+        }
+    )
 
 
 # EOF

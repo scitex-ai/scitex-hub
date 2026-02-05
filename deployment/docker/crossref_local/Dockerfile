@@ -33,15 +33,15 @@ ENV LOG_LEVEL=INFO
 ENV WORKERS=4
 
 # Expose port
-EXPOSE 3333
+EXPOSE 31291
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:3333/health || exit 1
+    CMD curl -f http://localhost:31291/health || exit 1
 
 # Run server
 CMD uvicorn server:app \
     --host 0.0.0.0 \
-    --port 3333 \
+    --port 31291 \
     --workers ${WORKERS} \
     --log-level ${LOG_LEVEL}

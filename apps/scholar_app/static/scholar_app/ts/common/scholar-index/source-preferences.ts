@@ -8,8 +8,8 @@
  * @version 1.0.0
  */
 
-import { getCsrfToken } from './utilities.ts';
-import { updateActiveFilterCount } from './filters.ts';
+import { getCsrfToken } from "./utilities.ts";
+import { updateActiveFilterCount } from "./filters.ts";
 
 /**
  * Save source preferences to database (authenticated users) or localStorage (visitor users)
@@ -128,12 +128,15 @@ export function applySourcePreferences(preferences: {
 }
 
 /**
- * Set default source preferences (all sources enabled)
+ * Set default source preferences (only Crossref Local enabled)
  */
 export function setDefaultSourcePreferences(): void {
-  // Default: All sources enabled
+  // Default: Only Crossref Local enabled (fast, recommended)
+  // Users can manually enable other sources if needed
   document.querySelectorAll(".source-toggle").forEach((toggle) => {
-    (toggle as HTMLInputElement).checked = true;
+    const el = toggle as HTMLInputElement;
+    // Only enable crossref_local by default
+    el.checked = el.value === "crossref_local";
   });
   updateAllSourcesToggle();
   updateSourceDisplay();
@@ -272,6 +275,6 @@ export function updateSourceDisplay(): void {
 }
 
 // Make saveSourcePreferences available globally for backward compatibility
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   (window as any).saveSourcePreferences = saveSourcePreferences;
 }

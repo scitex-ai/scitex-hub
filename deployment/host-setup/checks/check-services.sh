@@ -1,6 +1,6 @@
 #!/bin/bash
 # Service Health Checker
-# Tests actual connectivity to core services (Database, Redis, Gitea, CrossRef)
+# Tests actual connectivity to core services (Database, Redis, Gitea, CrossRef Local, OpenAlex Local)
 # Called by: make status
 
 set -euo pipefail
@@ -14,7 +14,7 @@ source "${SCRIPT_DIR}/../scripts/lib/colors.sh" 2>/dev/null || {
 # Determine environment from argument or running containers
 ENV="${1:-}"
 if [ -z "$ENV" ]; then
-    RUNNING=$(docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-cloud-(dev|nas)-django' | head -1 || echo "")
+    RUNNING=$(docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-cloud-(dev|staging|prod)-django' | head -1 || echo "")
     if [ -z "$RUNNING" ]; then
         # No containers running, skip checks
         exit 0
@@ -55,14 +55,28 @@ else
     echo -e "  ${YELLOW}⚠ Gitea: not responding (may still be starting)${NC}"
 fi
 
-# CrossRef check (NAS only - has local container)
-if [ "$ENV" = "nas" ]; then
-    CROSSREF_OK=$(docker exec "$CONTAINER" curl -sf http://crossref:3333/health 2>/dev/null && echo "ok" || echo "")
-    if [ "$CROSSREF_OK" = "ok" ]; then
-        echo -e "  ${GREEN}✓ CrossRef API: responding${NC}"
-    else
-        echo -e "  ${YELLOW}⚠ CrossRef API: not responding${NC}"
-    fi
+# CrossRef Local check (direct module detection)
+CROSSREF_OK=$(docker exec "$CONTAINER" python -c "
+from scitex.scholar.local_dbs import crossref_scitex
+assert hasattr(crossref_scitex, 'search')
+print('ok')
+" 2>/dev/null | tail -1 || echo "")
+if [ "$CROSSREF_OK" = "ok" ]; then
+    echo -e "  ${GREEN}✓ CrossRef Local: module ready${NC}"
+else
+    echo -e "  ${YELLOW}⚠ CrossRef Local: not available${NC}"
+fi
+
+# OpenAlex Local check (direct module detection - sibling of CrossRef)
+OPENALEX_OK=$(docker exec "$CONTAINER" python -c "
+from scitex.scholar.local_dbs import openalex_scitex
+assert hasattr(openalex_scitex, 'search')
+print('ok')
+" 2>/dev/null | tail -1 || echo "")
+if [ "$OPENALEX_OK" = "ok" ]; then
+    echo -e "  ${GREEN}✓ OpenAlex Local: module ready${NC}"
+else
+    echo -e "  ${YELLOW}⚠ OpenAlex Local: not available${NC}"
 fi
 
 echo ""

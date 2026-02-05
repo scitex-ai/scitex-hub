@@ -1,0 +1,357 @@
+{% load static %}
+
+<!-- Public Search API (No Auth Required) -->
+<section id="public-search" class="api-section">
+    <h2>
+        <i class="fas fa-globe"></i> Public Search API
+    </h2>
+    <div class="api-highlight-box">
+        <strong>No authentication required!</strong> This API is rate-limited but freely accessible for programmatic literature search.
+    </div>
+    <p>
+        Search across multiple academic databases (PubMed, arXiv, Semantic Scholar, CrossRef, OpenAlex) with a single request.
+    </p>
+    <div class="api-endpoint-detail">
+        <div class="api-endpoint-header">
+            <span class="method method-get">GET</span>
+            <code>/api/v1/scholar/search/</code>
+        </div>
+        <h4>Query Parameters</h4>
+        <table class="api-table api-params-table">
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <code>q</code>
+                    </td>
+                    <td>string</td>
+                    <td>
+                        <span class="badge-required">Required</span>
+                    </td>
+                    <td>Search query</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>limit</code>
+                    </td>
+                    <td>integer</td>
+                    <td>Optional</td>
+                    <td>Max results per source (default: 20, max: 100)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>format</code>
+                    </td>
+                    <td>string</td>
+                    <td>Optional</td>
+                    <td>
+                        Response format: <code>json</code>, <code>bibtex</code>, <code>csv</code>, <code>text</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>sources</code>
+                    </td>
+                    <td>string</td>
+                    <td>Optional</td>
+                    <td>Comma-separated: pubmed, arxiv, semantic, crossref, openalex</td>
+                </tr>
+            </tbody>
+        </table>
+        <h4>Rate Limits</h4>
+        <table class="api-table">
+            <thead>
+                <tr>
+                    <th>Access Type</th>
+                    <th>Limit</th>
+                    <th>How to Get</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Anonymous</td>
+                    <td>10 requests/min</td>
+                    <td>No setup needed</td>
+                </tr>
+                <tr>
+                    <td>With API Key</td>
+                    <td>100 requests/min</td>
+                    <td>
+                        Header: <code>X-SCITEX-API-KEY</code>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <h4>Example: Basic Search</h4>
+        <div class="api-example with-tabs">
+            <div class="api-example-tabs">
+                <button class="api-example-tab active" data-panel="basic-generic">Generic</button>
+                <button class="api-example-tab campaign-tab" data-panel="basic-campaign">Campaign Token</button>
+            </div>
+            <div class="api-example-panel active" id="basic-generic">
+                <div class="api-example-header">
+                    <span class="api-example-lang">cURL</span>
+                    <button class="copy-btn" data-copy="public-search-basic">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                <div class="api-example-body">
+                    <pre><code id="public-search-basic">curl "{{ request.scheme }}://{{ request.get_host }}/api/v1/scholar/search/?q=neural+networks&limit=10"</code></pre>
+                </div>
+            </div>
+            <div class="api-example-panel" id="basic-campaign">
+                <div class="api-example-header">
+                    <span class="api-example-lang">cURL (with Campaign Token)</span>
+                    <button class="copy-btn" data-copy="public-search-basic-campaign">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                <div class="api-example-body">
+                    <pre><code id="public-search-basic-campaign">curl -H "X-SCITEX-API-KEY: {{ campaign_token|default:'scitex-cloud-campaign-20260101-20261231-alpha' }}" \
+     "{{ request.scheme }}://{{ request.get_host }}/api/v1/scholar/search/?q=neural+networks&limit=10"</code></pre>
+                </div>
+            </div>
+        </div>
+        <h4>Example: Export as BibTeX</h4>
+        <div class="api-example">
+            <div class="api-example-header">
+                <span class="api-example-lang">cURL</span>
+                <button class="copy-btn" data-copy="public-search-bibtex">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+            <div class="api-example-body">
+                <pre><code id="public-search-bibtex">curl "{{ request.scheme }}://{{ request.get_host }}/api/v1/scholar/search/?q=deep+learning&format=bibtex" -o references.bib</code></pre>
+            </div>
+        </div>
+        <h4>Example: Search Specific Sources</h4>
+        <div class="api-example">
+            <div class="api-example-header">
+                <span class="api-example-lang">cURL</span>
+                <button class="copy-btn" data-copy="public-search-sources">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+            <div class="api-example-body">
+                <pre><code id="public-search-sources">curl "{{ request.scheme }}://{{ request.get_host }}/api/v1/scholar/search/?q=cancer&sources=pubmed,crossref&format=csv"</code></pre>
+            </div>
+        </div>
+        <h4>Example: With API Key</h4>
+        <div class="api-example with-tabs">
+            <div class="api-example-tabs">
+                <button class="api-example-tab active" data-panel="auth-generic">Generic</button>
+                <button class="api-example-tab campaign-tab" data-panel="auth-campaign">Campaign Token</button>
+            </div>
+            <div class="api-example-panel active" id="auth-generic">
+                <div class="api-example-header">
+                    <span class="api-example-lang">cURL</span>
+                    <button class="copy-btn" data-copy="public-search-auth">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                <div class="api-example-body">
+                    <pre><code id="public-search-auth">curl -H "X-SCITEX-API-KEY: your-api-key" \
+     "{{ request.scheme }}://{{ request.get_host }}/api/v1/scholar/search/?q=machine+learning"</code></pre>
+                </div>
+            </div>
+            <div class="api-example-panel" id="auth-campaign">
+                <div class="api-example-header">
+                    <span class="api-example-lang">cURL (Ready to Run!)</span>
+                    <button class="copy-btn" data-copy="public-search-auth-campaign">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                <div class="api-example-body">
+                    <pre><code id="public-search-auth-campaign">curl -H "X-SCITEX-API-KEY: {{ campaign_token|default:'scitex-cloud-campaign-20260101-20261231-alpha' }}" \
+     "{{ request.scheme }}://{{ request.get_host }}/api/v1/scholar/search/?q=machine+learning"</code></pre>
+                </div>
+            </div>
+        </div>
+        <h4>JSON Response</h4>
+        <div class="api-example">
+            <div class="api-example-body">
+                <pre><code>{
+  "status": "success",
+  "query": "neural networks",
+  "total_count": 60,
+  "sources": {
+    "pubmed": {"count": 20, "status": "success"},
+    "arxiv": {"count": 20, "status": "success"},
+    "semantic": {"count": 20, "status": "success"}
+  },
+  "results": [
+    {
+      "title": "Deep Learning in Neural Networks: An Overview",
+      "authors": "Schmidhuber, Jurgen",
+      "journal": "Neural Networks",
+      "year": "2015",
+      "doi": "10.1016/j.neunet.2014.09.003",
+      "citations": 15000,
+      "impact_factor": 7.8,
+      "is_open_access": false,
+      "abstract": "In recent years, deep artificial neural networks...",
+      "url": "https://doi.org/10.1016/j.neunet.2014.09.003",
+      "source": "semantic"
+    }
+  ]
+}</code></pre>
+            </div>
+        </div>
+        <h4>Response Fields</h4>
+        <table class="api-table">
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <code>title</code>
+                    </td>
+                    <td>string</td>
+                    <td>Paper title</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>authors</code>
+                    </td>
+                    <td>string</td>
+                    <td>Author names (comma-separated)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>journal</code>
+                    </td>
+                    <td>string</td>
+                    <td>Journal or venue name</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>year</code>
+                    </td>
+                    <td>string</td>
+                    <td>Publication year</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>doi</code>
+                    </td>
+                    <td>string</td>
+                    <td>Digital Object Identifier</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>pmid</code>
+                    </td>
+                    <td>string</td>
+                    <td>PubMed ID</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>arxiv_id</code>
+                    </td>
+                    <td>string</td>
+                    <td>arXiv identifier</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>citations</code>
+                    </td>
+                    <td>integer</td>
+                    <td>Citation count</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>impact_factor</code>
+                    </td>
+                    <td>float</td>
+                    <td>Journal impact factor</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>is_open_access</code>
+                    </td>
+                    <td>boolean</td>
+                    <td>Whether paper is open access</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>abstract</code>
+                    </td>
+                    <td>string</td>
+                    <td>Paper abstract</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>url</code>
+                    </td>
+                    <td>string</td>
+                    <td>Link to paper</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>source</code>
+                    </td>
+                    <td>string</td>
+                    <td>Data source</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+<!-- API Info Endpoint -->
+<section id="public-info" class="api-section">
+    <h2>
+        <i class="fas fa-info-circle"></i> API Info
+    </h2>
+    <p>Get API documentation and rate limit status.</p>
+    <div class="api-endpoint-detail">
+        <div class="api-endpoint-header">
+            <span class="method method-get">GET</span>
+            <code>/api/v1/scholar/info/</code>
+        </div>
+        <h4>Example</h4>
+        <div class="api-example with-tabs">
+            <div class="api-example-tabs">
+                <button class="api-example-tab active" data-panel="info-generic">Generic</button>
+                <button class="api-example-tab campaign-tab" data-panel="info-campaign">Campaign Token</button>
+            </div>
+            <div class="api-example-panel active" id="info-generic">
+                <div class="api-example-header">
+                    <span class="api-example-lang">cURL</span>
+                    <button class="copy-btn" data-copy="public-info-example">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                <div class="api-example-body">
+                    <pre><code id="public-info-example">curl "{{ request.scheme }}://{{ request.get_host }}/api/v1/scholar/info/"</code></pre>
+                </div>
+            </div>
+            <div class="api-example-panel" id="info-campaign">
+                <div class="api-example-header">
+                    <span class="api-example-lang">cURL (with Campaign Token)</span>
+                    <button class="copy-btn" data-copy="public-info-campaign">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                <div class="api-example-body">
+                    <pre><code id="public-info-campaign">curl -H "X-SCITEX-API-KEY: {{ campaign_token|default:'scitex-cloud-campaign-20260101-20261231-alpha' }}" \
+     "{{ request.scheme }}://{{ request.get_host }}/api/v1/scholar/info/"</code></pre>
+                </div>
+            </div>
+        </div>
+        <p>
+            Returns complete API documentation including all parameters, examples, rate limits, and response field descriptions.
+        </p>
+    </div>
+</section>

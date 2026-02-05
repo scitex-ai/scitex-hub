@@ -3,15 +3,7 @@
 # File: /home/ywatanabe/proj/scitex-cloud/apps/scholar_app/views/search/api_search.py
 # Main search API module - delegates to specialized modules
 # ----------------------------------------
-from __future__ import annotations
-
-import os
-
-__FILE__ = "./apps/scholar_app/views/search/api_search.py"
-__DIR__ = os.path.dirname(__FILE__)
-# ----------------------------------------
-"""
-Search API endpoints for scholar module.
+"""Search API endpoints for scholar module.
 
 This module provides API endpoints for searching academic literature from
 multiple sources. The implementation is split across several modules:
@@ -20,17 +12,24 @@ multiple sources. The implementation is split across several modules:
 - api_crossref.py: CrossRef remote API search
 - api_crossref_local.py: CrossRef Local (NAS) database search
 - api_openalex.py: OpenAlex API search
+- api_openalex_local.py: OpenAlex Local (NAS) database search
 - api_unified.py: Unified search with command syntax support
 - api_syntax_help.py: Search syntax documentation
 
 All view functions are re-exported from this module for backward compatibility.
 """
+
+from __future__ import annotations
+
+import os
+
 from django.views.decorators.http import require_http_methods
 
 # Import specialized API endpoints
 from .api_crossref import api_search_crossref
 from .api_crossref_local import api_search_crossref_local
 from .api_openalex import api_search_openalex
+from .api_openalex_local import api_search_openalex_local
 from .api_syntax_help import api_search_syntax_help
 from .api_unified import api_search_unified
 
@@ -47,6 +46,10 @@ from .engines import (
     search_pubmed_central,
     search_semantic_scholar,
 )
+
+__FILE__ = "./apps/scholar_app/views/search/api_search.py"
+__DIR__ = os.path.dirname(__FILE__)
+
 
 # =============================================================================
 # Simple source-specific API endpoints
@@ -124,6 +127,7 @@ __all__ = [
     "api_search_crossref",
     "api_search_crossref_local",
     "api_search_openalex",
+    "api_search_openalex_local",
     "api_search_unified",
     "api_search_syntax_help",
 ]

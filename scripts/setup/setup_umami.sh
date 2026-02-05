@@ -23,12 +23,12 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
 # Determine environment
 ENV="${1:-dev}"
-if [[ "$ENV" != "dev" && "$ENV" != "nas" ]]; then
-    log_error "Usage: $0 [dev|nas]"
+if [[ "$ENV" != "dev" && "$ENV" != "prod" ]]; then
+    log_error "Usage: $0 [dev|prod]"
     exit 1
 fi
 
-ENV_FILE="$PROJECT_ROOT/SECRET/.env.$ENV"
+ENV_FILE="$PROJECT_ROOT/deployment/docker/envs/.env.$ENV"
 COMPOSE_DIR="$PROJECT_ROOT/deployment/docker/docker_$ENV"
 
 log_info "Setting up Umami for environment: $ENV"

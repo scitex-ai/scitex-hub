@@ -4,16 +4,16 @@
 !-- File: /home/ywatanabe/proj/scitex-cloud/docs/DEV_VS_NAS.md
 !-- --- -->
 
-# Dev vs NAS Environment Configuration
+# Dev vs Production Environment Configuration
 
 ## Quick Reference
 
-| Setting               | Dev                  | NAS                                  |
+| Setting               | Dev                  | Production                           |
 |-----------------------|----------------------|--------------------------------------|
 | **HTTP Port**         | 8000 (direct Django) | 80 (nginx + Cloudflare)              |
 | **Domain**            | 127.0.0.1            | scitex.ai                            |
 | **HTTPS Cookies**     | false                | true                                 |
-| **Database**          | scitex_cloud_dev     | scitex_cloud_nas                     |
+| **Database**          | scitex_cloud_dev     | scitex_cloud_prod                     |
 | **Cloudflare Tunnel** | none                 | configured                           |
 | **Gitea URL**         | 127.0.0.1:3000       | gitea:3000 (Docker internal)         |
 | **SLURM Host**        | ywata-note-win       | DXP480TPLUS-994                      |
@@ -23,16 +23,16 @@
 
 ## Git SSH Access
 
-| Environment | Command                                                |
-|-------------|--------------------------------------------------------|
-| **NAS**     | `git clone git@scitex.ai:username/repo.git`            |
-| **Dev**     | `git clone ssh://git@127.0.0.1:2222/username/repo.git` |
+| Environment   | Command                                                |
+|---------------|--------------------------------------------------------|
+| **Production**| `git clone git@scitex.ai:username/repo.git`            |
+| **Dev**       | `git clone ssh://git@127.0.0.1:2222/username/repo.git` |
 
-NAS uses Cloudflare Tunnel to route SSH (port 22) to Gitea container (internal port 2222).
+Production uses Cloudflare Tunnel to route SSH (port 22) to Gitea container (internal port 2222).
 
 ## Architecture Differences
 
-| Aspect              | Dev                                | NAS                              |
+| Aspect              | Dev                                | Production                       |
 |---------------------|------------------------------------|---------------------------------|
 | **Dockerfile**      | Single-stage, includes dev tools   | Multi-stage, optimized for size |
 | **Container user**  | root                               | scitex (UID 1000)               |
@@ -42,26 +42,26 @@ NAS uses Cloudflare Tunnel to route SSH (port 22) to Gitea container (internal p
 | **scitex-code**     | Mounted from local directory       | Installed from PyPI             |
 | **Nginx**           | None (direct Django:8000)          | nginx:alpine reverse proxy      |
 | **Cloudflare**      | None                               | cloudflared container           |
-| **CrossRef**        | NAS via LAN (169.254.11.50:8000)   | Local container (crossref:3333) |
+| **CrossRef**        | Production via LAN (169.254.11.50:8000) | Local container (crossref:31291) |
 | **Celery workers**  | 4                                  | 8                               |
 | **Network subnet**  | 172.20.0.0/16                      | default bridge                  |
 
 ## Exposed Ports
 
-| Port | Dev | NAS | Purpose                       |
-|------|-----|-----|-------------------------------|
-| 8000 | Yes | No  | Django (internal in NAS)      |
-| 2200 | Yes | Yes | SSH gateway for workspaces    |
-| 2222 | Yes | Yes | Gitea SSH (git clone/push)    |
-| 5678 | Yes | No  | Debug (debugpy/pdb)           |
-| 5173 | Yes | No  | Vite HMR                      |
-| 80   | No  | Yes | nginx (via Cloudflare)        |
+| Port | Dev | Production | Purpose                    |
+|------|-----|------------|-------------------------------|
+| 8000 | Yes | No         | Django (internal in prod)     |
+| 2200 | Yes | Yes        | SSH gateway for workspaces    |
+| 2222 | Yes | Yes        | Gitea SSH (git clone/push)    |
+| 5678 | Yes | No         | Debug (debugpy/pdb)           |
+| 5173 | Yes | No         | Vite HMR                      |
+| 80   | No  | Yes        | nginx (via Cloudflare)        |
 
-Note: In NAS, port 2222 is exposed to internet via Cloudflare Tunnel as port 22, enabling `git@scitex.ai`.
+Note: In production, port 2222 is exposed to internet via Cloudflare Tunnel as port 22, enabling `git@scitex.ai`.
 
 ## Services
 
-| Service     | Dev | NAS | Notes                        |
+| Service     | Dev | Production | Notes                     |
 |-------------|-----|-----|------------------------------|
 | django      | Yes | Yes | runserver vs daphne          |
 | postgres    | Yes | Yes | Query logging in dev         |
@@ -76,14 +76,14 @@ Note: In NAS, port 2222 is exposed to internet via Cloudflare Tunnel as port 22,
 
 ## Scholar Configuration
 
-| Setting      | Dev                          | NAS                          |
+| Setting      | Dev                          | Production                   |
 |--------------|------------------------------|------------------------------|
 | Cache        | enabled                      | enabled                      |
 | Workers      | 8                            | 8                            |
 | Mode         | parallel                     | parallel                     |
 | Debug        | true                         | false                        |
 | PDF Parallel | 8                            | 16                           |
-| CrossRef API | 169.254.11.50:8000 (NAS LAN) | crossref:3333 (local Docker) |
+| CrossRef API | 169.254.11.50:8000 (prod LAN) | crossref:31291 (local Docker) |
 
 ### Search Engine Order (default.yaml)
 
@@ -106,11 +106,11 @@ When merging results from multiple engines, higher priority wins:
 - Semantic_Scholar: 2
 - PubMed/arXiv: 1
 
-Dev connects directly to NAS CrossRef via LAN ($IP_NAS_UG:8000) for full-featured search (DOI + title + authors + year). Port 3333 is DOI-only.
+Dev connects directly to production CrossRef via LAN ($IP_PROD_UG:8000) for full-featured search (DOI + title + authors + year). Port 31291 is DOI-only.
 
 ## Resource Quotas
 
-| Setting           | Dev | NAS |
+| Setting           | Dev | Production |
 |-------------------|-----|-----|
 | Max Queued Jobs   | 8   | 16  |
 | Visitor Pool Size | 4   | 16  |
@@ -124,22 +124,22 @@ Dev connects directly to NAS CrossRef via LAN ($IP_NAS_UG:8000) for full-feature
 - **Redis debug logging**: Verbose cache operations
 - **Volume caching**: uv_cache, playwright_cache for faster rebuilds
 
-## Dev Dependencies on NAS
+## Dev Dependencies on Production
 
-Dev requires NAS on the same LAN for:
+Dev requires production server on the same LAN for:
 
-- **CrossRef API**: Direct connection to 169.254.11.50:3333 (NAS CrossRef container)
-- **SLURM**: Terminal/compute features (if SLURM is on NAS)
+- **CrossRef API**: Direct connection to 169.254.11.50:31291 (production CrossRef container)
+- **SLURM**: Terminal/compute features (if SLURM is on production server)
 
-Fully local (no NAS needed):
+Fully local (no production server needed):
 
 - **Core Django, Writer, Gitea**: Fully functional
 
 ## File Locations
 
 - Dev env: `SECRET/.env.dev`
-- NAS env: `SECRET/.env.nas`
+- Production env: `SECRET/.env.prod`
 - Dev Docker: `deployment/docker/docker_dev/`
-- NAS Docker: `deployment/docker/docker_nas/`
+- Production Docker: `deployment/docker/docker_prod/`
 
 <!-- EOF -->

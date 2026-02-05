@@ -120,7 +120,7 @@ def site_branding(request):
 def scitex_env(request):
     """
     Expose SCITEX_CLOUD_ENV to templates for environment-specific rendering.
-    Values: 'development', 'staging', 'nas', 'production'
+    Values: 'development', 'staging', 'production'
     """
     env = os.environ.get("SCITEX_CLOUD_ENV", "development").lower()
     # Normalize aliases
@@ -133,5 +133,5 @@ def scitex_env(request):
     return {
         "SCITEX_ENV": env,
         "IS_STAGING": env == "staging",
-        "IS_PRODUCTION": env in ("production", "nas"),
+        "IS_PRODUCTION": env == "production",
     }

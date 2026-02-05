@@ -36,7 +36,7 @@
         {% endif %}
         {% if result.impact_factor %}
             <span class="meta-separator">·</span>
-            <span class="result-if">IF {{ result.impact_factor }}</span>
+            <span class="result-if">IF {{ result.impact_factor|floatformat:1 }}</span>
         {% endif %}
         {% if result.is_open_access %}
             <span class="meta-separator">·</span>
@@ -58,12 +58,33 @@
     <!-- Row 3: Abstract (truncated) + Actions -->
     <div class="result-content-row">
         <div class="result-abstract" data-abstract-id="{{ result.id }}">
-            {% if result.snippet %}{{ result.snippet|truncatechars:200 }}{% elif result.full_abstract %}{{ result.full_abstract|truncatechars:200 }}{% endif %}
+            {% if result.snippet %}
+                {{ result.snippet|truncatechars:200 }}
+            {% elif result.full_abstract %}
+                {{ result.full_abstract|truncatechars:200 }}
+            {% endif %}
         </div>
         <div class="result-actions">
-            <button type="button" class="action-btn" onclick="copyCitation(this, '{{ result.id }}')" title="Copy citation"><i class="fas fa-quote-left"></i></button>
-            {% if user.is_authenticated %}<button type="button" class="action-btn" onclick="saveToProject(this, '{{ result.id }}')" title="Save"><i class="fas fa-bookmark"></i></button>{% endif %}
-            {% if result.doi %}<a href="https://doi.org/{{ result.doi }}" target="_blank" class="action-btn" title="DOI"><i class="fas fa-external-link-alt"></i></a>{% endif %}
+            <button type="button"
+                    class="action-btn"
+                    onclick="copyCitation(this, '{{ result.id }}')"
+                    title="Copy citation">
+                <i class="fas fa-quote-left"></i>
+            </button>
+            {% if user.is_authenticated %}
+                <button type="button"
+                        class="action-btn"
+                        onclick="saveToProject(this, '{{ result.id }}')"
+                        title="Save">
+                    <i class="fas fa-bookmark"></i>
+                </button>
+            {% endif %}
+            {% if result.doi %}
+                <a href="https://doi.org/{{ result.doi }}"
+                   target="_blank"
+                   class="action-btn"
+                   title="DOI"><i class="fas fa-external-link-alt"></i></a>
+            {% endif %}
         </div>
     </div>
 </div>

@@ -18,7 +18,7 @@ source "${SCRIPT_DIR}/../scripts/lib/colors.sh" 2>/dev/null || {
 # ============================================
 echo -e "${BLUE}📊 Environment Status:${NC}"
 RUNNING=$(docker ps --format '{{.Names}}' 2>/dev/null | \
-    grep -oE 'scitex-cloud-(dev|prod|nas)-' | \
+    grep -oE 'scitex-cloud-(dev|staging|prod)-' | \
     sed 's/scitex-cloud-//' | \
     sed 's/-//' | \
     sort -u | \
@@ -37,7 +37,7 @@ echo ""
 # ============================================
 echo -e "${BLUE}🐳 Running Containers:${NC}"
 CONTAINERS=$(docker ps --format "table {{.Names}}\t{{.Status}}" 2>/dev/null | \
-    grep -E "scitex-cloud-(dev|prod|nas)-" || echo "")
+    grep -E "scitex-cloud-(dev|staging|prod)-" || echo "")
 if [ -n "$CONTAINERS" ]; then
     echo "$CONTAINERS" | while read line; do echo "  $line"; done
 else
@@ -108,9 +108,9 @@ echo ""
 "${PROJECT_ROOT}/scripts/maintenance/check_file_sizes.sh" || true
 
 # ============================================
-# NAS SLURM Path Check
+# Production SLURM Path Check
 # ============================================
-if echo "$RUNNING" | grep -q "nas"; then
+if echo "$RUNNING" | grep -q "prod"; then
     echo ""
     echo -e "${BLUE}🔐 SLURM Paths (/opt/scitex):${NC}"
 
@@ -147,6 +147,6 @@ if echo "$RUNNING" | grep -q "nas"; then
         echo ""
         echo -e "   ${YELLOW}⚠️  SLURM paths not configured (terminal will fail)${NC}"
         echo -e "   ${YELLOW}Setup:${NC} ${GREEN}sudo ./deployment/host-setup/scripts/setup-slurm-paths.sh${NC}"
-        echo -e "   Then: ${GREEN}make env=nas restart${NC}"
+        echo -e "   Then: ${GREEN}make env=prod restart${NC}"
     fi
 fi

@@ -37,6 +37,8 @@
     <!-- Additional landing page styles -->
     <link rel="stylesheet" href="{% static 'public_app/css/landing-enhanced.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/landing-ecosystem.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'public_app/css/landing-ecosystem-packages.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/landing-hero-fix.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/landing-commitment.css' %}" />
 {% endblock %}
@@ -44,6 +46,7 @@
     {% include 'public_app/landing_partials/landing_announcement.html' %}
     {% include 'public_app/landing_partials/landing_hero.html' %}
     {% include 'public_app/landing_partials/landing_warning_bunner.html' %}
+    {% include 'public_app/landing_partials/landing_ecosystem.html' %}
     {# {% include 'public_app/landing_partials/landing_commitment.html' %} #}
     {# Community section removed - feedback links in footer are sufficient #}
 {% endblock %}

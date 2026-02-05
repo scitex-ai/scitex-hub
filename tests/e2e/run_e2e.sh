@@ -5,7 +5,7 @@
 # Usage:
 #   ./run_e2e.sh              # Run against local dev (http://127.0.0.1:8000)
 #   ./run_e2e.sh prod         # Run against production (https://scitex.ai)
-#   ./run_e2e.sh nas-dev      # Run against NAS dev (https://localhost:8443)
+#   ./run_e2e.sh prod-dev     # Run against prod dev (https://localhost:8443)
 #   ./run_e2e.sh docker       # Run inside Docker container
 #   ./run_e2e.sh <url>        # Run against custom URL
 #
@@ -30,13 +30,13 @@ case "${1:-local}" in
     prod|production)
         export SCITEX_BASE_URL="https://scitex.ai"
         ;;
-    nas-dev|staging)
+    prod-dev|staging)
         export SCITEX_BASE_URL="https://localhost:8443"
         ;;
     docker)
         # Run tests inside the Django container
         echo "Running E2E tests inside Docker container..."
-        docker exec scitex-cloud-nas-django-1 \
+        docker exec scitex-cloud-prod-django-1 \
             python -m pytest /app/tests/e2e/ \
             -v --tb=short -x --timeout=60 \
             -o "addopts=" \
@@ -48,7 +48,7 @@ case "${1:-local}" in
         ;;
     *)
         echo "Unknown target: $1"
-        echo "Usage: $0 [local|prod|nas-dev|docker|<url>]"
+        echo "Usage: $0 [local|prod|prod-dev|docker|<url>]"
         exit 1
         ;;
 esac

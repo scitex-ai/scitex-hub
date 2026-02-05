@@ -24,7 +24,9 @@ interface PaperData {
 function initSearchHelp(): void {
   const helpBtn = document.getElementById("searchHelpBtn");
   const helpPopup = document.getElementById("searchHelpPopup");
-  const searchInput = document.querySelector(".search-input") as HTMLInputElement;
+  const searchInput = document.querySelector(
+    ".search-input",
+  ) as HTMLInputElement;
 
   if (!helpBtn || !helpPopup) return;
 
@@ -47,12 +49,17 @@ function initSearchHelp(): void {
       e.stopPropagation();
       const insertText = (chip as HTMLElement).dataset.insert;
       if (insertText && searchInput) {
-        const cursorPos = searchInput.selectionStart || searchInput.value.length;
+        const cursorPos =
+          searchInput.selectionStart || searchInput.value.length;
         const currentValue = searchInput.value;
         const needsSpace = cursorPos > 0 && currentValue[cursorPos - 1] !== " ";
         const prefix = needsSpace ? " " : "";
 
-        searchInput.value = currentValue.slice(0, cursorPos) + prefix + insertText + currentValue.slice(cursorPos);
+        searchInput.value =
+          currentValue.slice(0, cursorPos) +
+          prefix +
+          insertText +
+          currentValue.slice(cursorPos);
         searchInput.focus();
         const newPos = cursorPos + prefix.length + insertText.length;
         searchInput.setSelectionRange(newPos, newPos);
@@ -76,7 +83,9 @@ export function getSelectedPapers(): PaperData[] {
   document.querySelectorAll(".result-card").forEach((card) => {
     const checkbox = card.querySelector(".paper-select") as HTMLInputElement;
     if (checkbox && checkbox.checked) {
-      const titleEl = card.querySelector(".result-title a") as HTMLAnchorElement;
+      const titleEl = card.querySelector(
+        ".result-title a",
+      ) as HTMLAnchorElement;
       const metaEl = card.querySelector(".result-meta");
       const snippetEl = card.querySelector(".result-snippet") as HTMLElement;
       const yearEl = card.querySelector(".year-badge");
@@ -85,11 +94,16 @@ export function getSelectedPapers(): PaperData[] {
         title: titleEl?.textContent?.trim() || "Unknown",
         url: titleEl?.href || "",
         authors: metaEl?.querySelector(".authors")?.textContent?.trim() || "",
-        journal: metaEl?.querySelector(".journal-badge")?.textContent?.trim() || "",
+        journal:
+          metaEl?.querySelector(".journal-badge")?.textContent?.trim() || "",
         year: yearEl?.textContent?.trim() || "",
-        abstract: snippetEl?.dataset?.fullAbstract || snippetEl?.textContent?.trim() || "",
+        abstract:
+          snippetEl?.dataset?.fullAbstract ||
+          snippetEl?.textContent?.trim() ||
+          "",
         doi: (card as HTMLElement).dataset?.doi || "",
-        source: metaEl?.querySelector(".source-badge")?.textContent?.trim() || "",
+        source:
+          metaEl?.querySelector(".source-badge")?.textContent?.trim() || "",
       });
     }
   });
@@ -100,16 +114,23 @@ export function getSelectedPapers(): PaperData[] {
  * Generate a BibTeX key from paper data
  */
 function generateBibtexKey(paper: PaperData): string {
-  const firstAuthor = (paper.authors || "unknown").split(",")[0].split(" ").pop() || "unknown";
+  const firstAuthor =
+    (paper.authors || "unknown").split(",")[0].split(" ").pop() || "unknown";
   const year = paper.year || "XXXX";
-  const titleWord = (paper.title || "untitled").split(" ")[0].toLowerCase().replace(/[^a-z]/g, "");
+  const titleWord = (paper.title || "untitled")
+    .split(" ")[0]
+    .toLowerCase()
+    .replace(/[^a-z]/g, "");
   return `${firstAuthor.toLowerCase()}${year}${titleWord}`;
 }
 
 /**
  * Generate BibTeX entry for a paper
  */
-function generateBibtexEntry(paper: PaperData, includeAbstract: boolean = false): string {
+function generateBibtexEntry(
+  paper: PaperData,
+  includeAbstract: boolean = false,
+): string {
   const key = generateBibtexKey(paper);
   const authors = paper.authors || "Unknown";
   const title = paper.title || "Unknown";
@@ -153,7 +174,9 @@ function showCopyFeedback(message: string): void {
  * Update toolbar button states based on selection
  */
 function updateToolbarState(): void {
-  const selectedCount = document.querySelectorAll(".result-card .paper-select:checked").length;
+  const selectedCount = document.querySelectorAll(
+    ".result-card .paper-select:checked",
+  ).length;
   const hasResults = document.querySelectorAll(".result-card").length > 0;
   const buttons = ["saveSelectedBtn", "openUrlsBtn", "exportSelectedBibtex"];
 
@@ -162,7 +185,9 @@ function updateToolbarState(): void {
     if (btn) btn.disabled = selectedCount === 0;
   });
 
-  const abstractBtn = document.getElementById("abstractToggleBtn") as HTMLButtonElement;
+  const abstractBtn = document.getElementById(
+    "abstractToggleBtn",
+  ) as HTMLButtonElement;
   if (abstractBtn) abstractBtn.disabled = !hasResults;
 }
 
@@ -212,11 +237,17 @@ function initSaveSelected(): void {
       alert("No papers selected. Click on papers to select them.");
       return;
     }
-    const saved = JSON.parse(localStorage.getItem("scitex_saved_papers") || "[]");
-    const newPapers = papers.filter((p) => !saved.some((s: PaperData) => s.title === p.title));
+    const saved = JSON.parse(
+      localStorage.getItem("scitex_saved_papers") || "[]",
+    );
+    const newPapers = papers.filter(
+      (p) => !saved.some((s: PaperData) => s.title === p.title),
+    );
     saved.push(...newPapers);
     localStorage.setItem("scitex_saved_papers", JSON.stringify(saved));
-    alert(`Saved ${newPapers.length} paper(s) to library. (${papers.length - newPapers.length} already saved)`);
+    alert(
+      `Saved ${newPapers.length.toLocaleString()} paper(s) to library. (${(papers.length - newPapers.length).toLocaleString()} already saved)`,
+    );
   });
 }
 
@@ -234,7 +265,12 @@ function initOpenUrls(): void {
       return;
     }
     if (papers.length > 10) {
-      if (!confirm(`Open ${papers.length} URLs? This may be blocked by your browser.`)) return;
+      if (
+        !confirm(
+          `Open ${papers.length.toLocaleString()} URLs? This may be blocked by your browser.`,
+        )
+      )
+        return;
     }
     papers.forEach((paper, i) => {
       if (paper.url && paper.url !== "#") {
@@ -246,30 +282,11 @@ function initOpenUrls(): void {
 
 /**
  * Initialize BibTeX export button
+ * Note: Export handler with dropdown is in toolbar-handlers.ts
  */
 function initBibtexExport(): void {
-  const btn = document.getElementById("exportSelectedBibtex");
-  if (!btn) return;
-
-  btn.addEventListener("click", () => {
-    const papers = getSelectedPapers();
-    if (papers.length === 0) {
-      alert("No papers selected. Click on papers to select them.");
-      return;
-    }
-
-    const bibtexContent = papers.map((p) => generateBibtexEntry(p, true)).join("\n\n");
-
-    const blob = new Blob([bibtexContent], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `scitex_export_${new Date().toISOString().slice(0, 10)}.bib`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  });
+  // Handler moved to toolbar-handlers.ts (with format dropdown)
+  // This function is kept for backwards compatibility but does nothing
 }
 
 /**
@@ -289,12 +306,16 @@ function initCopyShortcut(): void {
       }
 
       e.preventDefault();
-      const bibtexContent = papers.map((p) => generateBibtexEntry(p, false)).join("\n\n");
+      const bibtexContent = papers
+        .map((p) => generateBibtexEntry(p, false))
+        .join("\n\n");
 
       navigator.clipboard
         .writeText(bibtexContent)
         .then(() => {
-          showCopyFeedback(`Copied ${papers.length} BibTeX ${papers.length === 1 ? "entry" : "entries"} to clipboard`);
+          showCopyFeedback(
+            `Copied ${papers.length.toLocaleString()} BibTeX ${papers.length === 1 ? "entry" : "entries"} to clipboard`,
+          );
         })
         .catch((err) => {
           console.error("Failed to copy BibTeX:", err);

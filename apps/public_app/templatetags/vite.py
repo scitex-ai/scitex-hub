@@ -116,7 +116,12 @@ def vite_legacy_script(static_path: str):
 
 
 def _entry_to_ts_path(entry_name: str) -> str:
-    """Convert entry name to TypeScript file path (for Vite)."""
+    """Convert entry name to TypeScript file path (for Vite).
+
+    First checks explicit mappings, then falls back to convention-based path:
+    - "{app}_app/{path}" -> "apps/{app}_app/static/{app}_app/ts/{path}.ts"
+    - "shared/{path}" -> "static/shared/ts/{path}.ts"
+    """
     # Map entry names to actual TS file locations
     mappings = {
         # Code app
@@ -205,6 +210,7 @@ def _entry_to_ts_path(entry_name: str) -> str:
         "scholar_app/init/swarm-plots-init": "apps/scholar_app/static/scholar_app/ts/init/swarm-plots-init.ts",
         "scholar_app/graph/citation-graph": "apps/scholar_app/static/scholar_app/ts/graph/citation-graph.ts",
         "scholar_app/search/search-controls": "apps/scholar_app/static/scholar_app/ts/search/search-controls.ts",
+        "scholar_app/search/source-health-check": "apps/scholar_app/static/scholar_app/ts/search/source-health-check.ts",
         # Project app - additional
         "project_app/projects/settings": "apps/project_app/static/project_app/ts/projects/settings.ts",
         # Shared utilities
@@ -231,4 +237,24 @@ def _entry_to_ts_path(entry_name: str) -> str:
         "public_app/landing/hero-demo": "apps/public_app/static/public_app/ts/landing/hero-demo.ts",
         "public_app/pages/visitor-pool-full": "apps/public_app/static/public_app/ts/pages/visitor-pool-full.ts",
     }
-    return mappings.get(entry_name, f"{entry_name}.ts")
+
+    # Check explicit mapping first
+    if entry_name in mappings:
+        return mappings[entry_name]
+
+    # Convention-based fallback: derive path from entry name
+    parts = entry_name.split("/")
+    if len(parts) >= 2:
+        app_name = parts[0]
+        rest = "/".join(parts[1:])
+
+        # App-specific paths: "{app}_app/{path}" -> "apps/{app}_app/static/{app}_app/ts/{path}.ts"
+        if app_name.endswith("_app"):
+            return f"apps/{app_name}/static/{app_name}/ts/{rest}.ts"
+
+        # Shared paths: "shared/{path}" -> "static/shared/ts/{path}.ts"
+        if app_name == "shared":
+            return f"static/shared/ts/{rest}.ts"
+
+    # Last resort
+    return f"{entry_name}.ts"

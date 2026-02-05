@@ -11,15 +11,15 @@
 
 set -e
 
-CONTAINER="scitex-cloud-nas-django-1"
-NAS_HOME="/home/ywatanabe"
+CONTAINER="scitex-cloud-prod-django-1"
+PROD_HOME="/home/ywatanabe"
 
 echo "Copying demo media files to container volume..."
 
-# scitex-writer demo files (stored in NAS home, not in repo due to size)
+# scitex-writer demo files (stored in production home, not in repo due to size)
 if ! docker exec "$CONTAINER" ls /app/media/videos/scitex-writer-v2.2.0-demo.mp4 >/dev/null 2>&1; then
     echo "  Copying scitex-writer demo files..."
-    for file in "$NAS_HOME"/scitex-writer-v2.2.0-demo*; do
+    for file in "$PROD_HOME"/scitex-writer-v2.2.0-demo*; do
         [ -f "$file" ] && docker cp "$file" "$CONTAINER:/app/media/videos/"
     done
 fi
@@ -27,7 +27,7 @@ fi
 # scitex-automated-research demo files
 if ! docker exec "$CONTAINER" ls /app/media/videos/scitex-automated-research-demo.mp4 >/dev/null 2>&1; then
     echo "  Copying scitex-automated-research demo files..."
-    for file in "$NAS_HOME"/scitex-automated-research-demo*; do
+    for file in "$PROD_HOME"/scitex-automated-research-demo*; do
         [ -f "$file" ] && docker cp "$file" "$CONTAINER:/app/media/videos/"
     done
 fi

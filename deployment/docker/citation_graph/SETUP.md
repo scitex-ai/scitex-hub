@@ -30,7 +30,7 @@ Updated `/home/ywatanabe/proj/scitex-cloud/requirements.txt`:
 
 | Service        | Port | Purpose                      |
 |----------------|------|------------------------------|
-| CrossRef Local | 3333 | Paper metadata & search      |
+| CrossRef Local | 31291 | Paper metadata & search      |
 | **Citation Graph** | **3334** | **Citation network analysis** |
 
 ---
@@ -206,14 +206,14 @@ docker run -d \
 
 ## Integration Examples
 
-### With CrossRef Local (Port 3333)
+### With CrossRef Local (Port 31291)
 
 ```python
 import requests
 
 # Get paper from CrossRef Local
 paper = requests.get(
-    "http://localhost:3333/api/search/",
+    "http://localhost:31291/api/search/",
     params={"doi": "10.1038/s41586-020-2008-3"}
 ).json()
 
@@ -327,7 +327,7 @@ lsof -ti:3334 | xargs kill
 2. **Test locally** with `python3 server.py`
 3. **Integrate with Docker** for production
 4. **Build frontend** visualization (D3.js/vis.js)
-5. **Add to NAS deployment** alongside CrossRef Local (3333)
+5. **Add to NAS deployment** alongside CrossRef Local (31291)
 
 ---
 

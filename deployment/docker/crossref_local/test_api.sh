@@ -3,7 +3,7 @@
 
 set -e
 
-API_URL="${1:-http://localhost:3333}"
+API_URL="${1:-http://localhost:31291}"
 TEST_DOI="10.1038/nature12345"
 
 echo -e "=========================================="

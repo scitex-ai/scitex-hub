@@ -9,6 +9,7 @@
 
 import { SearchResult } from "./types";
 import { updateToolbarState } from "./results-toolbar";
+import { hideSearchLoading } from "./search-loading";
 
 // Debounce toolbar updates to avoid O(n²) DOM queries when adding many cards
 let toolbarUpdateTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -51,7 +52,10 @@ export function createResultCard(result: SearchResult): HTMLElement {
   }
   // Journal + IF as single warning badge
   if (result.journal) {
-    const ifText = result.impact_factor ? ` (IF ${result.impact_factor})` : "";
+    const ifValue = result.impact_factor
+      ? parseFloat(String(result.impact_factor)).toFixed(1)
+      : null;
+    const ifText = ifValue ? ` (IF ${ifValue})` : "";
     metaParts.push(
       `<span class="journal-badge">${escapeHtml(result.journal)}${ifText}</span>`,
     );
@@ -165,7 +169,7 @@ export function updateCardSelectedState(
  */
 export function setupCardSelectionHandlers(card: HTMLElement): void {
   const checkbox = card.querySelector(
-    ".paper-select",
+    ".paper-select, .paper-select-checkbox",
   ) as HTMLInputElement | null;
 
   // Click on card body toggles selection (not on checkbox or links)
@@ -222,6 +226,12 @@ export function addResultToProgressive(result: SearchResult): void {
     return;
   }
 
+  // Remove loading quote if present (first result arrived)
+  const loadingEl = progressiveResults.querySelector(".search-loading");
+  if (loadingEl) {
+    hideSearchLoading();
+  }
+
   const resultCard = createResultCard(result);
   progressiveResults.appendChild(resultCard);
 
@@ -241,7 +251,7 @@ export function addResultToProgressive(result: SearchResult): void {
 export function toggleSelectAll(selectAll: boolean): void {
   document.querySelectorAll(".result-card").forEach((card) => {
     const checkbox = card.querySelector(
-      ".paper-select",
+      ".paper-select, .paper-select-checkbox",
     ) as HTMLInputElement | null;
     if (checkbox) {
       checkbox.checked = selectAll;

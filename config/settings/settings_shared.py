@@ -24,7 +24,7 @@ def require_env(var_name: str) -> str:
     if value is None:
         raise EnvironmentError(
             f"Required environment variable '{var_name}' is not set. "
-            f"Check SECRET/.env.{{ENV}} file."
+            f"Check deployment/docker/envs/.env.{{ENV}} file."
         )
     return value
 
@@ -75,7 +75,21 @@ def discover_local_apps():
 # ---------------------------------------
 # Metadata
 # ---------------------------------------
-SCITEX_CLOUD_VERSION = "0.6.5-alpha"
+def _get_version():
+    """Read version from pyproject.toml (single source of truth)."""
+    from pathlib import Path
+    try:
+        import tomllib
+    except ImportError:
+        import tomli as tomllib
+    pyproject = Path(__file__).resolve().parent.parent.parent / "pyproject.toml"
+    if pyproject.exists():
+        with open(pyproject, "rb") as f:
+            data = tomllib.load(f)
+            return data.get("project", {}).get("version", "unknown")
+    return "unknown"
+
+SCITEX_CLOUD_VERSION = _get_version()
 
 # ---------------------------------------
 # Visitor Pool Configuration
@@ -761,7 +775,7 @@ for location in _WRITER_TEMPLATE_LOCATIONS:
 # ---------------------------------------
 CROSSREF_INTERNAL_URL = os.getenv(
     "CROSSREF_INTERNAL_URL",
-    "http://crossref:3333"
+    "http://crossref:31291"
 )
 
 # CrossRef database path for citation graph service

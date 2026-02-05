@@ -25,8 +25,7 @@ deployment/
 |---------|-------|
 | `make env=dev start` | Development |
 | `make env=prod start` | Production |
-| `make env=nas start` | NAS |
 
 ## Config
 
-`SECRETS/.env.{dev,prod,nas}`
+`SECRETS/.env.{dev,prod}`

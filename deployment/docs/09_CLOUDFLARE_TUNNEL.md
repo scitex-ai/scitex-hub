@@ -8,7 +8,7 @@
 
 ## Prerequisites
 
-- A home server (NAS, etc.) with Docker running
+- A home server (production server, etc.) with Docker running
 - A domain name (e.g., scitex.ai)
 - A Cloudflare account
 
@@ -17,7 +17,7 @@
 1. Log in to https://one.dash.cloudflare.com/
 2. Navigate to Networks → Connectors → Create a tunnel
 3. Select Cloudflared
-4. Enter a tunnel name (e.g., my_nas)
+4. Enter a tunnel name (e.g., my_server)
 5. Copy the token that is displayed
 
 ## 2. Server-Side Configuration
@@ -121,7 +121,7 @@ Add subdomains similarly:
 | Subdomain | Domain         | Type | URL           | Description              |
 |-----------|----------------|------|---------------|--------------------------|
 | git       | yourdomain.com | HTTP | gitea:3000    | Git server (HTTP)        |
-| crossref  | yourdomain.com | HTTP | crossref:3333 | CrossRef API             |
+| crossref  | yourdomain.com | HTTP | crossref:31291 | CrossRef API             |
 | ssh       | yourdomain.com | SSH  | django:2200   | SSH Gateway (workspace)  |
 | gitea     | yourdomain.com | SSH  | gitea:22      | Git SSH (Git operations) |
 

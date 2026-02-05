@@ -1,7 +1,7 @@
 #!/bin/bash
 # Host User Requirements Checker
 # Validates that required system users exist with correct UIDs/GIDs
-# Environment-aware: dev uses existing UID 1000 user, NAS requires 'scitex' user
+# Environment-aware: dev uses existing UID 1000 user, prod requires 'scitex' user
 
 set -euo pipefail
 
@@ -15,7 +15,7 @@ source "${SCRIPT_DIR}/../scripts/lib/colors.sh" 2>/dev/null || {
 ENV="${1:-}"
 if [ -z "$ENV" ]; then
     # Auto-detect from running containers
-    RUNNING=$(docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-cloud-(dev|nas)-' | head -1 | sed 's/scitex-cloud-//' | sed 's/-//' || echo "")
+    RUNNING=$(docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-cloud-(dev|prod)-' | head -1 | sed 's/scitex-cloud-//' | sed 's/-//' || echo "")
     ENV="${RUNNING:-dev}"
 fi
 
@@ -33,18 +33,18 @@ if [ -z "$existing_user" ]; then
     # No user at UID 1000 - this is a problem for both environments
     echo -e "${RED}✗ No user exists with UID ${REQUIRED_UID}${NC}"
     echo -e "${YELLOW}  SLURM jobs will fail with 'Error generating job credential'${NC}"
-    if [ "$ENV" = "nas" ]; then
+    if [ "$ENV" = "prod" ]; then
         echo -e "${YELLOW}  Fix: sudo deployment/host-setup/scripts/create-scitex-user.sh${NC}"
     else
         echo -e "${YELLOW}  Fix: Create a user with UID ${REQUIRED_UID} (or use existing user)${NC}"
     fi
     check_status=1
-elif [ "$ENV" = "nas" ]; then
-    # NAS environment: Requires 'scitex' user specifically
+elif [ "$ENV" = "prod" ]; then
+    # Production environment: Requires 'scitex' user specifically
     if [ "$existing_user" = "scitex" ]; then
         echo -e "${GREEN}✓ User 'scitex' exists with UID ${REQUIRED_UID}${NC}"
     else
-        echo -e "${RED}✗ UID ${REQUIRED_UID} is taken by user '${existing_user}' (NAS requires 'scitex')${NC}"
+        echo -e "${RED}✗ UID ${REQUIRED_UID} is taken by user '${existing_user}' (production requires 'scitex')${NC}"
         echo -e "${YELLOW}  This will cause SLURM job credential errors!${NC}"
         echo -e "${YELLOW}  Fix: Reassign UID ${REQUIRED_UID} to 'scitex' user${NC}"
         check_status=1

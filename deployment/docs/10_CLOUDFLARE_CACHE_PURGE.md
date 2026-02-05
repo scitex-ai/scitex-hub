@@ -8,7 +8,7 @@ SciTeX Cloud uses Cloudflare as a CDN with aggressive caching for static files (
 
 ### Required Environment Variables
 
-Add to `deployment/docker/docker_nas/.env`:
+Add to `deployment/docker/docker_prod/.env`:
 
 ```bash
 CLOUDFLARE_ZONE_ID=d075a7ed6e3b3b00ec931124c4b09509
@@ -29,13 +29,13 @@ CLOUDFLARE_DOMAIN=scitex.ai
 ### Makefile Commands
 
 ```bash
-# From deployment/docker/docker_nas/
+# From deployment/docker/docker_prod/
 make cache-purge          # Purge common static files
 make cache-purge-static   # Same as above
 make cache-purge-all      # Purge entire Cloudflare cache
 
 # Or from project root
-make -C deployment/docker/docker_nas cache-purge-all
+make -C deployment/docker/docker_prod cache-purge-all
 ```
 
 ### Automatic Purge
@@ -132,8 +132,8 @@ Ensure API token has **Cache Purge** permission for the scitex.ai zone.
 ## Related Files
 
 - Script: `deployment/docker/common/scripts/cloudflare_cache_purge.sh`
-- Makefile: `deployment/docker/docker_nas/Makefile` (cache-purge targets)
-- Config: `deployment/docker/docker_nas/.env` (credentials)
+- Makefile: `deployment/docker/docker_prod/Makefile` (cache-purge targets)
+- Config: `deployment/docker/docker_prod/.env` (credentials)
 
 ## Why Caching is Aggressive
 

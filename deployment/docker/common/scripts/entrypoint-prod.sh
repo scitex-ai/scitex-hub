@@ -2,7 +2,7 @@
 set -e
 
 # ============================================
-# Production/NAS Environment Entrypoint
+# Production Environment Entrypoint
 # ============================================
 
 # Source common libraries

@@ -20,6 +20,7 @@ from .api import (
     server_metrics_export_csv,
     server_metrics_history_api,
     server_status_api,
+    versions_api,
     visitor_resources_api,
 )
 from .charts import render_metric_chart
@@ -40,6 +41,7 @@ __all__ = [
     "server_health_status_api",
     "server_metrics_history_api",
     "server_metrics_export_csv",
+    "versions_api",
     "visitor_status",
     "visitor_restart_session",
     "visitor_expired",

@@ -6,8 +6,22 @@ from __future__ import annotations
 
 from django.urls import path
 
-from ..api import api_keys, citation_graph, crossref_proxy
+from ..api import api_keys, citation_graph, crossref_proxy, public_search
 from ..views.search import pdf_download as pdf_views
+
+# Public Scholar API (v1) - Rate Limited
+public_api_patterns = [
+    path(
+        "api/v1/scholar/search/",
+        public_search.search,
+        name="public_api_search",
+    ),
+    path(
+        "api/v1/scholar/info/",
+        public_search.info,
+        name="public_api_info",
+    ),
+]
 
 # CrossRef Local API (Public Access)
 crossref_patterns = [
@@ -74,7 +88,11 @@ api_key_patterns = [
 
 # Combine all patterns
 urlpatterns = (
-    crossref_patterns + citation_graph_patterns + pdf_patterns + api_key_patterns
+    public_api_patterns
+    + crossref_patterns
+    + citation_graph_patterns
+    + pdf_patterns
+    + api_key_patterns
 )
 
 

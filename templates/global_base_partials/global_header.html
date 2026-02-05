@@ -36,7 +36,7 @@
                          class="header-logo-icon" />
                 {% endif %}
             </a>
-            <!-- Project Selector (moved here for better visibility) -->
+            <!-- Project Selector (for all users - visitors auto-allocated) -->
             <div class="header-project-selector-inline">
                 <button id="project-selector-toggle"
                         class="project-selector-btn"
@@ -56,7 +56,7 @@
                                     {% endif %}
                                 {% endwith %}
                             {% endif %}
-                        {% else %}
+                        {% elif visitor_username %}
                             {% if project %}
                                 {{ project.name }}
                             {% else %}
@@ -348,7 +348,7 @@
                             </div>
                             <div style="padding: 12px;
                                         font-size: 12px;
-                                        color: var(--text-muted);
+                                        color: var(--text-primary);
                                         line-height: 1.5">
                                 <svg width="14"
                                      height="14"
@@ -433,29 +433,6 @@
                data-tooltip="Keyboard Shortcuts (Alt+/ for quick view)">
                 <i class="fas fa-keyboard"></i>
             </a>
-            <!-- Dev-only buttons (hidden in production) -->
-            {% if DEBUG %}
-                <!-- Refresh Button (Ctrl+Shift+R alternative) -->
-                <button id="page-refresh-btn"
-                        class="theme-toggle"
-                        data-tooltip="Refresh page (Ctrl+Shift+R)">
-                    <i class="fas fa-sync-alt"></i>
-                </button>
-                <!-- Clear LocalStorage Button -->
-                <button id="clear-localstorage-btn"
-                        class="theme-toggle"
-                        data-tooltip="Clear localStorage cache"
-                        onclick="if(confirm('Clear all localStorage? This will reset theme preferences and cached data.')) { localStorage.clear(); location.reload(); }">
-                    <i class="fas fa-eraser"></i>
-                </button>
-                <!-- Initialize Visitor Pool Button -->
-                <button id="init-visitor-pool-btn"
-                        class="theme-toggle"
-                        data-tooltip="Initialize Visitor Pool (Dev)"
-                        onclick="initVisitorPool()">
-                    <i class="fas fa-users-cog"></i>
-                </button>
-            {% endif %}
             <!-- Server Status with live health indicator -->
             <a href="{% url 'public_app:server_status' %}"
                id="server-status-btn"
@@ -522,9 +499,9 @@
                         </div>
                         <div style="padding: 12px 16px;
                                     font-size: 13px;
-                                    color: var(--text-muted);
+                                    color: var(--text-primary);
                                     line-height: 1.5;
-                                    background: var(--color-attention-subtle);
+                                    background: var(--bg-muted);
                                     border-radius: 6px;
                                     margin: 8px">
                             <svg width="14"
@@ -542,7 +519,7 @@
                         <!-- Allocated Resources -->
                         <div style="padding: 8px 16px;
                                     font-size: 12px;
-                                    color: var(--text-muted);
+                                    color: var(--text-primary);
                                     display: flex;
                                     gap: 12px;
                                     justify-content: center">
@@ -563,10 +540,13 @@
                         <!-- Primary CTA: Sign Up -->
                         <a href="/auth/signup/"
                            class="dropdown-item"
-                           style="background: var(--color-accent-emphasis);
+                           style="background: #238636;
                                   color: white;
                                   font-weight: 600;
-                                  text-align: center">
+                                  text-align: center;
+                                  border-radius: 6px;
+                                  margin: 4px 8px;
+                                  width: calc(100% - 16px)">
                             <svg width="16"
                                  height="16"
                                  viewBox="0 0 16 16"

@@ -15,7 +15,7 @@ from ..utils.docker import DockerManager
     "--env",
     type=click.Choice(list(ENVIRONMENTS.keys())),
     default=None,
-    help="Target environment (dev, nas)",
+    help="Target environment (dev, prod)",
 )
 @click.pass_context
 def status(ctx, env):
@@ -28,7 +28,7 @@ def status(ctx, env):
     \b
     Examples:
         scitex-cloud status              # Show current status
-        scitex-cloud status --env nas    # Show NAS deployment status
+        scitex-cloud status --env prod   # Show production deployment status
     """
     environment = get_environment(env)
     click.echo(
@@ -53,7 +53,7 @@ def status(ctx, env):
     "--env",
     type=click.Choice(list(ENVIRONMENTS.keys())),
     default=None,
-    help="Target environment (dev, nas)",
+    help="Target environment (dev, prod)",
 )
 @click.option("-f", "--follow", is_flag=True, help="Follow log output")
 @click.option("--tail", type=int, default=None, help="Number of lines to show")

@@ -17,7 +17,7 @@ from ..config.environments import ENVIRONMENTS, get_environment
     "--env",
     type=click.Choice(list(ENVIRONMENTS.keys())),
     default=None,
-    help="Target environment (dev, nas)",
+    help="Target environment (dev, prod)",
 )
 @click.option("--force", is_flag=True, help="Overwrite existing configuration")
 @click.pass_context
@@ -32,7 +32,7 @@ def setup(ctx, env, force):
     Examples:
         scitex-cloud setup              # Interactive setup
         scitex-cloud setup --env dev    # Setup development environment
-        scitex-cloud setup --env nas    # Setup production environment
+        scitex-cloud setup --env prod   # Setup production environment
     """
     click.echo(click.style("SciTeX Cloud Setup", fg="cyan", bold=True))
     click.echo()
@@ -87,7 +87,7 @@ def _check_prerequisites():
 def _setup_env_file(environment, force):
     """Setup environment file."""
     env_path = Path(environment.env_path)
-    template_path = Path("SECRET/.env.template")
+    template_path = Path("deployment/docker/envs/.env.example")
 
     if env_path.exists() and not force:
         click.echo(f"  {click.style('✓', fg='green')} {env_path} exists")

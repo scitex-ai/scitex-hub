@@ -177,11 +177,15 @@ RUN APPTAINER_VERSION=1.3.4 && \
     && rm -rf /var/lib/apt/lists/* \
     && curl -L -o /tmp/apptainer.deb \
         "https://github.com/apptainer/apptainer/releases/download/v${APPTAINER_VERSION}/apptainer_${APPTAINER_VERSION}_amd64.deb" \
-    && echo -e "Creating libfuse3-3 compatibility package..." \
-    && printf "Section: misc\nPriority: optional\nStandards-Version: 3.9.2\nPackage: libfuse3-3\nVersion: 3.17.2\nProvides: libfuse3-3\nDepends: libfuse3-4\nDescription: Compatibility package for libfuse3-3\n This is a transitional package for Debian Trixie.\n" > /tmp/libfuse3-3-compat \
-    && equivs-build /tmp/libfuse3-3-compat \
-    && dpkg -i libfuse3-3_3.17.2_all.deb \
-    && rm libfuse3-3_3.17.2_all.deb /tmp/libfuse3-3-compat \
+    && if ! dpkg -s libfuse3-3 >/dev/null 2>&1; then \
+        echo "Creating libfuse3-3 compatibility package (Trixie)..." \
+        && printf "Section: misc\nPriority: optional\nStandards-Version: 3.9.2\nPackage: libfuse3-3\nVersion: 3.17.2\nProvides: libfuse3-3\nDepends: libfuse3-4\nDescription: Compatibility package for libfuse3-3\n This is a transitional package for Debian Trixie.\n" > /tmp/libfuse3-3-compat \
+        && equivs-build /tmp/libfuse3-3-compat \
+        && dpkg -i libfuse3-3_3.17.2_all.deb \
+        && rm -f libfuse3-3_3.17.2_all.deb /tmp/libfuse3-3-compat; \
+    else \
+        echo "libfuse3-3 already installed, skipping compatibility package"; \
+    fi \
     && dpkg -i /tmp/apptainer.deb \
     && rm /tmp/apptainer.deb \
     && apptainer --version

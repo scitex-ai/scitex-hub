@@ -4,14 +4,39 @@ Compilation service using scitex.writer.Writer API.
 Provides live compilation and PDF generation for manuscripts.
 """
 
+import logging
 import threading
 from pathlib import Path
-from typing import Optional, Dict, Any, Callable
-from scitex.writer import Writer
-from scitex.writer._compile import CompilationResult
-import logging
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
+
+# Lazy imports to avoid pydantic/fastmcp version conflict at startup
+if TYPE_CHECKING:
+    from scitex.writer import Writer
+    from scitex.writer._compile import CompilationResult
 
 logger = logging.getLogger(__name__)
+
+# Runtime lazy import helpers
+_Writer = None
+_CompilationResult = None
+
+
+def _get_writer_class():
+    global _Writer
+    if _Writer is None:
+        from scitex.writer import Writer
+
+        _Writer = Writer
+    return _Writer
+
+
+def _get_compilation_result_class():
+    global _CompilationResult
+    if _CompilationResult is None:
+        from scitex.writer._compile import CompilationResult
+
+        _CompilationResult = CompilationResult
+    return _CompilationResult
 
 
 class CompilerService:
@@ -24,9 +49,10 @@ class CompilerService:
         self.is_compiling = False
         self.last_compilation: Optional[CompilationResult] = None
 
-    def get_writer(self) -> Writer:
+    def get_writer(self) -> "Writer":
         """Get or create Writer instance."""
         if self.writer is None:
+            Writer = _get_writer_class()
             self.writer = Writer(self.project_dir, git_strategy="parent")
         return self.writer
 

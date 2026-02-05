@@ -13,7 +13,7 @@ Fast, offline API server for local CrossRef database (1TB+ SQLite database).
 │  ┌──────────────────────────────┐        │
 │  │ Docker: scitex-crossref-local│        │
 │  │ FastAPI + Uvicorn            │        │
-│  │ Port: 3333                   │        │
+│  │ Port: 31291                   │        │
 │  │ Workers: 4                   │        │
 │  └──────────────────────────────┘        │
 │         ↓ HTTP API                       │
@@ -65,10 +65,10 @@ docker images | grep crossref
 docker-compose -f docker-compose.crossref.yml up -d
 
 # Check logs
-docker logs -f scitex-crossref-local-nas
+docker logs -f scitex-crossref-local-prod
 
 # Wait for startup (check health)
-curl http://localhost:3333/health
+curl http://localhost:31291/health
 ```
 
 ### Step 4: Test API
@@ -78,11 +78,11 @@ curl http://localhost:3333/health
 bash test_api.sh
 
 # Or test manually
-curl http://localhost:3333/api/stats/
-curl "http://localhost:3333/api/search/?doi=10.1038/nature12345"
+curl http://localhost:31291/api/stats/
+curl "http://localhost:31291/api/search/?doi=10.1038/nature12345"
 
 # Open interactive docs
-open http://localhost:3333/docs
+open http://localhost:31291/docs
 ```
 
 ## API Endpoints
@@ -103,7 +103,7 @@ open http://localhost:3333/docs
 ### Search by DOI
 
 ```bash
-curl "http://localhost:3333/api/search/?doi=10.1038/nature12345"
+curl "http://localhost:31291/api/search/?doi=10.1038/nature12345"
 ```
 
 Response:
@@ -125,13 +125,13 @@ Response:
 ### Search by Title
 
 ```bash
-curl "http://localhost:3333/api/search/?title=deep+learning&year=2015&limit=10"
+curl "http://localhost:31291/api/search/?title=deep+learning&year=2015&limit=10"
 ```
 
 ### Get Citation Graph
 
 ```bash
-curl "http://localhost:3333/api/citations/?doi=10.1038/nature12345&depth=2&include_references=true&include_citations=true"
+curl "http://localhost:31291/api/citations/?doi=10.1038/nature12345&depth=2&include_references=true&include_citations=true"
 ```
 
 Response:
@@ -165,7 +165,7 @@ Response:
 ### Batch Lookup
 
 ```bash
-curl -X POST "http://localhost:3333/api/batch/" \
+curl -X POST "http://localhost:31291/api/batch/" \
   -H "Content-Type: application/json" \
   -d '["10.1038/nature12345", "10.1126/science.1234567"]'
 ```
@@ -183,7 +183,7 @@ environment:
   - LOG_LEVEL=INFO          # DEBUG, INFO, WARNING, ERROR
   - WORKERS=4               # Number of worker processes
   - HOST=0.0.0.0
-  - PORT=3333
+  - PORT=31291
 
   # Performance
   - ENABLE_QUERY_CACHE=true
@@ -202,10 +202,10 @@ environment:
 ls -lh /home/ywatanabe/proj/crossref_local/data/
 
 # Check Docker logs
-docker logs scitex-crossref-local-nas
+docker logs scitex-crossref-local-prod
 
 # Verify volume mount
-docker inspect scitex-crossref-local-nas | grep -A 10 Mounts
+docker inspect scitex-crossref-local-prod | grep -A 10 Mounts
 ```
 
 ### Database not found
@@ -258,7 +258,7 @@ import requests
 
 class CrossRefLocalClient:
     def __init__(self):
-        self.api_url = "http://crossref-local:3333"
+        self.api_url = "http://crossref-local:31291"
 
     def search_by_doi(self, doi: str):
         response = requests.get(
@@ -275,39 +275,39 @@ class CrossRefLocalClient:
 
 ```bash
 # Manual check
-curl http://localhost:3333/health | jq
+curl http://localhost:31291/health | jq
 
 # Docker health status
 docker ps | grep crossref
 
 # Continuous monitoring
-watch -n 10 'curl -s http://localhost:3333/health | jq'
+watch -n 10 'curl -s http://localhost:31291/health | jq'
 ```
 
 ### Logs
 
 ```bash
 # Follow logs
-docker logs -f scitex-crossref-local-nas
+docker logs -f scitex-crossref-local-prod
 
 # Last 100 lines
-docker logs --tail 100 scitex-crossref-local-nas
+docker logs --tail 100 scitex-crossref-local-prod
 
 # With timestamps
-docker logs -t scitex-crossref-local-nas
+docker logs -t scitex-crossref-local-prod
 ```
 
 ### Performance Metrics
 
 ```bash
 # Database stats
-curl http://localhost:3333/api/stats/ | jq
+curl http://localhost:31291/api/stats/ | jq
 
 # Container stats
-docker stats scitex-crossref-local-nas
+docker stats scitex-crossref-local-prod
 
 # Disk usage
-docker exec scitex-crossref-local-nas du -sh /data
+docker exec scitex-crossref-local-prod du -sh /data
 ```
 
 ## Development
@@ -325,7 +325,7 @@ export CROSSREF_DB_PATH=/home/ywatanabe/proj/crossref_local/data/crossref.db
 python server.py
 
 # Or with uvicorn
-uvicorn server:app --reload --host 0.0.0.0 --port 3333
+uvicorn server:app --reload --host 0.0.0.0 --port 31291
 ```
 
 ### Updating the Code
@@ -347,16 +347,16 @@ docker-compose -f docker-compose.crossref.yml up -d
 ### Add to Main docker-compose.yml
 
 ```yaml
-# In deployment/docker/docker_nas/docker-compose.yml
+# In deployment/docker/docker_prod/docker-compose.yml
 
 services:
   # ... existing services ...
 
   crossref-local:
     build: ../crossref_local/
-    container_name: scitex-crossref-local-nas
+    container_name: scitex-crossref-local-prod
     expose:
-      - "3333"  # Only exposed to internal network
+      - "31291"  # Only exposed to internal network
     volumes:
       - /home/ywatanabe/proj/crossref_local/data:/data:ro
     environment:
@@ -371,13 +371,13 @@ services:
     depends_on:
       - crossref-local
     environment:
-      - CROSSREF_LOCAL_API_URL=http://crossref-local:3333
+      - CROSSREF_LOCAL_API_URL=http://crossref-local:31291
 ```
 
 ### Start Everything Together
 
 ```bash
-cd deployment/docker/docker_nas
+cd deployment/docker/docker_prod
 docker-compose up -d
 
 # Verify all services
@@ -392,7 +392,7 @@ docker-compose ps
 ## Support
 
 For issues or questions:
-- Check logs: `docker logs scitex-crossref-local-nas`
+- Check logs: `docker logs scitex-crossref-local-prod`
 - Review docs: `docs/CROSSREF_*.md`
 - Test API: `bash test_api.sh`
 

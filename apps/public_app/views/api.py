@@ -48,12 +48,17 @@ def api_docs(request):
     )
 
     section_info = get_section(API_DOC_DEFAULT_SECTION)
-    version = getattr(settings, "SCITEX_CLOUD_VERSION", "0.6.5-alpha")
+    version = getattr(settings, "SCITEX_CLOUD_VERSION", "0.7.0-alpha")
 
     # Get user's API key if authenticated
     user_api_key = (
         _get_user_api_key(request.user) if request.user.is_authenticated else None
     )
+
+    # Test password for dev mode only (for API docs examples)
+    test_password = ""
+    if settings.DEBUG and request.user.is_authenticated:
+        test_password = getattr(settings, "TEST_USER_PASSWORD", "")
 
     return render(
         request,
@@ -66,6 +71,8 @@ def api_docs(request):
             "campaign_token": get_active_campaign_token(),
             "user_api_key": user_api_key,
             "version": version,
+            "test_password": test_password,
+            "debug": settings.DEBUG,
         },
     )
 
@@ -87,10 +94,15 @@ def api_docs_section(request, section):
         section = API_DOC_DEFAULT_SECTION
         section_info = get_section(section)
 
-    version = getattr(settings, "SCITEX_CLOUD_VERSION", "0.6.5-alpha")
+    version = getattr(settings, "SCITEX_CLOUD_VERSION", "0.7.0-alpha")
     user_api_key = (
         _get_user_api_key(request.user) if request.user.is_authenticated else None
     )
+
+    # Test password for dev mode only (for API docs examples)
+    test_password = ""
+    if settings.DEBUG and request.user.is_authenticated:
+        test_password = getattr(settings, "TEST_USER_PASSWORD", "")
 
     return render(
         request,
@@ -103,6 +115,8 @@ def api_docs_section(request, section):
             "campaign_token": get_active_campaign_token(),
             "user_api_key": user_api_key,
             "version": version,
+            "test_password": test_password,
+            "debug": settings.DEBUG,
         },
     )
 
@@ -124,7 +138,7 @@ def api_docs_download(request, fmt="pdf"):
     from apps.public_app.config import get_active_campaign_token
     from apps.public_app.services import generate_api_docs_markdown
 
-    version = getattr(settings, "SCITEX_CLOUD_VERSION", "0.6.5-alpha")
+    version = getattr(settings, "SCITEX_CLOUD_VERSION", "0.7.0-alpha")
     base_url = request.build_absolute_uri("/").rstrip("/")
     campaign_token = get_active_campaign_token() or "your-api-key"
 

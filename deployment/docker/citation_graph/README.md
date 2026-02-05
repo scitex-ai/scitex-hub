@@ -14,7 +14,7 @@ Provides citation graph analysis using the local CrossRef database:
 
 | Service           | Port  | Purpose                   |
 |-------------------|-------|---------------------------|
-| CrossRef Local    | 3333  | Paper metadata & search   |
+| CrossRef Local    | 31291  | Paper metadata & search   |
 | **Citation Graph** | **3334** | **Citation network analysis** |
 | (future services) | 3335+ | Reserved                  |
 
@@ -303,14 +303,14 @@ Top N papers by similarity are included in the network.
 
 ## Integration with Services
 
-### Use with CrossRef Local (Port 3333)
+### Use with CrossRef Local (Port 31291)
 
 ```python
 import requests
 
 # Get paper metadata from CrossRef Local
 paper = requests.get(
-    "http://localhost:3333/api/search/",
+    "http://localhost:31291/api/search/",
     params={"doi": "10.1038/s41586-020-2008-3"}
 ).json()
 

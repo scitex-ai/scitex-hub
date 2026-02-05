@@ -31,8 +31,8 @@ Integrated checks into deployment workflow:
 
 - **`make check-host`**: Run all host validation checks (no ENV required)
 - **`make status`**: Now includes host requirement warnings (informational)
-- **`make ENV=nas build`**: Shows host requirement warnings before building
-- **`make ENV=nas start`**: **BLOCKS** if host requirements not met (hard failure)
+- **`make ENV=prod build`**: Shows host requirement warnings before building
+- **`make ENV=prod start`**: **BLOCKS** if host requirements not met (hard failure)
 
 ### 3. Safety & Automation
 
@@ -66,7 +66,7 @@ sudo deployment/host-setup/scripts/create-scitex-user.sh
 
 ### Step 1: Create scitex User on Host
 
-**Run this command on your NAS host:**
+**Run this command on your production host:**
 
 ```bash
 sudo deployment/host-setup/scripts/create-scitex-user.sh
@@ -139,9 +139,9 @@ Expected output after user creation:
 
 The checks are now **automatic**:
 
-- **`make ENV=nas status`**: Shows current host status with warnings
-- **`make ENV=nas start`**: Validates requirements before starting (BLOCKS if failed)
-- **`make ENV=nas build`**: Shows informational warnings during build
+- **`make ENV=prod status`**: Shows current host status with warnings
+- **`make ENV=prod start`**: Validates requirements before starting (BLOCKS if failed)
+- **`make ENV=prod build`**: Shows informational warnings during build
 - **`make check-host`**: Manual check anytime
 
 ### Adding New Checks
@@ -180,9 +180,9 @@ chmod +x deployment/host-setup/scripts/lib/*.sh
 2. Test SLURM: `srun --uid=1000 whoami` → should print "scitex"
 3. Test from container:
    ```bash
-   docker exec scitex-cloud-nas-django-1 su scitex -c "srun --partition=express --pty true"
+   docker exec scitex-cloud-prod-django-1 su scitex -c "srun --partition=express --pty true"
    ```
-4. Check logs: `docker logs scitex-cloud-nas-django-1 --tail 50`
+4. Check logs: `docker logs scitex-cloud-prod-django-1 --tail 50`
 
 ---
 
@@ -207,4 +207,4 @@ chmod +x deployment/host-setup/scripts/lib/*.sh
 **Solution**: Automated checking + clear fix scripts
 **Next Step**: Run `sudo deployment/host-setup/scripts/create-scitex-user.sh`
 
-The automation ensures this won't be forgotten in future deployments - checks run automatically during `make ENV=nas start`.
+The automation ensures this won't be forgotten in future deployments - checks run automatically during `make ENV=prod start`.

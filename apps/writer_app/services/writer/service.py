@@ -7,18 +7,27 @@ Handles project directory management and caching.
 """
 
 from pathlib import Path
-from typing import Optional
+
 from django.conf import settings
-from scitex.writer import Writer
 from scitex import logging
+
 from ..git_service import GitService
+
+# Lazy import to avoid pydantic/fastmcp version conflict at startup
+Writer = None
+def _get_writer_class():
+    global Writer
+    if Writer is None:
+        from scitex.writer import Writer as _Writer
+        Writer = _Writer
+    return Writer
 
 # Import mixins
 from .compilation import CompilationMixin
 from .file_operations import FileOperationsMixin
-from .templates import TemplatesMixin
 from .git_operations import GitOperationsMixin
 from .output import OutputMixin
+from .templates import TemplatesMixin
 
 logger = logging.getLogger(__name__)
 
@@ -164,7 +173,7 @@ class WriterService(
                     branch=template_branch,  # Template branch from settings (e.g., "develop", "main")
                     tag=template_tag,  # Template tag from settings (e.g., "v2.0.0-rc1")
                 )
-                logger.info(f"WriterService: Writer instance created successfully")
+                logger.info("WriterService: Writer instance created successfully")
             except Exception as e:
                 logger.error(
                     f"WriterService: Failed to create Writer instance: {e}",

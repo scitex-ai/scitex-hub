@@ -4,13 +4,14 @@
  * Used across /code/, /vis/, /writer/, /scholar/
  */
 
-@import url('./base.css');
-@import url('./git-status.css');
-@import url('./states.css');
-@import url('./children.css');
-@import url('./themes.css');
-@import url('./interactions.css');
-@import url('./git-panel.css');
-@import url('./modals.css');
-@import url('./context-menu.css');
-@import url('./search.css');
+@import url("./base.css");
+@import url("./loading.css");
+@import url("./git-status.css");
+@import url("./states.css");
+@import url("./children.css");
+@import url("./themes.css");
+@import url("./interactions.css");
+@import url("./git-panel.css");
+@import url("./modals.css");
+@import url("./context-menu.css");
+@import url("./search.css");

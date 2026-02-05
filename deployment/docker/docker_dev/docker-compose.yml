@@ -32,6 +32,7 @@ services:
       - ../../../../figrecipe:/figrecipe:cached
       - ../../../../scitex-writer:/scitex-writer:cached
       - ../../../../crossref-local:/crossref-local:cached
+      - ../../../../openalex-local:/openalex-local:cached
       - ../../../../socialia:/socialia:cached
 
       # Centralized logging - all container logs go here

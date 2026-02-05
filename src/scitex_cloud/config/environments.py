@@ -24,7 +24,7 @@ class Environment:
     @property
     def env_path(self) -> Path:
         """Get full path to .env file."""
-        return Path("SECRET") / self.env_file
+        return Path("deployment/docker/envs") / self.env_file
 
     @property
     def compose_path(self) -> Path:
@@ -41,13 +41,13 @@ ENVIRONMENTS = {
         port=8000,
         description="Development environment (local)",
     ),
-    "nas": Environment(
-        name="nas",
-        docker_compose_file="docker_nas/docker-compose.yml",
-        env_file=".env.nas",
+    "prod": Environment(
+        name="prod",
+        docker_compose_file="docker_prod/docker-compose.yml",
+        env_file=".env.prod",
         host="0.0.0.0",
         port=8000,
-        description="Production environment (NAS)",
+        description="Production environment",
     ),
 }
 

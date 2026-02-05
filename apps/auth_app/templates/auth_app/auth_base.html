@@ -1,142 +1,51 @@
 {% extends 'global_base.html' %}
+
 {% load static %}
-{% block meta_description %}SciTeX Authentication - Secure login and registration for scientific research platform{% endblock %}
+
+{% block meta_description %}
+    SciTeX Authentication - Secure login and registration for scientific research platform
+{% endblock %}
 {% block title %}SciTeX Authentication{% endblock %}
 {% block extra_css %}
-<!-- Auth-specific CSS - Layout only, styling from central CSS -->
-<link rel="stylesheet" href="{% static 'auth_app/css/auth.css' %}" />
-<style>
-  /* =============================================================================
-   * AUTH APP INLINE STYLES - REFACTORED
-   * =============================================================================
-   * Following CSS refactoring strategy:
-   * - Keep: Layout and positioning CSS
-   * - Commented out: Styling that's handled by central CSS files
-   * - Central CSS files: /static/shared/css/{base,primitives,utilities,components,layouts}/*.css
-   * ============================================================================= */
+    <!-- Auth-specific CSS -->
+    <link rel="stylesheet" href="{% static 'auth_app/css/auth.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/demos/00-demos.css' %}" />
+    <style>
+        /* Auth form card styling */
+        .auth-form {
+            background-color: var(--color-canvas-default);
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--color-border-default);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
 
-  .auth-header {
-    /* COMMENTED OUT - Use central CSS hero component and color variables */
-    /* background: linear-gradient(135deg, #506b7a 0%, #6c8ba0 30%, #8fa4b0 60%, #b5c7d1 100%); */
-    /* color: #1a2332; */
-    /* border-radius: 0 0 8px 8px; */
-    /* text-shadow: 0 1px 2px rgba(255,255,255,0.5); */
+        .form-message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
 
-    /* KEEP - Layout only */
-    padding: 3rem 0;
-    margin-bottom: 3rem;
+        .form-message.success {
+            background-color: var(--status-success-bg);
+            color: var(--status-success-text);
+            border: 1px solid var(--status-success-border);
+        }
 
-    /* Temporary styling until we use .hero component from central CSS */
-    background: linear-gradient(
-      135deg,
-      var(--_scitex-03) 0%,
-      var(--_scitex-04) 30%,
-      var(--_scitex-05) 60%,
-      var(--_scitex-06) 100%
-    );
-    color: var(--_scitex-01);
-    border-radius: 0 0 8px 8px;
-    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
-  }
+        .form-message.error {
+            background-color: var(--status-error-bg);
+            color: var(--status-error-text);
+            border: 1px solid var(--status-error-border);
+        }
 
-  .auth-header h1 {
-    /* COMMENTED OUT - Use central CSS typography variables */
-    /* color: #1a2332; */
-    /* font-weight: 700; */
-
-    /* Temporary styling */
-    color: var(--_scitex-01);
-    font-weight: 700;
-  }
-
-  .auth-header .lead {
-    /* COMMENTED OUT - Use central CSS typography variables */
-    /* color: #1a2332; */
-    /* opacity: 0.9; */
-
-    /* Temporary styling */
-    color: var(--_scitex-01);
-    opacity: 0.9;
-  }
-
-  /* Layout moved to external auth.css */
-  /* .auth-container - defined in auth.css */
-  /* .auth-form - defined in auth.css */
-
-  .auth-form {
-    /* COMMENTED OUT - Use central CSS card component */
-    /* background-color: var(--color-canvas-default); */
-    /* border-radius: 8px; */
-    /* box-shadow: 0 5px 15px rgba(0,0,0,0.1); */
-    /* border: 1px solid var(--color-border-default); */
-
-    /* KEEP - Layout only (moved to auth.css) */
-    /* padding: 2rem; */
-    /* margin-bottom: 2rem; */
-
-    /* Temporary styling until we use .card component */
-    background-color: var(--color-canvas-default);
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    border: 1px solid var(--color-border-default);
-    padding: 2rem;
-    margin-bottom: 2rem;
-  }
-
-  .form-message {
-    /* COMMENTED OUT - Use central CSS alert component */
-    /* border-radius: 8px; */
-
-    /* KEEP - Layout only (moved to auth.css) */
-    /* padding: 1rem; */
-    /* margin-bottom: 1.5rem; */
-
-    /* Temporary styling until we use .alert component */
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
-  }
-
-  .form-message.success {
-    /* COMMENTED OUT - Use central CSS status variables (var(--status-success-*)) */
-    /* background-color: rgba(46, 204, 113, 0.1); */
-    /* color: #27ae60; */
-    /* border: 1px solid rgba(46, 204, 113, 0.3); */
-
-    /* Temporary styling - use central CSS variables */
-    background-color: var(--status-success-bg);
-    color: var(--status-success-text);
-    border: 1px solid var(--status-success-border);
-  }
-
-  .form-message.error {
-    /* COMMENTED OUT - Use central CSS status variables (var(--status-error-*)) */
-    /* background-color: rgba(231, 76, 60, 0.1); */
-    /* color: #e74c3c; */
-    /* border: 1px solid rgba(231, 76, 60, 0.3); */
-
-    /* Temporary styling - use central CSS variables */
-    background-color: var(--status-error-bg);
-    color: var(--status-error-text);
-    border: 1px solid var(--status-error-border);
-  }
-
-  .form-message.info {
-    /* COMMENTED OUT - Use central CSS status variables (var(--status-info-*)) */
-    /* background-color: rgba(52, 152, 219, 0.1); */
-    /* color: #3498db; */
-    /* border: 1px solid rgba(52, 152, 219, 0.3); */
-
-    /* Temporary styling - use central CSS variables */
-    background-color: var(--status-info-bg);
-    color: var(--status-info-text);
-    border: 1px solid var(--status-info-border);
-  }
-
-  /* Layout moved to external auth.css */
-  /* .django-messages - defined in auth.css */
-</style>
-{% block auth_extra_css %}{% endblock %}
+        .form-message.info {
+            background-color: var(--status-info-bg);
+            color: var(--status-info-text);
+            border: 1px solid var(--status-info-border);
+        }
+    </style>
+    {% block auth_extra_css %}{% endblock %}
 {% endblock %}
 {% block content %}
     <div class="container">

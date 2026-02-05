@@ -1,232 +1,198 @@
 {% extends "global_base.html" %}
+
 {% load static %}
+
 {% block title %}
     Contact —
     SciTeX
 {% endblock %}
 {% block extra_css %}
+    <link rel="stylesheet" href="{% static 'public_app/css/demos/00-demos.css' %}" />
     <style>
-  .contact-hero {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 6rem 2rem 4rem;
-    text-align: center;
-  }
+        /* Primary Contact Cards */
+        .contact-cards-primary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            max-width: 1100px;
+            margin: 0 auto 5rem;
+            padding: 0 2rem;
+        }
 
-  .contact-hero h1 {
-    font-size: 3.5rem;
-    font-weight: 700;
-    background: linear-gradient(135deg, var(--_scitex-02), var(--_scitex-04));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 1rem;
-    letter-spacing: -0.02em;
-  }
+        .contact-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-default);
+            border-radius: 12px;
+            padding: 2.5rem;
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
 
-  .contact-hero p {
-    font-size: 1.25rem;
-    color: var(--color-fg-muted);
-    line-height: 1.6;
-  }
+        .contact-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(26, 42, 64, 0.15);
+            border-color: var(--_scitex-04);
+        }
 
-  /* Primary Contact Cards */
-  .contact-cards-primary {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.5rem;
-    max-width: 1100px;
-    margin: 0 auto 5rem;
-    padding: 0 2rem;
-  }
+        .contact-card-icon {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 1.5rem;
+            background: linear-gradient(135deg, var(--_scitex-04), var(--_scitex-05));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.75rem;
+            box-shadow: 0 4px 12px rgba(26, 42, 64, 0.15);
+        }
 
-  .contact-card {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-default);
-    border-radius: 12px;
-    padding: 2.5rem;
-    text-align: center;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  }
+        .contact-card h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-fg-default);
+            margin-bottom: 0.75rem;
+        }
 
-  .contact-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(26, 42, 64, 0.15);
-    border-color: var(--_scitex-04);
-  }
+        .contact-card p {
+            font-size: 1rem;
+            color: var(--color-fg-muted);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
 
-  .contact-card-icon {
-    width: 56px;
-    height: 56px;
-    margin: 0 auto 1.5rem;
-    background: linear-gradient(135deg, var(--_scitex-04), var(--_scitex-05));
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.75rem;
-    box-shadow: 0 4px 12px rgba(26, 42, 64, 0.15);
-  }
+        .contact-card-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, var(--_scitex-03), var(--_scitex-04));
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(26, 42, 64, 0.2);
+        }
 
-  .contact-card h3 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--color-fg-default);
-    margin-bottom: 0.75rem;
-  }
+        .contact-card-btn:hover {
+            background: linear-gradient(135deg, var(--_scitex-02), var(--_scitex-03));
+            transform: translateX(4px);
+            box-shadow: 0 4px 16px rgba(26, 42, 64, 0.3);
+        }
 
-  .contact-card p {
-    font-size: 1rem;
-    color: var(--color-fg-muted);
-    margin-bottom: 1.5rem;
-    line-height: 1.6;
-  }
+        /* Resources Grid */
+        .contact-resources {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem 6rem;
+        }
 
-  .contact-card-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
-    background: linear-gradient(135deg, var(--_scitex-03), var(--_scitex-04));
-    color: white;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 600;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(26, 42, 64, 0.2);
-  }
+        .resources-title {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--_scitex-02);
+            margin-bottom: 3rem;
+        }
 
-  .contact-card-btn:hover {
-    background: linear-gradient(135deg, var(--_scitex-02), var(--_scitex-03));
-    transform: translateX(4px);
-    box-shadow: 0 4px 16px rgba(26, 42, 64, 0.3);
-  }
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
 
-  /* Resources Grid */
-  .contact-resources {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 2rem 6rem;
-  }
+        .resource-item {
+            padding: 1.5rem;
+            text-align: center;
+        }
 
-  .resources-title {
-    text-align: center;
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--_scitex-02);
-    margin-bottom: 3rem;
-  }
+        .resource-item h4 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--_scitex-03);
+            margin-bottom: 0.75rem;
+        }
 
-  .resources-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 2rem;
-  }
+        .resource-item p {
+            font-size: 0.9375rem;
+            color: var(--color-fg-muted);
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
 
-  .resource-item {
-    padding: 1.5rem;
-    text-align: center;
-  }
+        .resource-item a {
+            color: var(--_scitex-03);
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            transition: all 0.2s ease;
+        }
 
-  .resource-item h4 {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: var(--_scitex-03);
-    margin-bottom: 0.75rem;
-  }
+        .resource-item a:hover {
+            color: var(--_scitex-02);
+            text-decoration: underline;
+        }
 
-  .resource-item p {
-    font-size: 0.9375rem;
-    color: var(--color-fg-muted);
-    margin-bottom: 1rem;
-    line-height: 1.6;
-  }
+        /* Dark theme */
+        [data-theme="dark"] .contact-card {
+            background: var(--_scitex-02);
+            border-color: var(--_scitex-03);
+        }
 
-  .resource-item a {
-    color: var(--_scitex-03);
-    text-decoration: none;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    transition: all 0.2s ease;
-  }
+        [data-theme="dark"] .contact-card:hover {
+            background: var(--_scitex-03);
+            border-color: var(--_scitex-04);
+        }
 
-  .resource-item a:hover {
-    color: var(--_scitex-02);
-    text-decoration: underline;
-  }
+        [data-theme="dark"] .contact-card-icon {
+            background: linear-gradient(135deg, var(--_scitex-05), var(--_scitex-06));
+            color: var(--_scitex-01);
+        }
 
-  /* Dark theme */
-  [data-theme="dark"] .contact-card {
-    background: var(--_scitex-02);
-    border-color: var(--_scitex-03);
-  }
+        [data-theme="dark"] .resource-item a {
+            color: var(--_scitex-05);
+        }
 
-  [data-theme="dark"] .contact-card:hover {
-    background: var(--_scitex-03);
-    border-color: var(--_scitex-04);
-  }
+        [data-theme="dark"] .resource-item a:hover {
+            color: var(--_scitex-06);
+        }
 
-  [data-theme="dark"] .contact-card-icon {
-    background: linear-gradient(135deg, var(--_scitex-05), var(--_scitex-06));
-    color: var(--_scitex-01);
-  }
+        [data-theme="dark"] .resources-title {
+            color: var(--_scitex-05);
+        }
 
-  [data-theme="dark"] .resource-item a {
-    color: var(--_scitex-05);
-  }
+        [data-theme="dark"] .resource-item h4 {
+            color: var(--_scitex-05);
+        }
 
-  [data-theme="dark"] .resource-item a:hover {
-    color: var(--_scitex-06);
-  }
+        [data-theme="dark"] .resource-item h4 i {
+            color: var(--_scitex-05) !important;
+        }
 
-  [data-theme="dark"] .contact-hero h1 {
-    background: linear-gradient(135deg, var(--_scitex-05), var(--_scitex-07));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+        @media (max-width: 768px) {
 
-  [data-theme="dark"] .resources-title {
-    color: var(--_scitex-05);
-  }
-
-  [data-theme="dark"] .resource-item h4 {
-    color: var(--_scitex-05);
-  }
-
-  [data-theme="dark"] .resource-item h4 i {
-    color: var(--_scitex-05) !important;
-  }
-
-  @media (max-width: 768px) {
-    .contact-hero h1 {
-      font-size: 2.5rem;
-    }
-
-    .contact-hero {
-      padding: 4rem 1.5rem 3rem;
-    }
-
-    .contact-cards-primary,
-    .contact-resources {
-      padding-left: 1.5rem;
-      padding-right: 1.5rem;
-    }
-  }
+            .contact-cards-primary,
+            .contact-resources {
+                padding-left: 1.5rem;
+                padding-right: 1.5rem;
+            }
+        }
     </style>
 {% endblock %}
 {% block content %}
-    <!-- Contact Hero -->
-    <div class="contact-hero">
-        <h1>How can we help?</h1>
-        <p>
-            Get in touch with our team for demos, technical support, or product
-            questions.
-        </p>
+    <div class="demos-container">
+        <header class="minimal-hero">
+            <h1 class="minimal-hero-title">How can we help?</h1>
+            <p class="minimal-hero-subtitle">
+                Get in touch with our team for demos, technical support, or product
+                questions.
+            </p>
+        </header>
     </div>
     <!-- Primary Contact Options -->
     <div class="contact-cards-primary">
@@ -280,9 +246,7 @@
             <!-- Community -->
             <div class="resource-item">
                 <h4>
-                    <i class="fab fa-slack"
-                       style="margin-right: 0.5rem;
-                              color: var(--_scitex-04)"></i>Join our Community
+                    <i class="fab fa-slack" style="margin-right: 0.5rem; color: var(--_scitex-04)"></i>Join our Community
                 </h4>
                 <p>
                     Connect with researchers worldwide and share knowledge in our Slack
@@ -296,9 +260,7 @@
             <!-- Email -->
             <div class="resource-item">
                 <h4>
-                    <i class="fas fa-envelope"
-                       style="margin-right: 0.5rem;
-                              color: var(--_scitex-04)"></i>Email Us Directly
+                    <i class="fas fa-envelope" style="margin-right: 0.5rem; color: var(--_scitex-04)"></i>Email Us Directly
                 </h4>
                 <p>Prefer email? Send us a message at hello@scitex.ai</p>
                 <a href="mailto:hello@scitex.ai">
@@ -308,9 +270,7 @@
             <!-- Documentation -->
             <div class="resource-item">
                 <h4>
-                    <i class="fas fa-book"
-                       style="margin-right: 0.5rem;
-                              color: var(--_scitex-04)"></i>Browse Documentation
+                    <i class="fas fa-book" style="margin-right: 0.5rem; color: var(--_scitex-04)"></i>Browse Documentation
                 </h4>
                 <p>Find feature overviews, guides, and tutorials for all SciTeX tools</p>
                 <a href="{% url 'docs:index' %}">
@@ -320,9 +280,7 @@
             <!-- Developer Resources -->
             <div class="resource-item">
                 <h4>
-                    <i class="fab fa-github"
-                       style="margin-right: 0.5rem;
-                              color: var(--_scitex-04)"></i>Developer Resources
+                    <i class="fab fa-github" style="margin-right: 0.5rem; color: var(--_scitex-04)"></i>Developer Resources
                 </h4>
                 <p>API documentation, SDKs, and open-source contributions on GitHub</p>
                 <a href="https://github.com/SciTeX-AI" target="_blank">

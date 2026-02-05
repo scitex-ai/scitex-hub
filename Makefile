@@ -109,7 +109,7 @@ SHELL := /bin/bash
 # ============================================
 # Configuration
 # ============================================
-VALID_ENVS := dev nas stag staging prod
+VALID_ENVS := dev staging prod
 
 # Accept both env= and ENV= (convert lowercase to uppercase) - MUST BE FIRST
 ifdef env
@@ -147,21 +147,18 @@ CMD_BUILD := docker compose build
 # Check if ENV is specified and valid
 ifdef ENV
   ifeq ($(filter $(ENV),$(VALID_ENVS)),)
-    $(error Invalid ENV='$(ENV)'. Must be one of: dev, nas, staging, prod)
+    $(error Invalid ENV='$(ENV)'. Must be one of: dev, staging, prod)
   endif
   # Set DOCKER_DIR based on environment (each env has its own docker-compose.yml)
   ifeq ($(ENV),dev)
     DOCKER_DIR := $(DOCKER_BASE_DIR)/docker_dev
     COMPOSE_CMD := docker compose
-  else ifeq ($(ENV),nas)
-    DOCKER_DIR := $(DOCKER_BASE_DIR)/docker_nas
-    COMPOSE_CMD := docker compose
   else ifeq ($(ENV),staging)
     DOCKER_DIR := $(DOCKER_BASE_DIR)
     COMPOSE_CMD := docker compose -f docker-compose.yml -f docker-compose.staging.yml
   else ifeq ($(ENV),prod)
-    DOCKER_DIR := $(DOCKER_BASE_DIR)
-    COMPOSE_CMD := docker compose -f docker-compose.yml -f docker-compose.prod.yml
+    DOCKER_DIR := $(DOCKER_BASE_DIR)/docker_prod
+    COMPOSE_CMD := docker compose
   endif
   # Export SCITEX_ENV for docker-compose to use in env_file selection
   export SCITEX_ENV := $(ENV)
@@ -433,7 +430,7 @@ start:
 		fi; \
 		echo ""; \
 	fi
-	@# Stop conflicting environments (dev only; allow prod/staging/nas to coexist)
+	@# Stop conflicting environments (dev only; allow prod/staging to coexist)
 	@cd $(DOCKER_BASE_DIR) && \
 	for env in dev; do \
 		if [ "$$env" != "$(ENV)" ]; then \
@@ -1215,16 +1212,16 @@ crossref-next-steps:
 	@echo -e ""
 	@echo -e "$(CYAN)📊 Current API Status:$(NC)"
 	@echo -e "  Port 8000 (Django):  ✅ All searches work (DOI, title, year, authors)"
-	@echo -e "  Port 3333 (FastAPI): ⚠️  Only DOI works, title/author/year broken"
+	@echo -e "  Port 31291 (FastAPI): ⚠️  Only DOI works, title/author/year broken"
 	@echo -e ""
 	@echo -e "$(CYAN)🔧 Required Optimizations:$(NC)"
 	@echo -e ""
 	@echo -e "$(YELLOW)1. Create Title Index$(NC) (~4-8 hours)"
-	@echo -e "   Enables fast title searches on port 3333"
+	@echo -e "   Enables fast title searches on port 31291"
 	@echo -e "   Command: $(GREEN)make crossref-create-title-index$(NC)"
 	@echo -e ""
 	@echo -e "$(YELLOW)2. Create Author Index$(NC) (~4-8 hours)"
-	@echo -e "   Enables fast author searches on port 3333"
+	@echo -e "   Enables fast author searches on port 31291"
 	@echo -e "   Command: $(GREEN)make crossref-create-author-index$(NC)"
 	@echo -e ""
 	@echo -e "$(YELLOW)3. Update FastAPI Code$(NC)"
@@ -1235,7 +1232,7 @@ crossref-next-steps:
 	@echo -e "$(CYAN)💡 Recommended order:$(NC)"
 	@echo -e "  1. Run both index creation commands (can do overnight)"
 	@echo -e "  2. Update FastAPI code"
-	@echo -e "  3. Restart port 3333 service"
+	@echo -e "  3. Restart port 31291 service"
 	@echo -e "  4. Test all search types work on both ports"
 	@echo -e ""
 	@echo -e "$(CYAN)📚 Documentation:$(NC)"
@@ -1251,7 +1248,7 @@ crossref-create-title-index:
 	@echo -e "  • This will take ~4-8 hours"
 	@echo -e "  • Database will be under heavy load"
 	@echo -e "  • Do NOT interrupt or run other DB operations"
-	@echo -e "  • Port 3333 API may be slow during this time"
+	@echo -e "  • Port 31291 API may be slow during this time"
 	@echo -e ""
 	@echo -e "$(CYAN)Index details:$(NC)"
 	@echo -e "  Database: /home/ywatanabe/proj/crossref_local/data/crossref.db"
@@ -1289,7 +1286,7 @@ crossref-create-author-index:
 	@echo -e "  • This will take ~4-8 hours"
 	@echo -e "  • Database will be under heavy load"
 	@echo -e "  • Do NOT interrupt or run other DB operations"
-	@echo -e "  • Port 3333 API may be slow during this time"
+	@echo -e "  • Port 31291 API may be slow during this time"
 	@echo -e ""
 	@echo -e "$(CYAN)Index details:$(NC)"
 	@echo -e "  Database: /home/ywatanabe/proj/crossref_local/data/crossref.db"

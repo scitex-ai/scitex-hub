@@ -1,4 +1,5 @@
 {% load static %}
+
 <!-- Literature Search - Full Width Layout (Controls in Right Panel) -->
 <div class="search-container-full-width">
     <form id="literatureSearchForm"
@@ -9,13 +10,13 @@
             <input type="text"
                    name="q"
                    class="form-control search-input"
-                   placeholder='e.g., hippocampus -t human -t -mouse -a Smith -j Nature -ymin 2020'
+                   placeholder='Search papers (e.g., hippocampus -a Smith -j Nature -ymin 2020 -ifmin 5)'
                    value="{{ query }}"
+                   autocomplete="off"
                    autofocus />
             <kbd class="search-shortcut-badge">Ctrl+K</kbd>
             <button type="submit" class="btn btn-primary search-btn" id="searchButton">
                 <i class="fas fa-search"></i> Search
-                <span class="tab-badge tab-badge--experimental">Experimental</span>
             </button>
             <button type="button" class="search-help-btn" id="searchHelpBtn">
                 <i class="fas fa-question-circle"></i>
@@ -94,60 +95,63 @@
         <div id="scitex-results-container">
             <!-- Results Header - Always visible -->
             <div class="results-header" id="resultsHeader">
-                <div class="results-info">
-                    <span class="results-count"
-                          id="searchResultsText"
-                          title="Results are fetched from multiple engines (PubMed, CrossRef, arXiv, OpenAlex, Semantic Scholar), then deduplicated by DOI/title. The count shows unique papers found.">
-                        {% if query %}
-                            {{ results|length }} result{{ results|length|pluralize }} for "{{ query }}"
-                        {% else %}
-                            Ready to search
-                        {% endif %}
-                        <i class="fas fa-info-circle results-info-icon"></i></span>
-                    {% if results %}
-                        <span class="results-source" id="sourceDisplay">· {{ sources_display|default:"selected sources" }}</span>
-                    {% endif %}
-                </div>
                 <div class="results-toolbar">
-                    <!-- Abstract Display Toggle -->
-                    <button type="button"
-                            class="toolbar-btn"
-                            id="abstractToggleBtn"
-                            data-mode="truncated"
-                            title="Toggle abstract display"
-                            {% if not results %}disabled{% endif %}>Abstract: truncated</button>
-                    <!-- Save Selected -->
-                    <button type="button"
-                            class="toolbar-btn"
-                            id="saveSelectedBtn"
-                            title="Save selected to library"
-                            disabled>
-                        <i class="fas fa-save"></i> Save
-                    </button>
-                    <!-- Open URLs -->
-                    <button type="button"
-                            class="toolbar-btn"
-                            id="openUrlsBtn"
-                            title="Open selected in new tabs"
-                            disabled>
-                        <i class="fas fa-external-link-alt"></i> Open URLs
-                    </button>
-                    <!-- Export BibTeX -->
-                    <button type="button"
-                            class="toolbar-btn toolbar-btn--primary"
-                            id="exportSelectedBibtex"
-                            title="Download BibTeX for selected (Ctrl+C to copy)"
-                            disabled>
-                        <i class="fas fa-download"></i> BibTeX
-                    </button>
-                    <!-- Download PDFs -->
-                    <button type="button"
-                            class="toolbar-btn toolbar-btn--pdf"
-                            id="downloadSelectedPdfs"
-                            title="Download PDFs for selected (Open Access only)"
-                            disabled>
-                        <i class="fas fa-file-pdf"></i> PDFs
-                    </button>
+                    <!-- Actions Group (Left) -->
+                    <div class="toolbar-actions">
+                        <!-- Download (BibTeX/JSON/Text) -->
+                        <button type="button"
+                                class="toolbar-btn toolbar-btn--primary"
+                                id="exportSelectedBibtex"
+                                title="Download selected papers (BibTeX, JSON, or Text)"
+                                disabled>
+                            <i class="fas fa-download"></i> Download <i class="fas fa-caret-down" style="font-size: 0.6rem; margin-left: 0.2rem;"></i>
+                        </button>
+                        <!-- Save to Project -->
+                        <button type="button"
+                                class="toolbar-btn"
+                                id="saveSelectedBtn"
+                                title="Save selected to project"
+                                disabled>
+                            <i class="fas fa-save"></i> Save to Project
+                        </button>
+                        <!-- Open URLs -->
+                        <button type="button"
+                                class="toolbar-btn"
+                                id="openUrlsBtn"
+                                title="Open selected in new tabs"
+                                disabled>
+                            <i class="fas fa-external-link-alt"></i> Open URLs
+                        </button>
+                        <!-- Download PDFs -->
+                        <button type="button"
+                                class="toolbar-btn toolbar-btn--pdf"
+                                id="downloadSelectedPdfs"
+                                title="Download PDFs for selected (Open Access only)"
+                                disabled>
+                            <i class="fas fa-file-pdf"></i> PDFs
+                        </button>
+                    </div>
+                    <!-- Status Group (Right) -->
+                    <div class="toolbar-status">
+                        <!-- Search Statistics (populated by JS) -->
+                        <span class="search-stats" id="searchStats"></span>
+                        <!-- Search Progress Stepper -->
+                        <span class="search-stepper" id="searchStepper">
+                            <span class="stepper-circle active" id="step1">1</span><span class="stepper-text">Ready</span>
+                            <span class="stepper-line" id="line1"></span>
+                            <span class="stepper-circle" id="step2">2</span><span class="stepper-text" id="stepText2">Searching</span>
+                            <span class="stepper-line" id="line2"></span>
+                            <span class="stepper-circle" id="step3">3</span><span class="stepper-text" id="stepText3">Done</span>
+                            <span class="stepper-timer" id="searchTimer"></span>
+                        </span>
+                        <!-- Abstract Display Toggle -->
+                        <button type="button"
+                                class="toolbar-btn toolbar-btn--toggle"
+                                id="abstractToggleBtn"
+                                data-mode="truncated"
+                                title="Toggle abstract display"
+                                {% if not results %}disabled{% endif %}>Abstract: truncated</button>
+                    </div>
                 </div>
             </div>
             {% if show_results and query %}
@@ -159,46 +163,10 @@
                 <!-- Empty state when no query -->
                 <div class="search-empty-state" id="searchEmptyState">
                     <i class="fas fa-search"></i>
-                    <h5>Enter a search query to find literature</h5>
-                    <p class="text-muted">Use the controls in the right panel to filter and sort results</p>
+                    <h5>Search literature with abstracts and impact factors</h5>
+                    <p class="text-muted">Results include abstracts, citations, journal IF, and PDF availability</p>
                 </div>
             {% endif %}
-        </div>
-        <!-- Fixed Selection Action Bar -->
-        <div id="selectionActionBar" class="selection-action-bar">
-            <span class="selection-count"><span id="selectedCount">0</span> selected</span>
-            <div class="selection-actions">
-                <button type="button"
-                        class="action-btn"
-                        id="actionSaveSelected"
-                        title="Save to project">
-                    <i class="fas fa-save"></i> Save
-                </button>
-                <button type="button"
-                        class="action-btn"
-                        id="actionExportBibtex"
-                        title="Export BibTeX">
-                    <i class="fas fa-download"></i> BibTeX
-                </button>
-                <button type="button"
-                        class="action-btn"
-                        id="actionOpenUrls"
-                        title="Open URLs">
-                    <i class="fas fa-external-link-alt"></i> Open URLs
-                </button>
-                <button type="button"
-                        class="action-btn action-btn--pdf"
-                        id="actionDownloadPdfs"
-                        title="Download PDFs (Open Access)">
-                    <i class="fas fa-file-pdf"></i> PDFs
-                </button>
-                <button type="button"
-                        class="action-btn action-btn--clear"
-                        id="actionClearSelection"
-                        title="Clear selection">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
         </div>
         <!-- Progressive Results Container (JavaScript populates this) -->
         <div id="progressiveResults" class="progressive-results"></div>

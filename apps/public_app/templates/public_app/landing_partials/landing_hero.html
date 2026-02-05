@@ -1,4 +1,5 @@
 {% load static %}
+
 <!-- Hero Section -->
 <section class="hero-landing" id="home">
     <div class="container">
@@ -25,13 +26,11 @@
                     Python toolkit + MCP server for literature search, statistics, visualization, and manuscript writing. 70% less code.
                 </p>
                 <div class="hero-badges">
-                    <span class="hero-badge badge-success">
-                        <i class="fab fa-github"></i> 100% Open Source
-                    </span>
-                    <a href="{% url 'public_app:demos' %}"
-                       class="hero-badge badge-warning"
-                       style="text-decoration: none">
-                        <i class="fas fa-play-circle"></i> Watch Demos
+                    <a href="{% url 'public_app:open_source' %}"
+                       class="hero-badge badge-success"
+                       style="text-decoration: none"
+                       title="Why Open Source Matters">
+                        <i class="fab fa-osi"></i> 100% Open Source
                     </a>
                 </div>
             </div>
@@ -51,15 +50,15 @@
                            poster="/media/videos/scitex-automated-research-demo-thumbnail.png"
                            preload="auto"
                            style="display: none">
-                        <source src="/media/videos/scitex-automated-research-demo.mp4"
-                                type="video/mp4">
+                        <source src="/media/videos/scitex-automated-research-demo.mp4" type="video/mp4" />
                     </video>
                 </div>
                 <div class="demo-description">
                     <div class="demo-info-left">
                         <span class="demo-workflow-text">
-                            [DEMO] Automated Research with SciTeX MCP Server in 40 min
-                            <br>
+                            <span class="demo-badge">DEMO</span>
+                            Automated Research with SciTeX MCP Server in 40 min
+                            <br />
                             Literature Search → Analysis → Graphing → Manuscript → Revision
                         </span>
                     </div>
@@ -74,6 +73,9 @@
                         </select>
                     </div>
                 </div>
+                <a href="{% url 'public_app:demos' %}" class="watch-more-demos">
+                    <i class="fas fa-play-circle"></i> Watch More Demos
+                </a>
             </div>
         </div>
     </div>

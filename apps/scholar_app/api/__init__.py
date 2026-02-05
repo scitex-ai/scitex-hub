@@ -6,28 +6,27 @@ Scholar App API Layer
 This package contains REST API components for the Scholar application.
 """
 
-from .serializers import (
-    PaperSerializer,
-    CollectionSerializer,
-    SavedSearchSerializer,
-    AnnotationSerializer,
-    RepositoryConnectionSerializer,
-    DatasetMetadataSerializer,
-)
-
-from .viewsets import (
-    PaperViewSet,
-    CollectionViewSet,
-    SavedSearchViewSet,
-    AnnotationViewSet,
-)
-
+from . import public_search
 from .permissions import (
+    CanAccessAnnotation,
+    CanAccessCollection,
+    CanAccessPaper,
     IsOwner,
     IsOwnerOrReadOnly,
-    CanAccessPaper,
-    CanAccessCollection,
-    CanAccessAnnotation,
+)
+from .serializers import (
+    AnnotationSerializer,
+    CollectionSerializer,
+    DatasetMetadataSerializer,
+    PaperSerializer,
+    RepositoryConnectionSerializer,
+    SavedSearchSerializer,
+)
+from .viewsets import (
+    AnnotationViewSet,
+    CollectionViewSet,
+    PaperViewSet,
+    SavedSearchViewSet,
 )
 
 __all__ = [
@@ -49,6 +48,8 @@ __all__ = [
     "CanAccessPaper",
     "CanAccessCollection",
     "CanAccessAnnotation",
+    # Public API
+    "public_search",
 ]
 
 # EOF

@@ -1,6 +1,6 @@
 [project]
 name = "scitex-cloud"
-version = "0.7.0a0"
+version = "0.7.2a0"
 description = "SciTeX Cloud - Deployment and management CLI for SciTeX"
 readme = "README.md"
 license = {text = "AGPL-3.0"}
@@ -88,12 +88,18 @@ gui = [
     "cairosvg>=2.7",
     "Pillow>=10.0",
 ]
+mcp = [
+    "fastmcp>=0.4",
+    "requests>=2.31",
+    "pyyaml>=6.0",
+]
 all = [
-    "scitex-cloud[django,test,gui,dev]",
+    "scitex-cloud[django,test,gui,dev,mcp]",
 ]
 
 [project.scripts]
 scitex-cloud = "scitex_cloud.cli.main:main"
+scitex-cloud-mcp = "scitex_cloud.mcp_server:main"
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]

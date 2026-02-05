@@ -6,14 +6,14 @@
 |-----|-------|
 | docker_dev | Development |
 | docker_prod | Production |
-| docker_nas | NAS/Home |
+| docker_prod | NAS/Home |
 
 ## Quick Start
 
 ```bash
 make env=dev start
 make env=prod start
-make env=nas start
+make env=prod start
 ```
 
 ## Structure
@@ -22,6 +22,6 @@ make env=nas start
 docker/
 ├── docker_dev/   # Development
 ├── docker_prod/  # Production
-├── docker_nas/   # NAS
+├── docker_prod/   # NAS
 └── common/       # Shared configs
 ```

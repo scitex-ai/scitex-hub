@@ -8,6 +8,11 @@ from django.urls import path
 
 from ..integrations import scitex as scitex_search
 from ..views.search import views as search_views
+from ..views.search.api_health import (
+    api_health_all_local,
+    api_health_crossref_local,
+    api_health_openalex_local,
+)
 
 # Main search pages
 page_patterns = [
@@ -101,6 +106,11 @@ source_api_patterns = [
         search_views.api_search_openalex,
         name="api_search_openalex",
     ),
+    path(
+        "api/search/openalex-local/",
+        search_views.api_search_openalex_local,
+        name="api_search_openalex_local",
+    ),
 ]
 
 # Unified and SciTeX search APIs
@@ -136,6 +146,26 @@ mock_patterns = [
     ),
 ]
 
+# Health check endpoints for local databases
+
+health_patterns = [
+    path(
+        "api/health/crossref-local/",
+        api_health_crossref_local,
+        name="api_health_crossref_local",
+    ),
+    path(
+        "api/health/openalex-local/",
+        api_health_openalex_local,
+        name="api_health_openalex_local",
+    ),
+    path(
+        "api/health/local/",
+        api_health_all_local,
+        name="api_health_all_local",
+    ),
+]
+
 # Combine all patterns
 urlpatterns = (
     page_patterns
@@ -145,6 +175,7 @@ urlpatterns = (
     + source_api_patterns
     + unified_api_patterns
     + mock_patterns
+    + health_patterns
 )
 
 

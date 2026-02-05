@@ -2,7 +2,7 @@
 # Terminal Readiness Checker
 # Tests if terminals will actually work (not just if components exist)
 # This catches issues like SLURM needing restart after user creation
-# Environment-aware: dev uses root, NAS uses scitex user
+# Environment-aware: dev uses root, prod uses scitex user
 
 set -euo pipefail
 
@@ -15,14 +15,14 @@ source "${SCRIPT_DIR}/../scripts/lib/colors.sh" 2>/dev/null || {
 ENV="${1:-}"
 if [ -z "$ENV" ]; then
     # Auto-detect from running containers
-    RUNNING=$(docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-cloud-(dev|nas)-' | head -1 | sed 's/scitex-cloud-//' | sed 's/-//' || echo "")
+    RUNNING=$(docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-cloud-(dev|prod)-' | head -1 | sed 's/scitex-cloud-//' | sed 's/-//' || echo "")
     ENV="${RUNNING:-dev}"
 fi
 
 CONTAINER_NAME="scitex-cloud-${ENV}-django-1"
 
 # Determine which user to test as based on environment
-if [ "$ENV" = "nas" ]; then
+if [ "$ENV" = "prod" ]; then
     TEST_USER="scitex"
     USER_CMD="su ${TEST_USER} -c"
 else

@@ -15,7 +15,9 @@
   border: 1px solid var(--workspace-border-default, #3a3a3a) !important;
   color: var(--text-primary, #d4e1e8) !important;
   border-radius: 0 !important;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .search-input::placeholder {
@@ -131,6 +133,22 @@
   background: var(--workspace-bg-secondary, #ebedef) !important;
   border-color: var(--workspace-icon-primary, #059669) !important;
   color: var(--workspace-icon-primary, #059669) !important;
+}
+
+/* Experimental badge inside search button */
+.tab-badge--experimental {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.15rem 0.4rem;
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: transparent;
+  border: 1px solid var(--scitex-color-accent, #8b5cf6);
+  color: var(--scitex-color-accent, #8b5cf6);
+  border-radius: 2px;
+  vertical-align: middle;
 }
 
 /* Ensure search input and button heights match */

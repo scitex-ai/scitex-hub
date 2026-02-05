@@ -1,0 +1,81 @@
+site_name: SciTeX API Documentation
+docs_dir: docs_api
+# site_url uses SCITEX_CLOUD_SITE_URL from deployment env vars
+site_url: !ENV [SCITEX_CLOUD_SITE_URL, 'http://127.0.0.1:8000']
+site_description: API documentation for SciTeX - Python Framework for Scientific Research Automation
+site_author: SciTeX Team
+
+repo_name: scitex
+repo_url: https://github.com/scitex/scitex
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+
+plugins:
+  - search
+  - macros:
+      include_yaml:
+        - docs_api/variables.yml
+
+markdown_extensions:
+  - admonition
+  - codehilite:
+      guess_lang: false
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+  - tables
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quickstart.md
+  - API Reference:
+    - Overview: api/overview.md
+    - Scholar Search API: api/scholar.md
+  - Guides:
+    - Authentication: guides/authentication.md
+    - Rate Limits: guides/rate-limits.md
+    - Export Formats: guides/export-formats.md
+
+extra:
+  # API base URL - uses SCITEX_CLOUD_SITE_URL from deployment env vars (single source of truth)
+  api_base_url: !ENV [SCITEX_CLOUD_SITE_URL, 'http://127.0.0.1:8000']
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/scitex
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/scitex/
+
+copyright: Copyright &copy; 2024-2026 SciTeX Team

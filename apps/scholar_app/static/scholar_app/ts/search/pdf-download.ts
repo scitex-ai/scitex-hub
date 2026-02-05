@@ -6,13 +6,20 @@
  */
 
 console.log(
-  "[DEBUG] apps/scholar_app/static/scholar_app/ts/search/pdf-download.ts loaded"
+  "[DEBUG] apps/scholar_app/static/scholar_app/ts/search/pdf-download.ts loaded",
 );
 
 export {};
 
 // PDF status types
-type PDFStatus = "unknown" | "checking" | "available" | "downloading" | "downloaded" | "unavailable" | "error";
+type PDFStatus =
+  | "unknown"
+  | "checking"
+  | "available"
+  | "downloading"
+  | "downloaded"
+  | "unavailable"
+  | "error";
 
 // API response interfaces
 interface PDFStatusResponse {
@@ -71,7 +78,7 @@ class PDFDownloadManager {
   async checkStatus(
     doi?: string,
     arxivId?: string,
-    pmid?: string
+    pmid?: string,
   ): Promise<PDFStatusResponse> {
     const cacheKey = this.getCacheKey(doi, arxivId, pmid);
 
@@ -103,7 +110,7 @@ class PDFDownloadManager {
     arxivId?: string,
     pmid?: string,
     pdfUrl?: string,
-    title?: string
+    title?: string,
   ): Promise<PDFDownloadResponse> {
     const response = await fetch("/scholar/api/pdf/download/", {
       method: "POST",
@@ -130,7 +137,7 @@ class PDFDownloadManager {
   updateBadgeStatus(
     badge: HTMLElement,
     status: PDFStatus,
-    info?: { path?: string; filename?: string }
+    info?: { path?: string; filename?: string },
   ): void {
     badge.dataset.status = status;
 
@@ -211,11 +218,19 @@ class PDFDownloadManager {
 
       // Get title from parent card
       const card = badge.closest(".result-card, .result-card-compact");
-      const titleEl = card?.querySelector(".result-title a, .result-title-link");
+      const titleEl = card?.querySelector(
+        ".result-title a, .result-title-link",
+      );
       const title = titleEl?.textContent?.trim() || "paper";
 
       try {
-        const result = await this.downloadPDF(doi, arxivId, pmid, undefined, title);
+        const result = await this.downloadPDF(
+          doi,
+          arxivId,
+          pmid,
+          undefined,
+          title,
+        );
 
         if (result.downloaded && result.path) {
           this.updateBadgeStatus(badge, "downloaded", {
@@ -236,7 +251,9 @@ class PDFDownloadManager {
    * Initialize badges for all result cards on page
    */
   async initializeBadges(): Promise<void> {
-    const badges = document.querySelectorAll(".pdf-status-badge[data-status='unknown']");
+    const badges = document.querySelectorAll(
+      ".pdf-status-badge[data-status='unknown']",
+    );
 
     for (const badge of badges) {
       const badgeEl = badge as HTMLElement;
@@ -295,7 +312,8 @@ class PDFDownloadManager {
     const source = badge.dataset.source || "";
     const pdfUrl = badge.dataset.pdfUrl || "";
 
-    console.log(`[PDF] Initializing badge: doi=${doi}, arxiv=${arxivId}, isOA=${isOpenAccess}, source=${source}`);
+    // Debug logging disabled for performance (uncomment if needed)
+    // console.log(`[PDF] Initializing badge: doi=${doi}, arxiv=${arxivId}, isOA=${isOpenAccess}, source=${source}`);
 
     if (!doi && !arxivId && !pmid) {
       this.updateBadgeStatus(badge, "unavailable");
@@ -311,19 +329,25 @@ class PDFDownloadManager {
     });
 
     // Check if this is from an open access source
-    const openAccessSources = ['arxiv', 'pmc', 'biorxiv', 'medrxiv', 'doaj', 'plos'];
-    const isFromOpenAccessSource = openAccessSources.includes(source.toLowerCase()) || !!arxivId;
+    const openAccessSources = [
+      "arxiv",
+      "pmc",
+      "biorxiv",
+      "medrxiv",
+      "doaj",
+      "plos",
+    ];
+    const isFromOpenAccessSource =
+      openAccessSources.includes(source.toLowerCase()) || !!arxivId;
 
     // If we already know it's open access (from search result), mark as available
     if (isOpenAccess || isFromOpenAccessSource || pdfUrl) {
-      console.log(`[PDF] Marking as available: isOA=${isOpenAccess}, fromOASource=${isFromOpenAccessSource}, hasPdfUrl=${!!pdfUrl}`);
       this.updateBadgeStatus(badge, "available");
       return;
     }
 
     // For others (likely paywalled), mark as unavailable without checking
     // This avoids unnecessary API calls for papers we can't download anyway
-    console.log(`[PDF] Marking as unavailable (not OA)`);
     this.updateBadgeStatus(badge, "unavailable");
   }
 
@@ -332,7 +356,7 @@ class PDFDownloadManager {
    */
   async downloadSelected(): Promise<{ success: number; failed: number }> {
     const selectedCards = document.querySelectorAll(
-      ".result-card .paper-select:checked, .result-card-compact .paper-select-checkbox:checked"
+      ".result-card .paper-select:checked, .result-card-compact .paper-select-checkbox:checked",
     );
 
     let success = 0;
@@ -366,7 +390,13 @@ class PDFDownloadManager {
           this.updateBadgeStatus(badge, "downloading");
         }
 
-        const result = await this.downloadPDF(doi, arxivId, pmid, undefined, title);
+        const result = await this.downloadPDF(
+          doi,
+          arxivId,
+          pmid,
+          undefined,
+          title,
+        );
 
         if (result.downloaded && badge) {
           this.updateBadgeStatus(badge, "downloaded", {
@@ -404,12 +434,50 @@ declare global {
 }
 window.pdfDownloadManager = pdfManager;
 
+// Deferred badge initialization - don't block rendering
+let pendingBadges: HTMLElement[] = [];
+let initializationScheduled = false;
+
+function scheduleInitialization(): void {
+  if (initializationScheduled) return;
+  initializationScheduled = true;
+
+  // Use requestIdleCallback if available, otherwise requestAnimationFrame
+  const scheduleCallback =
+    (window as any).requestIdleCallback || window.requestAnimationFrame;
+  scheduleCallback(() => {
+    initializationScheduled = false;
+    const badges = pendingBadges.splice(0); // Take all pending badges
+    if (badges.length > 0) {
+      // Initialize in small batches to avoid blocking
+      const BATCH_SIZE = 10;
+      let index = 0;
+
+      function initBatch(): void {
+        const batch = badges.slice(index, index + BATCH_SIZE);
+        batch.forEach((badge) => pdfManager.initializeBadge(badge));
+        index += BATCH_SIZE;
+        if (index < badges.length) {
+          requestAnimationFrame(initBatch);
+        }
+      }
+      initBatch();
+    }
+  });
+}
+
 // Initialize on DOM ready
 document.addEventListener("DOMContentLoaded", () => {
   console.log("[PDF Download] Initializing PDF download manager...");
 
-  // Initialize existing badges
-  pdfManager.initializeBadges();
+  // Initialize existing badges (deferred)
+  const existingBadges = document.querySelectorAll(
+    ".pdf-status-badge[data-status='unknown']",
+  );
+  existingBadges.forEach((badge) => pendingBadges.push(badge as HTMLElement));
+  if (pendingBadges.length > 0) {
+    scheduleInitialization();
+  }
 
   // Setup mutation observer for dynamically added cards
   const resultsContainer = document.getElementById("progressiveResults");
@@ -418,41 +486,54 @@ document.addEventListener("DOMContentLoaded", () => {
       for (const mutation of mutations) {
         for (const node of mutation.addedNodes) {
           if (node instanceof HTMLElement) {
-            // Find any uninitialized PDF badge
-            const badges = node.querySelectorAll(".pdf-status-badge:not([data-initialized='true'])");
-            badges.forEach((badge) => {
-              pdfManager.initializeBadge(badge as HTMLElement);
-            });
+            // Find any uninitialized PDF badge - queue for deferred initialization
+            const badges = node.querySelectorAll(
+              ".pdf-status-badge:not([data-initialized='true'])",
+            );
+            badges.forEach((badge) => pendingBadges.push(badge as HTMLElement));
             // Also check if the node itself is a badge
-            if (node.classList.contains("pdf-status-badge") && node.dataset.initialized !== "true") {
-              pdfManager.initializeBadge(node);
+            if (
+              node.classList.contains("pdf-status-badge") &&
+              node.dataset.initialized !== "true"
+            ) {
+              pendingBadges.push(node);
             }
           }
         }
       }
+      // Schedule batch initialization after mutations settle
+      if (pendingBadges.length > 0) {
+        scheduleInitialization();
+      }
     });
 
     observer.observe(resultsContainer, { childList: true, subtree: true });
-    console.log("[PDF Download] MutationObserver setup on progressiveResults");
+    console.log(
+      "[PDF Download] MutationObserver setup with deferred initialization",
+    );
   }
 
   // Setup download selected handler
-  document.getElementById("actionDownloadPdfs")?.addEventListener("click", async () => {
-    const btn = document.getElementById("actionDownloadPdfs") as HTMLButtonElement;
-    if (btn) {
-      btn.disabled = true;
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
-    }
+  document
+    .getElementById("actionDownloadPdfs")
+    ?.addEventListener("click", async () => {
+      const btn = document.getElementById(
+        "actionDownloadPdfs",
+      ) as HTMLButtonElement;
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
+      }
 
-    const result = await pdfManager.downloadSelected();
+      const result = await pdfManager.downloadSelected();
 
-    if (btn) {
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fas fa-file-pdf"></i> PDFs';
-    }
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-file-pdf"></i> PDFs';
+      }
 
-    alert(`Downloaded: ${result.success}, Failed: ${result.failed}`);
-  });
+      alert(`Downloaded: ${result.success}, Failed: ${result.failed}`);
+    });
 
   console.log("[PDF Download] Initialization complete");
 });

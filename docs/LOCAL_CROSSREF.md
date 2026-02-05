@@ -27,7 +27,7 @@ SciTeX uses a **local CrossRef database mirror** with 167M+ works and 47M+ citat
          │                                  │
 ┌────────▼────────┐              ┌─────────▼──────────┐
 │  CrossRef Local │              │  Citation Graph    │
-│  Port 3333      │              │  Port 3334         │
+│  Port 31291      │              │  Port 3334         │
 │  (FastAPI)      │              │  (FastAPI)         │
 └────────┬────────┘              └─────────┬──────────┘
          │                                  │
@@ -44,7 +44,7 @@ SciTeX uses a **local CrossRef database mirror** with 167M+ works and 47M+ citat
 
 ## Services
 
-### 1. CrossRef Local API (Port 3333)
+### 1. CrossRef Local API (Port 31291)
 
 **Purpose**: Paper metadata search and lookup
 
@@ -138,7 +138,7 @@ CREATE TABLE citations (
 - `urls.py` - Route configuration
 
 **Features**:
-- Django cache backend (Redis on NAS)
+- Django cache backend (Redis on production)
 - DRF throttling (50 requests/hour)
 - Integrated authentication
 - HTTPS via Cloudflare
@@ -154,8 +154,8 @@ CREATE TABLE citations (
 | Service           | Port  | Protocol | Purpose                      |
 |-------------------|-------|----------|------------------------------|
 | Django (dev)      | 8000  | HTTP     | Full scholar app             |
-| Django (NAS)      | 80    | HTTPS    | Production (scitex.ai)       |
-| CrossRef Local    | 3333  | HTTP     | Paper metadata & search      |
+| Django (prod)     | 80    | HTTPS    | Production (scitex.ai)       |
+| CrossRef Local    | 31291  | HTTP     | Paper metadata & search      |
 | **Citation Graph** | **3334** | **HTTP** | **Citation network analysis** |
 | (future services) | 3335+ | HTTP     | Reserved                     |
 
@@ -227,7 +227,7 @@ pip install -e .
 - ✅ Already integrated into scholar app
 - ✅ HTTPS via Cloudflare
 - ✅ Django authentication/authorization
-- ✅ Redis caching (NAS)
+- ✅ Redis caching (production)
 - ✅ Part of deployed application
 
 **Deploy**: Included in standard scitex-cloud deployment
@@ -281,11 +281,11 @@ services:
 
 ### Environment Variables
 
-**CrossRef Local (Port 3333)**:
+**CrossRef Local (Port 31291)**:
 ```bash
 CROSSREF_DB_PATH=/home/ywatanabe/proj/crossref_local/data/crossref.db
 HOST=0.0.0.0
-PORT=3333
+PORT=31291
 LOG_LEVEL=INFO
 ```
 
@@ -316,14 +316,14 @@ CACHES = {
 
 ---
 
-## Dev vs NAS Configuration
+## Dev vs Production Configuration
 
 ### Development Environment
 
 | Setting | Value |
 |---------|-------|
 | Django Port | 8000 |
-| CrossRef Local | 169.254.11.50:3333 (NAS via LAN) |
+| CrossRef Local | 169.254.11.50:31291 (production via LAN) |
 | Citation Graph | localhost:3334 (if running) |
 | Database | /home/ywatanabe/proj/crossref_local/data/crossref.db |
 
@@ -332,15 +332,15 @@ CACHES = {
 engines:
   - name: CrossRefLocal
     priority: 5
-    url: http://169.254.11.50:8000  # NAS CrossRef (port 8000 for full search)
+    url: http://169.254.11.50:8000  # Production CrossRef (port 8000 for full search)
 ```
 
-### NAS Production Environment
+### Production Environment
 
 | Setting | Value |
 |---------|-------|
 | Django Port | 80 (nginx + Cloudflare) |
-| CrossRef Local | crossref:3333 (Docker internal) |
+| CrossRef Local | crossref:31291 (Docker internal) |
 | Citation Graph | citation_graph:3334 (Docker internal) |
 | Database | /volume1/docker/scitex-data/crossref/crossref.db |
 
@@ -349,53 +349,53 @@ engines:
 engines:
   - name: CrossRefLocal
     priority: 5
-    url: http://crossref:3333  # Docker service
+    url: http://crossref:31291  # Docker service
 ```
 
-See: `docs/DEV_VS_NAS.md` for complete comparison
+See: `docs/DEV_VS_PROD.md` for complete comparison
 
 ---
 
 ## API Examples
 
-### CrossRef Local API (Port 3333)
+### CrossRef Local API (Port 31291)
 
 **Basic Search Operations**:
 
 ```bash
 # DOI lookup (fastest, indexed)
-curl "http://localhost:3333/api/search/?doi=10.1038/s41586-020-2008-3"
+curl "http://localhost:31291/api/search/?doi=10.1038/s41586-020-2008-3"
 
 # Title search (case-insensitive, partial match)
-curl "http://localhost:3333/api/search/?title=coronavirus&limit=10"
+curl "http://localhost:31291/api/search/?title=coronavirus&limit=10"
 
 # Year search
-curl "http://localhost:3333/api/search/?year=2020&limit=10"
+curl "http://localhost:31291/api/search/?year=2020&limit=10"
 
 # Author search (searches in author list)
-curl "http://localhost:3333/api/search/?authors=Zhang&limit=10"
+curl "http://localhost:31291/api/search/?authors=Zhang&limit=10"
 
 # Combined search (title + year)
-curl "http://localhost:3333/api/search/?title=machine%20learning&year=2023&limit=5"
+curl "http://localhost:31291/api/search/?title=machine%20learning&year=2023&limit=5"
 ```
 
 **Batch Operations**:
 
 ```bash
 # Batch DOI lookup (JSON POST)
-curl -X POST "http://localhost:3333/api/batch/" \
+curl -X POST "http://localhost:31291/api/batch/" \
   -H "Content-Type: application/json" \
   -d '{"dois": ["10.1038/s41586-020-2008-3", "10.1126/science.abc1234"]}'
 
 # Pretty-print JSON output
-curl "http://localhost:3333/api/search/?doi=10.1038/s41586-020-2008-3" | jq .
+curl "http://localhost:31291/api/search/?doi=10.1038/s41586-020-2008-3" | jq .
 ```
 
 **Health & Status**:
 
 ```bash
 # Service health check
-curl "http://localhost:3333/health"
+curl "http://localhost:31291/health"
 
 # Expected response:
 # {"status": "healthy", "database": "connected"}
@@ -514,7 +514,7 @@ curl "http://localhost:8000/api/scholar/citation-graph/health/"
 
 ```bash
 # 1. Find paper by title
-PAPER=$(curl -s "http://localhost:3333/api/search/?title=BERT&limit=1" | jq -r '.results[0].doi')
+PAPER=$(curl -s "http://localhost:31291/api/search/?title=BERT&limit=1" | jq -r '.results[0].doi')
 
 # 2. Build citation network
 curl "http://localhost:3334/api/network/?doi=${PAPER}&top_n=10" > network.json
@@ -605,7 +605,7 @@ const simulation = d3.forceSimulation(graph.nodes)
 
 ### CrossRef Local Issues
 
-**Port 3333 title search broken**:
+**Port 31291 title search broken**:
 - ✅ **FIXED** (2025-12-06): Updated to use SQLite JSON functions
 - See: `/home/ywatanabe/proj/crossref_local/docs/FASTAPI_DATABASE_FIX.md`
 
@@ -615,7 +615,7 @@ const simulation = d3.forceSimulation(graph.nodes)
 ls -lh ~/proj/crossref_local/data/crossref.db
 
 # Check service running
-curl http://localhost:3333/health
+curl http://localhost:31291/health
 ```
 
 ### Citation Graph Issues
@@ -703,7 +703,7 @@ ON works(json_extract(metadata, '$.published.date-parts[0][0]'));
 ```
 ~/proj/scitex-cloud/
 
-# CrossRef Local (Port 3333)
+# CrossRef Local (Port 31291)
 deployment/docker/crossref_local/
 ├── server.py           # FastAPI app
 ├── database.py         # Database access (FIXED)
@@ -769,7 +769,7 @@ See: `/home/ywatanabe/proj/crossref_local/.dev/EXPERIMENT_SUMMARY.md`
 
 ```bash
 # Test CrossRef Local
-curl "http://localhost:3333/api/search/?doi=10.1038/s41586-020-2008-3"
+curl "http://localhost:31291/api/search/?doi=10.1038/s41586-020-2008-3"
 
 # Test Citation Graph (FastAPI)
 curl "http://localhost:3334/api/network/?doi=10.1038/s41586-020-2008-3&top_n=20"
@@ -792,7 +792,7 @@ curl "http://localhost:8000/api/scholar/citation-graph/health/"
 ### Phase 2: Production Deployment ⏳
 - [ ] Install FastAPI dependencies in Docker
 - [ ] Add citation_graph service to docker-compose
-- [ ] Deploy to NAS
+- [ ] Deploy to production
 - [ ] Performance testing
 - [ ] Monitoring setup
 

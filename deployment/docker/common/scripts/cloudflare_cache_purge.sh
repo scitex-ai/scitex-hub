@@ -13,7 +13,7 @@ NC='\033[0m'
 
 # Load environment variables (safely, without sourcing)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ENV_FILE="${SCRIPT_DIR}/../../docker_nas/.env"
+ENV_FILE="${SCRIPT_DIR}/../../docker_prod/.env"
 
 if [ -f "$ENV_FILE" ]; then
     # Read specific variables without sourcing (avoids issues with special chars)
@@ -35,7 +35,7 @@ validate_credentials() {
         echo "  CLOUDFLARE_ZONE_ID=<your-zone-id>"
         echo "  CLOUDFLARE_API_TOKEN=<your-api-token>"
         echo ""
-        echo "Add these to: deployment/docker/docker_nas/.env"
+        echo "Add these to: deployment/docker/docker_prod/.env"
         echo ""
         echo "To get these values:"
         echo "  1. Zone ID: Cloudflare Dashboard → scitex.ai → Overview (right sidebar)"

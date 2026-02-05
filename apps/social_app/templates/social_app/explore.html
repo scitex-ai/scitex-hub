@@ -1,26 +1,19 @@
 {% extends "global_base.html" %}
+
 {% load static %}
+
 {% block title %}SciTeX Exploration{% endblock %}
-
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'shared/css/components/page-header.css' %}">
-    <link rel="stylesheet" href="{% static 'social_app/css/explore-inline.css' %}">
+    <link rel="stylesheet" href="{% static 'shared/css/components/page-header.css' %}" />
+    <link rel="stylesheet" href="{% static 'social_app/css/explore-inline.css' %}" />
 {% endblock %}
-
 {% block content %}
-    <div class="container pt-4">
-        <div class="page-header">
-            <h1><i class="fas fa-compass"></i> Explore SciTeX</h1>
-            <p>Discover trending repositories and active researchers</p>
-        </div>
-    </div>
     <div class="container explore-container">
         <!-- Tabs -->
         <nav class="explore-tabs">
             <a href="?tab=repositories"
                class="tab-link {% if tab == 'repositories' %}active{% endif %}">📚 Repositories</a>
-            <a href="?tab=users"
-               class="tab-link {% if tab == 'users' %}active{% endif %}">👥 Users</a>
+            <a href="?tab=users" class="tab-link {% if tab == 'users' %}active{% endif %}">👥 Users</a>
         </nav>
         <!-- Repositories Tab -->
         {% if tab == 'repositories' %}
@@ -31,17 +24,14 @@
                             <div class="repository-card-header">
                                 <div class="repository-card-title-wrapper">
                                     <h3 class="repository-card-title">
-                                        <a href="{{ repo.get_absolute_url }}"
-                                           class="repository-card-link">{{ repo.owner.username }}/{{ repo.name }}</a>
+                                        <a href="{{ repo.get_absolute_url }}" class="repository-card-link">{{ repo.owner.username }}/{{ repo.name }}</a>
                                     </h3>
                                 </div>
                                 <div class="repository-card-stats">
                                     <span class="repository-card-star-count">⭐ {{ repo.star_count }}</span>
                                 </div>
                             </div>
-                            {% if repo.description %}
-                                <p class="repository-card-description">{{ repo.description }}</p>
-                            {% endif %}
+                            {% if repo.description %}<p class="repository-card-description">{{ repo.description }}</p>{% endif %}
                             <div class="repository-card-meta">
                                 <span>
                                     {% if repo.visibility == 'public' %}
@@ -73,17 +63,12 @@
                                 <div class="user-card-avatar">{{ user.username|slice:":1"|upper }}</div>
                                 <div class="user-card-info">
                                     <h3 class="user-card-name">
-                                        <a href="/{{ user.username }}/"
-                                           class="user-card-link">
-                                            {{ user.get_full_name|default:user.username }}
-                                        </a>
+                                        <a href="/{{ user.username }}/" class="user-card-link">{{ user.get_full_name|default:user.username }}</a>
                                     </h3>
                                     <p class="user-card-username">@{{ user.username }}</p>
                                 </div>
                             </div>
-                            {% if user.profile.bio %}
-                                <p class="user-card-bio">{{ user.profile.bio|truncatewords:20 }}</p>
-                            {% endif %}
+                            {% if user.profile.bio %}<p class="user-card-bio">{{ user.profile.bio|truncatewords:20 }}</p>{% endif %}
                             <div class="user-card-meta">
                                 <span>
                                     {% if user.profile.profile_visibility == 'public' %}
