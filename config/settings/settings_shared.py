@@ -24,7 +24,7 @@ def require_env(var_name: str) -> str:
     if value is None:
         raise EnvironmentError(
             f"Required environment variable '{var_name}' is not set. "
-            f"Check SECRET/.env.{{ENV}} file."
+            f"Check deployment/docker/envs/.env.{{ENV}} file."
         )
     return value
 

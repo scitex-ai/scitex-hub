@@ -87,7 +87,7 @@ def _check_prerequisites():
 def _setup_env_file(environment, force):
     """Setup environment file."""
     env_path = Path(environment.env_path)
-    template_path = Path("SECRET/.env.template")
+    template_path = Path("deployment/docker/envs/.env.example")
 
     if env_path.exists() and not force:
         click.echo(f"  {click.style('✓', fg='green')} {env_path} exists")

@@ -28,7 +28,7 @@ if [[ "$ENV" != "dev" && "$ENV" != "prod" ]]; then
     exit 1
 fi
 
-ENV_FILE="$PROJECT_ROOT/SECRET/.env.$ENV"
+ENV_FILE="$PROJECT_ROOT/deployment/docker/envs/.env.$ENV"
 COMPOSE_DIR="$PROJECT_ROOT/deployment/docker/docker_$ENV"
 
 log_info "Setting up Umami for environment: $ENV"

@@ -24,7 +24,7 @@ class Environment:
     @property
     def env_path(self) -> Path:
         """Get full path to .env file."""
-        return Path("SECRET") / self.env_file
+        return Path("deployment/docker/envs") / self.env_file
 
     @property
     def compose_path(self) -> Path:

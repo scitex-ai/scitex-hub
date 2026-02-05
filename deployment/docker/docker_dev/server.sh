@@ -47,12 +47,12 @@ echo_header() { echo_info "=== $1 ==="; }
 verify_env_setup() {
     echo_header "Verifying .env setup..."
 
-    # Check if SECRET/.env.dev exists
-    if [ ! -f "$GIT_ROOT"/SECRET/.env.dev ]; then
-        echo_error "SECRET/.env.dev not found!"
+    # Check if deployment/docker/envs/.env.dev exists
+    if [ ! -f "$GIT_ROOT"/deployment/docker/envs/.env.dev ]; then
+        echo_error "deployment/docker/envs/.env.dev not found!"
         return 1
     fi
-    echo_success "SECRET/.env.dev exists"
+    echo_success "deployment/docker/envs/.env.dev exists"
 
     # Verify symlinks are correct
     if [ ! -L "$GIT_ROOT"/.env ]; then
@@ -71,17 +71,17 @@ verify_env_setup() {
     local root_target=$(readlink "$GIT_ROOT"/.env)
     local docker_target=$(readlink "$DOCKER_DIR"/.env)
 
-    if [ "$root_target" != "SECRET/.env.dev" ]; then
+    if [ "$root_target" != "deployment/docker/envs/.env.dev" ]; then
         echo_error ".env symlink points to wrong target: $root_target"
         return 1
     fi
-    echo_info ".env -> SECRET/.env.dev"
+    echo_info ".env -> deployment/docker/envs/.env.dev"
 
-    if [ "$docker_target" != "../../../SECRET/.env.dev" ]; then
+    if [ "$docker_target" != "../envs/.env.dev" ]; then
         echo_error "deployment/docker/docker_dev/.env symlink points to wrong target: $docker_target"
         return 1
     fi
-    echo_info "deployment/docker/docker_dev/.env -> ../../../SECRET/.env.dev"
+    echo_info "deployment/docker/docker_dev/.env -> ../envs/.env.dev"
 
     # Verify critical environment variables
     source "$DOCKER_DIR"/.env 2> /dev/null
@@ -116,25 +116,25 @@ verify_env_setup() {
 prepare_environment_files() {
     echo_header "Preparing developmental environmental variables..."
 
-    # Create symlinks to SECRET/.env.dev (single source of truth)
+    # Create symlinks to deployment/docker/envs/.env.dev (single source of truth)
     # This ensures we always use the latest values without copying
 
     if [ ! -L "$GIT_ROOT"/.env ]; then
         rm -f "$GIT_ROOT"/.env
-        ln -s SECRET/.env.dev "$GIT_ROOT"/.env
-        echo_info "Created symlink: .env -> SECRET/.env.dev"
+        ln -s deployment/docker/envs/.env.dev "$GIT_ROOT"/.env
+        echo_info "Created symlink: .env -> deployment/docker/envs/.env.dev"
     fi
 
     if [ ! -L "$DOCKER_DIR"/.env ]; then
         rm -f "$DOCKER_DIR"/.env
-        ln -s ../../../SECRET/.env.dev "$DOCKER_DIR"/.env
-        echo_info "Created symlink: deployment/docker/docker_dev/.env -> ../../../SECRET/.env.dev"
+        ln -s ../envs/.env.dev "$DOCKER_DIR"/.env
+        echo_info "Created symlink: deployment/docker/docker_dev/.env -> ../envs/.env.dev"
     fi
 
     set -a
     source "$DOCKER_DIR"/.env 2> /dev/null
     set +a
-    echo_success "Loaded environment from SECRET/.env.dev (single source of truth via symlinks)"
+    echo_success "Loaded environment from deployment/docker/envs/.env.dev (single source of truth via symlinks)"
 
     # Verify setup
     if ! verify_env_setup; then
@@ -216,13 +216,13 @@ validate_required_files() {
         echo_success "Dockerfile found"
     fi
 
-    # Check SECRET/.env.dev
-    if [ ! -f "$GIT_ROOT/SECRET/.env.dev" ]; then
-        echo_error "SECRET/.env.dev not found"
-        echo_info "Please create SECRET/.env.dev with required environment variables"
+    # Check deployment/docker/envs/.env.dev
+    if [ ! -f "$GIT_ROOT/deployment/docker/envs/.env.dev" ]; then
+        echo_error "deployment/docker/envs/.env.dev not found"
+        echo_info "Please create deployment/docker/envs/.env.dev (copy from .env.example)"
         all_good=false
     else
-        echo_success "SECRET/.env.dev found"
+        echo_success "deployment/docker/envs/.env.dev found"
     fi
 
     # Check scitex-code (optional but recommended)
@@ -576,16 +576,16 @@ setup_gitea_token() {
 
     if [ -n "$NEW_TOKEN" ]; then
         # Update .env (single source of truth)
-        mkdir -p "$GIT_ROOT/SECRET"
-        if grep -q "SCITEX_CLOUD_GITEA_TOKEN_DEV=" "$GIT_ROOT/SECRET/.env.dev"; then
-            sed -i "s|SCITEX_CLOUD_GITEA_TOKEN_DEV=.*|SCITEX_CLOUD_GITEA_TOKEN_DEV=$NEW_TOKEN|" "$GIT_ROOT/SECRET/.env.dev"
+        local ENV_FILE="$GIT_ROOT/deployment/docker/envs/.env.dev"
+        if grep -q "SCITEX_CLOUD_GITEA_TOKEN_DEV=" "$ENV_FILE"; then
+            sed -i "s|SCITEX_CLOUD_GITEA_TOKEN_DEV=.*|SCITEX_CLOUD_GITEA_TOKEN_DEV=$NEW_TOKEN|" "$ENV_FILE"
         else
-            echo -e "SCITEX_CLOUD_GITEA_TOKEN_DEV=$NEW_TOKEN" >> "$GIT_ROOT/SECRET/.env.dev"
+            echo -e "SCITEX_CLOUD_GITEA_TOKEN_DEV=$NEW_TOKEN" >> "$ENV_FILE"
         fi
-        echo_success "Token saved to SECRET/.env.dev"
+        echo_success "Token saved to deployment/docker/envs/.env.dev"
 
         # Reload environment
-        source "$GIT_ROOT/SECRET/.env.dev"
+        source "$ENV_FILE"
         return 0
     else
         echo_error "Failed to generate Gitea token"

@@ -42,7 +42,7 @@ class TestEnvironment:
             port=8000,
             description="Test",
         )
-        assert str(env.env_path) == "SECRET/.env.test"
+        assert str(env.env_path) == "deployment/docker/envs/.env.test"
 
     def test_compose_path_property(self):
         """Test compose_path returns correct path."""

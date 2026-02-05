@@ -9,7 +9,7 @@ Usage:
 Or via Docker:
     docker exec scitex-cloud-dev-django-1 python manage.py init_test_user
 
-Environment Variables (from SECRET/.env.dev):
+Environment Variables (from deployment/docker/envs/.env.dev):
     SCITEX_CLOUD_TEST_USER_USERNAME - Test user username (default: test-user)
     SCITEX_CLOUD_TEST_USER_PASSWORD - Test user password (default: Password123!)
     SCITEX_CLOUD_TEST_USER_EMAIL    - Test user email (default: test@example.com)
