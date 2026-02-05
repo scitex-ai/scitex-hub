@@ -132,7 +132,7 @@ services:
     image: edoburu/pgbouncer:v1.25.1-p0
     volumes:
       - ../common/pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
-      - ../common/pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt:ro
+      - ../common/pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt
     env_file:
       - .env
     environment:
