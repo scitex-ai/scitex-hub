@@ -54,7 +54,7 @@ quick_check() {
 
 # Main status check
 main() {
-    local ENV="${1:-nas}"
+    local ENV="${1:-prod}"
 
     echo -e "${CYAN}╔═══════════════════════════════════════════════════════╗${NC}"
     echo -e "${CYAN}║           SciTeX Cloud - Live Status                  ║${NC}"
@@ -64,7 +64,7 @@ main() {
     # Environment Status
     echo -e "${CYAN}📊 Environment Status:${NC}"
     RUNNING=$(docker ps --format '{{.Names}}' 2>/dev/null | \
-        grep -oE 'scitex-cloud-(dev|prod|nas)-' | \
+        grep -oE 'scitex-cloud-(dev|prod)-' | \
         sed 's/scitex-cloud-//' | sed 's/-//' | \
         sort -u | tr '\n' ' ' | xargs || true)
 
@@ -159,4 +159,4 @@ main() {
 }
 
 # Run main
-main "${1:-nas}"
+main "${1:-prod}"

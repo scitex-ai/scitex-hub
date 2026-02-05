@@ -85,7 +85,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # ============================================
 # Apptainer/Singularity (for status checks)
 # ============================================
-# NAS uses Debian Bookworm which has libfuse3-3 natively (no compatibility package needed)
+# Production uses Debian Bookworm which has libfuse3-3 natively (no compatibility package needed)
 RUN APPTAINER_VERSION=1.3.4 && \
     apt-get update && apt-get install -y --no-install-recommends \
         uidmap \
@@ -126,14 +126,14 @@ RUN YQ_VERSION=v4.44.3 && \
 FROM python:3.11-slim AS runtime
 
 LABEL maintainer="ywatanabe@scitex.ai"
-LABEL description="SciTeX Cloud - NAS"
+LABEL description="SciTeX Cloud - Production"
 LABEL version="0.1.0-alpha"
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    SCITEX_CLOUD_DJANGO_SETTINGS_MODULE=config.settings.settings_nas
+    SCITEX_CLOUD_DJANGO_SETTINGS_MODULE=config.settings.settings_prod
 
 WORKDIR /app
 
@@ -175,7 +175,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     chromium \
     fonts-liberation \
     fontconfig \
-    # Playwright runtime libraries (minimal set) - NAS compatible (no t64 suffix)
+    # Playwright runtime libraries (minimal set) - Production compatible (no t64 suffix)
     libglib2.0-0 \
     libnspr4 \
     libnss3 \
@@ -282,9 +282,9 @@ COPY --chown=scitex:scitex . .
 # Note: Vite build runs at runtime because static_volume mount hides build-time files
 # npm install is cached above, vite build is fast (~10s)
 
-# Copy NAS-specific entrypoint scripts
-COPY deployment/docker/docker_nas/root-init.sh /root-init.sh
-COPY deployment/docker/docker_nas/entrypoint.sh /entrypoint.sh
+# Copy production-specific entrypoint scripts
+COPY deployment/docker/docker_prod/root-init.sh /root-init.sh
+COPY deployment/docker/docker_prod/entrypoint.sh /entrypoint.sh
 RUN chmod +x /root-init.sh /entrypoint.sh
 
 # Verify critical tools as scitex user (fail fast)

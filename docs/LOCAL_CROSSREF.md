@@ -138,7 +138,7 @@ CREATE TABLE citations (
 - `urls.py` - Route configuration
 
 **Features**:
-- Django cache backend (Redis on NAS)
+- Django cache backend (Redis on production)
 - DRF throttling (50 requests/hour)
 - Integrated authentication
 - HTTPS via Cloudflare
@@ -154,7 +154,7 @@ CREATE TABLE citations (
 | Service           | Port  | Protocol | Purpose                      |
 |-------------------|-------|----------|------------------------------|
 | Django (dev)      | 8000  | HTTP     | Full scholar app             |
-| Django (NAS)      | 80    | HTTPS    | Production (scitex.ai)       |
+| Django (prod)     | 80    | HTTPS    | Production (scitex.ai)       |
 | CrossRef Local    | 31291  | HTTP     | Paper metadata & search      |
 | **Citation Graph** | **3334** | **HTTP** | **Citation network analysis** |
 | (future services) | 3335+ | HTTP     | Reserved                     |
@@ -227,7 +227,7 @@ pip install -e .
 - ✅ Already integrated into scholar app
 - ✅ HTTPS via Cloudflare
 - ✅ Django authentication/authorization
-- ✅ Redis caching (NAS)
+- ✅ Redis caching (production)
 - ✅ Part of deployed application
 
 **Deploy**: Included in standard scitex-cloud deployment
@@ -316,14 +316,14 @@ CACHES = {
 
 ---
 
-## Dev vs NAS Configuration
+## Dev vs Production Configuration
 
 ### Development Environment
 
 | Setting | Value |
 |---------|-------|
 | Django Port | 8000 |
-| CrossRef Local | 169.254.11.50:31291 (NAS via LAN) |
+| CrossRef Local | 169.254.11.50:31291 (production via LAN) |
 | Citation Graph | localhost:3334 (if running) |
 | Database | /home/ywatanabe/proj/crossref_local/data/crossref.db |
 
@@ -332,10 +332,10 @@ CACHES = {
 engines:
   - name: CrossRefLocal
     priority: 5
-    url: http://169.254.11.50:8000  # NAS CrossRef (port 8000 for full search)
+    url: http://169.254.11.50:8000  # Production CrossRef (port 8000 for full search)
 ```
 
-### NAS Production Environment
+### Production Environment
 
 | Setting | Value |
 |---------|-------|
@@ -352,7 +352,7 @@ engines:
     url: http://crossref:31291  # Docker service
 ```
 
-See: `docs/DEV_VS_NAS.md` for complete comparison
+See: `docs/DEV_VS_PROD.md` for complete comparison
 
 ---
 
@@ -792,7 +792,7 @@ curl "http://localhost:8000/api/scholar/citation-graph/health/"
 ### Phase 2: Production Deployment ⏳
 - [ ] Install FastAPI dependencies in Docker
 - [ ] Add citation_graph service to docker-compose
-- [ ] Deploy to NAS
+- [ ] Deploy to production
 - [ ] Performance testing
 - [ ] Monitoring setup
 

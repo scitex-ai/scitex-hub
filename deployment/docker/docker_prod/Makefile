@@ -1,7 +1,7 @@
 # ============================================
-# SciTeX Cloud - Docker NAS Deployment
+# SciTeX Cloud - Docker Production Deployment
 # ============================================
-# Location: /containers/docker_nas/Makefile.nas
+# Location: /containers/docker_prod/Makefile.prod
 
 .PHONY: help setup build build-no-cache start restart stop down logs ps status rebuild clean-static migrate makemigrations shell collectstatic db-shell db-backup verify-health logs-django logs-db logs-redis exec-django exec-db clean-python cache-purge cache-purge-all cache-purge-static
 
@@ -11,9 +11,9 @@
 # Variables
 # ============================================
 COMPOSE := docker compose -f docker-compose.yml
-DJANGO_CONTAINER := scitex-cloud-nas-django-1
-DB_CONTAINER := scitex-cloud-nas-db-1
-REDIS_CONTAINER := scitex-cloud-nas-redis-1
+DJANGO_CONTAINER := scitex-cloud-prod-django-1
+DB_CONTAINER := scitex-cloud-prod-db-1
+REDIS_CONTAINER := scitex-cloud-prod-redis-1
 MAKEFILE_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 SCRIPTS_DIR := $(MAKEFILE_DIR)../common/scripts
 
@@ -30,13 +30,13 @@ NC := \033[0m
 help:
 	@echo -e ""
 	@echo -e "$(GREEN)╔═══════════════════════════════════════════════════════╗$(NC)"
-	@echo -e "$(GREEN)║           SciTeX Cloud - NAS Deployment               ║$(NC)"
+	@echo -e "$(GREEN)║      SciTeX Cloud - Production Deployment            ║$(NC)"
 	@echo -e "$(GREEN)╚═══════════════════════════════════════════════════════╝$(NC)"
 	@echo -e ""
-	@echo -e "$(YELLOW)📦 NAS-optimized deployment for home/lab servers$(NC)"
+	@echo -e "$(YELLOW)📦 Production-optimized deployment for home/lab servers$(NC)"
 	@echo -e ""
 	@echo -e "$(CYAN)🚀 Deployment:$(NC)"
-	@echo -e "  make start              - Start NAS services"
+	@echo -e "  make start              - Start production services"
 	@echo -e "  make restart            - Restart services"
 	@echo -e "  make stop               - Stop all services"
 	@echo -e "  make status             - Show service status"
@@ -92,40 +92,40 @@ docker-check-health:
 # Deployment Commands
 # ============================================
 setup: build up migrate collectstatic
-	@echo -e "$(GREEN)✅ NAS setup complete!$(NC)"
+	@echo -e "$(GREEN)✅ Production setup complete!$(NC)"
 
 start:
-	@echo -e "$(CYAN)🚀 Starting NAS services (will build if needed)...$(NC)"
+	@echo -e "$(CYAN)🚀 Starting production services (will build if needed)...$(NC)"
 	$(COMPOSE) up -d --build
-	@echo -e "$(GREEN)✅ NAS services started$(NC)"
+	@echo -e "$(GREEN)✅ Production services started$(NC)"
 
 restart:
-	@echo -e "$(CYAN)🔄 Restarting NAS services...$(NC)"
+	@echo -e "$(CYAN)🔄 Restarting production services...$(NC)"
 	$(COMPOSE) restart
 	@# Reload nginx to refresh DNS cache (prevents 502 after container IP changes)
-	@sleep 2 && docker exec scitex-cloud-nas-nginx-1 nginx -s reload 2>/dev/null || true
+	@sleep 2 && docker exec scitex-cloud-prod-nginx-1 nginx -s reload 2>/dev/null || true
 	@echo -e "$(GREEN)✅ Services restarted$(NC)"
 
 stop: down
 
 build:
-	@echo -e "$(CYAN)🏗️  Building NAS images...$(NC)"
+	@echo -e "$(CYAN)🏗️  Building production images...$(NC)"
 	$(COMPOSE) build
 	@echo -e "$(GREEN)✅ Build complete$(NC)"
 
 build-no-cache:
-	@echo -e "$(CYAN)🏗️  Building NAS images (no cache)...$(NC)"
+	@echo -e "$(CYAN)🏗️  Building production images (no cache)...$(NC)"
 	@echo -e "$(YELLOW)⚠️  This will rebuild from scratch and may take longer.$(NC)"
 	$(COMPOSE) build --no-cache
 	@echo -e "$(GREEN)✅ Build complete$(NC)"
 
 up:
-	@echo -e "$(CYAN)⬆️  Starting NAS services...$(NC)"
+	@echo -e "$(CYAN)⬆️  Starting production services...$(NC)"
 	$(COMPOSE) up -d
 	@echo -e "$(GREEN)✅ Services started$(NC)"
 
 down:
-	@echo -e "$(YELLOW)⬇️  Stopping NAS services...$(NC)"
+	@echo -e "$(YELLOW)⬇️  Stopping production services...$(NC)"
 	$(COMPOSE) down
 	@echo -e "$(GREEN)✅ Services stopped$(NC)"
 
@@ -140,7 +140,7 @@ rebuild: down clean-static build up migrate collectstatic cache-purge-static
 
 clean-static:
 	@echo -e "$(CYAN)🧹 Clearing static files volume...$(NC)"
-	@docker volume rm scitex-cloud-nas_static_volume 2>/dev/null || true
+	@docker volume rm scitex-cloud-prod_static_volume 2>/dev/null || true
 	@echo -e "$(GREEN)✅ Static volume cleared$(NC)"
 
 # ============================================
@@ -186,9 +186,9 @@ db-shell: docker-check-health
 	@$(COMPOSE) exec db psql -U $${SCITEX_CLOUD_POSTGRES_USER} -d $${SCITEX_CLOUD_POSTGRES_DB}
 
 db-backup: docker-check-health
-	@echo -e "$(CYAN)💾 Backing up NAS database...$(NC)"
+	@echo -e "$(CYAN)💾 Backing up production database...$(NC)"
 	@mkdir -p ../../backups
-	@BACKUP_FILE="../../backups/scitex_nas_$$(date +%Y%m%d_%H%M%S).sql" && \
+	@BACKUP_FILE="../../backups/scitex_prod_$$(date +%Y%m%d_%H%M%S).sql" && \
 	$(COMPOSE) exec -T db pg_dump -U $${SCITEX_CLOUD_POSTGRES_USER} $${SCITEX_CLOUD_POSTGRES_DB} > $$BACKUP_FILE && \
 	gzip $$BACKUP_FILE && \
 	echo -e "$(GREEN)✅ Backup saved to: $$BACKUP_FILE.gz$(NC)"
@@ -197,7 +197,7 @@ db-backup: docker-check-health
 # Logs & Monitoring
 # ============================================
 logs:
-	@echo -e "$(CYAN)📋 Showing NAS logs (Ctrl+C to exit)...$(NC)"
+	@echo -e "$(CYAN)📋 Showing production logs (Ctrl+C to exit)...$(NC)"
 	$(COMPOSE) logs -f --tail=100
 
 logs-django:

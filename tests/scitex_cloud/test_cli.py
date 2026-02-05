@@ -46,7 +46,7 @@ class TestSetupCommand:
         assert result.exit_code == 0
         assert "--env" in result.output
         assert "dev" in result.output
-        assert "nas" in result.output
+        assert "prod" in result.output
 
 
 class TestDeployCommand:

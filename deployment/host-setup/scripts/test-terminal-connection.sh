@@ -12,7 +12,7 @@ source "${SCRIPT_DIR}/lib/colors.sh" 2>/dev/null || {
 
 SCITEX_UID=1000
 SCITEX_USER="scitex"
-ENV="${1:-nas}"  # Default to nas environment
+ENV="${1:-prod}"  # Default to prod environment
 
 echo -e "${BLUE}Testing terminal connection prerequisites...${NC}"
 echo ""

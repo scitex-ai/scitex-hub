@@ -230,7 +230,7 @@ if __name__ == "__main__":
 #         # Build container status dict for easy lookup
 #         containers = {}
 #         for service in services:
-#             # Extract service name (e.g., "flower" from "scitex-cloud-nas-flower-1")
+#             # Extract service name (e.g., "flower" from "scitex-cloud-prod-flower-1")
 #             name = service.get('name', '').lower()
 #             containers[name] = service.get('health_class', 'unknown')
 # 

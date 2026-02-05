@@ -1,20 +1,20 @@
-# NAS Deployment with Cloudflare Tunnel
-# For: UGREEN DXP480T Plus (Home NAS)
+# Production Deployment with Cloudflare Tunnel
+# For: UGREEN DXP480T Plus (Home Server)
 # No router access or port forwarding needed!
 
 # Set project name with environment for clear identification
-name: scitex-cloud-nas
+name: scitex-cloud-prod
 
 services:
   django:
     build:
       context: ../../..
-      dockerfile: deployment/docker/docker_nas/Dockerfile
+      dockerfile: deployment/docker/docker_prod/Dockerfile
       cache_from:
-        - scitex-cloud-nas-django:latest
+        - scitex-cloud-prod-django:latest
       args:
         BUILDKIT_INLINE_CACHE: 1
-    image: scitex-cloud-nas-django:latest
+    image: scitex-cloud-prod-django:latest
     entrypoint: ["/root-init.sh", "/entrypoint.sh"]
     command: ["daphne", "-b", "0.0.0.0", "-p", "8000", "--access-log", "-", "--verbosity", "1", "config.asgi:application"]
     volumes:
@@ -56,16 +56,16 @@ services:
       - ../../../apps/public_app/templates/public_app/landing_partials/landing_announcement.html:/app/apps/public_app/templates/public_app/landing_partials/landing_announcement.html:ro
 
     ports:
-      - "${SCITEX_CLOUD_SSH_PORT_NAS:-2200}:2200"  # SSH gateway for user workspaces
+      - "${SCITEX_CLOUD_SSH_PORT_PROD:-2200}:2200"  # SSH gateway for user workspaces
 
     expose:
       - "8000"
     env_file:
       - .env
     environment:
-      - DJANGO_SETTINGS_MODULE=config.settings.settings_nas
-      - SCITEX_CLOUD_DJANGO_SETTINGS_MODULE=config.settings.settings_nas
-      - SCITEX_CLOUD_ENV=nas
+      - DJANGO_SETTINGS_MODULE=config.settings.settings_prod
+      - SCITEX_CLOUD_DJANGO_SETTINGS_MODULE=config.settings.settings_prod
+      - SCITEX_CLOUD_ENV=prod
       - PYTHONPATH=/home/scitex/.local/lib/python3.11/site-packages:/app
       - CROSSREF_LOCAL_DB=/data/crossref/crossref.db
       - CROSSREF_LOCAL_MODE=db
@@ -97,7 +97,7 @@ services:
       interval: 30s
       timeout: 3s
       retries: 3
-      start_period: 300s  # NAS needs 4-5min for npm install
+      start_period: 300s  # Production needs 4-5min for npm install
 
   postgres:
     image: postgres:15-alpine
@@ -165,7 +165,7 @@ services:
 
   # Celery Worker (Async Task Processing)
   celery_worker:
-    image: scitex-cloud-nas-django:latest
+    image: scitex-cloud-prod-django:latest
     entrypoint: ["/entrypoint.sh"]
     command: >
       celery -A config --broker=redis://redis:6379/1 worker
@@ -192,9 +192,9 @@ services:
       - .env
 
     environment:
-      - DJANGO_SETTINGS_MODULE=config.settings.settings_nas
-      - SCITEX_CLOUD_DJANGO_SETTINGS_MODULE=config.settings.settings_nas
-      - SCITEX_CLOUD_ENV=nas
+      - DJANGO_SETTINGS_MODULE=config.settings.settings_prod
+      - SCITEX_CLOUD_DJANGO_SETTINGS_MODULE=config.settings.settings_prod
+      - SCITEX_CLOUD_ENV=prod
       - PYTHONUNBUFFERED=1
       - SCITEX_DIR=/app/.scitex
 
@@ -221,7 +221,7 @@ services:
 
   # Celery Beat (Periodic Task Scheduler)
   celery_beat:
-    image: scitex-cloud-nas-django:latest
+    image: scitex-cloud-prod-django:latest
     entrypoint: ["/entrypoint.sh"]
     command: celery -A config --broker=redis://redis:6379/1 beat --loglevel=info --scheduler=django_celery_beat.schedulers:DatabaseScheduler
 
@@ -232,9 +232,9 @@ services:
       - .env
 
     environment:
-      - DJANGO_SETTINGS_MODULE=config.settings.settings_nas
-      - SCITEX_CLOUD_DJANGO_SETTINGS_MODULE=config.settings.settings_nas
-      - SCITEX_CLOUD_ENV=nas
+      - DJANGO_SETTINGS_MODULE=config.settings.settings_prod
+      - SCITEX_CLOUD_DJANGO_SETTINGS_MODULE=config.settings.settings_prod
+      - SCITEX_CLOUD_ENV=prod
       - PYTHONUNBUFFERED=1
       - SCITEX_DIR=/app/.scitex
 
@@ -257,7 +257,7 @@ services:
 
   # Flower (Celery Monitoring Dashboard)
   flower:
-    image: scitex-cloud-nas-django:latest
+    image: scitex-cloud-prod-django:latest
     entrypoint: ["/entrypoint.sh"]
     command: celery -A config --broker=redis://redis:6379/1 flower --port=5555
 
@@ -268,9 +268,9 @@ services:
       - .env
 
     environment:
-      - DJANGO_SETTINGS_MODULE=config.settings.settings_nas
-      - SCITEX_CLOUD_DJANGO_SETTINGS_MODULE=config.settings.settings_nas
-      - SCITEX_CLOUD_ENV=nas
+      - DJANGO_SETTINGS_MODULE=config.settings.settings_prod
+      - SCITEX_CLOUD_DJANGO_SETTINGS_MODULE=config.settings.settings_prod
+      - SCITEX_CLOUD_ENV=prod
       - PYTHONUNBUFFERED=1
       - SCITEX_DIR=/app/.scitex
 
@@ -294,11 +294,11 @@ services:
     build:
       context: ../crossref_local
       dockerfile: Dockerfile
-    image: scitex-crossref-nas:latest
+    image: scitex-crossref-prod:latest
     ports:
       - "31291:31291"
     volumes:
-      # Mount CrossRef database from NAS (read-only)
+      # Mount CrossRef database from host (read-only)
       - /home/ywatanabe/proj/crossref-local/data:/data:ro
     environment:
       - CROSSREF_DB_PATH=/data/crossref.db
@@ -317,7 +317,7 @@ services:
   umami:
     image: ghcr.io/umami-software/umami:postgresql-latest
     ports:
-      - "${SCITEX_CLOUD_UMAMI_PORT_NAS:-3300}:3000"
+      - "${SCITEX_CLOUD_UMAMI_PORT_PROD:-3300}:3000"
     environment:
       - DATABASE_URL=postgresql://${SCITEX_CLOUD_POSTGRES_USER}:${SCITEX_CLOUD_POSTGRES_PASSWORD}@postgres:5432/umami
       - DATABASE_TYPE=postgresql
@@ -365,8 +365,8 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     ports:
-      - "${SCITEX_CLOUD_GITEA_HTTP_PORT_NAS:-3000}:3000"  # HTTP (configurable via .env)
-      - "${SCITEX_CLOUD_GITEA_SSH_PORT_NAS}:22"           # SSH - requires .env
+      - "${SCITEX_CLOUD_GITEA_HTTP_PORT_PROD:-3000}:3000"  # HTTP (configurable via .env)
+      - "${SCITEX_CLOUD_GITEA_SSH_PORT_PROD}:22"           # SSH - requires .env
     env_file:
       - .env
     environment:
@@ -394,7 +394,7 @@ services:
   nginx:
     image: nginx:alpine
     volumes:
-      - ../common/nginx/nginx_nas.conf:/etc/nginx/nginx.conf:ro
+      - ../common/nginx/nginx_prod.conf:/etc/nginx/nginx.conf:ro
       - ../common/nginx/error-pages:/etc/nginx/error-pages:ro
       - static_volume:/app/staticfiles:ro
       - media_volume:/app/media:ro
@@ -417,7 +417,7 @@ services:
   # Cloudflare Tunnel (replaces traditional port forwarding!)
   cloudflared:
     image: cloudflare/cloudflared:latest
-    command: tunnel --no-autoupdate run --token ${SCITEX_CLOUD_CLOUDFLARE_TUNNEL_TOKEN_NAS}
+    command: tunnel --no-autoupdate run --token ${SCITEX_CLOUD_CLOUDFLARE_TUNNEL_TOKEN_PROD}
     env_file:
       - .env
     restart: always

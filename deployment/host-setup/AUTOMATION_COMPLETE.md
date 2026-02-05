@@ -10,7 +10,7 @@
 ### Single Command for Everything
 
 ```bash
-make ENV=nas status
+make ENV=prod status
 ```
 
 This ONE command now:
@@ -71,7 +71,7 @@ Checking host user requirements...
 
 ### 1. Status Command Integration
 
-`make ENV=nas status` automatically runs:
+`make ENV=prod status` automatically runs:
 - `deployment/host-setup/checks/check-users.sh`
 - `deployment/host-setup/checks/check-slurm.sh`
 - `deployment/host-setup/checks/check-terminal-ready.sh`
@@ -93,7 +93,7 @@ All fix scripts are in `deployment/host-setup/scripts/`:
 
 ### 4. Start Command Protection
 
-`make ENV=nas start` **blocks** if requirements not met:
+`make ENV=prod start` **blocks** if requirements not met:
 - Runs same checks
 - **Refuses to start** if terminal requirements missing
 - Shows fix commands before failing
@@ -106,7 +106,7 @@ All fix scripts are in `deployment/host-setup/scripts/`:
 
 ```bash
 # 1. Check status (shows missing scitex user)
-make ENV=nas status
+make ENV=prod status
 
 # 2. Create user (as shown in status output)
 sudo deployment/host-setup/scripts/create-scitex-user.sh
@@ -115,14 +115,14 @@ sudo deployment/host-setup/scripts/create-scitex-user.sh
 sudo deployment/host-setup/scripts/restart-slurm-for-new-user.sh
 
 # 4. Verify (should now show all green)
-make ENV=nas status
+make ENV=prod status
 ```
 
 ### Daily Usage
 
 ```bash
 # Just check status - it tells you everything
-make ENV=nas status
+make ENV=prod status
 
 # If anything fails, it shows the fix command
 # Copy-paste and run it
@@ -152,7 +152,7 @@ make ENV=nas status
 
 ### Makefile Integration
 - Updated `make status` to run all checks
-- Updated `make ENV=nas start` to block on failures
+- Updated `make ENV=prod start` to block on failures
 - Added `make check-host` command
 
 ---
@@ -176,13 +176,13 @@ make ENV=nas status
 
 ```bash
 # See current status (probably shows terminal issue)
-make ENV=nas status
+make ENV=prod status
 
 # Run the fix it suggests
 sudo deployment/host-setup/scripts/restart-slurm-for-new-user.sh
 
 # Verify it's fixed
-make ENV=nas status
+make ENV=prod status
 # Should now show: ✓ Terminals ready
 ```
 

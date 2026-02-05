@@ -30,14 +30,14 @@ Environments
 SciTeX Cloud supports multiple deployment environments:
 
 - ``dev``: Local development (127.0.0.1:8000)
-- ``nas``: Production deployment (home NAS)
+- ``prod``: Production deployment (home NAS)
 
 Switch between environments using the ``--env`` flag:
 
 .. code-block:: bash
 
    scitex-cloud start --env dev   # Development
-   scitex-cloud start --env nas   # Production
+   scitex-cloud start --env prod   # Production
 
 Configuration
 -------------
@@ -45,7 +45,7 @@ Configuration
 Environment-specific configuration files are located in:
 
 - ``SECRET/.env.dev`` - Development environment variables
-- ``SECRET/.env.nas`` - Production environment variables
+- ``SECRET/.env.prod`` - Production environment variables
 
 Docker Management
 -----------------

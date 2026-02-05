@@ -15,7 +15,7 @@ from ..utils.docker import DockerManager
     "--env",
     type=click.Choice(list(ENVIRONMENTS.keys())),
     default=None,
-    help="Target environment (dev, nas)",
+    help="Target environment (dev, prod)",
 )
 @click.pass_context
 def docker(ctx, env):

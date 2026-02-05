@@ -93,7 +93,7 @@ PartitionName=express Nodes=... MaxTime=04:00:00 State=UP Priority=100
 
 **Must match application settings:**
 
-File: `SECRET/.env.nas`
+File: `SECRET/.env.prod`
 
 ```bash
 SCITEX_QUOTA_SLURM_INTERACTIVE_TIME_LIMIT=04:00:00
@@ -167,7 +167,7 @@ ps aux | grep apptainer | grep -v srun
 
 3. **Check Django logs:**
    ```bash
-   docker logs scitex-cloud-nas-django-1 | grep -i "slurm\|terminal"
+   docker logs scitex-cloud-prod-django-1 | grep -i "slurm\|terminal"
    ```
 
 ### Jobs Stuck in Queue
@@ -178,7 +178,7 @@ ps aux | grep apptainer | grep -v srun
 
 **Fix:**
 1. Check partition limit: `scontrol show partition express | grep MaxTime`
-2. Check app setting: `grep SCITEX_QUOTA_SLURM_INTERACTIVE_TIME_LIMIT .env.nas`
+2. Check app setting: `grep SCITEX_QUOTA_SLURM_INTERACTIVE_TIME_LIMIT .env.prod`
 3. Make them match (partition MaxTime ≥ app time limit)
 4. Reload: `sudo scontrol reconfigure`
 
@@ -187,7 +187,7 @@ ps aux | grep apptainer | grep -v srun
 1. `apps/code_app/views/terminal/execution.py` - SLURM-only execution
 2. `apps/code_app/views/terminal/consumer.py` - SLURM enforcement
 3. `deployment/slurm/install-host.sh` - Correct partition MaxTime
-4. `deployment/slurm/slurm-docker-{nas,dev}.conf` - Config files
+4. `deployment/slurm/slurm-docker-{prod,dev}.conf` - Config files
 5. `deployment/slurm/CONFIGURATION.md` - Documentation
 
 ## Reproducibility
@@ -195,7 +195,7 @@ ps aux | grep apptainer | grep -v srun
 ✅ **Fully automated:** Running `sudo ./deployment/slurm/install-host.sh` will:
 - Install SLURM with correct partition configuration
 - Set express partition MaxTime=04:00:00
-- Match application settings in `.env.nas`
+- Match application settings in `.env.prod`
 
 No manual configuration needed!
 

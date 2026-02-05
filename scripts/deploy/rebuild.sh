@@ -3,7 +3,7 @@
 # rebuild.sh - Full rebuild of SciTeX Cloud environment
 # ==============================================================================
 # Usage: ./scripts/deploy/rebuild.sh <env>
-#   env: dev, nas, staging, or prod
+#   env: dev, staging, or prod
 #
 # REBUILD_STEPS (single source of truth - used by 'make help-commands'):
 #   1. down          - Stop services (docker compose down)
@@ -39,14 +39,14 @@ ENV="${1:-}"
 if [ -z "$ENV" ]; then
     echo -e "${RED}Error: Environment required${NC}"
     echo "Usage: $0 <env>"
-    echo "  env: dev, nas, staging, or prod"
+    echo "  env: dev, staging, or prod"
     exit 1
 fi
 
 # Validate environment value
-if [[ ! "$ENV" =~ ^(dev|nas|staging|prod)$ ]]; then
+if [[ ! "$ENV" =~ ^(dev|staging|prod)$ ]]; then
     echo -e "${RED}Error: Invalid environment '$ENV'${NC}"
-    echo "Valid environments: dev, nas, staging, prod"
+    echo "Valid environments: dev, staging, prod"
     exit 1
 fi
 
@@ -66,10 +66,10 @@ if [ ! -d "$DOCKER_DIR" ]; then
     exit 1
 fi
 
-# NAS safety confirmation
-if [ "$ENV" = "nas" ]; then
+# Production safety confirmation
+if [ "$ENV" = "prod" ]; then
     echo ""
-    echo -e "${RED}⚠️  WARNING: NAS rebuild!${NC}"
+    echo -e "${RED}⚠️  WARNING: Production rebuild!${NC}"
     echo -e "${YELLOW}   This will cause downtime.${NC}"
     echo ""
     printf "Type 'yes' to confirm: "

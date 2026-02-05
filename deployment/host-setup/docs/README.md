@@ -25,7 +25,7 @@ deployment/host-setup/
 ### Run All Checks
 
 ```bash
-make ENV=nas check-host
+make ENV=prod check-host
 ```
 
 ### Fix Common Issues
@@ -51,9 +51,9 @@ deployment/host-setup/scripts/test-terminal-connection.sh
 ## Integration with Makefile
 
 All host checks are automatically run during:
-- `make ENV=nas status` - Shows current status with warnings
-- `make ENV=nas start` - Checks before starting services
-- `make ENV=nas build` - Validates host before building
+- `make ENV=prod status` - Shows current status with warnings
+- `make ENV=prod start` - Checks before starting services
+- `make ENV=prod build` - Validates host before building
 
 ## Check Scripts
 
@@ -149,7 +149,7 @@ fi
 
 3. Test from container:
    ```bash
-   docker exec scitex-cloud-nas-django-1 su scitex -c "srun --partition=express --pty true"
+   docker exec scitex-cloud-prod-django-1 su scitex -c "srun --partition=express --pty true"
    # Should succeed with no errors
    ```
 

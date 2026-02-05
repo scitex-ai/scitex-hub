@@ -26,7 +26,7 @@ Single source of truth: `SECRET/.env.{ENV}`
 | `apps/public_app/views.py:1051`                           | `server_status_api()` - API endpoint |
 | `apps/public_app/templates/public_app/server_status.html` | HTML template                        |
 | `apps/project_app/services/visitor_pool.py:42`            | `POOL_SIZE` definition               |
-| `deployment/docker/docker_nas/docker-compose.yml`         | Docker healthcheck definitions       |
+| `deployment/docker/docker_prod/docker-compose.yml`        | Docker healthcheck definitions       |
 
 ## What It Shows
 
@@ -99,13 +99,13 @@ Starting (Orange)
 
 ```bash
 # Check logs
-docker logs scitex-cloud-nas-django-1
+docker logs scitex-cloud-prod-django-1
 
 # Restart service
-docker restart scitex-cloud-nas-django-1
+docker restart scitex-cloud-prod-django-1
 
 # Full rebuild
-make ENV=nas build && make ENV=nas restart
+make ENV=prod build && make ENV=prod restart
 ```
 
 <!-- EOF -->

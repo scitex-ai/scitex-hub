@@ -9,7 +9,6 @@ This module automatically loads the appropriate settings based on:
 Supported environments:
     Development: export SCITEX_CLOUD_ENV=development (or dev, leave unset)
     Staging:     export SCITEX_CLOUD_ENV=staging (or stag)
-    NAS:         export SCITEX_CLOUD_ENV=nas
     Production:  export SCITEX_CLOUD_ENV=prod (or production)
 """
 
@@ -19,8 +18,8 @@ import sys
 # Determine which settings to use
 env = os.environ.get('SCITEX_CLOUD_ENV', 'development').lower()
 
-if env in ('nas', 'prod', 'production'):
-    from .settings_nas import *
+if env in ('prod', 'production'):
+    from .settings_prod import *
 elif env in ('staging', 'stag'):
     from .settings_staging import *
 elif env in ('development', 'dev'):

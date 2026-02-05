@@ -120,13 +120,13 @@ flowchart TD
 
 ## Infrastructure Architecture
 
-### Deployment Overview (NAS Production)
+### Deployment Overview (Production)
 
-SciTeX Cloud runs on a UGREEN DXP480T Plus NAS with the following stack:
+SciTeX Cloud runs on a UGREEN DXP480T Plus server with the following stack:
 
 ```mermaid
 graph TB
-    subgraph HOST["Host Machine: UGREEN DXP480T Plus NAS"]
+    subgraph HOST["Host Machine: UGREEN DXP480T Plus Server"]
         SLURM["SLURM Workload Manager<br/>(slurmctld + slurmd)<br/>Partitions: express, normal, long"]
         MUNGE["Munge Authentication Service<br/>Socket: /var/run/munge"]
         APPTAINER["Apptainer Container Runtime<br/>Version 1.3.4"]
@@ -229,7 +229,7 @@ graph TB
 
 #### Nginx
 - **Purpose**: Reverse proxy, SSL termination, static file serving
-- **Configuration**: `deployment/docker/common/nginx/nginx_nas.conf`
+- **Configuration**: `deployment/docker/common/nginx/nginx_prod.conf`
 - **Routes**:
   - `/` → Django (main app)
   - `/flower/` → Flower (Celery monitor)
@@ -244,8 +244,8 @@ graph TB
 #### Django (Daphne ASGI)
 - **Purpose**: Main application server with WebSocket support
 - **ASGI Server**: Daphne 4.1.2
-- **Configuration**: `config/settings/settings_nas.py`
-- **Environment**: `SECRET/.env.nas`
+- **Configuration**: `config/settings/settings_prod.py`
+- **Environment**: `SECRET/.env.prod`
 - **Port**: 8000
 - **Special Mounts**:
   - `/var/run/docker.sock` → Manage user workspace containers
@@ -423,7 +423,7 @@ graph TB
 
 ### Environment-Specific Settings
 
-#### NAS Production (`settings_nas.py`)
+#### Production (`settings_prod.py`)
 - **DEBUG**: `False`
 - **ALLOWED_HOSTS**: `['scitex.ai', '*.scitex.ai', 'localhost']`
 - **DATABASE**: PostgreSQL (not SQLite)
@@ -443,7 +443,7 @@ graph TB
 
 ### Docker Compose Structure
 
-**File**: `deployment/docker/docker_nas/docker-compose.yml`
+**File**: `deployment/docker/docker_prod/docker-compose.yml`
 
 **Networks**:
 - `scitex-network`: Bridge network for all services
@@ -460,13 +460,13 @@ graph TB
 
 ### Key Configuration Files
 
-- **Django Settings**: `config/settings/settings_{shared,dev,nas}.py`
-- **Environment Vars**: `SECRET/.env.{dev,nas}`
-- **Nginx Config**: `deployment/docker/common/nginx/nginx_nas.conf`
+- **Django Settings**: `config/settings/settings_{shared,dev,prod}.py`
+- **Environment Vars**: `SECRET/.env.{dev,prod}`
+- **Nginx Config**: `deployment/docker/common/nginx/nginx_prod.conf`
 - **Cloudflare Tunnel**: `/etc/cloudflared/config.yml` (on host)
 - **SLURM Config**: `/etc/slurm/slurm.conf` (on host)
 - **Celery Config**: `config/celery.py`
-- **Docker Compose**: `deployment/docker/docker_nas/docker-compose.yml`
+- **Docker Compose**: `deployment/docker/docker_prod/docker-compose.yml`
 
 ### Port Mappings
 
@@ -490,7 +490,7 @@ graph TB
 - `gitea_data`: Critical - all repositories
 - `crossref_data`: Cache - can be rebuilt
 
-**Bind Mounts** (NAS only, no dev volume mounts):
+**Bind Mounts** (production only, no dev volume mounts):
 - None - code baked into image for production
 
 ---
@@ -532,7 +532,7 @@ graph TB
 
 ## Scaling & Performance
 
-### Current Capacity (NAS)
+### Current Capacity (Production)
 
 - **VISITOR_POOL_SIZE**: 16 concurrent anonymous users
 - **SLURM Nodes**: 1 (can scale to multiple)
@@ -551,7 +551,7 @@ graph TB
 ### Future Scaling
 
 - **Horizontal**: Add SLURM compute nodes
-- **Vertical**: Increase NAS resources
+- **Vertical**: Increase server resources
 - **CDN**: Cloudflare caching for static assets
 - **Database**: Read replicas for analytics
 
@@ -585,7 +585,7 @@ graph TB
 ### Common Issues
 
 **1. Services show "starting" for too long**
-- Check logs: `docker logs scitex-cloud-nas-<service>-1`
+- Check logs: `docker logs scitex-cloud-prod-<service>-1`
 - Verify dependencies: PostgreSQL must be healthy first
 
 **2. SLURM jobs fail**
@@ -594,38 +594,38 @@ graph TB
 - Test: `docker exec django su scitex -c "srun hostname"`
 
 **3. Charts not updating**
-- Check Celery: `docker logs scitex-cloud-nas-celery_worker-1`
+- Check Celery: `docker logs scitex-cloud-prod-celery_worker-1`
 - Verify Flower: http://localhost:8000/flower/
 - Check filesystem: `ls -la /tmp/scitex_charts/`
 
 **4. Git push fails**
 - Verify SSH port: `nc -zv localhost 2222`
-- Check Gitea logs: `docker logs scitex-cloud-nas-gitea-1`
+- Check Gitea logs: `docker logs scitex-cloud-prod-gitea-1`
 - Verify keys: Gitea web UI → Settings → SSH Keys
 
 ### Debug Commands
 
 ```bash
 # Service status
-make ENV=nas status
+make ENV=prod status
 
 # View logs
-docker logs scitex-cloud-nas-django-1 --tail 100 -f
+docker logs scitex-cloud-prod-django-1 --tail 100 -f
 
 # Execute command in container
-docker exec -it scitex-cloud-nas-django-1 bash
+docker exec -it scitex-cloud-prod-django-1 bash
 
 # Check SLURM from container
-docker exec scitex-cloud-nas-django-1 su scitex -c "sinfo"
+docker exec scitex-cloud-prod-django-1 su scitex -c "sinfo"
 
 # Test database connection
-docker exec scitex-cloud-nas-django-1 python manage.py dbshell
+docker exec scitex-cloud-prod-django-1 python manage.py dbshell
 
 # Clear Redis cache
-docker exec scitex-cloud-nas-redis-1 redis-cli FLUSHALL
+docker exec scitex-cloud-prod-redis-1 redis-cli FLUSHALL
 
 # Restart services
-make ENV=nas restart
+make ENV=prod restart
 ```
 
 ---

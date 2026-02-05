@@ -109,7 +109,7 @@ SHELL := /bin/bash
 # ============================================
 # Configuration
 # ============================================
-VALID_ENVS := dev nas stag staging prod
+VALID_ENVS := dev staging prod
 
 # Accept both env= and ENV= (convert lowercase to uppercase) - MUST BE FIRST
 ifdef env
@@ -147,21 +147,18 @@ CMD_BUILD := docker compose build
 # Check if ENV is specified and valid
 ifdef ENV
   ifeq ($(filter $(ENV),$(VALID_ENVS)),)
-    $(error Invalid ENV='$(ENV)'. Must be one of: dev, nas, staging, prod)
+    $(error Invalid ENV='$(ENV)'. Must be one of: dev, staging, prod)
   endif
   # Set DOCKER_DIR based on environment (each env has its own docker-compose.yml)
   ifeq ($(ENV),dev)
     DOCKER_DIR := $(DOCKER_BASE_DIR)/docker_dev
     COMPOSE_CMD := docker compose
-  else ifeq ($(ENV),nas)
-    DOCKER_DIR := $(DOCKER_BASE_DIR)/docker_nas
-    COMPOSE_CMD := docker compose
   else ifeq ($(ENV),staging)
     DOCKER_DIR := $(DOCKER_BASE_DIR)
     COMPOSE_CMD := docker compose -f docker-compose.yml -f docker-compose.staging.yml
   else ifeq ($(ENV),prod)
-    DOCKER_DIR := $(DOCKER_BASE_DIR)
-    COMPOSE_CMD := docker compose -f docker-compose.yml -f docker-compose.prod.yml
+    DOCKER_DIR := $(DOCKER_BASE_DIR)/docker_prod
+    COMPOSE_CMD := docker compose
   endif
   # Export SCITEX_ENV for docker-compose to use in env_file selection
   export SCITEX_ENV := $(ENV)
@@ -433,7 +430,7 @@ start:
 		fi; \
 		echo ""; \
 	fi
-	@# Stop conflicting environments (dev only; allow prod/staging/nas to coexist)
+	@# Stop conflicting environments (dev only; allow prod/staging to coexist)
 	@cd $(DOCKER_BASE_DIR) && \
 	for env in dev; do \
 		if [ "$$env" != "$(ENV)" ]; then \

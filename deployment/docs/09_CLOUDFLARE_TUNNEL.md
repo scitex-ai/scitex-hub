@@ -8,7 +8,7 @@
 
 ## Prerequisites
 
-- A home server (NAS, etc.) with Docker running
+- A home server (production server, etc.) with Docker running
 - A domain name (e.g., scitex.ai)
 - A Cloudflare account
 
@@ -17,7 +17,7 @@
 1. Log in to https://one.dash.cloudflare.com/
 2. Navigate to Networks → Connectors → Create a tunnel
 3. Select Cloudflared
-4. Enter a tunnel name (e.g., my_nas)
+4. Enter a tunnel name (e.g., my_server)
 5. Copy the token that is displayed
 
 ## 2. Server-Side Configuration

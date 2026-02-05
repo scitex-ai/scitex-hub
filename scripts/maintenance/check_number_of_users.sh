@@ -26,7 +26,7 @@ echo_header() { echo_info "=== $1 ==="; }
 main() {
     echo_header "Checking User Count"
 
-    local container="scitex-cloud-nas-django-1"
+    local container="scitex-cloud-prod-django-1"
 
     # Check if container is running
     if ! docker ps --format "{{.Names}}" | grep -q "^${container}$"; then

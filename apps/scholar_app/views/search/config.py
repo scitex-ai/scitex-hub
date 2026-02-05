@@ -10,7 +10,7 @@ User-specific limits can override defaults via UserPreference.search_limits.
 
 Environment variables:
     SCITEX_SEARCH_LIMIT_LOCAL: Override limit for local databases (default: 10000 prod, 2000 dev)
-    SCITEX_ENV: Environment name ('dev', 'nas') - affects default limits
+    SCITEX_ENV: Environment name ('dev', 'prod') - affects default limits
 """
 
 from __future__ import annotations

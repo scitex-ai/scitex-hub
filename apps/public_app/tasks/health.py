@@ -132,8 +132,8 @@ Please check the server status.
 
 Possible actions:
 1. Check Docker containers: docker ps
-2. Check Django logs: docker logs scitex-cloud-nas-django-1
-3. Restart services: docker restart scitex-cloud-nas-django-1
+2. Check Django logs: docker logs scitex-cloud-prod-django-1
+3. Restart services: docker restart scitex-cloud-prod-django-1
 """,
             from_email=sender,
             recipient_list=[recipient],

@@ -17,7 +17,7 @@ from ..utils.docker import DockerManager
     "--env",
     type=click.Choice(list(ENVIRONMENTS.keys())),
     default=None,
-    help="Target environment (dev, nas)",
+    help="Target environment (dev, prod)",
 )
 @click.option("--build", is_flag=True, help="Rebuild containers before deploying")
 @click.option("--no-cache", is_flag=True, help="Build without cache")
@@ -32,7 +32,7 @@ def deploy(ctx, env, build, no_cache):
     \b
     Examples:
         scitex-cloud deploy              # Deploy with current settings
-        scitex-cloud deploy --env nas    # Deploy to NAS environment
+        scitex-cloud deploy --env prod   # Deploy to production environment
         scitex-cloud deploy --build      # Rebuild and deploy
     """
     environment = get_environment(env)

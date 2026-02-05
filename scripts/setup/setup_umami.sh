@@ -23,8 +23,8 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
 # Determine environment
 ENV="${1:-dev}"
-if [[ "$ENV" != "dev" && "$ENV" != "nas" ]]; then
-    log_error "Usage: $0 [dev|nas]"
+if [[ "$ENV" != "dev" && "$ENV" != "prod" ]]; then
+    log_error "Usage: $0 [dev|prod]"
     exit 1
 fi
 

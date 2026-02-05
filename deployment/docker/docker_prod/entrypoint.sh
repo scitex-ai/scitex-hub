@@ -2,7 +2,7 @@
 set -e
 
 # ============================================
-# Production/NAS Environment Entrypoint
+# Production Environment Entrypoint
 # ============================================
 
 # Source common libraries
@@ -12,7 +12,7 @@ source /app/deployment/docker/common/lib/django.src
 source /app/deployment/docker/common/lib/scitex.src
 source /app/deployment/docker/common/lib/slurm.src
 
-echo -e "🏭 NAS Environment"
+echo -e "🏭 Production Environment"
 
 # ============================================
 # Sync SLURM UID with Host (Required for Terminal)
@@ -27,7 +27,7 @@ verify_scitex_package
 # Ensure we're NOT using editable install
 if [ -d "/scitex-code" ]; then
     echo -e "⚠️  WARNING: /scitex-code detected in production!"
-    echo -e "   This should not be mounted in prod/nas environments."
+    echo -e "   This should not be mounted in production environments."
     echo -e "   Using PyPI version anyway..."
 fi
 

@@ -65,7 +65,7 @@ docker images | grep crossref
 docker-compose -f docker-compose.crossref.yml up -d
 
 # Check logs
-docker logs -f scitex-crossref-local-nas
+docker logs -f scitex-crossref-local-prod
 
 # Wait for startup (check health)
 curl http://localhost:31291/health
@@ -202,10 +202,10 @@ environment:
 ls -lh /home/ywatanabe/proj/crossref_local/data/
 
 # Check Docker logs
-docker logs scitex-crossref-local-nas
+docker logs scitex-crossref-local-prod
 
 # Verify volume mount
-docker inspect scitex-crossref-local-nas | grep -A 10 Mounts
+docker inspect scitex-crossref-local-prod | grep -A 10 Mounts
 ```
 
 ### Database not found
@@ -288,13 +288,13 @@ watch -n 10 'curl -s http://localhost:31291/health | jq'
 
 ```bash
 # Follow logs
-docker logs -f scitex-crossref-local-nas
+docker logs -f scitex-crossref-local-prod
 
 # Last 100 lines
-docker logs --tail 100 scitex-crossref-local-nas
+docker logs --tail 100 scitex-crossref-local-prod
 
 # With timestamps
-docker logs -t scitex-crossref-local-nas
+docker logs -t scitex-crossref-local-prod
 ```
 
 ### Performance Metrics
@@ -304,10 +304,10 @@ docker logs -t scitex-crossref-local-nas
 curl http://localhost:31291/api/stats/ | jq
 
 # Container stats
-docker stats scitex-crossref-local-nas
+docker stats scitex-crossref-local-prod
 
 # Disk usage
-docker exec scitex-crossref-local-nas du -sh /data
+docker exec scitex-crossref-local-prod du -sh /data
 ```
 
 ## Development
@@ -347,14 +347,14 @@ docker-compose -f docker-compose.crossref.yml up -d
 ### Add to Main docker-compose.yml
 
 ```yaml
-# In deployment/docker/docker_nas/docker-compose.yml
+# In deployment/docker/docker_prod/docker-compose.yml
 
 services:
   # ... existing services ...
 
   crossref-local:
     build: ../crossref_local/
-    container_name: scitex-crossref-local-nas
+    container_name: scitex-crossref-local-prod
     expose:
       - "31291"  # Only exposed to internal network
     volumes:
@@ -377,7 +377,7 @@ services:
 ### Start Everything Together
 
 ```bash
-cd deployment/docker/docker_nas
+cd deployment/docker/docker_prod
 docker-compose up -d
 
 # Verify all services
@@ -392,7 +392,7 @@ docker-compose ps
 ## Support
 
 For issues or questions:
-- Check logs: `docker logs scitex-crossref-local-nas`
+- Check logs: `docker logs scitex-crossref-local-prod`
 - Review docs: `docs/CROSSREF_*.md`
 - Test API: `bash test_api.sh`
 

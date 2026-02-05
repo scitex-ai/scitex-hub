@@ -30,7 +30,7 @@ make env=dev status
 # Fix host config
 
 ``` bash
-sed -i 's/SlurmctldHost=DXP480TPLUS-994/SlurmctldHost=host.docker.internal/' slurm-docker-nas.conf
+sed -i 's/SlurmctldHost=DXP480TPLUS-994/SlurmctldHost=host.docker.internal/' slurm-docker-prod.conf
 ```
 
 

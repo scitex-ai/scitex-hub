@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================
-# Root-level initialization for NAS deployment
+# Root-level initialization for production deployment
 # MUST run as root before dropping to scitex user
 # ============================================
 set -e
@@ -85,13 +85,13 @@ echo "✅ .scitex directory permissions fixed"
 # ============================================
 # Fix user data directory permissions
 # ============================================
-# NAS bind mounts can lose permissions (show as d--------- inside container)
+# Production bind mounts can lose permissions (show as d--------- inside container)
 # This fixes permissions on startup to ensure user directories are accessible
 if [ -d "/app/data/users" ]; then
     # Check if any user directory has broken permissions
     BROKEN_PERMS=$(find /app/data/users -maxdepth 2 -type d ! -perm -755 2>/dev/null | head -1)
     if [ -n "$BROKEN_PERMS" ]; then
-        echo "🔧 Fixing user data directory permissions (NAS bind mount issue)..."
+        echo "🔧 Fixing user data directory permissions (bind mount issue)..."
         chmod -R 755 /app/data/users 2>/dev/null || true
         chown -R scitex:scitex /app/data/users 2>/dev/null || true
         echo "✅ User data permissions fixed"

@@ -1,15 +1,15 @@
-# NAS Deployment
+# Production Deployment
 
 Home server with Cloudflare Tunnel (no port forwarding needed).
 
 ## Quick Start
 
 ```bash
-make ENV=nas start    # Start all services
-make ENV=nas status   # Check status
-make ENV=nas logs     # View logs
-make ENV=nas restart  # Restart services
-make ENV=nas rebuild  # Full rebuild (causes downtime)
+make ENV=prodstart    # Start all services
+make ENV=prodstatus   # Check status
+make ENV=prodlogs     # View logs
+make ENV=prodrestart  # Restart services
+make ENV=prodrebuild  # Full rebuild (causes downtime)
 ```
 
 ## Services & Access
@@ -32,11 +32,11 @@ make ENV=nas rebuild  # Full rebuild (causes downtime)
 1. Go to https://one.dash.cloudflare.com
 2. Navigate to **Networks** → **Tunnels**
 3. Click **Create a tunnel**
-4. Name: `scitex-nas` (or similar)
+4. Name: `scitex-prod` (or similar)
 5. Copy the tunnel token
 6. Add to `.env`:
    ```
-   SCITEX_CLOUD_CLOUDFLARE_TUNNEL_TOKEN_NAS=<your-token>
+   SCITEX_CLOUD_CLOUDFLARE_TUNNEL_TOKEN_PROD=<your-token>
    ```
 
 ### Adding Public Hostnames
@@ -71,12 +71,12 @@ For each service, add a public hostname in the tunnel configuration:
 
 **Tunnel not connecting:**
 ```bash
-docker logs scitex-cloud-nas-cloudflared-1
+docker logs scitex-cloud-prod-cloudflared-1
 ```
 
 **502 Bad Gateway:**
-- Check if nginx and django are healthy: `make ENV=nas status`
-- Check django logs: `docker logs scitex-cloud-nas-django-1`
+- Check if nginx and django are healthy: `make ENV=prodstatus`
+- Check django logs: `docker logs scitex-cloud-prod-django-1`
 
 ## Umami Analytics Setup
 
@@ -84,8 +84,8 @@ docker logs scitex-cloud-nas-cloudflared-1
 1. Database is auto-created on first start
 2. If container fails with "database does not exist":
    ```bash
-   docker exec scitex-cloud-nas-postgres-1 psql -U scitex_nas -d postgres -c "CREATE DATABASE umami;"
-   docker restart scitex-cloud-nas-umami-1
+   docker exec scitex-cloud-prod-postgres-1 psql -U scitex_prod -d postgres -c "CREATE DATABASE umami;"
+   docker restart scitex-cloud-prod-umami-1
    ```
 
 ### Access & Login
@@ -103,7 +103,7 @@ docker logs scitex-cloud-nas-cloudflared-1
 
 ### Environment Variables
 ```env
-SCITEX_CLOUD_UMAMI_PORT_NAS=3300
+SCITEX_CLOUD_UMAMI_PORT_PROD=3300
 SCITEX_CLOUD_UMAMI_APP_SECRET=<random-secret>
 ```
 
@@ -112,19 +112,19 @@ SCITEX_CLOUD_UMAMI_APP_SECRET=<random-secret>
 ### PostgreSQL
 ```bash
 # Connect to postgres
-docker exec -it scitex-cloud-nas-postgres-1 psql -U scitex_nas -d scitex_cloud_nas
+docker exec -it scitex-cloud-prod-postgres-1 psql -U scitex_prod -d scitex_cloud_prod
 
 # List databases
-docker exec scitex-cloud-nas-postgres-1 psql -U scitex_nas -d postgres -c "\l"
+docker exec scitex-cloud-prod-postgres-1 psql -U scitex_prod -d postgres -c "\l"
 
 # Backup
-docker exec scitex-cloud-nas-postgres-1 pg_dump -U scitex_nas scitex_cloud_nas > backup.sql
+docker exec scitex-cloud-prod-postgres-1 pg_dump -U scitex_prod scitex_cloud_prod > backup.sql
 ```
 
 ### Redis
 ```bash
 # Check Redis
-docker exec scitex-cloud-nas-redis-1 redis-cli ping
+docker exec scitex-cloud-prod-redis-1 redis-cli ping
 ```
 
 ## Common Issues
@@ -135,12 +135,12 @@ docker exec scitex-cloud-nas-redis-1 redis-cli ping
 
 ### Umami "database does not exist"
 ```bash
-docker exec scitex-cloud-nas-postgres-1 psql -U scitex_nas -d postgres -c "CREATE DATABASE umami;"
-docker restart scitex-cloud-nas-umami-1
+docker exec scitex-cloud-prod-postgres-1 psql -U scitex_prod -d postgres -c "CREATE DATABASE umami;"
+docker restart scitex-cloud-prod-umami-1
 ```
 
 ### Services not starting after rebuild
 ```bash
-make ENV=nas status  # Check which services are unhealthy
+make ENV=prodstatus  # Check which services are unhealthy
 docker logs <container-name>  # Check specific logs
 ```

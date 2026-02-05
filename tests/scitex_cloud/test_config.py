@@ -68,11 +68,11 @@ class TestEnvironments:
         assert ENVIRONMENTS["dev"].name == "dev"
         assert ENVIRONMENTS["dev"].host == "127.0.0.1"
 
-    def test_nas_environment_exists(self):
-        """Test nas environment is defined."""
-        assert "nas" in ENVIRONMENTS
-        assert ENVIRONMENTS["nas"].name == "nas"
-        assert ENVIRONMENTS["nas"].host == "0.0.0.0"
+    def test_prod_environment_exists(self):
+        """Test prod environment is defined."""
+        assert "prod" in ENVIRONMENTS
+        assert ENVIRONMENTS["prod"].name == "prod"
+        assert ENVIRONMENTS["prod"].host == "0.0.0.0"
 
 
 class TestGetEnvironment:
@@ -83,10 +83,10 @@ class TestGetEnvironment:
         env = get_environment("dev")
         assert env.name == "dev"
 
-    def test_get_nas_environment(self):
-        """Test getting nas environment by name."""
-        env = get_environment("nas")
-        assert env.name == "nas"
+    def test_get_prod_environment(self):
+        """Test getting prod environment by name."""
+        env = get_environment("prod")
+        assert env.name == "prod"
 
     def test_invalid_environment_raises(self):
         """Test invalid environment name raises ValueError."""
@@ -108,9 +108,9 @@ class TestGetEnvironment:
         """Test auto-detect from SCITEX_CLOUD_ENV."""
         old_value = os.environ.get("SCITEX_CLOUD_ENV")
         try:
-            os.environ["SCITEX_CLOUD_ENV"] = "nas"
+            os.environ["SCITEX_CLOUD_ENV"] = "prod"
             env = get_environment(None)
-            assert env.name == "nas"
+            assert env.name == "prod"
         finally:
             if old_value:
                 os.environ["SCITEX_CLOUD_ENV"] = old_value

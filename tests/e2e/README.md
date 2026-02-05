@@ -26,11 +26,11 @@ These tests verify critical user flows against a running server. They don't test
 # Quick check against local dev
 ./tests/e2e/run_e2e.sh
 
-# Against NAS production
+# Against production
 ./tests/e2e/run_e2e.sh prod
 
-# Against NAS dev (staging)
-./tests/e2e/run_e2e.sh nas-dev
+# Against staging
+./tests/e2e/run_e2e.sh staging
 
 # Against custom URL
 ./tests/e2e/run_e2e.sh https://my-server.com
@@ -83,21 +83,21 @@ Before deploying, these tests should pass:
 ## Deployment Workflow
 
 ```
-MacBook (dev) → NAS dev (staging) → NAS prod
-     ↓               ↓                 ↓
-  run tests      run tests         run tests
+MacBook (dev) → staging → production
+     ↓               ↓         ↓
+  run tests      run tests  run tests
 ```
 
 ```bash
 # 1. Test locally
 ./tests/e2e/run_e2e.sh local
 
-# 2. Push to NAS dev, test there
-ssh nas "cd /srv/scitex-dev && git pull && docker-compose up -d"
-./tests/e2e/run_e2e.sh nas-dev
+# 2. Push to staging, test there
+ssh server "cd /srv/scitex-staging && git pull && docker-compose up -d"
+./tests/e2e/run_e2e.sh staging
 
 # 3. If passing, deploy to prod
-ssh nas "cd /srv/scitex-prod && git pull && docker-compose up -d"
+ssh server "cd /srv/scitex-prod && git pull && docker-compose up -d"
 ./tests/e2e/run_e2e.sh prod
 ```
 

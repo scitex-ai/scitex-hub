@@ -137,7 +137,7 @@ Length-prefixed JSON over Unix socket:
 The broker starts automatically before Django in entrypoint scripts:
 
 ```bash
-# deployment/docker/docker_*/entrypoint.sh
+# deployment/docker/common/scripts/entrypoint-*.sh
 start_terminal_broker_if_needed() {
     local socket_path="/tmp/scitex-terminal-broker.sock"
     if [ ! -S "$socket_path" ]; then
@@ -222,7 +222,7 @@ This should NOT happen with broker architecture. If it does:
 
 ```bash
 # Emergency: Restart container
-docker restart scitex-cloud-nas-django-1
+docker restart scitex-cloud-prod-django-1
 
 # Investigate: Check if broker was bypassed
 grep "direct pty.fork" /app/logs/django.log
