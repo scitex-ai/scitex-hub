@@ -7,33 +7,61 @@
         and integrate with your existing workflows.
     </p>
     <div class="api-info-cards">
-        <div class="api-info-card">
-            <div class="api-info-icon"><i class="fas fa-globe"></i></div>
+        <!-- Base URL Card -->
+        <div class="api-info-card api-info-card-switchable" data-switch="base-url">
+            <div class="api-card-switch">
+                <button class="switch-btn active" data-value="local" title="Local dev">Local</button>
+                <button class="switch-btn" data-value="cloud" title="Production">Cloud</button>
+            </div>
             <h4>Base URL</h4>
-            <code class="api-base-url" id="site-base-url"></code>
+            <code class="api-switchable-value"
+                  data-local="{{ request.build_absolute_uri|slice:':-1' }}"
+                  data-cloud="https://scitex.ai">{{ request.build_absolute_uri|slice:":-1" }}</code>
         </div>
-        <div class="api-info-card">
-            <div class="api-info-icon"><i class="fas fa-code"></i></div>
+        <!-- Format Card -->
+        <div class="api-info-card api-info-card-switchable" data-switch="format">
+            <div class="api-card-switch">
+                <button class="switch-btn active" data-value="json" title="JSON format">JSON</button>
+                <button class="switch-btn" data-value="bibtex" title="BibTeX export">BibTeX</button>
+            </div>
             <h4>Format</h4>
-            <span>JSON (REST)</span>
+            <code class="api-switchable-value"
+                  data-json="application/json"
+                  data-bibtex="application/x-bibtex">application/json</code>
         </div>
-        <div class="api-info-card">
-            <div class="api-info-icon"><i class="fas fa-lock"></i></div>
-            <h4>Auth</h4>
-            <span>Bearer Token / API Key</span>
+        <!-- API Key Card -->
+        <div class="api-info-card api-info-card-switchable" data-switch="auth">
+            <div class="api-card-switch">
+                <button class="switch-btn active" data-value="campaign" title="Alpha token">Campaign</button>
+                {% if user.is_authenticated %}
+                    <button class="switch-btn" data-value="mykey" title="Your key">My Key</button>
+                {% endif %}
+            </div>
+            <h4>API Key</h4>
+            <code class="api-switchable-value api-key-display"
+                  data-campaign="{{ campaign_token }}"
+                  data-mykey="{% if user_api_key %}{{ user_api_key }}{% else %}Create at /api-keys/{% endif %}">{{ campaign_token }}</code>
+            <button class="copy-btn-mini" title="Copy">
+                <i class="fas fa-copy"></i>
+            </button>
         </div>
-        <div class="api-info-card">
-            <div class="api-info-icon"><i class="fas fa-check-circle"></i></div>
+        <!-- Version Card -->
+        <div class="api-info-card api-info-card-switchable" data-switch="version">
+            <div class="api-card-switch">
+                <button class="switch-btn active" data-value="v1" title="Stable">v1</button>
+                <button class="switch-btn" data-value="latest" title="Latest">Latest</button>
+            </div>
             <h4>Version</h4>
-            <span>v1 (stable)</span>
+            <code class="api-switchable-value" data-v1="v1 (stable)" data-latest="{{ version }}">v1 (stable)</code>
         </div>
     </div>
 </section>
-
 <!-- Authentication -->
 <section id="authentication" class="api-section">
     <h2>Authentication</h2>
-    <p>SciTeX uses Bearer token authentication. You can authenticate using either JWT tokens (for user sessions) or API keys (for programmatic access).</p>
+    <p>
+        SciTeX uses Bearer token authentication. You can authenticate using either JWT tokens (for user sessions) or API keys (for programmatic access).
+    </p>
     <div class="api-tabs">
         <button class="api-tab active" data-tab="auth-jwt">JWT Token</button>
         <button class="api-tab" data-tab="auth-apikey">API Key</button>
@@ -45,7 +73,9 @@
             <div class="api-example-header">
                 <span class="method method-post">POST</span>
                 <code>/api/token/</code>
-                <button class="copy-btn" data-copy="auth-jwt-request"><i class="fas fa-copy"></i></button>
+                <button class="copy-btn" data-copy="auth-jwt-request">
+                    <i class="fas fa-copy"></i>
+                </button>
             </div>
             <div class="api-example-body">
                 <h5>Request</h5>
@@ -63,7 +93,9 @@
             </div>
         </div>
         <h4>Step 2: Use the Token</h4>
-        <p>Include the access token in the <code>Authorization</code> header:</p>
+        <p>
+            Include the access token in the <code>Authorization</code> header:
+        </p>
         <div class="api-example">
             <div class="api-example-body">
                 <pre><code>curl https://scitex.ai/scholar/api/search/?q=neural+networks \
@@ -74,7 +106,9 @@
             <i class="fas fa-info-circle"></i>
             <div>
                 <strong>Token Expiry</strong>
-                <p>Access tokens expire after 60 minutes. Use the refresh token to obtain a new access token without re-authenticating.</p>
+                <p>
+                    Access tokens expire after 60 minutes. Use the refresh token to obtain a new access token without re-authenticating.
+                </p>
             </div>
         </div>
         <h4>Refresh Token</h4>
@@ -93,7 +127,9 @@
     <div class="api-tab-content" id="auth-apikey">
         <h4>Generate an API Key</h4>
         <p>API keys provide long-lived access for scripts and integrations. Generate your API key at:</p>
-        <p><a href="{% url 'scholar_app:api_keys' %}" class="btn btn-outline-primary btn-sm"><i class="fas fa-key"></i> Manage API Keys</a></p>
+        <p>
+            <a href="{% url 'scholar_app:api_keys' %}" class="btn btn-outline-primary btn-sm"><i class="fas fa-key"></i> Manage API Keys</a>
+        </p>
         <h4>Using Your API Key</h4>
         <div class="api-example">
             <div class="api-example-body">
@@ -105,12 +141,13 @@
             <i class="fas fa-exclamation-triangle"></i>
             <div>
                 <strong>Keep Your API Key Secret</strong>
-                <p>Never expose your API key in client-side code or public repositories. Use environment variables to store keys securely.</p>
+                <p>
+                    Never expose your API key in client-side code or public repositories. Use environment variables to store keys securely.
+                </p>
             </div>
         </div>
     </div>
 </section>
-
 <!-- Quick Start -->
 <section id="quickstart" class="api-section">
     <h2>Quick Start</h2>
@@ -160,24 +197,75 @@
         </div>
     </div>
 </section>
-
 <!-- Error Handling -->
 <section id="errors" class="api-section">
     <h2>Error Handling</h2>
     <p>SciTeX uses conventional HTTP response codes to indicate success or failure.</p>
     <table class="api-table">
         <thead>
-            <tr><th>Code</th><th>Status</th><th>Description</th></tr>
+            <tr>
+                <th>Code</th>
+                <th>Status</th>
+                <th>Description</th>
+            </tr>
         </thead>
         <tbody>
-            <tr><td><code class="status-success">200</code></td><td>OK</td><td>Request succeeded</td></tr>
-            <tr><td><code class="status-success">201</code></td><td>Created</td><td>Resource created successfully</td></tr>
-            <tr><td><code class="status-error">400</code></td><td>Bad Request</td><td>Invalid request parameters</td></tr>
-            <tr><td><code class="status-error">401</code></td><td>Unauthorized</td><td>Missing or invalid authentication</td></tr>
-            <tr><td><code class="status-error">403</code></td><td>Forbidden</td><td>Access denied to this resource</td></tr>
-            <tr><td><code class="status-error">404</code></td><td>Not Found</td><td>Resource doesn't exist</td></tr>
-            <tr><td><code class="status-error">429</code></td><td>Too Many Requests</td><td>Rate limit exceeded</td></tr>
-            <tr><td><code class="status-error">500</code></td><td>Server Error</td><td>Something went wrong on our end</td></tr>
+            <tr>
+                <td>
+                    <code class="status-success">200</code>
+                </td>
+                <td>OK</td>
+                <td>Request succeeded</td>
+            </tr>
+            <tr>
+                <td>
+                    <code class="status-success">201</code>
+                </td>
+                <td>Created</td>
+                <td>Resource created successfully</td>
+            </tr>
+            <tr>
+                <td>
+                    <code class="status-error">400</code>
+                </td>
+                <td>Bad Request</td>
+                <td>Invalid request parameters</td>
+            </tr>
+            <tr>
+                <td>
+                    <code class="status-error">401</code>
+                </td>
+                <td>Unauthorized</td>
+                <td>Missing or invalid authentication</td>
+            </tr>
+            <tr>
+                <td>
+                    <code class="status-error">403</code>
+                </td>
+                <td>Forbidden</td>
+                <td>Access denied to this resource</td>
+            </tr>
+            <tr>
+                <td>
+                    <code class="status-error">404</code>
+                </td>
+                <td>Not Found</td>
+                <td>Resource doesn't exist</td>
+            </tr>
+            <tr>
+                <td>
+                    <code class="status-error">429</code>
+                </td>
+                <td>Too Many Requests</td>
+                <td>Rate limit exceeded</td>
+            </tr>
+            <tr>
+                <td>
+                    <code class="status-error">500</code>
+                </td>
+                <td>Server Error</td>
+                <td>Something went wrong on our end</td>
+            </tr>
         </tbody>
     </table>
     <h4>Error Response Format</h4>
@@ -196,39 +284,56 @@
         </div>
     </div>
 </section>
-
 <!-- Rate Limits -->
 <section id="rate-limits" class="api-section">
-    <h2>Rate Limits</h2>
+    <h2>
+        Rate Limits <span class="badge-new">Alpha</span>
+    </h2>
+    <div class="api-highlight-box">
+        <strong>Alpha Release:</strong> Current rate limits are provisional and will be adjusted based on demand and server capacity.
+    </div>
     <p>API rate limits protect the service and ensure fair usage for all users.</p>
     <div class="api-rate-limits">
         <div class="rate-limit-card">
-            <h4>Free</h4>
-            <div class="rate-limit-value">100</div>
-            <p>requests/hour</p>
-            <ul class="rate-limit-features"><li>Basic search</li><li>10 papers/export</li></ul>
+            <h4>Anonymous</h4>
+            <div class="rate-limit-value">10</div>
+            <p>requests/min</p>
+            <ul class="rate-limit-features">
+                <li>No setup required</li>
+                <li>Public API only</li>
+                <li>Per IP address</li>
+            </ul>
         </div>
         <div class="rate-limit-card featured">
-            <div class="rate-limit-badge">Popular</div>
-            <h4>Pro</h4>
-            <div class="rate-limit-value">1,000</div>
-            <p>requests/hour</p>
-            <ul class="rate-limit-features"><li>All databases</li><li>Unlimited exports</li><li>BibTeX enrichment</li></ul>
+            <div class="rate-limit-badge">Alpha Token</div>
+            <h4>Campaign</h4>
+            <div class="rate-limit-value">50</div>
+            <p>requests/min</p>
+            <ul class="rate-limit-features">
+                <li>Shared alpha token</li>
+                <li>All export formats</li>
+                <li>Per IP address</li>
+            </ul>
         </div>
         <div class="rate-limit-card">
-            <h4>Enterprise</h4>
-            <div class="rate-limit-value">Custom</div>
-            <p>unlimited</p>
-            <ul class="rate-limit-features"><li>Dedicated support</li><li>SLA guarantee</li><li>Custom integration</li></ul>
+            <h4>Registered</h4>
+            <div class="rate-limit-value">100</div>
+            <p>requests/min</p>
+            <ul class="rate-limit-features">
+                <li>Personal API key</li>
+                <li>All features</li>
+                <li>Per API key</li>
+            </ul>
         </div>
     </div>
     <h4>Rate Limit Headers</h4>
     <p>Check your current rate limit status in the response headers:</p>
     <div class="api-example">
         <div class="api-example-body">
-            <pre><code>X-RateLimit-Limit: 1000
-X-RateLimit-Remaining: 985
-X-RateLimit-Reset: 1699574400</code></pre>
+            <pre><code>X-RateLimit-Limit: 50
+X-RateLimit-Remaining: 49
+X-RateLimit-Window: 60
+X-RateLimit-KeyType: campaign</code></pre>
         </div>
     </div>
 </section>

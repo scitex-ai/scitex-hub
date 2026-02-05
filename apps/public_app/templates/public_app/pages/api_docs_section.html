@@ -1,0 +1,69 @@
+{% extends "global_base.html" %}
+
+{% load static vite %}
+
+{% block title %}{{ section_title }} - API Documentation - SciTeX{% endblock %}
+{% block meta_description %}
+    {{ section_title }} - Complete API reference for integrating with SciTeX modules.
+{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/api-docs.css' %}" />
+{% endblock %}
+{% block content %}
+    <div class="container py-4">
+        <!-- Hero Section -->
+        <header class="minimal-hero">
+            <div class="api-hero-header">
+                <h1 class="minimal-hero-title">API Documentation</h1>
+                <div class="api-hero-actions">
+                    <span class="api-version-badge">v{{ version|default:"0.6.5-alpha" }}</span>
+                    <div class="download-dropdown">
+                        <button class="btn-download" id="download-btn">
+                            <i class="fas fa-download"></i> Download Docs
+                            <i class="fas fa-caret-down"></i>
+                        </button>
+                        <div class="download-menu" id="download-menu">
+                            <a href="{% url 'public_app:api-docs-download' fmt='md' %}">
+                                <i class="fas fa-file-alt"></i> Markdown (.md)
+                            </a>
+                            <a href="{% url 'public_app:api-docs-download' fmt='pdf' %}">
+                                <i class="fas fa-file-pdf"></i> PDF
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+    </div>
+    <!-- API Settings Data for JS -->
+    <script type="application/json" id="api-settings-data">
+    {
+        "localUrl": "{{ request.build_absolute_uri|slice:':-1' }}",
+        "cloudUrl": "https://scitex.ai",
+        "campaignToken": "{{ campaign_token }}",
+        "userApiKey": "{% if user_api_key %}{{ user_api_key }}{% else %}{% endif %}",
+        "isAuthenticated": {% if user.is_authenticated %}true{% else %}false{% endif %}
+    }
+    </script>
+    <div class="container py-2">
+        <!-- Alpha Notice -->
+        <div class="api-alpha-notice">
+            <i class="fas fa-flask"></i>
+            <div>
+                <strong>Alpha Release</strong>
+                <p>API endpoints and rate limits are provisional and will be finalized based on demand and feedback.</p>
+            </div>
+        </div>
+        <div class="api-layout">
+            {% include "public_app/pages/api-docs-partials/sidebar_sections.html" %}
+            <main class="api-main">
+                <h1 class="api-section-title">{{ section_title }}</h1>
+                {% include section_template %}
+            </main>
+        </div>
+    </div>
+{% endblock %}
+{% block extra_js %}
+    {% vite_script 'public_app/pages/api-docs' %}
+{% endblock %}
