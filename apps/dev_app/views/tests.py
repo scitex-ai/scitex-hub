@@ -60,7 +60,9 @@ class TestMonitorView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        base_url = self.request.build_absolute_uri("/").rstrip("/")
+        # Use internal URL for self-testing (container listens on 8000,
+        # but host-mapped port differs per environment)
+        base_url = "http://localhost:8000"
         current_category = self.kwargs.get("category")
 
         # Build all categories

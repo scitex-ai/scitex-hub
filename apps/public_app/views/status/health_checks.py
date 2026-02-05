@@ -146,10 +146,13 @@ def check_ssh_services(status_data):
     })
 
 
-def _check_local_db(name, module_path, db_env_var, db_fallback_paths):
+def _check_local_db(name, module_path, db_env_vars, db_fallback_paths):
     """Check a local database service via module importability and DB file existence.
 
     Both CrossRef Local and OpenAlex Local use this identical check pattern.
+
+    Args:
+        db_env_vars: list of env var names to check (first found wins).
     """
     import importlib
 
@@ -175,8 +178,12 @@ def _check_local_db(name, module_path, db_env_var, db_fallback_paths):
         result["error"] = "Module missing 'search' function"
         return result
 
-    # 2. Check database file existence
-    db_path = os.environ.get(db_env_var, "")
+    # 2. Check database file existence (try multiple env var names)
+    db_path = ""
+    for env_var in db_env_vars:
+        db_path = os.environ.get(env_var, "")
+        if db_path:
+            break
     if not db_path:
         for p in db_fallback_paths:
             if Path(p).exists():
@@ -212,7 +219,7 @@ def check_api_services(status_data):
         _check_local_db(
             name="CrossRef Local",
             module_path="scitex.scholar.local_dbs.crossref_scitex",
-            db_env_var="CROSSREF_DB_PATH",
+            db_env_vars=["CROSSREF_LOCAL_DB", "CROSSREF_DB_PATH"],
             db_fallback_paths=[
                 "/data/crossref/crossref.db",
                 "/data/crossref.db",
@@ -225,7 +232,7 @@ def check_api_services(status_data):
         _check_local_db(
             name="OpenAlex Local",
             module_path="scitex.scholar.local_dbs.openalex_scitex",
-            db_env_var="OPENALEX_DB_PATH",
+            db_env_vars=["OPENALEX_LOCAL_DB", "OPENALEX_DB_PATH"],
             db_fallback_paths=[
                 "/data/openalex/openalex.db",
                 "/data/openalex.db",

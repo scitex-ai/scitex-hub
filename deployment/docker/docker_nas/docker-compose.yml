@@ -50,7 +50,7 @@ services:
       - /home/ywatanabe/proj/crossref-local/data:/data/crossref:ro
 
       # OpenAlex database for local search (read-only)
-      - /home/ywatanabe/proj/openalex_local/data:/data/openalex:ro
+      - /home/ywatanabe/proj/openalex-local/data:/data/openalex:ro
 
       # Live-editable announcement banner (no rebuild needed)
       - ../../../apps/public_app/templates/public_app/landing_partials/landing_announcement.html:/app/apps/public_app/templates/public_app/landing_partials/landing_announcement.html:ro
@@ -67,8 +67,10 @@ services:
       - SCITEX_CLOUD_DJANGO_SETTINGS_MODULE=config.settings.settings_nas
       - SCITEX_CLOUD_ENV=nas
       - PYTHONPATH=/home/scitex/.local/lib/python3.11/site-packages:/app
-      - CROSSREF_DB_PATH=/data/crossref/crossref.db
-      - OPENALEX_DB_PATH=/data/openalex/openalex.db
+      - CROSSREF_LOCAL_DB=/data/crossref/crossref.db
+      - CROSSREF_LOCAL_MODE=db
+      - OPENALEX_LOCAL_DB=/data/openalex/openalex.db
+      - OPENALEX_LOCAL_MODE=db
       - SCITEX_DIR=/app/.scitex
     depends_on:
       pgbouncer:

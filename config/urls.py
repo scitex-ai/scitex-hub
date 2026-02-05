@@ -18,6 +18,8 @@ URL Configuration for SciTeX Cloud project.
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.urls import re_path
+from django.views.static import serve
 from django.urls import include, path
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import RedirectView
@@ -213,9 +215,20 @@ urlpatterns += [
 # Custom error handlers (imported from apps)
 
 
-# Serve static and media files during development
+# Serve static and media files
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# Always serve media files via Django fallback (nginx serves in prod,
+# but staging/dev need Django to handle media when nginx is absent)
+if not settings.DEBUG:
+    urlpatterns += [
+        re_path(
+            r"^media/(?P<path>.*)$",
+            serve,
+            {"document_root": settings.MEDIA_ROOT},
+        ),
+    ]
 
 # EOF
