@@ -212,8 +212,9 @@ COPY --from=python-builder /usr/local/lib/python3.11/site-packages /usr/local/li
 COPY --from=python-builder /usr/local/bin /usr/local/bin
 # Copy Playwright cache if it exists (use wildcard to avoid failure if missing)
 COPY --from=python-builder /root/.cache/ms-playwright* /root/.cache/
-# Copy matplotlib font cache from builder (if it exists)
-COPY --from=python-builder /root/.cache/matplotlib* /root/.cache/ 2>/dev/null || true
+# Copy matplotlib font cache from builder
+# Note: The builder stage always generates this cache, so wildcard match is safe
+COPY --from=python-builder /root/.cache/matplotlib /root/.cache/matplotlib
 
 # Copy SLURM binaries and libraries from builder
 # Note: SLURM binaries start with 's' (sinfo, squeue, sbatch, srun, etc.)
