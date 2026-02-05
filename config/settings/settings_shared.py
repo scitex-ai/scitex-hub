@@ -775,7 +775,7 @@ for location in _WRITER_TEMPLATE_LOCATIONS:
 # ---------------------------------------
 CROSSREF_INTERNAL_URL = os.getenv(
     "CROSSREF_INTERNAL_URL",
-    "http://crossref:3333"
+    "http://crossref:31291"
 )
 
 # CrossRef database path for citation graph service

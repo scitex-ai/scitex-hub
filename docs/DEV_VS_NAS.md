@@ -42,7 +42,7 @@ NAS uses Cloudflare Tunnel to route SSH (port 22) to Gitea container (internal p
 | **scitex-code**     | Mounted from local directory       | Installed from PyPI             |
 | **Nginx**           | None (direct Django:8000)          | nginx:alpine reverse proxy      |
 | **Cloudflare**      | None                               | cloudflared container           |
-| **CrossRef**        | NAS via LAN (169.254.11.50:8000)   | Local container (crossref:3333) |
+| **CrossRef**        | NAS via LAN (169.254.11.50:8000)   | Local container (crossref:31291) |
 | **Celery workers**  | 4                                  | 8                               |
 | **Network subnet**  | 172.20.0.0/16                      | default bridge                  |
 
@@ -83,7 +83,7 @@ Note: In NAS, port 2222 is exposed to internet via Cloudflare Tunnel as port 22,
 | Mode         | parallel                     | parallel                     |
 | Debug        | true                         | false                        |
 | PDF Parallel | 8                            | 16                           |
-| CrossRef API | 169.254.11.50:8000 (NAS LAN) | crossref:3333 (local Docker) |
+| CrossRef API | 169.254.11.50:8000 (NAS LAN) | crossref:31291 (local Docker) |
 
 ### Search Engine Order (default.yaml)
 
@@ -106,7 +106,7 @@ When merging results from multiple engines, higher priority wins:
 - Semantic_Scholar: 2
 - PubMed/arXiv: 1
 
-Dev connects directly to NAS CrossRef via LAN ($IP_NAS_UG:8000) for full-featured search (DOI + title + authors + year). Port 3333 is DOI-only.
+Dev connects directly to NAS CrossRef via LAN ($IP_NAS_UG:8000) for full-featured search (DOI + title + authors + year). Port 31291 is DOI-only.
 
 ## Resource Quotas
 
@@ -128,7 +128,7 @@ Dev connects directly to NAS CrossRef via LAN ($IP_NAS_UG:8000) for full-feature
 
 Dev requires NAS on the same LAN for:
 
-- **CrossRef API**: Direct connection to 169.254.11.50:3333 (NAS CrossRef container)
+- **CrossRef API**: Direct connection to 169.254.11.50:31291 (NAS CrossRef container)
 - **SLURM**: Terminal/compute features (if SLURM is on NAS)
 
 Fully local (no NAS needed):

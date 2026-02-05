@@ -146,45 +146,92 @@ def check_ssh_services(status_data):
     })
 
 
+def _check_local_db(name, module_path, db_env_var, db_fallback_paths):
+    """Check a local database service via module importability and DB file existence.
+
+    Both CrossRef Local and OpenAlex Local use this identical check pattern.
+    """
+    import importlib
+
+    result = {
+        "name": name,
+        "is_running": False,
+        "status": "unavailable",
+        "health_class": "unhealthy",
+    }
+
+    # 1. Check module importability
+    try:
+        mod = importlib.import_module(module_path)
+        has_search = hasattr(mod, "search")
+        has_get = hasattr(mod, "get")
+        result["module"] = True
+        result["functions"] = {"search": has_search, "get": has_get}
+    except ImportError as e:
+        result["error"] = f"Package not installed: {e}"
+        return result
+
+    if not has_search:
+        result["error"] = "Module missing 'search' function"
+        return result
+
+    # 2. Check database file existence
+    db_path = os.environ.get(db_env_var, "")
+    if not db_path:
+        for p in db_fallback_paths:
+            if Path(p).exists():
+                db_path = p
+                break
+
+    if db_path and Path(db_path).exists():
+        db_size_gb = round(Path(db_path).stat().st_size / (1024**3), 1)
+        result.update({
+            "is_running": True,
+            "status": "healthy",
+            "health_class": "healthy",
+            "db_path": db_path,
+            "details": f"DB {db_size_gb} GB",
+        })
+    else:
+        result.update({
+            "status": "degraded",
+            "health_class": "warning",
+            "details": "Module available, database not mounted",
+            "db_path": db_path or "not configured",
+        })
+
+    return result
+
+
 def check_api_services(status_data):
-    """Check API services (CrossRef, Gitea HTTP)."""
+    """Check API services (CrossRef Local, OpenAlex Local, Gitea HTTP)."""
     status_data["api_services"] = []
 
-    # CrossRef API - check /health endpoint
-    try:
-        response = requests.get("http://crossref:3333/health", timeout=5)
-        is_healthy = response.status_code == 200
-        data = response.json() if is_healthy else {}
-        status_data["api_services"].append({
-            "name": "CrossRef API",
-            "url": "crossref:3333",
-            "public_url": "https://crossref.scitex.ai",
-            "is_running": is_healthy,
-            "status": "healthy" if is_healthy else "error",
-            "health_class": "healthy" if is_healthy else "unhealthy",
-            "response_time_ms": int(response.elapsed.total_seconds() * 1000),
-            "details": data.get("status", ""),
-        })
-    except requests.exceptions.Timeout:
-        status_data["api_services"].append({
-            "name": "CrossRef API",
-            "url": "crossref:3333",
-            "public_url": "https://crossref.scitex.ai",
-            "is_running": False,
-            "status": "timeout",
-            "health_class": "unhealthy",
-            "error": "Request timed out",
-        })
-    except Exception as e:
-        status_data["api_services"].append({
-            "name": "CrossRef API",
-            "url": "crossref:3333",
-            "public_url": "https://crossref.scitex.ai",
-            "is_running": False,
-            "status": "error",
-            "health_class": "unhealthy",
-            "error": str(e),
-        })
+    # CrossRef Local DB - direct detection
+    status_data["api_services"].append(
+        _check_local_db(
+            name="CrossRef Local",
+            module_path="scitex.scholar.local_dbs.crossref_scitex",
+            db_env_var="CROSSREF_DB_PATH",
+            db_fallback_paths=[
+                "/data/crossref/crossref.db",
+                "/data/crossref.db",
+            ],
+        )
+    )
+
+    # OpenAlex Local DB - direct detection (sibling of CrossRef)
+    status_data["api_services"].append(
+        _check_local_db(
+            name="OpenAlex Local",
+            module_path="scitex.scholar.local_dbs.openalex_scitex",
+            db_env_var="OPENALEX_DB_PATH",
+            db_fallback_paths=[
+                "/data/openalex/openalex.db",
+                "/data/openalex.db",
+            ],
+        )
+    )
 
     # Gitea HTTP API - check /api/v1/version endpoint
     try:

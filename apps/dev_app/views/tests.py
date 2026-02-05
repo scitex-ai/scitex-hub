@@ -4,15 +4,13 @@
 Test monitoring dashboard view.
 
 Displays API health check results in real-time.
-Only available when DEBUG=True.
+Available in all environments for transparency.
 """
 
 import time
 from dataclasses import dataclass, field
 
 import requests
-from django.conf import settings
-from django.http import HttpResponseForbidden
 from django.views.generic import TemplateView
 
 
@@ -57,9 +55,7 @@ class TestMonitorView(TemplateView):
     template_name = "dev_app/tests.html"
 
     def dispatch(self, request, *args, **kwargs):
-        """Only allow in DEBUG mode."""
-        if not settings.DEBUG:
-            return HttpResponseForbidden("Test monitoring only available in DEBUG mode")
+        """Allow in all environments for transparency."""
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):

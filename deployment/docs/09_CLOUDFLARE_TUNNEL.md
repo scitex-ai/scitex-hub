@@ -121,7 +121,7 @@ Add subdomains similarly:
 | Subdomain | Domain         | Type | URL           | Description              |
 |-----------|----------------|------|---------------|--------------------------|
 | git       | yourdomain.com | HTTP | gitea:3000    | Git server (HTTP)        |
-| crossref  | yourdomain.com | HTTP | crossref:3333 | CrossRef API             |
+| crossref  | yourdomain.com | HTTP | crossref:31291 | CrossRef API             |
 | ssh       | yourdomain.com | SSH  | django:2200   | SSH Gateway (workspace)  |
 | gitea     | yourdomain.com | SSH  | gitea:22      | Git SSH (Git operations) |
 

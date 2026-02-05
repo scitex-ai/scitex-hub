@@ -60,7 +60,7 @@ for location in _WRITER_TEMPLATE_LOCATIONS:
 # ---------------------------------------
 # CrossRef Local API
 # ---------------------------------------
-CROSSREF_INTERNAL_URL = os.getenv("CROSSREF_INTERNAL_URL", "http://crossref:3333")
+CROSSREF_INTERNAL_URL = os.getenv("CROSSREF_INTERNAL_URL", "http://crossref:31291")
 
 # CrossRef database path for citation graph service
 CROSSREF_DB_PATH = os.getenv(

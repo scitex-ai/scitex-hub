@@ -9,7 +9,7 @@ CROSSREF_DB_PATH = os.getenv("CROSSREF_DB_PATH", "/data/crossref.db")
 
 # Server configuration
 HOST = os.getenv("HOST", "0.0.0.0")
-PORT = int(os.getenv("PORT", "3333"))
+PORT = int(os.getenv("PORT", "31291"))
 WORKERS = int(os.getenv("WORKERS", "4"))
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 

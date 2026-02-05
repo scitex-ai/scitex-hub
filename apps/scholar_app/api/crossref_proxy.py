@@ -23,7 +23,7 @@ class CrossRefAPIThrottle(AnonRateThrottle):
 
 def get_crossref_url():
     """Get internal CrossRef service URL"""
-    return getattr(settings, "CROSSREF_INTERNAL_URL", "http://crossref:3333")
+    return getattr(settings, "CROSSREF_INTERNAL_URL", "http://crossref:31291")
 
 
 def create_cache_key(endpoint, params):

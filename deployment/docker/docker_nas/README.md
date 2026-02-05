@@ -18,7 +18,7 @@ make ENV=nas rebuild  # Full rebuild (causes downtime)
 |---------|-----------|------------|---------------------|
 | SciTeX Cloud | http://localhost:8000 | https://scitex.ai | - |
 | Gitea | http://localhost:3000 | https://gitea.scitex.ai | - |
-| CrossRef API | http://localhost:3333 | https://crossref.scitex.ai | - |
+| CrossRef API | http://localhost:31291 | https://crossref.scitex.ai | - |
 | Umami Analytics | http://localhost:3300 | https://umami.scitex.ai | admin / umami |
 | Flower (Celery) | http://localhost:5555 | - | - |
 
