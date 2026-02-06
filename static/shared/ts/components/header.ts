@@ -172,14 +172,31 @@ function initializeHeader(): void {
       const timeLeft = expiresAt.getTime() - now.getTime();
 
       if (timeLeft <= 0) {
-        // Session expired - redirect to expiration page
+        // Session expired - show expired indicator
         if (countdownSpan) {
           countdownSpan.textContent = "⏰ EXPIRED";
           countdownSpan.style.color = "#f44336";
         }
-        setTimeout(() => {
-          window.location.href = "/visitor-expired/";
-        }, 2000);
+
+        // Don't redirect if already on visitor management or auth pages
+        // This prevents redirect loops when user tries to sign in/up
+        const currentPath = window.location.pathname;
+        const noRedirectPaths = [
+          "/visitor-expired/",
+          "/visitor-restart/",
+          "/visitor-pool-full/",
+          "/auth/",  // All auth pages (signin, signup, etc.)
+        ];
+
+        const shouldSkipRedirect = noRedirectPaths.some(path =>
+          currentPath.startsWith(path)
+        );
+
+        if (!shouldSkipRedirect) {
+          setTimeout(() => {
+            window.location.href = "/visitor-expired/";
+          }, 2000);
+        }
         return;
       }
 
