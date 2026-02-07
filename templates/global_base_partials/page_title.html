@@ -1,7 +1,7 @@
 {# Central page title generator - enforces consistency across all pages #}
 {% if "/scholar/" in request.path %}
     Scholar{% if current_project %} - {{ current_project.slug }}{% endif %}
-{% elif "/code/" in request.path %}
+{% elif "/console/" in request.path %}
     Console{% if current_project %} - {{ current_project.slug }}{% endif %}
 {% elif "/vis/" in request.path %}
     Visualizer{% if current_project %} - {{ current_project.slug }}{% endif %}

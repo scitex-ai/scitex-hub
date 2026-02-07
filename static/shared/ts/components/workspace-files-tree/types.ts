@@ -80,7 +80,7 @@ export interface FilterConfig {
  * This object is kept for backward compatibility but will be removed in future versions.
  */
 export const MODE_FILTERS: Record<WorkspaceMode, Partial<FilterConfig>> = {
-  code: {
+  console: {
     allowedExtensions: [], // All files visible
     hiddenPatterns: ['__pycache__', '.pyc', 'node_modules', '.git/objects'],
   },
@@ -108,7 +108,7 @@ export const MODE_FILTERS: Record<WorkspaceMode, Partial<FilterConfig>> = {
  * These will be expanded automatically on first load (before any user state is stored)
  */
 export const DEFAULT_EXPAND_PATHS: Record<WorkspaceMode, string[]> = {
-  code: ['scripts'],
+  console: ['scripts'],
   vis: ['scitex', 'scitex/vis'],
   writer: ['scitex', 'scitex/writer', 'scitex/writer/01_manuscript'],
   scholar: ['scitex', 'scitex/scholar', 'scitex/scholar/bib_files'],

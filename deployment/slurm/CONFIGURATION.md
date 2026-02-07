@@ -23,7 +23,7 @@ SCITEX_QUOTA_SLURM_MAX_RUNTIME_HOURS=32  # 32 hours
 
 ## Why 4 Hours for Express?
 
-The `express` partition is used for **interactive terminal sessions** via the Code Workspace. The 4-hour limit balances:
+The `express` partition is used for **interactive terminal sessions** via the Console Workspace. The 4-hour limit balances:
 
 1. **User Experience**: Enough time for interactive development sessions
 2. **Resource Fairness**: Prevents terminals from hogging resources indefinitely

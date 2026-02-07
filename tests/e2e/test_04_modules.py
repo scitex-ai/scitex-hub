@@ -42,7 +42,7 @@ class TestCodeModule:
 
     def test_code_index_accessible(self, api_client):
         """Code module index is accessible."""
-        resp = api_client.get("/code/", allow_redirects=False)
+        resp = api_client.get("/console/", allow_redirects=False)
         assert resp.status_code in [200, 302]
 
 

@@ -147,7 +147,7 @@ def discover_local_apps():
 apps/
 ├── auth_app/           # Authentication & user management
 ├── billing_app/        # Billing system
-├── code_app/           # SciTeX-Code integration
+├── console_app/           # SciTeX-Code integration
 ├── workspace_app/           # Core platform (landing, dashboard, middleware)
 ├── doc_app/            # Document management
 ├── gitea_app/          # Gitea integration (NEW)
@@ -192,7 +192,7 @@ Symlinked external modules:
 
 | Module | Target | Status |
 |--------|--------|--------|
-| `code` | `../../scitex_repo/src/scitex` | Symlink |
+| `console` | `../../scitex_repo/src/scitex` | Symlink |
 | `scholar` | `../../scitex_repo/src/scitex/scholar` | Symlink |
 | `viz` | `../../../win/documents/SciTeX-Viz` | Symlink |
 | `paper` | `../../neurovista/paper` | Symlink |

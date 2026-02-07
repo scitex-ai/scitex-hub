@@ -72,7 +72,7 @@ if __name__ == "__main__":
 # 
 # def gather_resource_statistics(user):
 #     """Gather comprehensive resource allocation statistics."""
-#     from apps.code_app.models import ProjectService
+#     from apps.console_app.models import ProjectService
 #     from apps.project_app.models import Project, RemoteCredential
 # 
 #     # Project statistics

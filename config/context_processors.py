@@ -34,7 +34,7 @@ def cache_buster(request):
             try:
                 # Check modification time of all key JS directories
                 js_dirs = [
-                    Path(settings.BASE_DIR) / "apps/code_app/static/code_app/js",
+                    Path(settings.BASE_DIR) / "apps/console_app/static/console_app/js",
                     Path(settings.BASE_DIR) / "apps/vis_app/static/vis_app/js",
                     Path(settings.BASE_DIR) / "apps/writer_app/static/writer_app/js",
                     Path(settings.BASE_DIR) / "static/shared/js",

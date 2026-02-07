@@ -35,7 +35,7 @@ export class TreeStateManager {
           targetPaths: new Set(parsed.targetPaths || []),
           scrollTop: parsed.scrollTop || 0,
           focusPathPerMode: parsed.focusPathPerMode || {
-            code: null,
+            console: null,
             vis: null,
             writer: null,
             scholar: null,
@@ -54,7 +54,7 @@ export class TreeStateManager {
       targetPaths: new Set(),
       scrollTop: 0,
       focusPathPerMode: {
-        code: null,
+        console: null,
         vis: null,
         writer: null,
         scholar: null,
@@ -95,7 +95,7 @@ export class TreeStateManager {
             targetPaths: new Set(parsed.targetPaths || []),
             scrollTop: parsed.scrollTop || 0,
             focusPathPerMode: parsed.focusPathPerMode || {
-              code: null,
+              console: null,
               vis: null,
               writer: null,
               scholar: null,
@@ -358,7 +358,7 @@ export class TreeStateManager {
       targetPaths: new Set(),
       scrollTop: 0,
       focusPathPerMode: {
-        code: null,
+        console: null,
         vis: null,
         writer: null,
         scholar: null,

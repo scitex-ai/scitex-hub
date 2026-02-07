@@ -389,7 +389,7 @@ python manage.py migrate
 ```bash
 # Try loading specific apps
 python manage.py loaddata backup.json --app scholar_app
-python manage.py loaddata backup.json --app code_app
+python manage.py loaddata backup.json --app console_app
 
 # Skip problematic apps
 python manage.py loaddata backup.json --exclude auth --exclude contenttypes

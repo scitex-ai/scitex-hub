@@ -47,7 +47,7 @@ class TreeStateManager {
           targetPaths: new Set(parsed.targetPaths || []),
           scrollTop: parsed.scrollTop || 0,
           focusPathPerMode: parsed.focusPathPerMode || {
-            code: null, vis: null, writer: null, scholar: null, all: null,
+            console: null, vis: null, writer: null, scholar: null, all: null,
           },
           lastClickedPath: null,
         };
@@ -61,7 +61,7 @@ class TreeStateManager {
       selectedPaths: new Set(),
       targetPaths: new Set(),
       scrollTop: 0,
-      focusPathPerMode: { code: null, vis: null, writer: null, scholar: null, all: null },
+      focusPathPerMode: { console: null, vis: null, writer: null, scholar: null, all: null },
       lastClickedPath: null,
     };
   }
@@ -257,7 +257,7 @@ class TreeStateManager {
       selectedPaths: new Set(),
       targetPaths: new Set(),
       scrollTop: 0,
-      focusPathPerMode: { code: null, vis: null, writer: null, scholar: null, all: null },
+      focusPathPerMode: { console: null, vis: null, writer: null, scholar: null, all: null },
       lastClickedPath: null,
     };
     localStorage.removeItem(this.projectKey);

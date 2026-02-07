@@ -233,7 +233,7 @@ describe('code-blocks', () => {
 //         }, 2000);
 //       })
 //       .catch((err) => {
-//         console.error("Failed to copy code:", err);
+//         console.error("Failed to copy console:", err);
 //         button.classList.add("error");
 //         setTimeout(() => {
 //           button.classList.remove("error");

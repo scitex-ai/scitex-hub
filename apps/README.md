@@ -249,7 +249,7 @@ class SearchResult(models.Model):
 | scholar_app | ✅ Reorganized | Reference implementation (26 models organized into 6 modules, 9 view modules) |
 | workspace_app | 🔄 In Progress | 707 lines, 9 models - Can follow scholar_app pattern |
 | writer_app | ⏳ Pending | 1,503 lines, 20 models - Highest priority for reorganization |
-| code_app | ⏳ Pending | 5 models, 297 lines - Needs query optimization |
+| console_app | ⏳ Pending | 5 models, 297 lines - Needs query optimization |
 | integrations_app | ⏳ Pending | Needs query optimization |
 | profile_app | ⏳ Pending | Needs query optimization |
 | search_app | ⏳ Pending | Needs query optimization |
@@ -262,7 +262,7 @@ class SearchResult(models.Model):
 1. **Add Query Optimization** (5 apps - low effort, high impact)
    - Add `select_related()` and `prefetch_related()` to QuerySets
    - Reduces database queries significantly
-   - Apps: code_app, integrations_app, profile_app, search_app, social_app
+   - Apps: console_app, integrations_app, profile_app, search_app, social_app
 
 2. **Add Test Coverage** (5 apps - critical)
    - Each app should have tests.py with unit/view/service tests

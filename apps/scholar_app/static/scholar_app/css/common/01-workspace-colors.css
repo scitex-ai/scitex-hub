@@ -2,7 +2,7 @@
  * Scholar App - Workspace Colors
  *
  * Uses CSS variables for theme responsiveness (light/dark mode).
- * Follows the pattern of code_app, vis_app, and writer_app.
+ * Follows the pattern of console_app, vis_app, and writer_app.
  */
 
 /* Disable smooth scrolling for Scholar app to prevent auto-scroll behavior */

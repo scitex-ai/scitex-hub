@@ -16,7 +16,7 @@
     --vis-ruler-bg: var(--workspace-ruler-bg, #d0dae5);
     --vis-ruler-border: var(--workspace-ruler-border, #d0d7de);
 
-    /* Semantic aliases for vis editor - consistent with code_app/workspace.css */
+    /* Semantic aliases for vis editor - consistent with console_app/workspace.css */
     --vis-bg-primary: var(--workspace-bg-secondary, #f3f4f6);
     --vis-bg-secondary: var(--workspace-bg-tertiary, #ebedef);
     --vis-bg-hover: var(--workspace-bg-tertiary, #ebedef);

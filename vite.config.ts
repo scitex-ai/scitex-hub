@@ -117,8 +117,8 @@ export default defineConfig({
     // Warm up frequently used files
     warmup: {
       clientFiles: [
-        "apps/code_app/static/code_app/ts/workspace.ts",
-        "apps/code_app/static/code_app/ts/workspace/**/*.ts",
+        "apps/console_app/static/console_app/ts/workspace.ts",
+        "apps/console_app/static/console_app/ts/workspace/**/*.ts",
       ],
     },
   },
@@ -132,10 +132,10 @@ export default defineConfig({
 
     rollupOptions: {
       input: {
-        // Code app
-        "code_app/workspace": resolve(
+        // Console app
+        "console_app/workspace": resolve(
           __dirname,
-          "apps/code_app/static/code_app/ts/workspace.ts",
+          "apps/console_app/static/console_app/ts/workspace.ts",
         ),
 
         // Vis app

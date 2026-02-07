@@ -1,6 +1,6 @@
 /**
  * Type definitions for shared DataTable component
- * Used across vis_app and code_app
+ * Used across vis_app and console_app
  */
 
 export interface Dataset {

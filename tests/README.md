@@ -16,7 +16,7 @@ tests/
 │       │   └── services/
 │       ├── vis_app/
 │       ├── writer_app/
-│       ├── code_app/
+│       ├── console_app/
 │       └── ...
 │
 ├── db/                           # Database tests (Django ORM, no HTTP)
@@ -114,7 +114,7 @@ tests/
 │       ├── writer_app/
 │       │   ├── modules/
 │       │   └── writer/
-│       ├── code_app/
+│       ├── console_app/
 │       │   └── workspace/
 │       └── project_app/
 │
@@ -554,7 +554,7 @@ Path aliases configured:
 '@vis_app'     → 'apps/vis_app/static/vis_app/ts'
 '@scholar_app' → 'apps/scholar_app/static/scholar_app/ts'
 '@writer_app'  → 'apps/writer_app/static/writer_app/ts'
-'@code_app'    → 'apps/code_app/static/code_app/ts'
+'@console_app'    → 'apps/console_app/static/console_app/ts'
 '@shared'      → 'static/shared/ts'
 ```
 

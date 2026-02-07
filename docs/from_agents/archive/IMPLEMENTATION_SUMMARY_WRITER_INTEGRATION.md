@@ -128,7 +128,7 @@
 11. `apps/writer_app/templates/writer_app/writer_base.html` - NEW: Base template
 12. `apps/writer_app/default_workspace_views.py` - NEW: Default workspace (unused)
 13. `apps/scholar_app/views.py` - Login required, messages
-14. `apps/code_app/views.py` - Login required, messages
+14. `apps/console_app/views.py` - Login required, messages
 15. `apps/viz_app/views.py` - Login required, messages
 
 ### Templates

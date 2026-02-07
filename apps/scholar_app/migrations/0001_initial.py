@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ("project_app", "0001_initial"),
         ("writer_app", "0001_initial"),
-        ("code_app", "0001_initial"),
+        ("console_app", "0001_initial"),
     ]
 
     operations = [

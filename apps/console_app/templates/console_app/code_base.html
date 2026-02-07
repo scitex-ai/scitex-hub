@@ -1,0 +1,13 @@
+{% extends 'global_base.html' %}
+{% load static %}
+{% block meta_description %}Smart editor for scientific code and data analysis{% endblock %}
+{% block extra_css %}
+    <!-- Hero gradients CSS -->
+    <link rel="stylesheet" href="{% static 'shared/css/components/hero.css' %}" />
+    <!-- App-specific CSS -->
+    <link rel="stylesheet"
+          href="{% static 'shared/css/console_app/console_app.css' %}" />
+{% endblock %}
+{% block content %}
+    {% block code_content %}{% endblock %}
+{% endblock %}

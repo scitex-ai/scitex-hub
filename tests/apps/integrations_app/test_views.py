@@ -90,7 +90,7 @@ if __name__ == "__main__":
 # 
 #     # Get authorization code
 #     code = request.GET.get("code")
-#     if not code:
+#     if not console:
 #         error = request.GET.get("error", "Unknown error")
 #         messages.error(request, f"ORCID authorization failed: {error}")
 #         return redirect("integrations_app:dashboard")

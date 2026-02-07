@@ -125,7 +125,7 @@ urlpatterns = [
     path("auth/social/", include("allauth.urls")),
     # Main Modules
     path("scholar/", include(("apps.scholar_app.urls", "scholar_app"))),
-    path("code/", include(("apps.code_app.urls", "code_app"))),
+    path("console/", include(("apps.console_app.urls", "console_app"))),
     path("vis/", include(("apps.vis_app.urls", "vis"))),
     path("writer/", include(("apps.writer_app.urls", "writer_app"))),
     path("workspace/", include(("apps.workspace_app.urls", "workspace_app"))),

@@ -1,0 +1,485 @@
+{% extends "console_app/code_base.html" %}
+{% load static %}
+{% block extra_css %}
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/codemirror.min.css" />
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/theme/monokai.min.css" />
+    <style>
+  .job-header {
+    background: linear-gradient(
+      135deg,
+      var(--primary-color),
+      var(--secondary-color)
+    );
+    color: white;
+    padding: var(--spacing-xl) 0;
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .job-status {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 500;
+    text-transform: uppercase;
+    display: inline-block;
+  }
+
+  .job-status.queued {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+  .job-status.running {
+    background-color: rgba(59, 130, 246, 0.8);
+  }
+  .job-status.completed {
+    background-color: rgba(34, 197, 94, 0.8);
+  }
+  .job-status.failed {
+    background-color: rgba(239, 68, 68, 0.8);
+  }
+  .job-status.timeout {
+    background-color: rgba(245, 158, 11, 0.8);
+  }
+  .job-status.cancelled {
+    background-color: rgba(107, 114, 128, 0.8);
+  }
+
+  .metric-card {
+    background: white;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    text-align: center;
+    height: 100%;
+  }
+
+  .metric-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+  }
+
+  .metric-label {
+    color: var(--gray-600);
+    margin-top: var(--spacing-xs);
+    font-size: 0.9rem;
+  }
+
+  .code-section {
+    background: white;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--border-radius);
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .code-header {
+    padding: var(--spacing-md);
+    background-color: var(--gray-50);
+    border-bottom: 1px solid var(--gray-300);
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+  }
+
+  .CodeMirror {
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+  }
+
+  .output-section {
+    background: var(--gray-900);
+    color: var(--light-color);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius);
+    font-family: monospace;
+    white-space: pre-wrap;
+    overflow-x: auto;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .file-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--spacing-md);
+  }
+
+  .file-card {
+    background: white;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    text-align: center;
+    transition: box-shadow 0.2s ease;
+  }
+
+  .file-card:hover {
+    box-shadow: var(--box-shadow);
+  }
+
+  .file-icon {
+    font-size: 2rem;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .file-icon.image {
+    color: #10b981;
+  }
+  .file-icon.data {
+    color: #3b82f6;
+  }
+  .file-icon.document {
+    color: #f59e0b;
+  }
+
+  .progress-section {
+    background: white;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .progress-bar {
+    height: 8px;
+    background-color: var(--gray-300);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: var(--spacing-sm) 0;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background-color: var(--primary-color);
+    transition: width 0.3s ease;
+  }
+
+  .nav-tabs .nav-link {
+    border: 1px solid transparent;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+  }
+
+  .nav-tabs .nav-link.active {
+    background-color: white;
+    border-color: var(--gray-300) var(--gray-300) white;
+  }
+
+  .tab-content {
+    border: 1px solid var(--gray-300);
+    border-top: none;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    padding: var(--spacing-md);
+    background: white;
+  }
+    </style>
+{% endblock %}
+{% block extra_js %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/mode/python/python.min.js"></script>
+{% endblock %}
+{% block code_content %}
+    <!-- Job Header -->
+    <div class="job-header">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="d-flex align-items-center mb-3">
+                        <span class="job-status {{ job.status }}">{{ job.get_status_display }}</span>
+                        <span class="ms-3">{{ job.get_execution_type_display }}</span>
+                    </div>
+                    <h1>Execution Job</h1>
+                    <p class="mb-0">
+                        <i class="fas fa-calendar me-2"></i>{{ job.created_at|date:"M d, Y
+                        \a\t H:i" }}
+                        <span class="ms-3">
+                            <i class="fas fa-fingerprint me-2"></i>{{ job.job_id }}
+                        </span>
+                    </p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="btn-group" role="group">
+                        <a href="{% url "console:jobs' %}" class="btn btn-light">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Jobs
+                        </a>
+                        <a href="{% url "console:editor' %}?job={{ job.job_id }}"
+                           class="btn btn-light">
+                            <i class="fas fa-edit me-1"></i>Edit Code
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <!-- Progress Section (for running jobs) -->
+        {% if job.status == 'running' %}
+            <div class="progress-section">
+                <h5>
+                    <i class="fas fa-clock me-2"></i>Execution in Progress
+                </h5>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 50%" id="progress-fill"></div>
+                </div>
+                <div class="text-center">
+                    <small class="text-muted" id="progress-text">Running...</small>
+                </div>
+            </div>
+        {% endif %}
+        <!-- Metrics -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value">
+                        {% if job.execution_time %}
+                            {{ job.execution_time|floatformat:2 }}s
+                        {% else %}
+                            --
+                        {% endif %}
+                    </div>
+                    <div class="metric-label">Execution Time</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value">
+                        {% if job.cpu_time %}
+                            {{ job.cpu_time|floatformat:2 }}s
+                        {% else %}
+                            --
+                        {% endif %}
+                    </div>
+                    <div class="metric-label">CPU Time</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value">
+                        {% if job.memory_peak %}
+                            {{ job.memory_peak|filesizeformat }}
+                        {% else %}
+                            --
+                        {% endif %}
+                    </div>
+                    <div class="metric-label">Peak Memory</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value">{{ job.return_code|default:"--" }}</div>
+                    <div class="metric-label">Return Code</div>
+                </div>
+            </div>
+        </div>
+        <!-- Content Tabs -->
+        <ul class="nav nav-tabs" id="jobTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active"
+                        id="code-tab"
+                        data-bs-toggle="tab"
+                        data-bs-target="#code"
+                        type="button"
+                        role="tab">
+                    <i class="fas fa-code me-1"></i>Source Code
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link"
+                        id="output-tab"
+                        data-bs-toggle="tab"
+                        data-bs-target="#output"
+                        type="button"
+                        role="tab">
+                    <i class="fas fa-terminal me-1"></i>Output
+                </button>
+            </li>
+            {% if job.error_output %}
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link text-danger"
+                            id="errors-tab"
+                            data-bs-toggle="tab"
+                            data-bs-target="#errors"
+                            type="button"
+                            role="tab">
+                        <i class="fas fa-exclamation-triangle me-1"></i>Errors
+                    </button>
+                </li>
+            {% endif %}
+            {% if output_files or plot_files %}
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link"
+                            id="files-tab"
+                            data-bs-toggle="tab"
+                            data-bs-target="#files"
+                            type="button"
+                            role="tab">
+                        <i class="fas fa-folder me-1"></i>Files ({{
+                        output_files|length|add:plot_files|length }})
+                    </button>
+                </li>
+            {% endif %}
+        </ul>
+        <div class="tab-content" id="jobTabsContent">
+            <!-- Source Code -->
+            <div class="tab-pane fade show active" id="code" role="tabpanel">
+                <textarea id="source-code" readonly>{{ job.source_code }}</textarea>
+            </div>
+            <!-- Output -->
+            <div class="tab-pane fade" id="output" role="tabpanel">
+                <div class="output-section">
+                    {% if job.output %}
+                        {{ job.output }}
+                    {% else %}
+                        <div class="text-muted">No output generated</div>
+                    {% endif %}
+                </div>
+            </div>
+            <!-- Errors -->
+            {% if job.error_output %}
+                <div class="tab-pane fade" id="errors" role="tabpanel">
+                    <div class="output-section"
+                         style="background-color: #7f1d1d;
+                                color: #fecaca">{{ job.error_output }}</div>
+                </div>
+            {% endif %}
+            <!-- Files -->
+            {% if output_files or plot_files %}
+                <div class="tab-pane fade" id="files" role="tabpanel">
+                    <h5>
+                        <i class="fas fa-chart-bar me-2"></i>Generated Plots
+                    </h5>
+                    {% if plot_files %}
+                        <div class="file-grid mb-4">
+                            {% for file in plot_files %}
+                                <div class="file-card">
+                                    <div class="file-icon image">
+                                        <i class="fas fa-image"></i>
+                                    </div>
+                                    <div class="fw-bold">{{ file.name }}</div>
+                                    <small class="text-muted">{{ file.size|filesizeformat }}</small>
+                                    <div class="mt-2">
+                                        <button class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-download me-1"></i>Download
+                                        </button>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No plots generated</p>
+                    {% endif %}
+                    <h5>
+                        <i class="fas fa-file me-2"></i>Output Files
+                    </h5>
+                    {% if output_files %}
+                        <div class="file-grid">
+                            {% for file in output_files %}
+                                <div class="file-card">
+                                    <div class="file-icon data">
+                                        <i class="fas fa-file-alt"></i>
+                                    </div>
+                                    <div class="fw-bold">{{ file.name }}</div>
+                                    <small class="text-muted">{{ file.size|filesizeformat }}</small>
+                                    <div class="mt-2">
+                                        <button class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-download me-1"></i>Download
+                                        </button>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No output files generated</p>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+        <!-- Job Settings -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="metric-card">
+                    <h6>
+                        <i class="fas fa-cog me-2"></i>Execution Settings
+                    </h6>
+                    <div class="text-start">
+                        <div class="mb-2">
+                            <strong>Timeout:</strong> {{ job.timeout_seconds }}s
+                        </div>
+                        <div class="mb-2">
+                            <strong>Max Memory:</strong> {{ job.max_memory_mb }}MB
+                        </div>
+                        <div class="mb-2">
+                            <strong>Type:</strong> {{ job.get_execution_type_display }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="metric-card">
+                    <h6>
+                        <i class="fas fa-clock me-2"></i>Timeline
+                    </h6>
+                    <div class="text-start">
+                        <div class="mb-2">
+                            <strong>Created:</strong> {{ job.created_at|date:"M d, Y H:i:s" }}
+                        </div>
+                        {% if job.started_at %}
+                            <div class="mb-2">
+                                <strong>Started:</strong> {{ job.started_at|date:"M d, Y H:i:s" }}
+                            </div>
+                        {% endif %}
+                        {% if job.completed_at %}
+                            <div class="mb-2">
+                                <strong>Completed:</strong> {{ job.completed_at|date:"M d, Y H:i:s"
+                                }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize CodeMirror for source code display
+    const editor = CodeMirror.fromTextArea(document.getElementById('source-code'), {
+      mode: 'python',
+      theme: 'monokai',
+      lineNumbers: true,
+      readOnly: true,
+      lineWrapping: true
+    });
+
+    // Auto-refresh for running jobs
+    {% if job.status == 'running' %}
+    function checkJobStatus() {
+      fetch(`{% url "console:job_status' job.job_id %}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.status !== 'running') {
+            // Job completed, reload page
+            window.location.reload();
+          } else {
+            // Update progress
+            const progressFill = document.getElementById('progress-fill');
+            const progressText = document.getElementById('progress-text');
+            if (progressFill) {
+              progressFill.style.width = data.progress + '%';
+            }
+            if (progressText) {
+              progressText.textContent = `Running... ${data.progress}%`;
+            }
+          }
+        })
+        .catch(error => {
+          console.error('Status check error:', error);
+        });
+    }
+
+    // Check status every 2 seconds
+    const statusInterval = setInterval(checkJobStatus, 2000);
+
+    // Stop checking after 10 minutes
+    setTimeout(() => {
+      clearInterval(statusInterval);
+    }, 600000);
+    {% endif %}
+  });
+    </script>
+{% endblock %}

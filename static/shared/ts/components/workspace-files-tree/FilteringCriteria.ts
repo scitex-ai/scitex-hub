@@ -29,7 +29,7 @@ export const ALLOW_DIRECTORIES: Record<WorkspaceMode, string[]> = {
   scholar: ['scitex/scholar'],
   vis: ['scitex/vis'],
   writer: ['scitex/writer'],
-  code: [],  // All directories allowed
+  console: [],  // All directories allowed
   all: [],   // All directories allowed
 };
 
@@ -90,7 +90,7 @@ export const DENY_DIRECTORIES: Record<WorkspaceMode, string[]> = {
     'output',
   ],
 
-  code: [
+  console: [
     '.git',  // Too noisy even in code mode
   ],
 
@@ -111,7 +111,7 @@ export const ALLOW_FILENAMES: Record<WorkspaceMode, string[]> = {
   scholar: [],
   vis: [],
   writer: [],
-  code: [],
+  console: [],
   all: [],
 };
 
@@ -129,7 +129,7 @@ export const DENY_FILENAMES: Record<WorkspaceMode, string[]> = {
   scholar: ['.DS_Store', 'Thumbs.db'],
   vis: ['.DS_Store', 'Thumbs.db'],
   writer: ['.DS_Store', 'Thumbs.db'],
-  code: ['.DS_Store', 'Thumbs.db'],
+  console: ['.DS_Store', 'Thumbs.db'],
   all: [],
 };
 
@@ -189,7 +189,7 @@ export const ALLOW_EXTENSIONS: Record<WorkspaceMode, string[] | 'all'> = {
     '.tsv',
   ],
 
-  code: 'all',
+  console: 'all',
   all: 'all',
 };
 
@@ -216,7 +216,7 @@ export const DENY_EXTENSIONS: Record<WorkspaceMode, string[]> = {
     '.fls',
     '.fdb_latexmk',
   ],
-  code: [],
+  console: [],
   all: [],
 };
 
@@ -270,7 +270,7 @@ export const PRESERVE_EMPTY_DIRECTORIES: Record<WorkspaceMode, string[]> = {
     'tables',
   ],
 
-  code: [],
+  console: [],
   all: [],
 };
 
@@ -327,7 +327,7 @@ export const DEFAULT_FOCUS_PATHS: Record<WorkspaceMode, string> = {
   scholar: 'scitex/scholar',
   vis: 'scitex/vis',
   writer: 'scitex/writer/01_manuscript',
-  code: 'scripts',
+  console: 'scripts',
   all: '',
 };
 

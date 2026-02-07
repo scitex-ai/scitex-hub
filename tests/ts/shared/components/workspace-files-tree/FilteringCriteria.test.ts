@@ -56,7 +56,7 @@ describe('FilteringCriteria', () => {
 //   scholar: ['scitex/scholar'],
 //   vis: ['scitex/vis'],
 //   writer: ['scitex/writer'],
-//   code: [],  // All directories allowed
+//   console: [],  // All directories allowed
 //   all: [],   // All directories allowed
 // };
 // 
@@ -117,7 +117,7 @@ describe('FilteringCriteria', () => {
 //     'output',
 //   ],
 // 
-//   code: [
+//   console: [
 //     '.git',  // Too noisy even in code mode
 //   ],
 // 
@@ -138,7 +138,7 @@ describe('FilteringCriteria', () => {
 //   scholar: [],
 //   vis: [],
 //   writer: [],
-//   code: [],
+//   console: [],
 //   all: [],
 // };
 // 
@@ -156,7 +156,7 @@ describe('FilteringCriteria', () => {
 //   scholar: ['.DS_Store', 'Thumbs.db'],
 //   vis: ['.DS_Store', 'Thumbs.db'],
 //   writer: ['.DS_Store', 'Thumbs.db'],
-//   code: ['.DS_Store', 'Thumbs.db'],
+//   console: ['.DS_Store', 'Thumbs.db'],
 //   all: [],
 // };
 // 
@@ -216,7 +216,7 @@ describe('FilteringCriteria', () => {
 //     '.tsv',
 //   ],
 // 
-//   code: 'all',
+//   console: 'all',
 //   all: 'all',
 // };
 // 
@@ -243,7 +243,7 @@ describe('FilteringCriteria', () => {
 //     '.fls',
 //     '.fdb_latexmk',
 //   ],
-//   code: [],
+//   console: [],
 //   all: [],
 // };
 // 
@@ -297,7 +297,7 @@ describe('FilteringCriteria', () => {
 //     'tables',
 //   ],
 // 
-//   code: [],
+//   console: [],
 //   all: [],
 // };
 // 
@@ -354,7 +354,7 @@ describe('FilteringCriteria', () => {
 //   scholar: 'scitex/scholar',
 //   vis: 'scitex/vis',
 //   writer: 'scitex/writer/01_manuscript',
-//   code: 'scripts',
+//   console: 'scripts',
 //   all: '',
 // };
 // 
