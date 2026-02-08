@@ -100,12 +100,22 @@
   --workspace-ruler-bg: #d0dae5; /* Rulers and guides background - distinct from white canvas */
   --workspace-ruler-border: #d0d7de; /* Ruler borders */
 
-  /* Workspace icons - softer green tones matching status-success */
-  --workspace-icon-primary: #4a9b7e; /* Soft green - primary actions (matches status-success) */
+  /* Workspace icon color scheme (TOGGLE: swap _icon-green ↔ _icon-white below) */
+  /* Green scheme */
+  --_icon-green-primary: #4a9b7e;
+  --_icon-green-hover: #3d8269;
+  --_icon-green-active: #306854;
+  /* White/neutral scheme (eye-friendly) */
+  --_icon-white-primary: #6b7280;
+  --_icon-white-hover: #4b5563;
+  --_icon-white-active: #374151;
+
+  /* Active scheme: change '_icon-green' to '_icon-white' to switch */
+  --workspace-icon-primary: var(--_icon-green-primary);
   --workspace-icon-secondary: #6b7280; /* Gray - secondary actions */
   --workspace-icon-muted: #9ca3af; /* Light gray - muted/inactive */
-  --workspace-icon-hover: #3d8269; /* Darker soft green - hover state */
-  --workspace-icon-active: #306854; /* Deep soft green - active state */
+  --workspace-icon-hover: var(--_icon-green-hover);
+  --workspace-icon-active: var(--_icon-green-active);
 
   /* Status */
   --status-success: var(--_success);
@@ -210,12 +220,22 @@
   --workspace-ruler-bg: #1a1a1a; /* Rulers and guides background - distinct from dark canvas */
   --workspace-ruler-border: #1a1a1a; /* Ruler borders */
 
-  /* Workspace icons - softer green tones matching status-success for dark mode */
-  --workspace-icon-primary: #6ba89a; /* Soft green - primary actions (matches status-success) */
+  /* Workspace icon color scheme (TOGGLE: swap _icon-green ↔ _icon-white below) */
+  /* Green scheme (dark mode) */
+  --_icon-green-primary: #6ba89a;
+  --_icon-green-hover: #7eb8aa;
+  --_icon-green-active: #91c8ba;
+  /* White/neutral scheme (eye-friendly, dark mode) */
+  --_icon-white-primary: #9ca3af;
+  --_icon-white-hover: #b0b7c3;
+  --_icon-white-active: #c4cad4;
+
+  /* Active scheme: change '_icon-green' to '_icon-white' to switch */
+  --workspace-icon-primary: var(--_icon-green-primary);
   --workspace-icon-secondary: #9ca3af; /* Light gray - secondary actions */
   --workspace-icon-muted: #6b7280; /* Medium gray - muted/inactive */
-  --workspace-icon-hover: #7eb8aa; /* Lighter soft green - hover state */
-  --workspace-icon-active: #91c8ba; /* Very light soft green - active state */
+  --workspace-icon-hover: var(--_icon-green-hover);
+  --workspace-icon-active: var(--_icon-green-active);
 
   /* Terminal colors - dark theme */
   --terminal-bg: #1e1e1e;
