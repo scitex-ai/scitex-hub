@@ -449,4 +449,23 @@ export class WorkspaceFilesTree {
   getShowHidden(): boolean {
     return this.filter.getShowHidden();
   }
+
+  /** Toggle module-specific filtering and re-render */
+  toggleModuleFilter(): boolean {
+    const newState = !this.filter.getModuleFilterEnabled();
+    this.filter.setModuleFilterEnabled(newState);
+    this.rerender();
+    return newState;
+  }
+
+  /** Set whether module-specific filtering is enabled and re-render */
+  setModuleFilterEnabled(enabled: boolean): void {
+    this.filter.setModuleFilterEnabled(enabled);
+    this.rerender();
+  }
+
+  /** Get whether module-specific filtering is enabled */
+  getModuleFilterEnabled(): boolean {
+    return this.filter.getModuleFilterEnabled();
+  }
 }

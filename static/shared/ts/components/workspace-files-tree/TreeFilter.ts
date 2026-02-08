@@ -18,6 +18,7 @@ import {
 export class TreeFilter {
   private config: FilterConfig;
   private showHidden = false;
+  private moduleFilterEnabled = true;
 
   constructor(mode: WorkspaceMode, customConfig?: Partial<FilterConfig>) {
     // Use centralized FilteringCriteria configuration as default
@@ -92,6 +93,11 @@ export class TreeFilter {
 
   /** Check if a file/folder should be shown as inactive (grayed out) */
   isInactive(item: TreeItem): boolean {
+    // Skip module-specific filtering when disabled
+    if (!this.moduleFilterEnabled) {
+      return false;
+    }
+
     const { name, path, type } = item;
 
     // 1. Items in blacklisted directories are shown but inactive
@@ -325,5 +331,15 @@ export class TreeFilter {
   /** Get whether dotfiles are shown */
   getShowHidden(): boolean {
     return this.showHidden;
+  }
+
+  /** Set whether module-specific filtering is enabled */
+  setModuleFilterEnabled(enabled: boolean): void {
+    this.moduleFilterEnabled = enabled;
+  }
+
+  /** Get whether module-specific filtering is enabled */
+  getModuleFilterEnabled(): boolean {
+    return this.moduleFilterEnabled;
   }
 }

@@ -60,6 +60,11 @@ export async function setupFilesTree(
       await import("@/components/workspace-files-tree/HiddenFilesToggle");
     initHiddenFilesToggle(filesTree as any);
 
+    // Initialize module filter toggle
+    const { initModuleFilterToggle } =
+      await import("@/components/workspace-files-tree/ModuleFilterToggle");
+    initModuleFilterToggle(filesTree as any);
+
     setupTreeEventListeners(editor, filesTree);
 
     setTimeout(() => {
