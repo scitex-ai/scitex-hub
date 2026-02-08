@@ -20,7 +20,6 @@
   --writer-secondary: var(--text-secondary);
   --writer-background: var(--bg-page);
   --writer-text: var(--text-primary);
-
 }
 
 [data-theme="dark"] {
@@ -32,8 +31,16 @@
   --writer-text-secondary: var(--text-secondary);
   --writer-text-muted: var(--text-muted);
   --writer-hover-bg: var(--workspace-bg-tertiary);
-  --writer-active-bg: rgba(255, 255, 255, 0.1);  /* Neutral light overlay instead of blue */
-  --writer-active-border: var(--workspace-border-active, #6a6a6a);  /* Neutral gray instead of blue */
+  --writer-active-bg: rgba(
+    255,
+    255,
+    255,
+    0.1
+  ); /* Neutral light overlay instead of blue */
+  --writer-active-border: var(
+    --workspace-border-active,
+    #6a6a6a
+  ); /* Neutral gray instead of blue */
   --writer-surface: var(--workspace-bg-secondary);
 
   /* Legacy compatibility */
@@ -47,7 +54,12 @@
   --editor-bg: var(--workspace-bg-primary);
   --editor-text: var(--text-primary);
   --editor-line-number: var(--text-muted);
-  --editor-selection: rgba(255, 255, 255, 0.15);  /* Neutral selection instead of blue */
+  --editor-selection: rgba(
+    255,
+    255,
+    255,
+    0.15
+  ); /* Neutral selection instead of blue */
 }
 
 :root {
@@ -84,7 +96,7 @@
   --icon-size-lg: 24px;
   --button-height: 32px;
   --button-height-sm: 28px;
-  --toolbar-height: 40px;
+  --toolbar-height: 50px;
   --statusbar-height: 24px;
 
   /* Transitions */
