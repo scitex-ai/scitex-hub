@@ -43,7 +43,7 @@
   width: 22px;
   left: 4px;
   bottom: 4px;
-  background-color: white;
+  background-color: var(--bg-surface);
   transition: var(--transition-normal);
   border-radius: 50%;
 }
@@ -59,7 +59,7 @@ input:checked + .slider:before {
 .badge {
   display: inline-block;
   background-color: var(--success-color);
-  color: white;
+  color: var(--text-inverse);
   font-size: 0.75rem;
   padding: 0.2rem 0.5rem;
   border-radius: 20px;
@@ -73,7 +73,7 @@ input:checked + .slider:before {
 }
 
 .pricing-card {
-  background-color: white;
+  background-color: var(--bg-surface);
   border-radius: var(--border-radius);
   border: 1px solid var(--border-color);
   overflow: hidden;
@@ -91,7 +91,7 @@ input:checked + .slider:before {
   top: 0;
   right: 0;
   background-color: var(--secondary-color);
-  color: white;
+  color: var(--text-inverse);
   font-size: 0.75rem;
   padding: 0.5rem 1rem;
   border-bottom-left-radius: var(--border-radius);
@@ -154,4 +154,3 @@ input:checked + .slider:before {
 .pricing-action {
   padding: 0 var(--spacing-lg) var(--spacing-lg);
 }
-

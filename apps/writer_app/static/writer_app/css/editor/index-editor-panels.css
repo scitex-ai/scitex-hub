@@ -203,17 +203,17 @@
 }
 
 .compilation-log-inline .error {
-  color: #dc3545;
+  color: var(--status-error);
   font-weight: 500;
 }
 
 .compilation-log-inline .warning {
-  color: #ffc107;
+  color: var(--status-warning);
   font-weight: 500;
 }
 
 .compilation-log-inline .success {
-  color: #28a745;
+  color: var(--status-success);
   font-weight: 500;
 }
 
@@ -351,7 +351,7 @@
 
   .text-preview {
     padding: 0;
-    background: white;
-    color: black;
+    background: var(--bg-surface);
+    color: var(--text-primary);
   }
 }

@@ -55,27 +55,27 @@
 }
 
 .CodeMirror.cm-s-default .cm-string {
-  color: #22863a;
+  color: var(--terminal-green, #22863a);
 }
 
 .CodeMirror.cm-s-default .cm-number {
-  color: #005cc5;
+  color: var(--terminal-blue, #005cc5);
 }
 
 .CodeMirror.cm-s-default .cm-atom {
-  color: #005cc5;
+  color: var(--terminal-blue, #005cc5);
 }
 
 .CodeMirror.cm-s-default .cm-keyword {
-  color: #d73a49;
+  color: var(--terminal-red, #d73a49);
 }
 
 .CodeMirror.cm-s-default .cm-variable {
-  color: #24292f;
+  color: var(--text-primary);
 }
 
 .CodeMirror.cm-s-default .cm-comment {
-  color: #6a737d;
+  color: var(--text-muted);
 }
 
 /* Active line highlight - disabled for consistent background */
@@ -102,12 +102,12 @@
 
 /* Match highlighting */
 .CodeMirror-matchingbracket {
-  background-color: #fff4d6;
-  color: #24292f;
+  background-color: var(--status-warning-bg);
+  color: var(--text-primary);
 }
 
 .CodeMirror-nonmatchingbracket {
-  color: #cb2431;
+  color: var(--status-error);
 }
 
 /* Search/replace panel */

@@ -42,8 +42,12 @@
 }
 
 @keyframes heroGlow {
-  0% { opacity: 0.7; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 .about-hero-content {
@@ -100,7 +104,7 @@
 .about-hero-cta .btn-primary {
   background: linear-gradient(135deg, #4a9b7e 0%, #3d8b6e 100%);
   border: none;
-  color: #ffffff;
+  color: var(--text-inverse);
   box-shadow:
     0 4px 15px rgba(74, 155, 126, 0.3),
     0 0 20px rgba(74, 155, 126, 0.1);
@@ -128,4 +132,3 @@
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(74, 155, 126, 0.2);
 }
-

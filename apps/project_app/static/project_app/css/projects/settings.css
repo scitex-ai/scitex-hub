@@ -256,7 +256,7 @@
 
 .btn-danger {
   background: var(--color-danger-emphasis);
-  color: white;
+  color: var(--text-inverse);
   border: 1px solid var(--color-danger-fg);
   padding: 8px 20px;
   border-radius: 6px;

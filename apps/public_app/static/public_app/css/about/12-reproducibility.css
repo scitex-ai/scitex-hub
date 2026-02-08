@@ -41,7 +41,7 @@
 
 .reproducibility-item i {
   font-size: 1.5rem;
-  color: #4a9b7e;
+  color: var(--status-success);
   margin-bottom: 0.6rem;
   filter: drop-shadow(0 0 6px rgba(74, 155, 126, 0.4));
 }
@@ -57,4 +57,3 @@
   color: var(--text-muted);
   font-size: 0.8rem;
 }
-

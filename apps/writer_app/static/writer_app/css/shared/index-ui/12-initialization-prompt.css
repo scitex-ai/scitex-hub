@@ -96,7 +96,7 @@
 }
 
 [data-theme="light"] .writer-init-title {
-  color: #24292f;
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .writer-init-desc {
@@ -104,5 +104,5 @@
 }
 
 [data-theme="light"] .writer-init-desc strong {
-  color: #24292f;
+  color: var(--text-primary);
 }

@@ -173,11 +173,11 @@ body {
 }
 
 .stat-positive {
-  color: #28a745;
+  color: var(--status-success);
 }
 
 .stat-negative {
-  color: #dc3545;
+  color: var(--status-error);
 }
 
 .version-actions {
@@ -320,23 +320,23 @@ body {
 }
 
 .status-open {
-  background: #e3f2fd;
-  color: #1976d2;
+  background: var(--status-info-bg);
+  color: var(--color-cta);
 }
 
 .status-review {
-  background: #fff3e0;
-  color: #f57c00;
+  background: var(--status-warning-bg);
+  color: var(--status-warning-text);
 }
 
 .status-approved {
-  background: #e8f5e8;
-  color: #2e7d32;
+  background: var(--status-success-bg);
+  color: var(--status-success-text);
 }
 
 .status-conflict {
-  background: #ffebee;
-  color: #c62828;
+  background: var(--status-error-bg);
+  color: var(--status-error-text);
 }
 
 .empty-state {
@@ -388,14 +388,14 @@ body {
 }
 
 .diff-addition {
-  background: #e8f5e8;
-  color: #2e7d32;
+  background: var(--status-success-bg);
+  color: var(--status-success-text);
   padding: 0.1rem 0.3rem;
 }
 
 .diff-deletion {
-  background: #ffebee;
-  color: #c62828;
+  background: var(--status-error-bg);
+  color: var(--status-error-text);
   padding: 0.1rem 0.3rem;
   text-decoration: line-through;
 }

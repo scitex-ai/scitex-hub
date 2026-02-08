@@ -227,7 +227,7 @@
   top: 0.75rem;
   right: 0.75rem;
   background: var(--warning-color);
-  color: white;
+  color: var(--text-inverse);
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
   font-size: 0.625rem;

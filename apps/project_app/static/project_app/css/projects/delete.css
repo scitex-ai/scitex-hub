@@ -3,23 +3,23 @@
 /* ============================================================================= */
 
 .delete-form {
-  background: white;
-  border: 1px solid #dc3545;
+  background: var(--bg-surface);
+  border: 1px solid var(--status-error);
   border-radius: 8px;
   padding: 2rem;
   max-width: 600px;
 }
 
 .warning-box {
-  background: #fff3cd;
-  border: 1px solid #ffeaa7;
+  background: var(--status-warning-bg);
+  border: 1px solid var(--status-warning-border);
   border-radius: 6px;
   padding: 1rem;
   margin-bottom: 1.5rem;
 }
 
 .warning-icon {
-  color: #856404;
+  color: var(--status-warning-text);
   font-size: 1.25rem;
   margin-right: 0.5rem;
 }
@@ -29,7 +29,7 @@
 }
 
 .breadcrumb a {
-  color: #007acc;
+  color: var(--color-cta);
   text-decoration: none;
 }
 
@@ -44,8 +44,8 @@
 }
 
 .project-info {
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
+  background: var(--bg-muted);
+  border: 1px solid var(--border-muted);
   border-radius: 6px;
   padding: 1rem;
   margin-bottom: 1.5rem;

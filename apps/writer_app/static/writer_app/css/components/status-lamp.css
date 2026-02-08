@@ -61,39 +61,41 @@
 
 /* Save Status States */
 .save-status-dot[data-status="saved"] {
-  background: var(--status-success, #28a745);
+  background: var(--status-success);
 }
 
 .save-status-dot[data-status="saving"] {
-  background: var(--status-warning, #ffc107);
+  background: var(--status-warning);
   animation: pulse 1.5s ease-in-out infinite;
 }
 
 .save-status-dot[data-status="unsaved"] {
-  background: var(--status-warning, #ffc107);
+  background: var(--status-warning);
 }
 
 .save-status-dot[data-status="error"] {
-  background: var(--status-error, #dc3545);
+  background: var(--status-error);
 }
 
 /* Compilation Status States */
 .status-lamp-dot[data-status="ready"] {
-  background: #28a745; /* Bright green - ready */
+  background: var(--status-success); /* Bright green - ready */
 }
 
 .status-lamp-dot[data-status="compiling"] {
-  background: #28a745; /* Bright green - flashing during compilation */
+  background: var(
+    --status-success
+  ); /* Bright green - flashing during compilation */
   animation: pulse 1.5s ease-in-out infinite;
 }
 
 .status-lamp-dot[data-status="success"] {
-  background: #28a745; /* Bright green - success */
+  background: var(--status-success); /* Bright green - success */
   box-shadow: 0 0 8px rgba(40, 167, 69, 0.4);
 }
 
 .status-lamp-dot[data-status="error"] {
-  background: #dc3545; /* Bright red - error only, NO flashing */
+  background: var(--status-error); /* Bright red - error only, NO flashing */
 }
 
 .status-lamp-dot[data-status="idle"] {

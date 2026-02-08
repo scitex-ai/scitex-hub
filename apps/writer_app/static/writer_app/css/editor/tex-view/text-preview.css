@@ -19,7 +19,9 @@
   margin: 0 !important;
   width: 100%;
   height: 100%;
-  background: #525659; /* Gray background like PDF viewers */
+  background: var(
+    --workspace-bg-secondary
+  ); /* Gray background like PDF viewers */
   padding: 0 !important;
   box-sizing: border-box;
   position: absolute;
@@ -146,4 +148,3 @@
   align-items: center;
   gap: 0.5rem;
 }
-
