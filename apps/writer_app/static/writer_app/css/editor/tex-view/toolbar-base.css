@@ -45,3 +45,32 @@
   align-items: center;
 }
 
+/* Toolbar Doctype Selector */
+.toolbar-doctype-select {
+  font-size: 0.75rem;
+  height: 26px;
+  padding: 2px 24px 2px 8px;
+  min-width: 100px;
+  max-width: 140px;
+  background: var(--workspace-bg-secondary);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 4px;
+  color: var(--workspace-text-primary);
+}
+
+.toolbar-doctype-select:focus {
+  border-color: var(--workspace-icon-primary);
+  box-shadow: none;
+}
+
+/* Toolbar Section Selector (compact) */
+.header-left .section-selector-btn {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  min-width: 120px;
+  height: 26px;
+}
+
+.header-left .section-selector-btn svg {
+  flex-shrink: 0;
+}
