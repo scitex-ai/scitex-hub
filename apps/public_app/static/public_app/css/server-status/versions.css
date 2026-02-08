@@ -4,23 +4,23 @@
  */
 
 .version-badge {
-    display: inline-block;
-    padding: 0.35rem 0.75rem;
-    border-radius: 16px;
-    font-family: 'JetBrains Mono', 'Fira Code', monospace;
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  border-radius: 16px;
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .version-installed {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  background: var(--gradient-success);
+  color: white;
+  box-shadow: 0 2px 8px var(--color-success-shadow);
 }
 
 .version-missing {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    color: white;
-    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
 }

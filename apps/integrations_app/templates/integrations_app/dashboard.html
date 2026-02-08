@@ -1,187 +1,187 @@
 {% extends "global_base.html" %}
+
 {% block title %}Integrations - SciTeX{% endblock %}
-    {% block content %}
-        <div class="container py-4">
-            <h1 class="mb-4">Integrations</h1>
-            <div class="row g-4">
-                <!-- ORCID Integration -->
-                <div class="col-12 col-md-6 col-lg-4">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center mb-3">
-                                <div style="width: 32px;
-                                            height: 32px;
-                                            min-width: 32px;
-                                            background-color: #d1fae5;
-                                            border-radius: 50%;
-                                            display: flex;
-                                            align-items: center;
-                                            justify-content: center;
-                                            margin-right: 12px">
-                                    <svg style="width: 16px;
-                                                height: 16px;
-                                                color: #059669"
-                                         fill="currentColor"
-                                         viewBox="0 0 20 20">
-                                        <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h5 class="card-title mb-1">ORCID</h5>
-                                    <p class="card-subtitle text-muted small mb-0">Researcher Identity</p>
-                                </div>
+{% block content %}
+    <div class="container py-4">
+        <h1 class="mb-4">Integrations</h1>
+        <div class="row g-4">
+            <!-- ORCID Integration -->
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div style="width: 32px;
+                                        height: 32px;
+                                        min-width: 32px;
+                                        background-color: var(--color-success-bg);
+                                        border-radius: 50%;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        margin-right: 12px">
+                                <svg style="width: 16px;
+                                            height: 16px;
+                                            color: var(--status-success)"
+                                     fill="currentColor"
+                                     viewBox="0 0 20 20">
+                                    <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
+                                </svg>
                             </div>
-                            {% if orcid_connected %}
-                                <div class="mb-3">
-                                    <span class="badge bg-success">
-                                        <i class="fas fa-check me-1"></i>
-                                        Connected
-                                    </span>
-                                </div>
-                                <div class="d-grid gap-2">
-                                    <a href="{% url 'integrations_app:orcid_sync' %}"
-                                       class="btn btn-primary btn-sm">Sync Profile</a>
-                                    <a href="{% url 'integrations_app:orcid_disconnect' %}"
-                                       class="btn btn-outline-secondary btn-sm">Disconnect</a>
-                                </div>
-                            {% else %}
-                                <p class="small text-muted mb-3">Connect your ORCID account to auto-populate author information.</p>
-                                <div class="d-grid">
-                                    <a href="{% url 'integrations_app:orcid_connect' %}"
-                                       class="btn btn-success btn-sm">Connect ORCID</a>
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                <!-- Slack Integration -->
-                <div class="col-12 col-md-6 col-lg-4">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center mb-3">
-                                <div style="width: 32px;
-                                            height: 32px;
-                                            min-width: 32px;
-                                            background-color: #e9d5ff;
-                                            border-radius: 50%;
-                                            display: flex;
-                                            align-items: center;
-                                            justify-content: center;
-                                            margin-right: 12px">
-                                    <svg style="width: 16px;
-                                                height: 16px;
-                                                color: #7c3aed"
-                                         fill="currentColor"
-                                         viewBox="0 0 20 20">
-                                        <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" />
-                                        <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h5 class="card-title mb-1">Slack</h5>
-                                    <p class="card-subtitle text-muted small mb-0">Team Notifications</p>
-                                </div>
+                            <div>
+                                <h5 class="card-title mb-1">ORCID</h5>
+                                <p class="card-subtitle text-muted small mb-0">Researcher Identity</p>
                             </div>
-                            {% if slack_connected %}
-                                <div class="mb-3">
-                                    <span class="badge bg-success">
-                                        <i class="fas fa-check me-1"></i>
-                                        Configured
-                                    </span>
-                                </div>
-                                <div class="d-grid">
-                                    <a href="{% url 'integrations_app:slack_configure' %}"
-                                       class="btn btn-primary btn-sm"
-                                       style="background-color: #7c3aed;
-                                              border-color: #7c3aed">Manage Webhooks</a>
-                                </div>
-                            {% else %}
-                                <p class="small text-muted mb-3">Receive notifications about your projects in Slack.</p>
-                                <div class="d-grid">
-                                    <a href="{% url 'integrations_app:slack_configure' %}"
-                                       class="btn btn-primary btn-sm"
-                                       style="background-color: #7c3aed;
-                                              border-color: #7c3aed">Configure Slack</a>
-                                </div>
-                            {% endif %}
                         </div>
-                    </div>
-                </div>
-                <!-- BibTeX Export -->
-                <div class="col-12 col-md-6 col-lg-4">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center mb-3">
-                                <div style="width: 32px;
-                                            height: 32px;
-                                            min-width: 32px;
-                                            background-color: #dbeafe;
-                                            border-radius: 50%;
-                                            display: flex;
-                                            align-items: center;
-                                            justify-content: center;
-                                            margin-right: 12px">
-                                    <svg style="width: 16px;
-                                                height: 16px;
-                                                color: #2563eb"
-                                         fill="currentColor"
-                                         viewBox="0 0 20 20">
-                                        <path d="M9 2a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V6.414A2 2 0 0016.414 5L14 2.586A2 2 0 0012.586 2H9z" />
-                                        <path d="M3 8a2 2 0 012-2v10h8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h5 class="card-title mb-1">BibTeX Export</h5>
-                                    <p class="card-subtitle text-muted small mb-0">Bibliography Files</p>
-                                </div>
+                        {% if orcid_connected %}
+                            <div class="mb-3">
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check me-1"></i>
+                                    Connected
+                                </span>
                             </div>
-                            <p class="small text-muted mb-2">Export your project bibliographies as .bib files.</p>
-                            <p class="small text-muted fst-italic">Available from project pages</p>
-                        </div>
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'integrations_app:orcid_sync' %}" class="btn btn-primary btn-sm">Sync Profile</a>
+                                <a href="{% url 'integrations_app:orcid_disconnect' %}"
+                                   class="btn btn-outline-secondary btn-sm">Disconnect</a>
+                            </div>
+                        {% else %}
+                            <p class="small text-muted mb-3">Connect your ORCID account to auto-populate author information.</p>
+                            <div class="d-grid">
+                                <a href="{% url 'integrations_app:orcid_connect' %}"
+                                   class="btn btn-success btn-sm">Connect ORCID</a>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
-            <!-- Integration Logs (if admin) -->
-            {% if user.is_staff %}
-                <div class="mt-5">
-                    <h2 class="h4 mb-3">Recent Activity</h2>
-                    <div class="card">
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Service</th>
-                                        <th>Action</th>
-                                        <th>Status</th>
-                                        <th>Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for conn in connections %}
-                                        {% for log in conn.logs.all|slice:":5" %}
-                                            <tr>
-                                                <td class="fw-medium">{{ conn.get_service_display }}</td>
-                                                <td class="text-muted">{{ log.get_action_display }}</td>
-                                                <td>
-                                                    {% if log.success %}
-                                                        <span class="badge bg-success">Success</span>
-                                                    {% else %}
-                                                        <span class="badge bg-danger">Failed</span>
-                                                    {% endif %}
-                                                </td>
-                                                <td class="text-muted">{{ log.created_at|date:"M d, Y H:i" }}</td>
-                                            </tr>
-                                        {% empty %}
-                                            <tr>
-                                                <td colspan="4" class="text-center text-muted">No activity yet</td>
-                                            </tr>
-                                        {% endfor %}
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+            <!-- Slack Integration -->
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div style="width: 32px;
+                                        height: 32px;
+                                        min-width: 32px;
+                                        background-color: #e9d5ff;
+                                        border-radius: 50%;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        margin-right: 12px">
+                                <svg style="width: 16px;
+                                            height: 16px;
+                                            color: #7c3aed"
+                                     fill="currentColor"
+                                     viewBox="0 0 20 20">
+                                    <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" />
+                                    <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h5 class="card-title mb-1">Slack</h5>
+                                <p class="card-subtitle text-muted small mb-0">Team Notifications</p>
+                            </div>
                         </div>
+                        {% if slack_connected %}
+                            <div class="mb-3">
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check me-1"></i>
+                                    Configured
+                                </span>
+                            </div>
+                            <div class="d-grid">
+                                <a href="{% url 'integrations_app:slack_configure' %}"
+                                   class="btn btn-primary btn-sm"
+                                   style="background-color: #7c3aed;
+                                          border-color: #7c3aed">Manage Webhooks</a>
+                            </div>
+                        {% else %}
+                            <p class="small text-muted mb-3">Receive notifications about your projects in Slack.</p>
+                            <div class="d-grid">
+                                <a href="{% url 'integrations_app:slack_configure' %}"
+                                   class="btn btn-primary btn-sm"
+                                   style="background-color: #7c3aed;
+                                          border-color: #7c3aed">Configure Slack</a>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
-            {% endif %}
+            </div>
+            <!-- BibTeX Export -->
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div style="width: 32px;
+                                        height: 32px;
+                                        min-width: 32px;
+                                        background-color: #dbeafe;
+                                        border-radius: 50%;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        margin-right: 12px">
+                                <svg style="width: 16px;
+                                            height: 16px;
+                                            color: #2563eb"
+                                     fill="currentColor"
+                                     viewBox="0 0 20 20">
+                                    <path d="M9 2a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V6.414A2 2 0 0016.414 5L14 2.586A2 2 0 0012.586 2H9z" />
+                                    <path d="M3 8a2 2 0 012-2v10h8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h5 class="card-title mb-1">BibTeX Export</h5>
+                                <p class="card-subtitle text-muted small mb-0">Bibliography Files</p>
+                            </div>
+                        </div>
+                        <p class="small text-muted mb-2">Export your project bibliographies as .bib files.</p>
+                        <p class="small text-muted fst-italic">Available from project pages</p>
+                    </div>
+                </div>
+            </div>
         </div>
-    {% endblock %}
+        <!-- Integration Logs (if admin) -->
+        {% if user.is_staff %}
+            <div class="mt-5">
+                <h2 class="h4 mb-3">Recent Activity</h2>
+                <div class="card">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Service</th>
+                                    <th>Action</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for conn in connections %}
+                                    {% for log in conn.logs.all|slice:":5" %}
+                                        <tr>
+                                            <td class="fw-medium">{{ conn.get_service_display }}</td>
+                                            <td class="text-muted">{{ log.get_action_display }}</td>
+                                            <td>
+                                                {% if log.success %}
+                                                    <span class="badge bg-success">Success</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">Failed</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-muted">{{ log.created_at|date:"M d, Y H:i" }}</td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="4" class="text-center text-muted">No activity yet</td>
+                                        </tr>
+                                    {% endfor %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

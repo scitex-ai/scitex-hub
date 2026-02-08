@@ -223,7 +223,7 @@
 }
 
 .comparison-table-compact .fa-check {
-  color: #10b981;
+  color: var(--status-success);
 }
 
 .comparison-table-compact .fa-times {

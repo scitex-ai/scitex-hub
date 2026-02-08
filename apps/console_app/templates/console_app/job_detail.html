@@ -1,173 +1,180 @@
 {% extends "console_app/code_base.html" %}
+
 {% load static %}
+
 {% block extra_css %}
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/codemirror.min.css" />
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/theme/monokai.min.css" />
     <style>
-  .job-header {
-    background: linear-gradient(
-      135deg,
-      var(--primary-color),
-      var(--secondary-color)
-    );
-    color: white;
-    padding: var(--spacing-xl) 0;
-    margin-bottom: var(--spacing-xl);
-  }
+        .job-header {
+            background: linear-gradient(135deg,
+                    var(--primary-color),
+                    var(--secondary-color));
+            color: white;
+            padding: var(--spacing-xl) 0;
+            margin-bottom: var(--spacing-xl);
+        }
 
-  .job-status {
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-weight: 500;
-    text-transform: uppercase;
-    display: inline-block;
-  }
+        .job-status {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 500;
+            text-transform: uppercase;
+            display: inline-block;
+        }
 
-  .job-status.queued {
-    background-color: rgba(255, 255, 255, 0.2);
-  }
-  .job-status.running {
-    background-color: rgba(59, 130, 246, 0.8);
-  }
-  .job-status.completed {
-    background-color: rgba(34, 197, 94, 0.8);
-  }
-  .job-status.failed {
-    background-color: rgba(239, 68, 68, 0.8);
-  }
-  .job-status.timeout {
-    background-color: rgba(245, 158, 11, 0.8);
-  }
-  .job-status.cancelled {
-    background-color: rgba(107, 114, 128, 0.8);
-  }
+        .job-status.queued {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
 
-  .metric-card {
-    background: white;
-    border: 1px solid var(--gray-300);
-    border-radius: var(--border-radius);
-    padding: var(--spacing-md);
-    text-align: center;
-    height: 100%;
-  }
+        .job-status.running {
+            background-color: rgba(59, 130, 246, 0.8);
+        }
 
-  .metric-value {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: var(--primary-color);
-  }
+        .job-status.completed {
+            background-color: rgba(34, 197, 94, 0.8);
+        }
 
-  .metric-label {
-    color: var(--gray-600);
-    margin-top: var(--spacing-xs);
-    font-size: 0.9rem;
-  }
+        .job-status.failed {
+            background-color: rgba(239, 68, 68, 0.8);
+        }
 
-  .code-section {
-    background: white;
-    border: 1px solid var(--gray-300);
-    border-radius: var(--border-radius);
-    margin-bottom: var(--spacing-lg);
-  }
+        .job-status.timeout {
+            background-color: rgba(245, 158, 11, 0.8);
+        }
 
-  .code-header {
-    padding: var(--spacing-md);
-    background-color: var(--gray-50);
-    border-bottom: 1px solid var(--gray-300);
-    border-radius: var(--border-radius) var(--border-radius) 0 0;
-  }
+        .job-status.cancelled {
+            background-color: rgba(107, 114, 128, 0.8);
+        }
 
-  .CodeMirror {
-    border-radius: 0 0 var(--border-radius) var(--border-radius);
-  }
+        .metric-card {
+            background: white;
+            border: 1px solid var(--gray-300);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-md);
+            text-align: center;
+            height: 100%;
+        }
 
-  .output-section {
-    background: var(--gray-900);
-    color: var(--light-color);
-    padding: var(--spacing-md);
-    border-radius: var(--border-radius);
-    font-family: monospace;
-    white-space: pre-wrap;
-    overflow-x: auto;
-    max-height: 400px;
-    overflow-y: auto;
-  }
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
 
-  .file-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: var(--spacing-md);
-  }
+        .metric-label {
+            color: var(--gray-600);
+            margin-top: var(--spacing-xs);
+            font-size: 0.9rem;
+        }
 
-  .file-card {
-    background: white;
-    border: 1px solid var(--gray-300);
-    border-radius: var(--border-radius);
-    padding: var(--spacing-md);
-    text-align: center;
-    transition: box-shadow 0.2s ease;
-  }
+        .code-section {
+            background: white;
+            border: 1px solid var(--gray-300);
+            border-radius: var(--border-radius);
+            margin-bottom: var(--spacing-lg);
+        }
 
-  .file-card:hover {
-    box-shadow: var(--box-shadow);
-  }
+        .code-header {
+            padding: var(--spacing-md);
+            background-color: var(--gray-50);
+            border-bottom: 1px solid var(--gray-300);
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+        }
 
-  .file-icon {
-    font-size: 2rem;
-    margin-bottom: var(--spacing-sm);
-  }
+        .CodeMirror {
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+        }
 
-  .file-icon.image {
-    color: #10b981;
-  }
-  .file-icon.data {
-    color: #3b82f6;
-  }
-  .file-icon.document {
-    color: #f59e0b;
-  }
+        .output-section {
+            background: var(--gray-900);
+            color: var(--light-color);
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius);
+            font-family: monospace;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
 
-  .progress-section {
-    background: white;
-    border: 1px solid var(--gray-300);
-    border-radius: var(--border-radius);
-    padding: var(--spacing-md);
-    margin-bottom: var(--spacing-lg);
-  }
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: var(--spacing-md);
+        }
 
-  .progress-bar {
-    height: 8px;
-    background-color: var(--gray-300);
-    border-radius: 4px;
-    overflow: hidden;
-    margin: var(--spacing-sm) 0;
-  }
+        .file-card {
+            background: white;
+            border: 1px solid var(--gray-300);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-md);
+            text-align: center;
+            transition: box-shadow 0.2s ease;
+        }
 
-  .progress-fill {
-    height: 100%;
-    background-color: var(--primary-color);
-    transition: width 0.3s ease;
-  }
+        .file-card:hover {
+            box-shadow: var(--box-shadow);
+        }
 
-  .nav-tabs .nav-link {
-    border: 1px solid transparent;
-    border-radius: var(--border-radius) var(--border-radius) 0 0;
-  }
+        .file-icon {
+            font-size: 2rem;
+            margin-bottom: var(--spacing-sm);
+        }
 
-  .nav-tabs .nav-link.active {
-    background-color: white;
-    border-color: var(--gray-300) var(--gray-300) white;
-  }
+        .file-icon.image {
+            color: var(--status-success);
+        }
 
-  .tab-content {
-    border: 1px solid var(--gray-300);
-    border-top: none;
-    border-radius: 0 0 var(--border-radius) var(--border-radius);
-    padding: var(--spacing-md);
-    background: white;
-  }
+        .file-icon.data {
+            color: #3b82f6;
+        }
+
+        .file-icon.document {
+            color: #f59e0b;
+        }
+
+        .progress-section {
+            background: white;
+            border: 1px solid var(--gray-300);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .progress-bar {
+            height: 8px;
+            background-color: var(--gray-300);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: var(--spacing-sm) 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+
+        .nav-tabs .nav-link {
+            border: 1px solid transparent;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+        }
+
+        .nav-tabs .nav-link.active {
+            background-color: white;
+            border-color: var(--gray-300) var(--gray-300) white;
+        }
+
+        .tab-content {
+            border: 1px solid var(--gray-300);
+            border-top: none;
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+            padding: var(--spacing-md);
+            background: white;
+        }
     </style>
 {% endblock %}
 {% block extra_js %}
@@ -198,8 +205,7 @@
                         <a href="{% url "console:jobs' %}" class="btn btn-light">
                             <i class="fas fa-arrow-left me-1"></i>Back to Jobs
                         </a>
-                        <a href="{% url "console:editor' %}?job={{ job.job_id }}"
-                           class="btn btn-light">
+                        <a href="{% url "console:editor' %}?job={{ job.job_id }}" class="btn btn-light">
                             <i class="fas fa-edit me-1"></i>Edit Code
                         </a>
                     </div>
@@ -333,9 +339,7 @@
             <!-- Errors -->
             {% if job.error_output %}
                 <div class="tab-pane fade" id="errors" role="tabpanel">
-                    <div class="output-section"
-                         style="background-color: #7f1d1d;
-                                color: #fecaca">{{ job.error_output }}</div>
+                    <div class="output-section" style="background-color: #7f1d1d; color: #fecaca">{{ job.error_output }}</div>
                 </div>
             {% endif %}
             <!-- Files -->

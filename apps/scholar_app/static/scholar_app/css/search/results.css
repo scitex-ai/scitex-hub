@@ -70,15 +70,15 @@
 
 /* Available state - clickable, green for PDF download (indicates free/available) */
 .pdf-status-badge[data-status="available"] {
-  color: #10b981;
-  border-color: #10b981;
-  background: rgba(16, 185, 129, 0.1);
+  color: var(--status-success);
+  border-color: var(--status-success);
+  background: var(--color-success-bg);
   cursor: pointer;
   font-weight: 600;
 }
 
 .pdf-status-badge[data-status="available"]:hover {
-  background: #10b981;
+  background: var(--status-success);
   color: #fff;
 }
 

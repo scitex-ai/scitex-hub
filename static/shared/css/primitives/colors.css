@@ -78,26 +78,26 @@
   --border-muted: var(--_scitex-06); /* Subtle border */
 
   /* Workspace-specific colors - professional light theme for Code/Writer/Vis */
-  --workspace-bg-primary: #f8f9fa;    /* Soft gray - main panels */
-  --workspace-bg-secondary: #f3f4f6;  /* Medium gray - secondary panels */
-  --workspace-bg-tertiary: #ebedef;   /* Subtle gray - hover states */
-  --workspace-bg-elevated: #ffffff;   /* Pure white - elevated surfaces (stands out) */
-  --workspace-bg-monaco: #ffffff;     /* Monaco/VS Code editor background - matches terminal-bg */
+  --workspace-bg-primary: #f8f9fa; /* Soft gray - main panels */
+  --workspace-bg-secondary: #f3f4f6; /* Medium gray - secondary panels */
+  --workspace-bg-tertiary: #ebedef; /* Subtle gray - hover states */
+  --workspace-bg-elevated: #ffffff; /* Pure white - elevated surfaces (stands out) */
+  --workspace-bg-monaco: #ffffff; /* Monaco/VS Code editor background - matches terminal-bg */
   --workspace-border-subtle: #e0e4e8; /* Very subtle borders */
   --workspace-border-default: #b5c7d1; /* Default borders - increased contrast (was #d0d7de) */
-  --workspace-border-hover: #8fa4b0;  /* Hover state - darker */
+  --workspace-border-hover: #8fa4b0; /* Hover state - darker */
   --workspace-border-active: #6c8ba0; /* Active/dragging - even darker */
-  --workspace-slider-hover: #6c8ba0;  /* Slider handle hover */
+  --workspace-slider-hover: #6c8ba0; /* Slider handle hover */
   --workspace-slider-active: #506b7a; /* Slider handle active */
-  --workspace-ruler-bg: #d0dae5;      /* Rulers and guides background - distinct from white canvas */
-  --workspace-ruler-border: #d0d7de;  /* Ruler borders */
+  --workspace-ruler-bg: #d0dae5; /* Rulers and guides background - distinct from white canvas */
+  --workspace-ruler-border: #d0d7de; /* Ruler borders */
 
   /* Workspace icons - softer green tones matching status-success */
-  --workspace-icon-primary: #4a9b7e;   /* Soft green - primary actions (matches status-success) */
+  --workspace-icon-primary: #4a9b7e; /* Soft green - primary actions (matches status-success) */
   --workspace-icon-secondary: #6b7280; /* Gray - secondary actions */
-  --workspace-icon-muted: #9ca3af;     /* Light gray - muted/inactive */
-  --workspace-icon-hover: #3d8269;     /* Darker soft green - hover state */
-  --workspace-icon-active: #306854;    /* Deep soft green - active state */
+  --workspace-icon-muted: #9ca3af; /* Light gray - muted/inactive */
+  --workspace-icon-hover: #3d8269; /* Darker soft green - hover state */
+  --workspace-icon-active: #306854; /* Deep soft green - active state */
 
   /* Status */
   --status-success: var(--_success);
@@ -110,6 +110,12 @@
   --warning-color: var(--_warning);
   --error-color: var(--_error);
   --info-color: var(--_info);
+
+  /* Success variant tokens */
+  --color-success-bg: rgba(74, 155, 126, 0.1);
+  --color-success-border: rgba(74, 155, 126, 0.3);
+  --color-success-shadow: rgba(74, 155, 126, 0.3);
+  --gradient-success: linear-gradient(135deg, #4a9b7e 0%, #3d8269 100%);
 
   /* CTA colors */
   --color-cta: var(--_cta);
@@ -182,26 +188,26 @@
   --border-muted: var(--_scitex-02);
 
   /* Workspace-specific colors - professional blackish theme for Code/Writer/Vis */
-  --workspace-bg-primary: #0d0d0d;    /* Almost pure black - main panels */
-  --workspace-bg-secondary: #151515;  /* Very dark gray - secondary panels */
-  --workspace-bg-tertiary: #1a1a1a;   /* Subtle lighter - hover states */
-  --workspace-bg-elevated: #1f1f1f;   /* Slightly elevated surfaces */
-  --workspace-bg-monaco: #1e1e1e;     /* Monaco/VS Code editor background - matches terminal-bg */
+  --workspace-bg-primary: #0d0d0d; /* Almost pure black - main panels */
+  --workspace-bg-secondary: #151515; /* Very dark gray - secondary panels */
+  --workspace-bg-tertiary: #1a1a1a; /* Subtle lighter - hover states */
+  --workspace-bg-elevated: #1f1f1f; /* Slightly elevated surfaces */
+  --workspace-bg-monaco: #1e1e1e; /* Monaco/VS Code editor background - matches terminal-bg */
   --workspace-border-subtle: #1a1a1a; /* Subtle borders between panels */
   --workspace-border-default: #3a3a3a; /* Default borders - increased contrast (was #252525) */
-  --workspace-border-hover: #4a4a4a;  /* Hover state - slightly lighter gray */
+  --workspace-border-hover: #4a4a4a; /* Hover state - slightly lighter gray */
   --workspace-border-active: #5a5a5a; /* Active/dragging - even lighter */
-  --workspace-slider-hover: #6a6a6a;  /* Slider handle hover */
+  --workspace-slider-hover: #6a6a6a; /* Slider handle hover */
   --workspace-slider-active: #7a7a7a; /* Slider handle active */
-  --workspace-ruler-bg: #1a1a1a;      /* Rulers and guides background - distinct from dark canvas */
-  --workspace-ruler-border: #1a1a1a;  /* Ruler borders */
+  --workspace-ruler-bg: #1a1a1a; /* Rulers and guides background - distinct from dark canvas */
+  --workspace-ruler-border: #1a1a1a; /* Ruler borders */
 
   /* Workspace icons - softer green tones matching status-success for dark mode */
-  --workspace-icon-primary: #6ba89a;   /* Soft green - primary actions (matches status-success) */
+  --workspace-icon-primary: #6ba89a; /* Soft green - primary actions (matches status-success) */
   --workspace-icon-secondary: #9ca3af; /* Light gray - secondary actions */
-  --workspace-icon-muted: #6b7280;     /* Medium gray - muted/inactive */
-  --workspace-icon-hover: #7eb8aa;     /* Lighter soft green - hover state */
-  --workspace-icon-active: #91c8ba;    /* Very light soft green - active state */
+  --workspace-icon-muted: #6b7280; /* Medium gray - muted/inactive */
+  --workspace-icon-hover: #7eb8aa; /* Lighter soft green - hover state */
+  --workspace-icon-active: #91c8ba; /* Very light soft green - active state */
 
   /* Terminal colors - dark theme */
   --terminal-bg: #1e1e1e;
@@ -236,6 +242,12 @@
   --warning-color: #d4a87a;
   --error-color: #c08888;
   --info-color: #8fa9cc;
+
+  /* Success variant tokens - dark mode */
+  --color-success-bg: rgba(107, 168, 154, 0.1);
+  --color-success-border: rgba(107, 168, 154, 0.3);
+  --color-success-shadow: rgba(107, 168, 154, 0.3);
+  --gradient-success: linear-gradient(135deg, #6ba89a 0%, #5a9484 100%);
 
   /* CTA colors - same in dark mode */
   --color-cta: var(--_cta);
