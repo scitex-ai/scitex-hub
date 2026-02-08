@@ -10,9 +10,10 @@ Priority: HIGH
 Run time: < 60 seconds
 """
 
-import pytest
 import re
 import time
+
+import pytest
 
 
 class TestSignupFlow:
@@ -52,7 +53,11 @@ class TestSignupFlow:
         if resp.status_code == 302:
             location = resp.headers.get("Location", "")
             # Should redirect back to signup, not to success
-            assert "signup" in location.lower() or "register" in location.lower() or "login" in location.lower()
+            assert (
+                "signup" in location.lower()
+                or "register" in location.lower()
+                or "login" in location.lower()
+            )
 
     def test_signup_form_validation_invalid_email(self, api_client):
         """Signup rejects invalid email format."""
@@ -119,6 +124,107 @@ class TestSignupFlow:
             # Check for password error message in response
             assert "password" in resp.text.lower()
 
+    def test_signup_creates_account(self, api_client):
+        """POST with valid data creates account and redirects to email verification."""
+        # Get CSRF token
+        resp = api_client.get("/auth/signup/")
+        csrf_match = re.search(r'name="csrfmiddlewaretoken" value="([^"]+)"', resp.text)
+
+        if not csrf_match:
+            pytest.skip("Cannot extract CSRF token")
+
+        csrf_token = csrf_match.group(1)
+        timestamp = int(time.time())
+        unique_username = f"e2e_test_{timestamp}"
+
+        # Submit valid signup form
+        resp = api_client.post(
+            "/auth/signup/",
+            data={
+                "csrfmiddlewaretoken": csrf_token,
+                "username": unique_username,
+                "email": f"e2e_{timestamp}@example.com",
+                "password1": "ValidE2EPassword123!",
+                "password2": "ValidE2EPassword123!",
+            },
+            headers={"Referer": api_client.base_url + "/auth/signup/"},
+            allow_redirects=True,
+        )
+
+        # Should succeed - check for success indicators
+        assert resp.status_code == 200
+        # Check for email verification message or redirect to verification page
+        text_lower = resp.text.lower()
+        success_indicators = [
+            "verify" in text_lower and "email" in text_lower,
+            "confirmation" in text_lower,
+            "check your email" in text_lower,
+            "sent" in text_lower and "email" in text_lower,
+        ]
+        assert any(success_indicators), (
+            "Expected signup success with email verification prompt"
+        )
+
+    def test_signup_duplicate_username(self, api_client):
+        """POST twice with same username should fail on second attempt."""
+        # Get CSRF token
+        resp = api_client.get("/auth/signup/")
+        csrf_match = re.search(r'name="csrfmiddlewaretoken" value="([^"]+)"', resp.text)
+
+        if not csrf_match:
+            pytest.skip("Cannot extract CSRF token")
+
+        csrf_token = csrf_match.group(1)
+        timestamp = int(time.time())
+        duplicate_username = f"e2e_dup_{timestamp}"
+
+        # First signup
+        api_client.post(
+            "/auth/signup/",
+            data={
+                "csrfmiddlewaretoken": csrf_token,
+                "username": duplicate_username,
+                "email": f"e2e_dup1_{timestamp}@example.com",
+                "password1": "ValidPassword123!",
+                "password2": "ValidPassword123!",
+            },
+            headers={"Referer": api_client.base_url + "/auth/signup/"},
+            allow_redirects=True,
+        )
+
+        # Get new CSRF token for second attempt
+        resp = api_client.get("/auth/signup/")
+        csrf_match = re.search(r'name="csrfmiddlewaretoken" value="([^"]+)"', resp.text)
+        csrf_token = csrf_match.group(1) if csrf_match else csrf_token
+
+        # Second signup with same username
+        resp = api_client.post(
+            "/auth/signup/",
+            data={
+                "csrfmiddlewaretoken": csrf_token,
+                "username": duplicate_username,  # Same username
+                "email": f"e2e_dup2_{timestamp}@example.com",  # Different email
+                "password1": "ValidPassword123!",
+                "password2": "ValidPassword123!",
+            },
+            headers={"Referer": api_client.base_url + "/auth/signup/"},
+            allow_redirects=False,
+        )
+
+        # Should fail - either stay on page with error or redirect to signup
+        if resp.status_code == 200:
+            # Check for username error
+            text_lower = resp.text.lower()
+            assert "username" in text_lower and (
+                "already" in text_lower
+                or "exists" in text_lower
+                or "taken" in text_lower
+            )
+        elif resp.status_code == 302:
+            # Should redirect back to signup, not to success
+            location = resp.headers.get("Location", "")
+            assert "signup" in location.lower() or "register" in location.lower()
+
 
 class TestEmailVerification:
     """Test email verification functionality."""
@@ -148,7 +254,11 @@ class TestPasswordReset:
     def test_password_reset_page_loads(self, api_client):
         """Password reset page loads."""
         # Try different possible URLs
-        for path in ["/auth/password/reset/", "/accounts/password/reset/", "/auth/password-reset/"]:
+        for path in [
+            "/auth/password/reset/",
+            "/accounts/password/reset/",
+            "/auth/password-reset/",
+        ]:
             resp = api_client.get(path)
             if resp.status_code == 200:
                 assert "email" in resp.text.lower() or "reset" in resp.text.lower()
@@ -183,7 +293,11 @@ class TestPasswordReset:
         if resp.status_code == 302:
             location = resp.headers.get("Location", "")
             # Should redirect to confirmation, not error
-            assert "done" in location.lower() or "sent" in location.lower() or "reset" in location.lower()
+            assert (
+                "done" in location.lower()
+                or "sent" in location.lower()
+                or "reset" in location.lower()
+            )
 
 
 class TestSocialAuth:
@@ -194,7 +308,9 @@ class TestSocialAuth:
         resp = api_client.get("/auth/social/google/login/", allow_redirects=False)
         # 500 may indicate misconfigured OAuth (missing credentials) - xfail not fail
         if resp.status_code == 500:
-            pytest.xfail("Google OAuth returning 500 - may need OAuth credentials configured")
+            pytest.xfail(
+                "Google OAuth returning 500 - may need OAuth credentials configured"
+            )
         assert resp.status_code in [200, 302, 404]
 
     def test_orcid_auth_endpoint(self, api_client):
@@ -202,5 +318,7 @@ class TestSocialAuth:
         resp = api_client.get("/auth/social/orcid/login/", allow_redirects=False)
         # 500 may indicate misconfigured OAuth (missing credentials) - xfail not fail
         if resp.status_code == 500:
-            pytest.xfail("ORCID OAuth returning 500 - may need OAuth credentials configured")
+            pytest.xfail(
+                "ORCID OAuth returning 500 - may need OAuth credentials configured"
+            )
         assert resp.status_code in [200, 302, 404]
