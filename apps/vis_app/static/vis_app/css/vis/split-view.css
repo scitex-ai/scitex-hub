@@ -4,353 +4,360 @@
 
 /* Plot Type Ribbon (改善 2) */
 .plot-type-ribbon {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 10px 16px;
-    background: var(--vis-bg-primary);
-    border-bottom: 1px solid var(--workspace-border-default);
-    flex-wrap: wrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: var(--vis-bg-primary);
+  border-bottom: 1px solid var(--workspace-border-default);
+  flex-wrap: wrap;
 }
 
 .plot-type-label {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-muted);
-    margin-right: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-right: 8px;
 }
 
 .plot-type-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    padding: 8px 14px;
-    background: var(--vis-bg-secondary);
-    border: 2px solid var(--workspace-border-default);
-    border-radius: 6px;
-    color: var(--text-primary);
-    font-size: 11px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 14px;
+  background: var(--vis-bg-secondary);
+  border: 2px solid var(--workspace-border-default);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
 .plot-type-btn:hover {
-    background: var(--vis-bg-hover);
-    border-color: var(--status-success);
-    transform: translateY(-1px);
+  background: var(--vis-bg-hover);
+  border-color: var(--workspace-icon-hover);
+  transform: translateY(-1px);
 }
 
 .plot-type-btn.active {
-    background: var(--status-success);
-    border-color: var(--status-success);
-    color: white;
+  background: var(--workspace-icon-primary);
+  border-color: var(--workspace-icon-primary);
+  color: white;
 }
 
 .plot-type-btn i {
-    font-size: 24px;
-    color: var(--status-success);
+  font-size: 24px;
+  color: var(--workspace-icon-primary);
 }
 
 .plot-type-btn.active i {
-    color: white;
+  color: white;
 }
 
 .plot-type-spacer {
-    flex: 1;
+  flex: 1;
 }
 
 /* Split View Layout (改善 1) */
 .workspace-split-view {
-    flex: 1;
-    display: flex;
-    overflow: hidden;
-    min-height: 0;  /* Allow flexbox shrinking to fit viewport */
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 0; /* Allow flexbox shrinking to fit viewport */
 }
 
 .split-pane {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    margin-top: 0;  /* Remove any top margin */
-    min-height: 0;  /* Allow flexbox shrinking */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin-top: 0; /* Remove any top margin */
+  min-height: 0; /* Allow flexbox shrinking */
 }
 
 .split-pane-left {
-    width: 400px;
-    flex-shrink: 0;
-    min-width: 10px;
-    min-height: 0;  /* Allow flexbox shrinking */
-    background: var(--vis-bg-secondary);
-    border-right: 1px solid var(--vis-border);
-    transition: width 0.2s ease, flex 0.2s ease;
+  width: 400px;
+  flex-shrink: 0;
+  min-width: 10px;
+  min-height: 0; /* Allow flexbox shrinking */
+  background: var(--vis-bg-secondary);
+  border-right: 1px solid var(--vis-border);
+  transition:
+    width 0.2s ease,
+    flex 0.2s ease;
 }
 
 /* Collapsed data pane */
 .split-pane-left.collapsed {
-    width: 40px !important;
-    min-width: 40px;
+  width: 40px !important;
+  min-width: 40px;
 }
 
 .split-pane-left.collapsed .pane-header {
-    padding: 0 8px;
-    justify-content: center;
+  padding: 0 8px;
+  justify-content: center;
 }
 
 .split-pane-left.collapsed .pane-header-buttons,
 .split-pane-left.collapsed .data-tabs-bar {
-    display: none;
+  display: none;
 }
 
 .split-pane-left.collapsed .pane-content {
-    display: none;
+  display: none;
 }
 
 .split-pane-left.collapsed .pane-resize-btn i {
-    transform: rotate(180deg);
+  transform: rotate(180deg);
 }
 
 /* Dark mode: consistent split pane background */
 [data-theme="dark"] .split-pane-left {
-    background: var(--workspace-bg-secondary) !important;
-    border-right-color: var(--workspace-border-default);
+  background: var(--workspace-bg-secondary) !important;
+  border-right-color: var(--workspace-border-default);
 }
 
 .split-pane-right {
-    flex: 1;
-    background: var(--vis-bg-primary);
-    position: relative;
-    min-width: 10px;
-    max-width: none;  /* Ensure no max-width constraint when expanded */
-    min-height: 0;  /* Allow flexbox shrinking */
-    display: flex;
-    flex-direction: column;
-    transition: flex 0.2s ease, min-width 0.2s ease, max-width 0.2s ease, width 0.2s ease;
+  flex: 1;
+  background: var(--vis-bg-primary);
+  position: relative;
+  min-width: 10px;
+  max-width: none; /* Ensure no max-width constraint when expanded */
+  min-height: 0; /* Allow flexbox shrinking */
+  display: flex;
+  flex-direction: column;
+  transition:
+    flex 0.2s ease,
+    min-width 0.2s ease,
+    max-width 0.2s ease,
+    width 0.2s ease;
 }
 
 /* Collapsed canvas pane - shrinks to narrow strip at right edge */
 .split-pane-right.collapsed {
-    flex: 0 0 40px;
-    min-width: 40px;
-    max-width: 40px;
-    width: 40px;
+  flex: 0 0 40px;
+  min-width: 40px;
+  max-width: 40px;
+  width: 40px;
 }
 
 /* When canvas is collapsed, data pane expands to fill available space */
 .workspace-split-view:has(.split-pane-right.collapsed) .split-pane-left {
-    flex: 1;
-    width: auto !important;  /* Override inline styles */
+  flex: 1;
+  width: auto !important; /* Override inline styles */
 }
 
 .split-pane-right.collapsed .pane-header {
-    padding: 0 8px;
-    flex-direction: column;
-    justify-content: flex-start;
-    height: auto;
-    padding-top: 8px;
+  padding: 0 8px;
+  flex-direction: column;
+  justify-content: flex-start;
+  height: auto;
+  padding-top: 8px;
 }
 
 .split-pane-right.collapsed .gallery-categories,
 .split-pane-right.collapsed .pane-header-buttons {
-    display: none;
+  display: none;
 }
 
 .split-pane-right.collapsed .pane-content {
-    display: none;
+  display: none;
 }
 
 .split-pane-right.collapsed .pane-resize-btn i {
-    transform: rotate(180deg);
+  transform: rotate(180deg);
 }
 
 /* Dark mode: consistent split pane background */
 [data-theme="dark"] .split-pane-right {
-    background: var(--workspace-bg-primary) !important;
+  background: var(--workspace-bg-primary) !important;
 }
 
 .pane-header {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 12px;
-    padding: 0 16px;
-    margin-top: 0 !important;
-    height: 50px;
-    flex-shrink: 0;
-    box-sizing: border-box;
-    background: var(--vis-bg-secondary);
-    border-bottom: 1px solid var(--vis-border);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 0 16px;
+  margin-top: 0 !important;
+  height: 50px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  background: var(--vis-bg-secondary);
+  border-bottom: 1px solid var(--vis-border);
 }
 
 /* Dark mode: consistent header background */
 [data-theme="dark"] .pane-header {
-    background: var(--workspace-bg-secondary) !important;
-    border-bottom-color: var(--workspace-border-default);
+  background: var(--workspace-bg-secondary) !important;
+  border-bottom-color: var(--workspace-border-default);
 }
 
 .pane-header h5 {
-    margin: 0;
-    padding: 0;
-    margin-right: 12px;
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 1;
-    color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  margin: 0;
+  padding: 0;
+  margin-right: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .pane-header-buttons {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-left: 0;
-    margin-right: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 0;
+  margin-right: auto;
 }
 
 .pane-header-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    padding: 6px 10px;
-    min-width: 34px;
-    height: 34px;
-    background: var(--vis-bg-secondary);
-    border: 1px solid var(--workspace-border-default);
-    border-radius: 4px;
-    color: var(--text-primary);
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    white-space: nowrap;
-    position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 10px;
+  min-width: 34px;
+  height: 34px;
+  background: var(--vis-bg-secondary);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  position: relative;
 }
 
 .pane-header-btn:hover {
-    background: var(--vis-bg-hover);
-    border-color: var(--workspace-icon-hover);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 6px rgba(5, 150, 105, 0.15);
+  background: var(--vis-bg-hover);
+  border-color: var(--workspace-icon-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .pane-header-btn:active {
-    transform: translateY(0);
+  transform: translateY(0);
 }
 
 .pane-header-btn i {
-    font-size: 16px;
-    color: var(--status-success);
+  font-size: 16px;
+  color: var(--workspace-icon-primary);
 }
 
 .pane-header-btn span {
-    font-weight: 600;
-    font-size: 12px;
+  font-weight: 600;
+  font-size: 12px;
 }
 
 .pane-header-btn.active {
-    background: var(--status-success-bg);
-    color: var(--status-success);
-    border-color: var(--workspace-border-default);
+  background: var(--vis-accent-bg);
+  color: var(--workspace-icon-primary);
+  border-color: var(--workspace-border-default);
 }
 
 /* Plot type buttons - larger and more distinctive */
 .pane-header-btn[data-plot-type] {
-    min-width: 42px;
-    height: 42px;
-    padding: 10px;
-    position: relative;
+  min-width: 42px;
+  height: 42px;
+  padding: 10px;
+  position: relative;
 }
 
 .pane-header-btn[data-plot-type] i {
-    font-size: 22px;
+  font-size: 22px;
 }
 
 /* Plot type preview tooltip */
 .pane-header-btn[data-plot-type]::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    top: calc(100% + 8px);
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--vis-bg-primary);
-    border: 1px solid var(--workspace-border-default);
-    border-radius: 6px;
-    padding: 8px 12px;
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--text-primary);
-    white-space: nowrap;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.2s ease;
-    z-index: 1000;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--vis-bg-primary);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .pane-header-btn[data-plot-type]:hover::after {
-    opacity: 1;
-    visibility: visible;
+  opacity: 1;
+  visibility: visible;
 }
 
 /* Plot preview popup container (created via JS) */
 .plot-preview-popup {
-    position: fixed;
-    z-index: 10000;
-    background: var(--vis-bg-primary);
-    border: 1px solid var(--workspace-border-default);
-    border-radius: 8px;
-    padding: 8px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s ease, visibility 0.2s ease;
-    pointer-events: none;
+  position: fixed;
+  z-index: 10000;
+  background: var(--vis-bg-primary);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.2s ease,
+    visibility 0.2s ease;
+  pointer-events: none;
 }
 
 .plot-preview-popup.visible {
-    opacity: 1;
-    visibility: visible;
+  opacity: 1;
+  visibility: visible;
 }
 
 .plot-preview-popup img {
-    width: 150px;
-    height: auto;
-    border-radius: 4px;
-    display: block;
+  width: 150px;
+  height: auto;
+  border-radius: 4px;
+  display: block;
 }
 
 .plot-preview-popup .preview-label {
-    text-align: center;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-top: 6px;
-    padding: 0 4px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: 6px;
+  padding: 0 4px;
 }
 
 .pane-resize-btn {
-    background: transparent;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    padding: 4px;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .pane-resize-btn:hover {
-    color: var(--text-primary);
+  color: var(--text-primary);
 }
 
 .pane-content {
-    flex: 1;
-    overflow: hidden; /* Changed from auto to hidden for proper flexbox sizing */
-    display: flex;
-    flex-direction: column;
-    min-height: 0;  /* Allow flexbox shrinking */
+  flex: 1;
+  overflow: hidden; /* Changed from auto to hidden for proper flexbox sizing */
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* Allow flexbox shrinking */
 }
-
