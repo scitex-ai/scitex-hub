@@ -70,7 +70,7 @@
                                         margin-right: 12px">
                                 <svg style="width: 16px;
                                             height: 16px;
-                                            color: #7c3aed"
+                                            color: var(--color-accent-emphasis)"
                                      fill="currentColor"
                                      viewBox="0 0 20 20">
                                     <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" />
@@ -92,16 +92,16 @@
                             <div class="d-grid">
                                 <a href="{% url 'integrations_app:slack_configure' %}"
                                    class="btn btn-primary btn-sm"
-                                   style="background-color: #7c3aed;
-                                          border-color: #7c3aed">Manage Webhooks</a>
+                                   style="background-color: var(--color-accent-emphasis);
+                                          border-color: var(--color-accent-emphasis)">Manage Webhooks</a>
                             </div>
                         {% else %}
                             <p class="small text-muted mb-3">Receive notifications about your projects in Slack.</p>
                             <div class="d-grid">
                                 <a href="{% url 'integrations_app:slack_configure' %}"
                                    class="btn btn-primary btn-sm"
-                                   style="background-color: #7c3aed;
-                                          border-color: #7c3aed">Configure Slack</a>
+                                   style="background-color: var(--color-accent-emphasis);
+                                          border-color: var(--color-accent-emphasis)">Configure Slack</a>
                             </div>
                         {% endif %}
                     </div>

@@ -1,339 +1,337 @@
 {% extends "cloud_app/base.html" %}
+
 {% load static %}
+
 {% block title %}
     SciTeX
     Premium Subscription - Research Infrastructure
 {% endblock %}
-{%block extra_css%}
+{% block extra_css %}
     <link rel="stylesheet" href="{% static 'shared/css/components/hero.css' %}" />
     <style>
-  .hero-section {
-    background: linear-gradient(
-      135deg,
-      var(--scitex-primary) 0%,
-      var(--scitex-secondary) 100%
-    );
-    color: white;
-    padding: 4rem 0 3rem;
-    margin-bottom: 3rem;
-  }
+        .hero-section {
+            background: linear-gradient(135deg,
+                    var(--scitex-primary) 0%,
+                    var(--scitex-secondary) 100%);
+            color: white;
+            padding: 4rem 0 3rem;
+            margin-bottom: 3rem;
+        }
 
-  .pricing-section {
-    margin: 3rem 0;
-  }
+        .pricing-section {
+            margin: 3rem 0;
+        }
 
-  .section-header {
-    text-align: center;
-    margin-bottom: 3rem;
-  }
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
 
-  .section-header h2 {
-    color: var(--scitex-primary);
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
-  }
+        .section-header h2 {
+            color: var(--scitex-primary);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
 
-  .pricing-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 2rem;
-    margin-bottom: 3rem;
-  }
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
 
-  .pricing-card {
-    background: white;
-    border-radius: 16px;
-    padding: 2rem;
-    box-shadow: 0 8px 32px rgba(26, 35, 50, 0.1);
-    border: 2px solid transparent;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-  }
+        .pricing-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(26, 35, 50, 0.1);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
 
-  .pricing-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 16px 48px rgba(26, 35, 50, 0.15);
-  }
+        .pricing-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 16px 48px rgba(26, 35, 50, 0.15);
+        }
 
-  .pricing-card.popular {
-    border-color: var(--scitex-accent);
-    transform: scale(1.05);
-  }
+        .pricing-card.popular {
+            border-color: var(--scitex-accent);
+            transform: scale(1.05);
+        }
 
-  .pricing-card.popular::before {
-    content: "MOST POPULAR";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    background: var(--scitex-accent);
-    color: white;
-    text-align: center;
-    padding: 0.5rem;
-    font-weight: bold;
-    font-size: 0.875rem;
-    letter-spacing: 0.5px;
-  }
+        .pricing-card.popular::before {
+            content: "MOST POPULAR";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--scitex-accent);
+            color: white;
+            text-align: center;
+            padding: 0.5rem;
+            font-weight: bold;
+            font-size: 0.875rem;
+            letter-spacing: 0.5px;
+        }
 
-  .popular .card-header {
-    margin-top: 1rem;
-  }
+        .popular .card-header {
+            margin-top: 1rem;
+        }
 
-  .plan-name {
-    font-size: 1.75rem;
-    font-weight: bold;
-    color: var(--scitex-primary);
-    margin-bottom: 0.5rem;
-  }
+        .plan-name {
+            font-size: 1.75rem;
+            font-weight: bold;
+            color: var(--scitex-primary);
+            margin-bottom: 0.5rem;
+        }
 
-  .plan-price {
-    font-size: 3rem;
-    font-weight: bold;
-    color: var(--scitex-secondary);
-    margin-bottom: 1rem;
-  }
+        .plan-price {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--scitex-secondary);
+            margin-bottom: 1rem;
+        }
 
-  .plan-price .currency {
-    font-size: 1.5rem;
-    vertical-align: top;
-  }
+        .plan-price .currency {
+            font-size: 1.5rem;
+            vertical-align: top;
+        }
 
-  .plan-price .period {
-    font-size: 1rem;
-    color: #6c757d;
-    font-weight: normal;
-  }
+        .plan-price .period {
+            font-size: 1rem;
+            color: #6c757d;
+            font-weight: normal;
+        }
 
-  .resource-specs {
-    background: rgba(52, 73, 94, 0.05);
-    border-radius: 8px;
-    padding: 1rem;
-    margin: 1.5rem 0;
-  }
+        .resource-specs {
+            background: rgba(52, 73, 94, 0.05);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1.5rem 0;
+        }
 
-  .resource-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid rgba(52, 73, 94, 0.1);
-  }
+        .resource-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(52, 73, 94, 0.1);
+        }
 
-  .resource-item:last-child {
-    border-bottom: none;
-  }
+        .resource-item:last-child {
+            border-bottom: none;
+        }
 
-  .resource-label {
-    font-weight: 500;
-    color: var(--scitex-primary);
-  }
+        .resource-label {
+            font-weight: 500;
+            color: var(--scitex-primary);
+        }
 
-  .resource-value {
-    font-weight: bold;
-    color: var(--scitex-secondary);
-  }
+        .resource-value {
+            font-weight: bold;
+            color: var(--scitex-secondary);
+        }
 
-  .feature-list {
-    list-style: none;
-    padding: 0;
-    margin: 1.5rem 0;
-  }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 1.5rem 0;
+        }
 
-  .feature-list li {
-    padding: 0.75rem 0;
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-  }
+        .feature-list li {
+            padding: 0.75rem 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
 
-  .feature-icon {
-    color: var(--scitex-accent);
-    font-weight: bold;
-    flex-shrink: 0;
-    margin-top: 0.125rem;
-  }
+        .feature-icon {
+            color: var(--scitex-accent);
+            font-weight: bold;
+            flex-shrink: 0;
+            margin-top: 0.125rem;
+        }
 
-  .cta-button {
-    width: 100%;
-    padding: 1rem 1.5rem;
-    border-radius: 8px;
-    font-weight: bold;
-    text-align: center;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    margin-top: 1.5rem;
-    display: inline-block;
-  }
+        .cta-button {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            font-weight: bold;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            margin-top: 1.5rem;
+            display: inline-block;
+        }
 
-  .cta-primary {
-    background: var(--scitex-accent);
-    color: white;
-    border: 2px solid var(--scitex-accent);
-  }
+        .cta-primary {
+            background: var(--scitex-accent);
+            color: white;
+            border: 2px solid var(--scitex-accent);
+        }
 
-  .cta-primary:hover {
-    background: transparent;
-    color: var(--scitex-accent);
-    transform: translateY(-2px);
-  }
+        .cta-primary:hover {
+            background: transparent;
+            color: var(--scitex-accent);
+            transform: translateY(-2px);
+        }
 
-  .cta-secondary {
-    background: transparent;
-    color: var(--scitex-primary);
-    border: 2px solid var(--scitex-primary);
-  }
+        .cta-secondary {
+            background: transparent;
+            color: var(--scitex-primary);
+            border: 2px solid var(--scitex-primary);
+        }
 
-  .cta-secondary:hover {
-    background: var(--scitex-primary);
-    color: white;
-    transform: translateY(-2px);
-  }
+        .cta-secondary:hover {
+            background: var(--scitex-primary);
+            color: white;
+            transform: translateY(-2px);
+        }
 
-  .institutional-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-  }
+        .institutional-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
 
-  .institutional-card {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-radius: 12px;
-    padding: 2rem;
-    border: 1px solid #dee2e6;
-  }
+        .institutional-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            padding: 2rem;
+            border: 1px solid #dee2e6;
+        }
 
-  .japanese-special {
-    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
-    border: 2px solid #ffc107;
-    position: relative;
-  }
+        .japanese-special {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 2px solid #ffc107;
+            position: relative;
+        }
 
-  .japanese-special::before {
-    content: "🇯🇵 JAPAN SPECIAL";
-    position: absolute;
-    top: -1rem;
-    left: 1rem;
-    background: #ffc107;
-    color: #212529;
-    padding: 0.25rem 0.75rem;
-    border-radius: 4px;
-    font-weight: bold;
-    font-size: 0.75rem;
-  }
+        .japanese-special::before {
+            content: "🇯🇵 JAPAN SPECIAL";
+            position: absolute;
+            top: -1rem;
+            left: 1rem;
+            background: #ffc107;
+            color: #212529;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.75rem;
+        }
 
-  .addon-services {
-    background: rgba(26, 35, 50, 0.02);
-    border-radius: 12px;
-    padding: 2rem;
-    margin: 3rem 0;
-  }
+        .addon-services {
+            background: rgba(26, 35, 50, 0.02);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 3rem 0;
+        }
 
-  .addon-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.5rem;
-    margin-top: 2rem;
-  }
+        .addon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
 
-  .addon-item {
-    background: white;
-    border-radius: 8px;
-    padding: 1.5rem;
-    border: 1px solid #e9ecef;
-    transition: all 0.3s ease;
-  }
+        .addon-item {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
 
-  .addon-item:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-  }
+        .addon-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        }
 
-  .addon-price {
-    font-size: 1.25rem;
-    font-weight: bold;
-    color: var(--scitex-accent);
-    margin-bottom: 0.5rem;
-  }
+        .addon-price {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--scitex-accent);
+            margin-bottom: 0.5rem;
+        }
 
-  .addon-title {
-    font-weight: bold;
-    color: var(--scitex-primary);
-    margin-bottom: 0.5rem;
-  }
+        .addon-title {
+            font-weight: bold;
+            color: var(--scitex-primary);
+            margin-bottom: 0.5rem;
+        }
 
-  .addon-availability {
-    font-size: 0.875rem;
-    color: #6c757d;
-    font-style: italic;
-    margin-top: 0.5rem;
-  }
+        .addon-availability {
+            font-size: 0.875rem;
+            color: #6c757d;
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
 
-  .comparison-table {
-    overflow-x: auto;
-    margin: 3rem 0;
-  }
+        .comparison-table {
+            overflow-x: auto;
+            margin: 3rem 0;
+        }
 
-  .table-responsive {
-    border-radius: 12px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  }
+        .table-responsive {
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
 
-  .table {
-    margin-bottom: 0;
-  }
+        .table {
+            margin-bottom: 0;
+        }
 
-  .table thead th {
-    background: var(--scitex-primary);
-    color: white;
-    border: none;
-    font-weight: bold;
-    text-align: center;
-    vertical-align: middle;
-  }
+        .table thead th {
+            background: var(--scitex-primary);
+            color: white;
+            border: none;
+            font-weight: bold;
+            text-align: center;
+            vertical-align: middle;
+        }
 
-  .table tbody td {
-    vertical-align: middle;
-    text-align: center;
-    border-color: #e9ecef;
-  }
+        .table tbody td {
+            vertical-align: middle;
+            text-align: center;
+            border-color: #e9ecef;
+        }
 
-  .table tbody tr:hover {
-    background-color: rgba(52, 73, 94, 0.05);
-  }
+        .table tbody tr:hover {
+            background-color: rgba(52, 73, 94, 0.05);
+        }
 
-  .feature-check {
-    color: #28a745;
-    font-weight: bold;
-  }
+        .feature-check {
+            color: #28a745;
+            font-weight: bold;
+        }
 
-  .feature-cross {
-    color: #dc3545;
-    font-weight: bold;
-  }
+        .feature-cross {
+            color: #dc3545;
+            font-weight: bold;
+        }
 
-  .contact-cta {
-    background: linear-gradient(
-      135deg,
-      var(--scitex-primary) 0%,
-      var(--scitex-secondary) 100%
-    );
-    color: white;
-    padding: 3rem 2rem;
-    border-radius: 16px;
-    text-align: center;
-    margin: 3rem 0;
-  }
+        .contact-cta {
+            background: linear-gradient(135deg,
+                    var(--scitex-primary) 0%,
+                    var(--scitex-secondary) 100%);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 16px;
+            text-align: center;
+            margin: 3rem 0;
+        }
 
-  .contact-cta h3 {
-    margin-bottom: 1rem;
-  }
+        .contact-cta h3 {
+            margin-bottom: 1rem;
+        }
 
-  .contact-cta p {
-    font-size: 1.125rem;
-    margin-bottom: 2rem;
-    opacity: 0.9;
-  }
+        .contact-cta p {
+            font-size: 1.125rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
     </style>
 {% endblock %}
 {% block content %}
@@ -343,11 +341,11 @@
             <div class="row justify-content-center">
                 <div class="col-lg-8 text-center">
                     <h1 class="display-4 fw-bold mb-3">SciTeX Premium Subscription</h1>
-                    <p class="lead mb-4" style="color: #34495e">
+                    <p class="lead mb-4" style="color: var(--color-fg-default)">
                         Transform your research workflow with AI-powered scientific
                         infrastructure
                     </p>
-                    <p class="mb-0" style="color: #34495e">From individual researchers to institutional deployments</p>
+                    <p class="mb-0" style="color: var(--color-fg-default)">From individual researchers to institutional deployments</p>
                 </div>
             </div>
         </div>

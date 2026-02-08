@@ -1,5 +1,7 @@
 {% extends "cloud_app/base.html" %}
+
 {% load static %}
+
 {% block title %}
     Support
     SciTeX - Donate
@@ -12,214 +14,214 @@
 {% endblock %}
 {% block extra_css %}
     <style>
-  .donate-header {
-    background-color: #eef2ff;
-    padding: 3rem 0;
-    margin-bottom: 3rem;
-    border-radius: 0 0 8px 8px;
-  }
+        .donate-header {
+            background-color: var(--color-canvas-subtle);
+            padding: 3rem 0;
+            margin-bottom: 3rem;
+            border-radius: 0 0 8px 8px;
+        }
 
-  .donate-container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding-bottom: 4rem;
-  }
+        .donate-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding-bottom: 4rem;
+        }
 
-  .donation-options {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 3rem;
-  }
+        .donation-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
 
-  .donation-card {
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-    padding: 1.5rem;
-    text-align: center;
-    border: 2px solid transparent;
-    transition: all 0.3s ease;
-    cursor: pointer;
-  }
+        .donation-card {
+            background-color: var(--bg-surface);
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            padding: 1.5rem;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
 
-  .donation-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-  }
+        .donation-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
 
-  .donation-card.selected {
-    border-color: #4a6baf;
-    background-color: rgba(74, 107, 175, 0.05);
-  }
+        .donation-card.selected {
+            border-color: var(--color-accent-fg);
+            background-color: rgba(74, 107, 175, 0.05);
+        }
 
-  .donation-amount {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #4a6baf;
-    margin: 1rem 0;
-  }
+        .donation-amount {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-accent-fg);
+            margin: 1rem 0;
+        }
 
-  .donation-description {
-    color: #666;
-    margin-bottom: 1rem;
-    min-height: 3rem;
-  }
+        .donation-description {
+            color: var(--color-fg-muted);
+            margin-bottom: 1rem;
+            min-height: 3rem;
+        }
 
-  .donation-impact {
-    font-size: 0.9rem;
-    color: #28a745;
-    margin-top: 1rem;
-  }
+        .donation-impact {
+            font-size: 0.9rem;
+            color: var(--status-success);
+            margin-top: 1rem;
+        }
 
-  .donation-custom {
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-  }
+        .donation-custom {
+            background-color: var(--bg-surface);
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
 
-  .donation-custom-form {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-    max-width: 400px;
-    margin: 0 auto;
-  }
+        .donation-custom-form {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            max-width: 400px;
+            margin: 0 auto;
+        }
 
-  .donation-custom-form .input-group {
-    flex-grow: 1;
-  }
+        .donation-custom-form .input-group {
+            flex-grow: 1;
+        }
 
-  .donate-form {
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-    padding: 2rem;
-    margin-bottom: 2rem;
-  }
+        .donate-form {
+            background-color: var(--bg-surface);
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
 
-  .payment-options {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-  }
+        .payment-options {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
 
-  .payment-option {
-    flex: 1;
-    background-color: #f8f9fa;
-    border: 1px solid #ced4da;
-    border-radius: 8px;
-    padding: 1rem;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
+        .payment-option {
+            flex: 1;
+            background-color: #f8f9fa;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
 
-  .payment-option:hover {
-    background-color: #e9ecef;
-  }
+        .payment-option:hover {
+            background-color: #e9ecef;
+        }
 
-  .payment-option.selected {
-    border-color: #4a6baf;
-    background-color: rgba(74, 107, 175, 0.05);
-  }
+        .payment-option.selected {
+            border-color: var(--color-accent-fg);
+            background-color: rgba(74, 107, 175, 0.05);
+        }
 
-  .payment-icon {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
-  }
+        .payment-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
 
-  .open-source-info {
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    padding: 1.5rem;
-    margin-top: 3rem;
-  }
+        .open-source-info {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 3rem;
+        }
 
-  .funding-progress {
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-  }
+        .funding-progress {
+            background-color: var(--bg-surface);
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
 
-  .progress {
-    height: 1.5rem;
-    margin-bottom: 1rem;
-  }
+        .progress {
+            height: 1.5rem;
+            margin-bottom: 1rem;
+        }
 
-  .funding-stats {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
-  }
+        .funding-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
 
-  .goal-description {
-    margin-top: 1rem;
-    font-size: 0.9rem;
-  }
+        .goal-description {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
 
-  .supporter-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 1rem;
-    border-radius: 8px;
-    background-color: #f8f9fa;
-    margin-bottom: 1rem;
-  }
+        .supporter-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1rem;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            margin-bottom: 1rem;
+        }
 
-  .supporter-avatar {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background-color: #e0e0e0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    color: #fff;
-    margin-bottom: 0.5rem;
-  }
+        .supporter-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
 
-  .supporter-name {
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-  }
+        .supporter-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
 
-  .supporter-badge {
-    font-size: 0.8rem;
-    background-color: #4a6baf;
-    color: white;
-    border-radius: 30px;
-    padding: 0.1rem 0.5rem;
-    margin-bottom: 0.25rem;
-  }
+        .supporter-badge {
+            font-size: 0.8rem;
+            background-color: var(--color-accent-fg);
+            color: white;
+            border-radius: 30px;
+            padding: 0.1rem 0.5rem;
+            margin-bottom: 0.25rem;
+        }
 
-  .supporter-info {
-    font-size: 0.8rem;
-    color: #666;
-    text-align: center;
-  }
+        .supporter-info {
+            font-size: 0.8rem;
+            color: var(--color-fg-muted);
+            text-align: center;
+        }
 
-  .faq-item {
-    margin-bottom: 1.5rem;
-  }
+        .faq-item {
+            margin-bottom: 1.5rem;
+        }
 
-  .faq-question {
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-    color: #2c3e50;
-  }
+        .faq-question {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
 
-  @media (max-width: 768px) {
-    .payment-options {
-      flex-direction: column;
-    }
-  }
+        @media (max-width: 768px) {
+            .payment-options {
+                flex-direction: column;
+            }
+        }
     </style>
 {% endblock %}
 {% block content %}
@@ -341,10 +343,7 @@
                 <div id="credit-card-form" style="display: none">
                     <div class="form-group mb-3">
                         <label for="card-name" class="form-label">Name on Card</label>
-                        <input type="text"
-                               class="form-control"
-                               id="card-name"
-                               placeholder="John Doe" />
+                        <input type="text" class="form-control" id="card-name" placeholder="John Doe" />
                     </div>
                     <div class="form-group mb-3">
                         <label for="card-number" class="form-label">Card Number</label>
@@ -356,10 +355,7 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="card-expiry" class="form-label">Expiration Date</label>
-                            <input type="text"
-                                   class="form-control"
-                                   id="card-expiry"
-                                   placeholder="MM / YY" />
+                            <input type="text" class="form-control" id="card-expiry" placeholder="MM / YY" />
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="card-cvc" class="form-label">CVC</label>
