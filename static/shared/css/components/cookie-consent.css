@@ -46,7 +46,7 @@
 }
 
 .cookie-consent-message {
-  color: #e8e8e8;
+  color: var(--text-primary);
   font-size: 0.95rem;
   line-height: 1.6;
   font-weight: 400;
@@ -78,8 +78,8 @@
 }
 
 .cookie-consent-btn-accept {
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--status-success) 0%, #16a34a 100%);
+  color: var(--text-inverse);
   box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
 }
 
@@ -91,13 +91,13 @@
 
 .cookie-consent-btn-decline {
   background: rgba(255, 255, 255, 0.1);
-  color: #a0a0a0;
+  color: var(--text-muted);
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .cookie-consent-btn-decline:hover {
   background: rgba(255, 255, 255, 0.15);
-  color: #ffffff;
+  color: var(--text-inverse);
   border-color: rgba(255, 255, 255, 0.3);
 }
 

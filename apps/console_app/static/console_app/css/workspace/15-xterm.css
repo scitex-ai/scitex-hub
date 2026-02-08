@@ -13,7 +13,9 @@
   margin-bottom: 4px;
   white-space: pre-wrap;
   word-break: break-all;
-  color: #c5cdd6; /* Default terminal color - softer than pure white */
+  color: var(
+    --terminal-fg
+  ); /* Default terminal color - softer than pure white */
 }
 
 .terminal-image {
@@ -42,7 +44,9 @@
 }
 
 .terminal-info {
-  color: #9ca3af; /* Gray to match shell script ANSI gray (\033[0;90m) */
+  color: var(
+    --terminal-bright-black
+  ); /* Gray to match shell script ANSI gray (\033[0;90m) */
 }
 
 .terminal-warning {
@@ -61,23 +65,22 @@
   color: var(--workspace-icon-primary);
   font-weight: 600;
   flex-shrink: 0;
-  user-select: text;  /* Allow selecting prompt for copy */
+  user-select: text; /* Allow selecting prompt for copy */
 }
 
 .terminal-input-inline {
   flex: 1;
   background: transparent;
   border: none;
-  color: #d4d4d4;
-  font-family: 'JetBrains Mono', 'Monaco', 'Menlo', monospace;
+  color: var(--terminal-fg);
+  font-family: "JetBrains Mono", "Monaco", "Menlo", monospace;
   font-size: 13px;
   outline: none;
   padding: 0;
   margin: 0;
-  user-select: text;  /* Allow text selection while typing */
+  user-select: text; /* Allow text selection while typing */
 }
 
 .terminal-input-inline::placeholder {
-  color: #6e7681;
+  color: var(--text-muted);
 }
-

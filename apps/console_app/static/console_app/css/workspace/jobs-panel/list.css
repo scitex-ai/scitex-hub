@@ -58,5 +58,5 @@
 
 .jobs-unavailable i {
   font-size: 28px;
-  color: #f59e0b;
+  color: var(--status-warning);
 }

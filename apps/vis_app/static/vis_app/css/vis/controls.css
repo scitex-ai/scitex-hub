@@ -152,7 +152,7 @@
   justify-self: start; /* Align to left (same as /vis/) */
   align-self: start; /* Align to top (same as /vis/) */
   /* Light background for light mode */
-  background: #f0f0f0;
+  background: var(--workspace-bg-secondary);
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
@@ -167,7 +167,7 @@
 
 /* Dark canvas background mode (toggled locally, independent of global theme) */
 .vis-canvas-container[data-canvas-theme="dark"] {
-  background: #1a1a1a;
+  background: var(--workspace-bg-tertiary);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); /* Stronger shadow for dark mode */
 }
 
@@ -181,10 +181,10 @@
 /* Canvas Grid Toggle Warning - at bottom of canvas pane */
 .canvas-mode-warning {
   padding: 8px 12px;
-  background: rgba(255, 193, 7, 0.15);
-  border-top: 1px solid rgba(255, 193, 7, 0.4);
+  background: var(--status-warning-bg);
+  border-top: 1px solid var(--status-warning-border);
   border-radius: 0;
-  color: #ffb300;
+  color: var(--status-warning);
   font-size: 11px;
   display: none;
   align-items: center;
@@ -419,7 +419,7 @@
 
 .pane-header-btn.theme-toggle-btn .dark-warning {
   display: none;
-  color: #f59e0b;
+  color: var(--status-warning);
   font-size: 11px;
   font-weight: 500;
 }
@@ -432,16 +432,16 @@
 
 .pane-header-btn.debug-btn:hover {
   opacity: 1;
-  color: #f59e0b;
+  color: var(--status-warning);
 }
 
 .pane-header-btn.debug-btn.active {
-  background: rgba(245, 158, 11, 0.15);
-  color: #f59e0b;
+  background: var(--status-warning-bg);
+  color: var(--status-warning);
   opacity: 1;
 }
 
 [data-theme="light"] .pane-header-btn.debug-btn.active {
-  background: rgba(245, 158, 11, 0.2);
-  color: #d97706;
+  background: var(--status-warning-bg);
+  color: var(--status-warning);
 }

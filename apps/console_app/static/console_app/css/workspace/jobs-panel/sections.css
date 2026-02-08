@@ -38,19 +38,19 @@
 }
 
 .jobs-section-icon.running {
-  background: #4caf50;
+  background: var(--status-success);
 }
 
 .jobs-section-icon.pending {
-  background: #ffc107;
+  background: var(--status-warning);
 }
 
 .jobs-section-icon.completed {
-  background: #9e9e9e;
+  background: var(--text-muted);
 }
 
 .jobs-section-icon.failed {
-  background: #f44336;
+  background: var(--status-error);
 }
 
 .jobs-section-title {

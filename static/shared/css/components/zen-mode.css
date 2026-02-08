@@ -44,10 +44,18 @@ body.zen-mode .zen-mode-indicator {
 }
 
 @keyframes zen-indicator-fade {
-  0% { opacity: 0; }
-  10% { opacity: 1; }
-  80% { opacity: 1; }
-  100% { opacity: 0; }
+  0% {
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 /* Zen mode keyboard shortcut hint overlay */
@@ -65,7 +73,9 @@ body.zen-mode .zen-mode-indicator {
   text-align: center;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.2s ease, visibility 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    visibility 0.2s ease;
   z-index: 10000;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
 }
@@ -82,7 +92,7 @@ body.zen-mode .zen-mode-indicator {
   background: var(--workspace-bg-tertiary, #1a1a1a);
   border: 1px solid var(--workspace-border-default, #3a3a3a);
   border-radius: 0.25rem;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
   font-size: 0.875rem;
 }
 
@@ -152,7 +162,7 @@ body.zen-mode .zen-mode-indicator {
   background: var(--workspace-bg-tertiary, #1a1a1a);
   border: 1px solid var(--workspace-border-default, #555);
   border-radius: 0.25rem;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
   font-size: 0.75rem;
 }
 
@@ -164,6 +174,6 @@ body.zen-mode .zen-mode-indicator {
 }
 
 [data-theme="light"] .zen-notification kbd {
-  background: #fff;
+  background: var(--bg-surface);
   border-color: var(--workspace-border-default, #b5c7d1);
 }

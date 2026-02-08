@@ -45,32 +45,37 @@
 }
 
 .job-card-status.running {
-  background: #4caf50;
+  background: var(--status-success);
   animation: status-pulse 1.5s ease-in-out infinite;
 }
 
 @keyframes status-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .job-card-status.pending {
-  background: #ffc107;
+  background: var(--status-warning);
 }
 
 .job-card-status.completed {
-  background: #9e9e9e;
+  background: var(--text-muted);
 }
 
 .job-card-status.failed {
-  background: #f44336;
+  background: var(--status-error);
 }
 
 .job-card-id {
   font-size: 12px;
   font-weight: 600;
   color: var(--text-primary, #333);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
 }
 
 [data-theme="dark"] .job-card-id {
@@ -89,7 +94,7 @@
 .job-card-time {
   font-size: 11px;
   color: var(--text-secondary, #666);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
   flex-shrink: 0;
 }
 
@@ -115,7 +120,7 @@
 
 .job-card-reason {
   font-size: 11px;
-  color: #f59e0b;
+  color: var(--status-warning);
   padding-left: 16px;
   font-style: italic;
 }
@@ -144,12 +149,12 @@
 }
 
 .job-card-btn.cancel {
-  border-color: #f44336;
-  color: #f44336;
+  border-color: var(--status-error);
+  color: var(--status-error);
 }
 
 .job-card-btn.cancel:hover {
-  background: rgba(244, 67, 54, 0.1);
+  background: var(--status-error-bg);
 }
 
 [data-theme="dark"] .job-card-btn {

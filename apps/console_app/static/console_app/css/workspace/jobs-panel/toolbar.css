@@ -62,8 +62,12 @@
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .jobs-toolbar-spacer {
@@ -82,13 +86,13 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #9e9e9e;
+  background: var(--text-muted);
 }
 
 .jobs-status-dot.connected {
-  background: #4caf50;
+  background: var(--status-success);
 }
 
 .jobs-status-dot.error {
-  background: #f44336;
+  background: var(--status-error);
 }

@@ -66,18 +66,18 @@
 }
 
 .notification-success {
-  background-color: #1a7f16;
-  color: white;
+  background-color: var(--status-success);
+  color: var(--text-inverse);
 }
 
 .notification-error {
-  background-color: #da3633;
-  color: white;
+  background-color: var(--status-error);
+  color: var(--text-inverse);
 }
 
 .notification-info {
-  background-color: #0969da;
-  color: white;
+  background-color: var(--status-info);
+  color: var(--text-inverse);
 }
 
 /* Server Status Indicator Animations */
@@ -97,7 +97,8 @@
 }
 
 @keyframes status-flash {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {

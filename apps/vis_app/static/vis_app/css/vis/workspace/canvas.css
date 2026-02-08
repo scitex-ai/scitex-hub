@@ -4,95 +4,111 @@
 
 /* Canvas Container */
 .canvas-container {
-    flex: 1;
-    display: grid;
-    grid-template-rows: 1fr auto;
-    gap: 0;
-    overflow: hidden;
+  flex: 1;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 0;
+  overflow: hidden;
 }
 
 .plot-preview-area {
-    background: #ffffff;
-    background-image:
-        linear-gradient(0deg, transparent 23px, #e5e5e5 23px),
-        linear-gradient(90deg, transparent 23px, #e5e5e5 23px);
-    background-size: 24px 24px;
-    border-bottom: 1px solid var(--workspace-border-default);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    overflow: auto;
+  background: var(--workspace-bg-elevated);
+  background-image:
+    linear-gradient(
+      0deg,
+      transparent 23px,
+      var(--workspace-border-subtle) 23px
+    ),
+    linear-gradient(
+      90deg,
+      transparent 23px,
+      var(--workspace-border-subtle) 23px
+    );
+  background-size: 24px 24px;
+  border-bottom: 1px solid var(--workspace-border-default);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow: auto;
 }
 
 [data-theme="dark"] .plot-preview-area {
-    background: #ffffff;
-    background-image:
-        linear-gradient(0deg, transparent 23px, #e5e5e5 23px),
-        linear-gradient(90deg, transparent 23px, #e5e5e5 23px);
-    background-size: 24px 24px;
+  background: var(--workspace-bg-elevated);
+  background-image:
+    linear-gradient(
+      0deg,
+      transparent 23px,
+      var(--workspace-border-subtle) 23px
+    ),
+    linear-gradient(
+      90deg,
+      transparent 23px,
+      var(--workspace-border-subtle) 23px
+    );
+  background-size: 24px 24px;
 }
 
 .plot-placeholder {
-    text-align: center;
-    color: var(--text-muted);
+  text-align: center;
+  color: var(--text-muted);
 }
 
 .plot-placeholder i {
-    color: var(--workspace-border-default);
-    margin-bottom: 16px;
+  color: var(--workspace-border-default);
+  margin-bottom: 16px;
 }
 
 .plot-placeholder p {
-    font-size: 14px;
-    margin: 0;
+  font-size: 14px;
+  margin: 0;
 }
 
 /* Mini Data Table */
 .mini-data-table {
-    background: var(--vis-bg-secondary);
-    border-top: 1px solid var(--workspace-border-default);
-    max-height: 200px;
-    display: flex;
-    flex-direction: column;
-    transition: max-height 0.3s ease;
+  background: var(--vis-bg-secondary);
+  border-top: 1px solid var(--workspace-border-default);
+  max-height: 200px;
+  display: flex;
+  flex-direction: column;
+  transition: max-height 0.3s ease;
 }
 
 .mini-data-table.collapsed {
-    max-height: 40px;
+  max-height: 40px;
 }
 
 .mini-table-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    background: var(--vis-bg-primary);
-    border-bottom: 1px solid var(--workspace-border-default);
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--vis-bg-primary);
+  border-bottom: 1px solid var(--workspace-border-default);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 .mini-table-content {
-    flex: 1;
-    overflow: auto;
-    padding: 12px;
+  flex: 1;
+  overflow: auto;
+  padding: 12px;
 }
 
 .collapse-btn {
-    background: transparent;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    padding: 4px;
-    transition: all 0.2s ease;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  transition: all 0.2s ease;
 }
 
 .collapse-btn:hover {
-    color: var(--text-primary);
+  color: var(--text-primary);
 }
 
 .mini-data-table.collapsed .collapse-btn i {
-    transform: rotate(-90deg);
+  transform: rotate(-90deg);
 }

@@ -41,7 +41,7 @@
 .category-btn.active {
   background: var(--color-primary);
   border-color: var(--color-primary);
-  color: white;
+  color: var(--text-inverse);
 }
 
 .category-btn i {
@@ -54,15 +54,15 @@
 
 /* Dev button - distinct styling */
 .category-btn.dev-btn {
-  background: rgba(245, 158, 11, 0.15);
-  border-color: rgba(245, 158, 11, 0.5);
-  color: #f59e0b;
+  background: var(--status-warning-bg);
+  border-color: var(--status-warning-border);
+  color: var(--status-warning);
 }
 
 .category-btn.dev-btn:hover {
-  background: #f59e0b;
-  border-color: #f59e0b;
-  color: white;
+  background: var(--status-warning);
+  border-color: var(--status-warning);
+  color: var(--text-inverse);
 }
 
 /* Thumbnail popup */
@@ -151,7 +151,7 @@
   width: 100%;
   min-height: 100px;
   aspect-ratio: 4 / 3;
-  background: #fafafa;
+  background: var(--workspace-bg-tertiary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -209,9 +209,9 @@
 }
 
 .reproducibility-status.manual-edit {
-  background: rgba(245, 158, 11, 0.1);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  color: #f59e0b;
+  background: var(--status-warning-bg);
+  border: 1px solid var(--status-warning-border);
+  color: var(--status-warning);
 }
 
 .reproducibility-status i {
@@ -238,8 +238,8 @@
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background: #f59e0b;
-  color: white;
+  background: var(--status-warning);
+  color: var(--text-inverse);
   padding: 10px 20px;
   border-radius: 6px;
   font-size: 13px;

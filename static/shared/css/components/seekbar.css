@@ -133,7 +133,7 @@
   width: var(--seekbar-thumb-size);
   height: var(--seekbar-thumb-size);
   background: var(--seekbar-thumb-bg);
-  border: var(--seekbar-thumb-border) solid #ffffff;
+  border: var(--seekbar-thumb-border) solid var(--bg-surface);
   border-radius: 50%;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -157,7 +157,7 @@
   width: var(--seekbar-thumb-size);
   height: var(--seekbar-thumb-size);
   background: var(--seekbar-thumb-bg);
-  border: var(--seekbar-thumb-border) solid #ffffff;
+  border: var(--seekbar-thumb-border) solid var(--bg-surface);
   border-radius: 50%;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -181,7 +181,7 @@
   width: var(--seekbar-thumb-size);
   height: var(--seekbar-thumb-size);
   background: var(--seekbar-thumb-bg);
-  border: var(--seekbar-thumb-border) solid #ffffff;
+  border: var(--seekbar-thumb-border) solid var(--bg-surface);
   border-radius: 50%;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -248,7 +248,7 @@
   width: var(--seekbar-thumb-size);
   height: var(--seekbar-thumb-size);
   background: var(--seekbar-thumb-bg);
-  border: var(--seekbar-thumb-border) solid #ffffff;
+  border: var(--seekbar-thumb-border) solid var(--bg-surface);
   border-radius: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
@@ -285,7 +285,7 @@
   left: 50%;
   transform: translateX(-50%);
   background: var(--scitex-color-01, #2c3e50);
-  color: white;
+  color: var(--text-inverse);
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 0.75rem;
@@ -354,12 +354,12 @@
 
 .scitex-seekbar-input:disabled::-webkit-slider-thumb {
   cursor: not-allowed;
-  background: #999;
+  background: var(--text-muted);
 }
 
 .scitex-seekbar-input:disabled::-moz-range-thumb {
   cursor: not-allowed;
-  background: #999;
+  background: var(--text-muted);
 }
 
 .scitex-seekbar.disabled {
@@ -391,18 +391,18 @@
 }
 
 .scitex-seekbar-success {
-  --seekbar-track-active-bg: #28a745;
-  --seekbar-thumb-bg: #28a745;
+  --seekbar-track-active-bg: var(--status-success);
+  --seekbar-thumb-bg: var(--status-success);
 }
 
 .scitex-seekbar-warning {
-  --seekbar-track-active-bg: #ffc107;
-  --seekbar-thumb-bg: #ffc107;
+  --seekbar-track-active-bg: var(--status-warning);
+  --seekbar-thumb-bg: var(--status-warning);
 }
 
 .scitex-seekbar-danger {
-  --seekbar-track-active-bg: #dc3545;
-  --seekbar-thumb-bg: #dc3545;
+  --seekbar-track-active-bg: var(--status-error);
+  --seekbar-thumb-bg: var(--status-error);
 }
 
 /* ============================================
@@ -429,7 +429,7 @@
 
 .scitex-seekbar-nouislider .noUi-handle {
   background: var(--seekbar-thumb-bg);
-  border: var(--seekbar-thumb-border) solid #ffffff;
+  border: var(--seekbar-thumb-border) solid var(--bg-surface);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 

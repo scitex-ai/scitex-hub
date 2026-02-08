@@ -123,14 +123,14 @@
 .product-tour-close:hover {
   background: var(--bg-tertiary, #2a2a4a);
   border-color: var(--accent-color, #6366f1);
-  color: var(--text-primary, #fff);
+  color: var(--text-primary);
 }
 
 .product-tour-title {
   margin: 0 0 0.5rem;
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--text-primary, #fff);
+  color: var(--text-primary);
 }
 
 .product-tour-description {
@@ -151,7 +151,7 @@
   border: 1px solid var(--border-color, #333);
   border-radius: 6px;
   background: var(--bg-secondary, #252540);
-  color: var(--text-primary, #fff);
+  color: var(--text-primary);
   font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
@@ -223,7 +223,7 @@
 }
 
 .product-tour-checkbox-label:hover {
-  color: var(--text-primary, #fff);
+  color: var(--text-primary);
 }
 
 .product-tour-skip-checkbox {
