@@ -90,10 +90,7 @@
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 
-  /* Component Sizes (Phase 1: UI Improvements) */
-  --icon-size: 20px;
-  --icon-size-sm: 16px;
-  --icon-size-lg: 24px;
+  /* Component Sizes - icon sizes use shared --icon-xs..--icon-2xl from colors.css */
   --button-height: 32px;
   --button-height-sm: 28px;
   --toolbar-height: 50px;

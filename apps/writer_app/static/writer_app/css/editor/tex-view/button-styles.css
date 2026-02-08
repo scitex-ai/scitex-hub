@@ -26,7 +26,7 @@
   background: var(--workspace-bg-tertiary);
   border: none;
   transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .panel-header .btn-primary {
@@ -84,28 +84,29 @@
 .section-management-btns {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  margin-left: 0.75rem;
-  padding-left: 0.75rem;
+  gap: 4px;
+  margin-left: 8px;
+  padding-left: 8px;
   border-left: 1px solid var(--workspace-border-default);
 }
 
 .section-management-btns .btn {
-  padding: 0.35rem 0.5rem;
-  font-size: 0.8rem;
+  padding: 6px 8px;
+  font-size: 14px;
   line-height: 1;
-  transition: all 0.2s ease;
+  min-width: 32px;
+  transition: all 0.15s ease;
 }
 
 .section-management-btns .btn i {
-  font-size: var(--icon-sm); /* 14px - consistent with panel header icons */
-  color: var(--workspace-icon-primary); /* Green icons matching vis */
+  font-size: 14px;
+  color: var(--workspace-icon-primary);
 }
 
 .section-management-btns .btn:hover {
   transform: translateY(-1px);
   border-color: var(--workspace-icon-hover);
-  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.15); /* Green shadow matching vis */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .section-management-btns .btn:active {
