@@ -3,217 +3,218 @@
    ======================================================================== */
 
 .vis-sidebar {
-    background: var(--vis-bg-secondary);
-    border-right: 1px solid var(--vis-border);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    transition: width 0.2s ease, min-width 0.2s ease;
-    width: 250px;
-    min-width: 40px; /* Match collapsed width for proper shrinking */
-    flex-shrink: 0;
-    position: relative;
-    z-index: 200; /* Above datatable sticky headers (z-index: 100-150) */
+  background: var(--vis-bg-secondary);
+  border-right: 1px solid var(--vis-border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition:
+    width 0.2s ease,
+    min-width 0.2s ease;
+  width: 250px;
+  min-width: 40px; /* Match collapsed width for proper shrinking */
+  flex-shrink: 0;
+  position: relative;
+  z-index: 200; /* Above datatable sticky headers (z-index: 100-150) */
 }
 
 /* Collapsed state */
 .vis-sidebar.collapsed {
-    width: 40px;
-    min-width: 40px;
+  width: 40px;
+  min-width: 40px;
 }
 
 .vis-sidebar.collapsed .sidebar-content {
-    display: none;
+  display: none;
 }
 
 .vis-sidebar.collapsed .sidebar-header {
-    padding: 0 4px;
-    justify-content: center;
+  padding: 0 4px;
+  justify-content: center;
 }
 
 .vis-sidebar.collapsed .sidebar-header h5 {
-    display: none;
+  display: none;
 }
 
 .vis-sidebar.collapsed .sidebar-toggle-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 4px;
 }
 
 /* Dark mode: unified background with workspace modules */
 [data-theme="dark"] .vis-sidebar {
-    background: var(--workspace-bg-primary) !important;
-    border-right-color: var(--workspace-border-default);
+  background: var(--workspace-bg-primary) !important;
+  border-right-color: var(--workspace-border-default);
 }
 
 .sidebar-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 16px;
-    margin-top: 0 !important;
-    height: 50px;
-    flex-shrink: 0;
-    box-sizing: border-box;
-    background: var(--vis-bg-secondary);
-    border-bottom: 1px solid var(--vis-border);
-    overflow: hidden; /* Prevent content from forcing width */
-    min-width: 0; /* Allow flex shrinking */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  margin-top: 0 !important;
+  height: 50px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  background: var(--vis-bg-secondary);
+  border-bottom: 1px solid var(--vis-border);
+  overflow: hidden; /* Prevent content from forcing width */
+  min-width: 0; /* Allow flex shrinking */
 }
 
 /* Dark mode: consistent header background */
 [data-theme="dark"] .sidebar-header {
-    background: var(--workspace-bg-secondary) !important;
-    border-bottom-color: var(--workspace-border-default);
+  background: var(--workspace-bg-secondary) !important;
+  border-bottom-color: var(--workspace-border-default);
 }
 
 .sidebar-header h4,
 .sidebar-header h5 {
-    margin: 0;
-    padding: 0;
-    margin-right: 12px;
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 1;
-    color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    min-width: 0; /* Allow flex shrinking */
+  margin: 0;
+  padding: 0;
+  margin-right: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0; /* Allow flex shrinking */
 }
 
 .sidebar-header h5 i {
-    color: var(--workspace-icon-primary, #059669);
+  color: var(--workspace-icon-primary);
 }
 
 .sidebar-toggle-btn {
-    background: transparent;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 4px;
-    transition: all 0.2s ease;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
 }
 
 .sidebar-toggle-btn:hover {
-    background: var(--vis-bg-hover);
-    color: var(--text-primary);
+  background: var(--vis-bg-hover);
+  color: var(--text-primary);
 }
 
 .sidebar-content {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* Project Tree */
 .project-tree {
-    padding: 0;
+  padding: 0;
 }
 
 .tree-section {
-    margin-bottom: 8px;
+  margin-bottom: 8px;
 }
 
 .tree-section-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    cursor: pointer;
-    user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  user-select: none;
 }
 
 .tree-section-header:hover {
-    background: var(--vis-bg-hover);
+  background: var(--vis-bg-hover);
 }
 
 .tree-section:first-child .tree-section-header {
-    padding-top: 0;
+  padding-top: 0;
 }
 
 .tree-section-content {
-    padding: 4px 0;
+  padding: 4px 0;
 }
 
 .tree-item {
-    /* Container for tree items with children */
-    font-size: 13px;
-    color: var(--text-primary);
-    transition: all 0.15s ease;
+  /* Container for tree items with children */
+  font-size: 13px;
+  color: var(--text-primary);
+  transition: all 0.15s ease;
 }
 
 /* Hover removed from .tree-item - now on .tree-item-header */
 
 .tree-item.active {
-    background: var(--vis-bg-hover);
-    font-weight: 600;
+  background: var(--vis-bg-hover);
+  font-weight: 600;
 }
 
 .tree-item i {
-    font-size: 14px;
-    color: var(--workspace-icon-primary);
+  font-size: 14px;
+  color: var(--workspace-icon-primary);
 }
 
 .tree-item-empty {
-    padding: 8px 16px 8px 32px;
-    font-size: 12px;
-    color: var(--text-muted);
-    font-style: italic;
+  padding: 8px 16px 8px 32px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
 }
 
 /* Empty state for file tree */
 .tree-empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 32px 16px;
-    text-align: center;
-    color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--text-muted);
 }
 
 .tree-empty-state i {
-    font-size: 48px;
-    margin-bottom: 16px;
-    opacity: 0.5;
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
 }
 
 .tree-empty-state p {
-    margin: 0 0 8px 0;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-primary);
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .tree-empty-state small {
-    font-size: 12px;
-    color: var(--text-muted);
-    line-height: 1.4;
-    max-width: 200px;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  max-width: 200px;
 }
 
 .tree-empty-state .empty-state-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
 }
 
 .tree-empty-state .empty-state-actions .btn {
-    font-size: 12px;
-    padding: 6px 12px;
+  font-size: 12px;
+  padding: 6px 12px;
 }
-

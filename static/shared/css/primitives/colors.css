@@ -110,12 +110,12 @@
   --_icon-white-hover: #4b5563;
   --_icon-white-active: #374151;
 
-  /* Active scheme: change '_icon-green' to '_icon-white' to switch */
-  --workspace-icon-primary: var(--_icon-green-primary);
+  /* Active scheme: change '_icon-white' to '_icon-green' to switch back */
+  --workspace-icon-primary: var(--_icon-white-primary);
   --workspace-icon-secondary: #6b7280; /* Gray - secondary actions */
   --workspace-icon-muted: #9ca3af; /* Light gray - muted/inactive */
-  --workspace-icon-hover: var(--_icon-green-hover);
-  --workspace-icon-active: var(--_icon-green-active);
+  --workspace-icon-hover: var(--_icon-white-hover);
+  --workspace-icon-active: var(--_icon-white-active);
 
   /* Status */
   --status-success: var(--_success);
@@ -230,12 +230,12 @@
   --_icon-white-hover: #b0b7c3;
   --_icon-white-active: #c4cad4;
 
-  /* Active scheme: change '_icon-green' to '_icon-white' to switch */
-  --workspace-icon-primary: var(--_icon-green-primary);
+  /* Active scheme: change '_icon-white' to '_icon-green' to switch back */
+  --workspace-icon-primary: var(--_icon-white-primary);
   --workspace-icon-secondary: #9ca3af; /* Light gray - secondary actions */
   --workspace-icon-muted: #6b7280; /* Medium gray - muted/inactive */
-  --workspace-icon-hover: var(--_icon-green-hover);
-  --workspace-icon-active: var(--_icon-green-active);
+  --workspace-icon-hover: var(--_icon-white-hover);
+  --workspace-icon-active: var(--_icon-white-active);
 
   /* Terminal colors - dark theme */
   --terminal-bg: #1e1e1e;
