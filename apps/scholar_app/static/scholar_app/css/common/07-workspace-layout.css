@@ -14,7 +14,7 @@
 /* Left sidebar: File tree */
 .scholar-sidebar {
   width: 250px;
-  min-width: 10px;
+  min-width: 40px;
   background: var(--workspace-bg-primary, #0d0d0d);
   border-right: none; /* Resizer handles visual separation */
   border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
@@ -250,7 +250,7 @@
 /* Right panel: Properties/details */
 .scholar-properties {
   width: 320px;
-  min-width: 10px;
+  min-width: 40px;
   background: var(--workspace-bg-primary, #0d0d0d);
   border-left: none; /* Resizer handles visual separation */
   border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);

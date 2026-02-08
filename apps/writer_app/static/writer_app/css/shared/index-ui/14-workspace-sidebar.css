@@ -13,7 +13,7 @@
 
 .writer-sidebar {
   width: 250px;
-  min-width: 10px; /* Allow shrinking via resizer */
+  min-width: 40px; /* Match collapsed width */
   background: var(--workspace-bg-primary, #0d0d0d);
   border-right: none; /* Resizer handles visual separation */
   border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
@@ -90,7 +90,7 @@
 .writer-sidebar .sidebar-toggle {
   background: none;
   border: none;
-  padding: 0.25rem;
+  padding: 4px;
   cursor: pointer;
   color: var(--text-muted);
   transition: color 0.2s ease;
