@@ -10,7 +10,7 @@
 
 /* Add padding for text-only preview (not PDF) */
 .text-preview:not(:has(.pdf-preview-container, .pdfjs-viewer)) {
-  padding: 1.5rem;
+  padding: 24px;
   white-space: pre-wrap;
 }
 
@@ -122,7 +122,7 @@
 }
 
 .panel-header {
-  font-size: 0.75rem;
+  font-size: 12px;
   font-weight: 600;
   color: var(--workspace-text-primary);
   margin-bottom: 0;
@@ -137,7 +137,7 @@
   align-items: center;
   box-sizing: border-box;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: 12px;
   flex-shrink: 0;
   position: relative;
 }
@@ -146,5 +146,5 @@
 .panel-header .header-right {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
 }
