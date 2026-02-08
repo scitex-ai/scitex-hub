@@ -47,7 +47,9 @@
   color: var(--text-primary, #d4e1e8);
   padding: 10px 12px;
   font-size: 14px;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 
 .form-input {
@@ -73,16 +75,18 @@
   padding: 10px 16px;
   background: var(--workspace-icon-primary, #059669);
   border: none;
-  color: #fff;
+  color: var(--text-inverse);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s, transform 0.1s;
+  transition:
+    background 0.15s,
+    transform 0.1s;
   white-space: nowrap;
 }
 
 .btn-build:hover {
-  background: #047857;
+  background: var(--color-accent-emphasis);
 }
 
 .btn-build:active {

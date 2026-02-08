@@ -100,7 +100,7 @@
 }
 
 .error-message {
-  color: #ef4444;
+  color: var(--status-error);
 }
 
 /* Hidden */

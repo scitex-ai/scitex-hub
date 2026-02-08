@@ -13,7 +13,7 @@
   font-size: 0.75rem;
   font-family:
     ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, monospace;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--color-fg-muted);
   background: transparent;
   opacity: 0.6;
   z-index: 10;
@@ -145,7 +145,7 @@
 
 .search-chip:hover {
   background: var(--scitex-color-04, #4a8eb0) !important;
-  color: #fff !important;
+  color: var(--text-inverse) !important;
   border-color: var(--scitex-color-04, #4a8eb0);
 }
 
@@ -172,7 +172,7 @@
   left: 50%;
   transform: translateX(-50%);
   background: var(--workspace-icon-primary, #059669);
-  color: white;
+  color: var(--text-inverse);
   padding: 0.75rem 1.5rem;
   border-radius: 6px;
   font-size: 0.875rem;

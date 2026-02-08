@@ -193,11 +193,10 @@ a.disabled {
 }
 
 [data-theme="dark"] .badge.bg-warning {
-  background-color: #ffc107 !important;
-  color: #000 !important;
+  background-color: var(--status-warning) !important;
+  color: var(--color-fg-default) !important;
 }
 
 [data-theme="dark"] .paper-card-title a {
   /* color: var(--scitex-color-06) !important; */
 }
-

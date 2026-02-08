@@ -80,7 +80,7 @@
 }
 
 .status-error {
-  color: #ef4444;
+  color: var(--status-error);
 }
 
 .status-checking {

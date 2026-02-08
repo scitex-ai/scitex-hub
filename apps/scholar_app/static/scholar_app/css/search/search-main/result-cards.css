@@ -121,8 +121,8 @@
 }
 
 .progressive-results .result-meta .journal-badge {
-  background: #d4a855;
-  color: #1a1a1a;
+  background: var(--status-warning);
+  color: var(--color-fg-default);
   padding: 0.15rem 0.5rem;
   border-radius: 3px;
   font-size: 0.7rem;
