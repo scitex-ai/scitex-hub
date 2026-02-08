@@ -346,6 +346,10 @@ export default defineConfig({
           __dirname,
           "apps/project_app/static/project_app/ts/repository/file_browser_git_status.ts",
         ),
+        "project_app/repository/file_table_hidden_sync": resolve(
+          __dirname,
+          "apps/project_app/static/project_app/ts/repository/file_table_hidden_sync.ts",
+        ),
         "project_app/repository/file_view": resolve(
           __dirname,
           "apps/project_app/static/project_app/ts/repository/file_view.ts",
