@@ -21,7 +21,9 @@
   margin-bottom: 1px;
   display: flex;
   flex-direction: column;
-  transition: width 0.2s ease, min-width 0.2s ease;
+  transition:
+    width 0.2s ease,
+    min-width 0.2s ease;
   flex-shrink: 0;
 }
 
@@ -199,6 +201,18 @@
   border-bottom: 2px solid rgba(16, 185, 129, 0.5);
 }
 
+/* Disabled tab state */
+.scholar-tab.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.scholar-tab.disabled:hover {
+  background: transparent;
+  color: inherit;
+}
+
 .scholar-main .pane-header-actions {
   display: flex;
   align-items: center;
@@ -233,7 +247,9 @@
   margin-bottom: 1px;
   display: flex;
   flex-direction: column;
-  transition: width 0.2s ease, min-width 0.2s ease;
+  transition:
+    width 0.2s ease,
+    min-width 0.2s ease;
   flex-shrink: 0;
 }
 

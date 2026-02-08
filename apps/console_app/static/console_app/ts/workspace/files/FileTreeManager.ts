@@ -10,7 +10,7 @@ import type { EditorConfig } from "../core/types";
 interface TreeItem {
   name: string;
   path: string;
-  type: 'file' | 'directory';
+  type: "file" | "directory";
   is_symlink?: boolean;
   symlink_target?: string;
   children?: TreeItem[];
@@ -36,10 +36,13 @@ interface WorkspaceFilesTree {
 }
 
 // Dynamically import the shared WorkspaceFilesTree component at runtime
-async function loadWorkspaceFilesTree(): Promise<{ WorkspaceFilesTree: new (config: any) => WorkspaceFilesTree }> {
+async function loadWorkspaceFilesTree(): Promise<{
+  WorkspaceFilesTree: new (config: any) => WorkspaceFilesTree;
+}> {
   // Import the shared WorkspaceFilesTree component using @ alias
   // @ts-ignore - Runtime dynamic import
-  const module = await import("@/components/workspace-files-tree/WorkspaceFilesTree");
+  const module =
+    await import("@/components/workspace-files-tree/WorkspaceFilesTree");
   return module;
 }
 
@@ -56,13 +59,17 @@ export class FileTreeManager {
 
   async loadFileTree(): Promise<void> {
     if (!this.config.currentProject) {
-      console.warn("[FileTreeManager] No current project, skipping file tree load");
+      console.warn(
+        "[FileTreeManager] No current project, skipping file tree load",
+      );
       return;
     }
 
     const { owner, slug } = this.config.currentProject;
 
-    console.log(`[FileTreeManager] Initializing WorkspaceFilesTree for ${owner}/${slug}`);
+    console.log(
+      `[FileTreeManager] Initializing WorkspaceFilesTree for ${owner}/${slug}`,
+    );
 
     try {
       // Dynamically import the shared component
@@ -70,8 +77,8 @@ export class FileTreeManager {
 
       // Initialize the shared WorkspaceFilesTree component
       this.tree = new WorkspaceFilesTree({
-        mode: 'code',
-        containerId: 'file-tree',
+        mode: "console",
+        containerId: "file-tree",
         username: owner,
         slug: slug,
         showFolderActions: true,
@@ -81,7 +88,9 @@ export class FileTreeManager {
           this.onFileClick(path);
         },
         onFolderToggle: (path: string, expanded: boolean) => {
-          console.log(`[FileTreeManager] Folder ${path} ${expanded ? 'expanded' : 'collapsed'}`);
+          console.log(
+            `[FileTreeManager] Folder ${path} ${expanded ? "expanded" : "collapsed"}`,
+          );
         },
       });
 
@@ -92,34 +101,47 @@ export class FileTreeManager {
       this.buildFileList(this.tree.getTreeData());
 
       // Listen for new-file, new-folder, and rename events
-      const container = document.getElementById('file-tree');
+      const container = document.getElementById("file-tree");
       if (container) {
-        container.addEventListener('workspace-tree:new-file', ((e: CustomEvent) => {
+        container.addEventListener("workspace-tree:new-file", ((
+          e: CustomEvent,
+        ) => {
           const { folderPath } = e.detail;
           if ((window as any).createFileInFolder) {
             (window as any).createFileInFolder(folderPath);
           }
         }) as EventListener);
 
-        container.addEventListener('workspace-tree:new-folder', ((e: CustomEvent) => {
+        container.addEventListener("workspace-tree:new-folder", ((
+          e: CustomEvent,
+        ) => {
           const { folderPath } = e.detail;
           if ((window as any).createFolderInFolder) {
             (window as any).createFolderInFolder(folderPath);
           }
         }) as EventListener);
 
-        container.addEventListener('workspace-tree:rename', ((e: CustomEvent) => {
+        container.addEventListener("workspace-tree:rename", ((
+          e: CustomEvent,
+        ) => {
           const { oldPath, newPath, oldName, newName } = e.detail;
-          console.log(`[FileTreeManager] Rename requested: ${oldPath} -> ${newPath}`);
+          console.log(
+            `[FileTreeManager] Rename requested: ${oldPath} -> ${newPath}`,
+          );
           if ((window as any).renameFile) {
             (window as any).renameFile(oldPath, newPath);
           }
         }) as EventListener);
       }
 
-      console.log("[FileTreeManager] File tree loaded successfully with shared component");
+      console.log(
+        "[FileTreeManager] File tree loaded successfully with shared component",
+      );
     } catch (err) {
-      console.error("[FileTreeManager] Failed to load shared WorkspaceFilesTree:", err);
+      console.error(
+        "[FileTreeManager] Failed to load shared WorkspaceFilesTree:",
+        err,
+      );
       // Fallback: show error message
       const treeContainer = document.getElementById("file-tree");
       if (treeContainer) {
@@ -189,7 +211,7 @@ export class FileTreeManager {
 
   /** Get current search query */
   getSearchQuery(): string {
-    return this.tree?.getSearchQuery() ?? '';
+    return this.tree?.getSearchQuery() ?? "";
   }
 
   /** Check if search is active */

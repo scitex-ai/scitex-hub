@@ -107,6 +107,45 @@ else
     if [ "$USERS_MIGRATED" -eq 0 ] && [ "$DRY_RUN" = false ]; then
         echo -e "${GREEN}  ✓ No user workspaces to migrate${NC}"
     fi
+
+    # Create console/ directory from template for projects that don't have it
+    echo -e "\n${CYAN}Creating console/ for projects without it...${NC}"
+    TEMPLATE_CONSOLE_DIR="$PROJECT_ROOT/templates/research-master/scitex/console"
+    CREATED=0
+
+    if [ -d "$TEMPLATE_CONSOLE_DIR" ]; then
+        # Find all projects with scitex/ but no console/ subdirectory
+        while IFS= read -r -d '' scitex_dir; do
+            if [ ! -d "$scitex_dir/console" ]; then
+                username=$(basename "$(dirname "$(dirname "$scitex_dir")")")
+                project=$(basename "$(dirname "$scitex_dir")")
+
+                if [ "$DRY_RUN" = true ]; then
+                    echo -e "${YELLOW}  Would create: $username/$project/scitex/console/ from template${NC}"
+                else
+                    # Use sudo/root depending on environment
+                    if [ "$(id -u)" -eq 0 ]; then
+                        cp -r "$TEMPLATE_CONSOLE_DIR" "$scitex_dir/console"
+                    else
+                        sudo cp -r "$TEMPLATE_CONSOLE_DIR" "$scitex_dir/console"
+                    fi
+
+                    if [ -d "$scitex_dir/console" ]; then
+                        echo -e "${GREEN}  ✓ Created: $username/$project/scitex/console/${NC}"
+                        ((CREATED++))
+                    fi
+                fi
+            fi
+        done < <(find "$USER_DATA_DIR" -type d -name "scitex" -path "*/proj/*/scitex" -print0 2>/dev/null)
+
+        if [ "$CREATED" -gt 0 ]; then
+            echo -e "${GREEN}  ✓ Created $CREATED console directories${NC}"
+        elif [ "$DRY_RUN" = false ]; then
+            echo -e "${GREEN}  ✓ All projects already have console/ directory${NC}"
+        fi
+    else
+        echo -e "${YELLOW}  ⚠ Template console/ directory not found, skipping creation${NC}"
+    fi
 fi
 
 # =============================================================================

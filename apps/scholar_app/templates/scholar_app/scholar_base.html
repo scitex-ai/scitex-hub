@@ -1,5 +1,7 @@
 {% extends 'global_base.html' %}
+
 {% load static vite %}
+
 {% block meta_description %}Advanced semantic search for scientific literature{% endblock %}
 {% block extra_css %}
     <!-- Workspace colors CSS for consistent theming -->
@@ -7,118 +9,144 @@
     <!-- Hero gradients CSS -->
     <link rel="stylesheet" href="{% static 'shared/css/components/hero.css' %}" />
     <!-- Workspace files tree CSS -->
-    <link rel="stylesheet" href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d" />
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d" />
     <!-- Panel resizer CSS -->
     <link rel="stylesheet" href="{% static 'shared/css/components/panel-resizer.css' %}" />
     <!-- App-specific CSS - Modular common styles -->
-    <link rel="stylesheet" href="{% static 'scholar_app/css/common/01-workspace-colors.css' %}?v=1764328804" />
-    <link rel="stylesheet" href="{% static 'scholar_app/css/common/02-layout-system.css' %}?v=1764328804" />
-    <link rel="stylesheet" href="{% static 'scholar_app/css/common/03-badge-system.css' %}?v=1764328804" />
-    <link rel="stylesheet" href="{% static 'scholar_app/css/common/04-card-components.css' %}?v=1764328804" />
-    <link rel="stylesheet" href="{% static 'scholar_app/css/common/05-utilities.css' %}?v=1764328804" />
-    <link rel="stylesheet" href="{% static 'scholar_app/css/common/06-ui-components.css' %}?v=1764328804" />
-    <link rel="stylesheet" href="{% static 'scholar_app/css/common/07-workspace-layout.css' %}?v=1764328804" />
+    <link rel="stylesheet"
+          href="{% static 'scholar_app/css/common/01-workspace-colors.css' %}?v=1764328804" />
+    <link rel="stylesheet"
+          href="{% static 'scholar_app/css/common/02-layout-system.css' %}?v=1764328804" />
+    <link rel="stylesheet"
+          href="{% static 'scholar_app/css/common/03-badge-system.css' %}?v=1764328804" />
+    <link rel="stylesheet"
+          href="{% static 'scholar_app/css/common/04-card-components.css' %}?v=1764328804" />
+    <link rel="stylesheet"
+          href="{% static 'scholar_app/css/common/05-utilities.css' %}?v=1764328804" />
+    <link rel="stylesheet"
+          href="{% static 'scholar_app/css/common/06-ui-components.css' %}?v=1764328804" />
+    <link rel="stylesheet"
+          href="{% static 'scholar_app/css/common/07-workspace-layout.css' %}?v=1764328804" />
     <!-- Workspace colors - responsive to theme -->
     <style>
-    /* Scholar workspace colors - uses CSS variables for theme responsiveness */
-    body.scholar-page,
-    body.workspace-page.scholar-page,
-    .scholar-page {
-        background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
-    }
-    body.scholar-page #main-content,
-    body.scholar-page .scholar-workspace {
-        background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
-    }
-    .scholar-sidebar,
-    .scholar-main,
-    .scholar-properties {
-        background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
-    }
-    .scholar-sidebar .sidebar-header,
-    .scholar-main .pane-header,
-    .scholar-properties .properties-header {
-        background: var(--workspace-bg-secondary, var(--color-canvas-subtle)) !important;
-        border-color: var(--color-border-default) !important;
-    }
-    .scholar-sidebar .sidebar-content,
-    .scholar-main .pane-content,
-    .scholar-properties .properties-content {
-        background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
-    }
-    .bibtex-card,
-    .bibtex-tile {
-        background: var(--workspace-bg-secondary, var(--color-canvas-subtle)) !important;
-        border-color: var(--color-border-default) !important;
-        border-radius: 0 !important;
-    }
-    .bibtex-card__header,
-    .bibtex-tile__header {
-        background: var(--workspace-bg-tertiary, var(--color-canvas-inset)) !important;
-        border-color: var(--color-border-default) !important;
-    }
-    .bibtex-dropzone {
-        background: var(--workspace-bg-monaco, #1e1e1e) !important;
-        border-color: var(--color-border-default) !important;
-        border-radius: 0 !important;
-    }
-    .bibtex-dropzone:hover {
-        background: var(--workspace-bg-tertiary, #2a2a2a) !important;
-        border-color: var(--workspace-icon-hover, #7eb8aa) !important;
-    }
-    [data-theme="light"] .bibtex-dropzone {
-        background: #f6f8fa !important;
-        border-color: #2ea043 !important;
-    }
-    [data-theme="light"] .bibtex-dropzone:hover {
-        background: #e6ebf0 !important;
-        border-color: #238636 !important;
-    }
-    .bibtex-tile__title i,
-    .bibtex-card__title i,
-    .pane-header h5 i,
-    .properties-header h5 i,
-    .sidebar-header h5 i {
-        color: var(--scitex-color-03, var(--workspace-icon-primary)) !important;
-    }
-    .bibtex-status-item {
-        background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
-        border-radius: 0 !important;
-    }
-    .terminal-log {
-        background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
-        border-radius: 0 !important;
-    }
-    /* Hide footer on scholar workspace */
-    body.scholar-page footer {
-        display: none !important;
-    }
+        /* Scholar workspace colors - uses CSS variables for theme responsiveness */
+        body.scholar-page,
+        body.workspace-page.scholar-page,
+        .scholar-page {
+            background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
+        }
+
+        body.scholar-page #main-content,
+        body.scholar-page .scholar-workspace {
+            background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
+        }
+
+        .scholar-sidebar,
+        .scholar-main,
+        .scholar-properties {
+            background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
+        }
+
+        .scholar-sidebar .sidebar-header,
+        .scholar-main .pane-header,
+        .scholar-properties .properties-header {
+            background: var(--workspace-bg-secondary, var(--color-canvas-subtle)) !important;
+            border-color: var(--color-border-default) !important;
+        }
+
+        .scholar-sidebar .sidebar-content,
+        .scholar-main .pane-content,
+        .scholar-properties .properties-content {
+            background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
+        }
+
+        .bibtex-card,
+        .bibtex-tile {
+            background: var(--workspace-bg-secondary, var(--color-canvas-subtle)) !important;
+            border-color: var(--color-border-default) !important;
+            border-radius: 0 !important;
+        }
+
+        .bibtex-card__header,
+        .bibtex-tile__header {
+            background: var(--workspace-bg-tertiary, var(--color-canvas-inset)) !important;
+            border-color: var(--color-border-default) !important;
+        }
+
+        .bibtex-dropzone {
+            background: var(--workspace-bg-monaco, #1e1e1e) !important;
+            border-color: var(--color-border-default) !important;
+            border-radius: 0 !important;
+        }
+
+        .bibtex-dropzone:hover {
+            background: var(--workspace-bg-tertiary, #2a2a2a) !important;
+            border-color: var(--workspace-icon-hover, #7eb8aa) !important;
+        }
+
+        [data-theme="light"] .bibtex-dropzone {
+            background: #f6f8fa !important;
+            border-color: #2ea043 !important;
+        }
+
+        [data-theme="light"] .bibtex-dropzone:hover {
+            background: #e6ebf0 !important;
+            border-color: #238636 !important;
+        }
+
+        .bibtex-tile__title i,
+        .bibtex-card__title i,
+        .pane-header h5 i,
+        .properties-header h5 i,
+        .sidebar-header h5 i {
+            color: var(--scitex-color-03, var(--workspace-icon-primary)) !important;
+        }
+
+        .bibtex-status-item {
+            background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
+            border-radius: 0 !important;
+        }
+
+        .terminal-log {
+            background: var(--workspace-bg-primary, var(--color-canvas-default)) !important;
+            border-radius: 0 !important;
+        }
+
+        /* Hide footer on scholar workspace */
+        body.scholar-page footer {
+            display: none !important;
+        }
     </style>
 {% endblock %}
 {% block content %}
     <!-- Three-panel layout always active for workspace consistency -->
     <div class="scholar-workspace">
         <!-- Left sidebar: File tree (only with project) -->
-        <aside class="scholar-sidebar {% if not current_project %}collapsed{% endif %}" id="scholar-sidebar">
+        <aside class="scholar-sidebar {% if not current_project %}collapsed{% endif %}"
+               id="scholar-sidebar">
             <div class="sidebar-header">
-                <h5><i class="fas fa-folder-open"></i> Files</h5>
+                <h5>
+                    <i class="fas fa-folder-open"></i> Files
+                </h5>
                 <button class="sidebar-toggle" id="sidebar-toggle" title="Toggle sidebar">
                     <i class="fas fa-chevron-left"></i>
                 </button>
             </div>
             <div class="sidebar-content" id="file-tree">
                 {% if current_project %}
-                <!-- WorkspaceFilesTree will render here -->
-                <div class="wft-loading">Loading...</div>
+                    <!-- WorkspaceFilesTree will render here -->
+                    <div class="wft-loading">Loading...</div>
                 {% else %}
-                <div class="sidebar-no-project">
-                    <p class="text-muted">Select a project to browse files</p>
-                </div>
+                    <div class="sidebar-no-project">
+                        <p class="text-muted">Select a project to browse files</p>
+                    </div>
                 {% endif %}
             </div>
         </aside>
         <!-- Sidebar resizer (auto-initialized via data attributes) -->
-        <div class="panel-resizer" id="sidebar-resizer"
+        <div class="panel-resizer"
+             id="sidebar-resizer"
              data-panel-resizer
              data-storage-prefix="scitex-scholar-"
              data-target=".scholar-sidebar"
@@ -140,14 +168,23 @@
                        class="scholar-tab {% if active_tab == 'search' %}active{% endif %}">
                         <i class="fas fa-search"></i> Search
                     </a>
-                    <a href="{% url 'scholar_app:scholar_graph' %}"
-                       class="scholar-tab {% if active_tab == 'graph' %}active{% endif %}">
-                        <i class="fas fa-project-diagram"></i> Graph
-                    </a>
+                    {% if DEBUG %}
+                        <a href="{% url 'scholar_app:scholar_graph' %}"
+                           class="scholar-tab {% if active_tab == 'graph' %}active{% endif %}">
+                            <i class="fas fa-project-diagram"></i> Graph
+                        </a>
+                    {% else %}
+                        <span class="scholar-tab disabled"
+                              title="Graph feature available in development only">
+                            <i class="fas fa-project-diagram"></i> Graph
+                        </span>
+                    {% endif %}
                 </nav>
                 <div class="pane-header-actions">
                     {% block pane_header_actions %}{% endblock %}
-                    <button class="btn btn-sm btn-outline-secondary" id="scholar-shortcuts-btn" title="Keyboard shortcuts">
+                    <button class="btn btn-sm btn-outline-secondary"
+                            id="scholar-shortcuts-btn"
+                            title="Keyboard shortcuts">
                         <i class="fas fa-keyboard"></i>
                     </button>
                 </div>
@@ -157,7 +194,8 @@
             </div>
         </main>
         <!-- Properties resizer (auto-initialized via data attributes) -->
-        <div class="panel-resizer" id="main-resizer"
+        <div class="panel-resizer"
+             id="main-resizer"
              data-panel-resizer
              data-storage-prefix="scitex-scholar-"
              data-target=".scholar-properties"
@@ -170,32 +208,47 @@
         <!-- Right details panel -->
         <aside class="scholar-properties" id="scholar-properties">
             <div class="properties-header">
-                <h5><i class="fas fa-sliders-h"></i> Details</h5>
+                <h5>
+                    <i class="fas fa-sliders-h"></i> Details
+                </h5>
                 <button class="properties-toggle" id="properties-toggle" title="Toggle details">
                     <i class="fas fa-chevron-right"></i>
                 </button>
             </div>
             <div class="properties-content" id="scholar-details-panel">
                 {% block details_content %}
-                <!-- Default details content - can be overridden -->
-                <p class="text-muted">Details information</p>
+                    <!-- Default details content - can be overridden -->
+                    <p class="text-muted">Details information</p>
                 {% endblock %}
             </div>
         </aside>
     </div>
-
     <!-- Keyboard Shortcuts Modal -->
     <div id="scholar-shortcuts-modal" class="modal" tabindex="-1" style="display: none;">
         <div class="modal-dialog modal-lg">
-            <div class="modal-content" style="background: var(--color-canvas-default); border: 1px solid var(--color-border-default);">
-                <div class="modal-header" style="border-bottom: 1px solid var(--color-border-default);">
-                    <h5 class="modal-title"><i class="fas fa-keyboard me-2"></i>Keyboard Shortcuts</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="document.getElementById('scholar-shortcuts-modal').style.display='none'"></button>
+            <div class="modal-content"
+                 style="background: var(--color-canvas-default);
+                        border: 1px solid var(--color-border-default)">
+                <div class="modal-header"
+                     style="border-bottom: 1px solid var(--color-border-default)">
+                    <h5 class="modal-title">
+                        <i class="fas fa-keyboard me-2"></i>Keyboard Shortcuts
+                    </h5>
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"
+                            onclick="document.getElementById('scholar-shortcuts-modal').style.display='none'"></button>
                 </div>
                 <div class="modal-body">
                     <!-- Global Navigation -->
-                    <div style="background: var(--color-accent-subtle, #ddf4ff); padding: 12px; border-radius: 6px; margin-bottom: 16px;">
-                        <h6 style="margin: 0 0 8px;"><i class="fas fa-globe me-2"></i>Global Navigation (Always Active)</h6>
+                    <div style="background: var(--color-accent-subtle, #ddf4ff);
+                                padding: 12px;
+                                border-radius: 6px;
+                                margin-bottom: 16px">
+                        <h6 style="margin: 0 0 8px;">
+                            <i class="fas fa-globe me-2"></i>Global Navigation (Always Active)
+                        </h6>
                         <div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 13px;">
                             <span><kbd>Alt+F</kbd> Files</span>
                             <span><kbd>Alt+S</kbd> Scholar</span>
@@ -208,32 +261,66 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6">
-                            <h6><i class="fas fa-search me-2"></i>Search</h6>
+                            <h6>
+                                <i class="fas fa-search me-2"></i>Search
+                            </h6>
                             <div class="mb-3">
-                                <div><kbd>Ctrl+K</kbd> Focus search</div>
-                                <div><kbd>Ctrl+A</kbd> Select all results</div>
-                                <div><kbd>Ctrl+C</kbd> Copy BibTeX</div>
+                                <div>
+                                    <kbd>Ctrl+K</kbd> Focus search
+                                </div>
+                                <div>
+                                    <kbd>Ctrl+A</kbd> Select all results
+                                </div>
+                                <div>
+                                    <kbd>Ctrl+C</kbd> Copy BibTeX
+                                </div>
                             </div>
-                            <h6><i class="fas fa-filter me-2"></i>Filters</h6>
+                            <h6>
+                                <i class="fas fa-filter me-2"></i>Filters
+                            </h6>
                             <div class="mb-3">
-                                <div><kbd>-t term</kbd> Title contains</div>
-                                <div><kbd>-a name</kbd> Author is</div>
-                                <div><kbd>-j name</kbd> Journal is</div>
-                                <div><kbd>-ymin N</kbd> Year minimum</div>
-                                <div><kbd>-cmin N</kbd> Citations minimum</div>
+                                <div>
+                                    <kbd>-t term</kbd> Title contains
+                                </div>
+                                <div>
+                                    <kbd>-a name</kbd> Author is
+                                </div>
+                                <div>
+                                    <kbd>-j name</kbd> Journal is
+                                </div>
+                                <div>
+                                    <kbd>-ymin N</kbd> Year minimum
+                                </div>
+                                <div>
+                                    <kbd>-cmin N</kbd> Citations minimum
+                                </div>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <h6><i class="fas fa-file-code me-2"></i>BibTeX</h6>
+                            <h6>
+                                <i class="fas fa-file-code me-2"></i>BibTeX
+                            </h6>
                             <div class="mb-3">
-                                <div><kbd>Ctrl+Enter</kbd> Process BibTeX</div>
-                                <div><kbd>Ctrl+S</kbd> Save to library</div>
+                                <div>
+                                    <kbd>Ctrl+Enter</kbd> Process BibTeX
+                                </div>
+                                <div>
+                                    <kbd>Ctrl+S</kbd> Save to library
+                                </div>
                             </div>
-                            <h6><i class="fas fa-project-diagram me-2"></i>Graph</h6>
+                            <h6>
+                                <i class="fas fa-project-diagram me-2"></i>Graph
+                            </h6>
                             <div class="mb-3">
-                                <div><kbd>Scroll</kbd> Zoom in/out</div>
-                                <div><kbd>Drag</kbd> Pan view</div>
-                                <div><kbd>Click</kbd> Select node</div>
+                                <div>
+                                    <kbd>Scroll</kbd> Zoom in/out
+                                </div>
+                                <div>
+                                    <kbd>Drag</kbd> Pan view
+                                </div>
+                                <div>
+                                    <kbd>Click</kbd> Select node
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -242,7 +329,6 @@
         </div>
     </div>
 {% endblock %}
-
 {% block extra_js %}
     {{ block.super }}
     <!-- Panel resizer (auto-initializes from data attributes) -->
@@ -272,13 +358,13 @@
         });
     </script>
     {% if current_project %}
-    <!-- Scholar workspace initialization with project context -->
-    <script id="scholar-project-config" type="application/json">
+        <!-- Scholar workspace initialization with project context -->
+        <script id="scholar-project-config" type="application/json">
         {
             "username": "{{ current_project.owner.username|escapejs }}",
             "slug": "{{ current_project.slug|escapejs }}"
         }
-    </script>
-    {% vite_script 'scholar_app/scholar-workspace-init' %}
+        </script>
+        {% vite_script 'scholar_app/scholar-workspace-init' %}
     {% endif %}
 {% endblock %}
