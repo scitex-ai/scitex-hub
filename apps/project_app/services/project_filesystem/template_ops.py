@@ -6,7 +6,6 @@ Delegates README and config generation to readme_config_ops.
 """
 
 import logging
-import shutil
 from pathlib import Path
 from typing import Optional, Tuple
 
@@ -91,13 +90,11 @@ class TemplateOperationsManager:
     def _copy_research_template(self, project_path: Path, project: Project) -> bool:
         """Delegate to scitex.template for research template (now uses minimal)."""
         try:
-            # Delegate to scitex.template - no local templates needed
             from scitex.template import clone_template
 
             success = clone_template(
                 template_id="minimal",
-                project_name=project.slug,
-                target_dir=str(project_path.parent),
+                project_dir=str(project_path),
                 git_strategy="child",
             )
 
@@ -117,8 +114,7 @@ class TemplateOperationsManager:
 
             success = clone_template(
                 template_id="minimal",
-                project_name=project.slug,
-                target_dir=str(project_path.parent),
+                project_dir=str(project_path),
                 git_strategy="child",
             )
 
@@ -130,15 +126,6 @@ class TemplateOperationsManager:
         except ImportError:
             logger.error("scitex.template not available")
             return False
-
-        logger.info(
-            f"Copying minimal template from {template_master} to {project_path}"
-        )
-        shutil.copytree(template_master, project_path, symlinks=True)
-
-        self._customize_minimal_template(project_path, project)
-        logger.info(f"Successfully created minimal template at {project_path}")
-        return True
 
     def _customize_minimal_template(self, project_path: Path, project: Project):
         """Customize minimal template with project-specific information."""
@@ -173,20 +160,14 @@ class TemplateOperationsManager:
     def _copy_git_template(
         self, project_path: Path, project: Project, template_type: str
     ) -> bool:
-        """Clone template from GitHub."""
-        if template_type == "pip_project":
-            from scitex.template import clone_pip_project as clone_template
-        elif template_type == "singularity":
-            from scitex.template import clone_singularity as clone_template
-        else:
-            logger.info(
-                f"Unknown template type: {template_type}, defaulting to research"
-            )
-            from scitex.template import clone_research as clone_template
+        """Clone template from GitHub using unified dispatcher."""
+        from scitex.template import clone_template
 
         logger.info(f"Cloning {template_type} template from GitHub to {project_path}")
         success = clone_template(
-            str(project_path), git_strategy=None, branch=None, tag=None
+            template_id=template_type,
+            project_dir=str(project_path),
+            git_strategy=None,
         )
 
         if success:
