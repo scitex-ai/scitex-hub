@@ -265,11 +265,16 @@ export class WorkspaceFilesTree {
       if (result.success) {
         this.treeData = result.treeData;
         this.gitSummary = result.gitSummary;
-        this.dataLoader.applyDefaultExpansion(this.treeData);
+        const isFirstLoad = this.dataLoader.applyDefaultExpansion(
+          this.treeData,
+        );
         this.render();
         const newTreeEl = this.container?.querySelector(".wft-tree");
         if (newTreeEl && scrollTop > 0) newTreeEl.scrollTop = scrollTop;
-        await this.pathNavigator.autoExpandFocusPath(this.config.mode);
+        await this.pathNavigator.autoExpandFocusPath(
+          this.config.mode,
+          isFirstLoad,
+        );
         this.attachEventListeners();
         this.selectionHandler.updateAllSelectionClasses();
         this.clipboardHandler.reapplyClasses();

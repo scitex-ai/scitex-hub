@@ -99,11 +99,21 @@ export class PathNavigator {
 
   /**
    * Auto-expand to focus path from state manager.
-   * Falls back to DEFAULT_FOCUS_PATHS when no user-set focus path exists.
+   * Falls back to DEFAULT_FOCUS_PATHS only on first load (no stored state).
+   * On subsequent loads, only expands if user has explicitly set a focus path.
    */
-  async autoExpandFocusPath(mode: WorkspaceMode): Promise<void> {
-    const focusPath =
-      this.stateManager.getFocusPath(mode) || DEFAULT_FOCUS_PATHS[mode] || "";
+  async autoExpandFocusPath(
+    mode: WorkspaceMode,
+    isFirstLoad: boolean = false,
+  ): Promise<void> {
+    // User-set focus path: always apply
+    let focusPath = this.stateManager.getFocusPath(mode);
+
+    // Default focus path: only on first load (no stored state)
+    if (!focusPath) {
+      if (!isFirstLoad) return;
+      focusPath = DEFAULT_FOCUS_PATHS[mode] || "";
+    }
     if (!focusPath) return;
 
     // Expand all parent paths AND the focus directory itself
