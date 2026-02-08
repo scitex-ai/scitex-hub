@@ -46,6 +46,10 @@ class CompilationMixin:
         Delegates to scitex.writer.compile.content().
         """
         try:
+            # Sanitize section_name: strip .tex extension if present
+            if section_name.endswith(".tex"):
+                section_name = section_name[:-4]
+
             # Delegate to scitex.writer (single source of truth)
             sw_compile = _get_sw_compile()
             result = sw_compile.content(
