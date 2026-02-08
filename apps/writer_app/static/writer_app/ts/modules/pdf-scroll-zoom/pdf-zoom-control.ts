@@ -46,7 +46,9 @@ export class PDFZoomControl {
    * Setup PDF zoom dropdown control
    */
   setupZoomButtons(): void {
-    const zoomSelect = document.getElementById("pdf-zoom-select") as HTMLSelectElement;
+    const zoomSelect = document.getElementById(
+      "pdf-zoom-select",
+    ) as HTMLSelectElement;
 
     if (zoomSelect) {
       // Set initial value
@@ -56,7 +58,9 @@ export class PDFZoomControl {
       zoomSelect.addEventListener("change", () => {
         const newZoom = parseInt(zoomSelect.value, 10);
         this.setZoom(newZoom);
-        console.log(`[PDFZoomControl] Zoom changed to ${newZoom}% via dropdown`);
+        console.log(
+          `[PDFZoomControl] Zoom changed to ${newZoom}% via dropdown`,
+        );
       });
 
       console.log("[PDFZoomControl] Zoom dropdown control initialized");
@@ -75,14 +79,19 @@ export class PDFZoomControl {
       this.currentZoom = savedZoom;
 
       // Update dropdown to reflect saved zoom
-      const zoomSelect = document.getElementById("pdf-zoom-select") as HTMLSelectElement;
+      const zoomSelect = document.getElementById(
+        "pdf-zoom-select",
+      ) as HTMLSelectElement;
       if (zoomSelect) {
         zoomSelect.value = savedZoom.toString();
       }
 
       console.log("[PDFZoomControl] Loaded saved zoom level:", savedZoom);
     } else {
-      console.log("[PDFZoomControl] No saved zoom or invalid value, using default:", this.currentZoom);
+      console.log(
+        "[PDFZoomControl] No saved zoom or invalid value, using default:",
+        this.currentZoom,
+      );
     }
 
     // Apply zoom immediately
@@ -91,24 +100,45 @@ export class PDFZoomControl {
 
   /**
    * Apply current zoom level to iframe
+   * Skipped when PDF.js canvas viewer is active (it handles zoom via re-rendering)
    */
   applyZoomToIframe(): void {
-    console.log("[PDFZoomControl] applyZoomToIframe() - checking for iframe...");
+    console.log(
+      "[PDFZoomControl] applyZoomToIframe() - checking for iframe...",
+    );
 
     if (!this.pdfViewer) {
-      console.log("[PDFZoomControl] ✗ No pdfViewer reference, cannot apply zoom");
+      console.log(
+        "[PDFZoomControl] ✗ No pdfViewer reference, cannot apply zoom",
+      );
+      return;
+    }
+
+    // Skip CSS transform when PDF.js canvas viewer is active
+    // PDF.js handles zoom by re-rendering at proper resolution
+    if (this.pdfViewer.querySelector("#pdfjs-viewer, .pdfjs-viewer")) {
+      console.log(
+        "[PDFZoomControl] PDF.js viewer active, skipping CSS transform zoom",
+      );
+      this.updateZoomIndicator();
       return;
     }
 
     const iframe = this.pdfViewer.querySelector("iframe, embed");
     if (iframe) {
       const scaleRatio = this.currentZoom / 100;
-      console.log("[PDFZoomControl] Found iframe/embed, applying scale:", scaleRatio);
+      console.log(
+        "[PDFZoomControl] Found iframe/embed, applying scale:",
+        scaleRatio,
+      );
       (iframe as HTMLElement).style.transform = `scale(${scaleRatio})`;
       (iframe as HTMLElement).style.transformOrigin = "top center";
       (iframe as HTMLElement).style.transition = "transform 0.2s ease";
       this.updateZoomIndicator();
-      console.log("[PDFZoomControl] ✓ Zoom applied successfully:", this.currentZoom + "%");
+      console.log(
+        "[PDFZoomControl] ✓ Zoom applied successfully:",
+        this.currentZoom + "%",
+      );
     } else {
       console.log("[PDFZoomControl] ✗ No iframe/embed found in pdfViewer");
     }
@@ -126,7 +156,15 @@ export class PDFZoomControl {
       Math.min(this.maxZoom, zoomLevel),
     );
 
-    // Apply zoom via transform to iframe/embed
+    // Skip CSS transform when PDF.js canvas viewer is active
+    if (this.pdfViewer.querySelector("#pdfjs-viewer, .pdfjs-viewer")) {
+      // PDF.js handles zoom via proper re-rendering (ZoomController)
+      this.updateZoomIndicator();
+      statePersistence.savePdfZoom(this.currentZoom);
+      return;
+    }
+
+    // Apply zoom via transform to iframe/embed (fallback for non-PDF.js views)
     const embed = this.pdfViewer.querySelector("embed, iframe");
     if (embed) {
       const scaleRatio = this.currentZoom / 100;
@@ -229,23 +267,29 @@ export class PDFZoomControl {
    */
   private updateZoomIndicator(): void {
     // Update zoom dropdown
-    const zoomSelect = document.getElementById("pdf-zoom-select") as HTMLSelectElement;
+    const zoomSelect = document.getElementById(
+      "pdf-zoom-select",
+    ) as HTMLSelectElement;
     if (zoomSelect) {
       // Round to nearest preset value or set custom value
       const roundedZoom = this.currentZoom.toFixed(0);
 
       // Check if the current zoom matches any preset option
       const hasMatchingOption = Array.from(zoomSelect.options).some(
-        option => option.value === roundedZoom
+        (option) => option.value === roundedZoom,
       );
 
       if (hasMatchingOption) {
         zoomSelect.value = roundedZoom;
       } else {
         // If zoom doesn't match any preset, select the closest one
-        const presetValues = Array.from(zoomSelect.options).map(opt => parseInt(opt.value, 10));
+        const presetValues = Array.from(zoomSelect.options).map((opt) =>
+          parseInt(opt.value, 10),
+        );
         const closest = presetValues.reduce((prev, curr) =>
-          Math.abs(curr - this.currentZoom) < Math.abs(prev - this.currentZoom) ? curr : prev
+          Math.abs(curr - this.currentZoom) < Math.abs(prev - this.currentZoom)
+            ? curr
+            : prev,
         );
         zoomSelect.value = closest.toString();
       }

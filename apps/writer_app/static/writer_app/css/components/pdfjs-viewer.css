@@ -190,7 +190,7 @@
   bottom: 0;
   overflow: hidden;
   opacity: 0; /* Invisible - only for selection */
-  line-height: 1.0;
+  line-height: 1;
   pointer-events: auto; /* Enable text selection */
   z-index: 2; /* Above canvas */
   font-size: 1px; /* Will be scaled by PDF.js */
@@ -221,27 +221,11 @@
 }
 
 /* ============================================================================
- * WARNING: THE FOLLOWING STYLES ARE NOT CURRENTLY USED
- * ============================================================================
- *
- * This application uses IFRAME-based PDF viewing, NOT PDF.js canvas rendering.
- *
- * Reason: After extensive testing, iframe proved superior due to:
- * - Better browser compatibility and native PDF rendering
- * - Lower memory usage and better performance
- * - Native browser PDF features (print, search, zoom)
- * - Fewer cross-browser rendering issues
- *
- * The styles below were developed for PDF.js link annotation overlays but are
- * NOT IN USE. They are kept for reference purposes only.
- *
- * For link highlighting in PDFs, we use LaTeX hyperref package configuration
- * in latex-wrapper.ts instead, which works with iframe viewing.
- *
- * DO NOT REMOVE: These may be useful if we ever switch back to PDF.js.
+ * Link Annotation Overlay Styles (for PDF.js canvas rendering)
+ * Used when link annotations are enabled on the PDF.js viewer.
  * ============================================================================ */
 
-/* Link annotation layer - NOT USED (iframe-based viewing) */
+/* Link annotation layer */
 .pdfjs-annotation-layer {
   position: absolute;
   top: 0;
@@ -252,7 +236,7 @@
   z-index: 10;
 }
 
-/* Individual link annotations - NOT USED (iframe-based viewing) */
+/* Individual link annotations */
 .pdfjs-link-annotation {
   display: block;
   text-decoration: none;
@@ -264,13 +248,13 @@
   transition: all 0.2s ease;
 }
 
-/* Dark theme link annotations - NOT USED (iframe-based viewing) */
+/* Dark theme link annotations */
 [data-theme="dark"] .pdfjs-link-annotation {
   border-color: rgba(100, 149, 237, 0.6);
   background: rgba(100, 149, 237, 0.1);
 }
 
-/* Hover state - NOT USED (iframe-based viewing) */
+/* Hover state */
 .pdfjs-link-annotation:hover {
   background: rgba(0, 102, 204, 0.15);
   border-color: rgba(0, 102, 204, 0.8);
@@ -281,7 +265,7 @@
   border-color: rgba(100, 149, 237, 0.9);
 }
 
-/* Active state (when clicking) - NOT USED (iframe-based viewing) */
+/* Active state */
 .pdfjs-link-annotation:active {
   background: rgba(0, 102, 204, 0.25);
   border-color: rgba(0, 102, 204, 1);
