@@ -24,9 +24,9 @@
   opacity: 0.85;
 }
 
-/* Dark mode: Make SVG icons yellowish */
+/* Dark mode: SVG icons - consistent with scitex color system */
 [data-theme="dark"] .nav-icon-svg {
-  color: rgb(184, 164, 130); /* Warm yellowish to match other icons */
+  color: var(--scitex-color-05);
   opacity: 0.9;
 }
 
@@ -49,7 +49,7 @@
 
 /* FontAwesome icons in dark mode - match IMG filter effect */
 [data-theme="dark"] .nav-icon-fa {
-  color: rgb(184, 164, 130); /* Warm bluish-yellowish to match IMG filter */
+  color: var(--scitex-color-05);
   opacity: 0.9;
 }
 
@@ -94,7 +94,7 @@
 /* Dark mode hover/active for FontAwesome icons - brighter yellowish */
 [data-theme="dark"] .header-nav-item:hover .nav-icon-fa,
 [data-theme="dark"] .header-nav-item.active .nav-icon-fa {
-  color: rgb(204, 184, 150); /* Brighter warm yellowish-bluish */
+  color: var(--scitex-color-06);
   opacity: 1;
 }
 

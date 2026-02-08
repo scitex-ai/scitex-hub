@@ -25,16 +25,17 @@
 
 /* Visitor Button - Elegant transparent orange style */
 .header-user-toggle.visitor-button {
-  background: linear-gradient(135deg, rgba(240, 173, 78, 0.15) 0%, rgba(240, 173, 78, 0.08) 100%);
-  color: #f0ad4e;
+  background: var(--status-warning-bg);
+  color: var(--status-warning);
   font-weight: 500;
   padding: 6px 12px;
-  border: 1px solid rgba(240, 173, 78, 0.3);
+  border: 1px solid var(--status-warning-border);
 }
 
 .header-user-toggle.visitor-button:hover {
-  background: linear-gradient(135deg, rgba(240, 173, 78, 0.2) 0%, rgba(240, 173, 78, 0.12) 100%);
-  border-color: rgba(240, 173, 78, 0.4);
+  background: var(--status-warning-bg);
+  border-color: var(--status-warning-border);
+  opacity: 0.9;
 }
 
 .header-avatar {
@@ -63,4 +64,3 @@
   height: 100%;
   object-fit: cover;
 }
-

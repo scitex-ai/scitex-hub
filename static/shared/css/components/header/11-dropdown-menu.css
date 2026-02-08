@@ -4,7 +4,7 @@
   top: calc(100% + 8px);
   right: 0;
   min-width: 220px;
-  background: #ffffff; /* Always white in light mode */
+  background: var(--bg-surface);
   border: 1px solid var(--scitex-color-06); /* Light border */
   border-radius: 6px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
@@ -65,7 +65,7 @@
 
 /* Dark mode dropdown - WHITE text on medium dark background for maximum visibility */
 [data-theme="dark"] .dropdown-user-info strong {
-  color: #ffffff !important; /* Pure white - maximum visibility */
+  color: var(--text-primary) !important; /* Pure white - maximum visibility */
 }
 
 [data-theme="dark"] .dropdown-user-username {
@@ -73,15 +73,14 @@
 }
 
 [data-theme="dark"] .dropdown-item {
-  color: #ffffff !important; /* Pure white - maximum visibility */
+  color: var(--text-primary) !important; /* Pure white - maximum visibility */
 }
 
 [data-theme="dark"] .dropdown-item:hover {
   background: var(--scitex-color-03); /* Lighter hover: #506b7a */
-  color: #ffffff !important; /* White on hover */
+  color: var(--text-primary) !important; /* White on hover */
 }
 
 [data-theme="dark"] .dropdown-item i {
   color: var(--scitex-color-06) !important; /* #b5c7d1 - pale for icons */
 }
-
