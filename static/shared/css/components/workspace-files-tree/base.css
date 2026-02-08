@@ -5,16 +5,23 @@
 
 /* Container */
 .workspace-files-tree {
-  font-family: var(--font-mono, 'JetBrains Mono', 'Monaco', 'Menlo', 'Consolas', monospace);
+  font-family: var(
+    --font-mono,
+    "JetBrains Mono",
+    "Monaco",
+    "Menlo",
+    "Consolas",
+    monospace
+  );
   font-size: 13px;
   line-height: 1.4;
   overflow: hidden; /* Children handle scrolling */
   height: 100%;
   user-select: none;
-  background-color: var(--workspace-bg-monaco, #1e1e1e);
-  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
+  background-color: var(--workspace-bg-monaco);
+  border-bottom: 1px solid var(--workspace-border-default);
   margin-bottom: 1px;
-  position: relative;  /* For absolute positioning of git gutter */
+  position: relative; /* For absolute positioning of git gutter */
   display: flex;
   flex-direction: column;
 }
@@ -40,7 +47,7 @@
   transition: background-color 0.1s ease;
   gap: 4px;
   min-height: 26px;
-  position: relative;  /* Needed for action buttons positioning */
+  position: relative; /* Needed for action buttons positioning */
 }
 
 /* Hide project root - show children directly */
@@ -93,11 +100,11 @@
   line-height: 12px;
   text-align: center;
   transition: transform 0.15s ease;
-  color: var(--color-fg-muted, #768390);
+  color: var(--color-fg-muted);
 }
 
 .wft-chevron::before {
-  content: '▸';
+  content: "\25B8";
 }
 
 .wft-chevron.expanded {
@@ -131,13 +138,13 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--color-fg-default, #f0f3f6);
+  color: var(--color-fg-default);
   font-weight: 400;
 }
 
 /* Symlink indicator */
 .wft-symlink {
-  color: var(--color-fg-muted, #768390);
+  color: var(--color-fg-muted);
   font-size: 11px;
   margin-left: 4px;
 }

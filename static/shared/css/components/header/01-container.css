@@ -99,7 +99,9 @@
   gap: 16px;
   padding: 0 16px;
   height: 64px;
-  transition: height 0.3s ease, opacity 0.3s ease;
+  transition:
+    height 0.3s ease,
+    opacity 0.3s ease;
 }
 
 /* Header Collapse Toggle Button - position only, uses shared panel-toggle-btn style */
@@ -109,8 +111,11 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 1002;
-  transition: top 0.3s ease, background 0.15s ease, color 0.15s ease;
-  background: var(--color-bg-tertiary, #e5e7eb);
+  transition:
+    top 0.3s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+  background: var(--bg-muted);
   border-radius: 0 0 6px 6px;
   padding: 6px 12px;
 }

@@ -26,8 +26,8 @@
   padding: 0 16px;
   height: 50px;
   min-height: 50px;
-  background: var(--workspace-bg-secondary, #151515);
-  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
+  background: var(--workspace-bg-secondary);
+  border-bottom: 1px solid var(--workspace-border-default);
   flex-shrink: 0;
   overflow: hidden; /* Prevent content from forcing width */
   min-width: 0; /* Allow flex shrinking */
@@ -37,7 +37,7 @@
   margin: 0;
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-primary, #d4e1e8);
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -48,7 +48,7 @@
 }
 
 .terminal-panel-header h5 i {
-  color: var(--workspace-icon-primary, #059669);
+  color: var(--workspace-icon-primary);
 }
 
 .terminal-toggle {
@@ -56,14 +56,14 @@
   border: none;
   padding: 4px 8px;
   cursor: pointer;
-  color: var(--text-muted, #6c8ba0);
+  color: var(--text-muted);
   border-radius: 4px;
   transition: all 0.15s ease;
 }
 
 .terminal-toggle:hover {
-  background: var(--workspace-bg-tertiary, #1a1a1a);
-  color: var(--workspace-icon-primary, #059669);
+  background: var(--workspace-bg-tertiary);
+  color: var(--workspace-icon-primary);
 }
 
 /* Collapsed state header adjustments */

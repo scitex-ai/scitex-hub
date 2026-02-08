@@ -10,8 +10,8 @@
   align-items: center;
   justify-content: center;
   padding: 48px;
-  background: var(--workspace-bg-secondary, #151515);
-  border: 1px solid var(--workspace-border-default, #3a3a3a);
+  background: var(--workspace-bg-secondary);
+  border: 1px solid var(--workspace-border-default);
 }
 
 .loading-spinner {
@@ -24,7 +24,7 @@
   position: absolute;
   inset: 0;
   border: 2px solid transparent;
-  border-top-color: var(--workspace-icon-primary, #059669);
+  border-top-color: var(--workspace-icon-primary);
   border-radius: 50%;
   animation: spinnerRotate 1.2s linear infinite;
 }
@@ -50,7 +50,7 @@
 .loading-text {
   margin-top: 16px;
   font-size: 13px;
-  color: var(--text-muted, #6c8ba0);
+  color: var(--text-muted);
 }
 
 /* Error State */
@@ -60,8 +60,8 @@
   align-items: center;
   padding: 48px;
   text-align: center;
-  background: var(--workspace-bg-secondary, #151515);
-  border: 1px solid var(--workspace-border-default, #3a3a3a);
+  background: var(--workspace-bg-secondary);
+  border: 1px solid var(--workspace-border-default);
 }
 
 .graph-error i {
@@ -72,22 +72,22 @@
 
 .graph-error p {
   font-size: 14px;
-  color: var(--text-primary, #d4e1e8);
+  color: var(--text-primary);
   margin-bottom: 16px;
 }
 
 .btn-retry {
   padding: 8px 16px;
-  background: var(--workspace-bg-tertiary, #1a1a1a);
-  border: 1px solid var(--workspace-border-default, #3a3a3a);
-  color: var(--text-primary, #d4e1e8);
+  background: var(--workspace-bg-tertiary);
+  border: 1px solid var(--workspace-border-default);
+  color: var(--text-primary);
   font-size: 13px;
   cursor: pointer;
   transition: border-color 0.15s;
 }
 
 .btn-retry:hover {
-  border-color: var(--workspace-icon-primary, #059669);
+  border-color: var(--workspace-icon-primary);
 }
 
 /* Empty/Error Messages */
@@ -96,7 +96,7 @@
   padding: 24px;
   text-align: center;
   font-size: 13px;
-  color: var(--text-muted, #6c8ba0);
+  color: var(--text-muted);
 }
 
 .error-message {

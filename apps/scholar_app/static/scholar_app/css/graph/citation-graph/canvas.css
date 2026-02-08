@@ -22,9 +22,11 @@
 
 /* Graph Elements */
 .graph-edge {
-  stroke: var(--workspace-border-default, #3a3a3a);
+  stroke: var(--workspace-border-default);
   stroke-opacity: 0.6;
-  transition: stroke 0.15s, stroke-opacity 0.15s;
+  transition:
+    stroke 0.15s,
+    stroke-opacity 0.15s;
 }
 
 .graph-edge.edge-coupling {
@@ -54,28 +56,28 @@
 }
 
 .node-circle {
-  stroke: var(--workspace-bg-primary, #0d0d0d);
+  stroke: var(--workspace-bg-primary);
   stroke-width: 2;
   transition: fill 0.15s;
 }
 
 .node-seed .node-circle {
-  fill: var(--workspace-icon-primary, #059669);
+  fill: var(--workspace-icon-primary);
 }
 
 .node-related .node-circle {
-  fill: var(--text-muted, #6c8ba0);
+  fill: var(--text-muted);
 }
 
 .node-year-ring {
-  stroke: var(--workspace-border-default, #3a3a3a);
+  stroke: var(--workspace-border-default);
   stroke-opacity: 0.5;
 }
 
 .node-label {
   font-size: 10px;
   font-weight: 600;
-  fill: var(--workspace-icon-primary, #059669);
+  fill: var(--workspace-icon-primary);
   text-transform: uppercase;
   letter-spacing: 1px;
 }

@@ -13,7 +13,7 @@
 
 .advisory-item {
   padding: 1.5rem;
-  border: 1px solid var(--border-color, #ddd);
+  border: 1px solid var(--border-default);
   border-radius: 0.375rem;
 }
 
@@ -27,20 +27,20 @@
 
 .advisory-severity.critical {
   background-color: #dc3545;
-  color: white;
+  color: var(--bg-surface);
 }
 
 .advisory-severity.high {
   background-color: #fd7e14;
-  color: white;
+  color: var(--bg-surface);
 }
 
 .advisory-severity.medium {
   background-color: #ffc107;
-  color: #000;
+  color: var(--text-primary);
 }
 
 .advisory-severity.low {
   background-color: #6c757d;
-  color: white;
+  color: var(--bg-surface);
 }

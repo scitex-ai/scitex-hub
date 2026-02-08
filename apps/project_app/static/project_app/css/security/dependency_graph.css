@@ -13,7 +13,7 @@
 
 .dependency-graph {
   min-height: 600px;
-  border: 1px solid var(--border-color, #ddd);
+  border: 1px solid var(--border-default);
   border-radius: 0.375rem;
-  background: var(--bg-secondary, #f8f9fa);
+  background: var(--bg-muted);
 }

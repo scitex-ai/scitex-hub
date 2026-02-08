@@ -15,6 +15,6 @@
   display: flex;
   align-items: center;
   padding: 1rem;
-  border: 1px solid var(--border-color, #ddd);
+  border: 1px solid var(--border-default);
   border-radius: 0.375rem;
 }

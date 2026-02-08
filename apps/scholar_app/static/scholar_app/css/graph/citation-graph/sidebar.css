@@ -11,8 +11,8 @@
 }
 
 .sidebar-section {
-  background: var(--workspace-bg-secondary, #151515);
-  border: 1px solid var(--workspace-border-default, #3a3a3a);
+  background: var(--workspace-bg-secondary);
+  border: 1px solid var(--workspace-border-default);
 }
 
 .sidebar-section.collapsed .sidebar-section__content {
@@ -34,33 +34,33 @@
 }
 
 .sidebar-section__header:hover {
-  background: var(--workspace-bg-tertiary, #1a1a1a);
+  background: var(--workspace-bg-tertiary);
 }
 
 .sidebar-section__title {
   margin: 0;
   font-size: 12px;
   font-weight: 600;
-  color: var(--text-primary, #d4e1e8);
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
 .sidebar-section__title i {
-  color: var(--workspace-icon-primary, #059669);
+  color: var(--workspace-icon-primary);
   font-size: 11px;
 }
 
 .sidebar-section__toggle {
   font-size: 10px;
-  color: var(--text-muted, #6c8ba0);
+  color: var(--text-muted);
   transition: transform 0.2s;
 }
 
 .sidebar-section__content {
   padding: 12px;
-  border-top: 1px solid var(--workspace-border-default, #3a3a3a);
+  border-top: 1px solid var(--workspace-border-default);
 }
 
 /* Status Indicators */
@@ -72,7 +72,7 @@
 }
 
 .status-healthy {
-  color: var(--workspace-icon-primary, #059669);
+  color: var(--workspace-icon-primary);
 }
 
 .status-warning {
@@ -84,14 +84,14 @@
 }
 
 .status-checking {
-  color: var(--text-muted, #6c8ba0);
+  color: var(--text-muted);
 }
 
 .status-detail {
   display: block;
   margin-top: 4px;
   font-size: 11px;
-  color: var(--text-muted, #6c8ba0);
+  color: var(--text-muted);
 }
 
 /* Info List */
@@ -110,7 +110,7 @@
   flex-shrink: 0;
   width: 16px;
   text-align: center;
-  color: var(--text-muted, #6c8ba0);
+  color: var(--text-muted);
   font-size: 11px;
   margin-top: 2px;
 }
@@ -119,14 +119,14 @@
   display: block;
   font-size: 12px;
   font-weight: 500;
-  color: var(--text-primary, #d4e1e8);
+  color: var(--text-primary);
   margin-bottom: 2px;
 }
 
 .info-item p {
   margin: 0;
   font-size: 11px;
-  color: var(--text-muted, #6c8ba0);
+  color: var(--text-muted);
 }
 
 /* Controls List */
@@ -145,13 +145,13 @@
 
 .control-item kbd {
   padding: 2px 6px;
-  background: var(--workspace-bg-tertiary, #1a1a1a);
-  border: 1px solid var(--workspace-border-default, #3a3a3a);
+  background: var(--workspace-bg-tertiary);
+  border: 1px solid var(--workspace-border-default);
   font-family: inherit;
   font-size: 10px;
-  color: var(--text-secondary, #a0b3c0);
+  color: var(--text-secondary);
 }
 
 .control-item span {
-  color: var(--text-muted, #6c8ba0);
+  color: var(--text-muted);
 }

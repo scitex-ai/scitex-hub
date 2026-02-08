@@ -13,8 +13,8 @@
   flex: 0 0 1px !important; /* Never grow or shrink, fixed at 1px */
   position: relative;
 
-  /* Visual style - dark workspace tone */
-  background: var(--workspace-border-default, #252525);
+  /* Visual style */
+  background: var(--workspace-border-default);
 
   /* Interaction */
   cursor: col-resize;
@@ -35,46 +35,28 @@
 /* Expanded hit area for easier grabbing - wider to compensate for thin visual */
 .panel-resizer::before,
 .split-resizer::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   bottom: 0;
-  left: -8px;  /* 8px on left + 1px element + 8px on right = 17px total grabbable width */
+  left: -8px; /* 8px on left + 1px element + 8px on right = 17px total grabbable width */
   right: -8px;
   cursor: col-resize;
   z-index: 1;
 }
 
-/* Hover state - workspace border hover */
+/* Hover state */
 .panel-resizer:hover,
 .split-resizer:hover {
-  background: var(--workspace-border-hover, #3a3a3a);
+  background: var(--workspace-border-hover);
 }
 
-/* Active/dragging state - workspace border active */
+/* Active/dragging state */
 .panel-resizer:active,
 .split-resizer:active,
 .panel-resizer.active,
 .split-resizer.active {
-  background: var(--workspace-border-active, #4a4a4a);
-}
-
-/* Dark theme adjustments */
-[data-theme="dark"] .panel-resizer,
-[data-theme="dark"] .split-resizer {
-  background: var(--workspace-border-default, #252525);
-}
-
-[data-theme="dark"] .panel-resizer:hover,
-[data-theme="dark"] .split-resizer:hover {
-  background: var(--workspace-border-hover, #3a3a3a);
-}
-
-[data-theme="dark"] .panel-resizer:active,
-[data-theme="dark"] .split-resizer:active,
-[data-theme="dark"] .panel-resizer.active,
-[data-theme="dark"] .split-resizer.active {
-  background: var(--workspace-border-active, #4a4a4a);
+  background: var(--workspace-border-active);
 }
 
 /* ============================================================================
@@ -101,13 +83,13 @@
   width: 20px;
   height: 20px;
   padding: 0;
-  background: var(--workspace-bg-secondary, #151515);
-  border: 1px solid var(--workspace-border-default, #3a3a3a);
+  background: var(--workspace-bg-secondary);
+  border: 1px solid var(--workspace-border-default);
   border-radius: 50%;
   cursor: pointer;
 
   /* Icon styling */
-  color: var(--text-muted, #6c8ba0);
+  color: var(--text-muted);
   font-size: 10px;
 
   /* Layout */
@@ -121,21 +103,10 @@
 }
 
 .panel-resizer .resizer-toggle-btn:hover {
-  background: var(--workspace-bg-tertiary, #1a1a1a);
-  border-color: var(--workspace-icon-primary, #059669);
-  color: var(--workspace-icon-primary, #059669);
+  background: var(--workspace-bg-tertiary);
+  border-color: var(--workspace-icon-primary);
+  color: var(--workspace-icon-primary);
   opacity: 1;
-}
-
-/* Light mode */
-[data-theme="light"] .panel-resizer .resizer-toggle-btn {
-  background: var(--workspace-bg-secondary, #ebedef);
-  border-color: var(--workspace-border-default, #b5c7d1);
-}
-
-[data-theme="light"] .panel-resizer .resizer-toggle-btn:hover {
-  background: var(--workspace-bg-tertiary, #d8dee4);
-  border-color: var(--workspace-icon-primary, #059669);
 }
 
 /* ============================================================================
@@ -149,7 +120,7 @@
   border: none;
   padding: 4px 8px;
   cursor: pointer;
-  color: var(--text-muted, #6c8ba0);
+  color: var(--text-muted);
   border-radius: 4px;
   transition: all 0.15s ease;
   display: flex;
@@ -159,32 +130,22 @@
 }
 
 .panel-toggle-btn:hover {
-  background: var(--workspace-bg-tertiary, #1a1a1a);
-  color: var(--workspace-icon-primary, #059669);
+  background: var(--workspace-bg-tertiary);
+  color: var(--workspace-icon-primary);
 }
 
 /* Right panel toggle - button on LEFT with right border separator */
 .panel-toggle-btn.right-panel-toggle {
-  border-right: 1px solid var(--workspace-border-default, #3a3a3a);
+  border-right: 1px solid var(--workspace-border-default);
   padding-right: 12px;
   margin-right: 12px;
 }
 
 /* Left panel toggle - button on RIGHT with left border separator */
 .panel-toggle-btn.left-panel-toggle {
-  border-left: 1px solid var(--workspace-border-default, #3a3a3a);
+  border-left: 1px solid var(--workspace-border-default);
   padding-left: 12px;
   margin-left: 12px;
-}
-
-/* Light mode adjustments */
-[data-theme="light"] .panel-toggle-btn:hover {
-  background: var(--workspace-bg-tertiary, #d8dee4);
-}
-
-[data-theme="light"] .panel-toggle-btn.right-panel-toggle,
-[data-theme="light"] .panel-toggle-btn.left-panel-toggle {
-  border-color: var(--workspace-border-default, #b5c7d1);
 }
 
 /* Reset toggle button styling when inside collapsed panel */
