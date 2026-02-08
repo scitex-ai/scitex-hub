@@ -4,10 +4,13 @@
 """Bibliography regeneration API endpoints."""
 
 from __future__ import annotations
+
 import logging
+
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from ...auth_utils import api_login_optional, get_user_for_request
+
+from ...auth_utils import api_login_optional
 
 logger = logging.getLogger(__name__)
 
@@ -20,24 +23,21 @@ def regenerate_bibliography_api(request, project_id):
     This is an opt-in operation that actually parses and merges BibTeX files.
     Call this when user wants to refresh bibliography or after adding new .bib files.
 
+    Note: @api_login_optional already validates auth and project access.
+
     Returns:
         JSON with merge statistics
     """
     try:
-        from apps.project_app.models import Project
         from pathlib import Path
+
+        from apps.project_app.models import Project
         from apps.project_app.services.bibliography_manager import (
             regenerate_bibliography,
         )
 
-        # Get project
-        user = get_user_for_request(request)
-        if user.is_authenticated:
-            project = Project.objects.get(id=project_id, owner=user)
-        else:
-            return JsonResponse(
-                {"success": False, "error": "Authentication required"}, status=401
-            )
+        # @api_login_optional already validated access; just look up project
+        project = Project.objects.get(id=project_id)
 
         if not project.git_clone_path:
             return JsonResponse(
@@ -49,19 +49,19 @@ def regenerate_bibliography_api(request, project_id):
         results = regenerate_bibliography(project_path, project.name)
 
         if results["success"]:
+            scholar_count = results["scholar_count"]
+            duplicates_removed = results.get("duplicates_removed", 0)
             logger.info(
                 f"[Bibliography] Regenerated for {project.name}: "
-                f"scholar={results['scholar_count']}, writer={results['writer_count']}, "
-                f"total={results['total_count']}"
+                f"scholar={scholar_count}, duplicates_removed={duplicates_removed}"
             )
 
             return JsonResponse(
                 {
                     "success": True,
-                    "message": f"Bibliography regenerated with {results['total_count']} papers",
-                    "scholar_count": results["scholar_count"],
-                    "writer_count": results["writer_count"],
-                    "total_count": results["total_count"],
+                    "message": f"Bibliography regenerated with {scholar_count} papers",
+                    "scholar_count": scholar_count,
+                    "duplicates_removed": duplicates_removed,
                 }
             )
         else:

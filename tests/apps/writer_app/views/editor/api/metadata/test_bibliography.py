@@ -2,115 +2,114 @@
 # -*- coding: utf-8 -*-
 """Tests for apps/writer_app/views/editor/api/metadata/bibliography.py"""
 
+import json
+from unittest.mock import MagicMock, patch
+
 import pytest
+from django.test import RequestFactory
 
-# from apps.writer_app.views.editor.api.metadata.bibliography import ...
+from apps.writer_app.views.editor.api.metadata.bibliography import (
+    regenerate_bibliography_api,
+)
 
 
-class TestPlaceholder:
-    """Placeholder test class - replace with actual tests."""
+@pytest.fixture
+def rf():
+    return RequestFactory()
 
-    def test_placeholder(self):
-        """Placeholder test - implement actual tests."""
-        pytest.skip("Not implemented yet")
+
+@pytest.fixture
+def authenticated_request(rf):
+    """Create a POST request with authenticated user."""
+    request = rf.post("/api/bibliography/regenerate/1/")
+    request.user = MagicMock(is_authenticated=True, username="test-user")
+    request.session = {}
+    return request
+
+
+@pytest.fixture
+def mock_project():
+    project = MagicMock()
+    project.id = 1
+    project.name = "test-project"
+    project.git_clone_path = "/tmp/test-project"
+    project.owner = MagicMock()
+    return project
+
+
+class TestRegenerateBibliographyApi:
+    """Test bibliography regeneration API endpoint."""
+
+    @patch("apps.project_app.models.Project.objects")
+    def test_project_not_found_returns_404(self, mock_qs, authenticated_request):
+        """@api_login_optional returns 404 when project doesn't exist."""
+        from apps.project_app.models import Project
+
+        mock_qs.get.side_effect = Project.DoesNotExist
+        response = regenerate_bibliography_api(authenticated_request, project_id=999)
+        assert response.status_code == 404
+
+    @patch("apps.project_app.services.bibliography_manager.regenerate_bibliography")
+    @patch("apps.project_app.models.Project.objects")
+    def test_success_returns_scholar_count_and_duplicates(
+        self, mock_qs, mock_regen, authenticated_request, mock_project
+    ):
+        mock_project.owner = authenticated_request.user
+        mock_qs.get.return_value = mock_project
+        mock_regen.return_value = {
+            "success": True,
+            "scholar_count": 5,
+            "duplicates_removed": 2,
+            "errors": [],
+        }
+
+        response = regenerate_bibliography_api(authenticated_request, project_id=1)
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert data["success"] is True
+        assert data["scholar_count"] == 5
+        assert data["duplicates_removed"] == 2
+        assert "writer_count" not in data
+        assert "total_count" not in data
+
+    @patch("apps.project_app.services.bibliography_manager.regenerate_bibliography")
+    @patch("apps.project_app.models.Project.objects")
+    def test_failure_returns_errors(
+        self, mock_qs, mock_regen, authenticated_request, mock_project
+    ):
+        mock_project.owner = authenticated_request.user
+        mock_qs.get.return_value = mock_project
+        mock_regen.return_value = {
+            "success": False,
+            "scholar_count": 0,
+            "duplicates_removed": 0,
+            "errors": ["Parse error in test.bib"],
+        }
+
+        response = regenerate_bibliography_api(authenticated_request, project_id=1)
+
+        assert response.status_code == 500
+        data = json.loads(response.content)
+        assert data["success"] is False
+        assert "Parse error" in data["details"][0]
+
+    @patch("apps.project_app.models.Project.objects")
+    def test_no_git_path_returns_400(
+        self, mock_qs, authenticated_request, mock_project
+    ):
+        mock_project.owner = authenticated_request.user
+        mock_project.git_clone_path = None
+        mock_qs.get.return_value = mock_project
+
+        response = regenerate_bibliography_api(authenticated_request, project_id=1)
+
+        assert response.status_code == 400
+        data = json.loads(response.content)
+        assert "git repository" in data["error"]
+
 
 if __name__ == "__main__":
     import os
 
-    import pytest
-
     pytest.main([os.path.abspath(__file__)])
-
-# --------------------------------------------------------------------------------
-# Start of Source Code from: apps/writer_app/views/editor/api/metadata/bibliography.py
-# --------------------------------------------------------------------------------
-# #!/usr/bin/env python3
-# # -*- coding: utf-8 -*-
-# # File: /home/ywatanabe/proj/scitex-cloud/apps/writer_app/views/editor/api/metadata/bibliography.py
-# """Bibliography regeneration API endpoints."""
-# 
-# from __future__ import annotations
-# import logging
-# from django.http import JsonResponse
-# from django.views.decorators.http import require_http_methods
-# from ...auth_utils import api_login_optional, get_user_for_request
-# 
-# logger = logging.getLogger(__name__)
-# 
-# 
-# @api_login_optional
-# @require_http_methods(["POST"])
-# def regenerate_bibliography_api(request, project_id):
-#     """Manually regenerate bibliography_all.bib by merging all .bib files.
-# 
-#     This is an opt-in operation that actually parses and merges BibTeX files.
-#     Call this when user wants to refresh bibliography or after adding new .bib files.
-# 
-#     Returns:
-#         JSON with merge statistics
-#     """
-#     try:
-#         from apps.project_app.models import Project
-#         from pathlib import Path
-#         from apps.project_app.services.bibliography_manager import (
-#             regenerate_bibliography,
-#         )
-# 
-#         # Get project
-#         user = get_user_for_request(request)
-#         if user.is_authenticated:
-#             project = Project.objects.get(id=project_id, owner=user)
-#         else:
-#             return JsonResponse(
-#                 {"success": False, "error": "Authentication required"}, status=401
-#             )
-# 
-#         if not project.git_clone_path:
-#             return JsonResponse(
-#                 {"success": False, "error": "Project has no git repository"}, status=400
-#             )
-# 
-#         # Regenerate bibliography
-#         project_path = Path(project.git_clone_path)
-#         results = regenerate_bibliography(project_path, project.name)
-# 
-#         if results["success"]:
-#             logger.info(
-#                 f"[Bibliography] Regenerated for {project.name}: "
-#                 f"scholar={results['scholar_count']}, writer={results['writer_count']}, "
-#                 f"total={results['total_count']}"
-#             )
-# 
-#             return JsonResponse(
-#                 {
-#                     "success": True,
-#                     "message": f"Bibliography regenerated with {results['total_count']} papers",
-#                     "scholar_count": results["scholar_count"],
-#                     "writer_count": results["writer_count"],
-#                     "total_count": results["total_count"],
-#                 }
-#             )
-#         else:
-#             return JsonResponse(
-#                 {
-#                     "success": False,
-#                     "error": "Failed to regenerate bibliography",
-#                     "details": results["errors"],
-#                 },
-#                 status=500,
-#             )
-# 
-#     except Project.DoesNotExist:
-#         return JsonResponse(
-#             {"success": False, "error": "Project not found"}, status=404
-#         )
-#     except Exception as e:
-#         logger.error(f"[Bibliography] Error regenerating: {e}", exc_info=True)
-#         return JsonResponse({"success": False, "error": str(e)}, status=500)
-# 
-# 
-# # EOF
-
-# --------------------------------------------------------------------------------
-# End of Source Code from: apps/writer_app/views/editor/api/metadata/bibliography.py
-# --------------------------------------------------------------------------------
