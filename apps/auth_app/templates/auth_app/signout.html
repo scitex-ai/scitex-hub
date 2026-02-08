@@ -1,61 +1,61 @@
 {% extends "auth_app/auth_base.html" %}
+
 {% load static %}
-{%block title%}
-    Logout - SciTeX
-{% endblock %}
+
+{% block title %}Logout - SciTeX{% endblock %}
 {% block auth_extra_css %}
-    <link rel="stylesheet"
-          href="{% static 'shared/css/components/forms/index.css' %}" />
+    <link rel="stylesheet" href="{% static 'shared/css/components/forms/index.css' %}" />
     <style>
-  .logout-container {
-    min-height: 60vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem 0;
-  }
+        .logout-container {
+            min-height: 60vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 0;
+        }
 
-  .logout-card {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    padding: 2.5rem;
-    width: 100%;
-    max-width: 450px;
-    text-align: center;
-  }
+        .logout-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-default);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+        }
 
-  .logout-icon {
-    font-size: 4rem;
-    color: var(--scitex-color-05);
-    margin-bottom: 1.5rem;
-  }
+        .logout-icon {
+            font-size: 4rem;
+            color: var(--status-success);
+            margin-bottom: 1.5rem;
+        }
 
-  .logout-title {
-    color: var(--scitex-color-02);
-    margin-bottom: 1rem;
-  }
+        .logout-title {
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
 
-  .logout-message {
-    color: var(--scitex-color-03);
-    margin-bottom: 2rem;
-  }
+        .logout-message {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
 
-  .logout-actions {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-  }
+        .logout-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
 
-  @media (max-width: 576px) {
-    .logout-actions {
-      flex-direction: column;
-    }
+        @media (max-width: 576px) {
+            .logout-actions {
+                flex-direction: column;
+            }
 
-    .logout-actions .btn {
-      width: 100%;
-    }
-  }
+            .logout-actions .btn {
+                width: 100%;
+            }
+        }
     </style>
 {% endblock %}
 {% block auth_content %}

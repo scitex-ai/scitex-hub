@@ -129,6 +129,20 @@
   --error-color: var(--_error);
   --info-color: var(--_info);
 
+  /* Status variant tokens (bg, text, border) for alerts and form messages */
+  --status-success-bg: rgba(74, 155, 126, 0.1);
+  --status-success-text: #2d6a4f;
+  --status-success-border: rgba(74, 155, 126, 0.3);
+  --status-error-bg: rgba(207, 34, 46, 0.1);
+  --status-error-text: #a40e26;
+  --status-error-border: rgba(207, 34, 46, 0.3);
+  --status-warning-bg: rgba(184, 149, 106, 0.1);
+  --status-warning-text: #633c01;
+  --status-warning-border: rgba(184, 149, 106, 0.3);
+  --status-info-bg: rgba(107, 114, 128, 0.1);
+  --status-info-text: #57606a;
+  --status-info-border: rgba(107, 114, 128, 0.3);
+
   /* Success variant tokens */
   --color-success-bg: rgba(74, 155, 126, 0.1);
   --color-success-border: rgba(74, 155, 126, 0.3);
@@ -270,6 +284,20 @@
   --warning-color: #d4a87a;
   --error-color: #c08888;
   --info-color: #8fa9cc;
+
+  /* Status variant tokens - dark mode */
+  --status-success-bg: rgba(107, 168, 154, 0.15);
+  --status-success-text: #6ba89a;
+  --status-success-border: rgba(107, 168, 154, 0.3);
+  --status-error-bg: rgba(192, 136, 136, 0.15);
+  --status-error-text: #c08888;
+  --status-error-border: rgba(192, 136, 136, 0.3);
+  --status-warning-bg: rgba(212, 168, 122, 0.15);
+  --status-warning-text: #d4a87a;
+  --status-warning-border: rgba(212, 168, 122, 0.3);
+  --status-info-bg: rgba(143, 169, 204, 0.15);
+  --status-info-text: #8fa9cc;
+  --status-info-border: rgba(143, 169, 204, 0.3);
 
   /* Success variant tokens - dark mode */
   --color-success-bg: rgba(107, 168, 154, 0.1);
