@@ -38,6 +38,8 @@
   background: none !important;
   border: none !important;
   padding: 4px 8px !important;
+  min-width: 28px;
+  min-height: 28px;
   color: var(--workspace-icon-secondary, #6b7280) !important;
   cursor: pointer;
   border-radius: 4px;
@@ -108,4 +110,3 @@
 .code-sidebar .file-search-input:not(:placeholder-shown) + .file-search-clear {
   display: block;
 }
-

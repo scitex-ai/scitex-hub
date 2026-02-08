@@ -33,6 +33,7 @@
 /* FontAwesome icons in light mode - bluish-gray */
 .nav-icon-fa {
   color: var(--scitex-color-03); /* Professional bluish-gray: #506b7a */
+  font-size: var(--icon-md); /* 16px - standardized via CSS variable */
   opacity: 0.85;
 }
 
@@ -78,7 +79,9 @@
 .header-nav-item.active .nav-icon-svg,
 .header-nav-item:hover .nav-icon-fa,
 .header-nav-item.active .nav-icon-fa {
-  color: var(--scitex-color-04); /* Brighter bluish-gray on hover/active: #6c8ba0 */
+  color: var(
+    --scitex-color-04
+  ); /* Brighter bluish-gray on hover/active: #6c8ba0 */
   opacity: 1;
 }
 
@@ -114,4 +117,3 @@
 [data-theme="dark"] .header-logo i {
   color: var(--scitex-color-06); /* Lighter accent in dark mode */
 }
-

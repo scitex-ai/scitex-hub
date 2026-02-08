@@ -38,6 +38,14 @@
   --_cta: #3b82f6;
   --_cta-hover: #2563eb;
 
+  /* Icon size scale (theme-independent) */
+  --icon-xs: 12px;
+  --icon-sm: 14px;
+  --icon-md: 16px;
+  --icon-lg: 20px;
+  --icon-xl: 24px;
+  --icon-2xl: 32px;
+
   /* Legacy brand color references (deprecated - use semantic tokens instead) */
   --scitex-color-01: var(--_scitex-01);
   --scitex-color-01-dark: #0d111c;
