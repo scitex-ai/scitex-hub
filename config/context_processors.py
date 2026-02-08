@@ -97,6 +97,7 @@ def umami_analytics(request):
         "UMAMI_SCRIPT_URL": getattr(
             settings, "UMAMI_SCRIPT_URL", "https://cloud.umami.is/script.js"
         ),
+        "UMAMI_DOMAINS": os.environ.get("SCITEX_CLOUD_UMAMI_DOMAINS", ""),
     }
 
 
