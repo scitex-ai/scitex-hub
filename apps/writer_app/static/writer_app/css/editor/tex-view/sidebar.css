@@ -65,7 +65,6 @@
 }
 
 .writer-sidebar .sidebar-header-hint i {
-  font-size: 0.65rem;
+  font-size: var(--icon-xs); /* 12px - standardized minimum */
   opacity: 0.7;
 }
-

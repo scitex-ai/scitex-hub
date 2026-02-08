@@ -98,7 +98,7 @@
 }
 
 .section-management-btns .btn i {
-  font-size: 0.75rem;
+  font-size: var(--icon-sm); /* 14px - consistent with panel header icons */
   color: var(--workspace-icon-primary); /* Green icons matching vis */
 }
 
@@ -149,4 +149,3 @@
   /* background: var(--scitex-primary); */ /* Styling from central CSS */
   /* color: var(--scitex-white); */ /* Styling from central CSS */
 }
-
