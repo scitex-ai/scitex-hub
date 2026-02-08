@@ -89,42 +89,46 @@ class TemplateOperationsManager:
             return False
 
     def _copy_research_template(self, project_path: Path, project: Project) -> bool:
-        """Copy research template from local master or GitHub."""
-        from django.conf import settings
-
-        template_master = Path(
-            getattr(settings, "VISITOR_TEMPLATE_PATH", "/app/templates/research-master")
-        )
-
-        if not template_master.exists():
-            logger.info(
-                f"Master template not found at {template_master}, "
-                "falling back to git clone"
-            )
-            from scitex.template import clone_research as clone_template
+        """Delegate to scitex.template for research template (now uses minimal)."""
+        try:
+            # Delegate to scitex.template - no local templates needed
+            from scitex.template import clone_template
 
             success = clone_template(
-                str(project_path), git_strategy=None, branch=None, tag=None
+                template_id="minimal",
+                project_name=project.slug,
+                target_dir=str(project_path.parent),
+                git_strategy="child",
             )
-        else:
-            logger.info(
-                f"Copying research template from {template_master} to {project_path}"
-            )
-            shutil.copytree(template_master, project_path, symlinks=True)
-            success = True
 
-        if success:
-            self._customize_template_for_project(project_path, project, "research")
-            logger.info(f"Successfully created research template at {project_path}")
+            if success:
+                self._customize_template_for_project(project_path, project, "research")
+                logger.info(f"Successfully created minimal template at {project_path}")
 
-        return success
+            return success
+        except ImportError:
+            logger.error("scitex.template not available")
+            return False
 
     def _copy_minimal_template(self, project_path: Path, project: Project) -> bool:
-        """Copy minimal SciTeX template from local directory."""
-        template_master = Path("/app/templates/research-master-minimal")
+        """Delegate to scitex.template for minimal template."""
+        try:
+            from scitex.template import clone_template
 
-        if not template_master.exists():
-            logger.error(f"Minimal template not found at {template_master}")
+            success = clone_template(
+                template_id="minimal",
+                project_name=project.slug,
+                target_dir=str(project_path.parent),
+                git_strategy="child",
+            )
+
+            if success:
+                self._customize_template_for_project(project_path, project, "minimal")
+                logger.info(f"Successfully created minimal template at {project_path}")
+
+            return success
+        except ImportError:
+            logger.error("scitex.template not available")
             return False
 
         logger.info(
