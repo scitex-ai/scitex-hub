@@ -134,7 +134,7 @@ def project_create(request):
         except Exception as e:
             logger.error(f"Failed to create project: {e}")
             messages.error(request, f"Failed to create project: {str(e)}")
-            return redirect("user_projects:list", username=request.user.username)
+            return redirect("project_app:list", username=request.user.username)
 
         # Handle different initialization types
         success = True
@@ -151,14 +151,14 @@ def project_create(request):
             success = handle_empty_creation(request, project, manager)
 
         if not success:
-            return redirect("user_projects:list", username=request.user.username)
+            return redirect("project_app:list", username=request.user.username)
 
         # Initialize SciTeX Writer template if requested
         if init_scitex:
             handle_scitex_initialization(request, project, manager)
 
         return redirect(
-            "user_projects:detail",
+            "project_app:detail",
             username=request.user.username,
             slug=project.slug,
         )

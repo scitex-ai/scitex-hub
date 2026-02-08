@@ -10,11 +10,11 @@
 {% block content %}
     <div class="container-fluid"
          style="max-width: 1280px"
-         data-alert-dismiss-url="{% url 'user_projects:api_dismiss_alert' project.owner.username project.slug alert.id %}"
-         data-alert-reopen-url="{% url 'user_projects:api_reopen_alert' project.owner.username project.slug alert.id %}">
+         data-alert-dismiss-url="{% url 'project_app:api_dismiss_alert' project.owner.username project.slug alert.id %}"
+         data-alert-reopen-url="{% url 'project_app:api_reopen_alert' project.owner.username project.slug alert.id %}">
         {% include 'project_app/repository/browse_partials/browse_header.html' %}
         {% include 'project_app/repository/browse_partials/browse_tabs.html' with active_tab='security' %}
-        <a href="{% url 'user_projects:security_alerts' project.owner.username project.slug %}"
+        <a href="{% url 'project_app:security_alerts' project.owner.username project.slug %}"
            class="btn btn-sm btn-outline-secondary mb-3">← Back to alerts</a>
         <div class="card">
             <div class="card-header">

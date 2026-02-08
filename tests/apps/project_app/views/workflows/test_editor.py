@@ -115,7 +115,7 @@ if __name__ == "__main__":
 # 
 #         messages.success(request, f"Workflow '{workflow_name}' created successfully")
 #         return redirect(
-#             "user_projects:workflow_detail",
+#             "project_app:workflow_detail",
 #             username=username,
 #             slug=slug,
 #             workflow_id=workflow.id,
@@ -189,7 +189,7 @@ if __name__ == "__main__":
 # 
 #         messages.success(request, f"Workflow '{workflow_name}' updated successfully")
 #         return redirect(
-#             "user_projects:workflow_detail",
+#             "project_app:workflow_detail",
 #             username=username,
 #             slug=slug,
 #             workflow_id=workflow.id,

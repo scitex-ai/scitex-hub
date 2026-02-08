@@ -87,7 +87,7 @@ if __name__ == "__main__":
 # 
 #     if not has_access:
 #         messages.error(request, "You don't have permission to access this file.")
-#         return redirect("user_projects:detail", username=username, slug=slug)
+#         return redirect("project_app:detail", username=username, slug=slug)
 # 
 #     # Get file path
 #     from apps.project_app.services.project_filesystem import (
@@ -99,7 +99,7 @@ if __name__ == "__main__":
 # 
 #     if not project_path or not project_path.exists():
 #         messages.error(request, "Project directory not found.")
-#         return redirect("user_projects:detail", username=username, slug=slug)
+#         return redirect("project_app:detail", username=username, slug=slug)
 # 
 #     full_file_path = project_path / file_path
 # 
@@ -108,15 +108,15 @@ if __name__ == "__main__":
 #         full_file_path = full_file_path.resolve()
 #         if not str(full_file_path).startswith(str(project_path.resolve())):
 #             messages.error(request, "Invalid file path.")
-#             return redirect("user_projects:detail", username=username, slug=slug)
+#             return redirect("project_app:detail", username=username, slug=slug)
 #     except Exception:
 #         messages.error(request, "Invalid file path.")
-#         return redirect("user_projects:detail", username=username, slug=slug)
+#         return redirect("project_app:detail", username=username, slug=slug)
 # 
 #     # Check if file exists and is a file
 #     if not full_file_path.exists() or not full_file_path.is_file():
 #         messages.error(request, "File not found.")
-#         return redirect("user_projects:detail", username=username, slug=slug)
+#         return redirect("project_app:detail", username=username, slug=slug)
 # 
 #     # Get Git commit information for this file
 #     git_info = {}
@@ -241,7 +241,7 @@ if __name__ == "__main__":
 # 
 #         if not git_clone_path:
 #             messages.error(request, "Git repository not available for blame. Please ensure the project is cloned from Gitea.")
-#             return redirect("user_projects:file_view", username=username, slug=slug, file_path=file_path)
+#             return redirect("project_app:file_view", username=username, slug=slug, file_path=file_path)
 # 
 #         try:
 #             # Run git blame with porcelain format for easier parsing
@@ -318,15 +318,15 @@ if __name__ == "__main__":
 #             else:
 #                 # Git blame failed, possibly file not in git
 #                 messages.warning(request, "Unable to get blame information. File may not be tracked in git.")
-#                 return redirect("user_projects:file_view", username=username, slug=slug, file_path=file_path)
+#                 return redirect("project_app:file_view", username=username, slug=slug, file_path=file_path)
 # 
 #         except subprocess.TimeoutExpired:
 #             messages.error(request, "Git blame timed out. File may be too large.")
-#             return redirect("user_projects:file_view", username=username, slug=slug, file_path=file_path)
+#             return redirect("project_app:file_view", username=username, slug=slug, file_path=file_path)
 #         except Exception as e:
 #             logger.error(f"Error running git blame: {e}")
 #             messages.error(request, f"Error getting blame information: {e}")
-#             return redirect("user_projects:file_view", username=username, slug=slug, file_path=file_path)
+#             return redirect("project_app:file_view", username=username, slug=slug, file_path=file_path)
 # 
 #         # Build breadcrumb
 #         breadcrumbs = [{"name": project.name, "url": f"/{username}/{slug}/"}]
@@ -358,7 +358,7 @@ if __name__ == "__main__":
 #     if mode == "edit":
 #         if not (project.owner == request.user):
 #             messages.error(request, "Only project owner can edit files.")
-#             return redirect("user_projects:detail", username=username, slug=slug)
+#             return redirect("project_app:detail", username=username, slug=slug)
 # 
 #         if request.method == "POST":
 #             # Save edited content
@@ -368,7 +368,7 @@ if __name__ == "__main__":
 #                     f.write(new_content)
 #                 messages.success(request, f"File '{file_name}' saved successfully!")
 #                 return redirect(
-#                     "user_projects:file_view",
+#                     "project_app:file_view",
 #                     username=username,
 #                     slug=slug,
 #                     file_path=file_path,
@@ -382,7 +382,7 @@ if __name__ == "__main__":
 #                 file_content = f.read()
 #         except Exception as e:
 #             messages.error(request, f"Error reading file: {e}")
-#             return redirect("user_projects:detail", username=username, slug=slug)
+#             return redirect("project_app:detail", username=username, slug=slug)
 # 
 #         # Build breadcrumb
 #         breadcrumbs = [{"name": project.name, "url": f"/{username}/{slug}/"}]
@@ -494,7 +494,7 @@ if __name__ == "__main__":
 # 
 #     except Exception as e:
 #         messages.error(request, f"Error reading file: {e}")
-#         return redirect("user_projects:detail", username=username, slug=slug)
+#         return redirect("project_app:detail", username=username, slug=slug)
 # 
 #     # Build breadcrumb
 #     breadcrumbs = [{"name": project.name, "url": f"/{username}/{slug}/"}]

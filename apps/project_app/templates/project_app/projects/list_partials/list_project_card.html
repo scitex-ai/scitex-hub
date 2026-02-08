@@ -12,9 +12,9 @@
     <div class="card-footer">
         <div class="project-actions">
             <a href="{{ project.get_absolute_url }}" class="btn btn-sm btn-primary">Open</a>
-            <a href="{% url 'user_projects:files' username=project.owner.username slug=project.slug %}"
+            <a href="{% url 'project_app:files' username=project.owner.username slug=project.slug %}"
                class="btn btn-sm btn-secondary">Files</a>
-            <a href="{% url 'user_projects:edit' username=project.owner.username slug=project.slug %}"
+            <a href="{% url 'project_app:edit' username=project.owner.username slug=project.slug %}"
                class="btn btn-sm btn-outline-secondary">Edit</a>
         </div>
     </div>

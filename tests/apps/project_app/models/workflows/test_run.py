@@ -162,7 +162,7 @@ if __name__ == "__main__":
 #         from django.urls import reverse
 # 
 #         return reverse(
-#             "user_projects:workflow_run_detail",
+#             "project_app:workflow_run_detail",
 #             kwargs={
 #                 "username": self.workflow.project.owner.username,
 #                 "slug": self.workflow.project.slug,

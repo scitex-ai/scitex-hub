@@ -65,7 +65,7 @@ def handle_blame_mode(
             "Please ensure the project is cloned from Gitea.",
         )
         return redirect(
-            "user_projects:file_view",
+            "project_app:file_view",
             username=username,
             slug=slug,
             file_path=file_path,
@@ -88,7 +88,7 @@ def handle_blame_mode(
                 "Unable to get blame information. File may not be tracked in git.",
             )
             return redirect(
-                "user_projects:file_view",
+                "project_app:file_view",
                 username=username,
                 slug=slug,
                 file_path=file_path,
@@ -97,7 +97,7 @@ def handle_blame_mode(
     except subprocess.TimeoutExpired:
         messages.error(request, "Git blame timed out. File may be too large.")
         return redirect(
-            "user_projects:file_view",
+            "project_app:file_view",
             username=username,
             slug=slug,
             file_path=file_path,
@@ -106,7 +106,7 @@ def handle_blame_mode(
         logger.error(f"Error running git blame: {e}")
         messages.error(request, f"Error getting blame information: {e}")
         return redirect(
-            "user_projects:file_view",
+            "project_app:file_view",
             username=username,
             slug=slug,
             file_path=file_path,
@@ -203,7 +203,7 @@ def handle_edit_mode(
     """Handle edit mode - show editor and save changes."""
     if not (project.owner == request.user):
         messages.error(request, "Only project owner can edit files.")
-        return redirect("user_projects:detail", username=username, slug=slug)
+        return redirect("project_app:detail", username=username, slug=slug)
 
     if request.method == "POST":
         new_content = request.POST.get("content", "")
@@ -212,7 +212,7 @@ def handle_edit_mode(
                 f.write(new_content)
             messages.success(request, f"File '{file_name}' saved successfully!")
             return redirect(
-                "user_projects:file_view",
+                "project_app:file_view",
                 username=username,
                 slug=slug,
                 file_path=file_path,
@@ -225,7 +225,7 @@ def handle_edit_mode(
             file_content = f.read()
     except Exception as e:
         messages.error(request, f"Error reading file: {e}")
-        return redirect("user_projects:detail", username=username, slug=slug)
+        return redirect("project_app:detail", username=username, slug=slug)
 
     breadcrumbs = build_breadcrumbs(project, username, slug, file_path)
 

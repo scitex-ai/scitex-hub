@@ -9,16 +9,16 @@
 {% endblock %}
 {% block content %}
     <div class="container"
-         data-workflow-trigger-url="{% url 'user_projects:workflow_trigger' project.owner.username project.slug workflow.id %}"
-         data-workflow-toggle-url="{% url 'user_projects:workflow_enable_disable' project.owner.username project.slug workflow.id %}">
+         data-workflow-trigger-url="{% url 'project_app:workflow_trigger' project.owner.username project.slug workflow.id %}"
+         data-workflow-toggle-url="{% url 'project_app:workflow_enable_disable' project.owner.username project.slug workflow.id %}">
         <!-- Breadcrumbs -->
         <nav aria-label="breadcrumb" style="margin-top: 1rem">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item">
-                    <a href="{% url 'user_projects:detail' project.owner.username project.slug %}">{{ project.name }}</a>
+                    <a href="{% url 'project_app:detail' project.owner.username project.slug %}">{{ project.name }}</a>
                 </li>
                 <li class="breadcrumb-item">
-                    <a href="{% url 'user_projects:actions_list' project.owner.username project.slug %}">Actions</a>
+                    <a href="{% url 'project_app:actions_list' project.owner.username project.slug %}">Actions</a>
                 </li>
                 <li class="breadcrumb-item active">{{ workflow.name }}</li>
             </ol>
@@ -36,7 +36,7 @@
                         <button class="btn btn-primary" onclick="triggerWorkflow()">
                             <i class="bi bi-play-circle"></i> Run workflow
                         </button>
-                        <a href="{% url 'user_projects:workflow_edit' project.owner.username project.slug workflow.id %}"
+                        <a href="{% url 'project_app:workflow_edit' project.owner.username project.slug workflow.id %}"
                            class="btn btn-secondary">
                             <i class="bi bi-pencil"></i> Edit
                         </a>
@@ -48,7 +48,7 @@
                                 Enable
                             {% endif %}
                         </button>
-                        <a href="{% url 'user_projects:workflow_delete' project.owner.username project.slug workflow.id %}"
+                        <a href="{% url 'project_app:workflow_delete' project.owner.username project.slug workflow.id %}"
                            class="btn btn-danger">
                             <i class="bi bi-trash"></i> Delete
                         </a>
@@ -84,7 +84,7 @@
             <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem">Recent runs</h2>
             {% if runs %}
                 {% for run in runs %}
-                    <a href="{% url 'user_projects:workflow_run_detail' project.owner.username project.slug run.id %}"
+                    <a href="{% url 'project_app:workflow_run_detail' project.owner.username project.slug run.id %}"
                        style="text-decoration: none;
                               color: inherit">
                         <div class="run-item">

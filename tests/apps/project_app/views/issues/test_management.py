@@ -98,7 +98,7 @@ if __name__ == "__main__":
 #                 messages.error(request, "Label not found")
 # 
 #         return redirect(
-#             "user_projects:issue_label_manage", username=username, slug=slug
+#             "project_app:issue_label_manage", username=username, slug=slug
 #         )
 # 
 #     # GET request
@@ -199,7 +199,7 @@ if __name__ == "__main__":
 #                 messages.error(request, "Milestone not found")
 # 
 #         return redirect(
-#             "user_projects:issue_milestone_manage", username=username, slug=slug
+#             "project_app:issue_milestone_manage", username=username, slug=slug
 #         )
 # 
 #     # GET request

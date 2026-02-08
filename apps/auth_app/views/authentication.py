@@ -230,7 +230,7 @@ def login_view(request):
                     from django.urls import reverse
 
                     next_page = reverse(
-                        "user_projects:user_profile", kwargs={"username": user.username}
+                        "project_app:user_profile", kwargs={"username": user.username}
                     )
 
                 messages.success(request, f"Welcome back, @{user.username}!")

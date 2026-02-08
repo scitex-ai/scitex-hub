@@ -116,7 +116,7 @@ if __name__ == "__main__":
 # 
 #         messages.success(request, f"Workflow '{workflow_name}' created successfully")
 #         return redirect(
-#             "user_projects:workflow_detail",
+#             "project_app:workflow_detail",
 #             username=username,
 #             slug=slug,
 #             workflow_id=workflow.id,
@@ -190,7 +190,7 @@ if __name__ == "__main__":
 # 
 #         messages.success(request, f"Workflow '{workflow_name}' updated successfully")
 #         return redirect(
-#             "user_projects:workflow_detail",
+#             "project_app:workflow_detail",
 #             username=username,
 #             slug=slug,
 #             workflow_id=workflow.id,
@@ -230,7 +230,7 @@ if __name__ == "__main__":
 #         delete_workflow_from_filesystem(project, workflow)
 # 
 #         messages.success(request, f"Workflow '{workflow_name}' deleted successfully")
-#         return redirect("user_projects:actions_list", username=username, slug=slug)
+#         return redirect("project_app:actions_list", username=username, slug=slug)
 # 
 #     context = {
 #         "project": project,

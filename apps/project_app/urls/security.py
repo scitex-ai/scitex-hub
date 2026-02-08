@@ -27,7 +27,7 @@ from ..views.security import (
     trigger_security_scan,
 )
 
-# No app_name here - namespace is provided by parent (user_projects)
+# No app_name here - namespace is provided by parent (project_app)
 
 urlpatterns = [
     # Security overview

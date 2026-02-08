@@ -1,7 +1,7 @@
 <!-- PR list -->
 <div class="list-group">
     {% for pr in prs %}
-        <a href="{% url 'user_projects:pr_detail' project.owner.username project.slug pr.number %}"
+        <a href="{% url 'project_app:pr_detail' project.owner.username project.slug pr.number %}"
            class="list-group-item list-group-item-action">
             <div class="d-flex w-100 justify-content-between align-items-start">
                 <div class="flex-grow-1">

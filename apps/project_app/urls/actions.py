@@ -13,7 +13,7 @@ from ..api_views_module.api_views import (
     api_project_stats,
 )
 
-# No app_name here - namespace is provided by parent (user_projects)
+# No app_name here - namespace is provided by parent (project_app)
 
 urlpatterns = [
     # Social interaction API endpoints (Watch, Star, Fork)

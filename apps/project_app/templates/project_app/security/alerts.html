@@ -75,7 +75,7 @@
                                 </div>
                                 <div class="flex-grow-1">
                                     <h5>
-                                        <a href="{% url 'user_projects:security_alert_detail' project.owner.username project.slug alert.id %}"
+                                        <a href="{% url 'project_app:security_alert_detail' project.owner.username project.slug alert.id %}"
                                            class="text-decoration-none">{{ alert.title }}</a>
                                         <span class="badge bg-{{ alert.get_severity_badge_class }} ms-2">{{ alert.get_severity_display }}</span>
                                         <span class="badge bg-secondary ms-1">{{ alert.get_alert_type_display }}</span>

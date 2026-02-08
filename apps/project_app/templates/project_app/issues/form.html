@@ -145,7 +145,7 @@
                             Submit new issue
                         {% endif %}
                     </button>
-                    <a href="{% if edit_mode %}{{ issue.get_absolute_url }}{% else %}{% url 'user_projects:issue_list' username=project.owner.username slug=project.slug %}{% endif %}"
+                    <a href="{% if edit_mode %}{{ issue.get_absolute_url }}{% else %}{% url 'project_app:issue_list' username=project.owner.username slug=project.slug %}{% endif %}"
                        class="btn btn-secondary">Cancel</a>
                 </div>
             </form>

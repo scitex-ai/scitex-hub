@@ -16,7 +16,7 @@
         {% endif %}
     </p>
     {% if can_create %}
-        <a href="{% url 'user_projects:pr_create' project.owner.username project.slug %}"
+        <a href="{% url 'project_app:pr_create' project.owner.username project.slug %}"
            class="btn btn-primary mt-3">
             <i class="bi bi-plus-lg"></i> Create your first pull request
         </a>

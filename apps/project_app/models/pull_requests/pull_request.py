@@ -308,7 +308,7 @@ class PullRequest(models.Model):
         from django.urls import reverse
 
         return reverse(
-            "user_projects:pr_detail",
+            "project_app:pr_detail",
             kwargs={
                 "username": self.project.owner.username,
                 "slug": self.project.slug,

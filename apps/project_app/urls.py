@@ -2,7 +2,7 @@ from django.urls import path
 
 from . import views
 
-app_name = "user_projects"
+app_name = "project_app"
 
 urlpatterns = [
     # User-level URLs (no slug required)

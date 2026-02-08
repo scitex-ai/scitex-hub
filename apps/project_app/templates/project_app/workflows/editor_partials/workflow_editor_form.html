@@ -37,7 +37,7 @@
             </div>
         </div>
         <div class="editor-actions">
-            <a href="{% if edit_mode %}{% url 'user_projects:workflow_detail' project.owner.username project.slug workflow.id %}{% else %}{% url 'user_projects:actions_list' project.owner.username project.slug %}{% endif %}"
+            <a href="{% if edit_mode %}{% url 'project_app:workflow_detail' project.owner.username project.slug workflow.id %}{% else %}{% url 'project_app:actions_list' project.owner.username project.slug %}{% endif %}"
                class="btn btn-secondary">Cancel</a>
             <button type="submit" class="btn btn-primary">
                 <i class="bi bi-check-circle"></i>

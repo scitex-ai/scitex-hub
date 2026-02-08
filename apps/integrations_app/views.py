@@ -149,7 +149,7 @@ def export_project_bib(request, project_id):
 
     except Exception as e:
         messages.error(request, f"Failed to export bibliography: {str(e)}")
-        return redirect("user_projects:detail", username=project.owner.username, slug=project.slug)
+        return redirect("project_app:detail", username=project.owner.username, slug=project.slug)
 
 
 # Slack Integration Views

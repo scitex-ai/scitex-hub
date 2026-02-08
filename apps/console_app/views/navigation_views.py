@@ -10,7 +10,7 @@ from django.contrib import messages
 def index(request):
     """Code app - redirect to user's projects."""
     messages.info(request, "Please select or create a project to use Code.")
-    return redirect("user_projects:user_projects", username=request.user.username)
+    return redirect("project_app:user_projects", username=request.user.username)
 
 
 def features(request):

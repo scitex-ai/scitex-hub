@@ -76,7 +76,7 @@ if __name__ == "__main__":
 #             return redirect_to_login(request.get_full_path())
 #         else:
 #             messages.error(request, "You don't have permission to access this project.")
-#             return redirect("user_projects:detail", username=username, slug=slug)
+#             return redirect("project_app:detail", username=username, slug=slug)
 # 
 #     # Get project path
 #     from apps.project_app.services.project_filesystem import (
@@ -88,7 +88,7 @@ if __name__ == "__main__":
 # 
 #     if not project_path or not project_path.exists():
 #         messages.error(request, "Project directory not found.")
-#         return redirect("user_projects:detail", username=username, slug=slug)
+#         return redirect("project_app:detail", username=username, slug=slug)
 # 
 #     # Construct full directory path
 #     full_directory_path = project_path / directory_path
@@ -98,15 +98,15 @@ if __name__ == "__main__":
 #         full_directory_path = full_directory_path.resolve()
 #         if not str(full_directory_path).startswith(str(project_path.resolve())):
 #             messages.error(request, "Invalid directory path.")
-#             return redirect("user_projects:detail", username=username, slug=slug)
+#             return redirect("project_app:detail", username=username, slug=slug)
 #     except Exception:
 #         messages.error(request, "Invalid directory path.")
-#         return redirect("user_projects:detail", username=username, slug=slug)
+#         return redirect("project_app:detail", username=username, slug=slug)
 # 
 #     # Check if directory exists
 #     if not full_directory_path.exists():
 #         messages.error(request, f"Directory '{directory_path}' not found.")
-#         return redirect("user_projects:detail", username=username, slug=slug)
+#         return redirect("project_app:detail", username=username, slug=slug)
 # 
 #     # Get directory contents
 #     contents = []
@@ -143,7 +143,7 @@ if __name__ == "__main__":
 #                 )
 #     except PermissionError:
 #         messages.error(request, "Permission denied accessing directory.")
-#         return redirect("user_projects:detail", username=username, slug=slug)
+#         return redirect("project_app:detail", username=username, slug=slug)
 # 
 #     # Sort: directories first, then files, alphabetically
 #     contents.sort(key=lambda x: (x["type"] == "file", x["name"].lower()))
