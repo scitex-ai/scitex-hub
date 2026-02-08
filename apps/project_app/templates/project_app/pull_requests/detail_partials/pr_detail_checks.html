@@ -16,9 +16,7 @@
                         <small class="text-muted">{{ check.description }}</small>
                     </div>
                     {% if check.url %}
-                        <a href="{{ check.url }}"
-                           class="btn btn-sm btn-outline-secondary"
-                           target="_blank">
+                        <a href="{{ check.url }}" class="btn btn-sm btn-outline-secondary" target="_blank">
                             <i class="bi bi-box-arrow-up-right"></i> Details
                         </a>
                     {% endif %}
@@ -28,7 +26,7 @@
     </div>
 {% else %}
     <div class="text-center py-5">
-        <i class="bi bi-check-circle" style="font-size: 3rem; color: #ccc"></i>
+        <i class="bi bi-check-circle" style="font-size: 3rem; color: var(--text-muted)"></i>
         <h5 class="mt-3">No checks configured</h5>
         <p class="text-muted">Set up CI/CD workflows to automatically test your code</p>
     </div>

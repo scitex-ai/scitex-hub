@@ -1,4 +1,5 @@
 {% extends "global_base.html" %}
+
 {% block title %}
     PDF Merger -
     Browser Tool | SciTeX
@@ -8,6 +9,7 @@
 {% endblock %}
 {% block head_extra %}
     {% load static %}
+
     <link rel="icon"
           type="image/png"
           sizes="192x192"
@@ -16,170 +18,170 @@
 {% endblock %}
 {% block extra_css %}
     <style>
-  .tool-detail-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 40px 20px;
-  }
+        .tool-detail-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
 
-  .tool-header {
-    text-align: center;
-    padding: 40px 20px;
-    margin-bottom: 40px;
-  }
+        .tool-header {
+            text-align: center;
+            padding: 40px 20px;
+            margin-bottom: 40px;
+        }
 
-  .tool-title {
-    font-size: 42px;
-    font-weight: 700;
-    margin-bottom: 16px;
-  }
+        .tool-title {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
 
-  .tool-breadcrumb {
-    font-size: 14px;
-    margin-bottom: 16px;
-  }
+        .tool-breadcrumb {
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
 
-  .tool-breadcrumb a {
-    color: #4a9b7e;
-    text-decoration: none;
-  }
+        .tool-breadcrumb a {
+            color: #4a9b7e;
+            text-decoration: none;
+        }
 
-  .tool-app-container {
-    background: var(--bg-secondary);
-    border-radius: 12px;
-    padding: 40px;
-    margin-bottom: 40px;
-  }
+        .tool-app-container {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 40px;
+            margin-bottom: 40px;
+        }
 
-  .upload-zone {
-    border: 3px dashed #4a9b7e;
-    border-radius: 8px;
-    padding: 60px 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    background: var(--bg-primary);
-  }
+        .upload-zone {
+            border: 3px dashed #4a9b7e;
+            border-radius: 8px;
+            padding: 60px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--bg-primary);
+        }
 
-  .upload-zone:hover {
-    border-color: #3a7c65;
-    background: var(--bg-tertiary);
-  }
+        .upload-zone:hover {
+            border-color: #3a7c65;
+            background: var(--bg-tertiary);
+        }
 
-  .pdf-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 15px;
-    margin: 30px 0;
-  }
+        .pdf-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
 
-  .pdf-item {
-    background: var(--bg-primary);
-    border-radius: 8px;
-    padding: 15px;
-    text-align: center;
-    cursor: move;
-    border: 2px solid var(--border-color);
-    transition: all 0.2s;
-    position: relative;
-  }
+        .pdf-item {
+            background: var(--bg-primary);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            cursor: move;
+            border: 2px solid var(--border-color);
+            transition: all 0.2s;
+            position: relative;
+        }
 
-  .pdf-item:hover {
-    border-color: #4a9b7e;
-  }
+        .pdf-item:hover {
+            border-color: #4a9b7e;
+        }
 
-  .pdf-icon {
-    font-size: 48px;
-    margin-bottom: 10px;
-  }
+        .pdf-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
 
-  .pdf-name {
-    font-size: 12px;
-    font-weight: 600;
-    margin-bottom: 5px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
+        .pdf-name {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
 
-  .pdf-pages {
-    font-size: 11px;
-    color: var(--text-secondary);
-  }
+        .pdf-pages {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
 
-  .pdf-remove {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: #ef4444;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    width: 24px;
-    height: 24px;
-    cursor: pointer;
-    font-size: 14px;
-  }
+        .pdf-remove {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            font-size: 14px;
+        }
 
-  .pdf-order {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    background: #4a9b7e;
-    color: white;
-    border-radius: 4px;
-    padding: 4px 8px;
-    font-size: 11px;
-    font-weight: 600;
-  }
+        .pdf-order {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: #4a9b7e;
+            color: white;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: 600;
+        }
 
-  .btn {
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    transition: all 0.2s;
-  }
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
 
-  .btn-primary {
-    background: #4a9b7e;
-    color: white;
-  }
+        .btn-primary {
+            background: #4a9b7e;
+            color: white;
+        }
 
-  .btn-primary:hover:not(:disabled) {
-    background: #3a7c65;
-  }
+        .btn-primary:hover:not(:disabled) {
+            background: #3a7c65;
+        }
 
-  .btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
 
-  .action-buttons {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-  }
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
 
-  .status-message {
-    text-align: center;
-    padding: 12px;
-    border-radius: 6px;
-    margin: 20px 0;
-    font-size: 14px;
-  }
+        .status-message {
+            text-align: center;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
 
-  .status-message.info {
-    background: #eff6ff;
-    color: #1e40af;
-  }
+        .status-message.info {
+            background: #eff6ff;
+            color: #1e40af;
+        }
 
-  .status-message.success {
-    background: #f0fdf7;
-    color: #15803d;
-  }
+        .status-message.success {
+            background: #f0fdf7;
+            color: #15803d;
+        }
     </style>
 {% endblock %}
 {% block content %}
@@ -190,30 +192,23 @@
         <div class="tool-header">
             <div style="font-size: 64px; margin-bottom: 20px;">📑</div>
             <h1 class="tool-title">PDF Merger</h1>
-            <p style="font-size: 18px; color: var(--text-secondary);">
-                Combine multiple PDF files into one document
-            </p>
+            <p style="font-size: 18px; color: var(--text-secondary);">Combine multiple PDF files into one document</p>
         </div>
         <div class="tool-app-container">
             <div id="uploadZone" class="upload-zone">
                 <div style="font-size: 48px; margin-bottom: 16px;">📤</div>
                 <div style="font-size: 18px; margin-bottom: 8px;">Drop PDF files or click to upload</div>
                 <div style="font-size: 14px; color: var(--text-secondary);">Drag to reorder after upload</div>
-                <input type="file"
-                       id="fileInput"
-                       accept=".pdf"
-                       multiple
-                       style="display: none" />
+                <input type="file" id="fileInput" accept=".pdf" multiple style="display: none" />
             </div>
             <div id="statusMessage"></div>
             <div id="pdfList" class="pdf-list" style="display: none;"></div>
             <div class="action-buttons">
-                <button id="mergeBtn" class="btn btn-primary" disabled>
-                    ✨ Merge PDFs
-                </button>
-                <button id="clearBtn" class="btn btn-primary" disabled style="background: #6b8fb3;">
-                    🗑️ Clear All
-                </button>
+                <button id="mergeBtn" class="btn btn-primary" disabled>✨ Merge PDFs</button>
+                <button id="clearBtn"
+                        class="btn btn-primary"
+                        disabled
+                        style="background: var(--scitex-color-05)">🗑️ Clear All</button>
             </div>
         </div>
     </div>

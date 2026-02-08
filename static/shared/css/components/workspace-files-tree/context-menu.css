@@ -13,7 +13,7 @@
 }
 
 .workspace-files-tree.wft-drop-zone-active::after {
-  content: 'Drop files here to upload';
+  content: "Drop files here to upload";
   position: absolute;
   bottom: 50%;
   left: 50%;
@@ -45,7 +45,7 @@
 
 .wft-context-menu {
   background: var(--color-canvas-overlay, #2d333b);
-  border: 1px solid var(--workspace-border-default, #3a3a3a);
+  border: 1px solid var(--workspace-border-default);
   border-radius: 6px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   padding: 4px 0;
@@ -99,7 +99,7 @@
 
 .wft-context-separator {
   height: 1px;
-  background: var(--workspace-border-default, #3a3a3a);
+  background: var(--workspace-border-default);
   margin: 4px 8px;
 }
 

@@ -22,11 +22,11 @@
 
 .hidden-files-toggle:hover {
   background: var(--workspace-bg-tertiary, rgba(110, 118, 129, 0.1));
-  color: var(--workspace-icon-primary, #059669);
+  color: var(--workspace-icon-primary);
 }
 
 .hidden-files-toggle.active {
-  color: var(--workspace-icon-primary, #059669);
+  color: var(--workspace-icon-primary);
 }
 
 .sidebar-header-actions {

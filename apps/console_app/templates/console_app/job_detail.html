@@ -339,7 +339,9 @@
             <!-- Errors -->
             {% if job.error_output %}
                 <div class="tab-pane fade" id="errors" role="tabpanel">
-                    <div class="output-section" style="background-color: #7f1d1d; color: #fecaca">{{ job.error_output }}</div>
+                    <div class="output-section"
+                         style="background-color: var(--status-error-bg, #7f1d1d);
+                                color: var(--status-error-text, #fecaca)">{{ job.error_output }}</div>
                 </div>
             {% endif %}
             <!-- Files -->

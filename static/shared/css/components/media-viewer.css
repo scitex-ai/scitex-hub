@@ -9,7 +9,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: var(--workspace-bg-primary, #1e1e1e);
+  background: var(--workspace-bg-primary);
 }
 
 .media-viewer-content {
@@ -42,7 +42,7 @@
   justify-content: center;
   gap: 16px;
   padding: 40px;
-  color: var(--text-muted, #888);
+  color: var(--text-muted);
 }
 
 .pdf-placeholder i {
@@ -75,7 +75,7 @@
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: var(--workspace-bg-secondary, #252526);
+  background: var(--workspace-bg-secondary);
 }
 
 .image-viewer img {
@@ -120,7 +120,7 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: var(--workspace-bg-primary, #1e1e1e);
+  background: var(--workspace-bg-primary);
 }
 
 .csv-viewer-toolbar,
@@ -129,15 +129,15 @@
   align-items: center;
   justify-content: space-between;
   padding: 8px 12px;
-  background: var(--workspace-bg-secondary, #252526);
-  border-bottom: 1px solid var(--workspace-border-muted, #3c3c3c);
+  background: var(--workspace-bg-secondary);
+  border-bottom: 1px solid var(--workspace-border-muted);
   flex-shrink: 0;
   gap: 8px;
 }
 
 .csv-viewer-info {
   font-size: 12px;
-  color: var(--text-muted, #888);
+  color: var(--text-muted);
 }
 
 .csv-viewer-actions,
@@ -151,9 +151,9 @@
 .csv-control-btn {
   padding: 4px 10px;
   font-size: 12px;
-  border: 1px solid var(--workspace-border-default, #555);
-  background: var(--workspace-bg-tertiary, #2d2d2d);
-  color: var(--text-primary, #e0e0e0);
+  border: 1px solid var(--workspace-border-default);
+  background: var(--workspace-bg-tertiary);
+  color: var(--text-primary);
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -164,7 +164,7 @@
 
 .csv-viewer-actions button:hover,
 .csv-control-btn:hover {
-  background: var(--workspace-bg-secondary, #3c3c3c);
+  background: var(--workspace-bg-secondary);
   border-color: var(--status-success, #4a9b7e);
   color: var(--status-success, #4a9b7e);
 }
@@ -177,9 +177,9 @@
 .media-viewer-btn {
   padding: 4px 8px;
   font-size: 12px;
-  border: 1px solid var(--workspace-border-default, #555);
-  background: var(--workspace-bg-tertiary, #2d2d2d);
-  color: var(--text-primary, #e0e0e0);
+  border: 1px solid var(--workspace-border-default);
+  background: var(--workspace-bg-tertiary);
+  color: var(--text-primary);
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -189,7 +189,7 @@
 }
 
 .media-viewer-btn:hover {
-  background: var(--workspace-bg-secondary, #3c3c3c);
+  background: var(--workspace-bg-secondary);
   border-color: var(--status-info, #3b82f6);
   color: var(--status-info, #3b82f6);
 }
@@ -202,7 +202,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--text-primary, #e0e0e0);
+  color: var(--text-primary);
 }
 
 .media-viewer-toolbar-right {
@@ -212,7 +212,7 @@
 }
 
 .media-viewer-icon {
-  color: var(--text-muted, #888);
+  color: var(--text-muted);
 }
 
 .media-viewer-filename {
@@ -223,7 +223,7 @@
 .toolbar-separator {
   width: 1px;
   height: 20px;
-  background: var(--workspace-border-muted, #3c3c3c);
+  background: var(--workspace-border-muted);
   margin: 0 4px;
 }
 
@@ -242,7 +242,7 @@
 
 .csv-table th,
 .csv-table td {
-  border: 1px solid var(--workspace-border-muted, #3c3c3c);
+  border: 1px solid var(--workspace-border-muted);
   padding: 6px 10px;
   text-align: left;
   white-space: nowrap;
@@ -251,7 +251,7 @@
 /* Light theme - softer borders */
 [data-theme="light"] .csv-table th,
 [data-theme="light"] .csv-table td {
-  border-color: var(--border-muted);
+  border-color: var(--workspace-border-muted);
   color: var(--text-primary);
 }
 
@@ -271,16 +271,16 @@
 /* Dark theme */
 [data-theme="dark"] .csv-table th,
 [data-theme="dark"] .csv-table td {
-  border-color: var(--workspace-border-muted, #3c3c3c);
-  color: var(--text-primary, #e0e0e0);
+  border-color: var(--workspace-border-muted);
+  color: var(--text-primary);
 }
 
 [data-theme="dark"] .csv-table th {
-  background: var(--workspace-bg-secondary, #252526);
+  background: var(--workspace-bg-secondary);
 }
 
 [data-theme="dark"] .csv-table td {
-  background: var(--workspace-bg-primary, #1e1e1e);
+  background: var(--workspace-bg-primary);
 }
 
 [data-theme="dark"] .csv-table tbody tr:hover td {
@@ -290,44 +290,44 @@
 /* Dark theme is default for code workspace - these ensure consistency */
 .media-viewer-csv-wrapper .data-table th,
 .media-viewer-csv-wrapper .data-table td {
-  border-color: var(--workspace-border-muted, #3c3c3c);
-  color: var(--text-primary, #e0e0e0);
-  background: var(--workspace-bg-primary, #1e1e1e);
+  border-color: var(--workspace-border-muted);
+  color: var(--text-primary);
+  background: var(--workspace-bg-primary);
 }
 
 .media-viewer-csv-wrapper .data-table th {
-  background: var(--workspace-bg-secondary, #252526);
+  background: var(--workspace-bg-secondary);
 }
 
 .media-viewer-csv-wrapper .data-table .row-number,
 .media-viewer-csv-wrapper .data-table .row-number-header {
-  background: var(--workspace-bg-secondary, #252526);
-  color: var(--text-muted, #888);
+  background: var(--workspace-bg-secondary);
+  color: var(--text-muted);
 }
 
 /* Override data-table styles for dark theme in code workspace */
 [data-theme="dark"] .csv-viewer {
-  background: var(--workspace-bg-primary, #1e1e1e);
+  background: var(--workspace-bg-primary);
 }
 
 [data-theme="dark"] .csv-viewer .data-table th,
 [data-theme="dark"] .csv-viewer .data-table td {
-  border-color: var(--workspace-border-muted, #3c3c3c);
-  color: var(--text-primary, #e0e0e0);
+  border-color: var(--workspace-border-muted);
+  color: var(--text-primary);
 }
 
 [data-theme="dark"] .csv-viewer .data-table th {
-  background: var(--workspace-bg-secondary, #252526);
+  background: var(--workspace-bg-secondary);
 }
 
 [data-theme="dark"] .csv-viewer .data-table .row-number,
 [data-theme="dark"] .csv-viewer .data-table .row-number-header {
-  background: var(--workspace-bg-secondary, #252526);
+  background: var(--workspace-bg-secondary);
 }
 
 [data-theme="dark"] .csv-viewer-toolbar {
-  background: var(--workspace-bg-secondary, #252526);
-  border-color: var(--workspace-border-muted, #3c3c3c);
+  background: var(--workspace-bg-secondary);
+  border-color: var(--workspace-border-muted);
 }
 
 /* ========================================
@@ -341,13 +341,13 @@
   justify-content: center;
   gap: 16px;
   height: 100%;
-  color: var(--text-muted, #888);
+  color: var(--text-muted);
 }
 
 .media-viewer-loading .spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid var(--workspace-border-default, #e0e0e0);
+  border: 3px solid var(--workspace-border-default);
   border-top-color: var(--status-success, #4a9b7e);
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -368,16 +368,16 @@
   align-items: center;
   gap: 8px;
   padding: 4px 12px;
-  background: var(--workspace-bg-secondary, #252526);
-  border-top: 1px solid var(--workspace-border-muted, #3c3c3c);
+  background: var(--workspace-bg-secondary);
+  border-top: 1px solid var(--workspace-border-muted);
   font-size: 11px;
-  color: var(--text-muted, #888);
+  color: var(--text-muted);
   flex-shrink: 0;
 }
 
 .media-viewer-status .file-type {
   padding: 2px 6px;
-  background: var(--workspace-bg-tertiary, #2d2d2d);
+  background: var(--workspace-bg-tertiary);
   border-radius: 3px;
   font-weight: 500;
 }

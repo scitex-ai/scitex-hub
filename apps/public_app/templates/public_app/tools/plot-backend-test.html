@@ -1,144 +1,139 @@
 {% extends "global_base.html" %}
-{% block title %}
-    Backend Plot Renderer Test - Browser Tool | SciTeX
-{% endblock %}
+
+{% block title %}Backend Plot Renderer Test - Browser Tool | SciTeX{% endblock %}
 {% block meta_description %}
     Test the matplotlib/scitex.plt backend plot renderer with JSON specifications. Supports all 40+ plot types with Nature journal standards.
 {% endblock %}
 {% block head_extra %}
     {% load static %}
+
     <link rel="icon"
           type="image/png"
           sizes="192x192"
           href="{% static 'images/scitex-icon/scitex-icon-navy-inverted-192x192.png' %}?v=3" />
 {% endblock %}
-
 {% block extra_css %}
-<style>
-  .test-container {
-    max-width: 1400px;
-    margin: 40px auto;
-    padding: 20px;
-  }
+    <style>
+        .test-container {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 20px;
+        }
 
-  .test-section {
-    background: var(--card-background);
-    border-radius: 8px;
-    padding: 24px;
-    margin-bottom: 24px;
-    border: 1px solid var(--border-color);
-  }
+        .test-section {
+            background: var(--card-background);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border-color);
+        }
 
-  .test-section h2 {
-    margin: 0 0 16px 0;
-    color: var(--text-primary);
-    font-size: 18px;
-    font-weight: 600;
-  }
+        .test-section h2 {
+            margin: 0 0 16px 0;
+            color: var(--text-primary);
+            font-size: 18px;
+            font-weight: 600;
+        }
 
-  .json-editor {
-    width: 100%;
-    min-height: 300px;
-    font-family: 'Courier New', monospace;
-    font-size: 13px;
-    padding: 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    background: var(--input-background);
-    color: var(--text-primary);
-    resize: vertical;
-  }
+        .json-editor {
+            width: 100%;
+            min-height: 300px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--input-background);
+            color: var(--text-primary);
+            resize: vertical;
+        }
 
-  .test-button {
-    background: #4a9b7e;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 6px;
-    font-size: 14px;
-    cursor: pointer;
-    margin-top: 12px;
-  }
+        .test-button {
+            background: #4a9b7e;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 12px;
+        }
 
-  .test-button:hover {
-    background: #3d8268;
-  }
+        .test-button:hover {
+            background: #3d8268;
+        }
 
-  .result-container {
-    margin-top: 20px;
-    padding: 16px;
-    background: var(--hover-background);
-    border-radius: 4px;
-    min-height: 400px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+        .result-container {
+            margin-top: 20px;
+            padding: 16px;
+            background: var(--hover-background);
+            border-radius: 4px;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-  .error-message {
-    color: #ff4444;
-    padding: 12px;
-    background: rgba(255, 68, 68, 0.1);
-    border-radius: 4px;
-    margin-top: 12px;
-  }
+        .error-message {
+            color: #ff4444;
+            padding: 12px;
+            background: rgba(255, 68, 68, 0.1);
+            border-radius: 4px;
+            margin-top: 12px;
+        }
 
-  .success-message {
-    color: #4a9b7e;
-    padding: 12px;
-    background: rgba(74, 155, 126, 0.1);
-    border-radius: 4px;
-    margin-top: 12px;
-  }
+        .success-message {
+            color: #4a9b7e;
+            padding: 12px;
+            background: rgba(74, 155, 126, 0.1);
+            border-radius: 4px;
+            margin-top: 12px;
+        }
 
-  .example-buttons {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 12px;
-    flex-wrap: wrap;
-  }
+        .example-buttons {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
 
-  .example-button {
-    background: var(--button-background);
-    color: var(--text-primary);
-    padding: 6px 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    font-size: 12px;
-    cursor: pointer;
-  }
+        .example-button {
+            background: var(--button-background);
+            color: var(--text-primary);
+            padding: 6px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
 
-  .example-button:hover {
-    background: var(--hover-background);
-  }
-</style>
+        .example-button:hover {
+            background: var(--hover-background);
+        }
+    </style>
 {% endblock %}
-
 {% block content %}
-<div class="test-container">
-  <div class="tool-breadcrumb">
-    <a href="{% url 'public_app:tools' %}">Tools</a> / Backend Plot Renderer Test
-  </div>
-
-  <h1 style="margin: 20px 0 10px 0; color: var(--text-primary);">Backend Plot Renderer Test</h1>
-  <p style="color: var(--text-secondary); margin-bottom: 30px;">
-    Test the matplotlib/scitex.plt backend plot renderer with JSON specifications.
-  </p>
-
-  <div class="test-section">
-    <h2>Load Example</h2>
-    <div class="example-buttons">
-      <button class="example-button" onclick="loadExample('line')">Line Plot</button>
-      <button class="example-button" onclick="loadExample('scatter')">Scatter Plot</button>
-      <button class="example-button" onclick="loadExample('bar')">Bar Plot</button>
-      <button class="example-button" onclick="loadExample('multipanel2')">2-Panel (A/B)</button>
-      <button class="example-button" onclick="loadExample('multipanel4')">4-Panel (A/B/C/D)</button>
-    </div>
-  </div>
-
-  <div class="test-section">
-    <h2>JSON Specification</h2>
-    <textarea class="json-editor" id="jsonSpec">{
+    <div class="test-container">
+        <div class="tool-breadcrumb">
+            <a href="{% url 'public_app:tools' %}">Tools</a> / Backend Plot Renderer Test
+        </div>
+        <h1 style="margin: 20px 0 10px 0; color: var(--text-primary);">Backend Plot Renderer Test</h1>
+        <p style="color: var(--text-secondary); margin-bottom: 30px;">
+            Test the matplotlib/scitex.plt backend plot renderer with JSON specifications.
+        </p>
+        <div class="test-section">
+            <h2>Load Example</h2>
+            <div class="example-buttons">
+                <button class="example-button" onclick="loadExample('line')">Line Plot</button>
+                <button class="example-button" onclick="loadExample('scatter')">Scatter Plot</button>
+                <button class="example-button" onclick="loadExample('bar')">Bar Plot</button>
+                <button class="example-button" onclick="loadExample('multipanel2')">2-Panel (A/B)</button>
+                <button class="example-button" onclick="loadExample('multipanel4')">4-Panel (A/B/C/D)</button>
+            </div>
+        </div>
+        <div class="test-section">
+            <h2>JSON Specification</h2>
+            <textarea class="json-editor" id="jsonSpec">{
   "figure": {
     "width_mm": 35,
     "height_mm": 24.5,
@@ -164,19 +159,17 @@
     "title": "Test Plot"
   }
 }</textarea>
-    <button class="test-button" onclick="renderPlot()">Render Plot</button>
-    <div id="status"></div>
-  </div>
-
-  <div class="test-section">
-    <h2>Result</h2>
-    <div class="result-container" id="resultContainer">
-      <p style="color: var(--text-tertiary);">Click "Render Plot" to see the result</p>
+            <button class="test-button" onclick="renderPlot()">Render Plot</button>
+            <div id="status"></div>
+        </div>
+        <div class="test-section">
+            <h2>Result</h2>
+            <div class="result-container" id="resultContainer">
+                <p style="color: var(--text-tertiary);">Click "Render Plot" to see the result</p>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
-
-<script>
+    <script>
 const examples = {
   line: {
     "figure": {
@@ -426,8 +419,8 @@ async function renderPlot() {
 
   } catch (error) {
     statusDiv.innerHTML = `<div class="error-message">Error: ${error.message}</div>`;
-    resultContainer.innerHTML = `<p style="color: #ff4444;">Failed to render plot</p>`;
+    resultContainer.innerHTML = `<p style="color: var(--status-error);">Failed to render plot</p>`;
   }
 }
-</script>
+    </script>
 {% endblock %}

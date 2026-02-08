@@ -1,4 +1,5 @@
 {% extends "global_base.html" %}
+
 {% block title %}
     Asta AI Citation Scraper -
     Browser Tool | SciTeX
@@ -10,6 +11,7 @@
 {% endblock %}
 {% block head_extra %}
     {% load static %}
+
     <!-- Override favicon for bookmarklet icon -->
     <link rel="icon"
           type="image/png"
@@ -24,205 +26,206 @@
 {% endblock %}
 {% block extra_css %}
     {% load static %}
+
     <style>
-  .tool-detail-container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 40px 20px;
-  }
+        .tool-detail-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
 
-  .tool-header {
-    text-align: center;
-    padding: 40px 20px;
-    margin-bottom: 40px;
-  }
+        .tool-header {
+            text-align: center;
+            padding: 40px 20px;
+            margin-bottom: 40px;
+        }
 
-  .tool-icon-large {
-    font-size: 64px;
-    margin-bottom: 20px;
-  }
+        .tool-icon-large {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
 
-  .tool-title {
-    font-size: 42px;
-    font-weight: 700;
-    margin-bottom: 16px;
-    color: var(--text-primary);
-  }
+        .tool-title {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
 
-  .tool-subtitle {
-    font-size: 18px;
-    color: var(--text-secondary);
-    max-width: 600px;
-    margin: 0 auto 30px;
-    line-height: 1.6;
-  }
+        .tool-subtitle {
+            font-size: 18px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 30px;
+            line-height: 1.6;
+        }
 
-  .tool-breadcrumb {
-    font-size: 14px;
-    color: var(--text-secondary);
-    margin-bottom: 16px;
-  }
+        .tool-breadcrumb {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
 
-  .tool-breadcrumb a {
-    color: #4a9b7e;
-    text-decoration: none;
-  }
+        .tool-breadcrumb a {
+            color: #4a9b7e;
+            text-decoration: none;
+        }
 
-  .tool-breadcrumb a:hover {
-    text-decoration: underline;
-  }
+        .tool-breadcrumb a:hover {
+            text-decoration: underline;
+        }
 
-  .bookmarklet-install {
-    background: linear-gradient(135deg, #4a9b7e 0%, #3a7c65 100%);
-    color: white;
-    border-radius: 12px;
-    padding: 40px;
-    margin-bottom: 40px;
-    text-align: center;
-  }
+        .bookmarklet-install {
+            background: linear-gradient(135deg, #4a9b7e 0%, #3a7c65 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 40px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
 
-  .bookmarklet-install-title {
-    font-size: 24px;
-    font-weight: 700;
-    margin-bottom: 20px;
-  }
+        .bookmarklet-install-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
 
-  .bookmarklet-link {
-    display: inline-block;
-    background: white;
-    color: #4a9b7e;
-    padding: 16px 32px;
-    text-decoration: none;
-    border-radius: 8px;
-    font-size: 18px;
-    font-weight: 700;
-    cursor: move;
-    transition: all 0.2s;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  }
+        .bookmarklet-link {
+            display: inline-block;
+            background: white;
+            color: #4a9b7e;
+            padding: 16px 32px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: move;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
 
-  .bookmarklet-link:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-    color: #3a7c65;
-    text-decoration: none;
-  }
+        .bookmarklet-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+            color: #3a7c65;
+            text-decoration: none;
+        }
 
-  .install-hint {
-    margin-top: 20px;
-    font-size: 14px;
-    opacity: 0.95;
-  }
+        .install-hint {
+            margin-top: 20px;
+            font-size: 14px;
+            opacity: 0.95;
+        }
 
-  .tool-section {
-    background: var(--bg-secondary);
-    border-radius: 12px;
-    padding: 30px;
-    margin-bottom: 30px;
-  }
+        .tool-section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
 
-  .tool-section-title {
-    font-size: 24px;
-    font-weight: 700;
-    margin-bottom: 20px;
-    color: var(--text-primary);
-  }
+        .tool-section-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
 
-  .tool-section-content {
-    color: var(--text-secondary);
-    line-height: 1.8;
-  }
+        .tool-section-content {
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
 
-  .features-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-    margin-top: 20px;
-  }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
 
-  .feature-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-  }
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
 
-  .feature-icon {
-    font-size: 20px;
-    line-height: 1;
-    margin-top: 2px;
-  }
+        .feature-icon {
+            font-size: 20px;
+            line-height: 1;
+            margin-top: 2px;
+        }
 
-  .feature-text {
-    flex: 1;
-  }
+        .feature-text {
+            flex: 1;
+        }
 
-  .feature-title {
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 4px;
-  }
+        .feature-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
 
-  .feature-desc {
-    font-size: 14px;
-    color: var(--text-secondary);
-    line-height: 1.5;
-  }
+        .feature-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
 
-  .usage-steps {
-    list-style: none;
-    padding: 0;
-    counter-reset: step-counter;
-  }
+        .usage-steps {
+            list-style: none;
+            padding: 0;
+            counter-reset: step-counter;
+        }
 
-  .usage-steps li {
-    counter-increment: step-counter;
-    padding: 16px 0;
-    padding-left: 50px;
-    position: relative;
-    color: var(--text-secondary);
-    line-height: 1.6;
-  }
+        .usage-steps li {
+            counter-increment: step-counter;
+            padding: 16px 0;
+            padding-left: 50px;
+            position: relative;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
 
-  .usage-steps li::before {
-    content: counter(step-counter);
-    position: absolute;
-    left: 0;
-    top: 16px;
-    width: 32px;
-    height: 32px;
-    background: #4a9b7e;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 14px;
-  }
+        .usage-steps li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 16px;
+            width: 32px;
+            height: 32px;
+            background: #4a9b7e;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
 
-  .demo-box {
-    background: #fef2f2;
-    border-left: 4px solid #ef4444;
-    padding: 20px;
-    border-radius: 4px;
-    margin-top: 20px;
-  }
+        .demo-box {
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+            padding: 20px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
 
-  .demo-box strong {
-    color: #ef4444;
-  }
+        .demo-box strong {
+            color: #ef4444;
+        }
 
-  .tip-box {
-    background: #f0fdf7;
-    border-left: 4px solid #4a9b7e;
-    padding: 20px;
-    border-radius: 4px;
-    margin-top: 20px;
-  }
+        .tip-box {
+            background: #f0fdf7;
+            border-left: 4px solid #4a9b7e;
+            padding: 20px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
 
-  .tip-box strong {
-    color: #4a9b7e;
-  }
+        .tip-box strong {
+            color: #4a9b7e;
+        }
     </style>
 {% endblock %}
 {% block content %}
@@ -236,7 +239,11 @@
             <div class="tool-icon-large">📚</div>
             <h1 class="tool-title">Asta AI Citation Scraper</h1>
             <p class="tool-subtitle">
-                Automatically collect all BibTeX citations from <a href="https://asta.allen.ai/chat" target="_blank" rel="noopener noreferrer" style="color: #4a9b7e; text-decoration: underline;">Asta AI</a> search results.
+                Automatically collect all BibTeX citations from <a href="https://asta.allen.ai/chat"
+    target="_blank"
+    rel="noopener noreferrer"
+    style="color: var(--scitex-color-04);
+           text-decoration: underline">Asta AI</a> search results.
                 Clicks all "Copy BibTeX" buttons, combines citations, and downloads as a
                 .bib file with live progress tracking.
             </p>
@@ -257,7 +264,11 @@
                         <strong>Drag</strong> the button above to your bookmarks bar
                     </li>
                     <li>
-                        <strong>Open</strong> <a href="https://asta.allen.ai/chat" target="_blank" rel="noopener noreferrer" style="color: #4a9b7e; text-decoration: underline;">Asta AI</a> and search for papers (get citations)
+                        <strong>Open</strong> <a href="https://asta.allen.ai/chat"
+    target="_blank"
+    rel="noopener noreferrer"
+    style="color: var(--scitex-color-04);
+           text-decoration: underline">Asta AI</a> and search for papers (get citations)
                     </li>
                     <li>
                         <strong>Click</strong> the bookmark to start scraping
@@ -349,7 +360,11 @@
                     <strong>🎬 Demo Workflow:</strong>
                     <ul style="margin: 10px 0 0 0; padding-left: 20px">
                         <li>
-                            Open Asta AI: <a href="https://asta.allen.ai/chat" target="_blank" rel="noopener noreferrer" style="color: #ef4444; text-decoration: underline;">https://asta.allen.ai/chat</a>
+                            Open Asta AI: <a href="https://asta.allen.ai/chat"
+    target="_blank"
+    rel="noopener noreferrer"
+    style="color: #ef4444;
+           text-decoration: underline">https://asta.allen.ai/chat</a>
                         </li>
                         <li>Ask a question that generates citations</li>
                         <li>Click the bookmarklet</li>

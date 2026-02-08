@@ -4,8 +4,8 @@
  */
 
 .wft-search-box {
-  background: var(--workspace-bg-default, #252526);
-  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
+  background: var(--workspace-bg-default);
+  border-bottom: 1px solid var(--workspace-border-default);
   padding: 8px;
   flex-shrink: 0;
 }
@@ -13,8 +13,8 @@
 .wft-search-input-wrapper {
   display: flex;
   align-items: center;
-  background: var(--workspace-bg-input, #3c3c3c);
-  border: 1px solid var(--workspace-border-default, #3a3a3a);
+  background: var(--workspace-bg-input);
+  border: 1px solid var(--workspace-border-default);
   border-radius: 4px;
   padding: 4px 8px;
   gap: 8px;
@@ -62,5 +62,5 @@
 
 .wft-search-clear:hover {
   color: var(--color-fg-default, #e6edf3);
-  background: var(--workspace-bg-hover, #4a4a4a);
+  background: var(--workspace-bg-hover);
 }
