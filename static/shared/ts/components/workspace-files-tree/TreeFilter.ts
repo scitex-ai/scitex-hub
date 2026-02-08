@@ -18,7 +18,7 @@ import {
 export class TreeFilter {
   private config: FilterConfig;
   private showHidden = false;
-  private moduleFilterEnabled = true;
+  private moduleFilterEnabled = false;
 
   constructor(mode: WorkspaceMode, customConfig?: Partial<FilterConfig>) {
     // Use centralized FilteringCriteria configuration as default

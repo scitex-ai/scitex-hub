@@ -13,9 +13,9 @@ export function initModuleFilterToggle(tree: WorkspaceFilesTree): void {
   const btn = document.getElementById("module-filter-toggle");
   if (!btn) return;
 
-  // Default to enabled (true) if not stored
+  // Default to disabled (false) if not stored — show all files by default
   const stored = localStorage.getItem(MODULE_FILTER_KEY);
-  const enabled = stored === null ? true : stored === "true";
+  const enabled = stored === null ? false : stored === "true";
   tree.setModuleFilterEnabled(enabled);
   updateToggleButton(btn, enabled);
 
