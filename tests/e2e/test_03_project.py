@@ -14,36 +14,84 @@ import re
 import time
 
 import pytest
+import requests
+
+
+def _fresh_session():
+    """Create a fresh requests session for isolated tests."""
+    s = requests.Session()
+    s.verify = False
+    s.timeout = 30
+    return s
+
+
+def _get_csrf(session, url):
+    """Get CSRF token from a form page. Returns (response, csrf_token) or skips."""
+    resp = session.get(url)
+    assert resp.status_code == 200
+    csrf_match = re.search(r'name="csrfmiddlewaretoken" value="([^"]+)"', resp.text)
+    if not csrf_match:
+        pytest.skip("Cannot extract CSRF token from form page")
+    return resp, csrf_match.group(1)
 
 
 class TestProjectList:
     """Test project listing functionality."""
 
-    def test_project_list_requires_auth(self, api_client, test_credentials):
-        """Project list page requires authentication."""
+    def test_user_profile_public(self, base_url, test_credentials):
+        """User profile page is publicly accessible (GitHub-style)."""
+        session = _fresh_session()
         username = test_credentials["username"]
-        resp = api_client.get(f"/{username}/", allow_redirects=False)
-        # Either redirects to login or shows 404 for non-existent user
-        assert resp.status_code in [302, 404]
+        resp = session.get(f"{base_url}/{username}/", allow_redirects=False)
+        # User profiles are public (like GitHub)
+        assert resp.status_code == 200
+        session.close()
+
+    def test_new_project_requires_auth(self, base_url):
+        """/new/ requires authentication."""
+        session = _fresh_session()
+        resp = session.get(f"{base_url}/new/", allow_redirects=False)
+        assert resp.status_code == 302
+        location = resp.headers.get("Location", "")
+        assert "login" in location.lower()
+        session.close()
 
 
 class TestProjectCreate:
     """Test project creation flow."""
 
-    def test_new_project_page_requires_auth(self, api_client):
-        """/new/ page requires authentication."""
-        resp = api_client.get("/new/", allow_redirects=False)
+    def test_new_project_page_requires_auth(self, base_url):
+        """/new/ page requires authentication (fresh session)."""
+        session = _fresh_session()
+        resp = session.get(f"{base_url}/new/", allow_redirects=False)
         assert resp.status_code == 302
         location = resp.headers.get("Location", "")
         assert "login" in location.lower()
+        session.close()
 
-    def test_new_project_page_loads(self, authenticated_session, base_url):
-        """Project creation page loads for authenticated user."""
+    def test_new_project_landing_page(self, authenticated_session, base_url):
+        """Project creation landing page loads with card options."""
         resp = authenticated_session.get(f"{base_url}/new/")
         assert resp.status_code == 200
-        # Check for form elements
-        assert "name" in resp.text.lower()
+        # /new/ is a card-based landing page with creation options
+        text = resp.text.lower()
+        assert any(
+            x in text for x in ["create", "blank", "template", "import", "new"]
+        ), "Landing page should show project creation options"
+
+    def test_blank_project_form_loads(self, authenticated_session, base_url):
+        """Blank project creation form loads with expected fields."""
+        resp = authenticated_session.get(f"{base_url}/new/?type=blank")
+        assert resp.status_code == 200
         assert "csrfmiddlewaretoken" in resp.text
+        assert "name" in resp.text.lower()
+
+    def test_template_project_form_loads(self, authenticated_session, base_url):
+        """Template project creation form loads with template options."""
+        resp = authenticated_session.get(f"{base_url}/new/?type=template")
+        assert resp.status_code == 200
+        assert "csrfmiddlewaretoken" in resp.text
+        assert "template" in resp.text.lower()
 
     def test_project_name_check_api(self, authenticated_session, base_url):
         """Project name availability check API works."""
@@ -52,50 +100,37 @@ class TestProjectCreate:
             params={"name": "test-unique-name-12345"},
         )
         assert resp.status_code == 200
-        # Check if response is JSON
         content_type = resp.headers.get("content-type", "")
         if "application/json" in content_type:
             data = resp.json()
             assert "available" in data or "valid" in data or "error" in data
-        else:
-            # May return HTML if not authenticated properly
-            assert resp.status_code == 200  # At least doesn't error
 
-    def test_create_empty_project(
+    def test_create_blank_project(
         self, authenticated_session, base_url, test_credentials
     ):
-        """Create an empty project successfully."""
-        # Get CSRF token from new project page
-        resp = authenticated_session.get(f"{base_url}/new/")
-        assert resp.status_code == 200
+        """Create a blank project successfully."""
+        form_url = f"{base_url}/new/?type=blank"
+        _, csrf_token = _get_csrf(authenticated_session, form_url)
 
-        csrf_match = re.search(r'name="csrfmiddlewaretoken" value="([^"]+)"', resp.text)
-        if not csrf_match:
-            pytest.skip("Cannot extract CSRF token")
-        csrf_token = csrf_match.group(1)
+        project_name = f"test-blank-{int(time.time())}"
 
-        # Create unique project name with timestamp
-        project_name = f"test-empty-{int(time.time())}"
-
-        # Submit project creation form
         resp = authenticated_session.post(
             f"{base_url}/new/",
             data={
                 "csrfmiddlewaretoken": csrf_token,
                 "name": project_name,
-                "description": "E2E test empty project",
-                "init_type": "empty",
+                "description": "E2E test blank project",
+                "init_type": "gitea",
                 "project_type": "local",
+                "init_scitex": "true",
             },
-            headers={"Referer": f"{base_url}/new/"},
+            headers={"Referer": form_url},
             allow_redirects=False,
         )
 
-        # Should redirect on success (302) or show success page (200)
         assert resp.status_code in [200, 302], f"Unexpected status: {resp.status_code}"
 
         if resp.status_code == 302:
-            # Check redirect location points to project page
             location = resp.headers.get("Location", "")
             username = test_credentials["username"]
             assert username in location or "projects" in location
@@ -105,19 +140,11 @@ class TestProjectCreate:
         self, authenticated_session, base_url, test_credentials
     ):
         """Create a project from minimal template."""
-        # Get CSRF token
-        resp = authenticated_session.get(f"{base_url}/new/")
-        assert resp.status_code == 200
+        form_url = f"{base_url}/new/?type=template"
+        _, csrf_token = _get_csrf(authenticated_session, form_url)
 
-        csrf_match = re.search(r'name="csrfmiddlewaretoken" value="([^"]+)"', resp.text)
-        if not csrf_match:
-            pytest.skip("Cannot extract CSRF token")
-        csrf_token = csrf_match.group(1)
-
-        # Create unique project name
         project_name = f"test-minimal-{int(time.time())}"
 
-        # Submit project creation with template
         resp = authenticated_session.post(
             f"{base_url}/new/",
             data={
@@ -127,18 +154,17 @@ class TestProjectCreate:
                 "init_type": "template",
                 "template_type": "minimal",
                 "project_type": "local",
+                "init_scitex": "true",
             },
-            headers={"Referer": f"{base_url}/new/"},
+            headers={"Referer": form_url},
             allow_redirects=False,
         )
 
-        # Should redirect on success
         assert resp.status_code in [200, 302], f"Unexpected status: {resp.status_code}"
 
         if resp.status_code == 302:
             location = resp.headers.get("Location", "")
             username = test_credentials["username"]
-            # Should redirect to project page or project list
             assert username in location or "projects" in location
 
     @pytest.mark.slow
@@ -146,19 +172,11 @@ class TestProjectCreate:
         self, authenticated_session, base_url, test_credentials
     ):
         """Create a project from research template."""
-        # Get CSRF token
-        resp = authenticated_session.get(f"{base_url}/new/")
-        assert resp.status_code == 200
+        form_url = f"{base_url}/new/?type=template"
+        _, csrf_token = _get_csrf(authenticated_session, form_url)
 
-        csrf_match = re.search(r'name="csrfmiddlewaretoken" value="([^"]+)"', resp.text)
-        if not csrf_match:
-            pytest.skip("Cannot extract CSRF token")
-        csrf_token = csrf_match.group(1)
-
-        # Create unique project name
         project_name = f"test-research-{int(time.time())}"
 
-        # Submit project creation with research template
         resp = authenticated_session.post(
             f"{base_url}/new/",
             data={
@@ -168,12 +186,12 @@ class TestProjectCreate:
                 "init_type": "template",
                 "template_type": "research",
                 "project_type": "local",
+                "init_scitex": "true",
             },
-            headers={"Referer": f"{base_url}/new/"},
+            headers={"Referer": form_url},
             allow_redirects=False,
         )
 
-        # Should redirect on success
         assert resp.status_code in [200, 302], f"Unexpected status: {resp.status_code}"
 
         if resp.status_code == 302:
@@ -186,19 +204,11 @@ class TestProjectCreate:
         self, authenticated_session, base_url, test_credentials
     ):
         """Create a project from pip_project template."""
-        # Get CSRF token
-        resp = authenticated_session.get(f"{base_url}/new/")
-        assert resp.status_code == 200
+        form_url = f"{base_url}/new/?type=template"
+        _, csrf_token = _get_csrf(authenticated_session, form_url)
 
-        csrf_match = re.search(r'name="csrfmiddlewaretoken" value="([^"]+)"', resp.text)
-        if not csrf_match:
-            pytest.skip("Cannot extract CSRF token")
-        csrf_token = csrf_match.group(1)
-
-        # Create unique project name
         project_name = f"test-pip-{int(time.time())}"
 
-        # Submit project creation with pip template
         resp = authenticated_session.post(
             f"{base_url}/new/",
             data={
@@ -208,12 +218,12 @@ class TestProjectCreate:
                 "init_type": "template",
                 "template_type": "pip_project",
                 "project_type": "local",
+                "init_scitex": "true",
             },
-            headers={"Referer": f"{base_url}/new/"},
+            headers={"Referer": form_url},
             allow_redirects=False,
         )
 
-        # Should redirect on success
         assert resp.status_code in [200, 302], f"Unexpected status: {resp.status_code}"
 
         if resp.status_code == 302:
@@ -223,32 +233,24 @@ class TestProjectCreate:
 
     def test_project_name_validation_empty(self, authenticated_session, base_url):
         """Project creation should fail with empty name."""
-        # Get CSRF token
-        resp = authenticated_session.get(f"{base_url}/new/")
-        assert resp.status_code == 200
+        form_url = f"{base_url}/new/?type=blank"
+        _, csrf_token = _get_csrf(authenticated_session, form_url)
 
-        csrf_match = re.search(r'name="csrfmiddlewaretoken" value="([^"]+)"', resp.text)
-        if not csrf_match:
-            pytest.skip("Cannot extract CSRF token")
-        csrf_token = csrf_match.group(1)
-
-        # Try to create project with empty name
         resp = authenticated_session.post(
             f"{base_url}/new/",
             data={
                 "csrfmiddlewaretoken": csrf_token,
                 "name": "",
                 "description": "Test empty name validation",
-                "init_type": "empty",
+                "init_type": "gitea",
                 "project_type": "local",
             },
-            headers={"Referer": f"{base_url}/new/"},
+            headers={"Referer": form_url},
             allow_redirects=True,
         )
 
         # Should either stay on form (200) with error or redirect back
         assert resp.status_code == 200
-        # Check for error message in response
         assert any(
             x in resp.text.lower() for x in ["error", "required", "invalid", "name"]
         )
@@ -257,39 +259,28 @@ class TestProjectCreate:
         self, authenticated_session, base_url, test_credentials
     ):
         """Project creation should fail with duplicate name."""
-        # Get CSRF token
-        resp = authenticated_session.get(f"{base_url}/new/")
-        assert resp.status_code == 200
+        form_url = f"{base_url}/new/?type=blank"
+        _, csrf_token = _get_csrf(authenticated_session, form_url)
 
-        csrf_match = re.search(r'name="csrfmiddlewaretoken" value="([^"]+)"', resp.text)
-        if not csrf_match:
-            pytest.skip("Cannot extract CSRF token")
-        csrf_token = csrf_match.group(1)
-
-        # Create first project
         project_name = f"test-duplicate-{int(time.time())}"
 
+        # Create first project
         resp1 = authenticated_session.post(
             f"{base_url}/new/",
             data={
                 "csrfmiddlewaretoken": csrf_token,
                 "name": project_name,
                 "description": "First project",
-                "init_type": "empty",
+                "init_type": "gitea",
                 "project_type": "local",
             },
-            headers={"Referer": f"{base_url}/new/"},
+            headers={"Referer": form_url},
             allow_redirects=False,
         )
-
-        # First creation should succeed
         assert resp1.status_code in [200, 302]
 
         # Get new CSRF token for second request
-        resp = authenticated_session.get(f"{base_url}/new/")
-        csrf_match = re.search(r'name="csrfmiddlewaretoken" value="([^"]+)"', resp.text)
-        if csrf_match:
-            csrf_token = csrf_match.group(1)
+        _, csrf_token = _get_csrf(authenticated_session, form_url)
 
         # Try to create duplicate
         resp2 = authenticated_session.post(
@@ -298,16 +289,15 @@ class TestProjectCreate:
                 "csrfmiddlewaretoken": csrf_token,
                 "name": project_name,
                 "description": "Duplicate project",
-                "init_type": "empty",
+                "init_type": "gitea",
                 "project_type": "local",
             },
-            headers={"Referer": f"{base_url}/new/"},
+            headers={"Referer": form_url},
             allow_redirects=True,
         )
 
         # Should fail with error
         assert resp2.status_code == 200
-        # Check for error about duplicate/exists
         assert any(
             x in resp2.text.lower() for x in ["exists", "duplicate", "already", "error"]
         )
@@ -320,7 +310,6 @@ class TestProjectAPI:
         """File tree API returns error for invalid project."""
         username = test_credentials["username"]
         resp = api_client.get(f"/{username}/nonexistent-project-12345/api/file-tree/")
-        # Should be 404 for non-existent project
         assert resp.status_code in [404, 403, 302]
 
     def test_api_project_list(self, authenticated_session, base_url):

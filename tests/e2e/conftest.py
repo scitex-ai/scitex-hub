@@ -7,17 +7,18 @@ Shared fixtures for E2E tests running against a live server.
 """
 
 import os
+from urllib.parse import urljoin
+
 import pytest
 import requests
-from urllib.parse import urljoin
 
 # =============================================================================
 # Configuration
 # =============================================================================
 
 BASE_URL = os.getenv("SCITEX_BASE_URL", "http://127.0.0.1:8000")
-TEST_USER = os.getenv("SCITEX_E2E_TEST_USER", "test-e2e-user")
-TEST_PASS = os.getenv("SCITEX_E2E_TEST_PASS", "TestE2E123!")
+TEST_USER = os.getenv("SCITEX_E2E_TEST_USER", "test-user")
+TEST_PASS = os.getenv("SCITEX_E2E_TEST_PASS", "Password123!")
 TIMEOUT = int(os.getenv("SCITEX_E2E_TIMEOUT", "30"))
 
 
@@ -68,6 +69,7 @@ def authenticated_session(session, base_url, test_credentials):
     if not csrf_token:
         # Try to extract from HTML
         import re
+
         match = re.search(r'name="csrfmiddlewaretoken" value="([^"]+)"', resp.text)
         if match:
             csrf_token = match.group(1)
@@ -80,7 +82,7 @@ def authenticated_session(session, base_url, test_credentials):
         login_url,
         data={
             "csrfmiddlewaretoken": csrf_token,
-            "login": test_credentials["username"],
+            "username": test_credentials["username"],
             "password": test_credentials["password"],
         },
         headers={"Referer": login_url},
@@ -99,6 +101,7 @@ def api_client(session, base_url):
     """
     API client helper.
     """
+
     class APIClient:
         def __init__(self, session, base_url):
             self.session = session
