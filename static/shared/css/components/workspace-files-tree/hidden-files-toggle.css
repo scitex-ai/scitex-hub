@@ -1,0 +1,38 @@
+/**
+ * Hidden Files Toggle Button
+ * Shared across all workspace modules
+ */
+
+.hidden-files-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--color-border-default, #3a3a3a);
+  border-radius: 4px;
+  background: var(--color-canvas-default, transparent);
+  color: var(--color-fg-muted, #8b949e);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.hidden-files-toggle:hover {
+  background: var(--color-neutral-muted, rgba(110, 118, 129, 0.1));
+  color: var(--color-accent-fg, #059669);
+  border-color: var(--color-accent-fg, #059669);
+}
+
+.hidden-files-toggle.active {
+  color: var(--color-accent-fg, #059669);
+  border-color: var(--color-accent-fg, #059669);
+  background: rgba(5, 150, 105, 0.1);
+}
+
+.sidebar-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}

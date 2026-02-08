@@ -10,7 +10,7 @@ import { EventHandlers } from "./handlers/EventHandlers.ts";
 import { DragDropHandlers } from "./handlers/DragDropHandlers.ts";
 import { KeyboardHandlers } from "./handlers/KeyboardHandlers.ts";
 import { FileActions } from "./handlers/FileActions.ts";
-import { ResizeHandler } from "./handlers/ResizeHandler.ts";
+import type { ResizeHandler } from "./handlers/ResizeHandler.ts";
 import { DirectoryFilterHandler } from "./handlers/DirectoryFilterHandler.ts";
 import { PathNavigator } from "./handlers/PathNavigator.ts";
 import { TreeUtils } from "./handlers/TreeUtils.ts";
@@ -20,18 +20,17 @@ import { ClipboardHandler } from "./handlers/ClipboardHandler.ts";
 import { ContextMenuHandler } from "./handlers/ContextMenuHandler.ts";
 import { UndoRedoHandler } from "./handlers/UndoRedoHandler.ts";
 import { SearchHandler } from "./handlers/SearchHandler.ts";
-import { WorkspaceKeyboardHandler } from "./handlers/WorkspaceKeyboardHandler.ts";
-import { ContextMenuActionHandler } from "./handlers/ContextMenuActionHandler.ts";
+import type { WorkspaceKeyboardHandler } from "./handlers/WorkspaceKeyboardHandler.ts";
+import type { ContextMenuActionHandler } from "./handlers/ContextMenuActionHandler.ts";
 import { TreeFileOperations } from "./handlers/TreeFileOperations.ts";
 import { TreeDataLoader } from "./handlers/TreeDataLoader.ts";
-import { initContextMenu } from "./handlers/TreeContextMenuInit.ts";
 import { showTreeMessage } from "./handlers/TreeMessageHandler.ts";
 import {
   GitActionDispatcher,
   type GitSummary,
 } from "./handlers/GitStatusHandler.ts";
-import { SearchUIHandler } from "./handlers/SearchUIHandler.ts";
-// Import modals to auto-initialize them
+import type { SearchUIHandler } from "./handlers/SearchUIHandler.ts";
+import { initializeTreeHandlers } from "./handlers/TreeInitHandler.ts";
 import "./modals/index.js";
 
 export class WorkspaceFilesTree {
@@ -65,7 +64,6 @@ export class WorkspaceFilesTree {
 
   constructor(config: TreeConfig) {
     this.config = { showFolderActions: true, showGitStatus: true, ...config };
-
     this.stateManager = new TreeStateManager(
       config.username,
       config.slug,
@@ -81,7 +79,6 @@ export class WorkspaceFilesTree {
       this.stateManager,
       this.filter,
     );
-
     this.fileActions = new FileActions(
       this.config,
       this.stateManager,
@@ -91,14 +88,12 @@ export class WorkspaceFilesTree {
       (type, detail) => this.emitEvent(type, detail),
       () => this.refresh(),
     );
-
     this.gitActions = new GitActions(
       this.config,
       () => this.getCsrfToken(),
       () => this.refresh(),
       (message, type) => this.showMessage(message, type),
     );
-
     this.eventHandlers = new EventHandlers(
       this.config,
       this.stateManager,
@@ -111,7 +106,6 @@ export class WorkspaceFilesTree {
       (path) => this.fileActions.copyFile(path),
       (action, path) => this.handleGitAction(action, path),
     );
-
     this.directoryFilterHandler = new DirectoryFilterHandler(() =>
       this.rerender(),
     );
@@ -129,14 +123,12 @@ export class WorkspaceFilesTree {
       () => this.treeData,
       (path) => this.selectionHandler.updateClasses(path),
     );
-
     this.undoRedoHandler = new UndoRedoHandler(
       this.config,
       () => this.getCsrfToken(),
       () => this.refresh(),
       (message, type) => this.showMessage(message, type),
     );
-
     this.dragDropHandlers = new DragDropHandlers(
       this.config,
       () => this.getCsrfToken(),
@@ -148,7 +140,6 @@ export class WorkspaceFilesTree {
     this.dragDropHandlers.setRecordOperation((op) =>
       this.undoRedoHandler.recordOperation(op),
     );
-
     this.clipboardHandler = new ClipboardHandler(
       this.config,
       () => this.getCsrfToken(),
@@ -160,7 +151,6 @@ export class WorkspaceFilesTree {
     this.clipboardHandler.setRecordOperation((op) =>
       this.undoRedoHandler.recordOperation(op),
     );
-
     this.contextMenuHandler = new ContextMenuHandler(
       (action, path) => this.handleContextMenuAction(action, path),
       () => this.clipboardHandler.hasClipboard(),
@@ -168,7 +158,6 @@ export class WorkspaceFilesTree {
       () => this.undoRedoHandler.canUndo(),
       () => this.undoRedoHandler.canRedo(),
     );
-
     this.searchHandler = new SearchHandler(
       () => this.rerender(),
       () => this.treeData,
@@ -176,7 +165,6 @@ export class WorkspaceFilesTree {
     this.searchHandler.setExpandCallback((path) =>
       this.stateManager.expand(path),
     );
-
     this.fileOperations = new TreeFileOperations(
       this.config,
       () => this.getCsrfToken(),
@@ -184,28 +172,23 @@ export class WorkspaceFilesTree {
       (message, type) => this.showMessage(message, type),
       (path) => this.stateManager.expand(path),
     );
-
     this.dataLoader = new TreeDataLoader(
       this.config,
       this.stateManager,
       (message) => this.showError(message),
     );
-
-    // Initialize git action dispatcher
     this.gitActionDispatcher = new GitActionDispatcher(
       this.gitActions,
       () => this.refresh(),
       () => this.container,
       (msg, type) => this.showMessage(msg, type),
     );
-
     this.stateManager.subscribe(() => this.rerender());
   }
 
   private isItemDirectory(path: string): boolean {
     if (path === "") return true;
-    const item = TreeUtils.findItem(path, this.treeData);
-    return item?.type === "directory";
+    return TreeUtils.findItem(path, this.treeData)?.type === "directory";
   }
 
   private getParentPath(path: string): string {
@@ -218,9 +201,8 @@ export class WorkspaceFilesTree {
     action: string,
     path: string,
   ): Promise<void> {
-    if (this.contextMenuActionHandler) {
+    if (this.contextMenuActionHandler)
       await this.contextMenuActionHandler.handle(action, path);
-    }
   }
 
   async initialize(): Promise<void> {
@@ -228,79 +210,44 @@ export class WorkspaceFilesTree {
     if (!this.container)
       return console.error(`Container #${this.config.containerId} not found`);
 
-    if (this.config.className)
-      this.container.classList.add(this.config.className);
-    this.container.classList.add("workspace-files-tree");
-
-    // Show loading skeleton immediately for better perceived performance
-    this.container.innerHTML = this.renderer.renderLoadingSkeleton();
-
-    this.resizeHandler = new ResizeHandler(this.container, this.config.mode);
-    this.resizeHandler.initialize();
-
-    // Initialize context menu action handler
-    this.contextMenuActionHandler = new ContextMenuActionHandler(
-      this.config,
-      this.selectionHandler,
-      this.clipboardHandler,
-      this.undoRedoHandler,
-      this.fileActions,
-      this.gitActions,
-      {
-        isItemDirectory: (path) => this.isItemDirectory(path),
-        getContainer: () => this.container,
-        refresh: () => this.refresh(),
-        getCsrfToken: () => this.getCsrfToken(),
-        showMessage: (msg, type) => this.showMessage(msg, type),
-        downloadFile: (path) => this.fileOperations.downloadFile(path),
-        extractBundle: (path) => this.fileOperations.extractBundle(path),
-        promptCreateSymlink: (path) =>
-          this.fileOperations.promptCreateSymlink(path),
-      },
-    );
-
-    // Initialize search UI handler
-    this.searchUIHandler = new SearchUIHandler(
+    const result = initializeTreeHandlers(
       this.container,
-      this.searchHandler,
-      {
-        setSearchQuery: (query) => this.setSearchQuery(query),
-        clearSearch: () => this.clearSearch(),
-        selectFile: (path) => this.selectFile(path),
-      },
-    );
-
-    // Initialize workspace keyboard handler
-    this.workspaceKeyboardHandler = new WorkspaceKeyboardHandler(
       this.config,
-      this.container,
+      this.renderer,
       this.stateManager,
       this.selectionHandler,
       this.clipboardHandler,
       this.undoRedoHandler,
       this.contextMenuHandler,
       this.fileActions,
+      this.gitActions,
+      this.searchHandler,
+      this.fileOperations,
       {
         isItemDirectory: (path) => this.isItemDirectory(path),
-        getParentPath: (path) => this.getParentPath(path),
-        showSearchInput: () => this.searchUIHandler?.show(),
+        getContainer: () => this.container,
+        refresh: () => this.refresh(),
+        getCsrfToken: () => this.getCsrfToken(),
         showMessage: (msg, type) => this.showMessage(msg, type),
+        getParentPath: (path) => this.getParentPath(path),
         handleContextMenuAction: (action, path) =>
           this.handleContextMenuAction(action, path),
-        refresh: () => this.refresh(),
         getTreeData: () => this.treeData,
+        setSearchQuery: (query) => this.setSearchQuery(query),
+        clearSearch: () => this.clearSearch(),
+        selectFile: (path) => this.selectFile(path),
+        loadTree: () => this.loadTree(),
       },
     );
-    this.workspaceKeyboardHandler.initialize();
-
-    this.selectionHandler.initRectangleSelection();
-    initContextMenu(this.container, this.contextMenuHandler);
+    this.resizeHandler = result.resizeHandler;
+    this.contextMenuActionHandler = result.contextMenuActionHandler;
+    this.searchUIHandler = result.searchUIHandler;
+    this.workspaceKeyboardHandler = result.workspaceKeyboardHandler;
     await this.loadTree();
   }
 
   private handleFileClick(path: string, event?: MouseEvent): void {
     this.container?.focus();
-
     if (event && (event.ctrlKey || event.metaKey || event.shiftKey)) {
       this.selectionHandler.handleClick(path, event);
     } else {
@@ -311,26 +258,18 @@ export class WorkspaceFilesTree {
   async loadTree(): Promise<void> {
     if (this.isLoading) return;
     this.isLoading = true;
-
     const treeEl = this.container?.querySelector(".wft-tree");
     const scrollTop = treeEl?.scrollTop || 0;
-
     try {
       const result = await this.dataLoader.load();
-
       if (result.success) {
         this.treeData = result.treeData;
         this.gitSummary = result.gitSummary;
-
         this.dataLoader.applyDefaultExpansion(this.treeData);
         this.render();
-
         const newTreeEl = this.container?.querySelector(".wft-tree");
-        if (newTreeEl && scrollTop > 0) {
-          newTreeEl.scrollTop = scrollTop;
-        }
-
-        await this.autoExpandFocusPath();
+        if (newTreeEl && scrollTop > 0) newTreeEl.scrollTop = scrollTop;
+        await this.pathNavigator.autoExpandFocusPath(this.config.mode);
         this.attachEventListeners();
         this.selectionHandler.updateAllSelectionClasses();
         this.clipboardHandler.reapplyClasses();
@@ -345,37 +284,18 @@ export class WorkspaceFilesTree {
     let data = this.directoryFilterHandler.isActive()
       ? this.directoryFilterHandler.getFilteredData()
       : this.treeData;
-    if (this.searchHandler.isActive()) {
+    if (this.searchHandler.isActive())
       data = this.searchHandler.filterTree(data);
-    }
     this.container.innerHTML = this.renderer.render(data, this.gitSummary);
-  }
-
-  setDirectoryFilter(directoryPath: string | null): void {
-    this.directoryFilterHandler.setFilter(directoryPath, this.treeData);
-  }
-  getDirectoryFilter(): string | null {
-    return this.directoryFilterHandler.getFilter();
-  }
-  selectFile(path: string, skipCallback: boolean = false): void {
-    this.selectionHandler.select(path, skipCallback);
-  }
-  setTargetFile(path: string): void {
-    this.selectionHandler.setTarget(path);
   }
 
   private rerender(): void {
     const treeEl = this.container?.querySelector(".wft-tree");
     const scrollTop = treeEl?.scrollTop || 0;
-
     this.render();
     this.attachEventListeners();
-
     const newTreeEl = this.container?.querySelector(".wft-tree");
-    if (newTreeEl) {
-      newTreeEl.scrollTop = scrollTop;
-    }
-
+    if (newTreeEl) newTreeEl.scrollTop = scrollTop;
     this.selectionHandler.updateAllSelectionClasses();
     this.clipboardHandler.reapplyClasses();
   }
@@ -385,17 +305,12 @@ export class WorkspaceFilesTree {
     this.container.innerHTML = `<div class="wft-error"><i class="fas fa-exclamation-triangle"></i><p>${message}</p></div>`;
   }
 
-  private async autoExpandFocusPath(): Promise<void> {
-    await this.pathNavigator.autoExpandFocusPath(this.config.mode);
-  }
-
   private boundKeyboardHandler: ((e: KeyboardEvent) => void) | null = null;
 
   private attachEventListeners(): void {
     if (!this.container) return;
     this.eventHandlers.attachEventListeners(this.container);
     this.dragDropHandlers.attachDragDropListeners(this.container);
-
     if (!this.keyboardHandlers) {
       this.keyboardHandlers = new KeyboardHandlers(
         this.config,
@@ -415,7 +330,6 @@ export class WorkspaceFilesTree {
       .querySelector('meta[name="csrf-token"]')
       ?.getAttribute("content");
     if (metaToken) return metaToken;
-
     const cookies = document.cookie.split(";");
     for (const cookie of cookies) {
       const [name, value] = cookie.trim().split("=");
@@ -437,6 +351,31 @@ export class WorkspaceFilesTree {
     }
   }
 
+  private async handleGitAction(action: string, path: string): Promise<void> {
+    if (this.gitActionDispatcher)
+      await this.gitActionDispatcher.dispatch(action, path);
+  }
+
+  private showMessage(
+    message: string,
+    type: "success" | "error" | "info",
+  ): void {
+    showTreeMessage(message, type);
+  }
+
+  // Public API
+  setDirectoryFilter(path: string | null): void {
+    this.directoryFilterHandler.setFilter(path, this.treeData);
+  }
+  getDirectoryFilter(): string | null {
+    return this.directoryFilterHandler.getFilter();
+  }
+  selectFile(path: string, skipCallback = false): void {
+    this.selectionHandler.select(path, skipCallback);
+  }
+  setTargetFile(path: string): void {
+    this.selectionHandler.setTarget(path);
+  }
   async refresh(): Promise<void> {
     await this.loadTree();
   }
@@ -455,40 +394,21 @@ export class WorkspaceFilesTree {
   ): Promise<void> {
     await this.pathNavigator.focusDirectory(targetPath, collapseOthersAtLevel);
   }
-
   setSearchQuery(query: string): void {
     this.searchHandler.setQueryAndExpandAll(query);
   }
-
   clearSearch(): void {
     this.searchHandler.clear();
   }
-
   getSearchQuery(): string {
     return this.searchHandler.getQuery();
   }
-
   isSearchActive(): boolean {
     return this.searchHandler.isActive();
   }
-
   getSearchHandler(): SearchHandler {
     return this.searchHandler;
   }
-
-  private async handleGitAction(action: string, path: string): Promise<void> {
-    if (this.gitActionDispatcher) {
-      await this.gitActionDispatcher.dispatch(action, path);
-    }
-  }
-
-  private showMessage(
-    message: string,
-    type: "success" | "error" | "info",
-  ): void {
-    showTreeMessage(message, type);
-  }
-
   getGitActions(): GitActions {
     return this.gitActions;
   }
@@ -509,5 +429,24 @@ export class WorkspaceFilesTree {
   }
   async redo(): Promise<boolean> {
     return this.undoRedoHandler.redo();
+  }
+
+  /** Toggle dotfile visibility and re-render */
+  toggleHiddenFiles(): boolean {
+    const newState = !this.filter.getShowHidden();
+    this.filter.setShowHidden(newState);
+    this.rerender();
+    return newState;
+  }
+
+  /** Set whether dotfiles are shown and re-render */
+  setShowHidden(show: boolean): void {
+    this.filter.setShowHidden(show);
+    this.rerender();
+  }
+
+  /** Get whether dotfiles are shown */
+  getShowHidden(): boolean {
+    return this.filter.getShowHidden();
   }
 }

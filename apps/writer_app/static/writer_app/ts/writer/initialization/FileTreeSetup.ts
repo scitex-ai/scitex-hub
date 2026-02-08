@@ -9,7 +9,10 @@
  * - WriterTreeSync: Bidirectional sync between dropdowns and tree
  */
 
-import { populateSectionDropdownDirect, syncDropdownsFromPath } from "../../utils/index";
+import {
+  populateSectionDropdownDirect,
+  syncDropdownsFromPath,
+} from "../../utils/index";
 import { initializeWriterFilter } from "../../modules/writer-file-filter";
 import { PanelSwitcher } from "../ui/PanelSwitcher";
 import {
@@ -74,15 +77,19 @@ export class FileTreeSetup {
     if (this.config.projectId !== null && this.config.projectId !== undefined) {
       const fileTreeContainer = document.getElementById("writer-file-tree");
       if (fileTreeContainer) {
-        this.setupWithFileTree(fileTreeContainer, onFileSelectHandler).catch((error) => {
-          console.error("[FileTreeSetup] Failed to setup file tree:", error);
-        });
+        this.setupWithFileTree(fileTreeContainer, onFileSelectHandler).catch(
+          (error) => {
+            console.error("[FileTreeSetup] Failed to setup file tree:", error);
+          },
+        );
       } else {
         this.setupWithoutFileTree(onFileSelectHandler);
       }
     } else {
       // No projectId - still need to populate dropdown
-      console.log("[FileTreeSetup] No project, populating dropdown for demo mode");
+      console.log(
+        "[FileTreeSetup] No project, populating dropdown for demo mode",
+      );
       populateSectionDropdownDirect(
         "manuscript",
         onFileSelectHandler,
@@ -101,7 +108,9 @@ export class FileTreeSetup {
   ): Promise<void> {
     // Restore saved doctype
     const savedDoctype = this.statePersistence.getSavedDoctype();
-    const docTypeSelector = document.getElementById("doctype-selector") as HTMLSelectElement;
+    const docTypeSelector = document.getElementById(
+      "doctype-selector",
+    ) as HTMLSelectElement;
     if (docTypeSelector && savedDoctype) {
       docTypeSelector.value = savedDoctype;
       console.log("[FileTreeSetup] Restored saved doctype:", savedDoctype);
@@ -110,20 +119,28 @@ export class FileTreeSetup {
     // Initialize writer filter with current doctype
     const currentDoctype = savedDoctype || "manuscript";
     const writerFilter = initializeWriterFilter(currentDoctype, null);
-    console.log("[FileTreeSetup] Initialized writer filter with doctype:", currentDoctype);
+    console.log(
+      "[FileTreeSetup] Initialized writer filter with doctype:",
+      currentDoctype,
+    );
 
     // Get project owner and slug from config
-    const projectOwner = this.config.projectOwner || this.config.visitorUsername || this.config.username;
+    const projectOwner =
+      this.config.projectOwner ||
+      this.config.visitorUsername ||
+      this.config.username;
     const projectSlug = this.config.projectSlug;
 
     if (!projectOwner || !projectSlug) {
-      console.warn("[FileTreeSetup] Missing project owner or slug, skipping file tree");
+      console.warn(
+        "[FileTreeSetup] Missing project owner or slug, skipping file tree",
+      );
       return;
     }
 
     // Enhanced file select handler that updates section filter and switches panel
     const enhancedFileSelectHandler = (path: string, item: any): void => {
-      const fileName = path.split('/').pop() || '';
+      const fileName = path.split("/").pop() || "";
       console.log("[FileTreeSetup] File selected from tree:", path, fileName);
 
       // If it's a .tex file, sync dropdowns and update filter
@@ -139,7 +156,10 @@ export class FileTreeSetup {
 
         const section = writerFilter.extractSectionFromPath(path);
         if (section) {
-          console.log("[FileTreeSetup] Extracted section from file path:", section);
+          console.log(
+            "[FileTreeSetup] Extracted section from file path:",
+            section,
+          );
           writerFilter.setSection(section);
 
           const currentDoctype = writerFilter.getState().doctype;
@@ -154,22 +174,39 @@ export class FileTreeSetup {
       // Check if WorkspaceFilesTree is already initialized by inline script
       const existingTree = (window as any).writerFileTree;
       if (existingTree) {
-        console.log("[FileTreeSetup] WorkspaceFilesTree already initialized, skipping duplicate");
-        this.setupExistingTree(existingTree, writerFilter, docTypeSelector, currentDoctype, onFileSelectHandler);
+        console.log(
+          "[FileTreeSetup] WorkspaceFilesTree already initialized, skipping duplicate",
+        );
+        this.setupExistingTree(
+          existingTree,
+          writerFilter,
+          docTypeSelector,
+          currentDoctype,
+          onFileSelectHandler,
+        );
         return;
       }
 
       // Dynamically import and create tree
-      const filesTree = await this.createNewTree(projectOwner, projectSlug, enhancedFileSelectHandler);
+      const filesTree = await this.createNewTree(
+        projectOwner,
+        projectSlug,
+        enhancedFileSelectHandler,
+      );
 
       // Focus on initial doctype folder
       const initialDoctypeFolder = getDoctypeFolder(currentDoctype);
       if (filesTree.focusDirectory) {
-        console.log("[FileTreeSetup] Focusing on doctype folder:", initialDoctypeFolder);
+        console.log(
+          "[FileTreeSetup] Focusing on doctype folder:",
+          initialDoctypeFolder,
+        );
         filesTree.focusDirectory(initialDoctypeFolder);
       }
 
-      console.log("[FileTreeSetup] WorkspaceFilesTree initialized successfully");
+      console.log(
+        "[FileTreeSetup] WorkspaceFilesTree initialized successfully",
+      );
 
       // Populate section dropdown
       await populateSectionDropdownDirect(
@@ -192,9 +229,11 @@ export class FileTreeSetup {
           statePersistence: this.statePersistence,
         });
       }
-
     } catch (error) {
-      console.error("[FileTreeSetup] Failed to initialize WorkspaceFilesTree:", error);
+      console.error(
+        "[FileTreeSetup] Failed to initialize WorkspaceFilesTree:",
+        error,
+      );
     }
   }
 
@@ -225,7 +264,10 @@ export class FileTreeSetup {
     // Focus on the doctype directory
     const initialDoctypeFolder = getDoctypeFolder(currentDoctype);
     if (filesTree.focusDirectory) {
-      console.log("[FileTreeSetup] Focusing on doctype folder:", initialDoctypeFolder);
+      console.log(
+        "[FileTreeSetup] Focusing on doctype folder:",
+        initialDoctypeFolder,
+      );
       filesTree.focusDirectory(initialDoctypeFolder);
     }
 
@@ -244,21 +286,38 @@ export class FileTreeSetup {
   private async createNewTree(
     projectOwner: string,
     projectSlug: string,
-    onFileSelect: (path: string, item: any) => void
+    onFileSelect: (path: string, item: any) => void,
   ): Promise<any> {
-    const module = await import("@/components/workspace-files-tree/WorkspaceFilesTree") as any;
-    const WorkspaceFilesTree: WorkspaceFilesTreeType = module.WorkspaceFilesTree;
+    const module =
+      (await import("@/components/workspace-files-tree/WorkspaceFilesTree")) as any;
+    const WorkspaceFilesTree: WorkspaceFilesTreeType =
+      module.WorkspaceFilesTree;
 
-    const treeConfig = createWriterTreeConfig(projectOwner, projectSlug, onFileSelect);
+    const treeConfig = createWriterTreeConfig(
+      projectOwner,
+      projectSlug,
+      onFileSelect,
+    );
     const filesTree = new WorkspaceFilesTree(treeConfig);
 
     await filesTree.initialize();
     (window as any).writerFileTree = filesTree;
 
+    // Initialize hidden files toggle
+    const toggleModule =
+      (await import("@/components/workspace-files-tree/HiddenFilesToggle")) as any;
+    toggleModule.initHiddenFilesToggle(filesTree);
+
     // Initialize WriterTreeSync for bidirectional synchronization
-    const doctypeSelector = document.getElementById("doctype-selector") as HTMLSelectElement;
-    const sectionDropdown = document.getElementById("section-selector-dropdown") as HTMLElement;
-    const sectionText = document.getElementById("section-selector-text") as HTMLElement;
+    const doctypeSelector = document.getElementById(
+      "doctype-selector",
+    ) as HTMLSelectElement;
+    const sectionDropdown = document.getElementById(
+      "section-selector-dropdown",
+    ) as HTMLElement;
+    const sectionText = document.getElementById(
+      "section-selector-text",
+    ) as HTMLElement;
 
     if (doctypeSelector && sectionDropdown && sectionText) {
       initWriterTreeSync({
@@ -291,14 +350,18 @@ export class FileTreeSetup {
   private setupWithoutFileTree(
     onFileSelectHandler: (sectionId: string, sectionName: string) => void,
   ): void {
-    console.log("[FileTreeSetup] No file tree container, populating dropdown directly");
+    console.log(
+      "[FileTreeSetup] No file tree container, populating dropdown directly",
+    );
 
     // Restore saved doctype
     const savedDoctype = this.statePersistence.getSavedDoctype();
     const initialDoctype = savedDoctype || "manuscript";
 
     // Set doctype selector to saved value
-    const docTypeSelector = document.getElementById("doctype-selector") as HTMLSelectElement;
+    const docTypeSelector = document.getElementById(
+      "doctype-selector",
+    ) as HTMLSelectElement;
     if (docTypeSelector && savedDoctype) {
       docTypeSelector.value = savedDoctype;
       console.log("[FileTreeSetup] Restored saved doctype:", savedDoctype);

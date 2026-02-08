@@ -1,3 +1,32 @@
+/* Hidden files toggle button */
+.hidden-files-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 4px;
+  background: var(--color-canvas-default);
+  color: var(--color-fg-muted);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.hidden-files-toggle:hover {
+  background: var(--color-neutral-muted);
+  color: var(--color-accent-fg);
+  border-color: var(--color-accent-fg);
+}
+
+.hidden-files-toggle.active {
+  color: var(--color-accent-fg);
+  border-color: var(--color-accent-fg);
+  background: var(--color-accent-subtle);
+}
+
 /* File tree styles */
 .file-tree-item {
   /* Layout preserved */
@@ -122,7 +151,7 @@
 }
 
 .file-tree-children.expanded > .file-tree-item::before {
-  content: '';
+  content: "";
   position: absolute;
   left: -9px;
   top: 50%;
@@ -130,4 +159,3 @@
   height: 1px;
   border-top: 1px dashed rgba(150, 150, 150, 0.35);
 }
-

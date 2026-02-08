@@ -71,6 +71,44 @@
   display: none;
 }
 
+.scholar-sidebar .sidebar-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.scholar-sidebar.collapsed .sidebar-header-actions {
+  display: none;
+}
+
+.scholar-sidebar .hidden-files-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--workspace-border-default, #3a3a3a);
+  border-radius: 4px;
+  background: var(--workspace-bg-primary, #0d0d0d);
+  color: var(--text-muted, #6c8ba0);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.scholar-sidebar .hidden-files-toggle:hover {
+  background: var(--workspace-bg-tertiary, #1a1a1a);
+  color: var(--workspace-icon-primary, #059669);
+  border-color: var(--workspace-icon-primary, #059669);
+}
+
+.scholar-sidebar .hidden-files-toggle.active {
+  color: var(--workspace-icon-primary, #059669);
+  border-color: var(--workspace-icon-primary, #059669);
+  background: rgba(5, 150, 105, 0.1);
+}
+
 .scholar-sidebar.collapsed .sidebar-toggle {
   /* Keep toggle button visible when collapsed */
   display: flex;

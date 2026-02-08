@@ -1,66 +1,91 @@
 {% extends "global_base.html" %}
+
 {% load static vite %}
 
-{% block title %}SciTeX Console{% if current_project %} - {{ current_project.name }}{% endif %}{% endblock %}
-
+{% block title %}
+    SciTeX Console
+    {% if current_project %}- {{ current_project.name }}{% endif %}
+{% endblock %}
 {% block extra_head %}
-  <!-- Disable caching for development -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
+    <!-- Disable caching for development -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
 {% endblock %}
-
 {% block extra_css %}
-  <!-- Shared sidebar styles from project_app for consistency -->
-  <link rel="stylesheet" href="{% static 'project_app/css/shared/sidebar.css' %}" />
-  <!-- Shared workspace files tree component -->
-  <link rel="stylesheet" href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d" />
-
-  <!-- Code Workspace CSS Modules (refactored from monolithic workspace.css) -->
-  <link rel="stylesheet" href="{% static 'console_app/css/workspace/00-workspace.css' %}" />
-  <link rel="stylesheet" href="{% static 'console_app/css/workspace/01-theme-colors.css' %}" />
-  <link rel="stylesheet" href="{% static 'console_app/css/workspace/02-layout.css' %}" />
-  <link rel="stylesheet" href="{% static 'console_app/css/workspace/03-sidebar.css' %}?v=20251208" />
-  <link rel="stylesheet" href="{% static 'console_app/css/workspace/04-editor-area.css' %}?v=20251208b" />
-  <link rel="stylesheet" href="{% static 'console_app/css/workspace/05-file-tabs.css' %}" />
-  <link rel="stylesheet" href="{% static 'console_app/css/workspace/06-terminal-panel.css' %}?v=20251208" />
-  <link rel="stylesheet" href="{% static 'console_app/css/workspace/07-sidebar-header.css' %}?v=20251208" />
-  <link rel="stylesheet" href="{% static 'console_app/css/workspace/08-sidebar-signup.css' %}" />
-  <link rel="stylesheet" href="{% static 'console_app/css/workspace/09-toolbar.css' %}" />
-  <link rel="stylesheet" href="{% static 'console_app/css/workspace/10-terminal-header.css' %}?v=20251208" />
-  <link rel="stylesheet" href="{% static 'console_app/css/workspace/11-terminal-tabs.css' %}" />
-  <link rel="stylesheet" href="{% static 'console_app/css/workspace/12-terminal-instances.css' %}" />
-  <link rel="stylesheet" href="{% static 'console_app/css/workspace/13-toolbar-buttons.css' %}" />
-  <link rel="stylesheet" href="{% static 'console_app/css/workspace/14-monaco-editor.css' %}" />
-  <link rel="stylesheet" href="{% static 'console_app/css/workspace/15-xterm.css' %}" />
-  <link rel="stylesheet" href="{% static 'console_app/css/workspace/16-welcome-screen.css' %}" />
-  <link rel="stylesheet" href="{% static 'console_app/css/workspace/17-folder-actions.css' %}" />
-  <link rel="stylesheet" href="{% static 'console_app/css/workspace/18-dark-theme.css' %}" />
-  <link rel="stylesheet" href="{% static 'console_app/css/workspace/19-folder-icon.css' %}" />
-  <link rel="stylesheet" href="{% static 'console_app/css/workspace/20-file-tree.css' %}" />
-  <link rel="stylesheet" href="{% static 'console_app/css/workspace/21-terminal-links.css' %}" />
-  <link rel="stylesheet" href="{% static 'console_app/css/workspace/22-responsive.css' %}" />
-  <link rel="stylesheet" href="{% static 'console_app/css/workspace/23-git-gutter.css' %}" />
-  <link rel="stylesheet" href="{% static 'console_app/css/workspace/24-git-status.css' %}" />
-  <link rel="stylesheet" href="{% static 'console_app/css/workspace/25-modal.css' %}" />
-  <link rel="stylesheet" href="{% static 'console_app/css/workspace/26-jobs-panel.css' %}" />
-
-  <link rel="stylesheet" href="{% static 'console_app/css/workspace-inline.css' %}" />
-  <link rel="stylesheet" href="{% static 'console_app/css/context-menu.css' %}" />
-  <link rel="stylesheet" href="{% static 'console_app/css/file-modal.css' %}" />
-  <!-- Shared Media viewer styles (PDF, Image, CSV) -->
-  <link rel="stylesheet" href="{% static 'shared/css/components/media-viewer.css' %}" />
-  <!-- Shared data table styles (comprehensive module from vis_app) -->
-  <link rel="stylesheet" href="{% static 'shared/css/components/data-table/data-table.css' %}" />
-  <!-- Monaco Editor CSS - Use cdnjs like writer app -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/editor/editor.main.min.css" />
-  <!-- xterm.js for real PTY terminal -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
+    <!-- Shared sidebar styles from project_app for consistency -->
+    <link rel="stylesheet" href="{% static 'project_app/css/shared/sidebar.css' %}" />
+    <!-- Shared workspace files tree component -->
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d" />
+    <!-- Code Workspace CSS Modules (refactored from monolithic workspace.css) -->
+    <link rel="stylesheet"
+          href="{% static 'console_app/css/workspace/00-workspace.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'console_app/css/workspace/01-theme-colors.css' %}" />
+    <link rel="stylesheet" href="{% static 'console_app/css/workspace/02-layout.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'console_app/css/workspace/03-sidebar.css' %}?v=20251208" />
+    <link rel="stylesheet"
+          href="{% static 'console_app/css/workspace/04-editor-area.css' %}?v=20251208b" />
+    <link rel="stylesheet"
+          href="{% static 'console_app/css/workspace/05-file-tabs.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'console_app/css/workspace/06-terminal-panel.css' %}?v=20251208" />
+    <link rel="stylesheet"
+          href="{% static 'console_app/css/workspace/07-sidebar-header.css' %}?v=20251208" />
+    <link rel="stylesheet"
+          href="{% static 'console_app/css/workspace/08-sidebar-signup.css' %}" />
+    <link rel="stylesheet" href="{% static 'console_app/css/workspace/09-toolbar.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'console_app/css/workspace/10-terminal-header.css' %}?v=20251208" />
+    <link rel="stylesheet"
+          href="{% static 'console_app/css/workspace/11-terminal-tabs.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'console_app/css/workspace/12-terminal-instances.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'console_app/css/workspace/13-toolbar-buttons.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'console_app/css/workspace/14-monaco-editor.css' %}" />
+    <link rel="stylesheet" href="{% static 'console_app/css/workspace/15-xterm.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'console_app/css/workspace/16-welcome-screen.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'console_app/css/workspace/17-folder-actions.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'console_app/css/workspace/18-dark-theme.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'console_app/css/workspace/19-folder-icon.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'console_app/css/workspace/20-file-tree.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'console_app/css/workspace/21-terminal-links.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'console_app/css/workspace/22-responsive.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'console_app/css/workspace/23-git-gutter.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'console_app/css/workspace/24-git-status.css' %}" />
+    <link rel="stylesheet" href="{% static 'console_app/css/workspace/25-modal.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'console_app/css/workspace/26-jobs-panel.css' %}" />
+    <link rel="stylesheet" href="{% static 'console_app/css/workspace-inline.css' %}" />
+    <link rel="stylesheet" href="{% static 'console_app/css/context-menu.css' %}" />
+    <link rel="stylesheet" href="{% static 'console_app/css/file-modal.css' %}" />
+    <!-- Shared Media viewer styles (PDF, Image, CSV) -->
+    <link rel="stylesheet" href="{% static 'shared/css/components/media-viewer.css' %}" />
+    <!-- Shared data table styles (comprehensive module from vis_app) -->
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/data-table/data-table.css' %}" />
+    <!-- Monaco Editor CSS - Use cdnjs like writer app -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/editor/editor.main.min.css" />
+    <!-- xterm.js for real PTY terminal -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
 {% endblock %}
-
 {% block extra_js %}
-  <!-- Monaco Editor - Load with proper AMD handling -->
-  <script>
+    <!-- Monaco Editor - Load with proper AMD handling -->
+    <script>
     (function() {
       'use strict';
 
@@ -126,434 +151,506 @@
 
       document.head.appendChild(loaderScript);
     })();
-  </script>
+    </script>
 {% endblock %}
-
 {% block content %}
-  <!-- Config data for TypeScript -->
-  <div id="project-data"
-       {% if current_project %}
-       data-project-id="{{ current_project.id }}"
-       data-project-name="{{ current_project.name }}"
-       data-project-owner="{{ current_project.owner.username }}"
-       data-project-slug="{{ current_project.slug }}"
-       data-workspace-tree-url="/{{ current_project.owner.username }}/{{ current_project.slug }}/api/file-tree/"
-       {% endif %}>
-  </div>
-  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-
-  {% if needs_project_creation %}
-    <!-- No project available - prompt to create or select -->
-    <div class="code-workspace pool-message-wrapper">
-      <div class="pool-message-content">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="pool-message-icon">
-          <path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/>
-        </svg>
-        <h2 class="pool-message-title">No Project Selected</h2>
-        <p class="pool-message-text">
-          Create a new project or select an existing one from the header dropdown to start coding.
-        </p>
-        <div class="pool-message-actions">
-          <a href="/projects/new/" class="pool-message-link btn-primary-link">
-            <i class="fas fa-plus"></i> Create New Project
-          </a>
-        </div>
-      </div>
+    <!-- Config data for TypeScript -->
+    <div id="project-data"
+         {% if current_project %} data-project-id="{{ current_project.id }}" data-project-name="{{ current_project.name }}" data-project-owner="{{ current_project.owner.username }}" data-project-slug="{{ current_project.slug }}" data-workspace-tree-url="/{{ current_project.owner.username }}/{{ current_project.slug }}/api/file-tree/" {% endif %}>
     </div>
-  {% else %}
-    <div class="code-workspace">
-      <!-- Left Sidebar: File Tree -->
-      <aside id="code-sidebar" class="code-sidebar repo-sidebar">
-        <div class="sidebar-header">
-          <h5><i class="fas fa-folder-open"></i> Files</h5>
-          <button class="sidebar-toggle panel-toggle-btn left-panel-toggle" id="sidebar-toggle" title="Toggle sidebar (Zen: F11/Alt+Z)">
-            <i class="fas fa-chevron-left"></i>
-          </button>
-        </div>
-      <div id="file-tree" class="file-tree-container">
-        <div class="tree-loading">
-          <i class="fas fa-spinner fa-spin"></i> Loading file tree...
-        </div>
-      </div>
-    </aside>
-
-    <!-- Resizer between sidebar and editor (auto-initialized via data attributes) -->
-    <div class="panel-resizer" id="sidebar-resizer"
-         data-panel-resizer
-         data-storage-prefix="scitex-code-"
-         data-target=".code-sidebar"
-         data-direction="left"
-         data-min-width="40"
-         data-default-width="280"
-         data-storage-key="sidebar-width"
-         data-collapse-key="code-sidebar-collapsed"
-         data-toggle-btn="sidebar-toggle"></div>
-
-    <!-- Center: Editor Area -->
-    <div class="code-editor-area">
-      <!-- Toolbar -->
-      <div class="code-toolbar">
-        <button id="btn-save" class="btn-code-action" disabled title="Save (Ctrl+S)">
-          <i class="fas fa-save"></i>
-          <span>Save</span>
-        </button>
-        <button id="btn-commit" class="btn-code-action" title="Commit changes">
-          <i class="fas fa-code-branch"></i>
-          <span>Commit</span>
-        </button>
-        <button id="btn-run" class="btn-code-action" disabled title="Run Python script (Ctrl+Enter)">
-          <i class="fas fa-play"></i>
-          <span>Run</span>
-        </button>
-        <button id="btn-delete" class="btn-code-action" disabled title="Delete current file">
-          <i class="fas fa-trash"></i>
-        </button>
-        <div class="code-toolbar-spacer"></div>
-        <select id="keybinding-mode" class="btn-code-action" title="Editor keybindings">
-          <option value="vscode">VS Code</option>
-          <option value="vim">Vim</option>
-          <option value="emacs" selected>Emacs</option>
-        </select>
-        <button id="monaco-theme-toggle" class="btn-code-action" title="Toggle editor theme">
-          <span class="theme-icon">🌙</span>
-        </button>
-        <button id="btn-editor-shortcuts" class="btn-code-action" title="Emacs Shortcuts">
-          <i class="fas fa-keyboard"></i>
-        </button>
-      </div>
-
-      <!-- File Tabs (below toolbar) -->
-      <div id="file-tabs" class="file-tabs">
-        <button id="btn-new-file-tab" class="file-tabs-plus-btn" title="New file">+</button>
-      </div>
-
-      <!-- Editor Container -->
-      <div id="editor-container" class="code-editor-container">
-        <!-- Welcome Screen (hidden by default - scratch buffer shown instead) -->
-        <div id="welcome-screen" class="code-welcome">
-          <svg class="code-welcome-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z" />
-          </svg>
-          <h2 class="code-welcome-title">Welcome to Console Workspace</h2>
-          <p class="code-welcome-subtitle">A powerful editor with integrated terminal for your research projects</p>
-
-          <div class="welcome-features-container">
-            <div class="welcome-features-grid">
-              <div class="welcome-feature-card">
-                <div class="welcome-feature-header">
-                  <i class="fas fa-file-code welcome-feature-icon"></i>
-                  <strong>Multi-Language Support</strong>
-                </div>
-                <p class="welcome-feature-text">
-                  Python, JavaScript, TypeScript, HTML, CSS, JSON, Markdown, and more
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" />
+    {% if needs_project_creation %}
+        <!-- No project available - prompt to create or select -->
+        <div class="code-workspace pool-message-wrapper">
+            <div class="pool-message-content">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     viewBox="0 0 24 24"
+                     fill="currentColor"
+                     class="pool-message-icon">
+                    <path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z" />
+                </svg>
+                <h2 class="pool-message-title">No Project Selected</h2>
+                <p class="pool-message-text">
+                    Create a new project or select an existing one from the header dropdown to start coding.
                 </p>
-              </div>
-
-              <div class="welcome-feature-card">
-                <div class="welcome-feature-header">
-                  <i class="fas fa-terminal welcome-feature-icon"></i>
-                  <strong>Integrated Terminal</strong>
+                <div class="pool-message-actions">
+                    <a href="/projects/new/" class="pool-message-link btn-primary-link">
+                        <i class="fas fa-plus"></i> Create New Project
+                    </a>
                 </div>
-                <p class="welcome-feature-text">
-                  Run scripts, manage files, and execute commands directly
-                </p>
-              </div>
-
-              <div class="welcome-feature-card">
-                <div class="welcome-feature-header">
-                  <i class="fas fa-keyboard welcome-feature-icon"></i>
-                  <strong>Flexible Keybindings</strong>
-                </div>
-                <p class="welcome-feature-text">
-                  Choose VS Code, Vim, or Emacs keybindings to match your workflow
-                </p>
-              </div>
-
-              <div class="welcome-feature-card">
-                <div class="welcome-feature-header">
-                  <i class="fas fa-save welcome-feature-icon"></i>
-                  <strong>Auto-Save</strong>
-                </div>
-                <p class="welcome-feature-text">
-                  Your changes are automatically saved to your project
-                </p>
-              </div>
             </div>
-
-            <div class="welcome-quickstart">
-              <strong class="welcome-quickstart-title">
-                <i class="fas fa-lightbulb"></i> Quick Start
-              </strong>
-              <ul class="welcome-quickstart-list">
-                <li>Click <strong>+ File</strong> or <strong>+ Folder</strong> to create new items</li>
-                <li>Select a file from the sidebar to start editing</li>
-                <li>Use <kbd>Ctrl+S</kbd> to save, <kbd>Ctrl+Enter</kbd> to run Python scripts</li>
-                <li>Click ⌨ button to view all keyboard shortcuts</li>
-              </ul>
+        </div>
+    {% else %}
+        <div class="code-workspace">
+            <!-- Left Sidebar: File Tree -->
+            <aside id="code-sidebar" class="code-sidebar repo-sidebar">
+                <div class="sidebar-header">
+                    <h5>
+                        <i class="fas fa-folder-open"></i> Files
+                    </h5>
+                    <div class="sidebar-header-actions">
+                        <button class="hidden-files-toggle"
+                                id="hidden-files-toggle"
+                                title="Toggle hidden files">
+                            <i class="fas fa-eye-slash"></i>
+                        </button>
+                        <button class="sidebar-toggle panel-toggle-btn left-panel-toggle"
+                                id="sidebar-toggle"
+                                title="Toggle sidebar (Zen: F11/Alt+Z)">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="file-tree" class="file-tree-container">
+                    <div class="tree-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading file tree...
+                    </div>
+                </div>
+            </aside>
+            <!-- Resizer between sidebar and editor (auto-initialized via data attributes) -->
+            <div class="panel-resizer"
+                 id="sidebar-resizer"
+                 data-panel-resizer
+                 data-storage-prefix="scitex-code-"
+                 data-target=".code-sidebar"
+                 data-direction="left"
+                 data-min-width="40"
+                 data-default-width="280"
+                 data-storage-key="sidebar-width"
+                 data-collapse-key="code-sidebar-collapsed"
+                 data-toggle-btn="sidebar-toggle"></div>
+            <!-- Center: Editor Area -->
+            <div class="code-editor-area">
+                <!-- Toolbar -->
+                <div class="code-toolbar">
+                    <button id="btn-save" class="btn-code-action" disabled title="Save (Ctrl+S)">
+                        <i class="fas fa-save"></i>
+                        <span>Save</span>
+                    </button>
+                    <button id="btn-commit" class="btn-code-action" title="Commit changes">
+                        <i class="fas fa-code-branch"></i>
+                        <span>Commit</span>
+                    </button>
+                    <button id="btn-run"
+                            class="btn-code-action"
+                            disabled
+                            title="Run Python script (Ctrl+Enter)">
+                        <i class="fas fa-play"></i>
+                        <span>Run</span>
+                    </button>
+                    <button id="btn-delete" class="btn-code-action" disabled title="Delete current file">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    <div class="code-toolbar-spacer"></div>
+                    <select id="keybinding-mode" class="btn-code-action" title="Editor keybindings">
+                        <option value="vscode">VS Code</option>
+                        <option value="vim">Vim</option>
+                        <option value="emacs" selected>Emacs</option>
+                    </select>
+                    <button id="monaco-theme-toggle" class="btn-code-action" title="Toggle editor theme">
+                        <span class="theme-icon">🌙</span>
+                    </button>
+                    <button id="btn-editor-shortcuts" class="btn-code-action" title="Emacs Shortcuts">
+                        <i class="fas fa-keyboard"></i>
+                    </button>
+                </div>
+                <!-- File Tabs (below toolbar) -->
+                <div id="file-tabs" class="file-tabs">
+                    <button id="btn-new-file-tab" class="file-tabs-plus-btn" title="New file">+</button>
+                </div>
+                <!-- Editor Container -->
+                <div id="editor-container" class="code-editor-container">
+                    <!-- Welcome Screen (hidden by default - scratch buffer shown instead) -->
+                    <div id="welcome-screen" class="code-welcome">
+                        <svg class="code-welcome-icon"
+                             xmlns="http://www.w3.org/2000/svg"
+                             viewBox="0 0 24 24"
+                             fill="currentColor">
+                            <path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z" />
+                        </svg>
+                        <h2 class="code-welcome-title">Welcome to Console Workspace</h2>
+                        <p class="code-welcome-subtitle">A powerful editor with integrated terminal for your research projects</p>
+                        <div class="welcome-features-container">
+                            <div class="welcome-features-grid">
+                                <div class="welcome-feature-card">
+                                    <div class="welcome-feature-header">
+                                        <i class="fas fa-file-code welcome-feature-icon"></i>
+                                        <strong>Multi-Language Support</strong>
+                                    </div>
+                                    <p class="welcome-feature-text">Python, JavaScript, TypeScript, HTML, CSS, JSON, Markdown, and more</p>
+                                </div>
+                                <div class="welcome-feature-card">
+                                    <div class="welcome-feature-header">
+                                        <i class="fas fa-terminal welcome-feature-icon"></i>
+                                        <strong>Integrated Terminal</strong>
+                                    </div>
+                                    <p class="welcome-feature-text">Run scripts, manage files, and execute commands directly</p>
+                                </div>
+                                <div class="welcome-feature-card">
+                                    <div class="welcome-feature-header">
+                                        <i class="fas fa-keyboard welcome-feature-icon"></i>
+                                        <strong>Flexible Keybindings</strong>
+                                    </div>
+                                    <p class="welcome-feature-text">Choose VS Code, Vim, or Emacs keybindings to match your workflow</p>
+                                </div>
+                                <div class="welcome-feature-card">
+                                    <div class="welcome-feature-header">
+                                        <i class="fas fa-save welcome-feature-icon"></i>
+                                        <strong>Auto-Save</strong>
+                                    </div>
+                                    <p class="welcome-feature-text">Your changes are automatically saved to your project</p>
+                                </div>
+                            </div>
+                            <div class="welcome-quickstart">
+                                <strong class="welcome-quickstart-title">
+                                    <i class="fas fa-lightbulb"></i> Quick Start
+                                </strong>
+                                <ul class="welcome-quickstart-list">
+                                    <li>
+                                        Click <strong>+ File</strong> or <strong>+ Folder</strong> to create new items
+                                    </li>
+                                    <li>Select a file from the sidebar to start editing</li>
+                                    <li>
+                                        Use <kbd>Ctrl+S</kbd> to save, <kbd>Ctrl+Enter</kbd> to run Python scripts
+                                    </li>
+                                    <li>Click ⌨ button to view all keyboard shortcuts</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Monaco Editor -->
+                    <div id="monaco-editor"></div>
+                </div>
             </div>
-          </div>
+            <!-- Resizer between editor and terminal (auto-initialized via data attributes) -->
+            <div class="panel-resizer"
+                 id="editor-resizer"
+                 data-panel-resizer
+                 data-storage-prefix="scitex-code-"
+                 data-target=".code-terminal-panel"
+                 data-direction="right"
+                 data-min-width="40"
+                 data-default-width="400"
+                 data-storage-key="terminal-width"
+                 data-collapse-key="code-terminal-collapsed"
+                 data-toggle-btn="terminal-toggle"></div>
+            <!-- Right: Terminal Panel (Terminal / Jobs) -->
+            <div id="code-terminal-panel" class="code-terminal-panel">
+                <!-- Panel Header with Toggle -->
+                <div class="terminal-panel-header">
+                    <button class="terminal-toggle panel-toggle-btn right-panel-toggle"
+                            id="terminal-toggle"
+                            title="Toggle terminal (Zen: F11/Alt+Z)">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <h5>
+                        <i class="fas fa-terminal"></i> Terminal
+                    </h5>
+                </div>
+                <!-- Panel Tabs (Terminal / Jobs) -->
+                <div class="terminal-panel-tabs">
+                    <button id="panel-tab-terminal" class="panel-tab active" data-panel="terminal">
+                        <i class="fas fa-terminal"></i>
+                        <span>Terminal</span>
+                    </button>
+                    <button id="panel-tab-jobs" class="panel-tab" data-panel="jobs">
+                        <i class="fas fa-tasks"></i>
+                        <span>Jobs</span>
+                        <span id="jobs-badge" class="panel-tab-badge" style="display: none;">0</span>
+                    </button>
+                    <div class="panel-tab-spacer"></div>
+                    <button id="btn-terminal-shortcuts"
+                            class="btn-code-action panel-header-btn"
+                            title="Terminal Shortcuts">
+                        <i class="fas fa-keyboard"></i>
+                    </button>
+                </div>
+                <!-- Terminal View -->
+                <div id="terminal-view" class="panel-view active">
+                    <!-- Terminal Tabs -->
+                    <div id="terminal-tabs-container" class="terminal-tabs-container">
+                        <div id="terminal-tabs" class="terminal-tabs">
+                            <!-- Tabs will be dynamically added here -->
+                        </div>
+                    </div>
+                    <!-- PTY Terminal Container (xterm.js with inline image support) -->
+                    <div id="pty-terminal" class="terminal-body"></div>
+                </div>
+                <!-- Jobs View -->
+                <div id="jobs-view" class="panel-view">
+                    <!-- Jobs Toolbar -->
+                    <div class="jobs-toolbar">
+                        <button id="jobs-refresh" class="jobs-toolbar-btn" title="Refresh jobs">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                        <button id="jobs-cancel-pending" class="jobs-toolbar-btn" title="Cancel all pending">
+                            <i class="fas fa-stop-circle"></i>
+                            <span>Cancel Pending</span>
+                        </button>
+                        <div class="jobs-toolbar-spacer"></div>
+                        <span id="jobs-status" class="jobs-status">
+                            <span class="jobs-status-dot"></span>
+                            <span id="jobs-status-text">Loading...</span>
+                        </span>
+                    </div>
+                    <!-- Jobs List -->
+                    <div id="jobs-list" class="jobs-list">
+                        <!-- Jobs will be dynamically populated here -->
+                        <div class="jobs-loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>Loading jobs...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-
-        <!-- Monaco Editor -->
-        <div id="monaco-editor"></div>
-      </div>
+    {% endif %}
+    <!-- Shortcuts Help Modal (Editor) -->
+    <div id="shortcuts-modal-overlay" class="file-modal-overlay">
+        <div class="file-modal shortcuts-modal">
+            <div class="file-modal-header">
+                <span id="shortcuts-modal-title" class="file-modal-title"><i class="fas fa-keyboard"></i> Confirmed Shortcuts</span>
+                <button class="file-modal-close"
+                        onclick="document.getElementById('shortcuts-modal-overlay').classList.remove('active')">
+                    ×
+                </button>
+            </div>
+            <div class="file-modal-body shortcuts-modal-body" id="shortcuts-modal-body">
+                <!-- Content will be dynamically populated by JavaScript based on keybinding mode -->
+            </div>
+            <div class="file-modal-footer">
+                <button class="file-modal-btn file-modal-btn-primary"
+                        onclick="document.getElementById('shortcuts-modal-overlay').classList.remove('active')">
+                    Close
+                </button>
+            </div>
+        </div>
     </div>
-
-    <!-- Resizer between editor and terminal (auto-initialized via data attributes) -->
-    <div class="panel-resizer" id="editor-resizer"
-         data-panel-resizer
-         data-storage-prefix="scitex-code-"
-         data-target=".code-terminal-panel"
-         data-direction="right"
-         data-min-width="40"
-         data-default-width="400"
-         data-storage-key="terminal-width"
-         data-collapse-key="code-terminal-collapsed"
-         data-toggle-btn="terminal-toggle"></div>
-
-    <!-- Right: Terminal Panel (Terminal / Jobs) -->
-    <div id="code-terminal-panel" class="code-terminal-panel">
-      <!-- Panel Header with Toggle -->
-      <div class="terminal-panel-header">
-        <button class="terminal-toggle panel-toggle-btn right-panel-toggle" id="terminal-toggle" title="Toggle terminal (Zen: F11/Alt+Z)">
-          <i class="fas fa-chevron-right"></i>
-        </button>
-        <h5><i class="fas fa-terminal"></i> Terminal</h5>
-      </div>
-      <!-- Panel Tabs (Terminal / Jobs) -->
-      <div class="terminal-panel-tabs">
-        <button id="panel-tab-terminal" class="panel-tab active" data-panel="terminal">
-          <i class="fas fa-terminal"></i>
-          <span>Terminal</span>
-        </button>
-        <button id="panel-tab-jobs" class="panel-tab" data-panel="jobs">
-          <i class="fas fa-tasks"></i>
-          <span>Jobs</span>
-          <span id="jobs-badge" class="panel-tab-badge" style="display: none;">0</span>
-        </button>
-        <div class="panel-tab-spacer"></div>
-        <button id="btn-terminal-shortcuts" class="btn-code-action panel-header-btn" title="Terminal Shortcuts">
-          <i class="fas fa-keyboard"></i>
-        </button>
-      </div>
-
-      <!-- Terminal View -->
-      <div id="terminal-view" class="panel-view active">
-        <!-- Terminal Tabs -->
-        <div id="terminal-tabs-container" class="terminal-tabs-container">
-          <div id="terminal-tabs" class="terminal-tabs">
-            <!-- Tabs will be dynamically added here -->
-          </div>
+    <!-- Terminal Shortcuts Modal -->
+    <div id="terminal-shortcuts-modal" class="file-modal-overlay">
+        <div class="file-modal terminal-shortcuts-modal">
+            <div class="file-modal-header">
+                <span class="file-modal-title"><i class="fas fa-terminal"></i> Terminal Shortcuts</span>
+                <button class="file-modal-close"
+                        onclick="document.getElementById('terminal-shortcuts-modal').classList.remove('active')">
+                    ×
+                </button>
+            </div>
+            <div class="file-modal-body terminal-shortcuts-body">
+                <table class="terminal-shortcuts-table">
+                    <thead>
+                        <tr>
+                            <th>Shortcut</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="section-header">
+                            <td colspan="2">Navigation</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <kbd>C-a</kbd> / <kbd>C-e</kbd>
+                            </td>
+                            <td>Beginning/End of line</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <kbd>C-f</kbd> / <kbd>C-b</kbd>
+                            </td>
+                            <td>Forward/Backward character</td>
+                        </tr>
+                        <tr class="section-header">
+                            <td colspan="2">History</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <kbd>M-p</kbd> / <kbd>M-n</kbd>
+                            </td>
+                            <td>Previous/Next command</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <kbd>↑</kbd> / <kbd>↓</kbd>
+                            </td>
+                            <td>Previous/Next command (alternative)</td>
+                        </tr>
+                        <tr class="section-header">
+                            <td colspan="2">Editing</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <kbd>C-d</kbd>
+                            </td>
+                            <td>Delete character at cursor</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <kbd>C-k</kbd>
+                            </td>
+                            <td>Kill line (delete to end, copy to clipboard)</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <kbd>C-y</kbd>
+                            </td>
+                            <td>Yank (paste from clipboard)</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <kbd>Tab</kbd>
+                            </td>
+                            <td>File/command completion</td>
+                        </tr>
+                        <tr class="section-header">
+                            <td colspan="2">Other</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <kbd>C-l</kbd>
+                            </td>
+                            <td>Clear terminal screen</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <kbd>C-m</kbd> or <kbd>Enter</kbd>
+                            </td>
+                            <td>Execute command</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="file-modal-footer">
+                <button class="file-modal-btn file-modal-btn-primary"
+                        onclick="document.getElementById('terminal-shortcuts-modal').classList.remove('active')">
+                    Close
+                </button>
+            </div>
         </div>
-
-        <!-- PTY Terminal Container (xterm.js with inline image support) -->
-        <div id="pty-terminal" class="terminal-body"></div>
-      </div>
-
-      <!-- Jobs View -->
-      <div id="jobs-view" class="panel-view">
-        <!-- Jobs Toolbar -->
-        <div class="jobs-toolbar">
-          <button id="jobs-refresh" class="jobs-toolbar-btn" title="Refresh jobs">
-            <i class="fas fa-sync-alt"></i>
-          </button>
-          <button id="jobs-cancel-pending" class="jobs-toolbar-btn" title="Cancel all pending">
-            <i class="fas fa-stop-circle"></i>
-            <span>Cancel Pending</span>
-          </button>
-          <div class="jobs-toolbar-spacer"></div>
-          <span id="jobs-status" class="jobs-status">
-            <span class="jobs-status-dot"></span>
-            <span id="jobs-status-text">Loading...</span>
-          </span>
-        </div>
-
-        <!-- Jobs List -->
-        <div id="jobs-list" class="jobs-list">
-          <!-- Jobs will be dynamically populated here -->
-          <div class="jobs-loading">
-            <i class="fas fa-spinner fa-spin"></i>
-            <span>Loading jobs...</span>
-          </div>
-        </div>
-      </div>
     </div>
-  </div>
-  {% endif %}
-
-  <!-- Shortcuts Help Modal (Editor) -->
-  <div id="shortcuts-modal-overlay" class="file-modal-overlay">
-    <div class="file-modal shortcuts-modal">
-      <div class="file-modal-header">
-        <span id="shortcuts-modal-title" class="file-modal-title"><i class="fas fa-keyboard"></i> Confirmed Shortcuts</span>
-        <button class="file-modal-close" onclick="document.getElementById('shortcuts-modal-overlay').classList.remove('active')">×</button>
-      </div>
-      <div class="file-modal-body shortcuts-modal-body" id="shortcuts-modal-body">
-        <!-- Content will be dynamically populated by JavaScript based on keybinding mode -->
-      </div>
-      <div class="file-modal-footer">
-        <button class="file-modal-btn file-modal-btn-primary" onclick="document.getElementById('shortcuts-modal-overlay').classList.remove('active')">Close</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Terminal Shortcuts Modal -->
-  <div id="terminal-shortcuts-modal" class="file-modal-overlay">
-    <div class="file-modal terminal-shortcuts-modal">
-      <div class="file-modal-header">
-        <span class="file-modal-title"><i class="fas fa-terminal"></i> Terminal Shortcuts</span>
-        <button class="file-modal-close" onclick="document.getElementById('terminal-shortcuts-modal').classList.remove('active')">×</button>
-      </div>
-      <div class="file-modal-body terminal-shortcuts-body">
-        <table class="terminal-shortcuts-table">
-          <thead>
-            <tr>
-              <th>Shortcut</th>
-              <th>Description</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr class="section-header"><td colspan="2">Navigation</td></tr>
-            <tr><td><kbd>C-a</kbd> / <kbd>C-e</kbd></td><td>Beginning/End of line</td></tr>
-            <tr><td><kbd>C-f</kbd> / <kbd>C-b</kbd></td><td>Forward/Backward character</td></tr>
-            <tr class="section-header"><td colspan="2">History</td></tr>
-            <tr><td><kbd>M-p</kbd> / <kbd>M-n</kbd></td><td>Previous/Next command</td></tr>
-            <tr><td><kbd>↑</kbd> / <kbd>↓</kbd></td><td>Previous/Next command (alternative)</td></tr>
-            <tr class="section-header"><td colspan="2">Editing</td></tr>
-            <tr><td><kbd>C-d</kbd></td><td>Delete character at cursor</td></tr>
-            <tr><td><kbd>C-k</kbd></td><td>Kill line (delete to end, copy to clipboard)</td></tr>
-            <tr><td><kbd>C-y</kbd></td><td>Yank (paste from clipboard)</td></tr>
-            <tr><td><kbd>Tab</kbd></td><td>File/command completion</td></tr>
-            <tr class="section-header"><td colspan="2">Other</td></tr>
-            <tr><td><kbd>C-l</kbd></td><td>Clear terminal screen</td></tr>
-            <tr><td><kbd>C-m</kbd> or <kbd>Enter</kbd></td><td>Execute command</td></tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="file-modal-footer">
-        <button class="file-modal-btn file-modal-btn-primary" onclick="document.getElementById('terminal-shortcuts-modal').classList.remove('active')">Close</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- File Modal (for smooth CRUD operations) -->
-  <div id="file-modal-overlay" class="file-modal-overlay">
-    <div class="file-modal">
-      <div class="file-modal-header">
-        <span id="file-modal-title" class="file-modal-title">New File</span>
-        <button class="file-modal-close" onclick="document.getElementById('file-modal-overlay').classList.remove('active')">×</button>
-      </div>
-      <div class="file-modal-body">
-        <div class="file-modal-input-group">
-          <label class="file-modal-label" id="file-modal-label">File name:</label>
-          <input type="text"
-                 id="file-modal-input"
-                 class="file-modal-input"
-                 placeholder="example.py"
-                 autocomplete="off" />
+    <!-- File Modal (for smooth CRUD operations) -->
+    <div id="file-modal-overlay" class="file-modal-overlay">
+        <div class="file-modal">
+            <div class="file-modal-header">
+                <span id="file-modal-title" class="file-modal-title">New File</span>
+                <button class="file-modal-close"
+                        onclick="document.getElementById('file-modal-overlay').classList.remove('active')">×</button>
+            </div>
+            <div class="file-modal-body">
+                <div class="file-modal-input-group">
+                    <label class="file-modal-label" id="file-modal-label">File name:</label>
+                    <input type="text"
+                           id="file-modal-input"
+                           class="file-modal-input"
+                           placeholder="example.py"
+                           autocomplete="off" />
+                </div>
+            </div>
+            <div class="file-modal-footer">
+                <button class="file-modal-btn"
+                        onclick="document.getElementById('file-modal-overlay').classList.remove('active')">
+                    Cancel
+                </button>
+                <button id="file-modal-submit" class="file-modal-btn file-modal-btn-primary">Create</button>
+            </div>
         </div>
-      </div>
-      <div class="file-modal-footer">
-        <button class="file-modal-btn" onclick="document.getElementById('file-modal-overlay').classList.remove('active')">Cancel</button>
-        <button id="file-modal-submit" class="file-modal-btn file-modal-btn-primary">Create</button>
-      </div>
     </div>
-  </div>
-
-  <!-- Commit Modal -->
-  <div id="commit-modal-overlay" class="file-modal-overlay">
-    <div class="file-modal commit-modal">
-      <div class="file-modal-header">
-        <span class="file-modal-title"><i class="fas fa-code-branch"></i> Commit Changes</span>
-        <button class="file-modal-close" onclick="document.getElementById('commit-modal-overlay').classList.remove('active')">×</button>
-      </div>
-      <div class="file-modal-body">
-        <div class="commit-message-group">
-          <label for="commit-message" class="commit-message-label">Commit message:</label>
-          <textarea id="commit-message" class="file-modal-input commit-message-textarea" rows="4" placeholder="Brief description of changes..."></textarea>
+    <!-- Commit Modal -->
+    <div id="commit-modal-overlay" class="file-modal-overlay">
+        <div class="file-modal commit-modal">
+            <div class="file-modal-header">
+                <span class="file-modal-title"><i class="fas fa-code-branch"></i> Commit Changes</span>
+                <button class="file-modal-close"
+                        onclick="document.getElementById('commit-modal-overlay').classList.remove('active')">×</button>
+            </div>
+            <div class="file-modal-body">
+                <div class="commit-message-group">
+                    <label for="commit-message" class="commit-message-label">Commit message:</label>
+                    <textarea id="commit-message"
+                              class="file-modal-input commit-message-textarea"
+                              rows="4"
+                              placeholder="Brief description of changes..."></textarea>
+                </div>
+                <div class="commit-preview-group">
+                    <div id="commit-files-preview" class="commit-files-preview">Loading changed files...</div>
+                </div>
+                <div class="commit-checkbox-container">
+                    <input type="checkbox" id="commit-and-push" checked class="commit-checkbox" />
+                    <label for="commit-and-push" class="commit-checkbox-label">Push to remote after commit</label>
+                </div>
+            </div>
+            <div class="file-modal-footer">
+                <button class="file-modal-btn"
+                        onclick="document.getElementById('commit-modal-overlay').classList.remove('active')">
+                    Cancel
+                </button>
+                <button id="commit-modal-submit"
+                        class="file-modal-btn file-modal-btn-primary commit-submit-btn">
+                    <i class="fas fa-code-branch"></i> Commit
+                </button>
+            </div>
         </div>
-        <div class="commit-preview-group">
-          <div id="commit-files-preview" class="commit-files-preview">
-            Loading changed files...
-          </div>
-        </div>
-        <div class="commit-checkbox-container">
-          <input type="checkbox" id="commit-and-push" checked class="commit-checkbox">
-          <label for="commit-and-push" class="commit-checkbox-label">Push to remote after commit</label>
-        </div>
-      </div>
-      <div class="file-modal-footer">
-        <button class="file-modal-btn" onclick="document.getElementById('commit-modal-overlay').classList.remove('active')">Cancel</button>
-        <button id="commit-modal-submit" class="file-modal-btn file-modal-btn-primary commit-submit-btn">
-          <i class="fas fa-code-branch"></i> Commit
-        </button>
-      </div>
     </div>
-  </div>
-
-  <!-- Signup Warning Modal (for visitor users) -->
-  <div id="signup-warning-modal" class="file-modal-overlay">
-    <div class="file-modal signup-warning-modal">
-      <div class="file-modal-header">
-        <span class="file-modal-title">
-          <i class="fas fa-save signup-modal-title-icon"></i>
-          Save Your Work
-        </span>
-        <button class="file-modal-close" onclick="document.getElementById('signup-warning-modal').classList.remove('active')">×</button>
-      </div>
-      <div class="file-modal-body">
-        <div class="signup-warning-content">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="signup-warning-icon">
-            <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
-            <polyline points="17 21 17 13 7 13 7 21" class="signup-modal-svg-stroke"/>
-            <polyline points="7 3 7 8 15 8" class="signup-modal-svg-stroke"/>
-          </svg>
-
-          <h3 class="signup-warning-title">
-            Create an Account to Save Files
-          </h3>
-
-          <p class="signup-warning-text">
-            You're currently using a guest session. To create files, save your work,
-            and access your projects anytime, you'll need a free SciTeX account.
-          </p>
-
-          <div class="signup-benefits-box">
-            <strong class="signup-benefits-title">
-              <i class="fas fa-check-circle signup-benefits-icon"></i> With a free account you get:
-            </strong>
-            <ul class="signup-benefits-list">
-              <li>Save and organize your code files</li>
-              <li>Create unlimited projects</li>
-              <li>Access your work from anywhere</li>
-              <li>Collaborate with your team</li>
-            </ul>
-          </div>
+    <!-- Signup Warning Modal (for visitor users) -->
+    <div id="signup-warning-modal" class="file-modal-overlay">
+        <div class="file-modal signup-warning-modal">
+            <div class="file-modal-header">
+                <span class="file-modal-title">
+                    <i class="fas fa-save signup-modal-title-icon"></i>
+                    Save Your Work
+                </span>
+                <button class="file-modal-close"
+                        onclick="document.getElementById('signup-warning-modal').classList.remove('active')">×</button>
+            </div>
+            <div class="file-modal-body">
+                <div class="signup-warning-content">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         viewBox="0 0 24 24"
+                         fill="currentColor"
+                         class="signup-warning-icon">
+                        <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
+                        <polyline points="17 21 17 13 7 13 7 21" class="signup-modal-svg-stroke" />
+                        <polyline points="7 3 7 8 15 8" class="signup-modal-svg-stroke" />
+                    </svg>
+                    <h3 class="signup-warning-title">Create an Account to Save Files</h3>
+                    <p class="signup-warning-text">
+                        You're currently using a guest session. To create files, save your work,
+                        and access your projects anytime, you'll need a free SciTeX account.
+                    </p>
+                    <div class="signup-benefits-box">
+                        <strong class="signup-benefits-title">
+                            <i class="fas fa-check-circle signup-benefits-icon"></i> With a free account you get:
+                        </strong>
+                        <ul class="signup-benefits-list">
+                            <li>Save and organize your code files</li>
+                            <li>Create unlimited projects</li>
+                            <li>Access your work from anywhere</li>
+                            <li>Collaborate with your team</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="file-modal-footer signup-warning-footer">
+                <button class="file-modal-btn"
+                        onclick="document.getElementById('signup-warning-modal').classList.remove('active')">
+                    Continue Browsing
+                </button>
+                <a href="/accounts/signup/"
+                   class="file-modal-btn file-modal-btn-primary signup-warning-link">
+                    <i class="fas fa-user-plus signup-warning-link-icon"></i>
+                    Sign Up Free
+                </a>
+            </div>
         </div>
-      </div>
-      <div class="file-modal-footer signup-warning-footer">
-        <button class="file-modal-btn" onclick="document.getElementById('signup-warning-modal').classList.remove('active')">
-          Continue Browsing
-        </button>
-        <a href="/accounts/signup/" class="file-modal-btn file-modal-btn-primary signup-warning-link">
-          <i class="fas fa-user-plus signup-warning-link-icon"></i>
-          Sign Up Free
-        </a>
-      </div>
     </div>
-  </div>
-
-  <!-- xterm.js for real PTY terminal with addons -->
-  <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xterm-addon-image@0.6.0/lib/xterm-addon-image.js"></script>
-
-  <!-- Vite HMR client (only in dev when Vite server is running) -->
-  {% vite_hmr_client %}
-
-  <!-- Panel resizer (auto-initializes from data attributes) -->
-  {% vite_script 'shared/workspace-panel-resizer' %}
-
-  <!-- Load workspace module via Vite (HMR in dev, bundled in prod) -->
-  {% vite_script 'console_app/workspace' %}
+    <!-- xterm.js for real PTY terminal with addons -->
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-image@0.6.0/lib/xterm-addon-image.js"></script>
+    <!-- Vite HMR client (only in dev when Vite server is running) -->
+    {% vite_hmr_client %}
+    <!-- Panel resizer (auto-initializes from data attributes) -->
+    {% vite_script 'shared/workspace-panel-resizer' %}
+    <!-- Load workspace module via Vite (HMR in dev, bundled in prod) -->
+    {% vite_script 'console_app/workspace' %}
 {% endblock %}

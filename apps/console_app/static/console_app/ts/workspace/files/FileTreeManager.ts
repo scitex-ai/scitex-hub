@@ -97,6 +97,11 @@ export class FileTreeManager {
       // Initialize the tree (this loads data and renders)
       await this.tree.initialize();
 
+      // Initialize hidden files toggle
+      const { initHiddenFilesToggle } =
+        await import("@/components/workspace-files-tree/HiddenFilesToggle");
+      initHiddenFilesToggle(this.tree as any);
+
       // Build file list from tree data
       this.buildFileList(this.tree.getTreeData());
 

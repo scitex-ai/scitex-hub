@@ -5,23 +5,25 @@
  * Uses centralized configuration from FilteringCriteria.ts
  */
 
-import type { TreeItem, FilterConfig, WorkspaceMode } from './types.ts';
-import { MODE_FILTERS } from './types.ts';
+import type { TreeItem, FilterConfig, WorkspaceMode } from "./types.ts";
+import { MODE_FILTERS } from "./types.ts";
 import {
   ALLOW_EXTENSIONS,
   DENY_DIRECTORIES,
   ALLOW_DIRECTORIES,
   PRESERVE_EMPTY_DIRECTORIES,
   ALWAYS_VISIBLE_FILENAMES,
-} from './FilteringCriteria.ts';
+} from "./FilteringCriteria.ts";
 
 export class TreeFilter {
   private config: FilterConfig;
+  private showHidden = false;
 
   constructor(mode: WorkspaceMode, customConfig?: Partial<FilterConfig>) {
     // Use centralized FilteringCriteria configuration as default
     const centralExtensions = ALLOW_EXTENSIONS[mode];
-    const defaultAllowedExtensions = centralExtensions === 'all' ? [] : centralExtensions;
+    const defaultAllowedExtensions =
+      centralExtensions === "all" ? [] : centralExtensions;
     const defaultHiddenPatterns = DENY_DIRECTORIES[mode] || [];
 
     // Fall back to old MODE_FILTERS for backward compatibility
@@ -29,8 +31,12 @@ export class TreeFilter {
 
     this.config = {
       mode,
-      allowedExtensions: customConfig?.allowedExtensions ?? defaultAllowedExtensions,
-      disabledExtensions: customConfig?.disabledExtensions ?? legacyDefaults.disabledExtensions ?? [],
+      allowedExtensions:
+        customConfig?.allowedExtensions ?? defaultAllowedExtensions,
+      disabledExtensions:
+        customConfig?.disabledExtensions ??
+        legacyDefaults.disabledExtensions ??
+        [],
       hiddenPatterns: customConfig?.hiddenPatterns ?? defaultHiddenPatterns,
     };
   }
@@ -45,22 +51,30 @@ export class TreeFilter {
     // With the new inactive/gray approach, we show almost everything.
     // Only truly system files that add noise are hidden.
 
-    // 0. ALWAYS VISIBLE FILES (highest priority - bypasses all filtering)
-    //    Files like .gitkeep should always be shown
-    if (type === 'file' && ALWAYS_VISIBLE_FILENAMES.includes(name)) {
-      return false;
-    }
-
-    // 1. Hide only system noise files (not directories)
-    //    .DS_Store, Thumbs.db, etc. - these have no value to show
-    const systemNoiseFiles = ['.DS_Store', 'Thumbs.db'];
-    if (type === 'file' && systemNoiseFiles.includes(name)) {
+    // 0. Hide dotfiles when showHidden is false (highest priority toggle)
+    if (!this.showHidden && name.startsWith(".")) {
       return true;
     }
 
-    // 2. ALWAYS hide extracted bundle directories (.figz.d, .pltz.d)
+    // 1. ALWAYS VISIBLE FILES (bypasses filtering below, but not dotfile toggle above)
+    //    Files like .gitkeep should always be shown when hidden files are visible
+    if (type === "file" && ALWAYS_VISIBLE_FILENAMES.includes(name)) {
+      return false;
+    }
+
+    // 2. Hide only system noise files (not directories)
+    //    .DS_Store, Thumbs.db, etc. - these have no value to show
+    const systemNoiseFiles = [".DS_Store", "Thumbs.db"];
+    if (type === "file" && systemNoiseFiles.includes(name)) {
+      return true;
+    }
+
+    // 3. ALWAYS hide extracted bundle directories (.figz.d, .pltz.d)
     //    Users work with ZIP files (.figz, .pltz) only
-    if (type === 'directory' && (name.endsWith('.figz.d') || name.endsWith('.pltz.d'))) {
+    if (
+      type === "directory" &&
+      (name.endsWith(".figz.d") || name.endsWith(".pltz.d"))
+    ) {
       return true;
     }
 
@@ -83,10 +97,14 @@ export class TreeFilter {
     // 1. Items in blacklisted directories are shown but inactive
     for (const pattern of this.config.hiddenPatterns) {
       // Support suffix patterns (e.g., '.figz.d' matches 'Figure1.figz.d')
-      if (pattern.startsWith('.') && name.endsWith(pattern)) {
+      if (pattern.startsWith(".") && name.endsWith(pattern)) {
         return true;
       }
-      if (name === pattern || path.includes(`/${pattern}/`) || path.includes(`/${pattern}`)) {
+      if (
+        name === pattern ||
+        path.includes(`/${pattern}/`) ||
+        path.includes(`/${pattern}`)
+      ) {
         return true;
       }
     }
@@ -97,7 +115,7 @@ export class TreeFilter {
     }
 
     // 3. Files with non-allowed extensions are shown but inactive
-    if (type === 'file' && !this.isAllowed(item)) {
+    if (type === "file" && !this.isAllowed(item)) {
       return true;
     }
 
@@ -117,13 +135,15 @@ export class TreeFilter {
     }
 
     // Normalize path for comparison
-    const normalizedPath = path.replace(/^\.\//, '');
+    const normalizedPath = path.replace(/^\.\//, "");
 
     // Check if path is within or equal to any allowed directory
-    const isInAllowedDir = allowedDirs.some(allowedDir => {
-      const normalizedAllowedDir = allowedDir.replace(/^\.\//, '');
-      return normalizedPath.startsWith(normalizedAllowedDir) ||
-             normalizedPath === normalizedAllowedDir;
+    const isInAllowedDir = allowedDirs.some((allowedDir) => {
+      const normalizedAllowedDir = allowedDir.replace(/^\.\//, "");
+      return (
+        normalizedPath.startsWith(normalizedAllowedDir) ||
+        normalizedPath === normalizedAllowedDir
+      );
     });
 
     if (isInAllowedDir) {
@@ -132,9 +152,9 @@ export class TreeFilter {
 
     // Check if path is a parent directory of any allowed directory
     // (e.g., 'scitex' is parent of 'scitex/vis', so it should be shown)
-    const isParentOfAllowedDir = allowedDirs.some(allowedDir => {
-      const normalizedAllowedDir = allowedDir.replace(/^\.\//, '');
-      return normalizedAllowedDir.startsWith(normalizedPath + '/');
+    const isParentOfAllowedDir = allowedDirs.some((allowedDir) => {
+      const normalizedAllowedDir = allowedDir.replace(/^\.\//, "");
+      return normalizedAllowedDir.startsWith(normalizedPath + "/");
     });
 
     return isParentOfAllowedDir;
@@ -143,7 +163,7 @@ export class TreeFilter {
   /** Check if a file is allowed (can be selected/opened) */
   isAllowed(item: TreeItem): boolean {
     // Directories are always allowed for navigation
-    if (item.type === 'directory') {
+    if (item.type === "directory") {
       return true;
     }
 
@@ -168,7 +188,7 @@ export class TreeFilter {
 
   /** Check if a file should be grayed out (visible but not selectable) */
   isDisabled(item: TreeItem): boolean {
-    if (item.type === 'directory') {
+    if (item.type === "directory") {
       return false;
     }
 
@@ -191,7 +211,10 @@ export class TreeFilter {
 
     // 5. EXTENSION WHITELIST (for disabling)
     //    If allowedExtensions is specified, files NOT in the list are disabled
-    if (this.config.allowedExtensions.length > 0 && !this.config.allowedExtensions.includes(ext)) {
+    if (
+      this.config.allowedExtensions.length > 0 &&
+      !this.config.allowedExtensions.includes(ext)
+    ) {
       return true;
     }
 
@@ -200,71 +223,73 @@ export class TreeFilter {
 
   /** Get file extension including the dot */
   private getExtension(fileName: string): string {
-    const lastDot = fileName.lastIndexOf('.');
-    if (lastDot === -1) return '';
+    const lastDot = fileName.lastIndexOf(".");
+    if (lastDot === -1) return "";
     return fileName.substring(lastDot).toLowerCase();
   }
 
   /** Filter tree items recursively */
   filterTree(items: TreeItem[]): TreeItem[] {
-    return items
-      .filter((item) => !this.isHidden(item))
-      // No longer filter by extension - show all files, mark non-allowed as inactive
-      .map((item) => {
-        if (item.type === 'directory' && item.children) {
-          return {
-            ...item,
-            children: this.filterTree(item.children),
-          };
-        }
-        return item;
-      })
-      // Remove empty directories after filtering children
-      // Keep inactive directories visible for consistent mental model
-      .filter((item) => {
-        if (item.type === 'directory' && item.children) {
-          // Always keep if has children
-          if (item.children.length > 0) {
-            return true;
+    return (
+      items
+        .filter((item) => !this.isHidden(item))
+        // No longer filter by extension - show all files, mark non-allowed as inactive
+        .map((item) => {
+          if (item.type === "directory" && item.children) {
+            return {
+              ...item,
+              children: this.filterTree(item.children),
+            };
           }
-
-          // Keep inactive directories visible (grayed out but shown)
-          if (this.isInactive(item)) {
-            return true;
-          }
-
-          // In 'code' and 'all' modes, preserve all empty directories (user may create empty dirs)
-          if (this.config.mode === 'code' || this.config.mode === 'all') {
-            return true;
-          }
-
-          // Check if directory is in PRESERVE_EMPTY_DIRECTORIES
-          const preserveDirs = PRESERVE_EMPTY_DIRECTORIES[this.config.mode];
-          const isPreserved = preserveDirs.some(pattern =>
-            item.name === pattern || item.path.includes(pattern)
-          );
-          if (isPreserved) {
-            return true;
-          }
-
-          // Check if directory matches ALLOW_DIRECTORIES (keep root allowed dirs even if empty)
-          const allowedDirs = ALLOW_DIRECTORIES[this.config.mode];
-          if (allowedDirs.length > 0) {
-            const normalizedPath = item.path.replace(/^\.\//, '');
-            const isAllowedDir = allowedDirs.some(allowedDir => {
-              const normalizedAllowedDir = allowedDir.replace(/^\.\//, '');
-              return normalizedPath === normalizedAllowedDir;
-            });
-            if (isAllowedDir) {
+          return item;
+        })
+        // Remove empty directories after filtering children
+        // Keep inactive directories visible for consistent mental model
+        .filter((item) => {
+          if (item.type === "directory" && item.children) {
+            // Always keep if has children
+            if (item.children.length > 0) {
               return true;
             }
-          }
 
-          // Otherwise, remove empty directory
-          return false;
-        }
-        return true;
-      });
+            // Keep inactive directories visible (grayed out but shown)
+            if (this.isInactive(item)) {
+              return true;
+            }
+
+            // In 'code' and 'all' modes, preserve all empty directories (user may create empty dirs)
+            if (this.config.mode === "code" || this.config.mode === "all") {
+              return true;
+            }
+
+            // Check if directory is in PRESERVE_EMPTY_DIRECTORIES
+            const preserveDirs = PRESERVE_EMPTY_DIRECTORIES[this.config.mode];
+            const isPreserved = preserveDirs.some(
+              (pattern) => item.name === pattern || item.path.includes(pattern),
+            );
+            if (isPreserved) {
+              return true;
+            }
+
+            // Check if directory matches ALLOW_DIRECTORIES (keep root allowed dirs even if empty)
+            const allowedDirs = ALLOW_DIRECTORIES[this.config.mode];
+            if (allowedDirs.length > 0) {
+              const normalizedPath = item.path.replace(/^\.\//, "");
+              const isAllowedDir = allowedDirs.some((allowedDir) => {
+                const normalizedAllowedDir = allowedDir.replace(/^\.\//, "");
+                return normalizedPath === normalizedAllowedDir;
+              });
+              if (isAllowedDir) {
+                return true;
+              }
+            }
+
+            // Otherwise, remove empty directory
+            return false;
+          }
+          return true;
+        })
+    );
   }
 
   /** Get the current mode */
@@ -290,5 +315,15 @@ export class TreeFilter {
   /** Update hidden patterns */
   setHiddenPatterns(patterns: string[]): void {
     this.config.hiddenPatterns = patterns;
+  }
+
+  /** Set whether dotfiles are shown */
+  setShowHidden(show: boolean): void {
+    this.showHidden = show;
+  }
+
+  /** Get whether dotfiles are shown */
+  getShowHidden(): boolean {
+    return this.showHidden;
   }
 }

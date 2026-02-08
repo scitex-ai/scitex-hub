@@ -15,6 +15,101 @@ declare global {
   interface Window {
     toggleFolder: typeof toggleFolder;
     loadFileTree: typeof loadFileTree;
+    toggleHiddenFiles: typeof toggleHiddenFiles;
+  }
+}
+
+/** localStorage key for hidden files toggle state */
+const HIDDEN_FILES_KEY = "scitex-show-hidden-files";
+
+/** System noise files always hidden */
+const SYSTEM_NOISE = [".DS_Store", "Thumbs.db"];
+
+/** Check if a file/directory name is a dotfile (hidden) */
+function isDotfile(name: string): boolean {
+  return name.startsWith(".") && !SYSTEM_NOISE.includes(name);
+}
+
+/** Check if a file is system noise (always hidden) */
+function isSystemNoise(name: string): boolean {
+  return SYSTEM_NOISE.includes(name);
+}
+
+/** Get show-hidden-files preference from localStorage */
+function getShowHidden(): boolean {
+  return localStorage.getItem(HIDDEN_FILES_KEY) === "true";
+}
+
+/** Filter tree items based on hidden file preference */
+function filterTreeItems(items: TreeItem[]): TreeItem[] {
+  const showHidden = getShowHidden();
+
+  return (
+    items
+      .filter((item) => {
+        // Always hide system noise
+        if (item.type === "file" && isSystemNoise(item.name)) {
+          return false;
+        }
+        // Hide dotfiles unless toggle is on
+        if (!showHidden && isDotfile(item.name)) {
+          return false;
+        }
+        return true;
+      })
+      .map((item) => {
+        if (item.type === "directory" && item.children) {
+          return { ...item, children: filterTreeItems(item.children) };
+        }
+        return item;
+      })
+      // Remove empty directories after filtering (except when showing hidden)
+      .filter((item) => {
+        if (
+          item.type === "directory" &&
+          item.children &&
+          item.children.length === 0
+        ) {
+          // Keep directories that were originally non-empty (children were filtered out)
+          return false;
+        }
+        return true;
+      })
+  );
+}
+
+/** Toggle hidden files visibility and re-render the tree */
+export function toggleHiddenFiles(): void {
+  const current = getShowHidden();
+  localStorage.setItem(HIDDEN_FILES_KEY, String(!current));
+  updateToggleButton(!current);
+
+  // Re-render the file tree
+  const projectData = document.getElementById("project-data");
+  if (projectData) {
+    const owner = projectData.dataset.projectOwner;
+    const slug = projectData.dataset.projectSlug;
+    if (owner && slug) {
+      loadFileTree(owner, slug, "file-tree");
+    }
+  }
+}
+
+/** Update the toggle button icon to reflect current state */
+function updateToggleButton(showHidden: boolean): void {
+  const btn = document.getElementById("hidden-files-toggle");
+  if (!btn) return;
+  const icon = btn.querySelector("i");
+  if (!icon) return;
+
+  if (showHidden) {
+    icon.className = "fas fa-eye";
+    btn.title = "Hide hidden files";
+    btn.classList.add("active");
+  } else {
+    icon.className = "fas fa-eye-slash";
+    btn.title = "Show hidden files";
+    btn.classList.remove("active");
   }
 }
 
@@ -31,96 +126,131 @@ export interface TreeItem {
  * Get colorful file icon based on extension (VS Code style)
  */
 function getColorfulFileIcon(fileName: string): string {
-  const ext = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
+  const ext = fileName.substring(fileName.lastIndexOf(".")).toLowerCase();
   const name = fileName.toLowerCase();
 
   // Comprehensive icon map (Gitea-inspired)
-  const iconMap: { [key: string]: { icon: string, color: string } } = {
+  const iconMap: { [key: string]: { icon: string; color: string } } = {
     // Programming languages
-    '.py': { icon: 'fab fa-python', color: '#3776ab' },
-    '.js': { icon: 'fab fa-js', color: '#f7df1e' },
-    '.ts': { icon: 'fab fa-js', color: '#3178c6' },
-    '.jsx': { icon: 'fab fa-react', color: '#61dafb' },
-    '.tsx': { icon: 'fab fa-react', color: '#61dafb' },
-    '.java': { icon: 'fab fa-java', color: '#007396' },
-    '.go': { icon: 'fas fa-code', color: '#00add8' },
-    '.rs': { icon: 'fas fa-gear', color: '#ce422b' },
-    '.c': { icon: 'fas fa-file-code', color: '#555555' },
-    '.cpp': { icon: 'fas fa-file-code', color: '#f34b7d' },
+    ".py": { icon: "fab fa-python", color: "#3776ab" },
+    ".js": { icon: "fab fa-js", color: "#f7df1e" },
+    ".ts": { icon: "fab fa-js", color: "#3178c6" },
+    ".jsx": { icon: "fab fa-react", color: "#61dafb" },
+    ".tsx": { icon: "fab fa-react", color: "#61dafb" },
+    ".java": { icon: "fab fa-java", color: "#007396" },
+    ".go": { icon: "fas fa-code", color: "#00add8" },
+    ".rs": { icon: "fas fa-gear", color: "#ce422b" },
+    ".c": { icon: "fas fa-file-code", color: "#555555" },
+    ".cpp": { icon: "fas fa-file-code", color: "#f34b7d" },
 
     // Web
-    '.html': { icon: 'fab fa-html5', color: '#e34c26' },
-    '.css': { icon: 'fab fa-css3-alt', color: '#264de4' },
-    '.scss': { icon: 'fab fa-sass', color: '#cc6699' },
+    ".html": { icon: "fab fa-html5", color: "#e34c26" },
+    ".css": { icon: "fab fa-css3-alt", color: "#264de4" },
+    ".scss": { icon: "fab fa-sass", color: "#cc6699" },
 
     // Data & Config
-    '.json': { icon: 'fas fa-brackets-curly', color: '#ffa500' },
-    '.yaml': { icon: 'fas fa-file-code', color: '#cb171e' },
-    '.yml': { icon: 'fas fa-file-code', color: '#cb171e' },
-    '.toml': { icon: 'fas fa-file-code', color: '#9c4121' },
-    '.xml': { icon: 'fas fa-file-code', color: '#e37933' },
-    '.csv': { icon: 'fas fa-table', color: '#217346' },
+    ".json": { icon: "fas fa-brackets-curly", color: "#ffa500" },
+    ".yaml": { icon: "fas fa-file-code", color: "#cb171e" },
+    ".yml": { icon: "fas fa-file-code", color: "#cb171e" },
+    ".toml": { icon: "fas fa-file-code", color: "#9c4121" },
+    ".xml": { icon: "fas fa-file-code", color: "#e37933" },
+    ".csv": { icon: "fas fa-table", color: "#217346" },
 
     // Documentation
-    '.md': { icon: 'fab fa-markdown', color: '#000000' },
-    '.txt': { icon: 'fas fa-file-alt', color: '#777777' },
-    '.pdf': { icon: 'fas fa-file-pdf', color: '#ff0000' },
+    ".md": { icon: "fab fa-markdown", color: "#000000" },
+    ".txt": { icon: "fas fa-file-alt", color: "#777777" },
+    ".pdf": { icon: "fas fa-file-pdf", color: "#ff0000" },
 
     // Scripts & Shell
-    '.sh': { icon: 'fas fa-terminal', color: '#89e051' },
-    '.bash': { icon: 'fas fa-terminal', color: '#89e051' },
+    ".sh": { icon: "fas fa-terminal", color: "#89e051" },
+    ".bash": { icon: "fas fa-terminal", color: "#89e051" },
 
     // Data Science
-    '.r': { icon: 'fab fa-r-project', color: '#276dc3' },
-    '.ipynb': { icon: 'fas fa-book', color: '#ff6f00' },
-    '.sql': { icon: 'fas fa-database', color: '#e38c00' },
+    ".r": { icon: "fab fa-r-project", color: "#276dc3" },
+    ".ipynb": { icon: "fas fa-book", color: "#ff6f00" },
+    ".sql": { icon: "fas fa-database", color: "#e38c00" },
 
     // Images
-    '.jpg': { icon: 'fas fa-image', color: '#00bfa5' },
-    '.jpeg': { icon: 'fas fa-image', color: '#00bfa5' },
-    '.png': { icon: 'fas fa-image', color: '#00bfa5' },
-    '.gif': { icon: 'fas fa-image', color: '#00bfa5' },
-    '.svg': { icon: 'fas fa-image', color: '#ffb300' },
-    '.webp': { icon: 'fas fa-image', color: '#00bfa5' },
+    ".jpg": { icon: "fas fa-image", color: "#00bfa5" },
+    ".jpeg": { icon: "fas fa-image", color: "#00bfa5" },
+    ".png": { icon: "fas fa-image", color: "#00bfa5" },
+    ".gif": { icon: "fas fa-image", color: "#00bfa5" },
+    ".svg": { icon: "fas fa-image", color: "#ffb300" },
+    ".webp": { icon: "fas fa-image", color: "#00bfa5" },
 
     // Archives
-    '.zip': { icon: 'fas fa-file-archive', color: '#8b8b8b' },
-    '.tar': { icon: 'fas fa-file-archive', color: '#8b8b8b' },
-    '.gz': { icon: 'fas fa-file-archive', color: '#8b8b8b' },
+    ".zip": { icon: "fas fa-file-archive", color: "#8b8b8b" },
+    ".tar": { icon: "fas fa-file-archive", color: "#8b8b8b" },
+    ".gz": { icon: "fas fa-file-archive", color: "#8b8b8b" },
 
     // Others
-    '.tex': { icon: 'fas fa-file-alt', color: '#3d6117' },
-    '.log': { icon: 'fas fa-file-lines', color: '#777777' },
-    '.env': { icon: 'fas fa-cog', color: '#edb92e' },
+    ".tex": { icon: "fas fa-file-alt", color: "#3d6117" },
+    ".log": { icon: "fas fa-file-lines", color: "#777777" },
+    ".env": { icon: "fas fa-cog", color: "#edb92e" },
   };
 
   // Special file names (like Gitea)
-  const specialFiles: { [key: string]: { icon: string, color: string } } = {
-    'readme.md': { icon: 'fas fa-book', color: '#00b0ff' },
-    'readme': { icon: 'fas fa-book', color: '#00b0ff' },
-    'license': { icon: 'fas fa-scroll', color: '#ffab00' },
-    'dockerfile': { icon: 'fab fa-docker', color: '#2496ed' },
-    'makefile': { icon: 'fas fa-cog', color: '#6d6d6d' },
-    '.gitignore': { icon: 'fab fa-git-alt', color: '#f05032' },
-    '.gitattributes': { icon: 'fab fa-git-alt', color: '#f05032' },
-    'package.json': { icon: 'fab fa-npm', color: '#cb3837' },
-    'tsconfig.json': { icon: 'fab fa-js', color: '#3178c6' },
-    'requirements.txt': { icon: 'fab fa-python', color: '#3776ab' },
-    'setup.py': { icon: 'fab fa-python', color: '#3776ab' },
+  const specialFiles: { [key: string]: { icon: string; color: string } } = {
+    "readme.md": { icon: "fas fa-book", color: "#00b0ff" },
+    readme: { icon: "fas fa-book", color: "#00b0ff" },
+    license: { icon: "fas fa-scroll", color: "#ffab00" },
+    dockerfile: { icon: "fab fa-docker", color: "#2496ed" },
+    makefile: { icon: "fas fa-cog", color: "#6d6d6d" },
+    ".gitignore": { icon: "fab fa-git-alt", color: "#f05032" },
+    ".gitattributes": { icon: "fab fa-git-alt", color: "#f05032" },
+    "package.json": { icon: "fab fa-npm", color: "#cb3837" },
+    "tsconfig.json": { icon: "fab fa-js", color: "#3178c6" },
+    "requirements.txt": { icon: "fab fa-python", color: "#3776ab" },
+    "setup.py": { icon: "fab fa-python", color: "#3776ab" },
   };
 
   if (specialFiles[name]) {
     const { icon, color } = specialFiles[name];
-    return `<i class="${icon}" style="color: ${color}; width: 16px; text-align: center;"></i>`;
+    return `<i class="${icon} file-tree-icon-colored" data-color="${color}"></i>`;
   }
 
   if (iconMap[ext]) {
     const { icon, color } = iconMap[ext];
-    return `<i class="${icon}" style="color: ${color}; width: 16px; text-align: center;"></i>`;
+    return `<i class="${icon} file-tree-icon-colored" data-color="${color}"></i>`;
   }
 
   // Default file icon
-  return '<i class="fas fa-file" style="color: #777; width: 16px; text-align: center;"></i>';
+  return '<i class="fas fa-file file-tree-icon-colored file-tree-icon-default"></i>';
+}
+
+/** Inject dynamic color styles for file icons via <style> tag */
+function injectIconColorStyles(): void {
+  if (document.getElementById("file-tree-icon-styles")) return;
+  const style = document.createElement("style");
+  style.id = "file-tree-icon-styles";
+  style.textContent = `
+    .file-tree-icon-colored {
+      width: 16px;
+      text-align: center;
+    }
+    .file-tree-icon-default {
+      color: #777;
+    }
+    .file-tree-icon-folder {
+      color: #dcb67a;
+    }
+    .file-tree-error {
+      color: var(--color-fg-muted);
+      padding: 0.5rem;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+/** Apply data-color attributes as inline color after DOM render */
+function applyIconColors(): void {
+  const icons = document.querySelectorAll<HTMLElement>(
+    ".file-tree-icon-colored[data-color]",
+  );
+  icons.forEach((el) => {
+    const color = el.getAttribute("data-color");
+    if (color) el.style.color = color;
+  });
 }
 
 /**
@@ -176,7 +306,8 @@ export function buildTreeHTML(
     let icon: string;
     if (item.type === "directory") {
       // Folder icon (yellow-ish like VS Code)
-      icon = '<i class="fas fa-folder" style="color: #dcb67a; width: 16px; text-align: center;"></i>';
+      icon =
+        '<i class="fas fa-folder file-tree-icon-colored file-tree-icon-folder"></i>';
     } else {
       // Colorful file icon based on extension
       icon = getColorfulFileIcon(item.name);
@@ -295,25 +426,29 @@ export async function loadFileTree(
     }
 
     if (data.success) {
-      treeContainer.innerHTML = buildTreeHTML(data.tree, username, slug);
+      const filtered = filterTreeItems(data.tree);
+      treeContainer.innerHTML = buildTreeHTML(filtered, username, slug);
+      injectIconColorStyles();
+      applyIconColors();
     } else {
+      injectIconColorStyles();
       treeContainer.innerHTML =
-        '<div style="color: var(--color-fg-muted); padding: 0.5rem;">Error loading file tree</div>';
+        '<div class="file-tree-error">Error loading file tree</div>';
     }
   } catch (err) {
     console.error("Failed to load file tree:", err);
     const treeContainer = document.getElementById(containerId);
     if (treeContainer) {
       treeContainer.innerHTML =
-        '<div style="color: var(--color-fg-muted); padding: 0.5rem;">Error loading file tree</div>';
+        '<div class="file-tree-error">Error loading file tree</div>';
     }
   }
 }
 
-
 // Expose functions globally for onclick handlers
 window.toggleFolder = toggleFolder;
 window.loadFileTree = loadFileTree;
+window.toggleHiddenFiles = toggleHiddenFiles;
 
 // Auto-initialize if project-data element exists
 document.addEventListener("DOMContentLoaded", () => {
@@ -324,5 +459,17 @@ document.addEventListener("DOMContentLoaded", () => {
     if (owner && slug) {
       loadFileTree(owner, slug, "file-tree");
     }
+  }
+
+  // Wire up the hidden files toggle button
+  const toggleBtn = document.getElementById("hidden-files-toggle");
+  if (toggleBtn) {
+    toggleBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleHiddenFiles();
+    });
+    // Set initial button state
+    updateToggleButton(getShowHidden());
   }
 });

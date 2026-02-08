@@ -34,6 +34,11 @@
                 </svg>
                 <span>{{ project.owner.username }}/{{ project.slug }}/</span>
             </a>
+            <button class="hidden-files-toggle"
+                    id="hidden-files-toggle"
+                    title="Toggle hidden files">
+                <i class="fas fa-eye-slash"></i>
+            </button>
         </div>
         <!-- Dynamic file tree - rendered by JavaScript (see _scripts.html) -->
         <div id="file-tree" style="font-size: 14px; margin-top: 4px">

@@ -4,6 +4,7 @@
  */
 
 import { WorkspaceFilesTree } from "/static/shared/ts/components/workspace-files-tree/WorkspaceFilesTree";
+import { initHiddenFilesToggle } from "/static/shared/ts/components/workspace-files-tree/HiddenFilesToggle";
 
 // Import PDF download handler (auto-initializes on DOM ready)
 import "./search/pdf-download";
@@ -45,13 +46,17 @@ async function initializeWorkspaceTree(config: ProjectConfig): Promise<void> {
     onFileSelect: (path: string) => {
       console.log("[Scholar] File selected:", path);
       if (path.endsWith(".pdf")) {
-        window.open(`/${config.username}/${config.slug}/files/${path}`, "_blank");
+        window.open(
+          `/${config.username}/${config.slug}/files/${path}`,
+          "_blank",
+        );
       } else if (path.endsWith(".bib")) {
         console.log("BibTeX file selected:", path);
       }
     },
   });
   await tree.initialize();
+  initHiddenFilesToggle(tree);
   window.scholarWorkspaceTree = tree;
 }
 

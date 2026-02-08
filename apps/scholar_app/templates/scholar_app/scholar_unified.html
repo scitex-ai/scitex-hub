@@ -413,11 +413,18 @@
                 <h5>
                     <i class="fas fa-folder-open"></i> Files
                 </h5>
-                <button class="sidebar-toggle panel-toggle-btn"
-                        id="sidebar-toggle"
-                        title="Toggle sidebar (Zen: F11/Alt+Z)">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
+                <div class="sidebar-header-actions">
+                    <button class="hidden-files-toggle"
+                            id="hidden-files-toggle"
+                            title="Toggle hidden files">
+                        <i class="fas fa-eye-slash"></i>
+                    </button>
+                    <button class="sidebar-toggle panel-toggle-btn"
+                            id="sidebar-toggle"
+                            title="Toggle sidebar (Zen: F11/Alt+Z)">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                </div>
             </div>
             <div class="sidebar-content" id="file-tree">
                 {% if current_project %}
