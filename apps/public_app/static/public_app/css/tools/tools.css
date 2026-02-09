@@ -1,0 +1,339 @@
+/* =============================================================================
+ * Tools Page Styles
+ * ============================================================================= */
+
+/* Workspace layout for tools page */
+.tools-workspace {
+  display: flex;
+  height: calc(100vh - var(--header-height, 60px));
+  overflow: hidden;
+  background: var(--workspace-bg-primary);
+}
+
+.tools-sidebar {
+  width: 250px;
+  min-width: 40px;
+  background: var(--workspace-bg-secondary);
+  border-right: 1px solid var(--workspace-border-default);
+  display: flex;
+  flex-direction: column;
+  transition: width 0.2s ease;
+}
+
+.tools-sidebar.collapsed {
+  width: 40px;
+  min-width: 40px;
+}
+
+.tools-sidebar .sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.tools-main {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--workspace-bg-primary);
+  min-width: 0;
+}
+
+.tools-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.tools-domain-section {
+  margin-bottom: 48px;
+}
+
+.domain-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--workspace-border-default);
+}
+
+.domain-icon {
+  font-size: 32px;
+  line-height: 1;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.domain-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.domain-count {
+  font-size: 14px;
+  color: var(--text-secondary);
+  background: var(--workspace-bg-tertiary);
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-left: auto;
+}
+
+.tools-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tool-card {
+  background: var(--workspace-bg-tertiary);
+  border-radius: 6px;
+  padding: 0;
+  transition: all 0.2s ease;
+  border: 1px solid var(--workspace-border-default);
+  display: block;
+  overflow: hidden;
+  position: relative;
+  min-height: 72px;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.tool-card:hover {
+  border-color: var(--_scitex-04, #6c8ba0);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.tool-card-header {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-left: 4px solid;
+}
+
+.tool-icon {
+  font-size: 32px;
+  line-height: 1;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tool-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.tool-card-title {
+  margin: 0 0 4px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.tool-description {
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.4;
+  margin: 0 0 4px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.tool-use-case {
+  color: var(--status-success, #4a9b7e);
+  font-size: 12px;
+  line-height: 1.3;
+  margin: 0;
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tool-use-case::before {
+  content: "→ ";
+  font-weight: 600;
+}
+
+.domain-description {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-bottom: 16px;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .tool-card-header {
+    border-left: none;
+    border-top: 4px solid;
+  }
+}
+
+/* Search box */
+.search-box {
+  margin-left: auto;
+  position: relative;
+  flex-shrink: 0;
+  width: 240px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 36px 8px 32px;
+  font-size: 14px;
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 6px;
+  background: var(--workspace-bg-elevated);
+  color: var(--text-primary);
+  transition: all 0.2s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--status-info, #6b8fb3);
+  box-shadow: 0 0 0 2px rgba(107, 143, 179, 0.1);
+}
+
+.search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.search-shortcut {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 500;
+  background: var(--workspace-bg-tertiary);
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--workspace-border-default);
+  pointer-events: none;
+}
+
+/* Tab Navigation */
+.tab-navigation {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 32px;
+  border-bottom: 2px solid var(--workspace-border-default);
+  overflow-x: auto;
+  padding-bottom: 8px;
+  align-items: center;
+}
+
+.tab-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--text-secondary);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  margin-bottom: -2px;
+}
+
+.tab-button:hover {
+  color: var(--text-primary);
+  background: var(--workspace-bg-tertiary);
+  border-radius: 6px 6px 0 0;
+}
+
+.tab-button.active {
+  color: var(--text-primary);
+  border-bottom-color: var(--status-info, #6b8fb3);
+  font-weight: 600;
+}
+
+.tab-icon {
+  font-size: 20px;
+  line-height: 1;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tab-count {
+  font-size: 12px;
+  background: var(--workspace-bg-tertiary);
+  padding: 2px 8px;
+  border-radius: 12px;
+  color: var(--text-secondary);
+}
+
+.tab-button.active .tab-count {
+  background: var(--status-info, #6b8fb3);
+  color: white;
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* Domain-specific colors (left border accent colors for tool cards) */
+.domain-data .tool-card-header {
+  border-left-color: var(--status-info, #6b8fb3);
+}
+
+.domain-rendering .tool-card-header {
+  border-left-color: var(--status-success, #4a9b7e);
+}
+
+.domain-text .tool-card-header {
+  border-left-color: var(--status-success);
+}
+
+.domain-image .tool-card-header {
+  border-left-color: #9333ea;
+}
+
+.domain-pdf .tool-card-header {
+  border-left-color: #dc2626;
+}
+
+.domain-research .tool-card-header {
+  border-left-color: #f59e0b;
+}
+
+.domain-development .tool-card-header {
+  border-left-color: var(--_scitex-04, #6c8ba0);
+}
+
+.domain-video .tool-card-header {
+  border-left-color: #6366f1;
+}

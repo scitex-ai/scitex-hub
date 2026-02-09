@@ -99,21 +99,18 @@ export class PathNavigator {
 
   /**
    * Auto-expand to focus path from state manager.
-   * Falls back to DEFAULT_FOCUS_PATHS only on first load (no stored state).
-   * On subsequent loads, only expands if user has explicitly set a focus path.
+   * Only expands if user has explicitly set a focus path.
+   * NO longer auto-expands to DEFAULT_FOCUS_PATHS - tree loads in saved state or collapsed.
    */
   async autoExpandFocusPath(
     mode: WorkspaceMode,
     isFirstLoad: boolean = false,
   ): Promise<void> {
-    // User-set focus path: always apply
-    let focusPath = this.stateManager.getFocusPath(mode);
+    // User-set focus path: only apply if explicitly set by user
+    const focusPath = this.stateManager.getFocusPath(mode);
 
-    // Default focus path: only on first load (no stored state)
-    if (!focusPath) {
-      if (!isFirstLoad) return;
-      focusPath = DEFAULT_FOCUS_PATHS[mode] || "";
-    }
+    // Do NOT apply DEFAULT_FOCUS_PATHS - respect user's last state
+    // Tree should load in whatever state was saved, or collapsed if no state exists
     if (!focusPath) return;
 
     // Expand all parent paths AND the focus directory itself

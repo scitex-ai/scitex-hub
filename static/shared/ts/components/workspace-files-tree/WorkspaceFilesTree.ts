@@ -2,7 +2,7 @@
  * Workspace Files Tree - Orchestrator component for file tree
  */
 
-import type { TreeItem, TreeConfig } from "./types.ts";
+import type { TreeItem, TreeConfig, WorkspaceMode } from "./types.ts";
 import { TreeStateManager } from "./TreeState.ts";
 import { TreeFilter } from "./TreeFilter.ts";
 import { TreeRenderer } from "./TreeRenderer.ts";
@@ -472,5 +472,19 @@ export class WorkspaceFilesTree {
   /** Get whether module-specific filtering is enabled */
   getModuleFilterEnabled(): boolean {
     return this.filter.getModuleFilterEnabled();
+  }
+
+  /** Switch filter mode at runtime (used by W/S/V/C/R/H/F/T/E buttons) */
+  setFilterMode(mode: WorkspaceMode | "all"): void {
+    if (mode === "all") {
+      this.filter.setModuleFilterEnabled(false);
+    } else {
+      this.filter.setMode(mode);
+      this.filter.setModuleFilterEnabled(true);
+    }
+    if (mode !== "all") {
+      this.config.mode = mode;
+    }
+    this.rerender();
   }
 }

@@ -159,28 +159,7 @@
             {% if project %}
                 <!-- Left sidebar: File tree -->
                 <aside class="writer-sidebar" id="writer-sidebar">
-                    <div class="sidebar-header">
-                        <h5>
-                            <i class="fas fa-folder-open"></i> Files
-                        </h5>
-                        <div class="sidebar-header-actions">
-                            <button class="hidden-files-toggle"
-                                    id="hidden-files-toggle"
-                                    title="Toggle hidden files">
-                                <i class="fas fa-eye-slash"></i>
-                            </button>
-                            <button class="hidden-files-toggle active"
-                                    id="module-filter-toggle"
-                                    title="Show all files (disable module filter)">
-                                <i class="fas fa-filter"></i>
-                            </button>
-                        </div>
-                        <button id="sidebar-toggle"
-                                class="sidebar-toggle panel-toggle-btn left-panel-toggle"
-                                title="Toggle sidebar (Zen: F11/Alt+Z)">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                    </div>
+                    {% include "global_base_partials/workspace/sidebar_header.html" %}
                     <div class="sidebar-content" id="writer-file-tree">
                         <!-- WorkspaceFilesTree will render here -->
                         <div class="wft-loading">Loading...</div>

@@ -13,7 +13,7 @@
  * 7. Empty Directory Preservation (PRESERVE_EMPTY_DIRECTORIES)
  */
 
-import type { WorkspaceMode } from './types.ts';
+import type { WorkspaceMode } from "./types.ts";
 
 // ============================================================================
 // 1. DIRECTORY WHITELIST - Only show these directories
@@ -26,11 +26,17 @@ import type { WorkspaceMode } from './types.ts';
  * Priority: HIGHEST (applied first)
  */
 export const ALLOW_DIRECTORIES: Record<WorkspaceMode, string[]> = {
-  scholar: ['scitex/scholar'],
-  vis: ['scitex/vis'],
-  writer: ['scitex/writer'],
-  console: [],  // All directories allowed
-  all: [],   // All directories allowed
+  scholar: ["scitex/scholar"],
+  vis: ["scitex/vis"],
+  writer: ["scitex/writer"],
+  code: [], // All directories allowed
+  console: [], // All directories allowed (legacy)
+  verifier: ["scitex/verify"],
+  hub: [], // All directories allowed
+  files: [], // All directories allowed
+  tools: [], // All directories allowed
+  explorer: [], // All directories allowed
+  all: [], // All directories allowed
 };
 
 // ============================================================================
@@ -45,54 +51,68 @@ export const ALLOW_DIRECTORIES: Record<WorkspaceMode, string[]> = {
  */
 export const DENY_DIRECTORIES: Record<WorkspaceMode, string[]> = {
   scholar: [
-    'node_modules',
-    '.git',
-    '__pycache__',
-    '.venv',
-    'venv',
-    'build',
-    'dist',
+    "node_modules",
+    ".git",
+    "__pycache__",
+    ".venv",
+    "venv",
+    "build",
+    "dist",
   ],
 
   vis: [
-    'node_modules',
-    '.git',
-    '__pycache__',
-    '.venv',
-    'venv',
+    "node_modules",
+    ".git",
+    "__pycache__",
+    ".venv",
+    "venv",
     // NOTE: .figz.d and .pltz.d hiding is handled in TreeFilter.isHidden()
     // They are ALWAYS hidden regardless of this list (ZIP-first architecture)
   ],
 
   writer: [
-    'node_modules',
-    '.git',
-    '__pycache__',
-    '.venv',
-    'venv',
-    'build',
-    'dist',
+    "node_modules",
+    ".git",
+    "__pycache__",
+    ".venv",
+    "venv",
+    "build",
+    "dist",
     // Hide system directories not relevant to document editing
-    'ai',
-    'config',
-    'docs',
-    'requirements',
-    'scripts',
-    'tests',
-    'texts',  // Pre-generated placeholder texts
+    "ai",
+    "config",
+    "docs",
+    "requirements",
+    "scripts",
+    "tests",
+    "texts", // Pre-generated placeholder texts
     // Hide non-content directories within doctype folders
-    'archive',
-    'figures',
-    'latex_styles',
-    'tables',
-    'wordcounts',
-    'logs',
-    'output',
+    "archive",
+    "figures",
+    "latex_styles",
+    "tables",
+    "wordcounts",
+    "logs",
+    "output",
+  ],
+
+  code: [
+    ".git", // Too noisy even in code mode
   ],
 
   console: [
-    '.git',  // Too noisy even in code mode
+    ".git", // Too noisy even in code mode (legacy)
   ],
+
+  verifier: ["node_modules", ".git", "__pycache__", ".venv", "venv"],
+
+  hub: ["node_modules", ".git", "__pycache__", ".venv", "venv"],
+
+  files: [".git"],
+
+  tools: ["node_modules", ".git", "__pycache__", ".venv", "venv"],
+
+  explorer: ["node_modules", ".git", "__pycache__", ".venv", "venv"],
 
   all: [],
 };
@@ -111,7 +131,13 @@ export const ALLOW_FILENAMES: Record<WorkspaceMode, string[]> = {
   scholar: [],
   vis: [],
   writer: [],
+  code: [],
   console: [],
+  verifier: [],
+  hub: [],
+  files: [],
+  tools: [],
+  explorer: [],
   all: [],
 };
 
@@ -126,10 +152,16 @@ export const ALLOW_FILENAMES: Record<WorkspaceMode, string[]> = {
  * Priority: MEDIUM
  */
 export const DENY_FILENAMES: Record<WorkspaceMode, string[]> = {
-  scholar: ['.DS_Store', 'Thumbs.db'],
-  vis: ['.DS_Store', 'Thumbs.db'],
-  writer: ['.DS_Store', 'Thumbs.db'],
-  console: ['.DS_Store', 'Thumbs.db'],
+  scholar: [".DS_Store", "Thumbs.db"],
+  vis: [".DS_Store", "Thumbs.db"],
+  writer: [".DS_Store", "Thumbs.db"],
+  code: [".DS_Store", "Thumbs.db"],
+  console: [".DS_Store", "Thumbs.db"],
+  verifier: [".DS_Store", "Thumbs.db"],
+  hub: [".DS_Store", "Thumbs.db"],
+  files: [".DS_Store", "Thumbs.db"],
+  tools: [".DS_Store", "Thumbs.db"],
+  explorer: [".DS_Store", "Thumbs.db"],
   all: [],
 };
 
@@ -143,54 +175,60 @@ export const DENY_FILENAMES: Record<WorkspaceMode, string[]> = {
  *
  * Priority: MEDIUM-LOW
  */
-export const ALLOW_EXTENSIONS: Record<WorkspaceMode, string[] | 'all'> = {
-  scholar: ['.bib'],
+export const ALLOW_EXTENSIONS: Record<WorkspaceMode, string[] | "all"> = {
+  scholar: [".bib"],
 
   vis: [
     // Data files
-    '.csv',
-    '.tsv',
-    '.json',
-    '.xml',
+    ".csv",
+    ".tsv",
+    ".json",
+    ".xml",
 
     // Images
-    '.png',
-    '.jpg',
-    '.jpeg',
-    '.gif',
-    '.svg',
-    '.webp',
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".svg",
+    ".webp",
 
     // Documents
-    '.pdf',
+    ".pdf",
 
     // SciTeX bundles (ZIP format - preferred)
-    '.figz',
-    '.pltz',
+    ".figz",
+    ".pltz",
   ],
 
   writer: [
     // LaTeX files
-    '.tex',
-    '.bib',
-    '.cls',
-    '.sty',
+    ".tex",
+    ".bib",
+    ".cls",
+    ".sty",
 
     // Images
-    '.png',
-    '.jpg',
-    '.jpeg',
-    '.pdf',
-    '.svg',
-    '.eps',
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".pdf",
+    ".svg",
+    ".eps",
 
     // Data tables
-    '.csv',
-    '.tsv',
+    ".csv",
+    ".tsv",
   ],
 
-  console: 'all',
-  all: 'all',
+  code: "all",
+  console: "all",
+  verifier: "all",
+  hub: "all",
+  files: "all",
+  tools: "all",
+  explorer: "all",
+  all: "all",
 };
 
 // ============================================================================
@@ -208,15 +246,21 @@ export const DENY_EXTENSIONS: Record<WorkspaceMode, string[]> = {
   vis: [],
   writer: [
     // LaTeX temporary files
-    '.aux',
-    '.log',
-    '.out',
-    '.toc',
-    '.synctex.gz',
-    '.fls',
-    '.fdb_latexmk',
+    ".aux",
+    ".log",
+    ".out",
+    ".toc",
+    ".synctex.gz",
+    ".fls",
+    ".fdb_latexmk",
   ],
+  code: [],
   console: [],
+  verifier: [],
+  hub: [],
+  files: [],
+  tools: [],
+  explorer: [],
   all: [],
 };
 
@@ -232,45 +276,51 @@ export const DENY_EXTENSIONS: Record<WorkspaceMode, string[]> = {
  */
 export const PRESERVE_EMPTY_DIRECTORIES: Record<WorkspaceMode, string[]> = {
   scholar: [
-    'scitex/scholar',
-    'scitex/scholar/bib_files',       // For organized bibliography files
-    'references',
-    'bibliography',
-    'citations',
+    "scitex/scholar",
+    "scitex/scholar/bib_files", // For organized bibliography files
+    "references",
+    "bibliography",
+    "citations",
   ],
 
   vis: [
-    'scitex/vis',
-    'scitex/vis/data',                // Input data files
-    'scitex/vis/figures',             // Generated figures
-    'scitex/vis/exports',             // Files shared with other modules (symlink source)
-    'scitex/vis/ai',
-    'scitex/vis/metadata',
-    'scitex/vis/panels',
-    'scitex/vis/pinned',
-    'scitex/vis/previews',
-    'figures',
-    'data',
-    'exports',                        // Short path
-    'plots',
-    'images',
+    "scitex/vis",
+    "scitex/vis/data", // Input data files
+    "scitex/vis/figures", // Generated figures
+    "scitex/vis/exports", // Files shared with other modules (symlink source)
+    "scitex/vis/ai",
+    "scitex/vis/metadata",
+    "scitex/vis/panels",
+    "scitex/vis/pinned",
+    "scitex/vis/previews",
+    "figures",
+    "data",
+    "exports", // Short path
+    "plots",
+    "images",
   ],
 
   writer: [
-    'scitex/writer',
-    'scitex/writer/shared',           // Shared resources (symlink target for bibliography)
-    'scitex/writer/01_manuscript',
-    'scitex/writer/01_manuscript/figures',  // Symlink target for vis exports
-    'scitex/writer/02_supplementary',
-    'scitex/writer/02_supplementary/figures',  // Symlink target for vis exports
-    'scitex/writer/03_revision',
-    'scitex/writer/03_revision/figures',  // Symlink target for vis exports
-    'shared',
-    'figures',
-    'tables',
+    "scitex/writer",
+    "scitex/writer/shared", // Shared resources (symlink target for bibliography)
+    "scitex/writer/01_manuscript",
+    "scitex/writer/01_manuscript/figures", // Symlink target for vis exports
+    "scitex/writer/02_supplementary",
+    "scitex/writer/02_supplementary/figures", // Symlink target for vis exports
+    "scitex/writer/03_revision",
+    "scitex/writer/03_revision/figures", // Symlink target for vis exports
+    "shared",
+    "figures",
+    "tables",
   ],
 
+  code: [],
   console: [],
+  verifier: ["scitex/verify"],
+  hub: [],
+  files: [],
+  tools: [],
+  explorer: [],
   all: [],
 };
 
@@ -324,11 +374,17 @@ export const PRESERVE_EMPTY_DIRECTORIES: Record<WorkspaceMode, string[]> = {
  * Priority: N/A (applied during initialization)
  */
 export const DEFAULT_FOCUS_PATHS: Record<WorkspaceMode, string> = {
-  scholar: 'scitex/scholar',
-  vis: 'scitex/vis',
-  writer: 'scitex/writer/01_manuscript',
-  console: 'scripts',
-  all: '',
+  scholar: "scitex/scholar",
+  vis: "scitex/vis",
+  writer: "scitex/writer/01_manuscript",
+  code: "scripts",
+  console: "scripts",
+  verifier: "scitex/verify",
+  hub: "",
+  files: "",
+  tools: "",
+  explorer: "",
+  all: "",
 };
 
 // ============================================================================
@@ -341,6 +397,4 @@ export const DEFAULT_FOCUS_PATHS: Record<WorkspaceMode, string> = {
  *
  * Priority: OVERRIDE (bypasses all filtering rules)
  */
-export const ALWAYS_VISIBLE_FILENAMES: string[] = [
-  '.gitkeep',
-];
+export const ALWAYS_VISIBLE_FILENAMES: string[] = [".gitkeep"];

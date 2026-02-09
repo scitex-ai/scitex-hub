@@ -102,10 +102,10 @@ export class FileTreeManager {
         await import("@/components/workspace-files-tree/HiddenFilesToggle");
       initHiddenFilesToggle(this.tree as any);
 
-      // Initialize module filter toggle
-      const { initModuleFilterToggle } =
-        await import("@/components/workspace-files-tree/ModuleFilterToggle");
-      initModuleFilterToggle(this.tree as any);
+      // Initialize module filter buttons (S C V W)
+      const { initModuleFilterButtons } =
+        await import("@/components/workspace-files-tree/ModuleFilterButtons");
+      initModuleFilterButtons(this.tree as any, "code");
 
       // Build file list from tree data
       this.buildFileList(this.tree.getTreeData());

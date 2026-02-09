@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from django.shortcuts import render
 
+from apps.project_app.models import Project
+
 from .tools_data import get_tool_domains
 
 
@@ -16,7 +18,31 @@ def tools(request):
     """Research tools page - bookmarklets and utilities for researchers."""
     domains = get_tool_domains()
     total_tools = sum(len(domain["tools"]) for domain in domains)
-    context = {"domains": domains, "total_tools": total_tools}
+
+    # Get current project for file tree sidebar
+    current_project = None
+    if request.user.is_authenticated:
+        # Try to get project from session
+        project_id = request.session.get("current_project_id")
+        if project_id:
+            try:
+                current_project = Project.objects.get(id=project_id, owner=request.user)
+            except Project.DoesNotExist:
+                pass
+
+        # Fall back to most recent project if no session project
+        if not current_project:
+            current_project = (
+                Project.objects.filter(owner=request.user)
+                .order_by("-updated_at")
+                .first()
+            )
+
+    context = {
+        "domains": domains,
+        "total_tools": total_tools,
+        "current_project": current_project,
+    }
     return render(request, "public_app/pages/tools.html", context)
 
 

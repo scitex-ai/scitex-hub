@@ -128,14 +128,7 @@
         <!-- Left sidebar: File tree (only with project) -->
         <aside class="scholar-sidebar {% if not current_project %}collapsed{% endif %}"
                id="scholar-sidebar">
-            <div class="sidebar-header">
-                <h5>
-                    <i class="fas fa-folder-open"></i> Files
-                </h5>
-                <button class="sidebar-toggle" id="sidebar-toggle" title="Toggle sidebar">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-            </div>
+            {% include "global_base_partials/workspace/sidebar_header.html" %}
             <div class="sidebar-content" id="file-tree">
                 {% if current_project %}
                     <!-- WorkspaceFilesTree will render here -->

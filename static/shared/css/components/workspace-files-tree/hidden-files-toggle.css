@@ -34,3 +34,47 @@
   align-items: center;
   gap: 4px;
 }
+
+/* Module filter button group (W S V C R H F T E) */
+.module-filter-buttons {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.module-filter-btn {
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--workspace-border-default, rgba(110, 118, 129, 0.3));
+  background: transparent;
+  color: var(--text-muted, #8b949e);
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--font-mono, monospace);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.15s ease;
+  line-height: 1;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.module-filter-btn:hover {
+  background: var(--workspace-bg-tertiary, rgba(110, 118, 129, 0.1));
+  color: var(--workspace-icon-primary);
+}
+
+.module-filter-btn.active {
+  background: var(--workspace-icon-primary);
+  color: white;
+  border-color: var(--workspace-icon-primary);
+}
+
+/* Divider before collapse button */
+.sidebar-header-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--workspace-border-default, rgba(110, 118, 129, 0.3));
+  margin: 0 4px;
+  flex-shrink: 0;
+}

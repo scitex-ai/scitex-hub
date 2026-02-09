@@ -308,10 +308,10 @@ export class FileTreeSetup {
       (await import("@/components/workspace-files-tree/HiddenFilesToggle")) as any;
     toggleModule.initHiddenFilesToggle(filesTree);
 
-    // Initialize module filter toggle
-    const filterToggleModule =
-      (await import("@/components/workspace-files-tree/ModuleFilterToggle")) as any;
-    filterToggleModule.initModuleFilterToggle(filesTree);
+    // Initialize module filter buttons (S C V W)
+    const filterButtonsModule =
+      (await import("@/components/workspace-files-tree/ModuleFilterButtons")) as any;
+    filterButtonsModule.initModuleFilterButtons(filesTree, "writer");
 
     // Initialize WriterTreeSync for bidirectional synchronization
     const doctypeSelector = document.getElementById(

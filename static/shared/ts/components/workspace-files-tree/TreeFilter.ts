@@ -342,4 +342,20 @@ export class TreeFilter {
   getModuleFilterEnabled(): boolean {
     return this.moduleFilterEnabled;
   }
+
+  /** Switch the active filtering mode at runtime */
+  setMode(mode: WorkspaceMode): void {
+    const centralExtensions = ALLOW_EXTENSIONS[mode];
+    const defaultAllowedExtensions =
+      centralExtensions === "all" ? [] : centralExtensions;
+    const defaultHiddenPatterns = DENY_DIRECTORIES[mode] || [];
+    const legacyDefaults = MODE_FILTERS[mode] || MODE_FILTERS.all;
+
+    this.config = {
+      mode,
+      allowedExtensions: defaultAllowedExtensions,
+      disabledExtensions: legacyDefaults.disabledExtensions ?? [],
+      hiddenPatterns: defaultHiddenPatterns,
+    };
+  }
 }

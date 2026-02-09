@@ -1,0 +1,101 @@
+{% extends "global_base.html" %}
+
+{% load static vite %}
+
+{% block title %}
+    SciTeX Verifier
+    {% if current_project %}- {{ current_project.name }}{% endif %}
+{% endblock %}
+{% block extra_css %}
+    <!-- Shared workspace components -->
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/workspace-files-tree.css' %}" />
+    <link rel="stylesheet" href="{% static 'shared/css/components/panel-resizer.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/collapsible-panel.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/workspace-files-tree/hidden-files-toggle.css' %}" />
+    <!-- Verifier specific styles -->
+    <link rel="stylesheet" href="{% static 'verifier_app/css/verifier.css' %}" />
+{% endblock %}
+{% block content %}
+    {% if current_project %}
+        <div id="verifier-project-config"
+             style="display: none"
+             data-username="{{ current_project.owner.username }}"
+             data-slug="{{ current_project.slug }}"></div>
+    {% endif %}
+    <div class="verifier-workspace">
+        <!-- LEFT SIDEBAR - PROJECT NAVIGATOR -->
+        {% if current_project %}
+            <aside class="verifier-sidebar" id="verifier-sidebar">
+                {% include "global_base_partials/workspace/sidebar_header.html" %}
+                <div class="sidebar-content" id="file-tree">
+                    <div class="wft-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                    </div>
+                </div>
+            </aside>
+            <!-- Resizer between sidebar and workspace -->
+            <div class="panel-resizer"
+                 id="sidebar-resizer"
+                 data-panel-resizer
+                 data-storage-prefix="scitex-verifier-"
+                 data-target=".verifier-sidebar"
+                 data-direction="left"
+                 data-min-width="40"
+                 data-default-width="250"
+                 data-storage-key="sidebar-width"
+                 data-collapse-key="verifier-sidebar-collapsed"
+                 data-toggle-btn="sidebar-toggle"></div>
+        {% else %}
+            <aside class="verifier-sidebar" id="verifier-sidebar">
+                {% include "global_base_partials/workspace/sidebar_header.html" %}
+                <div class="sidebar-content">
+                    <div class="sidebar-empty-state">
+                        <i class="fas fa-folder-open"></i>
+                        <p>No project selected</p>
+                        <a href="/new/" class="btn btn-primary btn-sm">Create Project</a>
+                    </div>
+                </div>
+            </aside>
+        {% endif %}
+        <!-- CENTER - DAG VISUALIZATION WORKSPACE -->
+        <main class="verifier-main">
+            <div class="verifier-header">
+                <h2>
+                    <i class="fas fa-check-circle"></i>
+                    Reproducibility Verification
+                </h2>
+                <p class="verifier-subtitle">Trace claims back to source data via dependency graph</p>
+            </div>
+            <div class="dag-visualization-area">
+                <div class="dag-placeholder">
+                    <i class="fas fa-project-diagram fa-3x"></i>
+                    <h3>DAG Visualization</h3>
+                    <p>Verification chain will appear here</p>
+                    <p class="text-muted">
+                        Uses <code>scitex.verify</code> package for dependency tracking
+                    </p>
+                </div>
+            </div>
+        </main>
+        <!-- RIGHT SIDEBAR - VERIFICATION DETAILS -->
+        <aside class="verifier-details" id="verifier-details">
+            <div class="verifier-details-header">
+                <h3>Verification Chain</h3>
+            </div>
+            <div class="verifier-details-content">
+                <div class="details-placeholder">
+                    <i class="fas fa-info-circle"></i>
+                    <p>Select a node to view verification details</p>
+                </div>
+            </div>
+        </aside>
+    </div>
+{% endblock %}
+{% block extra_js %}
+    {% vite_hmr_client %}
+    {% vite_script 'shared/workspace-panel-resizer' %}
+    {% vite_script 'verifier_app/verifier-init' %}
+{% endblock %}

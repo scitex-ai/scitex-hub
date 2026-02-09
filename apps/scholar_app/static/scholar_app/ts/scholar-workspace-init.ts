@@ -5,7 +5,7 @@
 
 import { WorkspaceFilesTree } from "/static/shared/ts/components/workspace-files-tree/WorkspaceFilesTree";
 import { initHiddenFilesToggle } from "/static/shared/ts/components/workspace-files-tree/HiddenFilesToggle";
-import { initModuleFilterToggle } from "/static/shared/ts/components/workspace-files-tree/ModuleFilterToggle";
+import { initModuleFilterButtons } from "/static/shared/ts/components/workspace-files-tree/ModuleFilterButtons";
 
 // Import PDF download handler (auto-initializes on DOM ready)
 import "./search/pdf-download";
@@ -58,7 +58,7 @@ async function initializeWorkspaceTree(config: ProjectConfig): Promise<void> {
   });
   await tree.initialize();
   initHiddenFilesToggle(tree);
-  initModuleFilterToggle(tree);
+  initModuleFilterButtons(tree, "scholar");
   window.scholarWorkspaceTree = tree;
 }
 

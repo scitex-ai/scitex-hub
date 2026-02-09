@@ -4,71 +4,95 @@
  * Syncs state across browser tabs
  */
 
-import type { TreeState, WorkspaceMode } from './types.ts';
+import type { TreeState, WorkspaceMode } from "./types.ts";
 
-const STORAGE_KEY_PREFIX = 'scitex_workspace_tree_';
+const STORAGE_KEY_PREFIX = "scitex_workspace_tree_";
 
 export class TreeStateManager {
   private projectKey: string;
+  private sharedKey: string; // For expanded paths (shared across modes)
   private mode: WorkspaceMode;
   private state: TreeState;
   private listeners: Set<(state: TreeState) => void> = new Set();
 
-  constructor(username: string, slug: string, mode: WorkspaceMode = 'all') {
-    // Include mode in the storage key to isolate state per module
+  constructor(username: string, slug: string, mode: WorkspaceMode = "all") {
+    // Mode-specific key for selections (per-module)
     this.mode = mode;
     this.projectKey = `${STORAGE_KEY_PREFIX}${username}_${slug}_${mode}`;
+    // Shared key for expanded paths (cross-module)
+    this.sharedKey = `${STORAGE_KEY_PREFIX}${username}_${slug}_shared`;
     this.state = this.loadState();
     this.setupStorageListener();
   }
 
   /** Load state from localStorage */
   private loadState(): TreeState {
+    let expandedPaths = new Set<string>();
+    let selectedPath: string | null = null;
+    let selectedPaths = new Set<string>();
+    let targetPaths = new Set<string>();
+    let scrollTop = 0;
+    let focusPathPerMode = {
+      console: null,
+      vis: null,
+      writer: null,
+      scholar: null,
+      verifier: null,
+      hub: null,
+      files: null,
+      tools: null,
+      explorer: null,
+      all: null,
+    };
+
     try {
+      // Load expanded paths from shared storage (cross-module)
+      const sharedStored = localStorage.getItem(this.sharedKey);
+      if (sharedStored) {
+        const sharedParsed = JSON.parse(sharedStored);
+        expandedPaths = new Set(sharedParsed.expandedPaths || []);
+      }
+    } catch (err) {
+      console.warn("[TreeState] Failed to load shared state:", err);
+    }
+
+    try {
+      // Load mode-specific state (selections, targets, etc.)
       const stored = localStorage.getItem(this.projectKey);
       if (stored) {
         const parsed = JSON.parse(stored);
-        return {
-          expandedPaths: new Set(parsed.expandedPaths || []),
-          selectedPath: parsed.selectedPath || null,
-          selectedPaths: new Set(parsed.selectedPaths || []),
-          targetPaths: new Set(parsed.targetPaths || []),
-          scrollTop: parsed.scrollTop || 0,
-          focusPathPerMode: parsed.focusPathPerMode || {
-            console: null,
-            vis: null,
-            writer: null,
-            scholar: null,
-            all: null,
-          },
-          lastClickedPath: null, // Don't persist this
-        };
+        selectedPath = parsed.selectedPath || null;
+        selectedPaths = new Set(parsed.selectedPaths || []);
+        targetPaths = new Set(parsed.targetPaths || []);
+        scrollTop = parsed.scrollTop || 0;
+        focusPathPerMode = parsed.focusPathPerMode || focusPathPerMode;
       }
     } catch (err) {
-      console.warn('[TreeState] Failed to load state:', err);
+      console.warn("[TreeState] Failed to load mode-specific state:", err);
     }
+
     return {
-      expandedPaths: new Set(),
-      selectedPath: null,
-      selectedPaths: new Set(),
-      targetPaths: new Set(),
-      scrollTop: 0,
-      focusPathPerMode: {
-        console: null,
-        vis: null,
-        writer: null,
-        scholar: null,
-        all: null,
-      },
-      lastClickedPath: null,
+      expandedPaths,
+      selectedPath,
+      selectedPaths,
+      targetPaths,
+      scrollTop,
+      focusPathPerMode,
+      lastClickedPath: null, // Don't persist this
     };
   }
 
   /** Save state to localStorage */
   private saveState(): void {
     try {
-      const serializable = {
+      // Save expanded paths to shared storage (cross-module)
+      const sharedSerializable = {
         expandedPaths: Array.from(this.state.expandedPaths),
+      };
+      localStorage.setItem(this.sharedKey, JSON.stringify(sharedSerializable));
+
+      // Save mode-specific state (selections, targets, etc.)
+      const serializable = {
         selectedPath: this.state.selectedPath,
         selectedPaths: Array.from(this.state.selectedPaths),
         targetPaths: Array.from(this.state.targetPaths),
@@ -78,35 +102,43 @@ export class TreeStateManager {
       };
       localStorage.setItem(this.projectKey, JSON.stringify(serializable));
     } catch (err) {
-      console.warn('[TreeState] Failed to save state:', err);
+      console.warn("[TreeState] Failed to save state:", err);
     }
   }
 
   /** Listen for storage changes from other tabs */
   private setupStorageListener(): void {
-    window.addEventListener('storage', (e) => {
-      if (e.key === this.projectKey && e.newValue) {
-        try {
+    window.addEventListener("storage", (e) => {
+      try {
+        // Handle shared state changes (expanded paths)
+        if (e.key === this.sharedKey && e.newValue) {
+          const sharedParsed = JSON.parse(e.newValue);
+          this.state.expandedPaths = new Set(sharedParsed.expandedPaths || []);
+          this.notifyListeners();
+        }
+        // Handle mode-specific state changes (selections, targets, etc.)
+        else if (e.key === this.projectKey && e.newValue) {
           const parsed = JSON.parse(e.newValue);
-          this.state = {
-            expandedPaths: new Set(parsed.expandedPaths || []),
-            selectedPath: parsed.selectedPath,
-            selectedPaths: new Set(parsed.selectedPaths || []),
-            targetPaths: new Set(parsed.targetPaths || []),
-            scrollTop: parsed.scrollTop || 0,
-            focusPathPerMode: parsed.focusPathPerMode || {
-              console: null,
-              vis: null,
-              writer: null,
-              scholar: null,
-              all: null,
-            },
-            lastClickedPath: null,
+          this.state.selectedPath = parsed.selectedPath;
+          this.state.selectedPaths = new Set(parsed.selectedPaths || []);
+          this.state.targetPaths = new Set(parsed.targetPaths || []);
+          this.state.scrollTop = parsed.scrollTop || 0;
+          this.state.focusPathPerMode = parsed.focusPathPerMode || {
+            console: null,
+            vis: null,
+            writer: null,
+            scholar: null,
+            verifier: null,
+            hub: null,
+            files: null,
+            tools: null,
+            explorer: null,
+            all: null,
           };
           this.notifyListeners();
-        } catch (err) {
-          console.warn('[TreeState] Failed to parse storage event:', err);
         }
+      } catch (err) {
+        console.warn("[TreeState] Failed to parse storage event:", err);
       }
     });
   }
@@ -289,8 +321,8 @@ export class TreeStateManager {
 
   /** Expand path to a file (expand all parent folders) */
   expandToPath(filePath: string): void {
-    const parts = filePath.split('/');
-    let currentPath = '';
+    const parts = filePath.split("/");
+    let currentPath = "";
     for (let i = 0; i < parts.length - 1; i++) {
       currentPath = currentPath ? `${currentPath}/${parts[i]}` : parts[i];
       this.state.expandedPaths.add(currentPath);
@@ -338,14 +370,17 @@ export class TreeStateManager {
   }
 
   /** Set focus path for a specific mode */
-  setFocusPath(mode: import('./types.js').WorkspaceMode, path: string | null): void {
+  setFocusPath(
+    mode: import("./types.js").WorkspaceMode,
+    path: string | null,
+  ): void {
     this.state.focusPathPerMode[mode] = path;
     this.saveState();
     this.notifyListeners();
   }
 
   /** Get focus path for a specific mode */
-  getFocusPath(mode: import('./types.js').WorkspaceMode): string | null {
+  getFocusPath(mode: import("./types.js").WorkspaceMode): string | null {
     return this.state.focusPathPerMode[mode];
   }
 
@@ -362,11 +397,17 @@ export class TreeStateManager {
         vis: null,
         writer: null,
         scholar: null,
+        verifier: null,
+        hub: null,
+        files: null,
+        tools: null,
+        explorer: null,
         all: null,
       },
       lastClickedPath: null,
     };
     localStorage.removeItem(this.projectKey);
+    localStorage.removeItem(this.sharedKey);
     this.notifyListeners();
   }
 }

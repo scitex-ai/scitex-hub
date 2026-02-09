@@ -3,17 +3,27 @@
  * Shared across all workspace modules (/code/, /vis/, /writer/, /scholar/)
  */
 
-export type WorkspaceMode = 'code' | 'vis' | 'writer' | 'scholar' | 'all';
+export type WorkspaceMode =
+  | "code"
+  | "vis"
+  | "writer"
+  | "scholar"
+  | "verifier"
+  | "hub"
+  | "files"
+  | "tools"
+  | "explorer"
+  | "all";
 
 export interface TreeItem {
   name: string;
   path: string;
-  type: 'file' | 'directory';
+  type: "file" | "directory";
   children?: TreeItem[];
   is_symlink?: boolean;
   symlink_target?: string;
   git_status?: {
-    status: string;  // M, A, D, ??
+    status: string; // M, A, D, ??
     staged: boolean;
   };
 }
@@ -82,19 +92,71 @@ export interface FilterConfig {
 export const MODE_FILTERS: Record<WorkspaceMode, Partial<FilterConfig>> = {
   console: {
     allowedExtensions: [], // All files visible
-    hiddenPatterns: ['__pycache__', '.pyc', 'node_modules', '.git/objects'],
+    hiddenPatterns: ["__pycache__", ".pyc", "node_modules", ".git/objects"],
+  },
+  code: {
+    allowedExtensions: [], // All files visible
+    hiddenPatterns: ["__pycache__", ".pyc", "node_modules", ".git/objects"],
   },
   vis: {
-    allowedExtensions: ['.png', '.jpg', '.jpeg', '.svg', '.pdf', '.csv', '.json', '.xlsx', '.tsv'],
-    hiddenPatterns: ['__pycache__', 'node_modules', '.git', '.venv'],
+    allowedExtensions: [
+      ".png",
+      ".jpg",
+      ".jpeg",
+      ".svg",
+      ".pdf",
+      ".csv",
+      ".json",
+      ".xlsx",
+      ".tsv",
+    ],
+    hiddenPatterns: ["__pycache__", "node_modules", ".git", ".venv"],
   },
   writer: {
-    allowedExtensions: ['.tex', '.bib', '.pdf', '.png', '.jpg', '.jpeg', '.svg', '.eps'],
-    hiddenPatterns: ['__pycache__', 'node_modules', '.git', '.venv', 'build', '.aux', '.log', '.out'],
+    allowedExtensions: [
+      ".tex",
+      ".bib",
+      ".pdf",
+      ".png",
+      ".jpg",
+      ".jpeg",
+      ".svg",
+      ".eps",
+    ],
+    hiddenPatterns: [
+      "__pycache__",
+      "node_modules",
+      ".git",
+      ".venv",
+      "build",
+      ".aux",
+      ".log",
+      ".out",
+    ],
   },
   scholar: {
-    allowedExtensions: ['.bib'],
-    hiddenPatterns: ['__pycache__', 'node_modules', '.git', '.venv', 'build'],
+    allowedExtensions: [".bib"],
+    hiddenPatterns: ["__pycache__", "node_modules", ".git", ".venv", "build"],
+  },
+  verifier: {
+    allowedExtensions: [],
+    hiddenPatterns: ["__pycache__", "node_modules", ".git", ".venv"],
+  },
+  hub: {
+    allowedExtensions: [],
+    hiddenPatterns: ["__pycache__", "node_modules", ".git", ".venv"],
+  },
+  files: {
+    allowedExtensions: [],
+    hiddenPatterns: ["__pycache__", "node_modules", ".git"],
+  },
+  tools: {
+    allowedExtensions: [],
+    hiddenPatterns: ["__pycache__", "node_modules", ".git", ".venv"],
+  },
+  explorer: {
+    allowedExtensions: [],
+    hiddenPatterns: ["__pycache__", "node_modules", ".git", ".venv"],
   },
   all: {
     allowedExtensions: [],
@@ -108,9 +170,15 @@ export const MODE_FILTERS: Record<WorkspaceMode, Partial<FilterConfig>> = {
  * These will be expanded automatically on first load (before any user state is stored)
  */
 export const DEFAULT_EXPAND_PATHS: Record<WorkspaceMode, string[]> = {
-  console: ['scripts'],
-  vis: ['scitex', 'scitex/vis'],
-  writer: ['scitex', 'scitex/writer', 'scitex/writer/01_manuscript'],
-  scholar: ['scitex', 'scitex/scholar', 'scitex/scholar/bib_files'],
+  console: ["scripts"],
+  code: ["scripts"],
+  vis: ["scitex", "scitex/vis"],
+  writer: ["scitex", "scitex/writer", "scitex/writer/01_manuscript"],
+  scholar: ["scitex", "scitex/scholar", "scitex/scholar/bib_files"],
+  verifier: ["scitex", "scitex/verify"],
+  hub: [],
+  files: [],
+  tools: [],
+  explorer: [],
   all: [],
 };

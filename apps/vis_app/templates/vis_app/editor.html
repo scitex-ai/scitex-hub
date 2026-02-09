@@ -43,28 +43,7 @@
         <div class="vis-main">
             <!-- LEFT SIDEBAR - PROJECT NAVIGATOR -->
             <div class="vis-sidebar">
-                <div class="sidebar-header">
-                    <h5>
-                        <i class="fas fa-folder-open"></i> Files
-                    </h5>
-                    <div class="sidebar-header-actions">
-                        <button class="hidden-files-toggle"
-                                id="hidden-files-toggle"
-                                title="Toggle hidden files">
-                            <i class="fas fa-eye-slash"></i>
-                        </button>
-                        <button class="hidden-files-toggle active"
-                                id="module-filter-toggle"
-                                title="Show all files (disable module filter)">
-                            <i class="fas fa-filter"></i>
-                        </button>
-                    </div>
-                    <button class="sidebar-toggle-btn panel-toggle-btn left-panel-toggle"
-                            id="sidebar-toggle"
-                            title="Toggle sidebar (Zen: F11/Alt+Z)">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                </div>
+                {% include "global_base_partials/workspace/sidebar_header.html" %}
                 <div class="sidebar-content" id="files-tree">
                     {% if current_project %}
                         <!-- WorkspaceFilesTree will render here -->

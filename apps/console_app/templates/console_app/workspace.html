@@ -184,23 +184,7 @@
         <div class="code-workspace">
             <!-- Left Sidebar: File Tree -->
             <aside id="code-sidebar" class="code-sidebar repo-sidebar">
-                <div class="sidebar-header">
-                    <h5>
-                        <i class="fas fa-folder-open"></i> Files
-                    </h5>
-                    <div class="sidebar-header-actions">
-                        <button class="hidden-files-toggle"
-                                id="hidden-files-toggle"
-                                title="Toggle hidden files">
-                            <i class="fas fa-eye-slash"></i>
-                        </button>
-                    </div>
-                    <button class="sidebar-toggle panel-toggle-btn left-panel-toggle"
-                            id="sidebar-toggle"
-                            title="Toggle sidebar (Zen: F11/Alt+Z)">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                </div>
+                {% include "global_base_partials/workspace/sidebar_header.html" %}
                 <div id="file-tree" class="file-tree-container">
                     <div class="tree-loading">
                         <i class="fas fa-spinner fa-spin"></i> Loading file tree...
