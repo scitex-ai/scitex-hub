@@ -290,7 +290,11 @@ export function buildTreeHTML(
 
   items.forEach((item: TreeItem) => {
     const itemPath = `/${username}/${slug}/${item.path}${item.type === "directory" ? "/" : ""}`;
-    const isActive = currentPath.includes(item.path);
+    const isActive =
+      item.type === "directory"
+        ? currentPath.includes(`/${item.path}/`) ||
+          currentPath.includes(`/${item.path}`)
+        : currentPath.endsWith(`/blob/${item.path}`);
 
     // Determine if this folder should be auto-expanded (if it's in the current path)
     const shouldExpand = isInCurrentPath(item.path, currentPath);

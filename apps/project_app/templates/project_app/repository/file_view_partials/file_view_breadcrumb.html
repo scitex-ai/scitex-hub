@@ -1,25 +1,17 @@
 <!-- Repository Header with Breadcrumb -->
 <div class="repo-header">
-    <div style="display: flex; align-items: center; gap: 0.5rem">
-        <a href="/{{ project.owner.username }}/"
-           style="color: var(--color-accent-fg);
-                  text-decoration: none;
-                  font-weight: 400">{{ project.owner.username }}</a>
-        <span style="color: var(--color-fg-muted)">/</span>
-        <a href="/{{ project.owner.username }}/{{ project.slug }}/"
-           style="color: var(--color-accent-fg);
-                  text-decoration: none;
-                  font-weight: 400">{{ project.slug }}</a>
+    <div class="repo-header-left">
+        <a href="/{{ project.owner.username }}/" class="repo-header-owner">{{ project.owner.username }}</a>
+        <span class="repo-header-separator">/</span>
+        <a href="/{{ project.owner.username }}/{{ project.slug }}/" class="repo-title">{{ project.slug }}</a>
         {% if breadcrumbs %}
             {% for breadcrumb in breadcrumbs %}
                 {% if breadcrumb.name != project.name %}
-                    <span style="color: var(--color-fg-muted)">/</span>
+                    <span class="repo-header-separator">/</span>
                     {% if not breadcrumb.is_last %}
-                        <a href="{{ breadcrumb.url }}"
-                           style="color: var(--color-accent-fg);
-                                  text-decoration: none">{{ breadcrumb.name }}</a>
+                        <a href="{{ breadcrumb.url }}" class="repo-breadcrumb-item">{{ breadcrumb.name }}</a>
                     {% else %}
-                        <span style="font-weight: 600; color: var(--color-fg-default)">{{ breadcrumb.name }}</span>
+                        <span class="repo-breadcrumb-current">{{ breadcrumb.name }}</span>
                     {% endif %}
                 {% endif %}
             {% endfor %}

@@ -46,10 +46,7 @@
         <div class="repo-layout" id="repo-layout">
             {% include "project_app/repository/browse_partials/browse_sidebar.html" %}
             <!-- Main Content (RIGHT side) -->
-            <div class="repo-main">
-                {% include "project_app/repository/browse_partials/browse_toolbar.html" %}
-                {% include "project_app/repository/browse_partials/browse_file_browser.html" %}
-            </div>
+            <div class="repo-main">{% include "project_app/repository/browse_partials/browse_file_browser.html" %}</div>
         </div>
     </div>
     {% include 'project_app/repository/browse_partials/browse_scripts.html' %}
