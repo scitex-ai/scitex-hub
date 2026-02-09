@@ -121,13 +121,13 @@
 }
 
 [data-theme="light"] .search-help-popup {
-  background: var(--bg-secondary, #f8f9fa);
-  border-color: var(--border-color, #dee2e6);
+  background: var(--workspace-bg-secondary);
+  border-color: var(--workspace-border-default);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 [data-theme="light"] .search-help-content code {
-  background: var(--bg-muted, #e9ecef);
+  background: var(--bg-muted);
 }
 
 /* Clickable search chips */

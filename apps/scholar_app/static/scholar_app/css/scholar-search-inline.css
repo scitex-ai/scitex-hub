@@ -140,21 +140,21 @@
 
 /* Light mode overrides */
 [data-theme="light"] .scholar-search-container {
-  background: var(--workspace-bg-primary, #f3f4f6);
+  background: var(--workspace-bg-primary);
 }
 
 [data-theme="light"] .scholar-side-panel {
-  background: var(--workspace-bg-secondary, #ebedef);
+  background: var(--workspace-bg-secondary);
   border-color: var(--workspace-border-default);
 }
 
 [data-theme="light"] .accordion-row {
-  background: var(--workspace-bg-tertiary, #d8dee4);
+  background: var(--workspace-bg-tertiary);
   border-color: var(--workspace-border-default);
 }
 
 [data-theme="light"] .accordion-row-header:hover {
-  background: var(--workspace-bg-secondary, #ebedef);
+  background: var(--workspace-bg-secondary);
 }
 
 [data-theme="light"] .accordion-row-content {
@@ -184,9 +184,9 @@
 
 [data-theme="light"] .scholar-search-container .form-control,
 [data-theme="light"] .scholar-search-container .form-select {
-  background: var(--workspace-bg-secondary, #ebedef) !important;
+  background: var(--workspace-bg-secondary) !important;
   border-color: var(--workspace-border-default) !important;
-  color: var(--text-primary, #1a2a40) !important;
+  color: var(--text-primary) !important;
 }
 
 /* Toggle switches within search page */

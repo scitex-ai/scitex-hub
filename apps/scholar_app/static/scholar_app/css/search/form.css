@@ -37,13 +37,13 @@
 
 /* Light mode search input */
 [data-theme="light"] .search-input {
-  background: var(--workspace-bg-secondary, #ebedef) !important;
-  border-color: var(--workspace-border-default, #b5c7d1) !important;
-  color: var(--text-primary, #1a2a40) !important;
+  background: var(--workspace-bg-secondary) !important;
+  border-color: var(--workspace-border-default) !important;
+  color: var(--text-primary) !important;
 }
 
 [data-theme="light"] .search-input::placeholder {
-  color: var(--text-muted, #57606a) !important;
+  color: var(--text-muted) !important;
 }
 
 [data-theme="light"] .search-input:focus {
@@ -52,7 +52,7 @@
 }
 
 [data-theme="light"] .search-input:hover:not(:focus) {
-  border-color: var(--workspace-border-hover, #a0b0c0) !important;
+  border-color: var(--workspace-border-hover) !important;
 }
 
 /* Enhance search input styling */
@@ -122,15 +122,15 @@
 
 /* Light mode search button */
 [data-theme="light"] .search-btn {
-  background: var(--workspace-bg-tertiary, #d8dee4) !important;
-  border-color: var(--workspace-border-default, #b5c7d1) !important;
-  color: var(--text-primary, #1a2a40) !important;
+  background: var(--workspace-bg-tertiary) !important;
+  border-color: var(--workspace-border-default) !important;
+  color: var(--text-primary) !important;
 }
 
 [data-theme="light"] .search-btn:hover,
 [data-theme="light"] .search-btn:focus,
 [data-theme="light"] .search-btn:active {
-  background: var(--workspace-bg-secondary, #ebedef) !important;
+  background: var(--workspace-bg-secondary) !important;
   border-color: var(--workspace-icon-primary, #059669) !important;
   color: var(--workspace-icon-primary, #059669) !important;
 }

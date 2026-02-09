@@ -117,19 +117,19 @@ body.zen-mode .zen-mode-indicator {
 
 /* Light mode adjustments */
 [data-theme="light"] .zen-mode-indicator {
-  background: var(--workspace-bg-secondary, rgba(235, 237, 239, 0.95));
-  border-color: var(--workspace-border-default, #b5c7d1);
+  background: var(--workspace-bg-secondary);
+  border-color: var(--workspace-border-default);
 }
 
 [data-theme="light"] .zen-mode-hint {
-  background: var(--workspace-bg-secondary, rgba(235, 237, 239, 0.98));
-  border-color: var(--workspace-border-default, #b5c7d1);
+  background: var(--workspace-bg-secondary);
+  border-color: var(--workspace-border-default);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
 }
 
 [data-theme="light"] .zen-mode-hint kbd {
-  background: var(--workspace-bg-tertiary, #ebedef);
-  border-color: var(--workspace-border-default, #b5c7d1);
+  background: var(--workspace-bg-tertiary);
+  border-color: var(--workspace-border-default);
 }
 
 /* Zen mode notification (browser-style notification bar) */
@@ -168,12 +168,12 @@ body.zen-mode .zen-mode-indicator {
 
 [data-theme="light"] .zen-notification {
   background: rgba(245, 245, 245, 0.98);
-  border-color: var(--workspace-border-default, #b5c7d1);
-  color: var(--text-primary, #1a1a1a);
+  border-color: var(--workspace-border-default);
+  color: var(--text-primary);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 [data-theme="light"] .zen-notification kbd {
   background: var(--bg-surface);
-  border-color: var(--workspace-border-default, #b5c7d1);
+  border-color: var(--workspace-border-default);
 }

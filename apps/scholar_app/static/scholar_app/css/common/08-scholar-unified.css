@@ -338,7 +338,7 @@ body.scholar-page footer {
 
 /* Light mode unified overrides */
 [data-theme="light"] .scholar-tab-content > div:first-child {
-  background: var(--workspace-bg-primary, #f3f4f6);
+  background: var(--workspace-bg-primary);
 }
 
 [data-theme="light"] .scholar-tab-content .graph-card,
@@ -346,12 +346,12 @@ body.scholar-page footer {
 [data-theme="light"] .scholar-tab-content .search-card,
 [data-theme="light"] .scholar-details-content .sidebar-section,
 [data-theme="light"] .scholar-details-content .bibtex-tile {
-  background: var(--workspace-bg-secondary, #ebedef);
+  background: var(--workspace-bg-secondary);
 }
 
 [data-theme="light"] .scholar-tab-content .form-input,
 [data-theme="light"] .scholar-tab-content .form-select,
 [data-theme="light"] .scholar-tab-content .form-control,
 [data-theme="light"] .scholar-tab-content .search-input {
-  background: var(--workspace-bg-primary, #f3f4f6) !important;
+  background: var(--workspace-bg-primary) !important;
 }

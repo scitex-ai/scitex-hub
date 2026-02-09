@@ -3,16 +3,16 @@
 /* Theme-aware color tokens - matching vis.css pattern */
 :root,
 [data-theme="light"] {
-  --writer-bg: var(--workspace-bg-tertiary, #f6f8fa);
-  --writer-border: var(--workspace-border-default, #8fa4b0);
-  --writer-toolbar-bg: var(--workspace-bg-secondary, #fafbfc);
-  --writer-text-primary: var(--text-primary, #1a2a40);
-  --writer-text-secondary: var(--text-secondary, #34495e);
-  --writer-text-muted: var(--text-muted, #6c8ba0);
-  --writer-hover-bg: var(--workspace-bg-tertiary, #f6f8fa);
+  --writer-bg: var(--workspace-bg-tertiary, #f3f2f0);
+  --writer-border: var(--workspace-border-default, #999999);
+  --writer-toolbar-bg: var(--workspace-bg-secondary, #f8f7f5);
+  --writer-text-primary: var(--text-primary, #1c1c1c);
+  --writer-text-secondary: var(--text-secondary, #3a3a3a);
+  --writer-text-muted: var(--text-muted, #777777);
+  --writer-hover-bg: var(--workspace-bg-tertiary, #f3f2f0);
   --writer-active-bg: var(--workspace-bg-elevated);
   --writer-active-border: var(--workspace-border-hover);
-  --writer-surface: var(--workspace-bg-secondary, #fafbfc);
+  --writer-surface: var(--workspace-bg-secondary, #f8f7f5);
 
   /* Legacy compatibility */
   --writer-primary: var(--color-btn-primary-bg);
@@ -64,9 +64,9 @@
 
 :root {
   /* Editor specific - light mode defaults */
-  --editor-bg: #f6f8fa;
-  --editor-text: #1a2a40;
-  --editor-line-number: #6c8ba0;
+  --editor-bg: #f3f2f0;
+  --editor-text: #1c1c1c;
+  --editor-line-number: #777777;
   --editor-selection: rgba(0, 0, 0, 0.05);
 
   /* Spacing */

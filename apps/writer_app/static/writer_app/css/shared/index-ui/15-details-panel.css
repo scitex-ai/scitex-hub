@@ -85,7 +85,7 @@
   border: none;
   padding: 4px 8px;
   cursor: pointer;
-  color: var(--text-muted, #6c8ba0);
+  color: var(--text-muted, #777777);
   border-radius: 4px;
   transition: all 0.15s ease;
   display: flex;
@@ -255,13 +255,13 @@
 
 /* Light mode */
 [data-theme="light"] .writer-details {
-  background: var(--workspace-bg-primary, #f3f4f6);
+  background: var(--workspace-bg-primary);
 }
 
 [data-theme="light"] .details-header {
-  background: var(--workspace-bg-secondary, #ebedef);
+  background: var(--workspace-bg-secondary);
 }
 
 [data-theme="light"] .details-section {
-  background: var(--workspace-bg-secondary, #ebedef);
+  background: var(--workspace-bg-secondary);
 }

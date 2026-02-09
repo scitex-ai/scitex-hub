@@ -131,16 +131,16 @@
 
 /* Light mode overrides */
 [data-theme="light"] .writer-workspace {
-  background: var(--workspace-bg-primary, #f3f4f6);
+  background: var(--workspace-bg-primary);
 }
 
 [data-theme="light"] .writer-sidebar {
-  background: var(--workspace-bg-primary, #f3f4f6);
+  background: var(--workspace-bg-primary);
 }
 
 [data-theme="light"] .writer-sidebar .sidebar-header {
-  background: var(--workspace-bg-secondary, #ebedef);
-  border-bottom-color: var(--workspace-border-default, #b5c7d1);
+  background: var(--workspace-bg-secondary);
+  border-bottom-color: var(--workspace-border-default);
 }
 
 /* Responsive: hide sidebar on small screens */

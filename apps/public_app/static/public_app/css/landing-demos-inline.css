@@ -315,7 +315,7 @@
 }
 
 .local-demo-code {
-  background: var(--color-canvas-subtle, #f6f8fa);
+  background: var(--color-canvas-subtle, #f3f2f0);
   border: 1px solid var(--color-border-default, #d0d7de);
   border-radius: 8px;
   padding: 1rem 1.25rem;

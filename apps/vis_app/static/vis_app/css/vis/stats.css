@@ -114,7 +114,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background: var(--color-canvas-subtle, #f6f8fa);
+  background: var(--color-canvas-subtle, #f3f2f0);
   border-bottom: 1px solid var(--color-border-muted, #d8dee4);
   font-weight: 600;
   color: var(--color-fg-default, #1f2328);
@@ -168,11 +168,11 @@
 .stats-table th {
   font-weight: 600;
   color: var(--color-fg-muted, #656d76);
-  background: var(--color-canvas-subtle, #f6f8fa);
+  background: var(--color-canvas-subtle, #f3f2f0);
 }
 
 .stats-table tr:hover {
-  background: var(--color-canvas-subtle, #f6f8fa);
+  background: var(--color-canvas-subtle, #f3f2f0);
 }
 
 .stats-table .significant {
@@ -186,7 +186,7 @@
 
 /* Result Cards */
 .stat-result-card {
-  background: var(--color-canvas-subtle, #f6f8fa);
+  background: var(--color-canvas-subtle, #f3f2f0);
   border: 1px solid var(--color-border-muted, #d8dee4);
   border-radius: 6px;
   padding: 12px;

@@ -13,23 +13,23 @@
 :root,
 [data-theme="light"] {
   /* Ruler colors - distinct from canvas */
-  --vis-ruler-bg: var(--workspace-ruler-bg, #d0dae5);
-  --vis-ruler-border: var(--workspace-ruler-border, #d0d7de);
+  --vis-ruler-bg: var(--workspace-ruler-bg);
+  --vis-ruler-border: var(--workspace-ruler-border);
 
   /* Semantic aliases for vis editor - consistent with console_app/workspace.css */
-  --vis-bg-primary: var(--workspace-bg-secondary, #f3f4f6);
-  --vis-bg-secondary: var(--workspace-bg-tertiary, #ebedef);
-  --vis-bg-hover: var(--workspace-bg-tertiary, #ebedef);
-  --vis-border: var(--workspace-border-default, #b5c7d1);
-  --vis-text-primary: var(--text-primary, #1a2a40);
-  --vis-text-muted: var(--text-muted, #6c8ba0);
+  --vis-bg-primary: var(--workspace-bg-secondary);
+  --vis-bg-secondary: var(--workspace-bg-tertiary);
+  --vis-bg-hover: var(--workspace-bg-tertiary);
+  --vis-border: var(--workspace-border-default);
+  --vis-text-primary: var(--text-primary);
+  --vis-text-muted: var(--text-muted);
 
   /* Accent colors - follows workspace icon color scheme (TOGGLE: swap _icon-white ↔ _icon-green) */
   --accent-primary: var(--workspace-icon-primary);
   --accent-color: var(--workspace-icon-primary);
   --vis-accent: var(--workspace-icon-primary);
   --vis-accent-bg: rgba(107, 114, 128, 0.08);
-  --vis-bg-tertiary: var(--workspace-bg-tertiary, #ebedef);
+  --vis-bg-tertiary: var(--workspace-bg-tertiary);
 }
 
 [data-theme="dark"] {

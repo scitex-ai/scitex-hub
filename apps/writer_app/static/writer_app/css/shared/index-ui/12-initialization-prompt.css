@@ -91,8 +91,8 @@
 
 /* Light mode */
 [data-theme="light"] .writer-init-modal {
-  background: #ffffff;
-  border-color: #d0d7de;
+  background: var(--bg-surface);
+  border-color: var(--border-muted);
 }
 
 [data-theme="light"] .writer-init-title {
@@ -100,7 +100,7 @@
 }
 
 [data-theme="light"] .writer-init-desc {
-  color: #57606a;
+  color: var(--text-muted);
 }
 
 [data-theme="light"] .writer-init-desc strong {

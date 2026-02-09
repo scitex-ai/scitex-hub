@@ -146,17 +146,17 @@
    =========================================================================== */
 
 [data-theme="light"] .collapsible-panel .panel-header {
-  background: var(--workspace-bg-secondary, #ebedef);
-  border-bottom-color: var(--workspace-border-default, #b5c7d1);
+  background: var(--workspace-bg-secondary);
+  border-bottom-color: var(--workspace-border-default);
 }
 
 [data-theme="light"] .collapsible-panel .panel-header h4,
 [data-theme="light"] .collapsible-panel .panel-header h5 {
-  color: var(--text-primary, #1a2a40);
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .panel-toggle-btn:hover {
-  background: var(--workspace-bg-tertiary, #d8dee4);
+  background: var(--workspace-bg-tertiary);
 }
 
 /* ===========================================================================

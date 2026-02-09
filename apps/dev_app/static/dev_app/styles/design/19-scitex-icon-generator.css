@@ -103,7 +103,9 @@
   border: 2px solid transparent;
   border-radius: 4px;
   cursor: pointer;
-  transition: transform 0.15s ease, border-color 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease;
   padding: 0;
 }
 
@@ -131,7 +133,8 @@
   width: 100%;
   max-width: 350px;
   aspect-ratio: 1;
-  background: repeating-conic-gradient(#3a3a3a 0% 25%, #2a2a2a 0% 50%) 50% / 20px 20px;
+  background: repeating-conic-gradient(#3a3a3a 0% 25%, #2a2a2a 0% 50%) 50% /
+    20px 20px;
   border-radius: 8px;
   overflow: hidden;
   display: flex;
@@ -171,21 +174,25 @@
 
 /* Light mode adjustments */
 [data-theme="light"] .scitex-icon-gen-section {
-  background: #f3f4f6;
+  background: var(--bg-muted);
 }
 
 [data-theme="light"] .scitex-icon-gen-row input[type="text"],
 [data-theme="light"] .scitex-icon-gen-row select {
-  background: #ffffff;
-  border-color: #d1d5db;
-  color: #1f2937;
+  background: var(--bg-surface);
+  border-color: var(--border-muted);
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .scitex-icon-gen-preview-container {
-  background: repeating-conic-gradient(#e5e7eb 0% 25%, #f3f4f6 0% 50%) 50% / 20px 20px;
+  background: repeating-conic-gradient(
+      var(--workspace-bg-tertiary) 0% 25%,
+      var(--bg-muted) 0% 50%
+    )
+    50% / 20px 20px;
 }
 
 [data-theme="light"] .scitex-icon-gen-filename {
-  background: #e5e7eb;
+  background: var(--workspace-bg-tertiary);
   color: #2d5f4d;
 }

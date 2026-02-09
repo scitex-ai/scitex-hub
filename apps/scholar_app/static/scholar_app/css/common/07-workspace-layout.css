@@ -355,38 +355,38 @@
 
 /* Light mode overrides */
 [data-theme="light"] .scholar-workspace {
-  background: var(--workspace-bg-primary, #f3f4f6);
+  background: var(--workspace-bg-primary);
 }
 
 [data-theme="light"] .scholar-sidebar {
-  background: var(--workspace-bg-primary, #f3f4f6);
+  background: var(--workspace-bg-primary);
 }
 
 [data-theme="light"] .scholar-sidebar .sidebar-header {
-  background: var(--workspace-bg-secondary, #ebedef);
-  border-bottom-color: var(--workspace-border-default, #b5c7d1);
+  background: var(--workspace-bg-secondary);
+  border-bottom-color: var(--workspace-border-default);
 }
 
 [data-theme="light"] .scholar-sidebar .sidebar-header h5 {
-  color: var(--text-primary, #1a2a40);
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .scholar-main {
-  background: var(--workspace-bg-primary, #f3f4f6);
+  background: var(--workspace-bg-primary);
 }
 
 [data-theme="light"] .scholar-main .pane-header {
-  background: var(--workspace-bg-secondary, #ebedef);
-  border-bottom-color: var(--workspace-border-default, #b5c7d1);
+  background: var(--workspace-bg-secondary);
+  border-bottom-color: var(--workspace-border-default);
 }
 
 [data-theme="light"] .scholar-properties {
-  background: var(--workspace-bg-primary, #f3f4f6);
+  background: var(--workspace-bg-primary);
 }
 
 [data-theme="light"] .scholar-properties .properties-header {
-  background: var(--workspace-bg-secondary, #ebedef);
-  border-bottom-color: var(--workspace-border-default, #b5c7d1);
+  background: var(--workspace-bg-secondary);
+  border-bottom-color: var(--workspace-border-default);
 }
 
 /* ===============================================

@@ -19,7 +19,7 @@
 }
 
 .editor-header {
-  background: var(--color-canvas-subtle, #f6f8fa);
+  background: var(--color-canvas-subtle, #f3f2f0);
   border: 1px solid var(--color-border-default, #d0d7de);
   border-radius: 6px 6px 0 0;
   padding: 0.75rem 1rem;
@@ -48,7 +48,7 @@
 }
 
 .editor-footer {
-  background: var(--color-canvas-subtle, #f6f8fa);
+  background: var(--color-canvas-subtle, #f3f2f0);
   border: 1px solid var(--color-border-default, #d0d7de);
   border-top: none;
   border-radius: 0 0 6px 6px;
@@ -79,7 +79,7 @@
 }
 
 .markdown-body code {
-  background: var(--color-canvas-subtle, #f6f8fa);
+  background: var(--color-canvas-subtle, #f3f2f0);
   padding: 0.2em 0.4em;
   border-radius: 6px;
   font-family: ui-monospace, monospace;
@@ -87,7 +87,7 @@
 }
 
 .markdown-body pre {
-  background: var(--color-canvas-subtle, #f6f8fa);
+  background: var(--color-canvas-subtle, #f3f2f0);
   padding: 1rem;
   border-radius: 6px;
   overflow-x: auto;

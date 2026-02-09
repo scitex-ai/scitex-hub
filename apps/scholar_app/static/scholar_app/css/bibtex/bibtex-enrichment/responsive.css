@@ -5,65 +5,65 @@
 
 /* Responsive */
 @media (max-width: 1024px) {
-    .bibtex-grid {
-        grid-template-columns: 1fr;
-    }
+  .bibtex-grid {
+    grid-template-columns: 1fr;
+  }
 
-    .bibtex-status-column {
-        flex-direction: row;
-        flex-wrap: wrap;
-    }
+  .bibtex-status-column {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
 
-    .bibtex-tile {
-        flex: 1 1 300px;
-    }
+  .bibtex-tile {
+    flex: 1 1 300px;
+  }
 }
 
 @media (max-width: 640px) {
-    .bibtex-actions {
-        flex-direction: column;
-    }
+  .bibtex-actions {
+    flex-direction: column;
+  }
 
-    .bibtex-actions .btn {
-        width: 100%;
-        justify-content: center;
-    }
+  .bibtex-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 /* Light theme */
 [data-theme="light"] .bibtex-card,
 [data-theme="light"] .bibtex-tile {
-    background: #ffffff;
-    border-color: #d0d7de;
+  background: var(--bg-surface);
+  border-color: var(--border-muted);
 }
 
 [data-theme="light"] .bibtex-dropzone {
-    background: #f6f8fa;
-    border-color: #2ea043;
+  background: var(--bg-muted);
+  border-color: var(--status-success);
 }
 
 [data-theme="light"] .bibtex-dropzone:hover {
-    background: #eef2f5;
+  background: var(--workspace-bg-secondary);
 }
 
 [data-theme="light"] .bibtex-enrichment-container {
-    background: #f0f3f6;
+  background: var(--workspace-bg-secondary);
 }
 
 [data-theme="light"] .bibtex-card__header,
 [data-theme="light"] .bibtex-tile__header {
-    background: #f6f8fa;
-    border-color: #d0d7de;
+  background: var(--bg-muted);
+  border-color: var(--border-muted);
 }
 
 [data-theme="light"] .bibtex-save-path {
-    background: rgba(210, 153, 34, 0.1);
+  background: rgba(210, 153, 34, 0.1);
 }
 
 [data-theme="light"] .bibtex-progress__bar {
-    background: var(--workspace-border-default, #d0d7de);
+  background: var(--workspace-border-default);
 }
 
 [data-theme="light"] .bibtex-progress__fill {
-    background: var(--status-success, #2ea043);
+  background: var(--status-success, #2ea043);
 }

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="2126" height="2835">
-  <!-- Light mode background -->
-  <rect width="2126" height="2835" fill="#ffffff"/>
+  <!-- Light mode background - warm white matching --workspace-bg-elevated -->
+  <rect width="2126" height="2835" fill="#fdfcfa"/>
   <defs>
     <!-- 1mm minor grid pattern (300 DPI: 300/25.4 = 11.811023622047244) -->
     <pattern id="minor-grid" width="11.811023622047244" height="11.811023622047244" patternUnits="userSpaceOnUse">

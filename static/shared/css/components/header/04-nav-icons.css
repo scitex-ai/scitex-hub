@@ -20,7 +20,7 @@
 
 /* SVG icons with currentColor inherit color from this */
 .nav-icon-svg {
-  color: var(--scitex-color-03); /* Professional bluish-gray: #506b7a */
+  color: var(--scitex-color-03); /* Neutral gray: #555555 */
   opacity: 0.85;
 }
 
@@ -30,9 +30,9 @@
   opacity: 0.9;
 }
 
-/* FontAwesome icons in light mode - bluish-gray */
+/* FontAwesome icons in light mode - neutral gray */
 .nav-icon-fa {
-  color: var(--scitex-color-03); /* Professional bluish-gray: #506b7a */
+  color: var(--scitex-color-03); /* Neutral gray: #555555 */
   font-size: var(--icon-md); /* 16px - standardized via CSS variable */
   opacity: 0.85;
 }
@@ -44,7 +44,7 @@
 
 /* Dark mode: Make ALL icons consistent bluish-yellowish */
 [data-theme="dark"] .nav-icon-svg {
-  color: var(--scitex-color-05); /* Brighter bluish: #8fa4b0 */
+  color: var(--scitex-color-05); /* #999999 */
 }
 
 /* FontAwesome icons in dark mode - match IMG filter effect */
@@ -79,9 +79,7 @@
 .header-nav-item.active .nav-icon-svg,
 .header-nav-item:hover .nav-icon-fa,
 .header-nav-item.active .nav-icon-fa {
-  color: var(
-    --scitex-color-04
-  ); /* Brighter bluish-gray on hover/active: #6c8ba0 */
+  color: var(--scitex-color-04); /* Neutral gray on hover/active: #777777 */
   opacity: 1;
 }
 

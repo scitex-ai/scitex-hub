@@ -89,12 +89,12 @@
 }
 
 [data-theme="light"] .selection-action-bar {
-  background: var(--bg-secondary, #f8f9fa);
+  background: var(--workspace-bg-secondary);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 [data-theme="light"] .selection-action-bar .action-btn {
-  background: var(--bg-tertiary, #e9ecef) !important;
-  color: var(--text-primary, #1a2a40) !important;
-  border-color: var(--border-color, #d0d7de) !important;
+  background: var(--workspace-bg-tertiary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--workspace-border-default) !important;
 }
