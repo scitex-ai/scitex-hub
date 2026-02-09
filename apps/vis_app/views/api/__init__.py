@@ -12,6 +12,8 @@ from .bundles import (
     add_figz_panel,
     # Gallery -> Figz flow (no standalone pltz)
     add_panel_to_figz,
+    # PltzBundle Property Updates (fine-grained)
+    batch_update_pltz_properties,
     # Create empty figz bundle
     create_empty_figz,
     create_figz_bundle,
@@ -52,6 +54,7 @@ from .bundles import (
     update_figz_bundle,
     update_pltz_bundle,
     update_pltz_by_path,
+    update_pltz_property,
 )
 
 # Image Conversion Views
@@ -188,6 +191,9 @@ __all__ = [
     "get_pltz_preview",
     "get_pltz_data",
     "get_pltz_geometry",
+    # PltzBundle Property Updates
+    "update_pltz_property",
+    "batch_update_pltz_properties",
     "list_figz_bundles",
     "create_figz_bundle",
     "get_figz_bundle",

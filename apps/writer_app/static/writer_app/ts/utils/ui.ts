@@ -29,10 +29,7 @@ export function getUserContext(): string {
 /**
  * Update word count display
  */
-export function updateWordCountDisplay(
-  _section: string,
-  count: number,
-): void {
+export function updateWordCountDisplay(_section: string, count: number): void {
   const display = document.getElementById("current-word-count");
   if (display) {
     display.textContent = String(count);
@@ -156,37 +153,33 @@ export function updatePDFPreviewTitle(sectionId: string): void {
  * - Disables button for read-only sections (keeps it visible to reduce surprise)
  */
 export function updateCommitButtonVisibility(sectionId: string): void {
-  const commitBtn = document.getElementById(
-    "git-commit-btn",
+  const gitBtn = document.getElementById(
+    "git-status-display",
   ) as HTMLButtonElement;
-  if (!commitBtn) return;
+  if (!gitBtn) return;
 
   const config = (window as any).WRITER_CONFIG;
 
   // Hide for guest users (projectId === 0 means demo/guest project)
   if (!config || config.projectId === 0) {
-    commitBtn.style.display = "none";
+    gitBtn.style.display = "none";
     return;
   }
 
   // Always show button for authenticated users
-  commitBtn.style.display = "";
+  gitBtn.style.display = "";
 
   // Extract section name from sectionId (e.g., "manuscript/compiled_pdf" -> "compiled_pdf")
   const parts = sectionId.split("/");
   const sectionName = parts[parts.length - 1];
 
-  // Disable button for read-only sections (but keep it visible)
-  // compiled_pdf is the merged/compiled document
-  // figures, tables, references are directories or view-only sections
+  // Disable commit for read-only sections (but keep button visible for branch info)
   const readOnlySections = ["compiled_pdf", "figures", "tables", "references"];
   const isReadOnly = readOnlySections.includes(sectionName);
 
   if (isReadOnly) {
-    commitBtn.disabled = true;
-    commitBtn.title = "Cannot commit read-only sections";
+    gitBtn.title = "Read-only section";
   } else {
-    commitBtn.disabled = false;
-    commitBtn.title = "Create git commit for current changes";
+    gitBtn.title = "Git: click to commit";
   }
 }

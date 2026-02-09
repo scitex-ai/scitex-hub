@@ -1,5 +1,10 @@
 /* Main Editor Inline Styles */
 
+/* Editor Toggle Button (hidden - panel resizer handles this) */
+#editor-toggle-btn {
+  display: none;
+}
+
 /* Current File Display */
 .current-file-display i {
   color: var(--status-success);
@@ -68,32 +73,14 @@
 }
 
 /* Keybinding Selector (Hidden) */
-#keybinding-selector + label {
-  font-size: 0.75rem;
-  margin: 0;
-  display: none;
-  align-items: center;
-  gap: 0.25rem;
-}
-
+label[for="keybinding-selector"],
 #keybinding-selector {
-  width: auto;
-  font-size: 0.75rem;
   display: none;
 }
 
 /* Theme Selector (Hidden) */
-#theme-selector + label {
-  font-size: 0.75rem;
-  margin: 0;
-  display: none;
-  align-items: center;
-  gap: 0.25rem;
-}
-
+label[for="theme-selector"],
 #theme-selector {
-  width: auto;
-  font-size: 0.75rem;
   display: none;
 }
 
@@ -289,9 +276,9 @@
   max-width: 150px;
 }
 
-/* Compilation Output */
+/* Compilation Output - hidden; logs shown in Details panel instead */
 #compilation-output {
-  display: none;
+  display: none !important;
 }
 
 .compilation-log-toolbar {

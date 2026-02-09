@@ -71,7 +71,11 @@
   flex-shrink: 0;
   border-radius: 12px;
   overflow: hidden;
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(107, 143, 179, 0.1) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.3) 0%,
+    rgba(107, 143, 179, 0.1) 100%
+  );
   border: 2px solid rgba(107, 143, 179, 0.3);
   display: flex;
   align-items: center;
@@ -86,17 +90,20 @@
 }
 
 .figure-thumbnail::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: -2px;
   border-radius: 12px;
   padding: 2px;
-  background: linear-gradient(45deg,
+  background: linear-gradient(
+    45deg,
     rgba(107, 143, 179, 0.3),
     rgba(255, 255, 255, 0.1),
     rgba(107, 143, 179, 0.3)
   );
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   opacity: 0;
@@ -217,7 +224,8 @@
   font-size: 0.75rem;
   font-weight: 700;
   color: white;
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     var(--_scitex-02) 0%,
     var(--_scitex-03) 50%,
     var(--_scitex-02) 100%
@@ -238,7 +246,7 @@
 }
 
 .figure-label::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -50%;
   left: -50%;
@@ -287,6 +295,7 @@
   gap: 0.5rem;
   font-size: 0.7rem;
   color: var(--text-muted);
+  flex-wrap: wrap;
 }
 
 .figure-file-name {
@@ -313,6 +322,28 @@
 .meta-dot {
   color: var(--workspace-border-default);
   flex-shrink: 0;
+}
+
+/* Verifier Link */
+.figure-verifier-link {
+  font-size: 0.7rem;
+  color: var(--_scitex-03);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.figure-verifier-link:hover {
+  color: var(--_scitex-02);
+  text-decoration: underline;
+}
+
+.figure-verifier-link i {
+  font-size: 0.65rem;
 }
 
 /* Card Hover States - Ultra Modern with Glow */
@@ -374,7 +405,8 @@
 }
 
 @keyframes pulseGlow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow:
       0 12px 40px rgba(107, 143, 179, 0.35),
       0 0 0 4px rgba(107, 143, 179, 0.2),

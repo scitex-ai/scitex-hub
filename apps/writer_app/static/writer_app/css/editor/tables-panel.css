@@ -1,0 +1,16 @@
+/* ============================================================================
+ * Tables Panel Styles (Main File)
+ * ============================================================================
+ * This file re-exports the modular CSS from the tables-panel directory
+ *
+ * Modular components:
+ * - layout.css: Panel structure, containers, search, sort
+ * - table.css: Table cards, thumbnails, metadata, interactions
+ * - controls.css: Drag handles, checkboxes, badges
+ * - buttons.css: Button styles and interactions
+ * - modal.css: Expanded views, empty states
+ *
+ * See tables-panel/index.css for the actual imports
+ * ========================================================================== */
+
+@import url("./tables-panel/index.css");

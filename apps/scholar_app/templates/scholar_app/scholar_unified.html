@@ -409,28 +409,7 @@
         <!-- Left sidebar: File tree (only with project) -->
         <aside class="scholar-sidebar {% if not current_project %}collapsed{% endif %}"
                id="scholar-sidebar">
-            <div class="sidebar-header">
-                <h5>
-                    <i class="fas fa-folder-open"></i> Files
-                </h5>
-                <div class="sidebar-header-actions">
-                    <button class="hidden-files-toggle"
-                            id="hidden-files-toggle"
-                            title="Toggle hidden files">
-                        <i class="fas fa-eye-slash"></i>
-                    </button>
-                    <button class="hidden-files-toggle active"
-                            id="module-filter-toggle"
-                            title="Show all files (disable module filter)">
-                        <i class="fas fa-filter"></i>
-                    </button>
-                    <button class="sidebar-toggle panel-toggle-btn"
-                            id="sidebar-toggle"
-                            title="Toggle sidebar (Zen: F11/Alt+Z)">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                </div>
-            </div>
+            {% include "global_base_partials/workspace/sidebar_header.html" %}
             <div class="sidebar-content" id="file-tree">
                 {% if current_project %}
                     <!-- WorkspaceFilesTree will render here -->
@@ -465,8 +444,7 @@
                         <i class="fas fa-wand-magic-sparkles"></i> Metadata Enrichment
                     </a>
                     <a href="#graph" class="scholar-tab" data-tab="graph">
-                        <i class="fas fa-project-diagram"></i> Graph
-                        <span class="tab-badge tab-badge--soon">Coming soon</span>
+                        <i class="fas fa-project-diagram"></i> Citation Graph
                     </a>
                 </nav>
                 <div class="pane-header-actions"></div>
@@ -528,7 +506,6 @@
                                         <button type="submit" class="btn-build" id="buildGraphBtn">
                                             <i class="fas fa-project-diagram"></i>
                                             <span>Build Graph</span>
-                                            <span class="tab-badge tab-badge--soon">Coming soon</span>
                                         </button>
                                     </div>
                                 </div>

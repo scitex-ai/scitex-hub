@@ -4,16 +4,18 @@
  * Real-time collaboration interface for the Writer
  * ========================================================================== */
 
-/* Collaboration panel container - header is in normal flow, no need for top padding */
+/* Collaboration panel container */
 .collaboration-panel-container {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   width: 100%;
   padding: 0;
   background: var(--bg-page);
-  overflow: hidden; /* Changed from auto - children handle their own scrolling */
+  overflow: hidden;
   box-sizing: border-box;
+  height: 100%;
 }
 
 /* Dark theme */

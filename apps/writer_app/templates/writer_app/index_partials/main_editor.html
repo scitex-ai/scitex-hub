@@ -8,7 +8,7 @@
                 <div class="latex-panel">
                     <div class="panel-header">
                         <div class="header-left">
-                            <!-- Editor Toggle Button -->
+                            <!-- Editor Toggle Button (hidden via CSS) -->
                             <button id="editor-toggle-btn"
                                     class="panel-toggle-btn"
                                     onclick="toggleWriterPanel('editor')"
@@ -37,33 +37,20 @@
                                 </button>
                                 <div id="section-selector-dropdown" class="section-selector-dropdown"></div>
                             </div>
-                            <!-- Git Operations -->
+                        </div>
+                        <div class="header-right">
+                            <!-- Git Operations (unified: click to commit) -->
                             <div class="git-operations-container">
-                                <button id="git-status-display" class="btn btn-sm" title="Git branch" onclick="void(0)">
+                                <button id="git-status-display" class="btn btn-sm" title="Git: click to commit">
                                     <i class="fas fa-code-branch"></i>
                                     <span id="git-branch-name">main</span>
                                     <span id="git-unpushed-count">↑<span>0</span></span>
-                                </button>
-                                <button id="git-commit-btn"
-                                        class="btn btn-sm btn-outline-secondary"
-                                        title="Create git commit for current changes">
-                                    <i class="fas fa-code-branch"></i>
                                 </button>
                             </div>
                             <!-- Word Count -->
                             <div class="word-count-inline" title="Current section word count">
                                 <span id="current-word-count">0</span> words
                             </div>
-                            <!-- Keyboard Shortcuts Button -->
-                            <button id="shortcuts-btn"
-                                    class="btn btn-sm btn-outline-secondary"
-                                    title="View keyboard shortcuts"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#shortcuts-modal">
-                                <i class="fas fa-keyboard"></i>
-                            </button>
-                        </div>
-                        <div class="header-right">
                             <!-- Font Size Controls -->
                             <select id="font-size-select" class="form-select form-select-sm" aria-label="Font Size">
                                 <option value="12">12px</option>
@@ -82,7 +69,15 @@
                                     title="Toggle editor theme">
                                 <span class="theme-icon">🌙</span>
                             </button>
-                            <!-- Keybinding Selector - Hidden (not working with Monaco) -->
+                            <!-- Keyboard Shortcuts Button -->
+                            <button id="shortcuts-btn"
+                                    class="btn btn-sm btn-outline-secondary"
+                                    title="View keyboard shortcuts"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#shortcuts-modal">
+                                <i class="fas fa-keyboard"></i>
+                            </button>
+                            <!-- Keybinding Selector - Hidden -->
                             <label for="keybinding-selector" class="form-label hidden-selector-label">
                                 <i class="fas fa-keyboard"></i>
                                 <span class="visually-hidden">Keybinding</span>
@@ -92,7 +87,7 @@
                                     aria-label="Keybinding">
                                 <option value="default">Keymap: Default</option>
                             </select>
-                            <!-- Theme Selector - Hidden, using vs-dark -->
+                            <!-- Theme Selector - Hidden -->
                             <label for="theme-selector" class="form-label hidden-selector-label">
                                 <i class="fas fa-palette"></i>
                                 <span class="visually-hidden">Theme</span>
@@ -104,10 +99,7 @@
                             </select>
                         </div>
                     </div>
-                    <!-- File Tabs (below toolbar, same as /code/ page) -->
-                    <div id="file-tabs" class="file-tabs">
-                        <button id="btn-new-file-tab" class="file-tabs-plus-btn" title="New file">+</button>
-                    </div>
+                    <!-- File Tabs hidden: Writer uses section sidebar, not file tabs -->
                     <!-- Monaco Editor Container (replaces textarea) -->
                     <div id="writer-monaco-editor" class="writer-monaco-editor"></div>
                     <!-- Hidden textarea for fallback/compatibility -->

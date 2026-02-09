@@ -54,6 +54,30 @@ export function showCompilationProgress(
     log.textContent = "Starting compilation...\n";
   }
 
+  // Clear and auto-expand corresponding Details panel log section
+  const logType = output?.getAttribute("data-log-type");
+  const sectionKey = logType === "preview" ? "preview-log" : "full-log";
+  const detailsLogId =
+    logType === "preview" ? "details-preview-log" : "details-full-log";
+  const detailsLog = document.getElementById(detailsLogId);
+  if (detailsLog) {
+    detailsLog.textContent = "Starting compilation...\n";
+    // Auto-expand the section
+    const section = detailsLog.closest(".details-section");
+    if (section) {
+      section.classList.remove("collapsed");
+      try {
+        const states = JSON.parse(
+          localStorage.getItem("writer-details-sections") || "{}",
+        );
+        states[sectionKey] = false;
+        localStorage.setItem("writer-details-sections", JSON.stringify(states));
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+
   // Ensure log details are closed (minimized) by default
   const logDetails = document.getElementById(
     "compilation-log-details",

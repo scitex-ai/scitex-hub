@@ -12,6 +12,7 @@ from django.urls import path
 from django.views.generic import TemplateView
 
 from ..views.index import main as index_views
+from ..views.index.debug import test_pdf
 
 urlpatterns = [
     # Main index page

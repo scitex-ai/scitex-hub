@@ -170,6 +170,24 @@ export class FigureCardBuilder {
       metadata.appendChild(fileType);
     }
 
+    // Add "View in Verifier" link
+    if (figure.location) {
+      const dot3 = document.createElement("span");
+      dot3.className = "meta-dot";
+      dot3.textContent = "•";
+      metadata.appendChild(dot3);
+
+      const verifierLink = document.createElement("a");
+      verifierLink.className = "figure-verifier-link";
+      verifierLink.href = `/verifier/?file=${encodeURIComponent(figure.location)}`;
+      verifierLink.title = "View verification chain (Alt+R)";
+      verifierLink.innerHTML = '<i class="fas fa-shield-alt"></i> Verifier';
+      verifierLink.onclick = (e: MouseEvent) => {
+        e.stopPropagation(); // Prevent card click
+      };
+      metadata.appendChild(verifierLink);
+    }
+
     return metadata;
   }
 
