@@ -39,6 +39,9 @@
           href="{% static 'scholar_app/css/search/results-header.css' %}" />
     <link rel="stylesheet" href="{% static 'shared/css/components/terminal-log.css' %}" />
     <link rel="stylesheet" href="{% static 'scholar_app/css/graph/citation-graph.css' %}" />
+    <link rel="stylesheet" href="{% static 'scholar_app/css/library/library.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'scholar_app/css/library/library-details.css' %}" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.css"
           rel="stylesheet" />
     <!-- Workspace colors - responsive to theme -->
@@ -446,6 +449,10 @@
                     <a href="#graph" class="scholar-tab" data-tab="graph">
                         <i class="fas fa-project-diagram"></i> Citation Graph
                     </a>
+                    <a href="#library" class="scholar-tab" data-tab="library">
+                        <i class="fas fa-book-reader"></i> Library
+                        {% if library_count %}<span class="scholar-tab-badge">{{ library_count }}</span>{% endif %}
+                    </a>
                 </nav>
                 <div class="pane-header-actions"></div>
             </div>
@@ -583,6 +590,10 @@
         </div>
     </div>
 </div>
+<!-- Library Tab Content -->
+<div id="tab-library" class="scholar-tab-content" data-tab="library">
+    {% include "scholar_app/library_partials/library_main.html" %}
+</div>
 </main>
 <!-- Properties resizer (auto-initialized via data attributes) -->
 <div class="panel-resizer"
@@ -701,6 +712,10 @@
                     </div>
                 </div>
             </div>
+        </div>
+        <!-- Library Details -->
+        <div id="details-library" class="scholar-details-content" data-tab="library">
+            {% include "scholar_app/library_partials/library_details.html" %}
         </div>
     </div>
 </aside>

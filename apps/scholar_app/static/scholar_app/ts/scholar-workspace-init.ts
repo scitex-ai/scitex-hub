@@ -70,5 +70,25 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (config) {
     await initializeWorkspaceTree(config);
   }
+
+  // Lazy-load Library tab module on first activation
+  const libraryTab = document.querySelector('[data-tab="library"]');
+  if (libraryTab) {
+    libraryTab.addEventListener(
+      "click",
+      async () => {
+        try {
+          const { initLibraryManager } =
+            await import("./library/library-manager");
+          initLibraryManager();
+          console.log("[Scholar] Library manager initialized");
+        } catch (error) {
+          console.error("[Scholar] Failed to load library manager:", error);
+        }
+      },
+      { once: true },
+    );
+  }
+
   console.log("[Scholar] Workspace initialized");
 });

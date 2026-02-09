@@ -1,0 +1,214 @@
+/* Scholar Library - Details Panel Styles */
+
+/* Details Panel */
+.library-paper-details {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  background-color: var(--bg-primary);
+}
+
+.library-detail-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.library-detail-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.library-detail-meta {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.library-detail-body {
+  padding: 16px;
+  flex: 1;
+}
+
+.library-detail-section {
+  margin-bottom: 20px;
+}
+
+.library-detail-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.library-detail-value {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.library-detail-abstract {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 8px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0;
+}
+
+/* Editable Fields */
+.library-status-select,
+.library-importance-select,
+.library-tags-input {
+  width: 100%;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 6px 10px;
+  font-size: 0.9rem;
+  border-radius: 0;
+}
+
+.library-status-select:focus,
+.library-importance-select:focus,
+.library-tags-input:focus {
+  outline: none;
+  border-color: var(--icon-primary);
+}
+
+.library-notes-textarea {
+  width: 100%;
+  min-height: 120px;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  resize: vertical;
+  border-radius: 0;
+}
+
+.library-notes-textarea:focus {
+  outline: none;
+  border-color: var(--icon-primary);
+}
+
+/* Save Button */
+.library-save-btn {
+  background-color: var(--icon-primary);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  border-radius: 0;
+  margin-top: 12px;
+}
+
+.library-save-btn:hover {
+  opacity: 0.9;
+}
+
+.library-save-btn:active {
+  opacity: 0.8;
+}
+
+.library-save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Detail Actions */
+.library-detail-actions {
+  padding: 16px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  gap: 8px;
+}
+
+.library-detail-btn {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 0;
+}
+
+.library-detail-btn:hover {
+  background-color: var(--bg-quaternary);
+}
+
+.library-detail-btn.danger {
+  background-color: rgba(245, 101, 101, 0.1);
+  color: #f56565;
+  border-color: #f56565;
+}
+
+.library-detail-btn.danger:hover {
+  background-color: rgba(245, 101, 101, 0.2);
+}
+
+/* Scrollbar Styling */
+.library-papers-list::-webkit-scrollbar,
+.library-paper-details::-webkit-scrollbar,
+.library-detail-abstract::-webkit-scrollbar {
+  width: 8px;
+}
+
+.library-papers-list::-webkit-scrollbar-track,
+.library-paper-details::-webkit-scrollbar-track,
+.library-detail-abstract::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+.library-papers-list::-webkit-scrollbar-thumb,
+.library-paper-details::-webkit-scrollbar-thumb,
+.library-detail-abstract::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 0;
+}
+
+.library-papers-list::-webkit-scrollbar-thumb:hover,
+.library-paper-details::-webkit-scrollbar-thumb:hover,
+.library-detail-abstract::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Details Empty State */
+.library-details-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: var(--text-muted);
+  text-align: center;
+  height: 100%;
+}
+
+.library-details-empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.library-details-empty-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.library-details-empty-description {
+  font-size: 0.9rem;
+}
