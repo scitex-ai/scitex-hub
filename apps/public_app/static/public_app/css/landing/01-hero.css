@@ -262,17 +262,14 @@
   filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
 }
 
-/* Theme-aware logo switching: black logo for light, white for dark */
-.hero-logo-dark {
-  display: none;
+/* Light mode: invert white logo to black (transparent bg preserved) */
+.hero-landing .hero-logo {
+  filter: invert(1) drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
 }
 
-[data-theme="dark"] .hero-logo-light {
-  display: none;
-}
-
-[data-theme="dark"] .hero-logo-dark {
-  display: block;
+/* Dark mode: keep white logo as-is */
+[data-theme="dark"] .hero-landing .hero-logo {
+  filter: none;
   opacity: 0.95;
   filter: drop-shadow(0 2px 12px rgba(0, 0, 0, 0.3));
 }

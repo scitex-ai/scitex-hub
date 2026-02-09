@@ -52,17 +52,13 @@
   }
 }
 
-/* Theme-aware logo switching */
-.header-logo-dark {
-  display: none;
+/* Light mode: invert white icons to dark */
+.header-logo-icon {
+  filter: invert(1);
 }
 
-[data-theme="dark"] .header-logo-light {
-  display: none;
-}
-
-[data-theme="dark"] .header-logo-dark {
-  display: inline-block;
+[data-theme="dark"] .header-logo-icon {
+  filter: none;
 }
 
 /* Professional logo styling */
