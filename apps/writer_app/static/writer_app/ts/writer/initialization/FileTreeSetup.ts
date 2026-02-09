@@ -194,15 +194,7 @@ export class FileTreeSetup {
         enhancedFileSelectHandler,
       );
 
-      // Focus on initial doctype folder
-      const initialDoctypeFolder = getDoctypeFolder(currentDoctype);
-      if (filesTree.focusDirectory) {
-        console.log(
-          "[FileTreeSetup] Focusing on doctype folder:",
-          initialDoctypeFolder,
-        );
-        filesTree.focusDirectory(initialDoctypeFolder);
-      }
+      // Tree is shared across modules - do not auto-navigate on init
 
       console.log(
         "[FileTreeSetup] WorkspaceFilesTree initialized successfully",

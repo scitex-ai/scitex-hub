@@ -7,7 +7,10 @@
  * 3. Tree selection -> Dropdown updates (update both dropdowns)
  */
 
-import { doctypeToDirectory, getDoctypeFromPath } from "../config/doctype-config";
+import {
+  doctypeToDirectory,
+  getDoctypeFromPath,
+} from "../config/doctype-config";
 
 console.log("[DEBUG] WriterTreeSync.ts loaded");
 
@@ -34,21 +37,10 @@ export class WriterTreeSync {
 
   /**
    * Setup event listeners for synchronization
+   * Note: Editor->tree sync disabled since tree is shared across modules
    */
   private setupEventListeners(): void {
-    // Listen for section dropdown item clicks
-    this.config.sectionDropdown?.addEventListener("click", (e) => {
-      const target = e.target as HTMLElement;
-      const sectionItem = target.closest(".section-item") as HTMLElement;
-
-      if (sectionItem) {
-        const sectionId = sectionItem.dataset.sectionId;
-        if (sectionId) {
-          console.log("[WriterTreeSync] Section dropdown clicked:", sectionId);
-          this.syncTreeFromSection(sectionId);
-        }
-      }
-    });
+    // Tree is shared across modules - do not auto-navigate it from editor
   }
 
   /**
@@ -68,7 +60,10 @@ export class WriterTreeSync {
       return;
     }
 
-    console.log("[WriterTreeSync] Syncing tree to doctype folder:", doctypeFolder);
+    console.log(
+      "[WriterTreeSync] Syncing tree to doctype folder:",
+      doctypeFolder,
+    );
 
     // Use the tree's focusDirectory method to expand and scroll to the folder
     if (tree.focusDirectory) {
@@ -142,11 +137,16 @@ export class WriterTreeSync {
   syncDropdownsFromTree(filePath: string): void {
     // Prevent infinite loop
     if (this.lastSyncedPath === filePath) {
-      console.log("[WriterTreeSync] Already synced from this path, skipping dropdown update");
+      console.log(
+        "[WriterTreeSync] Already synced from this path, skipping dropdown update",
+      );
       return;
     }
 
-    console.log("[WriterTreeSync] Syncing dropdowns from tree selection:", filePath);
+    console.log(
+      "[WriterTreeSync] Syncing dropdowns from tree selection:",
+      filePath,
+    );
 
     // Extract doctype from path
     const doctype = getDoctypeFromPath(filePath);
@@ -176,7 +176,10 @@ export class WriterTreeSync {
   /**
    * Update the section dropdown display to show the selected section
    */
-  private updateSectionDropdownDisplay(sectionId: string, sectionName: string): void {
+  private updateSectionDropdownDisplay(
+    sectionId: string,
+    sectionName: string,
+  ): void {
     const dropdownContainer = this.config.sectionDropdown;
     const selectorText = this.config.sectionText;
 
@@ -210,7 +213,10 @@ export class WriterTreeSync {
     if (!found) {
       // Section not in current dropdown - just update display text
       selectorText.textContent = sectionName.replace(/_/g, " ");
-      console.log("[WriterTreeSync] Section not in dropdown, showing name:", sectionName);
+      console.log(
+        "[WriterTreeSync] Section not in dropdown, showing name:",
+        sectionName,
+      );
     }
   }
 
@@ -248,7 +254,9 @@ let writerTreeSyncInstance: WriterTreeSync | null = null;
 /**
  * Initialize the WriterTreeSync singleton
  */
-export function initWriterTreeSync(config: WriterTreeSyncConfig): WriterTreeSync {
+export function initWriterTreeSync(
+  config: WriterTreeSyncConfig,
+): WriterTreeSync {
   writerTreeSyncInstance = new WriterTreeSync(config);
   (window as any).writerTreeSync = writerTreeSyncInstance;
   return writerTreeSyncInstance;

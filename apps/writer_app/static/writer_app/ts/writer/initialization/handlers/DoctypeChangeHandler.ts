@@ -3,9 +3,11 @@
  * Handles document type dropdown changes
  */
 
-import { handleDocTypeSwitch, populateSectionDropdownDirect } from "../../../utils/index";
+import {
+  handleDocTypeSwitch,
+  populateSectionDropdownDirect,
+} from "../../../utils/index";
 import { getDoctypeFolder } from "./TreeConfiguration";
-import { getWriterTreeSync } from "../../sync/index";
 
 console.log("[DEBUG] DoctypeChangeHandler.ts loaded");
 
@@ -25,7 +27,7 @@ export function setupDoctypeChangeWithTree(
   docTypeSelector: HTMLSelectElement,
   filesTree: any,
   writerFilter: any,
-  deps: DoctypeChangeDependencies
+  deps: DoctypeChangeDependencies,
 ): void {
   docTypeSelector.addEventListener("change", (e) => {
     const newDocType = (e.target as HTMLSelectElement).value;
@@ -34,14 +36,20 @@ export function setupDoctypeChangeWithTree(
     if (deps.editor && deps.state.currentSection) {
       // Save current section before switching
       const currentContent = deps.editor.getContent();
-      deps.sectionsManager.setContent(deps.state.currentSection, currentContent);
+      deps.sectionsManager.setContent(
+        deps.state.currentSection,
+        currentContent,
+      );
 
       // Update state with new document type
       deps.state.currentDocType = newDocType;
 
       // Save doctype to persistence
       deps.statePersistence.saveDoctype(newDocType);
-      console.log("[DoctypeChangeHandler] Saved doctype to persistence:", newDocType);
+      console.log(
+        "[DoctypeChangeHandler] Saved doctype to persistence:",
+        newDocType,
+      );
 
       // Update filter with new doctype
       writerFilter.setDoctype(newDocType);
@@ -57,20 +65,7 @@ export function setupDoctypeChangeWithTree(
         newDocType,
       );
 
-      // Focus on the selected doctype directory (expand it, collapse siblings)
-      // Use WriterTreeSync if available for consistent sync behavior
-      const treeSync = getWriterTreeSync();
-      if (treeSync) {
-        console.log("[DoctypeChangeHandler] Using WriterTreeSync to focus on doctype:", newDocType);
-        treeSync.syncTreeFromDoctype(newDocType);
-      } else {
-        // Fallback to direct tree method
-        const doctypeFolder = getDoctypeFolder(newDocType);
-        if (doctypeFolder && filesTree.focusDirectory) {
-          console.log("[DoctypeChangeHandler] Focusing on doctype folder:", doctypeFolder);
-          filesTree.focusDirectory(doctypeFolder);
-        }
-      }
+      // Tree is shared across modules - do not auto-navigate it from editor
     }
   });
 }
@@ -81,16 +76,23 @@ export function setupDoctypeChangeWithTree(
 export function setupDoctypeChangeWithoutTree(
   docTypeSelector: HTMLSelectElement,
   onFileSelectHandler: (sectionId: string, sectionName: string) => void,
-  deps: DoctypeChangeDependencies
+  deps: DoctypeChangeDependencies,
 ): void {
   docTypeSelector.addEventListener("change", async (e) => {
     const newDocType = (e.target as HTMLSelectElement).value;
-    console.log("[DoctypeChangeHandler] Document type changed to:", newDocType, "- updating section dropdown");
+    console.log(
+      "[DoctypeChangeHandler] Document type changed to:",
+      newDocType,
+      "- updating section dropdown",
+    );
 
     // Save current section content before switching
     if (deps.editor && deps.state.currentSection) {
       const currentContent = deps.editor.getContent();
-      deps.sectionsManager.setContent(deps.state.currentSection, currentContent);
+      deps.sectionsManager.setContent(
+        deps.state.currentSection,
+        currentContent,
+      );
     }
 
     // Update state
@@ -98,7 +100,10 @@ export function setupDoctypeChangeWithoutTree(
 
     // Save doctype to persistence
     deps.statePersistence.saveDoctype(newDocType);
-    console.log("[DoctypeChangeHandler] Saved doctype to persistence:", newDocType);
+    console.log(
+      "[DoctypeChangeHandler] Saved doctype to persistence:",
+      newDocType,
+    );
 
     // Update PDF preview manager doc type
     if (deps.pdfPreviewManager) {
