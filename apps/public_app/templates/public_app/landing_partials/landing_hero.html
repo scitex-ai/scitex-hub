@@ -14,11 +14,14 @@
                     <img src="{% static 'shared/images/scitex_logos/scitex-icon/scitex-icon-navy-inverted.png' %}" alt="SciTeX" class="hero-icon" />
                 </div>
                 -->
-                <!-- Full logo - clean and minimal -->
+                <!-- Full logo - theme-aware: black for light, white for dark -->
                 <div class="hero-logo-container">
+                    <img src="{% static 'shared/images/scitex_logos/logo-files/png/scitex-logo-white.png' %}"
+                         alt="SciTeX - For Researchers"
+                         class="hero-logo hero-logo-light" />
                     <img src="{% static 'shared/images/scitex_logos/logo-files/png/scitex-logo-transparent.png' %}"
                          alt="SciTeX - For Researchers"
-                         class="hero-logo" />
+                         class="hero-logo hero-logo-dark" />
                 </div>
                 <!-- Value proposition and CTA -->
                 <p class="hero-tagline">{{ SITE_TAGLINE }}</p>

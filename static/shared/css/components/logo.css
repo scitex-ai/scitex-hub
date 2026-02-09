@@ -52,11 +52,17 @@
   }
 }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .site-logo .logo-img {
-    filter: brightness(1.1);
-  }
+/* Theme-aware logo switching */
+.header-logo-dark {
+  display: none;
+}
+
+[data-theme="dark"] .header-logo-light {
+  display: none;
+}
+
+[data-theme="dark"] .header-logo-dark {
+  display: inline-block;
 }
 
 /* Professional logo styling */

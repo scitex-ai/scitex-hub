@@ -262,8 +262,17 @@
   filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
 }
 
-/* Dark theme - invert or adjust logo visibility */
-[data-theme="dark"] .hero-landing .hero-logo {
+/* Theme-aware logo switching: black logo for light, white for dark */
+.hero-logo-dark {
+  display: none;
+}
+
+[data-theme="dark"] .hero-logo-light {
+  display: none;
+}
+
+[data-theme="dark"] .hero-logo-dark {
+  display: block;
   opacity: 0.95;
   filter: drop-shadow(0 2px 12px rgba(0, 0, 0, 0.3));
 }
