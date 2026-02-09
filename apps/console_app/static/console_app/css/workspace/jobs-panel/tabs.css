@@ -3,21 +3,7 @@
  * Panel tabs (Terminal | Jobs)
  */
 
-/* Panel Tabs (Terminal | Jobs) */
-.terminal-panel-tabs {
-  display: flex;
-  align-items: center;
-  padding: 0 8px;
-  background: var(--code-toolbar-bg);
-  border-bottom: 1px solid var(--code-border);
-  height: 40px;
-  flex-shrink: 0;
-}
-
-[data-theme="dark"] .terminal-panel-tabs {
-  background: var(--workspace-bg-secondary);
-  border-bottom-color: var(--workspace-border-default);
-}
+/* Panel tabs are now inside .terminal-panel-bottom (10-terminal-header.css) */
 
 .panel-tab {
   display: flex;
@@ -83,8 +69,13 @@
 }
 
 @keyframes badge-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
 }
 
 .panel-tab-spacer {

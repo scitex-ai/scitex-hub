@@ -58,12 +58,12 @@
                                 title="Show all files (disable module filter)">
                             <i class="fas fa-filter"></i>
                         </button>
-                        <button class="sidebar-toggle-btn"
-                                id="sidebar-toggle"
-                                title="Toggle sidebar (Zen: F11/Alt+Z)">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
                     </div>
+                    <button class="sidebar-toggle-btn panel-toggle-btn left-panel-toggle"
+                            id="sidebar-toggle"
+                            title="Toggle sidebar (Zen: F11/Alt+Z)">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
                 </div>
                 <div class="sidebar-content" id="files-tree">
                     {% if current_project %}
@@ -300,12 +300,11 @@
                                 <button class="pane-header-btn" id="btn-save" title="Save plot">
                                     <i class="fas fa-cloud-upload-alt"></i>
                                 </button>
-                                <!-- Theme Toggle Button (shows warning when in dark mode) -->
+                                <!-- Theme Toggle Button -->
                                 <button class="pane-header-btn theme-toggle-btn"
                                         id="canvas-theme-toggle"
-                                        title="Toggle light/dark theme (Export uses white background in dark mode)">
+                                        title="Toggle light/dark theme">
                                     <span class="theme-icon">🌓</span>
-                                    <span class="dark-warning" id="toolbar-dark-warning" style="display:none;">Warning</span>
                                 </button>
                                 <!-- Keyboard Shortcuts Help -->
                                 <button class="pane-header-btn" id="btn-shortcuts-help" title="Keyboard shortcuts (?)">
@@ -340,11 +339,6 @@
                                 </svg>
                                 <!-- Bottom-right corner -->
                                 <div class="ruler-corner ruler-corner-br"></div>
-                            </div>
-                            <!-- Dark Mode Warning at Bottom -->
-                            <div class="canvas-mode-warning" id="canvas-warning">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                <span>Export will use white background for publication</span>
                             </div>
                         </div>
                     </div>

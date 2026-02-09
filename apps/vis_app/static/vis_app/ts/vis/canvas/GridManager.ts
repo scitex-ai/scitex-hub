@@ -35,37 +35,40 @@ export class GridManager {
 
     // Use pre-rendered static SVG files for maximum performance
     // Cache bust version: increment when SVG files are updated
-    const cacheBust = "v6";
+    const cacheBust = "v7";
     const gridUrl = isDark
       ? `/static/vis_app/img/vis/grid-dark.svg?${cacheBust}`
       : `/static/vis_app/img/vis/grid-light.svg?${cacheBust}`;
 
-    // Load as Fabric.js background image
-    fabric.Image.fromURL(
-      gridUrl,
-      (img: any) => {
-        this.canvas.setBackgroundImage(
-          img,
-          this.canvas.renderAll.bind(this.canvas),
-          {
-            scaleX: 1,
-            scaleY: 1,
-            originX: "left",
-            originY: "top",
-          },
-        );
+    // Load SVG as native Image first, then create Fabric.Image
+    // Avoids crossOrigin issues with same-origin static files
+    const img = new Image();
+    img.onload = () => {
+      const fabricImg = new fabric.Image(img);
+      this.canvas.setBackgroundImage(
+        fabricImg,
+        this.canvas.renderAll.bind(this.canvas),
+        {
+          scaleX: 1,
+          scaleY: 1,
+          originX: "left",
+          originY: "top",
+        },
+      );
 
-        const endTime = performance.now();
-        console.log(
-          `[GridManager] ✅ Grid loaded from static SVG in ${(endTime - startTime).toFixed(2)}ms (${isDark ? "dark" : "light"} mode)`,
-        );
+      const endTime = performance.now();
+      console.log(
+        `[GridManager] Grid loaded in ${(endTime - startTime).toFixed(2)}ms (${isDark ? "dark" : "light"} mode)`,
+      );
 
-        if (this.statusCallback) {
-          this.statusCallback("Grid enabled");
-        }
-      },
-      { crossOrigin: "anonymous" },
-    );
+      if (this.statusCallback) {
+        this.statusCallback("Grid enabled");
+      }
+    };
+    img.onerror = (err) => {
+      console.error(`[GridManager] Failed to load grid SVG: ${gridUrl}`, err);
+    };
+    img.src = gridUrl;
   }
 
   /**

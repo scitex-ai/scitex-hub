@@ -17,10 +17,31 @@
 /* Sidebar Section */
 .sidebar-section {
   padding: 16px;
+  margin-bottom: 0;
+  position: relative;
+}
+
+.sidebar-section.collapsible {
+  cursor: pointer;
+}
+
+.sidebar-section.collapsible:hover {
+  border-color: var(--color-accent-fg);
+  background: var(--color-neutral-muted);
+}
+
+/* Sidebar Section Chevron */
+.sidebar-section-chevron {
+  font-size: 10px;
+  transition: transform 0.2s ease;
+  color: var(--color-fg-muted);
 }
 
 /* Sidebar Title */
 .sidebar-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   font-size: 14px;
   font-weight: 600;
   color: var(--color-fg-default, #1f2328);

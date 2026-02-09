@@ -109,7 +109,6 @@ export class PTYTerminal {
       if (event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
         const key = event.key.toLowerCase();
         const navigationRoutes: Record<string, string> = {
-          f: "/files/",
           s: "/scholar/",
           c: "/console/",
           v: "/vis/",
@@ -129,7 +128,15 @@ export class PTYTerminal {
           return false;
         }
 
-        // Module navigation (Alt+F/S/C/V/W)
+        // Alt+F: Toggle sidebar
+        if (key === "f") {
+          console.log("[PTY] Alt+F - Toggle sidebar");
+          const sidebarToggle = document.getElementById("sidebar-toggle");
+          if (sidebarToggle) sidebarToggle.click();
+          return false;
+        }
+
+        // Module navigation (Alt+S/C/V/W)
         if (navigationRoutes[key]) {
           const route = navigationRoutes[key];
           if (!window.location.pathname.startsWith(route)) {

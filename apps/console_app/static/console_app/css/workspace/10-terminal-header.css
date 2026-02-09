@@ -1,57 +1,25 @@
-/* Terminal header - match toolbar height and style */
-.terminal-header {
+/* Terminal panel top bar - unified: toggle | Jobs | terminal tabs | shortcuts */
+.terminal-panel-top {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
-  background: var(--code-toolbar-bg);
-  border-top: 1px solid var(--code-border);
-  border-bottom: 1px solid var(--code-border);
-  height: 50px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-[data-theme="dark"] .terminal-header {
-  background: var(--workspace-bg-secondary) !important;
-  border-top-color: var(--workspace-border-default);
-  border-bottom-color: var(--workspace-border-default);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-}
-
-/* Terminal panel header with toggle button */
-.terminal-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
+  padding: 0 8px;
+  background: var(--workspace-bg-secondary);
+  border-top: 1px solid var(--workspace-border-default);
+  border-bottom: 1px solid var(--workspace-border-default);
   height: 50px;
   min-height: 50px;
-  background: var(--workspace-bg-secondary);
-  border-bottom: 1px solid var(--workspace-border-default);
   flex-shrink: 0;
-  overflow: hidden; /* Prevent content from forcing width */
-  min-width: 0; /* Allow flex shrinking */
-}
-
-.terminal-panel-header h5 {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 0; /* Allow flex shrinking */
+  min-width: 0;
 }
 
-.terminal-panel-header h5 i {
-  color: var(--workspace-icon-primary);
+[data-theme="light"] .terminal-panel-top {
+  background: var(--code-toolbar-bg);
+  border-top-color: var(--code-border);
+  border-bottom-color: var(--code-border);
 }
 
-.terminal-toggle {
+.terminal-panel-top .terminal-toggle {
   background: none;
   border: none;
   padding: 4px 8px;
@@ -59,27 +27,60 @@
   color: var(--text-muted);
   border-radius: 4px;
   transition: all 0.15s ease;
+  flex-shrink: 0;
 }
 
-.terminal-toggle:hover {
+.terminal-panel-top .terminal-toggle:hover {
   background: var(--workspace-bg-tertiary);
   color: var(--workspace-icon-primary);
 }
 
-/* Collapsed state header adjustments */
-.code-terminal-panel.collapsed .terminal-panel-header {
-  padding: 0 4px;
+/* Vertical divider between Jobs tab and terminal tabs */
+.terminal-bar-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--workspace-border-default, #3a3a3a);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+/* Terminal tabs inside the top bar - inline flow */
+.terminal-panel-top .terminal-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: auto;
+  padding: 0;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none; /* Firefox */
+}
+
+.terminal-panel-top .terminal-tabs::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+/* Collapsed state - show only toggle */
+.code-terminal-panel.collapsed .terminal-panel-top {
+  padding: 0;
   justify-content: center;
 }
 
-.code-terminal-panel.collapsed .terminal-panel-header h5 {
+.code-terminal-panel.collapsed .terminal-panel-top .panel-tab,
+.code-terminal-panel.collapsed .terminal-panel-top .terminal-bar-divider,
+.code-terminal-panel.collapsed .terminal-panel-top .terminal-tabs,
+.code-terminal-panel.collapsed .terminal-panel-top .panel-tab-spacer,
+.code-terminal-panel.collapsed .terminal-panel-top .panel-header-btn {
   display: none;
 }
 
-.code-terminal-panel.collapsed .terminal-toggle {
+.code-terminal-panel.collapsed .terminal-panel-top .terminal-toggle {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
+  height: 50px;
   padding: 4px;
 }

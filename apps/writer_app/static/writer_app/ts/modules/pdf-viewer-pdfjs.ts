@@ -74,25 +74,29 @@ export class PDFJSViewer {
     }
 
     try {
-      console.log("[PDFJSViewer] Loading PDF:", pdfUrl, "theme:", this.theme.getColorMode());
+      console.log(
+        "[PDFJSViewer] Loading PDF:",
+        pdfUrl,
+        "theme:",
+        this.theme.getColorMode(),
+      );
 
       // Load document
       const pdfDoc = await this.loader.loadDocument(pdfUrl, this.container);
 
-      // Calculate scale
+      // Calculate scale - use container width since viewer element doesn't exist yet
       let scale = this.zoom.getCurrentScale();
-      if (this.zoom.shouldFitToWidth()) {
-        const viewer = this.renderer.getViewerElement();
-        if (viewer) {
-          scale = this.zoom.calculateFitToWidth(viewer.clientWidth);
-          this.zoom.setScale(scale);
+      if (this.zoom.shouldFitToWidth() && this.container) {
+        scale = this.zoom.calculateFitToWidth(this.container.clientWidth);
+        this.zoom.setScale(scale);
 
-          // Update dropdown
-          const zoomSelect = document.getElementById("pdf-zoom-select") as HTMLSelectElement;
-          if (zoomSelect) {
-            zoomSelect.value = "fit-width";
-            console.log("[PDFJSViewer] Dropdown set to 'Fit to Width'");
-          }
+        // Update dropdown
+        const zoomSelect = document.getElementById(
+          "pdf-zoom-select",
+        ) as HTMLSelectElement;
+        if (zoomSelect) {
+          zoomSelect.value = "fit-width";
+          console.log("[PDFJSViewer] Dropdown set to 'Fit to Width'");
         }
       }
 
@@ -101,7 +105,7 @@ export class PDFJSViewer {
         pdfDoc,
         this.container,
         scale,
-        this.theme.getColorMode()
+        this.theme.getColorMode(),
       );
 
       // Setup interactions
@@ -163,18 +167,20 @@ export class PDFJSViewer {
 
     const pdfDoc = this.loader.getDocument();
     if (pdfDoc && this.container) {
-      this.renderer.renderAllPages(
-        pdfDoc,
-        this.container,
-        this.zoom.getCurrentScale(),
-        colorMode
-      ).then(() => {
-        const newViewer = this.renderer.getViewerElement();
-        if (newViewer) {
-          this.setupInteractions(newViewer);
-          this.scrollState.restoreScrollPosition(newViewer);
-        }
-      });
+      this.renderer
+        .renderAllPages(
+          pdfDoc,
+          this.container,
+          this.zoom.getCurrentScale(),
+          colorMode,
+        )
+        .then(() => {
+          const newViewer = this.renderer.getViewerElement();
+          if (newViewer) {
+            this.setupInteractions(newViewer);
+            this.scrollState.restoreScrollPosition(newViewer);
+          }
+        });
     }
   }
 
@@ -195,18 +201,20 @@ export class PDFJSViewer {
 
     const pdfDoc = this.loader.getDocument();
     if (pdfDoc && this.container) {
-      this.renderer.renderAllPages(
-        pdfDoc,
-        this.container,
-        finalScale,
-        this.theme.getColorMode()
-      ).then(() => {
-        const newViewer = this.renderer.getViewerElement();
-        if (newViewer) {
-          this.setupInteractions(newViewer);
-          this.scrollState.restoreScrollPosition(newViewer);
-        }
-      });
+      this.renderer
+        .renderAllPages(
+          pdfDoc,
+          this.container,
+          finalScale,
+          this.theme.getColorMode(),
+        )
+        .then(() => {
+          const newViewer = this.renderer.getViewerElement();
+          if (newViewer) {
+            this.setupInteractions(newViewer);
+            this.scrollState.restoreScrollPosition(newViewer);
+          }
+        });
     }
   }
 
@@ -228,18 +236,20 @@ export class PDFJSViewer {
 
     const pdfDoc = this.loader.getDocument();
     if (pdfDoc && this.container) {
-      this.renderer.renderAllPages(
-        pdfDoc,
-        this.container,
-        this.zoom.getCurrentScale(),
-        this.theme.getColorMode()
-      ).then(() => {
-        const newViewer = this.renderer.getViewerElement();
-        if (newViewer) {
-          this.setupInteractions(newViewer);
-          this.scrollState.restoreScrollPosition(newViewer);
-        }
-      });
+      this.renderer
+        .renderAllPages(
+          pdfDoc,
+          this.container,
+          this.zoom.getCurrentScale(),
+          this.theme.getColorMode(),
+        )
+        .then(() => {
+          const newViewer = this.renderer.getViewerElement();
+          if (newViewer) {
+            this.setupInteractions(newViewer);
+            this.scrollState.restoreScrollPosition(newViewer);
+          }
+        });
     }
   }
 

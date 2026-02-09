@@ -213,12 +213,12 @@
     <div class="container-fluid browse-container">
         {% include "project_app/repository/file_view_partials/file_view_breadcrumb.html" %}
         {% include "project_app/repository/file_view_partials/file_view_tabs.html" %}
-        {% include "project_app/repository/file_view_partials/file_view_header.html" %}
         <!-- Main Content Area with Sidebar -->
         <div class="repo-layout" id="repo-layout">
             {% include 'project_app/repository/browse_partials/browse_sidebar.html' %}
             <!-- File Content (RIGHT side) -->
             <div class="repo-main">
+                {% include "project_app/repository/file_view_partials/file_view_header.html" %}
                 <div class="file-container">
                     {% if render_type == 'markdown' %}
                         {% include "project_app/repository/file_view_partials/file_view_content_markdown.html" %}

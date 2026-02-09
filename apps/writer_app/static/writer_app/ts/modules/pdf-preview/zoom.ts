@@ -8,7 +8,6 @@ import { PDFJSViewer } from "../pdf-viewer-pdfjs";
 export class ZoomController {
   private pdfZoom: number = 100;
   private pdfViewer: PDFJSViewer | null = null;
-  private currentPdfUrl: string | null = null;
   private readonly ZOOM_LEVELS = [100, 125, 150, 175, 200];
 
   constructor(pdfViewer: PDFJSViewer | null) {
@@ -42,56 +41,71 @@ export class ZoomController {
     this.setupZoomSelector();
     this.setupZoomInButton();
     this.setupZoomOutButton();
+    this.setupDpiSelector();
   }
 
   /**
-   * Setup zoom selector dropdown
+   * Setup zoom selector dropdown using event delegation
+   * (The dropdown is inside a template that gets innerHTML-copied into the shared header,
+   *  so direct event listeners are lost. Use document-level delegation instead.)
    */
   private setupZoomSelector(): void {
+    // Set initial value on the template element
     const zoomSelector = document.getElementById(
       "pdf-zoom-select",
     ) as HTMLSelectElement;
     if (zoomSelector) {
       zoomSelector.value = this.pdfZoom.toString();
-      zoomSelector.addEventListener("change", () => {
-        const value = zoomSelector.value;
+    }
+
+    // Use event delegation on document to catch changes on dynamically copied elements
+    document.addEventListener("change", (e) => {
+      const target = e.target as HTMLSelectElement;
+      if (target && target.id === "pdf-zoom-select") {
+        const value = target.value;
         if (value === "fit-width") {
           this.setFitToWidth();
         } else {
           this.setPdfZoom(parseInt(value, 10));
         }
-      });
-    }
+      }
+    });
   }
 
   /**
-   * Setup zoom in button
+   * Setup zoom in button using event delegation
    */
   private setupZoomInButton(): void {
-    const zoomInBtn = document.getElementById("pdf-zoom-in");
-    if (zoomInBtn) {
-      zoomInBtn.addEventListener("click", () => {
+    document.addEventListener("click", (e) => {
+      const target = e.target as HTMLElement;
+      if (
+        target &&
+        (target.id === "pdf-zoom-in" || target.closest("#pdf-zoom-in"))
+      ) {
         const currentIndex = this.ZOOM_LEVELS.indexOf(this.pdfZoom);
         if (currentIndex < this.ZOOM_LEVELS.length - 1) {
           this.setPdfZoom(this.ZOOM_LEVELS[currentIndex + 1]);
         }
-      });
-    }
+      }
+    });
   }
 
   /**
-   * Setup zoom out button
+   * Setup zoom out button using event delegation
    */
   private setupZoomOutButton(): void {
-    const zoomOutBtn = document.getElementById("pdf-zoom-out");
-    if (zoomOutBtn) {
-      zoomOutBtn.addEventListener("click", () => {
+    document.addEventListener("click", (e) => {
+      const target = e.target as HTMLElement;
+      if (
+        target &&
+        (target.id === "pdf-zoom-out" || target.closest("#pdf-zoom-out"))
+      ) {
         const currentIndex = this.ZOOM_LEVELS.indexOf(this.pdfZoom);
         if (currentIndex > 0) {
           this.setPdfZoom(this.ZOOM_LEVELS[currentIndex - 1]);
         }
-      });
-    }
+      }
+    });
   }
 
   /**
@@ -101,13 +115,11 @@ export class ZoomController {
     this.pdfZoom = zoom;
     localStorage.setItem("pdf-zoom-level", zoom.toString());
 
-    // Update zoom selector
-    const zoomSelector = document.getElementById(
-      "pdf-zoom-select",
-    ) as HTMLSelectElement;
-    if (zoomSelector) {
-      zoomSelector.value = zoom.toString();
-    }
+    // Update all zoom selectors (template + visible copy)
+    const zoomSelectors = document.querySelectorAll("#pdf-zoom-select");
+    zoomSelectors.forEach((el) => {
+      (el as HTMLSelectElement).value = zoom.toString();
+    });
 
     // Update PDF.js viewer zoom
     if (this.pdfViewer) {
@@ -128,26 +140,54 @@ export class ZoomController {
     // Clear saved zoom to enable fit-to-width calculation
     localStorage.removeItem("pdf-zoom-level");
 
-    // Update zoom selector
-    const zoomSelector = document.getElementById(
-      "pdf-zoom-select",
-    ) as HTMLSelectElement;
-    if (zoomSelector) {
-      zoomSelector.value = "fit-width";
-    }
+    // Update zoom selector in visible header
+    const zoomSelectors = document.querySelectorAll("#pdf-zoom-select");
+    zoomSelectors.forEach((el) => {
+      (el as HTMLSelectElement).value = "fit-width";
+    });
 
     // Trigger PDF.js viewer to recalculate fit-to-width
-    if (this.pdfViewer && this.currentPdfUrl) {
+    if (this.pdfViewer) {
       this.pdfViewer.fitWidth();
       console.log("[ZoomController] Fit-to-width mode enabled");
     }
   }
 
   /**
-   * Update current PDF URL (needed for fit-to-width)
+   * Setup DPI quality selector dropdown using event delegation
    */
-  setCurrentPdfUrl(url: string | null): void {
-    this.currentPdfUrl = url;
+  private setupDpiSelector(): void {
+    // Restore saved DPI on the template element
+    const dpiSelector = document.getElementById(
+      "pdf-dpi-select",
+    ) as HTMLSelectElement;
+    const savedDpi = localStorage.getItem("pdf-dpi-quality");
+    if (savedDpi) {
+      if (dpiSelector) dpiSelector.value = savedDpi;
+      if (this.pdfViewer) {
+        this.pdfViewer.setRenderQuality(parseFloat(savedDpi));
+        console.log(
+          "[ZoomController] Restored saved DPI quality:",
+          savedDpi + "x",
+        );
+      }
+    }
+
+    // Use event delegation for dynamically copied elements
+    document.addEventListener("change", (e) => {
+      const target = e.target as HTMLSelectElement;
+      if (target && target.id === "pdf-dpi-select") {
+        const quality = parseFloat(target.value);
+        localStorage.setItem("pdf-dpi-quality", target.value);
+        if (this.pdfViewer) {
+          this.pdfViewer.setRenderQuality(quality);
+          console.log(
+            "[ZoomController] DPI quality changed to:",
+            quality + "x",
+          );
+        }
+      }
+    });
   }
 
   /**

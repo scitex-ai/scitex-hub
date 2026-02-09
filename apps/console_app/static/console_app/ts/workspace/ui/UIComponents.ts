@@ -12,7 +12,7 @@ export class UIComponents {
 
   constructor(
     config: EditorConfig,
-    onContextMenuAction: (action: string, target: string | null) => void
+    onContextMenuAction: (action: string, target: string | null) => void,
   ) {
     this.config = config;
     this.onContextMenuAction = onContextMenuAction;
@@ -34,7 +34,9 @@ export class UIComponents {
     fileTree.addEventListener("contextmenu", (e) => {
       e.preventDefault();
 
-      const target = (e.target as HTMLElement).closest(".file-tree-item, .file-tree-file");
+      const target = (e.target as HTMLElement).closest(
+        ".file-tree-item, .file-tree-file",
+      );
       if (!target) return;
 
       const fileElement = target.querySelector(".file-tree-file");
@@ -71,13 +73,15 @@ export class UIComponents {
   showFileModal(
     title: string,
     label: string,
-    placeholder: string
+    placeholder: string,
   ): Promise<string | null> {
     return new Promise((resolve) => {
       const overlay = document.getElementById("file-modal-overlay");
       const modalTitle = document.getElementById("file-modal-title");
       const modalLabel = document.getElementById("file-modal-label");
-      const input = document.getElementById("file-modal-input") as HTMLInputElement;
+      const input = document.getElementById(
+        "file-modal-input",
+      ) as HTMLInputElement;
       const submitBtn = document.getElementById("file-modal-submit");
 
       if (!overlay || !modalTitle || !modalLabel || !input || !submitBtn) {

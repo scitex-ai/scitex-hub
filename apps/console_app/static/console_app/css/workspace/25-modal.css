@@ -142,7 +142,7 @@
   border: 1px solid var(--code-border);
   border-radius: 3px;
   padding: 2px 6px;
-  font-family: 'Monaco', 'Courier New', monospace;
+  font-family: "Monaco", "Courier New", monospace;
   font-size: 12px;
   color: var(--code-text-primary);
   white-space: nowrap;
@@ -205,6 +205,95 @@
   background: var(--code-hover-bg);
   border-color: var(--workspace-icon-primary);
   color: var(--workspace-icon-primary);
+}
+
+/* ============================================================================
+   MINI CONFIRM MODAL - Small confirmation dialog for close actions
+   ============================================================================ */
+
+.mini-confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.mini-confirm-overlay.active {
+  opacity: 1;
+}
+
+.mini-confirm-dialog {
+  background: var(--code-surface, #1e1e1e);
+  border: 1px solid var(--code-border, #3a3a3a);
+  border-radius: 8px;
+  padding: 16px 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  min-width: 200px;
+  max-width: 320px;
+  text-align: center;
+  transform: scale(0.95);
+  transition: transform 0.15s ease;
+}
+
+.mini-confirm-overlay.active .mini-confirm-dialog {
+  transform: scale(1);
+}
+
+[data-theme="dark"] .mini-confirm-dialog {
+  background: var(--workspace-bg-secondary, #1a1a1a);
+  border-color: var(--workspace-border-default, #333);
+}
+
+.mini-confirm-message {
+  font-size: 13px;
+  color: var(--text-primary, #e0e0e0);
+  margin-bottom: 12px;
+  word-break: break-word;
+}
+
+.mini-confirm-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.mini-confirm-btn {
+  padding: 6px 16px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.mini-confirm-btn-close {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.mini-confirm-btn-close:hover {
+  background: rgba(239, 68, 68, 0.25);
+}
+
+.mini-confirm-btn-cancel {
+  background: transparent;
+  color: var(--text-muted, #888);
+  border-color: var(--code-border, #3a3a3a);
+}
+
+.mini-confirm-btn-cancel:hover {
+  background: var(--code-hover-bg, #2a2a2a);
+  color: var(--text-primary, #e0e0e0);
 }
 
 /* Animations */

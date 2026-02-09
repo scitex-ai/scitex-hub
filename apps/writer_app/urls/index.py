@@ -9,6 +9,8 @@ Main index page and workspace initialization endpoints.
 """
 
 from django.urls import path
+from django.views.generic import TemplateView
+
 from ..views.index import main as index_views
 
 urlpatterns = [
@@ -20,6 +22,13 @@ urlpatterns = [
         index_views.initialize_workspace,
         name="initialize-workspace",
     ),
+    # PDF rendering debug
+    path(
+        "pdf-debug/",
+        TemplateView.as_view(template_name="writer_app/pdf_debug.html"),
+        name="pdf-debug",
+    ),
+    path("pdf-debug/test.pdf", test_pdf, name="pdf-debug-test-pdf"),
 ]
 
 # EOF

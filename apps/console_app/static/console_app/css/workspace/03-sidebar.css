@@ -30,21 +30,22 @@
   display: none;
 }
 
+/* Collapsed sidebar header - specificity override for .code-sidebar */
 .code-sidebar.collapsed .sidebar-header {
   padding: 0 4px;
   justify-content: center;
 }
 
-.code-sidebar.collapsed .sidebar-header h5 {
+.code-sidebar.collapsed .sidebar-header > *:not(.sidebar-toggle) {
   display: none;
 }
 
 .code-sidebar.collapsed .sidebar-toggle {
+  width: 100%;
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  padding: 4px;
 }
 
 /* Dark mode: unified background with editor and terminal */

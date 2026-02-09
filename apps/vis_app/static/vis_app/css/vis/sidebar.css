@@ -33,7 +33,8 @@
   justify-content: center;
 }
 
-.vis-sidebar.collapsed .sidebar-header h5 {
+/* Hide all content except toggle button when collapsed */
+.vis-sidebar.collapsed .sidebar-header > *:not(.sidebar-toggle-btn) {
   display: none;
 }
 
@@ -42,7 +43,7 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  padding: 4px;
+  height: 50px;
 }
 
 /* Dark mode: unified background with workspace modules */

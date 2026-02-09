@@ -25,16 +25,40 @@ const HEALTH_ENDPOINTS: Record<string, string> = {
   openalex_local: "/scholar/api/health/openalex-local/",
 };
 
-// Map source names to their element IDs (ready indicator + header LED)
-const SOURCE_ELEMENTS: Record<string, { ready: string; led: string }> = {
-  crossref_local: { ready: "readyCrossrefLocal", led: "ledCrossrefLocal" },
-  openalex_local: { ready: "readyOpenalexLocal", led: "ledOpenalexLocal" },
+// Map source names to their ready-indicator element IDs
+const SOURCE_READY_IDS: Record<string, string> = {
+  crossref_local: "readyCrossrefLocal",
+  openalex_local: "readyOpenalexLocal",
 };
 
 /**
- * Update indicator element status
+ * Update all LED indicators matching a data-source value.
+ * Both pane-header LEDs and Sources-panel LEDs share data-source attributes.
  */
-function updateIndicator(
+function updateLedsBySource(
+  sourceName: string,
+  status:
+    | "checking"
+    | "ready"
+    | "working"
+    | "searching"
+    | "unavailable"
+    | "external",
+  tooltip: string,
+): void {
+  const leds = document.querySelectorAll<HTMLElement>(
+    `.search-led[data-source="${sourceName}"]`,
+  );
+  leds.forEach((el) => {
+    el.dataset.status = status;
+    el.title = tooltip;
+  });
+}
+
+/**
+ * Update a single indicator element by ID
+ */
+function updateIndicatorById(
   elementId: string,
   status:
     | "checking"
@@ -80,11 +104,12 @@ function updateSourceItemStatus(sourceName: string, available: boolean): void {
  */
 async function checkSourceHealth(sourceName: string): Promise<void> {
   const endpoint = HEALTH_ENDPOINTS[sourceName];
-  const elements = SOURCE_ELEMENTS[sourceName];
-  if (!endpoint || !elements) {
+  if (!endpoint) {
     console.warn(`[HealthCheck] No endpoint for source: ${sourceName}`);
     return;
   }
+
+  const readyId = SOURCE_READY_IDS[sourceName];
 
   try {
     const response = await fetch(endpoint);
@@ -92,20 +117,20 @@ async function checkSourceHealth(sourceName: string): Promise<void> {
 
     if (data.ready) {
       const tooltip = `${data.service}: Ready - Local database available`;
-      updateIndicator(elements.ready, "ready", tooltip);
-      updateIndicator(elements.led, "ready", tooltip);
+      updateLedsBySource(sourceName, "ready", tooltip);
+      if (readyId) updateIndicatorById(readyId, "ready", tooltip);
       updateSourceItemStatus(sourceName, true);
     } else {
       const tooltip = `${data.service}: Unavailable - ${data.error || "Database not loaded"}`;
-      updateIndicator(elements.ready, "unavailable", tooltip);
-      updateIndicator(elements.led, "unavailable", tooltip);
+      updateLedsBySource(sourceName, "unavailable", tooltip);
+      if (readyId) updateIndicatorById(readyId, "unavailable", tooltip);
       updateSourceItemStatus(sourceName, false);
     }
   } catch (error) {
     console.error(`[HealthCheck] Failed to check ${sourceName}:`, error);
     const tooltip = `${sourceName}: Error - Unable to reach health endpoint`;
-    updateIndicator(elements.ready, "unavailable", tooltip);
-    updateIndicator(elements.led, "unavailable", tooltip);
+    updateLedsBySource(sourceName, "unavailable", tooltip);
+    if (readyId) updateIndicatorById(readyId, "unavailable", tooltip);
     updateSourceItemStatus(sourceName, false);
   }
 }
@@ -128,9 +153,9 @@ function runHealthChecks(): void {
 function initHealthChecks(): void {
   console.log("[HealthCheck] Initializing source health checks...");
 
-  // Set initial "checking" state for header LEDs
-  updateIndicator("ledCrossrefLocal", "checking", "Checking availability...");
-  updateIndicator("ledOpenalexLocal", "checking", "Checking availability...");
+  // Set initial "checking" state for all LEDs (pane-header + Sources panel)
+  updateLedsBySource("crossref_local", "checking", "Checking availability...");
+  updateLedsBySource("openalex_local", "checking", "Checking availability...");
 
   // Run initial checks
   runHealthChecks();
@@ -146,21 +171,17 @@ function initHealthChecks(): void {
 
 // Export for use by search system to show "working" status
 export function setSourceWorking(sourceName: string): void {
-  const elements = SOURCE_ELEMENTS[sourceName];
-  if (elements) {
-    const tooltip = `${sourceName}: Searching...`;
-    updateIndicator(elements.ready, "working", tooltip);
-    updateIndicator(elements.led, "searching", tooltip);
-  }
+  const tooltip = `${sourceName}: Searching...`;
+  updateLedsBySource(sourceName, "searching", tooltip);
+  const readyId = SOURCE_READY_IDS[sourceName];
+  if (readyId) updateIndicatorById(readyId, "working", tooltip);
 }
 
 export function setSourceReady(sourceName: string): void {
-  const elements = SOURCE_ELEMENTS[sourceName];
-  if (elements) {
-    const tooltip = `${sourceName}: Ready - Local database available`;
-    updateIndicator(elements.ready, "ready", tooltip);
-    updateIndicator(elements.led, "ready", tooltip);
-  }
+  const tooltip = `${sourceName}: Ready - Local database available`;
+  updateLedsBySource(sourceName, "ready", tooltip);
+  const readyId = SOURCE_READY_IDS[sourceName];
+  if (readyId) updateIndicatorById(readyId, "ready", tooltip);
 }
 
 // Initialize on DOM ready

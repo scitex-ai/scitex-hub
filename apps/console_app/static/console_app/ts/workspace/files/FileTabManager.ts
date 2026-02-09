@@ -4,97 +4,80 @@
  */
 
 import type { OpenFile } from "../core/types";
+import { modalManager } from "../ui/ModalManager";
+import { FileCreationHelper } from "./FileCreationHelper";
 
 export class FileTabManager {
   private openFiles: Map<string, OpenFile>;
   private currentFile: string | null = null;
   private onTabSwitch: (filePath: string) => void;
   private onTabClose: (filePath: string) => void;
-  private onNewFile: ((fileName: string) => Promise<void>) | null = null;
-  private existingFiles: string[] = [];
   private draggedTabPath: string | null = null;
   private projectId: string | null = null;
+  private fileCreation: FileCreationHelper;
 
   constructor(
     openFiles: Map<string, OpenFile>,
     onTabSwitch: (filePath: string) => void,
-    onTabClose: (filePath: string) => void
+    onTabClose: (filePath: string) => void,
   ) {
     this.openFiles = openFiles;
     this.onTabSwitch = onTabSwitch;
     this.onTabClose = onTabClose;
+    this.fileCreation = new FileCreationHelper(openFiles);
   }
 
-  /**
-   * Initialize project ID for storage (call after DOM is ready)
-   */
   initializeProjectId(): void {
     const projectDataEl = document.getElementById("project-data");
     if (projectDataEl) {
       this.projectId = projectDataEl.getAttribute("data-project-id");
       console.log("[FileTabManager] Project ID:", this.projectId);
     } else {
-      // Fallback: try to get from URL or use default
-      const urlMatch = window.location.pathname.match(/\/visitor-\d+\/([^\/]+)/);
-      if (urlMatch) {
-        this.projectId = urlMatch[1];
-      } else {
-        this.projectId = "default";
-      }
+      const urlMatch = window.location.pathname.match(
+        /\/visitor-\d+\/([^\/]+)/,
+      );
+      this.projectId = urlMatch ? urlMatch[1] : "default";
       console.log("[FileTabManager] Project ID (fallback):", this.projectId);
     }
   }
 
-  /**
-   * Get localStorage key for this project's tabs
-   */
   private getStorageKey(): string {
     return `scitex_code_tabs_${this.projectId || "default"}`;
   }
 
-  /**
-   * Save current tab state to localStorage
-   */
   saveTabState(): void {
-    console.log("[FileTabManager] saveTabState called, projectId:", this.projectId);
-    if (!this.projectId) {
-      console.log("[FileTabManager] No projectId, skipping save");
-      return;
-    }
+    if (!this.projectId) return;
 
     const tabState = {
-      openFiles: Array.from(this.openFiles.keys()).filter(p => p !== "*scratch*"),
+      openFiles: Array.from(this.openFiles.keys()).filter(
+        (p) => p !== "*scratch*",
+      ),
       currentFile: this.currentFile,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     try {
-      const key = this.getStorageKey();
-      console.log("[FileTabManager] Saving to key:", key, "files:", tabState.openFiles);
-      localStorage.setItem(key, JSON.stringify(tabState));
-      console.log("[FileTabManager] Saved tab state:", tabState.openFiles.length, "files");
+      localStorage.setItem(this.getStorageKey(), JSON.stringify(tabState));
     } catch (e) {
       console.warn("[FileTabManager] Failed to save tab state:", e);
     }
   }
 
-  /**
-   * Get saved tab state from localStorage
-   */
-  getSavedTabState(): { openFiles: string[]; currentFile: string | null } | null {
+  getSavedTabState(): {
+    openFiles: string[];
+    currentFile: string | null;
+  } | null {
     if (!this.projectId) return null;
 
     try {
       const saved = localStorage.getItem(this.getStorageKey());
       if (saved) {
         const state = JSON.parse(saved);
-        // Only restore if saved within the last 7 days
         const maxAge = 7 * 24 * 60 * 60 * 1000;
         if (state.timestamp && Date.now() - state.timestamp < maxAge) {
-          console.log("[FileTabManager] Found saved tab state:", state.openFiles?.length || 0, "files");
           return {
             openFiles: state.openFiles || [],
-            currentFile: state.currentFile || null
+            currentFile: state.currentFile || null,
           };
         }
       }
@@ -104,39 +87,26 @@ export class FileTabManager {
     return null;
   }
 
-  /**
-   * Clear saved tab state
-   */
   clearSavedTabState(): void {
     if (!this.projectId) return;
     try {
       localStorage.removeItem(this.getStorageKey());
-    } catch (e) {
+    } catch {
       // Ignore
     }
   }
 
-  /**
-   * Set callback for new file creation
-   */
   setNewFileCallback(callback: (fileName: string) => Promise<void>): void {
-    this.onNewFile = callback;
+    this.fileCreation.setNewFileCallback(callback);
   }
 
-  /**
-   * Set existing files for autocomplete
-   */
   setExistingFiles(files: string[]): void {
-    this.existingFiles = files;
+    this.fileCreation.setExistingFiles(files);
   }
 
-  /**
-   * Update callbacks after construction
-   * Used when FileStateManager needs to be initialized first
-   */
   setCallbacks(
     onTabSwitch: (filePath: string) => void,
-    onTabClose: (filePath: string) => void
+    onTabClose: (filePath: string) => void,
   ): void {
     this.onTabSwitch = onTabSwitch;
     this.onTabClose = onTabClose;
@@ -156,7 +126,6 @@ export class FileTabManager {
     const tabsContainer = document.getElementById("file-tabs");
     if (!tabsContainer) return;
 
-    // Clear tabs
     tabsContainer.innerHTML = "";
 
     this.openFiles.forEach((file, path) => {
@@ -164,38 +133,32 @@ export class FileTabManager {
       tab.className = `file-tab ${path === this.currentFile ? "active" : ""}`;
       tab.dataset.filePath = path;
 
-      // File name and tooltip
       const fileName = path.split("/").pop() || path;
       const isScratch = path === "*scratch*";
       tab.title = isScratch
         ? "Scratch buffer - temporary workspace (not saved to disk)"
         : path;
 
-      // Tab label
       const label = document.createElement("span");
       label.className = "file-tab-name";
       label.textContent = isScratch ? "*scratch*" : fileName;
       tab.appendChild(label);
 
-      // Close button (don't show for scratch)
       if (!isScratch) {
         const closeBtn = document.createElement("span");
         closeBtn.className = "file-tab-close";
         closeBtn.innerHTML = "×";
         closeBtn.title = "Close file";
-        closeBtn.onclick = (e) => {
+        closeBtn.onclick = async (e) => {
           e.stopPropagation();
-          this.onTabClose(path);
+          const confirmed = await modalManager.confirmClose(fileName);
+          if (confirmed) this.onTabClose(path);
         };
         tab.appendChild(closeBtn);
       }
 
-      // Tab click handler
-      tab.onclick = () => {
-        this.onTabSwitch(path);
-      };
+      tab.onclick = () => this.onTabSwitch(path);
 
-      // Double-click to rename (for regular files only, not scratch)
       if (!isScratch) {
         tab.ondblclick = (e) => {
           e.preventDefault();
@@ -204,41 +167,7 @@ export class FileTabManager {
         };
       }
 
-      // Drag and drop reordering
-      tab.draggable = true;
-      tab.ondragstart = (e) => {
-        this.draggedTabPath = path;
-        tab.classList.add("dragging");
-        if (e.dataTransfer) {
-          e.dataTransfer.effectAllowed = "move";
-          e.dataTransfer.setData("text/plain", path);
-        }
-      };
-      tab.ondragend = () => {
-        this.draggedTabPath = null;
-        tab.classList.remove("dragging");
-        // Remove all drag-over classes
-        tabsContainer.querySelectorAll(".file-tab").forEach((t) => {
-          t.classList.remove("drag-over");
-        });
-      };
-      tab.ondragover = (e) => {
-        e.preventDefault();
-        if (this.draggedTabPath && this.draggedTabPath !== path) {
-          tab.classList.add("drag-over");
-        }
-      };
-      tab.ondragleave = () => {
-        tab.classList.remove("drag-over");
-      };
-      tab.ondrop = (e) => {
-        e.preventDefault();
-        tab.classList.remove("drag-over");
-        if (this.draggedTabPath && this.draggedTabPath !== path) {
-          this.reorderTabs(this.draggedTabPath, path);
-        }
-      };
-
+      this.setupDragDrop(tab, path, tabsContainer);
       tabsContainer.appendChild(tab);
     });
 
@@ -249,27 +178,60 @@ export class FileTabManager {
     newTabBtn.innerHTML = "+";
     newTabBtn.title = "New file (Ctrl+N)";
     newTabBtn.onclick = () => {
-      this.showInlineNewFileInput(tabsContainer, newTabBtn);
+      this.fileCreation.showInlineNewFileInput(tabsContainer, newTabBtn);
     };
     tabsContainer.appendChild(newTabBtn);
+  }
+
+  private setupDragDrop(
+    tab: HTMLElement,
+    path: string,
+    container: HTMLElement,
+  ): void {
+    tab.draggable = true;
+    tab.ondragstart = (e) => {
+      this.draggedTabPath = path;
+      tab.classList.add("dragging");
+      if (e.dataTransfer) {
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", path);
+      }
+    };
+    tab.ondragend = () => {
+      this.draggedTabPath = null;
+      tab.classList.remove("dragging");
+      container.querySelectorAll(".file-tab").forEach((t) => {
+        t.classList.remove("drag-over");
+      });
+    };
+    tab.ondragover = (e) => {
+      e.preventDefault();
+      if (this.draggedTabPath && this.draggedTabPath !== path) {
+        tab.classList.add("drag-over");
+      }
+    };
+    tab.ondragleave = () => tab.classList.remove("drag-over");
+    tab.ondrop = (e) => {
+      e.preventDefault();
+      tab.classList.remove("drag-over");
+      if (this.draggedTabPath && this.draggedTabPath !== path) {
+        this.reorderTabs(this.draggedTabPath, path);
+      }
+    };
   }
 
   switchToNextTab(): void {
     const tabs = Array.from(this.openFiles.keys());
     if (tabs.length === 0) return;
-
     const currentIndex = tabs.indexOf(this.currentFile || "");
-    const nextIndex = (currentIndex + 1) % tabs.length;
-    this.onTabSwitch(tabs[nextIndex]);
+    this.onTabSwitch(tabs[(currentIndex + 1) % tabs.length]);
   }
 
   switchToPreviousTab(): void {
     const tabs = Array.from(this.openFiles.keys());
     if (tabs.length === 0) return;
-
     const currentIndex = tabs.indexOf(this.currentFile || "");
-    const prevIndex = (currentIndex - 1 + tabs.length) % tabs.length;
-    this.onTabSwitch(tabs[prevIndex]);
+    this.onTabSwitch(tabs[(currentIndex - 1 + tabs.length) % tabs.length]);
   }
 
   switchToTabByIndex(index: number): void {
@@ -281,19 +243,13 @@ export class FileTabManager {
 
   closeTab(filePath: string): void {
     if (!this.openFiles.has(filePath)) return;
-
     this.openFiles.delete(filePath);
 
-    // If closing the current file, switch to another tab or scratch
     if (filePath === this.currentFile) {
       const remainingTabs = Array.from(this.openFiles.keys());
-      if (remainingTabs.length > 0) {
-        // Switch to the first tab
-        this.onTabSwitch(remainingTabs[0]);
-      } else {
-        // No tabs left, switch to scratch
-        this.onTabSwitch("*scratch*");
-      }
+      this.onTabSwitch(
+        remainingTabs.length > 0 ? remainingTabs[0] : "*scratch*",
+      );
     }
 
     this.updateTabs();
@@ -304,9 +260,6 @@ export class FileTabManager {
     return this.openFiles.size > 0;
   }
 
-  /**
-   * Reorder tabs by moving draggedPath before targetPath
-   */
   private reorderTabs(draggedPath: string, targetPath: string): void {
     const entries = Array.from(this.openFiles.entries());
     const draggedIndex = entries.findIndex(([path]) => path === draggedPath);
@@ -314,16 +267,11 @@ export class FileTabManager {
 
     if (draggedIndex === -1 || targetIndex === -1) return;
 
-    // Remove dragged entry
     const [draggedEntry] = entries.splice(draggedIndex, 1);
-
-    // Calculate new target index (adjust if dragged was before target)
-    const newTargetIndex = draggedIndex < targetIndex ? targetIndex - 1 : targetIndex;
-
-    // Insert at new position
+    const newTargetIndex =
+      draggedIndex < targetIndex ? targetIndex - 1 : targetIndex;
     entries.splice(newTargetIndex, 0, draggedEntry);
 
-    // Rebuild the map (maintains new order)
     this.openFiles.clear();
     entries.forEach(([path, file]) => {
       this.openFiles.set(path, file);
@@ -336,29 +284,23 @@ export class FileTabManager {
     return Array.from(this.openFiles.keys());
   }
 
-  /**
-   * Start inline rename for a file tab
-   */
-  private startInlineRename(filePath: string, labelElement: HTMLSpanElement): void {
+  private startInlineRename(
+    filePath: string,
+    labelElement: HTMLSpanElement,
+  ): void {
     const fileName = filePath.split("/").pop() || filePath;
 
-    // Create input field
     const input = document.createElement("input");
     input.type = "text";
     input.value = fileName;
     input.className = "file-tab-rename-input";
     input.style.cssText = `
-      width: 120px;
-      padding: 2px 4px;
-      font-size: 13px;
+      width: 120px; padding: 2px 4px; font-size: 13px;
       border: 1px solid var(--workspace-icon-primary);
-      border-radius: 3px;
-      background: var(--workspace-bg-primary);
-      color: var(--text-primary);
-      outline: none;
+      border-radius: 3px; background: var(--workspace-bg-primary);
+      color: var(--text-primary); outline: none;
     `;
 
-    // Replace label with input
     labelElement.style.display = "none";
     labelElement.parentElement?.insertBefore(input, labelElement);
     input.focus();
@@ -367,18 +309,12 @@ export class FileTabManager {
     const finishRename = async () => {
       const newName = input.value.trim();
       if (newName && newName !== fileName) {
-        // Calculate new path (preserve directory structure)
         const dirPath = filePath.includes("/")
           ? filePath.substring(0, filePath.lastIndexOf("/"))
           : "";
         const newPath = dirPath ? `${dirPath}/${newName}` : newName;
-
-        // Trigger rename callback if available
-        if (this.onRenameFile) {
-          await this.onRenameFile(filePath, newPath);
-        }
+        if (this.onRenameFile) await this.onRenameFile(filePath, newPath);
       }
-      // Restore label (updateTabs will be called after rename)
       labelElement.style.display = "";
       input.remove();
     };
@@ -396,154 +332,17 @@ export class FileTabManager {
     };
   }
 
-  /**
-   * Set callback for file rename
-   */
-  private onRenameFile: ((oldPath: string, newPath: string) => Promise<void>) | null = null;
+  private onRenameFile:
+    | ((oldPath: string, newPath: string) => Promise<void>)
+    | null = null;
 
-  setRenameCallback(callback: (oldPath: string, newPath: string) => Promise<void>): void {
+  setRenameCallback(
+    callback: (oldPath: string, newPath: string) => Promise<void>,
+  ): void {
     this.onRenameFile = callback;
   }
 
-  /**
-   * Show inline input for creating a new file
-   */
-  private showInlineNewFileInput(container: HTMLElement, plusBtn: HTMLElement): void {
-    // Check if input already exists
-    const existingInput = container.querySelector('.inline-new-file-input');
-    if (existingInput) {
-      (existingInput as HTMLInputElement).focus();
-      return;
-    }
-
-    // Create inline input container (styled like a tab)
-    const inputWrapper = document.createElement("div");
-    inputWrapper.className = "file-tab inline-new-file-wrapper";
-    inputWrapper.style.cssText = `
-      display: inline-flex;
-      align-items: center;
-      padding: 4px 8px;
-    `;
-
-    // Create the input field
-    const input = document.createElement("input");
-    input.type = "text";
-    input.className = "inline-new-file-input";
-    input.placeholder = "filename.py";
-    input.value = this.getNextAvailableFilename("untitled.py");
-    input.style.cssText = `
-      width: 120px;
-      padding: 4px 8px;
-      font-size: 13px;
-      border: 1px solid var(--workspace-icon-primary);
-      border-radius: 4px;
-      background: var(--workspace-bg-primary);
-      color: var(--text-primary);
-      outline: none;
-    `;
-
-    inputWrapper.appendChild(input);
-
-    // Insert before the plus button
-    container.insertBefore(inputWrapper, plusBtn);
-
-    // Focus and select the input
-    input.focus();
-    input.select();
-
-    const finishCreate = async () => {
-      const fileName = input.value.trim();
-      inputWrapper.remove();
-
-      if (fileName && this.onNewFile) {
-        await this.onNewFile(fileName);
-      }
-    };
-
-    const cancelCreate = () => {
-      inputWrapper.remove();
-    };
-
-    input.onblur = () => {
-      // Small delay to allow click events to register
-      setTimeout(() => {
-        if (document.activeElement !== input) {
-          finishCreate();
-        }
-      }, 100);
-    };
-
-    input.onkeydown = (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        finishCreate();
-      } else if (e.key === "Escape") {
-        e.preventDefault();
-        cancelCreate();
-      }
-    };
-  }
-
-  /**
-   * Generate next available filename with numbering
-   * Examples:
-   *   untitled.py -> untitled_01.py
-   *   untitled_01.py -> untitled_02.py
-   *   untitled_99.py -> untitled_100.py
-   */
-  private getNextAvailableFilename(baseName: string): string {
-    // Extract extension and base name
-    const lastDotIndex = baseName.lastIndexOf('.');
-    const extension = lastDotIndex > 0 ? baseName.substring(lastDotIndex) : '';
-    const nameWithoutExt = lastDotIndex > 0 ? baseName.substring(0, lastDotIndex) : baseName;
-
-    // Check if base name is available
-    if (!this.existingFiles.includes(baseName) && !this.openFiles.has(baseName)) {
-      return baseName;
-    }
-
-    // Pattern to match existing numbered files: name_01, name_02, etc.
-    const numberPattern = /^(.+?)_(\d+)$/;
-    const match = nameWithoutExt.match(numberPattern);
-
-    let basePrefix = match ? match[1] : nameWithoutExt;
-    let maxNumber = 0;
-
-    // Find the highest number used for this base name
-    const allFiles = [...this.existingFiles, ...Array.from(this.openFiles.keys())];
-    allFiles.forEach(file => {
-      const fileWithoutExt = file.lastIndexOf('.') > 0
-        ? file.substring(0, file.lastIndexOf('.'))
-        : file;
-
-      // Check exact base name match
-      if (fileWithoutExt === basePrefix) {
-        maxNumber = Math.max(maxNumber, 0);
-      }
-
-      // Check numbered variants
-      const fileMatch = fileWithoutExt.match(numberPattern);
-      if (fileMatch && fileMatch[1] === basePrefix) {
-        const num = parseInt(fileMatch[2], 10);
-        maxNumber = Math.max(maxNumber, num);
-      }
-    });
-
-    // Generate next number with zero-padding
-    const nextNumber = maxNumber + 1;
-    const paddedNumber = nextNumber.toString().padStart(2, '0');
-
-    return `${basePrefix}_${paddedNumber}${extension}`;
-  }
-
-  /**
-   * Public method to trigger inline new file input
-   */
   public triggerNewFileInput(): void {
-    const tabsContainer = document.getElementById("file-tabs");
-    const plusBtn = document.getElementById("btn-new-file-tab");
-    if (tabsContainer && plusBtn) {
-      this.showInlineNewFileInput(tabsContainer, plusBtn);
-    }
+    this.fileCreation.triggerNewFileInput();
   }
 }

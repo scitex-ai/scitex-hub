@@ -211,3 +211,31 @@
   width: 100%;
   padding: 4px;
 }
+
+/* ===========================================================================
+   SHARED SIDEBAR HEADER COLLAPSED STATE
+   When a sidebar is collapsed, hide everything in the header except
+   the toggle button (.panel-toggle-btn / .sidebar-toggle / .sidebar-toggle-btn).
+   Works for console, writer, scholar, vis modules.
+   =========================================================================== */
+
+.collapsed .sidebar-header {
+  padding: 0;
+  justify-content: center;
+}
+
+.collapsed
+  .sidebar-header
+  > *:not(.panel-toggle-btn):not(.sidebar-toggle):not(.sidebar-toggle-btn) {
+  display: none;
+}
+
+.collapsed .sidebar-header .panel-toggle-btn,
+.collapsed .sidebar-header .sidebar-toggle,
+.collapsed .sidebar-header .sidebar-toggle-btn {
+  width: 100%;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

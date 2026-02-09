@@ -33,7 +33,7 @@ export class JobsPanelManager {
   private lastJobCount = 0;
 
   constructor() {
-    console.log('[JobsPanelManager] Constructor called');
+    console.log("[JobsPanelManager] Constructor called");
     this.initializePanelTabs();
     this.initializeJobsToolbar();
     this.startBackgroundRefresh();
@@ -43,65 +43,73 @@ export class JobsPanelManager {
    * Initialize panel tab switching (Terminal / Jobs)
    */
   private initializePanelTabs(): void {
-    console.log('[JobsPanelManager] initializePanelTabs called');
-    const terminalTab = document.getElementById('panel-tab-terminal');
-    const jobsTab = document.getElementById('panel-tab-jobs');
-    const terminalView = document.getElementById('terminal-view');
-    const jobsView = document.getElementById('jobs-view');
+    console.log("[JobsPanelManager] initializePanelTabs called");
+    const jobsTab = document.getElementById("panel-tab-jobs");
+    const terminalView = document.getElementById("terminal-view");
+    const jobsView = document.getElementById("jobs-view");
 
-    console.log('[JobsPanelManager] Elements found:', {
-      terminalTab: !!terminalTab,
+    console.log("[JobsPanelManager] Elements found:", {
       jobsTab: !!jobsTab,
       terminalView: !!terminalView,
-      jobsView: !!jobsView
+      jobsView: !!jobsView,
     });
 
-    if (!terminalTab || !jobsTab || !terminalView || !jobsView) {
-      console.warn('[JobsPanelManager] Panel elements not found - will retry on DOMContentLoaded');
-      // Retry after DOM is fully loaded
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => this.initializePanelTabs());
+    if (!jobsTab || !terminalView || !jobsView) {
+      console.warn(
+        "[JobsPanelManager] Panel elements not found - will retry on DOMContentLoaded",
+      );
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", () =>
+          this.initializePanelTabs(),
+        );
       }
       return;
     }
 
-    terminalTab.addEventListener('click', () => {
-      console.log('[JobsPanelManager] Terminal tab clicked');
-      this.switchToPanel('terminal');
+    // Jobs tab toggles between jobs view and terminal view
+    jobsTab.addEventListener("click", () => {
+      console.log("[JobsPanelManager] Jobs tab clicked");
+      if (this.isJobsViewActive) {
+        this.switchToPanel("terminal");
+      } else {
+        this.switchToPanel("jobs");
+      }
     });
 
-    jobsTab.addEventListener('click', () => {
-      console.log('[JobsPanelManager] Jobs tab clicked');
-      this.switchToPanel('jobs');
-    });
+    // When any terminal tab is clicked, switch back to terminal view
+    const terminalTabs = document.getElementById("terminal-tabs");
+    if (terminalTabs) {
+      terminalTabs.addEventListener("click", (e) => {
+        const tab = (e.target as HTMLElement).closest(".terminal-tab");
+        if (tab && this.isJobsViewActive) {
+          this.switchToPanel("terminal");
+        }
+      });
+    }
 
-    console.log('[JobsPanelManager] Panel tabs initialized successfully');
+    console.log("[JobsPanelManager] Panel tabs initialized successfully");
   }
 
   /**
    * Switch between terminal and jobs panels
    */
-  private switchToPanel(panel: 'terminal' | 'jobs'): void {
-    const terminalTab = document.getElementById('panel-tab-terminal');
-    const jobsTab = document.getElementById('panel-tab-jobs');
-    const terminalView = document.getElementById('terminal-view');
-    const jobsView = document.getElementById('jobs-view');
+  private switchToPanel(panel: "terminal" | "jobs"): void {
+    const jobsTab = document.getElementById("panel-tab-jobs");
+    const terminalView = document.getElementById("terminal-view");
+    const jobsView = document.getElementById("jobs-view");
 
-    if (!terminalTab || !jobsTab || !terminalView || !jobsView) return;
+    if (!jobsTab || !terminalView || !jobsView) return;
 
-    if (panel === 'terminal') {
-      terminalTab.classList.add('active');
-      jobsTab.classList.remove('active');
-      terminalView.classList.add('active');
-      jobsView.classList.remove('active');
+    if (panel === "terminal") {
+      jobsTab.classList.remove("active");
+      terminalView.classList.add("active");
+      jobsView.classList.remove("active");
       this.isJobsViewActive = false;
     } else {
-      terminalTab.classList.remove('active');
-      jobsTab.classList.add('active');
-      terminalView.classList.remove('active');
-      jobsView.classList.add('active');
+      jobsTab.classList.add("active");
+      terminalView.classList.remove("active");
+      jobsView.classList.add("active");
       this.isJobsViewActive = true;
-      // Refresh jobs when switching to jobs view
       this.refreshJobs();
     }
   }
@@ -110,14 +118,14 @@ export class JobsPanelManager {
    * Initialize jobs toolbar buttons
    */
   private initializeJobsToolbar(): void {
-    const refreshBtn = document.getElementById('jobs-refresh');
-    const cancelPendingBtn = document.getElementById('jobs-cancel-pending');
+    const refreshBtn = document.getElementById("jobs-refresh");
+    const cancelPendingBtn = document.getElementById("jobs-cancel-pending");
 
-    refreshBtn?.addEventListener('click', () => {
+    refreshBtn?.addEventListener("click", () => {
       this.refreshJobs(true);
     });
 
-    cancelPendingBtn?.addEventListener('click', () => {
+    cancelPendingBtn?.addEventListener("click", () => {
       this.cancelAllPending();
     });
   }
@@ -144,25 +152,25 @@ export class JobsPanelManager {
    */
   private async updateJobBadge(): Promise<void> {
     try {
-      const response = await fetch('/console/api/jobs/');
+      const response = await fetch("/console/api/jobs/");
       const data: JobsResponse = await response.json();
 
-      const badge = document.getElementById('jobs-badge');
+      const badge = document.getElementById("jobs-badge");
       if (!badge) return;
 
       const activeJobs = data.running + data.pending;
 
       if (activeJobs > 0) {
         badge.textContent = String(activeJobs);
-        badge.style.display = 'inline-flex';
-        badge.classList.toggle('has-jobs', activeJobs !== this.lastJobCount);
+        badge.style.display = "inline-flex";
+        badge.classList.toggle("has-jobs", activeJobs !== this.lastJobCount);
       } else {
-        badge.style.display = 'none';
+        badge.style.display = "none";
       }
 
       this.lastJobCount = activeJobs;
     } catch (error) {
-      console.warn('[JobsPanelManager] Failed to update badge:', error);
+      console.warn("[JobsPanelManager] Failed to update badge:", error);
     }
   }
 
@@ -170,27 +178,27 @@ export class JobsPanelManager {
    * Refresh the full jobs list
    */
   public async refreshJobs(showSpinner = false): Promise<void> {
-    const jobsList = document.getElementById('jobs-list');
-    const refreshBtn = document.getElementById('jobs-refresh');
-    const statusText = document.getElementById('jobs-status-text');
-    const statusDot = document.querySelector('.jobs-status-dot');
+    const jobsList = document.getElementById("jobs-list");
+    const refreshBtn = document.getElementById("jobs-refresh");
+    const statusText = document.getElementById("jobs-status-text");
+    const statusDot = document.querySelector(".jobs-status-dot");
 
     if (!jobsList) return;
 
     // Show spinner on refresh button
     if (showSpinner && refreshBtn) {
-      const icon = refreshBtn.querySelector('i');
-      icon?.classList.add('spinning');
+      const icon = refreshBtn.querySelector("i");
+      icon?.classList.add("spinning");
     }
 
     try {
-      const response = await fetch('/console/api/jobs/');
+      const response = await fetch("/console/api/jobs/");
       const data: JobsResponse = await response.json();
 
       // Update status indicator
       if (statusDot) {
-        statusDot.classList.remove('error');
-        statusDot.classList.add('connected');
+        statusDot.classList.remove("error");
+        statusDot.classList.add("connected");
       }
 
       // Check if SLURM is available
@@ -201,7 +209,7 @@ export class JobsPanelManager {
             <span>SLURM is not available on this system</span>
           </div>
         `;
-        if (statusText) statusText.textContent = 'SLURM unavailable';
+        if (statusText) statusText.textContent = "SLURM unavailable";
         return;
       }
 
@@ -225,38 +233,39 @@ export class JobsPanelManager {
       }
 
       // Group jobs by state
-      const runningJobs = data.jobs.filter(j => j.state === 'RUNNING');
-      const pendingJobs = data.jobs.filter(j => j.state === 'PENDING');
-      const otherJobs = data.jobs.filter(j => !['RUNNING', 'PENDING'].includes(j.state));
+      const runningJobs = data.jobs.filter((j) => j.state === "RUNNING");
+      const pendingJobs = data.jobs.filter((j) => j.state === "PENDING");
+      const otherJobs = data.jobs.filter(
+        (j) => !["RUNNING", "PENDING"].includes(j.state),
+      );
 
-      let html = '';
+      let html = "";
 
       if (runningJobs.length > 0) {
-        html += this.renderJobSection('running', 'Running', runningJobs);
+        html += this.renderJobSection("running", "Running", runningJobs);
       }
 
       if (pendingJobs.length > 0) {
-        html += this.renderJobSection('pending', 'Pending', pendingJobs);
+        html += this.renderJobSection("pending", "Pending", pendingJobs);
       }
 
       if (otherJobs.length > 0) {
-        html += this.renderJobSection('other', 'Other', otherJobs, true);
+        html += this.renderJobSection("other", "Other", otherJobs, true);
       }
 
       jobsList.innerHTML = html;
 
       // Attach event listeners for job cards
       this.attachJobCardListeners();
-
     } catch (error) {
-      console.error('[JobsPanelManager] Failed to refresh jobs:', error);
+      console.error("[JobsPanelManager] Failed to refresh jobs:", error);
 
       if (statusDot) {
-        statusDot.classList.remove('connected');
-        statusDot.classList.add('error');
+        statusDot.classList.remove("connected");
+        statusDot.classList.add("error");
       }
       if (statusText) {
-        statusText.textContent = 'Connection error';
+        statusText.textContent = "Connection error";
       }
 
       jobsList.innerHTML = `
@@ -268,8 +277,8 @@ export class JobsPanelManager {
     } finally {
       // Remove spinner
       if (refreshBtn) {
-        const icon = refreshBtn.querySelector('i');
-        icon?.classList.remove('spinning');
+        const icon = refreshBtn.querySelector("i");
+        icon?.classList.remove("spinning");
       }
     }
   }
@@ -277,13 +286,21 @@ export class JobsPanelManager {
   /**
    * Render a section of jobs (Running, Pending, etc.)
    */
-  private renderJobSection(type: string, title: string, jobs: SlurmJob[], collapsed = false): string {
-    const iconClass = type === 'running' ? 'running' :
-                      type === 'pending' ? 'pending' :
-                      'completed';
+  private renderJobSection(
+    type: string,
+    title: string,
+    jobs: SlurmJob[],
+    collapsed = false,
+  ): string {
+    const iconClass =
+      type === "running"
+        ? "running"
+        : type === "pending"
+          ? "pending"
+          : "completed";
 
     return `
-      <div class="jobs-section ${collapsed ? 'collapsed' : ''}" data-section="${type}">
+      <div class="jobs-section ${collapsed ? "collapsed" : ""}" data-section="${type}">
         <div class="jobs-section-header">
           <span class="jobs-section-icon ${iconClass}"></span>
           <span class="jobs-section-title">${title}</span>
@@ -291,7 +308,7 @@ export class JobsPanelManager {
           <i class="fas fa-chevron-down jobs-section-chevron"></i>
         </div>
         <div class="jobs-section-items">
-          ${jobs.map(job => this.renderJobCard(job)).join('')}
+          ${jobs.map((job) => this.renderJobCard(job)).join("")}
         </div>
       </div>
     `;
@@ -301,11 +318,16 @@ export class JobsPanelManager {
    * Render a single job card
    */
   private renderJobCard(job: SlurmJob): string {
-    const statusClass = job.state === 'RUNNING' ? 'running' :
-                        job.state === 'PENDING' ? 'pending' :
-                        job.state === 'COMPLETED' ? 'completed' : 'failed';
+    const statusClass =
+      job.state === "RUNNING"
+        ? "running"
+        : job.state === "PENDING"
+          ? "pending"
+          : job.state === "COMPLETED"
+            ? "completed"
+            : "failed";
 
-    const showReason = job.state === 'PENDING' && job.reason;
+    const showReason = job.state === "PENDING" && job.reason;
 
     return `
       <div class="job-card" data-job-id="${job.job_id}">
@@ -328,24 +350,36 @@ export class JobsPanelManager {
             <i class="fas fa-memory"></i>
             ${job.memory}
           </span>
-          ${job.node ? `
+          ${
+            job.node
+              ? `
             <span class="job-card-detail">
               <i class="fas fa-server"></i>
               ${job.node}
             </span>
-          ` : ''}
+          `
+              : ""
+          }
         </div>
-        ${showReason ? `
+        ${
+          showReason
+            ? `
           <div class="job-card-reason">
             <i class="fas fa-info-circle"></i> ${job.reason}
           </div>
-        ` : ''}
+        `
+            : ""
+        }
         <div class="job-card-actions">
-          ${job.state !== 'COMPLETED' ? `
+          ${
+            job.state !== "COMPLETED"
+              ? `
             <button class="job-card-btn cancel" data-action="cancel" data-job-id="${job.job_id}">
               <i class="fas fa-times"></i> Cancel
             </button>
-          ` : ''}
+          `
+              : ""
+          }
         </div>
       </div>
     `;
@@ -356,23 +390,25 @@ export class JobsPanelManager {
    */
   private attachJobCardListeners(): void {
     // Section collapse/expand
-    document.querySelectorAll('.jobs-section-header').forEach(header => {
-      header.addEventListener('click', () => {
-        const section = header.closest('.jobs-section');
-        section?.classList.toggle('collapsed');
+    document.querySelectorAll(".jobs-section-header").forEach((header) => {
+      header.addEventListener("click", () => {
+        const section = header.closest(".jobs-section");
+        section?.classList.toggle("collapsed");
       });
     });
 
     // Cancel buttons
-    document.querySelectorAll('.job-card-btn[data-action="cancel"]').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const jobId = (btn as HTMLElement).dataset.jobId;
-        if (jobId) {
-          this.cancelJob(parseInt(jobId));
-        }
+    document
+      .querySelectorAll('.job-card-btn[data-action="cancel"]')
+      .forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const jobId = (btn as HTMLElement).dataset.jobId;
+          if (jobId) {
+            this.cancelJob(parseInt(jobId));
+          }
+        });
       });
-    });
   }
 
   /**
@@ -382,13 +418,17 @@ export class JobsPanelManager {
     if (!confirm(`Cancel job #${jobId}?`)) return;
 
     try {
-      const csrfToken = (document.querySelector('input[name="csrfmiddlewaretoken"]') as HTMLInputElement)?.value;
+      const csrfToken = (
+        document.querySelector(
+          'input[name="csrfmiddlewaretoken"]',
+        ) as HTMLInputElement
+      )?.value;
 
       const response = await fetch(`/code/api/jobs/${jobId}/cancel/`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrfToken || '',
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken || "",
         },
       });
 
@@ -401,8 +441,8 @@ export class JobsPanelManager {
         alert(`Failed to cancel job: ${data.message}`);
       }
     } catch (error) {
-      console.error('[JobsPanelManager] Cancel failed:', error);
-      alert('Failed to cancel job');
+      console.error("[JobsPanelManager] Cancel failed:", error);
+      alert("Failed to cancel job");
     }
   }
 
@@ -410,16 +450,22 @@ export class JobsPanelManager {
    * Cancel all pending jobs
    */
   public async cancelAllPending(): Promise<void> {
-    const pendingJobs = document.querySelectorAll('.jobs-section[data-section="pending"] .job-card');
+    const pendingJobs = document.querySelectorAll(
+      '.jobs-section[data-section="pending"] .job-card',
+    );
 
     if (pendingJobs.length === 0) {
-      alert('No pending jobs to cancel');
+      alert("No pending jobs to cancel");
       return;
     }
 
     if (!confirm(`Cancel all ${pendingJobs.length} pending jobs?`)) return;
 
-    const csrfToken = (document.querySelector('input[name="csrfmiddlewaretoken"]') as HTMLInputElement)?.value;
+    const csrfToken = (
+      document.querySelector(
+        'input[name="csrfmiddlewaretoken"]',
+      ) as HTMLInputElement
+    )?.value;
 
     let cancelled = 0;
     let failed = 0;
@@ -430,10 +476,10 @@ export class JobsPanelManager {
 
       try {
         const response = await fetch(`/code/api/jobs/${jobId}/cancel/`, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken || '',
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken || "",
           },
         });
 
@@ -448,7 +494,9 @@ export class JobsPanelManager {
       }
     }
 
-    console.log(`[JobsPanelManager] Cancelled ${cancelled} jobs, ${failed} failed`);
+    console.log(
+      `[JobsPanelManager] Cancelled ${cancelled} jobs, ${failed} failed`,
+    );
     this.refreshJobs();
 
     if (failed > 0) {

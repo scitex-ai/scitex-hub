@@ -13,6 +13,9 @@
           href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d" />
     <!-- Panel resizer CSS -->
     <link rel="stylesheet" href="{% static 'shared/css/components/panel-resizer.css' %}" />
+    <!-- LED health indicators CSS (always visible in pane header) -->
+    <link rel="stylesheet"
+          href="{% static 'scholar_app/css/search/search-controls-sources.css' %}" />
     <!-- App-specific CSS - Modular common styles -->
     <link rel="stylesheet"
           href="{% static 'scholar_app/css/common/01-workspace-colors.css' %}?v=1764328804" />
@@ -180,6 +183,37 @@
                         </span>
                     {% endif %}
                 </nav>
+                <!-- Health Status LEDs - always visible (synced with Sources panel LEDs via data-source) -->
+                <div class="search-status-leds" id="scholar-health-leds">
+                    <span class="search-led"
+                          data-source="crossref_local"
+                          data-status="checking"
+                          title="Crossref (SciTeX) - Checking..."></span>
+                    <span class="search-led"
+                          data-source="openalex_local"
+                          data-status="checking"
+                          title="OpenAlex (SciTeX) - Checking..."></span>
+                    <span class="search-led"
+                          data-source="pubmed"
+                          data-status="ready"
+                          title="PubMed - External API"></span>
+                    <span class="search-led"
+                          data-source="arxiv"
+                          data-status="ready"
+                          title="arXiv - External API"></span>
+                    <span class="search-led"
+                          data-source="semantic"
+                          data-status="ready"
+                          title="Semantic Scholar - External API"></span>
+                    <span class="search-led"
+                          data-source="crossref"
+                          data-status="ready"
+                          title="Crossref API - External API"></span>
+                    <span class="search-led"
+                          data-source="openalex"
+                          data-status="ready"
+                          title="OpenAlex API - External API"></span>
+                </div>
                 <div class="pane-header-actions">
                     {% block pane_header_actions %}{% endblock %}
                     <button class="btn btn-sm btn-outline-secondary"
@@ -357,6 +391,8 @@
             }
         });
     </script>
+    <!-- Source health check (LED indicators in pane header) -->
+    {% vite_script 'scholar_app/search/source-health-check' %}
     {% if current_project %}
         <!-- Scholar workspace initialization with project context -->
         <script id="scholar-project-config" type="application/json">

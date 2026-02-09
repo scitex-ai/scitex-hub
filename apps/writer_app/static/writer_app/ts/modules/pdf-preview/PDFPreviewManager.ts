@@ -40,7 +40,7 @@ export class PDFPreviewManager {
 
     // Initialize color mode
     const colorMode = ColorModeManager.initializeColorMode();
-    const renderQuality = options.renderQuality ?? 4.0;
+    const renderQuality = options.renderQuality ?? 5.0;
 
     console.log("[PDFPreviewManager] Initialized with color mode:", colorMode);
     console.log("[PDFPreviewManager] Render quality:", renderQuality + "x");

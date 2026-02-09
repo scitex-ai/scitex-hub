@@ -5,6 +5,7 @@
 
 import { PTYTerminal } from "../../pty-terminal";
 import type { EditorConfig } from "../core/types";
+import { modalManager } from "../ui/ModalManager";
 
 interface TerminalTab {
   id: string;
@@ -51,20 +52,21 @@ export class TerminalTabManager {
     }
 
     const terminalId = `terminal-${Date.now()}`;
-    const terminalName = name || `Terminal ${this.terminalCounter++}`;
+    const terminalName = name || `T${this.terminalCounter++}`;
 
     // Create container for this terminal
     const containerElement = document.createElement("div");
     containerElement.id = `${terminalId}-container`;
     containerElement.className = "terminal-instance";
-    containerElement.style.cssText = "width: 100%; height: 100%; display: none;";
+    containerElement.style.cssText =
+      "width: 100%; height: 100%; display: none;";
 
     this.mainContainer.appendChild(containerElement);
 
     // Create PTY terminal instance
     const terminal = new PTYTerminal(
       containerElement,
-      this.config.currentProject.id
+      this.config.currentProject.id,
     );
 
     await terminal.waitForReady();
@@ -80,7 +82,9 @@ export class TerminalTabManager {
     // Switch to new terminal
     this.switchTerminal(terminalId);
 
-    console.log(`[TerminalTabManager] Created terminal: ${terminalName} (${terminalId})`);
+    console.log(
+      `[TerminalTabManager] Created terminal: ${terminalName} (${terminalId})`,
+    );
 
     return terminalId;
   }
@@ -167,7 +171,7 @@ export class TerminalTabManager {
   private startInlineRename(
     terminalId: string,
     labelElement: HTMLSpanElement,
-    container: HTMLElement
+    container: HTMLElement,
   ): void {
     const terminal = this.terminals.get(terminalId);
     if (!terminal) return;
@@ -249,7 +253,8 @@ export class TerminalTabManager {
 
     const terminalIds = Array.from(this.terminals.keys());
     const currentIndex = terminalIds.indexOf(this.activeTerminalId || "");
-    const prevIndex = (currentIndex - 1 + terminalIds.length) % terminalIds.length;
+    const prevIndex =
+      (currentIndex - 1 + terminalIds.length) % terminalIds.length;
 
     this.switchTerminal(terminalIds[prevIndex]);
   }
@@ -282,9 +287,10 @@ export class TerminalTabManager {
       closeBtn.className = "terminal-tab-close";
       closeBtn.innerHTML = "×";
       closeBtn.title = "Close terminal";
-      closeBtn.onclick = (e) => {
+      closeBtn.onclick = async (e) => {
         e.stopPropagation();
-        this.closeTerminal(terminal.id);
+        const confirmed = await modalManager.confirmClose(terminal.name);
+        if (confirmed) this.closeTerminal(terminal.id);
       };
       tab.appendChild(closeBtn);
 
@@ -338,7 +344,7 @@ export class TerminalTabManager {
       tabsContainer.appendChild(tab);
     });
 
-    // Add new terminal button
+    // Add "+" button at the end (inside scrollable container)
     const newTabBtn = document.createElement("button");
     newTabBtn.className = "terminal-tab-new";
     newTabBtn.innerHTML = "+";
@@ -372,7 +378,8 @@ export class TerminalTabManager {
     const [draggedEntry] = entries.splice(draggedIndex, 1);
 
     // Calculate new target index (adjust if dragged was before target)
-    const newTargetIndex = draggedIndex < targetIndex ? targetIndex - 1 : targetIndex;
+    const newTargetIndex =
+      draggedIndex < targetIndex ? targetIndex - 1 : targetIndex;
 
     // Insert at new position
     entries.splice(newTargetIndex, 0, draggedEntry);

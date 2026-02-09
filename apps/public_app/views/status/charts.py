@@ -14,16 +14,25 @@ Charts are pre-generated every 1 minute by Celery task for:
 import logging
 from pathlib import Path
 
-from django.http import HttpResponse, FileResponse
+from django.http import FileResponse, HttpResponse
 
 logger = logging.getLogger("scitex")
 
-# Chart output directory (persistent within container)
-CHART_DIR = Path("/tmp/scitex_charts")
+# Chart output directory (shared between Django and Celery containers via /app volume)
+CHART_DIR = Path("/app/data/charts")
 CHART_DIR.mkdir(exist_ok=True)
 
 # Supported configurations
-METRIC_TYPES = ["cpu", "memory", "disk", "gpu", "disk_io", "net_io", "visitor_pool", "active_users"]
+METRIC_TYPES = [
+    "cpu",
+    "memory",
+    "disk",
+    "gpu",
+    "disk_io",
+    "net_io",
+    "visitor_pool",
+    "active_users",
+]
 TIME_RANGES = [60, 360, 1440]  # 1h, 6h, 24h in minutes
 THEMES = ["dark", "light"]
 
@@ -58,6 +67,7 @@ def render_metric_chart(request, metric_type: str):
         logger.warning(f"Chart not found: {img_path}, generating on-demand")
         try:
             from .chart_generator import generate_single_chart
+
             generate_single_chart(metric_type, minutes, theme)
         except Exception as e:
             logger.error(f"Failed to generate chart: {e}")
@@ -67,7 +77,7 @@ def render_metric_chart(request, metric_type: str):
         return FileResponse(
             open(img_path, "rb"),
             content_type="image/png",
-            headers={"Cache-Control": "public, max-age=30"}
+            headers={"Cache-Control": "public, max-age=30"},
         )
 
     return HttpResponse("Chart not available", status=503)

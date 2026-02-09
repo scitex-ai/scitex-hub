@@ -194,12 +194,12 @@
                                 title="Toggle hidden files">
                             <i class="fas fa-eye-slash"></i>
                         </button>
-                        <button class="sidebar-toggle panel-toggle-btn left-panel-toggle"
-                                id="sidebar-toggle"
-                                title="Toggle sidebar (Zen: F11/Alt+Z)">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
                     </div>
+                    <button class="sidebar-toggle panel-toggle-btn left-panel-toggle"
+                            id="sidebar-toggle"
+                            title="Toggle sidebar (Zen: F11/Alt+Z)">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
                 </div>
                 <div id="file-tree" class="file-tree-container">
                     <div class="tree-loading">
@@ -221,27 +221,32 @@
                  data-toggle-btn="sidebar-toggle"></div>
             <!-- Center: Editor Area -->
             <div class="code-editor-area">
-                <!-- Toolbar -->
-                <div class="code-toolbar">
-                    <button id="btn-save" class="btn-code-action" disabled title="Save (Ctrl+S)">
-                        <i class="fas fa-save"></i>
-                        <span>Save</span>
-                    </button>
-                    <button id="btn-commit" class="btn-code-action" title="Commit changes">
-                        <i class="fas fa-code-branch"></i>
-                        <span>Commit</span>
-                    </button>
-                    <button id="btn-run"
-                            class="btn-code-action"
-                            disabled
-                            title="Run Python script (Ctrl+Enter)">
-                        <i class="fas fa-play"></i>
-                        <span>Run</span>
-                    </button>
-                    <button id="btn-delete" class="btn-code-action" disabled title="Delete current file">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                    <div class="code-toolbar-spacer"></div>
+                <!-- Unified top bar: file tabs | toolbar actions | shortcuts -->
+                <div class="editor-panel-top">
+                    <!-- File Tabs (+ button at end, inside scrollable container) -->
+                    <div id="file-tabs" class="file-tabs">
+                        <button id="btn-new-file-tab" class="file-tabs-plus-btn" title="New file">+</button>
+                    </div>
+                    <div class="editor-bar-divider"></div>
+                    <!-- Toolbar actions -->
+                    <div class="code-toolbar">
+                        <button id="btn-save" class="btn-code-action" disabled title="Save (Ctrl+S)">
+                            <i class="fas fa-save"></i>
+                        </button>
+                        <button id="btn-commit" class="btn-code-action" title="Commit changes">
+                            <i class="fas fa-code-branch"></i>
+                        </button>
+                        <button id="btn-run"
+                                class="btn-code-action"
+                                disabled
+                                title="Run Python script (Ctrl+Enter)">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <button id="btn-delete" class="btn-code-action" disabled title="Delete current file">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="editor-bar-divider"></div>
                     <select id="keybinding-mode" class="btn-code-action" title="Editor keybindings">
                         <option value="vscode">VS Code</option>
                         <option value="vim">Vim</option>
@@ -253,10 +258,6 @@
                     <button id="btn-editor-shortcuts" class="btn-code-action" title="Emacs Shortcuts">
                         <i class="fas fa-keyboard"></i>
                     </button>
-                </div>
-                <!-- File Tabs (below toolbar) -->
-                <div id="file-tabs" class="file-tabs">
-                    <button id="btn-new-file-tab" class="file-tabs-plus-btn" title="New file">+</button>
                 </div>
                 <!-- Editor Container -->
                 <div id="editor-container" class="code-editor-container">
@@ -336,29 +337,24 @@
                  data-toggle-btn="terminal-toggle"></div>
             <!-- Right: Terminal Panel (Terminal / Jobs) -->
             <div id="code-terminal-panel" class="code-terminal-panel">
-                <!-- Panel Header with Toggle -->
-                <div class="terminal-panel-header">
+                <!-- Unified top bar: toggle | terminal tabs | ... | Jobs | shortcuts -->
+                <div class="terminal-panel-top">
                     <button class="terminal-toggle panel-toggle-btn right-panel-toggle"
                             id="terminal-toggle"
                             title="Toggle terminal (Zen: F11/Alt+Z)">
                         <i class="fas fa-chevron-right"></i>
                     </button>
-                    <h5>
-                        <i class="fas fa-terminal"></i> Terminal
-                    </h5>
-                </div>
-                <!-- Panel Tabs (Terminal / Jobs) -->
-                <div class="terminal-panel-tabs">
-                    <button id="panel-tab-terminal" class="panel-tab active" data-panel="terminal">
-                        <i class="fas fa-terminal"></i>
-                        <span>Terminal</span>
-                    </button>
+                    <div class="terminal-bar-divider"></div>
+                    <!-- Terminal tabs (+ button rendered dynamically at end) -->
+                    <div id="terminal-tabs" class="terminal-tabs">
+                        <!-- Tabs + "+" button will be dynamically added here -->
+                    </div>
+                    <div class="panel-tab-spacer"></div>
                     <button id="panel-tab-jobs" class="panel-tab" data-panel="jobs">
                         <i class="fas fa-tasks"></i>
                         <span>Jobs</span>
                         <span id="jobs-badge" class="panel-tab-badge" style="display: none;">0</span>
                     </button>
-                    <div class="panel-tab-spacer"></div>
                     <button id="btn-terminal-shortcuts"
                             class="btn-code-action panel-header-btn"
                             title="Terminal Shortcuts">
@@ -367,12 +363,6 @@
                 </div>
                 <!-- Terminal View -->
                 <div id="terminal-view" class="panel-view active">
-                    <!-- Terminal Tabs -->
-                    <div id="terminal-tabs-container" class="terminal-tabs-container">
-                        <div id="terminal-tabs" class="terminal-tabs">
-                            <!-- Tabs will be dynamically added here -->
-                        </div>
-                    </div>
                     <!-- PTY Terminal Container (xterm.js with inline image support) -->
                     <div id="pty-terminal" class="terminal-body"></div>
                 </div>

@@ -311,6 +311,67 @@ export class ModalManager {
       printWindow.onafterprint = () => printWindow.close();
     };
   }
+
+  /**
+   * Show a mini confirmation dialog for close actions
+   * Returns a promise that resolves to true (confirmed) or false (cancelled)
+   */
+  confirmClose(name: string): Promise<boolean> {
+    return new Promise((resolve) => {
+      // Create overlay
+      const overlay = document.createElement("div");
+      overlay.className = "mini-confirm-overlay";
+
+      const dialog = document.createElement("div");
+      dialog.className = "mini-confirm-dialog";
+
+      const message = document.createElement("div");
+      message.className = "mini-confirm-message";
+      message.textContent = `Close ${name}?`;
+
+      const actions = document.createElement("div");
+      actions.className = "mini-confirm-actions";
+
+      const closeBtn = document.createElement("button");
+      closeBtn.className = "mini-confirm-btn mini-confirm-btn-close";
+      closeBtn.textContent = "Close";
+
+      const cancelBtn = document.createElement("button");
+      cancelBtn.className = "mini-confirm-btn mini-confirm-btn-cancel";
+      cancelBtn.textContent = "Cancel";
+
+      const cleanup = (result: boolean) => {
+        overlay.classList.remove("active");
+        setTimeout(() => overlay.remove(), 150);
+        document.removeEventListener("keydown", handleKey);
+        resolve(result);
+      };
+
+      closeBtn.onclick = () => cleanup(true);
+      cancelBtn.onclick = () => cleanup(false);
+      overlay.onclick = (e) => {
+        if (e.target === overlay) cleanup(false);
+      };
+
+      const handleKey = (e: KeyboardEvent) => {
+        if (e.key === "Escape") cleanup(false);
+        if (e.key === "Enter") cleanup(true);
+      };
+      document.addEventListener("keydown", handleKey);
+
+      actions.appendChild(closeBtn);
+      actions.appendChild(cancelBtn);
+      dialog.appendChild(message);
+      dialog.appendChild(actions);
+      overlay.appendChild(dialog);
+      document.body.appendChild(overlay);
+
+      requestAnimationFrame(() => {
+        overlay.classList.add("active");
+        closeBtn.focus();
+      });
+    });
+  }
 }
 
 // Global modal manager instance

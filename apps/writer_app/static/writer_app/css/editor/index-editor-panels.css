@@ -164,9 +164,11 @@
   overflow: visible; /* Changed from hidden to visible to allow Monaco suggestions to overflow */
 }
 
-/* Resizer should not flex-grow - fixed width handled by panel-resizer.css */
+/* Resizer - 4px hit area, matches shared panel-resizer.css */
 .split-view > .panel-resizer {
-  flex: 0 0 1px;
+  flex: 0 0 4px;
+  z-index: 5;
+  position: relative;
 }
 
 /* Compilation Output */

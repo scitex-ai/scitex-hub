@@ -36,24 +36,16 @@
 }
 
 .writer-sidebar.collapsed .sidebar-header {
-  height: 100%;
-  padding: 0;
+  padding: 0 4px;
   justify-content: center;
-  align-items: center;
-  border-bottom: none;
-  flex-direction: column;
 }
 
 /* Hide all content except toggle button when collapsed */
-.writer-sidebar.collapsed .sidebar-header-content {
+.writer-sidebar.collapsed .sidebar-header > *:not(.sidebar-toggle) {
   display: none;
 }
 
-.writer-sidebar.collapsed .sidebar-header > *:not(.panel-toggle-btn) {
-  display: none;
-}
-
-.writer-sidebar.collapsed .panel-toggle-btn {
+.writer-sidebar.collapsed .sidebar-toggle {
   width: 100%;
   height: 50px;
   display: flex;

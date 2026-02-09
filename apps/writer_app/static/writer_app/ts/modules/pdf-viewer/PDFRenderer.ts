@@ -6,12 +6,12 @@
 console.log("[DEBUG] PDFRenderer.ts loaded");
 
 export class PDFRenderer {
-  private renderQuality: number = 4.0; // 4x quality by default for 300 DPI rendering
+  private renderQuality: number = 2.0; // 2x default (144 DPI, crisp on screen)
   private colorMode: "light" | "dark" = "light";
   private currentScale: number = 1.5;
 
   constructor(quality?: number, colorMode?: "light" | "dark") {
-    this.renderQuality = quality ?? 4.0;
+    this.renderQuality = quality ?? 2.0;
     this.colorMode = colorMode ?? "light";
   }
 
@@ -54,24 +54,41 @@ export class PDFRenderer {
       // Get device pixel ratio for high-DPI displays
       const dpr = window.devicePixelRatio || 1;
 
-      // Calculate output scale for high-DPI rendering
-      const outputScale = dpr * this.renderQuality;
+      // Cap canvas size to prevent GPU memory exhaustion
+      // Max ~4000x5200 pixels per page (~20MP) keeps browsers happy
+      const MAX_CANVAS_DIM = 4096;
+      const baseViewport = page.getViewport({ scale: this.currentScale });
+      const maxDim = Math.max(baseViewport.width, baseViewport.height);
+      const maxAllowedScale = MAX_CANVAS_DIM / maxDim;
+      const outputScale = Math.min(
+        Math.max(this.renderQuality, dpr),
+        maxAllowedScale,
+      );
 
       console.log(
-        "[PDFRenderer] Rendering page", pageNum,
-        "| Current scale:", this.currentScale,
-        "| DPR:", dpr,
-        "| Quality:", this.renderQuality + "x",
-        "| Output scale:", outputScale + "x",
-        "| Final render scale:", this.currentScale * outputScale,
-        "| Effective DPI:", Math.round(72 * outputScale)
+        "[PDFRenderer] Rendering page",
+        pageNum,
+        "| Current scale:",
+        this.currentScale,
+        "| DPR:",
+        dpr,
+        "| Quality:",
+        this.renderQuality + "x",
+        "| Output scale:",
+        outputScale + "x",
+        "| Final render scale:",
+        this.currentScale * outputScale,
+        "| Effective DPI:",
+        Math.round(72 * outputScale),
       );
 
       // Create viewport for display size
       const displayViewport = page.getViewport({ scale: this.currentScale });
 
       // Create viewport for rendering (high resolution)
-      const renderViewport = page.getViewport({ scale: this.currentScale * outputScale });
+      const renderViewport = page.getViewport({
+        scale: this.currentScale * outputScale,
+      });
 
       // Create page container
       const pageContainer = document.createElement("div");
@@ -101,8 +118,9 @@ export class PDFRenderer {
       canvas.style.height = displayViewport.height + "px";
       canvas.style.display = "block";
 
-      // Disable image smoothing for crisp text
-      context.imageSmoothingEnabled = false;
+      // Enable high-quality smoothing for crisp text when CSS-downscaling from 5x canvas
+      context.imageSmoothingEnabled = true;
+      context.imageSmoothingQuality = "high";
 
       pageContainer.appendChild(canvas);
       container.appendChild(pageContainer);
@@ -118,7 +136,13 @@ export class PDFRenderer {
       // Render text layer
       await this.renderTextLayer(page, pageContainer, displayViewport);
 
-      console.log("[PDFRenderer] Rendered page", pageNum, "at", Math.round(72 * outputScale), "DPI");
+      console.log(
+        "[PDFRenderer] Rendered page",
+        pageNum,
+        "at",
+        Math.round(72 * outputScale),
+        "DPI",
+      );
     } catch (error) {
       console.error(`[PDFRenderer] Error rendering page ${pageNum}:`, error);
     }
@@ -152,7 +176,10 @@ export class PDFRenderer {
 
       container.appendChild(textLayerDiv);
 
-      if ((window as any).pdfjsLib && (window as any).pdfjsLib.renderTextLayer) {
+      if (
+        (window as any).pdfjsLib &&
+        (window as any).pdfjsLib.renderTextLayer
+      ) {
         const renderTask = (window as any).pdfjsLib.renderTextLayer({
           textContent: textContent,
           container: textLayerDiv,
@@ -162,7 +189,10 @@ export class PDFRenderer {
         });
 
         await renderTask.promise;
-        console.log("[PDFRenderer] Text layer rendered for page at scale:", viewport.scale);
+        console.log(
+          "[PDFRenderer] Text layer rendered for page at scale:",
+          viewport.scale,
+        );
       }
     } catch (error) {
       console.error("[PDFRenderer] Error rendering text layer:", error);

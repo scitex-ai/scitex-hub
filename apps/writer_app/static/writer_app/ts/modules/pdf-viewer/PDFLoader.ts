@@ -25,14 +25,15 @@ export class PDFLoader {
       return;
     }
 
+    const PDFJS_VERSION = "3.11.174";
+    const PDFJS_CDN = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${PDFJS_VERSION}`;
+
     const script = document.createElement("script");
-    script.src =
-      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+    script.src = `${PDFJS_CDN}/pdf.min.js`;
     script.onload = () => {
       this.pdfjsLib = (window as any).pdfjsLib;
       if (this.pdfjsLib) {
-        this.pdfjsLib.GlobalWorkerOptions.workerSrc =
-          "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+        this.pdfjsLib.GlobalWorkerOptions.workerSrc = `${PDFJS_CDN}/pdf.worker.min.js`;
         console.log("[PDFLoader] PDF.js loaded successfully");
       }
     };
@@ -72,7 +73,14 @@ export class PDFLoader {
 
     try {
       console.log("[PDFLoader] Loading PDF:", pdfUrl);
-      const loadingTask = this.pdfjsLib.getDocument(pdfUrl);
+      const PDFJS_VERSION = "3.11.174";
+      const PDFJS_CDN = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${PDFJS_VERSION}`;
+      const loadingTask = this.pdfjsLib.getDocument({
+        url: pdfUrl,
+        cMapUrl: `${PDFJS_CDN}/cmaps/`,
+        cMapPacked: true,
+        standardFontDataUrl: `${PDFJS_CDN}/standard_fonts/`,
+      });
       this.pdfDoc = await loadingTask.promise;
       console.log("[PDFLoader] PDF loaded:", this.pdfDoc.numPages, "pages");
       this.isLoading = false;

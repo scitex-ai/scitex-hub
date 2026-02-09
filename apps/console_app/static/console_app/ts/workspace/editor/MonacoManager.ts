@@ -1,14 +1,18 @@
 /**
  * Monaco Editor Manager
- * Handles Monaco editor initialization, keybindings, and language detection
+ * Handles Monaco editor initialization, theme sync, and language detection
  */
 
 import { LANGUAGE_MAP, type EditorConfig, type OpenFile } from "../core/types";
+import {
+  addEmacsKeybindings,
+  addGlobalNavigationKeybindings,
+  addRunCodeKeybinding,
+} from "./MonacoKeybindings";
 
 // MonacoTheme functions are loaded at runtime from shared components
-// Declare their types here for TypeScript
 declare function initializeMonacoThemes(monaco: any): void;
-declare function setupMonacoThemeObserver(callback: (theme: string) => void): void;
+declare function setupMonacoThemeObserver(monaco: any): void;
 declare function getThemeForMode(mode: "dark" | "light"): string;
 declare function getCurrentThemeMode(): "dark" | "light";
 
@@ -24,7 +28,8 @@ async function loadMonacoTheme(): Promise<{
 }
 
 // Cached module reference
-let monacoThemeModule: Awaited<ReturnType<typeof loadMonacoTheme>> | null = null;
+let monacoThemeModule: Awaited<ReturnType<typeof loadMonacoTheme>> | null =
+  null;
 
 export class MonacoManager {
   private editor: any = null;
@@ -50,13 +55,17 @@ export class MonacoManager {
    */
   async updateTheme(theme: string): Promise<void> {
     if (!this.editor) {
-      console.warn("[MonacoManager] Cannot update theme - editor not initialized");
+      console.warn(
+        "[MonacoManager] Cannot update theme - editor not initialized",
+      );
       return;
     }
 
     const monaco = (window as any).monaco;
     if (!monaco) {
-      console.warn("[MonacoManager] Cannot update theme - Monaco not available");
+      console.warn(
+        "[MonacoManager] Cannot update theme - Monaco not available",
+      );
       return;
     }
 
@@ -66,11 +75,10 @@ export class MonacoManager {
     }
 
     // Use SciTeX themes for consistency across modules
-    const monacoTheme = monacoThemeModule.getThemeForMode(theme as "dark" | "light");
+    const monacoTheme = monacoThemeModule.getThemeForMode(
+      theme as "dark" | "light",
+    );
     this.editor.updateOptions({ theme: monacoTheme });
-
-    // Sync localStorage to match global theme
-    localStorage.setItem("monaco-editor-theme", monacoTheme);
 
     // Update toggle button to reflect new theme
     this.updateThemeToggleButton(monacoTheme);
@@ -83,26 +91,29 @@ export class MonacoManager {
    */
   toggleEditorTheme(): void {
     if (!this.editor) {
-      console.warn("[MonacoManager] Cannot toggle theme - editor not initialized");
+      console.warn(
+        "[MonacoManager] Cannot toggle theme - editor not initialized",
+      );
       return;
     }
 
     const monaco = (window as any).monaco;
     if (!monaco) {
-      console.warn("[MonacoManager] Cannot toggle theme - Monaco not available");
+      console.warn(
+        "[MonacoManager] Cannot toggle theme - Monaco not available",
+      );
       return;
     }
 
     // Get current theme from editor and toggle between SciTeX themes
-    const currentTheme = this.editor.getOption(monaco.editor.EditorOption.theme);
+    const currentTheme = this.editor.getOption(
+      monaco.editor.EditorOption.theme,
+    );
     const isDark = currentTheme === "scitex-dark" || currentTheme === "vs-dark";
     const newTheme = isDark ? "scitex-light" : "scitex-dark";
 
     // Update editor theme
     this.editor.updateOptions({ theme: newTheme });
-
-    // Store preference
-    localStorage.setItem("monaco-editor-theme", newTheme);
 
     // Update toggle button emoji
     this.updateThemeToggleButton(newTheme);
@@ -129,8 +140,9 @@ export class MonacoManager {
     if (themeIcon) {
       const isDark = theme === "scitex-dark" || theme === "vs-dark";
       themeIcon.textContent = isDark ? "🌙" : "☀️";
-      toggleBtn?.setAttribute("title",
-        isDark ? "Switch to light theme" : "Switch to dark theme"
+      toggleBtn?.setAttribute(
+        "title",
+        isDark ? "Switch to light theme" : "Switch to dark theme",
       );
     }
   }
@@ -160,7 +172,9 @@ export class MonacoManager {
 
     const monaco = (window as any).monaco;
     if (!monaco) {
-      console.warn("[MonacoManager] Monaco not available - keeping welcome screen");
+      console.warn(
+        "[MonacoManager] Monaco not available - keeping welcome screen",
+      );
       return;
     }
 
@@ -184,9 +198,13 @@ export class MonacoManager {
     // Initialize shared SciTeX themes
     monacoThemeModule.initializeMonacoThemes(monaco);
 
-    // Load saved theme preference or use SciTeX theme based on site theme
-    const savedTheme = localStorage.getItem("monaco-editor-theme");
-    const initialTheme = savedTheme || monacoThemeModule.getThemeForMode(monacoThemeModule.getCurrentThemeMode());
+    // Always sync with global site theme
+    const initialTheme = monacoThemeModule.getThemeForMode(
+      monacoThemeModule.getCurrentThemeMode(),
+    );
+
+    // Setup observer to auto-switch Monaco theme when global theme changes
+    monacoThemeModule.setupMonacoThemeObserver(monaco);
 
     // Create Monaco editor
     this.editor = monaco.editor.create(container, {
@@ -220,102 +238,14 @@ export class MonacoManager {
     this.updateThemeToggleButton(initialTheme);
 
     // Add global navigation shortcuts FIRST (highest priority)
-    this.addGlobalNavigationKeybindings(monaco);
+    addGlobalNavigationKeybindings(this.editor, monaco);
 
     // Apply saved keybinding mode
     const savedMode = localStorage.getItem("code-keybinding-mode") || "emacs";
     this.setKeybindingMode(savedMode);
 
     // Add Ctrl+Enter keybinding AFTER setting mode (so it doesn't get cleared)
-    this.addRunCodeKeybinding(monaco);
-  }
-
-  private addRunCodeKeybinding(monaco: any): void {
-    if (!this.editor) return;
-
-    // Add Ctrl+Enter to trigger the Run button
-    this.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
-      const runBtn = document.getElementById("btn-run") as HTMLButtonElement;
-      if (runBtn && !runBtn.disabled) {
-        console.log("[Keybinding] Ctrl+Enter pressed - triggering Run button");
-        runBtn.click();
-      } else if (runBtn?.disabled) {
-        console.log("[Keybinding] Ctrl+Enter pressed but Run button is disabled");
-      }
-    });
-
-    console.log("[Keybinding] Ctrl+Enter keybinding for Run added");
-  }
-
-  /**
-   * Add global navigation keybindings that override Emacs/Vim modes
-   * These shortcuts are ALWAYS prioritized for module navigation
-   */
-  private addGlobalNavigationKeybindings(monaco: any): void {
-    if (!this.editor) return;
-
-    const navigationRoutes: Record<string, string> = {
-      f: "/files/",
-      s: "/scholar/",
-      c: "/console/",
-      v: "/vis/",
-      w: "/writer/",
-    };
-
-    // Alt+Z: Toggle Zen Mode (dispatch event for zen-mode component)
-    this.editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.KeyZ, () => {
-      console.log("[Monaco] Alt+Z - Toggle Zen Mode");
-      // Dispatch F11 keydown event to trigger zen mode cycle
-      const event = new KeyboardEvent("keydown", {
-        key: "F11",
-        keyCode: 122,
-        bubbles: true,
-        cancelable: true,
-      });
-      document.dispatchEvent(event);
-    });
-
-    // Alt+F: Files
-    this.editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.KeyF, () => {
-      if (!window.location.pathname.startsWith("/files/")) {
-        console.log("[Monaco] Alt+F - Navigate to Files");
-        window.location.href = "/files/";
-      }
-    });
-
-    // Alt+S: Scholar
-    this.editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.KeyS, () => {
-      if (!window.location.pathname.startsWith("/scholar/")) {
-        console.log("[Monaco] Alt+S - Navigate to Scholar");
-        window.location.href = "/scholar/";
-      }
-    });
-
-    // Alt+C: Code (already here, but include for completeness)
-    this.editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.KeyC, () => {
-      if (!window.location.pathname.startsWith("/console/")) {
-        console.log("[Monaco] Alt+C - Navigate to Code");
-        window.location.href = "/console/";
-      }
-    });
-
-    // Alt+V: Vis
-    this.editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.KeyV, () => {
-      if (!window.location.pathname.startsWith("/vis/")) {
-        console.log("[Monaco] Alt+V - Navigate to Vis");
-        window.location.href = "/vis/";
-      }
-    });
-
-    // Alt+W: Writer
-    this.editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.KeyW, () => {
-      if (!window.location.pathname.startsWith("/writer/")) {
-        console.log("[Monaco] Alt+W - Navigate to Writer");
-        window.location.href = "/writer/";
-      }
-    });
-
-    console.log("[Monaco] Global navigation keybindings added (Alt+Z/F/S/C/V/W)");
+    addRunCodeKeybinding(this.editor, monaco);
   }
 
   private async waitForMonaco(): Promise<void> {
@@ -327,7 +257,9 @@ export class MonacoManager {
       }
 
       if ((window as any).monacoReady) {
-        console.log("[MonacoManager] Monaco ready flag set, waiting for object...");
+        console.log(
+          "[MonacoManager] Monaco ready flag set, waiting for object...",
+        );
         setTimeout(() => resolve(), 100);
         return;
       }
@@ -340,15 +272,21 @@ export class MonacoManager {
         attempts++;
 
         if ((window as any).monaco) {
-          console.log(`[MonacoManager] Monaco loaded after ${attempts * checkInterval}ms`);
+          console.log(
+            `[MonacoManager] Monaco loaded after ${attempts * checkInterval}ms`,
+          );
           resolve();
         } else if ((window as any).monacoReady && attempts > 5) {
-          console.error("[MonacoManager] monacoReady flag set but window.monaco is undefined");
+          console.error(
+            "[MonacoManager] monacoReady flag set but window.monaco is undefined",
+          );
           resolve();
         } else if (attempts < maxAttempts) {
           setTimeout(checkMonaco, checkInterval);
         } else {
-          console.error(`[MonacoManager] Monaco timeout after ${attempts * checkInterval}ms`);
+          console.error(
+            `[MonacoManager] Monaco timeout after ${attempts * checkInterval}ms`,
+          );
           resolve();
         }
       };
@@ -374,21 +312,24 @@ export class MonacoManager {
       document.removeEventListener(
         "keydown",
         (this.editor as any)._emacsPreventDefaultHandler,
-        true
+        true,
       );
       (this.editor as any)._emacsPreventDefaultHandler = null;
     }
 
     // Remove all custom keybindings
     if ((this.editor as any)._standaloneKeybindingService) {
-      (this.editor as any)._standaloneKeybindingService._dynamicKeybindings = [];
+      (this.editor as any)._standaloneKeybindingService._dynamicKeybindings =
+        [];
     }
 
     if (mode === "vim") {
-      console.log("[Keybindings] Vim mode selected (requires monaco-vim extension)");
+      console.log(
+        "[Keybindings] Vim mode selected (requires monaco-vim extension)",
+      );
     } else if (mode === "emacs") {
       console.log("[Keybindings] Emacs mode selected");
-      this.addEmacsKeybindings(monaco);
+      addEmacsKeybindings(this.editor, monaco);
     } else {
       console.log("[Keybindings] VS Code mode selected");
     }
@@ -399,8 +340,12 @@ export class MonacoManager {
 
   private updateTooltipsForMode(mode: string): void {
     const btnSave = document.getElementById("btn-save") as HTMLButtonElement;
-    const btnNewFileTab = document.getElementById("btn-new-file-tab") as HTMLButtonElement;
-    const btnDelete = document.getElementById("btn-delete") as HTMLButtonElement;
+    const btnNewFileTab = document.getElementById(
+      "btn-new-file-tab",
+    ) as HTMLButtonElement;
+    const btnDelete = document.getElementById(
+      "btn-delete",
+    ) as HTMLButtonElement;
     const btnRun = document.getElementById("btn-run") as HTMLButtonElement;
 
     if (mode === "emacs") {
@@ -421,70 +366,5 @@ export class MonacoManager {
     }
 
     console.log("[Tooltips] Updated for", mode, "mode");
-  }
-
-  private addEmacsKeybindings(monaco: any): void {
-    if (!this.editor) return;
-
-    // Global event listener to prevent Chrome shortcuts
-    const preventDefaultForEmacs = (e: KeyboardEvent) => {
-      const activeElement = document.activeElement;
-      const isInEditor =
-        activeElement?.classList?.contains("inputarea") ||
-        activeElement?.closest(".monaco-editor") !== null;
-
-      if (!isInEditor) return;
-
-      if (e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey) {
-        const key = e.key.toLowerCase();
-        if (["n", "p", "w", "t", "y"].includes(key)) {
-          console.log("[Emacs] Preventing default for Ctrl+" + key.toUpperCase());
-          e.preventDefault();
-        }
-      }
-    };
-
-    document.addEventListener("keydown", preventDefaultForEmacs, true);
-    (this.editor as any)._emacsPreventDefaultHandler = preventDefaultForEmacs;
-
-    // Character navigation
-    this.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyF, () => {
-      this.editor.trigger("keyboard", "cursorRight", {});
-    });
-    this.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyB, () => {
-      this.editor.trigger("keyboard", "cursorLeft", {});
-    });
-    this.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyN, () => {
-      this.editor.trigger("keyboard", "cursorDown", {});
-    });
-    this.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyP, () => {
-      this.editor.trigger("keyboard", "cursorUp", {});
-    });
-
-    // Alternative bindings (fallback for Chrome-blocked)
-    this.editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.KeyN, () => {
-      this.editor.trigger("keyboard", "cursorDown", {});
-    });
-    this.editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.KeyP, () => {
-      this.editor.trigger("keyboard", "cursorUp", {});
-    });
-
-    // Word navigation
-    this.editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.KeyF, () => {
-      this.editor.trigger("keyboard", "cursorWordRight", {});
-    });
-    this.editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.KeyB, () => {
-      this.editor.trigger("keyboard", "cursorWordLeft", {});
-    });
-
-    // Line beginning/end
-    this.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyA, () => {
-      this.editor.trigger("keyboard", "cursorHome", {});
-    });
-    this.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyE, () => {
-      this.editor.trigger("keyboard", "cursorEnd", {});
-    });
-
-    console.log("[Emacs] Keybindings installed (abbreviated set)");
   }
 }

@@ -19,11 +19,15 @@
 }
 
 .editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   background: var(--color-canvas-subtle, #f3f2f0);
   border: 1px solid var(--color-border-default, #d0d7de);
   border-radius: 6px 6px 0 0;
   padding: 0.75rem 1rem;
   font-weight: 600;
+  color: var(--color-fg-default);
 }
 
 .editor-body {
@@ -41,6 +45,8 @@
   font-size: 13px;
   line-height: 1.6;
   resize: vertical;
+  background: var(--color-canvas-default);
+  color: var(--color-fg-default);
 }
 
 .editor-textarea:focus {
@@ -56,6 +62,7 @@
   display: flex;
   gap: 0.5rem;
   justify-content: flex-end;
+  color: var(--color-fg-default);
 }
 
 /* Markdown preview */

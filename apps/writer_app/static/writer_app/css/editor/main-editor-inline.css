@@ -2,99 +2,99 @@
 
 /* Current File Display */
 .current-file-display i {
-    color: var(--status-success);
-    margin-right: 6px;
+  color: var(--status-success);
+  margin-right: 6px;
 }
 
 /* Hidden selectors for backward compatibility */
 #doctype-selector.form-select.form-select-sm.hidden {
-    display: none;
+  display: none;
 }
 
 .custom-section-selector.hidden {
-    display: none;
+  display: none;
 }
 
 #section-selector-dropdown.hidden {
-    display: none;
+  display: none;
 }
 
 /* Git Operations Container */
 .git-operations-container {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 #git-status-display {
-    padding: 0.2rem 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    border: none;
-    background: transparent;
-    font-size: 0.75rem;
-    color: var(--color-fg-muted);
+  padding: 0.2rem 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  border: none;
+  background: transparent;
+  font-size: 0.75rem;
+  color: var(--color-fg-muted);
 }
 
 #git-status-display i {
-    font-size: 0.7rem;
+  font-size: 0.7rem;
 }
 
 #git-unpushed-count {
-    display: none;
+  display: none;
 }
 
 /* Keyboard Shortcuts Button */
 #shortcuts-btn {
-    font-size: 0.75rem;
-    padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
 }
 
 /* Font Size Select */
 #font-size-select {
-    width: auto;
-    font-size: 0.75rem;
-    padding: 0.2rem 0.5rem;
+  width: auto;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
 }
 
 /* Monaco Theme Toggle */
 #monaco-theme-toggle {
-    padding: 0.2rem 0.5rem;
+  padding: 0.2rem 0.5rem;
 }
 
 .theme-icon {
-    font-size: 1rem;
+  font-size: 1rem;
 }
 
 /* Keybinding Selector (Hidden) */
 #keybinding-selector + label {
-    font-size: 0.75rem;
-    margin: 0;
-    display: none;
-    align-items: center;
-    gap: 0.25rem;
+  font-size: 0.75rem;
+  margin: 0;
+  display: none;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 #keybinding-selector {
-    width: auto;
-    font-size: 0.75rem;
-    display: none;
+  width: auto;
+  font-size: 0.75rem;
+  display: none;
 }
 
 /* Theme Selector (Hidden) */
 #theme-selector + label {
-    font-size: 0.75rem;
-    margin: 0;
-    display: none;
-    align-items: center;
-    gap: 0.25rem;
+  font-size: 0.75rem;
+  margin: 0;
+  display: none;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 #theme-selector {
-    width: auto;
-    font-size: 0.75rem;
-    display: none;
+  width: auto;
+  font-size: 0.75rem;
+  display: none;
 }
 
 /* Panel Header Template (Hidden) - Higher specificity to override .preview-panel .panel-header */
@@ -107,332 +107,339 @@
 #figures-panel-header,
 #tables-panel-header,
 #history-panel-header {
-    display: none !important;
+  display: none !important;
 }
 
 /* Compile Button Toolbar (Hidden) */
 #compile-btn-toolbar {
-    display: none;
+  display: none;
 }
 
 /* Status Indicator Groups */
 .status-indicator-group {
-    cursor: pointer;
+  cursor: pointer;
 }
 
 /* Compilation Settings Button */
 #compilation-settings-btn {
-    padding: 0.2rem 0.5rem;
+  padding: 0.2rem 0.5rem;
 }
 
 /* Hidden Auto-compile Checkboxes */
 #auto-preview-checkbox-panel,
 #auto-fullcompile-checkbox {
-    display: none;
+  display: none;
 }
 
 /* PDF Zoom Select */
 #pdf-zoom-select {
-    width: auto;
-    font-size: 0.75rem;
-    padding: 0.2rem 0.5rem;
+  width: auto;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+}
+
+/* PDF DPI Quality Select */
+#pdf-dpi-select {
+  width: auto;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
 }
 
 /* Citations Toolbar */
 #citations-selected-toolbar {
-    font-size: 0.75rem;
-    color: var(--color-fg-muted);
-    white-space: nowrap;
+  font-size: 0.75rem;
+  color: var(--color-fg-muted);
+  white-space: nowrap;
 }
 
 .citations-search-wrapper {
-    position: relative;
-    flex: 1;
-    max-width: 250px;
+  position: relative;
+  flex: 1;
+  max-width: 250px;
 }
 
 .citations-search-wrapper i {
-    position: absolute;
-    left: 0.5rem;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 0.7rem;
-    color: var(--color-fg-muted);
-    pointer-events: none;
+  position: absolute;
+  left: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.7rem;
+  color: var(--color-fg-muted);
+  pointer-events: none;
 }
 
 #citations-search-toolbar {
-    padding-left: 1.75rem;
-    padding-right: 2.25rem;
-    font-size: 0.75rem;
-    height: 28px;
+  padding-left: 1.75rem;
+  padding-right: 2.25rem;
+  font-size: 0.75rem;
+  height: 28px;
 }
 
 .citations-search-wrapper kbd {
-    position: absolute;
-    right: 0.5rem;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 0.65rem;
-    padding: 0.1rem 0.3rem;
-    background: var(--color-canvas-subtle);
-    border: 1px solid var(--color-border-default);
-    border-radius: 3px;
-    color: var(--color-fg-muted);
-    pointer-events: none;
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.65rem;
+  padding: 0.1rem 0.3rem;
+  background: var(--color-canvas-subtle);
+  border: 1px solid var(--color-border-default);
+  border-radius: 3px;
+  color: var(--color-fg-muted);
+  pointer-events: none;
 }
 
 .citations-sort-wrapper {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
 }
 
 .citations-sort-wrapper i {
-    position: absolute;
-    left: 0.5rem;
-    font-size: 0.7rem;
-    color: var(--color-fg-muted);
-    pointer-events: none;
-    z-index: 1;
+  position: absolute;
+  left: 0.5rem;
+  font-size: 0.7rem;
+  color: var(--color-fg-muted);
+  pointer-events: none;
+  z-index: 1;
 }
 
 #citations-sort-toolbar {
-    width: auto;
-    font-size: 0.75rem;
-    padding: 0.2rem 1.5rem 0.2rem 1.75rem;
-    height: 28px;
+  width: auto;
+  font-size: 0.75rem;
+  padding: 0.2rem 1.5rem 0.2rem 1.75rem;
+  height: 28px;
 }
 
 /* Figures Toolbar */
 #figures-selected-toolbar {
-    font-size: 0.75rem;
-    color: var(--color-fg-muted);
-    white-space: nowrap;
+  font-size: 0.75rem;
+  color: var(--color-fg-muted);
+  white-space: nowrap;
 }
 
 .figures-search-wrapper {
-    position: relative;
-    flex: 1;
-    max-width: 250px;
+  position: relative;
+  flex: 1;
+  max-width: 250px;
 }
 
 .figures-search-wrapper i {
-    position: absolute;
-    left: 0.5rem;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 0.7rem;
-    color: var(--color-fg-muted);
-    pointer-events: none;
+  position: absolute;
+  left: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.7rem;
+  color: var(--color-fg-muted);
+  pointer-events: none;
 }
 
 #figures-search-toolbar {
-    padding-left: 1.75rem;
-    padding-right: 2.25rem;
-    font-size: 0.75rem;
-    height: 28px;
+  padding-left: 1.75rem;
+  padding-right: 2.25rem;
+  font-size: 0.75rem;
+  height: 28px;
 }
 
 .figures-search-wrapper kbd {
-    position: absolute;
-    right: 0.5rem;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 0.65rem;
-    padding: 0.1rem 0.3rem;
-    background: var(--color-canvas-subtle);
-    border: 1px solid var(--color-border-default);
-    border-radius: 3px;
-    color: var(--color-fg-muted);
-    pointer-events: none;
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.65rem;
+  padding: 0.1rem 0.3rem;
+  background: var(--color-canvas-subtle);
+  border: 1px solid var(--color-border-default);
+  border-radius: 3px;
+  color: var(--color-fg-muted);
+  pointer-events: none;
 }
 
 .figures-sort-wrapper {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
 }
 
 .figures-sort-wrapper i {
-    position: absolute;
-    left: 0.5rem;
-    font-size: 0.7rem;
-    color: var(--color-fg-muted);
-    pointer-events: none;
-    z-index: 1;
+  position: absolute;
+  left: 0.5rem;
+  font-size: 0.7rem;
+  color: var(--color-fg-muted);
+  pointer-events: none;
+  z-index: 1;
 }
 
 #figures-sort-toolbar {
-    width: auto;
-    font-size: 0.75rem;
-    padding: 0.2rem 1.5rem 0.2rem 1.75rem;
-    height: 28px;
+  width: auto;
+  font-size: 0.75rem;
+  padding: 0.2rem 1.5rem 0.2rem 1.75rem;
+  height: 28px;
 }
 
 /* Tables Toolbar */
 #tables-selected-toolbar {
-    font-size: 0.75rem;
-    color: var(--color-fg-muted);
-    white-space: nowrap;
+  font-size: 0.75rem;
+  color: var(--color-fg-muted);
+  white-space: nowrap;
 }
 
 /* History Toolbar */
 #gitBranchSelect {
-    max-width: 150px;
+  max-width: 150px;
 }
 
 /* Compilation Output */
 #compilation-output {
-    display: none;
+  display: none;
 }
 
 .compilation-log-toolbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem 1rem;
-    border-bottom: 1px solid var(--color-border-default);
-    background: var(--color-canvas-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--color-border-default);
+  background: var(--color-canvas-subtle);
 }
 
 .compilation-log-toolbar-left {
-    display: flex;
-    gap: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
 }
 
 #compilation-log-stop-btn {
-    display: none;
+  display: none;
 }
 
 #compilation-progress-container {
-    display: none;
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--color-border-default);
+  display: none;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-border-default);
 }
 
 .compilation-progress-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.4rem;
-    font-size: 0.85rem;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+  font-size: 0.85rem;
 }
 
 .compilation-progress-bg {
-    background: var(--color-canvas-subtle);
-    height: 6px;
-    border-radius: 3px;
-    overflow: hidden;
+  background: var(--color-canvas-subtle);
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
 }
 
 #compilation-progress-bar {
-    background: var(--color-accent-emphasis);
-    height: 100%;
-    width: 0%;
-    transition: width 0.3s ease;
-    border-radius: 3px;
+  background: var(--color-accent-emphasis);
+  height: 100%;
+  width: 0%;
+  transition: width 0.3s ease;
+  border-radius: 3px;
 }
 
 #compilation-alert-banner {
-    display: none;
-    padding: 0.75rem 1rem;
+  display: none;
+  padding: 0.75rem 1rem;
 }
 
 #compilation-log-inline {
-    border-radius: 0;
-    flex: 1;
-    min-height: 200px;
+  border-radius: 0;
+  flex: 1;
+  min-height: 200px;
 }
 
 #compilation-result-inline {
-    display: none;
-    padding: 1rem;
-    border-top: 1px solid var(--color-border-default);
+  display: none;
+  padding: 1rem;
+  border-top: 1px solid var(--color-border-default);
 }
 
 /* Compilation Panel */
 #compilation-panel {
-    display: none;
+  display: none;
 }
 
 #stop-compile-btn {
-    display: none;
+  display: none;
 }
 
 .panel-header-right-flex {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
 }
 
 /* PDF Comparison Grid */
 .pdf-comparison-header {
-    color: var(--color-fg-default);
-    margin: 0;
+  color: var(--color-fg-default);
+  margin: 0;
 }
 
 #toggle-outline-diff {
-    display: none;
+  display: none;
 }
 
 .diff-pdf-placeholder {
-    width: 100%;
-    height: 100%;
-    border: 1px solid var(--color-border-default);
-    border-radius: 4px;
-    background: var(--color-canvas-subtle);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--color-fg-muted);
-    position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--color-border-default);
+  border-radius: 4px;
+  background: var(--color-canvas-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-fg-muted);
+  position: absolute;
 }
 
 .diff-pdf-placeholder-content {
-    text-align: center;
+  text-align: center;
 }
 
 #diff-pdf-viewer-panel {
-    width: 100%;
-    height: 100%;
-    border: 1px solid var(--color-border-default);
-    border-radius: 4px;
-    background: white;
-    display: none;
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--color-border-default);
+  border-radius: 4px;
+  background: white;
+  display: none;
 }
 
 #pdf-viewer-panel {
-    flex: 1;
-    border: 1px solid var(--color-border-default);
-    border-radius: 4px;
-    background: white;
+  flex: 1;
+  border: 1px solid var(--color-border-default);
+  border-radius: 4px;
+  background: white;
 }
 
 /* Git Commit Modal */
 #git-commit-modal {
-    display: none;
+  display: none;
 }
 
 .scitex-modal-content.modal-narrow {
-    max-width: 480px;
+  max-width: 480px;
 }
 
 #commit-message-input {
-    font-size: 0.875rem;
-    background: var(--color-canvas-subtle);
-    border-color: var(--color-border-default);
-    color: var(--color-fg-default);
+  font-size: 0.875rem;
+  background: var(--color-canvas-subtle);
+  border-color: var(--color-border-default);
+  color: var(--color-fg-default);
 }
 
 .commit-message-label {
-    font-size: 0.875rem;
-    margin-bottom: 0.5rem;
-    color: var(--color-fg-default);
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+  color: var(--color-fg-default);
 }
 
 .commit-form-text {
-    font-size: 0.75rem;
-    margin-top: 0.375rem;
-    color: var(--color-fg-muted);
+  font-size: 0.75rem;
+  margin-top: 0.375rem;
+  color: var(--color-fg-muted);
 }
