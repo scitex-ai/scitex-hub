@@ -53,6 +53,28 @@ function updateIndicator(
 }
 
 /**
+ * Update the source item's count label and error class for idle-time status
+ */
+function updateSourceItemStatus(sourceName: string, available: boolean): void {
+  const item = document.querySelector(
+    `.source-item[data-source="${sourceName}"]`,
+  ) as HTMLElement | null;
+  if (!item) return;
+
+  const countEl = item.querySelector(".count") as HTMLElement | null;
+  if (available) {
+    item.classList.remove("error");
+    // Only clear ERR text if not mid-search
+    if (countEl && countEl.textContent === "ERR") {
+      countEl.textContent = "";
+    }
+  } else {
+    item.classList.add("error");
+    if (countEl) countEl.textContent = "ERR";
+  }
+}
+
+/**
  * Check health of a local database source
  * Updates both the inline ready indicator and header LED
  */
@@ -72,21 +94,36 @@ async function checkSourceHealth(sourceName: string): Promise<void> {
       const tooltip = `${data.service}: Ready - Local database available`;
       updateIndicator(elements.ready, "ready", tooltip);
       updateIndicator(elements.led, "ready", tooltip);
+      updateSourceItemStatus(sourceName, true);
     } else {
       const tooltip = `${data.service}: Unavailable - ${data.error || "Database not loaded"}`;
       updateIndicator(elements.ready, "unavailable", tooltip);
       updateIndicator(elements.led, "unavailable", tooltip);
+      updateSourceItemStatus(sourceName, false);
     }
   } catch (error) {
     console.error(`[HealthCheck] Failed to check ${sourceName}:`, error);
     const tooltip = `${sourceName}: Error - Unable to reach health endpoint`;
     updateIndicator(elements.ready, "unavailable", tooltip);
     updateIndicator(elements.led, "unavailable", tooltip);
+    updateSourceItemStatus(sourceName, false);
   }
 }
 
+// Health check polling interval (ms)
+const HEALTH_CHECK_INTERVAL = 30_000; // 30 seconds
+let healthCheckTimer: ReturnType<typeof setInterval> | null = null;
+
 /**
- * Initialize health checks on page load
+ * Run health checks for all local sources
+ */
+function runHealthChecks(): void {
+  checkSourceHealth("crossref_local");
+  checkSourceHealth("openalex_local");
+}
+
+/**
+ * Initialize health checks on page load with periodic polling
  */
 function initHealthChecks(): void {
   console.log("[HealthCheck] Initializing source health checks...");
@@ -95,11 +132,16 @@ function initHealthChecks(): void {
   updateIndicator("ledCrossrefLocal", "checking", "Checking availability...");
   updateIndicator("ledOpenalexLocal", "checking", "Checking availability...");
 
-  // Check local databases
-  checkSourceHealth("crossref_local");
-  checkSourceHealth("openalex_local");
+  // Run initial checks
+  runHealthChecks();
 
-  console.log("[HealthCheck] Health checks initiated");
+  // Start periodic polling so LEDs reflect real-time connection status
+  if (healthCheckTimer) clearInterval(healthCheckTimer);
+  healthCheckTimer = setInterval(runHealthChecks, HEALTH_CHECK_INTERVAL);
+
+  console.log(
+    `[HealthCheck] Health checks initiated (polling every ${HEALTH_CHECK_INTERVAL / 1000}s)`,
+  );
 }
 
 // Export for use by search system to show "working" status
