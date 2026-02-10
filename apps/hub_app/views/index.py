@@ -68,6 +68,9 @@ def index_view(request):
         logger.info(
             f"[Hub] User {request.user.username} viewing project: {current_project.slug}"
         )
+
+        # Fetch file browser data (same as Files page)
+        _add_file_browser_context(request, current_project, context)
     else:
         context["needs_project_creation"] = True
 
@@ -89,6 +92,75 @@ def index_view(request):
     context["recent_activities"] = recent_activities
 
     return render(request, "hub_app/index.html", context)
+
+
+def _add_file_browser_context(request, project, context):
+    """Add file browser data to context (reuses project_app helpers)."""
+    from django.conf import settings
+
+    from apps.project_app.models import ProjectFork, ProjectStar, ProjectWatch
+    from apps.project_app.services.project_filesystem import (
+        get_project_filesystem_manager,
+    )
+    from apps.project_app.views.projects.detail_helpers import (
+        get_branches,
+        get_directory_contents,
+        get_readme_content,
+    )
+
+    try:
+        manager = get_project_filesystem_manager(project.owner)
+        project_path = manager.get_project_root_path(project)
+
+        files, dirs = get_directory_contents(project_path)
+        _, readme_html = get_readme_content(project_path)
+        current_branch = project.current_branch or "develop"
+        branches, current_branch = get_branches(project_path, current_branch)
+
+        # Social counts
+        watch_count = ProjectWatch.objects.filter(project=project).count()
+        star_count = ProjectStar.objects.filter(project=project).count()
+        fork_count = ProjectFork.objects.filter(original_project=project).count()
+        is_watching = ProjectWatch.objects.filter(
+            user=request.user, project=project
+        ).exists()
+        is_starred = ProjectStar.objects.filter(
+            user=request.user, project=project
+        ).exists()
+
+        # Gitea URLs
+        gitea_url = getattr(settings, "SCITEX_CLOUD_GITEA_URL", "http://127.0.0.1:3000")
+        ssh_domain = getattr(settings, "SCITEX_CLOUD_GIT_DOMAIN", "127.0.0.1")
+        ssh_port = getattr(settings, "SCITEX_CLOUD_GITEA_SSH_PORT", "2222")
+
+        owner_name = project.owner.username
+        slug = project.slug
+        gitea_https_url = f"{gitea_url}/{owner_name}/{slug}.git"
+        gitea_ssh_url = f"ssh://git@{ssh_domain}:{ssh_port}/{owner_name}/{slug}.git"
+        download_zip_url = (
+            f"{gitea_url}/{owner_name}/{slug}/archive/{current_branch}.zip"
+        )
+
+        context.update(
+            {
+                "directories": dirs,
+                "files": files,
+                "readme_html": readme_html,
+                "branches": branches,
+                "current_branch": current_branch,
+                "watch_count": watch_count,
+                "star_count": star_count,
+                "fork_count": fork_count,
+                "is_watching": is_watching,
+                "is_starred": is_starred,
+                "gitea_https_url": gitea_https_url,
+                "gitea_ssh_url": gitea_ssh_url,
+                "download_zip_url": download_zip_url,
+            }
+        )
+    except Exception as e:
+        logger.warning(f"[Hub] Failed to load file browser data: {e}")
+        context["file_browser_error"] = str(e)
 
 
 # EOF

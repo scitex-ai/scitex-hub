@@ -15,6 +15,30 @@
           href="{% static 'shared/css/components/collapsible-panel.css' %}" />
     <link rel="stylesheet"
           href="{% static 'shared/css/components/workspace-files-tree/hidden-files-toggle.css' %}" />
+    <!-- Browse CSS from project_app (reused for file browser) -->
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/container-header.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/branch-dropdown.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/icon-utilities.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/tab-navigation.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/file-browser-table.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/readme-rendering.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/action-buttons.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/split-dropdown.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/tabs.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/toolbar.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/shared/buttons.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/file_browser.css' %}" />
     <!-- Hub specific styles -->
     <link rel="stylesheet" href="{% static 'hub_app/css/hub.css' %}" />
 {% endblock %}
@@ -50,66 +74,61 @@
         {% endif %}
         <!-- Main Area -->
         <main class="hub-main">
-            <div class="hub-content">
-                {% if is_demo %}
-                    <div class="alert alert-info mb-3">
-                        <i class="fas fa-info-circle"></i>
-                        Demo mode - Changes will not be saved after session expires
-                    </div>
-                {% endif %}
-                <div class="hub-header mb-4">
-                    <h1>
-                        {% if project %}
-                            {{ project.name }}
-                        {% else %}
-                            Your Projects
-                        {% endif %}
-                    </h1>
-                    {% if projects_count > 0 %}
-                        <p class="text-muted">{{ projects_count }} project{{ projects_count|pluralize }}</p>
-                    {% endif %}
+            {% if is_demo %}
+                <div class="alert alert-info mb-3">
+                    <i class="fas fa-info-circle"></i>
+                    Demo mode - Changes will not be saved after session expires
                 </div>
-                <!-- Projects Grid -->
-                {% if user_projects %}
-                    <div class="hub-section mb-4">
-                        <div class="section-header">
-                            <h2>
-                                <i class="fas fa-folder"></i> Projects
-                            </h2>
-                            <a href="/{{ user.username }}/?tab=repositories"
-                               class="btn btn-sm btn-outline-primary">View All</a>
-                        </div>
-                        <div class="projects-grid">
-                            {% for proj in user_projects %}
-                                <div class="project-card">
-                                    <div class="project-card-header">
-                                        <h3>
-                                            <a href="/{{ proj.owner.username }}/{{ proj.slug }}/">{{ proj.name }}</a>
-                                        </h3>
-                                        <span class="badge badge-{{ proj.visibility }}">{{ proj.visibility }}</span>
-                                    </div>
-                                    <div class="project-card-body">
-                                        <p class="text-muted">{{ proj.description|truncatewords:20 }}</p>
-                                        <div class="project-meta">
-                                            {% if proj.primary_language %}<span class="language-badge">{{ proj.primary_language }}</span>{% endif %}
-                                            <span class="meta-item">
-                                                <i class="fas fa-star"></i> {{ proj.projectstar_set.count }}
-                                            </span>
-                                            <span class="meta-item">Updated {{ proj.updated_at|timesince }} ago</span>
+            {% endif %}
+            {% if current_project %}
+                <!-- GitHub-style file browser (reusing project_app partials) -->
+                <div class="hub-browse-container">
+                    {% include 'project_app/repository/browse_partials/browse_header.html' %}
+                    {% include 'project_app/repository/browse_partials/browse_tabs.html' with active_tab='code' %}
+                    {% include 'project_app/repository/browse_partials/browse_empty_state.html' %}
+                    {% include 'project_app/repository/browse_partials/browse_file_browser.html' %}
+                    {% include 'project_app/repository/browse_partials/browse_readme.html' %}
+                </div>
+            {% else %}
+                <!-- No project selected: show projects overview -->
+                <div class="hub-content">
+                    <div class="hub-header mb-4">
+                        <h1>Your Projects</h1>
+                        {% if projects_count > 0 %}
+                            <p class="text-muted">{{ projects_count }} project{{ projects_count|pluralize }}</p>
+                        {% endif %}
+                    </div>
+                    {% if user_projects %}
+                        <div class="hub-section mb-4">
+                            <div class="projects-grid">
+                                {% for proj in user_projects %}
+                                    <div class="project-card">
+                                        <div class="project-card-header">
+                                            <h3>
+                                                <a href="/{{ proj.owner.username }}/{{ proj.slug }}/">{{ proj.name }}</a>
+                                            </h3>
+                                            <span class="badge badge-{{ proj.visibility }}">{{ proj.visibility }}</span>
+                                        </div>
+                                        <div class="project-card-body">
+                                            <p class="text-muted">{{ proj.description|truncatewords:20 }}</p>
+                                            <div class="project-meta">
+                                                {% if proj.primary_language %}<span class="language-badge">{{ proj.primary_language }}</span>{% endif %}
+                                                <span class="meta-item">
+                                                    <i class="fas fa-star"></i> {{ proj.projectstar_set.count }}
+                                                </span>
+                                                <span class="meta-item">Updated {{ proj.updated_at|timesince }} ago</span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                        {% if projects_count > 6 %}
-                            <div class="text-center mt-3">
-                                <a href="/{{ user.username }}/?tab=repositories" class="btn btn-outline-primary">View All {{ projects_count }} Projects</a>
+                                {% endfor %}
                             </div>
-                        {% endif %}
-                    </div>
-                {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+            <!-- Secondary content: Activity + Quick Actions -->
+            <div class="hub-content hub-secondary-content">
                 <div class="hub-cards">
-                    <!-- Recent Activity Card -->
                     <div class="hub-card">
                         <div class="hub-card-header">
                             <h2>
@@ -142,7 +161,6 @@
                             {% endif %}
                         </div>
                     </div>
-                    <!-- Quick Actions Card -->
                     <div class="hub-card">
                         <div class="hub-card-header">
                             <h2>
@@ -186,4 +204,21 @@
     {% vite_hmr_client %}
     {% vite_script 'shared/workspace-panel-resizer' %}
     {% vite_script 'hub_app/index' %}
+    {% if current_project %}
+        <!-- Browse scripts (reused from project_app) -->
+        <div id="project-data"
+             style="display: none"
+             data-project-owner="{{ current_project.owner.username }}"
+             data-project-slug="{{ current_project.slug }}"></div>
+        <script>
+          window.SCITEX_PROJECT_DATA = {
+            owner: "{{ current_project.owner.username }}",
+            slug: "{{ current_project.slug }}",
+          };
+        </script>
+        {% vite_script 'project_app/repository/browse_toolbar' %}
+        {% vite_script 'project_app/repository/colorful-icons' %}
+        {% vite_script 'project_app/repository/file_browser_git_status' %}
+        {% vite_script 'project_app/repository/file_table_hidden_sync' %}
+    {% endif %}
 {% endblock %}
