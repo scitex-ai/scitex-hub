@@ -1,13 +1,8 @@
-{% extends "global_base.html" %}
+{% extends base_template|default:"global_base.html" %}
 
-{% block title %}
-    Asta AI Citation Scraper -
-    Browser Tool | SciTeX
-{% endblock %}
+{% block title %}Asta AI Citation Scraper - Browser Tool | SciTeX{% endblock %}
 {% block meta_description %}
-    Automatically
-    collect all BibTeX citations from Asta AI search results. One-click scraping
-    with live progress, auto-download as .bib file, and clipboard backup.
+    Automatically collect all BibTeX citations from Asta AI search results. One-click scraping with live progress, auto-download as .bib file, and clipboard backup.
 {% endblock %}
 {% block head_extra %}
     {% load static %}
@@ -25,49 +20,35 @@
           href="{% static 'images/scitex-icon/scitex-icon-navy.ico' %}?v=3" />
 {% endblock %}
 {% block extra_css %}
-    {% load static %}
-
     <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
         .tool-detail-container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 40px 20px;
-        }
-
-        .tool-header {
-            text-align: center;
-            padding: 40px 20px;
-            margin-bottom: 40px;
-        }
-
-        .tool-icon-large {
-            font-size: 64px;
-            margin-bottom: 20px;
-        }
-
-        .tool-title {
-            font-size: 42px;
-            font-weight: 700;
-            margin-bottom: 16px;
-            color: var(--text-primary);
-        }
-
-        .tool-subtitle {
-            font-size: 18px;
-            color: var(--text-secondary);
-            max-width: 600px;
-            margin: 0 auto 30px;
-            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--workspace-bg-monaco);
         }
 
         .tool-breadcrumb {
-            font-size: 14px;
-            color: var(--text-secondary);
-            margin-bottom: 16px;
+            padding: 8px 16px;
+            font-size: 12px;
+            color: var(--workspace-text-secondary);
+            background: var(--workspace-bg-secondary);
+            border-bottom: 1px solid var(--workspace-border-default);
         }
 
         .tool-breadcrumb a {
-            color: #4a9b7e;
+            color: var(--workspace-text-link);
             text-decoration: none;
         }
 
@@ -75,100 +56,114 @@
             text-decoration: underline;
         }
 
-        .bookmarklet-install {
-            background: linear-gradient(135deg, #4a9b7e 0%, #3a7c65 100%);
-            color: white;
-            border-radius: 12px;
-            padding: 40px;
+        .tool-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px 60px;
+        }
+
+        .content-inner {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .tool-header {
+            text-align: center;
             margin-bottom: 40px;
+        }
+
+        .tool-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--workspace-text-primary);
+        }
+
+        .tool-subtitle {
+            font-size: 14px;
+            color: var(--workspace-text-secondary);
+            line-height: 1.6;
+        }
+
+        .tool-subtitle a {
+            color: var(--workspace-text-link);
+            text-decoration: underline;
+        }
+
+        .bookmarklet-install {
+            background: var(--workspace-bg-secondary);
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 8px;
+            padding: 32px;
+            margin-bottom: 32px;
             text-align: center;
         }
 
         .bookmarklet-install-title {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--workspace-text-primary);
         }
 
         .bookmarklet-link {
             display: inline-block;
-            background: white;
-            color: #4a9b7e;
-            padding: 16px 32px;
+            background: var(--workspace-bg-tertiary);
+            color: var(--workspace-text-link);
+            padding: 12px 24px;
             text-decoration: none;
-            border-radius: 8px;
-            font-size: 18px;
-            font-weight: 700;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
             cursor: move;
             transition: all 0.2s;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--workspace-border-default);
         }
 
         .bookmarklet-link:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-            color: #3a7c65;
+            background: var(--workspace-bg-monaco);
+            border-color: var(--workspace-text-link);
             text-decoration: none;
         }
 
         .install-hint {
-            margin-top: 20px;
-            font-size: 14px;
-            opacity: 0.95;
+            margin-top: 16px;
+            font-size: 12px;
+            color: var(--workspace-text-muted);
         }
 
         .tool-section {
-            background: var(--bg-secondary);
-            border-radius: 12px;
-            padding: 30px;
-            margin-bottom: 30px;
+            background: var(--workspace-bg-secondary);
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
         }
 
         .tool-section-title {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 20px;
-            color: var(--text-primary);
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--workspace-text-primary);
         }
 
         .tool-section-content {
-            color: var(--text-secondary);
-            line-height: 1.8;
+            color: var(--workspace-text-secondary);
+            line-height: 1.6;
+            font-size: 13px;
         }
 
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
+        .tool-section-content ul {
+            padding-left: 20px;
         }
 
-        .feature-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
+        .tool-section-content li {
+            margin-bottom: 8px;
         }
 
-        .feature-icon {
-            font-size: 20px;
-            line-height: 1;
-            margin-top: 2px;
-        }
-
-        .feature-text {
-            flex: 1;
-        }
-
-        .feature-title {
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 4px;
-        }
-
-        .feature-desc {
-            font-size: 14px;
-            color: var(--text-secondary);
-            line-height: 1.5;
+        .tool-section-content a {
+            color: var(--workspace-text-link);
+            text-decoration: underline;
         }
 
         .usage-steps {
@@ -179,10 +174,10 @@
 
         .usage-steps li {
             counter-increment: step-counter;
-            padding: 16px 0;
-            padding-left: 50px;
+            padding: 12px 0;
+            padding-left: 36px;
             position: relative;
-            color: var(--text-secondary);
+            color: var(--workspace-text-secondary);
             line-height: 1.6;
         }
 
@@ -190,268 +185,78 @@
             content: counter(step-counter);
             position: absolute;
             left: 0;
-            top: 16px;
-            width: 32px;
-            height: 32px;
-            background: #4a9b7e;
-            color: white;
+            top: 12px;
+            width: 24px;
+            height: 24px;
+            background: var(--workspace-text-link);
+            color: var(--workspace-bg-monaco);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 700;
-            font-size: 14px;
-        }
-
-        .demo-box {
-            background: #fef2f2;
-            border-left: 4px solid #ef4444;
-            padding: 20px;
-            border-radius: 4px;
-            margin-top: 20px;
-        }
-
-        .demo-box strong {
-            color: #ef4444;
-        }
-
-        .tip-box {
-            background: #f0fdf7;
-            border-left: 4px solid #4a9b7e;
-            padding: 20px;
-            border-radius: 4px;
-            margin-top: 20px;
-        }
-
-        .tip-box strong {
-            color: #4a9b7e;
+            font-weight: 600;
+            font-size: 12px;
         }
     </style>
 {% endblock %}
 {% block content %}
     <div class="tool-detail-container">
-        <!-- Breadcrumb -->
-        <div class="tool-breadcrumb">
-            <a href="{% url 'public_app:tools' %}">← Back to Tools</a>
-        </div>
-        <!-- Header -->
-        <div class="tool-header">
-            <div class="tool-icon-large">📚</div>
-            <h1 class="tool-title">Asta AI Citation Scraper</h1>
-            <p class="tool-subtitle">
-                Automatically collect all BibTeX citations from <a href="https://asta.allen.ai/chat"
-    target="_blank"
-    rel="noopener noreferrer"
-    style="color: var(--scitex-color-04);
-           text-decoration: underline">Asta AI</a> search results.
-                Clicks all "Copy BibTeX" buttons, combines citations, and downloads as a
-                .bib file with live progress tracking.
-            </p>
-        </div>
-        <!-- Installation -->
-        <div class="bookmarklet-install">
-            <h2 class="bookmarklet-install-title">📌 Drag to Bookmarks Bar</h2>
-            <a href="javascript:(async function(){console.log('Asta AI Citation Scraper Starting...');window.focus();const btns=Array.from(document.querySelectorAll('button')).filter(b=>b.textContent.includes('Copy BibTeX')||b.textContent.includes('Copy')%26%26b.closest('[class*=citation]'));if(0===btns.length)return void alert('No Copy BibTeX buttons found.');console.log('Found '.concat(btns.length,' buttons'));const citations=[],wait=ms=>new Promise(r=>setTimeout(r,ms)),readClip=async()=>{try{window.focus();return await navigator.clipboard.readText()}catch(e){return null}},findBibTeX=elem=>{const p=elem.closest('[class*=citation],[class*=reference],[class*=paper]');if(!p)return null;const t=[p.innerText,p.textContent];for(const a of p.attributes)if(a.value%26%26a.value.includes('@'))return a.value;for(const x of t)if(x%26%26(x.includes('@article')||x.includes('@inproceedings')||x.includes('@book')))return x;const pre=p.querySelector('pre,code');return pre%26%26pre.textContent.includes('@')?pre.textContent:null},getTimestamp=()=>{const d=new Date,pad=n=>String(n).padStart(2,'0');return''.concat(d.getFullYear()).concat(pad(d.getMonth()%2B1)).concat(pad(d.getDate()),'-').concat(pad(d.getHours())).concat(pad(d.getMinutes())).concat(pad(d.getSeconds()))},notify=(msg,prog,eta)=>{let n=document.getElementById('scitex-notify');if(!n){n=document.createElement('div');n.id='scitex-notify';n.style.cssText='position:fixed;top:20px;right:20px;background:%230FCB8C;color:white;padding:20px;border-radius:8px;font-family:sans-serif;font-size:14px;z-index:9999999;box-shadow:0 4px 12px rgba(0,0,0,0.3);min-width:250px';document.body.appendChild(n)}const parts=['%3Cdiv style=%22font-weight:bold;margin-bottom:10px%22%3E',msg,'%3C/div%3E'];if(prog){parts.push('%3Cdiv style=%22margin:10px 0%22%3E',prog,'%3C/div%3E');const m=prog.match(/\\d%2B/g);if(m%26%26m.length%3E=2){const w=Math.round(m[0]/m[1]*100);parts.push('%3Cdiv style=%22background:rgba(255,255,255,0.3);border-radius:4px;height:8px;overflow:hidden;margin:8px 0%22%3E%3Cdiv style=%22background:white;height:100%25;width:',w,'%25;transition:width 0.3s%22%3E%3C/div%3E%3C/div%3E')}}if(eta)parts.push('%3Cdiv style=%22font-size:12px;opacity:0.9;margin-top:8px%22%3E',eta,'%3C/div%3E');n.innerHTML=decodeURIComponent(parts.join(''))},removeNotify=()=>{const n=document.getElementById('scitex-notify');if(n)setTimeout(()=>n.remove(),3000)};console.log('Trying DOM scraping...');for(let i=0;i%3Cbtns.length;i++){const bib=findBibTeX(btns[i]);if(bib%26%26bib.includes('@'))citations.push(bib.trim())}if(citations.length===btns.length){console.log('SUCCESS: DOM scraped!');const c=citations.join('\n\n'),fname='asta-citations-'.concat(getTimestamp(),'.bib'),b=new Blob([c],{type:'text/plain'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);try{window.focus();await wait(100);await navigator.clipboard.writeText(c)}catch(e){}notify('Downloaded!',citations.length.toString().concat(' citations'),'File: '.concat(fname));removeNotify();return c}console.log('Fallback: clicking...');citations.length=0;let success=0,fail=0,start=Date.now();notify('Starting...','Found '.concat(btns.length,' citations'),'');for(let i=0;i%3Cbtns.length;i++){const btn=btns[i],num=String(i%2B1).padStart(2,'0'),total=String(btns.length).padStart(2,'0');notify('Processing Citations',num.concat('/',total),(i%3E0?'ETA: '.concat(Math.round((Date.now()-start)/i*(btns.length-i)/1000),'s'):'Calculating...'));console.log('Clicking ',(i%2B1),'/',btns.length);try{btn.scrollIntoView({behavior:'smooth',block:'center'});await wait(200);btn.click();await wait(400);const txt=await readClip();if(txt%26%26txt.trim()%26%26txt.includes('@'))citations.push(txt.trim()),success%2B%2B;else fail%2B%2B;await wait(100)}catch(e){console.error('Error ',(i%2B1),':',e);fail%2B%2B}}const c=citations.join('\n\n');if(c){try{const fname='asta-citations-'.concat(getTimestamp(),'.bib'),b=new Blob([c],{type:'text/plain'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);try{window.focus();await wait(100);await navigator.clipboard.writeText(c)}catch(e){}notify('Downloaded!',success.toString().concat(' citations'),'File: '.concat(fname));removeNotify()}catch(e){notify('Error','Check console','');removeNotify()}}else{notify('No citations','Try again','');removeNotify()}return c})();"
-               class="bookmarklet-link">📚 SciTeX: Asta Citations</a>
-            <p class="install-hint">💡 Drag the button above to your bookmarks bar, then use it on Asta AI!</p>
-        </div>
-        <!-- How to Use -->
-        <div class="tool-section">
-            <h2 class="tool-section-title">📖 How to Use</h2>
-            <div class="tool-section-content">
-                <ol class="usage-steps">
-                    <li>
-                        <strong>Drag</strong> the button above to your bookmarks bar
-                    </li>
-                    <li>
-                        <strong>Open</strong> <a href="https://asta.allen.ai/chat"
-    target="_blank"
-    rel="noopener noreferrer"
-    style="color: var(--scitex-color-04);
-           text-decoration: underline">Asta AI</a> and search for papers (get citations)
-                    </li>
-                    <li>
-                        <strong>Click</strong> the bookmark to start scraping
-                    </li>
-                    <li>
-                        <strong>Watch</strong> the live progress notification (counter + ETA)
-                    </li>
-                    <li>
-                        <strong>Done!</strong> Citations auto-download as .bib file and copy
-                        to clipboard
-                    </li>
-                </ol>
+        {% if not embed %}
+            <div class="tool-breadcrumb">
+                <a href="{% url 'public_app:tools' %}">← Back to Tools</a>
             </div>
-        </div>
-        <!-- Features -->
-        <div class="tool-section">
-            <h2 class="tool-section-title">✨ Features</h2>
-            <div class="features-grid">
-                <div class="feature-item">
-                    <span class="feature-icon">⚡</span>
-                    <div class="feature-text">
-                        <div class="feature-title">Lightning Fast</div>
-                        <div class="feature-desc">DOM scraping first (instant!), button clicking fallback</div>
+        {% endif %}
+        <div class="tool-content">
+            <div class="content-inner">
+                {% if not embed %}
+                    <div class="tool-header">
+                        <h1 class="tool-title">Asta AI Citation Scraper</h1>
+                        <p class="tool-subtitle">
+                            Automatically collect all BibTeX citations from <a href="https://asta.allen.ai/chat" target="_blank" rel="noopener noreferrer">Asta AI</a> search results. Clicks all "Copy BibTeX" buttons, combines citations, and downloads as a .bib file with live progress tracking.
+                        </p>
+                    </div>
+                {% endif %}
+                <!-- Installation -->
+                <div class="bookmarklet-install">
+                    <h2 class="bookmarklet-install-title">Drag to Bookmarks Bar</h2>
+                    <a href="javascript:(async function(){console.log('Asta AI Citation Scraper Starting...');window.focus();const btns=Array.from(document.querySelectorAll('button')).filter(b=>b.textContent.includes('Copy BibTeX')||b.textContent.includes('Copy')%26%26b.closest('[class*=citation]'));if(0===btns.length)return void alert('No Copy BibTeX buttons found.');console.log('Found '.concat(btns.length,' buttons'));const citations=[],wait=ms=>new Promise(r=>setTimeout(r,ms)),readClip=async()=>{try{window.focus();return await navigator.clipboard.readText()}catch(e){return null}},findBibTeX=elem=>{const p=elem.closest('[class*=citation],[class*=reference],[class*=paper]');if(!p)return null;const t=[p.innerText,p.textContent];for(const a of p.attributes)if(a.value%26%26a.value.includes('@'))return a.value;for(const x of t)if(x%26%26(x.includes('@article')||x.includes('@inproceedings')||x.includes('@book')))return x;const pre=p.querySelector('pre,code');return pre%26%26pre.textContent.includes('@')?pre.textContent:null},getTimestamp=()=>{const d=new Date,pad=n=>String(n).padStart(2,'0');return''.concat(d.getFullYear()).concat(pad(d.getMonth()%2B1)).concat(pad(d.getDate()),'-').concat(pad(d.getHours())).concat(pad(d.getMinutes())).concat(pad(d.getSeconds()))},notify=(msg,prog,eta)=>{let n=document.getElementById('scitex-notify');if(!n){n=document.createElement('div');n.id='scitex-notify';n.style.cssText='position:fixed;top:20px;right:20px;background:%230FCB8C;color:white;padding:20px;border-radius:8px;font-family:sans-serif;font-size:14px;z-index:9999999;box-shadow:0 4px 12px rgba(0,0,0,0.3);min-width:250px';document.body.appendChild(n)}const parts=['%3Cdiv style=%22font-weight:bold;margin-bottom:10px%22%3E',msg,'%3C/div%3E'];if(prog){parts.push('%3Cdiv style=%22margin:10px 0%22%3E',prog,'%3C/div%3E');const m=prog.match(/\\d%2B/g);if(m%26%26m.length%3E=2){const w=Math.round(m[0]/m[1]*100);parts.push('%3Cdiv style=%22background:rgba(255,255,255,0.3);border-radius:4px;height:8px;overflow:hidden;margin:8px 0%22%3E%3Cdiv style=%22background:white;height:100%25;width:',w,'%25;transition:width 0.3s%22%3E%3C/div%3E%3C/div%3E')}}if(eta)parts.push('%3Cdiv style=%22font-size:12px;opacity:0.9;margin-top:8px%22%3E',eta,'%3C/div%3E');n.innerHTML=decodeURIComponent(parts.join(''))},removeNotify=()=>{const n=document.getElementById('scitex-notify');if(n)setTimeout(()=>n.remove(),3000)};console.log('Trying DOM scraping...');for(let i=0;i%3Cbtns.length;i++){const bib=findBibTeX(btns[i]);if(bib%26%26bib.includes('@'))citations.push(bib.trim())}if(citations.length===btns.length){console.log('SUCCESS: DOM scraped!');const c=citations.join('\n\n'),fname='asta-citations-'.concat(getTimestamp(),'.bib'),b=new Blob([c],{type:'text/plain'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);try{window.focus();await wait(100);await navigator.clipboard.writeText(c)}catch(e){}notify('Downloaded!',citations.length.toString().concat(' citations'),'File: '.concat(fname));removeNotify();return c}console.log('Fallback: clicking...');citations.length=0;let success=0,fail=0,start=Date.now();notify('Starting...','Found '.concat(btns.length,' citations'),'');for(let i=0;i%3Cbtns.length;i++){const btn=btns[i],num=String(i%2B1).padStart(2,'0'),total=String(btns.length).padStart(2,'0');notify('Processing Citations',num.concat('/',total),(i%3E0?'ETA: '.concat(Math.round((Date.now()-start)/i*(btns.length-i)/1000),'s'):'Calculating...'));console.log('Clicking ',(i%2B1),'/',btns.length);try{btn.scrollIntoView({behavior:'smooth',block:'center'});await wait(200);btn.click();await wait(400);const txt=await readClip();if(txt%26%26txt.trim()%26%26txt.includes('@'))citations.push(txt.trim()),success%2B%2B;else fail%2B%2B;await wait(100)}catch(e){console.error('Error ',(i%2B1),':',e);fail%2B%2B}}const c=citations.join('\n\n');if(c){try{const fname='asta-citations-'.concat(getTimestamp(),'.bib'),b=new Blob([c],{type:'text/plain'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);try{window.focus();await wait(100);await navigator.clipboard.writeText(c)}catch(e){}notify('Downloaded!',success.toString().concat(' citations'),'File: '.concat(fname));removeNotify()}catch(e){notify('Error','Check console','');removeNotify()}}else{notify('No citations','Try again','');removeNotify()}return c})();"
+                       class="bookmarklet-link">SciTeX: Asta Citations</a>
+                    <p class="install-hint">Drag the button above to your bookmarks bar, then use it on Asta AI</p>
+                </div>
+                <!-- How to Use -->
+                <div class="tool-section">
+                    <h2 class="tool-section-title">How to Use</h2>
+                    <div class="tool-section-content">
+                        <ol class="usage-steps">
+                            <li>Drag the button above to your bookmarks bar</li>
+                            <li>
+                                Open <a href="https://asta.allen.ai/chat" target="_blank" rel="noopener noreferrer">Asta AI</a> and search for papers (get citations)
+                            </li>
+                            <li>Click the bookmark to start scraping</li>
+                            <li>Watch the live progress notification (counter + ETA)</li>
+                            <li>Done! Citations auto-download as .bib file and copy to clipboard</li>
+                        </ol>
                     </div>
                 </div>
-                <div class="feature-item">
-                    <span class="feature-icon">📊</span>
-                    <div class="feature-text">
-                        <div class="feature-title">Live Progress</div>
-                        <div class="feature-desc">Real-time counter: 01/33, 02/33...</div>
+                <!-- How It Works -->
+                <div class="tool-section">
+                    <h2 class="tool-section-title">How It Works</h2>
+                    <div class="tool-section-content">
+                        <ul>
+                            <li>Scans the page for all "Copy BibTeX" buttons</li>
+                            <li>
+                                <strong>Fast Mode:</strong> Tries to extract BibTeX directly from DOM (instant)
+                            </li>
+                            <li>
+                                <strong>Fallback Mode:</strong> If DOM scraping fails, clicks buttons sequentially
+                            </li>
+                            <li>Shows live notification with counter, progress bar, and ETA</li>
+                            <li>Collects all BibTeX data and combines with proper formatting</li>
+                            <li>Automatically downloads as .bib file with timestamp</li>
+                            <li>Copies to clipboard as backup</li>
+                        </ul>
                     </div>
                 </div>
-                <div class="feature-item">
-                    <span class="feature-icon">⏱️</span>
-                    <div class="feature-text">
-                        <div class="feature-title">ETA Display</div>
-                        <div class="feature-desc">Shows estimated time remaining</div>
-                    </div>
-                </div>
-                <div class="feature-item">
-                    <span class="feature-icon">📈</span>
-                    <div class="feature-text">
-                        <div class="feature-title">Progress Bar</div>
-                        <div class="feature-desc">Visual progress indicator</div>
-                    </div>
-                </div>
-                <div class="feature-item">
-                    <span class="feature-icon">💾</span>
-                    <div class="feature-text">
-                        <div class="feature-title">Auto-Download</div>
-                        <div class="feature-desc">Saves as .bib file automatically</div>
-                    </div>
-                </div>
-                <div class="feature-item">
-                    <span class="feature-icon">📋</span>
-                    <div class="feature-text">
-                        <div class="feature-title">Clipboard Copy</div>
-                        <div class="feature-desc">Also copies to clipboard as backup</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- What It Does -->
-        <div class="tool-section">
-            <h2 class="tool-section-title">🎯 How It Works</h2>
-            <div class="tool-section-content">
-                <ol>
-                    <li>Scans the page for all "Copy BibTeX" buttons</li>
-                    <li>
-                        <strong>⚡ Fast Mode:</strong> Tries to extract BibTeX directly from
-                        DOM (instant!)
-                    </li>
-                    <li>
-                        <strong>🔄 Fallback Mode:</strong> If DOM scraping fails, clicks
-                        buttons sequentially
-                    </li>
-                    <li>
-                        <strong>📊 Shows live notification</strong> with counter (01/33,
-                        02/33...), progress bar, and ETA
-                    </li>
-                    <li>Collects all BibTeX data and combines with proper formatting</li>
-                    <li>
-                        <strong>Automatically downloads as .bib file</strong> with timestamp
-                    </li>
-                    <li>Copies to clipboard as backup</li>
-                    <li>Notification auto-closes after 3 seconds</li>
-                </ol>
-                <div class="demo-box">
-                    <strong>🎬 Demo Workflow:</strong>
-                    <ul style="margin: 10px 0 0 0; padding-left: 20px">
-                        <li>
-                            Open Asta AI: <a href="https://asta.allen.ai/chat"
-    target="_blank"
-    rel="noopener noreferrer"
-    style="color: #ef4444;
-           text-decoration: underline">https://asta.allen.ai/chat</a>
-                        </li>
-                        <li>Ask a question that generates citations</li>
-                        <li>Click the bookmarklet</li>
-                        <li>
-                            <strong>See live notification</strong> in top-right corner
-                        </li>
-                        <li>
-                            <strong>Option A (Fast):</strong> Instant! Shows "5 citations"
-                            immediately
-                        </li>
-                        <li>
-                            <strong>Option B (Fallback):</strong> See counter "01/33, 02/33..."
-                            + progress bar + "ETA: 25s"
-                        </li>
-                        <li>Get .bib file downloaded automatically</li>
-                        <li>Import .bib file into your reference manager</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <!-- Example Output -->
-        <div class="tool-section">
-            <h2 class="tool-section-title">📊 Example Output (.bib file)</h2>
-            <div class="tool-section-content">
-                <pre style=" background: var(--bg-tertiary); padding: 20px; border-radius: 8px; overflow-x: auto; font-size: 13px; line-height: 1.6; "><code class="language-bibtex">@article{smith2024,
-  title={Example Paper},
-  author={Smith, John},
-  journal={Nature},
-  year={2024}
-}
-
-@article{jones2024,
-  title={Another Paper},
-  author={Jones, Jane},
-  journal={Science},
-  year={2024}
-}</code></pre>
-            </div>
-        </div>
-        <!-- Troubleshooting -->
-        <div class="tool-section">
-            <h2 class="tool-section-title">🔧 Troubleshooting</h2>
-            <div class="tool-section-content">
-                <ul>
-                    <li>
-                        <strong>No buttons found?</strong> Make sure you're on Asta AI chat
-                        page with citations visible
-                    </li>
-                    <li>
-                        <strong>Not all citations copied?</strong> Check browser console (F12)
-                        for detailed log
-                    </li>
-                    <li>
-                        <strong>Clipboard access denied?</strong> Grant clipboard permission
-                        to the Asta AI website
-                    </li>
-                    <li>
-                        <strong>Buttons not clicking?</strong> Some sites may have changed
-                        their HTML - check console for errors
-                    </li>
-                </ul>
-                <div class="tip-box">
-                    <strong>💡 Pro Tips:</strong>
-                    <ul style="margin: 10px 0 0 0; padding-left: 20px">
-                        <li>Watch the top-right notification for real-time progress!</li>
-                        <li>
-                            Fast Mode usually works - you'll get instant results most of the
-                            time
-                        </li>
-                        <li>Progress bar fills up as citations are collected</li>
-                        <li>ETA is calculated based on average time per citation</li>
-                        <li>The .bib file is named with timestamp for easy organization</li>
-                        <li>Don't switch tabs while fallback mode is running</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <!-- Privacy -->
-        <div class="tool-section">
-            <h2 class="tool-section-title">🔒 Privacy & Security</h2>
-            <div class="tool-section-content">
-                <ul>
-                    <li>✅ No data sent to external servers</li>
-                    <li>✅ Only accesses clipboard (standard browser permission)</li>
-                    <li>✅ Only clicks buttons on the current page</li>
-                    <li>✅ Open source - you can inspect the code</li>
-                </ul>
             </div>
         </div>
     </div>

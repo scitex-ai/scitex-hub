@@ -1,134 +1,343 @@
-<div class="info-panel">
-  <div class="info-section" id="dimensionsSection">
-    <div class="info-title">Dimensions</div>
-    <div class="info-row">
-      <span class="info-label">Width:</span>
-      <span class="info-value" id="pixelWidth">-</span>
+<div style="background: var(--workspace-bg-secondary, #161b22);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column">
+    <div style="padding: 16px 20px;
+                border-bottom: 1px solid var(--workspace-border-default, #30363d)"
+         id="dimensionsSection">
+        <div style="font-size: 0.8rem;
+                    font-weight: 600;
+                    margin-bottom: 12px;
+                    color: var(--workspace-text-primary, #c9d1d9)">Dimensions</div>
+        <div style="display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 8px">
+            <span style="font-size: 12px; color: var(--workspace-text-secondary, #8b949e);">Width:</span>
+            <span style="font-size: 12px;
+                         font-family: monospace;
+                         color: var(--workspace-text-primary, #c9d1d9)"
+                  id="pixelWidth">-</span>
+        </div>
+        <div style="display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 8px">
+            <span style="font-size: 12px; color: var(--workspace-text-secondary, #8b949e);">Height:</span>
+            <span style="font-size: 12px;
+                         font-family: monospace;
+                         color: var(--workspace-text-primary, #c9d1d9)"
+                  id="pixelHeight">-</span>
+        </div>
+        <div style="display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 8px">
+            <span style="font-size: 12px; color: var(--workspace-text-secondary, #8b949e);">Aspect Ratio:</span>
+            <span style="font-size: 12px;
+                         font-family: monospace;
+                         color: var(--workspace-text-primary, #c9d1d9)"
+                  id="aspectRatio">-</span>
+        </div>
+        <div style="display: none;
+                    flex-direction: row;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 8px"
+             id="pdfPageCountRow">
+            <span style="font-size: 12px; color: var(--workspace-text-secondary, #8b949e);">Total Pages:</span>
+            <span style="font-size: 12px;
+                         font-family: monospace;
+                         color: var(--workspace-text-primary, #c9d1d9)"
+                  id="pdfPageCount">-</span>
+        </div>
     </div>
-    <div class="info-row">
-      <span class="info-label">Height:</span>
-      <span class="info-value" id="pixelHeight">-</span>
+    <div style="padding: 16px 20px;
+                border-bottom: 1px solid var(--workspace-border-default, #30363d)">
+        <div style="font-size: 0.8rem;
+                    font-weight: 600;
+                    margin-bottom: 12px;
+                    color: var(--workspace-text-primary, #c9d1d9)">DPI (Dots Per Inch)</div>
+        <div id="dpiAlert"
+             style="display: none;
+                    padding: 8px;
+                    background: var(--workspace-bg-tertiary, #21262d);
+                    border: 1px solid var(--workspace-border-default, #30363d);
+                    border-radius: 4px;
+                    margin-bottom: 12px;
+                    font-size: 11px;
+                    color: var(--workspace-text-secondary, #8b949e)">
+            DPI metadata not found. Using default or custom value.
+        </div>
+        <div style="display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 8px">
+            <span style="font-size: 12px; color: var(--workspace-text-secondary, #8b949e);">Horizontal DPI:</span>
+            <span style="font-size: 12px;
+                         font-family: monospace;
+                         color: var(--workspace-text-primary, #c9d1d9)"
+                  id="dpiX">-</span>
+        </div>
+        <div style="display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 12px">
+            <span style="font-size: 12px; color: var(--workspace-text-secondary, #8b949e);">Vertical DPI:</span>
+            <span style="font-size: 12px;
+                         font-family: monospace;
+                         color: var(--workspace-text-primary, #c9d1d9)"
+                  id="dpiY">-</span>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <input type="number"
+                   id="customDpi"
+                   placeholder="Custom DPI (e.g., 300)"
+                   value="300"
+                   style="flex: 1;
+                          padding: 6px 10px;
+                          background: var(--workspace-bg-monaco, #1e1e1e);
+                          border: 1px solid var(--workspace-border-default, #30363d);
+                          border-radius: 4px;
+                          color: var(--workspace-text-primary, #c9d1d9);
+                          font-size: 11px" />
+            <button id="applyDpiBtn"
+                    style="padding: 6px 12px;
+                           background: var(--workspace-bg-tertiary, #21262d);
+                           color: var(--workspace-text-primary, #c9d1d9);
+                           border: 1px solid var(--workspace-border-default, #30363d);
+                           border-radius: 4px;
+                           cursor: pointer;
+                           font-size: 11px;
+                           white-space: nowrap">Apply DPI</button>
+        </div>
     </div>
-    <div class="info-row">
-      <span class="info-label">Aspect Ratio:</span>
-      <span class="info-value" id="aspectRatio">-</span>
+    <div style="padding: 16px 20px;
+                border-bottom: 1px solid var(--workspace-border-default, #30363d)">
+        <div style="font-size: 0.8rem;
+                    font-weight: 600;
+                    margin-bottom: 12px;
+                    color: var(--workspace-text-primary, #c9d1d9)">
+            Physical Size (@ <span id="usedDpi">300</span> DPI)
+        </div>
+        <div style="display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 8px">
+            <span style="font-size: 12px; color: var(--workspace-text-secondary, #8b949e);">Width (mm):</span>
+            <span style="font-size: 12px;
+                         font-family: monospace;
+                         color: var(--workspace-text-primary, #c9d1d9)"
+                  id="widthMm">-</span>
+        </div>
+        <div style="display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 8px">
+            <span style="font-size: 12px; color: var(--workspace-text-secondary, #8b949e);">Height (mm):</span>
+            <span style="font-size: 12px;
+                         font-family: monospace;
+                         color: var(--workspace-text-primary, #c9d1d9)"
+                  id="heightMm">-</span>
+        </div>
+        <div style="display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 8px">
+            <span style="font-size: 12px; color: var(--workspace-text-secondary, #8b949e);">Width (inch):</span>
+            <span style="font-size: 12px;
+                         font-family: monospace;
+                         color: var(--workspace-text-primary, #c9d1d9)"
+                  id="widthInch">-</span>
+        </div>
+        <div style="display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 8px">
+            <span style="font-size: 12px; color: var(--workspace-text-secondary, #8b949e);">Height (inch):</span>
+            <span style="font-size: 12px;
+                         font-family: monospace;
+                         color: var(--workspace-text-primary, #c9d1d9)"
+                  id="heightInch">-</span>
+        </div>
     </div>
-    <div class="info-row" id="pdfPageCountRow" style="display: none;">
-      <span class="info-label">Total Pages:</span>
-      <span class="info-value" id="pdfPageCount">-</span>
+    <div style="padding: 16px 20px;
+                border-bottom: 1px solid var(--workspace-border-default, #30363d)">
+        <div style="font-size: 0.8rem;
+                    font-weight: 600;
+                    margin-bottom: 12px;
+                    color: var(--workspace-text-primary, #c9d1d9)">File Information</div>
+        <div style="display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 8px">
+            <span style="font-size: 12px; color: var(--workspace-text-secondary, #8b949e);">File Name:</span>
+            <span style="font-size: 12px;
+                         font-family: monospace;
+                         color: var(--workspace-text-primary, #c9d1d9)"
+                  id="fileName">-</span>
+        </div>
+        <div style="display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 8px">
+            <span style="font-size: 12px; color: var(--workspace-text-secondary, #8b949e);">File Size:</span>
+            <span style="font-size: 12px;
+                         font-family: monospace;
+                         color: var(--workspace-text-primary, #c9d1d9)"
+                  id="fileSize">-</span>
+        </div>
+        <div style="display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 8px">
+            <span style="font-size: 12px; color: var(--workspace-text-secondary, #8b949e);">File Type:</span>
+            <span style="font-size: 12px;
+                         font-family: monospace;
+                         color: var(--workspace-text-primary, #c9d1d9)"
+                  id="fileType">-</span>
+        </div>
     </div>
-  </div>
-
-  <div class="info-section">
-    <div class="info-title">DPI (Dots Per Inch)</div>
-    <div class="alert alert-info" id="dpiAlert" style="display: none;">
-      DPI metadata not found. Using default or custom value.
+    <div style="padding: 16px 20px;
+                border-bottom: 1px solid var(--workspace-border-default, #30363d)">
+        <div style="font-size: 0.8rem;
+                    font-weight: 600;
+                    margin-bottom: 8px;
+                    color: var(--workspace-text-primary, #c9d1d9)">Journal Standards (Single Column)</div>
+        <div style="font-size: 11px;
+                    color: var(--workspace-text-muted, #484f58);
+                    margin-bottom: 8px">Common journal widths @ 300 DPI</div>
+        <div style="display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 6px">
+            <span style="font-size: 12px; color: var(--workspace-text-secondary, #8b949e);">Nature/Science:</span>
+            <span style="font-size: 12px;
+                         font-family: monospace;
+                         color: var(--workspace-text-primary, #c9d1d9)">89mm (1051px)</span>
+        </div>
+        <div style="display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 6px">
+            <span style="font-size: 12px; color: var(--workspace-text-secondary, #8b949e);">Cell:</span>
+            <span style="font-size: 12px;
+                         font-family: monospace;
+                         color: var(--workspace-text-primary, #c9d1d9)">85mm (1004px)</span>
+        </div>
+        <div style="display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 6px">
+            <span style="font-size: 12px; color: var(--workspace-text-secondary, #8b949e);">PNAS:</span>
+            <span style="font-size: 12px;
+                         font-family: monospace;
+                         color: var(--workspace-text-primary, #c9d1d9)">87mm (1028px)</span>
+        </div>
     </div>
-    <div class="info-row">
-      <span class="info-label">Horizontal DPI:</span>
-      <span class="info-value" id="dpiX">-</span>
+    <div id="bundleInfoSection"
+         style="display: none;
+                padding: 16px 20px;
+                border-bottom: 1px solid var(--workspace-border-default, #30363d)">
+        <div style="font-size: 0.8rem;
+                    font-weight: 600;
+                    margin-bottom: 12px;
+                    color: var(--workspace-text-primary, #c9d1d9)">Bundle Information</div>
+        <div style="display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 8px">
+            <span style="font-size: 12px; color: var(--workspace-text-secondary, #8b949e);">Bundle Type:</span>
+            <span style="font-size: 12px;
+                         font-family: monospace;
+                         color: var(--workspace-text-primary, #c9d1d9)"
+                  id="bundleType">-</span>
+        </div>
+        <div style="display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 8px">
+            <span style="font-size: 12px; color: var(--workspace-text-secondary, #8b949e);">Contains PNG:</span>
+            <span style="font-size: 12px;
+                         font-family: monospace;
+                         color: var(--workspace-text-primary, #c9d1d9)"
+                  id="bundleHasPng">-</span>
+        </div>
+        <div style="display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 8px">
+            <span style="font-size: 12px; color: var(--workspace-text-secondary, #8b949e);">Contains SVG:</span>
+            <span style="font-size: 12px;
+                         font-family: monospace;
+                         color: var(--workspace-text-primary, #c9d1d9)"
+                  id="bundleHasSvg">-</span>
+        </div>
+        <div style="display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 8px">
+            <span style="font-size: 12px; color: var(--workspace-text-secondary, #8b949e);">Contains PDF:</span>
+            <span style="font-size: 12px;
+                         font-family: monospace;
+                         color: var(--workspace-text-primary, #c9d1d9)"
+                  id="bundleHasPdf">-</span>
+        </div>
+        <div style="display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 8px">
+            <span style="font-size: 12px; color: var(--workspace-text-secondary, #8b949e);">Contains Data (CSV):</span>
+            <span style="font-size: 12px;
+                         font-family: monospace;
+                         color: var(--workspace-text-primary, #c9d1d9)"
+                  id="bundleHasCsv">-</span>
+        </div>
+        <div id="bundlePanelsRow" style="display: none; margin-top: 8px;">
+            <div style="font-size: 12px;
+                        color: var(--workspace-text-secondary, #8b949e);
+                        margin-bottom: 4px">Panels:</div>
+            <div id="bundlePanelsList"
+                 style="font-size: 11px;
+                        font-family: monospace;
+                        color: var(--workspace-text-muted, #484f58)"></div>
+        </div>
     </div>
-    <div class="info-row">
-      <span class="info-label">Vertical DPI:</span>
-      <span class="info-value" id="dpiY">-</span>
+    <div id="metadataSection" style="display: none; padding: 16px 20px;">
+        <div style="display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 12px">
+            <div style="font-size: 0.8rem;
+                        font-weight: 600;
+                        color: var(--workspace-text-primary, #c9d1d9)">SciTeX Embedded Metadata</div>
+            <button id="copyMetadataBtn"
+                    style="display: none;
+                           padding: 3px 8px;
+                           background: transparent;
+                           border: 1px solid var(--workspace-border-default, #30363d);
+                           border-radius: 4px;
+                           font-size: 11px;
+                           color: var(--workspace-text-secondary, #8b949e);
+                           cursor: pointer">
+                <span id="copyBtnText">Copy</span>
+            </button>
+        </div>
+        <div id="metadataStatus"
+             style="font-size: 11px;
+                    color: var(--workspace-text-muted, #484f58);
+                    margin-bottom: 8px">Loading...</div>
+        <pre id="metadataContent"
+             style="background: var(--workspace-bg-monaco, #1e1e1e);
+                    padding: 12px;
+                    border-radius: 4px;
+                    font-size: 11px;
+                    overflow-x: auto;
+                    white-space: pre-wrap;
+                    word-wrap: break-word;
+                    max-height: 300px;
+                    overflow-y: auto;
+                    border: 1px solid var(--workspace-border-default, #30363d);
+                    color: var(--workspace-text-primary, #c9d1d9)"></pre>
     </div>
-    <div class="dpi-input-group">
-      <input type="number" id="customDpi" class="dpi-input" placeholder="Custom DPI (e.g., 300)" value="300" />
-      <button id="applyDpiBtn" class="dpi-btn">Apply DPI</button>
-    </div>
-  </div>
-
-  <div class="info-section">
-    <div class="info-title">Physical Size (@ <span id="usedDpi">300</span> DPI)</div>
-    <div class="info-row">
-      <span class="info-label">Width (mm):</span>
-      <span class="info-value" id="widthMm">-</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">Height (mm):</span>
-      <span class="info-value" id="heightMm">-</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">Width (inch):</span>
-      <span class="info-value" id="widthInch">-</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">Height (inch):</span>
-      <span class="info-value" id="heightInch">-</span>
-    </div>
-  </div>
-
-  <div class="info-section">
-    <div class="info-title">File Information</div>
-    <div class="info-row">
-      <span class="info-label">File Name:</span>
-      <span class="info-value" id="fileName">-</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">File Size:</span>
-      <span class="info-value" id="fileSize">-</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">File Type:</span>
-      <span class="info-value" id="fileType">-</span>
-    </div>
-  </div>
-
-  <div class="info-section">
-    <div class="info-title">Journal Standards (Single Column)</div>
-    <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">Common journal widths @ 300 DPI</div>
-    <div class="info-row">
-      <span class="info-label">Nature/Science:</span>
-      <span class="info-value">89mm (1051px)</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">Cell:</span>
-      <span class="info-value">85mm (1004px)</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">PNAS:</span>
-      <span class="info-value">87mm (1028px)</span>
-    </div>
-  </div>
-
-  <div class="info-section" id="bundleInfoSection" style="display: none;">
-    <div class="info-title">Bundle Information</div>
-    <div class="info-row">
-      <span class="info-label">Bundle Type:</span>
-      <span class="info-value" id="bundleType">-</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">Contains PNG:</span>
-      <span class="info-value" id="bundleHasPng">-</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">Contains SVG:</span>
-      <span class="info-value" id="bundleHasSvg">-</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">Contains PDF:</span>
-      <span class="info-value" id="bundleHasPdf">-</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">Contains Data (CSV):</span>
-      <span class="info-value" id="bundleHasCsv">-</span>
-    </div>
-    <div id="bundlePanelsRow" style="display: none;">
-      <div class="info-label" style="margin-top: 8px;">Panels:</div>
-      <div id="bundlePanelsList" style="font-size: 12px; font-family: monospace; margin-top: 4px;"></div>
-    </div>
-  </div>
-
-  <div class="info-section" id="metadataSection" style="display: none;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-      <div class="info-title" style="margin-bottom: 0;">SciTeX Embedded Metadata</div>
-      <button id="copyMetadataBtn" class="dpi-btn" style="display: none;">
-        <span id="copyBtnText">📋 Copy</span>
-      </button>
-    </div>
-    <div id="metadataStatus" style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">
-      Loading...
-    </div>
-    <pre id="metadataContent" style="background: var(--bg-secondary); padding: 12px; border-radius: 4px; font-size: 12px; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word; max-height: 300px; overflow-y: auto;"></pre>
-  </div>
 </div>

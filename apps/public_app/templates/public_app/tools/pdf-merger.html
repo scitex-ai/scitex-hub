@@ -1,4 +1,4 @@
-{% extends "global_base.html" %}
+{% extends base_template|default:"global_base.html" %}
 
 {% block title %}
     PDF Merger -
@@ -18,140 +18,155 @@
 {% endblock %}
 {% block extra_css %}
     <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
         .tool-detail-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px 20px;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--workspace-bg-monaco);
+        }
+
+        .tool-breadcrumb {
+            font-size: 0.8rem;
+            margin-bottom: 12px;
+            padding: 12px 24px 0 24px;
+        }
+
+        .tool-breadcrumb a {
+            color: var(--workspace-text-link);
+            text-decoration: none;
         }
 
         .tool-header {
             text-align: center;
-            padding: 40px 20px;
-            margin-bottom: 40px;
+            padding: 24px 24px 16px 24px;
         }
 
         .tool-title {
-            font-size: 42px;
-            font-weight: 700;
-            margin-bottom: 16px;
-        }
-
-        .tool-breadcrumb {
-            font-size: 14px;
-            margin-bottom: 16px;
-        }
-
-        .tool-breadcrumb a {
-            color: #4a9b7e;
-            text-decoration: none;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--workspace-text-primary);
         }
 
         .tool-app-container {
-            background: var(--bg-secondary);
-            border-radius: 12px;
-            padding: 40px;
-            margin-bottom: 40px;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 24px;
+            flex: 1;
+            overflow-y: auto;
         }
 
         .upload-zone {
-            border: 3px dashed #4a9b7e;
-            border-radius: 8px;
-            padding: 60px 20px;
+            border: 2px dashed var(--workspace-border-default);
+            border-radius: 4px;
+            padding: 40px 20px;
             text-align: center;
             cursor: pointer;
             transition: all 0.2s;
-            background: var(--bg-primary);
+            background: var(--workspace-bg-monaco);
+            color: var(--workspace-text-muted);
         }
 
         .upload-zone:hover {
-            border-color: #3a7c65;
-            background: var(--bg-tertiary);
+            border-color: var(--workspace-text-secondary);
+            background: var(--workspace-bg-secondary);
         }
 
         .pdf-list {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 15px;
-            margin: 30px 0;
+            gap: 12px;
+            margin: 24px 0;
         }
 
         .pdf-item {
-            background: var(--bg-primary);
-            border-radius: 8px;
-            padding: 15px;
+            background: var(--workspace-bg-secondary);
+            border-radius: 4px;
+            padding: 12px;
             text-align: center;
             cursor: move;
-            border: 2px solid var(--border-color);
+            border: 1px solid var(--workspace-border-default);
             transition: all 0.2s;
             position: relative;
         }
 
         .pdf-item:hover {
-            border-color: #4a9b7e;
+            border-color: var(--workspace-text-link);
         }
 
         .pdf-icon {
-            font-size: 48px;
-            margin-bottom: 10px;
+            font-size: 36px;
+            margin-bottom: 8px;
         }
 
         .pdf-name {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            color: var(--workspace-text-primary);
         }
 
         .pdf-pages {
-            font-size: 11px;
-            color: var(--text-secondary);
+            font-size: 10px;
+            color: var(--workspace-text-secondary);
         }
 
         .pdf-remove {
             position: absolute;
-            top: 8px;
-            right: 8px;
-            background: #ef4444;
+            top: 6px;
+            right: 6px;
+            background: #f85149;
             color: white;
             border: none;
-            border-radius: 4px;
-            width: 24px;
-            height: 24px;
+            border-radius: 3px;
+            width: 20px;
+            height: 20px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 12px;
         }
 
         .pdf-order {
             position: absolute;
-            top: 8px;
-            left: 8px;
-            background: #4a9b7e;
-            color: white;
-            border-radius: 4px;
-            padding: 4px 8px;
-            font-size: 11px;
+            top: 6px;
+            left: 6px;
+            background: var(--workspace-bg-tertiary);
+            color: var(--workspace-text-primary);
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-size: 10px;
             font-weight: 600;
         }
 
         .btn {
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 16px;
+            padding: 3px 10px;
+            background: transparent;
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 4px;
+            font-size: 11px;
             font-weight: 600;
             cursor: pointer;
-            border: none;
+            color: var(--workspace-text-primary);
             transition: all 0.2s;
         }
 
-        .btn-primary {
-            background: #4a9b7e;
-            color: white;
-        }
-
-        .btn-primary:hover:not(:disabled) {
-            background: #3a7c65;
+        .btn:hover:not(:disabled) {
+            background: var(--workspace-bg-secondary);
+            border-color: var(--workspace-text-secondary);
         }
 
         .btn:disabled {
@@ -161,54 +176,57 @@
 
         .action-buttons {
             display: flex;
-            gap: 12px;
+            gap: 8px;
             justify-content: center;
         }
 
         .status-message {
             text-align: center;
-            padding: 12px;
-            border-radius: 6px;
-            margin: 20px 0;
-            font-size: 14px;
+            padding: 8px;
+            border-radius: 4px;
+            margin: 16px 0;
+            font-size: 11px;
+            background: var(--workspace-bg-secondary);
         }
 
         .status-message.info {
-            background: #eff6ff;
-            color: #1e40af;
+            color: var(--workspace-text-secondary);
         }
 
         .status-message.success {
-            background: #f0fdf7;
-            color: #15803d;
+            color: #3fb950;
+        }
+
+        .status-message.error {
+            color: #f85149;
         }
     </style>
 {% endblock %}
 {% block content %}
     <div class="tool-detail-container">
-        <div class="tool-breadcrumb">
-            <a href="{% url 'public_app:tools' %}">← Back to Tools</a>
-        </div>
-        <div class="tool-header">
-            <div style="font-size: 64px; margin-bottom: 20px;">📑</div>
-            <h1 class="tool-title">PDF Merger</h1>
-            <p style="font-size: 18px; color: var(--text-secondary);">Combine multiple PDF files into one document</p>
-        </div>
+        {% if not embed %}
+            <div class="tool-breadcrumb">
+                <a href="{% url 'public_app:tools' %}">← Back to Tools</a>
+            </div>
+            <div class="tool-header">
+                <h1 class="tool-title">PDF Merger</h1>
+                <p style="font-size: 0.9rem; color: var(--workspace-text-secondary);">Combine multiple PDF files into one document</p>
+            </div>
+        {% endif %}
         <div class="tool-app-container">
             <div id="uploadZone" class="upload-zone">
-                <div style="font-size: 48px; margin-bottom: 16px;">📤</div>
-                <div style="font-size: 18px; margin-bottom: 8px;">Drop PDF files or click to upload</div>
-                <div style="font-size: 14px; color: var(--text-secondary);">Drag to reorder after upload</div>
+                <div style="font-size: 32px; margin-bottom: 12px;">📤</div>
+                <div style="font-size: 0.9rem;
+                            margin-bottom: 6px;
+                            color: var(--workspace-text-primary)">Drop PDF files or click to upload</div>
+                <div style="font-size: 0.8rem; color: var(--workspace-text-muted);">Drag to reorder after upload</div>
                 <input type="file" id="fileInput" accept=".pdf" multiple style="display: none" />
             </div>
             <div id="statusMessage"></div>
             <div id="pdfList" class="pdf-list" style="display: none;"></div>
             <div class="action-buttons">
-                <button id="mergeBtn" class="btn btn-primary" disabled>✨ Merge PDFs</button>
-                <button id="clearBtn"
-                        class="btn btn-primary"
-                        disabled
-                        style="background: var(--scitex-color-05)">🗑️ Clear All</button>
+                <button id="mergeBtn" class="btn" disabled>Merge PDFs</button>
+                <button id="clearBtn" class="btn" disabled>Clear All</button>
             </div>
         </div>
     </div>
@@ -228,16 +246,16 @@
 
   uploadZone.addEventListener('dragover', (e) => {
     e.preventDefault();
-    uploadZone.style.borderColor = '#3a7c65';
+    uploadZone.style.borderColor = 'var(--workspace-text-secondary)';
   });
 
   uploadZone.addEventListener('dragleave', () => {
-    uploadZone.style.borderColor = '#4a9b7e';
+    uploadZone.style.borderColor = 'var(--workspace-border-default)';
   });
 
   uploadZone.addEventListener('drop', (e) => {
     e.preventDefault();
-    uploadZone.style.borderColor = '#4a9b7e';
+    uploadZone.style.borderColor = 'var(--workspace-border-default)';
     handleFiles(e.dataTransfer.files);
   });
 
@@ -364,7 +382,7 @@
       mergeBtn.disabled = false;
     } catch (error) {
       console.error('Error merging PDFs:', error);
-      showStatus('Error merging PDFs. Please try again.', 'info');
+      showStatus('Error merging PDFs. Please try again.', 'error');
       mergeBtn.disabled = false;
     }
   });

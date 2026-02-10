@@ -1,65 +1,272 @@
-{% extends "global_base.html" %}
+{% extends base_template|default:"global_base.html" %}
+
 {% block title %}Video Editor - Browser Tool | SciTeX{% endblock %}
-{% block meta_description %}Edit videos in browser: crop region, trim time, concatenate clips. Perfect for presentations and figures.{% endblock %}
+{% block meta_description %}
+    Edit videos in browser: crop region, trim time, concatenate clips. Perfect for presentations and figures.
+{% endblock %}
 {% block head_extra %}
     {% load static %}
+
     <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.7/dist/umd/ffmpeg.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/umd/index.js"></script>
 {% endblock %}
 {% block extra_css %}
     <style>
-  .tool-detail-container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
-  .tool-header { text-align: center; padding: 40px 20px; margin-bottom: 40px; }
-  .tool-title { font-size: 42px; font-weight: 700; margin-bottom: 16px; }
-  .tool-breadcrumb { font-size: 14px; margin-bottom: 16px; }
-  .tool-breadcrumb a { color: #4a9b7e; text-decoration: none; }
-  .tool-app-container { background: var(--bg-secondary); border-radius: 12px; padding: 40px; }
-  .upload-zone { border: 3px dashed #4a9b7e; border-radius: 8px; padding: 60px 20px; text-align: center; cursor: pointer; background: var(--bg-primary); }
-  .video-preview { max-width: 100%; margin: 20px 0; border-radius: 8px; }
-  .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 20px 0; }
-  .control-group { display: flex; flex-direction: column; gap: 8px; }
-  .control-label { font-size: 14px; font-weight: 600; }
-  .control-input { padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-primary); }
-  .btn { padding: 12px 24px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; border: none; }
-  .btn-primary { background: #4a9b7e; color: white; }
-  .btn-primary:hover:not(:disabled) { background: #3a7c65; }
-  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .status-message { text-align: center; padding: 12px; border-radius: 6px; margin: 20px 0; }
-  .status-message.info { background: #eff6ff; color: #1e40af; }
-  .status-message.success { background: #f0fdf7; color: #15803d; }
-  .status-message.warning { background: #fffbeb; color: #92400e; }
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .tool-detail-container {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .tool-header {
+            text-align: center;
+            padding: 20px;
+            background: var(--workspace-bg-secondary);
+            border-bottom: 1px solid var(--workspace-border-default);
+        }
+
+        .tool-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0 0 8px 0;
+            color: var(--workspace-text-primary);
+        }
+
+        .tool-breadcrumb {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            font-size: 12px;
+            z-index: 10;
+        }
+
+        .tool-breadcrumb a {
+            color: var(--workspace-text-link);
+            text-decoration: none;
+        }
+
+        .tool-breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .tool-app-container {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            overflow: hidden;
+            background: var(--workspace-bg-monaco);
+        }
+
+        .left-panel,
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border-right: 1px solid var(--workspace-border-default);
+        }
+
+        .right-panel {
+            border-right: none;
+        }
+
+        .panel-header {
+            height: 36px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            background: var(--workspace-bg-secondary);
+            border-bottom: 1px solid var(--workspace-border-default);
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--workspace-text-primary);
+            flex-shrink: 0;
+        }
+
+        .panel-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            background: var(--workspace-bg-tertiary);
+        }
+
+        .upload-zone {
+            border: 2px dashed var(--workspace-border-default);
+            border-radius: 4px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            background: var(--workspace-bg-monaco);
+            transition: all 0.2s;
+            margin-bottom: 16px;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--workspace-text-link);
+            background: var(--workspace-bg-secondary);
+        }
+
+        .upload-zone-text {
+            font-size: 14px;
+            color: var(--workspace-text-primary);
+            margin-bottom: 4px;
+        }
+
+        .upload-zone-hint {
+            font-size: 11px;
+            color: var(--workspace-text-secondary);
+        }
+
+        .video-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: #000;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .control-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--workspace-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .control-input {
+            padding: 4px 8px;
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 4px;
+            background: var(--workspace-bg-tertiary);
+            color: var(--workspace-text-primary);
+            font-size: 12px;
+        }
+
+        .control-input:focus {
+            outline: none;
+            border-color: var(--workspace-text-link);
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid var(--workspace-border-default);
+            background: transparent;
+            color: var(--workspace-text-primary);
+            transition: all 0.2s;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: var(--workspace-bg-secondary);
+            border-color: var(--workspace-text-link);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status-message {
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        .status-message.info {
+            background: rgba(88, 166, 255, 0.1);
+            color: var(--workspace-text-link);
+            border: 1px solid rgba(88, 166, 255, 0.3);
+        }
+
+        .status-message.success {
+            background: rgba(46, 160, 67, 0.1);
+            color: #3fb950;
+            border: 1px solid rgba(46, 160, 67, 0.3);
+        }
+
+        .status-message.warning {
+            background: rgba(187, 128, 9, 0.1);
+            color: #d29922;
+            border: 1px solid rgba(187, 128, 9, 0.3);
+        }
     </style>
 {% endblock %}
 {% block content %}
     <div class="tool-detail-container">
-        <div class="tool-breadcrumb"><a href="{% url 'public_app:tools' %}">← Back to Tools</a></div>
-        <div class="tool-header">
-            <div style="font-size: 64px; margin-bottom: 20px;">🎬</div>
-            <h1 class="tool-title">Video Editor</h1>
-            <p style="font-size: 18px; color: var(--text-secondary);">Trim and edit videos in your browser</p>
-        </div>
+        {% if not embed %}
+            <div class="tool-breadcrumb">
+                <a href="{% url 'public_app:tools' %}">Back to Tools</a>
+            </div>
+            <div class="tool-header">
+                <h1 class="tool-title">Video Editor</h1>
+                <p style="font-size: 12px; color: var(--workspace-text-secondary); margin: 0;">Trim and edit videos in your browser</p>
+            </div>
+        {% endif %}
         <div class="tool-app-container">
-            <div id="uploadZone" class="upload-zone">
-                <div style="font-size: 48px; margin-bottom: 16px;">📤</div>
-                <div style="font-size: 18px; margin-bottom: 8px;">Drop video or click to upload</div>
-                <div style="font-size: 14px; color: var(--text-secondary);">MP4, WebM, MOV</div>
-                <input type="file" id="fileInput" accept="video/*" style="display: none" />
-            </div>
-            <div id="statusMessage"></div>
-            <video id="videoPreview" class="video-preview" controls style="display: none;"></video>
-            <div class="controls" id="controls" style="display: none;">
-                <div class="control-group">
-                    <label class="control-label">Start Time (seconds)</label>
-                    <input type="number" id="startTime" class="control-input" value="0" min="0" step="0.1" />
+            <div class="left-panel">
+                <div class="panel-header">Upload & Controls</div>
+                <div class="panel-body">
+                    <div id="uploadZone" class="upload-zone">
+                        <div class="upload-zone-text">Drop video or click to upload</div>
+                        <div class="upload-zone-hint">MP4, WebM, MOV</div>
+                        <input type="file" id="fileInput" accept="video/*" style="display: none" />
+                    </div>
+                    <div id="statusMessage"></div>
+                    <div class="controls" id="controls" style="display: none;">
+                        <div class="control-group">
+                            <label class="control-label">Start Time (seconds)</label>
+                            <input type="number" id="startTime" class="control-input" value="0" min="0" step="0.1" />
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">End Time (seconds)</label>
+                            <input type="number" id="endTime" class="control-input" value="10" min="0" step="0.1" />
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <button id="trimBtn" class="btn" style="display: none;">Trim Video</button>
+                        <button id="downloadBtn" class="btn" style="display: none;">Download</button>
+                    </div>
                 </div>
-                <div class="control-group">
-                    <label class="control-label">End Time (seconds)</label>
-                    <input type="number" id="endTime" class="control-input" value="10" min="0" step="0.1" />
-                </div>
             </div>
-            <div style="text-align: center; margin-top: 20px; display: flex; gap: 12px; justify-content: center;">
-                <button id="trimBtn" class="btn btn-primary" style="display: none;">✂️ Trim Video</button>
-                <button id="downloadBtn" class="btn btn-primary" style="display: none;">💾 Download</button>
+            <div class="right-panel">
+                <div class="panel-header">Video Preview</div>
+                <div class="panel-body" style="padding: 0;">
+                    <video id="videoPreview" class="video-preview" controls style="display: none;">
+                    </video>
+                </div>
             </div>
         </div>
     </div>
@@ -84,8 +291,8 @@
 
     video.onloadedmetadata = () => {
       document.getElementById('endTime').value = video.duration.toFixed(1);
-      document.getElementById('controls').style.display = 'grid';
-      document.getElementById('trimBtn').style.display = 'inline-block';
+      document.getElementById('controls').style.display = 'flex';
+      document.getElementById('trimBtn').style.display = 'block';
       showStatus(`Video loaded: ${video.duration.toFixed(1)}s duration`, 'success');
     };
   });
@@ -123,7 +330,7 @@
     });
 
     showStatus('For full video trimming, please use FFmpeg-based tools or desktop software. Showing preview frame.', 'info');
-    document.getElementById('downloadBtn').style.display = 'inline-block';
+    document.getElementById('downloadBtn').style.display = 'block';
   });
 
   document.getElementById('downloadBtn').addEventListener('click', () => {

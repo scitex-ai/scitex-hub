@@ -4,28 +4,42 @@
 
 from __future__ import annotations
 
-# Text tools
+# Text tools (alphabetical by name)
 TEXT_TOOLS = [
     {
-        "name": "Markdown Renderer",
-        "description": "Real-time Markdown preview with syntax highlighting and table support.",
-        "use_case": "Format README files and documentation for data repositories",
-        "bookmarklet_url": "/tools/markdown-renderer/",
+        "name": "Convert DOCX to LaTeX",
+        "description": "Convert Microsoft Word documents to LaTeX format with figure extraction.",
+        "use_case": "Convert Word manuscript to LaTeX for journal submission",
+        "bookmarklet_url": "/tools/docx2tex/",
         "icon": "📝",
     },
     {
-        "name": "Text Diff Checker",
+        "name": "Format JSON",
+        "description": "Format, validate, and beautify JSON data with syntax highlighting.",
+        "use_case": "Validate plot specifications and configuration files",
+        "bookmarklet_url": "/tools/json-formatter/",
+        "icon": "{ }",
+    },
+    {
+        "name": "Diff Texts",
         "description": "Compare two text blocks side-by-side with highlighted differences.",
         "use_case": "Compare dataset versions or track changes in results",
         "bookmarklet_url": "/tools/text-diff-checker/",
         "icon": "🔄",
     },
     {
-        "name": "JSON Formatter",
-        "description": "Format, validate, and beautify JSON data with syntax highlighting.",
-        "use_case": "Validate plot specifications and configuration files",
-        "bookmarklet_url": "/tools/json-formatter/",
-        "icon": "{ }",
+        "name": "Render MD",
+        "description": "Real-time Markdown preview with syntax highlighting and table support.",
+        "use_case": "Format README files and documentation for data repositories",
+        "bookmarklet_url": "/tools/markdown-renderer/",
+        "icon": "📝",
+    },
+    {
+        "name": "Render MMD",
+        "description": "Create flowcharts, sequence diagrams, and concept diagrams from text syntax.",
+        "use_case": "Design experimental workflow diagrams for Methods section",
+        "bookmarklet_url": "/tools/mermaid-renderer/",
+        "icon": "🧜‍♀️",
     },
 ]
 

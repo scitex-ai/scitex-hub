@@ -1,37 +1,123 @@
 <!-- Bundle multi-figure display (shows all figures simultaneously) -->
-<div id="bundleFiguresContainer" style="display: none;">
-  <div class="bundle-figures-grid" id="bundleFiguresGrid">
-    <!-- PNG card -->
-    <div class="bundle-figure-card" id="pngCard" style="display: none;">
-      <h4>📷 PNG (Raster)</h4>
-      <img id="bundlePngPreview" src="" alt="PNG preview" />
-      <div class="dimensions" id="pngDimensions"></div>
+<div id="bundleFiguresContainer" style="display: none; width: 100%;">
+    <div id="bundleFiguresGrid"
+         style="display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 16px;
+                margin-bottom: 20px">
+        <!-- PNG card -->
+        <div id="pngCard"
+             style="display: none;
+                    background: var(--workspace-bg-secondary, #161b22);
+                    border: 1px solid var(--workspace-border-default, #30363d);
+                    border-radius: 6px;
+                    padding: 12px">
+            <div style="font-size: 11px;
+                        font-weight: 600;
+                        margin-bottom: 8px;
+                        color: var(--workspace-text-primary, #c9d1d9)">PNG (Raster)</div>
+            <img id="bundlePngPreview"
+                 src=""
+                 alt="PNG preview"
+                 style="width: 100%;
+                        height: 200px;
+                        object-fit: contain;
+                        border: 1px solid var(--workspace-border-default, #30363d);
+                        border-radius: 4px;
+                        background: var(--workspace-bg-monaco, #1e1e1e)" />
+            <div id="pngDimensions"
+                 style="margin-top: 8px;
+                        font-size: 11px;
+                        color: var(--workspace-text-secondary, #8b949e);
+                        font-family: monospace"></div>
+        </div>
+        <!-- SVG card -->
+        <div id="svgCard"
+             style="display: none;
+                    background: var(--workspace-bg-secondary, #161b22);
+                    border: 1px solid var(--workspace-border-default, #30363d);
+                    border-radius: 6px;
+                    padding: 12px">
+            <div style="font-size: 11px;
+                        font-weight: 600;
+                        margin-bottom: 8px;
+                        color: var(--workspace-text-primary, #c9d1d9)">SVG (Vector)</div>
+            <div id="bundleSvgPreview"
+                 style="width: 100%;
+                        height: 200px;
+                        overflow: hidden;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        border: 1px solid var(--workspace-border-default, #30363d);
+                        border-radius: 4px;
+                        background: var(--workspace-bg-monaco, #1e1e1e)"></div>
+            <div id="svgDimensions"
+                 style="margin-top: 8px;
+                        font-size: 11px;
+                        color: var(--workspace-text-secondary, #8b949e);
+                        font-family: monospace"></div>
+        </div>
+        <!-- PDF card -->
+        <div id="pdfCard"
+             style="display: none;
+                    background: var(--workspace-bg-secondary, #161b22);
+                    border: 1px solid var(--workspace-border-default, #30363d);
+                    border-radius: 6px;
+                    padding: 12px">
+            <div style="font-size: 11px;
+                        font-weight: 600;
+                        margin-bottom: 8px;
+                        color: var(--workspace-text-primary, #c9d1d9)">PDF (Vector)</div>
+            <canvas id="bundlePdfCanvas"
+                    style="width: 100%;
+                           height: 200px;
+                           border: 1px solid var(--workspace-border-default, #30363d);
+                           border-radius: 4px;
+                           background: var(--workspace-bg-monaco, #1e1e1e)"></canvas>
+            <div id="pdfDimensions"
+                 style="margin-top: 8px;
+                        font-size: 11px;
+                        color: var(--workspace-text-secondary, #8b949e);
+                        font-family: monospace"></div>
+        </div>
     </div>
-    <!-- SVG card -->
-    <div class="bundle-figure-card" id="svgCard" style="display: none;">
-      <h4>🎨 SVG (Vector)</h4>
-      <div class="svg-container" id="bundleSvgPreview"></div>
-      <div class="dimensions" id="svgDimensions"></div>
+    <!-- CSV Data table -->
+    <div id="csvContainer"
+         style="display: none;
+                background: var(--workspace-bg-secondary, #161b22);
+                border: 1px solid var(--workspace-border-default, #30363d);
+                border-radius: 6px;
+                padding: 12px;
+                margin-top: 16px">
+        <div style="font-size: 11px;
+                    font-weight: 600;
+                    margin-bottom: 8px;
+                    color: var(--workspace-text-primary, #c9d1d9)">CSV Data (Reproducible)</div>
+        <div style="max-height: 300px;
+                    overflow: auto;
+                    border: 1px solid var(--workspace-border-default, #30363d);
+                    border-radius: 4px">
+            <table id="csvTable"
+                   style="width: 100%;
+                          border-collapse: collapse;
+                          font-size: 11px;
+                          font-family: monospace;
+                          background: var(--workspace-bg-monaco, #1e1e1e)">
+                <thead id="csvTableHead"
+                       style="position: sticky;
+                              top: 0;
+                              background: var(--workspace-bg-secondary, #161b22);
+                              z-index: 1">
+                </thead>
+                <tbody id="csvTableBody">
+                </tbody>
+            </table>
+        </div>
+        <div style="margin-top: 8px;
+                    font-size: 11px;
+                    color: var(--workspace-text-muted, #484f58)">
+            <span id="csvRowCount">0</span> rows × <span id="csvColCount">0</span> columns
+        </div>
     </div>
-    <!-- PDF card -->
-    <div class="bundle-figure-card" id="pdfCard" style="display: none;">
-      <h4>📄 PDF (Vector)</h4>
-      <canvas id="bundlePdfCanvas"></canvas>
-      <div class="dimensions" id="pdfDimensions"></div>
-    </div>
-  </div>
-
-  <!-- CSV Data table -->
-  <div class="csv-container" id="csvContainer" style="display: none;">
-    <h4>📊 CSV Data (Reproducible)</h4>
-    <div class="csv-table-wrapper">
-      <table class="csv-table" id="csvTable">
-        <thead id="csvTableHead"></thead>
-        <tbody id="csvTableBody"></tbody>
-      </table>
-    </div>
-    <div style="margin-top: 8px; font-size: 11px; color: var(--text-secondary);">
-      <span id="csvRowCount">0</span> rows × <span id="csvColCount">0</span> columns
-    </div>
-  </div>
 </div>

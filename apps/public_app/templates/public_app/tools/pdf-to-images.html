@@ -1,72 +1,250 @@
-{% extends "global_base.html" %}
+{% extends base_template|default:"global_base.html" %}
+
 {% block title %}PDF to Images - Browser Tool | SciTeX{% endblock %}
-{% block meta_description %}Extract pages from PDF as PNG or JPG images. Perfect for extracting figures from papers.{% endblock %}
+{% block meta_description %}
+    Extract pages from PDF as PNG or JPG images. Perfect for extracting figures from papers.
+{% endblock %}
 {% block head_extra %}
     {% load static %}
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 {% endblock %}
 {% block extra_css %}
     <style>
-  .tool-detail-container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
-  .tool-header { text-align: center; padding: 40px 20px; margin-bottom: 40px; }
-  .tool-title { font-size: 42px; font-weight: 700; margin-bottom: 16px; }
-  .tool-breadcrumb { font-size: 14px; margin-bottom: 16px; }
-  .tool-breadcrumb a { color: #4a9b7e; text-decoration: none; }
-  .tool-app-container { background: var(--bg-secondary); border-radius: 12px; padding: 40px; }
-  .upload-zone { border: 3px dashed #4a9b7e; border-radius: 8px; padding: 60px 20px; text-align: center; cursor: pointer; background: var(--bg-primary); }
-  .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0; }
-  .control-group { display: flex; flex-direction: column; gap: 8px; }
-  .control-label { font-size: 14px; font-weight: 600; }
-  .control-select, .control-input { padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-primary); }
-  .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin: 20px 0; }
-  .preview-item { border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; background: white; }
-  .preview-item img { width: 100%; display: block; }
-  .preview-info { padding: 10px; text-align: center; font-size: 12px; background: var(--bg-tertiary); }
-  .btn { padding: 12px 24px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; border: none; }
-  .btn-primary { background: #4a9b7e; color: white; }
-  .btn-primary:hover:not(:disabled) { background: #3a7c65; }
-  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .status-message { text-align: center; padding: 12px; border-radius: 6px; margin: 20px 0; }
-  .status-message.info { background: #eff6ff; color: #1e40af; }
-  .status-message.success { background: #f0fdf7; color: #15803d; }
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .tool-detail-container {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .tool-breadcrumb {
+            padding: 8px 16px;
+            font-size: 14px;
+            background: var(--workspace-bg-secondary);
+            border-bottom: 1px solid var(--workspace-border-default);
+        }
+
+        .tool-breadcrumb a {
+            color: var(--workspace-text-link);
+            text-decoration: none;
+        }
+
+        .tool-breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .tool-app-container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            background: var(--workspace-bg-monaco);
+        }
+
+        .left-panel {
+            width: 400px;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--workspace-border-default);
+            overflow-y: auto;
+            background: var(--workspace-bg-secondary);
+        }
+
+        .panel-header {
+            height: 36px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            background: var(--workspace-bg-tertiary);
+            border-bottom: 1px solid var(--workspace-border-default);
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--workspace-text-primary);
+        }
+
+        .panel-content {
+            padding: 16px;
+            flex: 1;
+        }
+
+        .upload-zone {
+            border: 2px dashed var(--workspace-border-default);
+            border-radius: 4px;
+            padding: 40px 16px;
+            text-align: center;
+            cursor: pointer;
+            background: var(--workspace-bg-monaco);
+            color: var(--workspace-text-muted);
+            transition: all 0.2s;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--workspace-text-link);
+            color: var(--workspace-text-secondary);
+        }
+
+        .controls-panel {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .control-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--workspace-text-secondary);
+        }
+
+        .control-select {
+            background: var(--workspace-bg-tertiary);
+            border: 1px solid var(--workspace-border-default);
+            color: var(--workspace-text-primary);
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        .right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            padding: 16px;
+        }
+
+        .preview-item {
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 4px;
+            overflow: hidden;
+            background: var(--workspace-bg-tertiary);
+        }
+
+        .preview-item img {
+            width: 100%;
+            display: block;
+            background: white;
+        }
+
+        .preview-info {
+            padding: 8px;
+            text-align: center;
+            font-size: 11px;
+            background: var(--workspace-bg-tertiary);
+            color: var(--workspace-text-secondary);
+        }
+
+        .btn {
+            padding: 3px 10px;
+            background: transparent;
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 4px;
+            font-size: 11px;
+            color: var(--workspace-text-primary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: var(--workspace-bg-tertiary);
+            border-color: var(--workspace-text-link);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .action-buttons {
+            margin-top: 16px;
+        }
+
+        .status-message {
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-top: 12px;
+            font-size: 12px;
+            background: var(--workspace-bg-tertiary);
+            color: var(--workspace-text-secondary);
+            border: 1px solid var(--workspace-border-default);
+        }
+
+        .status-message.info {
+            border-color: #3b82f6;
+            color: #60a5fa;
+        }
+
+        .status-message.success {
+            border-color: #10b981;
+            color: #34d399;
+        }
     </style>
 {% endblock %}
 {% block content %}
     <div class="tool-detail-container">
-        <div class="tool-breadcrumb"><a href="{% url 'public_app:tools' %}">← Back to Tools</a></div>
-        <div class="tool-header">
-            <div style="font-size: 64px; margin-bottom: 20px;">🖼️</div>
-            <h1 class="tool-title">PDF to Images</h1>
-            <p style="font-size: 18px; color: var(--text-secondary);">Extract pages from PDF as images</p>
-        </div>
+        {% if not embed %}
+            <div class="tool-breadcrumb">
+                <a href="{% url 'public_app:tools' %}">Back to Tools</a>
+            </div>
+        {% endif %}
         <div class="tool-app-container">
-            <div id="uploadZone" class="upload-zone">
-                <div style="font-size: 48px; margin-bottom: 16px;">📤</div>
-                <div style="font-size: 18px;">Drop PDF or click to upload</div>
-                <input type="file" id="fileInput" accept=".pdf" style="display: none" />
-            </div>
-            <div id="statusMessage"></div>
-            <div class="controls" id="controls" style="display: none;">
-                <div class="control-group">
-                    <label class="control-label">Output Format</label>
-                    <select id="formatSelect" class="control-select">
-                        <option value="png">PNG (Best Quality)</option>
-                        <option value="jpeg">JPEG (Smaller Size)</option>
-                    </select>
+            <div class="left-panel">
+                <div class="panel-header">Upload & Settings</div>
+                <div class="panel-content">
+                    <div id="uploadZone" class="upload-zone">
+                        <div style="font-size: 32px; margin-bottom: 8px;">📤</div>
+                        <div style="font-size: 14px;">Drop PDF or click to upload</div>
+                        <input type="file" id="fileInput" accept=".pdf" style="display: none" />
+                    </div>
+                    <div id="statusMessage"></div>
+                    <div class="controls-panel" id="controls" style="display: none;">
+                        <div class="control-group">
+                            <label class="control-label">Output Format</label>
+                            <select id="formatSelect" class="control-select">
+                                <option value="png">PNG (Best Quality)</option>
+                                <option value="jpeg">JPEG (Smaller Size)</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Scale (DPI)</label>
+                            <select id="scaleSelect" class="control-select">
+                                <option value="1">72 DPI (Screen)</option>
+                                <option value="2" selected>144 DPI (High)</option>
+                                <option value="3">216 DPI (Print)</option>
+                                <option value="4">288 DPI (Max)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <button id="downloadAllBtn" class="btn" style="display: none;">Download All Images</button>
+                    </div>
                 </div>
-                <div class="control-group">
-                    <label class="control-label">Scale (DPI)</label>
-                    <select id="scaleSelect" class="control-select">
-                        <option value="1">72 DPI (Screen)</option>
-                        <option value="2" selected>144 DPI (High)</option>
-                        <option value="3">216 DPI (Print)</option>
-                        <option value="4">288 DPI (Max)</option>
-                    </select>
-                </div>
             </div>
-            <div id="previewGrid" class="preview-grid"></div>
-            <div style="text-align: center; margin-top: 20px;">
-                <button id="downloadAllBtn" class="btn btn-primary" style="display: none;">💾 Download All Images</button>
+            <div class="right-panel">
+                <div class="panel-header">Extracted Pages</div>
+                <div id="previewGrid" class="preview-grid"></div>
             </div>
         </div>
     </div>
@@ -84,7 +262,7 @@
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
-    document.getElementById('controls').style.display = 'grid';
+    document.getElementById('controls').style.display = 'flex';
     extractPages(pdf);
   });
 

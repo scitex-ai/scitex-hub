@@ -1,4 +1,5 @@
-{% extends "global_base.html" %}
+{% extends base_template|default:"global_base.html" %}
+
 {% block title %}
     Image Concatenator -
     Browser Tool | SciTeX
@@ -8,6 +9,7 @@
 {% endblock %}
 {% block head_extra %}
     {% load static %}
+
     <link rel="icon"
           type="image/png"
           sizes="192x192"
@@ -21,469 +23,400 @@
 {% endblock %}
 {% block extra_css %}
     {% load static %}
+
     <style>
-  .tool-detail-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 40px 20px;
-  }
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
 
-  .tool-header {
-    text-align: center;
-    padding: 40px 20px;
-    margin-bottom: 40px;
-  }
+        .tool-detail-container {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--workspace-bg-monaco);
+        }
 
-  .tool-icon-large {
-    font-size: 64px;
-    margin-bottom: 20px;
-  }
+        .tool-breadcrumb {
+            padding: 8px 16px;
+            font-size: 12px;
+            color: var(--workspace-text-secondary);
+            background: var(--workspace-bg-secondary);
+            border-bottom: 1px solid var(--workspace-border-default);
+        }
 
-  .tool-title {
-    font-size: 42px;
-    font-weight: 700;
-    margin-bottom: 16px;
-    color: var(--text-primary);
-  }
+        .tool-breadcrumb a {
+            color: var(--workspace-text-link);
+            text-decoration: none;
+        }
 
-  .tool-subtitle {
-    font-size: 18px;
-    color: var(--text-secondary);
-    max-width: 600px;
-    margin: 0 auto 30px;
-    line-height: 1.6;
-  }
+        .tool-breadcrumb a:hover {
+            text-decoration: underline;
+        }
 
-  .tool-breadcrumb {
-    font-size: 14px;
-    color: var(--text-secondary);
-    margin-bottom: 16px;
-  }
+        .tool-workspace {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
 
-  .tool-breadcrumb a {
-    color: #4a9b7e;
-    text-decoration: none;
-  }
+        .tool-left-panel {
+            width: 400px;
+            min-width: 300px;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--workspace-border-default);
+            background: var(--workspace-bg-secondary);
+            overflow: hidden;
+        }
 
-  .tool-breadcrumb a:hover {
-    text-decoration: underline;
-  }
+        .tool-right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--workspace-bg-monaco);
+        }
 
-  .tool-app-container {
-    background: var(--bg-secondary);
-    border-radius: 12px;
-    padding: 40px;
-    margin-bottom: 40px;
-  }
+        .panel-header {
+            height: 36px;
+            min-height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            background: var(--workspace-bg-tertiary);
+            border-bottom: 1px solid var(--workspace-border-default);
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--workspace-text-primary);
+        }
 
-  .upload-zone {
-    border: 3px dashed #4a9b7e;
-    border-radius: 8px;
-    padding: 60px 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    background: var(--bg-primary);
-  }
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
 
-  .upload-zone:hover {
-    border-color: #3a7c65;
-    background: var(--bg-tertiary);
-  }
+        .upload-zone {
+            margin: 16px;
+            border: 2px dashed var(--workspace-border-default);
+            border-radius: 6px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--workspace-bg-monaco);
+        }
 
-  .upload-zone.dragging {
-    border-color: #3a7c65;
-    background: #f0fdf7;
-  }
+        .upload-zone:hover {
+            border-color: var(--workspace-text-link);
+            background: var(--workspace-bg-tertiary);
+        }
 
-  .upload-icon {
-    font-size: 48px;
-    margin-bottom: 16px;
-  }
+        .upload-zone.dragging {
+            border-color: var(--workspace-text-link);
+            background: var(--workspace-bg-tertiary);
+        }
 
-  .upload-text {
-    font-size: 18px;
-    color: var(--text-primary);
-    margin-bottom: 8px;
-  }
+        .upload-text {
+            font-size: 14px;
+            color: var(--workspace-text-primary);
+            margin-bottom: 6px;
+        }
 
-  .upload-hint {
-    font-size: 14px;
-    color: var(--text-secondary);
-  }
+        .upload-hint {
+            font-size: 12px;
+            color: var(--workspace-text-secondary);
+        }
 
-  .controls-panel {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-    margin: 30px 0;
-  }
+        .controls-section {
+            padding: 16px;
+            border-bottom: 1px solid var(--workspace-border-default);
+        }
 
-  .control-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
+        .controls-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
 
-  .control-label {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-primary);
-  }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
 
-  .control-input {
-    padding: 10px 14px;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    font-size: 14px;
-    background: var(--bg-primary);
-    color: var(--text-primary);
-  }
+        .control-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--workspace-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
 
-  .control-input:focus {
-    outline: none;
-    border-color: #4a9b7e;
-  }
+        .control-input {
+            padding: 6px 10px;
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 4px;
+            font-size: 13px;
+            background: var(--workspace-bg-tertiary);
+            color: var(--workspace-text-primary);
+        }
 
-  .thumbnail-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 12px;
-    margin: 20px 0;
-  }
+        .control-input:focus {
+            outline: none;
+            border-color: var(--workspace-text-link);
+            background: var(--workspace-bg-monaco);
+        }
 
-  .thumbnail-item {
-    position: relative;
-    aspect-ratio: 1;
-    border-radius: 6px;
-    overflow: hidden;
-    border: 2px solid var(--border-color);
-    cursor: move;
-  }
+        .thumbnail-section {
+            padding: 16px;
+        }
 
-  .thumbnail-item img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
+        .thumbnail-header {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--workspace-text-secondary);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
 
-  .thumbnail-remove {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    background: rgba(239, 68, 68, 0.9);
-    color: white;
-    border: none;
-    border-radius: 4px;
-    width: 24px;
-    height: 24px;
-    cursor: pointer;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+        .thumbnail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 8px;
+        }
 
-  .thumbnail-remove:hover {
-    background: rgba(220, 38, 38, 1);
-  }
+        .thumbnail-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid var(--workspace-border-default);
+            cursor: move;
+            background: var(--workspace-bg-monaco);
+        }
 
-  .preview-container {
-    margin: 30px 0;
-    text-align: center;
-  }
+        .thumbnail-item:hover {
+            border-color: var(--workspace-text-link);
+        }
 
-  .preview-canvas {
-    max-width: 100%;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    background: white;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
+        .thumbnail-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
 
-  .action-buttons {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    margin-top: 20px;
-  }
+        .thumbnail-remove {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            border: none;
+            border-radius: 3px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
 
-  .btn {
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    transition: all 0.2s;
-  }
+        .thumbnail-item:hover .thumbnail-remove {
+            opacity: 1;
+        }
 
-  .btn-primary {
-    background: #4a9b7e;
-    color: white;
-  }
+        .thumbnail-remove:hover {
+            background: rgba(220, 38, 38, 1);
+        }
 
-  .btn-primary:hover:not(:disabled) {
-    background: #3a7c65;
-  }
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            padding: 16px;
+            border-top: 1px solid var(--workspace-border-default);
+            background: var(--workspace-bg-secondary);
+        }
 
-  .btn-secondary {
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
-    border: 1px solid var(--border-color);
-  }
+        .btn {
+            flex: 1;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid var(--workspace-border-default);
+            transition: all 0.2s;
+            background: transparent;
+            color: var(--workspace-text-primary);
+        }
 
-  .btn-secondary:hover:not(:disabled) {
-    background: var(--bg-secondary);
-  }
+        .btn:hover:not(:disabled) {
+            background: var(--workspace-bg-tertiary);
+            border-color: var(--workspace-text-link);
+        }
 
-  .btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
 
-  .tool-section {
-    background: var(--bg-secondary);
-    border-radius: 12px;
-    padding: 30px;
-    margin-bottom: 30px;
-  }
+        .btn-primary {
+            background: var(--workspace-text-link);
+            color: #0d1117;
+            border-color: var(--workspace-text-link);
+        }
 
-  .tool-section-title {
-    font-size: 24px;
-    font-weight: 700;
-    margin-bottom: 20px;
-    color: var(--text-primary);
-  }
+        .btn-primary:hover:not(:disabled) {
+            background: #4a8fd7;
+            border-color: #4a8fd7;
+        }
 
-  .tool-section-content {
-    color: var(--text-secondary);
-    line-height: 1.8;
-  }
+        .preview-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: auto;
+            padding: 20px;
+        }
 
-  .features-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-    margin-top: 20px;
-  }
+        .preview-canvas {
+            max-width: 100%;
+            max-height: 100%;
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
 
-  .feature-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-  }
+        .preview-empty {
+            text-align: center;
+            color: var(--workspace-text-muted);
+            font-size: 13px;
+        }
 
-  .feature-icon {
-    font-size: 20px;
-    line-height: 1;
-    margin-top: 2px;
-  }
+        .status-message {
+            margin: 12px 16px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            border: 1px solid var(--workspace-border-default);
+        }
 
-  .feature-text {
-    flex: 1;
-  }
+        .status-message.info {
+            background: rgba(88, 166, 255, 0.1);
+            color: var(--workspace-text-link);
+            border-color: rgba(88, 166, 255, 0.3);
+        }
 
-  .feature-title {
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 4px;
-  }
+        .status-message.success {
+            background: rgba(46, 160, 67, 0.1);
+            color: #3fb950;
+            border-color: rgba(46, 160, 67, 0.3);
+        }
 
-  .feature-desc {
-    font-size: 14px;
-    color: var(--text-secondary);
-    line-height: 1.5;
-  }
+        .status-message.error {
+            background: rgba(248, 81, 73, 0.1);
+            color: #f85149;
+            border-color: rgba(248, 81, 73, 0.3);
+        }
 
-  .status-message {
-    text-align: center;
-    padding: 12px;
-    border-radius: 6px;
-    margin: 20px 0;
-    font-size: 14px;
-  }
-
-  .status-message.info {
-    background: #eff6ff;
-    color: #1e40af;
-    border: 1px solid #93c5fd;
-  }
-
-  .status-message.success {
-    background: #f0fdf7;
-    color: #15803d;
-    border: 1px solid #86efac;
-  }
-
-  .status-message.error {
-    background: #fef2f2;
-    color: #991b1b;
-    border: 1px solid #fca5a5;
-  }
+        .download-section {
+            padding: 16px;
+            border-top: 1px solid var(--workspace-border-default);
+            background: var(--workspace-bg-secondary);
+        }
     </style>
 {% endblock %}
 {% block content %}
     <div class="tool-detail-container">
-        <!-- Breadcrumb -->
-        <div class="tool-breadcrumb">
-            <a href="{% url 'public_app:tools' %}">← Back to Tools</a>
-        </div>
-        <!-- Header -->
-        <div class="tool-header">
-            <div class="tool-icon-large">🖼️</div>
-            <h1 class="tool-title">Image Concatenator</h1>
-            <p class="tool-subtitle">
-                Combine multiple images into a single tiled image. Upload your images, customize the layout, and download the result.
-            </p>
-        </div>
-        <!-- Main Tool -->
-        <div class="tool-app-container">
-            <div id="uploadZone" class="upload-zone">
-                <div class="upload-icon">📤</div>
-                <div class="upload-text">Drop images here or click to upload</div>
-                <div class="upload-hint">Supports JPG, PNG, GIF, WebP</div>
-                <input type="file"
-                       id="fileInput"
-                       accept="image/*"
-                       multiple
-                       style="display: none" />
+        {% if not embed %}
+            <div class="tool-breadcrumb">
+                <a href="{% url 'public_app:tools' %}">← Back to Tools</a>
             </div>
-            <div id="statusMessage"></div>
-            <div id="thumbnailContainer" style="display: none">
-                <h3 style="margin: 20px 0 10px; font-size: 18px; font-weight: 600;">Uploaded Images (<span id="imageCount">0</span>)</h3>
-                <div id="thumbnailGrid" class="thumbnail-grid"></div>
-            </div>
-            <div class="controls-panel">
-                <div class="control-group">
-                    <label class="control-label" for="columnsInput">Columns</label>
-                    <input type="number"
-                           id="columnsInput"
-                           class="control-input"
-                           value="3"
-                           min="1"
-                           max="10" />
+        {% endif %}
+        <div class="tool-workspace">
+            <!-- Left Panel: Upload & Controls -->
+            <div class="tool-left-panel">
+                <div class="panel-header">Image Concatenator</div>
+                <div class="panel-content">
+                    <div id="uploadZone" class="upload-zone">
+                        <div class="upload-text">Drop images here or click to upload</div>
+                        <div class="upload-hint">Supports JPG, PNG, GIF, WebP</div>
+                        <input type="file" id="fileInput" accept="image/*" multiple style="display: none" />
+                    </div>
+                    <div id="statusMessage"></div>
+                    <div class="controls-section">
+                        <div class="controls-grid">
+                            <div class="control-group">
+                                <label class="control-label" for="columnsInput">Columns</label>
+                                <input type="number"
+                                       id="columnsInput"
+                                       class="control-input"
+                                       value="3"
+                                       min="1"
+                                       max="10" />
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label" for="spacingInput">Spacing (px)</label>
+                                <input type="number"
+                                       id="spacingInput"
+                                       class="control-input"
+                                       value="10"
+                                       min="0"
+                                       max="100" />
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label" for="bgColorInput">Background Color</label>
+                                <input type="color" id="bgColorInput" class="control-input" value="#ffffff" />
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label" for="formatInput">Output Format</label>
+                                <select id="formatInput" class="control-input">
+                                    <option value="png">PNG (Best Quality)</option>
+                                    <option value="jpeg">JPEG (Smaller Size)</option>
+                                    <option value="webp">WebP (Modern)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="thumbnailSection" class="thumbnail-section" style="display: none">
+                        <div class="thumbnail-header">
+                            Uploaded Images (<span id="imageCount">0</span>)
+                        </div>
+                        <div id="thumbnailGrid" class="thumbnail-grid"></div>
+                    </div>
                 </div>
-                <div class="control-group">
-                    <label class="control-label" for="spacingInput">Spacing (px)</label>
-                    <input type="number"
-                           id="spacingInput"
-                           class="control-input"
-                           value="10"
-                           min="0"
-                           max="100" />
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="bgColorInput">Background Color</label>
-                    <input type="color"
-                           id="bgColorInput"
-                           class="control-input"
-                           value="#ffffff" />
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="formatInput">Output Format</label>
-                    <select id="formatInput" class="control-input">
-                        <option value="png">PNG (Best Quality)</option>
-                        <option value="jpeg">JPEG (Smaller Size)</option>
-                        <option value="webp">WebP (Modern)</option>
-                    </select>
-                </div>
-            </div>
-            <div class="action-buttons">
-                <button id="generateBtn" class="btn btn-primary" disabled>
-                    ✨ Generate Concatenated Image
-                </button>
-                <button id="clearBtn" class="btn btn-secondary" disabled>🗑️ Clear All</button>
-            </div>
-            <div id="previewContainer" class="preview-container" style="display: none">
-                <h3 style="margin: 20px 0 10px; font-size: 18px; font-weight: 600;">Preview</h3>
-                <canvas id="previewCanvas" class="preview-canvas"></canvas>
                 <div class="action-buttons">
-                    <button id="downloadBtn" class="btn btn-primary">💾 Download Image</button>
+                    <button id="generateBtn" class="btn btn-primary" disabled>Generate</button>
+                    <button id="clearBtn" class="btn" disabled>Clear All</button>
                 </div>
             </div>
-        </div>
-        <!-- Features -->
-        <div class="tool-section">
-            <h2 class="tool-section-title">✨ Features</h2>
-            <div class="features-grid">
-                <div class="feature-item">
-                    <span class="feature-icon">📤</span>
-                    <div class="feature-text">
-                        <div class="feature-title">Drag & Drop Upload</div>
-                        <div class="feature-desc">Easily upload multiple images at once</div>
-                    </div>
+            <!-- Right Panel: Preview -->
+            <div class="tool-right-panel">
+                <div class="panel-header">
+                    <span>Preview</span>
                 </div>
-                <div class="feature-item">
-                    <span class="feature-icon">🎨</span>
-                    <div class="feature-text">
-                        <div class="feature-title">Customizable Layout</div>
-                        <div class="feature-desc">Control columns, spacing, and background</div>
-                    </div>
+                <div id="previewContainer" class="preview-container">
+                    <div class="preview-empty">Upload images and click Generate to see preview</div>
+                    <canvas id="previewCanvas" class="preview-canvas" style="display: none"></canvas>
                 </div>
-                <div class="feature-item">
-                    <span class="feature-icon">🔄</span>
-                    <div class="feature-text">
-                        <div class="feature-title">Reorder Images</div>
-                        <div class="feature-desc">Drag thumbnails to rearrange</div>
-                    </div>
+                <div id="downloadSection" class="download-section" style="display: none">
+                    <button id="downloadBtn" class="btn btn-primary">Download Image</button>
                 </div>
-                <div class="feature-item">
-                    <span class="feature-icon">💾</span>
-                    <div class="feature-text">
-                        <div class="feature-title">Multiple Formats</div>
-                        <div class="feature-desc">Export as PNG, JPEG, or WebP</div>
-                    </div>
-                </div>
-                <div class="feature-item">
-                    <span class="feature-icon">👁️</span>
-                    <div class="feature-text">
-                        <div class="feature-title">Live Preview</div>
-                        <div class="feature-desc">See results before downloading</div>
-                    </div>
-                </div>
-                <div class="feature-item">
-                    <span class="feature-icon">🔒</span>
-                    <div class="feature-text">
-                        <div class="feature-title">100% Private</div>
-                        <div class="feature-desc">All processing happens in your browser</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- How to Use -->
-        <div class="tool-section">
-            <h2 class="tool-section-title">📖 How to Use</h2>
-            <div class="tool-section-content">
-                <ol style="line-height: 2; padding-left: 20px;">
-                    <li>
-                        <strong>Upload images:</strong> Drag and drop images or click to browse
-                    </li>
-                    <li>
-                        <strong>Arrange:</strong> Drag thumbnails to reorder them as needed
-                    </li>
-                    <li>
-                        <strong>Customize:</strong> Adjust columns, spacing, and background color
-                    </li>
-                    <li>
-                        <strong>Generate:</strong> Click "Generate Concatenated Image"
-                    </li>
-                    <li>
-                        <strong>Download:</strong> Save the result to your computer
-                    </li>
-                </ol>
-            </div>
-        </div>
-        <!-- Privacy -->
-        <div class="tool-section">
-            <h2 class="tool-section-title">🔒 Privacy & Security</h2>
-            <div class="tool-section-content">
-                <ul style="line-height: 2; padding-left: 20px;">
-                    <li>✅ All processing happens locally in your browser</li>
-                    <li>✅ No images are uploaded to any server</li>
-                    <li>✅ No data is collected or stored</li>
-                    <li>✅ Works completely offline after page load</li>
-                </ul>
             </div>
         </div>
     </div>
@@ -495,12 +428,13 @@
   // DOM elements
   const uploadZone = document.getElementById('uploadZone');
   const fileInput = document.getElementById('fileInput');
-  const thumbnailContainer = document.getElementById('thumbnailContainer');
+  const thumbnailSection = document.getElementById('thumbnailSection');
   const thumbnailGrid = document.getElementById('thumbnailGrid');
   const imageCount = document.getElementById('imageCount');
   const generateBtn = document.getElementById('generateBtn');
   const clearBtn = document.getElementById('clearBtn');
   const downloadBtn = document.getElementById('downloadBtn');
+  const downloadSection = document.getElementById('downloadSection');
   const previewContainer = document.getElementById('previewContainer');
   const previewCanvas = document.getElementById('previewCanvas');
   const statusMessage = document.getElementById('statusMessage');
@@ -565,7 +499,7 @@
       div.className = 'thumbnail-item';
       div.draggable = true;
       div.innerHTML = `
-        <img src="${imageData.src}" alt="Image ${index + 1}">
+        <img src="${imageData.src}" alt="Image ${index + 1}" />
         <button class="thumbnail-remove" data-index="${index}">×</button>
       `;
 
@@ -611,7 +545,7 @@
   // Update UI state
   function updateUI() {
     const hasImages = images.length > 0;
-    thumbnailContainer.style.display = hasImages ? 'block' : 'none';
+    thumbnailSection.style.display = hasImages ? 'block' : 'none';
     generateBtn.disabled = !hasImages;
     clearBtn.disabled = !hasImages;
 
@@ -686,11 +620,11 @@
       currentY += rowHeights[row] + spacing;
     }
 
-    previewContainer.style.display = 'block';
+    // Show preview
+    previewContainer.querySelector('.preview-empty').style.display = 'none';
+    previewCanvas.style.display = 'block';
+    downloadSection.style.display = 'block';
     showStatus('Image generated successfully!', 'success');
-
-    // Scroll to preview
-    previewContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   });
 
   // Download image
@@ -718,7 +652,9 @@
       images = [];
       updateThumbnails();
       updateUI();
-      previewContainer.style.display = 'none';
+      previewContainer.querySelector('.preview-empty').style.display = 'block';
+      previewCanvas.style.display = 'none';
+      downloadSection.style.display = 'none';
       statusMessage.style.display = 'none';
       fileInput.value = '';
     }
@@ -727,7 +663,7 @@
   // Auto-regenerate on control change
   [columnsInput, spacingInput, bgColorInput].forEach(input => {
     input.addEventListener('change', () => {
-      if (images.length > 0 && previewContainer.style.display !== 'none') {
+      if (images.length > 0 && previewCanvas.style.display !== 'none') {
         generateBtn.click();
       }
     });

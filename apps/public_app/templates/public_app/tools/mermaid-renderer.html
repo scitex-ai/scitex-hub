@@ -1,447 +1,299 @@
-{% extends "global_base.html" %}
+{% extends base_template|default:"global_base.html" %}
+
 {% block title %}Mermaid Diagram Renderer - SciTeX Tools{% endblock %}
 {% block meta_description %}
     Create flowcharts, sequence diagrams, Gantt charts, and more using Mermaid syntax.
-    Free online tool for researchers and developers.
 {% endblock %}
 {% block extra_css %}
     <style>
-        .mermaid-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 24px;
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
         }
 
-        .mermaid-header {
+        .tool-detail-container {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .tool-header {
             text-align: center;
-            margin-bottom: 32px;
+            padding: 20px;
+            margin-bottom: 20px;
         }
 
-        .mermaid-title {
-            font-size: 32px;
+        .tool-title {
+            font-size: 42px;
             font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 8px;
+            margin-bottom: 16px;
         }
 
-        .mermaid-subtitle {
-            font-size: 16px;
-            color: var(--text-secondary);
+        .tool-breadcrumb {
+            font-size: 14px;
+            margin-bottom: 16px;
         }
 
-        .mermaid-layout {
+        .tool-breadcrumb a {
+            color: var(--workspace-text-link, #58a6ff);
+            text-decoration: none;
+        }
+
+        .editor-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 24px;
-            margin-bottom: 24px;
+            gap: 1px;
+            flex: 1;
+            min-height: 0;
+            background: var(--workspace-border-default, #30363d);
+            border-radius: 0 0 6px 6px;
+            overflow: hidden;
         }
 
-        @media (max-width: 968px) {
-            .mermaid-layout {
+        @media (max-width: 1024px) {
+            .editor-container {
                 grid-template-columns: 1fr;
             }
         }
 
-        .mermaid-panel {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-default);
-            border-radius: 8px;
+        .editor-panel,
+        .preview-panel {
+            background: var(--workspace-bg-monaco, #1e1e1e);
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
-        .mermaid-panel-header {
-            padding: 12px 16px;
-            background: var(--bg-muted);
-            border-bottom: 1px solid var(--border-default);
+        .panel-header {
+            background: var(--workspace-bg-secondary, #161b22);
+            padding: 0 12px;
+            height: 36px;
+            border-bottom: 1px solid var(--workspace-border-default, #30363d);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-shrink: 0;
         }
 
-        .mermaid-panel-title {
-            font-size: 14px;
+        .panel-title {
             font-weight: 600;
-            color: var(--text-primary);
-            margin: 0;
+            font-size: 0.8rem;
+            color: var(--workspace-text-secondary, #8b949e);
         }
 
-        .mermaid-panel-body {
-            padding: 16px;
+        .panel-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .btn-small {
+            padding: 3px 10px;
+            background: transparent;
+            color: var(--workspace-text-secondary, #8b949e);
+            border: 1px solid var(--workspace-border-default, #30363d);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.15s ease;
+        }
+
+        .btn-small:hover {
+            background: var(--workspace-bg-tertiary, #21262d);
+            color: var(--workspace-text-primary, #c9d1d9);
+            border-color: var(--workspace-text-muted, #484f58);
         }
 
         #mermaidInput {
-            width: 100%;
-            min-height: 400px;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
-            font-size: 14px;
-            padding: 12px;
-            border: 1px solid var(--border-default);
-            border-radius: 4px;
-            background: var(--bg-canvas);
-            color: var(--text-primary);
-            resize: vertical;
+            flex: 1;
+            border: none;
+            padding: 16px;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            resize: none;
+            background: var(--workspace-bg-monaco, #1e1e1e);
+            color: var(--workspace-text-primary, #c9d1d9);
+        }
+
+        #mermaidInput::placeholder {
+            color: var(--workspace-text-muted, #484f58);
         }
 
         #mermaidInput:focus {
             outline: none;
-            border-color: var(--status-info);
-            box-shadow: 0 0 0 3px rgba(107, 143, 179, 0.1);
         }
 
         #mermaidOutput {
-            min-height: 400px;
+            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: var(--bg-canvas);
-            border-radius: 4px;
             overflow: auto;
+            padding: 16px;
+            background: var(--workspace-bg-monaco, #1e1e1e);
+        }
+
+        #mermaidOutput svg {
+            max-width: 100%;
+            height: auto;
         }
 
         .mermaid-empty-state {
             text-align: center;
-            color: var(--text-secondary);
-            padding: 40px 20px;
-        }
-
-        .mermaid-controls {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .mermaid-btn {
-            padding: 6px 12px;
+            color: var(--workspace-text-muted, #484f58);
             font-size: 13px;
-            font-weight: 500;
-            color: var(--text-primary);
-            background: var(--bg-surface);
-            border: 1px solid var(--border-default);
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
         }
 
-        .mermaid-btn:hover {
-            background: var(--bg-muted);
-            border-color: var(--status-info);
-        }
-
-        .mermaid-btn-primary {
-            background: var(--status-info);
-            color: white;
-            border-color: var(--status-info);
-        }
-
-        .mermaid-btn-primary:hover {
-            background: var(--_scitex-04);
-        }
-
-        .mermaid-examples {
-            margin-top: 32px;
-        }
-
-        .examples-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 16px;
-        }
-
-        .example-card {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-default);
-            border-radius: 6px;
-            padding: 16px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .example-card:hover {
-            border-color: var(--status-info);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .example-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 4px;
-        }
-
-        .example-description {
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-
-        .error-message {
-            background: #fee;
-            color: #c00;
-            padding: 12px;
-            border-radius: 4px;
-            margin-bottom: 12px;
+        .error-bar {
+            padding: 4px 12px;
+            font-size: 11px;
+            color: #f85149;
+            background: var(--workspace-bg-secondary, #161b22);
+            border-top: 1px solid var(--workspace-border-default, #30363d);
+            flex-shrink: 0;
             display: none;
         }
     </style>
 {% endblock %}
 {% block content %}
-    <div class="mermaid-container">
-        <!-- Header -->
-        <div class="mermaid-header">
-            <h1 class="mermaid-title">🧜‍♀️ Mermaid Diagram Renderer</h1>
-            <p class="mermaid-subtitle">Create flowcharts, sequence diagrams, Gantt charts, and more using simple text syntax</p>
-        </div>
-        <!-- Main Layout -->
-        <div class="mermaid-layout">
-            <!-- Input Panel -->
-            <div class="mermaid-panel">
-                <div class="mermaid-panel-header">
-                    <h3 class="mermaid-panel-title">Mermaid Syntax</h3>
-                    <div class="mermaid-controls">
-                        <button class="mermaid-btn mermaid-btn-primary" id="renderBtn">🎨 Render</button>
-                        <button class="mermaid-btn" id="clearBtn">🗑️ Clear</button>
-                        <button class="mermaid-btn" id="copyBtn">📋 Copy SVG</button>
-                    </div>
-                </div>
-                <div class="mermaid-panel-body">
-                    <div class="error-message" id="errorMessage"></div>
-                    <textarea id="mermaidInput" placeholder="Enter Mermaid syntax here...
-
-Example:
-graph TD
-    A[Start] --> B{Decision}
-    B -->|Yes| C[Action 1]
-    B -->|No| D[Action 2]
-    C --> E[End]
-    D --> E"></textarea>
-                </div>
+    <div class="tool-detail-container">
+        {% if not embed %}
+            <div class="tool-breadcrumb">
+                <a href="{% url 'public_app:tools' %}">← Back to Tools</a>
             </div>
-            <!-- Output Panel -->
-            <div class="mermaid-panel">
-                <div class="mermaid-panel-header">
-                    <h3 class="mermaid-panel-title">Diagram Preview</h3>
-                    <div class="mermaid-controls">
-                        <button class="mermaid-btn" id="downloadSvgBtn">💾 Download SVG</button>
-                        <button class="mermaid-btn" id="downloadPngBtn">💾 Download PNG</button>
-                    </div>
-                </div>
-                <div class="mermaid-panel-body">
-                    <div id="mermaidOutput">
-                        <div class="mermaid-empty-state">
-                            <p>👈 Enter Mermaid syntax and click "Render" to see your diagram</p>
-                        </div>
-                    </div>
-                </div>
+            <div class="tool-header">
+                <h1 class="tool-title">Mermaid Diagram Renderer</h1>
+                <p style="font-size: 18px; color: var(--text-secondary);">Create diagrams from text syntax</p>
             </div>
-        </div>
-        <!-- Examples -->
-        <div class="mermaid-examples">
-            <h2 style="margin-bottom: 16px; font-size: 20px; font-weight: 600;">📚 Quick Examples</h2>
-            <div class="examples-grid">
-                <div class="example-card" data-example="flowchart">
-                    <div class="example-title">Flowchart</div>
-                    <div class="example-description">Basic flowchart with decisions</div>
+        {% endif %}
+        <div class="editor-container">
+            <div class="editor-panel">
+                <div class="panel-header">
+                    <span class="panel-title">Editor</span>
+                    <div class="panel-actions">
+                        <button id="clearBtn" class="btn-small">Clear</button>
+                        <button id="copyBtn" class="btn-small">Copy SVG</button>
+                    </div>
                 </div>
-                <div class="example-card" data-example="sequence">
-                    <div class="example-title">Sequence Diagram</div>
-                    <div class="example-description">Message flow between objects</div>
+                <textarea id="mermaidInput" placeholder="Enter Mermaid syntax..."></textarea>
+                <div class="error-bar" id="errorBar"></div>
+            </div>
+            <div class="preview-panel">
+                <div class="panel-header">
+                    <span class="panel-title">Preview</span>
+                    <div class="panel-actions">
+                        <button id="downloadSvgBtn" class="btn-small">SVG</button>
+                        <button id="downloadPngBtn" class="btn-small">PNG</button>
+                    </div>
                 </div>
-                <div class="example-card" data-example="gantt">
-                    <div class="example-title">Gantt Chart</div>
-                    <div class="example-description">Project timeline visualization</div>
-                </div>
-                <div class="example-card" data-example="class">
-                    <div class="example-title">Class Diagram</div>
-                    <div class="example-description">Object-oriented design</div>
-                </div>
-                <div class="example-card" data-example="pie">
-                    <div class="example-title">Pie Chart</div>
-                    <div class="example-description">Data distribution visualization</div>
-                </div>
-                <div class="example-card" data-example="git">
-                    <div class="example-title">Git Graph</div>
-                    <div class="example-description">Version control workflow</div>
+                <div id="mermaidOutput">
+                    <div class="mermaid-empty-state">Rendering...</div>
                 </div>
             </div>
         </div>
     </div>
-    <!-- Mermaid Library -->
     <script type="module">
-        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
 
-        mermaid.initialize({
-            startOnLoad: false,
-            theme: 'default',
-            securityLevel: 'loose'
+  mermaid.initialize({ startOnLoad: false, theme: 'dark', securityLevel: 'loose' });
+
+  const input = document.getElementById('mermaidInput');
+  const output = document.getElementById('mermaidOutput');
+  const errorBar = document.getElementById('errorBar');
+
+  let renderTimer = null;
+
+  async function renderDiagram() {
+    const syntax = input.value.trim();
+    if (!syntax) {
+      output.innerHTML = '<div class="mermaid-empty-state">Enter Mermaid syntax to see preview</div>';
+      errorBar.style.display = 'none';
+      return;
+    }
+    try {
+      errorBar.style.display = 'none';
+      // Remove old render container to avoid ID conflicts
+      const old = document.getElementById('mermaid-diagram');
+      if (old) old.remove();
+      const { svg } = await mermaid.render('mermaid-diagram', syntax);
+      output.innerHTML = svg;
+    } catch (error) {
+      errorBar.textContent = error.message;
+      errorBar.style.display = 'block';
+    }
+  }
+
+  // Live render with debounce
+  input.addEventListener('input', () => {
+    clearTimeout(renderTimer);
+    renderTimer = setTimeout(renderDiagram, 500);
+  });
+
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    input.value = '';
+    output.innerHTML = '<div class="mermaid-empty-state">Enter Mermaid syntax to see preview</div>';
+    errorBar.style.display = 'none';
+  });
+
+  document.getElementById('copyBtn').addEventListener('click', () => {
+    const svg = output.querySelector('svg');
+    if (svg) {
+      navigator.clipboard.writeText(output.innerHTML);
+      const btn = document.getElementById('copyBtn');
+      btn.textContent = 'Copied';
+      setTimeout(() => { btn.textContent = 'Copy SVG'; }, 1200);
+    }
+  });
+
+  document.getElementById('downloadSvgBtn').addEventListener('click', () => {
+    const svg = output.querySelector('svg');
+    if (svg) {
+      const blob = new Blob([output.innerHTML], { type: 'image/svg+xml' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'diagram.svg';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+  });
+
+  document.getElementById('downloadPngBtn').addEventListener('click', () => {
+    const svg = output.querySelector('svg');
+    if (svg) {
+      const data = new XMLSerializer().serializeToString(svg);
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width * 2;
+        canvas.height = img.height * 2;
+        const ctx = canvas.getContext('2d');
+        ctx.scale(2, 2);
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob((blob) => {
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'diagram.png';
+          a.click();
+          URL.revokeObjectURL(a.href);
         });
+      };
+      img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(data)));
+    }
+  });
 
-        const input = document.getElementById('mermaidInput');
-        const output = document.getElementById('mermaidOutput');
-        const errorMessage = document.getElementById('errorMessage');
-        const renderBtn = document.getElementById('renderBtn');
-        const clearBtn = document.getElementById('clearBtn');
-        const copyBtn = document.getElementById('copyBtn');
-        const downloadSvgBtn = document.getElementById('downloadSvgBtn');
-        const downloadPngBtn = document.getElementById('downloadPngBtn');
-
-        // Examples
-        const examples = {
-            flowchart: `graph TD
+  // Sample content
+  input.value = `graph TD
     A[Start] --> B{Is it working?}
     B -->|Yes| C[Great!]
     B -->|No| D[Debug]
     D --> B
-    C --> E[End]`,
-            sequence: `sequenceDiagram
-    participant User
-    participant Server
-    participant Database
-    User->>Server: Request data
-    Server->>Database: Query
-    Database-->>Server: Results
-    Server-->>User: Response`,
-            gantt: `gantt
-    title Research Project Timeline
-    dateFormat  YYYY-MM-DD
-    section Literature Review
-    Read papers           :a1, 2024-01-01, 30d
-    Summarize findings    :after a1, 20d
-    section Experiments
-    Setup                 :2024-02-01, 12d
-    Run experiments       :2024-02-15, 45d
-    Analyze results       :2024-04-01, 30d`,
-            class: `classDiagram
-    class Animal {
-        +String name
-        +int age
-        +makeSound()
-    }
-    class Dog {
-        +String breed
-        +bark()
-    }
-    class Cat {
-        +Boolean indoor
-        +meow()
-    }
-    Animal <|-- Dog
-    Animal <|-- Cat`,
-            pie: `pie title Research Time Distribution
-    "Literature Review" : 30
-    "Experiments" : 40
-    "Data Analysis" : 20
-    "Writing" : 10`,
-            git: `gitGraph
-    commit
-    commit
-    branch develop
-    checkout develop
-    commit
-    commit
-    checkout main
-    merge develop
-    commit`
-        };
-
-        // Render diagram
-        async function renderDiagram() {
-            const syntax = input.value.trim();
-            if (!syntax) {
-                output.innerHTML = '<div class="mermaid-empty-state"><p>Please enter Mermaid syntax</p></div>';
-                return;
-            }
-
-            try {
-                errorMessage.style.display = 'none';
-                output.innerHTML = '<div class="mermaid-empty-state"><p>Rendering...</p></div>';
-
-                const { svg } = await mermaid.render('mermaid-diagram', syntax);
-                output.innerHTML = svg;
-            } catch (error) {
-                errorMessage.textContent = `Error: ${error.message}`;
-                errorMessage.style.display = 'block';
-                output.innerHTML = '<div class="mermaid-empty-state"><p>Failed to render diagram. Check syntax.</p></div>';
-            }
-        }
-
-        // Event listeners
-        renderBtn.addEventListener('click', renderDiagram);
-
-        clearBtn.addEventListener('click', () => {
-            input.value = '';
-            output.innerHTML = '<div class="mermaid-empty-state"><p>👈 Enter Mermaid syntax and click "Render"</p></div>';
-            errorMessage.style.display = 'none';
-        });
-
-        copyBtn.addEventListener('click', () => {
-            const svg = output.querySelector('svg');
-            if (svg) {
-                const svgText = output.innerHTML;
-                navigator.clipboard.writeText(svgText).then(() => {
-                    const originalText = copyBtn.textContent;
-                    copyBtn.textContent = '✓ Copied!';
-                    setTimeout(() => {
-                        copyBtn.textContent = originalText;
-                    }, 2000);
-                });
-            }
-        });
-
-        downloadSvgBtn.addEventListener('click', () => {
-            const svg = output.querySelector('svg');
-            if (svg) {
-                const svgData = output.innerHTML;
-                const blob = new Blob([svgData], { type: 'image/svg+xml' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'diagram.svg';
-                a.click();
-                URL.revokeObjectURL(url);
-            }
-        });
-
-        downloadPngBtn.addEventListener('click', () => {
-            const svg = output.querySelector('svg');
-            if (svg) {
-                const svgData = new XMLSerializer().serializeToString(svg);
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                const img = new Image();
-
-                img.onload = () => {
-                    canvas.width = img.width * 2;
-                    canvas.height = img.height * 2;
-                    ctx.scale(2, 2);
-                    ctx.drawImage(img, 0, 0);
-
-                    canvas.toBlob((blob) => {
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = 'diagram.png';
-                        a.click();
-                        URL.revokeObjectURL(url);
-                    });
-                };
-
-                img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
-            }
-        });
-
-        // Example cards
-        document.querySelectorAll('.example-card').forEach(card => {
-            card.addEventListener('click', () => {
-                const exampleType = card.dataset.example;
-                input.value = examples[exampleType];
-                renderDiagram();
-            });
-        });
-
-        // Auto-render on Ctrl+Enter
-        input.addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.key === 'Enter') {
-                renderDiagram();
-            }
-        });
+    C --> E[End]`;
+  renderDiagram();
     </script>
 {% endblock %}

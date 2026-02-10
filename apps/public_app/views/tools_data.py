@@ -11,7 +11,6 @@ from __future__ import annotations
 from .tools_data_image import IMAGE_TOOLS
 from .tools_data_other import (
     DEVELOPER_TOOLS,
-    DOCUMENT_TOOLS,
     RENDERING_TOOLS,
     RESEARCH_TOOLS,
     VIDEO_TOOLS,
@@ -27,7 +26,6 @@ __all__ = [
     "RENDERING_TOOLS",
     "DEVELOPER_TOOLS",
     "RESEARCH_TOOLS",
-    "DOCUMENT_TOOLS",
     "get_tool_domains",
 ]
 
@@ -83,13 +81,6 @@ def get_tool_domains():
             "icon": "🔬",
             "description": "Literature management and citation tools",
             "tools": RESEARCH_TOOLS,
-        },
-        {
-            "name": "Document Conversion",
-            "slug": "document",
-            "icon": "📄",
-            "description": "Convert documents between formats",
-            "tools": DOCUMENT_TOOLS,
         },
     ]
 

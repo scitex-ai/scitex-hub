@@ -1,46 +1,179 @@
-{% extends "global_base.html" %}
+{% extends base_template|default:"global_base.html" %}
+
 {% block title %}PDF Compressor - Browser Tool | SciTeX{% endblock %}
-{% block meta_description %}Reduce PDF file size while maintaining quality. Perfect for email attachments and uploads.{% endblock %}
+{% block meta_description %}
+    Reduce PDF file size while maintaining quality. Perfect for email attachments and uploads.
+{% endblock %}
 {% block head_extra %}
     {% load static %}
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 {% endblock %}
 {% block extra_css %}
     <style>
-  .tool-detail-container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
-  .tool-header { text-align: center; padding: 40px 20px; margin-bottom: 40px; }
-  .tool-title { font-size: 42px; font-weight: 700; margin-bottom: 16px; }
-  .tool-breadcrumb { font-size: 14px; margin-bottom: 16px; }
-  .tool-breadcrumb a { color: #4a9b7e; text-decoration: none; }
-  .tool-app-container { background: var(--bg-secondary); border-radius: 12px; padding: 40px; }
-  .upload-zone { border: 3px dashed #4a9b7e; border-radius: 8px; padding: 60px 20px; text-align: center; cursor: pointer; background: var(--bg-primary); }
-  .file-info { background: var(--bg-primary); padding: 20px; border-radius: 8px; margin: 20px 0; }
-  .size-comparison { display: flex; justify-content: space-around; text-align: center; margin: 20px 0; }
-  .size-box { padding: 20px; }
-  .size-label { font-size: 14px; color: var(--text-secondary); margin-bottom: 8px; }
-  .size-value { font-size: 32px; font-weight: 700; color: #4a9b7e; }
-  .compression-ratio { font-size: 18px; font-weight: 600; color: #4a9b7e; margin-top: 10px; }
-  .btn { padding: 12px 24px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; border: none; }
-  .btn-primary { background: #4a9b7e; color: white; }
-  .btn-primary:hover:not(:disabled) { background: #3a7c65; }
-  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .status-message { text-align: center; padding: 12px; border-radius: 6px; margin: 20px 0; }
-  .status-message.info { background: #eff6ff; color: #1e40af; }
-  .status-message.success { background: #f0fdf7; color: #15803d; }
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .tool-detail-container {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--workspace-bg-monaco);
+        }
+
+        .tool-breadcrumb {
+            font-size: 0.8rem;
+            margin-bottom: 12px;
+            padding: 12px 24px 0 24px;
+        }
+
+        .tool-breadcrumb a {
+            color: var(--workspace-text-link);
+            text-decoration: none;
+        }
+
+        .tool-header {
+            text-align: center;
+            padding: 24px 24px 16px 24px;
+        }
+
+        .tool-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--workspace-text-primary);
+        }
+
+        .tool-app-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 24px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .upload-zone {
+            border: 2px dashed var(--workspace-border-default);
+            border-radius: 4px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            background: var(--workspace-bg-monaco);
+            color: var(--workspace-text-muted);
+            transition: all 0.2s;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--workspace-text-secondary);
+            background: var(--workspace-bg-secondary);
+        }
+
+        .file-info {
+            background: var(--workspace-bg-secondary);
+            padding: 16px;
+            border-radius: 4px;
+            margin: 16px 0;
+            border: 1px solid var(--workspace-border-default);
+        }
+
+        .size-comparison {
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+            margin: 16px 0;
+        }
+
+        .size-box {
+            padding: 12px;
+        }
+
+        .size-label {
+            font-size: 11px;
+            color: var(--workspace-text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .size-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--workspace-text-link);
+        }
+
+        .compression-ratio {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #3fb950;
+            margin-top: 8px;
+            text-align: center;
+        }
+
+        .btn {
+            padding: 3px 10px;
+            background: transparent;
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--workspace-text-primary);
+            transition: all 0.2s;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: var(--workspace-bg-secondary);
+            border-color: var(--workspace-text-secondary);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status-message {
+            text-align: center;
+            padding: 8px;
+            border-radius: 4px;
+            margin: 16px 0;
+            font-size: 11px;
+            background: var(--workspace-bg-secondary);
+        }
+
+        .status-message.info {
+            color: var(--workspace-text-secondary);
+        }
+
+        .status-message.success {
+            color: #3fb950;
+        }
+
+        .status-message.error {
+            color: #f85149;
+        }
     </style>
 {% endblock %}
 {% block content %}
     <div class="tool-detail-container">
-        <div class="tool-breadcrumb"><a href="{% url 'public_app:tools' %}">← Back to Tools</a></div>
-        <div class="tool-header">
-            <div style="font-size: 64px; margin-bottom: 20px;">🗜️</div>
-            <h1 class="tool-title">PDF Compressor</h1>
-            <p style="font-size: 18px; color: var(--text-secondary);">Reduce PDF file size for easier sharing</p>
-        </div>
+        {% if not embed %}
+            <div class="tool-breadcrumb">
+                <a href="{% url 'public_app:tools' %}">← Back to Tools</a>
+            </div>
+            <div class="tool-header">
+                <h1 class="tool-title">PDF Compressor</h1>
+                <p style="font-size: 0.9rem; color: var(--workspace-text-secondary);">Reduce PDF file size for easier sharing</p>
+            </div>
+        {% endif %}
         <div class="tool-app-container">
             <div id="uploadZone" class="upload-zone">
-                <div style="font-size: 48px; margin-bottom: 16px;">📤</div>
-                <div style="font-size: 18px;">Drop PDF or click to upload</div>
+                <div style="font-size: 32px; margin-bottom: 12px;">📤</div>
+                <div style="font-size: 0.9rem; color: var(--workspace-text-primary);">Drop PDF or click to upload</div>
                 <input type="file" id="fileInput" accept=".pdf" style="display: none" />
             </div>
             <div id="statusMessage"></div>
@@ -51,7 +184,7 @@
                         <div class="size-value" id="originalSize">0</div>
                     </div>
                     <div class="size-box">
-                        <div style="font-size: 32px; color: var(--text-secondary);">→</div>
+                        <div style="font-size: 1.5rem; color: var(--workspace-text-secondary);">→</div>
                     </div>
                     <div class="size-box">
                         <div class="size-label">Compressed Size</div>
@@ -60,8 +193,8 @@
                 </div>
                 <div class="compression-ratio" id="compressionRatio"></div>
             </div>
-            <div style="text-align: center; margin-top: 20px;">
-                <button id="downloadBtn" class="btn btn-primary" style="display: none;">💾 Download Compressed PDF</button>
+            <div style="text-align: center; margin-top: 16px;">
+                <button id="downloadBtn" class="btn" style="display: none;">Download Compressed PDF</button>
             </div>
         </div>
     </div>

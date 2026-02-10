@@ -1,4 +1,5 @@
-{% extends "global_base.html" %}
+{% extends base_template|default:"global_base.html" %}
+
 {% block title %}
     Markdown Renderer -
     Browser Tool | SciTeX
@@ -8,6 +9,7 @@
 {% endblock %}
 {% block head_extra %}
     {% load static %}
+
     <link rel="icon"
           type="image/png"
           sizes="192x192"
@@ -21,256 +23,272 @@
 {% endblock %}
 {% block extra_css %}
     <style>
-  .tool-detail-container {
-    max-width: 1600px;
-    margin: 0 auto;
-    padding: 20px;
-  }
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
 
-  .tool-header {
-    text-align: center;
-    padding: 30px 20px;
-    margin-bottom: 30px;
-  }
+        .tool-detail-container {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
 
-  .tool-title {
-    font-size: 42px;
-    font-weight: 700;
-    margin-bottom: 16px;
-  }
+        .tool-header {
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
 
-  .tool-breadcrumb {
-    font-size: 14px;
-    margin-bottom: 16px;
-  }
+        .tool-title {
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
 
-  .tool-breadcrumb a {
-    color: #4a9b7e;
-    text-decoration: none;
-  }
+        .tool-breadcrumb {
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
 
-  .editor-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    height: calc(100vh - 300px);
-    min-height: 600px;
-  }
+        .tool-breadcrumb a {
+            color: var(--workspace-text-link, #58a6ff);
+            text-decoration: none;
+        }
 
-  @media (max-width: 1024px) {
-    .editor-container {
-      grid-template-columns: 1fr;
-      height: auto;
-    }
-  }
+        .editor-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1px;
+            flex: 1;
+            min-height: 0;
+            background: var(--workspace-border-default, #30363d);
+            border-radius: 0 0 6px 6px;
+            overflow: hidden;
+        }
 
-  .editor-panel, .preview-panel {
-    background: var(--bg-secondary);
-    border-radius: 12px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
+        @media (max-width: 1024px) {
+            .editor-container {
+                grid-template-columns: 1fr;
+            }
+        }
 
-  .panel-header {
-    background: var(--bg-tertiary);
-    padding: 15px 20px;
-    border-bottom: 1px solid var(--border-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
+        .editor-panel,
+        .preview-panel {
+            background: var(--workspace-bg-monaco, #1e1e1e);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
 
-  .panel-title {
-    font-weight: 600;
-    font-size: 16px;
-  }
+        .panel-header {
+            background: var(--workspace-bg-secondary, #161b22);
+            padding: 0 12px;
+            height: 36px;
+            border-bottom: 1px solid var(--workspace-border-default, #30363d);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
 
-  .panel-actions {
-    display: flex;
-    gap: 8px;
-  }
+        .panel-title {
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: var(--workspace-text-secondary, #8b949e);
+        }
 
-  .btn-small {
-    padding: 6px 12px;
-    background: #4a9b7e;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-  }
+        .panel-actions {
+            display: flex;
+            gap: 4px;
+        }
 
-  .btn-small:hover {
-    background: #3a7c65;
-  }
+        .btn-small {
+            padding: 3px 10px;
+            background: transparent;
+            color: var(--workspace-text-secondary, #8b949e);
+            border: 1px solid var(--workspace-border-default, #30363d);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.15s ease;
+        }
 
-  #markdownInput {
-    flex: 1;
-    border: none;
-    padding: 20px;
-    font-family: 'Courier New', monospace;
-    font-size: 14px;
-    line-height: 1.6;
-    resize: none;
-    background: var(--bg-primary);
-    color: var(--text-primary);
-  }
+        .btn-small:hover {
+            background: var(--workspace-bg-tertiary, #21262d);
+            color: var(--workspace-text-primary, #c9d1d9);
+            border-color: var(--workspace-text-muted, #484f58);
+        }
 
-  #markdownInput:focus {
-    outline: none;
-  }
+        #markdownInput {
+            flex: 1;
+            border: none;
+            padding: 16px;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            resize: none;
+            background: var(--workspace-bg-monaco, #1e1e1e);
+            color: var(--workspace-text-primary, #c9d1d9);
+        }
 
-  #markdownPreview {
-    flex: 1;
-    padding: 20px;
-    overflow-y: auto;
-    background: var(--bg-primary);
-  }
+        #markdownInput::placeholder {
+            color: var(--workspace-text-muted, #484f58);
+        }
 
-  /* Markdown styles */
-  #markdownPreview h1 {
-    font-size: 32px;
-    margin-top: 24px;
-    margin-bottom: 16px;
-    border-bottom: 2px solid var(--border-color);
-    padding-bottom: 8px;
-  }
+        #markdownInput:focus {
+            outline: none;
+        }
 
-  #markdownPreview h2 {
-    font-size: 24px;
-    margin-top: 20px;
-    margin-bottom: 12px;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 6px;
-  }
+        #markdownPreview {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            background: var(--workspace-bg-monaco, #1e1e1e);
+            color: var(--workspace-text-primary, #c9d1d9);
+        }
 
-  #markdownPreview h3 {
-    font-size: 20px;
-    margin-top: 16px;
-    margin-bottom: 8px;
-  }
+        /* Markdown rendered styles */
+        #markdownPreview h1 {
+            font-size: 1.75rem;
+            margin-top: 24px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--workspace-border-default, #30363d);
+            padding-bottom: 8px;
+            color: var(--workspace-text-primary, #c9d1d9);
+        }
 
-  #markdownPreview p {
-    margin-bottom: 16px;
-    line-height: 1.6;
-  }
+        #markdownPreview h2 {
+            font-size: 1.4rem;
+            margin-top: 20px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid var(--workspace-border-default, #30363d);
+            padding-bottom: 6px;
+        }
 
-  #markdownPreview code {
-    background: var(--bg-tertiary);
-    padding: 2px 6px;
-    border-radius: 3px;
-    font-family: 'Courier New', monospace;
-    font-size: 13px;
-  }
+        #markdownPreview h3 {
+            font-size: 1.15rem;
+            margin-top: 16px;
+            margin-bottom: 8px;
+        }
 
-  #markdownPreview pre {
-    background: #1e1e1e;
-    padding: 16px;
-    border-radius: 6px;
-    overflow-x: auto;
-    margin-bottom: 16px;
-  }
+        #markdownPreview p {
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
 
-  #markdownPreview pre code {
-    background: none;
-    padding: 0;
-  }
+        #markdownPreview code {
+            background: var(--workspace-bg-tertiary, #21262d);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 12px;
+        }
 
-  #markdownPreview blockquote {
-    border-left: 4px solid #4a9b7e;
-    padding-left: 16px;
-    margin-left: 0;
-    color: var(--text-secondary);
-  }
+        #markdownPreview pre {
+            background: #0d1117;
+            padding: 16px;
+            border-radius: 4px;
+            border: 1px solid var(--workspace-border-default, #30363d);
+            overflow-x: auto;
+            margin-bottom: 16px;
+        }
 
-  #markdownPreview ul, #markdownPreview ol {
-    margin-bottom: 16px;
-    padding-left: 24px;
-  }
+        #markdownPreview pre code {
+            background: none;
+            padding: 0;
+            border: none;
+        }
 
-  #markdownPreview li {
-    margin-bottom: 8px;
-  }
+        #markdownPreview blockquote {
+            border-left: 3px solid var(--workspace-text-muted, #484f58);
+            padding-left: 16px;
+            margin-left: 0;
+            color: var(--workspace-text-secondary, #8b949e);
+        }
 
-  #markdownPreview table {
-    border-collapse: collapse;
-    width: 100%;
-    margin-bottom: 16px;
-  }
+        #markdownPreview ul,
+        #markdownPreview ol {
+            margin-bottom: 16px;
+            padding-left: 24px;
+        }
 
-  #markdownPreview th, #markdownPreview td {
-    border: 1px solid var(--border-color);
-    padding: 8px 12px;
-    text-align: left;
-  }
+        #markdownPreview li {
+            margin-bottom: 6px;
+        }
 
-  #markdownPreview th {
-    background: var(--bg-tertiary);
-    font-weight: 600;
-  }
+        #markdownPreview table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 16px;
+        }
 
-  #markdownPreview a {
-    color: #4a9b7e;
-    text-decoration: none;
-  }
+        #markdownPreview th,
+        #markdownPreview td {
+            border: 1px solid var(--workspace-border-default, #30363d);
+            padding: 8px 12px;
+            text-align: left;
+        }
 
-  #markdownPreview a:hover {
-    text-decoration: underline;
-  }
+        #markdownPreview th {
+            background: var(--workspace-bg-secondary, #161b22);
+            font-weight: 600;
+        }
 
-  #markdownPreview img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 6px;
-  }
+        #markdownPreview a {
+            color: var(--workspace-text-link, #58a6ff);
+            text-decoration: none;
+        }
+
+        #markdownPreview a:hover {
+            text-decoration: underline;
+        }
+
+        #markdownPreview img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+
+        #markdownPreview hr {
+            border: none;
+            border-top: 1px solid var(--workspace-border-default, #30363d);
+            margin: 24px 0;
+        }
     </style>
 {% endblock %}
 {% block content %}
     <div class="tool-detail-container">
-        <div class="tool-breadcrumb">
-            <a href="{% url 'public_app:tools' %}">← Back to Tools</a>
-        </div>
-        <div class="tool-header">
-            <div style="font-size: 64px; margin-bottom: 20px;">📝</div>
-            <h1 class="tool-title">Markdown Renderer</h1>
-            <p style="font-size: 18px; color: var(--text-secondary);">
-                Real-time Markdown preview with syntax highlighting
-            </p>
-        </div>
+        {% if not embed %}
+            <div class="tool-breadcrumb">
+                <a href="{% url 'public_app:tools' %}">← Back to Tools</a>
+            </div>
+            <div class="tool-header">
+                <div style="font-size: 64px; margin-bottom: 20px;">📝</div>
+                <h1 class="tool-title">Markdown Renderer</h1>
+                <p style="font-size: 18px; color: var(--text-secondary);">Real-time Markdown preview with syntax highlighting</p>
+            </div>
+        {% endif %}
         <div class="editor-container">
             <div class="editor-panel">
                 <div class="panel-header">
-                    <span class="panel-title">✏️ Editor</span>
+                    <span class="panel-title">Editor</span>
                     <div class="panel-actions">
                         <button id="clearBtn" class="btn-small">Clear</button>
                         <button id="copyMdBtn" class="btn-small">Copy</button>
                     </div>
                 </div>
-                <textarea id="markdownInput" placeholder="# Start writing Markdown...
-
-## Features
-- Real-time preview
-- Syntax highlighting
-- Tables support
-- Code blocks
-
-```python
-def hello():
-    print('Hello, SciTeX!')
-```
-
-> **Note:** This is a blockquote
-
-| Feature | Status |
-|---------|--------|
-| Preview | ✓ |
-| Export  | ✓ |
-"></textarea>
+                <textarea id="markdownInput"></textarea>
             </div>
             <div class="preview-panel">
                 <div class="panel-header">
-                    <span class="panel-title">👁️ Preview</span>
+                    <span class="panel-title">Preview</span>
                     <div class="panel-actions">
                         <button id="copyHtmlBtn" class="btn-small">Copy HTML</button>
                         <button id="downloadBtn" class="btn-small">Download MD</button>
@@ -348,7 +366,28 @@ def hello():
     URL.revokeObjectURL(url);
   });
 
-  // Initialize
+  // Set initial content
+  markdownInput.value = [
+    '# Markdown Renderer',
+    '',
+    '## Features',
+    '- Real-time preview',
+    '- Syntax highlighting',
+    '- Tables support',
+    '- Code blocks',
+    '',
+    '```python',
+    'def hello():',
+    '    print("Hello, SciTeX!")',
+    '```',
+    '',
+    '> **Note:** This is a blockquote',
+    '',
+    '| Feature | Status |',
+    '|---------|--------|',
+    '| Preview | OK |',
+    '| Export  | OK |',
+  ].join('\n');
   updatePreview();
     </script>
 {% endblock %}

@@ -169,6 +169,11 @@ urlpatterns = [
         name="tool_image_resizer",
     ),
     path(
+        "tools/image-cropper/",
+        views.tool_image_cropper,
+        name="tool_image_cropper",
+    ),
+    path(
         "tools/repo-concatenator/",
         views.tool_repo_concatenator,
         name="tool_repo_concatenator",
