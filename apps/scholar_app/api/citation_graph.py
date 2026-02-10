@@ -21,6 +21,11 @@ class CitationGraphThrottle(AnonRateThrottle):
     rate = '50/hour'
 
 
+class HealthCheckThrottle(AnonRateThrottle):
+    """Rate limit for health checks: 10 requests per minute (prevents flood attacks)"""
+    rate = '10/minute'
+
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 @throttle_classes([CitationGraphThrottle])
@@ -252,9 +257,12 @@ def paper_summary(request):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
+@throttle_classes([HealthCheckThrottle])
 def health(request):
     """
-    Health check for citation graph service (no rate limiting).
+    Health check for citation graph service.
+
+    Rate limited to 10 requests/minute to prevent flood attacks.
 
     GET /api/scholar/citation-graph/health/
 

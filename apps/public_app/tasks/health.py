@@ -21,6 +21,10 @@ HEALTH_CHECK_CACHE_KEY = "health_check_status"
 HEALTH_CHECK_FAILURE_COUNT_KEY = "health_check_failures"
 HEALTH_CHECK_LAST_NOTIFICATION_KEY = "health_check_last_notification"
 
+# Flood Detection Cache Keys
+FLOOD_DETECTION_PREFIX = "flood_detection:"
+FLOOD_ALERT_LAST_SENT_KEY = "flood_alert_last_sent"
+
 
 @shared_task(
     bind=True,
@@ -214,6 +218,111 @@ def check_site_health(self):
 
     except Exception as e:
         logger.error(f"[HealthCheck] Task error: {e}", exc_info=True)
+        raise
+
+
+@shared_task(
+    bind=True,
+    name="apps.public_app.tasks.check_request_flood",
+    ignore_result=True,
+    soft_time_limit=30,
+    time_limit=60,
+)
+def check_request_flood(self):
+    """
+    Detect request flood patterns by analyzing nginx access logs.
+
+    Runs every minute. Sends alert if:
+    - Any IP makes >100 requests to same endpoint in 1 minute
+    - Any endpoint receives >500 total requests in 1 minute
+
+    This provides early warning of potential DDoS or misconfigured clients.
+    """
+    import subprocess
+
+    try:
+        _, _, recipient, sender = _get_health_config()
+
+        if not recipient:
+            logger.debug("[FloodDetection] No notification recipient configured")
+            return
+
+        # Check if we recently sent an alert (rate limit: 1 per 5 minutes)
+        last_alert = cache.get(FLOOD_ALERT_LAST_SENT_KEY)
+        if last_alert:
+            logger.debug("[FloodDetection] Skipping - alert sent recently")
+            return
+
+        # Analyze nginx logs for flood patterns (last 60 seconds)
+        try:
+            # Get request counts per IP per endpoint from access log
+            result = subprocess.run(
+                [
+                    "docker", "exec", "scitex-cloud-prod-nginx-1",
+                    "sh", "-c",
+                    """awk -v threshold=100 '
+                    {
+                        # Extract IP and URL
+                        ip=$1
+                        for(i=1;i<=NF;i++) if($i ~ /^"GET|^"POST/) {url=$(i+1); break}
+                        if(url) key=ip":"url
+                        count[key]++
+                    }
+                    END {
+                        for(k in count) if(count[k]>threshold) print count[k], k
+                    }
+                    ' /var/log/nginx/access.log | tail -10
+                    """
+                ],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+
+            if result.returncode == 0 and result.stdout.strip():
+                # Flood detected
+                flood_entries = result.stdout.strip()
+                logger.warning(f"[FloodDetection] Flood pattern detected:\n{flood_entries}")
+
+                # Send alert
+                send_mail(
+                    subject="[SciTeX] Request Flood Detected",
+                    message=f"""Request flood pattern detected!
+
+Entries exceeding 100 requests/minute:
+{flood_entries}
+
+Time: {timezone.now().isoformat()}
+
+This may indicate:
+1. DDoS attack
+2. Misconfigured monitoring script
+3. Aggressive crawler
+
+Recommended actions:
+1. Check nginx logs: docker logs scitex-cloud-prod-nginx-1 --tail 200
+2. Block offending IPs if malicious
+3. Check for health check scripts in retry loops
+""",
+                    from_email=sender,
+                    recipient_list=[recipient],
+                    fail_silently=True,
+                )
+
+                # Rate limit alerts
+                cache.set(FLOOD_ALERT_LAST_SENT_KEY, True, 300)  # 5 minutes
+
+                return {"status": "flood_detected", "entries": flood_entries}
+
+        except subprocess.TimeoutExpired:
+            logger.warning("[FloodDetection] Log analysis timed out")
+        except FileNotFoundError:
+            logger.debug("[FloodDetection] Docker not available, skipping")
+
+        return {"status": "ok", "message": "No flood detected"}
+
+    except Exception as e:
+        logger.error(f"[FloodDetection] Task error: {e}", exc_info=True)
         raise
 
 

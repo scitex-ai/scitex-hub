@@ -204,12 +204,12 @@ if settings.DEBUG:
 
 # Explicit /files/ prefix for development clarity (redundant with /<username>/)
 urlpatterns += [
-    path("files/<str:username>/", include("apps.project_app.urls")),
+    path("files/<str:username>/", include(("apps.project_app.urls", "user_projects"))),
 ]
 
 # GitHub-style username/project URLs (MUST be last to avoid conflicts)
 urlpatterns += [
-    path("<str:username>/", include("apps.project_app.urls")),
+    path("<str:username>/", include(("apps.project_app.urls", "user_projects"))),
 ]
 
 # Custom error handlers (imported from apps)
