@@ -56,6 +56,22 @@ library_patterns = [
         library_views.api_remove_library_paper,
         name="api_remove_library_paper",
     ),
+    # Project linking endpoints
+    path(
+        "api/library/papers/<uuid:paper_id>/link/",
+        library_views.api_link_paper_to_project,
+        name="api_link_paper_to_project",
+    ),
+    path(
+        "api/library/papers/<uuid:paper_id>/unlink/",
+        library_views.api_unlink_paper_from_project,
+        name="api_unlink_paper_from_project",
+    ),
+    path(
+        "api/library/projects/<uuid:project_id>/papers/",
+        library_views.api_project_papers,
+        name="api_project_papers",
+    ),
 ]
 
 # Research Trend Analysis

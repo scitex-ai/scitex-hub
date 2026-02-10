@@ -1,8 +1,8 @@
-from django.db import models
-from django.contrib.auth.models import User
-from django.utils import timezone
 from cryptography.fernet import Fernet
 from django.conf import settings
+from django.contrib.auth.models import User
+from django.db import models
+from django.utils import timezone
 
 
 class IntegrationConnection(models.Model):
@@ -16,6 +16,9 @@ class IntegrationConnection(models.Model):
         ("overleaf", "Overleaf"),
         ("slack", "Slack"),
         ("discord", "Discord"),
+        ("anthropic", "Anthropic (Claude)"),
+        ("openai", "OpenAI (GPT)"),
+        ("local_llm", "Local LLM (Ollama/LM Studio)"),
     ]
 
     STATUS_CHOICES = [

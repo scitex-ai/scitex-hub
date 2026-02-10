@@ -24,6 +24,7 @@ from .library_cache import (
     cache_results_for_user,
     get_paper_from_cache,
 )
+from .project_library_linker import ProjectLibraryLinker
 from .repository import (
     auto_assign_doi_on_publish,
     get_doi_metadata,
@@ -46,6 +47,7 @@ __all__ = [
     "cache_results_for_user",
     "get_paper_from_cache",
     "UserLibraryService",
+    "ProjectLibraryLinker",
     # Export Services
     "ExportPackerService",
 ]
