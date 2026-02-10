@@ -5,10 +5,13 @@
  */
 
 console.log(
-  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/writer/inline-script/writer-app-init.ts loaded",
+  "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/writer/inline-script/writer-app-init.ts loaded"
 );
 
-import { doctypeToDirectory, isNonEditableFile } from "../config/index";
+import {
+  doctypeToDirectory,
+  isNonEditableFile,
+} from "../config/index";
 import {
   updateDoctypeSectionsFromTree,
   getSectionsForDoctype,
@@ -63,9 +66,7 @@ const getElements = () => ({
   currentFileNameEl: document.getElementById("current-file-name"),
   currentFileDisplayEl: document.getElementById("current-file-display"),
   previewPanel: document.getElementById("text-preview"),
-  doctypeSelector: document.getElementById(
-    "doctype-selector",
-  ) as HTMLSelectElement | null,
+  doctypeSelector: document.getElementById("doctype-selector") as HTMLSelectElement | null,
   sectionSelectorBtn: document.getElementById("section-selector-toggle"),
   sectionSelectorText: document.getElementById("section-selector-text"),
   sectionDropdown: document.getElementById("section-selector-dropdown"),
@@ -74,10 +75,7 @@ const getElements = () => ({
 /**
  * Update the current file display
  */
-const updateCurrentFile = (
-  path: string,
-  icon: string = "fa-file-alt",
-): void => {
+const updateCurrentFile = (path: string, icon: string = "fa-file-alt"): void => {
   const elements = getElements();
   if (elements.currentFileDisplayEl) {
     const fileName = path.split("/").pop();
@@ -101,21 +99,18 @@ const loadFileIntoEditor = async (path: string): Promise<void> => {
   try {
     console.log("[Writer] Loading file:", path);
     const response = await fetch(
-      `/code/api/file-content/${encodeURIComponent(path)}?project_id=${projectId}`,
+      `/code/api/file-content/${encodeURIComponent(path)}?project_id=${projectId}`
     );
     const data = await response.json();
 
     if (data.success && data.content !== undefined) {
-      console.log(
-        "[Writer] File content received, length:",
-        data.content.length,
-      );
+      console.log("[Writer] File content received, length:", data.content.length);
 
       // Dispatch event for editor to handle
       window.dispatchEvent(
         new CustomEvent("writer:fileContentLoaded", {
           detail: { path, content: data.content, readOnly },
-        }),
+        })
       );
 
       // Also set in Monaco if available
@@ -124,11 +119,7 @@ const loadFileIntoEditor = async (path: string): Promise<void> => {
         window.writerMonacoEditor.updateOptions({ readOnly });
       }
 
-      console.log(
-        "[Writer] Content loaded into textarea (readOnly:",
-        readOnly,
-        ")",
-      );
+      console.log("[Writer] Content loaded into textarea (readOnly:", readOnly, ")");
     }
   } catch (error) {
     console.error("[Writer] Error loading file:", error);
@@ -153,9 +144,7 @@ const showPdfInPreview = (path: string): void => {
     } else if (retries > 0) {
       setTimeout(() => loadPdfWithViewer(retries - 1), 100);
     } else {
-      console.warn(
-        "[Writer] PDF.js viewer not ready after 5 seconds, showing placeholder",
-      );
+      console.warn("[Writer] PDF.js viewer not ready after 5 seconds, showing placeholder");
       showPdfPlaceholder();
     }
   };
@@ -231,17 +220,8 @@ const selectSection = (idx: number): void => {
     updateSectionButtonText(section, idx);
     loadFileIntoEditor(filePath);
 
-    console.log(
-      "[Writer] === SECTION SELECTED (Dropdown -> Tree -> Editor) ===",
-    );
-    console.log(
-      "[Writer] Doctype:",
-      doctype,
-      "| Section:",
-      section.label,
-      "| Path:",
-      filePath,
-    );
+    console.log("[Writer] === SECTION SELECTED (Dropdown -> Tree -> Editor) ===");
+    console.log("[Writer] Doctype:", doctype, "| Section:", section.label, "| Path:", filePath);
   }
 };
 
@@ -287,8 +267,7 @@ export const initWriterApp = async (): Promise<void> => {
   }
 
   // Dynamic import for WorkspaceFilesTree (using @ alias)
-  const { WorkspaceFilesTree } =
-    await import("@/components/workspace-files-tree/WorkspaceFilesTree");
+  const { WorkspaceFilesTree } = await import("@/components/workspace-files-tree/WorkspaceFilesTree");
 
   // Initialize file tree
   writerFileTree = new WorkspaceFilesTree({
@@ -296,9 +275,29 @@ export const initWriterApp = async (): Promise<void> => {
     username: window.WRITER_CONFIG.projectOwner || "",
     slug: window.WRITER_CONFIG.projectSlug,
     mode: "writer",
-    // Tree->editor sync disabled since tree is shared across modules
     onFileSelect: (path: string) => {
-      console.log("[Writer] File selected from tree (sync disabled):", path);
+      console.log("[Writer] File selected:", path);
+      updateCurrentFile(path);
+
+      handleFileSelect(path, {
+        onLoadFile: loadFileIntoEditor,
+        onShowPdf: (p) => {
+          showPdfInPreview(p);
+          window.switchRightPanel?.("pdf");
+        },
+        onShowFigure: (p) => {
+          window.dispatchEvent(new CustomEvent("writer:showFigure", { detail: { path: p } }));
+          window.switchRightPanel?.("figures");
+        },
+        onShowTable: (p) => {
+          window.dispatchEvent(new CustomEvent("writer:loadDataFile", { detail: { path: p } }));
+          window.switchRightPanel?.("tables");
+        },
+        onShowData: (p) => {
+          window.dispatchEvent(new CustomEvent("writer:loadDataFile", { detail: { path: p } }));
+          window.switchRightPanel?.("citations");
+        },
+      });
     },
     onTreeDataLoaded: (treeData: any[]) => {
       updateDoctypeSectionsFromTree(treeData);

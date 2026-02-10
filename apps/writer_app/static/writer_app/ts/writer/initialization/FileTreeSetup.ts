@@ -138,13 +138,36 @@ export class FileTreeSetup {
       return;
     }
 
-    // Tree->editor sync disabled since tree is shared across modules.
-    // Clicking a file in the tree should not drive the editor or preview pane.
-    const enhancedFileSelectHandler = (path: string, _item: any): void => {
-      console.log(
-        "[FileTreeSetup] File selected from tree (sync disabled):",
-        path,
-      );
+    // Enhanced file select handler that updates section filter and switches panel
+    const enhancedFileSelectHandler = (path: string, item: any): void => {
+      const fileName = path.split("/").pop() || "";
+      console.log("[FileTreeSetup] File selected from tree:", path, fileName);
+
+      // If it's a .tex file, sync dropdowns and update filter
+      if (path.endsWith(".tex")) {
+        // Use WriterTreeSync for bidirectional sync if available
+        const treeSync = getWriterTreeSync();
+        if (treeSync) {
+          treeSync.syncDropdownsFromTree(path);
+        } else {
+          // Fallback to legacy sync
+          syncDropdownsFromPath(path);
+        }
+
+        const section = writerFilter.extractSectionFromPath(path);
+        if (section) {
+          console.log(
+            "[FileTreeSetup] Extracted section from file path:",
+            section,
+          );
+          writerFilter.setSection(section);
+
+          const currentDoctype = writerFilter.getState().doctype;
+          this.panelSwitcher.autoSwitchForSection(section, currentDoctype);
+        }
+      }
+
+      onFileSelectHandler(path, fileName);
     };
 
     try {
