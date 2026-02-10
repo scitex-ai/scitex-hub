@@ -49,8 +49,7 @@ class VerifierApp {
   }
 
   private async initFileTree() {
-    const treeContainer = document.getElementById("file-tree");
-    if (!treeContainer || !this.projectOwner || !this.projectSlug) return;
+    if (!this.projectOwner || !this.projectSlug) return;
 
     try {
       const { WorkspaceFilesTree } =
@@ -60,17 +59,14 @@ class VerifierApp {
       const { initModuleFilterButtons } =
         await import("@/components/workspace-files-tree/ModuleFilterButtons");
 
-      const apiUrl = `/${this.projectOwner}/${this.projectSlug}/api/file-tree/`;
-
       const tree = new WorkspaceFilesTree({
-        container: treeContainer,
-        apiUrl,
+        containerId: "file-tree",
         mode: "verifier",
         username: this.projectOwner,
-        projectSlug: this.projectSlug,
+        slug: this.projectSlug,
       });
 
-      tree.init();
+      await tree.initialize();
       initHiddenFilesToggle(tree);
       initModuleFilterButtons(tree, "verifier");
     } catch (err) {

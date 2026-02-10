@@ -5,7 +5,7 @@ import { WorkspaceFilesTree } from "@/components/workspace-files-tree/WorkspaceF
 import { initHiddenFilesToggle } from "@/components/workspace-files-tree/HiddenFilesToggle";
 import { initModuleFilterButtons } from "@/components/workspace-files-tree/ModuleFilterButtons";
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   console.log("[Hub] Initializing Hub app");
 
   const configEl = document.getElementById("hub-project-config");
@@ -22,29 +22,16 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  const treeContainer = document.getElementById("file-tree");
-  if (!treeContainer) {
-    console.log("[Hub] File tree container not found");
-    return;
-  }
-
-  const apiUrl = `/${username}/${slug}/api/file-tree/`;
-
-  console.log("[Hub] Initializing WorkspaceFilesTree", {
-    username,
-    slug,
-    apiUrl,
-  });
+  console.log("[Hub] Initializing WorkspaceFilesTree", { username, slug });
 
   const tree = new WorkspaceFilesTree({
-    container: treeContainer,
-    apiUrl,
+    containerId: "file-tree",
     mode: "hub",
     username,
-    projectSlug: slug,
+    slug,
   });
 
-  tree.init();
+  await tree.initialize();
 
   // Initialize sidebar plugins
   initHiddenFilesToggle(tree);
