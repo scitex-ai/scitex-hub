@@ -2,30 +2,68 @@
  * GridManager - Handles grid rendering and visibility
  *
  * Responsibilities:
- * - Draw grid using static SVG files (light/dark mode)
+ * - Draw grid using inline SVG data (light/dark mode)
  * - Toggle grid visibility
  * - Clear grid background
  *
- * PERFORMANCE: Uses pre-rendered static SVG files cached by browser
+ * PERFORMANCE: Uses inline SVG data URIs to avoid HTTP request issues
  */
+
+// Inline SVG grid definitions (avoids HTTP serving issues with Vite dev server)
+const GRID_DARK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="2126" height="2835">
+  <rect width="2126" height="2835" fill="#2a2a2a"/>
+  <defs>
+    <pattern id="minor-grid" width="11.811023622047244" height="11.811023622047244" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="11.811023622047244" stroke="#505050" stroke-width="0.5"/>
+      <line x1="0" y1="0" x2="11.811023622047244" y2="0" stroke="#505050" stroke-width="0.5"/>
+    </pattern>
+    <pattern id="major-grid" width="118.11023622047244" height="118.11023622047244" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="118.11023622047244" stroke="#707070" stroke-width="1"/>
+      <line x1="0" y1="0" x2="118.11023622047244" y2="0" stroke="#707070" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="2126" height="2835" fill="url(#minor-grid)"/>
+  <rect width="2126" height="2835" fill="url(#major-grid)"/>
+  <line x1="531.496" y1="0" x2="531.496" y2="2835" stroke="#6699cc" stroke-width="1" stroke-dasharray="4,4" opacity="0.55"/>
+  <line x1="1062.992" y1="0" x2="1062.992" y2="2835" stroke="#6699cc" stroke-width="1" stroke-dasharray="4,4" opacity="0.55"/>
+  <line x1="1594.488" y1="0" x2="1594.488" y2="2835" stroke="#6699cc" stroke-width="1" stroke-dasharray="4,4" opacity="0.55"/>
+  <line x1="2125.984" y1="0" x2="2125.984" y2="2835" stroke="#6699cc" stroke-width="1" stroke-dasharray="4,4" opacity="0.55"/>
+</svg>`;
+
+const GRID_LIGHT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="2126" height="2835">
+  <rect width="2126" height="2835" fill="#fdfcfa"/>
+  <defs>
+    <pattern id="minor-grid" width="11.811023622047244" height="11.811023622047244" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="11.811023622047244" stroke="#ccc8c4" stroke-width="0.5"/>
+      <line x1="0" y1="0" x2="11.811023622047244" y2="0" stroke="#ccc8c4" stroke-width="0.5"/>
+    </pattern>
+    <pattern id="major-grid" width="118.11023622047244" height="118.11023622047244" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="118.11023622047244" stroke="#aaa6a2" stroke-width="1"/>
+      <line x1="0" y1="0" x2="118.11023622047244" y2="0" stroke="#aaa6a2" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="2126" height="2835" fill="url(#minor-grid)"/>
+  <rect width="2126" height="2835" fill="url(#major-grid)"/>
+  <line x1="531.496" y1="0" x2="531.496" y2="2835" stroke="#4488aa" stroke-width="1" stroke-dasharray="4,4" opacity="0.5"/>
+  <line x1="1062.992" y1="0" x2="1062.992" y2="2835" stroke="#4488aa" stroke-width="1" stroke-dasharray="4,4" opacity="0.5"/>
+  <line x1="1594.488" y1="0" x2="1594.488" y2="2835" stroke="#4488aa" stroke-width="1" stroke-dasharray="4,4" opacity="0.5"/>
+  <line x1="2125.984" y1="0" x2="2125.984" y2="2835" stroke="#4488aa" stroke-width="1" stroke-dasharray="4,4" opacity="0.5"/>
+</svg>`;
+
+function svgToDataUrl(svg: string): string {
+  return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+}
 
 export class GridManager {
   private gridEnabled: boolean = true;
 
-  /**
-   * Create a new GridManager
-   * @param canvas - Fabric.js canvas instance
-   * @param statusCallback - Optional callback for status messages
-   */
   constructor(
     private canvas: any,
     private statusCallback?: (message: string) => void,
   ) {}
 
   /**
-   * Draw grid using pre-rendered static SVG files
-   * PERFORMANCE: Static SVG files are cached by browser
-   *
+   * Draw grid using inline SVG data URI
    * @param isDark - Whether to use dark mode grid
    */
   public drawGrid(isDark: boolean = false): void {
@@ -33,15 +71,15 @@ export class GridManager {
 
     const startTime = performance.now();
 
-    // Use pre-rendered static SVG files for maximum performance
-    // Cache bust version: increment when SVG files are updated
-    const cacheBust = "v8";
-    const gridUrl = isDark
-      ? `/static/vis_app/img/vis/grid-dark.svg?${cacheBust}`
-      : `/static/vis_app/img/vis/grid-light.svg?${cacheBust}`;
+    // Clear old background image first to prevent stale grid showing during load
+    this.canvas.setBackgroundImage(
+      null,
+      this.canvas.renderAll.bind(this.canvas),
+    );
 
-    // Load SVG as native Image first, then create Fabric.Image
-    // Avoids crossOrigin issues with same-origin static files
+    // Use inline SVG data URI (bypasses HTTP serving issues)
+    const gridDataUrl = svgToDataUrl(isDark ? GRID_DARK_SVG : GRID_LIGHT_SVG);
+
     const img = new Image();
     img.onload = () => {
       const fabricImg = new fabric.Image(img);
@@ -66,9 +104,9 @@ export class GridManager {
       }
     };
     img.onerror = (err) => {
-      console.error(`[GridManager] Failed to load grid SVG: ${gridUrl}`, err);
+      console.error(`[GridManager] Failed to load grid SVG`, err);
     };
-    img.src = gridUrl;
+    img.src = gridDataUrl;
   }
 
   /**
@@ -83,21 +121,12 @@ export class GridManager {
       localStorage.getItem("scitex-theme-preference") ||
       "dark";
     const isDark = savedTheme === "dark";
-    // Light mode uses warm white (#fdfcfa) matching --workspace-bg-elevated
     const bgColor = isDark ? "#2a2a2a" : "#fdfcfa";
 
-    // Clear background image (SVG grid) and restore solid background color
+    // Clear background image and restore solid background color
     this.canvas.setBackgroundImage(null, () => {
       this.canvas.backgroundColor = bgColor;
       this.canvas.renderAll();
-    });
-
-    // Legacy cleanup: Remove any old Fabric.js grid objects (for backwards compatibility)
-    const objects = this.canvas.getObjects();
-    objects.forEach((obj: any) => {
-      if (obj.id === "grid-line" || obj.id === "column-guide") {
-        this.canvas.remove(obj);
-      }
     });
 
     console.log("[GridManager] Grid cleared");
@@ -110,7 +139,6 @@ export class GridManager {
     this.gridEnabled = !this.gridEnabled;
 
     if (this.gridEnabled) {
-      // Determine current theme for grid
       const savedTheme =
         localStorage.getItem("canvas-theme") ||
         localStorage.getItem("scitex-theme-preference") ||
@@ -127,26 +155,16 @@ export class GridManager {
     }
   }
 
-  /**
-   * Check if grid is currently enabled
-   * @returns true if grid is enabled
-   */
   public isGridEnabled(): boolean {
     return this.gridEnabled;
   }
 
-  /**
-   * Enable grid
-   */
   public enableGrid(): void {
     if (!this.gridEnabled) {
       this.toggleGrid();
     }
   }
 
-  /**
-   * Disable grid
-   */
   public disableGrid(): void {
     if (this.gridEnabled) {
       this.toggleGrid();
