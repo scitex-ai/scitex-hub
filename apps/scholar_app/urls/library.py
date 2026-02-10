@@ -56,20 +56,29 @@ library_patterns = [
         library_views.api_remove_library_paper,
         name="api_remove_library_paper",
     ),
-    # Project linking endpoints
+]
+
+# Project linking endpoints (separate module)
+from ..views.library.project_linking import (
+    api_link_paper_to_project,
+    api_project_papers,
+    api_unlink_paper_from_project,
+)
+
+project_linking_patterns = [
     path(
         "api/library/papers/<uuid:paper_id>/link/",
-        library_views.api_link_paper_to_project,
+        api_link_paper_to_project,
         name="api_link_paper_to_project",
     ),
     path(
         "api/library/papers/<uuid:paper_id>/unlink/",
-        library_views.api_unlink_paper_from_project,
+        api_unlink_paper_from_project,
         name="api_unlink_paper_from_project",
     ),
     path(
         "api/library/projects/<uuid:project_id>/papers/",
-        library_views.api_project_papers,
+        api_project_papers,
         name="api_project_papers",
     ),
 ]
@@ -156,6 +165,7 @@ recommendation_patterns = [
 urlpatterns = (
     export_patterns
     + library_patterns
+    + project_linking_patterns
     + trend_patterns
     + annotation_patterns
     + recommendation_patterns
