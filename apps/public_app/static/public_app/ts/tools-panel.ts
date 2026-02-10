@@ -34,7 +34,11 @@ function loadTool(toolUrl: string, toolName: string): void {
   });
 
   // Update URL hash
-  const slug = toolUrl.split("/tools/")[1]?.replace("/?embed=1", "") || "";
+  const slug =
+    toolUrl
+      .split("/tools/")[1]
+      ?.replace(/\/?\?embed=1$/, "")
+      .replace(/\/$/, "") || "";
   if (slug) history.replaceState(null, "", `/tools/#${slug}`);
 }
 
@@ -131,8 +135,9 @@ function initSearch(): void {
 function restoreFromHash(): void {
   const hash = window.location.hash.slice(1);
   if (!hash) return;
+  // Match hash against tool slugs extracted from bookmarklet URLs
   const navItem = document.querySelector(
-    `.tools-nav-item[data-tool-slug*="${hash}"]`,
+    `.tools-nav-item[data-tool-slug="/tools/${hash}/"]`,
   ) as HTMLElement | null;
   if (navItem) {
     const url = navItem.dataset.toolUrl;

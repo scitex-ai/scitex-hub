@@ -90,7 +90,5 @@ RESEARCH_TOOLS = [
     },
 ]
 
-DOCUMENT_TOOLS = []
-
 
 # EOF

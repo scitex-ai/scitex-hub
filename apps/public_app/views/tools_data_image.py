@@ -7,9 +7,9 @@ from __future__ import annotations
 # Image tools (alphabetical by name)
 IMAGE_TOOLS = [
     {
-        "name": "Crop Image",
-        "description": "Crop images with visual selection for precise publication-ready figures.",
-        "use_case": "Crop whitespace or select regions from figure panels",
+        "name": "Crop Images",
+        "description": "Batch crop images with same ROI coordinates for consistent figure panels.",
+        "use_case": "Apply same crop region across all condition panels",
         "bookmarklet_url": "/tools/image-cropper/",
         "icon": "✂️",
     },

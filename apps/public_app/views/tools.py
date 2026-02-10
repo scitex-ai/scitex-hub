@@ -10,7 +10,6 @@ from __future__ import annotations
 
 from .tools_data import (
     DEVELOPER_TOOLS,
-    DOCUMENT_TOOLS,
     IMAGE_TOOLS,
     PDF_TOOLS,
     RENDERING_TOOLS,
@@ -26,6 +25,7 @@ from .tools_views import (
     tool_element_inspector,
     tool_image_concatenator,
     tool_image_converter,
+    tool_image_cropper,
     tool_image_resizer,
     tool_image_viewer,
     tool_images_to_gif,
@@ -59,7 +59,6 @@ __all__ = [
     "RENDERING_TOOLS",
     "DEVELOPER_TOOLS",
     "RESEARCH_TOOLS",
-    "DOCUMENT_TOOLS",
     # Individual tool views
     "tool_asta_citation_scraper",
     "tool_color_picker",
@@ -67,6 +66,7 @@ __all__ = [
     "tool_element_inspector",
     "tool_image_concatenator",
     "tool_image_converter",
+    "tool_image_cropper",
     "tool_image_resizer",
     "tool_image_viewer",
     "tool_images_to_gif",

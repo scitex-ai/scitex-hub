@@ -1,7 +1,7 @@
 {% extends base_template|default:"global_base.html" %}
 
-{% block title %}Image Cropper - Browser Tool | SciTeX{% endblock %}
-{% block meta_description %}Crop images with visual selection for precise publication-ready figures.{% endblock %}
+{% block title %}Crop Images - Browser Tool | SciTeX{% endblock %}
+{% block meta_description %}Batch crop with same ROI for consistent figure panels.{% endblock %}
 {% block extra_css %}
     <style>
         html,
@@ -202,6 +202,74 @@
         .status-bar .info {
             color: var(--workspace-text-secondary, #8b949e);
         }
+
+        .thumbnail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 8px;
+            margin-bottom: 16px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .thumbnail-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 2px solid var(--workspace-border-default, #30363d);
+            cursor: pointer;
+            transition: border-color 0.15s ease;
+        }
+
+        .thumbnail-item:hover {
+            border-color: var(--workspace-text-muted, #484f58);
+        }
+
+        .thumbnail-item.selected {
+            border-color: var(--workspace-text-link, #58a6ff);
+        }
+
+        .thumbnail-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .thumbnail-remove {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 18px;
+            height: 18px;
+            border-radius: 3px;
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 11px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+
+        .thumbnail-item:hover .thumbnail-remove {
+            opacity: 1;
+        }
+
+        .warning-message {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin-bottom: 16px;
+            font-size: 11px;
+            color: var(--workspace-text-warning, #d29922);
+            display: none;
+        }
     </style>
 {% endblock %}
 {% block content %}
@@ -211,9 +279,9 @@
                 <a href="{% url 'public_app:tools' %}">← Back to Tools</a>
             </div>
             <div class="tool-header">
-                <h1 class="tool-title">Crop Image</h1>
+                <h1 class="tool-title">Crop Images</h1>
                 <p style="font-size: 14px; color: var(--workspace-text-secondary);">
-                    Visual crop selection for publication-ready figures
+                    Batch crop with same ROI for consistent figure panels
                 </p>
             </div>
         {% endif %}
@@ -228,9 +296,11 @@
                 <div class="controls-body">
                     <div id="uploadZone" class="upload-zone">
                         <div style="font-size: 24px; margin-bottom: 8px;">↑</div>
-                        <div style="font-size: 13px;">Drop image or click to upload</div>
-                        <input type="file" id="fileInput" accept="image/*" style="display: none" />
+                        <div style="font-size: 13px;">Drop images or click to upload</div>
+                        <input type="file" id="fileInput" accept="image/*" multiple style="display: none" />
                     </div>
+                    <div id="warningMessage" class="warning-message"></div>
+                    <div id="thumbnailGrid" class="thumbnail-grid"></div>
                     <div class="crop-controls">
                         <div class="control-group">
                             <label class="control-label">X</label>
@@ -249,9 +319,12 @@
                             <input type="number" id="cropH" class="control-input" value="0" min="0" />
                         </div>
                     </div>
+                    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                        <button id="cropBtn" class="btn-small" style="flex: 1;" disabled>Crop All</button>
+                    </div>
                     <div style="display: flex; gap: 8px;">
-                        <button id="cropBtn" class="btn-small" style="flex: 1;" disabled>Crop</button>
                         <button id="downloadBtn" class="btn-small" style="flex: 1;" disabled>Download</button>
+                        <button id="downloadAllBtn" class="btn-small" style="flex: 1;" disabled>Download All</button>
                     </div>
                 </div>
             </div>
@@ -276,6 +349,7 @@
             </div>
         </div>
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script>
   const fileInput = document.getElementById('fileInput');
   const uploadZone = document.getElementById('uploadZone');
@@ -284,21 +358,24 @@
   const previewBody = document.getElementById('previewBody');
   const cropOverlay = document.getElementById('cropOverlay');
   const emptyState = document.getElementById('emptyState');
+  const thumbnailGrid = document.getElementById('thumbnailGrid');
+  const warningMessage = document.getElementById('warningMessage');
   const cropX = document.getElementById('cropX');
   const cropY = document.getElementById('cropY');
   const cropW = document.getElementById('cropW');
   const cropH = document.getElementById('cropH');
   const cropBtn = document.getElementById('cropBtn');
   const downloadBtn = document.getElementById('downloadBtn');
+  const downloadAllBtn = document.getElementById('downloadAllBtn');
   const selectAllBtn = document.getElementById('selectAllBtn');
   const imageInfo = document.getElementById('imageInfo');
   const selectionInfo = document.getElementById('selectionInfo');
 
-  let originalImage = null;
-  let croppedImage = null;
+  let originalImages = [];
+  let croppedImages = [];
+  let currentIndex = 0;
   let isDragging = false;
   let startX = 0, startY = 0;
-  let fileName = 'image';
 
   uploadZone.addEventListener('click', () => fileInput.click());
   uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
@@ -306,44 +383,144 @@
   uploadZone.addEventListener('drop', (e) => {
     e.preventDefault();
     uploadZone.classList.remove('dragover');
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith('image/')) loadImage(file);
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    if (files.length) loadImages(files);
   });
 
   fileInput.addEventListener('change', (e) => {
-    if (e.target.files[0]) loadImage(e.target.files[0]);
+    const files = Array.from(e.target.files);
+    if (files.length) loadImages(files);
   });
 
-  function loadImage(file) {
-    fileName = file.name.replace(/\.[^.]+$/, '');
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        originalImage = img;
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
-        canvas.style.display = 'block';
-        emptyState.style.display = 'none';
-        cropBtn.disabled = false;
-        selectAllBtn.disabled = false;
-        imageInfo.textContent = `${img.width} × ${img.height}px`;
-        cropX.value = 0; cropY.value = 0;
-        cropW.value = img.width; cropH.value = img.height;
-        updateSelectionInfo();
+  function loadImages(files) {
+    originalImages = [];
+    croppedImages = [];
+    thumbnailGrid.innerHTML = '';
+    warningMessage.style.display = 'none';
+
+    let loadedCount = 0;
+    const totalFiles = files.length;
+    let baseDimensions = null;
+    let hasDimensionMismatch = false;
+
+    files.forEach((file, idx) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          if (!baseDimensions) {
+            baseDimensions = { width: img.width, height: img.height };
+          } else if (img.width !== baseDimensions.width || img.height !== baseDimensions.height) {
+            hasDimensionMismatch = true;
+          }
+
+          originalImages.push({ img, name: file.name.replace(/\.[^.]+$/, ''), file });
+          loadedCount++;
+
+          if (loadedCount === totalFiles) {
+            if (hasDimensionMismatch) {
+              warningMessage.textContent = 'Warning: Images have different dimensions. Crop may not align correctly.';
+              warningMessage.style.display = 'block';
+            }
+            renderThumbnails();
+            showImage(0);
+          }
+        };
+        img.src = e.target.result;
       };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
+      reader.readAsDataURL(file);
+    });
   }
 
-  // Mouse drag selection on canvas
+  function renderThumbnails() {
+    thumbnailGrid.innerHTML = '';
+    originalImages.forEach((item, idx) => {
+      const thumbDiv = document.createElement('div');
+      thumbDiv.className = 'thumbnail-item';
+      if (idx === currentIndex) thumbDiv.classList.add('selected');
+
+      const thumbImg = document.createElement('img');
+      thumbImg.src = item.img.src;
+      thumbImg.alt = item.name;
+
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'thumbnail-remove';
+      removeBtn.innerHTML = '×';
+      removeBtn.onclick = (e) => {
+        e.stopPropagation();
+        removeImage(idx);
+      };
+
+      thumbDiv.appendChild(thumbImg);
+      thumbDiv.appendChild(removeBtn);
+      thumbDiv.onclick = () => showImage(idx);
+      thumbnailGrid.appendChild(thumbDiv);
+    });
+  }
+
+  function removeImage(idx) {
+    originalImages.splice(idx, 1);
+    if (croppedImages.length) croppedImages.splice(idx, 1);
+
+    if (originalImages.length === 0) {
+      reset();
+      return;
+    }
+
+    if (currentIndex >= originalImages.length) {
+      currentIndex = originalImages.length - 1;
+    }
+    renderThumbnails();
+    showImage(currentIndex);
+  }
+
+  function showImage(idx) {
+    currentIndex = idx;
+    const item = originalImages[idx];
+    const img = item.img;
+
+    canvas.width = img.width;
+    canvas.height = img.height;
+    ctx.drawImage(img, 0, 0);
+    canvas.style.display = 'block';
+    emptyState.style.display = 'none';
+
+    cropBtn.disabled = false;
+    selectAllBtn.disabled = false;
+
+    const w = parseInt(cropW.value) || img.width;
+    const h = parseInt(cropH.value) || img.height;
+    if (cropW.value === '0' || !cropW.value) {
+      cropX.value = 0; cropY.value = 0;
+      cropW.value = img.width; cropH.value = img.height;
+    }
+
+    updateStatusBar();
+    renderThumbnails();
+  }
+
+  function updateStatusBar() {
+    const count = originalImages.length;
+    const croppedCount = croppedImages.length;
+    const img = originalImages[currentIndex]?.img;
+
+    if (img) {
+      const status = croppedCount ? ` · ${croppedCount} cropped` : '';
+      imageInfo.textContent = `${count} image${count > 1 ? 's' : ''} loaded${status} · ${img.width} × ${img.height}px`;
+    }
+
+    const w = parseInt(cropW.value) || 0;
+    const h = parseInt(cropH.value) || 0;
+    selectionInfo.textContent = w && h ? `Selection: ${w} × ${h}px` : '';
+  }
+
+  // Mouse drag selection
   previewBody.addEventListener('mousedown', (e) => {
-    if (!originalImage) return;
+    if (!originalImages.length) return;
     const rect = canvas.getBoundingClientRect();
-    const scaleX = originalImage.width / rect.width;
-    const scaleY = originalImage.height / rect.height;
+    const img = originalImages[currentIndex].img;
+    const scaleX = img.width / rect.width;
+    const scaleY = img.height / rect.height;
     startX = Math.round((e.clientX - rect.left) * scaleX);
     startY = Math.round((e.clientY - rect.top) * scaleY);
     isDragging = true;
@@ -351,96 +528,121 @@
   });
 
   previewBody.addEventListener('mousemove', (e) => {
-    if (!isDragging || !originalImage) return;
+    if (!isDragging || !originalImages.length) return;
     const rect = canvas.getBoundingClientRect();
-    const scaleX = originalImage.width / rect.width;
-    const scaleY = originalImage.height / rect.height;
+    const img = originalImages[currentIndex].img;
+    const scaleX = img.width / rect.width;
+    const scaleY = img.height / rect.height;
     const curX = Math.round((e.clientX - rect.left) * scaleX);
     const curY = Math.round((e.clientY - rect.top) * scaleY);
 
     const x = Math.max(0, Math.min(startX, curX));
     const y = Math.max(0, Math.min(startY, curY));
-    const w = Math.min(Math.abs(curX - startX), originalImage.width - x);
-    const h = Math.min(Math.abs(curY - startY), originalImage.height - y);
+    const w = Math.min(Math.abs(curX - startX), img.width - x);
+    const h = Math.min(Math.abs(curY - startY), img.height - y);
 
     cropX.value = x; cropY.value = y; cropW.value = w; cropH.value = h;
 
-    // Position overlay on canvas
     const displayX = x / scaleX + rect.left - previewBody.getBoundingClientRect().left;
     const displayY = y / scaleY + rect.top - previewBody.getBoundingClientRect().top;
     cropOverlay.style.left = displayX + 'px';
     cropOverlay.style.top = displayY + 'px';
     cropOverlay.style.width = (w / scaleX) + 'px';
     cropOverlay.style.height = (h / scaleY) + 'px';
-    updateSelectionInfo();
+    updateStatusBar();
   });
 
   document.addEventListener('mouseup', () => { isDragging = false; });
 
-  function updateSelectionInfo() {
-    const w = parseInt(cropW.value) || 0;
-    const h = parseInt(cropH.value) || 0;
-    selectionInfo.textContent = w && h ? `Selection: ${w} × ${h}px` : '';
-  }
-
-  [cropX, cropY, cropW, cropH].forEach(el => el.addEventListener('input', updateSelectionInfo));
+  [cropX, cropY, cropW, cropH].forEach(el => el.addEventListener('input', updateStatusBar));
 
   cropBtn.addEventListener('click', () => {
-    if (!originalImage) return;
+    if (!originalImages.length) return;
     const x = parseInt(cropX.value) || 0;
     const y = parseInt(cropY.value) || 0;
-    const w = parseInt(cropW.value) || originalImage.width;
-    const h = parseInt(cropH.value) || originalImage.height;
+    const w = parseInt(cropW.value) || originalImages[0].img.width;
+    const h = parseInt(cropH.value) || originalImages[0].img.height;
 
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = w;
-    tempCanvas.height = h;
-    const tempCtx = tempCanvas.getContext('2d');
-    tempCtx.drawImage(originalImage, x, y, w, h, 0, 0, w, h);
+    croppedImages = originalImages.map(item => {
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = w;
+      tempCanvas.height = h;
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCtx.drawImage(item.img, x, y, w, h, 0, 0, w, h);
+      return { name: item.name, dataURL: tempCanvas.toDataURL('image/png') };
+    });
+
+    cropOverlay.style.display = 'none';
+    downloadBtn.disabled = false;
+    downloadAllBtn.disabled = false;
 
     canvas.width = w;
     canvas.height = h;
-    ctx.drawImage(tempCanvas, 0, 0);
-    cropOverlay.style.display = 'none';
-
-    // Update original for further crops
-    const newImg = new Image();
-    newImg.onload = () => {
-      originalImage = newImg;
-      imageInfo.textContent = `${w} × ${h}px (cropped)`;
-      cropX.value = 0; cropY.value = 0;
-      cropW.value = w; cropH.value = h;
-      downloadBtn.disabled = false;
+    const currentCropped = new Image();
+    currentCropped.onload = () => {
+      ctx.drawImage(currentCropped, 0, 0);
     };
-    newImg.src = tempCanvas.toDataURL('image/png');
+    currentCropped.src = croppedImages[currentIndex].dataURL;
+
+    updateStatusBar();
   });
 
   downloadBtn.addEventListener('click', () => {
+    if (!croppedImages.length) return;
+    const item = croppedImages[currentIndex];
     const a = document.createElement('a');
-    a.href = canvas.toDataURL('image/png');
-    a.download = `${fileName}-cropped.png`;
+    a.href = item.dataURL;
+    a.download = `${item.name}-cropped.png`;
     a.click();
   });
 
+  downloadAllBtn.addEventListener('click', async () => {
+    if (!croppedImages.length) return;
+    const zip = new JSZip();
+
+    croppedImages.forEach((item, idx) => {
+      const base64Data = item.dataURL.split(',')[1];
+      zip.file(`${item.name}-cropped.png`, base64Data, { base64: true });
+    });
+
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `cropped-images-${Date.now()}.zip`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
   selectAllBtn.addEventListener('click', () => {
-    if (!originalImage) return;
+    if (!originalImages.length) return;
+    const img = originalImages[currentIndex].img;
     cropX.value = 0; cropY.value = 0;
-    cropW.value = originalImage.width; cropH.value = originalImage.height;
+    cropW.value = img.width; cropH.value = img.height;
     cropOverlay.style.display = 'none';
-    updateSelectionInfo();
+    updateStatusBar();
   });
 
   document.getElementById('resetBtn').addEventListener('click', () => {
-    if (!originalImage) return;
-    const img = originalImage;
-    canvas.width = img.width;
-    canvas.height = img.height;
-    ctx.drawImage(img, 0, 0);
-    cropOverlay.style.display = 'none';
-    cropX.value = 0; cropY.value = 0;
-    cropW.value = img.width; cropH.value = img.height;
-    downloadBtn.disabled = true;
-    updateSelectionInfo();
+    reset();
   });
+
+  function reset() {
+    originalImages = [];
+    croppedImages = [];
+    currentIndex = 0;
+    thumbnailGrid.innerHTML = '';
+    warningMessage.style.display = 'none';
+    canvas.style.display = 'none';
+    emptyState.style.display = 'block';
+    cropOverlay.style.display = 'none';
+    cropBtn.disabled = true;
+    downloadBtn.disabled = true;
+    downloadAllBtn.disabled = true;
+    selectAllBtn.disabled = true;
+    imageInfo.textContent = 'No image loaded';
+    selectionInfo.textContent = '';
+    cropX.value = 0; cropY.value = 0; cropW.value = 0; cropH.value = 0;
+    fileInput.value = '';
+  }
     </script>
 {% endblock %}
