@@ -90,8 +90,6 @@
 
 /* Ensure header content stays above pattern */
 .global-header-inner {
-  max-width: 1280px;
-  margin: 0 auto;
   position: relative;
   z-index: 1;
   display: flex;

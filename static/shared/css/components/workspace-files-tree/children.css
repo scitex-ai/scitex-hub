@@ -16,17 +16,17 @@
 /* Indent guide lines - dashed, always visible */
 .wft-children.expanded {
   border-left: 1px dashed rgba(150, 150, 150, 0.35);
-  margin-left: 19px;
-  padding-left: 8px;
+  margin-left: 12px;
+  padding-left: 4px;
 }
 
 /* Horizontal connector from vertical guide to each item */
 .wft-children.expanded > .wft-item::before {
-  content: '';
+  content: "";
   position: absolute;
-  left: -9px;
+  left: -5px;
   top: 50%;
-  width: 8px;
+  width: 4px;
   height: 1px;
   border-top: 1px dashed rgba(150, 150, 150, 0.35);
 }
@@ -45,7 +45,10 @@
   border-left-color: rgba(150, 150, 150, 0.25);
 }
 
-.wft-children.expanded .wft-children.expanded .wft-children.expanded .wft-children.expanded {
+.wft-children.expanded
+  .wft-children.expanded
+  .wft-children.expanded
+  .wft-children.expanded {
   border-left-color: rgba(150, 150, 150, 0.2);
 }
 
@@ -53,9 +56,18 @@
 /* These rules need high specificity to override the nested fading rules */
 .wft-children.expanded:has(> .wft-item:hover),
 .wft-children.expanded .wft-children.expanded:has(> .wft-item:hover),
-.wft-children.expanded .wft-children.expanded .wft-children.expanded:has(> .wft-item:hover),
-.wft-children.expanded .wft-children.expanded .wft-children.expanded .wft-children.expanded:has(> .wft-item:hover),
-.wft-children.expanded .wft-children.expanded .wft-children.expanded .wft-children.expanded .wft-children.expanded:has(> .wft-item:hover) {
+.wft-children.expanded
+  .wft-children.expanded
+  .wft-children.expanded:has(> .wft-item:hover),
+.wft-children.expanded
+  .wft-children.expanded
+  .wft-children.expanded
+  .wft-children.expanded:has(> .wft-item:hover),
+.wft-children.expanded
+  .wft-children.expanded
+  .wft-children.expanded
+  .wft-children.expanded
+  .wft-children.expanded:has(> .wft-item:hover) {
   border-left-color: rgba(180, 180, 180, 0.6);
 }
 
