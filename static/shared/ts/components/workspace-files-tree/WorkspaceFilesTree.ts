@@ -475,16 +475,8 @@ export class WorkspaceFilesTree {
   }
 
   /** Switch filter mode at runtime (used by W/S/V/C/R/H/F/T/E buttons) */
-  setFilterMode(mode: WorkspaceMode | "all"): void {
-    if (mode === "all") {
-      this.filter.setModuleFilterEnabled(false);
-    } else {
-      this.filter.setMode(mode);
-      this.filter.setModuleFilterEnabled(true);
-    }
-    if (mode !== "all") {
-      this.config.mode = mode;
-    }
-    this.rerender();
+  setFilterMode(_mode: WorkspaceMode | "all"): void {
+    // Tree is shared across modules - keep the same view regardless of filter
+    // Filter buttons only highlight which module is active, not change the tree
   }
 }
