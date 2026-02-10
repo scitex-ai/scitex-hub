@@ -19,7 +19,6 @@ import {
   createFileSelectHandler,
   setupDoctypeChangeWithTree,
   setupDoctypeChangeWithoutTree,
-  getDoctypeFolder,
   createWriterTreeConfig,
 } from "./handlers/index";
 import { initWriterTreeSync, getWriterTreeSync } from "../sync/index";
@@ -253,15 +252,7 @@ export class FileTreeSetup {
       });
     }
 
-    // Focus on the doctype directory
-    const initialDoctypeFolder = getDoctypeFolder(currentDoctype);
-    if (filesTree.focusDirectory) {
-      console.log(
-        "[FileTreeSetup] Focusing on doctype folder:",
-        initialDoctypeFolder,
-      );
-      filesTree.focusDirectory(initialDoctypeFolder);
-    }
+    // Editor->tree sync disabled: tree is shared across modules
 
     // Populate section dropdown
     await populateSectionDropdownDirect(

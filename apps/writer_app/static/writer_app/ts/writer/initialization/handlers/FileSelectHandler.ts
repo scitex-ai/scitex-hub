@@ -50,7 +50,7 @@ export function createFileSelectHandler(deps: FileSelectDependencies) {
 async function handleSectionId(
   sectionMatch: RegExpMatchArray,
   sectionId: string,
-  deps: FileSelectDependencies
+  deps: FileSelectDependencies,
 ): Promise<void> {
   const docType = sectionMatch[1];
   const sectionNameParsed = sectionMatch[2];
@@ -66,24 +66,24 @@ async function handleSectionId(
 
   // Skip loading .tex file for compiled sections (they show PDF directly)
   const isCompiledSection =
-    sectionNameParsed === "compiled_pdf" || sectionNameParsed === "compiled_tex";
+    sectionNameParsed === "compiled_pdf" ||
+    sectionNameParsed === "compiled_tex";
 
   if (!isCompiledSection && deps.config.projectId) {
     // Get the expected .tex file path
-    const { getWriterFilter } = await import("../../../modules/writer-file-filter.js");
+    const { getWriterFilter } =
+      await import("../../../modules/writer-file-filter.js");
     const filter = getWriterFilter();
     const texFilePath = filter.getExpectedFilePath(docType, sectionNameParsed);
-    console.log("[FileSelectHandler] Loading .tex file for section:", texFilePath);
+    console.log(
+      "[FileSelectHandler] Loading .tex file for section:",
+      texFilePath,
+    );
 
     // Load the .tex file content
     loadTexFile(texFilePath, deps.editor);
 
-    // Expand file tree to show the corresponding file
-    const filesTree = (window as any).writerFileTree;
-    if (filesTree && filesTree.expandPath) {
-      console.log("[FileSelectHandler] Expanding file tree to:", texFilePath);
-      filesTree.expandPath(texFilePath);
-    }
+    // Editor->tree sync disabled: tree is shared across modules
   }
 
   // Also switch section for state management
@@ -101,24 +101,25 @@ async function handleSectionId(
  */
 async function handleTexFile(
   sectionId: string,
-  deps: FileSelectDependencies
+  deps: FileSelectDependencies,
 ): Promise<void> {
-  console.log("[FileSelectHandler] Detected .tex file, loading from disk:", sectionId);
+  console.log(
+    "[FileSelectHandler] Detected .tex file, loading from disk:",
+    sectionId,
+  );
   loadTexFile(sectionId, deps.editor);
 
-  // Expand file tree to show the file
-  const filesTree = (window as any).writerFileTree;
-  if (filesTree && filesTree.expandPath) {
-    console.log("[FileSelectHandler] Expanding file tree to:", sectionId);
-    filesTree.expandPath(sectionId);
-  }
+  // Editor->tree sync disabled: tree is shared across modules
 }
 
 /**
  * Handle fallback case (try as section)
  */
 function handleFallback(sectionId: string, deps: FileSelectDependencies): void {
-  console.log("[FileSelectHandler] Unknown ID format, trying as section:", sectionId);
+  console.log(
+    "[FileSelectHandler] Unknown ID format, trying as section:",
+    sectionId,
+  );
   switchSection(
     deps.editor,
     deps.sectionsManager,

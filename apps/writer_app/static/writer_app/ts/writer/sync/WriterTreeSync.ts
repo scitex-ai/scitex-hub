@@ -7,10 +7,7 @@
  * 3. Tree selection -> Dropdown updates (update both dropdowns)
  */
 
-import {
-  doctypeToDirectory,
-  getDoctypeFromPath,
-} from "../config/doctype-config";
+import { getDoctypeFromPath } from "../config/doctype-config";
 
 console.log("[DEBUG] WriterTreeSync.ts loaded");
 
@@ -47,87 +44,15 @@ export class WriterTreeSync {
    * Sync tree focus when doctype changes
    * Called from DoctypeChangeHandler
    */
-  syncTreeFromDoctype(doctype: string): void {
-    const tree = this.config.treeInstance;
-    if (!tree) {
-      console.log("[WriterTreeSync] No tree instance, skipping doctype sync");
-      return;
-    }
-
-    const doctypeFolder = doctypeToDirectory[doctype];
-    if (!doctypeFolder) {
-      console.warn("[WriterTreeSync] Unknown doctype:", doctype);
-      return;
-    }
-
-    console.log(
-      "[WriterTreeSync] Syncing tree to doctype folder:",
-      doctypeFolder,
-    );
-
-    // Use the tree's focusDirectory method to expand and scroll to the folder
-    if (tree.focusDirectory) {
-      tree.focusDirectory(doctypeFolder);
-    } else if (tree.expandToPath) {
-      // Fallback to expandToPath if focusDirectory not available
-      tree.expandToPath(doctypeFolder);
-    }
+  syncTreeFromDoctype(_doctype: string): void {
+    // Editor->tree sync disabled: tree is shared across modules
   }
 
   /**
    * Sync tree selection when section is selected from dropdown
    */
-  syncTreeFromSection(sectionId: string): void {
-    const tree = this.config.treeInstance;
-    if (!tree) {
-      console.log("[WriterTreeSync] No tree instance, skipping section sync");
-      return;
-    }
-
-    // Section ID format: "manuscript/abstract" or "shared/authors"
-    const [doctype, sectionName] = sectionId.split("/");
-    if (!doctype || !sectionName) {
-      console.warn("[WriterTreeSync] Invalid section ID format:", sectionId);
-      return;
-    }
-
-    // Build the full file path
-    const doctypeFolder = doctypeToDirectory[doctype];
-    if (!doctypeFolder) {
-      console.warn("[WriterTreeSync] Unknown doctype in section ID:", doctype);
-      return;
-    }
-
-    // Determine the section file path
-    let sectionPath: string;
-    if (doctype === "shared") {
-      // Shared sections are directly in 00_shared
-      sectionPath = `${doctypeFolder}/${sectionName}.tex`;
-    } else {
-      // Other sections are in contents/ subdirectory
-      sectionPath = `${doctypeFolder}/contents/${sectionName}.tex`;
-    }
-
-    console.log("[WriterTreeSync] Syncing tree to section path:", sectionPath);
-
-    // Prevent infinite loop by checking if we already synced this path
-    if (this.lastSyncedPath === sectionPath) {
-      console.log("[WriterTreeSync] Already synced to this path, skipping");
-      return;
-    }
-    this.lastSyncedPath = sectionPath;
-
-    // Expand to the path and select it
-    if (tree.selectFile) {
-      tree.selectFile(sectionPath);
-    } else if (tree.expandToPath) {
-      tree.expandToPath(sectionPath);
-    }
-
-    // Clear the sync lock after a short delay
-    setTimeout(() => {
-      this.lastSyncedPath = null;
-    }, 100);
+  syncTreeFromSection(_sectionId: string): void {
+    // Editor->tree sync disabled: tree is shared across modules
   }
 
   /**
@@ -230,21 +155,8 @@ export class WriterTreeSync {
   /**
    * Focus tree on a specific path without selecting it
    */
-  focusTreePath(path: string): void {
-    const tree = this.config.treeInstance;
-    if (!tree) return;
-
-    if (tree.expandToPath) {
-      tree.expandToPath(path);
-    }
-
-    // Scroll the path into view
-    setTimeout(() => {
-      const treeElement = document.querySelector(`[data-path="${path}"]`);
-      if (treeElement) {
-        treeElement.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-    }, 100);
+  focusTreePath(_path: string): void {
+    // Editor->tree sync disabled: tree is shared across modules
   }
 }
 
