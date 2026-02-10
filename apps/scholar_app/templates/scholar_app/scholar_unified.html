@@ -1,6 +1,6 @@
 {% extends 'global_base.html' %}
 
-{% load static vite %}
+{% load static vite tree_preseed %}
 
 {% block title %}SciTeX Scholar{% endblock %}
 {% block meta_description %}Advanced semantic search for scientific literature{% endblock %}
@@ -12,6 +12,8 @@
     <!-- Workspace files tree CSS -->
     <link rel="stylesheet"
           href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d" />
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/workspace-sidebar.css' %}" />
     <!-- Panel resizer CSS -->
     <link rel="stylesheet" href="{% static 'shared/css/components/panel-resizer.css' %}" />
     <!-- App-specific CSS - Modular common styles -->
@@ -136,13 +138,16 @@
 
         /* Tab content visibility */
         .scholar-tab-content {
-            display: none;
+            display: none !important;
             height: 100%;
+            width: 100%;
         }
 
         .scholar-tab-content.active {
-            display: flex;
+            display: flex !important;
             flex-direction: column;
+            flex: 1;
+            min-height: 0;
         }
 
         .scholar-details-content {
@@ -410,7 +415,7 @@
     <!-- Three-panel layout always active for workspace consistency -->
     <div class="scholar-workspace">
         <!-- Left sidebar: File tree (only with project) -->
-        <aside class="scholar-sidebar {% if not current_project %}collapsed{% endif %}"
+        <aside class="scholar-sidebar workspace-sidebar {% if not current_project %}collapsed{% endif %}"
                id="scholar-sidebar">
             {% include "global_base_partials/workspace/sidebar_header.html" %}
             <div class="sidebar-content" id="file-tree">
@@ -428,13 +433,13 @@
         <div class="panel-resizer"
              id="sidebar-resizer"
              data-panel-resizer
-             data-storage-prefix="scitex-scholar-"
+             data-storage-prefix="scitex-workspace-"
              data-target=".scholar-sidebar"
              data-direction="left"
              data-min-width="40"
              data-default-width="250"
              data-storage-key="sidebar-width"
-             data-collapse-key="scholar-sidebar-collapsed"
+             data-collapse-key="scitex-workspace-sidebar-collapsed"
              data-toggle-btn="sidebar-toggle"></div>
         <!-- Main content area -->
         <main class="scholar-main">
@@ -726,13 +731,24 @@
     <!-- Panel resizer (auto-initializes from data attributes) -->
     {% vite_script 'shared/workspace-panel-resizer' %}
     {% if current_project %}
-        <!-- Scholar workspace initialization with project context -->
-        <script id="scholar-project-config" type="application/json">
-            {
-                "username": "{{ current_project.owner.username|escapejs }}",
-                "slug": "{{ current_project.slug|escapejs }}"
+        <!-- Standardized project config for shared tree init -->
+        <div id="workspace-project-config"
+             style="display: none"
+             data-username="{{ current_project.owner.username }}"
+             data-slug="{{ current_project.slug }}"
+             data-mode="scholar"></div>
+        <script>
+          window.scitexOnFileSelect = function(path) {
+            if (path.endsWith('.pdf')) {
+              var config = document.getElementById('workspace-project-config');
+              var u = config ? config.dataset.username : '';
+              var s = config ? config.dataset.slug : '';
+              window.open('/' + u + '/' + s + '/files/' + path, '_blank');
             }
+          };
         </script>
+        {% tree_preseed_script current_project %}
+        {% vite_script 'shared/workspace-tree-init' %}
         {% vite_script 'scholar_app/scholar-workspace-init' %}
     {% endif %}
     <!-- Global configuration - using data attributes to avoid formatter issues -->
@@ -778,7 +794,7 @@
     <!-- Tab Switching Script -->
     <script>
         (function() {
-            const TAB_ORDER = ['search', 'bibtex', 'graph'];
+            const TAB_ORDER = ['search', 'bibtex', 'graph', 'library'];
             const DEFAULT_TAB = 'search';
 
             function getActiveTab() {
@@ -787,6 +803,8 @@
             }
 
             function switchTab(tabName) {
+                console.log('[Scholar] Switching to tab:', tabName);
+
                 // Update tab navigation
                 document.querySelectorAll('.scholar-tab').forEach(tab => {
                     if (tab.dataset.tab === tabName) {
@@ -797,13 +815,20 @@
                 });
 
                 // Update main content
+                let foundContent = false;
                 document.querySelectorAll('.scholar-tab-content').forEach(content => {
                     if (content.dataset.tab === tabName) {
                         content.classList.add('active');
+                        foundContent = true;
+                        console.log('[Scholar] Activated content for:', tabName, content);
                     } else {
                         content.classList.remove('active');
                     }
                 });
+
+                if (!foundContent) {
+                    console.warn('[Scholar] No content found for tab:', tabName);
+                }
 
                 // Update details panel
                 document.querySelectorAll('.scholar-details-content').forEach(content => {
@@ -835,10 +860,10 @@
                 });
 
                 // Initial tab activation
-                const activeTab = getActiveTab();
                 if (!window.location.hash) {
                     window.location.hash = DEFAULT_TAB;
                 }
+                const activeTab = getActiveTab();
                 switchTab(activeTab);
             }
 

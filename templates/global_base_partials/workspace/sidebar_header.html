@@ -1,4 +1,4 @@
-<!-- Unified sidebar header for all workspace modules (writer, scholar, vis, console, verifier, hub, files, tools, explorer) -->
+<!-- Unified sidebar header for all workspace modules -->
 <div class="sidebar-header">
     <div class="sidebar-header-actions">
         <button class="hidden-files-toggle"
@@ -6,17 +6,54 @@
                 title="Toggle hidden files">
             <i class="fas fa-eye-slash"></i>
         </button>
-        <!-- Module filter buttons: W S V C R H F T E -->
+        <button class="git-status-toggle"
+                id="git-status-toggle"
+                title="Toggle git status highlighting">
+            <i class="fas fa-code-branch"></i>
+        </button>
+        <!-- Context-aware module filter: lightbulb highlights relevant files -->
         <div class="module-filter-buttons" id="module-filter-buttons">
-            <button class="module-filter-btn" data-mode="writer" title="Writer files (Alt+W)">W</button>
-            <button class="module-filter-btn" data-mode="scholar" title="Scholar files (Alt+S)">S</button>
-            <button class="module-filter-btn" data-mode="vis" title="Visualizer files (Alt+V)">V</button>
-            <button class="module-filter-btn" data-mode="code" title="Console files (Alt+C)">C</button>
-            <button class="module-filter-btn" data-mode="verifier" title="Verifier files (Alt+R)">R</button>
-            <button class="module-filter-btn" data-mode="hub" title="Hub files (Alt+H)">H</button>
-            <button class="module-filter-btn" data-mode="files" title="Files view (Alt+F)">F</button>
-            <button class="module-filter-btn" data-mode="tools" title="Tools view (Alt+T)">T</button>
-            <button class="module-filter-btn" data-mode="explorer" title="Explorer view (Alt+E)">E</button>
+            {% if 'writer' in request.path %}
+                <button class="module-filter-btn"
+                        data-mode="writer"
+                        title="Highlight writer-related files">
+                    <i class="fas fa-lightbulb"></i>
+                </button>
+            {% elif 'scholar' in request.path %}
+                <button class="module-filter-btn"
+                        data-mode="scholar"
+                        title="Highlight scholar-related files">
+                    <i class="fas fa-lightbulb"></i>
+                </button>
+            {% elif '/vis/' in request.path %}
+                <button class="module-filter-btn"
+                        data-mode="vis"
+                        title="Highlight visualizer-related files">
+                    <i class="fas fa-lightbulb"></i>
+                </button>
+            {% elif 'console' in request.path %}
+                <button class="module-filter-btn"
+                        data-mode="code"
+                        title="Highlight console-related files">
+                    <i class="fas fa-lightbulb"></i>
+                </button>
+            {% elif 'verifier' in request.path %}
+                <button class="module-filter-btn"
+                        data-mode="verifier"
+                        title="Highlight verifier-related files">
+                    <i class="fas fa-lightbulb"></i>
+                </button>
+            {% elif '/hub/' in request.path %}
+                <button class="module-filter-btn" data-mode="hub" title="Highlight hub-related files">
+                    <i class="fas fa-lightbulb"></i>
+                </button>
+            {% elif 'tools' in request.path %}
+                <button class="module-filter-btn"
+                        data-mode="tools"
+                        title="Highlight tools-related files">
+                    <i class="fas fa-lightbulb"></i>
+                </button>
+            {% endif %}
         </div>
         <span class="sidebar-header-divider"></span>
     </div>

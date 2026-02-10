@@ -11,7 +11,6 @@ import {
   ALLOW_EXTENSIONS,
   DENY_DIRECTORIES,
   ALLOW_DIRECTORIES,
-  PRESERVE_EMPTY_DIRECTORIES,
   ALWAYS_VISIBLE_FILENAMES,
 } from "./FilteringCriteria.ts";
 
@@ -249,52 +248,8 @@ export class TreeFilter {
           }
           return item;
         })
-        // Remove empty directories after filtering children
-        // Keep inactive directories visible for consistent mental model
-        .filter((item) => {
-          if (item.type === "directory" && item.children) {
-            // Always keep if has children
-            if (item.children.length > 0) {
-              return true;
-            }
-
-            // Keep inactive directories visible (grayed out but shown)
-            if (this.isInactive(item)) {
-              return true;
-            }
-
-            // In 'code' and 'all' modes, preserve all empty directories (user may create empty dirs)
-            if (this.config.mode === "code" || this.config.mode === "all") {
-              return true;
-            }
-
-            // Check if directory is in PRESERVE_EMPTY_DIRECTORIES
-            const preserveDirs = PRESERVE_EMPTY_DIRECTORIES[this.config.mode];
-            const isPreserved = preserveDirs.some(
-              (pattern) => item.name === pattern || item.path.includes(pattern),
-            );
-            if (isPreserved) {
-              return true;
-            }
-
-            // Check if directory matches ALLOW_DIRECTORIES (keep root allowed dirs even if empty)
-            const allowedDirs = ALLOW_DIRECTORIES[this.config.mode];
-            if (allowedDirs.length > 0) {
-              const normalizedPath = item.path.replace(/^\.\//, "");
-              const isAllowedDir = allowedDirs.some((allowedDir) => {
-                const normalizedAllowedDir = allowedDir.replace(/^\.\//, "");
-                return normalizedPath === normalizedAllowedDir;
-              });
-              if (isAllowedDir) {
-                return true;
-              }
-            }
-
-            // Otherwise, remove empty directory
-            return false;
-          }
-          return true;
-        })
+      // Keep all directories (including empty ones) for consistent mental model
+      // Empty directories are useful landmarks and may be needed for file creation
     );
   }
 

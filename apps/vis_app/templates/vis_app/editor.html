@@ -1,6 +1,6 @@
 {% extends "global_base.html" %}
 
-{% load static vite %}
+{% load static vite tree_preseed %}
 
 {% block title %}
     SciTeX Visualizer
@@ -9,6 +9,8 @@
 {% block extra_css %}
     <link rel="stylesheet"
           href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d" />
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/workspace-sidebar.css' %}" />
     <!-- Vis Editor CSS Modules (refactored from monolithic vis.css) -->
     <link rel="stylesheet" href="{% static 'vis_app/css/vis/variables.css' %}" />
     <link rel="stylesheet" href="{% static 'vis_app/css/vis/layout.css' %}" />
@@ -42,7 +44,7 @@
          ======================================================================== -->
         <div class="vis-main">
             <!-- LEFT SIDEBAR - PROJECT NAVIGATOR -->
-            <div class="vis-sidebar">
+            <div class="vis-sidebar workspace-sidebar">
                 {% include "global_base_partials/workspace/sidebar_header.html" %}
                 <div class="sidebar-content" id="files-tree">
                     {% if current_project %}
@@ -72,13 +74,13 @@
             <div class="panel-resizer"
                  id="sidebar-resizer"
                  data-panel-resizer
-                 data-storage-prefix="scitex-vis-"
+                 data-storage-prefix="scitex-workspace-"
                  data-target=".vis-sidebar"
                  data-direction="left"
                  data-min-width="40"
                  data-default-width="250"
                  data-storage-key="sidebar-width"
-                 data-collapse-key="vis-sidebar-collapsed"
+                 data-collapse-key="scitex-workspace-sidebar-collapsed"
                  data-toggle-btn="sidebar-toggle"></div>
             <!-- CENTER WORKSPACE -->
             <div class="vis-workspace">
@@ -501,6 +503,7 @@
     {% vite_hmr_client %}
     <!-- Panel resizer (auto-initializes from data attributes) -->
     {% vite_script 'shared/workspace-panel-resizer' %}
+    {% tree_preseed_script current_project %}
     <!-- Fabric.js for canvas manipulation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
     <!-- Vis app modules (Vite) -->

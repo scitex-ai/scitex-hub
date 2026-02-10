@@ -1,6 +1,6 @@
 {% extends "writer_app/writer_base.html" %}
 
-{% load static vite %}
+{% load static vite tree_preseed %}
 
 {% block title %}
     SciTeX Writer
@@ -10,6 +10,8 @@
     <!-- Critical CSS - loaded immediately (editor, PDF, core UI) -->
     <link rel="stylesheet"
           href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d" />
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/workspace-sidebar.css' %}" />
     <!-- Shared Panel Resizer CSS (unified with Scholar, Console, Visualizer) -->
     <link rel="stylesheet" href="{% static 'shared/css/components/panel-resizer.css' %}" />
     <link rel="stylesheet"
@@ -55,8 +57,6 @@
           href="{% static 'writer_app/css/shared/index-ui/12-initialization-prompt.css' %}?v={{ request.timestamp|default:'1' }}" />
     <link rel="stylesheet"
           href="{% static 'writer_app/css/shared/index-ui/13-accessibility.css' %}?v={{ request.timestamp|default:'1' }}" />
-    <link rel="stylesheet"
-          href="{% static 'writer_app/css/shared/index-ui/14-workspace-sidebar.css' %}?v={{ request.timestamp|default:'1' }}" />
     <link rel="stylesheet"
           href="{% static 'writer_app/css/shared/index-ui/15-details-panel.css' %}?v={{ request.timestamp|default:'1' }}" />
     <link rel="stylesheet"
@@ -158,7 +158,7 @@
         <div class="writer-workspace">
             {% if project %}
                 <!-- Left sidebar: File tree -->
-                <aside class="writer-sidebar" id="writer-sidebar">
+                <aside class="writer-sidebar workspace-sidebar" id="writer-sidebar">
                     {% include "global_base_partials/workspace/sidebar_header.html" %}
                     <div class="sidebar-content" id="writer-file-tree">
                         <!-- WorkspaceFilesTree will render here -->
@@ -166,16 +166,16 @@
                     </div>
                 </aside>
                 <!-- Sidebar resizer (auto-initialized via data attributes) -->
-                <div class="panel-resizer sidebar-resizer"
+                <div class="panel-resizer"
                      id="sidebar-resizer"
                      data-panel-resizer
-                     data-storage-prefix="scitex-writer-"
+                     data-storage-prefix="scitex-workspace-"
                      data-target=".writer-sidebar"
                      data-direction="left"
                      data-min-width="40"
                      data-default-width="250"
                      data-storage-key="sidebar-width"
-                     data-collapse-key="writer-sidebar-collapsed"
+                     data-collapse-key="scitex-workspace-sidebar-collapsed"
                      data-toggle-btn="sidebar-toggle"></div>
             {% endif %}
             <!-- Main content: editor + preview -->
@@ -277,6 +277,7 @@
         <!-- Writer Application Bundle (Vite) -->
         {% vite_hmr_client %}
         {% vite_script 'shared/workspace-panel-resizer' %}
+        {% tree_preseed_script project %}
         {% vite_script 'writer_app/index' %}
         <!-- Real-Time Collaboration Script - temporarily disabled (file not found)
         <script type="module" src="{% static 'shared/js/collaboration/writer/index.js' %}?v={{ build_id|default:'dev' }}"></script>

@@ -56,7 +56,11 @@ export class PDFZoomControl {
 
       // Handle dropdown change
       zoomSelect.addEventListener("change", () => {
-        const newZoom = parseInt(zoomSelect.value, 10);
+        const value = zoomSelect.value;
+        // Skip non-numeric values like "fit-width" — ZoomController handles those
+        if (value === "fit-width") return;
+        const newZoom = parseInt(value, 10);
+        if (isNaN(newZoom)) return;
         this.setZoom(newZoom);
         console.log(
           `[PDFZoomControl] Zoom changed to ${newZoom}% via dropdown`,
@@ -75,6 +79,20 @@ export class PDFZoomControl {
    */
   loadSavedZoom(): void {
     const savedZoom = statePersistence.getSavedPdfZoom();
+
+    // Clean up corrupted values (e.g., NaN from old "fit-width" bug)
+    if (
+      savedZoom !== undefined &&
+      (isNaN(savedZoom) || savedZoom < this.minZoom || savedZoom > this.maxZoom)
+    ) {
+      statePersistence.savePdfZoom(125); // Reset to default
+      console.log(
+        "[PDFZoomControl] Cleaned up corrupted zoom value:",
+        savedZoom,
+      );
+      return;
+    }
+
     if (savedZoom && savedZoom >= this.minZoom && savedZoom <= this.maxZoom) {
       this.currentZoom = savedZoom;
 
@@ -89,7 +107,7 @@ export class PDFZoomControl {
       console.log("[PDFZoomControl] Loaded saved zoom level:", savedZoom);
     } else {
       console.log(
-        "[PDFZoomControl] No saved zoom or invalid value, using default:",
+        "[PDFZoomControl] No saved zoom, using default:",
         this.currentZoom,
       );
     }
@@ -148,7 +166,7 @@ export class PDFZoomControl {
    * Set zoom level with cursor/center point preservation
    */
   setZoom(zoomLevel: number, cursorX?: number, cursorY?: number): void {
-    if (!this.pdfViewer) return;
+    if (!this.pdfViewer || isNaN(zoomLevel)) return;
 
     const oldZoom = this.currentZoom;
     this.currentZoom = Math.max(

@@ -5,10 +5,23 @@
 
 import { initZenMode } from "@/components/zen-mode";
 import { toggleShortcutsModal } from "@/components/shortcuts-modal";
-import { SHARED_SHORTCUTS, getShortcutKey, checkShortcutConflict, registerAppShortcut, getSharedShortcutsHTML, getSharedShortcutsList } from "./shared-shortcuts";
+import {
+  SHARED_SHORTCUTS,
+  getShortcutKey,
+  checkShortcutConflict,
+  registerAppShortcut,
+  getSharedShortcutsHTML,
+  getSharedShortcutsList,
+} from "./shared-shortcuts";
 
 // Re-export shared shortcuts utilities for use by other modules
-export { SHARED_SHORTCUTS, checkShortcutConflict, registerAppShortcut, getSharedShortcutsHTML, getSharedShortcutsList };
+export {
+  SHARED_SHORTCUTS,
+  checkShortcutConflict,
+  registerAppShortcut,
+  getSharedShortcutsHTML,
+  getSharedShortcutsList,
+};
 
 /**
  * Initialize the main application
@@ -107,71 +120,78 @@ function initMobileMenu(): void {
  */
 function initModuleSwitcher(): void {
   const moduleRoutes: Record<string, string> = {
-    'f': '/files/',
-    's': '/scholar/',
-    'c': '/console/',
-    'v': '/vis/',
-    'w': '/writer/',
+    f: "/files/",
+    s: "/scholar/",
+    c: "/console/",
+    v: "/vis/",
+    w: "/writer/",
   };
 
   // Use capture phase to intercept before Monaco/xterm can consume the event
-  document.addEventListener('keydown', (e: KeyboardEvent) => {
-    // Only handle Alt+key combinations (no other modifiers)
-    if (!e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) {
-      return;
-    }
-
-    const key = e.key.toLowerCase();
-
-    // Handle Alt+/ for keyboard shortcuts help
-    if (key === '/' || e.key === '/') {
-      e.preventDefault();
-      e.stopPropagation();
-      toggleShortcutsModal();
-      return;
-    }
-
-    const route = moduleRoutes[key];
-
-    if (route) {
-      // Don't switch if we're already on this module
-      if (window.location.pathname.startsWith(route)) {
+  document.addEventListener(
+    "keydown",
+    (e: KeyboardEvent) => {
+      // Only handle Alt+key combinations (no other modifiers)
+      if (!e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) {
         return;
       }
 
-      // Skip if user is in a regular text input (NOT Monaco or Terminal)
-      // Monaco uses a hidden textarea, xterm uses a hidden input
-      // We want to allow Alt+key in those since they're not for typing Alt+letter
-      const activeElement = document.activeElement as HTMLElement;
-      if (activeElement) {
-        // Only skip for visible, user-facing input fields
-        const isVisibleInput = (
-          (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA') &&
-          !activeElement.classList.contains('monaco-mouse-cursor-text') &&
-          !activeElement.closest('.monaco-editor') &&
-          !activeElement.closest('.xterm') &&
-          !activeElement.classList.contains('xterm-helper-textarea')
-        );
+      const key = e.key.toLowerCase();
 
-        // Also skip for contentEditable elements that are NOT code editors
-        const isContentEditable = activeElement.isContentEditable &&
-          !activeElement.closest('.monaco-editor');
-
-        if (isVisibleInput || isContentEditable) {
-          return;
-        }
+      // Handle Alt+/ for keyboard shortcuts help
+      if (key === "/" || e.key === "/") {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleShortcutsModal();
+        return;
       }
 
-      // Stop propagation to prevent Monaco/Terminal from seeing this event
-      e.preventDefault();
-      e.stopPropagation();
+      const route = moduleRoutes[key];
 
-      console.log(`[ModuleSwitcher] Navigating to ${route}`);
-      window.location.href = route;
-    }
-  }, true); // Use capture phase
+      if (route) {
+        // Don't switch if we're already on this module
+        if (window.location.pathname.startsWith(route)) {
+          return;
+        }
 
-  console.log('[ModuleSwitcher] Initialized - Alt+F/S/C/V/W to switch modules, Alt+/ for shortcuts (capture phase)');
+        // Skip if user is in a regular text input (NOT Monaco or Terminal)
+        // Monaco uses a hidden textarea, xterm uses a hidden input
+        // We want to allow Alt+key in those since they're not for typing Alt+letter
+        const activeElement = document.activeElement as HTMLElement;
+        if (activeElement) {
+          // Only skip for visible, user-facing input fields
+          const isVisibleInput =
+            (activeElement.tagName === "INPUT" ||
+              activeElement.tagName === "TEXTAREA") &&
+            !activeElement.classList.contains("monaco-mouse-cursor-text") &&
+            !activeElement.closest(".monaco-editor") &&
+            !activeElement.closest(".xterm") &&
+            !activeElement.classList.contains("xterm-helper-textarea");
+
+          // Also skip for contentEditable elements that are NOT code editors
+          const isContentEditable =
+            activeElement.isContentEditable &&
+            !activeElement.closest(".monaco-editor");
+
+          if (isVisibleInput || isContentEditable) {
+            return;
+          }
+        }
+
+        // Stop propagation to prevent Monaco/Terminal from seeing this event
+        e.preventDefault();
+        e.stopPropagation();
+
+        console.log(`[ModuleSwitcher] Navigating to ${route}`);
+        window.location.href = route;
+      }
+    },
+    true,
+  ); // Use capture phase
+
+  console.log(
+    "[ModuleSwitcher] Initialized - Alt+F/S/C/V/W to switch modules, Alt+/ for shortcuts (capture phase)",
+  );
 }
 
 /**
@@ -182,39 +202,44 @@ function initGlobalZenMode(): void {
   // Only enable zen mode on the four workspace modules
   // Check for workspace-specific selectors to determine if we're on a workspace page
   const workspaceSelectors = [
-    '.writer-workspace',    // Writer app
-    '.code-workspace',      // Code app
-    '.scholar-workspace',   // Scholar app
-    '.vis-editor-container', // Vis app
+    ".writer-workspace", // Writer app
+    ".code-workspace", // Code app
+    ".scholar-workspace", // Scholar app
+    ".vis-editor-container", // Vis app
   ];
 
   // Check if we're on a workspace page
-  const isWorkspacePage = workspaceSelectors.some(sel => document.querySelector(sel));
+  const isWorkspacePage = workspaceSelectors.some((sel) =>
+    document.querySelector(sel),
+  );
   if (!isWorkspacePage) {
-    console.log('[ZenMode] Not a workspace page, skipping initialization');
+    console.log("[ZenMode] Not a workspace page, skipping initialization");
     return;
   }
 
   // Auto-detect sidebar and details panel selectors
   const sidebarSelectors = [
-    '.writer-sidebar',      // Writer app
-    '.code-sidebar',        // Code app
-    '.scholar-sidebar',     // Scholar app
-    '.vis-sidebar',         // Vis app
+    ".writer-sidebar", // Writer app
+    ".code-sidebar", // Code app
+    ".scholar-sidebar", // Scholar app
+    ".vis-sidebar", // Vis app
   ];
 
   const detailsSelectors = [
-    '.writer-details',          // Writer app
-    '.code-terminal-panel',     // Code app (right panel)
-    '.scholar-properties',      // Scholar app (right panel)
-    '.vis-properties',          // Vis app (right panel)
+    ".writer-details", // Writer app
+    ".code-terminal-panel", // Code app (right panel)
+    ".scholar-properties", // Scholar app (right panel)
+    ".vis-properties", // Vis app (right panel)
   ];
 
   const toggleIds: Record<string, { sidebar?: string; details?: string }> = {
-    '.writer-sidebar': { sidebar: 'sidebar-toggle', details: 'details-toggle' },
-    '.code-sidebar': { sidebar: 'sidebar-toggle', details: 'terminal-toggle' },
-    '.scholar-sidebar': { sidebar: 'sidebar-toggle', details: 'properties-toggle' },
-    '.vis-sidebar': { sidebar: 'sidebar-toggle', details: 'properties-toggle' },
+    ".writer-sidebar": { sidebar: "sidebar-toggle", details: "details-toggle" },
+    ".code-sidebar": { sidebar: "sidebar-toggle", details: "terminal-toggle" },
+    ".scholar-sidebar": {
+      sidebar: "sidebar-toggle",
+      details: "properties-toggle",
+    },
+    ".vis-sidebar": { sidebar: "sidebar-toggle", details: "properties-toggle" },
   };
 
   // Find which selectors exist on the current page
@@ -244,15 +269,20 @@ function initGlobalZenMode(): void {
 
   // Initialize zen mode with detected selectors
   initZenMode({
-    headerSelector: '.global-header',
+    headerSelector: ".global-header",
     sidebarSelector,
     detailsSelector,
     sidebarToggleId,
     detailsToggleId,
-    storagePrefix: 'scitex-',
+    storagePrefix: "scitex-workspace-",
   });
 
-  console.log('[ZenMode] Initialized for workspace - sidebar:', sidebarSelector, 'details:', detailsSelector);
+  console.log(
+    "[ZenMode] Initialized for workspace - sidebar:",
+    sidebarSelector,
+    "details:",
+    detailsSelector,
+  );
 }
 
 /**
@@ -260,11 +290,13 @@ function initGlobalZenMode(): void {
  * Shows visual badges (e.g., "Alt+F") when Alt key is pressed
  */
 function initAltKeyShortcutBadges(): void {
-  const navItems = document.querySelectorAll<HTMLElement>('.header-nav-item[data-shortcut]');
+  const navItems = document.querySelectorAll<HTMLElement>(
+    ".header-nav-item[data-shortcut]",
+  );
   if (navItems.length === 0) return;
 
   // Create and inject styles for shortcut badges
-  const style = document.createElement('style');
+  const style = document.createElement("style");
   style.textContent = `
     .shortcut-badge {
       position: absolute;
@@ -295,12 +327,12 @@ function initAltKeyShortcutBadges(): void {
   document.head.appendChild(style);
 
   // Add badges to navigation items
-  navItems.forEach(item => {
+  navItems.forEach((item) => {
     const shortcut = item.dataset.shortcut;
     if (!shortcut) return;
 
-    const badge = document.createElement('span');
-    badge.className = 'shortcut-badge';
+    const badge = document.createElement("span");
+    badge.className = "shortcut-badge";
     badge.textContent = `Alt+${shortcut}`;
     item.appendChild(badge);
   });
@@ -308,33 +340,43 @@ function initAltKeyShortcutBadges(): void {
   // Show badges when Alt is pressed
   let altPressed = false;
 
-  document.addEventListener('keydown', (e: KeyboardEvent) => {
-    if (e.key === 'Alt' && !altPressed) {
-      altPressed = true;
-      document.querySelectorAll('.shortcut-badge').forEach(badge => {
-        badge.classList.add('visible');
-      });
-    }
-  }, true);
+  document.addEventListener(
+    "keydown",
+    (e: KeyboardEvent) => {
+      if (e.key === "Alt" && !altPressed) {
+        altPressed = true;
+        document.querySelectorAll(".shortcut-badge").forEach((badge) => {
+          badge.classList.add("visible");
+        });
+      }
+    },
+    true,
+  );
 
-  document.addEventListener('keyup', (e: KeyboardEvent) => {
-    if (e.key === 'Alt') {
-      altPressed = false;
-      document.querySelectorAll('.shortcut-badge').forEach(badge => {
-        badge.classList.remove('visible');
-      });
-    }
-  }, true);
+  document.addEventListener(
+    "keyup",
+    (e: KeyboardEvent) => {
+      if (e.key === "Alt") {
+        altPressed = false;
+        document.querySelectorAll(".shortcut-badge").forEach((badge) => {
+          badge.classList.remove("visible");
+        });
+      }
+    },
+    true,
+  );
 
   // Also hide badges when window loses focus (Alt+Tab scenario)
-  window.addEventListener('blur', () => {
+  window.addEventListener("blur", () => {
     altPressed = false;
-    document.querySelectorAll('.shortcut-badge').forEach(badge => {
-      badge.classList.remove('visible');
+    document.querySelectorAll(".shortcut-badge").forEach((badge) => {
+      badge.classList.remove("visible");
     });
   });
 
-  console.log('[AltKeyBadges] Initialized - Press Alt to see navigation shortcuts');
+  console.log(
+    "[AltKeyBadges] Initialized - Press Alt to see navigation shortcuts",
+  );
 }
 
 // Initialize when DOM is ready

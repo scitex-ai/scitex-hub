@@ -6,8 +6,8 @@
 .wft-git-panel {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 6px 8px;
+  gap: 4px;
+  padding: 4px 8px;
   border-top: 1px solid var(--workspace-border-default);
   background: var(--workspace-bg-secondary);
   flex-shrink: 0; /* Don't shrink git panel */
@@ -43,8 +43,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 3px 6px;
+  gap: 3px;
+  padding: 2px 5px;
   font-size: 10px;
   border: none;
   border-radius: 3px;

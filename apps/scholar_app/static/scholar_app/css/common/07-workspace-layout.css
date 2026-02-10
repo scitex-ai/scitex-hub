@@ -3,114 +3,13 @@
    Using workspace colors for consistency with code/vis/writer
    =============================================== */
 
+/* Scholar workspace flex container */
 .scholar-workspace {
   display: flex;
-  height: 100%; /* Fill parent container (flex: 1 from global-base.css) */
+  height: 100%;
   overflow: hidden;
   background: var(--workspace-bg-primary, #0d0d0d);
-  gap: 0; /* No margins between panes */
-}
-
-/* Left sidebar: File tree */
-.scholar-sidebar {
-  width: 250px;
-  min-width: 40px;
-  background: var(--workspace-bg-primary, #0d0d0d);
-  border-right: none; /* Resizer handles visual separation */
-  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
-  margin-bottom: 1px;
-  display: flex;
-  flex-direction: column;
-  transition:
-    width 0.2s ease,
-    min-width 0.2s ease;
-  flex-shrink: 0;
-}
-
-.scholar-sidebar.collapsed {
-  width: 40px;
-  min-width: 40px;
-}
-
-.scholar-sidebar.collapsed .sidebar-content {
-  display: none;
-}
-
-.scholar-sidebar .sidebar-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
-  height: 50px;
-  min-height: 50px;
-  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
-  flex-shrink: 0;
-  background: var(--workspace-bg-secondary, #151515);
-}
-
-.scholar-sidebar.collapsed .sidebar-header {
-  padding: 0 4px; /* Reduce padding when collapsed */
-  justify-content: center;
-}
-
-.scholar-sidebar .sidebar-header h5 {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary, #d4e1e8);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.scholar-sidebar .sidebar-header h5 i {
-  color: var(--workspace-icon-primary, #059669);
-}
-
-.scholar-sidebar.collapsed .sidebar-header h5 {
-  display: none;
-}
-
-.scholar-sidebar .sidebar-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.scholar-sidebar.collapsed .sidebar-header-actions {
-  display: none;
-}
-
-.scholar-sidebar.collapsed .sidebar-toggle {
-  /* Keep toggle button visible when collapsed */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  padding: 4px;
-}
-
-.scholar-sidebar .sidebar-toggle {
-  background: none;
-  border: none;
-  padding: 4px 8px;
-  cursor: pointer;
-  color: var(--text-muted, #6c8ba0);
-  border-radius: 4px;
-  transition: all 0.15s ease;
-}
-
-.scholar-sidebar .sidebar-toggle:hover {
-  background: var(--workspace-bg-tertiary, #1a1a1a);
-  color: var(--workspace-icon-primary, #059669);
-}
-
-.scholar-sidebar .sidebar-content {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  background: var(--terminal-bg, #1e1e1e);
-  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
+  gap: 0;
 }
 
 /* Center panel: Main content */
@@ -124,7 +23,6 @@
   min-width: 0;
   min-height: 0; /* Allow shrinking in flex context */
   border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
-  margin-bottom: 1px;
 }
 
 .scholar-main .pane-header {
@@ -247,91 +145,24 @@
   min-height: 0; /* Allow shrinking in flex context */
 }
 
-/* Right panel: Properties/details */
+/* Right panel: Properties/details
+   Base styles from shared collapsible-panel.css
+   Only scholar-specific overrides here */
 .scholar-properties {
   width: 320px;
   min-width: 40px;
-  background: var(--workspace-bg-primary, #0d0d0d);
-  border-left: none; /* Resizer handles visual separation */
-  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
-  margin-bottom: 1px;
   display: flex;
   flex-direction: column;
   transition:
     width 0.2s ease,
     min-width 0.2s ease;
   flex-shrink: 0;
+  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
 }
 
 .scholar-properties.collapsed {
   width: 40px;
   min-width: 40px;
-}
-
-.scholar-properties.collapsed .properties-content {
-  display: none;
-}
-
-.scholar-properties .properties-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
-  height: 50px;
-  min-height: 50px;
-  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
-  flex-shrink: 0;
-  background: var(--workspace-bg-secondary, #151515);
-}
-
-.scholar-properties .properties-header h5 {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary, #d4e1e8);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.scholar-properties .properties-header h5 i {
-  color: var(--workspace-icon-primary, #059669);
-}
-
-.scholar-properties.collapsed .properties-header h5 {
-  display: none;
-}
-
-.scholar-properties.collapsed .properties-toggle {
-  /* Keep toggle button visible when collapsed */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  padding: 4px;
-}
-
-.scholar-properties .properties-toggle {
-  background: none;
-  border: none;
-  padding: 4px 8px;
-  cursor: pointer;
-  color: var(--text-muted, #6c8ba0);
-  border-radius: 4px;
-  transition: all 0.15s ease;
-}
-
-.scholar-properties .properties-toggle:hover {
-  background: var(--workspace-bg-tertiary, #1a1a1a);
-  color: var(--workspace-icon-primary, #059669);
-}
-
-.scholar-properties .properties-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 16px;
-  background: var(--workspace-bg-primary, #0d0d0d);
-  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
 }
 
 /* Remove default container styles inside scholar-main */
@@ -340,51 +171,9 @@
   padding: 0;
 }
 
-/* Resizer handles */
-.scholar-resizer {
-  width: 4px;
-  background: transparent;
-  cursor: col-resize;
-  flex-shrink: 0;
-  transition: background 0.15s ease;
-}
-
-.scholar-resizer:hover {
-  background: var(--workspace-icon-primary, #059669);
-}
-
-/* Light mode overrides */
-[data-theme="light"] .scholar-workspace {
-  background: var(--workspace-bg-primary);
-}
-
-[data-theme="light"] .scholar-sidebar {
-  background: var(--workspace-bg-primary);
-}
-
-[data-theme="light"] .scholar-sidebar .sidebar-header {
-  background: var(--workspace-bg-secondary);
-  border-bottom-color: var(--workspace-border-default);
-}
-
-[data-theme="light"] .scholar-sidebar .sidebar-header h5 {
-  color: var(--text-primary);
-}
-
-[data-theme="light"] .scholar-main {
-  background: var(--workspace-bg-primary);
-}
-
+/* Light mode overrides - sidebar/properties handled by shared CSS.
+   Only scholar-specific light mode overrides here. */
 [data-theme="light"] .scholar-main .pane-header {
-  background: var(--workspace-bg-secondary);
-  border-bottom-color: var(--workspace-border-default);
-}
-
-[data-theme="light"] .scholar-properties {
-  background: var(--workspace-bg-primary);
-}
-
-[data-theme="light"] .scholar-properties .properties-header {
   background: var(--workspace-bg-secondary);
   border-bottom-color: var(--workspace-border-default);
 }

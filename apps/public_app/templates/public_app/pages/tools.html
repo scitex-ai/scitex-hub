@@ -1,6 +1,6 @@
 {% extends "global_base.html" %}
 
-{% load static vite %}
+{% load static vite tree_preseed %}
 
 {% block title %}SciTeX Tools{% endblock %}
 {% block meta_description %}
@@ -12,225 +12,111 @@
     <!-- Workspace files tree CSS -->
     <link rel="stylesheet"
           href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d" />
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/workspace-sidebar.css' %}" />
     <!-- Panel resizer CSS -->
     <link rel="stylesheet" href="{% static 'shared/css/components/panel-resizer.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/workspace-files-tree/hidden-files-toggle.css' %}" />
     <!-- Tools page CSS -->
     <link rel="stylesheet" href="{% static 'public_app/css/tools/tools.css' %}" />
 {% endblock %}
 {% block content %}
-    <!-- Project config for TypeScript (hidden element) -->
+    <!-- Project config for shared tree auto-init -->
     {% if current_project %}
-        <div id="tools-project-config"
+        <div id="workspace-project-config"
              style="display: none"
              data-username="{{ current_project.owner.username }}"
-             data-slug="{{ current_project.slug }}"></div>
+             data-slug="{{ current_project.slug }}"
+             data-mode="tools"></div>
     {% endif %}
-    <!-- Workspace layout with sidebar -->
+    <!-- Workspace layout: 3 columns -->
     <div class="tools-workspace">
-        <!-- Left sidebar: File tree (only shown when project exists) -->
-        {% if current_project %}
-            <aside class="tools-sidebar" id="tools-sidebar">
-                {% include "global_base_partials/workspace/sidebar_header.html" %}
-                <div class="sidebar-content" id="file-tree">
-                    <!-- WorkspaceFilesTree will render here -->
-                    <div class="wft-loading">Loading...</div>
-                </div>
-            </aside>
-            <!-- Sidebar resizer (auto-initialized via data attributes) -->
-            <div class="panel-resizer"
-                 id="sidebar-resizer"
-                 data-panel-resizer
-                 data-storage-prefix="scitex-tools-"
-                 data-target=".tools-sidebar"
-                 data-direction="left"
-                 data-min-width="40"
-                 data-default-width="250"
-                 data-storage-key="sidebar-width"
-                 data-collapse-key="tools-sidebar-collapsed"
-                 data-toggle-btn="sidebar-toggle"></div>
-        {% endif %}
-        <!-- Main content area -->
-        <main class="tools-main">
-            <div class="tools-container">
-                <!-- Tab Navigation -->
-                <nav class="tab-navigation">
-                    {% for domain in domains %}
-                        <button class="tab-button {% if forloop.first %}active{% endif %}"
-                                data-tab="tab-{{ domain.slug }}">
-                            <span class="tab-icon">{{ domain.icon }}</span>
-                            <span>{{ domain.name }}</span>
-                            <span class="tab-count">{{ domain.tools|length }}</span>
-                        </button>
-                    {% endfor %}
-                    <!-- Search Box in Tab Navigation -->
-                    <div class="search-box">
-                        <span class="search-icon">🔍</span>
-                        <input type="text" class="search-input" id="searchInput" placeholder="Search tools..." />
-                        <span class="search-shortcut">Ctrl K</span>
+        <!-- Column 1: File tree sidebar -->
+        <aside class="tools-sidebar workspace-sidebar" id="tools-sidebar">
+            {% include "global_base_partials/workspace/sidebar_header.html" %}
+            <div class="sidebar-content">
+                {% if current_project %}
+                    <div id="file-tree">
+                        <div class="wft-loading">Loading...</div>
                     </div>
-                </nav>
-                <!-- Tools by Domain -->
+                {% endif %}
+            </div>
+        </aside>
+        <!-- Sidebar resizer -->
+        <div class="panel-resizer"
+             id="sidebar-resizer"
+             data-panel-resizer
+             data-storage-prefix="scitex-workspace-"
+             data-target=".tools-sidebar"
+             data-direction="left"
+             data-min-width="40"
+             data-default-width="250"
+             data-storage-key="sidebar-width"
+             data-collapse-key="scitex-workspace-sidebar-collapsed"
+             data-toggle-btn="sidebar-toggle"></div>
+        <!-- Column 2: Tool selector (always visible) -->
+        <div class="tools-nav-panel" id="tools-nav-panel">
+            <!-- Search Box -->
+            <div class="tools-search-bar">
+                <span class="search-icon"><i class="fas fa-search"></i></span>
+                <input type="text" class="search-input" id="searchInput" placeholder="Search tools..." />
+                <span class="search-shortcut">Ctrl K</span>
+            </div>
+            <!-- Tool navigation by domain -->
+            <div class="tools-nav-list" id="tools-nav-list">
                 {% for domain in domains %}
-                    <div class="tab-content {% if forloop.first %}active{% endif %}"
-                         id="tab-{{ domain.slug }}">
-                        <div class="tools-domain-section domain-{{ domain.slug }}">
-                            <p class="domain-description">{{ domain.description }}</p>
-                            <div class="tools-grid">
-                                {% for tool in domain.tools %}
-                                    <a href="{{ tool.bookmarklet_url }}"
-                                       class="tool-card"
-                                       data-search="{{ tool.name|lower }} {{ tool.description|lower }} {{ tool.use_case|lower }}">
-                                        <div class="tool-card-header">
-                                            <span class="tool-icon">{{ tool.icon }}</span>
-                                            <div class="tool-info">
-                                                <h3 class="tool-card-title">{{ tool.name }}</h3>
-                                                <p class="tool-description">{{ tool.description }}</p>
-                                                <p class="tool-use-case">{{ tool.use_case }}</p>
-                                            </div>
-                                        </div>
-                                    </a>
-                                {% endfor %}
-                            </div>
+                    <div class="tools-nav-domain">
+                        <button class="tools-nav-domain-header expanded" data-domain="{{ domain.slug }}">
+                            <span class="tools-nav-domain-icon">{{ domain.icon }}</span>
+                            <span class="tools-nav-domain-name">{{ domain.name }}</span>
+                            <span class="tools-nav-count">{{ domain.tools|length }}</span>
+                            <i class="fas fa-chevron-right tools-nav-chevron"></i>
+                        </button>
+                        <div class="tools-nav-items expanded">
+                            {% for tool in domain.tools %}
+                                <a class="tools-nav-item"
+                                   href="#"
+                                   data-tool-url="{{ tool.bookmarklet_url }}?embed=1"
+                                   data-tool-name="{{ tool.name }}"
+                                   data-tool-slug="{{ tool.bookmarklet_url|slugify }}">
+                                    <span class="tools-nav-item-icon">{{ tool.icon }}</span>
+                                    <span class="tools-nav-item-name">{{ tool.name }}</span>
+                                </a>
+                            {% endfor %}
                         </div>
                     </div>
                 {% endfor %}
             </div>
-            <script>
-  // Search functionality
-  const searchInput = document.getElementById('searchInput');
-  const toolCards = document.querySelectorAll('.tool-card');
-  const tabContents = document.querySelectorAll('.tab-content');
-  const tabButtons = document.querySelectorAll('.tab-button');
-
-  searchInput.addEventListener('input', (e) => {
-    const searchTerm = e.target.value.toLowerCase().trim();
-    const tabsWithResults = new Set();
-
-    // Filter tools
-    toolCards.forEach(card => {
-      const searchText = card.dataset.search;
-      const isVisible = searchTerm === '' || searchText.includes(searchTerm);
-      card.style.display = isVisible ? 'block' : 'none';
-
-      if (isVisible) {
-        // Track which tab this tool belongs to
-        const tabContent = card.closest('.tab-content');
-        if (tabContent) {
-          tabsWithResults.add(tabContent.id);
-        }
-      }
-    });
-
-    if (searchTerm === '') {
-      // Reset to normal tab view
-      tabContents.forEach(content => {
-        content.style.display = 'none';
-        content.classList.remove('active');
-      });
-      tabContents[0].style.display = 'block';
-      tabContents[0].classList.add('active');
-
-      tabButtons.forEach((btn, index) => {
-        btn.disabled = false;
-        btn.style.opacity = '1';
-        if (index === 0) {
-          btn.classList.add('active');
-        } else {
-          btn.classList.remove('active');
-        }
-      });
-    } else {
-      // Show all tabs with results
-      tabContents.forEach(content => {
-        if (tabsWithResults.has(content.id)) {
-          content.style.display = 'block';
-          content.classList.add('active');
-        } else {
-          content.style.display = 'none';
-          content.classList.remove('active');
-        }
-      });
-
-      // Update tab buttons to show which have results
-      tabButtons.forEach(btn => {
-        const tabId = btn.getAttribute('data-tab');
-        if (tabsWithResults.has(tabId)) {
-          btn.disabled = false;
-          btn.style.opacity = '1';
-        } else {
-          btn.disabled = true;
-          btn.style.opacity = '0.3';
-        }
-        btn.classList.remove('active');
-      });
-    }
-  });
-
-  // Keyboard shortcuts
-  document.addEventListener('keydown', (e) => {
-    // Ctrl+K to focus search
-    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-      e.preventDefault();
-      searchInput.focus();
-    }
-    // Esc to unfocus search
-    if (e.key === 'Escape') {
-      if (document.activeElement === searchInput) {
-        searchInput.blur();
-      }
-    }
-  });
-
-  // Tab navigation
-  tabButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      const tabId = button.getAttribute('data-tab');
-
-      // Update active button styles
-      tabButtons.forEach(btn => {
-        btn.classList.remove('active');
-        btn.style.borderBottomColor = 'transparent';
-        btn.style.color = 'var(--text-secondary, #586069)';
-        btn.style.fontWeight = '400';
-        const count = btn.querySelector('.tab-count');
-        if (count) {
-          count.style.background = 'var(--bg-muted, #f6f8fa)';
-          count.style.color = 'var(--text-secondary, #586069)';
-        }
-      });
-
-      button.classList.add('active');
-      button.style.borderBottomColor = 'var(--status-info, #6b8fb3)';
-      button.style.color = 'var(--text-primary, #24292e)';
-      button.style.fontWeight = '600';
-      const count = button.querySelector('.tab-count');
-      if (count) {
-        count.style.background = 'var(--status-info, #6b8fb3)';
-        count.style.color = 'white';
-      }
-
-      // Update active content
-      tabContents.forEach(content => {
-        content.classList.remove('active');
-        content.style.display = 'none';
-      });
-
-      const activeContent = document.getElementById(tabId);
-      if (activeContent) {
-        activeContent.classList.add('active');
-        activeContent.style.display = 'block';
-      }
-    });
-  });
-            </script>
+        </div>
+        <!-- Nav-to-content resizer -->
+        <div class="panel-resizer"
+             id="tools-nav-resizer"
+             data-panel-resizer
+             data-storage-prefix="scitex-workspace-"
+             data-target=".tools-nav-panel"
+             data-direction="left"
+             data-min-width="180"
+             data-default-width="260"
+             data-storage-key="tools-nav-width"></div>
+        <!-- Column 3: Tool content (always visible) -->
+        <main class="tools-content-panel" id="tools-content-panel">
+            <!-- Iframe header removed for cleaner look - tools fill full space -->
+            <!-- Iframe or placeholder -->
+            <div class="tools-content-body" id="tools-content-body">
+                <div class="tools-placeholder" id="tools-placeholder">
+                    <i class="fas fa-wrench"></i>
+                    <p>Select a tool from the list</p>
+                </div>
+                <iframe id="tools-iframe" class="tools-iframe" src="" frameborder="0" hidden></iframe>
+            </div>
         </main>
     </div>
 {% endblock %}
 {% block extra_js %}
-    <!-- Vite HMR client (dev only) -->
     {% vite_hmr_client %}
-    <!-- Panel resizer (auto-initializes from data attributes) -->
     {% vite_script 'shared/workspace-panel-resizer' %}
-    <!-- Tools workspace initialization -->
-    {% vite_script 'public_app/tools-workspace-init' %}
+    {% tree_preseed_script current_project %}
+    {% vite_script 'shared/workspace-tree-init' %}
+    {% vite_script 'public_app/tools-panel' %}
 {% endblock %}

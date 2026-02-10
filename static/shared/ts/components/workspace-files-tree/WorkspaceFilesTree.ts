@@ -243,7 +243,21 @@ export class WorkspaceFilesTree {
     this.contextMenuActionHandler = result.contextMenuActionHandler;
     this.searchUIHandler = result.searchUIHandler;
     this.workspaceKeyboardHandler = result.workspaceKeyboardHandler;
-    await this.loadTree();
+
+    // Render from cache instantly, then refresh from API in background
+    const cached = this.dataLoader.getCached();
+    if (cached) {
+      this.treeData = cached.treeData;
+      this.gitSummary = cached.gitSummary;
+      this.dataLoader.applyDefaultExpansion(this.treeData);
+      this.render();
+      this.attachEventListeners();
+      this.selectionHandler.updateAllSelectionClasses();
+      // Refresh from API in background (non-blocking)
+      this.loadTree();
+    } else {
+      await this.loadTree();
+    }
   }
 
   private handleFileClick(path: string, event?: MouseEvent): void {
@@ -474,9 +488,25 @@ export class WorkspaceFilesTree {
     return this.filter.getModuleFilterEnabled();
   }
 
-  /** Switch filter mode at runtime (used by W/S/V/C/R/H/F/T/E buttons) */
-  setFilterMode(_mode: WorkspaceMode | "all"): void {
-    // Tree is shared across modules - keep the same view regardless of filter
-    // Filter buttons only highlight which module is active, not change the tree
+  /** Switch filter mode at runtime (used by module filter buttons) */
+  setFilterMode(mode: WorkspaceMode | "all"): void {
+    const isAll = mode === "all";
+    if (!isAll) this.filter.setMode(mode);
+    this.filter.setModuleFilterEnabled(!isAll);
+    this.rerender();
+  }
+
+  /** Toggle git status visibility (gutter bars, icon colors, git panel) */
+  toggleGitStatus(): boolean {
+    const show = this.config.showGitStatus === false;
+    this.config.showGitStatus = show;
+    this.container?.classList.toggle("wft-no-git", !show);
+    return show;
+  }
+
+  /** Set git status visibility */
+  setShowGitStatus(show: boolean): void {
+    this.config.showGitStatus = show;
+    this.container?.classList.toggle("wft-no-git", !show);
   }
 }

@@ -194,56 +194,44 @@
                     <i class="fas fa-th-large nav-icon-fa"></i>
                     <span class="nav-label">Hub</span>
                 </a>
-                <!-- Files - visible again during development -->
+                {% comment %}
+                <!-- Files - hidden from header; Hub will supersede this -->
                 {% if user.is_authenticated %}
                     {% if user.profile.last_active_repository %}
-                        <a href="/files/{{ user.username }}/{{ user.profile.last_active_repository.slug }}/"
-                           class="header-nav-item {% if 'files/' in request.path %}active{% endif %}"
-                           data-tooltip="Your files (Alt+F)"
-                           data-shortcut="F">
+                        <a href="/files/{{ user.username }}/{{ user.profile.last_active_repository.slug }}/" class="header-nav-item {% if 'files/' in request.path %}active{% endif %}" data-tooltip="Your files (Alt+F)" data-shortcut="F">
                             <i class="fas fa-book-open nav-icon-fa"></i>
                             <span class="nav-label">Files</span>
                         </a>
                     {% else %}
-                        <a href="/{{ user.username }}/"
-                           class="header-nav-item {% if user.username in request.path and 'explore' not in request.path %}active{% endif %}"
-                           data-tooltip="Your repositories (Alt+F)"
-                           data-shortcut="F">
+                        <a href="/{{ user.username }}/" class="header-nav-item {% if user.username in request.path and 'explore' not in request.path %}active{% endif %}" data-tooltip="Your repositories (Alt+F)" data-shortcut="F">
                             <i class="fas fa-book-open nav-icon-fa"></i>
                             <span class="nav-label">Files</span>
                         </a>
                     {% endif %}
                 {% else %}
                     {% if visitor_username %}
-                        <a href="/files/{{ visitor_username }}/"
-                           class="header-nav-item {% if 'files/' in request.path %}active{% endif %}"
-                           data-tooltip="Your files (Alt+F)"
-                           data-shortcut="F">
+                        <a href="/files/{{ visitor_username }}/" class="header-nav-item {% if 'files/' in request.path %}active{% endif %}" data-tooltip="Your files (Alt+F)" data-shortcut="F">
                             <i class="fas fa-book-open nav-icon-fa"></i>
                             <span class="nav-label">Files</span>
                         </a>
                     {% else %}
-                        <a href="{% url 'auth_app:signup' %}"
-                           class="header-nav-item"
-                           data-tooltip="Sign up to access files"
-                           data-shortcut="F">
+                        <a href="{% url 'auth_app:signup' %}" class="header-nav-item" data-tooltip="Sign up to access files" data-shortcut="F">
                             <i class="fas fa-book-open nav-icon-fa" style="opacity: 0.5"></i>
                             <span class="nav-label">Files</span>
                         </a>
                     {% endif %}
                 {% endif %}
+                <!-- Explorer - hidden from header for now -->
+                <a href="/social/explore/" class="header-nav-item {% if 'explore' in request.path %}active{% endif %}" data-tooltip="Explore other users' work">
+                    <i class="fas fa-compass nav-icon-fa"></i>
+                    <span class="nav-label">Explorer</span>
+                </a>
+                {% endcomment %}
                 <a href="/tools/"
                    class="header-nav-item {% if 'tools' in request.path %}active{% endif %}"
                    data-tooltip="Research tools and bookmarklets">
                     <i class="fas fa-toolbox nav-icon-fa"></i>
                     <span class="nav-label">Tools</span>
-                </a>
-                <!-- Explorer (renamed from Explore) -->
-                <a href="/social/explore/"
-                   class="header-nav-item {% if 'explore' in request.path %}active{% endif %}"
-                   data-tooltip="Explore other users' work">
-                    <i class="fas fa-compass nav-icon-fa"></i>
-                    <span class="nav-label">Explorer</span>
                 </a>
             </nav>
         </div>

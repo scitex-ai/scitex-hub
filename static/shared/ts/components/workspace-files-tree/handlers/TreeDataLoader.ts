@@ -28,11 +28,38 @@ export interface TreeLoadResult {
 }
 
 export class TreeDataLoader {
+  private cacheKey: string;
+
   constructor(
     private config: TreeConfig,
     private stateManager: TreeStateManager,
     private showError: (message: string) => void,
-  ) {}
+  ) {
+    this.cacheKey = `scitex-tree-${config.username}-${config.slug}`;
+  }
+
+  /** Get cached tree data from sessionStorage */
+  getCached(): TreeLoadResult | null {
+    try {
+      const raw = sessionStorage.getItem(this.cacheKey);
+      if (!raw) return null;
+      const cached = JSON.parse(raw) as TreeLoadResult;
+      if (cached.success && cached.treeData?.length > 0) return cached;
+    } catch {
+      /* ignore parse errors */
+    }
+    return null;
+  }
+
+  /** Save tree data to sessionStorage */
+  private saveCache(result: TreeLoadResult): void {
+    if (!result.success) return;
+    try {
+      sessionStorage.setItem(this.cacheKey, JSON.stringify(result));
+    } catch {
+      /* quota exceeded - ignore */
+    }
+  }
 
   /**
    * Load tree data from API with optional git status
@@ -71,7 +98,13 @@ export class TreeDataLoader {
           }
         }
 
-        return { success: true, treeData: tree, gitSummary };
+        const result: TreeLoadResult = {
+          success: true,
+          treeData: tree,
+          gitSummary,
+        };
+        this.saveCache(result);
+        return result;
       } else {
         const errorMsg = treeData.error || "Failed to load file tree";
         this.showError(errorMsg);

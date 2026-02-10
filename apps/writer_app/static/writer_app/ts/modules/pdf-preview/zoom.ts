@@ -21,7 +21,12 @@ export class ZoomController {
   private loadSavedZoom(): void {
     const savedZoom = localStorage.getItem("pdf-zoom-level");
     if (savedZoom) {
-      this.pdfZoom = parseInt(savedZoom, 10);
+      const parsed = parseInt(savedZoom, 10);
+      if (isNaN(parsed) || parsed < 50 || parsed > 300) {
+        localStorage.removeItem("pdf-zoom-level");
+        return;
+      }
+      this.pdfZoom = parsed;
       if (this.pdfViewer) {
         const scale = this.pdfZoom / 100;
         this.pdfViewer.setScale(scale);
@@ -186,6 +191,10 @@ export class ZoomController {
             quality + "x",
           );
         }
+        // Dispatch event to trigger preview recompilation
+        document.dispatchEvent(
+          new CustomEvent("pdf-quality-changed", { detail: { quality } }),
+        );
       }
     });
   }

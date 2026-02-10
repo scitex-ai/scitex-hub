@@ -1,119 +1,21 @@
 /* ========================================================================
    LEFT SIDEBAR - PROJECT NAVIGATOR
+   Base layout from shared workspace-sidebar.css
+   Only vis-specific overrides here
    ======================================================================== */
 
+/* Vis-specific: z-index above datatable sticky headers */
 .vis-sidebar {
+  position: relative;
+  z-index: 200;
   background: var(--vis-bg-secondary);
   border-right: 1px solid var(--vis-border);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  transition:
-    width 0.2s ease,
-    min-width 0.2s ease;
-  width: 250px;
-  min-width: 40px; /* Match collapsed width for proper shrinking */
-  flex-shrink: 0;
-  position: relative;
-  z-index: 200; /* Above datatable sticky headers (z-index: 100-150) */
 }
 
-/* Collapsed state */
-.vis-sidebar.collapsed {
-  width: 40px;
-  min-width: 40px;
-}
-
-.vis-sidebar.collapsed .sidebar-content {
-  display: none;
-}
-
-.vis-sidebar.collapsed .sidebar-header {
-  padding: 0 4px;
-  justify-content: center;
-}
-
-/* Hide all content except toggle button when collapsed */
-.vis-sidebar.collapsed .sidebar-header > *:not(.sidebar-toggle-btn) {
-  display: none;
-}
-
-.vis-sidebar.collapsed .sidebar-toggle-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 50px;
-}
-
-/* Dark mode: unified background with workspace modules */
+/* Dark mode */
 [data-theme="dark"] .vis-sidebar {
   background: var(--workspace-bg-primary) !important;
   border-right-color: var(--workspace-border-default);
-}
-
-.sidebar-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
-  margin-top: 0 !important;
-  height: 50px;
-  flex-shrink: 0;
-  box-sizing: border-box;
-  background: var(--vis-bg-secondary);
-  border-bottom: 1px solid var(--vis-border);
-  overflow: hidden; /* Prevent content from forcing width */
-  min-width: 0; /* Allow flex shrinking */
-}
-
-/* Dark mode: consistent header background */
-[data-theme="dark"] .sidebar-header {
-  background: var(--workspace-bg-secondary) !important;
-  border-bottom-color: var(--workspace-border-default);
-}
-
-.sidebar-header h4,
-.sidebar-header h5 {
-  margin: 0;
-  padding: 0;
-  margin-right: 12px;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1;
-  color: var(--text-primary);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 0; /* Allow flex shrinking */
-}
-
-.sidebar-header h5 i {
-  color: var(--workspace-icon-primary);
-}
-
-.sidebar-toggle-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-}
-
-.sidebar-toggle-btn:hover {
-  background: var(--vis-bg-hover);
-  color: var(--text-primary);
-}
-
-.sidebar-content {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
 }
 
 /* Project Tree */

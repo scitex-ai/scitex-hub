@@ -291,6 +291,11 @@ export class FileTreeSetup {
       (await import("@/components/workspace-files-tree/HiddenFilesToggle")) as any;
     toggleModule.initHiddenFilesToggle(filesTree);
 
+    // Initialize git status toggle
+    const gitToggleModule =
+      (await import("@/components/workspace-files-tree/GitStatusToggle")) as any;
+    gitToggleModule.initGitStatusToggle(filesTree);
+
     // Initialize module filter buttons (S C V W)
     const filterButtonsModule =
       (await import("@/components/workspace-files-tree/ModuleFilterButtons")) as any;

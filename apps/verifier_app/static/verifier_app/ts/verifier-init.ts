@@ -18,7 +18,9 @@ class VerifierApp {
   }
 
   private extractProjectInfo() {
-    const configEl = document.getElementById("verifier-project-config");
+    const configEl =
+      document.getElementById("workspace-project-config") ||
+      document.getElementById("verifier-project-config");
     if (configEl) {
       this.projectOwner = configEl.dataset.username || null;
       this.projectSlug = configEl.dataset.slug || null;
@@ -26,8 +28,7 @@ class VerifierApp {
   }
 
   async initialize() {
-    // Initialize file tree
-    await this.initFileTree();
+    // File tree is now initialized by shared/workspace-tree-init
 
     if (!this.projectOwner || !this.projectSlug) {
       console.log("[Verifier] No project selected");
@@ -45,32 +46,6 @@ class VerifierApp {
     const targetFile = urlParams.get("file");
     if (targetFile) {
       await this.loadChainForFile(targetFile);
-    }
-  }
-
-  private async initFileTree() {
-    if (!this.projectOwner || !this.projectSlug) return;
-
-    try {
-      const { WorkspaceFilesTree } =
-        await import("@/components/workspace-files-tree/WorkspaceFilesTree");
-      const { initHiddenFilesToggle } =
-        await import("@/components/workspace-files-tree/HiddenFilesToggle");
-      const { initModuleFilterButtons } =
-        await import("@/components/workspace-files-tree/ModuleFilterButtons");
-
-      const tree = new WorkspaceFilesTree({
-        containerId: "file-tree",
-        mode: "verifier",
-        username: this.projectOwner,
-        slug: this.projectSlug,
-      });
-
-      await tree.initialize();
-      initHiddenFilesToggle(tree);
-      initModuleFilterButtons(tree, "verifier");
-    } catch (err) {
-      console.error("[Verifier] Failed to init file tree:", err);
     }
   }
 

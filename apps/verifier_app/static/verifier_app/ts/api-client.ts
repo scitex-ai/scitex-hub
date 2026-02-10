@@ -104,7 +104,7 @@ export interface DatabaseStats {
 }
 
 export class VerifierApiClient {
-  private baseUrl = "/verifier/api";
+  private baseUrl = "/verifier";
 
   private async fetchJson<T>(
     endpoint: string,

@@ -3,26 +3,10 @@
 /* Three-panel workspace layout */
 .verifier-workspace {
   display: flex;
-  height: calc(100vh - var(--header-height, 48px));
   overflow: hidden;
 }
 
-/* Left Sidebar - Project Navigator */
-.verifier-sidebar {
-  width: 250px;
-  min-width: 40px;
-  background: var(--workspace-bg-secondary);
-  border-right: 1px solid var(--workspace-border-default);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.sidebar-content {
-  flex: 1;
-  overflow-y: auto;
-  min-height: 0;
-}
+/* Verifier sidebar: uses shared .workspace-sidebar for base layout */
 
 .sidebar-empty-state {
   text-align: center;
@@ -47,26 +31,23 @@
 }
 
 .verifier-header {
-  padding: 1.5rem 2rem;
+  padding: 0 1rem;
   border-bottom: 1px solid var(--workspace-border-default);
   background: var(--workspace-bg-secondary);
+  height: 36px;
+  display: flex;
+  align-items: center;
 }
 
-.verifier-header h2 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.5rem;
+.verifier-header-title {
+  font-size: 0.85rem;
+  font-weight: 600;
   color: var(--workspace-text-primary);
 }
 
-.verifier-header h2 i {
+.verifier-header-title i {
   color: var(--workspace-icon-primary);
-  margin-right: 0.5rem;
-}
-
-.verifier-subtitle {
-  margin: 0;
-  color: var(--workspace-text-muted);
-  font-size: 0.95rem;
+  margin-right: 0.4rem;
 }
 
 /* DAG Visualization Area */
@@ -110,30 +91,23 @@
 
 /* Right Sidebar - Details Panel */
 .verifier-details {
-  width: 300px;
-  min-width: 200px;
-  background: var(--workspace-bg-secondary);
+  width: 280px;
+  min-width: 40px;
+  background: var(--workspace-bg-primary);
   border-left: 1px solid var(--workspace-border-default);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  transition:
+    width 0.2s ease,
+    min-width 0.2s ease;
+  flex-shrink: 0;
 }
 
-.verifier-details-header {
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--workspace-border-default);
-}
-
-.verifier-details-header h3 {
-  margin: 0;
-  font-size: 1.1rem;
-  color: var(--workspace-text-primary);
-}
-
-.verifier-details-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1rem 1.5rem;
+/* Collapsed state (shared CSS handles header/content/toggle) */
+.verifier-details.collapsed {
+  width: 40px;
+  min-width: 40px;
 }
 
 .details-placeholder {

@@ -213,6 +213,78 @@
 }
 
 /* ===========================================================================
+   SHARED DETAILS PANEL (RIGHT PANEL)
+   Standard details/properties panel used across all workspace modules.
+   Provides: header with toggle button, content area, collapsed state.
+   Used by: Writer, Scholar, Vis, Console, Hub, Verifier
+   =========================================================================== */
+
+/* Details header - standard 50px with toggle + title */
+.details-header,
+.properties-header {
+  display: flex;
+  align-items: center;
+  min-height: 50px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--workspace-border-default);
+  background: var(--workspace-bg-secondary);
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.details-header h5,
+.properties-header h5 {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--workspace-text-primary);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.details-header h5 i,
+.properties-header h5 i {
+  color: var(--workspace-icon-primary);
+}
+
+/* Details content area */
+.details-content,
+.properties-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  color: var(--workspace-text-primary);
+}
+
+/* Collapsed state for details/properties panels */
+.collapsed .details-header h5,
+.collapsed .properties-header h5,
+.collapsed .details-content,
+.collapsed .properties-content {
+  display: none;
+}
+
+.collapsed .details-header,
+.collapsed .properties-header {
+  padding: 0;
+  justify-content: center;
+  align-items: center;
+  height: 50px;
+}
+
+.collapsed .details-toggle,
+.collapsed .properties-toggle,
+.collapsed .properties-toggle-btn {
+  width: 100%;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===========================================================================
    SHARED SIDEBAR HEADER COLLAPSED STATE
    When a sidebar is collapsed, hide everything in the header except
    the toggle button (.panel-toggle-btn / .sidebar-toggle / .sidebar-toggle-btn).

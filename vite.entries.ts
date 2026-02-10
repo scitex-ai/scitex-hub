@@ -284,6 +284,10 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
       rootDir,
       "static/shared/ts/components/project-selector.ts",
     ),
+    "shared/workspace-tree-init": r(
+      rootDir,
+      "static/shared/ts/components/workspace-files-tree/auto-init.ts",
+    ),
 
     // Scholar app
     "scholar_app/scholar-config": r(
@@ -337,6 +341,10 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
       rootDir,
       "apps/public_app/static/public_app/ts/tools/image-viewer.ts",
     ),
+    "public_app/tools-panel": r(
+      rootDir,
+      "apps/public_app/static/public_app/ts/tools-panel.ts",
+    ),
     "public_app/pages/api-docs": r(
       rootDir,
       "apps/public_app/static/public_app/ts/pages/api-docs.ts",
@@ -380,7 +388,6 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
       "apps/verifier_app/static/verifier_app/ts/verifier-init.ts",
     ),
 
-    // Hub app
-    "hub_app/index": r(rootDir, "apps/hub_app/static/hub_app/ts/index.ts"),
+    // Hub app (tree init moved to shared/workspace-tree-init)
   };
 }

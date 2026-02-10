@@ -1,6 +1,6 @@
 {% extends "global_base.html" %}
 
-{% load static vite %}
+{% load static vite tree_preseed %}
 
 {% block title %}
     Hub
@@ -10,6 +10,8 @@
     <!-- Shared workspace components -->
     <link rel="stylesheet"
           href="{% static 'shared/css/components/workspace-files-tree.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/workspace-sidebar.css' %}" />
     <link rel="stylesheet" href="{% static 'shared/css/components/panel-resizer.css' %}" />
     <link rel="stylesheet"
           href="{% static 'shared/css/components/collapsible-panel.css' %}" />
@@ -44,15 +46,16 @@
 {% endblock %}
 {% block content %}
     {% if current_project %}
-        <div id="hub-project-config"
+        <div id="workspace-project-config"
              style="display: none"
              data-username="{{ current_project.owner.username }}"
-             data-slug="{{ current_project.slug }}"></div>
+             data-slug="{{ current_project.slug }}"
+             data-mode="hub"></div>
     {% endif %}
     <div class="hub-workspace">
         <!-- Left Sidebar: File Tree -->
         {% if current_project %}
-            <aside class="hub-sidebar" id="hub-sidebar">
+            <aside class="hub-sidebar workspace-sidebar" id="hub-sidebar">
                 {% include "global_base_partials/workspace/sidebar_header.html" %}
                 <div id="file-tree" class="sidebar-content">
                     <div class="wft-loading">
@@ -63,13 +66,13 @@
             <div class="panel-resizer"
                  id="sidebar-resizer"
                  data-panel-resizer
-                 data-storage-prefix="scitex-hub-"
+                 data-storage-prefix="scitex-workspace-"
                  data-target=".hub-sidebar"
                  data-direction="left"
                  data-min-width="40"
                  data-default-width="250"
                  data-storage-key="sidebar-width"
-                 data-collapse-key="hub-sidebar-collapsed"
+                 data-collapse-key="scitex-workspace-sidebar-collapsed"
                  data-toggle-btn="sidebar-toggle"></div>
         {% endif %}
         <!-- Main Area -->
@@ -187,14 +190,31 @@
                 </div>
             </div>
         </main>
+        <!-- Details resizer (auto-initialized via data attributes) -->
+        <div class="panel-resizer"
+             id="details-resizer"
+             data-panel-resizer
+             data-storage-prefix="scitex-hub-"
+             data-target=".hub-details"
+             data-direction="right"
+             data-min-width="40"
+             data-default-width="280"
+             data-storage-key="details-width"
+             data-collapse-key="hub-details-collapsed"
+             data-toggle-btn="details-toggle"></div>
         <!-- Right Panel - Details -->
         <aside class="hub-details" id="hub-details">
             <div class="details-header">
-                <h3>
-                    <i class="fas fa-info-circle"></i> Details
-                </h3>
+                <button class="details-toggle panel-toggle-btn right-panel-toggle"
+                        id="details-toggle"
+                        title="Toggle details (Ctrl+Shift+D)">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <h5>
+                    <i class="fas fa-sliders-h"></i> Details
+                </h5>
             </div>
-            <div class="details-content">
+            <div class="details-content" id="hub-details-content">
                 <p class="text-muted small">Select a file or project for details</p>
             </div>
         </aside>
@@ -203,7 +223,8 @@
 {% block extra_js %}
     {% vite_hmr_client %}
     {% vite_script 'shared/workspace-panel-resizer' %}
-    {% vite_script 'hub_app/index' %}
+    {% tree_preseed_script current_project %}
+    {% vite_script 'shared/workspace-tree-init' %}
     {% if current_project %}
         <!-- Browse scripts (reused from project_app) -->
         <div id="project-data"

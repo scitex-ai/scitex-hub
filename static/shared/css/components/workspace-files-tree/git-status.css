@@ -13,7 +13,7 @@
   border-radius: 1px;
   z-index: 2;
   pointer-events: none;
-  font-size: 0;  /* Hide text content, show only colored bar */
+  font-size: 0; /* Hide text content, show only colored bar */
   overflow: hidden;
 }
 
@@ -51,7 +51,7 @@
 /* ========== CSS pseudo-element based git gutter (data-git-status attribute) ========== */
 /* Base git gutter - uses ::after to avoid conflict with tree connectors */
 .wft-item[data-git-status]::after {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   top: 2px;
@@ -136,4 +136,29 @@
 
 .wft-icon.wft-icon-untracked {
   color: var(--color-fg-muted, #768390) !important;
+}
+
+/* ========== Toggle: hide all git visuals when .wft-no-git on container ========== */
+.wft-no-git .wft-git-gutter,
+.wft-no-git .wft-git-panel {
+  display: none !important;
+}
+.wft-no-git .wft-item[data-git-status]::after {
+  display: none !important;
+}
+.wft-no-git .wft-icon.wft-icon-modified,
+.wft-no-git .wft-icon.wft-icon-added,
+.wft-no-git .wft-icon.wft-icon-deleted,
+.wft-no-git .wft-icon.wft-icon-untracked {
+  color: inherit !important;
+}
+.wft-no-git .wft-item:has(.wft-icon-deleted) .wft-name {
+  text-decoration: none;
+  opacity: 1;
+  color: inherit;
+}
+.wft-no-git .wft-item[data-git-status="D"] .wft-name {
+  text-decoration: none;
+  opacity: 1;
+  color: inherit;
 }

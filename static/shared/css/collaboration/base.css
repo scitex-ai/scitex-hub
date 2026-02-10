@@ -61,6 +61,25 @@
 }
 
 /* ============================================================================
+ * Collaboration Panel Container (flex fill parent)
+ * ========================================================================== */
+
+.collaboration-panel-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+[data-theme="dark"] .collaboration-panel-container {
+  background: var(--workspace-bg-primary);
+}
+
+/* ============================================================================
  * Content Container
  * ========================================================================== */
 

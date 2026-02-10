@@ -1,0 +1,196 @@
+/* ============================================================================
+ * Shared Workspace Sidebar Component
+ * ============================================================================
+ * SINGLE SOURCE OF TRUTH for workspace sidebar layout.
+ * Used by: Writer, Scholar, Visualizer, Console, Verifier, Hub, Tools
+ *
+ * Usage: Add class="workspace-sidebar" alongside module-specific class:
+ *   <aside class="writer-sidebar workspace-sidebar" id="writer-sidebar">
+ *
+ * Module CSS should ONLY define overrides (e.g. background color).
+ * ========================================================================== */
+
+/* ===========================================================================
+   WORKSPACE LAYOUT CONTAINER
+   Standard 3-panel flex layout used by all workspace modules
+   =========================================================================== */
+
+.workspace-layout {
+  display: flex;
+  height: 100%;
+  overflow: hidden;
+  background: var(--workspace-bg-primary, #0d0d0d);
+  gap: 0;
+}
+
+/* ===========================================================================
+   SIDEBAR BASE
+   =========================================================================== */
+
+.workspace-sidebar {
+  width: 250px;
+  min-width: 40px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--workspace-bg-primary, #0d0d0d);
+  transition:
+    width 0.2s ease,
+    min-width 0.2s ease;
+  flex-shrink: 0;
+  border-right: none; /* Resizer handles visual separation */
+  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
+}
+
+/* ===========================================================================
+   SIDEBAR HEADER - 50px standardized
+   =========================================================================== */
+
+.workspace-sidebar .sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  height: 50px;
+  min-height: 50px;
+  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
+  background: var(--workspace-bg-secondary, #151515);
+  flex-shrink: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.workspace-sidebar .sidebar-header h4,
+.workspace-sidebar .sidebar-header h5 {
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-primary, #d4e1e8);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.workspace-sidebar .sidebar-header h5 i {
+  color: var(--workspace-icon-primary, #059669);
+}
+
+/* ===========================================================================
+   SIDEBAR CONTENT
+   =========================================================================== */
+
+.workspace-sidebar .sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  padding: 8px 0;
+  background: var(--workspace-bg-monaco, #1e1e1e);
+  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
+}
+
+/* ===========================================================================
+   SIDEBAR TOGGLE BUTTON
+   =========================================================================== */
+
+.workspace-sidebar .sidebar-toggle,
+.workspace-sidebar .sidebar-toggle-btn {
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+  color: var(--text-muted, #6c8ba0);
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.workspace-sidebar .sidebar-toggle:hover,
+.workspace-sidebar .sidebar-toggle-btn:hover {
+  background: var(--workspace-bg-tertiary, #1a1a1a);
+  color: var(--workspace-icon-primary, #059669);
+}
+
+/* ===========================================================================
+   COLLAPSED STATE
+   =========================================================================== */
+
+.workspace-sidebar.collapsed {
+  width: 40px;
+  min-width: 40px;
+}
+
+.workspace-sidebar.collapsed .sidebar-content {
+  display: none;
+}
+
+.workspace-sidebar.collapsed .sidebar-header {
+  padding: 0 4px;
+  justify-content: center;
+}
+
+/* Hide everything in header except the toggle button */
+.workspace-sidebar.collapsed
+  .sidebar-header
+  > *:not(.sidebar-toggle):not(.sidebar-toggle-btn):not(.panel-toggle-btn) {
+  display: none;
+}
+
+.workspace-sidebar.collapsed .sidebar-toggle,
+.workspace-sidebar.collapsed .sidebar-toggle-btn,
+.workspace-sidebar.collapsed .panel-toggle-btn {
+  width: 100%;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===========================================================================
+   WORKSPACE MAIN CONTENT
+   =========================================================================== */
+
+.workspace-main {
+  flex: 1;
+  overflow: hidden;
+  min-width: 0;
+  background: var(--workspace-bg-primary);
+}
+
+/* ===========================================================================
+   LIGHT THEME
+   =========================================================================== */
+
+[data-theme="light"] .workspace-sidebar {
+  background: var(--workspace-bg-primary);
+}
+
+[data-theme="light"] .workspace-sidebar .sidebar-header {
+  background: var(--workspace-bg-secondary);
+  border-bottom-color: var(--workspace-border-default);
+}
+
+/* ===========================================================================
+   RESPONSIVE
+   =========================================================================== */
+
+@media (max-width: 768px) {
+  .workspace-sidebar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    z-index: 100;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .workspace-sidebar.collapsed {
+    display: none;
+  }
+}

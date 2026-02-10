@@ -1,0 +1,66 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>
+            {% block title %}Tool{% endblock %}
+        </title>
+        <!-- Fonts -->
+        <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+              rel="stylesheet" />
+        <!-- Font Awesome -->
+        <link rel="stylesheet"
+              href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+              crossorigin="visitor"
+              referrerpolicy="no-referrer" />
+        <!-- Design tokens (CSS variables for theme consistency) -->
+        <link rel="stylesheet" href="{% static 'shared/css/primitives/colors.css' %}" />
+        <link rel="stylesheet" href="{% static 'shared/css/common.css' %}" />
+        <style>
+            /* Compatibility aliases: tool templates use these legacy names */
+            :root,
+            [data-theme="light"] {
+                --bg-primary: var(--bg-page);
+                --bg-secondary: var(--bg-surface);
+                --bg-tertiary: var(--bg-muted);
+                --border-color: var(--border-default);
+            }
+
+            [data-theme="dark"] {
+                --bg-primary: var(--workspace-bg-primary);
+                --bg-secondary: var(--workspace-bg-secondary);
+                --bg-tertiary: var(--workspace-bg-tertiary);
+                --border-color: var(--workspace-border-default);
+            }
+        </style>
+        <!-- Detect theme from parent page or localStorage -->
+        <script>
+            (function() {
+                var theme = localStorage.getItem('scitex-theme-preference') || 'dark';
+                document.documentElement.setAttribute('data-theme', theme);
+            })();
+        </script>
+        {% block head_extra %}{% endblock %}
+        {% block extra_css %}{% endblock %}
+    </head>
+    <body style="margin: 0;
+                 padding: 12px;
+                 background: var(--bg-primary);
+                 color: var(--text-primary);
+                 overflow: auto;
+                 font-family: 'JetBrains Mono', monospace">
+        {% block content %}{% endblock %}
+        {% block extra_js %}{% endblock %}
+        <!-- Listen for theme changes from parent -->
+        <script>
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'scitex-theme-preference') {
+                    document.documentElement.setAttribute('data-theme', e.newValue || 'dark');
+                }
+            });
+        </script>
+    </body>
+</html>

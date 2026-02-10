@@ -1,54 +1,10 @@
-/* Sidebar header - sleek professional design */
+/* Console sidebar header: base from shared workspace-sidebar.css
+   Only console-specific overrides here */
+
+/* Console sidebar header adds top border and box-shadow */
 .code-sidebar .sidebar-header {
-  padding: 0 16px;
-  margin-top: 0 !important;
-  background: var(--workspace-bg-secondary);
   border-top: 1px solid var(--workspace-border-default);
-  border-bottom: 1px solid var(--workspace-border-default);
-  height: 50px;
-  min-height: 50px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  overflow: hidden; /* Prevent content from forcing width */
-  min-width: 0; /* Allow flex shrinking */
-}
-
-.code-sidebar .sidebar-header h5 {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 0; /* Allow flex shrinking */
-}
-
-.code-sidebar .sidebar-header h5 i {
-  color: var(--workspace-icon-primary);
-}
-
-.code-sidebar .sidebar-toggle {
-  background: none !important;
-  border: none !important;
-  padding: 4px 8px !important;
-  min-width: 28px;
-  min-height: 28px;
-  color: var(--workspace-icon-secondary) !important;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.15s ease;
-}
-
-.code-sidebar .sidebar-toggle:hover {
-  background: var(--workspace-bg-tertiary) !important;
-  color: var(--workspace-icon-primary) !important;
 }
 
 /* Sidebar header actions container */

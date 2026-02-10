@@ -99,7 +99,7 @@ export class TreeRenderer {
         <div class="wft-git-panel-header">
           <div class="wft-git-panel-title">
             <i class="fab fa-git-alt"></i>
-            <span>Source Control</span>
+            <span>Git</span>
           </div>
           <div class="wft-git-panel-actions">
             <button class="wft-git-panel-btn secondary" data-action="git-stage-all" title="Stage all changes">

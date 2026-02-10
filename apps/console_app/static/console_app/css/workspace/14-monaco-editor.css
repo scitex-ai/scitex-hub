@@ -3,8 +3,8 @@
   flex: 1;
   overflow: hidden;
   position: relative;
+  padding: 8px 0;
   border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
-  margin-bottom: 1px;
 }
 
 #monaco-editor {

@@ -1,6 +1,6 @@
 {% extends 'global_base.html' %}
 
-{% load static vite %}
+{% load static vite tree_preseed %}
 
 {% block meta_description %}Advanced semantic search for scientific literature{% endblock %}
 {% block extra_css %}
@@ -11,6 +11,8 @@
     <!-- Workspace files tree CSS -->
     <link rel="stylesheet"
           href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d" />
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/workspace-sidebar.css' %}" />
     <!-- Panel resizer CSS -->
     <link rel="stylesheet" href="{% static 'shared/css/components/panel-resizer.css' %}" />
     <!-- LED health indicators CSS (always visible in pane header) -->
@@ -126,7 +128,7 @@
     <!-- Three-panel layout always active for workspace consistency -->
     <div class="scholar-workspace">
         <!-- Left sidebar: File tree (only with project) -->
-        <aside class="scholar-sidebar {% if not current_project %}collapsed{% endif %}"
+        <aside class="scholar-sidebar workspace-sidebar {% if not current_project %}collapsed{% endif %}"
                id="scholar-sidebar">
             {% include "global_base_partials/workspace/sidebar_header.html" %}
             <div class="sidebar-content" id="file-tree">
@@ -144,13 +146,13 @@
         <div class="panel-resizer"
              id="sidebar-resizer"
              data-panel-resizer
-             data-storage-prefix="scitex-scholar-"
+             data-storage-prefix="scitex-workspace-"
              data-target=".scholar-sidebar"
              data-direction="left"
              data-min-width="40"
              data-default-width="250"
              data-storage-key="sidebar-width"
-             data-collapse-key="scholar-sidebar-collapsed"
+             data-collapse-key="scitex-workspace-sidebar-collapsed"
              data-toggle-btn="sidebar-toggle"></div>
         <!-- Main content area -->
         <main class="scholar-main">
@@ -387,13 +389,24 @@
     <!-- Source health check (LED indicators in pane header) -->
     {% vite_script 'scholar_app/search/source-health-check' %}
     {% if current_project %}
-        <!-- Scholar workspace initialization with project context -->
-        <script id="scholar-project-config" type="application/json">
-        {
-            "username": "{{ current_project.owner.username|escapejs }}",
-            "slug": "{{ current_project.slug|escapejs }}"
-        }
+        <!-- Standardized project config for shared tree init -->
+        <div id="workspace-project-config"
+             style="display: none"
+             data-username="{{ current_project.owner.username }}"
+             data-slug="{{ current_project.slug }}"
+             data-mode="scholar"></div>
+        <script>
+          window.scitexOnFileSelect = function(path) {
+            if (path.endsWith('.pdf')) {
+              var config = document.getElementById('workspace-project-config');
+              var u = config ? config.dataset.username : '';
+              var s = config ? config.dataset.slug : '';
+              window.open('/' + u + '/' + s + '/files/' + path, '_blank');
+            }
+          };
         </script>
+        {% tree_preseed_script current_project %}
+        {% vite_script 'shared/workspace-tree-init' %}
         {% vite_script 'scholar_app/scholar-workspace-init' %}
     {% endif %}
 {% endblock %}

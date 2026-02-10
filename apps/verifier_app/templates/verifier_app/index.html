@@ -1,6 +1,6 @@
 {% extends "global_base.html" %}
 
-{% load static vite %}
+{% load static vite tree_preseed %}
 
 {% block title %}
     SciTeX Verifier
@@ -10,6 +10,8 @@
     <!-- Shared workspace components -->
     <link rel="stylesheet"
           href="{% static 'shared/css/components/workspace-files-tree.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/workspace-sidebar.css' %}" />
     <link rel="stylesheet" href="{% static 'shared/css/components/panel-resizer.css' %}" />
     <link rel="stylesheet"
           href="{% static 'shared/css/components/collapsible-panel.css' %}" />
@@ -20,15 +22,16 @@
 {% endblock %}
 {% block content %}
     {% if current_project %}
-        <div id="verifier-project-config"
+        <div id="workspace-project-config"
              style="display: none"
              data-username="{{ current_project.owner.username }}"
-             data-slug="{{ current_project.slug }}"></div>
+             data-slug="{{ current_project.slug }}"
+             data-mode="verifier"></div>
     {% endif %}
     <div class="verifier-workspace">
         <!-- LEFT SIDEBAR - PROJECT NAVIGATOR -->
         {% if current_project %}
-            <aside class="verifier-sidebar" id="verifier-sidebar">
+            <aside class="verifier-sidebar workspace-sidebar" id="verifier-sidebar">
                 {% include "global_base_partials/workspace/sidebar_header.html" %}
                 <div class="sidebar-content" id="file-tree">
                     <div class="wft-loading">
@@ -40,16 +43,16 @@
             <div class="panel-resizer"
                  id="sidebar-resizer"
                  data-panel-resizer
-                 data-storage-prefix="scitex-verifier-"
+                 data-storage-prefix="scitex-workspace-"
                  data-target=".verifier-sidebar"
                  data-direction="left"
                  data-min-width="40"
                  data-default-width="250"
                  data-storage-key="sidebar-width"
-                 data-collapse-key="verifier-sidebar-collapsed"
+                 data-collapse-key="scitex-workspace-sidebar-collapsed"
                  data-toggle-btn="sidebar-toggle"></div>
         {% else %}
-            <aside class="verifier-sidebar" id="verifier-sidebar">
+            <aside class="verifier-sidebar workspace-sidebar" id="verifier-sidebar">
                 {% include "global_base_partials/workspace/sidebar_header.html" %}
                 <div class="sidebar-content">
                     <div class="sidebar-empty-state">
@@ -63,11 +66,7 @@
         <!-- CENTER - DAG VISUALIZATION WORKSPACE -->
         <main class="verifier-main">
             <div class="verifier-header">
-                <h2>
-                    <i class="fas fa-check-circle"></i>
-                    Reproducibility Verification
-                </h2>
-                <p class="verifier-subtitle">Trace claims back to source data via dependency graph</p>
+                <span class="verifier-header-title"><i class="fas fa-check-circle"></i> Verification via Backpropagation</span>
             </div>
             <div class="dag-visualization-area">
                 <div class="dag-placeholder">
@@ -80,12 +79,31 @@
                 </div>
             </div>
         </main>
-        <!-- RIGHT SIDEBAR - VERIFICATION DETAILS -->
+        <!-- Details resizer (auto-initialized via data attributes) -->
+        <div class="panel-resizer"
+             id="details-resizer"
+             data-panel-resizer
+             data-storage-prefix="scitex-verifier-"
+             data-target=".verifier-details"
+             data-direction="right"
+             data-min-width="40"
+             data-default-width="280"
+             data-storage-key="details-width"
+             data-collapse-key="verifier-details-collapsed"
+             data-toggle-btn="details-toggle"></div>
+        <!-- RIGHT SIDEBAR - DETAILS -->
         <aside class="verifier-details" id="verifier-details">
-            <div class="verifier-details-header">
-                <h3>Verification Chain</h3>
+            <div class="details-header">
+                <button class="details-toggle panel-toggle-btn right-panel-toggle"
+                        id="details-toggle"
+                        title="Toggle details (Ctrl+Shift+D)">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <h5>
+                    <i class="fas fa-sliders-h"></i> Details
+                </h5>
             </div>
-            <div class="verifier-details-content">
+            <div class="details-content" id="verifier-details-content">
                 <div class="details-placeholder">
                     <i class="fas fa-info-circle"></i>
                     <p>Select a node to view verification details</p>
@@ -97,5 +115,7 @@
 {% block extra_js %}
     {% vite_hmr_client %}
     {% vite_script 'shared/workspace-panel-resizer' %}
+    {% tree_preseed_script current_project %}
+    {% vite_script 'shared/workspace-tree-init' %}
     {% vite_script 'verifier_app/verifier-init' %}
 {% endblock %}

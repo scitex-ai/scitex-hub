@@ -58,8 +58,8 @@ export class PDFZoom {
    * Set zoom level
    */
   setScale(scale: number): number {
-    if (scale < 0.5 || scale > 3.0) {
-      console.warn("[PDFZoom] Scale must be between 0.5 and 3.0");
+    if (isNaN(scale) || scale < 0.5 || scale > 3.0) {
+      console.warn("[PDFZoom] Scale must be between 0.5 and 3.0, got:", scale);
       return this.currentScale;
     }
 
@@ -98,12 +98,13 @@ export class PDFZoom {
   }
 
   /**
-   * Measure the browser's actual scrollbar width
+   * Measure scrollbar width matching .pdfjs-viewer's custom scrollbar style
    */
   private measureScrollbarWidth(): number {
     const el = document.createElement("div");
+    el.className = "pdfjs-viewer";
     el.style.cssText =
-      "width:100px;height:100px;overflow:scroll;position:absolute;top:-9999px";
+      "width:100px;height:100px;overflow:scroll;position:absolute;top:-9999px;visibility:hidden";
     document.body.appendChild(el);
     const width = el.offsetWidth - el.clientWidth;
     document.body.removeChild(el);

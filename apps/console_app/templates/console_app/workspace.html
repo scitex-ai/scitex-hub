@@ -1,6 +1,6 @@
 {% extends "global_base.html" %}
 
-{% load static vite %}
+{% load static vite tree_preseed %}
 
 {% block title %}
     SciTeX Console
@@ -18,6 +18,8 @@
     <!-- Shared workspace files tree component -->
     <link rel="stylesheet"
           href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d" />
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/workspace-sidebar.css' %}" />
     <!-- Code Workspace CSS Modules (refactored from monolithic workspace.css) -->
     <link rel="stylesheet"
           href="{% static 'console_app/css/workspace/00-workspace.css' %}" />
@@ -84,6 +86,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
 {% endblock %}
 {% block extra_js %}
+    {% tree_preseed_script current_project %}
     <!-- Monaco Editor - Load with proper AMD handling -->
     <script>
     (function() {
@@ -183,7 +186,7 @@
     {% else %}
         <div class="code-workspace">
             <!-- Left Sidebar: File Tree -->
-            <aside id="code-sidebar" class="code-sidebar repo-sidebar">
+            <aside id="code-sidebar" class="code-sidebar repo-sidebar workspace-sidebar">
                 {% include "global_base_partials/workspace/sidebar_header.html" %}
                 <div id="file-tree" class="file-tree-container">
                     <div class="tree-loading">
@@ -195,13 +198,13 @@
             <div class="panel-resizer"
                  id="sidebar-resizer"
                  data-panel-resizer
-                 data-storage-prefix="scitex-code-"
+                 data-storage-prefix="scitex-workspace-"
                  data-target=".code-sidebar"
                  data-direction="left"
                  data-min-width="40"
                  data-default-width="280"
                  data-storage-key="sidebar-width"
-                 data-collapse-key="code-sidebar-collapsed"
+                 data-collapse-key="scitex-workspace-sidebar-collapsed"
                  data-toggle-btn="sidebar-toggle"></div>
             <!-- Center: Editor Area -->
             <div class="code-editor-area">

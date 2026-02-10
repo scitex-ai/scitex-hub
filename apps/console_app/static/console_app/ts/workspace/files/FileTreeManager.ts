@@ -102,6 +102,11 @@ export class FileTreeManager {
         await import("@/components/workspace-files-tree/HiddenFilesToggle");
       initHiddenFilesToggle(this.tree as any);
 
+      // Initialize git status toggle
+      const { initGitStatusToggle } =
+        await import("@/components/workspace-files-tree/GitStatusToggle");
+      initGitStatusToggle(this.tree as any);
+
       // Initialize module filter buttons (S C V W)
       const { initModuleFilterButtons } =
         await import("@/components/workspace-files-tree/ModuleFilterButtons");

@@ -60,6 +60,11 @@ export async function setupFilesTree(
       await import("@/components/workspace-files-tree/HiddenFilesToggle");
     initHiddenFilesToggle(filesTree as any);
 
+    // Initialize git status toggle
+    const { initGitStatusToggle } =
+      await import("@/components/workspace-files-tree/GitStatusToggle");
+    initGitStatusToggle(filesTree as any);
+
     // Initialize module filter buttons (S C V W)
     const { initModuleFilterButtons } =
       await import("@/components/workspace-files-tree/ModuleFilterButtons");

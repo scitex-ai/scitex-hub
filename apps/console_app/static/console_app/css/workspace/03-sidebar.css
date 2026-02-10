@@ -1,54 +1,22 @@
-/* Left Sidebar - unified background with editor and terminal */
+/* Console sidebar: base layout from shared workspace-sidebar.css
+   Only module-specific overrides here */
+
+/* Console-specific overrides */
 .code-sidebar {
-  width: 250px;
-  min-width: 40px; /* Minimum collapsed width */
-  flex-shrink: 0;
   background-color: var(--code-bg) !important;
   border-right: 1px solid var(--code-border);
-  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
-  margin-bottom: 1px;
   border-radius: 0 !important;
   border-left: none;
   border-top: none;
-  overflow: hidden; /* Prevent content from forcing width */
-  display: flex;
-  flex-direction: column;
-  transition:
-    width 0.2s ease,
-    min-width 0.2s ease;
 }
 
-/* Collapsed state for sidebar */
-.code-sidebar.collapsed {
-  width: 40px;
-  min-width: 40px;
-}
-
-.code-sidebar.collapsed .sidebar-content,
+/* Console-specific collapsed: also hide file-tree-container and search */
 .code-sidebar.collapsed .file-tree-container,
 .code-sidebar.collapsed .file-search-container {
   display: none;
 }
 
-/* Collapsed sidebar header - specificity override for .code-sidebar */
-.code-sidebar.collapsed .sidebar-header {
-  padding: 0 4px;
-  justify-content: center;
-}
-
-.code-sidebar.collapsed .sidebar-header > *:not(.sidebar-toggle) {
-  display: none;
-}
-
-.code-sidebar.collapsed .sidebar-toggle {
-  width: 100%;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Dark mode: unified background with editor and terminal */
+/* Dark mode */
 [data-theme="dark"] .code-sidebar,
 [data-theme="dark"] .code-sidebar.repo-sidebar {
   background-color: var(--workspace-bg-primary) !important;

@@ -188,7 +188,7 @@ export class PDFJSViewer {
    * Set zoom level and re-render
    */
   setScale(scale: number): void {
-    if (scale < 0.5 || scale > 3.0) return;
+    if (isNaN(scale) || scale < 0.5 || scale > 3.0) return;
 
     const viewer = this.renderer.getViewerElement();
     if (viewer) {
@@ -266,8 +266,17 @@ export class PDFJSViewer {
 
   fitWidth(): void {
     if (!this.container) return;
-    const newScale = this.zoom.fitWidth(this.container.clientWidth);
-    this.setScale(newScale);
+    // Use the pdfjs-viewer's clientWidth if it exists (already accounts for scrollbar)
+    const viewer = this.renderer.getViewerElement();
+    if (viewer) {
+      const availableWidth = viewer.clientWidth;
+      const newScale = availableWidth / 612; // 612 = standard PDF page width in points
+      this.zoom.setScale(newScale);
+      this.setScale(newScale);
+    } else {
+      const newScale = this.zoom.fitWidth(this.container.clientWidth);
+      this.setScale(newScale);
+    }
   }
 
   // Navigation methods

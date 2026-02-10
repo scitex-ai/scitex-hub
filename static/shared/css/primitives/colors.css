@@ -194,6 +194,12 @@
   --color-btn-text: var(--text-primary);
   --color-btn-border: var(--border-default);
   --color-btn-hover-bg: var(--bg-muted);
+
+  /* Compatibility aliases for tool templates */
+  --bg-primary: var(--bg-page);
+  --bg-secondary: var(--bg-surface);
+  --bg-tertiary: var(--bg-muted);
+  --border-color: var(--border-default);
 }
 
 [data-theme="dark"] {
@@ -344,4 +350,10 @@
   --color-btn-text: var(--text-primary);
   --color-btn-border: var(--border-default);
   --color-btn-hover-bg: var(--bg-muted);
+
+  /* Compatibility aliases for tool templates */
+  --bg-primary: var(--workspace-bg-primary);
+  --bg-secondary: var(--workspace-bg-secondary);
+  --bg-tertiary: var(--workspace-bg-tertiary);
+  --border-color: var(--workspace-border-default);
 }
