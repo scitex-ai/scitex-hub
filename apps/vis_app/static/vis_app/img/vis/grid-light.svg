@@ -5,14 +5,14 @@
     <!-- 1mm minor grid pattern (300 DPI: 300/25.4 = 11.811023622047244) -->
     <!-- Use solid hex colors (not rgba) for reliable rasterization by Fabric.js -->
     <pattern id="minor-grid" width="11.811023622047244" height="11.811023622047244" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="11.811023622047244" stroke="#e0dcd8" stroke-width="0.5"/>
-      <line x1="0" y1="0" x2="11.811023622047244" y2="0" stroke="#e0dcd8" stroke-width="0.5"/>
+      <line x1="0" y1="0" x2="0" y2="11.811023622047244" stroke="#ccc8c4" stroke-width="0.5"/>
+      <line x1="0" y1="0" x2="11.811023622047244" y2="0" stroke="#ccc8c4" stroke-width="0.5"/>
     </pattern>
 
     <!-- 10mm major grid pattern (300 DPI: 10 * 300/25.4 = 118.11023622047244) -->
     <pattern id="major-grid" width="118.11023622047244" height="118.11023622047244" patternUnits="userSpaceOnUse">
-      <line x1="0" y1="0" x2="0" y2="118.11023622047244" stroke="#c8c4c0" stroke-width="1"/>
-      <line x1="0" y1="0" x2="118.11023622047244" y2="0" stroke="#c8c4c0" stroke-width="1"/>
+      <line x1="0" y1="0" x2="0" y2="118.11023622047244" stroke="#aaa6a2" stroke-width="1"/>
+      <line x1="0" y1="0" x2="118.11023622047244" y2="0" stroke="#aaa6a2" stroke-width="1"/>
     </pattern>
   </defs>
 

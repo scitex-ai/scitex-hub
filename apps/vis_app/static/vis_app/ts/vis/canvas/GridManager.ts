@@ -35,7 +35,7 @@ export class GridManager {
 
     // Use pre-rendered static SVG files for maximum performance
     // Cache bust version: increment when SVG files are updated
-    const cacheBust = "v7";
+    const cacheBust = "v8";
     const gridUrl = isDark
       ? `/static/vis_app/img/vis/grid-dark.svg?${cacheBust}`
       : `/static/vis_app/img/vis/grid-light.svg?${cacheBust}`;

@@ -37,11 +37,10 @@ export function setupThemeToggle(editor: VisEditor): void {
     console.log(`[InteractionHandlers] Canvas theme toggled to ${canvasTheme}`);
   });
 
-  // Apply initial theme state
+  // Apply initial emoji state only (theme already applied by applySavedThemes)
   updateThemeEmoji(canvasIsDark);
-  editor.updateCanvasTheme(canvasIsDark);
   console.log(
-    `[InteractionHandlers] Canvas theme restored to ${canvasThemeValue}`,
+    `[InteractionHandlers] Canvas theme toggle initialized (${canvasThemeValue})`,
   );
 }
 
