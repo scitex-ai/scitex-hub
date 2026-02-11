@@ -1,5 +1,10 @@
 /* Statistics Calculator Tool - Modular CSS Orchestrator */
 
+/* @import must precede all other rules per CSS spec */
+@import url("run-stats/layout.css");
+@import url("run-stats/results.css");
+@import url("run-stats/controls.css");
+
 /* CSS Variable Bridge for DataTableManager */
 :root {
   /* Bridge vis-* variables to workspace-* theme */
@@ -13,8 +18,3 @@
   --vis-text-muted: var(--workspace-text-muted);
   --vis-text-link: var(--workspace-text-link);
 }
-
-/* Import modular stylesheets */
-@import url("run-stats/layout.css");
-@import url("run-stats/results.css");
-@import url("run-stats/controls.css");
