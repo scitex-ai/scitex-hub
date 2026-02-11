@@ -73,7 +73,7 @@
    ============================================================================ */
 .stats-three-column {
   display: grid;
-  grid-template-columns: 280px 1fr 380px;
+  grid-template-columns: 340px 1fr 380px;
   gap: 0;
   flex: 1;
   overflow: hidden;
@@ -455,7 +455,7 @@
    ============================================================================ */
 @media (max-width: 1024px) {
   .stats-three-column {
-    grid-template-columns: 240px 1fr 320px;
+    grid-template-columns: 280px 1fr 320px;
   }
 }
 

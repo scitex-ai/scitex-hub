@@ -4,15 +4,16 @@
    Flowchart Container
    ============================================================================ */
 .flowchart-container {
-  padding: 8px;
+  padding: 4px;
   border-bottom: 1px solid var(--workspace-border-default);
   overflow: auto;
-  max-height: 45vh;
+  max-height: 55vh;
   background: var(--workspace-bg-primary);
 }
 
 .flowchart-container svg {
   display: block;
+  min-width: 580px;
 }
 
 .flowchart-container .flowchart-error {
@@ -20,6 +21,25 @@
   text-align: center;
   color: var(--workspace-text-muted);
   font-size: 12px;
+}
+
+/* Scrollbar for flowchart */
+.flowchart-container::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.flowchart-container::-webkit-scrollbar-track {
+  background: var(--workspace-bg-tertiary);
+}
+
+.flowchart-container::-webkit-scrollbar-thumb {
+  background: var(--workspace-border-default);
+  border-radius: 3px;
+}
+
+.flowchart-container::-webkit-scrollbar-thumb:hover {
+  background: var(--workspace-text-muted);
 }
 
 /* ============================================================================
@@ -52,6 +72,6 @@
    ============================================================================ */
 @media (max-width: 768px) {
   .flowchart-container {
-    max-height: 200px;
+    max-height: 250px;
   }
 }

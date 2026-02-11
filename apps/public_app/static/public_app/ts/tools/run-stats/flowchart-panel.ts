@@ -59,32 +59,42 @@ export class FlowchartPanel {
   }
 
   private async renderMermaid(text: string): Promise<void> {
+    // Strip figrecipe's %%{init}%% directive — we configure Mermaid ourselves
+    const cleaned = text.replace(/^%%\{.*?\}%%\s*/s, "");
+
     mermaid.initialize({
       startOnLoad: false,
       theme: "base",
       themeVariables: {
         primaryColor: "#e6f3ff",
-        primaryTextColor: "#333",
+        primaryTextColor: "#222",
         primaryBorderColor: "#0066cc",
-        lineColor: "#666",
+        lineColor: "#888",
+        fontSize: "14px",
+        fontFamily: '"JetBrains Mono", "Courier New", monospace',
       },
-      flowchart: { curve: "basis", padding: 8 },
+      flowchart: {
+        curve: "basis",
+        padding: 16,
+        nodeSpacing: 30,
+        rankSpacing: 40,
+        htmlLabels: true,
+      },
       securityLevel: "loose",
     });
 
-    const { svg } = await mermaid.render("stats-flowchart", text);
+    const { svg } = await mermaid.render("stats-flowchart", cleaned);
     this.container.innerHTML = svg;
   }
 
   private styleSvg(): void {
     const svg = this.container.querySelector("svg");
     if (!svg) return;
-    // Force readable size; container scrolls horizontally/vertically
-    svg.style.width = "auto";
-    svg.style.minWidth = "500px";
+    // Let CSS min-width control size; container scrolls
+    svg.removeAttribute("height");
+    svg.removeAttribute("width");
     svg.style.height = "auto";
     svg.style.display = "block";
-    svg.removeAttribute("height");
   }
 
   private attachClickHandlers(): void {
