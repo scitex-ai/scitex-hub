@@ -155,8 +155,8 @@
             position: absolute;
             top: 4px;
             right: 4px;
-            background: #dc2626;
-            color: white;
+            background: var(--status-error);
+            color: var(--text-inverse);
             border: none;
             border-radius: 4px;
             width: 20px;
@@ -202,8 +202,8 @@
         }
 
         .status-message.success {
-            border-color: #10b981;
-            color: #34d399;
+            border-color: var(--status-success-border);
+            color: var(--status-success);
         }
     </style>
 {% endblock %}
@@ -222,7 +222,11 @@
                 <div class="panel-header">Upload & Settings</div>
                 <div class="panel-content">
                     <div id="uploadZone" class="upload-zone">
-                        <div style="font-size: 32px; margin-bottom: 8px;">📤</div>
+                        <div style="font-size: 2rem;
+                                    margin-bottom: 8px;
+                                    color: var(--workspace-text-secondary)">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
                         <div style="font-size: 14px; margin-bottom: 4px;">Drop images or click to upload</div>
                         <div style="font-size: 12px;">PNG, JPG, WebP</div>
                         <input type="file" id="fileInput" accept="image/*" multiple style="display: none" />

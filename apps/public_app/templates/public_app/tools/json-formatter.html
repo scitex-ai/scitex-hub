@@ -176,33 +176,33 @@
         }
 
         .status.error {
-            color: #f85149;
+            color: var(--status-error);
             background: var(--workspace-bg-secondary);
         }
 
         .status.success {
-            color: #3fb950;
+            color: var(--status-success);
             background: var(--workspace-bg-secondary);
         }
 
         .json-key {
-            color: #79c0ff;
+            color: var(--terminal-blue);
         }
 
         .json-string {
-            color: #a5d6ff;
+            color: var(--terminal-cyan);
         }
 
         .json-number {
-            color: #79c0ff;
+            color: var(--terminal-blue);
         }
 
         .json-boolean {
-            color: #ff7b72;
+            color: var(--terminal-red);
         }
 
         .json-null {
-            color: #8b949e;
+            color: var(--text-muted);
         }
     </style>
 {% endblock %}
@@ -278,7 +278,7 @@
       jsonOutput.innerHTML = `<pre>${syntaxHighlight(formatted)}</pre>`;
       showStatus('JSON formatted successfully', 'success');
     } catch (e) {
-      jsonOutput.innerHTML = `<pre style="color: #f85149;">Invalid JSON: ${e.message}</pre>`;
+      jsonOutput.innerHTML = `<pre style="color: var(--status-error);">Invalid JSON: ${e.message}</pre>`;
       showStatus(`Invalid JSON: ${e.message}`, 'error');
     }
   }

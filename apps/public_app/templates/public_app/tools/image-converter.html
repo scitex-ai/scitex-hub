@@ -235,9 +235,9 @@
         }
 
         .file-remove:hover {
-            background: rgba(239, 68, 68, 0.1);
-            border-color: #ef4444;
-            color: #ef4444;
+            background: var(--status-error-bg);
+            border-color: var(--status-error);
+            color: var(--status-error);
         }
 
         .action-buttons {
@@ -287,9 +287,9 @@
         }
 
         .btn-danger:hover:not(:disabled) {
-            background: rgba(239, 68, 68, 0.1);
-            border-color: #ef4444;
-            color: #ef4444;
+            background: var(--status-error-bg);
+            border-color: var(--status-error);
+            color: var(--status-error);
         }
 
         .status-message {
@@ -302,8 +302,8 @@
 
         .status-message.success {
             background: var(--workspace-bg-tertiary);
-            border-color: #3fb950;
-            color: #3fb950;
+            border-color: var(--status-success);
+            color: var(--status-success);
         }
 
         .status-message.processing {
@@ -374,7 +374,9 @@
                 <div class="panel-header">Upload & Settings</div>
                 <div class="panel-content">
                     <div id="uploadZone" class="upload-zone">
-                        <div class="upload-zone-icon">⬆</div>
+                        <div class="upload-zone-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
                         <div class="upload-zone-text">Drop images or click to upload</div>
                         <div class="upload-zone-hint">PNG, JPG, WEBP</div>
                         <input type="file" id="fileInput" accept="image/*" multiple style="display: none" />

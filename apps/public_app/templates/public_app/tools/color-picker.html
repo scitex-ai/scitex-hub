@@ -118,14 +118,19 @@
             overflow-y: auto;
         }
 
+        .color-picker-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
         .color-display {
-            width: 100%;
-            aspect-ratio: 1;
+            flex: 1;
+            height: 80px;
             border-radius: 6px;
             border: 1px solid var(--workspace-border-default);
             cursor: pointer;
             transition: transform 0.2s;
-            margin-bottom: 12px;
         }
 
         .color-display:hover {
@@ -133,13 +138,13 @@
         }
 
         .color-picker-input {
-            width: 100%;
-            height: 50px;
+            width: 80px;
+            height: 80px;
             border: 1px solid var(--workspace-border-default);
             border-radius: 6px;
             cursor: pointer;
             background: var(--workspace-bg-tertiary);
-            margin-bottom: 16px;
+            flex-shrink: 0;
         }
 
         .formats-section {
@@ -294,8 +299,10 @@
                 <div class="picker-panel">
                     <div class="panel-header">Color Display & Formats</div>
                     <div class="panel-content">
-                        <div id="colorDisplay" class="color-display"></div>
-                        <input type="color" id="colorPicker" value="#4a9b7e" class="color-picker-input" />
+                        <div class="color-picker-row">
+                            <div id="colorDisplay" class="color-display"></div>
+                            <input type="color" id="colorPicker" value="#4a9b7e" class="color-picker-input" />
+                        </div>
                         <div class="formats-section">
                             <div class="format-group">
                                 <span class="format-label">HEX</span>

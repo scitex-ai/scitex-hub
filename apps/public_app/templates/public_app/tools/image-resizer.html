@@ -251,15 +251,15 @@
         }
 
         .status-success {
-            background: rgba(46, 160, 67, 0.15);
-            color: #3fb950;
-            border: 1px solid rgba(46, 160, 67, 0.3);
+            background: var(--status-success-bg);
+            color: var(--status-success);
+            border: 1px solid var(--status-success-border);
         }
 
         .status-info {
-            background: rgba(88, 166, 255, 0.15);
-            color: #58a6ff;
-            border: 1px solid rgba(88, 166, 255, 0.3);
+            background: var(--status-info-bg);
+            color: var(--status-info);
+            border: 1px solid var(--status-info-border);
         }
 
         .button-group {
@@ -284,7 +284,9 @@
                 <div class="panel-header">Upload & Settings</div>
                 <div class="panel-content">
                     <div id="uploadZone" class="upload-zone">
-                        <div class="upload-icon">↑</div>
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
                         <div class="upload-text">Drop image or click to upload</div>
                         <input type="file" id="fileInput" accept="image/*" style="display: none" />
                     </div>

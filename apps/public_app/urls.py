@@ -104,7 +104,7 @@ urlpatterns = [
     # Research Tools
     path("tools/", views.tools, name="tools"),
     path(
-        "tools/inspect-element/",
+        "tools/inspect-html-element/",
         views.tool_element_inspector,
         name="tool_element_inspector",
     ),
@@ -209,7 +209,7 @@ urlpatterns = [
         name="tool_plot_viewer",
     ),
     path(
-        "tools/test-plot/",
+        "tools/test-scitex-plot/",
         views.tool_plot_backend_test,
         name="tool_plot_backend_test",
     ),
@@ -238,6 +238,21 @@ urlpatterns = [
         "api/docx2tex/",
         api_views.docx2tex_convert,
         name="api_docx2tex",
+    ),
+    path(
+        "api/stats/calculate/",
+        api_views.stats_calculate,
+        name="api_stats_calculate",
+    ),
+    path(
+        "api/stats/describe/",
+        api_views.stats_describe,
+        name="api_stats_describe",
+    ),
+    path(
+        "api/stats/recommend/",
+        api_views.stats_recommend,
+        name="api_stats_recommend",
     ),
 ]
 

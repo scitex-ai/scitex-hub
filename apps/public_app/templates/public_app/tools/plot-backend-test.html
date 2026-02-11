@@ -182,15 +182,15 @@
         }
 
         .error-message {
-            color: #ff6b6b;
-            background: rgba(255, 107, 107, 0.1);
-            border: 1px solid rgba(255, 107, 107, 0.3);
+            color: var(--status-error);
+            background: var(--status-error-bg);
+            border: 1px solid var(--status-error-border);
         }
 
         .success-message {
-            color: #3fb950;
-            background: rgba(63, 185, 80, 0.1);
-            border: 1px solid rgba(63, 185, 80, 0.3);
+            color: var(--status-success);
+            background: var(--status-success-bg);
+            border: 1px solid var(--status-success-border);
         }
     </style>
 {% endblock %}
@@ -201,7 +201,7 @@
                 <a href="{% url 'public_app:tools' %}">← Back to Tools</a>
             </div>
             <div class="tool-header">
-                <h1 class="tool-title">Test Plot</h1>
+                <h1 class="tool-title">Test SciTeX Plot</h1>
                 <p class="tool-subtitle">Test the matplotlib/scitex.plt backend plot renderer with JSON specifications</p>
             </div>
         {% endif %}
@@ -510,7 +510,7 @@ async function renderPlot() {
 
   } catch (error) {
     statusDiv.innerHTML = `<div class="status-message error-message">Error: ${error.message}</div>`;
-    resultContainer.innerHTML = `<p style="color: #ff6b6b; font-size: 12px;">Failed to render plot</p>`;
+    resultContainer.innerHTML = `<p style="color: var(--status-error); font-size: 12px;">Failed to render plot</p>`;
   }
 }
     </script>

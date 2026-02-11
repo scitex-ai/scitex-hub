@@ -140,11 +140,11 @@
         }
 
         .status-message.success {
-            color: #3fb950;
+            color: var(--status-success);
         }
 
         .status-message.error {
-            color: #f85149;
+            color: var(--status-error);
         }
     </style>
 {% endblock %}
@@ -161,7 +161,11 @@
         {% endif %}
         <div class="tool-app-container">
             <div id="uploadZone" class="upload-zone">
-                <div style="font-size: 32px; margin-bottom: 12px;">📤</div>
+                <div style="font-size: 2rem;
+                            margin-bottom: 8px;
+                            color: var(--workspace-text-secondary)">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
                 <div style="font-size: 0.9rem;
                             margin-bottom: 6px;
                             color: var(--workspace-text-primary)">Drop PDF file or click to upload</div>

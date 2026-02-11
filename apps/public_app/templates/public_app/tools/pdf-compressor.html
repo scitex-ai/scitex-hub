@@ -110,7 +110,7 @@
         .compression-ratio {
             font-size: 0.9rem;
             font-weight: 600;
-            color: #3fb950;
+            color: var(--status-success);
             margin-top: 8px;
             text-align: center;
         }
@@ -151,11 +151,11 @@
         }
 
         .status-message.success {
-            color: #3fb950;
+            color: var(--status-success);
         }
 
         .status-message.error {
-            color: #f85149;
+            color: var(--status-error);
         }
     </style>
 {% endblock %}
@@ -172,7 +172,11 @@
         {% endif %}
         <div class="tool-app-container">
             <div id="uploadZone" class="upload-zone">
-                <div style="font-size: 32px; margin-bottom: 12px;">📤</div>
+                <div style="font-size: 2rem;
+                            margin-bottom: 8px;
+                            color: var(--workspace-text-secondary)">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
                 <div style="font-size: 0.9rem; color: var(--workspace-text-primary);">Drop PDF or click to upload</div>
                 <input type="file" id="fileInput" accept=".pdf" style="display: none" />
             </div>

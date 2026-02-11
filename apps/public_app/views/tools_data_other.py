@@ -32,13 +32,6 @@ RENDERING_TOOLS = [
         "icon": "🎨",
     },
     {
-        "name": "Test Plot",
-        "description": "Test matplotlib/scitex.plt backend with JSON specifications.",
-        "use_case": "Design figures with precise journal specifications",
-        "bookmarklet_url": "/tools/test-plot/",
-        "icon": "🧪",
-    },
-    {
         "name": "View Plot",
         "description": "Interactive CSV plot viewer with Nature journal standards.",
         "use_case": "Quick data visualization during analysis",
@@ -64,11 +57,18 @@ DEVELOPER_TOOLS = [
         "icon": "📱",
     },
     {
-        "name": "Inspect Element",
+        "name": "Inspect HTML Element",
         "description": "Visual debugging tool with AI-ready output format.",
         "use_case": "Debug web interface issues in research platforms",
-        "bookmarklet_url": "/tools/inspect-element/",
+        "bookmarklet_url": "/tools/inspect-html-element/",
         "icon": "🔍",
+    },
+    {
+        "name": "Test SciTeX Plot",
+        "description": "Test matplotlib/scitex.plt backend with JSON specifications.",
+        "use_case": "Design figures with precise journal specifications",
+        "bookmarklet_url": "/tools/test-scitex-plot/",
+        "icon": "🧪",
     },
 ]
 

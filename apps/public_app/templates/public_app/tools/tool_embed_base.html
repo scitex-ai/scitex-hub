@@ -61,6 +61,31 @@
                     document.documentElement.setAttribute('data-theme', e.newValue || 'dark');
                 }
             });
+            // Forward Ctrl+K to parent so tools search works from within iframe
+            document.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    if (window.parent !== window) {
+                        window.parent.postMessage({ type: 'scitex-ctrl-k' }, '*');
+                    }
+                }
+            });
+            // Listen for file drop messages from parent
+            // Individual tools can listen for the 'scitex-file-drop' event:
+            //   document.addEventListener('scitex-file-drop', function(e) {
+            //     const files = e.detail.files; // Array of {path, name, type}
+            //     // Populate your input fields with file paths
+            //   });
+            window.addEventListener('message', function(e) {
+                if (e.data?.type === 'scitex-file-drop') {
+                    // Dispatch a custom event that individual tools can listen for
+                    const event = new CustomEvent('scitex-file-drop', {
+                        detail: { files: e.data.files }
+                    });
+                    document.dispatchEvent(event);
+                    console.log('[ToolEmbedBase] File drop event dispatched:', e.data.files);
+                }
+            });
         </script>
     </body>
 </html>

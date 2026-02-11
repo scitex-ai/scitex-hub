@@ -24,6 +24,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from .api_docx import docx2tex_convert
+from .api_stats import stats_calculate, stats_describe, stats_recommend
 from .api_utils import (
     detect_bundle_type,
     get_bundle_dimensions_from_png,
@@ -34,7 +35,13 @@ from .api_utils import (
 logger = logging.getLogger("scitex")
 
 # Re-export for backward compatibility
-__all__ = ["read_image_metadata", "docx2tex_convert"]
+__all__ = [
+    "read_image_metadata",
+    "docx2tex_convert",
+    "stats_calculate",
+    "stats_describe",
+    "stats_recommend",
+]
 
 
 @csrf_exempt

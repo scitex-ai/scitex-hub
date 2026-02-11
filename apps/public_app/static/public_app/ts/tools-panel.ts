@@ -116,10 +116,7 @@ function initSearch(): void {
 
   // Keyboard shortcuts
   document.addEventListener("keydown", (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === "k") {
-      e.preventDefault();
-      searchInput.focus();
-    }
+    // Ctrl+K is handled globally by WorkspaceKeyboardHandler for file tree search
     if (e.key === "Escape") {
       if (document.activeElement === searchInput) {
         searchInput.blur();
@@ -146,11 +143,128 @@ function restoreFromHash(): void {
   }
 }
 
+// --- Listen for Ctrl+K forwarded from iframe ---
+function initIframeCtrlK(): void {
+  window.addEventListener("message", (e) => {
+    if (e.data?.type === "scitex-ctrl-k") {
+      const searchInput = document.getElementById(
+        "searchInput",
+      ) as HTMLInputElement | null;
+      if (searchInput) {
+        searchInput.focus();
+        searchInput.select();
+      }
+    }
+  });
+}
+
+// --- Drag-and-drop from file tree to tools ---
+function initToolsDropZone(): void {
+  const contentBody = document.getElementById("tools-content-body");
+  const iframe = document.getElementById(
+    "tools-iframe",
+  ) as HTMLIFrameElement | null;
+
+  if (!contentBody || !iframe) return;
+
+  let dropIndicator: HTMLElement | null = null;
+
+  // Show drop indicator when dragging over iframe area
+  contentBody.addEventListener("dragover", (e) => {
+    const dragEvent = e as DragEvent;
+    // Only handle scitex file drags (from our file tree)
+    if (!dragEvent.dataTransfer?.types.includes("application/x-scitex-file")) {
+      return;
+    }
+
+    dragEvent.preventDefault();
+    dragEvent.stopPropagation();
+    dragEvent.dataTransfer.dropEffect = "copy";
+
+    // Create drop indicator if not exists
+    if (!dropIndicator) {
+      dropIndicator = document.createElement("div");
+      dropIndicator.className = "tools-drop-indicator";
+      dropIndicator.innerHTML =
+        '<i class="fas fa-file-import"></i><p>Drop file here</p>';
+      dropIndicator.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 123, 255, 0.1);
+        border: 2px dashed rgba(0, 123, 255, 0.5);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        z-index: 1000;
+        color: rgba(0, 123, 255, 0.8);
+        font-size: 24px;
+      `;
+      contentBody.appendChild(dropIndicator);
+    }
+  });
+
+  contentBody.addEventListener("dragleave", (e) => {
+    const dragEvent = e as DragEvent;
+    // Remove indicator if leaving the content body entirely
+    if (dragEvent.target === contentBody) {
+      if (dropIndicator) {
+        dropIndicator.remove();
+        dropIndicator = null;
+      }
+    }
+  });
+
+  contentBody.addEventListener("drop", (e) => {
+    const dragEvent = e as DragEvent;
+
+    // Only handle scitex file drags
+    const scitexFileData = dragEvent.dataTransfer?.getData(
+      "application/x-scitex-file",
+    );
+    if (!scitexFileData) return;
+
+    dragEvent.preventDefault();
+    dragEvent.stopPropagation();
+
+    // Remove drop indicator
+    if (dropIndicator) {
+      dropIndicator.remove();
+      dropIndicator = null;
+    }
+
+    // Parse file data
+    try {
+      const files = JSON.parse(scitexFileData);
+      console.log("[ToolsPanel] File dropped:", files);
+
+      // Send to iframe via postMessage
+      if (iframe.contentWindow && !iframe.hasAttribute("hidden")) {
+        iframe.contentWindow.postMessage(
+          {
+            type: "scitex-file-drop",
+            files: files,
+          },
+          "*",
+        );
+      }
+    } catch (error) {
+      console.error("[ToolsPanel] Failed to parse drop data:", error);
+    }
+  });
+}
+
 // --- Initialize ---
 function init(): void {
   initDomainNav();
   initToolClicks();
   initSearch();
+  initIframeCtrlK();
+  initToolsDropZone();
   restoreFromHash();
 }
 

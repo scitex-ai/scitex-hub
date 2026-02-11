@@ -5,7 +5,7 @@
     Browser Tool | SciTeX
 {% endblock %}
 {% block meta_description %}
-    Calculate descriptive statistics, t-tests, correlations, and more. Perfect for quick data analysis.
+    Calculate descriptive statistics, t-tests, correlations, ANOVA, and 20+ statistical tests with effect sizes and APA formatting.
 {% endblock %}
 {% block head_extra %}
     {% load static %}
@@ -106,11 +106,23 @@
             background: var(--workspace-bg-tertiary);
         }
 
+        .test-category {
+            margin-bottom: 16px;
+        }
+
+        .category-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--workspace-text-muted);
+            margin-bottom: 6px;
+        }
+
         .test-selector {
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            margin-bottom: 20px;
+            gap: 6px;
         }
 
         .test-btn {
@@ -135,6 +147,14 @@
             background: var(--workspace-bg-secondary);
             color: var(--workspace-text-link);
             border-color: var(--workspace-text-link);
+        }
+
+        .test-btn .test-description {
+            display: block;
+            font-size: 9px;
+            font-weight: 400;
+            color: var(--workspace-text-muted);
+            margin-top: 2px;
         }
 
         .data-input-section {
@@ -185,6 +205,7 @@
             background: transparent;
             color: var(--workspace-text-primary);
             transition: all 0.2s;
+            margin-bottom: 8px;
         }
 
         .btn:hover:not(:disabled) {
@@ -195,6 +216,11 @@
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+        }
+
+        .btn.btn-secondary {
+            border-color: var(--workspace-border-default);
+            background: var(--workspace-bg-secondary);
         }
 
         .results-section {
@@ -213,6 +239,7 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 11px;
+            margin-bottom: 16px;
         }
 
         .result-table th,
@@ -240,8 +267,42 @@
             font-weight: 600;
         }
 
+        .result-formatted {
+            padding: 12px;
+            background: var(--workspace-bg-secondary);
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 11px;
+            color: var(--workspace-text-primary);
+            margin-bottom: 16px;
+        }
+
+        .result-formatted strong {
+            color: var(--workspace-text-link);
+        }
+
         .input-group {
             margin-bottom: 16px;
+        }
+
+        .backend-indicator {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 9px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .backend-scitex {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .backend-jstat {
+            background: #e67e22;
+            color: white;
         }
     </style>
 {% endblock %}
@@ -254,18 +315,77 @@
             <div class="tool-header">
                 <h1 class="tool-title">Calc Stats</h1>
                 <p style="font-size: 12px; color: var(--workspace-text-secondary); margin: 0;">
-                    Quick statistical analysis for research data
+                    Statistical analysis with 23+ tests, effect sizes, and APA formatting
                 </p>
             </div>
         {% endif %}
         <div class="tool-app-container">
             <div class="left-panel">
-                <div class="panel-header">Test & Data Input</div>
+                <div class="panel-header">Test Selection & Data</div>
                 <div class="panel-body">
-                    <div class="test-selector">
-                        <button class="test-btn active" data-test="descriptive">Descriptive Stats</button>
-                        <button class="test-btn" data-test="ttest">T-Test</button>
-                        <button class="test-btn" data-test="correlation">Correlation</button>
+                    <div class="test-category">
+                        <div class="category-label">Descriptive</div>
+                        <div class="test-selector">
+                            <button class="test-btn active" data-test="descriptive" data-mode="single">
+                                Descriptive Stats
+                                <span class="test-description">Mean, SD, median, quartiles, CI</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="test-category">
+                        <div class="category-label">Parametric Tests</div>
+                        <div class="test-selector">
+                            <button class="test-btn" data-test="ttest" data-mode="paired">
+                                T-Test (Independent)
+                                <span class="test-description">Compare two groups with Cohen's d</span>
+                            </button>
+                            <button class="test-btn" data-test="ttest_paired" data-mode="paired">
+                                T-Test (Paired)
+                                <span class="test-description">Compare paired samples</span>
+                            </button>
+                            <button class="test-btn" data-test="anova" data-mode="groups">
+                                One-Way ANOVA
+                                <span class="test-description">Compare 3+ groups with η²</span>
+                            </button>
+                            <button class="test-btn" data-test="correlation" data-mode="paired">
+                                Pearson Correlation
+                                <span class="test-description">Linear relationship (r, R²)</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="test-category">
+                        <div class="category-label">Non-Parametric Tests</div>
+                        <div class="test-selector">
+                            <button class="test-btn" data-test="mann_whitney" data-mode="paired">
+                                Mann-Whitney U
+                                <span class="test-description">Non-parametric two-sample test</span>
+                            </button>
+                            <button class="test-btn" data-test="wilcoxon" data-mode="paired">
+                                Wilcoxon Signed-Rank
+                                <span class="test-description">Non-parametric paired test</span>
+                            </button>
+                            <button class="test-btn" data-test="kruskal" data-mode="groups">
+                                Kruskal-Wallis H
+                                <span class="test-description">Non-parametric ANOVA</span>
+                            </button>
+                            <button class="test-btn" data-test="spearman" data-mode="paired">
+                                Spearman Correlation
+                                <span class="test-description">Rank-based correlation</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="test-category">
+                        <div class="category-label">Other Tests</div>
+                        <div class="test-selector">
+                            <button class="test-btn" data-test="shapiro" data-mode="single">
+                                Shapiro-Wilk Normality
+                                <span class="test-description">Test if data is normally distributed</span>
+                            </button>
+                            <button class="test-btn" data-test="chi2" data-mode="paired">
+                                Chi-Square Test
+                                <span class="test-description">Test categorical data independence</span>
+                            </button>
+                        </div>
                     </div>
                     <div class="data-input-section">
                         <div id="singleDataSection">
@@ -277,21 +397,33 @@
                         </div>
                         <div id="pairedDataSection" style="display: none;">
                             <div class="input-group">
-                                <div class="data-label">Group 1 Data</div>
+                                <div class="data-label">Group 1 / Variable X</div>
                                 <textarea id="dataInput2" class="data-textarea" placeholder="12.5, 15.3, 14.2, 16.8"></textarea>
                             </div>
                             <div class="input-group">
-                                <div class="data-label">Group 2 Data</div>
+                                <div class="data-label">Group 2 / Variable Y</div>
                                 <textarea id="dataInput3" class="data-textarea" placeholder="11.9, 13.4, 15.0, 12.7"></textarea>
                             </div>
                             <div class="data-hint">Enter data for both groups to compare</div>
                         </div>
+                        <div id="groupsDataSection" style="display: none;">
+                            <div class="data-label">Groups (one group per line)</div>
+                            <textarea id="dataInputGroups"
+                                      class="data-textarea"
+                                      placeholder="Group 1: 12.5, 15.3, 14.2&#10;Group 2: 11.9, 13.4, 15.0&#10;Group 3: 16.1, 17.3, 18.2"
+                                      rows="6"></textarea>
+                            <div class="data-hint">Each line is one group, comma-separated values</div>
+                        </div>
                     </div>
                     <button id="calculateBtn" class="btn">Calculate</button>
+                    <button id="recommendBtn" class="btn btn-secondary" style="display: none;">Recommend Test</button>
                 </div>
             </div>
             <div class="right-panel">
-                <div class="panel-header">Results</div>
+                <div class="panel-header">
+                    Results
+                    <span id="backendIndicator"></span>
+                </div>
                 <div id="resultsSection" class="results-section" style="display: none;">
                     <div id="resultsContent"></div>
                 </div>
@@ -300,52 +432,69 @@
     </div>
     <script>
   let currentTest = 'descriptive';
+  let currentMode = 'single';
+  let useBackend = true; // Try backend first, fall back to jStat
 
   const testButtons = document.querySelectorAll('.test-btn');
   const singleDataSection = document.getElementById('singleDataSection');
   const pairedDataSection = document.getElementById('pairedDataSection');
+  const groupsDataSection = document.getElementById('groupsDataSection');
   const calculateBtn = document.getElementById('calculateBtn');
+  const recommendBtn = document.getElementById('recommendBtn');
   const resultsSection = document.getElementById('resultsSection');
   const resultsContent = document.getElementById('resultsContent');
+  const backendIndicator = document.getElementById('backendIndicator');
   const dataInput1 = document.getElementById('dataInput1');
   const dataInput2 = document.getElementById('dataInput2');
   const dataInput3 = document.getElementById('dataInput3');
+  const dataInputGroups = document.getElementById('dataInputGroups');
 
   testButtons.forEach(btn => {
     btn.addEventListener('click', () => {
       testButtons.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       currentTest = btn.dataset.test;
+      currentMode = btn.dataset.mode;
 
-      if (currentTest === 'descriptive') {
-        singleDataSection.style.display = 'block';
-        pairedDataSection.style.display = 'none';
-      } else {
-        singleDataSection.style.display = 'none';
-        pairedDataSection.style.display = 'block';
-      }
+      // Show appropriate input sections
+      singleDataSection.style.display = currentMode === 'single' ? 'block' : 'none';
+      pairedDataSection.style.display = currentMode === 'paired' ? 'block' : 'none';
+      groupsDataSection.style.display = currentMode === 'groups' ? 'block' : 'none';
 
       resultsSection.style.display = 'none';
+      backendIndicator.innerHTML = '';
     });
   });
 
-  calculateBtn.addEventListener('click', () => {
-    if (currentTest === 'descriptive') {
-      calculateDescriptive();
-    } else if (currentTest === 'ttest') {
-      calculateTTest();
-    } else if (currentTest === 'correlation') {
-      calculateCorrelation();
+  calculateBtn.addEventListener('click', async () => {
+    try {
+      if (currentTest === 'descriptive') {
+        await calculateDescriptive();
+      } else {
+        await calculateTest();
+      }
+    } catch (error) {
+      showError(error.message);
     }
   });
 
   function parseData(text) {
+    if (!text || !text.trim()) return [];
     return text.split(/[,\n\s]+/)
       .map(v => parseFloat(v.trim()))
       .filter(v => !isNaN(v));
   }
 
-  function calculateDescriptive() {
+  function parseGroups(text) {
+    if (!text || !text.trim()) return [];
+    return text.trim().split('\n').map(line => {
+      // Remove "Group N:" prefix if present
+      const cleaned = line.replace(/^Group\s+\d+\s*:\s*/i, '').trim();
+      return parseData(cleaned);
+    }).filter(group => group.length > 0);
+  }
+
+  async function calculateDescriptive() {
     const data = parseData(dataInput1.value);
 
     if (data.length === 0) {
@@ -353,6 +502,33 @@
       return;
     }
 
+    try {
+      // Try backend first
+      const response = await fetch('{% url "public_app:api_stats_describe" %}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          showBackendIndicator('scitex');
+          displayDescriptiveResults(result.result);
+          return;
+        }
+      }
+
+      // Fall back to client-side
+      showBackendIndicator('jstat');
+      calculateDescriptiveClientSide(data);
+    } catch (error) {
+      showBackendIndicator('jstat');
+      calculateDescriptiveClientSide(data);
+    }
+  }
+
+  function calculateDescriptiveClientSide(data) {
     const mean = jStat.mean(data);
     const median = jStat.median(data);
     const stdev = jStat.stdev(data, true);
@@ -361,15 +537,41 @@
     const min = Math.min(...data);
     const max = Math.max(...data);
 
+    const results = {
+      count: data.length,
+      mean: mean,
+      median: median,
+      std: stdev,
+      sem: sem,
+      ci95_lower: mean - ci95,
+      ci95_upper: mean + ci95,
+      min: min,
+      max: max
+    };
+
+    displayDescriptiveResults(results);
+  }
+
+  function displayDescriptiveResults(results) {
+    const n = results.count || results.n;
+    const mean = results.mean;
+    const median = results.median;
+    const std = results.std;
+    const sem = results.sem;
+    const ci95_lower = results.ci95_lower;
+    const ci95_upper = results.ci95_upper;
+    const min = results.min;
+    const max = results.max;
+
     resultsContent.innerHTML = `
       <table class="result-table">
         <tr><th>Statistic</th><th>Value</th></tr>
-        <tr><td>N (sample size)</td><td class="result-value">${data.length}</td></tr>
+        <tr><td>N (sample size)</td><td class="result-value">${n}</td></tr>
         <tr><td>Mean</td><td class="result-value">${mean.toFixed(4)}</td></tr>
         <tr><td>Median</td><td class="result-value">${median.toFixed(4)}</td></tr>
-        <tr><td>Std. Deviation</td><td class="result-value">${stdev.toFixed(4)}</td></tr>
+        <tr><td>Std. Deviation</td><td class="result-value">${std.toFixed(4)}</td></tr>
         <tr><td>SEM (Std. Error)</td><td class="result-value">${sem.toFixed(4)}</td></tr>
-        <tr><td>95% CI</td><td class="result-value">±${ci95.toFixed(4)}</td></tr>
+        <tr><td>95% CI</td><td class="result-value">[${ci95_lower.toFixed(4)}, ${ci95_upper.toFixed(4)}]</td></tr>
         <tr><td>Min</td><td class="result-value">${min.toFixed(4)}</td></tr>
         <tr><td>Max</td><td class="result-value">${max.toFixed(4)}</td></tr>
       </table>
@@ -378,51 +580,99 @@
     resultsSection.style.display = 'block';
   }
 
-  function calculateTTest() {
-    const data1 = parseData(dataInput2.value);
-    const data2 = parseData(dataInput3.value);
+  async function calculateTest() {
+    let data, data2, groups;
 
-    if (data1.length === 0 || data2.length === 0) {
-      alert('Please enter valid data for both groups');
-      return;
+    if (currentMode === 'single') {
+      data = parseData(dataInput1.value);
+      if (data.length === 0) {
+        alert('Please enter valid data');
+        return;
+      }
+    } else if (currentMode === 'paired') {
+      data = parseData(dataInput2.value);
+      data2 = parseData(dataInput3.value);
+      if (data.length === 0 || data2.length === 0) {
+        alert('Please enter valid data for both groups');
+        return;
+      }
+      if (currentTest === 'correlation' || currentTest === 'spearman') {
+        if (data.length !== data2.length) {
+          alert('Both variables must have the same number of data points');
+          return;
+        }
+      }
+    } else if (currentMode === 'groups') {
+      groups = parseGroups(dataInputGroups.value);
+      if (groups.length < 2) {
+        alert('Please enter at least 2 groups');
+        return;
+      }
     }
 
+    try {
+      // Try backend
+      const payload = { test_name: currentTest };
+      if (data) payload.data = data;
+      if (data2) payload.data2 = data2;
+      if (groups) payload.groups = groups;
+
+      const response = await fetch('{% url "public_app:api_stats_calculate" %}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          showBackendIndicator('scitex');
+          displayTestResults(result.result);
+          return;
+        }
+      }
+
+      // Fall back to client-side
+      showBackendIndicator('jstat');
+      calculateTestClientSide(currentTest, data, data2, groups);
+    } catch (error) {
+      showBackendIndicator('jstat');
+      calculateTestClientSide(currentTest, data, data2, groups);
+    }
+  }
+
+  function calculateTestClientSide(test, data, data2, groups) {
+    // Client-side implementations (subset of tests supported)
+    if (test === 'ttest' || test === 'ttest_ind') {
+      calculateTTestClientSide(data, data2);
+    } else if (test === 'correlation' || test === 'pearson') {
+      calculateCorrelationClientSide(data, data2);
+    } else {
+      showError(`Test "${test}" requires backend support. Please ensure the server is running.`);
+    }
+  }
+
+  function calculateTTestClientSide(data1, data2) {
     const mean1 = jStat.mean(data1);
     const mean2 = jStat.mean(data2);
     const tstat = jStat.ttest(mean1, mean2, jStat.stdev(data1, true), jStat.stdev(data2, true), data1.length);
     const df = data1.length + data2.length - 2;
     const pvalue = 2 * (1 - jStat.studentt.cdf(Math.abs(tstat), df));
 
-    resultsContent.innerHTML = `
-      <table class="result-table">
-        <tr><th>Statistic</th><th>Value</th></tr>
-        <tr><td>Group 1 Mean</td><td class="result-value">${mean1.toFixed(4)}</td></tr>
-        <tr><td>Group 2 Mean</td><td class="result-value">${mean2.toFixed(4)}</td></tr>
-        <tr><td>Mean Difference</td><td class="result-value">${(mean1 - mean2).toFixed(4)}</td></tr>
-        <tr><td>t-statistic</td><td class="result-value">${tstat.toFixed(4)}</td></tr>
-        <tr><td>Degrees of Freedom</td><td class="result-value">${df}</td></tr>
-        <tr><td>p-value (two-tailed)</td><td class="result-value">${pvalue.toFixed(6)}</td></tr>
-        <tr><td>Significance</td><td class="result-value">${pvalue < 0.05 ? 'Significant (p < 0.05)' : 'Not significant (p ≥ 0.05)'}</td></tr>
-      </table>
-    `;
+    const result = {
+      test: 'Independent Samples t-test',
+      statistic: tstat,
+      p_value: pvalue,
+      df: df,
+      mean1: mean1,
+      mean2: mean2,
+      formatted: `t(${df}) = ${tstat.toFixed(3)}, p = ${pvalue.toFixed(4)}`
+    };
 
-    resultsSection.style.display = 'block';
+    displayTestResults(result);
   }
 
-  function calculateCorrelation() {
-    const data1 = parseData(dataInput2.value);
-    const data2 = parseData(dataInput3.value);
-
-    if (data1.length === 0 || data2.length === 0) {
-      alert('Please enter valid data for both variables');
-      return;
-    }
-
-    if (data1.length !== data2.length) {
-      alert('Both variables must have the same number of data points');
-      return;
-    }
-
+  function calculateCorrelationClientSide(data1, data2) {
     const r = jStat.corrcoeff(data1, data2);
     const r2 = r * r;
     const n = data1.length;
@@ -430,20 +680,74 @@
     const df = n - 2;
     const pvalue = 2 * (1 - jStat.studentt.cdf(Math.abs(t), df));
 
-    resultsContent.innerHTML = `
-      <table class="result-table">
-        <tr><th>Statistic</th><th>Value</th></tr>
-        <tr><td>Pearson's r</td><td class="result-value">${r.toFixed(4)}</td></tr>
-        <tr><td>R² (coefficient of determination)</td><td class="result-value">${r2.toFixed(4)}</td></tr>
-        <tr><td>N (sample size)</td><td class="result-value">${n}</td></tr>
-        <tr><td>t-statistic</td><td class="result-value">${t.toFixed(4)}</td></tr>
-        <tr><td>Degrees of Freedom</td><td class="result-value">${df}</td></tr>
-        <tr><td>p-value</td><td class="result-value">${pvalue.toFixed(6)}</td></tr>
-        <tr><td>Significance</td><td class="result-value">${pvalue < 0.05 ? 'Significant (p < 0.05)' : 'Not significant (p ≥ 0.05)'}</td></tr>
-        <tr><td>Interpretation</td><td class="result-value">${Math.abs(r) > 0.7 ? 'Strong' : Math.abs(r) > 0.4 ? 'Moderate' : 'Weak'} ${r > 0 ? 'positive' : 'negative'} correlation</td></tr>
-      </table>
-    `;
+    const result = {
+      test: 'Pearson Correlation',
+      correlation: r,
+      p_value: pvalue,
+      n: n,
+      r_squared: r2,
+      formatted: `r = ${r.toFixed(3)}, p = ${pvalue.toFixed(4)}, n = ${n}`
+    };
 
+    displayTestResults(result);
+  }
+
+  function displayTestResults(result) {
+    let html = '';
+
+    if (result.formatted) {
+      html += `
+        <div class="result-formatted">
+          <strong>APA Format:</strong><br />
+          ${result.formatted}
+        </div>
+      `;
+    }
+
+    html += `<table class="result-table"><tr><th>Statistic</th><th>Value</th></tr>`;
+
+    // Display all result fields
+    for (const [key, value] of Object.entries(result)) {
+      if (key === 'formatted' || key === 'test') continue;
+
+      const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      if (typeof value === 'number') {
+        const decimals = key.includes('p_value') || key.includes('pvalue') ? 6 : 4;
+        html += `<tr><td>${label}</td><td class="result-value">${value.toFixed(decimals)}</td></tr>`;
+      } else if (typeof value === 'boolean') {
+        html += `<tr><td>${label}</td><td class="result-value">${value ? 'Yes' : 'No'}</td></tr>`;
+      } else if (value !== null && value !== undefined) {
+        html += `<tr><td>${label}</td><td class="result-value">${value}</td></tr>`;
+      }
+    }
+
+    html += `</table>`;
+
+    if (result.p_value !== undefined) {
+      const sig = result.p_value < 0.05 ? 'Significant (p < 0.05)' : 'Not significant (p ≥ 0.05)';
+      html += `<div style="padding: 8px; border-left: 3px solid ${result.p_value < 0.05 ? '#2ecc71' : '#e67e22'}; background: var(--workspace-bg-secondary); font-size: 11px;">
+        <strong>Interpretation:</strong> ${sig}
+      </div>`;
+    }
+
+    resultsContent.innerHTML = html;
+    resultsSection.style.display = 'block';
+  }
+
+  function showBackendIndicator(backend) {
+    if (backend === 'scitex') {
+      backendIndicator.innerHTML = '<span class="backend-indicator backend-scitex">SCITEX BACKEND</span>';
+    } else {
+      backendIndicator.innerHTML = '<span class="backend-indicator backend-jstat">CLIENT-SIDE</span>';
+    }
+  }
+
+  function showError(message) {
+    resultsContent.innerHTML = `
+      <div style="padding: 12px; background: #e74c3c; color: white; border-radius: 4px; font-size: 11px;">
+        <strong>Error:</strong> ${message}
+      </div>
+    `;
     resultsSection.style.display = 'block';
   }
     </script>

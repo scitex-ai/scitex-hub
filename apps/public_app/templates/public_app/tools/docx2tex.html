@@ -241,15 +241,15 @@
         }
 
         .status-message.success {
-            background: rgba(46, 160, 67, 0.1);
-            color: #3fb950;
-            border: 1px solid rgba(46, 160, 67, 0.3);
+            background: var(--status-success-bg);
+            color: var(--status-success);
+            border: 1px solid var(--status-success-border);
         }
 
         .status-message.error {
-            background: rgba(248, 81, 73, 0.1);
-            color: #f85149;
-            border: 1px solid rgba(248, 81, 73, 0.3);
+            background: var(--status-error-bg);
+            color: var(--status-error);
+            border: 1px solid var(--status-error-border);
         }
 
         .output-section {
@@ -340,7 +340,7 @@
         .warnings-list h4 {
             margin: 0 0 8px 0;
             font-size: 12px;
-            color: #d29922;
+            color: var(--status-warning);
         }
 
         .warnings-list ul {
@@ -451,6 +451,11 @@
                 <div class="panel-header">Upload & Settings</div>
                 <div class="panel-body">
                     <div id="uploadZone" class="upload-zone">
+                        <div style="font-size: 2rem;
+                                    margin-bottom: 8px;
+                                    color: var(--workspace-text-secondary)">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
                         <div class="upload-zone-text">Drop DOCX file or click to upload</div>
                         <div class="upload-zone-hint">Microsoft Word (.docx) files only</div>
                         <input type="file"

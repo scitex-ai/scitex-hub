@@ -34,6 +34,13 @@ def get_tool_domains():
     """Get all tool domains with their configurations."""
     return [
         {
+            "name": "Research",
+            "slug": "research",
+            "icon": "🔬",
+            "description": "Literature management and citation tools",
+            "tools": RESEARCH_TOOLS,
+        },
+        {
             "name": "Text",
             "slug": "text",
             "icon": "📝",
@@ -55,13 +62,6 @@ def get_tool_domains():
             "tools": PDF_TOOLS,
         },
         {
-            "name": "Video",
-            "slug": "video",
-            "icon": "🎬",
-            "description": "Video and animation processing",
-            "tools": VIDEO_TOOLS,
-        },
-        {
             "name": "Rendering",
             "slug": "rendering",
             "icon": "📈",
@@ -69,18 +69,18 @@ def get_tool_domains():
             "tools": RENDERING_TOOLS,
         },
         {
+            "name": "Video",
+            "slug": "video",
+            "icon": "🎬",
+            "description": "Video and animation processing",
+            "tools": VIDEO_TOOLS,
+        },
+        {
             "name": "Developer",
             "slug": "development",
             "icon": "💻",
             "description": "Web development and debugging utilities",
             "tools": DEVELOPER_TOOLS,
-        },
-        {
-            "name": "Research",
-            "slug": "research",
-            "icon": "🔬",
-            "description": "Literature management and citation tools",
-            "tools": RESEARCH_TOOLS,
         },
     ]
 
