@@ -101,9 +101,9 @@
 
         .upload-button {
             padding: 6px 14px;
-            background: var(--workspace-text-link);
-            color: white;
-            border: none;
+            background: transparent;
+            color: var(--workspace-text-link);
+            border: 1px solid var(--workspace-text-link);
             border-radius: 4px;
             font-size: 12px;
             cursor: pointer;
@@ -111,7 +111,7 @@
         }
 
         .upload-button:hover {
-            opacity: 0.9;
+            background: var(--workspace-bg-tertiary);
         }
 
         .example-link {
@@ -298,16 +298,16 @@
 
         .download-button {
             padding: 6px 14px;
-            background: var(--workspace-text-link);
-            color: white;
-            border: none;
+            background: transparent;
+            color: var(--workspace-text-link);
+            border: 1px solid var(--workspace-text-link);
             border-radius: 4px;
             font-size: 12px;
             cursor: pointer;
         }
 
         .download-button:hover {
-            opacity: 0.9;
+            background: var(--workspace-bg-tertiary);
         }
     </style>
 {% endblock %}
