@@ -130,6 +130,26 @@
             border-color: var(--workspace-text-link, #58a6ff);
         }
 
+        .btn-eye {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 2px 4px;
+            color: var(--workspace-text-muted, #484f58);
+            transition: color 0.15s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-eye:hover {
+            color: var(--workspace-text-primary, #c9d1d9);
+        }
+
+        .btn-eye.active {
+            color: var(--workspace-text-link, #58a6ff);
+        }
+
         /* Textarea */
         .text-input {
             width: 100%;
@@ -252,20 +272,23 @@
         {% endif %}
         <!-- Two-card layout: Original (left) | Edited + Diff toggle (right) -->
         <div class="diff-layout">
-            <!-- LEFT: Original -->
+            <!-- LEFT: Before -->
             <div class="card">
                 <div class="card-header">
-                    <span class="card-title">Original</span>
+                    <span class="card-title">Before</span>
                     <div class="card-actions">
                         <button id="clearBtn" class="btn-sm">Clear</button>
                     </div>
                 </div>
                 <textarea id="textOriginal" class="text-input" placeholder="Paste original text..."></textarea>
             </div>
-            <!-- RIGHT: Edited or Diff (toggleable) -->
+            <!-- RIGHT: After or Diff (toggleable) -->
             <div class="card">
                 <div class="card-header">
-                    <span class="card-title" id="rightTitle">Edited</span>
+                    <span class="card-title" id="rightTitle">Diff</span>
+                    <button id="toggleViewEye"
+                            class="btn-eye active"
+                            title="Toggle between Diff and After views">👁️</button>
                     <div class="card-actions">
                         <label class="opt-label">
                             <input type="checkbox" id="ignoreWhitespace" />
@@ -275,7 +298,6 @@
                             <input type="checkbox" id="ignoreCase" />
                             Case
                         </label>
-                        <button id="toggleView" class="btn-sm">Diff</button>
                         <button id="copyBtn" class="btn-sm">Copy</button>
                     </div>
                 </div>
@@ -295,7 +317,7 @@
   const textOriginal = document.getElementById('textOriginal');
   const textEdited = document.getElementById('textEdited');
   const diffView = document.getElementById('diffView');
-  const toggleView = document.getElementById('toggleView');
+  const toggleViewEye = document.getElementById('toggleViewEye');
   const copyBtn = document.getElementById('copyBtn');
   const clearBtn = document.getElementById('clearBtn');
   const rightTitle = document.getElementById('rightTitle');
@@ -306,7 +328,7 @@
   const ignoreWhitespace = document.getElementById('ignoreWhitespace');
   const ignoreCase = document.getElementById('ignoreCase');
 
-  let showingDiff = false;
+  let showingDiff = true; // Default to Diff view
 
   function performDiff() {
     let str1 = textOriginal.value;
@@ -339,25 +361,25 @@
   function switchView(toDiff) {
     showingDiff = toDiff;
     if (toDiff) {
+      // Show Diff view
       performDiff();
       textEdited.hidden = true;
       diffView.hidden = false;
-      toggleView.textContent = 'Edit';
-      toggleView.classList.add('active');
+      toggleViewEye.classList.add('active');
       rightTitle.textContent = 'Diff';
     } else {
+      // Show After view (clean edited text)
       textEdited.hidden = false;
       diffView.hidden = true;
-      toggleView.textContent = 'Diff';
-      toggleView.classList.remove('active');
-      rightTitle.textContent = 'Edited';
+      toggleViewEye.classList.remove('active');
+      rightTitle.textContent = 'After';
       diffStats.hidden = true;
     }
   }
 
-  toggleView.addEventListener('click', () => switchView(!showingDiff));
+  toggleViewEye.addEventListener('click', () => switchView(!showingDiff));
 
-  // Copy always copies the edited text (magic copy)
+  // Copy always copies the edited text
   copyBtn.addEventListener('click', () => {
     navigator.clipboard.writeText(textEdited.value);
     copyBtn.textContent = 'Copied';
@@ -369,7 +391,7 @@
     textEdited.value = '';
     diffView.innerHTML = '';
     diffStats.hidden = true;
-    if (showingDiff) switchView(false);
+    if (!showingDiff) switchView(true); // Reset to Diff view
   });
 
   // Re-diff on option change
@@ -395,9 +417,9 @@
     }
   });
 
-  // Sample content + start in diff mode
+  // Sample content + start in diff mode (default)
   textOriginal.value = 'The quick brown fox jumps over the lazy dog.\nThis is the first paragraph.\nAnother line of text.';
   textEdited.value = 'The quick brown fox jumps over the sleepy dog.\nThis is the first paragraph with changes.\nAnother line of text.\nAn additional line.';
-  switchView(true);
+  switchView(true); // Start in Diff view
     </script>
 {% endblock %}

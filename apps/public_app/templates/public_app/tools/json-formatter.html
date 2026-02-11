@@ -223,9 +223,7 @@
                 <div class="panel-header">
                     <span class="panel-title">Editor</span>
                 </div>
-                <textarea id="jsonInput"
-                          class="json-textarea"
-                          placeholder='{"name": "example", "value": 123}'></textarea>
+                <textarea id="jsonInput" class="json-textarea" placeholder="Paste or type JSON here...">{"name": "example", "value": 123}</textarea>
                 <div class="controls">
                     <button id="formatBtn" class="btn">Format</button>
                     <button id="minifyBtn" class="btn">Minify</button>
@@ -334,5 +332,8 @@
     jsonOutput.innerHTML = '';
     showStatus('Cleared', 'success');
   });
+
+  // Auto-format on load if textarea has content
+  if (jsonInput.value.trim()) formatJSON();
     </script>
 {% endblock %}
