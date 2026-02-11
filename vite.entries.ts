@@ -345,6 +345,10 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
       rootDir,
       "apps/public_app/static/public_app/ts/tools-panel.ts",
     ),
+    "public_app/tools/stats-calculator": r(
+      rootDir,
+      "apps/public_app/static/public_app/ts/tools/stats-calculator/index.ts",
+    ),
     "public_app/pages/api-docs": r(
       rootDir,
       "apps/public_app/static/public_app/ts/pages/api-docs.ts",

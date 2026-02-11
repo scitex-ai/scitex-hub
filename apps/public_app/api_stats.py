@@ -8,16 +8,25 @@ Provides backend functionality for the Statistics Calculator tool using scitex.s
 
 import json
 import logging
-from typing import Any, Dict
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
+from . import api_stats_helpers
+
 # Django views use standard logging, not @stx.session injection
 logger = logging.getLogger("scitex")  # noqa: STX-I007
 
-__all__ = ["stats_calculate", "stats_recommend", "stats_describe"]
+__all__ = [
+    "stats_calculate",
+    "stats_recommend",
+    "stats_describe",
+    "stats_effect_size",
+    "stats_posthoc",
+    "stats_power",
+    "stats_correct",
+]
 
 
 @csrf_exempt
@@ -45,10 +54,6 @@ def stats_calculate(request) -> JsonResponse:
     try:
         body = json.loads(request.body)
         test_name = body.get("test_name")
-        data = body.get("data", [])
-        data2 = body.get("data2")
-        groups = body.get("groups")
-        alternative = body.get("alternative", "two-sided")
 
         if not test_name:
             return JsonResponse(
@@ -57,7 +62,7 @@ def stats_calculate(request) -> JsonResponse:
 
         # Import scitex stats module
         try:
-            import scitex as stx
+            import scitex as stx  # noqa: F401
         except ImportError as e:
             logger.error(f"Failed to import scitex: {e}")
             return JsonResponse(
@@ -69,8 +74,8 @@ def stats_calculate(request) -> JsonResponse:
                 status=503,
             )
 
-        # Route to appropriate test function
-        result = _run_statistical_test(stx, test_name, data, data2, groups, alternative)
+        # Delegate to helper
+        result = api_stats_helpers.run_statistical_test(body)
 
         return JsonResponse(
             {
@@ -109,7 +114,6 @@ def stats_describe(request) -> JsonResponse:
     try:
         body = json.loads(request.body)
         data = body.get("data", [])
-        percentiles = body.get("percentiles")
 
         if not data:
             return JsonResponse(
@@ -117,7 +121,7 @@ def stats_describe(request) -> JsonResponse:
             )
 
         try:
-            import scitex as stx
+            import scitex as stx  # noqa: F401
         except ImportError as e:
             logger.error(f"Failed to import scitex: {e}")
             return JsonResponse(
@@ -129,11 +133,8 @@ def stats_describe(request) -> JsonResponse:
                 status=503,
             )
 
-        # Call scitex.stats.descriptive
-        if percentiles:
-            result = stx.stats.descriptive(data, percentiles=percentiles)
-        else:
-            result = stx.stats.descriptive(data)
+        # Delegate to helper
+        result = api_stats_helpers.run_descriptive(body)
 
         return JsonResponse({"success": True, "result": result})
 
@@ -168,289 +169,230 @@ def stats_recommend(request) -> JsonResponse:
     try:
         body = json.loads(request.body)
 
-        n_groups = body.get("n_groups", 2)
-        sample_sizes = body.get("sample_sizes")
-        outcome_type = body.get("outcome_type", "continuous")
-        design = body.get("design", "between")
-        paired = body.get("paired", False)
-        has_control_group = body.get("has_control_group", False)
-        top_k = body.get("top_k", 3)
-
         try:
-            import scitex as stx
+            import scitex as stx  # noqa: F401
         except ImportError as e:
             logger.error(f"Failed to import scitex: {e}")
             return JsonResponse(
                 {"success": False, "error": "scitex package not available"}, status=503
             )
 
-        # Call scitex.stats.recommend_tests
-        recommendations = stx.stats.recommend_tests(
-            n_groups=n_groups,
-            sample_sizes=sample_sizes,
-            outcome_type=outcome_type,
-            design=design,
-            paired=paired,
-            has_control_group=has_control_group,
-            top_k=top_k,
-        )
+        # Delegate to helper
+        result = api_stats_helpers.run_recommend(body)
 
-        return JsonResponse({"success": True, "recommendations": recommendations})
+        return JsonResponse(
+            {"success": True, "recommendations": result["recommendations"]}
+        )
 
     except Exception as e:
         logger.error(f"Error in stats_recommend: {e}", exc_info=True)
         return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 
-def _run_statistical_test(
-    stx, test_name: str, data, data2, groups, alternative: str
-) -> Dict[str, Any]:
+@csrf_exempt
+@require_POST
+def stats_effect_size(request) -> JsonResponse:
     """
-    Route to appropriate statistical test function.
+    Calculate effect size measures.
 
-    Returns dict with test results.
+    Expected POST body:
+    {
+        "measure": str,       # "cohens_d", "eta_squared", "epsilon_squared", "cliffs_delta", "prob_superiority"
+        "group1": list,       # First group data
+        "group2": list,       # Optional second group data
+        "groups": list,       # Optional list of groups for multi-group measures
+        "paired": bool        # Whether samples are paired (for Cohen's d)
+    }
+
+    Returns:
+    {
+        "success": bool,
+        "result": dict  # Contains measure name, value, and interpretation
+    }
     """
-    import numpy as np
+    try:
+        body = json.loads(request.body)
+        measure = body.get("measure")
 
-    # Convert to numpy arrays
-    data = np.array(data)
-    if data2 is not None:
-        data2 = np.array(data2)
-    if groups is not None:
-        groups = [np.array(g) for g in groups]
+        if not measure:
+            return JsonResponse(
+                {"success": False, "error": "measure is required"}, status=400
+            )
 
-    # Map test names to scitex functions
-    test_mapping = {
-        "ttest": lambda: _run_ttest(stx, data, data2, alternative),
-        "ttest_ind": lambda: _run_ttest(stx, data, data2, alternative),
-        "ttest_paired": lambda: _run_ttest_paired(stx, data, data2),
-        "anova": lambda: _run_anova(stx, groups),
-        "mann_whitney": lambda: _run_mann_whitney(stx, data, data2, alternative),
-        "wilcoxon": lambda: _run_wilcoxon(stx, data, data2),
-        "kruskal": lambda: _run_kruskal(stx, groups),
-        "chi2": lambda: _run_chi2(stx, data, data2),
-        "shapiro": lambda: _run_shapiro(stx, data),
-        "correlation": lambda: _run_correlation(stx, data, data2),
-        "pearson": lambda: _run_correlation(stx, data, data2, method="pearson"),
-        "spearman": lambda: _run_correlation(stx, data, data2, method="spearman"),
+        try:
+            import scitex as stx  # noqa: F401
+        except ImportError as e:
+            logger.error(f"Failed to import scitex: {e}")
+            return JsonResponse(
+                {"success": False, "error": "scitex package not available"}, status=503
+            )
+
+        # Delegate to helper
+        result = api_stats_helpers.run_effect_size(body)
+
+        return JsonResponse({"success": True, "result": result})
+
+    except ValueError as e:
+        logger.warning(f"Invalid input for stats_effect_size: {e}")
+        return JsonResponse({"success": False, "error": str(e)}, status=400)
+    except Exception as e:
+        logger.error(f"Error in stats_effect_size: {e}", exc_info=True)
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
+
+
+@csrf_exempt
+@require_POST
+def stats_posthoc(request) -> JsonResponse:
+    """
+    Run post-hoc pairwise comparisons.
+
+    Expected POST body:
+    {
+        "method": str,        # "tukey", "games_howell", "dunnett"
+        "groups": list,       # List of group arrays
+        "group_names": list,  # Optional list of group names
+        "alpha": float        # Significance level (default: 0.05)
     }
 
-    if test_name not in test_mapping:
-        raise ValueError(f"Unknown test: {test_name}")
+    Returns:
+    {
+        "success": bool,
+        "result": dict  # Contains method and list of comparisons
+    }
+    """
+    try:
+        body = json.loads(request.body)
+        method = body.get("method")
 
-    return test_mapping[test_name]()
+        if not method:
+            return JsonResponse(
+                {"success": False, "error": "method is required"}, status=400
+            )
+
+        try:
+            import scitex as stx  # noqa: F401
+        except ImportError as e:
+            logger.error(f"Failed to import scitex: {e}")
+            return JsonResponse(
+                {"success": False, "error": "scitex package not available"}, status=503
+            )
+
+        # Delegate to helper
+        result = api_stats_helpers.run_posthoc(body)
+
+        return JsonResponse({"success": True, "result": result})
+
+    except ValueError as e:
+        logger.warning(f"Invalid input for stats_posthoc: {e}")
+        return JsonResponse({"success": False, "error": str(e)}, status=400)
+    except Exception as e:
+        logger.error(f"Error in stats_posthoc: {e}", exc_info=True)
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 
-def _run_ttest(stx, data1, data2, alternative):
-    """Run independent samples t-test."""
-    from scipy import stats as sp_stats  # noqa: STX-I002
+@csrf_exempt
+@require_POST
+def stats_power(request) -> JsonResponse:
+    """
+    Run power analysis for sample size or power calculation.
 
-    result = sp_stats.ttest_ind(data1, data2, alternative=alternative)
-
-    # Calculate effect size (Cohen's d)
-    mean1, mean2 = data1.mean(), data2.mean()
-    pooled_std = np.sqrt(
-        (
-            (len(data1) - 1) * data1.std(ddof=1) ** 2
-            + (len(data2) - 1) * data2.std(ddof=1) ** 2
-        )
-        / (len(data1) + len(data2) - 2)
-    )
-    cohens_d = (mean1 - mean2) / pooled_std
-
-    # Format APA style
-    df = len(data1) + len(data2) - 2
-    formatted = (
-        stx.stats.get_stat_style().format_test(
-            "t-test",
-            statistic=result.statistic,
-            p_value=result.pvalue,
-            df=df,
-            effect_size=cohens_d,
-            effect_size_name="d",
-        )
-        if hasattr(stx.stats, "get_stat_style")
-        else ""
-    )
-
-    return {
-        "test": "Independent Samples t-test",
-        "statistic": float(result.statistic),
-        "p_value": float(result.pvalue),
-        "df": df,
-        "mean1": float(mean1),
-        "mean2": float(mean2),
-        "cohens_d": float(cohens_d),
-        "formatted": formatted
-        or f"t({df}) = {result.statistic:.3f}, p = {result.pvalue:.4f}, d = {cohens_d:.3f}",
+    Expected POST body:
+    {
+        "effect_size": float,  # Required
+        "n": int,              # Optional - provide to calculate power
+        "alpha": float,        # Significance level (default: 0.05)
+        "power": float,        # Desired power (default: 0.8) - used when n not provided
+        "test_type": str       # "one-sample", "two-sample" (default), "paired"
     }
 
+    Returns:
+    {
+        "success": bool,
+        "result": dict  # Contains power and n (or n_required)
+    }
+    """
+    try:
+        body = json.loads(request.body)
+        effect_size = body.get("effect_size")
 
-def _run_ttest_paired(stx, data1, data2):
-    """Run paired samples t-test."""
-    from scipy import stats as sp_stats  # noqa: STX-I002
+        if not effect_size:
+            return JsonResponse(
+                {"success": False, "error": "effect_size is required"}, status=400
+            )
 
-    result = sp_stats.ttest_rel(data1, data2)
+        try:
+            import scitex as stx  # noqa: F401
+        except ImportError as e:
+            logger.error(f"Failed to import scitex: {e}")
+            return JsonResponse(
+                {"success": False, "error": "scitex package not available"}, status=503
+            )
 
-    # Calculate effect size
-    diff = data1 - data2
-    cohens_d = diff.mean() / diff.std(ddof=1)
+        # Delegate to helper
+        result = api_stats_helpers.run_power_analysis(body)
 
-    df = len(data1) - 1
+        return JsonResponse({"success": True, "result": result})
 
-    return {
-        "test": "Paired Samples t-test",
-        "statistic": float(result.statistic),
-        "p_value": float(result.pvalue),
-        "df": df,
-        "mean_diff": float(diff.mean()),
-        "cohens_d": float(cohens_d),
-        "formatted": f"t({df}) = {result.statistic:.3f}, p = {result.pvalue:.4f}, d = {cohens_d:.3f}",
+    except ValueError as e:
+        logger.warning(f"Invalid input for stats_power: {e}")
+        return JsonResponse({"success": False, "error": str(e)}, status=400)
+    except Exception as e:
+        logger.error(f"Error in stats_power: {e}", exc_info=True)
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
+
+
+@csrf_exempt
+@require_POST
+def stats_correct(request) -> JsonResponse:
+    """
+    Apply multiple comparison correction to p-values.
+
+    Expected POST body:
+    {
+        "method": str,      # "bonferroni", "fdr", "holm", "sidak"
+        "pvalues": list,    # List of p-values
+        "alpha": float      # Significance level (default: 0.05)
     }
 
-
-def _run_anova(stx, groups):
-    """Run one-way ANOVA."""
-    from scipy import stats as sp_stats  # noqa: STX-I002
-
-    result = sp_stats.f_oneway(*groups)
-
-    # Calculate eta squared
-    grand_mean = np.concatenate(groups).mean()
-    ss_between = sum(len(g) * (g.mean() - grand_mean) ** 2 for g in groups)
-    ss_total = sum(((g - grand_mean) ** 2).sum() for g in groups)
-    eta_squared = ss_between / ss_total
-
-    df_between = len(groups) - 1
-    df_within = sum(len(g) for g in groups) - len(groups)
-
-    return {
-        "test": "One-Way ANOVA",
-        "statistic": float(result.statistic),
-        "p_value": float(result.pvalue),
-        "df_between": df_between,
-        "df_within": df_within,
-        "eta_squared": float(eta_squared),
-        "formatted": f"F({df_between}, {df_within}) = {result.statistic:.3f}, p = {result.pvalue:.4f}, η² = {eta_squared:.3f}",
+    Returns:
+    {
+        "success": bool,
+        "result": dict  # Contains method, corrected p-values, and alpha
     }
+    """
+    try:
+        body = json.loads(request.body)
+        method = body.get("method")
+        pvalues = body.get("pvalues")
 
+        if not method:
+            return JsonResponse(
+                {"success": False, "error": "method is required"}, status=400
+            )
+        if not pvalues:
+            return JsonResponse(
+                {"success": False, "error": "pvalues is required"}, status=400
+            )
 
-def _run_mann_whitney(stx, data1, data2, alternative):
-    """Run Mann-Whitney U test."""
-    from scipy import stats as sp_stats  # noqa: STX-I002
+        try:
+            import scitex as stx  # noqa: F401
+        except ImportError as e:
+            logger.error(f"Failed to import scitex: {e}")
+            return JsonResponse(
+                {"success": False, "error": "scitex package not available"}, status=503
+            )
 
-    result = sp_stats.mannwhitneyu(data1, data2, alternative=alternative)
+        # Delegate to helper
+        result = api_stats_helpers.run_correction(body)
 
-    # Calculate rank biserial correlation
-    n1, n2 = len(data1), len(data2)
-    r = 1 - (2 * result.statistic) / (n1 * n2)
+        return JsonResponse({"success": True, "result": result})
 
-    return {
-        "test": "Mann-Whitney U Test",
-        "statistic": float(result.statistic),
-        "p_value": float(result.pvalue),
-        "rank_biserial": float(r),
-        "formatted": f"U = {result.statistic:.1f}, p = {result.pvalue:.4f}, r = {r:.3f}",
-    }
-
-
-def _run_wilcoxon(stx, data1, data2):
-    """Run Wilcoxon signed-rank test."""
-    from scipy import stats as sp_stats  # noqa: STX-I002
-
-    result = sp_stats.wilcoxon(data1, data2)
-
-    return {
-        "test": "Wilcoxon Signed-Rank Test",
-        "statistic": float(result.statistic),
-        "p_value": float(result.pvalue),
-        "formatted": f"W = {result.statistic:.1f}, p = {result.pvalue:.4f}",
-    }
-
-
-def _run_kruskal(stx, groups):
-    """Run Kruskal-Wallis H test."""
-    from scipy import stats as sp_stats  # noqa: STX-I002
-
-    result = sp_stats.kruskal(*groups)
-
-    # Calculate epsilon squared
-    n = sum(len(g) for g in groups)
-    eta_squared = (result.statistic - len(groups) + 1) / (n - len(groups))
-
-    df = len(groups) - 1
-
-    return {
-        "test": "Kruskal-Wallis H Test",
-        "statistic": float(result.statistic),
-        "p_value": float(result.pvalue),
-        "df": df,
-        "epsilon_squared": float(eta_squared),
-        "formatted": f"H({df}) = {result.statistic:.3f}, p = {result.pvalue:.4f}, ε² = {eta_squared:.3f}",
-    }
-
-
-def _run_chi2(stx, observed, expected=None):
-    """Run Chi-square test."""
-    from scipy import stats as sp_stats  # noqa: STX-I002
-
-    if expected is None:
-        # Chi-square goodness of fit with uniform distribution
-        expected = np.full_like(observed, observed.mean())
-
-    result = sp_stats.chisquare(observed, expected)
-
-    df = len(observed) - 1
-
-    return {
-        "test": "Chi-Square Test",
-        "statistic": float(result.statistic),
-        "p_value": float(result.pvalue),
-        "df": df,
-        "formatted": f"χ²({df}) = {result.statistic:.3f}, p = {result.pvalue:.4f}",
-    }
-
-
-def _run_shapiro(stx, data):
-    """Run Shapiro-Wilk normality test."""
-    from scipy import stats as sp_stats  # noqa: STX-I002
-
-    result = sp_stats.shapiro(data)
-
-    return {
-        "test": "Shapiro-Wilk Normality Test",
-        "statistic": float(result.statistic),
-        "p_value": float(result.pvalue),
-        "normal": result.pvalue > 0.05,
-        "formatted": f"W = {result.statistic:.4f}, p = {result.pvalue:.4f} ({'normal' if result.pvalue > 0.05 else 'not normal'})",
-    }
-
-
-def _run_correlation(stx, data1, data2, method="pearson"):
-    """Run correlation test."""
-    from scipy import stats as sp_stats  # noqa: STX-I002
-
-    if method == "pearson":
-        r, p = sp_stats.pearsonr(data1, data2)
-        test_name = "Pearson Correlation"
-    elif method == "spearman":
-        r, p = sp_stats.spearmanr(data1, data2)
-        test_name = "Spearman Correlation"
-    else:
-        raise ValueError(f"Unknown correlation method: {method}")
-
-    n = len(data1)
-
-    return {
-        "test": test_name,
-        "correlation": float(r),
-        "p_value": float(p),
-        "n": n,
-        "r_squared": float(r**2),
-        "formatted": f"r = {r:.3f}, p = {r.pvalue:.4f}, n = {n}"
-        if hasattr(r, "pvalue")
-        else f"r = {r:.3f}, p = {p:.4f}, n = {n}",
-    }
+    except ValueError as e:
+        logger.warning(f"Invalid input for stats_correct: {e}")
+        return JsonResponse({"success": False, "error": str(e)}, status=400)
+    except Exception as e:
+        logger.error(f"Error in stats_correct: {e}", exc_info=True)
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 
 # EOF

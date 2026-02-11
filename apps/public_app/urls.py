@@ -254,6 +254,26 @@ urlpatterns = [
         api_views.stats_recommend,
         name="api_stats_recommend",
     ),
+    path(
+        "api/stats/effect-size/",
+        api_views.stats_effect_size,
+        name="api_stats_effect_size",
+    ),
+    path(
+        "api/stats/posthoc/",
+        api_views.stats_posthoc,
+        name="api_stats_posthoc",
+    ),
+    path(
+        "api/stats/power/",
+        api_views.stats_power,
+        name="api_stats_power",
+    ),
+    path(
+        "api/stats/correct/",
+        api_views.stats_correct,
+        name="api_stats_correct",
+    ),
 ]
 
 # EOF

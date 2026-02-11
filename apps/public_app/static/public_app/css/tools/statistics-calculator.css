@@ -1,0 +1,463 @@
+/* Statistics Calculator Tool - 3-Column Layout */
+
+/* ============================================================================
+   CSS Variable Bridge for DataTableManager
+   ============================================================================ */
+:root {
+  /* Bridge vis-* variables to workspace-* theme */
+  --vis-bg-primary: var(--workspace-bg-primary);
+  --vis-bg-secondary: var(--workspace-bg-secondary);
+  --vis-bg-tertiary: var(--workspace-bg-tertiary);
+  --vis-bg-monaco: var(--workspace-bg-monaco);
+  --vis-border-default: var(--workspace-border-default);
+  --vis-text-primary: var(--workspace-text-primary);
+  --vis-text-secondary: var(--workspace-text-secondary);
+  --vis-text-muted: var(--workspace-text-muted);
+  --vis-text-link: var(--workspace-text-link);
+}
+
+/* ============================================================================
+   Main Container
+   ============================================================================ */
+.tool-detail-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--workspace-bg-primary);
+  color: var(--workspace-text-primary);
+  font-family: "JetBrains Mono", "Courier New", monospace;
+}
+
+/* ============================================================================
+   Tool Header (standalone mode)
+   ============================================================================ */
+.tool-breadcrumb {
+  padding: 12px 20px;
+  background: var(--workspace-bg-secondary);
+  border-bottom: 1px solid var(--workspace-border-default);
+  font-size: 13px;
+  color: var(--workspace-text-muted);
+}
+
+.tool-breadcrumb a {
+  color: var(--workspace-text-link);
+  text-decoration: none;
+}
+
+.tool-breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.tool-header {
+  padding: 16px 20px;
+  background: var(--workspace-bg-secondary);
+  border-bottom: 1px solid var(--workspace-border-default);
+}
+
+.tool-header h1 {
+  margin: 0 0 4px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--workspace-text-primary);
+}
+
+.tool-header .tool-description {
+  margin: 0;
+  font-size: 13px;
+  color: var(--workspace-text-secondary);
+}
+
+/* ============================================================================
+   3-Column Grid Layout
+   ============================================================================ */
+.stats-three-column {
+  display: grid;
+  grid-template-columns: 280px 1fr 380px;
+  gap: 0;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ============================================================================
+   Panel Base Styles
+   ============================================================================ */
+.stats-test-panel,
+.stats-data-panel,
+.stats-results-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--workspace-bg-secondary);
+  border-right: 1px solid var(--workspace-border-default);
+}
+
+.stats-results-panel {
+  border-right: none;
+}
+
+.panel-header {
+  flex-shrink: 0;
+  height: 36px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  background: var(--workspace-bg-tertiary);
+  border-bottom: 1px solid var(--workspace-border-default);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--workspace-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.panel-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px;
+  min-height: 0;
+}
+
+.panel-footer {
+  flex-shrink: 0;
+  padding: 12px 16px;
+  border-top: 1px solid var(--workspace-border-default);
+  background: var(--workspace-bg-tertiary);
+}
+
+/* ============================================================================
+   Test Panel (Left Column)
+   ============================================================================ */
+.test-category {
+  margin-bottom: 20px;
+}
+
+.test-category:last-child {
+  margin-bottom: 0;
+}
+
+.category-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--workspace-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  padding-left: 2px;
+}
+
+.test-btn {
+  width: 100%;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  background: var(--workspace-bg-primary);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 4px;
+  color: var(--workspace-text-primary);
+  font-family: "JetBrains Mono", "Courier New", monospace;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.test-btn:hover {
+  background: var(--workspace-bg-monaco);
+  border-color: var(--workspace-text-link);
+}
+
+.test-btn.active {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.test-btn:last-child {
+  margin-bottom: 0;
+}
+
+.backend-indicator {
+  padding: 2px 6px;
+  font-size: 9px;
+  font-weight: 600;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.backend-scitex {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+.backend-jstat {
+  background: rgba(139, 92, 246, 0.15);
+  color: #8b5cf6;
+}
+
+/* ============================================================================
+   Data Panel (Center Column)
+   ============================================================================ */
+.stats-data-panel .panel-body {
+  padding: 0;
+  background: var(--workspace-bg-monaco);
+}
+
+.data-table-container {
+  height: 100%;
+  width: 100%;
+}
+
+/* ============================================================================
+   Results Panel (Right Column)
+   ============================================================================ */
+.results-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--workspace-text-muted);
+  font-size: 13px;
+  text-align: center;
+  padding: 20px;
+}
+
+.results-empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.3;
+}
+
+.results-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.result-section {
+  background: var(--workspace-bg-primary);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 4px;
+  padding: 12px;
+}
+
+.result-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--workspace-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.result-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.result-table td {
+  padding: 4px 0;
+  border-bottom: 1px solid var(--workspace-border-default);
+}
+
+.result-table tr:last-child td {
+  border-bottom: none;
+}
+
+.result-table td:first-child {
+  color: var(--workspace-text-secondary);
+  padding-right: 12px;
+  width: 40%;
+}
+
+.result-table td:last-child {
+  color: var(--workspace-text-primary);
+  font-weight: 500;
+}
+
+.result-formatted {
+  font-family: "JetBrains Mono", "Courier New", monospace;
+  font-size: 13px;
+  padding: 8px 12px;
+  background: var(--workspace-bg-monaco);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 4px;
+  color: var(--workspace-text-primary);
+  line-height: 1.5;
+}
+
+.result-value {
+  font-family: "JetBrains Mono", "Courier New", monospace;
+  font-weight: 600;
+}
+
+.result-value.significant {
+  color: #10b981;
+}
+
+.result-value.not-significant {
+  color: var(--workspace-text-muted);
+}
+
+.interpretation-bar {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.interpretation-bar.significant {
+  background: rgba(16, 185, 129, 0.1);
+  border-left: 3px solid #10b981;
+  color: #10b981;
+}
+
+.interpretation-bar.not-significant {
+  background: rgba(156, 163, 175, 0.1);
+  border-left: 3px solid #6b7280;
+  color: var(--workspace-text-muted);
+}
+
+.suggestions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.suggestion-item {
+  padding: 8px 12px;
+  background: var(--workspace-bg-monaco);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--workspace-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.suggestion-item:hover {
+  background: var(--workspace-bg-primary);
+  border-color: var(--workspace-text-link);
+  color: var(--workspace-text-primary);
+}
+
+.suggestion-item::before {
+  content: "→";
+  color: var(--workspace-text-link);
+  font-weight: 600;
+}
+
+/* ============================================================================
+   Buttons
+   ============================================================================ */
+.btn {
+  padding: 8px 16px;
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 4px;
+  font-family: "JetBrains Mono", "Courier New", monospace;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.btn-secondary {
+  background: var(--workspace-bg-primary);
+  color: var(--workspace-text-primary);
+  border-color: var(--workspace-border-default);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--workspace-bg-monaco);
+  border-color: var(--workspace-text-link);
+}
+
+.btn-block {
+  width: 100%;
+}
+
+/* ============================================================================
+   Scrollbar Styling
+   ============================================================================ */
+.panel-body::-webkit-scrollbar,
+.stats-data-panel::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.panel-body::-webkit-scrollbar-track,
+.stats-data-panel::-webkit-scrollbar-track {
+  background: var(--workspace-bg-tertiary);
+}
+
+.panel-body::-webkit-scrollbar-thumb,
+.stats-data-panel::-webkit-scrollbar-thumb {
+  background: var(--workspace-border-default);
+  border-radius: 4px;
+}
+
+.panel-body::-webkit-scrollbar-thumb:hover,
+.stats-data-panel::-webkit-scrollbar-thumb:hover {
+  background: var(--workspace-text-muted);
+}
+
+/* ============================================================================
+   Responsive Adjustments
+   ============================================================================ */
+@media (max-width: 1024px) {
+  .stats-three-column {
+    grid-template-columns: 240px 1fr 320px;
+  }
+}
+
+@media (max-width: 768px) {
+  .stats-three-column {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+  }
+
+  .stats-test-panel,
+  .stats-results-panel {
+    border-right: none;
+    border-bottom: 1px solid var(--workspace-border-default);
+  }
+
+  .panel-body {
+    max-height: 300px;
+  }
+}
