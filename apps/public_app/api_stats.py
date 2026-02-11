@@ -397,17 +397,21 @@ def stats_correct(request) -> JsonResponse:
 
 
 def stats_flowchart(request):
-    """Return statistical test decision flowchart as SVG or JSON.
+    """Return statistical test decision flowchart as Mermaid text or JSON.
 
     GET parameters:
-        format: "svg" (default) or "json"
+        format: "mermaid" (default), "json", or "svg"
 
-    Returns SVG image or JSON decision tree structure.
+    Returns Mermaid markup for client-side rendering, JSON tree, or SVG.
     """
     from django.http import HttpResponse
 
     try:
-        from scitex.stats.auto import get_decision_tree, render_flowchart_svg
+        from scitex.stats.auto import (
+            get_decision_tree,
+            render_flowchart_mermaid,
+            render_flowchart_svg,
+        )
     except ImportError as e:
         logger.error(f"Failed to import scitex: {e}")
         return JsonResponse(
@@ -415,11 +419,14 @@ def stats_flowchart(request):
         )
 
     try:
-        fmt = request.GET.get("format", "svg")
+        fmt = request.GET.get("format", "mermaid")
         if fmt == "json":
             return JsonResponse({"success": True, "tree": get_decision_tree()})
-        svg = render_flowchart_svg()
-        return HttpResponse(svg, content_type="image/svg+xml")
+        if fmt == "svg":
+            svg = render_flowchart_svg()
+            return HttpResponse(svg, content_type="image/svg+xml")
+        mermaid_text = render_flowchart_mermaid()
+        return HttpResponse(mermaid_text, content_type="text/plain; charset=utf-8")
     except Exception as e:
         logger.error(f"Error in stats_flowchart: {e}", exc_info=True)
         return JsonResponse({"success": False, "error": str(e)}, status=500)

@@ -1,9 +1,12 @@
 /**
  * FlowchartPanel - Interactive statistical test decision flowchart
  *
- * Loads SVG from /api/stats/flowchart/ and attaches click handlers
- * to let users navigate "Which test should I use?" decisions.
+ * Fetches Mermaid markup from /api/stats/flowchart/ and renders it
+ * client-side using Mermaid.js. Attaches click handlers to let users
+ * navigate "Which test should I use?" decisions.
  */
+
+import mermaid from "mermaid";
 
 // Mapping from SVG node IDs to test registry IDs
 // SVG node IDs follow pattern: flowchart-{node_id}-{index}
@@ -44,8 +47,8 @@ export class FlowchartPanel {
           '<div class="flowchart-error">Failed to load flowchart</div>';
         return;
       }
-      const svg = await resp.text();
-      this.container.innerHTML = svg;
+      const mermaidText = await resp.text();
+      await this.renderMermaid(mermaidText);
       this.styleSvg();
       this.attachClickHandlers();
     } catch (err) {
@@ -55,15 +58,33 @@ export class FlowchartPanel {
     }
   }
 
+  private async renderMermaid(text: string): Promise<void> {
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: "base",
+      themeVariables: {
+        primaryColor: "#e6f3ff",
+        primaryTextColor: "#333",
+        primaryBorderColor: "#0066cc",
+        lineColor: "#666",
+      },
+      flowchart: { curve: "basis", padding: 8 },
+      securityLevel: "loose",
+    });
+
+    const { svg } = await mermaid.render("stats-flowchart", text);
+    this.container.innerHTML = svg;
+  }
+
   private styleSvg(): void {
     const svg = this.container.querySelector("svg");
     if (!svg) return;
-    svg.style.width = "100%";
+    // Force readable size; container scrolls horizontally/vertically
+    svg.style.width = "auto";
+    svg.style.minWidth = "500px";
     svg.style.height = "auto";
     svg.style.display = "block";
-    svg.style.maxHeight = "none";
-    // Remove fixed viewBox max-width to let CSS control sizing
-    svg.style.maxWidth = "100%";
+    svg.removeAttribute("height");
   }
 
   private attachClickHandlers(): void {
