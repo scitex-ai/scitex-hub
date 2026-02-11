@@ -7,7 +7,7 @@
     View image, SVG, PDF, and SciTeX bundle (.pltz, .figz) dimensions, metadata, DPI, and unit conversions for publication figures
 {% endblock %}
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'public_app/css/tools/image-viewer.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/tools/view-image.css' %}" />
     <style>
         html,
         body {
@@ -193,7 +193,7 @@
 {% block extra_js %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
-    {% vite_script 'public_app/tools/image-viewer' %}
+    {% vite_script 'public_app/tools/view-image' %}
 {% endblock %}
 {% block content %}
     <div class="tool-detail-container">
@@ -234,11 +234,11 @@
                             <button id="clearBtn" class="clear-btn">Clear</button>
                         </div>
                         <div class="preview-content">
-                            {% include "public_app/tools/image-viewer-partials/single-file-preview.html" %}
-                            {% include "public_app/tools/image-viewer-partials/bundle-preview.html" %}
+                            {% include "public_app/tools/view-image-partials/single-file-preview.html" %}
+                            {% include "public_app/tools/view-image-partials/bundle-preview.html" %}
                         </div>
                     </div>
-                    {% include "public_app/tools/image-viewer-partials/info-panel.html" %}
+                    {% include "public_app/tools/view-image-partials/info-panel.html" %}
                 </div>
             </div>
         </div>

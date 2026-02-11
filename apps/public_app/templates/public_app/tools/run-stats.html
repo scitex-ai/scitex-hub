@@ -3,7 +3,7 @@
 {% load static vite %}
 
 {% block title %}
-    Statistics Calculator -
+    Run Stats -
     Browser Tool | SciTeX
 {% endblock %}
 {% block meta_description %}
@@ -16,8 +16,7 @@
           href="{% static 'images/scitex-icon/scitex-icon-navy-inverted-192x192.png' %}?v=3" />
 {% endblock %}
 {% block extra_css %}
-    <link rel="stylesheet"
-          href="{% static 'public_app/css/tools/statistics-calculator.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/tools/run-stats.css' %}" />
 {% endblock %}
 {% block content %}
     <div class="tool-detail-container">
@@ -26,7 +25,7 @@
                 <a href="{% url 'public_app:tools' %}">Back to Tools</a>
             </div>
             <div class="tool-header">
-                <h1>Calc Stats</h1>
+                <h1>Run Stats</h1>
                 <p class="tool-description">
                     Statistical analysis with 30+ tests, effect sizes, post-hoc comparisons, and APA formatting
                 </p>
@@ -66,5 +65,5 @@
             </div>
         </div>
     </div>
-    {% vite_script 'public_app/tools/stats-calculator' %}
+    {% vite_script 'public_app/tools/run-stats' %}
 {% endblock %}

@@ -75,10 +75,10 @@ DEVELOPER_TOOLS = [
 # Research tools (alphabetical by name)
 RESEARCH_TOOLS = [
     {
-        "name": "Calc Stats",
-        "description": "Quick statistical analysis with descriptive stats, t-tests, and correlations.",
+        "name": "Run Stats",
+        "description": "30+ statistical tests with effect sizes, post-hoc comparisons, and APA formatting.",
         "use_case": "Verify experimental results before plotting",
-        "bookmarklet_url": "/tools/calc-stats/",
+        "bookmarklet_url": "/tools/run-stats/",
         "icon": "📈",
     },
     {

@@ -333,21 +333,21 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
       rootDir,
       "apps/public_app/static/public_app/ts/landing/hero-demo.ts",
     ),
-    "public_app/tools/plot-viewer/index": r(
+    "public_app/tools/view-plot/index": r(
       rootDir,
-      "apps/public_app/static/public_app/ts/tools/plot-viewer/index.ts",
+      "apps/public_app/static/public_app/ts/tools/view-plot/index.ts",
     ),
-    "public_app/tools/image-viewer": r(
+    "public_app/tools/view-image": r(
       rootDir,
-      "apps/public_app/static/public_app/ts/tools/image-viewer.ts",
+      "apps/public_app/static/public_app/ts/tools/view-image.ts",
     ),
     "public_app/tools-panel": r(
       rootDir,
       "apps/public_app/static/public_app/ts/tools-panel.ts",
     ),
-    "public_app/tools/stats-calculator": r(
+    "public_app/tools/run-stats": r(
       rootDir,
-      "apps/public_app/static/public_app/ts/tools/stats-calculator/index.ts",
+      "apps/public_app/static/public_app/ts/tools/run-stats/index.ts",
     ),
     "public_app/pages/api-docs": r(
       rootDir,

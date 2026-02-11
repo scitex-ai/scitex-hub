@@ -15,7 +15,7 @@
 {% block extra_css %}
     {% load static vite %}
 
-    <link rel="stylesheet" href="{% static 'public_app/css/tools/plot-viewer.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/tools/view-plot.css' %}" />
     <style>
         html,
         body {
@@ -597,5 +597,5 @@
 {% block extra_js %}
     {% load static vite %}
 
-    {% vite_script 'public_app/tools/plot-viewer/index' %}
+    {% vite_script 'public_app/tools/view-plot/index' %}
 {% endblock %}

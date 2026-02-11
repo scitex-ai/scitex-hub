@@ -177,7 +177,8 @@ def _entry_to_ts_path(entry_name: str) -> str:
         "public_app/server-status": "apps/public_app/static/public_app/ts/server-status.ts",
         "public_app/landing-demos-inline": "apps/public_app/static/public_app/ts/landing-demos-inline.ts",
         "public_app/landing/module-cards": "apps/public_app/static/public_app/ts/landing/module-cards.ts",
-        "public_app/tools/plot-viewer/index": "apps/public_app/static/public_app/ts/tools/plot-viewer/index.ts",
+        "public_app/tools/view-plot/index": "apps/public_app/static/public_app/ts/tools/view-plot/index.ts",
+        "public_app/tools/run-stats": "apps/public_app/static/public_app/ts/tools/run-stats/index.ts",
         "public_app/pages/api-docs": "apps/public_app/static/public_app/ts/pages/api-docs.ts",
         "public_app/pages/release-timeline": "apps/public_app/static/public_app/ts/pages/release-timeline.ts",
         # Accounts app
