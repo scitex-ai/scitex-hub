@@ -35,17 +35,8 @@ def run_descriptive(body: dict) -> dict:
 
 
 def run_statistical_test(body: dict) -> dict:
-    """Route to scitex.stats.tests and return result dict."""
-    from scitex.stats.tests.categorical import test_chi2
-    from scitex.stats.tests.correlation import test_pearson, test_spearman
-    from scitex.stats.tests.nonparametric import (
-        test_brunner_munzel,
-        test_kruskal,
-        test_mannwhitneyu,
-        test_wilcoxon,
-    )
-    from scitex.stats.tests.normality import test_shapiro
-    from scitex.stats.tests.parametric import test_anova, test_ttest_ind, test_ttest_rel
+    """Route to scitex.stats public API and return result dict."""
+    import scitex as stx
 
     test_name = body.get("test_name")
     data = np.array(body.get("data", []), dtype=float)
@@ -58,30 +49,30 @@ def run_statistical_test(body: dict) -> dict:
     alternative = body.get("alternative", "two-sided")
 
     router = {
-        "ttest": lambda: test_ttest_ind(
+        "ttest": lambda: stx.stats.test_ttest_ind(
             data, data2, alternative=alternative, return_as="dict"
         ),
-        "ttest_ind": lambda: test_ttest_ind(
+        "ttest_ind": lambda: stx.stats.test_ttest_ind(
             data, data2, alternative=alternative, return_as="dict"
         ),
-        "ttest_rel": lambda: test_ttest_rel(data, data2, return_as="dict"),
-        "ttest_paired": lambda: test_ttest_rel(data, data2, return_as="dict"),
-        "anova": lambda: test_anova(*groups, return_as="dict"),
-        "brunnermunzel": lambda: test_brunner_munzel(
+        "ttest_rel": lambda: stx.stats.test_ttest_rel(data, data2, return_as="dict"),
+        "ttest_paired": lambda: stx.stats.test_ttest_rel(data, data2, return_as="dict"),
+        "anova": lambda: stx.stats.test_anova(*groups, return_as="dict"),
+        "brunnermunzel": lambda: stx.stats.test_brunner_munzel(
             data, data2, alternative=alternative, return_as="dict"
         ),
-        "mannwhitneyu": lambda: test_mannwhitneyu(
+        "mannwhitneyu": lambda: stx.stats.test_mannwhitneyu(
             data, data2, alternative=alternative, return_as="dict"
         ),
-        "mann_whitney": lambda: test_mannwhitneyu(
+        "mann_whitney": lambda: stx.stats.test_mannwhitneyu(
             data, data2, alternative=alternative, return_as="dict"
         ),
-        "wilcoxon": lambda: test_wilcoxon(data, data2, return_as="dict"),
-        "kruskal": lambda: test_kruskal(*groups, return_as="dict"),
-        "chi2": lambda: test_chi2(data, data2, return_as="dict"),
-        "shapiro": lambda: test_shapiro(data, return_as="dict"),
-        "pearson": lambda: test_pearson(data, data2, return_as="dict"),
-        "spearman": lambda: test_spearman(data, data2, return_as="dict"),
+        "wilcoxon": lambda: stx.stats.test_wilcoxon(data, data2, return_as="dict"),
+        "kruskal": lambda: stx.stats.test_kruskal(*groups, return_as="dict"),
+        "chi2": lambda: stx.stats.test_chi2(data, data2, return_as="dict"),
+        "shapiro": lambda: stx.stats.test_shapiro(data, return_as="dict"),
+        "pearson": lambda: stx.stats.test_pearson(data, data2, return_as="dict"),
+        "spearman": lambda: stx.stats.test_spearman(data, data2, return_as="dict"),
     }
 
     if test_name not in router:
@@ -270,7 +261,8 @@ def _normalize_result(result: dict) -> dict:
 
     # Build formatted string if not present
     if "formatted" not in out and "statistic" in out and "p_value" in out:
-        parts = [f"stat = {out['statistic']:.3f}", f"p = {out['p_value']:.4f}"]
+        symbol = out.get("stat_symbol", "stat")
+        parts = [f"{symbol} = {out['statistic']:.3f}", f"p = {out['p_value']:.4f}"]
         if "effect_size" in out:
             metric = out.get("effect_size_metric", "d")
             parts.append(f"{metric} = {out['effect_size']:.3f}")

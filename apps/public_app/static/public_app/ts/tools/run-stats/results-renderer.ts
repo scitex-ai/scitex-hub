@@ -39,9 +39,20 @@ export class ResultsRenderer {
     );
     const suggestions = this.createSuggestions(config.id, result);
 
+    const HIDDEN_KEYS = new Set([
+      "formatted",
+      "test_method",
+      "test",
+      "var_x",
+      "var_y",
+      "alternative",
+      "alpha",
+      "H0",
+      "stat_symbol",
+    ]);
     const entries: [string, string][] = [];
     for (const [key, value] of Object.entries(result)) {
-      if (key === "formatted") continue; // Skip formatted string
+      if (HIDDEN_KEYS.has(key)) continue;
       const label = this.formatLabel(key);
       const formatted = this.formatNumber(value);
       entries.push([label, formatted]);
@@ -53,10 +64,12 @@ export class ResultsRenderer {
 
         <div class="apa-format">
           <div class="apa-header">
-            <strong>APA Format</strong>
-            <button class="btn-copy-apa" title="Copy to clipboard">Copy</button>
+            <span class="apa-label">APA Format</span>
+            <button class="btn-copy-apa" title="Copy to clipboard">
+              <i class="fa-regular fa-copy"></i>
+            </button>
           </div>
-          <pre>${apa || "N/A"}</pre>
+          <div class="apa-text">${apa || "N/A"}</div>
         </div>
 
         ${this.createResultTable(entries)}
@@ -228,14 +241,15 @@ export class ResultsRenderer {
       return result.formatted;
     }
     // Fallback: construct simple APA format
-    const { statistic, p_value, df } = result;
+    const { statistic, p_value, df, stat_symbol } = result;
+    const sym = stat_symbol || "stat";
     if (statistic !== undefined && p_value !== undefined) {
       const statStr = this.formatNumber(statistic);
       const pStr = this.formatNumber(p_value);
       if (df !== undefined) {
-        return `statistic = ${statStr}, df = ${df}, p = ${pStr}`;
+        return `${sym}(${df}) = ${statStr}, p = ${pStr}`;
       }
-      return `statistic = ${statStr}, p = ${pStr}`;
+      return `${sym} = ${statStr}, p = ${pStr}`;
     }
     return "";
   }
@@ -340,18 +354,20 @@ export class ResultsRenderer {
     if (!btn) return;
 
     btn.addEventListener("click", () => {
-      const pre = this.container.querySelector(".apa-format pre");
-      if (!pre) return;
+      const el = this.container.querySelector(".apa-text");
+      if (!el) return;
 
-      const text = pre.textContent || "";
+      const text = el.textContent || "";
       navigator.clipboard
         .writeText(text)
         .then(() => {
-          const original = btn.textContent;
-          btn.textContent = "Copied!";
-          setTimeout(() => {
-            btn.textContent = original;
-          }, 2000);
+          const icon = btn.querySelector("i");
+          if (icon) {
+            icon.className = "fa-solid fa-check";
+            setTimeout(() => {
+              icon.className = "fa-regular fa-copy";
+            }, 2000);
+          }
         })
         .catch((err) => {
           console.error("Failed to copy:", err);

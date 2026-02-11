@@ -31,6 +31,10 @@ export class FlowchartPanel {
   private container: HTMLElement;
   private onTestSelected: (testId: string) => void;
   private activeNodeId: string | null = null;
+  private savedStyles = new Map<
+    Element,
+    { stroke: string; strokeWidth: string; filter: string }
+  >();
 
   constructor(selector: string, onTestSelected: (testId: string) => void) {
     const el = document.querySelector<HTMLElement>(selector);
@@ -150,24 +154,42 @@ export class FlowchartPanel {
   }
 
   highlightNode(nodeId: string): void {
-    // Remove previous highlight
-    if (this.activeNodeId) {
-      const prev = this.findSvgNode(this.activeNodeId);
-      if (prev) prev.classList.remove("flowchart-active");
-    }
+    // Remove previous highlight via direct style restoration
+    this.clearHighlight();
 
-    // Add new highlight
     const node = this.findSvgNode(nodeId);
-    if (node) {
-      node.classList.add("flowchart-active");
-      this.activeNodeId = nodeId;
-      // Scroll highlighted node into view within the flowchart container
-      node.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-        inline: "nearest",
+    if (!node) return;
+
+    // Directly manipulate SVG inline styles to override Mermaid's styles
+    const shapes = node.querySelectorAll("rect, polygon, circle, ellipse");
+    shapes.forEach((shape) => {
+      const el = shape as SVGElement;
+      this.savedStyles.set(el, {
+        stroke: el.style.stroke,
+        strokeWidth: el.style.strokeWidth,
+        filter: el.style.filter,
       });
+      el.style.stroke = "#facc15";
+      el.style.strokeWidth = "3px";
+      el.style.filter = "drop-shadow(0 0 6px rgba(250, 204, 21, 0.6))";
+    });
+    this.activeNodeId = nodeId;
+    node.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "nearest",
+    });
+  }
+
+  private clearHighlight(): void {
+    for (const [el, styles] of this.savedStyles) {
+      const svgEl = el as SVGElement;
+      svgEl.style.stroke = styles.stroke;
+      svgEl.style.strokeWidth = styles.strokeWidth;
+      svgEl.style.filter = styles.filter;
     }
+    this.savedStyles.clear();
+    this.activeNodeId = null;
   }
 
   /** Find the SVG node element by extracting from the flowchart-{id}-{N} pattern */
