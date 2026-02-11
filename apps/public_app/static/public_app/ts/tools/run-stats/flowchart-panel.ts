@@ -161,6 +161,12 @@ export class FlowchartPanel {
     if (node) {
       node.classList.add("flowchart-active");
       this.activeNodeId = nodeId;
+      // Scroll highlighted node into view within the flowchart container
+      node.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "nearest",
+      });
     }
   }
 

@@ -102,13 +102,14 @@
   filter: brightness(1.1);
 }
 
-/* Active node highlight */
+/* Active node highlight — bright yellow stroke + glow for visibility */
 .flowchart-active rect,
 .flowchart-active polygon,
 .flowchart-active circle,
 .flowchart-active ellipse {
-  stroke: var(--workspace-text-link, #4a9eff) !important;
+  stroke: #facc15 !important;
   stroke-width: 3px !important;
+  filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.6));
 }
 
 /* ============================================================================
