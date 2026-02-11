@@ -72,9 +72,7 @@
    3-Column Grid Layout
    ============================================================================ */
 .stats-three-column {
-  display: grid;
-  grid-template-columns: 340px 1fr 380px;
-  gap: 0;
+  display: flex;
   flex: 1;
   overflow: hidden;
   min-height: 0;
@@ -91,11 +89,21 @@
   height: 100%;
   overflow: hidden;
   background: var(--workspace-bg-secondary);
-  border-right: 1px solid var(--workspace-border-default);
+}
+
+.stats-test-panel {
+  width: 340px;
+  flex-shrink: 0;
+}
+
+.stats-data-panel {
+  flex: 1;
+  min-width: 200px;
 }
 
 .stats-results-panel {
-  border-right: none;
+  width: 380px;
+  flex-shrink: 0;
 }
 
 .panel-header {
@@ -452,24 +460,37 @@
    Responsive Adjustments
    ============================================================================ */
 @media (max-width: 1024px) {
-  .stats-three-column {
-    grid-template-columns: 280px 1fr 320px;
+  .stats-test-panel {
+    width: 280px;
+  }
+
+  .stats-results-panel {
+    width: 320px;
   }
 }
 
 @media (max-width: 768px) {
   .stats-three-column {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr auto;
+    flex-direction: column;
+  }
+
+  .stats-test-panel,
+  .stats-data-panel,
+  .stats-results-panel {
+    width: 100% !important;
+    flex-shrink: 1;
   }
 
   .stats-test-panel,
   .stats-results-panel {
-    border-right: none;
     border-bottom: 1px solid var(--workspace-border-default);
   }
 
   .panel-body {
     max-height: 300px;
+  }
+
+  .stats-test-resizer {
+    display: none;
   }
 }

@@ -18,6 +18,7 @@
 {% block extra_css %}
     <link rel="stylesheet"
           href="{% static 'shared/css/components/data-table/index.css' %}" />
+    <link rel="stylesheet" href="{% static 'shared/css/components/panel-resizer.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/tools/run-stats.css' %}" />
     <link rel="stylesheet"
           href="{% static 'public_app/css/tools/run-stats-datatable.css' %}" />
@@ -56,6 +57,16 @@
                     <button id="recommendBtn" class="btn btn-secondary btn-block" style="margin-top: 6px;">Recommend Test</button>
                 </div>
             </div>
+            {# Resizer: Tests ↔ Data #}
+            <div class="panel-resizer stats-test-resizer"
+                 id="stats-test-resizer"
+                 data-panel-resizer
+                 data-storage-prefix="scitex-stats-"
+                 data-target=".stats-test-panel"
+                 data-direction="left"
+                 data-min-width="200"
+                 data-default-width="340"
+                 data-storage-key="test-panel-width"></div>
             {# Center Column: Data Table #}
             <div class="stats-data-panel">
                 <div class="panel-header">
@@ -80,5 +91,6 @@
             </div>
         </div>
     </div>
+    {% vite_script 'shared/workspace-panel-resizer' %}
     {% vite_script 'public_app/tools/run-stats' %}
 {% endblock %}
