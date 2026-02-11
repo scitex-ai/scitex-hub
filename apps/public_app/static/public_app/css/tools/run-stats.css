@@ -221,11 +221,9 @@
 .stats-data-panel .panel-body {
   padding: 0;
   background: var(--workspace-bg-monaco);
-}
-
-.data-table-container {
-  height: 100%;
-  width: 100%;
+  overflow: auto;
+  position: relative;
+  min-height: 0;
 }
 
 /* ============================================================================

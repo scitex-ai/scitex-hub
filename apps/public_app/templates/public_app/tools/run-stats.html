@@ -16,7 +16,11 @@
           href="{% static 'images/scitex-icon/scitex-icon-navy-inverted-192x192.png' %}?v=3" />
 {% endblock %}
 {% block extra_css %}
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/data-table/index.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/tools/run-stats.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'public_app/css/tools/run-stats-datatable.css' %}" />
     <link rel="stylesheet"
           href="{% static 'public_app/css/tools/run-stats-flowchart.css' %}" />
 {% endblock %}
@@ -38,7 +42,13 @@
             <div class="stats-test-panel">
                 <div class="panel-header">Tests</div>
                 <div class="panel-body">
-                    <div id="flowchartContainer" class="flowchart-container"></div>
+                    <div class="flowchart-section" id="flowchartSection">
+                        <div class="flowchart-toggle" id="flowchartToggle">
+                            <span>Decision Flowchart</span>
+                            <i class="fa-solid fa-chevron-up"></i>
+                        </div>
+                        <div id="flowchartContainer" class="flowchart-container"></div>
+                    </div>
                     <div id="testSelectionPanel">{# Populated by TypeScript from test-registry.ts #}</div>
                 </div>
                 <div class="panel-footer">

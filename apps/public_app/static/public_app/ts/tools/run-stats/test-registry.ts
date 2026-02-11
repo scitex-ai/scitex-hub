@@ -10,7 +10,7 @@ import type {
 
 export const WORKFLOW_CATEGORIES: Record<WorkflowCategory, CategoryInfo> = {
   describe: {
-    label: "1. Describe",
+    label: "1. Description",
     description: "Summarize data with descriptive statistics",
   },
   assume: {
@@ -18,7 +18,7 @@ export const WORKFLOW_CATEGORIES: Record<WorkflowCategory, CategoryInfo> = {
     description: "Test assumptions (normality, homogeneity)",
   },
   compare: {
-    label: "3. Compare",
+    label: "3. Comparison",
     description: "Statistical tests to compare groups or variables",
   },
   posthoc: {
@@ -40,7 +40,7 @@ export const WORKFLOW_CATEGORIES: Record<WorkflowCategory, CategoryInfo> = {
 };
 
 export const TEST_REGISTRY: Record<string, StatsTestConfig> = {
-  // ===== 1. DESCRIBE =====
+  // ===== 1. DESCRIPTION =====
   descriptive: {
     id: "descriptive",
     name: "Descriptive Stats",
@@ -61,7 +61,7 @@ export const TEST_REGISTRY: Record<string, StatsTestConfig> = {
     testName: "shapiro",
   },
 
-  // ===== 3. COMPARE =====
+  // ===== 3. COMPARISON =====
   ttest_ind: {
     id: "ttest_ind",
     name: "t-test (Independent)",

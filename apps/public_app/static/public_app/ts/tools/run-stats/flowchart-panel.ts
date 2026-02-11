@@ -41,6 +41,7 @@ export class FlowchartPanel {
 
   async load(): Promise<void> {
     try {
+      this.initToggle();
       const resp = await fetch("/api/stats/flowchart/");
       if (!resp.ok) {
         this.container.innerHTML =
@@ -56,6 +57,24 @@ export class FlowchartPanel {
       this.container.innerHTML =
         '<div class="flowchart-error">Flowchart unavailable</div>';
     }
+  }
+
+  private static STORAGE_KEY = "stats-flowchart-collapsed";
+
+  private initToggle(): void {
+    const section = document.getElementById("flowchartSection");
+    const toggle = document.getElementById("flowchartToggle");
+    if (!section || !toggle) return;
+
+    // Restore saved state
+    if (localStorage.getItem(FlowchartPanel.STORAGE_KEY) === "true") {
+      section.classList.add("collapsed");
+    }
+
+    toggle.addEventListener("click", () => {
+      const collapsed = section.classList.toggle("collapsed");
+      localStorage.setItem(FlowchartPanel.STORAGE_KEY, String(collapsed));
+    });
   }
 
   private async renderMermaid(text: string): Promise<void> {

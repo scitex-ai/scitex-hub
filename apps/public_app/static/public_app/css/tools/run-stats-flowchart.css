@@ -1,14 +1,58 @@
 /* Decision Flowchart Styles for Run Stats */
 
 /* ============================================================================
+   Collapsible Toggle Header
+   ============================================================================ */
+.flowchart-section {
+  border-bottom: 1px solid var(--workspace-border-default);
+}
+
+.flowchart-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--workspace-text-muted);
+  letter-spacing: 0.5px;
+  background: var(--workspace-bg-tertiary);
+  user-select: none;
+}
+
+.flowchart-toggle:hover {
+  color: var(--workspace-text-primary);
+}
+
+.flowchart-toggle i {
+  transition: transform 0.2s ease;
+  font-size: 10px;
+}
+
+.flowchart-section.collapsed .flowchart-toggle i {
+  transform: rotate(180deg);
+}
+
+.flowchart-section.collapsed .flowchart-container {
+  max-height: 0;
+  overflow: hidden;
+  padding: 0;
+  border-bottom: none;
+}
+
+/* ============================================================================
    Flowchart Container
    ============================================================================ */
 .flowchart-container {
   padding: 4px;
-  border-bottom: 1px solid var(--workspace-border-default);
   overflow: auto;
   max-height: 55vh;
   background: var(--workspace-bg-primary);
+  transition:
+    max-height 0.3s ease,
+    padding 0.3s ease;
 }
 
 .flowchart-container svg {
