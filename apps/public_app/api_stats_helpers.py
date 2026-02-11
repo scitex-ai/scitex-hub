@@ -3,8 +3,7 @@
 """
 Statistical analysis helper functions.
 
-Implementation logic for stats API endpoints. Delegates to scitex.stats where
-possible, falling back to scipy for tests not directly wrapped.
+Thin delegation layer to scitex.stats — no custom logic here.
 """
 
 import logging
@@ -36,30 +35,62 @@ def run_descriptive(body: dict) -> dict:
 
 
 def run_statistical_test(body: dict) -> dict:
-    """Route to appropriate statistical test."""
+    """Route to scitex.stats.tests and return result dict."""
+    from scitex.stats.tests.categorical import test_chi2
+    from scitex.stats.tests.correlation import test_pearson, test_spearman
+    from scitex.stats.tests.nonparametric import (
+        test_brunner_munzel,
+        test_kruskal,
+        test_mannwhitneyu,
+        test_wilcoxon,
+    )
+    from scitex.stats.tests.normality import test_shapiro
+    from scitex.stats.tests.parametric import test_anova, test_ttest_ind, test_ttest_rel
+
     test_name = body.get("test_name")
-    data = np.array(body.get("data", []))
-    data2 = np.array(body["data2"]) if body.get("data2") else None
-    groups = [np.array(g) for g in body["groups"]] if body.get("groups") else None
+    data = np.array(body.get("data", []), dtype=float)
+    data2 = np.array(body["data2"], dtype=float) if body.get("data2") else None
+    groups = (
+        [np.array(g, dtype=float) for g in body["groups"]]
+        if body.get("groups")
+        else None
+    )
     alternative = body.get("alternative", "two-sided")
 
     router = {
-        "ttest": lambda: _ttest_ind(data, data2, alternative),
-        "ttest_ind": lambda: _ttest_ind(data, data2, alternative),
-        "ttest_paired": lambda: _ttest_paired(data, data2),
-        "anova": lambda: _anova(groups),
-        "mann_whitney": lambda: _mann_whitney(data, data2, alternative),
-        "wilcoxon": lambda: _wilcoxon(data, data2),
-        "kruskal": lambda: _kruskal(groups),
-        "chi2": lambda: _chi2(data, data2),
-        "shapiro": lambda: _shapiro(data),
-        "pearson": lambda: _correlation(data, data2, "pearson"),
-        "correlation": lambda: _correlation(data, data2, "pearson"),
-        "spearman": lambda: _correlation(data, data2, "spearman"),
+        "ttest": lambda: test_ttest_ind(
+            data, data2, alternative=alternative, return_as="dict"
+        ),
+        "ttest_ind": lambda: test_ttest_ind(
+            data, data2, alternative=alternative, return_as="dict"
+        ),
+        "ttest_rel": lambda: test_ttest_rel(data, data2, return_as="dict"),
+        "ttest_paired": lambda: test_ttest_rel(data, data2, return_as="dict"),
+        "anova": lambda: test_anova(*groups, return_as="dict"),
+        "brunnermunzel": lambda: test_brunner_munzel(
+            data, data2, alternative=alternative, return_as="dict"
+        ),
+        "mannwhitneyu": lambda: test_mannwhitneyu(
+            data, data2, alternative=alternative, return_as="dict"
+        ),
+        "mann_whitney": lambda: test_mannwhitneyu(
+            data, data2, alternative=alternative, return_as="dict"
+        ),
+        "wilcoxon": lambda: test_wilcoxon(data, data2, return_as="dict"),
+        "kruskal": lambda: test_kruskal(*groups, return_as="dict"),
+        "chi2": lambda: test_chi2(data, data2, return_as="dict"),
+        "shapiro": lambda: test_shapiro(data, return_as="dict"),
+        "pearson": lambda: test_pearson(data, data2, return_as="dict"),
+        "spearman": lambda: test_spearman(data, data2, return_as="dict"),
     }
+
     if test_name not in router:
         raise ValueError(f"Unknown test: {test_name}")
-    return router[test_name]()
+
+    result = router[test_name]()
+
+    # Normalize keys for frontend compatibility
+    return _normalize_result(result)
 
 
 def run_effect_size(body: dict) -> dict:
@@ -67,33 +98,43 @@ def run_effect_size(body: dict) -> dict:
     import scitex as stx
 
     measure = body["measure"]
-    group1 = np.array(body["group1"])
-    group2 = np.array(body.get("group2", []))
-    groups = [np.array(g) for g in body["groups"]] if body.get("groups") else None
+    group1 = np.array(body["group1"], dtype=float)
+    group2 = np.array(body.get("group2", []), dtype=float)
+    groups = (
+        [np.array(g, dtype=float) for g in body["groups"]]
+        if body.get("groups")
+        else None
+    )
     paired = body.get("paired", False)
 
-    # Calculate value
-    if measure == "cohens_d":
-        value = float(stx.stats.effect_sizes.cohens_d(group1, group2, paired=paired))
-        interpretation = stx.stats.effect_sizes.interpret_cohens_d(value)
-    elif measure == "eta_squared":
-        value = float(stx.stats.effect_sizes.eta_squared(groups or [group1, group2]))
-        interpretation = stx.stats.effect_sizes.interpret_eta_squared(value)
-    elif measure == "epsilon_squared":
-        value = float(
-            stx.stats.effect_sizes.epsilon_squared(groups or [group1, group2])
-        )
-        interpretation = stx.stats.effect_sizes.interpret_epsilon_squared(value)
-    elif measure == "cliffs_delta":
-        value = float(stx.stats.effect_sizes.cliffs_delta(group1, group2))
-        interpretation = stx.stats.effect_sizes.interpret_cliffs_delta(value)
-    elif measure == "prob_superiority":
-        value = float(stx.stats.effect_sizes.prob_superiority(group1, group2))
-        interpretation = stx.stats.effect_sizes.interpret_prob_superiority(value)
-    else:
+    dispatch = {
+        "cohens_d": lambda: (
+            float(stx.stats.effect_sizes.cohens_d(group1, group2, paired=paired)),
+            stx.stats.effect_sizes.interpret_cohens_d,
+        ),
+        "eta_squared": lambda: (
+            float(stx.stats.effect_sizes.eta_squared(groups or [group1, group2])),
+            stx.stats.effect_sizes.interpret_eta_squared,
+        ),
+        "epsilon_squared": lambda: (
+            float(stx.stats.effect_sizes.epsilon_squared(groups or [group1, group2])),
+            stx.stats.effect_sizes.interpret_epsilon_squared,
+        ),
+        "cliffs_delta": lambda: (
+            float(stx.stats.effect_sizes.cliffs_delta(group1, group2)),
+            stx.stats.effect_sizes.interpret_cliffs_delta,
+        ),
+        "prob_superiority": lambda: (
+            float(stx.stats.effect_sizes.prob_superiority(group1, group2)),
+            stx.stats.effect_sizes.interpret_prob_superiority,
+        ),
+    }
+
+    if measure not in dispatch:
         raise ValueError(f"Unknown effect size measure: {measure}")
 
-    return {"measure": measure, "value": value, "interpretation": interpretation}
+    value, interpret_fn = dispatch[measure]()
+    return {"measure": measure, "value": value, "interpretation": interpret_fn(value)}
 
 
 def run_posthoc(body: dict) -> dict:
@@ -101,7 +142,7 @@ def run_posthoc(body: dict) -> dict:
     import scitex as stx
 
     method = body["method"]
-    groups = [np.array(g) for g in body["groups"]]
+    groups = [np.array(g, dtype=float) for g in body["groups"]]
     group_names = body.get("group_names")
     alpha = body.get("alpha", 0.05)
 
@@ -109,7 +150,7 @@ def run_posthoc(body: dict) -> dict:
         result = stx.stats.posthoc.posthoc_tukey(
             groups, group_names=group_names, alpha=alpha, return_as="list"
         )
-    elif method == "games_howell":
+    elif method in ("games_howell", "games-howell"):
         result = stx.stats.posthoc.posthoc_games_howell(
             groups, group_names=group_names, alpha=alpha, return_as="list"
         )
@@ -143,7 +184,6 @@ def run_power_analysis(body: dict) -> dict:
     test_type = body.get("test_type", "two-sample")
 
     if n and effect_size:
-        # Calculate power given n and effect size
         computed_power = stx.stats.power.power_ttest(
             effect_size=effect_size, n=n, alpha=alpha, test_type=test_type
         )
@@ -154,14 +194,13 @@ def run_power_analysis(body: dict) -> dict:
             "alpha": alpha,
         }
     elif effect_size:
-        # Calculate required n given effect size and desired power
         n_required = stx.stats.power.sample_size_ttest(
             effect_size=effect_size, power=power, alpha=alpha, test_type=test_type
         )
         return {
-            "n_required": (
-                int(n_required) if isinstance(n_required, (int, float)) else n_required
-            ),
+            "n_required": int(n_required)
+            if isinstance(n_required, (int, float))
+            else n_required,
             "effect_size": effect_size,
             "alpha": alpha,
             "power": power,
@@ -178,11 +217,11 @@ def run_correction(body: dict) -> dict:
     pvalues = body["pvalues"]
     alpha = body.get("alpha", 0.05)
 
-    # scitex correction functions accept results as dicts with p_value keys
     results = [{"p_value": p} for p in pvalues]
 
     func_map = {
         "bonferroni": stx.stats.correct.correct_bonferroni,
+        "fdr_bh": stx.stats.correct.correct_fdr,
         "fdr": stx.stats.correct.correct_fdr,
         "holm": stx.stats.correct.correct_holm,
         "sidak": stx.stats.correct.correct_sidak,
@@ -212,189 +251,34 @@ def run_recommend(body: dict) -> dict:
     return {"recommendations": recommendations}
 
 
-# Private helper functions for individual tests
-def _ttest_ind(data1, data2, alternative):
-    """Run independent samples t-test."""
-    import scitex as stx
-    from scipy import stats as sp_stats
+def _normalize_result(result: dict) -> dict:
+    """Normalize scitex.stats result dict for frontend."""
+    out = {}
+    for k, v in result.items():
+        if isinstance(v, (np.floating, np.integer)):
+            out[k] = float(v)
+        elif isinstance(v, np.ndarray):
+            out[k] = v.tolist()
+        else:
+            out[k] = v
 
-    result = sp_stats.ttest_ind(data1, data2, alternative=alternative)
-    df = len(data1) + len(data2) - 2
+    # Map scitex keys to frontend-expected keys
+    if "pvalue" in out and "p_value" not in out:
+        out["p_value"] = out["pvalue"]
+    if "test_method" in out and "test" not in out:
+        out["test"] = out["test_method"]
 
-    # Use scitex for effect size
-    cohens_d = float(stx.stats.effect_sizes.cohens_d(data1, data2))
+    # Build formatted string if not present
+    if "formatted" not in out and "statistic" in out and "p_value" in out:
+        parts = [f"stat = {out['statistic']:.3f}", f"p = {out['p_value']:.4f}"]
+        if "effect_size" in out:
+            metric = out.get("effect_size_metric", "d")
+            parts.append(f"{metric} = {out['effect_size']:.3f}")
+        if "stars" in out:
+            parts.append(out["stars"])
+        out["formatted"] = ", ".join(parts)
 
-    return {
-        "test": "Independent Samples t-test",
-        "statistic": float(result.statistic),
-        "p_value": float(result.pvalue),
-        "df": df,
-        "mean1": float(data1.mean()),
-        "mean2": float(data2.mean()),
-        "cohens_d": cohens_d,
-        "formatted": f"t({df}) = {result.statistic:.3f}, p = {result.pvalue:.4f}, d = {cohens_d:.3f}",
-    }
-
-
-def _ttest_paired(data1, data2):
-    """Run paired samples t-test."""
-    import scitex as stx
-    from scipy import stats as sp_stats
-
-    result = sp_stats.ttest_rel(data1, data2)
-
-    # Calculate effect size using scitex
-    cohens_d = float(stx.stats.effect_sizes.cohens_d(data1, data2, paired=True))
-    diff = data1 - data2
-    df = len(data1) - 1
-
-    return {
-        "test": "Paired Samples t-test",
-        "statistic": float(result.statistic),
-        "p_value": float(result.pvalue),
-        "df": df,
-        "mean_diff": float(diff.mean()),
-        "cohens_d": cohens_d,
-        "formatted": f"t({df}) = {result.statistic:.3f}, p = {result.pvalue:.4f}, d = {cohens_d:.3f}",
-    }
-
-
-def _anova(groups):
-    """Run one-way ANOVA."""
-    import scitex as stx
-    from scipy import stats as sp_stats
-
-    result = sp_stats.f_oneway(*groups)
-
-    # Calculate eta squared using scitex
-    eta_squared = float(stx.stats.effect_sizes.eta_squared(groups))
-
-    df_between = len(groups) - 1
-    df_within = sum(len(g) for g in groups) - len(groups)
-
-    return {
-        "test": "One-Way ANOVA",
-        "statistic": float(result.statistic),
-        "p_value": float(result.pvalue),
-        "df_between": df_between,
-        "df_within": df_within,
-        "eta_squared": eta_squared,
-        "formatted": f"F({df_between}, {df_within}) = {result.statistic:.3f}, p = {result.pvalue:.4f}, η² = {eta_squared:.3f}",
-    }
-
-
-def _mann_whitney(data1, data2, alternative):
-    """Run Mann-Whitney U test."""
-    from scipy import stats as sp_stats
-
-    result = sp_stats.mannwhitneyu(data1, data2, alternative=alternative)
-
-    # Calculate rank biserial correlation
-    n1, n2 = len(data1), len(data2)
-    r = 1 - (2 * result.statistic) / (n1 * n2)
-
-    return {
-        "test": "Mann-Whitney U Test",
-        "statistic": float(result.statistic),
-        "p_value": float(result.pvalue),
-        "rank_biserial": float(r),
-        "formatted": f"U = {result.statistic:.1f}, p = {result.pvalue:.4f}, r = {r:.3f}",
-    }
-
-
-def _wilcoxon(data1, data2):
-    """Run Wilcoxon signed-rank test."""
-    from scipy import stats as sp_stats
-
-    result = sp_stats.wilcoxon(data1, data2)
-
-    return {
-        "test": "Wilcoxon Signed-Rank Test",
-        "statistic": float(result.statistic),
-        "p_value": float(result.pvalue),
-        "formatted": f"W = {result.statistic:.1f}, p = {result.pvalue:.4f}",
-    }
-
-
-def _kruskal(groups):
-    """Run Kruskal-Wallis H test."""
-    import scitex as stx
-    from scipy import stats as sp_stats
-
-    result = sp_stats.kruskal(*groups)
-
-    # Calculate epsilon squared using scitex
-    epsilon_squared = float(stx.stats.effect_sizes.epsilon_squared(groups))
-    df = len(groups) - 1
-
-    return {
-        "test": "Kruskal-Wallis H Test",
-        "statistic": float(result.statistic),
-        "p_value": float(result.pvalue),
-        "df": df,
-        "epsilon_squared": epsilon_squared,
-        "formatted": f"H({df}) = {result.statistic:.3f}, p = {result.pvalue:.4f}, ε² = {epsilon_squared:.3f}",
-    }
-
-
-def _chi2(observed, expected=None):
-    """Run Chi-square test."""
-    from scipy import stats as sp_stats
-
-    if expected is None:
-        # Chi-square goodness of fit with uniform distribution
-        expected = np.full_like(observed, observed.mean())
-
-    result = sp_stats.chisquare(observed, expected)
-    df = len(observed) - 1
-
-    return {
-        "test": "Chi-Square Test",
-        "statistic": float(result.statistic),
-        "p_value": float(result.pvalue),
-        "df": df,
-        "formatted": f"χ²({df}) = {result.statistic:.3f}, p = {result.pvalue:.4f}",
-    }
-
-
-def _shapiro(data):
-    """Run Shapiro-Wilk normality test."""
-    from scipy import stats as sp_stats
-
-    result = sp_stats.shapiro(data)
-
-    return {
-        "test": "Shapiro-Wilk Normality Test",
-        "statistic": float(result.statistic),
-        "p_value": float(result.pvalue),
-        "normal": result.pvalue > 0.05,
-        "formatted": f"W = {result.statistic:.4f}, p = {result.pvalue:.4f} ({'normal' if result.pvalue > 0.05 else 'not normal'})",
-    }
-
-
-def _correlation(data1, data2, method="pearson"):
-    """Run correlation test."""
-    from scipy import stats as sp_stats
-
-    if method == "pearson":
-        r, p = sp_stats.pearsonr(data1, data2)
-        test_name = "Pearson Correlation"
-    elif method == "spearman":
-        r, p = sp_stats.spearmanr(data1, data2)
-        test_name = "Spearman Correlation"
-    else:
-        raise ValueError(f"Unknown correlation method: {method}")
-
-    n = len(data1)
-
-    return {
-        "test": test_name,
-        "correlation": float(r),
-        "p_value": float(p),
-        "n": n,
-        "r_squared": float(r**2),
-        "formatted": f"r = {r:.3f}, p = {p:.4f}, n = {n}",
-    }
+    return out
 
 
 # EOF

@@ -134,6 +134,16 @@ export const TEST_REGISTRY: Record<string, StatsTestConfig> = {
     endpoint: "calculate",
     testName: "spearman",
   },
+  brunnermunzel: {
+    id: "brunnermunzel",
+    name: "Brunner-Munzel",
+    category: "compare",
+    dataMode: "paired",
+    description:
+      "Robust nonparametric test for two independent groups (no equal shape assumption)",
+    endpoint: "calculate",
+    testName: "brunnermunzel",
+  },
   chi2: {
     id: "chi2",
     name: "Chi-Square",
