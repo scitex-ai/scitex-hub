@@ -147,9 +147,15 @@ function restoreFromHash(): void {
 }
 
 // --- Initialize ---
-document.addEventListener("DOMContentLoaded", () => {
+function init(): void {
   initDomainNav();
   initToolClicks();
   initSearch();
   restoreFromHash();
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", init);
+} else {
+  init();
+}
