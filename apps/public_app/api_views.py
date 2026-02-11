@@ -29,6 +29,7 @@ from .api_stats import (
     stats_correct,
     stats_describe,
     stats_effect_size,
+    stats_flowchart,  # noqa: F401
     stats_posthoc,
     stats_power,
     stats_recommend,
@@ -51,6 +52,7 @@ __all__ = [
     "stats_correct",
     "stats_describe",
     "stats_effect_size",
+    "stats_flowchart",
     "stats_posthoc",
     "stats_power",
     "stats_recommend",

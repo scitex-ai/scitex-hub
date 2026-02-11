@@ -1,0 +1,59 @@
+/* Decision Flowchart Styles for Run Stats */
+
+/* ============================================================================
+   Flowchart Container
+   ============================================================================ */
+.flowchart-container {
+  padding: 8px;
+  border-bottom: 1px solid var(--workspace-border-default);
+  overflow: auto;
+  max-height: 45vh;
+  background: var(--workspace-bg-primary);
+}
+
+.flowchart-container svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.flowchart-container .flowchart-error {
+  padding: 20px;
+  text-align: center;
+  color: var(--workspace-text-muted);
+  font-size: 12px;
+}
+
+/* ============================================================================
+   Clickable Node Interactivity
+   ============================================================================ */
+.flowchart-node {
+  transition: opacity 0.15s ease;
+}
+
+.flowchart-node:hover {
+  opacity: 0.8;
+}
+
+.flowchart-leaf:hover {
+  opacity: 0.7;
+  filter: brightness(1.1);
+}
+
+/* Active node highlight */
+.flowchart-active rect,
+.flowchart-active polygon,
+.flowchart-active circle,
+.flowchart-active ellipse {
+  stroke: var(--workspace-text-link, #4a9eff) !important;
+  stroke-width: 3px !important;
+}
+
+/* ============================================================================
+   Responsive
+   ============================================================================ */
+@media (max-width: 768px) {
+  .flowchart-container {
+    max-height: 200px;
+  }
+}

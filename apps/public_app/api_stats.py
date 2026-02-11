@@ -26,6 +26,7 @@ __all__ = [
     "stats_posthoc",
     "stats_power",
     "stats_correct",
+    "stats_flowchart",
 ]
 
 
@@ -392,6 +393,35 @@ def stats_correct(request) -> JsonResponse:
         return JsonResponse({"success": False, "error": str(e)}, status=400)
     except Exception as e:
         logger.error(f"Error in stats_correct: {e}", exc_info=True)
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
+
+
+def stats_flowchart(request):
+    """Return statistical test decision flowchart as SVG or JSON.
+
+    GET parameters:
+        format: "svg" (default) or "json"
+
+    Returns SVG image or JSON decision tree structure.
+    """
+    from django.http import HttpResponse
+
+    try:
+        from scitex.stats.auto import get_decision_tree, render_flowchart_svg
+    except ImportError as e:
+        logger.error(f"Failed to import scitex: {e}")
+        return JsonResponse(
+            {"success": False, "error": "scitex package not available"}, status=503
+        )
+
+    try:
+        fmt = request.GET.get("format", "svg")
+        if fmt == "json":
+            return JsonResponse({"success": True, "tree": get_decision_tree()})
+        svg = render_flowchart_svg()
+        return HttpResponse(svg, content_type="image/svg+xml")
+    except Exception as e:
+        logger.error(f"Error in stats_flowchart: {e}", exc_info=True)
         return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 

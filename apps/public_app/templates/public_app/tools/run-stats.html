@@ -17,6 +17,8 @@
 {% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'public_app/css/tools/run-stats.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'public_app/css/tools/run-stats-flowchart.css' %}" />
 {% endblock %}
 {% block content %}
     <div class="tool-detail-container">
@@ -35,7 +37,10 @@
             {# Left Column: Test Selection #}
             <div class="stats-test-panel">
                 <div class="panel-header">Tests</div>
-                <div class="panel-body" id="testSelectionPanel">{# Populated by TypeScript from test-registry.ts #}</div>
+                <div class="panel-body">
+                    <div id="flowchartContainer" class="flowchart-container"></div>
+                    <div id="testSelectionPanel">{# Populated by TypeScript from test-registry.ts #}</div>
+                </div>
                 <div class="panel-footer">
                     <button id="calculateBtn" class="btn btn-primary btn-block">Calculate</button>
                     <button id="recommendBtn" class="btn btn-secondary btn-block" style="margin-top: 6px;">Recommend Test</button>

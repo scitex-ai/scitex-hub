@@ -5,6 +5,7 @@
 import { DataTableManager } from "@/components/data-table/index.ts";
 import type { Dataset } from "@/components/data-table/types.ts";
 import { StatsApiClient } from "./api-client.ts";
+import { FlowchartPanel } from "./flowchart-panel.ts";
 import { ResultsRenderer } from "./results-renderer.ts";
 import { TEST_REGISTRY, WORKFLOW_CATEGORIES } from "./test-registry.ts";
 import type { StatsTestConfig, WorkflowCategory } from "./types.ts";
@@ -13,6 +14,7 @@ export class StatsCalculator {
   private dataTable: DataTableManager;
   private apiClient: StatsApiClient;
   private renderer: ResultsRenderer;
+  private flowchart: FlowchartPanel | null = null;
   private currentTest = "descriptive";
 
   constructor() {
@@ -28,12 +30,35 @@ export class StatsCalculator {
 
     this.initUI();
     this.initDataTable();
+    this.initFlowchart();
   }
 
   private initUI(): void {
     this.renderTestPanel();
     this.setupCalculateButton();
     this.setupRecommendButton();
+  }
+
+  private initFlowchart(): void {
+    const container = document.getElementById("flowchartContainer");
+    if (!container) return;
+    this.flowchart = new FlowchartPanel(
+      "#flowchartContainer",
+      (testId: string) => this.selectTestById(testId),
+    );
+    this.flowchart.load();
+  }
+
+  /** Select a test by its registry ID (used by flowchart click) */
+  selectTestById(testId: string): void {
+    const btn = document.querySelector<HTMLElement>(
+      `.test-btn[data-test="${testId}"]`,
+    );
+    if (btn) {
+      this.selectTest(btn);
+      // Scroll button into view in the test panel
+      btn.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
   }
 
   private initDataTable(): void {
@@ -97,6 +122,11 @@ export class StatsCalculator {
       .forEach((b) => b.classList.remove("active"));
     btn.classList.add("active");
     this.currentTest = testId;
+
+    // Sync flowchart highlight
+    if (this.flowchart) {
+      this.flowchart.highlightByTestId(testId);
+    }
 
     this.updateStatus(`Selected test: ${TEST_REGISTRY[testId].name}`);
   }

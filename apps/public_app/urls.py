@@ -274,6 +274,11 @@ urlpatterns = [
         api_views.stats_correct,
         name="api_stats_correct",
     ),
+    path(
+        "api/stats/flowchart/",
+        api_views.stats_flowchart,
+        name="api_stats_flowchart",
+    ),
 ]
 
 # EOF
