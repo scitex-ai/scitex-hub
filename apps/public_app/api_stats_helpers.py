@@ -6,11 +6,18 @@ Statistical analysis helper functions.
 Thin delegation layer to scitex.stats — no custom logic here.
 """
 
+import base64
+import io
 import logging
 
-import numpy as np
+import matplotlib
 
-logger = logging.getLogger("scitex")
+matplotlib.use("Agg")
+
+import numpy as np  # noqa: E402
+
+# Django views use standard logging, not @stx.session injection
+logger = logging.getLogger("scitex")  # noqa: STX-I007
 
 __all__ = [
     "run_descriptive",
@@ -23,15 +30,41 @@ __all__ = [
 ]
 
 
+def _capture_figure() -> str:
+    """Capture current matplotlib figure as base64 PNG with scitex theme."""
+    import scitex as stx
+
+    fig = stx.plt.gcf()
+    if fig.get_axes():
+        buf = io.BytesIO()
+        stx.io.save(fig, buf, format="png", dpi=150)
+        buf.seek(0)
+        b64 = base64.b64encode(buf.read()).decode("utf-8")
+        stx.plt.close(fig)
+        return b64
+    stx.plt.close(fig)
+    return ""
+
+
 def run_descriptive(body: dict) -> dict:
     """Compute descriptive statistics via scitex.stats."""
     import scitex as stx
 
-    data = body.get("data", [])
-    percentiles = body.get("percentiles")
-    if percentiles:
-        return stx.stats.descriptive(data, percentiles=percentiles)
-    return stx.stats.descriptive(data)
+    data = np.array(body.get("data", []), dtype=float)
+    values, labels = stx.stats.describe(data)
+    result = {label: float(v) for label, v in zip(labels, values)}
+    result["count"] = len(data)
+    result["min"] = float(np.nanmin(data))
+    result["max"] = float(np.nanmax(data))
+    # Rename for frontend clarity
+    rename = {
+        "nanmean": "mean",
+        "nanstd": "std",
+        "nanq25": "q25",
+        "nanq50": "median",
+        "nanq75": "q75",
+    }
+    return {rename.get(k, k): v for k, v in result.items()}
 
 
 def run_statistical_test(body: dict) -> dict:
@@ -47,32 +80,49 @@ def run_statistical_test(body: dict) -> dict:
         else None
     )
     alternative = body.get("alternative", "two-sided")
+    plot = body.get("plot", False)
 
     router = {
         "ttest": lambda: stx.stats.test_ttest_ind(
-            data, data2, alternative=alternative, return_as="dict"
+            data, data2, alternative=alternative, plot=plot, return_as="dict"
         ),
         "ttest_ind": lambda: stx.stats.test_ttest_ind(
-            data, data2, alternative=alternative, return_as="dict"
+            data, data2, alternative=alternative, plot=plot, return_as="dict"
         ),
-        "ttest_rel": lambda: stx.stats.test_ttest_rel(data, data2, return_as="dict"),
-        "ttest_paired": lambda: stx.stats.test_ttest_rel(data, data2, return_as="dict"),
-        "anova": lambda: stx.stats.test_anova(*groups, return_as="dict"),
+        "ttest_rel": lambda: stx.stats.test_ttest_rel(
+            data, data2, plot=plot, return_as="dict"
+        ),
+        "ttest_paired": lambda: stx.stats.test_ttest_rel(
+            data, data2, plot=plot, return_as="dict"
+        ),
+        "anova": lambda: stx.stats.test_anova(groups, plot=plot, return_as="dict"),
         "brunnermunzel": lambda: stx.stats.test_brunner_munzel(
-            data, data2, alternative=alternative, return_as="dict"
+            data, data2, alternative=alternative, plot=plot, return_as="dict"
         ),
         "mannwhitneyu": lambda: stx.stats.test_mannwhitneyu(
-            data, data2, alternative=alternative, return_as="dict"
+            data, data2, alternative=alternative, plot=plot, return_as="dict"
         ),
         "mann_whitney": lambda: stx.stats.test_mannwhitneyu(
-            data, data2, alternative=alternative, return_as="dict"
+            data, data2, alternative=alternative, plot=plot, return_as="dict"
         ),
-        "wilcoxon": lambda: stx.stats.test_wilcoxon(data, data2, return_as="dict"),
-        "kruskal": lambda: stx.stats.test_kruskal(*groups, return_as="dict"),
-        "chi2": lambda: stx.stats.test_chi2(data, data2, return_as="dict"),
-        "shapiro": lambda: stx.stats.test_shapiro(data, return_as="dict"),
-        "pearson": lambda: stx.stats.test_pearson(data, data2, return_as="dict"),
-        "spearman": lambda: stx.stats.test_spearman(data, data2, return_as="dict"),
+        "wilcoxon": lambda: stx.stats.test_wilcoxon(
+            data, data2, plot=plot, return_as="dict"
+        ),
+        "kruskal": lambda: stx.stats.test_kruskal(groups, plot=plot, return_as="dict"),
+        "chi2": lambda: stx.stats.test_chi2(
+            np.array(body["groups"], dtype=float)
+            if body.get("groups")
+            else np.vstack([data, data2]),
+            plot=plot,
+            return_as="dict",
+        ),
+        "shapiro": lambda: stx.stats.test_shapiro(data, plot=plot, return_as="dict"),
+        "pearson": lambda: stx.stats.test_pearson(
+            data, data2, plot=plot, return_as="dict"
+        ),
+        "spearman": lambda: stx.stats.test_spearman(
+            data, data2, plot=plot, return_as="dict"
+        ),
     }
 
     if test_name not in router:
@@ -81,7 +131,15 @@ def run_statistical_test(body: dict) -> dict:
     result = router[test_name]()
 
     # Normalize keys for frontend compatibility
-    return _normalize_result(result)
+    out = _normalize_result(result)
+
+    # Capture figure if plotting was enabled
+    if plot:
+        figure_b64 = _capture_figure()
+        if figure_b64:
+            out["figure_base64"] = figure_b64
+
+    return out
 
 
 def run_effect_size(body: dict) -> dict:
@@ -175,9 +233,13 @@ def run_power_analysis(body: dict) -> dict:
     test_type = body.get("test_type", "two-sample")
 
     if n and effect_size:
-        computed_power = stx.stats.power.power_ttest(
-            effect_size=effect_size, n=n, alpha=alpha, test_type=test_type
-        )
+        kwargs = {"effect_size": effect_size, "alpha": alpha, "test_type": test_type}
+        if test_type == "two-sample":
+            kwargs["n1"] = n
+            kwargs["n2"] = body.get("n2", n)
+        else:
+            kwargs["n"] = n
+        computed_power = stx.stats.power.power_ttest(**kwargs)
         return {
             "power": float(computed_power),
             "n": n,
@@ -208,7 +270,7 @@ def run_correction(body: dict) -> dict:
     pvalues = body["pvalues"]
     alpha = body.get("alpha", 0.05)
 
-    results = [{"p_value": p} for p in pvalues]
+    results = [{"pvalue": p} for p in pvalues]
 
     func_map = {
         "bonferroni": stx.stats.correct.correct_bonferroni,
@@ -230,15 +292,15 @@ def run_recommend(body: dict) -> dict:
     """Recommend tests using scitex.stats.recommend_tests."""
     import scitex as stx
 
-    recommendations = stx.stats.recommend_tests(
+    ctx = stx.stats.StatContext(
         n_groups=body.get("n_groups", 2),
         sample_sizes=body.get("sample_sizes"),
         outcome_type=body.get("outcome_type", "continuous"),
         design=body.get("design", "between"),
         paired=body.get("paired", False),
         has_control_group=body.get("has_control_group", False),
-        top_k=body.get("top_k", 5),
     )
+    recommendations = stx.stats.recommend_tests(ctx, top_k=body.get("top_k", 5))
     return {"recommendations": recommendations}
 
 
