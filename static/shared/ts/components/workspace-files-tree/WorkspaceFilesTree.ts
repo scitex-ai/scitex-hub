@@ -162,9 +162,6 @@ export class WorkspaceFilesTree {
       () => this.rerender(),
       () => this.treeData,
     );
-    this.searchHandler.setExpandCallback((path) =>
-      this.stateManager.expand(path),
-    );
     this.fileOperations = new TreeFileOperations(
       this.config,
       () => this.getCsrfToken(),
@@ -298,14 +295,38 @@ export class WorkspaceFilesTree {
     }
   }
 
+  /** Get/create .wft-content wrapper so search box survives re-renders */
+  private contentEl(): HTMLElement {
+    let el = this.container!.querySelector(
+      ":scope > .wft-content",
+    ) as HTMLElement;
+    if (!el) {
+      el = document.createElement("div");
+      el.className = "wft-content";
+      // Remove orphaned children (loading skeleton) but keep search box
+      const searchBox = this.container!.querySelector(
+        ":scope > .wft-search-box",
+      );
+      Array.from(this.container!.children).forEach((child) => {
+        if (child !== searchBox) child.remove();
+      });
+      // Insert before search box so tree is on top, search at bottom
+      if (searchBox) this.container!.insertBefore(el, searchBox);
+      else this.container!.appendChild(el);
+    }
+    return el;
+  }
+
   private render(): void {
     if (!this.container) return;
-    let data = this.directoryFilterHandler.isActive()
+    const data = this.directoryFilterHandler.isActive()
       ? this.directoryFilterHandler.getFilteredData()
       : this.treeData;
-    if (this.searchHandler.isActive())
-      data = this.searchHandler.filterTree(data);
-    this.container.innerHTML = this.renderer.render(data, this.gitSummary);
+    const info = this.searchHandler.isActive()
+      ? this.searchHandler.getMatchInfo(data)
+      : { matches: new Set<string>(), ancestors: new Set<string>() };
+    this.renderer.setSearchInfo(info.matches, info.ancestors);
+    this.contentEl().innerHTML = this.renderer.render(data, this.gitSummary);
   }
 
   private rerender(): void {
@@ -321,7 +342,7 @@ export class WorkspaceFilesTree {
 
   private showError(message: string): void {
     if (!this.container) return;
-    this.container.innerHTML = `<div class="wft-error"><i class="fas fa-exclamation-triangle"></i><p>${message}</p></div>`;
+    this.contentEl().innerHTML = `<div class="wft-error"><i class="fas fa-exclamation-triangle"></i><p>${message}</p></div>`;
   }
 
   private boundKeyboardHandler: ((e: KeyboardEvent) => void) | null = null;
@@ -345,14 +366,13 @@ export class WorkspaceFilesTree {
   }
 
   private getCsrfToken(): string {
-    const metaToken = document
+    const meta = document
       .querySelector('meta[name="csrf-token"]')
       ?.getAttribute("content");
-    if (metaToken) return metaToken;
-    const cookies = document.cookie.split(";");
-    for (const cookie of cookies) {
-      const [name, value] = cookie.trim().split("=");
-      if (name === "csrftoken") return value;
+    if (meta) return meta;
+    for (const c of document.cookie.split(";")) {
+      const [n, v] = c.trim().split("=");
+      if (n === "csrftoken") return v;
     }
     return "";
   }
@@ -382,7 +402,7 @@ export class WorkspaceFilesTree {
     showTreeMessage(message, type);
   }
 
-  // Public API
+  // === Public API ===
   setDirectoryFilter(path: string | null): void {
     this.directoryFilterHandler.setFilter(path, this.treeData);
   }
@@ -414,7 +434,7 @@ export class WorkspaceFilesTree {
     await this.pathNavigator.focusDirectory(targetPath, collapseOthersAtLevel);
   }
   setSearchQuery(query: string): void {
-    this.searchHandler.setQueryAndExpandAll(query);
+    this.searchHandler.setQuery(query);
   }
   clearSearch(): void {
     this.searchHandler.clear();
@@ -424,9 +444,6 @@ export class WorkspaceFilesTree {
   }
   isSearchActive(): boolean {
     return this.searchHandler.isActive();
-  }
-  getSearchHandler(): SearchHandler {
-    return this.searchHandler;
   }
   getGitActions(): GitActions {
     return this.gitActions;
@@ -449,62 +466,43 @@ export class WorkspaceFilesTree {
   async redo(): Promise<boolean> {
     return this.undoRedoHandler.redo();
   }
-
-  /** Toggle dotfile visibility and re-render */
   toggleHiddenFiles(): boolean {
-    const newState = !this.filter.getShowHidden();
-    this.filter.setShowHidden(newState);
+    const s = !this.filter.getShowHidden();
+    this.filter.setShowHidden(s);
     this.rerender();
-    return newState;
+    return s;
   }
-
-  /** Set whether dotfiles are shown and re-render */
   setShowHidden(show: boolean): void {
     this.filter.setShowHidden(show);
     this.rerender();
   }
-
-  /** Get whether dotfiles are shown */
   getShowHidden(): boolean {
     return this.filter.getShowHidden();
   }
-
-  /** Toggle module-specific filtering and re-render */
   toggleModuleFilter(): boolean {
-    const newState = !this.filter.getModuleFilterEnabled();
-    this.filter.setModuleFilterEnabled(newState);
+    const s = !this.filter.getModuleFilterEnabled();
+    this.filter.setModuleFilterEnabled(s);
     this.rerender();
-    return newState;
+    return s;
   }
-
-  /** Set whether module-specific filtering is enabled and re-render */
   setModuleFilterEnabled(enabled: boolean): void {
     this.filter.setModuleFilterEnabled(enabled);
     this.rerender();
   }
-
-  /** Get whether module-specific filtering is enabled */
   getModuleFilterEnabled(): boolean {
     return this.filter.getModuleFilterEnabled();
   }
-
-  /** Switch filter mode at runtime (used by module filter buttons) */
   setFilterMode(mode: WorkspaceMode | "all"): void {
-    const isAll = mode === "all";
-    if (!isAll) this.filter.setMode(mode);
-    this.filter.setModuleFilterEnabled(!isAll);
+    if (mode !== "all") this.filter.setMode(mode);
+    this.filter.setModuleFilterEnabled(mode !== "all");
     this.rerender();
   }
-
-  /** Toggle git status visibility (gutter bars, icon colors, git panel) */
   toggleGitStatus(): boolean {
-    const show = this.config.showGitStatus === false;
-    this.config.showGitStatus = show;
-    this.container?.classList.toggle("wft-no-git", !show);
-    return show;
+    const s = this.config.showGitStatus === false;
+    this.config.showGitStatus = s;
+    this.container?.classList.toggle("wft-no-git", !s);
+    return s;
   }
-
-  /** Set git status visibility */
   setShowGitStatus(show: boolean): void {
     this.config.showGitStatus = show;
     this.container?.classList.toggle("wft-no-git", !show);

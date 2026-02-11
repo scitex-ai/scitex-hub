@@ -88,6 +88,7 @@ export function initializeTreeHandlers(
     clearSearch: callbacks.clearSearch,
     selectFile: callbacks.selectFile,
   });
+  searchUIHandler.render();
 
   const workspaceKeyboardHandler = new WorkspaceKeyboardHandler(
     config,

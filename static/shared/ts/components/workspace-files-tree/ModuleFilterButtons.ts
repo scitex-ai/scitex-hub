@@ -21,33 +21,10 @@ export function initModuleFilterButtons(
   const buttons =
     container.querySelectorAll<HTMLButtonElement>(".module-filter-btn");
 
-  // Restore saved filter mode from localStorage (shared across all modules)
-  const saved = localStorage.getItem(STORAGE_KEY);
-  const validModes: (WorkspaceMode | "all")[] = [
-    "all",
-    "code",
-    "vis",
-    "writer",
-    "scholar",
-    "verifier",
-    "hub",
-    "files",
-    "tools",
-    "explorer",
-  ];
-  const initialMode: WorkspaceMode | "all" = validModes.includes(
-    saved as WorkspaceMode | "all",
-  )
-    ? (saved as WorkspaceMode | "all")
-    : currentMode;
-
-  // Apply initial state
-  if (initialMode !== "all") {
-    tree.setFilterMode(initialMode as WorkspaceMode);
-    activateButton(buttons, initialMode);
-  } else {
-    tree.setFilterMode("all");
-  }
+  // Always start with no filtering - lightbulb is OFF by default
+  // Clean up any stale persisted value from previous behavior
+  localStorage.removeItem(STORAGE_KEY);
+  tree.setFilterMode("all");
 
   // Wire click handlers
   buttons.forEach((btn) => {

@@ -25,13 +25,17 @@
   flex-direction: column;
 }
 
+/* Content wrapper - takes remaining space below search box */
+.wft-content {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;
+}
+
 /* Prevent flash during tree updates by using content-visibility */
 .wft-tree {
   contain: layout style;
   position: relative;
-  flex: 1 1 auto;
-  overflow-y: auto;
-  min-height: 0; /* Allow shrinking in flex container */
   /* Add padding at bottom for right-click on empty space */
   padding-bottom: 100px;
 }

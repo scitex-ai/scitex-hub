@@ -1,12 +1,12 @@
 /**
  * Workspace Files Tree - Search Box
- * File tree search/filter input
+ * Always-visible file tree search/filter input with Ctrl+K badge
  */
 
 .wft-search-box {
   background: var(--workspace-bg-default);
   border-bottom: 1px solid var(--workspace-border-default);
-  padding: 8px;
+  padding: 6px 8px;
   flex-shrink: 0;
 }
 
@@ -16,8 +16,8 @@
   background: var(--workspace-bg-input);
   border: 1px solid var(--workspace-border-default);
   border-radius: 4px;
-  padding: 4px 8px;
-  gap: 8px;
+  padding: 3px 8px;
+  gap: 6px;
 }
 
 .wft-search-input-wrapper:focus-within {
@@ -27,7 +27,8 @@
 
 .wft-search-icon {
   color: var(--color-fg-muted, #768390);
-  font-size: 12px;
+  font-size: 11px;
+  flex-shrink: 0;
 }
 
 .wft-search-input {
@@ -35,17 +36,34 @@
   background: transparent;
   border: none;
   color: var(--color-fg-default, #e6edf3) !important;
-  font-size: 13px;
+  font-size: 12px;
   font-family: inherit;
   outline: none;
   min-width: 0;
-  /* Ensure text is visible in both light and dark themes */
+  padding: 2px 0;
   -webkit-text-fill-color: var(--color-fg-default, #e6edf3);
 }
 
 .wft-search-input::placeholder {
   color: var(--color-fg-muted, #768390) !important;
   opacity: 1;
+}
+
+.wft-search-kbd {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-family: inherit;
+  font-size: 10px;
+  color: var(--color-fg-muted, #768390);
+  background: var(--workspace-bg-tertiary, rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 3px;
+  padding: 1px 5px;
+  line-height: 1.4;
+  flex-shrink: 0;
+  pointer-events: none;
+  white-space: nowrap;
 }
 
 .wft-search-clear {
@@ -58,9 +76,26 @@
   align-items: center;
   justify-content: center;
   border-radius: 2px;
+  font-size: 11px;
+  flex-shrink: 0;
 }
 
 .wft-search-clear:hover {
   color: var(--color-fg-default, #e6edf3);
   background: var(--workspace-bg-hover);
+}
+
+/* Search highlighting: matching items stay at normal white */
+.wft-item.wft-search-match .wft-name {
+  color: var(--color-fg-default, #e6edf3);
+}
+
+/* Search highlighting: ancestor dirs containing matches stay white */
+.wft-item.wft-search-ancestor .wft-name {
+  color: var(--color-fg-default, #e6edf3);
+}
+
+/* Search highlighting: non-matching items heavily dimmed */
+.wft-item.wft-search-dim {
+  opacity: 0.25;
 }

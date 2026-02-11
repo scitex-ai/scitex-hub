@@ -193,14 +193,11 @@ export class TreeFilter {
 
   /** Check if a file should be grayed out (visible but not selectable) */
   isDisabled(item: TreeItem): boolean {
-    if (item.type === "directory") {
-      return false;
-    }
+    // Only apply extension-based disabling when module filter is active
+    if (!this.moduleFilterEnabled) return false;
+    if (item.type === "directory") return false;
 
-    // Never disable files in ALWAYS_VISIBLE_FILENAMES (e.g., .gitkeep)
-    if (ALWAYS_VISIBLE_FILENAMES.includes(item.name)) {
-      return false;
-    }
+    if (ALWAYS_VISIBLE_FILENAMES.includes(item.name)) return false;
 
     const ext = this.getExtension(item.name);
 
