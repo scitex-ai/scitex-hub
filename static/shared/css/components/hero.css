@@ -369,7 +369,15 @@
 /* Badge color variants with both naming conventions for compatibility */
 .hero-badge--success,
 .hero-badge.badge-success {
-  background: var(--success-color, #28a745);
+  background: transparent;
+  border: 1.5px solid var(--success-color, #5a9a7e);
+  color: var(--success-color, #5a9a7e);
+  box-shadow: none;
+}
+
+.hero-badge--success:hover,
+.hero-badge.badge-success:hover {
+  background: var(--success-color, #5a9a7e);
   color: white;
 }
 
