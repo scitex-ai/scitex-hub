@@ -31,6 +31,19 @@ function findToggleBtn(panel: Element): HTMLElement | null {
   return panel.querySelector(TOGGLE_SELECTORS) as HTMLElement;
 }
 
+function updateTooltips(panel: Element): void {
+  const isCollapsed = panel.matches(".collapsed");
+  const header = panel.querySelector(HEADER_SELECTORS);
+
+  if (isCollapsed) {
+    panel.setAttribute("data-tooltip", "Click to expand");
+    if (header) header.removeAttribute("data-tooltip");
+  } else {
+    panel.removeAttribute("data-tooltip");
+    if (header) header.setAttribute("data-tooltip", "Double-click to collapse");
+  }
+}
+
 function initPanelInteractions(): void {
   // Track when click-to-expand fires to prevent dblclick race condition:
   // Without this, double-clicking a collapsed panel would expand (click)
@@ -48,6 +61,17 @@ function initPanelInteractions(): void {
       lastExpandTime = Date.now();
       toggleBtn.click();
     }
+  });
+
+  // Set initial tooltips and watch for state changes
+  document.querySelectorAll(PANEL_SELECTORS).forEach(updateTooltips);
+  const observer = new MutationObserver((mutations) => {
+    for (const m of mutations) {
+      if (m.attributeName === "class") updateTooltips(m.target as Element);
+    }
+  });
+  document.querySelectorAll(PANEL_SELECTORS).forEach((panel) => {
+    observer.observe(panel, { attributes: true, attributeFilter: ["class"] });
   });
 
   // Double-click on expanded panel header → collapse

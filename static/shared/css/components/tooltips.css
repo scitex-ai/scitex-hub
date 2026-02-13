@@ -37,6 +37,8 @@
   font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
+  text-transform: none;
+  letter-spacing: normal;
 
   /* Animation with delay */
   opacity: 0;
