@@ -26,12 +26,57 @@
   color: var(--workspace-text-primary);
 }
 
-.flowchart-toggle i {
+.flowchart-toggle > i {
   transition: transform 0.2s ease;
   font-size: 10px;
 }
 
-.flowchart-section.collapsed .flowchart-toggle i {
+/* ============================================================================
+   Zoom Controls (in toggle bar)
+   ============================================================================ */
+.flowchart-zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+  margin-right: 8px;
+}
+
+.flowchart-zoom-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 3px;
+  background: var(--workspace-bg-primary);
+  color: var(--workspace-text-muted);
+  cursor: pointer;
+  font-size: 9px;
+  transition: all 0.15s ease;
+}
+
+.flowchart-zoom-btn:hover {
+  color: var(--workspace-icon-primary);
+  border-color: var(--workspace-icon-primary);
+  background: var(--workspace-bg-secondary);
+}
+
+.flowchart-zoom-level {
+  font-size: 10px;
+  min-width: 32px;
+  text-align: center;
+  color: var(--workspace-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.flowchart-section.collapsed .flowchart-zoom-controls {
+  display: none;
+}
+
+.flowchart-section.collapsed .flowchart-toggle > i {
   transform: rotate(180deg);
 }
 
@@ -58,6 +103,7 @@
 .flowchart-container svg {
   display: block;
   min-width: 580px;
+  transition: transform 0.15s ease;
 }
 
 .flowchart-container .flowchart-error {
