@@ -32,12 +32,13 @@ export class ResultsRenderer {
   }
 
   renderTestResult(result: Record<string, any>, config: StatsTestConfig): void {
-    const apa = this.formatAPA(result);
+    const resultData = result.result || result;
+    const apa = this.formatAPA(resultData);
     const interpretation = this.createInterpretation(
-      result.p_value,
-      result.effect_size,
+      resultData.p_value,
+      resultData.effect_size,
     );
-    const suggestions = this.createSuggestions(config.id, result);
+    const suggestions = this.createSuggestions(config.id, resultData);
 
     const HIDDEN_KEYS = new Set([
       "formatted",
@@ -49,14 +50,31 @@ export class ResultsRenderer {
       "alpha",
       "H0",
       "stat_symbol",
+      "figure_base64",
     ]);
     const entries: [string, string][] = [];
-    for (const [key, value] of Object.entries(result)) {
+    for (const [key, value] of Object.entries(resultData)) {
       if (HIDDEN_KEYS.has(key)) continue;
       const label = this.formatLabel(key);
       const formatted = this.formatNumber(value);
       entries.push([label, formatted]);
     }
+
+    const figB64 = resultData.figure_base64 || result.figure_base64;
+    const figureHtml = figB64
+      ? `<div class="stats-figure">
+           <div class="stats-figure-toolbar">
+             <button class="btn-download-figure" title="Download figure">
+               <i class="fa-solid fa-download"></i>
+             </button>
+             <button class="btn-expand-figure" title="Expand figure">
+               <i class="fa-solid fa-expand"></i>
+             </button>
+           </div>
+           <img src="data:image/png;base64,${figB64}"
+                alt="Statistical plot" />
+         </div>`
+      : "";
 
     const html = `
       <div class="stats-result">
@@ -75,10 +93,12 @@ export class ResultsRenderer {
         ${this.createResultTable(entries)}
         ${interpretation}
         ${suggestions}
+        ${figureHtml}
       </div>
     `;
     this.container.innerHTML = html;
     this.setupCopyButton();
+    this.setupFigureButtons();
   }
 
   renderPosthoc(result: Record<string, any>): void {
@@ -259,9 +279,17 @@ export class ResultsRenderer {
 
     const significant = pValue < 0.05;
     const barClass = significant ? "sig-bar-significant" : "sig-bar-ns";
-    const sigText = significant
-      ? "Significant (p < 0.05)"
-      : "Not Significant (p ≥ 0.05)";
+
+    let sigText: string;
+    if (pValue < 0.001) {
+      sigText = "Significant (p < 0.001)";
+    } else if (pValue < 0.01) {
+      sigText = "Significant (p < 0.01)";
+    } else if (pValue < 0.05) {
+      sigText = "Significant (p < 0.05)";
+    } else {
+      sigText = "Not Significant (p ≥ 0.05)";
+    }
 
     return `
       <div class="interpretation">
@@ -373,5 +401,36 @@ export class ResultsRenderer {
           console.error("Failed to copy:", err);
         });
     });
+  }
+
+  private setupFigureButtons(): void {
+    const downloadBtn = this.container.querySelector(
+      ".btn-download-figure",
+    ) as HTMLButtonElement;
+    const expandBtn = this.container.querySelector(
+      ".btn-expand-figure",
+    ) as HTMLButtonElement;
+    const img = this.container.querySelector(
+      ".stats-figure img",
+    ) as HTMLImageElement;
+
+    if (downloadBtn && img) {
+      downloadBtn.addEventListener("click", () => {
+        const a = document.createElement("a");
+        a.href = img.src;
+        a.download = "stats-figure.png";
+        a.click();
+      });
+    }
+
+    if (expandBtn && img) {
+      expandBtn.addEventListener("click", () => {
+        const overlay = document.createElement("div");
+        overlay.className = "stats-figure-overlay";
+        overlay.innerHTML = `<img src="${img.src}" alt="Statistical plot" />`;
+        overlay.addEventListener("click", () => overlay.remove());
+        document.body.appendChild(overlay);
+      });
+    }
   }
 }

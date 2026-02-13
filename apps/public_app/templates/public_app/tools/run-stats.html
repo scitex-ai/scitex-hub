@@ -17,6 +17,8 @@
 {% endblock %}
 {% block extra_css %}
     <link rel="stylesheet"
+          href="{% static 'shared/css/components/collapsible-panel.css' %}" />
+    <link rel="stylesheet"
           href="{% static 'shared/css/components/data-table/index.css' %}" />
     <link rel="stylesheet" href="{% static 'shared/css/components/panel-resizer.css' %}" />
     <link rel="stylesheet" href="{% static 'public_app/css/tools/run-stats.css' %}" />
@@ -40,8 +42,15 @@
         {% endif %}
         <div class="stats-three-column">
             {# Left Column: Test Selection #}
-            <div class="stats-test-panel">
-                <div class="panel-header">Tests</div>
+            <div class="stats-test-panel collapsible-panel">
+                <div class="panel-header">
+                    <button class="panel-toggle-btn left-panel-toggle"
+                            id="test-panel-toggle"
+                            title="Collapse tests">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <span class="panel-title">Tests</span>
+                </div>
                 <div class="panel-body">
                     <div class="flowchart-section" id="flowchartSection">
                         <div class="flowchart-toggle" id="flowchartToggle">
@@ -64,13 +73,20 @@
                  data-storage-prefix="scitex-stats-"
                  data-target=".stats-test-panel"
                  data-direction="left"
-                 data-min-width="200"
+                 data-min-width="40"
                  data-default-width="340"
-                 data-storage-key="test-panel-width"></div>
+                 data-storage-key="test-panel-width"
+                 data-toggle-btn="test-panel-toggle"
+                 data-collapse-key="scitex-stats-test-collapsed"></div>
             {# Center Column: Data Table #}
-            <div class="stats-data-panel">
+            <div class="stats-data-panel collapsible-panel">
                 <div class="panel-header">
-                    Data
+                    <button class="panel-toggle-btn left-panel-toggle"
+                            id="data-panel-toggle"
+                            title="Collapse data">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <span class="panel-title">Data</span>
                     <span id="backendIndicator" style="margin-left: auto;"></span>
                 </div>
                 <div class="panel-body">
@@ -84,12 +100,21 @@
                  data-storage-prefix="scitex-stats-"
                  data-target=".stats-results-panel"
                  data-direction="right"
-                 data-min-width="200"
+                 data-min-width="40"
                  data-default-width="380"
-                 data-storage-key="results-panel-width"></div>
+                 data-storage-key="results-panel-width"
+                 data-toggle-btn="results-panel-toggle"
+                 data-collapse-key="scitex-stats-results-collapsed"></div>
             {# Right Column: Results #}
-            <div class="stats-results-panel">
-                <div class="panel-header">Results</div>
+            <div class="stats-results-panel collapsible-panel">
+                <div class="panel-header">
+                    <button class="panel-toggle-btn right-panel-toggle"
+                            id="results-panel-toggle"
+                            title="Collapse results">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <span class="panel-title">Results</span>
+                </div>
                 <div class="panel-body">
                     <div id="resultsContent">
                         <div class="results-empty">
@@ -102,5 +127,6 @@
         </div>
     </div>
     {% vite_script 'shared/workspace-panel-resizer' %}
+    {% vite_script 'shared/collapsible-panel-click-expand' %}
     {% vite_script 'public_app/tools/run-stats' %}
 {% endblock %}

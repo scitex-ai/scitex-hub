@@ -37,6 +37,7 @@ export class StatsCalculator {
     this.renderTestPanel();
     this.setupCalculateButton();
     this.setupRecommendButton();
+    this.setupDataPanelToggle();
   }
 
   private initFlowchart(): void {
@@ -86,31 +87,72 @@ export class StatsCalculator {
       );
       html += `
         <div class="test-category">
-          <div class="category-label">${catInfo.label}</div>
-          <div class="category-description">${catInfo.description}</div>
-          <div class="test-selector">
-            ${tests
-              .map(
-                (t) => `
-              <button class="test-btn${t.id === this.currentTest ? " active" : ""}"
-                      data-test="${t.id}"
-                      data-mode="${t.dataMode}"
-                      title="${t.description}">
-                <span class="test-name">${t.name}</span>
-                <span class="test-description">${t.description}</span>
-              </button>
-            `,
-              )
-              .join("")}
+          <button class="category-label" data-category="${catId}">
+            <span>${catInfo.label}</span>
+            <span class="category-count">${tests.length}</span>
+            <i class="fas fa-chevron-right category-chevron"></i>
+          </button>
+          <div class="test-selector expanded">
+            ${this.renderTestButtons(tests)}
           </div>
         </div>
       `;
     }
     panel.innerHTML = html;
 
+    // Accordion toggle for category headers
+    panel.querySelectorAll(".category-label").forEach((header) => {
+      header.addEventListener("click", () => {
+        const items = header.nextElementSibling as HTMLElement;
+        if (!items) return;
+        const isExpanded = items.classList.contains("expanded");
+        header.classList.toggle("expanded", !isExpanded);
+        items.classList.toggle("expanded", !isExpanded);
+      });
+      // Start expanded
+      header.classList.add("expanded");
+    });
+
     panel.querySelectorAll(".test-btn").forEach((btn) => {
       btn.addEventListener("click", () => this.selectTest(btn as HTMLElement));
     });
+  }
+
+  /** Render test buttons, grouping by subCategory if present */
+  private renderTestButtons(tests: StatsTestConfig[]): string {
+    const hasSubCategories = tests.some((t) => t.subCategory);
+    if (!hasSubCategories) {
+      return tests.map((t) => this.renderOneTestBtn(t)).join("");
+    }
+    // Group by subCategory preserving order
+    const groups: { label: string; items: StatsTestConfig[] }[] = [];
+    for (const t of tests) {
+      const label = t.subCategory || "";
+      const last = groups[groups.length - 1];
+      if (last && last.label === label) {
+        last.items.push(t);
+      } else {
+        groups.push({ label, items: [t] });
+      }
+    }
+    return groups
+      .map(
+        (g) =>
+          `<div class="test-sub-group">
+            <span class="sub-group-label">${g.label}</span>
+            <div class="sub-group-items">${g.items.map((t) => this.renderOneTestBtn(t)).join("")}</div>
+          </div>`,
+      )
+      .join("");
+  }
+
+  private renderOneTestBtn(t: StatsTestConfig): string {
+    return `<button class="test-btn${t.id === this.currentTest ? " active" : ""}"
+                    data-test="${t.id}" data-mode="${t.dataMode}"
+                    title="${t.description}">
+              <span class="test-name">${t.name}</span>
+              <span class="test-description">${t.description}</span>
+            </button>`;
   }
 
   private selectTest(btn: HTMLElement): void {
@@ -123,12 +165,72 @@ export class StatsCalculator {
     btn.classList.add("active");
     this.currentTest = testId;
 
+    // Update data table columns based on test's dataParams
+    this.updateColumns(testId);
+
     // Sync flowchart highlight
     if (this.flowchart) {
       this.flowchart.highlightByTestId(testId);
     }
 
     this.updateStatus(`Selected test: ${TEST_REGISTRY[testId].name}`);
+  }
+
+  private updateColumns(testId: string): void {
+    const config = TEST_REGISTRY[testId];
+    if (!config.dataParams || config.dataParams.length === 0) return;
+
+    const columns = config.dataParams;
+    const rows: Record<string, string>[] = Array.from({ length: 20 }, () => {
+      const row: Record<string, string> = {};
+      columns.forEach((col) => {
+        row[col] = "";
+      });
+      return row;
+    });
+
+    this.dataTable.setCurrentData({ columns, rows });
+    this.dataTable.renderEditableDataTable();
+    this.dataTable.setupColumnResizing();
+  }
+
+  /** Data panel toggle (not managed by resizer since it's flex:1) */
+  private setupDataPanelToggle(): void {
+    const btn = document.getElementById("data-panel-toggle");
+    const panel = document.querySelector(".stats-data-panel") as HTMLElement;
+    if (!btn || !panel) return;
+
+    const STORAGE_KEY = "scitex-stats-data-collapsed";
+    const icon = btn.querySelector("i");
+
+    // Restore state
+    if (localStorage.getItem(STORAGE_KEY) === "true") {
+      panel.classList.add("collapsed");
+      if (icon) {
+        icon.classList.replace("fa-chevron-left", "fa-chevron-right");
+      }
+    }
+
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const isCollapsed = panel.classList.toggle("collapsed");
+      if (isCollapsed) {
+        panel.style.width = "";
+        panel.style.flex = "";
+        panel.style.minWidth = "";
+      } else {
+        panel.style.flex = "1";
+        panel.style.minWidth = "200px";
+      }
+      if (icon) {
+        icon.classList.replace(
+          isCollapsed ? "fa-chevron-left" : "fa-chevron-right",
+          isCollapsed ? "fa-chevron-right" : "fa-chevron-left",
+        );
+      }
+      localStorage.setItem(STORAGE_KEY, String(isCollapsed));
+    });
   }
 
   private setupCalculateButton(): void {
@@ -182,10 +284,12 @@ export class StatsCalculator {
             single,
             paired?.[1],
             groups,
+            "two-sided",
+            true,
           );
           if (result.success) {
             this.showBackendIndicator();
-            this.renderer.renderTestResult(result.result, config);
+            this.renderer.renderTestResult(result, config);
           } else {
             this.renderer.renderError(result.error || "Failed to calculate.");
           }

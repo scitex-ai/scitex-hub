@@ -30,10 +30,12 @@ export interface StatsTestConfig {
   id: string;
   name: string;
   category: WorkflowCategory;
+  subCategory?: string; // Sub-group label within a category
   dataMode: DataMode;
   description: string;
   endpoint: EndpointType;
   // Optional specific parameters for the test
+  dataParams?: string[]; // Column names from function signature
   testName?: string; // For 'calculate' endpoint
   measure?: string; // For 'effect-size' endpoint
   method?: string; // For 'posthoc' or 'correct' endpoint
@@ -45,6 +47,7 @@ export interface StatsResult {
   result: Record<string, any>;
   formatted?: string;
   error?: string;
+  figure_base64?: string; // Base64 PNG figure
 }
 
 export interface CategoryInfo {

@@ -31,10 +31,12 @@ export class StatsApiClient {
     data2?: number[],
     groups?: number[][],
     alternative: string = "two-sided",
+    plot: boolean = false,
   ): Promise<StatsResult> {
     const body: Record<string, any> = {
       test_name: testName,
       alternative,
+      plot,
     };
 
     if (data !== undefined) body.data = data;

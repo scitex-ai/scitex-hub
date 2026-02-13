@@ -18,7 +18,55 @@
   flex-direction: column;
   background: var(--workspace-bg-secondary);
   border-right: 1px solid var(--workspace-border-default);
-  overflow-y: auto;
+  overflow: hidden;
+  transition:
+    width 0.2s ease,
+    min-width 0.2s ease;
+}
+
+/* Tools nav panel header */
+.tools-nav-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 50px;
+  min-height: 50px;
+  padding: 0 16px;
+  background: var(--workspace-bg-secondary);
+  border-bottom: 1px solid var(--workspace-border-default);
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+.tools-nav-header-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.tools-nav-header-title i {
+  font-size: 11px;
+  color: var(--workspace-icon-primary);
+}
+
+/* Collapsed state for tools nav panel (width + panel-title handled by shared collapsible-panel.css) */
+.tools-nav-panel.collapsed .tools-nav-list,
+.tools-nav-panel.collapsed .tools-search-bar {
+  display: none;
+}
+.tools-nav-panel.collapsed .tools-nav-header {
+  padding: 0;
+  justify-content: center;
+  height: 100%;
+  flex-direction: column;
+  border-bottom: none;
+}
+.tools-nav-panel.collapsed .tools-nav-header-title {
+  display: none;
 }
 
 /* Column 3: Tool content panel */
@@ -60,11 +108,13 @@
   margin: 0;
 }
 
-/* Search bar in nav panel */
+/* Search bar in nav panel (bottom position, like file tree) */
 .tools-search-bar {
   position: relative;
-  padding: 12px;
+  padding: 8px 12px;
   flex-shrink: 0;
+  border-top: 1px solid var(--workspace-border-default);
+  background: var(--workspace-bg-secondary);
 }
 
 .tools-search-bar .search-icon {

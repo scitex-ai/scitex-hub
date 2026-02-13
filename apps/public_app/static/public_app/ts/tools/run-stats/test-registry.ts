@@ -48,6 +48,7 @@ export const TEST_REGISTRY: Record<string, StatsTestConfig> = {
     dataMode: "single",
     description: "Mean, median, SD, quartiles, min/max",
     endpoint: "describe",
+    dataParams: ["Data"],
   },
 
   // ===== 2. ASSUMPTIONS =====
@@ -59,99 +60,123 @@ export const TEST_REGISTRY: Record<string, StatsTestConfig> = {
     description: "Test normality of distribution",
     endpoint: "calculate",
     testName: "shapiro",
+    dataParams: ["x"],
   },
 
   // ===== 3. COMPARISON =====
+  // --- Parametric ---
   ttest_ind: {
     id: "ttest_ind",
     name: "t-test (Independent)",
     category: "compare",
+    subCategory: "Parametric",
     dataMode: "paired",
     description: "Compare means of two independent groups",
     endpoint: "calculate",
     testName: "ttest_ind",
+    dataParams: ["x", "y"],
   },
   ttest_paired: {
     id: "ttest_paired",
     name: "t-test (Paired)",
     category: "compare",
+    subCategory: "Parametric",
     dataMode: "paired",
     description: "Compare means of two related samples",
     endpoint: "calculate",
     testName: "ttest_rel",
+    dataParams: ["x", "y"],
   },
   anova: {
     id: "anova",
     name: "ANOVA",
     category: "compare",
+    subCategory: "Parametric",
     dataMode: "groups",
     description: "Compare means of 3+ independent groups",
     endpoint: "calculate",
     testName: "anova",
+    dataParams: ["Group 1", "Group 2", "Group 3"],
   },
   pearson: {
     id: "pearson",
     name: "Pearson Correlation",
     category: "compare",
+    subCategory: "Parametric",
     dataMode: "paired",
     description: "Linear correlation between two continuous variables",
     endpoint: "calculate",
     testName: "pearson",
+    dataParams: ["x", "y"],
   },
-  mannwhitney: {
-    id: "mannwhitney",
-    name: "Mann-Whitney U",
-    category: "compare",
-    dataMode: "paired",
-    description: "Non-parametric comparison of two independent groups",
-    endpoint: "calculate",
-    testName: "mannwhitneyu",
-  },
-  wilcoxon: {
-    id: "wilcoxon",
-    name: "Wilcoxon Signed-Rank",
-    category: "compare",
-    dataMode: "paired",
-    description: "Non-parametric comparison of two related samples",
-    endpoint: "calculate",
-    testName: "wilcoxon",
-  },
-  kruskal: {
-    id: "kruskal",
-    name: "Kruskal-Wallis",
-    category: "compare",
-    dataMode: "groups",
-    description: "Non-parametric comparison of 3+ groups",
-    endpoint: "calculate",
-    testName: "kruskal",
-  },
-  spearman: {
-    id: "spearman",
-    name: "Spearman Correlation",
-    category: "compare",
-    dataMode: "paired",
-    description: "Non-parametric rank correlation",
-    endpoint: "calculate",
-    testName: "spearman",
-  },
+  // --- Non-parametric ---
   brunnermunzel: {
     id: "brunnermunzel",
     name: "Brunner-Munzel",
     category: "compare",
+    subCategory: "Non-parametric",
     dataMode: "paired",
     description:
       "Robust nonparametric test for two independent groups (no equal shape assumption)",
     endpoint: "calculate",
     testName: "brunnermunzel",
+    dataParams: ["x", "y"],
   },
+  mannwhitney: {
+    id: "mannwhitney",
+    name: "Mann-Whitney U",
+    category: "compare",
+    subCategory: "Non-parametric",
+    dataMode: "paired",
+    description: "Non-parametric comparison of two independent groups",
+    endpoint: "calculate",
+    testName: "mannwhitneyu",
+    dataParams: ["x", "y"],
+  },
+  wilcoxon: {
+    id: "wilcoxon",
+    name: "Wilcoxon Signed-Rank",
+    category: "compare",
+    subCategory: "Non-parametric",
+    dataMode: "paired",
+    description: "Non-parametric comparison of two related samples",
+    endpoint: "calculate",
+    testName: "wilcoxon",
+    dataParams: ["x", "y"],
+  },
+  kruskal: {
+    id: "kruskal",
+    name: "Kruskal-Wallis",
+    category: "compare",
+    subCategory: "Non-parametric",
+    dataMode: "groups",
+    description: "Non-parametric comparison of 3+ groups",
+    endpoint: "calculate",
+    testName: "kruskal",
+    dataParams: ["Group 1", "Group 2", "Group 3"],
+  },
+  spearman: {
+    id: "spearman",
+    name: "Spearman Correlation",
+    category: "compare",
+    subCategory: "Non-parametric",
+    dataMode: "paired",
+    description: "Non-parametric rank correlation",
+    endpoint: "calculate",
+    testName: "spearman",
+    dataParams: ["x", "y"],
+  },
+  // --- Categorical ---
   chi2: {
     id: "chi2",
     name: "Chi-Square",
     category: "compare",
+    subCategory: "Categorical",
     dataMode: "groups",
     description: "Test independence in contingency table",
     endpoint: "calculate",
     testName: "chi2",
+    dataParams: ["Group 1", "Group 2", "Group 3"],
   },
 
   // ===== 4. POST-HOC =====
@@ -163,6 +188,7 @@ export const TEST_REGISTRY: Record<string, StatsTestConfig> = {
     description: "Pairwise comparisons after ANOVA (equal variance)",
     endpoint: "posthoc",
     method: "tukey",
+    dataParams: ["Group 1", "Group 2", "Group 3"],
   },
   games_howell: {
     id: "games_howell",
@@ -172,6 +198,7 @@ export const TEST_REGISTRY: Record<string, StatsTestConfig> = {
     description: "Pairwise comparisons (unequal variance)",
     endpoint: "posthoc",
     method: "games-howell",
+    dataParams: ["Group 1", "Group 2", "Group 3"],
   },
   dunnett: {
     id: "dunnett",
@@ -181,6 +208,7 @@ export const TEST_REGISTRY: Record<string, StatsTestConfig> = {
     description: "Compare all groups to control group",
     endpoint: "posthoc",
     method: "dunnett",
+    dataParams: ["Control", "Group 1", "Group 2"],
   },
 
   // ===== 5. EFFECT SIZE =====
@@ -192,6 +220,7 @@ export const TEST_REGISTRY: Record<string, StatsTestConfig> = {
     description: "Standardized mean difference",
     endpoint: "effect-size",
     measure: "cohens_d",
+    dataParams: ["Group 1", "Group 2"],
   },
   eta_squared: {
     id: "eta_squared",
@@ -201,6 +230,7 @@ export const TEST_REGISTRY: Record<string, StatsTestConfig> = {
     description: "Proportion of variance explained (ANOVA)",
     endpoint: "effect-size",
     measure: "eta_squared",
+    dataParams: [],
   },
   epsilon_squared: {
     id: "epsilon_squared",
@@ -210,6 +240,7 @@ export const TEST_REGISTRY: Record<string, StatsTestConfig> = {
     description: "Less biased effect size for ANOVA",
     endpoint: "effect-size",
     measure: "epsilon_squared",
+    dataParams: [],
   },
   cliffs_delta: {
     id: "cliffs_delta",
@@ -219,6 +250,7 @@ export const TEST_REGISTRY: Record<string, StatsTestConfig> = {
     description: "Non-parametric effect size (-1 to +1)",
     endpoint: "effect-size",
     measure: "cliffs_delta",
+    dataParams: ["x", "y"],
   },
   prob_superiority: {
     id: "prob_superiority",
@@ -228,6 +260,7 @@ export const TEST_REGISTRY: Record<string, StatsTestConfig> = {
     description: "Probability random value from A > B",
     endpoint: "effect-size",
     measure: "prob_superiority",
+    dataParams: ["x", "y"],
   },
 
   // ===== 6. POWER =====
@@ -239,6 +272,7 @@ export const TEST_REGISTRY: Record<string, StatsTestConfig> = {
     description: "Calculate power for t-test given parameters",
     endpoint: "power",
     testType: "ttest",
+    dataParams: [],
   },
   sample_size: {
     id: "sample_size",
@@ -248,6 +282,7 @@ export const TEST_REGISTRY: Record<string, StatsTestConfig> = {
     description: "Calculate required n for desired power",
     endpoint: "power",
     testType: "ttest",
+    dataParams: [],
   },
 
   // ===== 7. CORRECTION =====
@@ -259,6 +294,7 @@ export const TEST_REGISTRY: Record<string, StatsTestConfig> = {
     description: "Conservative correction (α/m)",
     endpoint: "correct",
     method: "bonferroni",
+    dataParams: ["p-values"],
   },
   fdr_bh: {
     id: "fdr_bh",
@@ -268,6 +304,7 @@ export const TEST_REGISTRY: Record<string, StatsTestConfig> = {
     description: "False discovery rate control",
     endpoint: "correct",
     method: "fdr_bh",
+    dataParams: ["p-values"],
   },
   holm: {
     id: "holm",
@@ -277,6 +314,7 @@ export const TEST_REGISTRY: Record<string, StatsTestConfig> = {
     description: "Sequentially rejective Bonferroni",
     endpoint: "correct",
     method: "holm",
+    dataParams: ["p-values"],
   },
   sidak: {
     id: "sidak",
@@ -286,5 +324,6 @@ export const TEST_REGISTRY: Record<string, StatsTestConfig> = {
     description: "Less conservative than Bonferroni",
     endpoint: "correct",
     method: "sidak",
+    dataParams: ["p-values"],
   },
 };
