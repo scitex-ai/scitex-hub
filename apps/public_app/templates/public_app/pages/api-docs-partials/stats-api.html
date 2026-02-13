@@ -1,0 +1,677 @@
+{% load static %}
+
+<!-- Stats API: Run Statistical Tests -->
+<section id="stats-calculate" class="api-section">
+    <h2>
+        <i class="fas fa-calculator"></i> Run Statistical Tests
+    </h2>
+    <p>
+        Execute statistical tests using the <code>scitex.stats</code> backend.
+        Supports t-tests, ANOVA, Mann-Whitney, Wilcoxon, chi-squared, and more.
+        Returns test statistics, p-values, effect sizes, and APA-formatted results.
+    </p>
+    <div class="api-endpoint-detail">
+        <div class="api-endpoint-header">
+            <span class="method method-post">POST</span>
+            <code>/api/stats/calculate/</code>
+        </div>
+        <h4>Request Body (JSON)</h4>
+        <table class="api-table api-params-table">
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <code>test_name</code>
+                    </td>
+                    <td>string</td>
+                    <td>
+                        <span class="badge-required">Required</span>
+                    </td>
+                    <td>
+                        Test name: <code>ttest_ind</code>, <code>ttest_paired</code>, <code>anova</code>, <code>mann_whitney</code>, <code>wilcoxon</code>, <code>kruskal</code>, <code>chi2</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>data</code>
+                    </td>
+                    <td>array</td>
+                    <td>
+                        <span class="badge-required">Required</span>
+                    </td>
+                    <td>First data array (numbers)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>data2</code>
+                    </td>
+                    <td>array</td>
+                    <td>Optional</td>
+                    <td>Second data array for two-sample tests</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>groups</code>
+                    </td>
+                    <td>array</td>
+                    <td>Optional</td>
+                    <td>List of arrays for multi-group tests (ANOVA, Kruskal)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>alternative</code>
+                    </td>
+                    <td>string</td>
+                    <td>Optional</td>
+                    <td>
+                        <code>two-sided</code> (default), <code>less</code>, <code>greater</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>plot</code>
+                    </td>
+                    <td>boolean</td>
+                    <td>Optional</td>
+                    <td>
+                        Set <code>true</code> to generate a publication-ready figure. Returns <code>figure_base64</code> (PNG, base64-encoded) in the result
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <h4>Example: Independent t-test with Figure</h4>
+        <div class="api-example">
+            <div class="api-example-header">
+                <span class="api-example-lang">cURL</span>
+                <button class="copy-btn" data-copy="stats-calculate-example">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+            <div class="api-example-body">
+                <pre><code id="stats-calculate-example">curl -X POST "{{ request.scheme }}://{{ request.get_host }}/api/stats/calculate/" \
+     -H "Content-Type: application/json" \
+     -d '{"test_name": "ttest_ind", "data": [1,2,3,4,5], "data2": [2,3,4,5,6], "plot": true}'</code></pre>
+            </div>
+        </div>
+        <h4>JSON Response</h4>
+        <div class="api-example">
+            <div class="api-example-body">
+                <pre><code>{
+  "success": true,
+  "result": {
+    "test_method": "Student's t-test (independent)",
+    "statistic": -1.0,
+    "stat_symbol": "t",
+    "pvalue": 0.3466,
+    "stars": "ns",
+    "significant": false,
+    "effect_size": -0.632,
+    "effect_size_metric": "Cohen's d",
+    "effect_size_interpretation": "medium",
+    "power": 0.143,
+    "figure_base64": "iVBORw0KGgoAAAANSUhEUgAA...(base64 PNG data)...",
+    "formatted": "t = -1.000, p = 0.3466, Cohen's d = -0.632, ns"
+  },
+  "formatted": "t = -1.000, p = 0.3466, Cohen's d = -0.632, ns"
+}</code></pre>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Stats API: Descriptive Statistics -->
+<section id="stats-describe" class="api-section">
+    <h2>
+        <i class="fas fa-chart-bar"></i> Descriptive Statistics
+    </h2>
+    <p>Calculate descriptive statistics: mean, standard deviation, median, quartiles, skewness, kurtosis, and more.</p>
+    <div class="api-endpoint-detail">
+        <div class="api-endpoint-header">
+            <span class="method method-post">POST</span>
+            <code>/api/stats/describe/</code>
+        </div>
+        <h4>Request Body (JSON)</h4>
+        <table class="api-table api-params-table">
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <code>data</code>
+                    </td>
+                    <td>array</td>
+                    <td>
+                        <span class="badge-required">Required</span>
+                    </td>
+                    <td>Array of numbers</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>percentiles</code>
+                    </td>
+                    <td>array</td>
+                    <td>Optional</td>
+                    <td>
+                        Custom percentiles, e.g., <code>[25, 50, 75]</code>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <h4>Example</h4>
+        <div class="api-example">
+            <div class="api-example-header">
+                <span class="api-example-lang">cURL</span>
+                <button class="copy-btn" data-copy="stats-describe-example">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+            <div class="api-example-body">
+                <pre><code id="stats-describe-example">curl -X POST "{{ request.scheme }}://{{ request.get_host }}/api/stats/describe/" \
+     -H "Content-Type: application/json" \
+     -d '{"data": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}'</code></pre>
+            </div>
+        </div>
+        <h4>JSON Response</h4>
+        <div class="api-example">
+            <div class="api-example-body">
+                <pre><code>{
+  "success": true,
+  "result": {
+    "mean": 5.5,
+    "std": 2.872,
+    "median": 5.5,
+    "q25": 3.25,
+    "q75": 7.75,
+    "min": 1.0,
+    "max": 10.0,
+    "count": 10,
+    "nanskewness": 0.0,
+    "nankurtosis": -1.2
+  }
+}</code></pre>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Stats API: Test Recommendations -->
+<section id="stats-recommend" class="api-section">
+    <h2>
+        <i class="fas fa-lightbulb"></i> Test Recommendations
+    </h2>
+    <p>Get recommendations for appropriate statistical tests based on your data characteristics.</p>
+    <div class="api-endpoint-detail">
+        <div class="api-endpoint-header">
+            <span class="method method-post">POST</span>
+            <code>/api/stats/recommend/</code>
+        </div>
+        <h4>Request Body (JSON)</h4>
+        <table class="api-table api-params-table">
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <code>n_groups</code>
+                    </td>
+                    <td>integer</td>
+                    <td>Optional</td>
+                    <td>Number of groups (default: 2)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>sample_sizes</code>
+                    </td>
+                    <td>array</td>
+                    <td>Optional</td>
+                    <td>List of sample sizes per group</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>outcome_type</code>
+                    </td>
+                    <td>string</td>
+                    <td>Optional</td>
+                    <td>
+                        <code>continuous</code> (default) or <code>categorical</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>design</code>
+                    </td>
+                    <td>string</td>
+                    <td>Optional</td>
+                    <td>
+                        <code>between</code> (default) or <code>within</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>paired</code>
+                    </td>
+                    <td>boolean</td>
+                    <td>Optional</td>
+                    <td>Whether samples are paired</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>has_control_group</code>
+                    </td>
+                    <td>boolean</td>
+                    <td>Optional</td>
+                    <td>Whether there is a control group</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>top_k</code>
+                    </td>
+                    <td>integer</td>
+                    <td>Optional</td>
+                    <td>Number of recommendations (default: 3)</td>
+                </tr>
+            </tbody>
+        </table>
+        <h4>Example</h4>
+        <div class="api-example">
+            <div class="api-example-header">
+                <span class="api-example-lang">cURL</span>
+                <button class="copy-btn" data-copy="stats-recommend-example">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+            <div class="api-example-body">
+                <pre><code id="stats-recommend-example">curl -X POST "{{ request.scheme }}://{{ request.get_host }}/api/stats/recommend/" \
+     -H "Content-Type: application/json" \
+     -d '{"n_groups": 3, "outcome_type": "continuous", "design": "between"}'</code></pre>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Stats API: Effect Size -->
+<section id="stats-effect-size" class="api-section">
+    <h2>
+        <i class="fas fa-ruler"></i> Effect Size
+    </h2>
+    <p>
+        Calculate effect size measures: Cohen's d, eta-squared, epsilon-squared, Cliff's delta, and probability of superiority.
+    </p>
+    <div class="api-endpoint-detail">
+        <div class="api-endpoint-header">
+            <span class="method method-post">POST</span>
+            <code>/api/stats/effect-size/</code>
+        </div>
+        <h4>Request Body (JSON)</h4>
+        <table class="api-table api-params-table">
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <code>measure</code>
+                    </td>
+                    <td>string</td>
+                    <td>
+                        <span class="badge-required">Required</span>
+                    </td>
+                    <td>
+                        <code>cohens_d</code>, <code>eta_squared</code>, <code>epsilon_squared</code>, <code>cliffs_delta</code>, <code>prob_superiority</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>group1</code>
+                    </td>
+                    <td>array</td>
+                    <td>
+                        <span class="badge-required">Required</span>
+                    </td>
+                    <td>First group data</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>group2</code>
+                    </td>
+                    <td>array</td>
+                    <td>Optional</td>
+                    <td>Second group data</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>groups</code>
+                    </td>
+                    <td>array</td>
+                    <td>Optional</td>
+                    <td>List of arrays for multi-group measures</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>paired</code>
+                    </td>
+                    <td>boolean</td>
+                    <td>Optional</td>
+                    <td>Whether samples are paired (Cohen's d)</td>
+                </tr>
+            </tbody>
+        </table>
+        <h4>Example</h4>
+        <div class="api-example">
+            <div class="api-example-header">
+                <span class="api-example-lang">cURL</span>
+                <button class="copy-btn" data-copy="stats-effect-example">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+            <div class="api-example-body">
+                <pre><code id="stats-effect-example">curl -X POST "{{ request.scheme }}://{{ request.get_host }}/api/stats/effect-size/" \
+     -H "Content-Type: application/json" \
+     -d '{"measure": "cohens_d", "group1": [1,2,3,4,5], "group2": [3,4,5,6,7]}'</code></pre>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Stats API: Post-hoc Tests -->
+<section id="stats-posthoc" class="api-section">
+    <h2>
+        <i class="fas fa-project-diagram"></i> Post-hoc Tests
+    </h2>
+    <p>Run pairwise post-hoc comparisons after significant ANOVA or Kruskal-Wallis results.</p>
+    <div class="api-endpoint-detail">
+        <div class="api-endpoint-header">
+            <span class="method method-post">POST</span>
+            <code>/api/stats/posthoc/</code>
+        </div>
+        <h4>Request Body (JSON)</h4>
+        <table class="api-table api-params-table">
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <code>method</code>
+                    </td>
+                    <td>string</td>
+                    <td>
+                        <span class="badge-required">Required</span>
+                    </td>
+                    <td>
+                        <code>tukey</code>, <code>games_howell</code>, <code>dunnett</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>groups</code>
+                    </td>
+                    <td>array</td>
+                    <td>
+                        <span class="badge-required">Required</span>
+                    </td>
+                    <td>List of group arrays</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>group_names</code>
+                    </td>
+                    <td>array</td>
+                    <td>Optional</td>
+                    <td>Names for each group</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>alpha</code>
+                    </td>
+                    <td>float</td>
+                    <td>Optional</td>
+                    <td>Significance level (default: 0.05)</td>
+                </tr>
+            </tbody>
+        </table>
+        <h4>Example</h4>
+        <div class="api-example">
+            <div class="api-example-header">
+                <span class="api-example-lang">cURL</span>
+                <button class="copy-btn" data-copy="stats-posthoc-example">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+            <div class="api-example-body">
+                <pre><code id="stats-posthoc-example">curl -X POST "{{ request.scheme }}://{{ request.get_host }}/api/stats/posthoc/" \
+     -H "Content-Type: application/json" \
+     -d '{"method": "tukey", "groups": [[1,2,3], [4,5,6], [7,8,9]], "group_names": ["A", "B", "C"]}'</code></pre>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Stats API: Power Analysis -->
+<section id="stats-power" class="api-section">
+    <h2>
+        <i class="fas fa-bolt"></i> Power Analysis
+    </h2>
+    <p>Calculate statistical power or required sample size for a given effect size.</p>
+    <div class="api-endpoint-detail">
+        <div class="api-endpoint-header">
+            <span class="method method-post">POST</span>
+            <code>/api/stats/power/</code>
+        </div>
+        <h4>Request Body (JSON)</h4>
+        <table class="api-table api-params-table">
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <code>effect_size</code>
+                    </td>
+                    <td>float</td>
+                    <td>
+                        <span class="badge-required">Required</span>
+                    </td>
+                    <td>Expected effect size (Cohen's d)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>n</code>
+                    </td>
+                    <td>integer</td>
+                    <td>Optional</td>
+                    <td>Sample size (provide to calculate power)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>alpha</code>
+                    </td>
+                    <td>float</td>
+                    <td>Optional</td>
+                    <td>Significance level (default: 0.05)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>power</code>
+                    </td>
+                    <td>float</td>
+                    <td>Optional</td>
+                    <td>Desired power (default: 0.8). Used to calculate required n</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>test_type</code>
+                    </td>
+                    <td>string</td>
+                    <td>Optional</td>
+                    <td>
+                        <code>one-sample</code>, <code>two-sample</code> (default), <code>paired</code>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <h4>Example</h4>
+        <div class="api-example">
+            <div class="api-example-header">
+                <span class="api-example-lang">cURL</span>
+                <button class="copy-btn" data-copy="stats-power-example">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+            <div class="api-example-body">
+                <pre><code id="stats-power-example">curl -X POST "{{ request.scheme }}://{{ request.get_host }}/api/stats/power/" \
+     -H "Content-Type: application/json" \
+     -d '{"effect_size": 0.5, "power": 0.8, "alpha": 0.05}'</code></pre>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Stats API: Multiple Comparison Correction -->
+<section id="stats-correct" class="api-section">
+    <h2>
+        <i class="fas fa-check-double"></i> Multiple Comparison Correction
+    </h2>
+    <p>Apply correction methods to a set of p-values: Bonferroni, FDR (Benjamini-Hochberg), Holm, Sidak.</p>
+    <div class="api-endpoint-detail">
+        <div class="api-endpoint-header">
+            <span class="method method-post">POST</span>
+            <code>/api/stats/correct/</code>
+        </div>
+        <h4>Request Body (JSON)</h4>
+        <table class="api-table api-params-table">
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <code>method</code>
+                    </td>
+                    <td>string</td>
+                    <td>
+                        <span class="badge-required">Required</span>
+                    </td>
+                    <td>
+                        <code>bonferroni</code>, <code>fdr</code>, <code>holm</code>, <code>sidak</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>pvalues</code>
+                    </td>
+                    <td>array</td>
+                    <td>
+                        <span class="badge-required">Required</span>
+                    </td>
+                    <td>Array of p-values</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>alpha</code>
+                    </td>
+                    <td>float</td>
+                    <td>Optional</td>
+                    <td>Significance level (default: 0.05)</td>
+                </tr>
+            </tbody>
+        </table>
+        <h4>Example</h4>
+        <div class="api-example">
+            <div class="api-example-header">
+                <span class="api-example-lang">cURL</span>
+                <button class="copy-btn" data-copy="stats-correct-example">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+            <div class="api-example-body">
+                <pre><code id="stats-correct-example">curl -X POST "{{ request.scheme }}://{{ request.get_host }}/api/stats/correct/" \
+     -H "Content-Type: application/json" \
+     -d '{"method": "bonferroni", "pvalues": [0.01, 0.04, 0.03, 0.005]}'</code></pre>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Stats API: Decision Flowchart -->
+<section id="stats-flowchart" class="api-section">
+    <h2>
+        <i class="fas fa-sitemap"></i> Decision Flowchart
+    </h2>
+    <p>
+        Get a statistical test decision tree as Mermaid diagram, JSON, or SVG. Helps choose the right test based on data characteristics.
+    </p>
+    <div class="api-endpoint-detail">
+        <div class="api-endpoint-header">
+            <span class="method method-get">GET</span>
+            <code>/api/stats/flowchart/</code>
+        </div>
+        <h4>Query Parameters</h4>
+        <table class="api-table api-params-table">
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <code>format</code>
+                    </td>
+                    <td>string</td>
+                    <td>Optional</td>
+                    <td>
+                        <code>mermaid</code> (default), <code>json</code>, <code>svg</code>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <h4>Example</h4>
+        <div class="api-example">
+            <div class="api-example-header">
+                <span class="api-example-lang">cURL</span>
+                <button class="copy-btn" data-copy="stats-flowchart-example">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+            <div class="api-example-body">
+                <pre><code id="stats-flowchart-example">curl "{{ request.scheme }}://{{ request.get_host }}/api/stats/flowchart/?format=json"</code></pre>
+            </div>
+        </div>
+    </div>
+</section>
