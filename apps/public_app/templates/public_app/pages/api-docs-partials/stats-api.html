@@ -246,6 +246,136 @@
         </p>
     </div>
 </section>
+<!-- Stats API: CSV Upload -->
+<section id="stats-csv" class="api-section">
+    <h2>
+        <i class="fas fa-file-csv"></i> CSV Upload Mode
+        <span class="badge-new">New</span>
+    </h2>
+    <p>
+        Upload a CSV file with column names instead of passing inline data arrays.
+        Works with <code>/calculate/</code>, <code>/describe/</code>, <code>/effect-size/</code>,
+        <code>/posthoc/</code>, and <code>/correct/</code>.
+        Same URLs — the API detects the input mode from the Content-Type header.
+    </p>
+    <div class="api-endpoint-detail">
+        <div class="api-endpoint-header">
+            <span class="method method-post">POST</span>
+            <code>/api/stats/calculate/</code>
+            <span class="badge-new" style="font-size:0.7rem">multipart/form-data</span>
+        </div>
+        <h4>Form Fields</h4>
+        <table class="api-table api-params-table">
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <code>csv_file</code>
+                    </td>
+                    <td>file</td>
+                    <td>
+                        <span class="badge-required">Required</span>
+                    </td>
+                    <td>CSV or TSV file (max 10 MB)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>test_name</code>
+                    </td>
+                    <td>string</td>
+                    <td>
+                        <span class="badge-required">Required</span>
+                    </td>
+                    <td>Statistical test name</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>data_col</code>
+                    </td>
+                    <td>string</td>
+                    <td>Depends</td>
+                    <td>Column name for primary data</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>data2_col</code>
+                    </td>
+                    <td>string</td>
+                    <td>Optional</td>
+                    <td>Column name for second group</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>group_col</code>
+                    </td>
+                    <td>string</td>
+                    <td>Optional</td>
+                    <td>Column name for splitting groups</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>group_values</code>
+                    </td>
+                    <td>string</td>
+                    <td>Optional</td>
+                    <td>
+                        Comma-separated group values (e.g., <code>control,treatment</code>)
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>pvalues_col</code>
+                    </td>
+                    <td>string</td>
+                    <td>Optional</td>
+                    <td>
+                        Column of p-values (for <code>/correct/</code>)
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <h4>Example: T-test from CSV (two columns)</h4>
+        <div class="api-example">
+            <div class="api-example-header">
+                <span class="api-example-lang">cURL</span>
+                <button class="copy-btn" data-copy="stats-csv-ttest-example">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+            <div class="api-example-body">
+                <pre><code id="stats-csv-ttest-example">curl -F "csv_file=@experiment.csv" \
+     -F "test_name=ttest_ind" \
+     -F "data_col=control_group" \
+     -F "data2_col=treatment_group" \
+     "{{ request.scheme }}://{{ request.get_host }}/api/stats/calculate/"</code></pre>
+            </div>
+        </div>
+        <h4>Example: ANOVA from CSV (group column)</h4>
+        <div class="api-example">
+            <div class="api-example-header">
+                <span class="api-example-lang">cURL</span>
+                <button class="copy-btn" data-copy="stats-csv-anova-example">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+            <div class="api-example-body">
+                <pre><code id="stats-csv-anova-example">curl -F "csv_file=@data.csv" \
+     -F "test_name=anova" \
+     -F "data_col=score" \
+     -F "group_col=condition" \
+     -F "group_values=placebo,low_dose,high_dose" \
+     "{{ request.scheme }}://{{ request.get_host }}/api/stats/calculate/"</code></pre>
+            </div>
+        </div>
+    </div>
+</section>
 <!-- Stats API: Descriptive Statistics -->
 <section id="stats-describe" class="api-section">
     <h2>

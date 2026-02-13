@@ -41,16 +41,17 @@
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--text-inverse);
-  background: var(--text-primary);
-  border: none;
+  color: var(--text-primary);
+  background: transparent;
+  border: 1px solid var(--border-default);
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .btn-download:hover {
-  opacity: 0.85;
+  background: var(--bg-muted);
+  border-color: var(--text-primary);
 }
 
 .download-menu {
@@ -227,8 +228,9 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   padding: 0.2rem 0.5rem;
-  background: var(--text-muted);
-  color: var(--text-inverse);
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border-default);
   border-radius: 4px;
   vertical-align: middle;
   margin-left: 0.5rem;
@@ -319,8 +321,9 @@
 }
 
 .switch-btn.active {
-  background: var(--text-primary);
-  color: var(--text-inverse);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-weight: 700;
 }
 
 .api-switchable-value {

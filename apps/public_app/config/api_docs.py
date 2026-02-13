@@ -60,6 +60,7 @@ API_DOC_SECTIONS = {
         "subsections": [
             {"id": "plot-quick", "title": "Quick Plot", "emoji": "🖼️"},
             {"id": "plot-create", "title": "Create Plot", "emoji": "🔧"},
+            {"id": "plot-csv", "title": "CSV Upload", "emoji": "📁"},
             {"id": "plot-types", "title": "Plot Types", "emoji": "📊"},
         ],
     },
@@ -73,6 +74,7 @@ API_DOC_SECTIONS = {
         "subsections": [
             {"id": "stats-plot", "title": "Quick Plot", "emoji": "🖼️"},
             {"id": "stats-calculate", "title": "Run Tests", "emoji": "🧪"},
+            {"id": "stats-csv", "title": "CSV Upload", "emoji": "📁"},
             {"id": "stats-describe", "title": "Descriptive", "emoji": "📈"},
             {"id": "stats-recommend", "title": "Recommendations", "emoji": "💡"},
             {"id": "stats-effect-size", "title": "Effect Size", "emoji": "📏"},

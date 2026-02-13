@@ -375,6 +375,112 @@
         </div>
     </div>
 </section>
+<!-- Plot API: CSV Upload -->
+<section id="plot-csv" class="api-section">
+    <h2>
+        <i class="fas fa-file-csv"></i> Plot from CSV Upload
+        <span class="badge-new">New</span>
+    </h2>
+    <p>
+        Upload a CSV file and specify column names instead of inline data arrays.
+        Same endpoint — the API detects the input mode from the Content-Type header.
+    </p>
+    <div class="api-endpoint-detail">
+        <div class="api-endpoint-header">
+            <span class="method method-post">POST</span>
+            <code>/api/plot/</code>
+            <span class="badge-new" style="font-size:0.7rem">multipart/form-data</span>
+        </div>
+        <h4>Form Fields</h4>
+        <table class="api-table api-params-table">
+            <thead>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <code>csv_file</code>
+                    </td>
+                    <td>file</td>
+                    <td>
+                        <span class="badge-required">Required</span>
+                    </td>
+                    <td>CSV or TSV file (max 10 MB)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>kind</code>
+                    </td>
+                    <td>string</td>
+                    <td>
+                        <span class="badge-required">Required</span>
+                    </td>
+                    <td>
+                        Plot type: <code>line</code>, <code>scatter</code>, <code>bar</code>, <code>hist</code>, <code>box</code>, <code>violin</code>, etc.
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>x_col</code>
+                    </td>
+                    <td>string</td>
+                    <td>Depends</td>
+                    <td>Column name for X-axis (line, scatter, bar)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>y_col</code>
+                    </td>
+                    <td>string</td>
+                    <td>Depends</td>
+                    <td>Column name for Y-axis (line, scatter, bar)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>data_col</code>
+                    </td>
+                    <td>string</td>
+                    <td>Depends</td>
+                    <td>Column name for distribution data (hist, box, violin, pie)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>color</code>, <code>title</code>, <code>xlabel</code>, <code>ylabel</code>
+                    </td>
+                    <td>string</td>
+                    <td>Optional</td>
+                    <td>Styling options</td>
+                </tr>
+            </tbody>
+        </table>
+        <h4>Example: Scatter from CSV</h4>
+        <div class="api-example">
+            <div class="api-example-header">
+                <span class="api-example-lang">cURL</span>
+                <button class="copy-btn" data-copy="plot-csv-example">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+            <div class="api-example-body">
+                <pre><code id="plot-csv-example">curl -F "csv_file=@experiment.csv" \
+     -F "kind=scatter" \
+     -F "x_col=time" \
+     -F "y_col=temperature" \
+     -F "title=Temperature over Time" \
+     "{{ request.scheme }}://{{ request.get_host }}/api/plot/" \
+     -o plot.png</code></pre>
+            </div>
+        </div>
+        <p>
+            <strong>Response:</strong> Raw PNG image (<code>Content-Type: image/png</code>).
+        </p>
+    </div>
+</section>
 <!-- Plot API: Supported Plot Types -->
 <section id="plot-types" class="api-section">
     <h2>

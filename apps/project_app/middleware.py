@@ -61,6 +61,7 @@ class VisitorAutoLoginMiddleware:
             "/terms/",
             "/cookies/",
             # Documentation
+            "/docs/web-api/",
             "/api-docs/",
             "/keyboard-shortcuts/",
             # Tools (client-side, no login needed)

@@ -185,8 +185,10 @@
 }
 
 .api-nav-section ul a.active {
-  background: var(--text-primary);
-  color: var(--text-inverse);
+  background: var(--bg-muted);
+  color: var(--text-primary);
+  font-weight: 600;
+  border-left: 2px solid var(--text-primary);
 }
 
 /* Main Content */

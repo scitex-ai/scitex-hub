@@ -91,6 +91,7 @@ def _resolve_data(body: dict) -> dict:
 
 
 __all__ = [
+    "parse_csv_body",
     "run_descriptive",
     "run_statistical_test",
     "run_effect_size",
@@ -99,6 +100,64 @@ __all__ = [
     "run_correction",
     "run_recommend",
 ]
+
+
+def parse_csv_body(request) -> dict:
+    """Parse multipart CSV upload into a body dict matching JSON format.
+
+    Reads csv_file + form fields, extracts columns, returns dict with
+    data/data2/groups arrays that existing helper functions expect.
+    """
+    from .api_csv_helpers import cleanup_csv_temp, extract_columns, parse_csv_upload
+
+    csv_path, params = parse_csv_upload(request)
+    try:
+        body = dict(params)
+
+        # Extract columns specified by form fields
+        data_col = params.get("data_col", "")
+        data2_col = params.get("data2_col", "")
+        group1_col = params.get("group1_col", "")
+        group2_col = params.get("group2_col", "")
+        group_col = params.get("group_col", "")
+        group_values_str = params.get("group_values", "")
+        pvalues_col = params.get("pvalues_col", "")
+
+        if group_col and group_values_str and data_col:
+            # Split data by group column
+            group_values = [v.strip() for v in group_values_str.split(",")]
+            cols = extract_columns(csv_path, [data_col, group_col])
+            import pandas as pd  # noqa: STX-IO003
+
+            df = pd.DataFrame(cols)
+            groups = []
+            for gv in group_values:
+                mask = df[group_col] == gv
+                groups.append(df.loc[mask, data_col].tolist())
+            body["groups"] = groups
+            if len(groups) == 2:
+                body["data"] = groups[0]
+                body["data2"] = groups[1]
+        else:
+            if data_col:
+                cols = extract_columns(csv_path, [data_col])
+                body["data"] = cols[data_col]
+            if data2_col:
+                cols = extract_columns(csv_path, [data2_col])
+                body["data2"] = cols[data2_col]
+            if group1_col:
+                cols = extract_columns(csv_path, [group1_col])
+                body["group1"] = cols[group1_col]
+            if group2_col:
+                cols = extract_columns(csv_path, [group2_col])
+                body["group2"] = cols[group2_col]
+            if pvalues_col:
+                cols = extract_columns(csv_path, [pvalues_col])
+                body["pvalues"] = cols[pvalues_col]
+
+        return body
+    finally:
+        cleanup_csv_temp(csv_path)
 
 
 def _capture_figure() -> str:
