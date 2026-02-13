@@ -111,6 +111,10 @@
 .panel-title {
   flex: 1;
 }
+/* In collapsed column layout, panel-title must not grow or chevron gets pushed to edge */
+.collapsible-panel.collapsed .panel-title {
+  flex: 0;
+}
 .panel-body {
   flex: 1;
   overflow-y: auto;

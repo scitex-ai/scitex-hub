@@ -7,6 +7,7 @@
  */
 
 import mermaid from "mermaid";
+import { FlowchartZoom } from "./flowchart-zoom";
 
 // Mapping from SVG node IDs to test registry IDs
 // SVG node IDs follow pattern: flowchart-{node_id}-{index}
@@ -30,6 +31,7 @@ const NODE_TEST_MAP: Record<string, string> = {
 export class FlowchartPanel {
   private container: HTMLElement;
   private onTestSelected: (testId: string) => void;
+  private zoom: FlowchartZoom;
   private activeNodeId: string | null = null;
   private savedStyles = new Map<
     Element,
@@ -41,6 +43,7 @@ export class FlowchartPanel {
     if (!el) throw new Error(`FlowchartPanel: ${selector} not found`);
     this.container = el;
     this.onTestSelected = onTestSelected;
+    this.zoom = new FlowchartZoom(el);
   }
 
   async load(): Promise<void> {
@@ -55,6 +58,8 @@ export class FlowchartPanel {
       const mermaidText = await resp.text();
       await this.renderMermaid(mermaidText);
       this.styleSvg();
+      const svg = this.container.querySelector("svg");
+      if (svg) this.zoom.attach(svg as SVGElement);
       this.attachClickHandlers();
     } catch (err) {
       console.error("[FlowchartPanel] Load error:", err);

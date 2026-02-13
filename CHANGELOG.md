@@ -5,6 +5,68 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0-alpha] - 2026-02-13
+
+### Added
+- **Tools Workspace Rebuild**: Rebuilt tools page into 3-column workspace layout with unified file tree sidebar
+  - 24 tools with workspace dark theme and verb-XXX URL naming convention
+  - Drag-drop support, embed mode, hash-based deep linking
+- **Run Stats Calculator**: Full 3-column statistical calculator delegating to `scitex.stats`
+  - Interactive decision flowchart (Mermaid.js) with clickable nodes
+  - Flowchart zoom controls (Ctrl+/-, Ctrl+0, Ctrl+Scroll, toolbar buttons, 25-300% range, persisted)
+  - Collapsible test categories, drag-resizable panels, APA-format results
+  - Brunner-Munzel test added to test suite
+- **Collapsible Panel UX**: Centralized CSS with click-to-expand, green hover feedback, opt-in title hiding
+  - Hide toggle buttons when expanded; collapse via resizer drag or double-click header
+  - `data-hide-title-expanded` attribute for self-explanatory panels (Editor, Preview, Terminal, Data)
+- **Hub File Browser**: GitHub-style file browser on Hub page
+- **Scholar Library Tab**: Library management tab with save-to-project for search results
+- **Scholar + LLM Backend**: Scholar library migration/linking and LLM app backend
+- **CSS Variable Migration**: Replaced hardcoded colors with CSS variables across all apps for dark/light mode
+  - Standardized font sizes, toolbar heights (50px), and icon sizes across workspace modules
+  - Toggleable green/white icon color schemes
+- **Shared Tree Features**: Module filter toggle and hidden files toggle for Scholar, Vis, Writer
+- **Build Cache Busting**: `build_id` parameter for static assets
+- **Umami Analytics Filtering**: Traffic filtering for accurate metrics
+- **E2E Tests**: Comprehensive E2E tests for auth, projects, visitors, signup; pltz property endpoint tests
+
+### Fixed
+- **Collapsed Panel Chevron Centering**: Override `flex: 1` on panel-title in collapsed column layout
+- **Tools Label Regression**: Reverted merged panel-title/tools-nav-header-title spans
+- **Writer**: PDF.js rendering quality, zoom controls, panel resizer; preview panel toggle; 1px header gap; editor-to-tree sync
+- **Vis**: Binary toggle for data/canvas panes; inline SVG data URIs for canvas grid; double theme init; light grid visibility
+- **Tree**: Dim file colors, search highlighting; auto-expand only on first load
+- **Scholar**: Health check polling for local source LEDs; import errors; stale migration references
+
+### Changed
+- **Removed Tooltip System**: Replaced with visual green hover feedback
+- **Panel CSS Consolidation**: Unified details/properties panel-title styling across Vis, Writer, Scholar, Hub, Clew
+- **App Renames**: `verifier_app` → `clew_app` (VBP → Clew); `code_app` → `console_app`; `user_projects` → `project_app`
+- **Writer**: Auto-initialize workspace (removed modal); doctype/section selectors moved from sidebar to editor toolbar
+- **Template Delegation**: Removed research-master, delegated to `scitex.template`
+- **Legacy JS Cleanup**: Removed legacy JS files superseded by TypeScript/Vite build
+
+---
+
+## [0.7.2-alpha] - 2026-02-07
+
+### Added
+- **MCP Server**: 23 tools with Python API for scitex-cloud
+- **Gitea CLI**: Migrated gitea CLI commands from scitex-python
+- **Versions API**: `/api/versions/` endpoint for ecosystem health dashboard
+- **Health Check API**: `get_version()` and `health_check()` APIs for scitex_cloud
+
+### Changed
+- **Environment Rename**: Renamed `nas` environment to `prod` across entire project
+- **Env Files Centralized**: Moved env files to `deployment/docker/envs/`
+- **CrossRef Port Migration**: 3333 → 31291, added OpenAlex health check
+
+### Fixed
+- **Docker**: Production deployment fixes for nas→prod rename; conditional libfuse3-3 compat package
+- **Status**: Include staging containers in status check
+
+---
+
 ## [0.7.0-alpha] - 2026-02-05
 
 ### Added
@@ -562,6 +624,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.2-alpha] - 2025-10-23
 - Initial release: Scholar, Writer, Code, Viz modules with Docker deployment
 
+[0.8.0-alpha]: https://github.com/ywatanabe1989/scitex-cloud/compare/v0.7.2-alpha...v0.8.0-alpha
+[0.7.2-alpha]: https://github.com/ywatanabe1989/scitex-cloud/compare/v0.7.0-alpha...v0.7.2-alpha
+[0.7.0-alpha]: https://github.com/ywatanabe1989/scitex-cloud/compare/v0.6.11-alpha...v0.7.0-alpha
+[0.6.11-alpha]: https://github.com/ywatanabe1989/scitex-cloud/compare/v0.6.5-alpha...v0.6.11-alpha
+[0.6.5-alpha]: https://github.com/ywatanabe1989/scitex-cloud/compare/v0.6.0-alpha...v0.6.5-alpha
+[0.6.0-alpha]: https://github.com/ywatanabe1989/scitex-cloud/compare/v0.5.2-alpha...v0.6.0-alpha
+[0.5.2-alpha]: https://github.com/ywatanabe1989/scitex-cloud/compare/v0.5.1-alpha...v0.5.2-alpha
 [0.5.1-alpha]: https://github.com/ywatanabe1989/scitex-cloud/compare/v0.5.0-alpha...v0.5.1-alpha
 [0.5.0-alpha]: https://github.com/ywatanabe1989/scitex-cloud/compare/v0.4.9-alpha...v0.5.0-alpha
 [0.4.9-alpha]: https://github.com/ywatanabe1989/scitex-cloud/compare/v0.4.8-alpha...v0.4.9-alpha

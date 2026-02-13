@@ -44,7 +44,6 @@ jobs:
 
       - name: Run tests
         run: npm run test:run
-        continue-on-error: true  # Tests may need setup
 
   test-summary:
     name: Test Summary
@@ -63,6 +62,11 @@ jobs:
 
           if [ "$TS_RESULT" == "failure" ]; then
             echo "❌ TypeScript checks failed"
+            exit 1
+          fi
+
+          if [ "$TEST_RESULT" == "failure" ]; then
+            echo "❌ Vitest tests failed"
             exit 1
           fi
 

@@ -55,6 +55,18 @@
                     <div class="flowchart-section" id="flowchartSection">
                         <div class="flowchart-toggle" id="flowchartToggle">
                             <span>Decision Flowchart</span>
+                            <div class="flowchart-zoom-controls" id="flowchartZoomControls">
+                                <button class="flowchart-zoom-btn" id="flowchartZoomOut" title="Zoom out (Ctrl+-)">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <span class="flowchart-zoom-level" id="flowchartZoomLevel">100%</span>
+                                <button class="flowchart-zoom-btn" id="flowchartZoomIn" title="Zoom in (Ctrl++)">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                                <button class="flowchart-zoom-btn" id="flowchartZoomReset" title="Reset zoom (Ctrl+0)">
+                                    <i class="fas fa-compress-arrows-alt"></i>
+                                </button>
+                            </div>
                             <i class="fa-solid fa-chevron-up"></i>
                         </div>
                         <div id="flowchartContainer" class="flowchart-container"></div>
@@ -79,7 +91,7 @@
                  data-toggle-btn="test-panel-toggle"
                  data-collapse-key="scitex-stats-test-collapsed"></div>
             {# Center Column: Data Table #}
-            <div class="stats-data-panel collapsible-panel">
+            <div class="stats-data-panel collapsible-panel" data-hide-title-expanded>
                 <div class="panel-header">
                     <button class="panel-toggle-btn left-panel-toggle"
                             id="data-panel-toggle"

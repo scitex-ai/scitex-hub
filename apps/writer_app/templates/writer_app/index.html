@@ -70,12 +70,13 @@
     <!-- File tabs CSS (same as /code/ page) -->
     <link rel="stylesheet"
           href="{% static 'writer_app/css/editor/file-tabs.css' %}?v={{ build_id }}" />
-    <!-- Panel-specific CSS - will be lazy-loaded when panels are opened -->
-    <!-- Citations panel CSS loaded dynamically on first open -->
-    <!-- Figures panel CSS loaded dynamically on first open -->
-    <!-- Tables panel CSS loaded dynamically on first open -->
-    <!-- Collaboration panel CSS loaded dynamically on first open -->
-    <!-- History panel CSS loaded dynamically on first open -->
+    <!-- Panel-specific CSS (included directly for reliable loading) -->
+    <link rel="stylesheet"
+          href="{% static 'writer_app/css/editor/citations-panel/index.css' %}?v={{ build_id }}" />
+    <link rel="stylesheet"
+          href="{% static 'writer_app/css/editor/figures-panel/index.css' %}?v={{ build_id }}" />
+    <link rel="stylesheet"
+          href="{% static 'writer_app/css/editor/tables-panel.css' %}?v={{ build_id }}" />
     <!-- Monaco Editor CSS -->
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/editor/editor.main.min.css" />

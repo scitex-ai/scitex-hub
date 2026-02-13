@@ -178,6 +178,34 @@
   padding: 4px;
 }
 
+/* Hide sidebar toggle when expanded */
+.workspace-sidebar:not(.collapsed) .sidebar-toggle,
+.workspace-sidebar:not(.collapsed) .sidebar-toggle-btn,
+.workspace-sidebar:not(.collapsed) .panel-toggle-btn {
+  display: none;
+}
+
+/* Expanded header hover: green hint for double-click-to-collapse */
+.workspace-sidebar:not(.collapsed) .sidebar-header:hover {
+  background: #122a22 !important;
+}
+[data-theme="light"] .workspace-sidebar:not(.collapsed) .sidebar-header:hover {
+  background: #e0f2e9 !important;
+}
+
+/* Green-tinted background + edge glow on hover */
+.workspace-sidebar.collapsed:hover,
+.workspace-sidebar.collapsed:hover .sidebar-header {
+  background: #122a22 !important;
+}
+.workspace-sidebar.collapsed:hover {
+  box-shadow: inset -3px 0 10px -4px var(--workspace-icon-primary);
+}
+[data-theme="light"] .workspace-sidebar.collapsed:hover,
+[data-theme="light"] .workspace-sidebar.collapsed:hover .sidebar-header {
+  background: #e0f2e9 !important;
+}
+
 /* ===========================================================================
    WORKSPACE MAIN CONTENT
    =========================================================================== */

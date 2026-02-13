@@ -96,6 +96,28 @@
   background: var(--workspace-bg-secondary);
 }
 
+/* Expanded header hover: green hint for double-click-to-collapse */
+.collapsible-panel:not(.collapsed) .panel-header:hover,
+.collapsible-panel:not(.collapsed) .pane-header:hover,
+.collapsible-panel:not(.collapsed) .details-header:hover,
+.collapsible-panel:not(.collapsed) .properties-header:hover,
+.collapsible-panel:not(.collapsed) .tools-nav-header:hover,
+.collapsible-panel:not(.collapsed) .terminal-panel-top:hover {
+  background: #122a22 !important;
+}
+[data-theme="light"] .collapsible-panel:not(.collapsed) .panel-header:hover,
+[data-theme="light"] .collapsible-panel:not(.collapsed) .pane-header:hover,
+[data-theme="light"] .collapsible-panel:not(.collapsed) .details-header:hover,
+[data-theme="light"]
+  .collapsible-panel:not(.collapsed)
+  .properties-header:hover,
+[data-theme="light"] .collapsible-panel:not(.collapsed) .tools-nav-header:hover,
+[data-theme="light"]
+  .collapsible-panel:not(.collapsed)
+  .terminal-panel-top:hover {
+  background: #e0f2e9 !important;
+}
+
 /* Collapsed header - centered toggle button */
 .collapsible-panel.collapsed .panel-header {
   padding: 0 4px;
@@ -156,6 +178,16 @@
   padding: 4px;
 }
 
+/* Hide toggle button when expanded - users collapse via resizer drag or dblclick */
+.collapsible-panel:not(.collapsed) .panel-toggle-btn {
+  display: none;
+}
+
+/* Opt-in: hide title when expanded (content is self-explanatory) */
+.collapsible-panel:not(.collapsed)[data-hide-title-expanded] .panel-title {
+  display: none;
+}
+
 /* ===========================================================================
    PANEL CONTENT STYLES
    =========================================================================== */
@@ -184,6 +216,37 @@
   width: 320px;
   min-width: 10px;
   border-left: none; /* Resizer handles visual separation */
+}
+
+/* ===========================================================================
+   COLLAPSED HOVER EFFECTS
+   Animated chevron indicator + background highlight on collapsed panels
+   =========================================================================== */
+
+/* Hover: green-tinted background + edge glow (covers header too) */
+.collapsible-panel.collapsed:hover,
+.collapsible-panel.collapsed:hover .panel-header,
+.collapsible-panel.collapsed:hover .pane-header,
+.collapsible-panel.collapsed:hover .details-header,
+.collapsible-panel.collapsed:hover .properties-header,
+.collapsible-panel.collapsed:hover .tools-nav-header,
+.collapsible-panel.collapsed:hover .terminal-panel-top {
+  background: #122a22 !important;
+}
+.collapsible-panel.collapsed:hover {
+  box-shadow: inset -3px 0 10px -4px var(--workspace-icon-primary);
+}
+.collapsible-panel.collapsed:has(.right-panel-toggle):hover {
+  box-shadow: inset 3px 0 10px -4px var(--workspace-icon-primary);
+}
+[data-theme="light"] .collapsible-panel.collapsed:hover,
+[data-theme="light"] .collapsible-panel.collapsed:hover .panel-header,
+[data-theme="light"] .collapsible-panel.collapsed:hover .pane-header,
+[data-theme="light"] .collapsible-panel.collapsed:hover .details-header,
+[data-theme="light"] .collapsible-panel.collapsed:hover .properties-header,
+[data-theme="light"] .collapsible-panel.collapsed:hover .tools-nav-header,
+[data-theme="light"] .collapsible-panel.collapsed:hover .terminal-panel-top {
+  background: #e0f2e9 !important;
 }
 
 /* ===========================================================================
@@ -278,7 +341,9 @@
 }
 
 .details-header h5,
-.properties-header h5 {
+.details-header .panel-title,
+.properties-header h5,
+.properties-header .panel-title {
   margin: 0;
   font-size: 0.85rem;
   font-weight: 600;
@@ -290,7 +355,9 @@
 }
 
 .details-header h5 i,
-.properties-header h5 i {
+.details-header .panel-title i,
+.properties-header h5 i,
+.properties-header .panel-title i {
   color: var(--workspace-icon-primary);
 }
 
