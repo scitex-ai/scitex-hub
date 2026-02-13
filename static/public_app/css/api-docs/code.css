@@ -54,8 +54,9 @@
 }
 
 .env-btn.active {
-  background: var(--text-primary);
-  color: var(--text-inverse);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-weight: 700;
 }
 
 .env-btn.disabled {
@@ -109,9 +110,9 @@
 }
 
 .copy-btn:hover {
-  background: var(--text-primary);
-  color: var(--text-inverse);
-  border-color: var(--text-primary);
+  background: var(--bg-muted);
+  color: var(--text-primary);
+  border-color: var(--border-default);
 }
 
 .api-example-body {
@@ -197,8 +198,9 @@
 .api-step-number {
   width: 36px;
   height: 36px;
-  background: var(--text-primary);
-  color: var(--text-inverse);
+  background: transparent;
+  color: var(--text-primary);
+  border: 2px solid var(--border-default);
   border-radius: 50%;
   display: flex;
   align-items: center;

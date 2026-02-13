@@ -232,8 +232,8 @@ class TestMonitorView(TemplateView):
                 expected_status=200,
             ),
             self._run_test(
-                "API docs page",
-                f"{base_url}/api-docs/",
+                "Web API docs page",
+                f"{base_url}/docs/web-api/",
                 expected_status=200,
             ),
         ]

@@ -123,9 +123,9 @@
 }
 
 .rate-limit-card.featured {
-  background: var(--text-primary);
-  color: var(--text-inverse);
-  border: none;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 2px solid var(--text-primary);
 }
 
 .rate-limit-badge {
@@ -133,8 +133,9 @@
   top: -10px;
   left: 50%;
   transform: translateX(-50%);
-  background: var(--status-warning);
-  color: white;
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  border: 1px solid var(--border-default);
   font-size: 0.6875rem;
   font-weight: 600;
   padding: 0.25rem 0.75rem;
@@ -271,9 +272,10 @@
 .api-cta {
   text-align: center;
   padding: 3rem 2rem;
-  background: var(--text-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
   border-radius: 12px;
-  color: var(--text-inverse);
+  color: var(--text-primary);
   margin-top: 3rem;
 }
 
@@ -301,23 +303,23 @@
 }
 
 .api-cta-buttons .btn-primary {
-  background: var(--text-inverse);
-  color: var(--text-primary);
-  border-color: var(--text-inverse);
+  background: var(--text-primary);
+  color: var(--text-inverse);
+  border-color: var(--text-primary);
 }
 
 .api-cta-buttons .btn-primary:hover {
-  opacity: 0.9;
+  opacity: 0.85;
 }
 
 .api-cta-buttons .btn-outline-primary,
 .api-cta-buttons .btn-outline-secondary {
-  border-color: rgba(255, 255, 255, 0.5);
-  color: var(--text-inverse);
+  border-color: var(--border-default);
+  color: var(--text-secondary);
 }
 
 .api-cta-buttons .btn-outline-primary:hover,
 .api-cta-buttons .btn-outline-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: var(--text-inverse);
+  background: var(--bg-muted);
+  border-color: var(--text-primary);
 }

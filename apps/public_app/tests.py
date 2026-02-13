@@ -1,7 +1,8 @@
-from django.test import TestCase, Client
-from django.urls import reverse
 from django.contrib.auth.models import User
-from .models import SubscriptionPlan, EmailVerification, Donation
+from django.test import Client, TestCase
+from django.urls import reverse
+
+from .models import Donation, EmailVerification, SubscriptionPlan
 
 
 class SubscriptionPlanTestCase(TestCase):
@@ -55,7 +56,7 @@ class ViewsTestCase(TestCase):
     def test_api_docs_page(self):
         response = self.client.get(reverse("public_app:api-docs"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "API Documentation")
+        self.assertContains(response, "Web API Documentation")
 
     def test_product_pages(self):
         product_urls = [

@@ -94,7 +94,7 @@ class TestAPIDocURLs:
     def test_section_urls_are_valid(self, client):
         """Each section URL should return 200."""
         for key in API_DOC_SECTION_ORDER:
-            response = client.get(f"/api-docs/{key}/")
+            response = client.get(f"/docs/web-api/{key}/")
             assert response.status_code == 200, (
                 f"Section {key} returned {response.status_code}"
             )
@@ -102,13 +102,13 @@ class TestAPIDocURLs:
     @pytest.mark.django_db
     def test_main_api_docs_url(self, client):
         """Main API docs URL should return 200."""
-        response = client.get("/api-docs/")
+        response = client.get("/docs/web-api/")
         assert response.status_code == 200
 
     @pytest.mark.django_db
     def test_invalid_section_redirects_to_default(self, client):
         """Invalid section should show default section."""
-        response = client.get("/api-docs/nonexistent/")
+        response = client.get("/docs/web-api/nonexistent/")
         assert response.status_code == 200
         # Should show getting-started content
         assert b"Introduction" in response.content

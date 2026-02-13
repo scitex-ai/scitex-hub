@@ -41,17 +41,26 @@ urlpatterns = [
     path("cookies/", views.cookie_policy, name="cookies"),
     # Demo page
     path("demo/", views.demo, name="demo"),
-    # API documentation
-    path("api-docs/", views.api_docs, name="api-docs"),
+    # Web API documentation
+    path("docs/web-api/", views.api_docs, name="api-docs"),
     path(
-        "api-docs/<str:section>/",
+        "docs/web-api/<str:section>/",
         views.api_docs_section,
         name="api-docs-section",
     ),
     path(
-        "api-docs/scitex-cloud-api-docs.<str:fmt>",
+        "docs/web-api/scitex-cloud-api-docs.<str:fmt>",
         views.api_docs_download,
         name="api-docs-download",
+    ),
+    # Legacy redirects
+    path(
+        "api-docs/", lambda r: redirect("public_app:api-docs"), name="api-docs-legacy"
+    ),
+    path(
+        "api-docs/<str:section>/",
+        lambda r, section: redirect("public_app:api-docs-section", section=section),
+        name="api-docs-section-legacy",
     ),
     # Status pages
     path("server-status/", views.server_status, name="server_status"),
