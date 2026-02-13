@@ -11,10 +11,14 @@
    ========================= */
 
 .warning-banner {
-  background: linear-gradient(135deg, var(--warning-color) 0%, #a07a55 100%);
-  border-bottom: 3px solid var(--warning-color);
-  padding: 1.25rem 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  background: linear-gradient(
+    135deg,
+    rgba(251, 191, 36, 0.15) 0%,
+    rgba(217, 119, 6, 0.1) 100%
+  );
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
   margin-bottom: 0;
 }
 
@@ -28,7 +32,8 @@
   display: flex;
   align-items: flex-start;
   gap: 1rem;
-  color: white;
+  color: #f59e0b;
+  font-weight: 600;
 }
 
 .warning-banner-icon {
@@ -36,7 +41,7 @@
   margin-top: 0.2rem;
   width: 24px;
   height: 24px;
-  color: white;
+  color: #f59e0b;
 }
 
 .warning-banner-text {
@@ -49,7 +54,7 @@
   margin-bottom: 0.5rem;
   font-size: 0.95rem;
   font-weight: 600;
-  color: white;
+  color: #f59e0b;
 }
 
 .warning-banner-title strong {
@@ -58,31 +63,11 @@
 
 .warning-banner-description {
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-muted);
   line-height: 1.5;
 }
 
-/* Dark mode for warning banner - same as light mode (uses warning colors) */
-[data-theme="dark"] .warning-banner {
-  background: linear-gradient(135deg, var(--warning-color) 0%, #a07a55 100%);
-  border-bottom: 3px solid var(--warning-color);
-}
-
-[data-theme="dark"] .warning-banner-content {
-  color: white;
-}
-
-[data-theme="dark"] .warning-banner-title {
-  color: white;
-}
-
-[data-theme="dark"] .warning-banner-icon {
-  color: white;
-}
-
-[data-theme="dark"] .warning-banner-description {
-  color: rgba(255, 255, 255, 0.9);
-}
+/* Dark mode for warning banner - same style, tokens adapt automatically */
 
 /* =========================
    Alert Banners - Button-style Semantic Colors (Light Mode)

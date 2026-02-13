@@ -1,5 +1,94 @@
 {% load static %}
 
+<!-- Stats API: Quick Plot (GET) -->
+<section id="stats-plot" class="api-section">
+    <h2>
+        <i class="fas fa-image"></i> Quick Plot (Try in Browser)
+    </h2>
+    <p>
+        Get a publication-ready figure by simply opening a URL in your browser.
+        No tools needed — just click the link below or paste it in your address bar.
+    </p>
+    <div class="api-endpoint-detail">
+        <div class="api-endpoint-header">
+            <span class="method method-get">GET</span>
+            <code>/api/stats/plot/</code>
+        </div>
+        <h4>Query Parameters</h4>
+        <table class="api-table api-params-table">
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <code>test_name</code>
+                    </td>
+                    <td>string</td>
+                    <td>
+                        <span class="badge-required">Required</span>
+                    </td>
+                    <td>
+                        Test name: <code>ttest_ind</code>, <code>ttest_paired</code>, <code>anova</code>, <code>mann_whitney</code>, <code>wilcoxon</code>, <code>kruskal</code>, <code>chi2</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>data</code>
+                    </td>
+                    <td>string</td>
+                    <td>
+                        <span class="badge-required">Required</span>
+                    </td>
+                    <td>
+                        Comma-separated numbers (e.g., <code>1,2,3,4,5</code>)
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>data2</code>
+                    </td>
+                    <td>string</td>
+                    <td>Optional</td>
+                    <td>
+                        Second group, comma-separated (e.g., <code>2,3,4,5,6</code>)
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>alternative</code>
+                    </td>
+                    <td>string</td>
+                    <td>Optional</td>
+                    <td>
+                        <code>two-sided</code> (default), <code>less</code>, <code>greater</code>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <h4>Try It Now</h4>
+        <p>Click this link to see a t-test result figure in your browser:</p>
+        <div class="api-example">
+            <div class="api-example-header">
+                <span class="api-example-lang">Browser URL</span>
+                <button class="copy-btn" data-copy="stats-plot-example">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+            <div class="api-example-body">
+                <pre><code id="stats-plot-example">{{ request.scheme }}://{{ request.get_host }}/api/stats/plot/?test_name=ttest_ind&amp;data=1,2,3,4,5&amp;data2=2,3,4,5,6</code></pre>
+            </div>
+        </div>
+        <p>
+            <strong>Response:</strong> Raw PNG image (<code>Content-Type: image/png</code>) displayed directly in the browser.
+        </p>
+    </div>
+</section>
 <!-- Stats API: Run Statistical Tests -->
 <section id="stats-calculate" class="api-section">
     <h2>
@@ -84,6 +173,16 @@
                         Set <code>true</code> to generate a publication-ready figure. Returns <code>figure_base64</code> (PNG, base64-encoded) in the result
                     </td>
                 </tr>
+                <tr>
+                    <td>
+                        <code>figure_format</code>
+                    </td>
+                    <td>string</td>
+                    <td>Optional</td>
+                    <td>
+                        Set <code>"png"</code> to return raw PNG image directly (requires <code>plot: true</code>). Viewable in browser. Default: returns base64 in JSON
+                    </td>
+                </tr>
             </tbody>
         </table>
         <h4>Example: Independent t-test with Figure</h4>
@@ -123,6 +222,28 @@
 }</code></pre>
             </div>
         </div>
+        <h4>Get Raw PNG Image (Browser-Viewable)</h4>
+        <p>
+            Add <code>"figure_format": "png"</code> to receive a raw PNG image directly instead of JSON.
+            Try pasting this URL-style request into your workflow:
+        </p>
+        <div class="api-example">
+            <div class="api-example-header">
+                <span class="api-example-lang">cURL</span>
+                <button class="copy-btn" data-copy="stats-calculate-png-example">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+            <div class="api-example-body">
+                <pre><code id="stats-calculate-png-example">curl -X POST "{{ request.scheme }}://{{ request.get_host }}/api/stats/calculate/" \
+     -H "Content-Type: application/json" \
+     -d '{"test_name": "ttest_ind", "data": [1,2,3,4,5], "data2": [2,3,4,5,6], "plot": true, "figure_format": "png"}' \
+     -o result.png</code></pre>
+            </div>
+        </div>
+        <p>
+            <strong>Response:</strong> Raw PNG image (<code>Content-Type: image/png</code>) — open directly in browser or save to file.
+        </p>
     </div>
 </section>
 <!-- Stats API: Descriptive Statistics -->

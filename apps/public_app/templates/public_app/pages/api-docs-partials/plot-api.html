@@ -1,0 +1,516 @@
+{% load static %}
+
+<!-- Plot API: Quick Plot (GET) -->
+<section id="plot-quick" class="api-section">
+    <h2>
+        <i class="fas fa-image"></i> Quick Plot (Try in Browser)
+    </h2>
+    <p>
+        Create publication-ready figures by simply opening a URL in your browser.
+        No tools needed — just paste the link in your address bar.
+    </p>
+    <div class="api-endpoint-detail">
+        <div class="api-endpoint-header">
+            <span class="method method-get">GET</span>
+            <code>/api/plot/</code>
+        </div>
+        <h4>Query Parameters</h4>
+        <table class="api-table api-params-table">
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Type</th>
+                    <th>Required</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <code>kind</code>
+                    </td>
+                    <td>string</td>
+                    <td>
+                        <span class="badge-required">Required</span>
+                    </td>
+                    <td>
+                        Plot type: <code>line</code>, <code>scatter</code>, <code>bar</code>, <code>barh</code>, <code>hist</code>, <code>box</code>, <code>violin</code>, <code>pie</code>, <code>heatmap</code>, <code>step</code>, <code>errorbar</code>, <code>stem</code>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>x</code>
+                    </td>
+                    <td>string</td>
+                    <td>Depends</td>
+                    <td>Comma-separated numbers or labels (for line, scatter, bar)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>y</code>
+                    </td>
+                    <td>string</td>
+                    <td>Depends</td>
+                    <td>Comma-separated numbers (for line, scatter, bar)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>data</code>
+                    </td>
+                    <td>string</td>
+                    <td>Depends</td>
+                    <td>Comma-separated numbers (for hist, box, violin, pie, heatmap)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>data2</code>..<code>data6</code>
+                    </td>
+                    <td>string</td>
+                    <td>Optional</td>
+                    <td>Additional groups (for box, violin)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>labels</code>
+                    </td>
+                    <td>string</td>
+                    <td>Optional</td>
+                    <td>Comma-separated labels (for bar, pie, box, violin)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>yerr</code>
+                    </td>
+                    <td>string</td>
+                    <td>Optional</td>
+                    <td>Comma-separated Y error bar values (auto-switches to errorbar type)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>nrows</code>, <code>ncols</code>
+                    </td>
+                    <td>integer</td>
+                    <td>Optional</td>
+                    <td>Matrix dimensions for heatmap (auto-squares if omitted)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>color</code>
+                    </td>
+                    <td>string</td>
+                    <td>Optional</td>
+                    <td>
+                        Color name (e.g., <code>red</code>, <code>blue</code>) or hex
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>title</code>
+                    </td>
+                    <td>string</td>
+                    <td>Optional</td>
+                    <td>Plot title</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>xlabel</code>
+                    </td>
+                    <td>string</td>
+                    <td>Optional</td>
+                    <td>X-axis label</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>ylabel</code>
+                    </td>
+                    <td>string</td>
+                    <td>Optional</td>
+                    <td>Y-axis label</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>width</code>
+                    </td>
+                    <td>integer</td>
+                    <td>Optional</td>
+                    <td>Figure width in mm (default: 80)</td>
+                </tr>
+                <tr>
+                    <td>
+                        <code>height</code>
+                    </td>
+                    <td>integer</td>
+                    <td>Optional</td>
+                    <td>Figure height in mm (default: 60)</td>
+                </tr>
+            </tbody>
+        </table>
+        <h4>Try It Now</h4>
+        <p>Click these links to see figures in your browser. Live previews rendered by the API:</p>
+        <div class="api-plot-gallery">
+            <div class="api-plot-item">
+                <strong>Line plot</strong>
+                <div class="api-live-preview">
+                    <img src="/api/plot/?kind=line&x=1,2,3,4,5&y=1,4,9,16,25&title=Quadratic&xlabel=x&ylabel=y"
+                         alt="Line plot"
+                         loading="lazy" />
+                </div>
+                <div class="api-example">
+                    <div class="api-example-header">
+                        <span class="api-example-lang">URL</span>
+                        <button class="copy-btn" data-copy="plot-line-example">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <div class="api-example-body">
+                        <pre><code id="plot-line-example">{{ request.scheme }}://{{ request.get_host }}/api/plot/?kind=line&amp;x=1,2,3,4,5&amp;y=1,4,9,16,25&amp;title=Quadratic&amp;xlabel=x&amp;ylabel=y</code></pre>
+                    </div>
+                </div>
+            </div>
+            <div class="api-plot-item">
+                <strong>Scatter plot</strong>
+                <div class="api-live-preview">
+                    <img src="/api/plot/?kind=scatter&x=1,2,3,4,5&y=5,3,4,2,1&color=red&title=Scatter"
+                         alt="Scatter plot"
+                         loading="lazy" />
+                </div>
+                <div class="api-example">
+                    <div class="api-example-header">
+                        <span class="api-example-lang">URL</span>
+                        <button class="copy-btn" data-copy="plot-scatter-example">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <div class="api-example-body">
+                        <pre><code id="plot-scatter-example">{{ request.scheme }}://{{ request.get_host }}/api/plot/?kind=scatter&amp;x=1,2,3,4,5&amp;y=5,3,4,2,1&amp;color=red</code></pre>
+                    </div>
+                </div>
+            </div>
+            <div class="api-plot-item">
+                <strong>Bar chart</strong>
+                <div class="api-live-preview">
+                    <img src="/api/plot/?kind=bar&x=A,B,C,D&y=10,20,30,15&title=Categories"
+                         alt="Bar chart"
+                         loading="lazy" />
+                </div>
+                <div class="api-example">
+                    <div class="api-example-header">
+                        <span class="api-example-lang">URL</span>
+                        <button class="copy-btn" data-copy="plot-bar-example">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <div class="api-example-body">
+                        <pre><code id="plot-bar-example">{{ request.scheme }}://{{ request.get_host }}/api/plot/?kind=bar&amp;x=A,B,C,D&amp;y=10,20,30,15</code></pre>
+                    </div>
+                </div>
+            </div>
+            <div class="api-plot-item">
+                <strong>Histogram</strong>
+                <div class="api-live-preview">
+                    <img src="/api/plot/?kind=hist&data=1,2,2,3,3,3,4,4,4,4,5,5,5,5,5&title=Distribution"
+                         alt="Histogram"
+                         loading="lazy" />
+                </div>
+                <div class="api-example">
+                    <div class="api-example-header">
+                        <span class="api-example-lang">URL</span>
+                        <button class="copy-btn" data-copy="plot-hist-example">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <div class="api-example-body">
+                        <pre><code id="plot-hist-example">{{ request.scheme }}://{{ request.get_host }}/api/plot/?kind=hist&amp;data=1,2,2,3,3,3,4,4,4,4,5,5,5,5,5</code></pre>
+                    </div>
+                </div>
+            </div>
+            <div class="api-plot-item">
+                <strong>Violin plot</strong>
+                <div class="api-live-preview">
+                    <img src="/api/plot/?kind=violin&data=1,2,3,4,5&data2=3,4,5,6,7&labels=Control,Treatment&title=Groups"
+                         alt="Violin plot"
+                         loading="lazy" />
+                </div>
+                <div class="api-example">
+                    <div class="api-example-header">
+                        <span class="api-example-lang">URL</span>
+                        <button class="copy-btn" data-copy="plot-violin-example">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <div class="api-example-body">
+                        <pre><code id="plot-violin-example">{{ request.scheme }}://{{ request.get_host }}/api/plot/?kind=violin&amp;data=1,2,3,4,5&amp;data2=3,4,5,6,7&amp;labels=Control,Treatment</code></pre>
+                    </div>
+                </div>
+            </div>
+            <div class="api-plot-item">
+                <strong>Pie chart</strong>
+                <div class="api-live-preview">
+                    <img src="/api/plot/?kind=pie&data=30,50,20&labels=A,B,C"
+                         alt="Pie chart"
+                         loading="lazy" />
+                </div>
+                <div class="api-example">
+                    <div class="api-example-header">
+                        <span class="api-example-lang">URL</span>
+                        <button class="copy-btn" data-copy="plot-pie-example">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <div class="api-example-body">
+                        <pre><code id="plot-pie-example">{{ request.scheme }}://{{ request.get_host }}/api/plot/?kind=pie&amp;data=30,50,20&amp;labels=A,B,C</code></pre>
+                    </div>
+                </div>
+            </div>
+            <div class="api-plot-item">
+                <strong>Heatmap</strong>
+                <div class="api-live-preview">
+                    <img src="/api/plot/?kind=heatmap&data=1,2,3,4,5,6,7,8,9&nrows=3&ncols=3&title=Matrix"
+                         alt="Heatmap"
+                         loading="lazy" />
+                </div>
+                <div class="api-example">
+                    <div class="api-example-header">
+                        <span class="api-example-lang">URL</span>
+                        <button class="copy-btn" data-copy="plot-heatmap-example">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <div class="api-example-body">
+                        <pre><code id="plot-heatmap-example">{{ request.scheme }}://{{ request.get_host }}/api/plot/?kind=heatmap&amp;data=1,2,3,4,5,6,7,8,9&amp;nrows=3&amp;ncols=3&amp;title=Correlation+Matrix</code></pre>
+                    </div>
+                </div>
+            </div>
+            <div class="api-plot-item">
+                <strong>Error bars</strong>
+                <div class="api-live-preview">
+                    <img src="/api/plot/?kind=errorbar&x=1,2,3,4,5&y=10,20,15,25,18&yerr=2,3,1,4,2&ylabel=Value&title=Measurements"
+                         alt="Error bars"
+                         loading="lazy" />
+                </div>
+                <div class="api-example">
+                    <div class="api-example-header">
+                        <span class="api-example-lang">URL</span>
+                        <button class="copy-btn" data-copy="plot-errorbar-example">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <div class="api-example-body">
+                        <pre><code id="plot-errorbar-example">{{ request.scheme }}://{{ request.get_host }}/api/plot/?kind=errorbar&amp;x=1,2,3,4,5&amp;y=10,20,15,25,18&amp;yerr=2,3,1,4,2&amp;ylabel=Value</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <p>
+            <strong>Response:</strong> Raw PNG image (<code>Content-Type: image/png</code>) displayed directly in the browser.
+        </p>
+    </div>
+</section>
+<!-- Plot API: Create Plot (POST) -->
+<section id="plot-create" class="api-section">
+    <h2>
+        <i class="fas fa-paint-brush"></i> Create Plot (Full Spec)
+    </h2>
+    <p>
+        Create figures programmatically using the full
+        <a href="https://github.com/ywatanabe1989/figrecipe" target="_blank">figrecipe</a>
+        declarative specification. Supports multiple overlaid plots, custom styling, and multi-panel layouts.
+    </p>
+    <div class="api-endpoint-detail">
+        <div class="api-endpoint-header">
+            <span class="method method-post">POST</span>
+            <code>/api/plot/</code>
+        </div>
+        <h4>Request Body (JSON)</h4>
+        <p>
+            Full figrecipe spec. See <a href="#plot-types">Plot Types</a> for all supported types.
+        </p>
+        <h4>Example: Multi-series line plot</h4>
+        <div class="api-example">
+            <div class="api-example-header">
+                <span class="api-example-lang">cURL</span>
+                <button class="copy-btn" data-copy="plot-create-example">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+            <div class="api-example-body">
+                <pre><code id="plot-create-example">curl -X POST "{{ request.scheme }}://{{ request.get_host }}/api/plot/" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "figure": {"width_mm": 80, "height_mm": 60},
+       "plots": [
+         {"type": "line", "x": [1,2,3,4,5], "y": [1,4,9,16,25], "label": "quadratic"},
+         {"type": "scatter", "x": [1,2,3,4,5], "y": [2,5,8,14,22], "color": "red", "label": "data"}
+       ],
+       "xlabel": "X", "ylabel": "Y", "title": "My Figure", "legend": true
+     }'</code></pre>
+            </div>
+        </div>
+        <h4>JSON Response</h4>
+        <div class="api-example">
+            <div class="api-example-body">
+                <pre><code>{
+  "success": true,
+  "figure_base64": "iVBORw0KGgoAAAANSUhEUgAA...(base64 PNG data)..."
+}</code></pre>
+            </div>
+        </div>
+        <h4>Get Raw PNG Image</h4>
+        <p>
+            Add <code>"figure_format": "png"</code> to the request body to receive raw PNG directly.
+        </p>
+        <div class="api-example">
+            <div class="api-example-header">
+                <span class="api-example-lang">cURL</span>
+                <button class="copy-btn" data-copy="plot-create-png-example">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+            <div class="api-example-body">
+                <pre><code id="plot-create-png-example">curl -X POST "{{ request.scheme }}://{{ request.get_host }}/api/plot/" \
+     -H "Content-Type: application/json" \
+     -d '{"figure": {"width_mm": 80}, "plots": [{"type": "bar", "x": [0,1,2], "y": [10,20,30]}], "figure_format": "png"}' \
+     -o result.png</code></pre>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Plot API: Supported Plot Types -->
+<section id="plot-types" class="api-section">
+    <h2>
+        <i class="fas fa-th-list"></i> Supported Plot Types
+    </h2>
+    <p>All plot types use the SCITEX publication-ready style by default (Arial font, clean spines, 300 DPI).</p>
+    <table class="api-table api-params-table">
+        <thead>
+            <tr>
+                <th>Kind</th>
+                <th>Category</th>
+                <th>Required Params (GET)</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <code>line</code>
+                </td>
+                <td>Line</td>
+                <td>
+                    <code>x</code>, <code>y</code>
+                </td>
+                <td>Line plot connecting data points</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>scatter</code>
+                </td>
+                <td>Points</td>
+                <td>
+                    <code>x</code>, <code>y</code>
+                </td>
+                <td>Scatter plot of individual data points</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>bar</code>
+                </td>
+                <td>Categorical</td>
+                <td>
+                    <code>x</code> (labels), <code>y</code>
+                </td>
+                <td>Vertical bar chart</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>barh</code>
+                </td>
+                <td>Categorical</td>
+                <td>
+                    <code>x</code>, <code>y</code>
+                </td>
+                <td>Horizontal bar chart</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>hist</code>
+                </td>
+                <td>Distribution</td>
+                <td>
+                    <code>data</code>
+                </td>
+                <td>Histogram of value distribution</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>box</code>
+                </td>
+                <td>Distribution</td>
+                <td>
+                    <code>data</code>
+                </td>
+                <td>Box plot (median, quartiles, whiskers)</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>violin</code>
+                </td>
+                <td>Distribution</td>
+                <td>
+                    <code>data</code>
+                </td>
+                <td>Violin plot with KDE density estimation</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>pie</code>
+                </td>
+                <td>Proportion</td>
+                <td>
+                    <code>data</code>, <code>labels</code>
+                </td>
+                <td>Pie chart</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>heatmap</code>
+                </td>
+                <td>Matrix</td>
+                <td>
+                    <code>data</code>, <code>nrows</code>, <code>ncols</code>
+                </td>
+                <td>Color-coded matrix visualization</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>step</code>
+                </td>
+                <td>Line</td>
+                <td>
+                    <code>x</code>, <code>y</code>
+                </td>
+                <td>Step function plot</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>errorbar</code>
+                </td>
+                <td>Line</td>
+                <td>
+                    <code>x</code>, <code>y</code>, <code>yerr</code>
+                </td>
+                <td>Line plot with error bars</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>stem</code>
+                </td>
+                <td>Line</td>
+                <td>
+                    <code>x</code>, <code>y</code>
+                </td>
+                <td>Stem plot (lollipop chart)</td>
+            </tr>
+        </tbody>
+    </table>
+</section>

@@ -26,6 +26,7 @@ class TestResult:
     passed: bool
     duration_ms: float
     error: str = ""
+    preview_url: str = ""
 
 
 @dataclass
@@ -92,6 +93,18 @@ class TestMonitorView(TemplateView):
                 results=self._test_scholar_api(base_url),
             ),
             TestCategory(
+                key="stats-api",
+                name="Stats API",
+                icon="fas fa-chart-bar",
+                results=self._test_stats_api(base_url),
+            ),
+            TestCategory(
+                key="plot-api",
+                name="Plot API",
+                icon="fas fa-palette",
+                results=self._test_plot_api(base_url),
+            ),
+            TestCategory(
                 key="auth-api",
                 name="Auth API",
                 icon="fas fa-key",
@@ -139,6 +152,7 @@ class TestMonitorView(TemplateView):
         expected_status: int = 200,
         json_data: dict = None,
         allow_redirects: bool = False,
+        preview_url: str = "",
     ) -> TestResult:
         """Run a single test and return result."""
         start = time.time()
@@ -168,6 +182,7 @@ class TestMonitorView(TemplateView):
                 actual_status=resp.status_code,
                 passed=passed,
                 duration_ms=round(duration_ms, 1),
+                preview_url=preview_url,
             )
         except Exception as e:
             duration_ms = (time.time() - start) * 1000
@@ -180,6 +195,7 @@ class TestMonitorView(TemplateView):
                 passed=False,
                 duration_ms=round(duration_ms, 1),
                 error=str(e),
+                preview_url=preview_url,
             )
 
     def _test_core_services(self, base_url: str) -> list[TestResult]:
@@ -266,6 +282,142 @@ class TestMonitorView(TemplateView):
                 expected_status=200,
             ),
         ]
+
+    def _test_stats_api(self, base_url: str) -> list[TestResult]:
+        """Test Stats API endpoints."""
+        return [
+            self._run_test(
+                "Stats plot (GET)",
+                f"{base_url}/api/stats/plot/?test_name=ttest_ind"
+                "&data=1,2,3,4,5&data2=2,3,4,5,6",
+                expected_status=200,
+                preview_url="/api/stats/plot/?test_name=ttest_ind"
+                "&data=1,2,3,4,5&data2=2,3,4,5,6",
+            ),
+            self._run_test(
+                "Stats calculate (POST)",
+                f"{base_url}/api/stats/calculate/",
+                method="POST",
+                json_data={
+                    "test_name": "ttest_ind",
+                    "data": [1, 2, 3, 4, 5],
+                    "data2": [2, 3, 4, 5, 6],
+                },
+                expected_status=200,
+            ),
+            self._run_test(
+                "Stats describe (POST)",
+                f"{base_url}/api/stats/describe/",
+                method="POST",
+                json_data={"data": [1, 2, 3, 4, 5]},
+                expected_status=200,
+            ),
+            self._run_test(
+                "Stats recommend (POST)",
+                f"{base_url}/api/stats/recommend/",
+                method="POST",
+                json_data={"n_groups": 2},
+                expected_status=200,
+            ),
+            self._run_test(
+                "Stats effect size (POST)",
+                f"{base_url}/api/stats/effect-size/",
+                method="POST",
+                json_data={
+                    "measure": "cohens_d",
+                    "group1": [1, 2, 3, 4, 5],
+                    "group2": [3, 4, 5, 6, 7],
+                },
+                expected_status=200,
+            ),
+            self._run_test(
+                "Stats power (POST)",
+                f"{base_url}/api/stats/power/",
+                method="POST",
+                json_data={"effect_size": 0.5},
+                expected_status=200,
+            ),
+            self._run_test(
+                "Stats correct (POST)",
+                f"{base_url}/api/stats/correct/",
+                method="POST",
+                json_data={
+                    "method": "bonferroni",
+                    "pvalues": [0.01, 0.04, 0.03],
+                },
+                expected_status=200,
+            ),
+            self._run_test(
+                "Stats flowchart (GET)",
+                f"{base_url}/api/stats/flowchart/",
+                expected_status=200,
+            ),
+        ]
+
+    def _test_plot_api(self, base_url: str) -> list[TestResult]:
+        """Test Plot API endpoints."""
+        plot_tests = [
+            ("Plot line (GET)", "kind=line&x=1,2,3,4,5&y=1,4,9,16,25"),
+            ("Plot scatter (GET)", "kind=scatter&x=1,2,3&y=5,3,4"),
+            ("Plot bar (GET)", "kind=bar&x=A,B,C&y=10,20,30"),
+            ("Plot histogram (GET)", "kind=hist&data=1,2,2,3,3,3,4,4,5"),
+            (
+                "Plot violin (GET)",
+                "kind=violin&data=1,2,3,4,5&data2=3,4,5,6,7",
+            ),
+            ("Plot pie (GET)", "kind=pie&data=30,50,20&labels=A,B,C"),
+            (
+                "Plot heatmap (GET)",
+                "kind=heatmap&data=1,2,3,4,5,6,7,8,9&nrows=3&ncols=3",
+            ),
+            (
+                "Plot errorbar (GET)",
+                "kind=errorbar&x=1,2,3&y=10,20,15&yerr=2,3,1",
+            ),
+        ]
+
+        results = []
+        for name, qs in plot_tests:
+            results.append(
+                self._run_test(
+                    name,
+                    f"{base_url}/api/plot/?{qs}",
+                    expected_status=200,
+                    preview_url=f"/api/plot/?{qs}",
+                )
+            )
+
+        # POST test
+        results.append(
+            self._run_test(
+                "Plot POST (JSON spec)",
+                f"{base_url}/api/plot/",
+                method="POST",
+                json_data={
+                    "figure": {"width_mm": 80, "height_mm": 60},
+                    "plots": [
+                        {"type": "line", "x": [1, 2, 3], "y": [1, 4, 9]},
+                    ],
+                },
+                expected_status=200,
+            )
+        )
+        # Error cases
+        results.append(
+            self._run_test(
+                "Plot missing kind (400)",
+                f"{base_url}/api/plot/",
+                expected_status=400,
+            )
+        )
+        results.append(
+            self._run_test(
+                "Plot invalid kind (400)",
+                f"{base_url}/api/plot/?kind=invalid",
+                expected_status=400,
+            )
+        )
+        return results
 
     def _test_auth_api(self, base_url: str) -> list[TestResult]:
         """Test Auth API endpoints."""

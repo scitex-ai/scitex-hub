@@ -1110,6 +1110,15 @@ lint-web:
 	fi
 
 # ============================================
+# Accessibility Checks (WCAG 2.2 AA)
+# ============================================
+check-a11y:
+	@./scripts/maintenance/check_accessibility.sh
+
+check-a11y-ci:
+	@./scripts/maintenance/check_accessibility.sh --ci
+
+# ============================================
 # File Size Checks
 # ============================================
 check-file-sizes:

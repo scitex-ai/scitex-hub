@@ -4,9 +4,10 @@
  * Professional SaaS-style documentation (Stripe, Twilio inspired)
  */
 
-@import url('./layout.css');
-@import url('./sections.css');
-@import url('./code.css');
-@import url('./tables.css');
-@import url('./cards.css');
-@import url('./responsive.css');
+@import url("./layout.css");
+@import url("./sections.css");
+@import url("./code.css");
+@import url("./tables.css");
+@import url("./cards.css");
+@import url("./gallery.css");
+@import url("./responsive.css");
