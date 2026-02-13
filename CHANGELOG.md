@@ -5,6 +5,16 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.3-alpha] - 2026-02-14
+
+### Added
+- **Landing Page**: Python Documentation and Cloud API Documentation badges in hero
+- **Landing Page**: GitHub issues links in alpha warning for scitex-python and scitex-cloud
+- **Ecosystem**: Added scitex-dataset and scitex-linter to ecosystem packages table
+
+### Changed
+- **Landing Page**: Split alpha warning into two paragraphs (notice + contribution)
+
 ## [0.8.2-alpha] - 2026-02-14
 
 ### Added
