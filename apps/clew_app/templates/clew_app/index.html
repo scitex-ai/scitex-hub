@@ -3,7 +3,7 @@
 {% load static vite tree_preseed %}
 
 {% block title %}
-    SciTeX Verifier
+    SciTeX Clew
     {% if current_project %}- {{ current_project.name }}{% endif %}
 {% endblock %}
 {% block extra_css %}
@@ -14,11 +14,9 @@
           href="{% static 'shared/css/components/workspace-sidebar.css' %}" />
     <link rel="stylesheet" href="{% static 'shared/css/components/panel-resizer.css' %}" />
     <link rel="stylesheet"
-          href="{% static 'shared/css/components/collapsible-panel.css' %}" />
-    <link rel="stylesheet"
           href="{% static 'shared/css/components/workspace-files-tree/hidden-files-toggle.css' %}" />
-    <!-- Verifier specific styles -->
-    <link rel="stylesheet" href="{% static 'verifier_app/css/verifier.css' %}" />
+    <!-- Clew specific styles -->
+    <link rel="stylesheet" href="{% static 'clew_app/css/clew.css' %}" />
 {% endblock %}
 {% block content %}
     {% if current_project %}
@@ -26,12 +24,12 @@
              style="display: none"
              data-username="{{ current_project.owner.username }}"
              data-slug="{{ current_project.slug }}"
-             data-mode="verifier"></div>
+             data-mode="clew"></div>
     {% endif %}
-    <div class="verifier-workspace">
+    <div class="clew-workspace">
         <!-- LEFT SIDEBAR - PROJECT NAVIGATOR -->
         {% if current_project %}
-            <aside class="verifier-sidebar workspace-sidebar" id="verifier-sidebar">
+            <aside class="clew-sidebar workspace-sidebar" id="clew-sidebar">
                 {% include "global_base_partials/workspace/sidebar_header.html" %}
                 <div class="sidebar-content" id="file-tree">
                     <div class="wft-loading">
@@ -44,7 +42,7 @@
                  id="sidebar-resizer"
                  data-panel-resizer
                  data-storage-prefix="scitex-workspace-"
-                 data-target=".verifier-sidebar"
+                 data-target=".clew-sidebar"
                  data-direction="left"
                  data-min-width="40"
                  data-default-width="250"
@@ -52,7 +50,7 @@
                  data-collapse-key="scitex-workspace-sidebar-collapsed"
                  data-toggle-btn="sidebar-toggle"></div>
         {% else %}
-            <aside class="verifier-sidebar workspace-sidebar" id="verifier-sidebar">
+            <aside class="clew-sidebar workspace-sidebar" id="clew-sidebar">
                 {% include "global_base_partials/workspace/sidebar_header.html" %}
                 <div class="sidebar-content">
                     <div class="sidebar-empty-state">
@@ -64,9 +62,9 @@
             </aside>
         {% endif %}
         <!-- CENTER - DAG VISUALIZATION WORKSPACE -->
-        <main class="verifier-main">
-            <div class="verifier-header">
-                <span class="verifier-header-title"><i class="fas fa-check-circle"></i> Clew Verification</span>
+        <main class="clew-main">
+            <div class="clew-header">
+                <span class="clew-header-title"><i class="fas fa-check-circle"></i> Clew Verification</span>
             </div>
             <div class="dag-visualization-area">
                 <div class="dag-placeholder">
@@ -83,16 +81,16 @@
         <div class="panel-resizer"
              id="details-resizer"
              data-panel-resizer
-             data-storage-prefix="scitex-verifier-"
-             data-target=".verifier-details"
+             data-storage-prefix="scitex-clew-"
+             data-target=".clew-details"
              data-direction="right"
              data-min-width="40"
              data-default-width="280"
              data-storage-key="details-width"
-             data-collapse-key="verifier-details-collapsed"
+             data-collapse-key="clew-details-collapsed"
              data-toggle-btn="details-toggle"></div>
         <!-- RIGHT SIDEBAR - DETAILS -->
-        <aside class="verifier-details" id="verifier-details">
+        <aside class="clew-details collapsible-panel" id="clew-details">
             <div class="details-header">
                 <button class="details-toggle panel-toggle-btn right-panel-toggle"
                         id="details-toggle"
@@ -102,8 +100,9 @@
                 <h5>
                     <i class="fas fa-sliders-h"></i> Details
                 </h5>
+                <span class="panel-title">Details</span>
             </div>
-            <div class="details-content" id="verifier-details-content">
+            <div class="details-content" id="clew-details-content">
                 <div class="details-placeholder">
                     <i class="fas fa-info-circle"></i>
                     <p>Select a node to view verification details</p>
@@ -117,5 +116,5 @@
     {% vite_script 'shared/workspace-panel-resizer' %}
     {% tree_preseed_script current_project %}
     {% vite_script 'shared/workspace-tree-init' %}
-    {% vite_script 'verifier_app/verifier-init' %}
+    {% vite_script 'clew_app/clew-init' %}
 {% endblock %}

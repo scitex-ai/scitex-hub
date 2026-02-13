@@ -1,5 +1,5 @@
 /**
- * Verifier API Client
+ * Clew API Client
  * Thin wrapper around the Django API endpoints
  */
 
@@ -103,8 +103,8 @@ export interface DatabaseStats {
   db_path: string;
 }
 
-export class VerifierApiClient {
-  private baseUrl = "/verifier";
+export class ClewApiClient {
+  private baseUrl = "/clew";
 
   private async fetchJson<T>(
     endpoint: string,
@@ -230,4 +230,4 @@ export class VerifierApiClient {
 }
 
 // Export singleton instance
-export const verifierApi = new VerifierApiClient();
+export const clewApi = new ClewApiClient();

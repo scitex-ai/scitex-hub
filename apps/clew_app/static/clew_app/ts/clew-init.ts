@@ -1,11 +1,11 @@
 /**
- * Verifier App Initialization
+ * Clew App Initialization
  * Sets up the DAG visualization interface and file tree
  */
 
-import { verifierApi, type DagData } from "./api-client";
+import { clewApi, type DagData } from "./api-client";
 
-class VerifierApp {
+class ClewApp {
   private dagArea: HTMLElement | null = null;
   private detailsPanel: HTMLElement | null = null;
   private projectOwner: string | null = null;
@@ -13,14 +13,12 @@ class VerifierApp {
 
   constructor() {
     this.dagArea = document.querySelector(".dag-visualization-area");
-    this.detailsPanel = document.querySelector(".verifier-details-content");
+    this.detailsPanel = document.querySelector(".clew-details-content");
     this.extractProjectInfo();
   }
 
   private extractProjectInfo() {
-    const configEl =
-      document.getElementById("workspace-project-config") ||
-      document.getElementById("verifier-project-config");
+    const configEl = document.getElementById("workspace-project-config");
     if (configEl) {
       this.projectOwner = configEl.dataset.username || null;
       this.projectSlug = configEl.dataset.slug || null;
@@ -31,7 +29,7 @@ class VerifierApp {
     // File tree is now initialized by shared/workspace-tree-init
 
     if (!this.projectOwner || !this.projectSlug) {
-      console.log("[Verifier] No project selected");
+      console.log("[Clew] No project selected");
       return;
     }
 
@@ -50,11 +48,11 @@ class VerifierApp {
   }
 
   private async loadStats() {
-    const response = await verifierApi.getStats();
+    const response = await clewApi.getStats();
     if (response.success && response.data) {
       this.updateStatsDisplay(response.data);
     } else {
-      console.error("[Verifier] Failed to load stats:", response.error);
+      console.error("[Clew] Failed to load stats:", response.error);
     }
   }
 
@@ -92,7 +90,7 @@ class VerifierApp {
   private async loadChainForFile(filePath: string) {
     this.showLoading();
 
-    const response = await verifierApi.verifyChain(filePath);
+    const response = await clewApi.verifyChain(filePath);
     if (response.success && response.data) {
       await this.renderDag(filePath);
       this.showChainDetails(response.data);
@@ -102,7 +100,7 @@ class VerifierApp {
   }
 
   private async renderDag(targetFile: string) {
-    const response = await verifierApi.getDagJson({
+    const response = await clewApi.getDagJson({
       targetFile,
       pathMode: "name",
     });
@@ -236,6 +234,6 @@ class VerifierApp {
 
 // Initialize when DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
-  const app = new VerifierApp();
+  const app = new ClewApp();
   app.initialize();
 });

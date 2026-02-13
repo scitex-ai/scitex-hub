@@ -1,12 +1,12 @@
-/* Verifier App Styles - Workspace Layout */
+/* Clew App Styles - Workspace Layout */
 
 /* Three-panel workspace layout */
-.verifier-workspace {
+.clew-workspace {
   display: flex;
   overflow: hidden;
 }
 
-/* Verifier sidebar: uses shared .workspace-sidebar for base layout */
+/* Clew sidebar: uses shared .workspace-sidebar for base layout */
 
 .sidebar-empty-state {
   text-align: center;
@@ -21,7 +21,7 @@
 }
 
 /* Center - Main Workspace */
-.verifier-main {
+.clew-main {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -30,22 +30,23 @@
   min-width: 0;
 }
 
-.verifier-header {
+.clew-header {
   padding: 0 1rem;
   border-bottom: 1px solid var(--workspace-border-default);
   background: var(--workspace-bg-secondary);
-  height: 36px;
+  height: 50px;
+  min-height: 50px;
   display: flex;
   align-items: center;
 }
 
-.verifier-header-title {
+.clew-header-title {
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--workspace-text-primary);
 }
 
-.verifier-header-title i {
+.clew-header-title i {
   color: var(--workspace-icon-primary);
   margin-right: 0.4rem;
 }
@@ -54,10 +55,11 @@
 .dag-visualization-area {
   flex: 1;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   overflow: auto;
-  padding: 2rem;
+  padding: 1rem;
+  min-height: 0;
 }
 
 .dag-placeholder {
@@ -68,6 +70,7 @@
 
 .dag-placeholder i {
   color: var(--workspace-icon-primary);
+  margin-top: 2rem;
   margin-bottom: 1rem;
   opacity: 0.3;
 }
@@ -90,7 +93,7 @@
 }
 
 /* Right Sidebar - Details Panel */
-.verifier-details {
+.clew-details {
   width: 280px;
   min-width: 40px;
   background: var(--workspace-bg-primary);
@@ -104,11 +107,7 @@
   flex-shrink: 0;
 }
 
-/* Collapsed state (shared CSS handles header/content/toggle) */
-.verifier-details.collapsed {
-  width: 40px;
-  min-width: 40px;
-}
+/* Collapsed state: width + panel-title handled by shared collapsible-panel.css */
 
 .details-placeholder {
   text-align: center;

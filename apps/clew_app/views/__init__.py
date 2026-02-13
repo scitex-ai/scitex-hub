@@ -1,5 +1,5 @@
 """
-Verifier - Views Package
+Clew - Views Package
 """
 
 from django.shortcuts import render
@@ -9,13 +9,13 @@ from apps.project_app.services.project_utils import get_current_project
 from . import api
 
 
-def verifier_index(request):
-    """Main verifier view - DAG visualization for reproducibility verification
+def clew_index(request):
+    """Main clew view - DAG visualization for reproducibility verification
 
     Shows verification chain for tracing claims back to source data.
     """
     context = {
-        "module_name": "Verifier",
+        "module_name": "Clew",
         "module_icon": "fa-check-circle",
     }
 
@@ -29,7 +29,7 @@ def verifier_index(request):
         else:
             context["needs_project_creation"] = True
 
-    return render(request, "verifier_app/index.html", context)
+    return render(request, "clew_app/index.html", context)
 
 
-__all__ = ["verifier_index", "api"]
+__all__ = ["clew_index", "api"]

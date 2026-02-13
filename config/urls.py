@@ -127,7 +127,6 @@ urlpatterns = [
     path("vis/", include(("apps.vis_app.urls", "vis"))),
     path("writer/", include(("apps.writer_app.urls", "writer_app"))),
     path("workspace/", include(("apps.workspace_app.urls", "workspace_app"))),
-    path("verifier/", include(("apps.verifier_app.urls", "verifier"))),
     # LLM/Agent Support
     path("llm/", include(("apps.llm_app.urls", "llm_app"))),
     # Deveopment
@@ -191,8 +190,11 @@ urlpatterns = [
     ),
 ]
 
-# Add development tools BEFORE catch-all username pattern
+# Add development-only apps BEFORE catch-all username pattern
 if settings.DEBUG:
+    urlpatterns += [
+        path("clew/", include(("apps.clew_app.urls", "clew"))),
+    ]
     # Add django-browser-reload URLs for hot reload
     if "django_browser_reload" in settings.INSTALLED_APPS:
         urlpatterns += [

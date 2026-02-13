@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Verifier API views - Thin wrappers around scitex.verify package."""
+"""Clew API views - Thin wrappers around scitex.verify package."""
 
 from __future__ import annotations
 
