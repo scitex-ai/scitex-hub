@@ -377,19 +377,16 @@ chmod +x scripts/server/start
 
 ---
 
-## License
+## Contributing
 
-MIT License - See [LICENSE](./LICENSE)
-
----
-
-## Contact
-
-- **GitHub**: https://github.com/SciTeX-AI
-- **Website**: https://scitex.ai
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 
-Built by researchers, for researchers.
+<p align="center">
+  <a href="https://scitex.ai" target="_blank"><img src="static/shared/images/scitex-icon-navy-inverted.png" alt="SciTeX" width="40"/></a>
+  <br>
+  AGPL-3.0
+</p>
 
 <!-- EOF -->

@@ -64,16 +64,20 @@ def reset_database():
     from django.contrib.auth.models import User
     from apps.workspace_app.models import UserProfile
     
-    # Create superuser
-    if not User.objects.filter(username='admin').exists():
+    # Create superuser from env vars
+    admin_user_name = os.environ.get('SCITEX_CLOUD_ADMIN_USERNAME', 'admin')
+    admin_email = os.environ.get('SCITEX_CLOUD_ADMIN_EMAIL', 'admin@scitex.ai')
+    admin_password = os.environ.get('SCITEX_CLOUD_ADMIN_PASSWORD', 'admin123')
+
+    if not User.objects.filter(username=admin_user_name).exists():
         admin_user = User.objects.create_superuser(
-            username='admin',
-            email='admin@scitex.ai',
-            password='admin123',
+            username=admin_user_name,
+            email=admin_email,
+            password=admin_password,
             first_name='SciTeX',
             last_name='Administrator'
         )
-        
+
         # Create profile for admin
         profile, created = UserProfile.objects.get_or_create(
             user=admin_user,
@@ -85,7 +89,7 @@ def reset_database():
                 'research_interests': 'Research platform development and management'
             }
         )
-        print(f"    ✓ Created superuser: admin / admin123")
+        print(f"    ✓ Created superuser: {admin_user_name}")
     
     # 6. Create sample data for testing
     print("  ✓ Creating sample research data...")
@@ -93,8 +97,8 @@ def reset_database():
     
     print("\n🎉 Database reset complete!")
     print("📝 You can now login with:")
-    print("   Username: admin")
-    print("   Password: admin123")
+    print(f"   Username: {admin_user_name}")
+    print("   Password: <SCITEX_CLOUD_ADMIN_PASSWORD>")
     print("\n🚀 Enhanced group and permission system is ready!")
 
 
