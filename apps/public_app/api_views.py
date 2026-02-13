@@ -27,14 +27,16 @@ from .api_docx import docx2tex_convert
 from .api_plot import plot_endpoint  # noqa: F401
 from .api_stats import (
     stats_calculate,
-    stats_correct,
     stats_describe,
+    stats_plot,  # noqa: F401
+    stats_recommend,
+)
+from .api_stats_advanced import (
+    stats_correct,
     stats_effect_size,
     stats_flowchart,  # noqa: F401
-    stats_plot,  # noqa: F401
     stats_posthoc,
     stats_power,
-    stats_recommend,
 )
 from .api_utils import (
     detect_bundle_type,

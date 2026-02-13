@@ -9,7 +9,7 @@ import numpy as np
 
 logger = logging.getLogger("scitex")
 
-__all__ = ["build_spec_from_query", "render_figure"]
+__all__ = ["build_spec_from_query", "build_spec_from_csv", "render_figure"]
 
 # Plot kinds that use x/y data
 XY_KINDS = {"line", "scatter", "step", "errorbar", "stem", "bar", "barh"}
@@ -189,6 +189,95 @@ def build_spec_from_query(params: dict) -> dict:
     spec["plots"].append(plot_entry)
 
     # Axes decorations
+    for key in ("title", "xlabel", "ylabel"):
+        val = params.get(key, "")
+        if val:
+            spec[key] = val
+
+    return spec
+
+
+def build_spec_from_csv(csv_path, params: dict) -> dict:
+    """Build figrecipe spec from uploaded CSV + form parameters.
+
+    Leverages figrecipe's native data_file + column name resolution.
+
+    Parameters
+    ----------
+    csv_path : Path
+        Path to the uploaded CSV temp file.
+    params : dict
+        Form fields: kind, x_col, y_col, data_col, color, title, etc.
+
+    Returns
+    -------
+    dict
+        Figrecipe-compatible spec.
+    """
+    kind = params.get("kind", "").lower()
+    if not kind:
+        raise ValueError("'kind' parameter is required")
+
+    kind_map = {"box": "boxplot", "violin": "violinplot"}
+    plot_kind = kind_map.get(kind, kind)
+
+    width = int(params.get("width", 80))
+    height = int(params.get("height", 60))
+
+    spec = {
+        "figure": {"width_mm": width, "height_mm": height, "style": "SCITEX"},
+        "plots": [],
+    }
+
+    plot_entry = {"type": plot_kind, "data_file": str(csv_path)}
+
+    if kind in XY_KINDS:
+        # x_col and y_col become column name strings for figrecipe
+        y_col = params.get("y_col", "")
+        if not y_col:
+            raise ValueError("'y_col' is required for XY plot kinds")
+        plot_entry["y"] = y_col
+
+        x_col = params.get("x_col", "")
+        if x_col:
+            plot_entry["x"] = x_col
+
+    elif kind in DATA_KINDS or plot_kind in DATA_KINDS:
+        data_col = params.get("data_col", "")
+        if not data_col:
+            raise ValueError("'data_col' is required for distribution plots")
+        plot_entry["x"] = data_col
+
+    elif kind in LABEL_KINDS:
+        data_col = params.get("data_col", "")
+        if not data_col:
+            raise ValueError("'data_col' is required for pie charts")
+        plot_entry["x"] = data_col
+
+        labels_col = params.get("labels_col", "")
+        if labels_col:
+            plot_entry["labels"] = labels_col
+
+    elif kind in MATRIX_KINDS:
+        data_col = params.get("data_col", "")
+        if not data_col:
+            raise ValueError("'data_col' is required for heatmaps")
+        plot_entry["data"] = data_col
+        plot_entry["type"] = "imshow"
+
+    else:
+        raise ValueError(
+            f"Unsupported kind: '{kind}'. "
+            "Use: line, scatter, bar, barh, hist, box, violin, pie, "
+            "heatmap, step, errorbar, stem"
+        )
+
+    color = params.get("color", "")
+    if color:
+        plot_entry["color"] = color
+
+    spec["plots"].append(plot_entry)
+
     for key in ("title", "xlabel", "ylabel"):
         val = params.get(key, "")
         if val:
