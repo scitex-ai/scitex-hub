@@ -125,6 +125,65 @@
    Development Lifecycle Badges
    ========================= */
 
+.badge-wip,
+.badge-alpha,
+.badge-beta,
+.badge-stable,
+.badge-bug {
+  position: relative;
+  cursor: default;
+}
+
+.badge-wip::after,
+.badge-alpha::after,
+.badge-beta::after,
+.badge-stable::after,
+.badge-bug::after {
+  position: absolute;
+  bottom: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  text-transform: none;
+  letter-spacing: normal;
+  background-color: var(--scitex-color-01);
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  transition-delay: 0.3s;
+  z-index: 10;
+}
+
+.badge-wip:hover::after,
+.badge-alpha:hover::after,
+.badge-beta:hover::after,
+.badge-stable:hover::after,
+.badge-bug:hover::after {
+  opacity: 1;
+}
+
+.badge-wip::after {
+  content: "Work in Progress — not yet functional";
+}
+.badge-alpha::after {
+  content: "Alpha — functional but provisional";
+}
+.badge-beta::after {
+  content: "Beta — mostly working, being refined";
+}
+.badge-stable::after {
+  content: "Stable — production ready";
+}
+.badge-bug::after {
+  content: "Known bug — fix planned";
+}
+
 .badge-wip {
   color: white;
   background-color: var(--status-error);

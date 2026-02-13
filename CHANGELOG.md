@@ -5,6 +5,22 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.2-alpha] - 2026-02-14
+
+### Added
+- **figrecipe Integration**: Direct Python integration of figrecipe editor into Vis app
+  - Django service wrapping FigureEditor (in-process cache, no Flask subprocess)
+  - 19 API endpoint handlers mirroring Flask routes (preview, hitmap, style, labels, etc.)
+  - Catch-all URL dispatcher with fetch override JS for URL routing
+  - iframe embedding in editor.html with file tree click interception for `.yaml` files
+- **WIP Badges**: Added WIP badges to Vis app data table and canvas toolbars
+- **Landing Page**: Alpha release banner in hero with version, flask icon, and contribution notice
+- **Landing Page**: Full Documentation badge linking to ReadTheDocs
+- **Vis Workflows**: Documented 7 researcher workflows in GITIGNORED/VIS_APP.md
+
+### Changed
+- **Landing Page**: Moved alpha warning from standalone banner to compact hero-inline notice
+
 ## [0.8.1-alpha] - 2026-02-13
 
 ### Added

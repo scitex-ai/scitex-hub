@@ -98,6 +98,8 @@ from .presets import (
     get_preset_detail,
 )
 
+# figrecipe Editor Views (imported via urls/figrecipe.py, not re-exported here)
+# from .figrecipe import figrecipe_editor_page, figrecipe_api
 # SciTeX Editor Views
 from .scitex_editor import (
     export_figure,
