@@ -21,11 +21,7 @@
   box-shadow: -2px 0 12px rgba(0, 0, 0, 0.3);
 }
 
-/* Collapsed state for terminal panel */
-.code-terminal-panel.collapsed {
-  width: 40px;
-  min-width: 40px;
-}
+/* Collapsed state: width handled by shared collapsible-panel.css */
 
 /* Hide ALL content except bottom bar when collapsed */
 .code-terminal-panel.collapsed .panel-view,

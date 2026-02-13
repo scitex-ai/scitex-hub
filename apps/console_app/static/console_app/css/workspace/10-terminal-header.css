@@ -62,10 +62,13 @@
   display: none; /* Chrome/Safari */
 }
 
-/* Collapsed state - show only toggle */
+/* Collapsed state - show only toggle + vertical title */
 .code-terminal-panel.collapsed .terminal-panel-top {
   padding: 0;
   justify-content: center;
+  height: 100%;
+  flex-direction: column;
+  border-bottom: none;
 }
 
 .code-terminal-panel.collapsed .terminal-panel-top .panel-tab,
@@ -76,11 +79,4 @@
   display: none;
 }
 
-.code-terminal-panel.collapsed .terminal-panel-top .terminal-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 50px;
-  padding: 4px;
-}
+/* .terminal-toggle styling handled by shared .panel-toggle-btn in collapsible-panel.css */

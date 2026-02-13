@@ -34,11 +34,7 @@
 
 /* Sidebar content: base layout from shared workspace-sidebar.css */
 
-/* Collapsed state (shared CSS handles header/content/toggle) */
-.hub-details.collapsed {
-  width: 40px;
-  min-width: 40px;
-}
+/* Collapsed width handled by shared collapsible-panel.css */
 
 /* Browse container inside Hub (reused project_app partials) */
 .hub-browse-container {

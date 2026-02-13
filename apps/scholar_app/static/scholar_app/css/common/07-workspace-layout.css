@@ -160,10 +160,7 @@
   border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
 }
 
-.scholar-properties.collapsed {
-  width: 40px;
-  min-width: 40px;
-}
+/* Collapsed width handled by shared collapsible-panel.css */
 
 /* Remove default container styles inside scholar-main */
 .scholar-main > .container {

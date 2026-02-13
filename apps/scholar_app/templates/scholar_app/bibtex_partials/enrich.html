@@ -1,5 +1,7 @@
 {% load static vite %}
-<link rel="stylesheet" href="{% static 'scholar_app/css/bibtex/bibtex-enrichment.css' %}?v={{ request.timestamp|default:'1' }}" />
+
+<link rel="stylesheet"
+      href="{% static 'scholar_app/css/bibtex/bibtex-enrichment.css' %}?v={{ build_id }}" />
 <!-- BibTeX Enrichment - Single Column for Main Panel -->
 <div class="bibtex-enrichment-container">
     <!-- Single Column Layout (status tiles moved to right panel) -->
@@ -8,9 +10,11 @@
         <div class="bibtex-main-column">
             <!-- Upload Card (header moved to pane header) -->
             <div class="bibtex-card bibtex-card--upload bibtex-card--no-header">
-                <form id="bibtexEnrichmentForm" method="post" action="{% url 'scholar_app:bibtex_upload' %}" enctype="multipart/form-data">
+                <form id="bibtexEnrichmentForm"
+                      method="post"
+                      action="{% url 'scholar_app:bibtex_upload' %}"
+                      enctype="multipart/form-data">
                     {% csrf_token %}
-
                     <!-- Drop Zone -->
                     <div id="dropZone" class="bibtex-dropzone">
                         <i class="fas fa-cloud-upload-alt bibtex-dropzone__icon"></i>
@@ -21,39 +25,50 @@
                         <div id="fileNameDisplay" class="bibtex-dropzone__filename hidden">
                             <i class="fas fa-check-circle"></i> <span id="fileName"></span>
                         </div>
-                        <input type="file" name="bibtex_file" id="bibtexFileInput" accept=".bib" required class="bibtex-dropzone__input">
+                        <input type="file"
+                               name="bibtex_file"
+                               id="bibtexFileInput"
+                               accept=".bib"
+                               required
+                               class="bibtex-dropzone__input" />
                     </div>
-
                     {% include "scholar_app/search_partials/asta_tooltip.html" %}
-
                     <!-- Action Buttons -->
                     <div class="bibtex-actions">
-                        <button type="button" id="saveToProjectBtn" onclick="handleSaveToProject()" disabled class="btn btn-warning">
+                        <button type="button"
+                                id="saveToProjectBtn"
+                                onclick="handleSaveToProject()"
+                                disabled
+                                class="btn btn-warning">
                             <i class="fas fa-bookmark"></i> Save to Project
                         </button>
                         <button id="downloadBtn" onclick="handleDownload()" disabled class="btn btn-success">
                             <i class="fas fa-file-download"></i> Download Enriched
                         </button>
-                        <button id="viewChangesBtn" onclick="showBibtexDiff()" disabled class="btn btn-secondary" title="See what fields were added">
+                        <button id="viewChangesBtn"
+                                onclick="showBibtexDiff()"
+                                disabled
+                                class="btn btn-secondary"
+                                title="See what fields were added">
                             <i class="fas fa-code-branch"></i> View Changes
                         </button>
                         <button id="openUrlsMainBtn" onclick="openAllPaperUrls()" disabled class="btn btn-info">
                             <i class="fas fa-external-link-alt"></i> <span id="urlButtonText">Open All URLs</span>
                         </button>
                     </div>
-
                     <!-- Hidden fields -->
                     {% if current_project %}
-                    <input type="hidden" name="project_id" id="projectSelector" value="{{ current_project.id }}">
+                        <input type="hidden"
+                               name="project_id"
+                               id="projectSelector"
+                               value="{{ current_project.id }}" />
                     {% endif %}
-                    <input type="hidden" name="num_workers" value="4">
+                    <input type="hidden" name="num_workers" value="4" />
                 </form>
             </div>
-
         </div>
     </div>
 </div>
-
 <!-- Project Selector Modal -->
 <div id="projectSelectorModal" class="bibtex-modal hidden">
     <div class="bibtex-modal__backdrop" onclick="closeProjectSelectorModal()"></div>
@@ -62,44 +77,44 @@
             <i class="fas fa-folder-open"></i> Select Project
         </h3>
         {% if user.is_authenticated and user_projects %}
-        <div class="bibtex-modal__body">
-            <label>Choose a project to save the enriched BibTeX file:</label>
-            <select id="projectSelectorDropdown" class="form-control">
-                {% for project in user_projects %}
-                <option value="{{ project.id }}" {% if current_project and current_project.id == project.id %}selected{% endif %}>
-                    {{ project.name }}
-                </option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="bibtex-modal__footer">
-            <button onclick="closeProjectSelectorModal()" class="btn btn-outline-secondary">Cancel</button>
-            <button onclick="confirmProjectSelection()" class="btn btn-warning">
-                <i class="fas fa-bookmark"></i> Save to Project
-            </button>
-        </div>
+            <div class="bibtex-modal__body">
+                <label>Choose a project to save the enriched BibTeX file:</label>
+                <select id="projectSelectorDropdown" class="form-control">
+                    {% for project in user_projects %}
+                        <option value="{{ project.id }}"
+                                {% if current_project and current_project.id == project.id %}selected{% endif %}>
+                            {{ project.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="bibtex-modal__footer">
+                <button onclick="closeProjectSelectorModal()" class="btn btn-outline-secondary">Cancel</button>
+                <button onclick="confirmProjectSelection()" class="btn btn-warning">
+                    <i class="fas fa-bookmark"></i> Save to Project
+                </button>
+            </div>
         {% else %}
-        <div class="bibtex-modal__body">
-            <p class="text-muted">
+            <div class="bibtex-modal__body">
+                <p class="text-muted">
+                    {% if not user.is_authenticated %}
+                        Please sign in to save files to projects.
+                    {% else %}
+                        You don't have any projects yet. Create a project first.
+                    {% endif %}
+                </p>
+            </div>
+            <div class="bibtex-modal__footer">
+                <button onclick="closeProjectSelectorModal()" class="btn btn-outline-secondary">Close</button>
                 {% if not user.is_authenticated %}
-                Please sign in to save files to projects.
+                    <a href="/auth/signin/" class="btn btn-primary">Sign In</a>
                 {% else %}
-                You don't have any projects yet. Create a project first.
+                    <a href="/new/" class="btn btn-primary">Create Project</a>
                 {% endif %}
-            </p>
-        </div>
-        <div class="bibtex-modal__footer">
-            <button onclick="closeProjectSelectorModal()" class="btn btn-outline-secondary">Close</button>
-            {% if not user.is_authenticated %}
-            <a href="/auth/signin/" class="btn btn-primary">Sign In</a>
-            {% else %}
-            <a href="/new/" class="btn btn-primary">Create Project</a>
-            {% endif %}
-        </div>
+            </div>
         {% endif %}
     </div>
 </div>
-
 <!-- Diff View Modal -->
 <div id="bibtexDiffModal" class="bibtex-modal bibtex-modal--large hidden">
     <div class="bibtex-modal__backdrop" onclick="closeBibtexDiff()"></div>
@@ -115,13 +130,11 @@
         <div id="bibtexDiffContent" class="bibtex-diff-content">Loading...</div>
     </div>
 </div>
-
 <!-- Scripts loaded via Vite -->
 {% vite_script 'shared/components/confirm-modal' %}
 {% vite_script 'scholar_app/shared/collapsible-panels' %}
 {% vite_script 'scholar_app/bibtex/bibtex-enrichment' %}
 {% vite_script 'scholar_app/bibtex/queue-management' %}
-
 <script>
 // Toggle panel function for tiles
 function toggleBibtexPanel(header) {

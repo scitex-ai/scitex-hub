@@ -14,8 +14,6 @@
           href="{% static 'shared/css/components/workspace-sidebar.css' %}" />
     <link rel="stylesheet" href="{% static 'shared/css/components/panel-resizer.css' %}" />
     <link rel="stylesheet"
-          href="{% static 'shared/css/components/collapsible-panel.css' %}" />
-    <link rel="stylesheet"
           href="{% static 'shared/css/components/workspace-files-tree/hidden-files-toggle.css' %}" />
     <!-- Browse CSS from project_app (reused for file browser) -->
     <link rel="stylesheet"
@@ -203,7 +201,7 @@
              data-collapse-key="hub-details-collapsed"
              data-toggle-btn="details-toggle"></div>
         <!-- Right Panel - Details -->
-        <aside class="hub-details" id="hub-details">
+        <aside class="hub-details collapsible-panel" id="hub-details">
             <div class="details-header">
                 <button class="details-toggle panel-toggle-btn right-panel-toggle"
                         id="details-toggle"
@@ -213,6 +211,7 @@
                 <h5>
                     <i class="fas fa-sliders-h"></i> Details
                 </h5>
+                <span class="panel-title">Details</span>
             </div>
             <div class="details-content" id="hub-details-content">
                 <p class="text-muted small">Select a file or project for details</p>
