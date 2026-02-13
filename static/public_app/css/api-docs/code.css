@@ -5,8 +5,8 @@
 
 /* Code Examples */
 .api-example {
-  background: var(--color-canvas-inset);
-  border: 1px solid var(--color-border-default);
+  background: var(--bg-muted);
+  border: 1px solid var(--border-muted);
   border-radius: 8px;
   overflow: hidden;
   margin: 1rem 0;
@@ -17,8 +17,8 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  background: var(--color-canvas-subtle);
-  border-bottom: 1px solid var(--color-border-default);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-muted);
 }
 
 /* Per-Example Environment Switcher */
@@ -26,7 +26,7 @@
   display: flex;
   gap: 2px;
   margin-left: auto;
-  background: var(--color-canvas-inset);
+  background: var(--bg-muted);
   border-radius: 4px;
   padding: 2px;
 }
@@ -43,19 +43,19 @@
   background: transparent;
   border: none;
   border-radius: 3px;
-  color: var(--color-fg-muted);
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .env-btn:hover {
-  color: var(--color-fg-default);
-  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .env-btn.active {
-  background: var(--scitex-color-01);
-  color: white;
+  background: var(--text-primary);
+  color: var(--text-inverse);
 }
 
 .env-btn.disabled {
@@ -65,7 +65,7 @@
 
 .env-btn.disabled:hover {
   background: transparent;
-  color: var(--color-fg-muted);
+  color: var(--text-muted);
 }
 
 .env-btn.eye-toggle {
@@ -79,8 +79,8 @@
 
 .api-example-header-auto {
   padding: 0.5rem 0.75rem;
-  background: var(--color-canvas-subtle);
-  border-bottom: 1px solid var(--color-border-default);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-muted);
   border-radius: 8px 8px 0 0;
 }
 
@@ -93,25 +93,25 @@
 .api-example-lang {
   font-size: 0.75rem;
   font-weight: 500;
-  color: var(--color-fg-muted);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .copy-btn {
   padding: 0.375rem 0.5rem;
-  background: var(--color-canvas-default);
-  border: 1px solid var(--color-border-default);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-muted);
   border-radius: 4px;
-  color: var(--color-fg-muted);
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .copy-btn:hover {
-  background: var(--scitex-color-01);
-  color: white;
-  border-color: var(--scitex-color-01);
+  background: var(--text-primary);
+  color: var(--text-inverse);
+  border-color: var(--text-primary);
 }
 
 .api-example-body {
@@ -127,10 +127,10 @@
   font-family: "JetBrains Mono", "Fira Code", monospace;
   font-size: 0.8125rem;
   line-height: 1.6;
-  color: var(--color-fg-default);
+  color: var(--text-primary);
 }
 
-/* Callouts */
+/* Callouts — use semantic status tokens for theme compatibility */
 .api-callout {
   display: flex;
   gap: 1rem;
@@ -157,30 +157,30 @@
 }
 
 .api-callout-info {
-  background: #e3f2fd;
-  border: 1px solid #90caf9;
+  background: var(--status-info-bg);
+  border: 1px solid var(--status-info-border);
 }
 
 .api-callout-info i {
-  color: #1976d2;
+  color: var(--status-info);
 }
 
 .api-callout-warning {
-  background: #fff3e0;
-  border: 1px solid #ffcc80;
+  background: var(--status-warning-bg);
+  border: 1px solid var(--status-warning-border);
 }
 
 .api-callout-warning i {
-  color: #f57c00;
+  color: var(--status-warning);
 }
 
 .api-callout-success {
-  background: #e8f5e9;
-  border: 1px solid #a5d6a7;
+  background: var(--status-success-bg);
+  border: 1px solid var(--status-success-border);
 }
 
 .api-callout-success i {
-  color: #388e3c;
+  color: var(--status-success);
 }
 
 /* Steps */
@@ -197,8 +197,8 @@
 .api-step-number {
   width: 36px;
   height: 36px;
-  background: var(--scitex-color-01);
-  color: white;
+  background: var(--text-primary);
+  color: var(--text-inverse);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -217,6 +217,6 @@
 }
 
 .api-step-content p {
-  color: var(--color-fg-muted);
+  color: var(--text-muted);
   margin-bottom: 1rem;
 }

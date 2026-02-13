@@ -68,6 +68,9 @@ function initApiDocs(): void {
   // Setup download dropdown
   setupDownloadDropdown();
 
+  // Setup internal API group toggle
+  setupInternalToggle();
+
   // Setup info card switchers
   setupCardSwitchers();
 }
@@ -411,6 +414,22 @@ function setupSectionObserver(): void {
       link.classList.toggle("active", dataTarget === hash);
     });
   }
+}
+
+/**
+ * Setup collapsible internal API group in sidebar
+ */
+function setupInternalToggle(): void {
+  document.querySelectorAll(".api-nav-group-toggle").forEach((btn) => {
+    btn.addEventListener("click", function (this: HTMLElement) {
+      const isExpanded = this.classList.toggle("expanded");
+      this.setAttribute("aria-expanded", String(isExpanded));
+      const items = this.nextElementSibling as HTMLElement | null;
+      if (items) {
+        items.classList.toggle("expanded", isExpanded);
+      }
+    });
+  });
 }
 
 /**
