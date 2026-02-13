@@ -273,22 +273,24 @@ export function getLoadingHtml(): string {
         }
       </style>
       <i class="fas fa-search" style="font-size: 1.5rem; margin-bottom: 1rem; opacity: 0.4; display: block;"></i>
-      <blockquote id="quoteText" class="quote-reveal" style="
-        font-style: italic;
-        font-size: 1.1rem;
+      <div id="quoteContainer" class="quote-reveal" style="
         max-width: 520px;
-        margin: 0 auto 0.75rem;
-        line-height: 1.6;
-        color: var(--text-secondary, #9ca3af);
-        min-height: 2em;
-      ">"${quote.text}"</blockquote>
-      <cite id="quoteAuthor" class="quote-reveal" style="
-        font-size: 0.85rem;
-        color: var(--text-muted, #6c8ba0);
-        display: block;
-        animation-delay: 0.3s;
-        opacity: 0;
-      ">— ${quote.author}</cite>
+        margin: 0 auto;
+      ">
+        <blockquote id="quoteText" style="
+          font-style: italic;
+          font-size: 1.1rem;
+          margin: 0 0 0.75rem;
+          line-height: 1.6;
+          color: var(--text-secondary, #9ca3af);
+          min-height: 2em;
+        ">"${quote.text}"</blockquote>
+        <cite id="quoteAuthor" style="
+          font-size: 0.85rem;
+          color: var(--text-muted, #6c8ba0);
+          display: block;
+        ">— ${quote.author}</cite>
+      </div>
     </div>
   `;
 }
@@ -297,21 +299,19 @@ export function getLoadingHtml(): string {
  * Animate to a new quote with blur transition
  */
 function animateToNewQuote(quote: { text: string; author: string }): void {
+  const containerEl = document.getElementById("quoteContainer");
   const quoteEl = document.getElementById("quoteText");
   const authorEl = document.getElementById("quoteAuthor");
-  if (!quoteEl || !authorEl) return;
+  if (!containerEl || !quoteEl || !authorEl) return;
 
-  // Exit animation
-  quoteEl.className = "quote-exit";
-  authorEl.className = "quote-exit";
+  // Exit animation on container
+  containerEl.className = "quote-exit";
 
   // After exit, update content and reveal
   setTimeout(() => {
     quoteEl.textContent = `"${quote.text}"`;
     authorEl.textContent = `— ${quote.author}`;
-    quoteEl.className = "quote-reveal";
-    authorEl.className = "quote-reveal";
-    authorEl.style.animationDelay = "0.3s";
+    containerEl.className = "quote-reveal";
   }, 500);
 }
 

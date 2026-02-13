@@ -26,22 +26,51 @@ class PoolCleanup:
     @classmethod
     def cleanup_expired_allocations(cls) -> int:
         """
-        Free visitor slots with expired sessions.
+        Free visitor slots with expired sessions and reset their workspaces.
+
+        Deletes all projects owned by expired visitors and resets to clean state.
 
         Returns:
             int: Number of slots freed
         """
+        from .workspace_manager import WorkspaceManager
+
         expired = VisitorAllocation.objects.filter(
             is_active=True, expires_at__lt=timezone.now()
         )
 
         count = 0
         for allocation in expired:
+            visitor_username = f"{cls.VISITOR_USER_PREFIX}{allocation.visitor_number:03d}"
+
+            try:
+                visitor_user = User.objects.get(username=visitor_username)
+
+                # Delete ALL projects owned by this visitor (not just default-project)
+                visitor_projects = Project.objects.filter(owner=visitor_user)
+                project_count = visitor_projects.count()
+                if project_count > 0:
+                    visitor_projects.delete()
+                    logger.info(
+                        f"[VisitorPool] Deleted {project_count} projects for {visitor_username}"
+                    )
+
+                # Reset workspace to clean state with fresh default-project
+                WorkspaceManager.reset_visitor_workspace(visitor_user)
+
+            except User.DoesNotExist:
+                logger.warning(f"[VisitorPool] User {visitor_username} not found")
+            except Exception as e:
+                logger.error(
+                    f"[VisitorPool] Error cleaning up {visitor_username}: {e}",
+                    exc_info=True,
+                )
+
             allocation.is_active = False
             allocation.save()
             count += 1
             logger.info(
-                f"[VisitorPool] Freed expired slot: visitor-{allocation.visitor_number:03d}"
+                f"[VisitorPool] Freed expired slot: {visitor_username}"
             )
 
         return count

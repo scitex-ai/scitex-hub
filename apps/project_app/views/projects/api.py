@@ -18,6 +18,7 @@ import logging
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
 
 from ...models import Project
@@ -173,6 +174,7 @@ def api_project_detail(request, pk):
 
 
 @login_required
+@ensure_csrf_cookie
 @require_http_methods(["POST"])
 def api_switch_active_project(request):
     """
