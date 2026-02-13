@@ -64,13 +64,9 @@
                                class="tests-nav-item {% if current_category == category.key %}active{% endif %}">
                                 <i class="{{ category.icon }}"></i>
                                 <span>{{ category.name }}</span>
-                                {% with passed_count=category.results|length %}
-                                    {% with failed_count=0 %}
-                                        <span class="nav-stats {% if category.all_passed %}all-pass{% else %}has-fail{% endif %}">
-                                            {{ category.passed_count }}/{{ category.results|length }}
-                                        </span>
-                                    {% endwith %}
-                                {% endwith %}
+                                <span class="nav-stats {% if category.all_passed %}all-pass{% else %}has-fail{% endif %}">
+                                    {{ category.passed_count }}/{{ category.results|length }}
+                                </span>
                             </a>
                         </div>
                     {% endfor %}
@@ -91,43 +87,55 @@
                 {% endif %}
                 {% for category in display_categories %}
                     <section class="test-category" id="{{ category.key }}">
-                        <h2 class="tests-section-title">
-                            <i class="{{ category.icon }}"></i> {{ category.name }}
-                        </h2>
+                        <div class="test-category-header">
+                            <h2 class="tests-section-title">
+                                <i class="{{ category.icon }}"></i> {{ category.name }}
+                            </h2>
+                            <span class="test-category-count {% if category.all_passed %}all-pass{% else %}has-fail{% endif %}">
+                                {{ category.passed_count }}/{{ category.results|length }}
+                            </span>
+                        </div>
                         {% for result in category.results %}
                             <div class="test-card {% if result.passed %}passed{% else %}failed{% endif %}"
                                  data-endpoint="{{ result.endpoint }}"
                                  data-method="{{ result.method }}"
                                  data-status="{{ result.actual_status }}">
-                                <div class="test-info">
-                                    <div class="test-name">{{ result.name }}</div>
-                                    <div class="test-endpoint">
-                                        <span class="test-method {{ result.method }}">{{ result.method }}</span>
-                                        <code>{{ result.endpoint }}</code>
-                                    </div>
-                                    {% if result.error %}
-                                        <div class="test-error">
-                                            <i class="fas fa-exclamation-circle"></i> {{ result.error }}
+                                <div class="test-row">
+                                    <div class="test-info">
+                                        <div class="test-name">{{ result.name }}</div>
+                                        <div class="test-endpoint">
+                                            <span class="test-method {{ result.method }}">{{ result.method }}</span>
+                                            <code>{{ result.endpoint }}</code>
                                         </div>
-                                    {% endif %}
-                                </div>
-                                <div class="test-status">
-                                    <span class="test-http-code">
-                                        {% if result.actual_status %}
-                                            HTTP {{ result.actual_status }}
-                                        {% else %}
-                                            --
+                                        {% if result.error %}
+                                            <div class="test-error">
+                                                <i class="fas fa-exclamation-circle"></i> {{ result.error }}
+                                            </div>
                                         {% endif %}
-                                    </span>
-                                    <span class="test-badge {% if result.passed %}passed{% else %}failed{% endif %}">
-                                        {% if result.passed %}
-                                            <i class="fas fa-check"></i> PASS
-                                        {% else %}
-                                            <i class="fas fa-times"></i> FAIL
-                                        {% endif %}
-                                    </span>
-                                    <span class="test-duration">{{ result.duration_ms }}ms</span>
+                                    </div>
+                                    <div class="test-status">
+                                        <span class="test-http-code">
+                                            {% if result.actual_status %}
+                                                HTTP {{ result.actual_status }}
+                                            {% else %}
+                                                --
+                                            {% endif %}
+                                        </span>
+                                        <span class="test-badge {% if result.passed %}passed{% else %}failed{% endif %}">
+                                            {% if result.passed %}
+                                                <i class="fas fa-check"></i> PASS
+                                            {% else %}
+                                                <i class="fas fa-times"></i> FAIL
+                                            {% endif %}
+                                        </span>
+                                        <span class="test-duration">{{ result.duration_ms }}ms</span>
+                                    </div>
                                 </div>
+                                {% if result.preview_url and result.passed %}
+                                    <div class="test-preview">
+                                        <img src="{{ result.preview_url }}" alt="{{ result.name }}" loading="lazy" />
+                                    </div>
+                                {% endif %}
                             </div>
                         {% endfor %}
                     </section>
@@ -142,8 +150,8 @@ function copyAllResults() {
     const results = [];
     results.push('# API Test Results');
     results.push('');
-    results.push(`Passed: {{ passed }}/${​{ total }}`);
-    results.push(`Failed: {{ failed }}/${​{ total }}`);
+    results.push(`Passed: {{ passed }}/{{ total }}`);
+    results.push(`Failed: {{ failed }}/{{ total }}`);
     results.push('');
 
     document.querySelectorAll('.test-category').forEach(category => {
