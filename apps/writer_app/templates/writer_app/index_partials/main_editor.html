@@ -5,16 +5,17 @@
         <div class="editor-content-wrapper">
             <!-- Split View -->
             <div id="editor-view-split" class="editor-view split-view active">
-                <div class="latex-panel">
+                <div class="latex-panel collapsible-panel">
                     <div class="panel-header">
                         <div class="header-left">
-                            <!-- Editor Toggle Button (hidden via CSS) -->
+                            <!-- Editor Toggle Button -->
                             <button id="editor-toggle-btn"
-                                    class="panel-toggle-btn"
+                                    class="panel-toggle-btn left-panel-toggle"
                                     onclick="toggleWriterPanel('editor')"
-                                    title="Maximize editor (Ctrl+Shift+E)">
-                                <i class="fas fa-expand-alt"></i>
+                                    title="Collapse editor (Ctrl+Shift+E)">
+                                <i class="fas fa-chevron-left"></i>
                             </button>
+                            <span class="panel-title">Editor</span>
                             <!-- Current File Display - hidden since file tree shows selection -->
                             <div class="current-file-display hidden" id="current-file-display">
                                 <i class="fas fa-file-alt"></i>
@@ -110,19 +111,23 @@
                 </div>
                 <!-- Resizable Panel Divider -->
                 <div class="panel-resizer" id="panel-resizer" title="Drag to resize panels"></div>
-                <div class="preview-panel">
+                <div class="preview-panel collapsible-panel">
                     <!-- Shared Right Panel Header (changes content based on active panel) -->
                     <div class="panel-header" id="right-panel-header">
                         <!-- Preview Toggle Button -->
                         <div class="header-left">
                             <button id="preview-toggle-btn"
-                                    class="panel-toggle-btn"
+                                    class="panel-toggle-btn right-panel-toggle"
                                     onclick="toggleWriterPanel('preview')"
-                                    title="Maximize preview (Ctrl+Shift+P)">
-                                <i class="fas fa-expand-alt"></i>
+                                    title="Collapse preview (Ctrl+Shift+P)">
+                                <i class="fas fa-chevron-right"></i>
                             </button>
+                            <span class="panel-title">Preview</span>
+                            <!-- Dynamic left content injected by switchRightPanel() -->
                         </div>
-                        <!-- Rest of header content will be dynamically updated by switchRightPanel() -->
+                        <div class="header-right">
+                            <!-- Dynamic right content injected by switchRightPanel() -->
+                        </div>
                     </div>
                     <!-- PDF View (default visible) -->
                     <div id="pdf-view" class="right-panel-view">

@@ -1,9 +1,6 @@
 /* Main Editor Inline Styles */
 
-/* Editor Toggle Button (hidden - panel resizer handles this) */
-#editor-toggle-btn {
-  display: none;
-}
+/* Editor Toggle Button - visible for collapse/expand */
 
 /* Current File Display */
 .current-file-display i {

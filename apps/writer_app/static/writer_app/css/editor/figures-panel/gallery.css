@@ -325,7 +325,7 @@
 }
 
 /* Verifier Link */
-.figure-verifier-link {
+.figure-clew-link {
   font-size: 0.7rem;
   color: var(--_scitex-03);
   text-decoration: none;
@@ -337,12 +337,12 @@
   font-weight: 500;
 }
 
-.figure-verifier-link:hover {
+.figure-clew-link:hover {
   color: var(--_scitex-02);
   text-decoration: underline;
 }
 
-.figure-verifier-link i {
+.figure-clew-link i {
   font-size: 0.65rem;
 }
 

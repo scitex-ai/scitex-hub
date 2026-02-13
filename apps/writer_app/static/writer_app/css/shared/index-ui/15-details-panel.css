@@ -17,37 +17,9 @@
   flex-shrink: 0;
 }
 
+/* Collapsed state: width + panel-title handled by shared collapsible-panel.css */
 .writer-details.collapsed {
-  width: 40px;
-  min-width: 40px;
   max-width: 40px;
-}
-
-/* Hide all content except toggle button when collapsed */
-.writer-details.collapsed .details-header h5,
-.writer-details.collapsed .details-content {
-  display: none;
-}
-
-/* Collapsed state - only show toggle button */
-.writer-details.collapsed .details-header {
-  padding: 0;
-  justify-content: center;
-  align-items: center;
-  height: 50px;
-  min-height: 50px;
-}
-
-.writer-details.collapsed .details-header h5 {
-  display: none;
-}
-
-.writer-details.collapsed .details-toggle {
-  width: 100%;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 /* Icon direction is managed by WorkspacePanelResizer - no CSS transform needed */

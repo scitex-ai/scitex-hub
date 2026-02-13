@@ -55,7 +55,7 @@
   font-size: 14px;
 }
 
-.panel-header span {
+.panel-header span:not(.panel-title) {
   display: flex;
   align-items: center;
   gap: 0.5rem;

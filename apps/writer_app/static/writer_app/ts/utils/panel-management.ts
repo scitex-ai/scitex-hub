@@ -271,18 +271,52 @@ export function switchRightPanel(
     else if (view === "collaboration") templateHeader = collaborationHeader;
 
     if (templateHeader) {
-      sharedHeader.innerHTML = templateHeader.innerHTML;
+      // Selectively replace dynamic content, preserving toggle button and panel-title
+      const headerLeft = sharedHeader.querySelector(".header-left");
+      let headerRight = sharedHeader.querySelector(".header-right");
+
+      if (headerLeft) {
+        // Remove everything from header-left EXCEPT toggle btn and panel-title
+        Array.from(headerLeft.children).forEach((child) => {
+          const el = child as HTMLElement;
+          if (
+            el.id !== "preview-toggle-btn" &&
+            !el.classList.contains("panel-title")
+          ) {
+            child.remove();
+          }
+        });
+
+        // Append template's header-left contents (cloned)
+        const templateLeft = templateHeader.querySelector(".header-left");
+        if (templateLeft) {
+          Array.from(templateLeft.children).forEach((child) => {
+            headerLeft.appendChild(child.cloneNode(true));
+          });
+        }
+      }
+
+      // Replace header-right content
+      if (headerRight) {
+        const templateRight = templateHeader.querySelector(".header-right");
+        headerRight.innerHTML = templateRight ? templateRight.innerHTML : "";
+      } else {
+        // Create header-right if it doesn't exist yet
+        const templateRight = templateHeader.querySelector(".header-right");
+        if (templateRight) {
+          sharedHeader.appendChild(templateRight.cloneNode(true));
+        }
+      }
+
       console.log(`[Writer] Updated shared header for ${view} view`);
 
-      // Update active state on buttons in the SHARED header (after innerHTML copy)
+      // Update active state on buttons in the SHARED header
       const sharedHeaderBtns =
         sharedHeader.querySelectorAll(".view-switch-btn");
       sharedHeaderBtns.forEach((btn) => {
         const btnElement = btn as HTMLElement;
-        // Check which panel this button switches to
         const onclickAttr = btnElement.getAttribute("onclick");
         if (onclickAttr) {
-          // Add active class if this button matches the current view
           if (onclickAttr.includes(`'${view}'`)) {
             btnElement.classList.add("active");
           } else {
