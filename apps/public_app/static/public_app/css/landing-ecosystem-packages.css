@@ -58,15 +58,11 @@
   font-weight: 600;
 }
 
-.packages-table .package-name .badge {
-  margin-left: 0.5rem;
-  font-size: 0.65rem;
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
-  vertical-align: middle;
-  background: linear-gradient(135deg, var(--_scitex-04), var(--_scitex-05));
-  color: white;
-  font-weight: 500;
+.packages-table .package-name .package-alias {
+  margin-left: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--text-muted);
 }
 
 /* Code styling - subtle */
@@ -218,22 +214,6 @@
   display: table-row;
 }
 
-/* Ecosystem CTA */
-.ecosystem-cta {
-  text-align: center;
-  margin-top: 1.5rem;
-}
-
-.ecosystem-cta .btn {
-  font-size: 0.9rem;
-  padding: 0.625rem 1.25rem;
-  border-radius: 6px;
-}
-
-.ecosystem-cta .btn i {
-  margin-right: 0.5rem;
-}
-
 /* ============================================================================
  * RESPONSIVE DESIGN
  * ========================================================================== */
@@ -245,8 +225,9 @@
     font-size: 0.85rem;
   }
 
-  .packages-table th:nth-child(2),
-  .packages-table td:nth-child(2) {
+  /* Hide Description at medium screens */
+  .packages-table th:nth-child(4),
+  .packages-table td:nth-child(4) {
     display: none;
   }
 
@@ -258,6 +239,9 @@
 }
 
 @media (max-width: 480px) {
+  /* Also hide Python Module and Version at small screens */
+  .packages-table th:nth-child(2),
+  .packages-table td:nth-child(2),
   .packages-table th:nth-child(3),
   .packages-table td:nth-child(3) {
     display: none;
