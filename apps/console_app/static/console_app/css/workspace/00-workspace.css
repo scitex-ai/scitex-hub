@@ -1,0 +1,11 @@
+/**
+ * Code Workspace Styles
+ * Professional black-based theme matching vis.css design system
+ * Corresponds to: templates/console_app/workspace.html
+ * Layout: Sidebar (left) + Monaco Editor (center) + Terminal (right)
+ *
+ * DESIGN PRINCIPLE:
+ * - Light mode: Clean, professional light surfaces with readable text
+ * - Dark mode: Deep blacks (#0f1419) with subtle elevated surfaces
+ * - Both themes use semantic color tokens for consistency
+ */

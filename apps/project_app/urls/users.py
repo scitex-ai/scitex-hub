@@ -23,7 +23,7 @@ from ..views.api_views import (
     api_repository_restore,
 )
 
-# No app_name here - namespace is provided by parent (user_projects)
+# No app_name here - namespace is provided by parent (project_app)
 
 # Note: username is passed via kwargs from parent URL pattern
 urlpatterns = [

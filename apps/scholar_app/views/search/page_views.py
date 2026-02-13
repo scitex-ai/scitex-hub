@@ -9,11 +9,14 @@ Extracted from monolithic views.py for better modularity.
 """
 
 import logging
-from django.shortcuts import render, redirect
+
 from django.contrib.auth.decorators import login_required
-from ...models import UserLibrary, Collection
-from .search_core import simple_search_with_tab
+from django.shortcuts import redirect, render
+
 from apps.project_app.services import get_current_project
+
+from ...models import Collection, UserLibrary
+from .search_core import simple_search_with_tab
 
 logger = logging.getLogger(__name__)
 
@@ -21,14 +24,16 @@ logger = logging.getLogger(__name__)
 def _check_visitor_pool_redirect(request):
     """Check if unauthenticated browser request should redirect to visitor-pool-full."""
     if not request.user.is_authenticated:
-        user_agent = request.META.get('HTTP_USER_AGENT', '')
+        user_agent = request.META.get("HTTP_USER_AGENT", "")
         is_browser = any(
             browser in user_agent
-            for browser in ['Mozilla', 'Chrome', 'Safari', 'Firefox', 'Edge', 'Opera']
+            for browser in ["Mozilla", "Chrome", "Safari", "Firefox", "Edge", "Opera"]
         )
         if is_browser:
-            logger.info("[Scholar] Browser request not authenticated - redirecting to visitor-pool-full")
-            return redirect('public_app:visitor_pool_full')
+            logger.info(
+                "[Scholar] Browser request not authenticated - redirecting to visitor-pool-full"
+            )
+            return redirect("public_app:visitor_pool_full")
     return None
 
 
@@ -58,19 +63,19 @@ def index(request):
 def scholar_bibtex(request):
     """Dedicated BibTeX enrichment page - redirects to unified page."""
     # Redirect to unified page with bibtex hash
-    return redirect('/scholar/#bibtex')
+    return redirect("/scholar/#bibtex")
 
 
 def scholar_search(request):
     """Dedicated literature search page - redirects to unified page."""
     # Redirect to unified page with search hash
-    return redirect('/scholar/#search')
+    return redirect("/scholar/#search")
 
 
 def scholar_graph(request):
     """Citation graph visualization page."""
     # Redirect to unified page with graph hash
-    return redirect('/scholar/#graph')
+    return redirect("/scholar/#graph")
 
 
 def scholar_unified(request):
@@ -82,6 +87,7 @@ def scholar_unified(request):
 
     from apps.project_app.models import Project
     from apps.project_app.services import get_current_project
+
     from ...models import BibTeXEnrichmentJob
 
     # Get user projects and current project
@@ -103,11 +109,9 @@ def scholar_unified(request):
     else:
         # For visitor users, get jobs by session key
         if request.session.session_key:
-            recent_jobs = (
-                BibTeXEnrichmentJob.objects.filter(
-                    session_key=request.session.session_key
-                ).order_by("-created_at")[:10]
-            )
+            recent_jobs = BibTeXEnrichmentJob.objects.filter(
+                session_key=request.session.session_key
+            ).order_by("-created_at")[:10]
 
     # Default filter ranges (used when no search results)
     filter_ranges = {
@@ -119,6 +123,13 @@ def scholar_unified(request):
         "impact_factor_max": 50.0,
     }
 
+    # Library stats for tab badge
+    library_count = 0
+    if request.user.is_authenticated:
+        from ...models import UserLibrary
+
+        library_count = UserLibrary.objects.filter(user=request.user).count()
+
     context = {
         "query": "",
         "results": [],
@@ -127,6 +138,7 @@ def scholar_unified(request):
         "current_project": current_project,
         "recent_jobs": recent_jobs,
         "filter_ranges": filter_ranges,
+        "library_count": library_count,
     }
 
     return render(request, "scholar_app/scholar_unified.html", context)
@@ -134,8 +146,8 @@ def scholar_unified(request):
 
 def bibtex_enrichment_view(request, template_name="scholar_app/index.html"):
     """BibTeX Enrichment tab view."""
-    from apps.scholar_app.models import BibTeXEnrichmentJob
     from apps.project_app.models import Project
+    from apps.scholar_app.models import BibTeXEnrichmentJob
 
     # Get user projects and current project using centralized getter
     user_projects = []

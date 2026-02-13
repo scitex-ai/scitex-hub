@@ -105,7 +105,7 @@
 .search-input-wrapper i.fa-search {
   position: absolute;
   left: 0.75rem;
-  color: var(--text-muted);
+  color: var(--workspace-icon-muted);
   font-size: 0.85rem;
   pointer-events: none;
 }
@@ -123,14 +123,14 @@
   right: 0.5rem;
   background: none;
   border: none;
-  color: var(--text-muted);
+  color: var(--workspace-icon-secondary);
   padding: 0.25rem;
   cursor: pointer;
   transition: color 0.2s;
 }
 
 .search-input-wrapper .btn-clear:hover {
-  color: var(--workspace-text-primary);
+  color: var(--workspace-icon-hover);
 }
 
 /* Sort Controls */
@@ -201,14 +201,22 @@
 }
 
 .tables-list::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, var(--_scitex-02) 0%, var(--_scitex-03) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--_scitex-02) 0%,
+    var(--_scitex-03) 100%
+  );
   border-radius: 5px;
   border: 2px solid var(--workspace-bg-secondary);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .tables-list::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, var(--_scitex-03) 0%, var(--_scitex-02) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--_scitex-03) 0%,
+    var(--_scitex-02) 100%
+  );
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
 }
 
@@ -221,18 +229,6 @@
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-}
-
-/* Button icon colors - workspace theme */
-.btn i,
-.btn-clear i {
-  color: var(--workspace-icon-primary);
-  transition: color 0.15s ease;
-}
-
-.btn:hover i,
-.btn-clear:hover i {
-  color: var(--workspace-icon-hover);
 }
 
 /* Drop Zone Indicator on Editor */

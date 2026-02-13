@@ -7,6 +7,8 @@
 import os
 from pathlib import Path
 
+import scitex as stx
+
 # Get BASE_DIR from parent
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -35,6 +37,27 @@ SCITEX_SCHOLAR_ENGINES = os.getenv(
 
 # Default search mode: "parallel" or "single"
 SCITEX_SCHOLAR_DEFAULT_MODE = os.getenv("SCITEX_SCHOLAR_DEFAULT_MODE", "parallel")
+
+# ---------------------------------------
+# SciTeX Scholar Library Settings
+# ---------------------------------------
+# User-level library storage mode: "user_level" (new) or "django_media" (legacy)
+SCITEX_SCHOLAR_LIBRARY_MODE = os.getenv("SCITEX_SCHOLAR_LIBRARY_MODE", "django_media")
+
+# User-level library root directory (per-user isolation)
+# Default: ~/.scitex/scholar/library/
+SCITEX_SCHOLAR_USER_LIBRARY_ROOT = Path(
+    os.getenv(
+        "SCITEX_SCHOLAR_USER_LIBRARY_ROOT",
+        str(Path.home() / ".scitex" / "scholar" / "library"),
+    )
+)
+
+# User data root for multi-user Django deployments
+# If set, user libraries will be at: {USER_DATA_ROOT}/users/{username}/.scitex/scholar/library/
+USER_DATA_ROOT = (
+    Path(os.getenv("USER_DATA_ROOT", "")) if os.getenv("USER_DATA_ROOT") else None
+)
 
 # Public API campaign key (shared key for experiments/demos)
 # Set via environment: SCITEX_CLOUD_CAMPAIGN_API_KEY=your-shared-key
@@ -85,5 +108,19 @@ REST_FRAMEWORK = {
         "rest_framework.renderers.BrowsableAPIRenderer",
     ],
 }
+
+
+# ---------------------------------------
+# Main Guard
+# ---------------------------------------
+@stx.session
+def main(CONFIG=stx.session.INJECTED):
+    """Settings module - not meant to be executed directly."""
+    print("This is a Django settings module. Import it, don't execute it.")
+    return 0
+
+
+if __name__ == "__main__":
+    main()
 
 # EOF

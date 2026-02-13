@@ -206,7 +206,7 @@ Filtering:
 
 ### Code Mode
 ```typescript
-mode: 'code'
+mode: 'console'
 
 Filtering:
 - Directories: All (no restriction)

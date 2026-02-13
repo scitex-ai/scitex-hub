@@ -141,7 +141,7 @@ if __name__ == "__main__":
 #             )
 #         else:
 #             return redirect(
-#                 "user_projects:workflow_run_detail",
+#                 "project_app:workflow_run_detail",
 #                 username=username,
 #                 slug=slug,
 #                 run_id=run.id,
@@ -180,7 +180,7 @@ if __name__ == "__main__":
 #             )
 #         else:
 #             return redirect(
-#                 "user_projects:workflow_detail",
+#                 "project_app:workflow_detail",
 #                 username=username,
 #                 slug=slug,
 #                 workflow_id=workflow.id,

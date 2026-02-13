@@ -3,130 +3,131 @@
    ======================================================================== */
 
 .data-tabs-bar {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    padding: 0 4px;
-    height: 32px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    flex-shrink: 0;
-    background: transparent;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 4px;
+  height: 32px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-shrink: 0;
+  background: transparent;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .data-tabs-bar::-webkit-scrollbar {
-    display: none;
+  display: none;
 }
 
 .data-tab {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text-secondary);
-    background: transparent;
-    border: 1px solid transparent;
-    border-radius: 4px 4px 0 0;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all 0.15s ease;
-    max-width: 160px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px 4px 0 0;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  max-width: 160px;
 }
 
 .data-tab:hover {
-    color: var(--text-primary);
-    background: var(--vis-bg-hover);
+  color: var(--text-primary);
+  background: var(--vis-bg-hover);
 }
 
 .data-tab.active {
-    color: var(--accent-primary);
-    background: var(--vis-bg-primary);
-    border-color: var(--vis-border) var(--vis-border) var(--vis-bg-primary);
+  color: var(--accent-primary);
+  background: var(--vis-bg-primary);
+  border-color: var(--vis-border) var(--vis-border) var(--vis-bg-primary);
 }
 
 [data-theme="dark"] .data-tab.active {
-    background: var(--workspace-bg-primary);
-    border-color: var(--workspace-border-default) var(--workspace-border-default) var(--workspace-bg-primary);
+  background: var(--workspace-bg-primary);
+  border-color: var(--workspace-border-default) var(--workspace-border-default)
+    var(--workspace-bg-primary);
 }
 
 .data-tab i {
-    font-size: 10px;
-    color: var(--text-muted);
+  font-size: 10px;
+  color: var(--text-muted);
 }
 
 .data-tab.active i {
-    color: var(--accent-primary);
+  color: var(--accent-primary);
 }
 
 .data-tab-label {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100px;
 }
 
 .data-tab-close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 16px;
-    height: 16px;
-    padding: 0;
-    font-size: 14px;
-    font-weight: bold;
-    color: var(--text-muted);
-    background: transparent;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-    opacity: 0.5;
-    transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: all 0.15s ease;
 }
 
 .data-tab:hover .data-tab-close {
-    opacity: 1;
+  opacity: 1;
 }
 
 .data-tab-close:hover {
-    color: var(--color-error, #dc3545);
-    background: rgba(220, 53, 69, 0.1);
+  color: var(--color-error, #dc3545);
+  background: rgba(220, 53, 69, 0.1);
 }
 
 .data-tab-new {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    padding: 0;
-    color: var(--text-muted);
-    background: transparent;
-    border: 1px dashed var(--vis-border);
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px dashed var(--vis-border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
 }
 
 .data-tab-new:hover {
-    color: var(--accent-primary);
-    border-color: var(--accent-primary);
-    background: var(--vis-accent-bg);
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+  background: var(--vis-accent-bg);
 }
 
 .data-tab-new i {
-    font-size: 10px;
+  font-size: 10px;
 }
 
 /* Dragging state */
 .data-tab.dragging {
-    opacity: 0.5;
+  opacity: 0.5;
 }
 
 .data-tab.drag-over {
-    border-color: var(--accent-primary);
-    background: var(--vis-accent-bg);
+  border-color: var(--accent-primary);
+  background: var(--vis-accent-bg);
 }

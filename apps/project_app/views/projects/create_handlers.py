@@ -36,6 +36,7 @@ def handle_gitea_creation(request, project):
             / "data"
             / "users"
             / project.owner.username
+            / "proj"
             / project.slug
         )
 
@@ -124,16 +125,12 @@ def handle_template_creation(request, project, manager, template_type):
 def handle_git_clone(request, project, manager, git_url):
     """Handle Git repository cloning."""
     if not git_url:
-        messages.error(
-            request, "Repository URL is required for cloning from Git"
-        )
+        messages.error(request, "Repository URL is required for cloning from Git")
         project.delete()
         return False
 
     # Create empty directory first
-    success, path = manager.create_project_directory(
-        project, use_template=False
-    )
+    success, path = manager.create_project_directory(project, use_template=False)
     if not success:
         messages.error(request, "Failed to create project directory")
         project.delete()
@@ -147,21 +144,15 @@ def handle_git_clone(request, project, manager, git_url):
             f'Project "{project.name}" created and cloned from Git repository',
         )
     else:
-        messages.error(
-            request, f"Project created but cloning failed: {error_msg}"
-        )
+        messages.error(request, f"Project created but cloning failed: {error_msg}")
     return True
 
 
 def handle_empty_creation(request, project, manager):
     """Handle empty project creation."""
-    success, path = manager.create_project_directory(
-        project, use_template=False
-    )
+    success, path = manager.create_project_directory(project, use_template=False)
     if success:
-        messages.success(
-            request, f'Project "{project.name}" created successfully'
-        )
+        messages.success(request, f'Project "{project.name}" created successfully')
         return True
     else:
         messages.error(request, f"Failed to create project directory")

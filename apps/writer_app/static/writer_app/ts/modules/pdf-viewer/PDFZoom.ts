@@ -23,7 +23,12 @@ export class PDFZoom {
     const savedZoom = statePersistence.getSavedPdfZoom();
     if (savedZoom) {
       this.currentScale = savedZoom / 100;
-      console.log("[PDFZoom] Restored saved zoom:", savedZoom + "%", "scale:", this.currentScale);
+      console.log(
+        "[PDFZoom] Restored saved zoom:",
+        savedZoom + "%",
+        "scale:",
+        this.currentScale,
+      );
     }
   }
 
@@ -31,14 +36,20 @@ export class PDFZoom {
    * Calculate scale for fit-to-width
    */
   calculateFitToWidth(viewerWidth: number): number {
-    const availableWidth = viewerWidth;
+    const scrollbarWidth = this.measureScrollbarWidth();
+    const availableWidth = viewerWidth - scrollbarWidth;
     const pdfPageWidth = 612; // Standard PDF page width in points
     const scale = availableWidth / pdfPageWidth;
     console.log(
       "[PDFZoom] Fit to width:",
-      "viewer width:", viewerWidth,
-      "available width:", availableWidth,
-      "scale:", scale.toFixed(2)
+      "viewer:",
+      viewerWidth,
+      "scrollbar:",
+      scrollbarWidth,
+      "available:",
+      availableWidth,
+      "scale:",
+      scale.toFixed(2),
     );
     return scale;
   }
@@ -47,8 +58,8 @@ export class PDFZoom {
    * Set zoom level
    */
   setScale(scale: number): number {
-    if (scale < 0.5 || scale > 3.0) {
-      console.warn("[PDFZoom] Scale must be between 0.5 and 3.0");
+    if (isNaN(scale) || scale < 0.5 || scale > 3.0) {
+      console.warn("[PDFZoom] Scale must be between 0.5 and 3.0, got:", scale);
       return this.currentScale;
     }
 
@@ -81,8 +92,23 @@ export class PDFZoom {
    * Fit to width
    */
   fitWidth(containerWidth: number): number {
-    const newScale = (containerWidth - 40) / 612; // Standard PDF width
+    const scrollbarWidth = this.measureScrollbarWidth();
+    const newScale = (containerWidth - scrollbarWidth) / 612;
     return this.setScale(newScale);
+  }
+
+  /**
+   * Measure scrollbar width matching .pdfjs-viewer's custom scrollbar style
+   */
+  private measureScrollbarWidth(): number {
+    const el = document.createElement("div");
+    el.className = "pdfjs-viewer";
+    el.style.cssText =
+      "width:100px;height:100px;overflow:scroll;position:absolute;top:-9999px;visibility:hidden";
+    document.body.appendChild(el);
+    const width = el.offsetWidth - el.clientWidth;
+    document.body.removeChild(el);
+    return width;
   }
 
   /**
@@ -97,19 +123,24 @@ export class PDFZoom {
    * Update zoom dropdown in toolbar
    */
   updateZoomDropdown(zoomPercent: number): void {
-    const zoomSelect = document.getElementById("pdf-zoom-select") as HTMLSelectElement;
+    const zoomSelect = document.getElementById(
+      "pdf-zoom-select",
+    ) as HTMLSelectElement;
     if (!zoomSelect) return;
 
     const predefinedZooms = [50, 75, 100, 125, 150, 200];
 
     // If exact match exists, select it
     const exactOption = Array.from(zoomSelect.options).find(
-      opt => parseInt(opt.value) === zoomPercent
+      (opt) => parseInt(opt.value) === zoomPercent,
     );
 
     if (exactOption) {
       zoomSelect.value = zoomPercent.toString();
-      console.log("[PDFZoom] Toolbar updated to exact zoom:", zoomPercent + "%");
+      console.log(
+        "[PDFZoom] Toolbar updated to exact zoom:",
+        zoomPercent + "%",
+      );
     } else {
       // Add custom zoom value
       const customOption = document.createElement("option");
@@ -142,12 +173,18 @@ export class PDFZoom {
         const numericValue = parseInt(optValue);
         if (isNaN(numericValue)) continue;
 
-        if (!predefinedZooms.includes(numericValue) && numericValue !== zoomPercent) {
+        if (
+          !predefinedZooms.includes(numericValue) &&
+          numericValue !== zoomPercent
+        ) {
           zoomSelect.remove(i);
         }
       }
 
-      console.log("[PDFZoom] Toolbar updated with custom zoom:", zoomPercent + "%");
+      console.log(
+        "[PDFZoom] Toolbar updated with custom zoom:",
+        zoomPercent + "%",
+      );
     }
   }
 
@@ -156,25 +193,32 @@ export class PDFZoom {
    */
   setupMouseZoomListener(
     viewer: HTMLElement,
-    onZoomChange: (scale: number) => void
+    onZoomChange: (scale: number) => void,
   ): void {
-    viewer.addEventListener("wheel", (e: WheelEvent) => {
-      if (!e.ctrlKey && !e.metaKey) return;
+    viewer.addEventListener(
+      "wheel",
+      (e: WheelEvent) => {
+        if (!e.ctrlKey && !e.metaKey) return;
 
-      e.preventDefault();
+        e.preventDefault();
 
-      const delta = -e.deltaY / 100;
-      const zoomFactor = 1 + delta * 0.1;
+        const delta = -e.deltaY / 100;
+        const zoomFactor = 1 + delta * 0.1;
 
-      let newScale = this.currentScale * zoomFactor;
-      newScale = Math.max(0.5, Math.min(3.0, newScale));
+        let newScale = this.currentScale * zoomFactor;
+        newScale = Math.max(0.5, Math.min(3.0, newScale));
 
-      if (newScale !== this.currentScale) {
-        console.log("[PDFZoom] Mouse wheel zoom:", (newScale * 100).toFixed(0) + "%");
-        const finalScale = this.setScale(newScale);
-        onZoomChange(finalScale);
-      }
-    }, { passive: false });
+        if (newScale !== this.currentScale) {
+          console.log(
+            "[PDFZoom] Mouse wheel zoom:",
+            (newScale * 100).toFixed(0) + "%",
+          );
+          const finalScale = this.setScale(newScale);
+          onZoomChange(finalScale);
+        }
+      },
+      { passive: false },
+    );
 
     console.log("[PDFZoom] Mouse wheel zoom enabled (Ctrl+Wheel)");
   }

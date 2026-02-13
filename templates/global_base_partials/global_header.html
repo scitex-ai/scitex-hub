@@ -102,7 +102,7 @@
                                                       color: var(--text-muted);
                                                       text-decoration: none;
                                                       transition: all 0.15s ease">
-                                                <i class="fas fa-folder-open" style="font-size: 11px"></i>
+                                                <i class="fas fa-folder-open" style="font-size: 12px"></i>
                                             </a>
                                             <span class="project-item-check"
                                                   style="display: {% if user.profile.last_active_repository and user.profile.last_active_repository.id == project.id %}inline-flex{% else %}none{% endif %};
@@ -150,91 +150,90 @@
                 </div>
             </div>
             <!-- Primary Navigation -->
+            <!-- Order: Writer, Scholar, Visualizer, Console, Verifier, Hub, Files (hidden), Tools, Explorer -->
             <nav class="header-nav">
-                <!-- Files - Direct link to user's active project -->
+                <a href="/writer/"
+                   class="header-nav-item {% if 'writer' in request.path %}active{% endif %}"
+                   data-tooltip="Manuscript writing (Alt+W)"
+                   data-shortcut="W">
+                    <i class="fas fa-pen nav-icon-fa"></i>
+                    <span class="nav-label">Writer</span>
+                </a>
+                <a href="/scholar/"
+                   class="header-nav-item {% if 'scholar' in request.path %}active{% endif %}"
+                   data-tooltip="Citation Management (Alt+S)"
+                   data-shortcut="S">
+                    <i class="fas fa-graduation-cap nav-icon-fa"></i>
+                    <span class="nav-label">Scholar</span>
+                </a>
+                <a href="/vis/"
+                   class="header-nav-item {% if '/vis/' in request.path %}active{% endif %}"
+                   data-tooltip="Scientific Figure Editor (Alt+V)"
+                   data-shortcut="V">
+                    <i class="fas fa-chart-line nav-icon-fa"></i>
+                    <span class="nav-label">Visualizer</span>
+                </a>
+                <a href="/console/"
+                   class="header-nav-item {% if '/console/' in request.path %}active{% endif %}"
+                   data-tooltip="Console workspace (Alt+C)"
+                   data-shortcut="C">
+                    <i class="fas fa-terminal nav-icon-fa"></i>
+                    <span class="nav-label">Console</span>
+                </a>
+                {% if DEBUG %}
+                    <a href="/clew/"
+                       class="header-nav-item {% if 'clew' in request.path %}active{% endif %}"
+                       data-tooltip="Reproducibility verification (Alt+R)"
+                       data-shortcut="R">
+                        <i class="fas fa-shield-alt nav-icon-fa"></i>
+                        <span class="nav-label">Clew</span>
+                    </a>
+                {% endif %}
+                <a href="/hub/"
+                   class="header-nav-item {% if '/hub/' in request.path %}active{% endif %}"
+                   data-tooltip="Project hub (Alt+H)"
+                   data-shortcut="H">
+                    <i class="fas fa-th-large nav-icon-fa"></i>
+                    <span class="nav-label">Hub</span>
+                </a>
+                {% comment %}
+                <!-- Files - hidden from header; Hub will supersede this -->
                 {% if user.is_authenticated %}
                     {% if user.profile.last_active_repository %}
-                        <a href="/files/{{ user.username }}/{{ user.profile.last_active_repository.slug }}/"
-                           class="header-nav-item {% if 'files/' in request.path %}active{% endif %}"
-                           data-tooltip="Your files (Alt+F)"
-                           data-shortcut="F">
-                            <i class="fas fa-book-open nav-icon-fa" style="font-size: 16px"></i>
+                        <a href="/files/{{ user.username }}/{{ user.profile.last_active_repository.slug }}/" class="header-nav-item {% if 'files/' in request.path %}active{% endif %}" data-tooltip="Your files (Alt+F)" data-shortcut="F">
+                            <i class="fas fa-book-open nav-icon-fa"></i>
                             <span class="nav-label">Files</span>
                         </a>
                     {% else %}
-                        <a href="/{{ user.username }}/"
-                           class="header-nav-item {% if user.username in request.path and 'explore' not in request.path %}active{% endif %}"
-                           data-tooltip="Your repositories (Alt+F)"
-                           data-shortcut="F">
-                            <i class="fas fa-book-open nav-icon-fa" style="font-size: 16px"></i>
+                        <a href="/{{ user.username }}/" class="header-nav-item {% if user.username in request.path and 'explore' not in request.path %}active{% endif %}" data-tooltip="Your repositories (Alt+F)" data-shortcut="F">
+                            <i class="fas fa-book-open nav-icon-fa"></i>
                             <span class="nav-label">Files</span>
                         </a>
                     {% endif %}
                 {% else %}
                     {% if visitor_username %}
-                        <a href="/files/{{ visitor_username }}/"
-                           class="header-nav-item {% if 'files/' in request.path %}active{% endif %}"
-                           data-tooltip="Your files (Alt+F)"
-                           data-shortcut="F">
-                            <i class="fas fa-book-open nav-icon-fa" style="font-size: 16px"></i>
+                        <a href="/files/{{ visitor_username }}/" class="header-nav-item {% if 'files/' in request.path %}active{% endif %}" data-tooltip="Your files (Alt+F)" data-shortcut="F">
+                            <i class="fas fa-book-open nav-icon-fa"></i>
                             <span class="nav-label">Files</span>
                         </a>
                     {% else %}
-                        <a href="{% url 'auth_app:signup' %}"
-                           class="header-nav-item"
-                           data-tooltip="Sign up to access files"
-                           data-shortcut="F">
-                            <i class="fas fa-book-open nav-icon-fa" style="font-size: 16px; opacity: 0.5"></i>
+                        <a href="{% url 'auth_app:signup' %}" class="header-nav-item" data-tooltip="Sign up to access files" data-shortcut="F">
+                            <i class="fas fa-book-open nav-icon-fa" style="opacity: 0.5"></i>
                             <span class="nav-label">Files</span>
                         </a>
                     {% endif %}
                 {% endif %}
-                {% comment %} Module links - All users now navigate to dedicated module
-        endpoints: - /scholar/ - Scholar app with project selector - /code/ -
-        Code module (project-centric via sessionStorage) - /viz/ - Viz module
-        (project-centric via sessionStorage) - /writer/ - Writer module
-                (project-centric via sessionStorage) {% endcomment %}
-                <!-- Scholar Module -->
-                <a href="/scholar/"
-                   class="header-nav-item {% if 'scholar' in request.path %}active{% endif %}"
-                   data-tooltip="Citation Management (Alt+S)"
-                   data-shortcut="S">
-                    <i class="fas fa-graduation-cap nav-icon-fa" style="font-size: 16px"></i>
-                    <span class="nav-label">Scholar</span>
+                <!-- Explorer - hidden from header for now -->
+                <a href="/social/explore/" class="header-nav-item {% if 'explore' in request.path %}active{% endif %}" data-tooltip="Explore other users' work">
+                    <i class="fas fa-compass nav-icon-fa"></i>
+                    <span class="nav-label">Explorer</span>
                 </a>
-                <a href="/code/"
-                   class="header-nav-item {% if 'code' in request.path %}active{% endif %}"
-                   data-tooltip="Console workspace (Alt+C)"
-                   data-shortcut="C">
-                    <i class="fas fa-terminal nav-icon-fa" style="font-size: 16px"></i>
-                    <span class="nav-label">Console</span>
-                </a>
-                <a href="/vis/"
-                   class="header-nav-item {% if 'vis' in request.path %}active{% endif %}"
-                   data-tooltip="Scientific Figure Editor (Alt+V)"
-                   data-shortcut="V">
-                    <i class="fas fa-chart-line nav-icon-fa" style="font-size: 16px"></i>
-                    <span class="nav-label">Visualizer</span>
-                </a>
-                <a href="/writer/"
-                   class="header-nav-item {% if 'writer' in request.path %}active{% endif %}"
-                   data-tooltip="Manuscript writing (Alt+W)"
-                   data-shortcut="W">
-                    <i class="fas fa-pen nav-icon-fa" style="font-size: 16px"></i>
-                    <span class="nav-label">Writer</span>
-                </a>
+                {% endcomment %}
                 <a href="/tools/"
                    class="header-nav-item {% if 'tools' in request.path %}active{% endif %}"
                    data-tooltip="Research tools and bookmarklets">
-                    <i class="fas fa-toolbox nav-icon-fa" style="font-size: 16px"></i>
+                    <i class="fas fa-toolbox nav-icon-fa"></i>
                     <span class="nav-label">Tools</span>
-                </a>
-                <!-- Explore - Browse other users' work -->
-                <a href="/social/explore/"
-                   class="header-nav-item {% if 'explore' in request.path %}active{% endif %}"
-                   data-tooltip="Explore other users' work">
-                    <i class="fas fa-compass nav-icon-fa" style="font-size: 16px"></i>
-                    <span class="nav-label">Explore</span>
                 </a>
             </nav>
         </div>
@@ -306,7 +305,7 @@
                                                   color: var(--text-muted);
                                                   text-decoration: none;
                                                   transition: all 0.15s ease">
-                                            <i class="fas fa-folder-open" style="font-size: 11px"></i>
+                                            <i class="fas fa-folder-open" style="font-size: 12px"></i>
                                         </a>
                                         <span class="project-item-check"
                                               style="display: {% if user.profile.last_active_repository and user.profile.last_active_repository.id == project.id %}inline-flex{% else %}none{% endif %};
@@ -421,7 +420,9 @@
         <!-- Right: Actions + User Menu -->
         <div class="header-right">
             <!-- Theme Toggle (always visible) -->
-            <button id="theme-toggle" class="theme-toggle" data-tooltip="Toggle light/dark theme">🌓</button>
+            <button id="theme-toggle" class="theme-toggle" data-tooltip="Toggle light/dark theme">
+                <i class="fas fa-adjust"></i>
+            </button>
             <!-- Product Tour -->
             <button id="product-tour-btn" class="theme-toggle" data-tooltip="Product Tour">
                 <i class="fas fa-question-circle"></i>

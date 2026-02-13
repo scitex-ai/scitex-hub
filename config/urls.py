@@ -1,19 +1,16 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# scitex-linter: skip-file
 # Timestamp: "2025-11-04 20:27:37 (ywatanabe)"
 # File: /home/ywatanabe/proj/scitex-cloud/config/urls.py
 # ----------------------------------------
-from __future__ import annotations
-
-import os
-
-__FILE__ = "./config/urls.py"
-__DIR__ = os.path.dirname(__FILE__)
-# ----------------------------------------
-
 """
 URL Configuration for SciTeX Cloud project.
+Django URL configuration modules are not scripts.
 """
+
+from __future__ import annotations
+
+# ----------------------------------------
 
 from django.conf import settings
 from django.conf.urls.static import static
@@ -124,11 +121,14 @@ urlpatterns = [
     # Social authentication (Google, ORCID) via django-allauth
     path("auth/social/", include("allauth.urls")),
     # Main Modules
+    path("hub/", include(("apps.hub_app.urls", "hub_app"))),
     path("scholar/", include(("apps.scholar_app.urls", "scholar_app"))),
-    path("code/", include(("apps.code_app.urls", "code_app"))),
+    path("console/", include(("apps.console_app.urls", "console_app"))),
     path("vis/", include(("apps.vis_app.urls", "vis"))),
     path("writer/", include(("apps.writer_app.urls", "writer_app"))),
     path("workspace/", include(("apps.workspace_app.urls", "workspace_app"))),
+    # LLM/Agent Support
+    path("llm/", include(("apps.llm_app.urls", "llm_app"))),
     # Deveopment
     path("dev/", include(("apps.dev_app.urls", "dev_app"))),
     path("docs/", include(("apps.docs_app.urls", "docs_app"))),
@@ -157,11 +157,7 @@ urlpatterns = [
         api_switch_active_project,
         name="api_switch_active_project",
     ),
-    # Scholar API endpoints (global /api/scholar/ prefix)
-    path(
-        "api/scholar/citation-graph/",
-        include("apps.scholar_app.api.citation_graph_urls"),
-    ),
+    # Citation Graph API now under scholar/ namespace (removed from here)
     # Public Scholar API (v1) - accessible without scholar/ prefix
     path(
         "api/v1/scholar/",
@@ -194,8 +190,11 @@ urlpatterns = [
     ),
 ]
 
-# Add development tools BEFORE catch-all username pattern
+# Add development-only apps BEFORE catch-all username pattern
 if settings.DEBUG:
+    urlpatterns += [
+        path("clew/", include(("apps.clew_app.urls", "clew"))),
+    ]
     # Add django-browser-reload URLs for hot reload
     if "django_browser_reload" in settings.INSTALLED_APPS:
         urlpatterns += [

@@ -26,7 +26,7 @@
                         <strong>{{ file.path }}</strong>
                     </div>
                     <div>
-                        <a href="{% url 'user_projects:file_view' project.owner.username project.slug file.path %}"
+                        <a href="{% url 'project_app:file_view' project.owner.username project.slug file.path %}"
                            class="btn btn-sm btn-outline-secondary"
                            target="_blank">
                             <i class="bi bi-eye"></i> View file
@@ -53,7 +53,7 @@
     {% endif %}
 {% else %}
     <div class="text-center py-5">
-        <i class="bi bi-file-earmark" style="font-size: 3rem; color: #ccc"></i>
+        <i class="bi bi-file-earmark" style="font-size: 3rem; color: var(--text-muted)"></i>
         <p class="text-muted mt-3">No files changed</p>
     </div>
 {% endif %}

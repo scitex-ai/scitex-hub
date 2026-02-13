@@ -50,7 +50,7 @@
 .nav-badge {
   display: inline-block;
   background: var(--success-color);
-  color: white;
+  color: var(--text-inverse);
   font-size: 10px;
   font-weight: 600;
   padding: 2px 6px;
@@ -61,18 +61,13 @@
   letter-spacing: 0.3px;
 }
 
-[data-theme="dark"] .nav-badge {
-  background: var(--success-color);
-  color: white;
-}
-
 /* Unified Nav Dropdown Menu */
 .header-nav-dropdown {
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
   min-width: 220px;
-  background: #ffffff;
+  background: var(--bg-surface);
   border: 1px solid var(--scitex-color-06);
   border-radius: 6px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
@@ -114,20 +109,20 @@
 }
 
 [data-theme="dark"] .nav-dropdown-item {
-  color: #ffffff;
+  color: var(--text-primary);
   border-bottom-color: var(--scitex-color-03);
 }
 
 [data-theme="dark"] .nav-dropdown-item:hover {
   background: var(--scitex-color-03);
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 /* Dropdown Badge - for dropdown menu items */
 .dropdown-badge {
   display: inline-block;
   background: var(--success-color);
-  color: white;
+  color: var(--text-inverse);
   font-size: 9px;
   font-weight: 600;
   padding: 2px 6px;
@@ -140,7 +135,7 @@
 
 [data-theme="dark"] .dropdown-badge {
   background: var(--success-color);
-  color: white;
+  color: var(--text-inverse);
 }
 
 .header-nav-item {
@@ -220,4 +215,3 @@
   opacity: 0.6;
   transform: none; /* Don't scale up like active items */
 }
-

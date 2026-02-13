@@ -199,7 +199,7 @@
 
 .speed-label {
   font-size: 0.9rem;
-  color: var(--text-primary, #24292f);
+  color: var(--text-primary, #1c1c1c);
   font-weight: 500;
 }
 
@@ -214,8 +214,8 @@
   font-weight: 500;
   border: 1px solid var(--border-default, #d0d7de);
   border-radius: 4px;
-  background: var(--bg-secondary, #f6f8fa);
-  color: var(--text-primary, #24292f);
+  background: var(--bg-secondary, #f3f2f0);
+  color: var(--text-primary, #1c1c1c);
   cursor: pointer;
 }
 
@@ -226,7 +226,7 @@
 }
 
 .demo-workflow-text {
-  color: var(--text-primary, #24292f);
+  color: var(--text-primary, #1c1c1c);
   font-size: 1.1rem;
   font-weight: 500;
   line-height: 1.5;
@@ -260,11 +260,11 @@
   padding: 0.5rem 1rem;
   font-size: 0.9rem;
   font-weight: 500;
-  color: var(--text-primary, #24292f);
+  color: var(--text-primary, #1c1c1c);
   text-decoration: none;
-  border: 1px solid var(--border-default, #d0d7de);
+  border: 1px solid var(--border-default, #c0c0c0);
   border-radius: 6px;
-  background: var(--bg-secondary, #f6f8fa);
+  background: var(--bg-secondary, #f3f2f0);
   transition: all 0.2s ease;
 }
 
@@ -379,7 +379,7 @@
  * ============================================================================ */
 .hero-tagline {
   font-size: 1.25rem;
-  color: #24292f;
+  color: var(--text-primary, #1c1c1c);
   margin: 0.5rem 0 1.5rem 0;
   font-weight: 600;
 }
@@ -424,7 +424,7 @@
 
 .hero-cta-note {
   font-size: 0.875rem;
-  color: var(--text-secondary, #586069);
+  color: var(--text-secondary, #555555);
 }
 
 [data-theme="dark"] .hero-cta-note {

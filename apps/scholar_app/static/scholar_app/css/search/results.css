@@ -70,22 +70,22 @@
 
 /* Available state - clickable, green for PDF download (indicates free/available) */
 .pdf-status-badge[data-status="available"] {
-  color: #10b981;
-  border-color: #10b981;
-  background: rgba(16, 185, 129, 0.1);
+  color: var(--status-success);
+  border-color: var(--status-success);
+  background: var(--color-success-bg);
   cursor: pointer;
   font-weight: 600;
 }
 
 .pdf-status-badge[data-status="available"]:hover {
-  background: #10b981;
-  color: #fff;
+  background: var(--status-success);
+  color: var(--text-inverse);
 }
 
 /* Downloading state */
 .pdf-status-badge[data-status="downloading"] {
-  color: #d4a855;
-  border-color: #d4a855;
+  color: var(--status-warning);
+  border-color: var(--status-warning);
 }
 
 /* Downloaded state - success */
@@ -98,7 +98,7 @@
 
 .pdf-status-badge[data-status="downloaded"]:hover {
   background: var(--workspace-icon-primary, #059669);
-  color: #fff;
+  color: var(--text-inverse);
 }
 
 /* Unavailable/Paywalled state - visible but inactive */
@@ -118,8 +118,8 @@
 
 /* Error state */
 .pdf-status-badge[data-status="error"] {
-  color: #ef4444;
-  border-color: #ef4444;
+  color: var(--status-error);
+  border-color: var(--status-error);
   opacity: 0.7;
 }
 
@@ -134,23 +134,23 @@
 
 /* Action bar PDF button styling */
 .selection-action-bar .action-btn--pdf {
-  color: #ef4444 !important;
-  border-color: #ef4444 !important;
+  color: var(--status-error) !important;
+  border-color: var(--status-error) !important;
 }
 
 .selection-action-bar .action-btn--pdf:hover {
-  background: #ef4444 !important;
-  color: #fff !important;
+  background: var(--status-error) !important;
+  color: var(--text-inverse) !important;
 }
 
 /* Toolbar PDF button styling */
 .toolbar-btn--pdf {
-  color: #ef4444;
-  border-color: #ef4444;
+  color: var(--status-error);
+  border-color: var(--status-error);
 }
 
 .toolbar-btn--pdf:hover:not(:disabled) {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
-  border-color: #ef4444;
+  background: var(--status-error-bg);
+  color: var(--status-error);
+  border-color: var(--status-error);
 }

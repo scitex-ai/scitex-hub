@@ -4,8 +4,9 @@
  * Extracted from WorkspaceFilesTree.ts for better code organization.
  */
 
-import type { TreeItem, WorkspaceMode } from '../types.ts';
-import { TreeStateManager } from '../TreeState.ts';
+import type { TreeItem, WorkspaceMode } from "../types.ts";
+import { TreeStateManager } from "../TreeState.ts";
+import { DEFAULT_FOCUS_PATHS } from "../FilteringCriteria.ts";
 
 export class PathNavigator {
   private stateManager: TreeStateManager;
@@ -19,7 +20,7 @@ export class PathNavigator {
     getContainer: () => HTMLElement | null,
     rerender: () => void,
     getTreeData: () => TreeItem[],
-    updateSelectionClasses: (path: string) => void
+    updateSelectionClasses: (path: string) => void,
   ) {
     this.stateManager = stateManager;
     this.containerFn = getContainer;
@@ -32,10 +33,10 @@ export class PathNavigator {
    * Get parent paths for a given path
    */
   getParentPaths(path: string): string[] {
-    const parts = path.split('/');
+    const parts = path.split("/");
     const parents: string[] = [];
     for (let i = 1; i < parts.length; i++) {
-      parents.push(parts.slice(0, i).join('/'));
+      parents.push(parts.slice(0, i).join("/"));
     }
     return parents;
   }
@@ -46,17 +47,17 @@ export class PathNavigator {
    */
   async expandPath(path: string): Promise<void> {
     const parentPaths = this.getParentPaths(path);
-    parentPaths.forEach(parentPath => {
+    parentPaths.forEach((parentPath) => {
       this.stateManager.expand(parentPath);
     });
 
     this.rerenderFn();
 
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
     const container = this.containerFn();
     const element = container?.querySelector(`[data-path="${path}"]`);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
       this.stateManager.setSelected(path);
       this.updateSelectionClassesFn(path);
     }
@@ -65,18 +66,21 @@ export class PathNavigator {
   /**
    * Focus on a directory by expanding it and collapsing its siblings
    */
-  async focusDirectory(targetPath: string, collapseOthersAtLevel: boolean = true): Promise<void> {
+  async focusDirectory(
+    targetPath: string,
+    collapseOthersAtLevel: boolean = true,
+  ): Promise<void> {
     const parentPaths = this.getParentPaths(targetPath);
-    parentPaths.forEach(parentPath => {
+    parentPaths.forEach((parentPath) => {
       this.stateManager.expand(parentPath);
     });
 
     this.stateManager.expand(targetPath);
 
     if (collapseOthersAtLevel) {
-      const parentPath = parentPaths[parentPaths.length - 1] || '';
+      const parentPath = parentPaths[parentPaths.length - 1] || "";
       const siblings = this.getSiblingDirectories(targetPath, parentPath);
-      siblings.forEach(siblingPath => {
+      siblings.forEach((siblingPath) => {
         if (siblingPath !== targetPath) {
           this.stateManager.collapse(siblingPath);
         }
@@ -85,70 +89,87 @@ export class PathNavigator {
 
     this.rerenderFn();
 
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
     const container = this.containerFn();
     const element = container?.querySelector(`[data-path="${targetPath}"]`);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }
 
   /**
-   * Auto-expand to focus path from state manager
+   * Auto-expand to focus path from state manager.
+   * Only expands if user has explicitly set a focus path.
+   * NO longer auto-expands to DEFAULT_FOCUS_PATHS - tree loads in saved state or collapsed.
    */
-  async autoExpandFocusPath(mode: WorkspaceMode): Promise<void> {
+  async autoExpandFocusPath(
+    mode: WorkspaceMode,
+    isFirstLoad: boolean = false,
+  ): Promise<void> {
+    // User-set focus path: only apply if explicitly set by user
     const focusPath = this.stateManager.getFocusPath(mode);
+
+    // Do NOT apply DEFAULT_FOCUS_PATHS - respect user's last state
+    // Tree should load in whatever state was saved, or collapsed if no state exists
     if (!focusPath) return;
 
+    // Expand all parent paths AND the focus directory itself
     const parentPaths = this.getParentPaths(focusPath);
-    parentPaths.forEach(path => {
+    parentPaths.forEach((path) => {
       this.stateManager.expand(path);
     });
+    this.stateManager.expand(focusPath);
 
     this.stateManager.setSelected(focusPath);
     this.rerenderFn();
 
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
     const container = this.containerFn();
     const focusEl = container?.querySelector(`[data-path="${focusPath}"]`);
     if (focusEl) {
-      focusEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      focusEl.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   }
 
   /**
    * Refresh and expand to a path
    */
-  async refreshAndExpandPath(path: string, loadTreeFn: () => Promise<void>): Promise<void> {
+  async refreshAndExpandPath(
+    path: string,
+    loadTreeFn: () => Promise<void>,
+  ): Promise<void> {
     await loadTreeFn();
 
     const parentPaths = this.getParentPaths(path);
-    parentPaths.forEach(parentPath => {
+    parentPaths.forEach((parentPath) => {
       this.stateManager.expand(parentPath);
     });
 
     this.stateManager.expand(path);
     this.rerenderFn();
 
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
     const container = this.containerFn();
     const element = container?.querySelector(`[data-path="${path}"]`);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   }
 
   /**
    * Get sibling directories at the same level as the target
    */
-  private getSiblingDirectories(targetPath: string, parentPath: string): string[] {
+  private getSiblingDirectories(
+    targetPath: string,
+    parentPath: string,
+  ): string[] {
     const siblings: string[] = [];
     const treeData = this.getTreeDataFn();
 
     const searchInItems = (items: TreeItem[]): void => {
       for (const item of items) {
-        if (item.type === 'directory') {
-          const itemParent = this.getParentPaths(item.path).pop() || '';
+        if (item.type === "directory") {
+          const itemParent = this.getParentPaths(item.path).pop() || "";
           if (itemParent === parentPath) {
             siblings.push(item.path);
           }

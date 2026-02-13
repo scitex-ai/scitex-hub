@@ -86,7 +86,7 @@
 }
 
 .btn--danger:hover {
-  color: #ffffff;
+  color: var(--text-inverse);
   background-color: var(--color-danger-emphasis);
   border-color: var(--color-danger-emphasis);
 }

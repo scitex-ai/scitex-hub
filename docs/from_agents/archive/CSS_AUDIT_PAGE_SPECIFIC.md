@@ -39,7 +39,7 @@
 - Should be in respective app CSS files:
   - `.hero-scholar` → `/apps/scholar_app/static/scholar_app/css/`
   - `.hero-writer` → `/apps/writer_app/static/writer_app/css/`
-  - `.hero-code` → `/apps/code_app/static/code_app/css/`
+  - `.hero-code` → `/apps/console_app/static/console_app/css/`
   - `.hero-viz` → `/apps/viz_app/static/viz_app/css/`
 
 **Decision:**
@@ -73,7 +73,7 @@ Move ALL page/module-specific styles to app CSS:
 ```
 .hero-scholar → /apps/scholar_app/static/scholar_app/css/scholar.css
 .hero-writer → /apps/writer_app/static/writer_app/css/writer.css
-.hero-code → /apps/code_app/static/code_app/css/code.css
+.hero-code → /apps/console_app/static/console_app/css/code.css
 .hero-viz → /apps/viz_app/static/viz_app/css/viz.css
 ```
 

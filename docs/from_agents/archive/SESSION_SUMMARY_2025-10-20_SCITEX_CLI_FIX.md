@@ -320,6 +320,6 @@ entry_points={
 
 **Status:** ✅ Critical infrastructure fix complete
 **Impact:** High - Enables all `scitex cloud` workflows
-**Follow-up:** Implement `scitex scholar/code/viz/writer/project` commands
+**Follow-up:** Implement `scitex scholar/console/viz/writer/project` commands
 
 <!-- EOF -->

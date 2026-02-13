@@ -18,7 +18,7 @@ django.setup()
 
 # Import routing after Django setup
 from apps.writer_app import routing as writer_routing
-from apps.code_app import routing as code_routing
+from apps.console_app import routing as code_routing
 from apps.project_app import routing as project_routing
 
 # Combine all WebSocket routes

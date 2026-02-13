@@ -15,24 +15,33 @@ import logging
 from datetime import timedelta
 from pathlib import Path
 
+import matplotlib
 import numpy as np
 from scipy import signal
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
 
+matplotlib.use("Agg")
+import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
 from django.conf import settings
 from django.utils import timezone
 
 logger = logging.getLogger("scitex")
 
-# Chart output directory
-CHART_DIR = Path("/tmp/scitex_charts")
+# Chart output directory (shared between Django and Celery containers via /app volume)
+CHART_DIR = Path("/app/data/charts")
 CHART_DIR.mkdir(exist_ok=True)
 
 # Chart configurations
-METRIC_TYPES = ["cpu", "memory", "disk", "gpu", "disk_io", "net_io", "visitor_pool", "active_users"]
+METRIC_TYPES = [
+    "cpu",
+    "memory",
+    "disk",
+    "gpu",
+    "disk_io",
+    "net_io",
+    "visitor_pool",
+    "active_users",
+]
 TIME_RANGES = [60, 360, 1440]  # 1h, 6h, 24h in minutes
 THEMES = ["dark", "light"]
 
@@ -135,6 +144,7 @@ def generate_single_chart(metric_type: str, minutes: int, theme: str) -> bool:
     try:
         # Apply SCITEX_STYLE via configure_mpl
         from scitex.plt.utils import configure_mpl
+
         plt_configured, _ = configure_mpl(
             plt,
             hide_top_right_spines=True,
@@ -145,7 +155,9 @@ def generate_single_chart(metric_type: str, minutes: int, theme: str) -> bool:
         # Query data
         start_time = timezone.now() - timedelta(minutes=minutes)
         metrics = list(
-            ServerMetrics.objects.filter(timestamp__gte=start_time).order_by("timestamp")
+            ServerMetrics.objects.filter(timestamp__gte=start_time).order_by(
+                "timestamp"
+            )
         )
 
         if not metrics:
@@ -166,10 +178,15 @@ def generate_single_chart(metric_type: str, minutes: int, theme: str) -> bool:
         # Create figure with transparent background
         fig, ax = plt_configured.subplots(figsize=(WIDTH_MM / 25.4, HEIGHT_MM / 25.4))
         fig.patch.set_alpha(0)  # Transparent figure background
-        ax.patch.set_alpha(0)   # Transparent axes background
+        ax.patch.set_alpha(0)  # Transparent axes background
 
         # Plot data - ensure timestamps and data have same length
-        n_points = min(len(timestamps), len(data) if not isinstance(data, dict) else min(len(v) for v in data.values()))
+        n_points = min(
+            len(timestamps),
+            len(data)
+            if not isinstance(data, dict)
+            else min(len(v) for v in data.values()),
+        )
         timestamps = timestamps[:n_points]
 
         if isinstance(data, dict):
@@ -191,7 +208,7 @@ def generate_single_chart(metric_type: str, minutes: int, theme: str) -> bool:
                 bbox_to_anchor=(1, 1.02),  # Above axes, right-aligned
                 frameon=False,
                 labelcolor=colors["tick"],
-                ncol=2  # Horizontal layout
+                ncol=2,  # Horizontal layout
             )
         else:
             # Single line chart (no fill for consistency)
@@ -227,7 +244,7 @@ def generate_single_chart(metric_type: str, minutes: int, theme: str) -> bool:
 
         # Make tick labels bold for better readability
         for label in ax.get_xticklabels() + ax.get_yticklabels():
-            label.set_fontweight('medium')
+            label.set_fontweight("medium")
 
         # Save with transparent background
         fig.tight_layout()
@@ -257,7 +274,9 @@ def generate_all_charts() -> dict:
                     else:
                         results["skipped"] += 1
                 except Exception as e:
-                    logger.error(f"Chart generation failed: {metric}_{minutes}_{theme}: {e}")
+                    logger.error(
+                        f"Chart generation failed: {metric}_{minutes}_{theme}: {e}"
+                    )
                     results["failed"] += 1
 
     logger.info(f"Chart generation complete: {results}")
@@ -284,7 +303,9 @@ def _downsample(data: list, target_points: int = MAX_DATA_POINTS) -> np.ndarray:
     return signal.resample(arr, target_points)
 
 
-def _downsample_timestamps(timestamps: list, target_points: int = MAX_DATA_POINTS) -> list:
+def _downsample_timestamps(
+    timestamps: list, target_points: int = MAX_DATA_POINTS
+) -> list:
     """Downsample timestamps by selecting evenly spaced points."""
     n = len(timestamps)
     if n <= target_points:

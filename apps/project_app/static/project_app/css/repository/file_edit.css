@@ -4,13 +4,13 @@
 
 .repo-header {
   padding: 0.75rem 0 1.5rem 0; /* Reduced top padding for better balance */
-  border-bottom: 1px solid #d0d7de;
+  border-bottom: 1px solid var(--color-border-default, #d0d7de);
 }
 
 .repo-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #0969da;
+  color: var(--color-accent-fg, #0969da);
   text-decoration: none;
 }
 
@@ -19,15 +19,19 @@
 }
 
 .editor-header {
-  background: #f6f8fa;
-  border: 1px solid #d0d7de;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--color-canvas-subtle, #f3f2f0);
+  border: 1px solid var(--color-border-default, #d0d7de);
   border-radius: 6px 6px 0 0;
   padding: 0.75rem 1rem;
   font-weight: 600;
+  color: var(--color-fg-default);
 }
 
 .editor-body {
-  border: 1px solid #d0d7de;
+  border: 1px solid var(--color-border-default, #d0d7de);
   border-top: none;
 }
 
@@ -41,6 +45,8 @@
   font-size: 13px;
   line-height: 1.6;
   resize: vertical;
+  background: var(--color-canvas-default);
+  color: var(--color-fg-default);
 }
 
 .editor-textarea:focus {
@@ -48,14 +54,15 @@
 }
 
 .editor-footer {
-  background: #f6f8fa;
-  border: 1px solid #d0d7de;
+  background: var(--color-canvas-subtle, #f3f2f0);
+  border: 1px solid var(--color-border-default, #d0d7de);
   border-top: none;
   border-radius: 0 0 6px 6px;
   padding: 1rem;
   display: flex;
   gap: 0.5rem;
   justify-content: flex-end;
+  color: var(--color-fg-default);
 }
 
 /* Markdown preview */
@@ -65,21 +72,21 @@
 
 .markdown-body h1 {
   font-size: 2em;
-  border-bottom: 1px solid #d0d7de;
+  border-bottom: 1px solid var(--color-border-default, #d0d7de);
   padding-bottom: 0.3em;
   margin-bottom: 1em;
 }
 
 .markdown-body h2 {
   font-size: 1.5em;
-  border-bottom: 1px solid #d0d7de;
+  border-bottom: 1px solid var(--color-border-default, #d0d7de);
   padding-bottom: 0.3em;
   margin-top: 1.5em;
   margin-bottom: 1em;
 }
 
 .markdown-body code {
-  background: #f6f8fa;
+  background: var(--color-canvas-subtle, #f3f2f0);
   padding: 0.2em 0.4em;
   border-radius: 6px;
   font-family: ui-monospace, monospace;
@@ -87,7 +94,7 @@
 }
 
 .markdown-body pre {
-  background: #f6f8fa;
+  background: var(--color-canvas-subtle, #f3f2f0);
   padding: 1rem;
   border-radius: 6px;
   overflow-x: auto;
@@ -99,6 +106,6 @@
 }
 
 .btn-group .active {
-  background-color: #0969da;
+  background-color: var(--color-accent-fg, #0969da);
   color: white;
 }

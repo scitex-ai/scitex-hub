@@ -4,17 +4,17 @@
   background: var(--workspace-bg-secondary);
   border: 1px solid var(--workspace-border-default);
   border-radius: 6px;
-  padding: 0.25rem;
-  gap: 0.25rem;
+  padding: 4px;
+  gap: 4px;
 }
 
 .view-tab {
-  padding: 0.5rem 1rem;
+  padding: 8px 16px;
   border: none;
   background: transparent;
   border-radius: 4px;
   transition: all 0.2s ease;
-  font-size: 0.9rem;
+  font-size: 14px;
   color: var(--workspace-text-primary);
   cursor: pointer;
 }
@@ -35,17 +35,17 @@
   background: var(--workspace-bg-secondary);
   border: 1px solid var(--workspace-border-default);
   border-radius: 6px;
-  padding: 0.2rem;
-  gap: 0.15rem;
+  padding: 3px;
+  gap: 2px;
 }
 
 .view-switch-btn {
-  padding: 0.4rem 0.75rem;
+  padding: 6px 12px;
   border: none;
   background: transparent;
   border-radius: 4px;
   transition: all 0.2s ease;
-  font-size: 0.8rem;
+  font-size: 13px;
   color: var(--workspace-text-secondary);
   cursor: pointer;
   white-space: nowrap;
@@ -65,7 +65,7 @@
 }
 
 .view-switch-btn i {
-  font-size: 0.75rem;
+  font-size: 12px;
 }
 
 /* Vertical Divider */
@@ -73,6 +73,5 @@
   width: 1px;
   height: 24px;
   background: var(--workspace-border-default);
-  margin: 0 0.5rem;
+  margin: 0 8px;
 }
-

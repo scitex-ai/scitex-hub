@@ -1,6 +1,6 @@
 {% extends 'global_base.html' %}
 
-{% load static vite %}
+{% load static vite tree_preseed %}
 
 {% block title %}SciTeX Scholar{% endblock %}
 {% block meta_description %}Advanced semantic search for scientific literature{% endblock %}
@@ -12,6 +12,8 @@
     <!-- Workspace files tree CSS -->
     <link rel="stylesheet"
           href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d" />
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/workspace-sidebar.css' %}" />
     <!-- Panel resizer CSS -->
     <link rel="stylesheet" href="{% static 'shared/css/components/panel-resizer.css' %}" />
     <!-- App-specific CSS - Modular common styles -->
@@ -39,6 +41,9 @@
           href="{% static 'scholar_app/css/search/results-header.css' %}" />
     <link rel="stylesheet" href="{% static 'shared/css/components/terminal-log.css' %}" />
     <link rel="stylesheet" href="{% static 'scholar_app/css/graph/citation-graph.css' %}" />
+    <link rel="stylesheet" href="{% static 'scholar_app/css/library/library.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'scholar_app/css/library/library-details.css' %}" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.css"
           rel="stylesheet" />
     <!-- Workspace colors - responsive to theme -->
@@ -133,13 +138,16 @@
 
         /* Tab content visibility */
         .scholar-tab-content {
-            display: none;
+            display: none !important;
             height: 100%;
+            width: 100%;
         }
 
         .scholar-tab-content.active {
-            display: flex;
+            display: flex !important;
             flex-direction: column;
+            flex: 1;
+            min-height: 0;
         }
 
         .scholar-details-content {
@@ -407,18 +415,9 @@
     <!-- Three-panel layout always active for workspace consistency -->
     <div class="scholar-workspace">
         <!-- Left sidebar: File tree (only with project) -->
-        <aside class="scholar-sidebar {% if not current_project %}collapsed{% endif %}"
+        <aside class="scholar-sidebar workspace-sidebar {% if not current_project %}collapsed{% endif %}"
                id="scholar-sidebar">
-            <div class="sidebar-header">
-                <h5>
-                    <i class="fas fa-folder-open"></i> Files
-                </h5>
-                <button class="sidebar-toggle panel-toggle-btn"
-                        id="sidebar-toggle"
-                        title="Toggle sidebar (Zen: F11/Alt+Z)">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-            </div>
+            {% include "global_base_partials/workspace/sidebar_header.html" %}
             <div class="sidebar-content" id="file-tree">
                 {% if current_project %}
                     <!-- WorkspaceFilesTree will render here -->
@@ -434,13 +433,13 @@
         <div class="panel-resizer"
              id="sidebar-resizer"
              data-panel-resizer
-             data-storage-prefix="scitex-scholar-"
+             data-storage-prefix="scitex-workspace-"
              data-target=".scholar-sidebar"
              data-direction="left"
              data-min-width="40"
              data-default-width="250"
              data-storage-key="sidebar-width"
-             data-collapse-key="scholar-sidebar-collapsed"
+             data-collapse-key="scitex-workspace-sidebar-collapsed"
              data-toggle-btn="sidebar-toggle"></div>
         <!-- Main content area -->
         <main class="scholar-main">
@@ -453,8 +452,11 @@
                         <i class="fas fa-wand-magic-sparkles"></i> Metadata Enrichment
                     </a>
                     <a href="#graph" class="scholar-tab" data-tab="graph">
-                        <i class="fas fa-project-diagram"></i> Graph
-                        <span class="tab-badge tab-badge--soon">Coming soon</span>
+                        <i class="fas fa-project-diagram"></i> Citation Graph
+                    </a>
+                    <a href="#library" class="scholar-tab" data-tab="library">
+                        <i class="fas fa-book-reader"></i> Library
+                        {% if library_count %}<span class="scholar-tab-badge">{{ library_count }}</span>{% endif %}
                     </a>
                 </nav>
                 <div class="pane-header-actions"></div>
@@ -516,7 +518,6 @@
                                         <button type="submit" class="btn-build" id="buildGraphBtn">
                                             <i class="fas fa-project-diagram"></i>
                                             <span>Build Graph</span>
-                                            <span class="tab-badge tab-badge--soon">Coming soon</span>
                                         </button>
                                     </div>
                                 </div>
@@ -594,6 +595,10 @@
         </div>
     </div>
 </div>
+<!-- Library Tab Content -->
+<div id="tab-library" class="scholar-tab-content" data-tab="library">
+    {% include "scholar_app/library_partials/library_main.html" %}
+</div>
 </main>
 <!-- Properties resizer (auto-initialized via data attributes) -->
 <div class="panel-resizer"
@@ -608,7 +613,7 @@
      data-collapse-key="scholar-properties-collapsed"
      data-toggle-btn="properties-toggle"></div>
 <!-- Right details panel -->
-<aside class="scholar-properties" id="scholar-properties">
+<aside class="scholar-properties collapsible-panel" id="scholar-properties">
     <div class="properties-header">
         <button class="properties-toggle panel-toggle-btn right-panel-toggle"
                 id="properties-toggle"
@@ -618,6 +623,7 @@
         <h5>
             <i class="fas fa-sliders-h"></i> Details
         </h5>
+        <span class="panel-title">Details</span>
     </div>
     <div class="properties-content" id="scholar-details-panel">
         <!-- Search Details -->
@@ -713,6 +719,10 @@
                 </div>
             </div>
         </div>
+        <!-- Library Details -->
+        <div id="details-library" class="scholar-details-content" data-tab="library">
+            {% include "scholar_app/library_partials/library_details.html" %}
+        </div>
     </div>
 </aside>
 </div>
@@ -722,13 +732,24 @@
     <!-- Panel resizer (auto-initializes from data attributes) -->
     {% vite_script 'shared/workspace-panel-resizer' %}
     {% if current_project %}
-        <!-- Scholar workspace initialization with project context -->
-        <script id="scholar-project-config" type="application/json">
-            {
-                "username": "{{ current_project.owner.username|escapejs }}",
-                "slug": "{{ current_project.slug|escapejs }}"
+        <!-- Standardized project config for shared tree init -->
+        <div id="workspace-project-config"
+             style="display: none"
+             data-username="{{ current_project.owner.username }}"
+             data-slug="{{ current_project.slug }}"
+             data-mode="scholar"></div>
+        <script>
+          window.scitexOnFileSelect = function(path) {
+            if (path.endsWith('.pdf')) {
+              var config = document.getElementById('workspace-project-config');
+              var u = config ? config.dataset.username : '';
+              var s = config ? config.dataset.slug : '';
+              window.open('/' + u + '/' + s + '/files/' + path, '_blank');
             }
+          };
         </script>
+        {% tree_preseed_script current_project %}
+        {% vite_script 'shared/workspace-tree-init' %}
         {% vite_script 'scholar_app/scholar-workspace-init' %}
     {% endif %}
     <!-- Global configuration - using data attributes to avoid formatter issues -->
@@ -762,6 +783,7 @@
     {% vite_script 'scholar_app/common/scholar-index-main' %}
     {% vite_script 'scholar_app/search/seekbar-integration' %}
     {% vite_script 'scholar_app/search/search-ui' %}
+    {% vite_script 'scholar_app/search/paper-actions' %}
     {% vite_script 'scholar_app/search/scitex-search' %}
     {% vite_script 'scholar_app/init/swarm-plots-init' %}
     <!-- BibTeX Scripts -->
@@ -773,7 +795,7 @@
     <!-- Tab Switching Script -->
     <script>
         (function() {
-            const TAB_ORDER = ['search', 'bibtex', 'graph'];
+            const TAB_ORDER = ['search', 'bibtex', 'graph', 'library'];
             const DEFAULT_TAB = 'search';
 
             function getActiveTab() {
@@ -782,6 +804,8 @@
             }
 
             function switchTab(tabName) {
+                console.log('[Scholar] Switching to tab:', tabName);
+
                 // Update tab navigation
                 document.querySelectorAll('.scholar-tab').forEach(tab => {
                     if (tab.dataset.tab === tabName) {
@@ -792,13 +816,20 @@
                 });
 
                 // Update main content
+                let foundContent = false;
                 document.querySelectorAll('.scholar-tab-content').forEach(content => {
                     if (content.dataset.tab === tabName) {
                         content.classList.add('active');
+                        foundContent = true;
+                        console.log('[Scholar] Activated content for:', tabName, content);
                     } else {
                         content.classList.remove('active');
                     }
                 });
+
+                if (!foundContent) {
+                    console.warn('[Scholar] No content found for tab:', tabName);
+                }
 
                 // Update details panel
                 document.querySelectorAll('.scholar-details-content').forEach(content => {
@@ -830,10 +861,10 @@
                 });
 
                 // Initial tab activation
-                const activeTab = getActiveTab();
                 if (!window.location.hash) {
                     window.location.hash = DEFAULT_TAB;
                 }
+                const activeTab = getActiveTab();
                 switchTab(activeTab);
             }
 

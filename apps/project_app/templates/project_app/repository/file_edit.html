@@ -1,13 +1,14 @@
 {% extends "global_base.html" %}
+
 {% load static vite %}
-{% block title %}
-    Edit {{ file_name }} - {{ project.name }}
-{% endblock %}
+
+{% block title %}Edit {{ file_name }} - {{ project.name }}{% endblock %}
 {% block extra_css %}
+    <link rel="stylesheet" href="{% static 'project_app/css/project_app.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/shared/buttons.css' %}" />
     <link rel="stylesheet"
-          href="{% static 'project_app/css/project_app.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'project_app/css/shared/buttons.css' %}" />
+          href="{% static 'project_app/css/repository/browse/container-header.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/repository/file_edit.css' %}" />
     <!-- Markdown rendering library -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 {% endblock %}
@@ -15,23 +16,17 @@
     <div class="container-fluid browse-container">
         <!-- Repository Header with Breadcrumb -->
         <div class="repo-header">
-            <div style="display: flex; align-items: center; gap: 0.5rem">
-                <a href="/{{ project.owner.username }}/"
-                   style="color: #0969da;
-                          text-decoration: none;
-                          font-weight: 400">{{ project.owner.username }}</a>
-                <span style="color: #656d76">/</span>
-                <a href="/{{ project.owner.username }}/{{ project.slug }}/"
-                   class="repo-title">{{ project.name }}</a>
+            <div class="repo-header-left">
+                <a href="/{{ project.owner.username }}/" class="repo-header-owner">{{ project.owner.username }}</a>
+                <span class="repo-header-separator">/</span>
+                <a href="/{{ project.owner.username }}/{{ project.slug }}/" class="repo-title">{{ project.name }}</a>
                 {% for breadcrumb in breadcrumbs %}
-                    {%if breadcrumb.name != project.name%}
-                        <span style="color: #656d76">/</span>
+                    {% if breadcrumb.name != project.name %}
+                        <span class="repo-header-separator">/</span>
                         {% if breadcrumb.url %}
-                            <a href="{{ breadcrumb.url }}"
-                               style="color: #0969da;
-                                      text-decoration: none">{{ breadcrumb.name }}</a>
+                            <a href="{{ breadcrumb.url }}" class="repo-breadcrumb-item">{{ breadcrumb.name }}</a>
                         {% else %}
-                            <span style="font-weight: 600">{{ breadcrumb.name }}</span>
+                            <span class="repo-breadcrumb-current">{{ breadcrumb.name }}</span>
                         {% endif %}
                     {% endif %}
                 {% endfor %}
@@ -41,10 +36,7 @@
         <div class="file-editor-container">
             <form method="POST">
                 {% csrf_token %}
-                <div class="editor-header"
-                     style="display: flex;
-                            justify-content: space-between;
-                            align-items: center">
+                <div class="editor-header">
                     <span>Edit {{ file_name }}</span>
                     {% if file_name|slice:"-3:" == ".md" %}
                         <div class="btn-group btn-group-sm" role="group">

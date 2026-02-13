@@ -44,7 +44,7 @@ def issue_create(request, username, slug):
         # Validation
         if not title:
             messages.error(request, "Issue title is required")
-            return redirect("user_projects:issue_create", username=username, slug=slug)
+            return redirect("project_app:issue_create", username=username, slug=slug)
 
         # Create issue
         issue = Issue.objects.create(
@@ -155,7 +155,7 @@ def issue_edit(request, username, slug, issue_number):
         if not title:
             messages.error(request, "Issue title is required")
             return redirect(
-                "user_projects:issue_edit",
+                "project_app:issue_edit",
                 username=username,
                 slug=slug,
                 issue_number=issue_number,

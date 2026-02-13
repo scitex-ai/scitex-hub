@@ -51,7 +51,7 @@
             Security policy defined
         </div>
         <div class="mt-2">
-            <a href="{% url 'user_projects:security_policy' project.owner.username project.slug %}"
+            <a href="{% url 'project_app:security_policy' project.owner.username project.slug %}"
                class="text-decoration-none">View policy</a>
         </div>
     {% else %}
@@ -67,7 +67,7 @@
             No security policy
         </div>
         <div class="mt-2">
-            <a href="{% url 'user_projects:security_policy' project.owner.username project.slug %}"
+            <a href="{% url 'project_app:security_policy' project.owner.username project.slug %}"
                class="text-decoration-none">Create policy</a>
         </div>
     {% endif %}

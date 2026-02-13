@@ -22,7 +22,7 @@ CELERY_RESULT_EXTENDED = True
 CELERY_TASK_ROUTES = {
     "apps.writer_app.tasks.*": {"queue": "ai_queue"},
     "apps.scholar_app.tasks.*": {"queue": "search_queue"},
-    "apps.code_app.tasks.*": {"queue": "compute_queue"},
+    "apps.console_app.tasks.*": {"queue": "compute_queue"},
     "apps.vis_app.tasks.*": {"queue": "vis_queue"},
 }
 

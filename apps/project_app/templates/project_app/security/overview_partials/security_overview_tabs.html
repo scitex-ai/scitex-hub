@@ -1,13 +1,13 @@
 <!-- Navigation Tabs -->
 <nav class="nav nav-tabs mb-4">
     <a class="nav-link {% if active_tab == 'overview' %}active{% endif %}"
-       href="{% url 'user_projects:security_overview' project.owner.username project.slug %}">Overview</a>
+       href="{% url 'project_app:security_overview' project.owner.username project.slug %}">Overview</a>
     <a class="nav-link {% if active_tab == 'alerts' %}active{% endif %}"
-       href="{% url 'user_projects:security_alerts' project.owner.username project.slug %}">Alerts ({{ stats.open_alerts }})</a>
+       href="{% url 'project_app:security_alerts' project.owner.username project.slug %}">Alerts ({{ stats.open_alerts }})</a>
     <a class="nav-link {% if active_tab == 'policy' %}active{% endif %}"
-       href="{% url 'user_projects:security_policy' project.owner.username project.slug %}">Security policy</a>
+       href="{% url 'project_app:security_policy' project.owner.username project.slug %}">Security policy</a>
     <a class="nav-link {% if active_tab == 'advisories' %}active{% endif %}"
-       href="{% url 'user_projects:security_advisories' project.owner.username project.slug %}">Advisories</a>
+       href="{% url 'project_app:security_advisories' project.owner.username project.slug %}">Advisories</a>
     <a class="nav-link {% if active_tab == 'dependencies' %}active{% endif %}"
-       href="{% url 'user_projects:dependency_graph' project.owner.username project.slug %}">Dependencies</a>
+       href="{% url 'project_app:dependency_graph' project.owner.username project.slug %}">Dependencies</a>
 </nav>

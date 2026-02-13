@@ -11,7 +11,7 @@ Click any module link → /guest-<16-random-chars>/default/<module>/
 Examples:
 /guest-a9Kf3xL8pQ2mN7vR/default/writer/
 /guest-a9Kf3xL8pQ2mN7vR/default/scholar/
-/guest-a9Kf3xL8pQ2mN7vR/default/code/
+/guest-a9Kf3xL8pQ2mN7vR/default/console/
 /guest-a9Kf3xL8pQ2mN7vR/default/viz/
 ```
 
@@ -22,7 +22,7 @@ Within project → /<username>/<project>/<module>/
 Examples:
 /ywatanabe1989/neurovista-analysis/writer/
 /ywatanabe1989/neurovista-analysis/scholar/
-/ywatanabe1989/neurovista-analysis/code/
+/ywatanabe1989/neurovista-analysis/console/
 /ywatanabe1989/neurovista-analysis/viz/
 ```
 
@@ -33,7 +33,7 @@ Click module link → /<module>/ (landing page)
 Examples:
 /writer/  → Writer marketing page
 /scholar/ → Scholar marketing page
-/code/    → Code marketing page
+/console/    → Code marketing page
 /viz/     → Viz marketing page
 ```
 

@@ -47,12 +47,12 @@
 
 .badge-primary {
   color: var(--text-inverse);
-  background-color: var(--_scitex-02); /* Navy: #34495e */
+  background-color: var(--_scitex-02); /* Dark gray: #3a3a3a */
 }
 
 .badge-secondary {
   color: var(--text-inverse);
-  background-color: var(--_scitex-04); /* Blue-gray: #6c8ba0 */
+  background-color: var(--_scitex-04); /* Medium gray: #777777 */
 }
 
 .badge-light {
@@ -87,12 +87,12 @@
 
 [data-theme="dark"] .badge-primary {
   color: var(--_scitex-07);
-  background-color: var(--_scitex-02); /* Navy: #34495e */
+  background-color: var(--_scitex-02); /* Dark gray: #3a3a3a */
 }
 
 [data-theme="dark"] .badge-secondary {
   color: var(--_scitex-07);
-  background-color: var(--_scitex-04); /* Blue-gray: #6c8ba0 */
+  background-color: var(--_scitex-04); /* Medium gray: #777777 */
 }
 
 [data-theme="dark"] .badge-light {

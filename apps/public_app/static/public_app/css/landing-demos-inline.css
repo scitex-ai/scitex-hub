@@ -227,7 +227,7 @@
   top: 0.75rem;
   right: 0.75rem;
   background: var(--warning-color);
-  color: white;
+  color: var(--text-inverse);
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
   font-size: 0.625rem;
@@ -315,7 +315,7 @@
 }
 
 .local-demo-code {
-  background: var(--color-canvas-subtle, #f6f8fa);
+  background: var(--color-canvas-subtle, #f3f2f0);
   border: 1px solid var(--color-border-default, #d0d7de);
   border-radius: 8px;
   padding: 1rem 1.25rem;

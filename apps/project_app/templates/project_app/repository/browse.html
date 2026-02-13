@@ -1,8 +1,9 @@
 {% extends 'global_base.html' %}
+
 {% load static %}
+
 {% block extra_css %}
-    <link rel="stylesheet"
-          href="{% static 'project_app/css/project_app.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/project_app.css' %}" />
     <!-- Browse CSS Modules - Refactored 2025-11-28 -->
     <link rel="stylesheet"
           href="{% static 'project_app/css/repository/browse/container-header.css' %}?v=20251129" />
@@ -31,12 +32,14 @@
     <link rel="stylesheet"
           href="{% static 'project_app/css/repository/browse/toolbar.css' %}" />
     <!-- Shared CSS -->
-    <link rel="stylesheet"
-          href="{% static 'project_app/css/shared/sidebar.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/shared/sidebar.css' %}" />
     <link rel="stylesheet"
           href="{% static 'project_app/css/shared/file-tree/index.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/shared/buttons.css' %}" />
     <link rel="stylesheet"
-          href="{% static 'project_app/css/shared/buttons.css' %}" />
+          href="{% static 'shared/css/components/workspace-files-tree/hidden-files-toggle.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/file_browser.css' %}" />
 {% endblock %}
 {% block content %}
     <div class="container-fluid browse-container">

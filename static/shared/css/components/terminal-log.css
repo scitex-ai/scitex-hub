@@ -28,15 +28,15 @@
 
 /* Dark theme specific overrides */
 [data-theme="dark"] .terminal-log {
-  background: #0a0f1a;
+  background: var(--terminal-bg);
   border-color: var(--border-500);
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 /* Light theme specific overrides */
 [data-theme="light"] .terminal-log {
-  background: #f8f9fa;
-  color: #2d5016;
+  background: var(--bg-muted);
+  color: var(--status-success);
   border-color: var(--border-200);
 }
 
@@ -175,12 +175,12 @@
   color: #5dcfe3;
 }
 .ansi-bright-white {
-  color: var(--color-fg-emphasis, #ffffff);
+  color: var(--color-fg-emphasis, var(--text-inverse));
 }
 
 /* Light theme ANSI overrides */
 [data-theme="light"] .ansi-black {
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 [data-theme="light"] .ansi-red {
   color: #cd3131;
@@ -205,7 +205,7 @@
 }
 
 [data-theme="light"] .ansi-bright-black {
-  color: #666666;
+  color: var(--text-muted);
 }
 [data-theme="light"] .ansi-bright-red {
   color: #e03838;
@@ -226,7 +226,7 @@
   color: #11a8cd;
 }
 [data-theme="light"] .ansi-bright-white {
-  color: #2a2a2a;
+  color: var(--text-primary);
 }
 
 /* Terminal Log Container Wrapper */

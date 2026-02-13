@@ -160,27 +160,15 @@
   align-items: center;
   transition: color 0.3s ease;
   /* Default state: Red (unfulfilled) */
-  color: #dc3545;
-}
-
-[data-theme="dark"] .password-rule {
-  color: #ff6b6b;
+  color: var(--status-error);
 }
 
 .password-rule.valid {
-  color: #28a745;
-}
-
-[data-theme="dark"] .password-rule.valid {
-  color: #51cf66;
+  color: var(--status-success);
 }
 
 .password-rule.invalid {
-  color: #dc3545;
-}
-
-[data-theme="dark"] .password-rule.invalid {
-  color: #ff6b6b;
+  color: var(--status-error);
 }
 
 .password-rule i {

@@ -9,8 +9,8 @@
   top: 16px;
   right: 16px;
   width: 280px;
-  background: var(--workspace-bg-secondary, #151515);
-  border: 1px solid var(--workspace-border-default, #3a3a3a);
+  background: var(--workspace-bg-secondary);
+  border: 1px solid var(--workspace-border-default);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
   animation: panelSlideIn 0.2s ease-out;
 }
@@ -31,34 +31,34 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px;
-  background: var(--workspace-bg-tertiary, #1a1a1a);
-  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
+  background: var(--workspace-bg-tertiary);
+  border-bottom: 1px solid var(--workspace-border-default);
 }
 
 .node-details-header h6 {
   margin: 0;
   font-size: 12px;
   font-weight: 600;
-  color: var(--text-primary, #d4e1e8);
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
 .node-details-header h6 i {
-  color: var(--workspace-icon-primary, #059669);
+  color: var(--workspace-icon-primary);
 }
 
 .btn-close-panel {
   background: none;
   border: none;
-  color: var(--text-muted, #6c8ba0);
+  color: var(--text-muted);
   cursor: pointer;
   padding: 4px;
 }
 
 .btn-close-panel:hover {
-  color: var(--text-primary, #d4e1e8);
+  color: var(--text-primary);
 }
 
 .node-details-content {
@@ -68,14 +68,14 @@
 .detail-title {
   font-size: 13px;
   font-weight: 500;
-  color: var(--text-primary, #d4e1e8);
+  color: var(--text-primary);
   margin-bottom: 8px;
   line-height: 1.4;
 }
 
 .detail-authors {
   font-size: 12px;
-  color: var(--text-muted, #6c8ba0);
+  color: var(--text-muted);
   margin-bottom: 8px;
   line-height: 1.5;
 }
@@ -83,18 +83,18 @@
 .detail-year,
 .detail-score {
   font-size: 12px;
-  color: var(--text-secondary, #a0b3c0);
+  color: var(--text-secondary);
   margin-bottom: 4px;
 }
 
 .detail-score strong {
-  color: var(--workspace-icon-primary, #059669);
+  color: var(--workspace-icon-primary);
 }
 
 .detail-doi {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid var(--workspace-border-default, #3a3a3a);
+  border-top: 1px solid var(--workspace-border-default);
 }
 
 .detail-doi a {
@@ -102,7 +102,7 @@
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: var(--workspace-icon-primary, #059669);
+  color: var(--workspace-icon-primary);
   text-decoration: none;
 }
 

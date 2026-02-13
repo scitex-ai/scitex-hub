@@ -39,11 +39,11 @@
 }
 
 .icon-folder {
-  color: #54aeff;
+  color: var(--color-cta);
 }
 
 .icon-file {
-  color: #57606a;
+  color: var(--text-muted);
 }
 
 /* Icon hover states */
@@ -86,15 +86,15 @@ button:hover .octicon,
 }
 
 .status-icon.success {
-  color: #1a7f37;
+  color: var(--status-success);
 }
 
 .status-icon.error {
-  color: #d1242f;
+  color: var(--status-error);
 }
 
 .status-icon.warning {
-  color: #bf8700;
+  color: var(--status-warning);
 }
 
 /* Button icons */

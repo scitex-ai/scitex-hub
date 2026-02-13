@@ -19,7 +19,7 @@
 }
 
 .alert-content {
-  background: var(--bg-secondary, #f8f9fa);
+  background: var(--bg-muted);
   padding: 1.5rem;
   border-radius: 0.375rem;
 }

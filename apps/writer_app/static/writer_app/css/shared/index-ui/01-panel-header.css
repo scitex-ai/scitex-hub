@@ -52,10 +52,10 @@
 
 .panel-header i {
   color: var(--workspace-icon-primary); /* Green icon color matching vis */
-  font-size: 0.85rem;
+  font-size: 14px;
 }
 
-.panel-header span {
+.panel-header span:not(.panel-title) {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -94,4 +94,3 @@
 .panel-toggle-btn i {
   font-size: 0.7rem;
 }
-

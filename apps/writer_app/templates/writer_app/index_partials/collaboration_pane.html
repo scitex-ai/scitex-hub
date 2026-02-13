@@ -1,7 +1,9 @@
 <!-- Collaboration View (matches History panel structure) -->
 <div id="collaboration-view" class="right-panel-view" hidden>
     <!-- Collaboration Panel Header (hidden template - content copied to shared header) -->
-    <div class="panel-header panel-header-template collab-panel-header" id="collaboration-panel-header" style="display: none">
+    <div class="panel-header panel-header-template collab-panel-header"
+         id="collaboration-panel-header"
+         style="display: none">
         <div class="header-left">
             {% include "writer_app/index_partials/panel_view_switcher.html" with active_view="collaboration" %}
         </div>
@@ -12,92 +14,117 @@
             </button>
         </div>
     </div>
-
-    <!-- Collaboration Content - Modernized -->
+    <!-- Collaboration Content - Three collapsible cards -->
     <div class="collaboration-panel-container">
-
-        <!-- Compact Invite Bar -->
-        <div class="collab-section-compact invite-bar">
-            <div class="input-group input-group-sm">
-                <span class="input-group-text">
-                    <i class="fas fa-user-plus"></i>
-                </span>
-                <input type="text"
-                       id="invite-username"
-                       class="form-control invite-input"
-                       placeholder="Invite collaborator...">
-                <select id="invite-role" class="form-select invite-role-select">
-                    <option value="editor">Edit</option>
-                    <option value="viewer">View</option>
-                    <option value="admin">Admin</option>
-                </select>
-                <button id="send-invite-btn" class="btn collab-invite-send-btn" type="button">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
-            </div>
-            <div id="pending-invitations" class="pending-invites-compact"></div>
-        </div>
-
-        <!-- Two Column Layout -->
-        <div class="collab-two-column">
-            <!-- Left Column: People -->
-            <div class="collab-column">
-                <!-- Collaborators -->
-                <div class="collab-section-modern">
-                    <div class="section-title-modern">
-                        <i class="fas fa-users"></i>
-                        <span>Collaborators</span>
-                    </div>
+        <div class="collab-cards" id="collab-cards-content">
+            <!-- Card 1: Collaborators -->
+            <div class="details-section" data-section="collab-collaborators">
+                <div class="details-section__header">
+                    <h6 class="details-section__title">
+                        <i class="fas fa-users"></i> Collaborators
+                        <span class="collab-user-count" id="collab-user-count"></span>
+                    </h6>
+                    <i class="fas fa-chevron-down details-section__toggle"></i>
+                </div>
+                <div class="details-section__content collab-section-body collab-collaborators-body">
                     <div id="collaborators-list-main" class="collaborators-grid"></div>
+                    <div class="collab-invite-inline">
+                        <div id="pending-invitations" class="pending-invites-compact"></div>
+                        <div class="input-group input-group-sm">
+                            <input type="text"
+                                   id="invite-username"
+                                   class="form-control invite-input"
+                                   placeholder="@username or email address" />
+                            <select id="invite-role" class="form-select invite-role-select">
+                                <option value="editor">Edit</option>
+                                <option value="viewer">View</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                            <button id="send-invite-btn" class="btn collab-invite-send-btn" type="button">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <!-- Right Column: Communication -->
-            <div class="collab-column">
-                <!-- Chat -->
-                <div class="collab-section-modern chat-modern">
-                    <div class="section-title-modern">
-                        <i class="fas fa-comments"></i>
-                        <span>Chat</span>
-                        <button id="clear-chat-btn" class="btn-icon-sm">
+            <!-- Card 2: Chat -->
+            <div class="details-section" data-section="collab-chat">
+                <div class="details-section__header">
+                    <h6 class="details-section__title">
+                        <i class="fas fa-comments"></i> Chat
+                    </h6>
+                    <div class="collab-section-actions">
+                        <button id="clear-chat-btn" class="btn-icon-sm" title="Clear chat">
                             <i class="fas fa-trash-alt"></i>
                         </button>
+                        <i class="fas fa-chevron-down details-section__toggle"></i>
                     </div>
+                </div>
+                <div class="details-section__content collab-section-body collab-chat-body">
                     <div id="chat-messages" class="chat-messages-modern"></div>
                     <div class="chat-input-modern">
-                        <textarea id="chat-input"
-                                  placeholder="Message... (Ctrl+Enter)"
-                                  rows="1"></textarea>
+                        <textarea id="chat-input" placeholder="Message... (Ctrl+Enter)" rows="1"></textarea>
                         <button id="send-chat-btn" class="btn-send-modern">
                             <i class="fas fa-paper-plane"></i>
                         </button>
                     </div>
                 </div>
-
-                <!-- Activity -->
-                <div class="collab-section-modern activity-modern">
-                    <div class="section-title-modern">
-                        <i class="fas fa-stream"></i>
-                        <span>Activity</span>
-                        <button id="clear-activity-btn" class="btn-icon-sm">
+            </div>
+            <!-- Card 3: Activity -->
+            <div class="details-section" data-section="collab-activity">
+                <div class="details-section__header">
+                    <h6 class="details-section__title">
+                        <i class="fas fa-stream"></i> Activity
+                    </h6>
+                    <div class="collab-section-actions">
+                        <button id="clear-activity-btn" class="btn-icon-sm" title="Clear activity">
                             <i class="fas fa-trash-alt"></i>
                         </button>
+                        <i class="fas fa-chevron-down details-section__toggle"></i>
                     </div>
+                </div>
+                <div class="details-section__content collab-section-body collab-activity-body">
                     <div id="activity-feed" class="activity-feed-modern"></div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+<script>
+// Collaboration panel section toggle with localStorage persistence
+(function() {
+    const STORAGE_KEY = "writer-collab-sections";
 
-<!-- Collaboration pane styles now in /static/shared/css/collaboration/ (modular) -->
+    function loadStates() {
+        try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); }
+        catch { return {}; }
+    }
 
-<!--
-    DEPRECATED: Inline script moved to TypeScript module for proper initialization
-    See: apps/writer_app/static/writer_app/ts/collaboration-panel.ts
-    Initialization is now called from index.ts after the collaboration view is shown
+    function saveState(sectionId, collapsed) {
+        const states = loadStates();
+        states[sectionId] = collapsed;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(states));
+    }
 
-    The inline script has been completely replaced with a proper TypeScript module.
-    All collaborators list initialization, chat functionality, and activity feed logic
-    is now handled in the TypeScript module system.
--->
+    // Restore saved states on load
+    const saved = loadStates();
+    document.querySelectorAll("#collab-cards-content .details-section[data-section]").forEach(function(section) {
+        const id = section.getAttribute("data-section");
+        if (id && saved[id] !== undefined) {
+            section.classList.toggle("collapsed", saved[id]);
+        }
+    });
+
+    // Attach click handlers
+    document.querySelectorAll("#collab-cards-content .details-section__header").forEach(function(header) {
+        header.addEventListener("click", function(e) {
+            // Don't toggle when clicking action buttons
+            if (e.target.closest(".btn-icon-sm")) return;
+            var section = header.closest(".details-section");
+            section.classList.toggle("collapsed");
+            var id = section.getAttribute("data-section");
+            if (id) saveState(id, section.classList.contains("collapsed"));
+        });
+    });
+})();
+</script>

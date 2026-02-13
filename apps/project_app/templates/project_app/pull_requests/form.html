@@ -15,13 +15,13 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item">
-                    <a href="{% url 'user_projects:user_profile' project.owner.username %}">{{ project.owner.username }}</a>
+                    <a href="{% url 'project_app:user_profile' project.owner.username %}">{{ project.owner.username }}</a>
                 </li>
                 <li class="breadcrumb-item">
-                    <a href="{% url 'user_projects:detail' project.owner.username project.slug %}">{{ project.name }}</a>
+                    <a href="{% url 'project_app:detail' project.owner.username project.slug %}">{{ project.name }}</a>
                 </li>
                 <li class="breadcrumb-item">
-                    <a href="{% url 'user_projects:pr_list' project.owner.username project.slug %}">Pull requests</a>
+                    <a href="{% url 'project_app:pr_list' project.owner.username project.slug %}">Pull requests</a>
                 </li>
                 <li class="breadcrumb-item active">New</li>
             </ol>
@@ -127,7 +127,7 @@
                     </div>
                 </div>
                 <div class="d-flex justify-content-between">
-                    <a href="{% url 'user_projects:pr_list' project.owner.username project.slug %}"
+                    <a href="{% url 'project_app:pr_list' project.owner.username project.slug %}"
                        class="btn btn-secondary">Cancel</a>
                     <button type="submit" class="btn btn-success">
                         <i class="bi bi-check-circle"></i> Create pull request

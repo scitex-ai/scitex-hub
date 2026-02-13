@@ -45,7 +45,7 @@
 <!-- Repositories (Advanced) -->
 <div class="settings-nav-section">
     <div class="settings-nav-header">Repositories</div>
-    <a href="{% url 'user_projects:repository_maintenance' username=user.username %}"
+    <a href="{% url 'project_app:repository_maintenance' username=user.username %}"
        class="settings-nav-item {% if active == 'repository_maintenance' %}active{% endif %}">
         <i class="fas fa-tools"></i>
         <span>Maintenance</span>

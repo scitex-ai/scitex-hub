@@ -15,12 +15,13 @@
   align-items: center;
   justify-content: center;
   font-size: 3rem;
-  color: white;
+  color: var(--text-inverse);
   margin: 0 auto 1rem;
 }
 
 .profile-section {
-  background-color: white;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-default);
   border-radius: 8px;
   padding: 2rem;
   margin-bottom: 2rem;
@@ -33,7 +34,7 @@
 
 .profile-label {
   font-weight: 600;
-  color: var(--scitex-color-02);
+  color: var(--text-primary);
   margin-bottom: 0.5rem;
 }
 
@@ -64,11 +65,11 @@
 .stats-number {
   font-size: 2rem;
   font-weight: bold;
-  color: var(--scitex-color-02);
+  color: var(--text-primary);
 }
 
 .stats-label {
-  color: var(--scitex-color-03);
+  color: var(--text-secondary);
   font-size: 0.9rem;
 }
 
@@ -157,17 +158,17 @@
 }
 
 .stats-card-collaborations .stats-number {
-  color: #333;
+  color: var(--text-primary);
 }
 
 .stats-card-collaborations .stats-label {
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .stats-card-collaborations .stats-breakdown {
   margin-top: 0.5rem;
   font-size: 0.85rem;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .stats-quick-actions {

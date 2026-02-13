@@ -1,13 +1,14 @@
 {% extends "scholar_app/scholar_base.html" %}
+
 {% load static vite %}
-{%block title%}
-    SciTeX Scholar - Literature Search
-{% endblock %}
+
+{% block title %}SciTeX Scholar - Literature Search{% endblock %}
 {% block extra_css %}
     {{ block.super }}
     <link rel="stylesheet" href="{% static 'shared/css/common.css' %}" />
     <link rel="stylesheet" href="{% static 'scholar_app/css/index.css' %}" />
-    <link rel="stylesheet" href="{% static 'scholar_app/css/scholar-search-inline.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'scholar_app/css/scholar-search-inline.css' %}" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.css"
           rel="stylesheet" />
 {% endblock %}
@@ -16,20 +17,19 @@
         {% include "scholar_app/search_partials/search.html" with show_results=True %}
     </div>
     <!-- Configuration for JavaScript -->
-    <div id="scholar-config-data"
-         data-bibtex-upload-url="{% url 'scholar_app:bibtex_upload' %}"
-         data-resource-status-url="{% url 'scholar_app:bibtex_resource_status' %}"
-         data-scitex-search-url="{% url 'scholar_app:api_scitex_search' %}"
-         data-scitex-capabilities-url="{% url 'scholar_app:api_scitex_capabilities' %}"
-         data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}"
-         data-user-projects='[{% for project in user_projects %}{"id": {{ project.id }}, "name": "{{ project.name|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]'
-         data-current-project='{% if current_project %}{"id": {{ current_project.id }}, "name": "{{ current_project.name|escapejs }}"}{% else %}null{% endif %}'
-         {% if query and results %}
-         data-search-results='[{% for result in results %}{"title": "{{ result.title|escapejs }}", "year": {% if result.year %}{{ result.year }}{% else %}null{% endif %}, "citations": {% if result.citations %}{{ result.citations }}{% else %}0{% endif %}, "impact_factor": {% if result.impact_factor %}{{ result.impact_factor }}{% else %}null{% endif %}, "authors": "{{ result.authors|escapejs }}", "journal": "{{ result.journal|escapejs }}", "url": "{{ result.url|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}]'
-         {% endif %}>
-    </div>
-    {% vite_script 'scholar_app/scholar-config' %}
-    <script>
+    <div id="scholar-config-data" data-bibtex-upload-url="{% url 'scholar_app:bibtex_upload' %}" data-resource-status-url="{% url 'scholar_app:bibtex_resource_status' %}" data-scitex-search-url="{% url 'scholar_app:api_scitex_search' %}" data-scitex-capabilities-url="{% url 'scholar_app:api_scitex_capabilities' %}" data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}" data-user-projects='[{% for project in user_projects %}{"id": {{ project.id }}, "name": "{{ project.name|escapejs }}"}
+        {% if not forloop.last %},{% endif %}
+    {% endfor %}
+    ]' data-current-project='{% if current_project %}{"id": {{ current_project.id }}, "name": "{{ current_project.name|escapejs }}"}
+{% else %}
+    null
+{% endif %}
+' {% if query and results %} data-search-results='[{% for result in results %}{"title": "{{ result.title|escapejs }}", "year": {% if result.year %}{{ result.year }}{% else %}null{% endif %}, "citations": {% if result.citations %}{{ result.citations }}{% else %}0{% endif %}, "impact_factor": {% if result.impact_factor %}{{ result.impact_factor }}{% else %}null{% endif %}, "authors": "{{ result.authors|escapejs }}", "journal": "{{ result.journal|escapejs }}", "url": "{{ result.url|escapejs }}"}
+{% if not forloop.last %},{% endif %}
+{% endfor %}
+]' {% endif %}></div>
+{% vite_script 'scholar_app/scholar-config' %}
+<script>
     // Initialize SCHOLAR_SEARCH_RESULTS from data attribute
     (function() {
         const configEl = document.getElementById('scholar-config-data');
@@ -42,12 +42,11 @@
             }
         }
     })();
-    </script>
+</script>
 {% endblock %}
 {% block details_content %}
     {% include "scholar_app/search_partials/search_controls.html" %}
 {% endblock %}
-
 {% block extra_js %}
     {{ block.super }}
     <!-- Common Scripts -->
@@ -66,6 +65,7 @@
     {% vite_script 'scholar_app/common/scholar-index-main' %}
     {% vite_script 'scholar_app/search/seekbar-integration' %}
     {% vite_script 'scholar_app/search/search-ui' %}
+    {% vite_script 'scholar_app/search/paper-actions' %}
     <!-- Initialization Scripts -->
     {% vite_script 'scholar_app/init/swarm-plots-init' %}
 {% endblock %}

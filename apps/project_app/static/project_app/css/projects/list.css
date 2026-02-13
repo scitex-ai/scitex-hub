@@ -31,7 +31,7 @@
 .empty-state {
   text-align: center;
   padding: 3rem;
-  color: #666;
+  color: var(--text-muted);
 }
 
 .page-header {
@@ -42,8 +42,8 @@
 }
 
 .create-project-form {
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
+  background: var(--bg-muted);
+  border: 1px solid var(--border-muted);
   border-radius: 8px;
   padding: 1.5rem;
   margin-bottom: 2rem;

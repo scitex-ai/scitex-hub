@@ -51,13 +51,13 @@ def project_file_view(request, username, slug, file_path):
     # Check access
     if not check_project_read_access(request, project):
         messages.error(request, "You don't have permission to access this file.")
-        return redirect("user_projects:detail", username=username, slug=slug)
+        return redirect("project_app:detail", username=username, slug=slug)
 
     # Get file context
     result = get_file_context(request, username, slug, file_path)
     if result is None:
         messages.error(request, "File not found or invalid path.")
-        return redirect("user_projects:detail", username=username, slug=slug)
+        return redirect("project_app:detail", username=username, slug=slug)
 
     _, _, project_path, full_file_path = result
 
@@ -131,7 +131,7 @@ def _handle_view_mode(
 
     except Exception as e:
         messages.error(request, f"Error reading file: {e}")
-        return redirect("user_projects:detail", username=username, slug=slug)
+        return redirect("project_app:detail", username=username, slug=slug)
 
     breadcrumbs = build_breadcrumbs(project, username, slug, file_path)
 

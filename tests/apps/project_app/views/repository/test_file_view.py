@@ -80,7 +80,7 @@ if __name__ == "__main__":
 #         if mode in ("raw", "download"):
 #             raise Http404("Access denied")
 #         messages.error(request, "You don't have permission to access this file.")
-#         return redirect("user_projects:detail", username=username, slug=slug)
+#         return redirect("project_app:detail", username=username, slug=slug)
 # 
 #     # Get file path
 #     from apps.project_app.services.project_filesystem import (
@@ -94,7 +94,7 @@ if __name__ == "__main__":
 #         if mode in ("raw", "download"):
 #             raise Http404("Project directory not found")
 #         messages.error(request, "Project directory not found.")
-#         return redirect("user_projects:detail", username=username, slug=slug)
+#         return redirect("project_app:detail", username=username, slug=slug)
 # 
 #     full_file_path = project_path / file_path
 # 
@@ -105,12 +105,12 @@ if __name__ == "__main__":
 #             if mode in ("raw", "download"):
 #                 raise Http404("Invalid file path")
 #             messages.error(request, "Invalid file path.")
-#             return redirect("user_projects:detail", username=username, slug=slug)
+#             return redirect("project_app:detail", username=username, slug=slug)
 #     except Exception:
 #         if mode in ("raw", "download"):
 #             raise Http404("Invalid file path")
 #         messages.error(request, "Invalid file path.")
-#         return redirect("user_projects:detail", username=username, slug=slug)
+#         return redirect("project_app:detail", username=username, slug=slug)
 # 
 #     # Check if file exists and is a file
 #     if not full_file_path.exists() or not full_file_path.is_file():
@@ -118,7 +118,7 @@ if __name__ == "__main__":
 #         if mode in ("raw", "download"):
 #             raise Http404("File not found")
 #         messages.error(request, "File not found.")
-#         return redirect("user_projects:detail", username=username, slug=slug)
+#         return redirect("project_app:detail", username=username, slug=slug)
 # 
 #     # Get Git commit information for this file
 #     git_info = {}
@@ -389,7 +389,7 @@ if __name__ == "__main__":
 # 
 #     except Exception as e:
 #         messages.error(request, f"Error reading file: {e}")
-#         return redirect("user_projects:detail", username=username, slug=slug)
+#         return redirect("project_app:detail", username=username, slug=slug)
 # 
 #     # Build breadcrumb
 #     breadcrumbs = [{"name": project.name, "url": f"/{username}/{slug}/"}]

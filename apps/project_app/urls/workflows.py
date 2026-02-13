@@ -12,7 +12,7 @@ Note: Currently commented out pending Workflow model implementation.
 """
 
 
-# No app_name here - namespace is provided by parent (user_projects)
+# No app_name here - namespace is provided by parent (project_app)
 
 # TODO: Uncomment when Workflow models are implemented
 # from ..views.actions_views import (

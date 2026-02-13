@@ -100,9 +100,9 @@ make env=dev compile-ts
 
 Ensure vis_app still works with the shared module.
 
-### Step 5: Migrate code_app
+### Step 5: Migrate console_app
 
-Update code_app to use the shared module instead of its own implementation.
+Update console_app to use the shared module instead of its own implementation.
 
 ### Step 6: Clean up old files
 

@@ -51,7 +51,7 @@ LOCAL_APPS = [
     "apps.workspace_app.apps.CoreAppConfig",
     "apps.engine_app.apps.EngineAppConfig",
     "apps.scholar_app.apps.ScholarConfig",  # Fixed: Use scholar_app instead of scholar
-    "apps.code_app.apps.CodeAppConfig",
+    "apps.console_app.apps.ConsoleAppConfig",
     "apps.writer_app.apps.WriterAppConfig",
     "apps.viz_app.apps.VizAppConfig",
     "apps.cloud_app.apps.CloudAppConfig",

@@ -74,6 +74,19 @@ export function appendCompilationLog(
 
   // Auto-scroll to bottom
   log.scrollTop = log.scrollHeight;
+
+  // Mirror to Details panel (Preview or Full log)
+  const output = document.getElementById("compilation-output");
+  const logType = output?.getAttribute("data-log-type");
+  const detailsLogId =
+    logType === "preview" ? "details-preview-log" : "details-full-log";
+  const detailsLog = document.getElementById(detailsLogId);
+  if (detailsLog) {
+    const clone = lineDiv.cloneNode(true) as HTMLElement;
+    if (clone.id) clone.removeAttribute("id");
+    detailsLog.appendChild(clone);
+    detailsLog.scrollTop = detailsLog.scrollHeight;
+  }
 }
 
 /**

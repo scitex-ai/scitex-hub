@@ -16,7 +16,7 @@
 1. auth_app - Authentication
 2. billing_app - Subscriptions
 3. cloud_app - Landing pages
-4. code_app - Code execution
+4. console_app - Code execution
 5. workspace_app - Core functionality
 6. dev_app - Design system (NEW)
 7. project_app - Project management
@@ -69,13 +69,13 @@ scitex-cloud/
 ## Known Issues (Non-Critical)
 
 1. **Module pages (500 errors)**
-   - /scholar/, /code/, /viz/, /writer/, /projects/
+   - /scholar/, /console/, /viz/, /writer/, /projects/
    - Need view implementations
    - Can iterate on these
 
 2. **Warnings**
    - cloud_app namespace duplication (non-critical)
-   - code_app missing apps.api (expected)
+   - console_app missing apps.api (expected)
    - auth_app has no urlpatterns (uses cloud_app auth)
 
 ## What Got Shipped (5 Commits)

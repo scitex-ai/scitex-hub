@@ -118,7 +118,7 @@ if __name__ == "__main__":
 # 
 #         return writer_views.project_writer(request, project.id)
 #     elif mode == "code":
-#         from apps.code_app import views as code_views
+#         from apps.console_app import views as code_views
 # 
 #         return code_views.project_code(request, project.id)
 #     elif mode == "viz":

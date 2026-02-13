@@ -78,7 +78,7 @@ const CONTEXT_SECTIONS: Record<AppContext, ShortcutSection[]> = {
       ],
     },
   ],
-  code: [
+  console: [
     {
       title: "Files",
       shortcuts: [
@@ -201,7 +201,7 @@ function detectContext(): AppContext {
   const path = window.location.pathname;
   if (path.startsWith("/files/")) return "files";
   if (path.startsWith("/scholar/")) return "scholar";
-  if (path.startsWith("/code/")) return "code";
+  if (path.startsWith("/console/")) return "code";
   if (path.startsWith("/vis/")) return "vis";
   if (path.startsWith("/writer/")) return "writer";
   return "global";
@@ -215,7 +215,7 @@ function getContextName(context: AppContext): string {
     global: "Global",
     files: "Files",
     scholar: "Scholar",
-    code: "Console",
+    console: "Console",
     vis: "Visualizer",
     writer: "Writer",
   };

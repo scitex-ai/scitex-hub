@@ -1,0 +1,244 @@
+{% extends "global_base.html" %}
+
+{% load static vite tree_preseed %}
+
+{% block title %}
+    Hub
+    {% if project %}- {{ project.name }}{% endif %}
+{% endblock %}
+{% block extra_css %}
+    <!-- Shared workspace components -->
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/workspace-files-tree.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/workspace-sidebar.css' %}" />
+    <link rel="stylesheet" href="{% static 'shared/css/components/panel-resizer.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/workspace-files-tree/hidden-files-toggle.css' %}" />
+    <!-- Browse CSS from project_app (reused for file browser) -->
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/container-header.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/branch-dropdown.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/icon-utilities.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/tab-navigation.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/file-browser-table.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/readme-rendering.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/action-buttons.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/split-dropdown.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/tabs.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/toolbar.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/shared/buttons.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/file_browser.css' %}" />
+    <!-- Hub specific styles -->
+    <link rel="stylesheet" href="{% static 'hub_app/css/hub.css' %}" />
+{% endblock %}
+{% block content %}
+    {% if current_project %}
+        <div id="workspace-project-config"
+             style="display: none"
+             data-username="{{ current_project.owner.username }}"
+             data-slug="{{ current_project.slug }}"
+             data-mode="hub"></div>
+    {% endif %}
+    <div class="hub-workspace">
+        <!-- Left Sidebar: File Tree -->
+        {% if current_project %}
+            <aside class="hub-sidebar workspace-sidebar" id="hub-sidebar">
+                {% include "global_base_partials/workspace/sidebar_header.html" %}
+                <div id="file-tree" class="sidebar-content">
+                    <div class="wft-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                    </div>
+                </div>
+            </aside>
+            <div class="panel-resizer"
+                 id="sidebar-resizer"
+                 data-panel-resizer
+                 data-storage-prefix="scitex-workspace-"
+                 data-target=".hub-sidebar"
+                 data-direction="left"
+                 data-min-width="40"
+                 data-default-width="250"
+                 data-storage-key="sidebar-width"
+                 data-collapse-key="scitex-workspace-sidebar-collapsed"
+                 data-toggle-btn="sidebar-toggle"></div>
+        {% endif %}
+        <!-- Main Area -->
+        <main class="hub-main">
+            {% if is_demo %}
+                <div class="alert alert-info mb-3">
+                    <i class="fas fa-info-circle"></i>
+                    Demo mode - Changes will not be saved after session expires
+                </div>
+            {% endif %}
+            {% if current_project %}
+                <!-- GitHub-style file browser (reusing project_app partials) -->
+                <div class="hub-browse-container">
+                    {% include 'project_app/repository/browse_partials/browse_header.html' %}
+                    {% include 'project_app/repository/browse_partials/browse_tabs.html' with active_tab='code' %}
+                    {% include 'project_app/repository/browse_partials/browse_empty_state.html' %}
+                    {% include 'project_app/repository/browse_partials/browse_file_browser.html' %}
+                    {% include 'project_app/repository/browse_partials/browse_readme.html' %}
+                </div>
+            {% else %}
+                <!-- No project selected: show projects overview -->
+                <div class="hub-content">
+                    <div class="hub-header mb-4">
+                        <h1>Your Projects</h1>
+                        {% if projects_count > 0 %}
+                            <p class="text-muted">{{ projects_count }} project{{ projects_count|pluralize }}</p>
+                        {% endif %}
+                    </div>
+                    {% if user_projects %}
+                        <div class="hub-section mb-4">
+                            <div class="projects-grid">
+                                {% for proj in user_projects %}
+                                    <div class="project-card">
+                                        <div class="project-card-header">
+                                            <h3>
+                                                <a href="/{{ proj.owner.username }}/{{ proj.slug }}/">{{ proj.name }}</a>
+                                            </h3>
+                                            <span class="badge badge-{{ proj.visibility }}">{{ proj.visibility }}</span>
+                                        </div>
+                                        <div class="project-card-body">
+                                            <p class="text-muted">{{ proj.description|truncatewords:20 }}</p>
+                                            <div class="project-meta">
+                                                {% if proj.primary_language %}<span class="language-badge">{{ proj.primary_language }}</span>{% endif %}
+                                                <span class="meta-item">
+                                                    <i class="fas fa-star"></i> {{ proj.projectstar_set.count }}
+                                                </span>
+                                                <span class="meta-item">Updated {{ proj.updated_at|timesince }} ago</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+            <!-- Secondary content: Activity + Quick Actions -->
+            <div class="hub-content hub-secondary-content">
+                <div class="hub-cards">
+                    <div class="hub-card">
+                        <div class="hub-card-header">
+                            <h2>
+                                <i class="fas fa-history"></i> Recent Activity
+                            </h2>
+                        </div>
+                        <div class="hub-card-body">
+                            {% if recent_activities %}
+                                <ul class="activity-list">
+                                    {% for activity in recent_activities %}
+                                        <li>
+                                            <span class="activity-icon">
+                                                {% if activity.activity_type == "commit" %}
+                                                    <i class="fas fa-code-branch"></i>
+                                                {% elif activity.activity_type == "star" %}
+                                                    <i class="fas fa-star"></i>
+                                                {% elif activity.activity_type == "follow" %}
+                                                    <i class="fas fa-user-plus"></i>
+                                                {% else %}
+                                                    <i class="fas fa-circle"></i>
+                                                {% endif %}
+                                            </span>
+                                            <span class="activity-text">{{ activity.description }}</span>
+                                            <span class="activity-time text-muted">{{ activity.created_at|timesince }} ago</span>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="text-muted">No recent activity</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="hub-card">
+                        <div class="hub-card-header">
+                            <h2>
+                                <i class="fas fa-bolt"></i> Quick Actions
+                            </h2>
+                        </div>
+                        <div class="hub-card-body">
+                            <div class="quick-actions">
+                                <a href="/writer/" class="action-btn">
+                                    <i class="fas fa-pen"></i> Writer
+                                </a>
+                                <a href="/vis/" class="action-btn">
+                                    <i class="fas fa-chart-bar"></i> Visualizer
+                                </a>
+                                <a href="/scholar/" class="action-btn">
+                                    <i class="fas fa-graduation-cap"></i> Scholar
+                                </a>
+                                <a href="/console/" class="action-btn">
+                                    <i class="fas fa-terminal"></i> Console
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <!-- Details resizer (auto-initialized via data attributes) -->
+        <div class="panel-resizer"
+             id="details-resizer"
+             data-panel-resizer
+             data-storage-prefix="scitex-hub-"
+             data-target=".hub-details"
+             data-direction="right"
+             data-min-width="40"
+             data-default-width="280"
+             data-storage-key="details-width"
+             data-collapse-key="hub-details-collapsed"
+             data-toggle-btn="details-toggle"></div>
+        <!-- Right Panel - Details -->
+        <aside class="hub-details collapsible-panel" id="hub-details">
+            <div class="details-header">
+                <button class="details-toggle panel-toggle-btn right-panel-toggle"
+                        id="details-toggle"
+                        title="Toggle details (Ctrl+Shift+D)">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <h5>
+                    <i class="fas fa-sliders-h"></i> Details
+                </h5>
+                <span class="panel-title">Details</span>
+            </div>
+            <div class="details-content" id="hub-details-content">
+                <p class="text-muted small">Select a file or project for details</p>
+            </div>
+        </aside>
+    </div>
+{% endblock %}
+{% block extra_js %}
+    {% vite_hmr_client %}
+    {% vite_script 'shared/workspace-panel-resizer' %}
+    {% tree_preseed_script current_project %}
+    {% vite_script 'shared/workspace-tree-init' %}
+    {% if current_project %}
+        <!-- Browse scripts (reused from project_app) -->
+        <div id="project-data"
+             style="display: none"
+             data-project-owner="{{ current_project.owner.username }}"
+             data-project-slug="{{ current_project.slug }}"></div>
+        <script>
+          window.SCITEX_PROJECT_DATA = {
+            owner: "{{ current_project.owner.username }}",
+            slug: "{{ current_project.slug }}",
+          };
+        </script>
+        {% vite_script 'project_app/repository/browse_toolbar' %}
+        {% vite_script 'project_app/repository/colorful-icons' %}
+        {% vite_script 'project_app/repository/file_browser_git_status' %}
+        {% vite_script 'project_app/repository/file_table_hidden_sync' %}
+    {% endif %}
+{% endblock %}

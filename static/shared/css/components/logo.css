@@ -52,11 +52,13 @@
   }
 }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .site-logo .logo-img {
-    filter: brightness(1.1);
-  }
+/* Light mode: invert white icons to dark */
+.header-logo-icon {
+  filter: invert(1);
+}
+
+[data-theme="dark"] .header-logo-icon {
+  filter: none;
 }
 
 /* Professional logo styling */

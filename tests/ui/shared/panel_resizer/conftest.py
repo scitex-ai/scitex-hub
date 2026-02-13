@@ -71,7 +71,7 @@ __all__ = [
 # Workspace configurations
 WORKSPACE_APPS = [
     {"name": "scholar", "url": "/scholar/", "sidebar": ".scholar-sidebar", "resizer": "#sidebar-resizer"},
-    {"name": "code", "url": "/code/", "sidebar": ".code-sidebar", "resizer": "#sidebar-resizer"},
+    {"name": "code", "url": "/console/", "sidebar": ".code-sidebar", "resizer": "#sidebar-resizer"},
     {"name": "vis", "url": "/vis/", "sidebar": ".vis-sidebar", "resizer": "#sidebar-resizer"},
     {"name": "writer", "url": "/writer/", "sidebar": ".writer-sidebar", "resizer": "#sidebar-resizer"},
 ]
@@ -229,7 +229,7 @@ def scholar_app():
 
 
 @pytest.fixture
-def code_app():
+def console_app():
     return WORKSPACE_APPS[1]
 
 

@@ -54,7 +54,7 @@ def discover_local_apps():
 #     return [
 #         "apps.accounts_app",
 #         "apps.auth_app",
-#         "apps.code_app",
+#         "apps.console_app",
 #         "apps.dev_app",
 #         "apps.docs_app",
 #         "apps.donations_app",
@@ -371,7 +371,7 @@ CELERY_RESULT_EXTENDED = True
 CELERY_TASK_ROUTES = {
     "apps.writer_app.tasks.*": {"queue": "ai_queue"},
     "apps.scholar_app.tasks.*": {"queue": "search_queue"},
-    "apps.code_app.tasks.*": {"queue": "compute_queue"},
+    "apps.console_app.tasks.*": {"queue": "compute_queue"},
     "apps.vis_app.tasks.*": {"queue": "vis_queue"},
 }
 
@@ -561,9 +561,9 @@ LOGGING = {
             "formatter": "standard",
             "level": "DEBUG",
         },
-        "code_app_file": {
+        "console_app_file": {
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": str(BASE_DIR / "logs" / "code_app.log"),
+            "filename": str(BASE_DIR / "logs" / "console_app.log"),
             "maxBytes": 5242880,
             "backupCount": 3,
             "formatter": "standard",
@@ -647,8 +647,8 @@ LOGGING = {
             "level": "DEBUG",
             "propagate": False,
         },
-        "apps.code_app": {
-            "handlers": ["code_app_file", "console"],
+        "apps.console_app": {
+            "handlers": ["console_app_file", "console"],
             "level": "DEBUG",
             "propagate": False,
         },

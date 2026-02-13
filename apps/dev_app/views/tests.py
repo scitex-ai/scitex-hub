@@ -228,7 +228,7 @@ class TestMonitorView(TemplateView):
         modules = [
             ("Scholar", "/scholar/"),
             ("Writer", "/writer/"),
-            ("Code", "/code/"),
+            ("Code", "/console/"),
             ("Vis", "/vis/"),
         ]
         for name, path in modules:

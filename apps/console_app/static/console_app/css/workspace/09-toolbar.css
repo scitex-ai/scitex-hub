@@ -1,0 +1,41 @@
+/* Toolbar - inline within editor-panel-top */
+.code-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+/* Editor panel unified top bar - matches terminal-panel-top and sidebar-header */
+.editor-panel-top {
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  background: var(--code-toolbar-bg);
+  border-bottom: 1px solid var(--code-border);
+  height: 50px;
+  min-height: 50px;
+  flex-shrink: 0;
+  overflow: hidden;
+  min-width: 0;
+  gap: 4px;
+}
+
+[data-theme="dark"] .editor-panel-top {
+  background: var(--workspace-bg-secondary) !important;
+  border-bottom-color: var(--workspace-border-default);
+}
+
+/* Vertical divider between file tabs and toolbar */
+.editor-bar-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--workspace-border-default, #3a3a3a);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+[data-theme="light"] .editor-bar-divider {
+  background: var(--code-border);
+}

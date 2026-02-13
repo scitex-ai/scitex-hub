@@ -64,7 +64,7 @@ def orcid_callback(request):
 
     # Get authorization code
     code = request.GET.get("code")
-    if not code:
+    if not console:
         error = request.GET.get("error", "Unknown error")
         messages.error(request, f"ORCID authorization failed: {error}")
         return redirect("integrations_app:dashboard")
@@ -149,7 +149,7 @@ def export_project_bib(request, project_id):
 
     except Exception as e:
         messages.error(request, f"Failed to export bibliography: {str(e)}")
-        return redirect("user_projects:detail", username=project.owner.username, slug=project.slug)
+        return redirect("project_app:detail", username=project.owner.username, slug=project.slug)
 
 
 # Slack Integration Views

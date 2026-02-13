@@ -1,4 +1,5 @@
 {% load static %}
+
 <!-- Radio buttons for initialization options -->
 <div style="display: flex; flex-direction: column; gap: 1rem">
     <!-- Option 1: Create new -->
@@ -71,16 +72,22 @@
             <div class="help-text">
                 Initializes the complete SciTeX ecosystem including:
                 <ul style="margin: 0.5rem 0 0 1.5rem; padding: 0; font-size: 0.9em">
-                    <li><strong>Writer:</strong> <code>scitex/writer/</code> for LaTeX manuscript editing with manuscript, supplementary, revision, and shared directories</li>
-                    <li><strong>Scholar:</strong> <code>scitex/scholar/</code> for bibliography management, BibTeX enrichment, and reference organization</li>
-                    <li><strong>Code & Viz:</strong> Required structure for code execution and visualization features</li>
+                    <li>
+                        <strong>Writer:</strong> <code>scitex/writer/</code> for LaTeX manuscript editing with manuscript, supplementary, revision, and shared directories
+                    </li>
+                    <li>
+                        <strong>Scholar:</strong> <code>scitex/scholar/</code> for bibliography management, BibTeX enrichment, and reference organization
+                    </li>
+                    <li>
+                        <strong>Code & Viz:</strong> Required structure for code execution and visualization features
+                    </li>
                 </ul>
                 <div style="margin-top: 0.5rem;
-                           padding: 0.5rem;
-                           background: var(--color-warning-bg, #fff3cd);
-                           border-left: 3px solid var(--color-warning, #ffc107);
-                           border-radius: 3px;
-                           font-size: 0.9em">
+                            padding: 0.5rem;
+                            background: var(--color-warning-bg, #fff3cd);
+                            border-left: 3px solid var(--color-warning, #ffc107);
+                            border-radius: 3px;
+                            font-size: 0.9em">
                     <strong>⚠️ Note:</strong> Without SciTeX initialization, Writer, Scholar, Code, and Viz features may not function properly.
                 </div>
             </div>
@@ -138,8 +145,7 @@
         {% endif %}
         Create token:
         <a href="https://github.com/settings/tokens" target="_blank">GitHub</a> |
-        <a href="https://gitlab.com/-/profile/personal_access_tokens"
-           target="_blank">GitLab</a>
+        <a href="https://gitlab.com/-/profile/personal_access_tokens" target="_blank">GitLab</a>
     </div>
 </div>
 <!-- Git URL Input (for Git cloning) -->
@@ -194,8 +200,8 @@
                     border-radius: 4px;
                     border-left: 3px solid #007acc">
             <div style="font-weight: 500; margin-bottom: 0.5rem">{{ template.name }}</div>
-            <div style="font-size: 0.9rem; color: #666; margin-bottom: 0.75rem">{{ template.use_case }}</div>
-            <div style="font-size: 0.85rem; color: #666">
+            <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem">{{ template.use_case }}</div>
+            <div style="font-size: 0.85rem; color: var(--text-muted)">
                 <strong>Features:</strong>
                 <ul style="margin: 0.5rem 0 0 1.5rem; padding: 0">
                     {% for feature in template.features %}<li>{{ feature }}</li>{% endfor %}
@@ -204,7 +210,7 @@
             <div style="margin-top: 0.5rem; font-size: 0.85rem">
                 <a href="{{ template.github_url }}"
                    target="_blank"
-                   style="color: #007acc">View template on GitHub →</a>
+                   style="color: var(--scitex-color-04)">View template on GitHub →</a>
             </div>
         </div>
     {% endfor %}

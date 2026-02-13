@@ -25,7 +25,7 @@
 #shortcuts-modal .modal-title {
   font-size: 14px;
   font-weight: 500;
-  color: var(--text-primary, #d4e1e8);
+  color: var(--text-primary, #e0e0e0);
 }
 
 #shortcuts-modal .modal-title i {
@@ -67,7 +67,7 @@
 #shortcuts-modal .table td {
   padding: 4px 0;
   vertical-align: middle;
-  color: var(--text-secondary, #8fa4b0);
+  color: var(--text-secondary, #999999);
   border: none;
 }
 
@@ -81,10 +81,10 @@
   display: inline-block;
   padding: 2px 6px;
   font-size: 10px;
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
   font-weight: 500;
   line-height: 1;
-  color: var(--text-primary, #d4e1e8);
+  color: var(--text-primary, #e0e0e0);
   background: var(--workspace-bg-secondary, #151515);
   border: 1px solid var(--workspace-border-default, #3a3a3a);
   border-radius: 3px;
@@ -95,12 +95,12 @@
 
 /* Close button */
 #shortcuts-modal .btn-close {
-  color: var(--text-muted, #6c8ba0);
+  color: var(--text-muted, #777777);
   opacity: 1;
 }
 
 #shortcuts-modal .btn-close:hover {
-  color: var(--text-primary, #d4e1e8);
+  color: var(--text-primary, #e0e0e0);
 }
 
 /* Responsive design */

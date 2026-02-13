@@ -34,7 +34,7 @@ if __name__ == "__main__":
 # 
 # Usage in templates:
 #   {% load vite %}
-#   {% vite_script 'code_app/workspace' %}
+#   {% vite_script 'console_app/workspace' %}
 # 
 # Note: In development, Vite dev server must be running (npm run dev).
 #       No fallback to tsc-compiled JS - keeps the system simple and predictable.
@@ -90,7 +90,7 @@ if __name__ == "__main__":
 #     In production (DEBUG=False): Load from Vite-built manifest
 # 
 #     Args:
-#         entry_name: Entry name like 'code_app/workspace'
+#         entry_name: Entry name like 'console_app/workspace'
 #     """
 #     if settings.DEBUG:
 #         # Development: Load from Vite dev server (HMR enabled)
@@ -139,7 +139,7 @@ if __name__ == "__main__":
 #     # Map entry names to actual TS file locations
 #     mappings = {
 #         # Code app
-#         'code_app/workspace': 'apps/code_app/static/code_app/ts/workspace.ts',
+#         'console_app/workspace': 'apps/console_app/static/console_app/ts/workspace.ts',
 #         # Vis app
 #         'vis_app/vis-editor': 'apps/vis_app/static/vis_app/ts/vis-editor.ts',
 #         'vis_app/editor-inline': 'apps/vis_app/static/vis_app/ts/editor-inline.ts',

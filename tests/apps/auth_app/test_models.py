@@ -219,7 +219,7 @@ if __name__ == "__main__":
 #         return f"{self.email} - {self.code}"
 # 
 #     def save(self, *args, **kwargs):
-#         if not self.code:
+#         if not self.console:
 #             self.code = self.generate_code()
 #         if not self.expires_at:
 #             self.expires_at = timezone.now() + timedelta(minutes=10)

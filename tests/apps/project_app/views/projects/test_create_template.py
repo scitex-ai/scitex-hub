@@ -49,7 +49,7 @@ if __name__ == "__main__":
 #     # Only project owner can create template
 #     if project.owner != request.user:
 #         messages.error(request, "Only project owner can create template structure.")
-#         return redirect("user_projects:detail", username=username, slug=slug)
+#         return redirect("project_app:detail", username=username, slug=slug)
 # 
 #     if request.method == "POST":
 #         # Create template structure
@@ -72,10 +72,10 @@ if __name__ == "__main__":
 #         except Exception as e:
 #             messages.error(request, f"Failed to create template structure: {str(e)}")
 # 
-#         return redirect("user_projects:detail", username=username, slug=slug)
+#         return redirect("project_app:detail", username=username, slug=slug)
 # 
 #     # GET request - show confirmation page or redirect
-#     return redirect("user_projects:detail", username=username, slug=slug)
+#     return redirect("project_app:detail", username=username, slug=slug)
 # 
 # 
 # # EOF

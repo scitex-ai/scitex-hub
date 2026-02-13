@@ -1,0 +1,268 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% block title %}PDF Compressor - Browser Tool | SciTeX{% endblock %}
+{% block meta_description %}
+    Reduce PDF file size while maintaining quality. Perfect for email attachments and uploads.
+{% endblock %}
+{% block head_extra %}
+    {% load static %}
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+{% endblock %}
+{% block extra_css %}
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .tool-detail-container {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--workspace-bg-monaco);
+        }
+
+        .tool-breadcrumb {
+            font-size: 0.8rem;
+            margin-bottom: 12px;
+            padding: 12px 24px 0 24px;
+        }
+
+        .tool-breadcrumb a {
+            color: var(--workspace-text-link);
+            text-decoration: none;
+        }
+
+        .tool-header {
+            text-align: center;
+            padding: 24px 24px 16px 24px;
+        }
+
+        .tool-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--workspace-text-primary);
+        }
+
+        .tool-app-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 24px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .upload-zone {
+            border: 2px dashed var(--workspace-border-default);
+            border-radius: 4px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            background: var(--workspace-bg-monaco);
+            color: var(--workspace-text-muted);
+            transition: all 0.2s;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--workspace-text-secondary);
+            background: var(--workspace-bg-secondary);
+        }
+
+        .file-info {
+            background: var(--workspace-bg-secondary);
+            padding: 16px;
+            border-radius: 4px;
+            margin: 16px 0;
+            border: 1px solid var(--workspace-border-default);
+        }
+
+        .size-comparison {
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+            margin: 16px 0;
+        }
+
+        .size-box {
+            padding: 12px;
+        }
+
+        .size-label {
+            font-size: 11px;
+            color: var(--workspace-text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .size-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--workspace-text-link);
+        }
+
+        .compression-ratio {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--status-success);
+            margin-top: 8px;
+            text-align: center;
+        }
+
+        .btn {
+            padding: 3px 10px;
+            background: transparent;
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--workspace-text-primary);
+            transition: all 0.2s;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: var(--workspace-bg-secondary);
+            border-color: var(--workspace-text-secondary);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status-message {
+            text-align: center;
+            padding: 8px;
+            border-radius: 4px;
+            margin: 16px 0;
+            font-size: 11px;
+            background: var(--workspace-bg-secondary);
+        }
+
+        .status-message.info {
+            color: var(--workspace-text-secondary);
+        }
+
+        .status-message.success {
+            color: var(--status-success);
+        }
+
+        .status-message.error {
+            color: var(--status-error);
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="tool-detail-container">
+        {% if not embed %}
+            <div class="tool-breadcrumb">
+                <a href="{% url 'public_app:tools' %}">← Back to Tools</a>
+            </div>
+            <div class="tool-header">
+                <h1 class="tool-title">Compress PDF</h1>
+                <p style="font-size: 0.9rem; color: var(--workspace-text-secondary);">Reduce PDF file size for easier sharing</p>
+            </div>
+        {% endif %}
+        <div class="tool-app-container">
+            <div id="uploadZone" class="upload-zone">
+                <div style="font-size: 2rem;
+                            margin-bottom: 8px;
+                            color: var(--workspace-text-secondary)">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <div style="font-size: 0.9rem; color: var(--workspace-text-primary);">Drop PDF or click to upload</div>
+                <input type="file" id="fileInput" accept=".pdf" style="display: none" />
+            </div>
+            <div id="statusMessage"></div>
+            <div id="fileInfo" class="file-info" style="display: none;">
+                <div class="size-comparison">
+                    <div class="size-box">
+                        <div class="size-label">Original Size</div>
+                        <div class="size-value" id="originalSize">0</div>
+                    </div>
+                    <div class="size-box">
+                        <div style="font-size: 1.5rem; color: var(--workspace-text-secondary);">→</div>
+                    </div>
+                    <div class="size-box">
+                        <div class="size-label">Compressed Size</div>
+                        <div class="size-value" id="compressedSize">0</div>
+                    </div>
+                </div>
+                <div class="compression-ratio" id="compressionRatio"></div>
+            </div>
+            <div style="text-align: center; margin-top: 16px;">
+                <button id="downloadBtn" class="btn" style="display: none;">Download Compressed PDF</button>
+            </div>
+        </div>
+    </div>
+    <script>
+  const { PDFDocument } = PDFLib;
+  let compressedPdfBytes = null;
+  let originalFileName = '';
+
+  document.getElementById('uploadZone').addEventListener('click', () => document.getElementById('fileInput').click());
+
+  document.getElementById('fileInput').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file || file.type !== 'application/pdf') return;
+
+    originalFileName = file.name;
+    const originalSize = file.size;
+
+    showStatus('Compressing PDF...', 'info');
+
+    const arrayBuffer = await file.arrayBuffer();
+    const pdfDoc = await PDFDocument.load(arrayBuffer);
+
+    // Basic compression by re-saving
+    compressedPdfBytes = await pdfDoc.save({
+      useObjectStreams: true,
+      addDefaultPage: false,
+      objectsPerTick: 50
+    });
+
+    const compressedSize = compressedPdfBytes.length;
+    const reduction = ((originalSize - compressedSize) / originalSize * 100).toFixed(1);
+
+    document.getElementById('originalSize').textContent = formatSize(originalSize);
+    document.getElementById('compressedSize').textContent = formatSize(compressedSize);
+    document.getElementById('compressionRatio').textContent = `${reduction}% smaller`;
+
+    document.getElementById('fileInfo').style.display = 'block';
+    document.getElementById('downloadBtn').style.display = 'inline-block';
+
+    showStatus('PDF compressed successfully!', 'success');
+  });
+
+  document.getElementById('downloadBtn').addEventListener('click', () => {
+    const blob = new Blob([compressedPdfBytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const name = originalFileName.replace('.pdf', '');
+    a.download = `${name}-compressed.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+
+  function showStatus(message, type) {
+    const status = document.getElementById('statusMessage');
+    status.className = `status-message ${type}`;
+    status.textContent = message;
+    status.style.display = 'block';
+  }
+    </script>
+{% endblock %}

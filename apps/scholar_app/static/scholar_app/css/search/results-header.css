@@ -104,14 +104,14 @@
 
 /* Light theme overrides */
 [data-theme="light"] .toolbar-btn {
-  background: var(--bg-secondary, #f3f4f6);
-  border-color: var(--border-color, #d0d7de);
-  color: var(--text-secondary, #586069);
+  background: var(--workspace-bg-secondary);
+  border-color: var(--workspace-border-default);
+  color: var(--text-secondary);
 }
 
 [data-theme="light"] .toolbar-btn:hover {
-  background: var(--bg-tertiary, #e9ecef);
-  color: var(--text-primary, #1a2a40);
+  background: var(--workspace-bg-tertiary);
+  color: var(--text-primary);
 }
 
 /* BibTeX copy feedback toast */
@@ -155,13 +155,13 @@
 }
 
 [data-theme="light"] .results-limit-info {
-  background: var(--bg-secondary, #f8f9fa);
-  border-color: var(--border-color, #d0d7de);
-  border-left-color: var(--scitex-color-04, #4a6fa5);
+  background: var(--workspace-bg-secondary);
+  border-color: var(--workspace-border-default);
+  border-left-color: var(--text-muted);
 }
 
 [data-theme="light"] .limit-info-item {
-  color: var(--text-secondary, #586069);
+  color: var(--text-secondary);
 }
 
 /* Export Format Dropdown */
@@ -205,14 +205,14 @@
 }
 
 [data-theme="light"] .export-format-dropdown {
-  background: var(--bg-secondary, #f3f4f6);
-  border-color: var(--border-color, #d0d7de);
+  background: var(--workspace-bg-secondary);
+  border-color: var(--workspace-border-default);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 [data-theme="light"] .export-format-option:hover {
-  background: var(--bg-tertiary, #e9ecef);
-  color: var(--text-primary, #1a2a40);
+  background: var(--workspace-bg-tertiary);
+  color: var(--text-primary);
 }
 
 /* Position relative for dropdown container */
@@ -321,18 +321,18 @@
 }
 
 [data-theme="light"] .search-stepper {
-  background: #f8f9fa;
-  border-color: #d0d7de;
+  background: var(--workspace-bg-secondary);
+  border-color: var(--workspace-border-default);
 }
 
 [data-theme="light"] .stepper-circle {
-  background: #e2e8f0;
-  border-color: #cbd5e0;
-  color: #64748b;
+  background: var(--workspace-bg-tertiary);
+  border-color: var(--workspace-border-default);
+  color: var(--text-muted);
 }
 
 [data-theme="light"] .stepper-line {
-  background: #cbd5e0;
+  background: var(--workspace-border-default);
 }
 
 [data-theme="light"] .stepper-circle.active,
@@ -383,15 +383,15 @@
 }
 
 [data-theme="light"] .search-stats {
-  background: #f8f9fa;
-  border-color: #d0d7de;
-  color: #586069;
+  background: var(--workspace-bg-secondary);
+  border-color: var(--workspace-border-default);
+  color: var(--text-secondary);
 }
 
 [data-theme="light"] .search-stats .stats-count {
-  color: var(--workspace-icon-primary, #059669);
+  color: var(--workspace-icon-primary);
 }
 
 [data-theme="light"] .search-stats .stats-time {
-  color: #64748b;
+  color: var(--text-muted);
 }

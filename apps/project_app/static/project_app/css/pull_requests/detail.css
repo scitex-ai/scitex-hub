@@ -3,7 +3,7 @@
 /* ============================================================================= */
 
 .pr-header {
-  border-bottom: 1px solid #d0d7de;
+  border-bottom: 1px solid var(--border-muted, #c0c0c0);
   padding-bottom: 1rem;
   margin-bottom: 1.5rem;
 }
@@ -15,20 +15,20 @@
 }
 
 .pr-tabs .nav-link {
-  color: #57606a;
+  color: var(--text-muted, #555555);
   border: none;
   border-bottom: 2px solid transparent;
   padding: 0.5rem 1rem;
 }
 
 .pr-tabs .nav-link.active {
-  color: #24292f;
+  color: var(--text-primary, #1c1c1c);
   border-bottom-color: #fd8c73;
   font-weight: 600;
 }
 
 .pr-tabs .nav-link:hover {
-  border-bottom-color: #d0d7de;
+  border-bottom-color: var(--border-muted, #c0c0c0);
 }
 
 .timeline-item {
@@ -44,7 +44,7 @@
   top: 2rem;
   bottom: 0;
   width: 2px;
-  background-color: #d0d7de;
+  background-color: var(--border-muted, #c0c0c0);
 }
 
 .timeline-item:last-child::before {
@@ -60,20 +60,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #fff;
-  border: 2px solid #d0d7de;
+  background-color: var(--bg-surface);
+  border: 2px solid var(--border-muted);
 }
 
 .comment-box {
-  border: 1px solid #d0d7de;
+  border: 1px solid var(--border-muted, #c0c0c0);
   border-radius: 6px;
   overflow: hidden;
 }
 
 .comment-header {
-  background-color: #f6f8fa;
+  background-color: var(--workspace-bg-secondary, #f3f2f0);
   padding: 0.5rem 1rem;
-  border-bottom: 1px solid #d0d7de;
+  border-bottom: 1px solid var(--border-muted, #c0c0c0);
 }
 
 .comment-body {
@@ -81,18 +81,18 @@
 }
 
 .diff-file {
-  border: 1px solid #d0d7de;
+  border: 1px solid var(--border-muted, #c0c0c0);
   border-radius: 6px;
   margin-bottom: 1rem;
   overflow: hidden;
 }
 
 .diff-header {
-  background-color: #f6f8fa;
+  background-color: var(--workspace-bg-secondary, #f3f2f0);
   padding: 0.5rem 1rem;
   font-family: ui-monospace, monospace;
   font-size: 0.875rem;
-  border-bottom: 1px solid #d0d7de;
+  border-bottom: 1px solid var(--border-muted, #c0c0c0);
 }
 
 .diff-line {
@@ -103,18 +103,18 @@
 }
 
 .diff-line-add {
-  background-color: #e6ffec;
+  background-color: var(--status-success-bg);
 }
 
 .diff-line-remove {
-  background-color: #ffebe9;
+  background-color: var(--status-error-bg);
 }
 
 .merge-box {
-  border: 1px solid #d0d7de;
+  border: 1px solid var(--border-muted, #c0c0c0);
   border-radius: 6px;
   padding: 1rem;
-  background-color: #f6f8fa;
+  background-color: var(--workspace-bg-secondary, #f3f2f0);
 }
 
 .approval-status {

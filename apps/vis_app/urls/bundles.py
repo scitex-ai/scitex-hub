@@ -131,6 +131,17 @@ path_based_patterns = [
         api_views.render_pltz_by_path,
         name="api_pltz_render_by_path",
     ),
+    # Property update endpoints (fine-grained updates)
+    path(
+        "api/bundles/pltz/update-property/",
+        api_views.update_pltz_property,
+        name="api_pltz_update_property",
+    ),
+    path(
+        "api/bundles/pltz/batch-update-properties/",
+        api_views.batch_update_pltz_properties,
+        name="api_pltz_batch_update_properties",
+    ),
 ]
 
 # Gallery → Canvas → Bundle Flow (auto-save system)

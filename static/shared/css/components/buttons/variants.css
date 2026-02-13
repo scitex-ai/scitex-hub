@@ -32,27 +32,27 @@
 /* Primary Button - Main action (bright blue) */
 .btn-primary {
   background-color: var(--color-btn-primary-bg, #3b82f6);
-  color: var(--color-btn-primary-text, white);
+  color: var(--color-btn-primary-text, var(--text-inverse));
   border: 1px solid var(--color-btn-primary-border, #3b82f6);
 }
 
 .btn-primary:hover,
 .btn-primary:focus {
   background-color: var(--color-btn-primary-hover-bg, #60a5fa);
-  color: var(--color-btn-primary-text, white);
+  color: var(--color-btn-primary-text, var(--text-inverse));
 }
 
 /* Secondary Button - Alternative action (slate) */
 .btn-secondary {
   background-color: var(--scitex-color-02);
-  color: white;
+  color: var(--text-inverse);
   border: none;
 }
 
 .btn-secondary:hover,
 .btn-secondary:focus {
   background-color: var(--scitex-color-03);
-  color: white;
+  color: var(--text-inverse);
 }
 
 /* Light Button - Subtle action */
@@ -89,7 +89,7 @@
 /* Success Button */
 .btn-success {
   background-color: var(--success-color);
-  color: #fff;
+  color: var(--text-inverse);
   border: none;
 }
 
@@ -97,13 +97,13 @@
 .btn-success:focus {
   background-color: var(--_success);
   filter: brightness(0.85);
-  color: #fff;
+  color: var(--text-inverse);
 }
 
 /* Warning Button */
 .btn-warning {
   background-color: var(--warning-color);
-  color: #fff;
+  color: var(--text-inverse);
   border: none;
 }
 
@@ -111,14 +111,14 @@
 .btn-warning:focus {
   background-color: var(--warning-color);
   filter: brightness(0.85);
-  color: #fff;
+  color: var(--text-inverse);
 }
 
 /* Danger/Error Button */
 .btn-error,
 .btn-danger {
   background-color: var(--error-color);
-  color: #fff;
+  color: var(--text-inverse);
   border: none;
 }
 
@@ -128,13 +128,13 @@
 .btn-danger:focus {
   background-color: var(--error-color);
   filter: brightness(0.85);
-  color: #fff;
+  color: var(--text-inverse);
 }
 
 /* Info Button */
 .btn-info {
   background-color: var(--info-color);
-  color: #fff;
+  color: var(--text-inverse);
   border: none;
 }
 
@@ -142,7 +142,7 @@
 .btn-info:focus {
   background-color: var(--info-color);
   filter: brightness(0.85);
-  color: #fff;
+  color: var(--text-inverse);
 }
 
 /* =========================================
@@ -159,7 +159,7 @@
 .btn-outline-primary:hover,
 .btn-outline-primary:focus {
   background-color: var(--scitex-color-04);
-  color: white;
+  color: var(--text-inverse);
   border-color: var(--scitex-color-04);
 }
 
@@ -173,7 +173,7 @@
 .btn-outline-secondary:hover,
 .btn-outline-secondary:focus {
   background-color: var(--scitex-color-02);
-  color: white;
+  color: var(--text-inverse);
   border-color: var(--scitex-color-02);
 }
 
@@ -212,7 +212,7 @@
 /* GitHub Button - Black background with white text */
 .btn-github {
   background-color: #000000;
-  color: white;
+  color: var(--text-inverse);
   border: none;
   font-weight: 500;
 }
@@ -220,7 +220,7 @@
 .btn-github:hover,
 .btn-github:focus {
   background-color: #222222;
-  color: white;
+  color: var(--text-inverse);
 }
 
 .btn-github:disabled,

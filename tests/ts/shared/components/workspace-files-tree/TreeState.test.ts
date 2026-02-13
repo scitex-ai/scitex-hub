@@ -62,7 +62,7 @@ describe('TreeState', () => {
 //           targetPaths: new Set(parsed.targetPaths || []),
 //           scrollTop: parsed.scrollTop || 0,
 //           focusPathPerMode: parsed.focusPathPerMode || {
-//             code: null,
+//             console: null,
 //             vis: null,
 //             writer: null,
 //             scholar: null,
@@ -81,7 +81,7 @@ describe('TreeState', () => {
 //       targetPaths: new Set(),
 //       scrollTop: 0,
 //       focusPathPerMode: {
-//         code: null,
+//         console: null,
 //         vis: null,
 //         writer: null,
 //         scholar: null,
@@ -122,7 +122,7 @@ describe('TreeState', () => {
 //             targetPaths: new Set(parsed.targetPaths || []),
 //             scrollTop: parsed.scrollTop || 0,
 //             focusPathPerMode: parsed.focusPathPerMode || {
-//               code: null,
+//               console: null,
 //               vis: null,
 //               writer: null,
 //               scholar: null,
@@ -385,7 +385,7 @@ describe('TreeState', () => {
 //       targetPaths: new Set(),
 //       scrollTop: 0,
 //       focusPathPerMode: {
-//         code: null,
+//         console: null,
 //         vis: null,
 //         writer: null,
 //         scholar: null,

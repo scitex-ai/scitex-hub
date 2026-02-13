@@ -38,7 +38,7 @@ def reset_database():
         'apps/scholar/migrations',
         'apps/writer_app/migrations',
         'apps/viz_app/migrations',
-        'apps/code_app/migrations',
+        'apps/console_app/migrations',
         'apps/engine_app/migrations',
         'apps/monitoring_app/migrations'
     ]

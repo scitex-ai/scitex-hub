@@ -1,0 +1,91 @@
+/**
+ * Jobs Panel - Sections
+ * Job sections (Running, Pending, etc.)
+ */
+
+/* Job Section (Running, Pending, etc.) */
+.jobs-section {
+  margin-bottom: 12px;
+}
+
+.jobs-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: var(--hover-bg, rgba(0, 0, 0, 0.03));
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+}
+
+[data-theme="dark"] .jobs-section-header {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.jobs-section-header:hover {
+  background: var(--hover-bg, rgba(0, 0, 0, 0.05));
+}
+
+[data-theme="dark"] .jobs-section-header:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.jobs-section-icon {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.jobs-section-icon.running {
+  background: var(--status-success);
+}
+
+.jobs-section-icon.pending {
+  background: var(--status-warning);
+}
+
+.jobs-section-icon.completed {
+  background: var(--text-muted);
+}
+
+.jobs-section-icon.failed {
+  background: var(--status-error);
+}
+
+.jobs-section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary, #333);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+[data-theme="dark"] .jobs-section-title {
+  color: var(--text-primary, #e0e0e0);
+}
+
+.jobs-section-count {
+  font-size: 11px;
+  color: var(--text-secondary, #666);
+  margin-left: auto;
+}
+
+.jobs-section-chevron {
+  font-size: 10px;
+  color: var(--text-secondary, #666);
+  transition: transform 0.15s ease;
+}
+
+.jobs-section.collapsed .jobs-section-chevron {
+  transform: rotate(-90deg);
+}
+
+.jobs-section-items {
+  margin-top: 4px;
+  padding-left: 4px;
+}
+
+.jobs-section.collapsed .jobs-section-items {
+  display: none;
+}

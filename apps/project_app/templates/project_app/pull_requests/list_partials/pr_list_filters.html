@@ -47,7 +47,7 @@
         </a>
     </div>
     {% if can_create %}
-        <a href="{% url 'user_projects:pr_create' project.owner.username project.slug %}"
+        <a href="{% url 'project_app:pr_create' project.owner.username project.slug %}"
            class="btn btn-success">
             <svg width="16"
                  height="16"

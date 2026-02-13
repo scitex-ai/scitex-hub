@@ -7,23 +7,23 @@
 {% block auth_extra_css %}
     <style>
         .danger-zone {
-            border: 2px solid #dc3545;
+            border: 2px solid var(--status-error);
             border-radius: 8px;
             padding: 2rem;
-            background-color: #fff5f5;
+            background-color: var(--status-error-bg);
             margin-top: 2rem;
         }
 
         .danger-icon {
             font-size: 3rem;
-            color: #dc3545;
+            color: var(--status-error);
             text-align: center;
             margin-bottom: 1rem;
         }
 
         .warning-list {
-            background-color: #fff;
-            border-left: 4px solid #dc3545;
+            background-color: var(--bg-surface);
+            border-left: 4px solid var(--status-error);
             padding: 1rem;
             margin: 1rem 0;
         }

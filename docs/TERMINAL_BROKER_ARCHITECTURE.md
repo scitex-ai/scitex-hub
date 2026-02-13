@@ -75,10 +75,10 @@ TerminalConsumer.connect()
 
 | Component | File | Responsibility |
 |-----------|------|----------------|
-| Terminal Broker | `apps/code_app/services/terminal_broker.py` | Standalone process for PTY ops |
-| Terminal Client | `apps/code_app/services/terminal_client.py` | Async IPC client for consumers |
-| Management Command | `apps/code_app/management/commands/run_terminal_broker.py` | Start broker via Django |
-| Consumer | `apps/code_app/views/terminal/consumer.py` | WebSocket handler, uses client |
+| Terminal Broker | `apps/console_app/services/terminal_broker.py` | Standalone process for PTY ops |
+| Terminal Client | `apps/console_app/services/terminal_client.py` | Async IPC client for consumers |
+| Management Command | `apps/console_app/management/commands/run_terminal_broker.py` | Start broker via Django |
+| Consumer | `apps/console_app/views/terminal/consumer.py` | WebSocket handler, uses client |
 
 ### Communication Protocol
 

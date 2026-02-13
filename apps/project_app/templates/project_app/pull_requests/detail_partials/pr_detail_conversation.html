@@ -123,8 +123,8 @@
         <div class="mt-4">
             <h5>Leave a comment</h5>
             <form id="commentForm"
-                  data-comment-url="{% url 'user_projects:pr_comment_create' project.owner.username project.slug pr.number %}"
-                  data-review-url="{% url 'user_projects:pr_review_submit' project.owner.username project.slug pr.number %}">
+                  data-comment-url="{% url 'project_app:pr_comment_create' project.owner.username project.slug pr.number %}"
+                  data-review-url="{% url 'project_app:pr_review_submit' project.owner.username project.slug pr.number %}">
                 <textarea name="content"
                           class="form-control mb-2"
                           rows="4"

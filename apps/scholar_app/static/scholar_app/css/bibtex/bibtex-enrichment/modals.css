@@ -5,91 +5,91 @@
 
 /* Modals */
 .bibtex-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 10000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .bibtex-modal__backdrop {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
 }
 
 .bibtex-modal__content {
-    position: relative;
-    background: var(--workspace-bg-secondary, #151515);
-    border: 1px solid var(--workspace-border-default, #3a3a3a);
-    border-radius: 0;
-    padding: 1.5rem;
-    max-width: 500px;
-    width: 90%;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  position: relative;
+  background: var(--workspace-bg-secondary);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 0;
+  padding: 1.5rem;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
 }
 
 .bibtex-modal--large .bibtex-modal__content {
-    max-width: 900px;
-    max-height: 85vh;
-    overflow-y: auto;
+  max-width: 900px;
+  max-height: 85vh;
+  overflow-y: auto;
 }
 
 .bibtex-modal__close {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    color: var(--text-muted, #768390);
-    cursor: pointer;
-    line-height: 1;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  line-height: 1;
 }
 
 .bibtex-modal__close:hover {
-    color: var(--text-primary, #f0f3f6);
+  color: var(--text-primary);
 }
 
 .bibtex-modal__title {
-    margin: 0 0 1rem 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--text-primary, #f0f3f6);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+  margin: 0 0 1rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .bibtex-modal__legend {
-    color: var(--text-muted, #768390);
-    margin-bottom: 1rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
 }
 
 .bibtex-modal__body {
-    margin-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .bibtex-modal__body label {
-    display: block;
-    color: var(--text-muted, #768390);
-    margin-bottom: 0.5rem;
+  display: block;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
 }
 
 .bibtex-modal__footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.75rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
 }
 
 .bibtex-diff-content {
-    max-height: calc(70vh - 150px);
-    overflow-y: auto;
+  max-height: calc(70vh - 150px);
+  overflow-y: auto;
 }

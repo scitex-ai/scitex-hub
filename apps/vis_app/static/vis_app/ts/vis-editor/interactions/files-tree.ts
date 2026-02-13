@@ -25,9 +25,8 @@ export async function setupFilesTree(
       `[InteractionHandlers] Initializing WorkspaceFilesTree for ${projectOwner}/${projectSlug}`,
     );
 
-    const module = (await import(
-      "@/components/workspace-files-tree/WorkspaceFilesTree"
-    )) as any;
+    const module =
+      (await import("@/components/workspace-files-tree/WorkspaceFilesTree")) as any;
     const { WorkspaceFilesTree } = module;
 
     const filesTree = new WorkspaceFilesTree({
@@ -55,6 +54,21 @@ export async function setupFilesTree(
 
     await filesTree.initialize();
     (window as any).filesTree = filesTree;
+
+    // Initialize hidden files toggle
+    const { initHiddenFilesToggle } =
+      await import("@/components/workspace-files-tree/HiddenFilesToggle");
+    initHiddenFilesToggle(filesTree as any);
+
+    // Initialize git status toggle
+    const { initGitStatusToggle } =
+      await import("@/components/workspace-files-tree/GitStatusToggle");
+    initGitStatusToggle(filesTree as any);
+
+    // Initialize module filter buttons (S C V W)
+    const { initModuleFilterButtons } =
+      await import("@/components/workspace-files-tree/ModuleFilterButtons");
+    initModuleFilterButtons(filesTree as any, "vis");
 
     setupTreeEventListeners(editor, filesTree);
 

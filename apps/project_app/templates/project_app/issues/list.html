@@ -63,7 +63,7 @@
                             New issue
                         </button>
                     {% else %}
-                        <a href="{% url 'user_projects:issue_create' username=project.owner.username slug=project.slug %}"
+                        <a href="{% url 'project_app:issue_create' username=project.owner.username slug=project.slug %}"
                            class="btn btn-success">
                             <svg width="16"
                                  height="16"
@@ -109,7 +109,7 @@
                                 </div>
                                 <div class="issue-content">
                                     <div class="issue-title-row">
-                                        <a href="{% url 'user_projects:issue_detail' username=project.owner.username slug=project.slug issue_number=issue.number %}"
+                                        <a href="{% url 'project_app:issue_detail' username=project.owner.username slug=project.slug issue_number=issue.number %}"
                                            class="issue-title">{{ issue.title }}</a>
                                         {% if issue.labels.all %}
                                             <div class="issue-labels">
@@ -210,7 +210,7 @@
                     justify-content: center;
                     align-items: center">
             <div class="modal-content"
-                 style="background: #1a1f2e;
+                 style="background: var(--workspace-bg-secondary);
                         border: 1px solid #3d4663;
                         border-radius: 12px;
                         max-width: 500px;
@@ -223,13 +223,13 @@
                             display: flex;
                             justify-content: space-between;
                             align-items: center">
-                    <h2 style="margin: 0; font-size: 1.1rem; color: #e8eaed;">New Issue</h2>
+                    <h2 style="margin: 0; font-size: 1.1rem; color: var(--text-primary);">New Issue</h2>
                     <button onclick="closeNewIssueModal()"
                             style="background: none;
                                    border: none;
                                    font-size: 1.25rem;
                                    cursor: pointer;
-                                   color: #8b95a5;
+                                   color: var(--text-muted);
                                    padding: 4px 8px;
                                    line-height: 1;
                                    border-radius: 4px"
@@ -237,12 +237,12 @@
                             onmouseout="this.style.background='none'">&times;</button>
                 </div>
                 <div style="padding: 1.25rem;">
-                    <p style="margin: 0 0 1rem; color: #8b95a5; font-size: 0.85rem;">
+                    <p style="margin: 0 0 1rem; color: var(--text-muted); font-size: 0.85rem;">
                         <i class="fas fa-file-alt"></i> Choose a template to get started:
                     </p>
                     <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                         {% for template in issue_templates %}
-                            <a href="{% url 'user_projects:issue_create' username=project.owner.username slug=project.slug %}?template={{ template.id }}"
+                            <a href="{% url 'project_app:issue_create' username=project.owner.username slug=project.slug %}?template={{ template.id }}"
                                class="template-option"
                                style="display: flex;
                                       align-items: center;
@@ -252,7 +252,7 @@
                                       border: 1px solid #3d4663;
                                       border-radius: 8px;
                                       text-decoration: none;
-                                      color: #e8eaed;
+                                      color: var(--text-primary);
                                       transition: border-color 0.15s, background 0.15s"
                                onmouseover="this.style.borderColor='#5c8be8'; this.style.background='#2a3142'"
                                onmouseout="this.style.borderColor='#3d4663'; this.style.background='#252b3b'">
@@ -263,12 +263,14 @@
                                           text-align: center"></i>
                                 <div style="flex: 1;">
                                     <strong style="display: block; margin-bottom: 0.125rem; font-size: 0.9rem;">{{ template.name }}</strong>
-                                    <small style="color: #8b95a5; font-size: 0.8rem;">{{ template.description }}</small>
+                                    <small style="color: var(--text-muted); font-size: 0.8rem;">{{ template.description }}</small>
                                 </div>
-                                <i class="fas fa-chevron-right" style="color: #5c6370; font-size: 0.75rem;"></i>
+                                <i class="fas fa-chevron-right"
+                                   style="color: var(--text-muted);
+                                          font-size: 0.75rem"></i>
                             </a>
                         {% endfor %}
-                        <a href="{% url 'user_projects:issue_create' username=project.owner.username slug=project.slug %}?template=blank"
+                        <a href="{% url 'project_app:issue_create' username=project.owner.username slug=project.slug %}?template=blank"
                            class="template-option"
                            style="display: flex;
                                   align-items: center;
@@ -278,20 +280,22 @@
                                   border: 1px solid #3d4663;
                                   border-radius: 8px;
                                   text-decoration: none;
-                                  color: #e8eaed;
+                                  color: var(--text-primary);
                                   transition: border-color 0.15s, background 0.15s"
                            onmouseover="this.style.borderColor='#5c8be8'; this.style.background='#2a3142'"
                            onmouseout="this.style.borderColor='#3d4663'; this.style.background='#252b3b'">
                             <i class="fas fa-file"
                                style="font-size: 1.25rem;
-                                      color: #5c6370;
+                                      color: var(--text-muted);
                                       width: 28px;
                                       text-align: center"></i>
                             <div style="flex: 1;">
                                 <strong style="display: block; margin-bottom: 0.125rem; font-size: 0.9rem;">Blank Issue</strong>
-                                <small style="color: #8b95a5; font-size: 0.8rem;">Create an issue from scratch</small>
+                                <small style="color: var(--text-muted); font-size: 0.8rem;">Create an issue from scratch</small>
                             </div>
-                            <i class="fas fa-chevron-right" style="color: #5c6370; font-size: 0.75rem;"></i>
+                            <i class="fas fa-chevron-right"
+                               style="color: var(--text-muted);
+                                      font-size: 0.75rem"></i>
                         </a>
                     </div>
                 </div>

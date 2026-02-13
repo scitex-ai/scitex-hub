@@ -25,7 +25,7 @@ export function convertToLatex(content: string): string {
   // Convert bold text: **text** → \textbf{text}
   latex = latex.replace(/\*\*([^*]+)\*\*/g, "\\textbf{$1}");
 
-  // Convert code: `code` → \texttt{code}
+  // Convert console: `code` → \texttt{code}
   latex = latex.replace(/`([^`]+)`/g, "\\texttt{$1}");
 
   // Convert links: [text](url) → \href{url}{text}

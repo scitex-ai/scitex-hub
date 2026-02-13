@@ -1,0 +1,277 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% block title %}Element Inspector - Browser Tool | SciTeX{% endblock %}
+{% block meta_description %}
+    Visual debugging tool for web developers. Inspect any element on any website with keyboard shortcuts (Alt+I). Click elements to copy debug info for AI assistants.
+{% endblock %}
+{% block head_extra %}
+    {% load static %}
+
+    <!-- Override favicon for bookmarklet icon -->
+    <link rel="icon"
+          type="image/png"
+          sizes="192x192"
+          href="{% static 'images/scitex-icon/scitex-icon-navy-inverted-192x192.png' %}?v=3" />
+    <link rel="icon"
+          type="image/png"
+          sizes="48x48"
+          href="{% static 'images/scitex-icon/scitex-icon-navy-inverted-48x48.png' %}?v=3" />
+    <link rel="shortcut icon"
+          href="{% static 'images/scitex-icon/scitex-icon-navy.ico' %}?v=3" />
+{% endblock %}
+{% block extra_css %}
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .tool-detail-container {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--workspace-bg-monaco);
+        }
+
+        .tool-breadcrumb {
+            padding: 8px 16px;
+            font-size: 12px;
+            color: var(--workspace-text-secondary);
+            background: var(--workspace-bg-secondary);
+            border-bottom: 1px solid var(--workspace-border-default);
+        }
+
+        .tool-breadcrumb a {
+            color: var(--workspace-text-link);
+            text-decoration: none;
+        }
+
+        .tool-breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .tool-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px 60px;
+        }
+
+        .content-inner {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .tool-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .tool-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--workspace-text-primary);
+        }
+
+        .tool-subtitle {
+            font-size: 14px;
+            color: var(--workspace-text-secondary);
+            line-height: 1.6;
+        }
+
+        .bookmarklet-install {
+            background: var(--workspace-bg-secondary);
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 8px;
+            padding: 32px;
+            margin-bottom: 32px;
+            text-align: center;
+        }
+
+        .bookmarklet-install-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--workspace-text-primary);
+        }
+
+        .bookmarklet-link {
+            display: inline-block;
+            background: var(--workspace-bg-tertiary);
+            color: var(--workspace-text-link);
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: move;
+            transition: all 0.2s;
+            border: 1px solid var(--workspace-border-default);
+        }
+
+        .bookmarklet-link:hover {
+            background: var(--workspace-bg-monaco);
+            border-color: var(--workspace-text-link);
+            text-decoration: none;
+        }
+
+        .install-hint {
+            margin-top: 16px;
+            font-size: 12px;
+            color: var(--workspace-text-muted);
+        }
+
+        .tool-section {
+            background: var(--workspace-bg-secondary);
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .tool-section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--workspace-text-primary);
+        }
+
+        .tool-section-content {
+            color: var(--workspace-text-secondary);
+            line-height: 1.6;
+            font-size: 13px;
+        }
+
+        .tool-section-content ul {
+            padding-left: 20px;
+        }
+
+        .tool-section-content li {
+            margin-bottom: 8px;
+        }
+
+        .keyboard-shortcut {
+            display: inline-block;
+            background: var(--workspace-bg-monaco);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: "Monaco", "Menlo", "Consolas", monospace;
+            font-size: 11px;
+            border: 1px solid var(--workspace-border-default);
+            color: var(--workspace-text-primary);
+        }
+
+        .usage-steps {
+            list-style: none;
+            padding: 0;
+            counter-reset: step-counter;
+        }
+
+        .usage-steps li {
+            counter-increment: step-counter;
+            padding: 12px 0;
+            padding-left: 36px;
+            position: relative;
+            color: var(--workspace-text-secondary);
+            line-height: 1.6;
+        }
+
+        .usage-steps li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 12px;
+            width: 24px;
+            height: 24px;
+            background: var(--workspace-text-link);
+            color: var(--workspace-bg-monaco);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 12px;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="tool-detail-container">
+        {% if not embed %}
+            <div class="tool-breadcrumb">
+                <a href="{% url 'public_app:tools' %}">← Back to Tools</a>
+            </div>
+        {% endif %}
+        <div class="tool-content">
+            <div class="content-inner">
+                {% if not embed %}
+                    <div class="tool-header">
+                        <h1 class="tool-title">Inspect HTML Element</h1>
+                        <p class="tool-subtitle">
+                            Visual debugging tool for web developers. Inspect any element on any website with colored overlays, click to copy comprehensive debug info formatted for AI assistants.
+                        </p>
+                    </div>
+                {% endif %}
+                <!-- Installation -->
+                <div class="bookmarklet-install">
+                    <h2 class="bookmarklet-install-title">Drag to Bookmarks Bar</h2>
+                    <a href="javascript:(function(){if(window.elementInspector){window.elementInspector.toggle();}else{const s=document.createElement('script');s.type='module';s.src='https://{{ request.get_host }}{% static 'shared/js/utils/element-inspector.js' %}';s.onload=()=>{if(window.elementInspector){window.elementInspector.activate();}};document.body.appendChild(s);}})();"
+                       class="bookmarklet-link">SciTeX: Element Inspector</a>
+                    <p class="install-hint">Drag the button above to your bookmarks bar, then click it on any website</p>
+                </div>
+                <!-- How to Use -->
+                <div class="tool-section">
+                    <h2 class="tool-section-title">How to Use</h2>
+                    <div class="tool-section-content">
+                        <ol class="usage-steps">
+                            <li>Drag the button above to your bookmarks bar</li>
+                            <li>Navigate to any website you want to inspect</li>
+                            <li>
+                                Click the bookmark OR press
+                                <span class="keyboard-shortcut">Alt+I</span>
+                            </li>
+                            <li>Click any element to copy its debug info to clipboard</li>
+                            <li>
+                                OR press
+                                <span class="keyboard-shortcut">Ctrl+Alt+I</span> for selection mode (drag to select area)
+                            </li>
+                            <li>
+                                Press
+                                <span class="keyboard-shortcut">Escape</span> to close when done
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+                <!-- What Gets Copied -->
+                <div class="tool-section">
+                    <h2 class="tool-section-title">What Gets Copied</h2>
+                    <div class="tool-section-content">
+                        <p>
+                            <strong>Single Element Mode (Click):</strong>
+                        </p>
+                        <ul>
+                            <li>Element tag, ID, classes, and CSS selector</li>
+                            <li>All HTML attributes (href, src, data-*, aria-*, etc.)</li>
+                            <li>Computed CSS styles (display, position, colors, fonts, etc.)</li>
+                            <li>Dimensions and position on page</li>
+                            <li>Text content preview (first 200 characters)</li>
+                        </ul>
+                        <p>
+                            <strong>Selection Mode (Ctrl+Alt+I + Drag):</strong>
+                        </p>
+                        <ul>
+                            <li>All elements within selected area</li>
+                            <li>Hierarchical structure showing parent-child relationships</li>
+                            <li>Debug info for each element in the selection</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

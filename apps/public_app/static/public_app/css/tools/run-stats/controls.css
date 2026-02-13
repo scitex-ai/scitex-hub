@@ -1,0 +1,63 @@
+/* Controls: Buttons, scrollbars */
+
+/* Buttons */
+.btn {
+  padding: 8px 16px;
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 4px;
+  font-family: "JetBrains Mono", "Courier New", monospace;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-primary {
+  background: #3b82f6 !important;
+  color: #ffffff !important;
+  border-color: #3b82f6 !important;
+  font-weight: 600;
+}
+.btn-primary:hover:not(:disabled) {
+  background: #2563eb !important;
+  border-color: #2563eb !important;
+}
+.btn-secondary {
+  background: var(--workspace-bg-primary);
+  color: var(--workspace-text-primary);
+  border-color: var(--workspace-border-default);
+}
+.btn-secondary:hover:not(:disabled) {
+  background: var(--workspace-bg-monaco);
+  border-color: var(--workspace-text-link);
+}
+.btn-block {
+  width: 100%;
+}
+
+/* Scrollbar Styling */
+.panel-body::-webkit-scrollbar,
+.stats-data-panel::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.panel-body::-webkit-scrollbar-track,
+.stats-data-panel::-webkit-scrollbar-track {
+  background: var(--workspace-bg-tertiary);
+}
+.panel-body::-webkit-scrollbar-thumb,
+.stats-data-panel::-webkit-scrollbar-thumb {
+  background: var(--workspace-border-default);
+  border-radius: 4px;
+}
+.panel-body::-webkit-scrollbar-thumb:hover,
+.stats-data-panel::-webkit-scrollbar-thumb:hover {
+  background: var(--workspace-text-muted);
+}

@@ -33,7 +33,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "apps.cloud_app",
-    "apps.code_app",
+    "apps.console_app",
     "apps.workspace_app",
     "apps.doc_app",
     "apps.engine_app",

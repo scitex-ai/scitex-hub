@@ -10,8 +10,8 @@
 {% endblock %}
 {% block content %}
     <div class="container-fluid mt-4"
-         data-pr-close-url="{% url 'user_projects:pr_close' project.owner.username project.slug pr.number %}"
-         data-pr-reopen-url="{% url 'user_projects:pr_reopen' project.owner.username project.slug pr.number %}">
+         data-pr-close-url="{% url 'project_app:pr_close' project.owner.username project.slug pr.number %}"
+         data-pr-reopen-url="{% url 'project_app:pr_reopen' project.owner.username project.slug pr.number %}">
         {% include 'project_app/pull_requests/detail_partials/pr_detail_breadcrumb.html' %}
         {% include 'project_app/pull_requests/detail_partials/pr_detail_header.html' %}
         <div class="row">
@@ -35,7 +35,7 @@
             </div>
         </div>
         <div id="mergeModal"
-             data-merge-url="{% url 'user_projects:pr_merge' project.owner.username project.slug pr.number %}">
+             data-merge-url="{% url 'project_app:pr_merge' project.owner.username project.slug pr.number %}">
             {% include 'project_app/pull_requests/detail_partials/pr_detail_merge_modal.html' %}
         </div>
     </div>

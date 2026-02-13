@@ -59,6 +59,10 @@ from .pltz import (
     list_pltz_bundles,
     update_pltz_bundle,
 )
+from .pltz_property import (
+    batch_update_pltz_properties,
+    update_pltz_property,
+)
 
 __all__ = [
     # PltzBundle CRUD
@@ -70,6 +74,9 @@ __all__ = [
     "get_pltz_preview",
     "get_pltz_data",
     "get_pltz_geometry",
+    # PltzBundle Property Updates
+    "update_pltz_property",
+    "batch_update_pltz_properties",
     # FigzBundle CRUD
     "list_figz_bundles",
     "create_figz_bundle",

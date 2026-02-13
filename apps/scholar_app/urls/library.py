@@ -58,6 +58,31 @@ library_patterns = [
     ),
 ]
 
+# Project linking endpoints (separate module)
+from ..views.library.project_linking import (
+    api_link_paper_to_project,
+    api_project_papers,
+    api_unlink_paper_from_project,
+)
+
+project_linking_patterns = [
+    path(
+        "api/library/papers/<uuid:paper_id>/link/",
+        api_link_paper_to_project,
+        name="api_link_paper_to_project",
+    ),
+    path(
+        "api/library/papers/<uuid:paper_id>/unlink/",
+        api_unlink_paper_from_project,
+        name="api_unlink_paper_from_project",
+    ),
+    path(
+        "api/library/projects/<uuid:project_id>/papers/",
+        api_project_papers,
+        name="api_project_papers",
+    ),
+]
+
 # Research Trend Analysis
 trend_patterns = [
     path("trends/", trending_views.research_trends, name="research_trends"),
@@ -140,6 +165,7 @@ recommendation_patterns = [
 urlpatterns = (
     export_patterns
     + library_patterns
+    + project_linking_patterns
     + trend_patterns
     + annotation_patterns
     + recommendation_patterns

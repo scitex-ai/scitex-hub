@@ -30,7 +30,7 @@ export function getPageConfig(): PageTourConfig | null {
   if (path.includes("/scholar/")) {
     return { steps: SCHOLAR_TOUR_STEPS, storageKey: STORAGE_KEYS.scholar };
   }
-  if (path.includes("/code/") || path.includes("/workspace/")) {
+  if (path.includes("/console/") || path.includes("/workspace/")) {
     return { steps: CONSOLE_TOUR_STEPS, storageKey: STORAGE_KEYS.console };
   }
   if (path.includes("/vis/")) {

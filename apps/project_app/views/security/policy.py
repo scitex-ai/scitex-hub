@@ -50,7 +50,7 @@ def security_policy(request, username, slug):
             logger.error(f"Failed to save SECURITY.md: {e}")
             messages.error(request, "Failed to save SECURITY.md file")
 
-        return redirect("user_projects:security_policy", username=username, slug=slug)
+        return redirect("project_app:security_policy", username=username, slug=slug)
 
     context = {
         "project": project,

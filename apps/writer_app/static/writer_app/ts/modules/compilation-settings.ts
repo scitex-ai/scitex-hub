@@ -78,7 +78,32 @@ export class CompilationSettingsManager {
     // Setup modal form handlers
     this.setupModalHandlers();
 
+    // Wire details panel checkboxes
+    this.setupDetailsPanelHandlers();
+
     console.log("[CompilationSettings] UI initialized");
+  }
+
+  /**
+   * Wire details panel checkboxes to settings
+   */
+  private setupDetailsPanelHandlers(): void {
+    const wire = (id: string, key: keyof CompilationSettings) => {
+      const el = document.getElementById(id) as HTMLInputElement;
+      if (el) {
+        el.addEventListener("change", () => {
+          this.settings[key] = el.checked as never;
+          this.saveSettings();
+          this.applySettingsToUI();
+        });
+      }
+    };
+
+    wire("details-auto-preview", "autoPreview");
+    wire("details-auto-full", "autoFullCompile");
+    wire("details-add-figs", "addFigs");
+    wire("details-add-tables", "addTables");
+    wire("details-draft-mode", "draft");
   }
 
   /**
@@ -89,7 +114,10 @@ export class CompilationSettingsManager {
       // First try to load from unified state persistence
       const persistedSettings = statePersistence.getSavedCompilationSettings();
       if (persistedSettings) {
-        console.log("[CompilationSettings] Loaded from state persistence:", persistedSettings);
+        console.log(
+          "[CompilationSettings] Loaded from state persistence:",
+          persistedSettings,
+        );
         return { ...DEFAULT_SETTINGS, ...persistedSettings };
       }
 
@@ -140,7 +168,7 @@ export class CompilationSettingsManager {
    * Apply settings to UI elements
    */
   private applySettingsToUI(): void {
-    // Auto Preview checkbox
+    // Auto Preview checkbox (toolbar - hidden)
     const autoPreviewCheckbox = document.getElementById(
       "auto-preview-checkbox-panel",
     ) as HTMLInputElement;
@@ -148,12 +176,48 @@ export class CompilationSettingsManager {
       autoPreviewCheckbox.checked = this.settings.autoPreview;
     }
 
-    // Auto Full Compile checkbox
+    // Auto Full Compile checkbox (toolbar - hidden)
     const autoFullCompileCheckbox = document.getElementById(
       "auto-fullcompile-checkbox",
     ) as HTMLInputElement;
     if (autoFullCompileCheckbox) {
       autoFullCompileCheckbox.checked = this.settings.autoFullCompile;
+    }
+
+    // Details panel checkboxes
+    const detailsAutoPreview = document.getElementById(
+      "details-auto-preview",
+    ) as HTMLInputElement;
+    if (detailsAutoPreview) {
+      detailsAutoPreview.checked = this.settings.autoPreview;
+    }
+
+    const detailsAutoFull = document.getElementById(
+      "details-auto-full",
+    ) as HTMLInputElement;
+    if (detailsAutoFull) {
+      detailsAutoFull.checked = this.settings.autoFullCompile;
+    }
+
+    const detailsAddFigs = document.getElementById(
+      "details-add-figs",
+    ) as HTMLInputElement;
+    if (detailsAddFigs) {
+      detailsAddFigs.checked = this.settings.addFigs ?? true;
+    }
+
+    const detailsAddTables = document.getElementById(
+      "details-add-tables",
+    ) as HTMLInputElement;
+    if (detailsAddTables) {
+      detailsAddTables.checked = this.settings.addTables ?? true;
+    }
+
+    const detailsDraftMode = document.getElementById(
+      "details-draft-mode",
+    ) as HTMLInputElement;
+    if (detailsDraftMode) {
+      detailsDraftMode.checked = this.settings.draft ?? false;
     }
 
     // Update delay labels
@@ -281,8 +345,7 @@ export class CompilationSettingsManager {
       "#setting-auto-full-delay",
     ) as HTMLInputElement;
     if (autoFullDelayInput) {
-      autoFullDelayInput.value =
-        this.settings.autoFullCompileDelay.toString();
+      autoFullDelayInput.value = this.settings.autoFullCompileDelay.toString();
     }
 
     // Compile on Save

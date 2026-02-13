@@ -120,9 +120,9 @@ LOGGING = {
             "formatter": "standard",
             "level": "DEBUG",
         },
-        "code_app_file": {
+        "console_app_file": {
             "class": "logging.handlers.RotatingFileHandler",
-            "filename": str(BASE_DIR / "logs" / "code_app.log"),
+            "filename": str(BASE_DIR / "logs" / "console_app.log"),
             "maxBytes": 5242880,
             "backupCount": 3,
             "formatter": "standard",
@@ -205,8 +205,8 @@ LOGGING = {
             "level": "DEBUG",
             "propagate": False,
         },
-        "apps.code_app": {
-            "handlers": ["code_app_file", "console"],
+        "apps.console_app": {
+            "handlers": ["console_app_file", "console"],
             "level": "DEBUG",
             "propagate": False,
         },

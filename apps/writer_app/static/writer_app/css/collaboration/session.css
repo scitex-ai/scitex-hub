@@ -82,7 +82,7 @@ body {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #28a745;
+  background: var(--status-success);
   animation: pulse 2s infinite;
 }
 
@@ -177,8 +177,8 @@ body {
 }
 
 .collaboration-badge.active {
-  background: rgba(40, 167, 69, 0.2);
-  color: #28a745;
+  background: var(--status-success-bg);
+  color: var(--status-success-text);
 }
 
 .collaboration-badge.locked {
@@ -219,7 +219,8 @@ body {
 
 .text-editor.collaborative-editing {
   border-color: var(--status-success);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--status-success) 10%, transparent);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--status-success) 10%, transparent);
 }
 
 .section-help {
@@ -272,8 +273,12 @@ body {
 }
 
 .progress-overview {
-  background: linear-gradient(135deg, var(--workspace-bg-primary) 0%, var(--workspace-bg-secondary) 100%);
-  color: white;
+  background: linear-gradient(
+    135deg,
+    var(--workspace-bg-primary) 0%,
+    var(--workspace-bg-secondary) 100%
+  );
+  color: var(--text-inverse);
   border-radius: 8px;
   padding: 1.5rem;
   margin-bottom: 2rem;

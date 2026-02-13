@@ -1,24 +1,22 @@
 {% extends "global_base.html" %}
+
 {% load static vite %}
+
 {% block title %}
     Settings -
     {{ project.name }} - SciTeX
 {% endblock %}
 {% block extra_css %}
-    <link rel="stylesheet"
-          href="{% static 'project_app/css/project_app.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'project_app/css/shared/buttons.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/project_app.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/shared/buttons.css' %}" />
 {% endblock %}
 {% block content %}
     <div class="settings-container">
         <!-- Breadcrumb -->
         <div style="margin-bottom: 24px">
-            <a href="/{{ project.owner.username }}/"
-               style="color: var(--color-accent-fg)">{{ project.owner.username }}</a>
+            <a href="/{{ project.owner.username }}/" style="color: var(--color-accent-fg)">{{ project.owner.username }}</a>
             <span style="color: var(--color-fg-muted)">/</span>
-            <a href="{{ project.get_absolute_url }}"
-               style="color: var(--color-accent-fg)">{{ project.name }}</a>
+            <a href="{{ project.get_absolute_url }}" style="color: var(--color-accent-fg)">{{ project.name }}</a>
             <span style="color: var(--color-fg-muted)">/</span>
             <span style="color: var(--color-fg-default); font-weight: 600">Settings</span>
         </div>
@@ -29,28 +27,48 @@
                     {% if message.tags == 'success' %}
                         <div class="alert alert-success"
                              role="alert"
-                             style="padding: 12px 16px; margin-bottom: 8px; border-radius: 6px; border-left: 4px solid #10b981; background: #d1fae5; color: var(--color-fg-default)">
+                             style="padding: 12px 16px;
+                                    margin-bottom: 8px;
+                                    border-radius: 6px;
+                                    border-left: 4px solid var(--status-success);
+                                    background: var(--color-success-bg);
+                                    color: var(--color-fg-default)">
                             <strong>✓</strong>
                             {{ message }}
                         </div>
                     {% elif message.tags == 'error' %}
                         <div class="alert alert-error"
                              role="alert"
-                             style="padding: 12px 16px; margin-bottom: 8px; border-radius: 6px; border-left: 4px solid #ef4444; background: #fee2e2; color: var(--color-fg-default)">
+                             style="padding: 12px 16px;
+                                    margin-bottom: 8px;
+                                    border-radius: 6px;
+                                    border-left: 4px solid #ef4444;
+                                    background: #fee2e2;
+                                    color: var(--color-fg-default)">
                             <strong>✗</strong>
                             {{ message }}
                         </div>
                     {% elif message.tags == 'warning' %}
                         <div class="alert alert-warning"
                              role="alert"
-                             style="padding: 12px 16px; margin-bottom: 8px; border-radius: 6px; border-left: 4px solid #f59e0b; background: #fef3c7; color: var(--color-fg-default)">
+                             style="padding: 12px 16px;
+                                    margin-bottom: 8px;
+                                    border-radius: 6px;
+                                    border-left: 4px solid #f59e0b;
+                                    background: #fef3c7;
+                                    color: var(--color-fg-default)">
                             <strong>⚠</strong>
                             {{ message }}
                         </div>
                     {% else %}
                         <div class="alert alert-info"
                              role="alert"
-                             style="padding: 12px 16px; margin-bottom: 8px; border-radius: 6px; border-left: 4px solid #3b82f6; background: #dbeafe; color: var(--color-fg-default)">
+                             style="padding: 12px 16px;
+                                    margin-bottom: 8px;
+                                    border-radius: 6px;
+                                    border-left: 4px solid #3b82f6;
+                                    background: #dbeafe;
+                                    color: var(--color-fg-default)">
                             <strong>ℹ</strong>
                             {{ message }}
                         </div>
@@ -68,15 +86,11 @@
                       action="/{{ project.owner.username }}/{{ project.slug }}/settings/">
                     {% csrf_token %}
                     <!-- General Settings -->
-                    <div class="settings-section-wrapper"
-                         id="section-general"
-                         style="display: block">
+                    <div class="settings-section-wrapper" id="section-general" style="display: block">
                         {% include 'project_app/projects/settings_partials/settings_general.html' %}
                     </div>
                     <!-- Access & Visibility -->
-                    <div class="settings-section-wrapper"
-                         id="section-access"
-                         style="display: none">
+                    <div class="settings-section-wrapper" id="section-access" style="display: none">
                         {% include 'project_app/projects/settings_partials/settings_visibility.html' %}
                     </div>
                     <!-- Collaborators -->
@@ -87,9 +101,7 @@
                     </div>
                 </form>
                 <!-- Danger Zone -->
-                <div class="settings-section-wrapper"
-                     id="section-danger"
-                     style="display: none">
+                <div class="settings-section-wrapper" id="section-danger" style="display: none">
                     {% include 'project_app/projects/settings_partials/settings_danger_zone.html' %}
                 </div>
             </main>

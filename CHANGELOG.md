@@ -88,7 +88,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **App-Separated Logging**: Dedicated log files for each major app
-  - `vis_app.log`, `writer_app.log`, `scholar_app.log`, `code_app.log`, `project_app.log`
+  - `vis_app.log`, `writer_app.log`, `scholar_app.log`, `console_app.log`, `project_app.log`
   - All use RotatingFileHandler (5MB, 3 backups) for automatic rotation
   - Improves debugging by isolating app-specific logs
   - Usage: `logger = logging.getLogger(__name__)` auto-routes to correct log
@@ -419,7 +419,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Template Cleanup**: Improved template structure
   - Better separation of concerns in partials
-  - Cleaner code_app, writer_app, scholar_app templates
+  - Cleaner console_app, writer_app, scholar_app templates
   - Enhanced global base templates
 
 ### Bug Fixes

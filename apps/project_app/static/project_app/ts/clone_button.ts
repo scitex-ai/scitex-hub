@@ -73,7 +73,7 @@ function switchCloneMethod(button: HTMLElement): void {
  */
 function openWorkspace(): void {
     // Redirect to workspace for this project
-    window.location.href = '/code/workspace/';
+    window.location.href = '/console/workspace/';
 }
 
 /**

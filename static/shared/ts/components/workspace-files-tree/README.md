@@ -40,7 +40,7 @@ All filtering rules are defined in **`FilteringCriteria.ts`** with standardized 
 - **`scholar`**: Bibliography management - shows only `.bib` files in `scitex/scholar/`
 - **`vis`**: Visualization - shows data files (`.csv`, `.tsv`, `.json`) and images in `scitex/vis/`
 - **`writer`**: Document writing - shows LaTeX files and figures in `scitex/writer/`
-- **`code`**: Full development - shows all files, focused on `scripts/`
+- **`console`**: Full development - shows all files, focused on `scripts/`
 - **`all`**: Fallback mode - shows all files
 
 ---
@@ -316,7 +316,7 @@ export const DEFAULT_FOCUS_PATHS: Record<WorkspaceMode, string> = {
   scholar: 'scitex/scholar',              // Focus on bibliography directory
   vis: 'scitex/vis',                      // Focus on visualization directory
   writer: 'scitex/writer/01_manuscript',  // Focus on manuscript directory
-  code: 'scripts',                        // Focus on scripts/ (NOT scitex/code/)
+  code: 'scripts',                        // Focus on scripts/ (NOT scitex/console/)
   all: '',
 };
 ```
@@ -402,11 +402,11 @@ await tree.initialize();
 // 4. Preserve empty manuscript/supplementary/revision directories
 ```
 
-### Code App
+### Console App
 
 ```typescript
 const tree = new WorkspaceFilesTree({
-  mode: 'code',
+  mode: 'console',
   containerId: 'file-tree',
   username: 'john',
   slug: 'my-project',
@@ -629,10 +629,10 @@ const tree = new WorkspaceFilesTree({
 });
 ```
 
-### Code App
+### Console App
 ```javascript
 const tree = new WorkspaceFilesTree({
-  mode: 'code',  // All files visible
+  mode: 'console',  // All files visible
   containerId: 'file-tree',
   username: '{{ username }}',
   slug: '{{ slug }}',
@@ -772,7 +772,7 @@ static/shared/
 
 ### 🔗 Related Documentation
 
-- **App Integration**: See individual app READMEs (scholar_app, vis_app, writer_app, code_app)
+- **App Integration**: See individual app READMEs (scholar_app, vis_app, writer_app, console_app)
 - **CSS Styling**: See `workspace-files-tree.css` for styling details
 - **TypeScript Types**: See `types.ts` for type definitions
 

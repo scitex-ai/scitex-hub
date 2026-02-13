@@ -3,156 +3,156 @@
    ======================================================================== */
 
 .vis-ribbon {
-    grid-row: 1;
-    background: var(--vis-bg-primary);
-    border-bottom: 2px solid var(--workspace-border-default);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    z-index: 100;
-    display: flex;
-    flex-direction: row;
+  grid-row: 1;
+  background: var(--vis-bg-primary);
+  border-bottom: 2px solid var(--workspace-border-default);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  z-index: 100;
+  display: flex;
+  flex-direction: row;
 }
 
 /* Ribbon Tabs */
 .ribbon-tabs {
-    display: flex;
-    flex-direction: row;
-    gap: 0;
-    background: var(--vis-bg-secondary);
-    padding: 0 16px;
-    border-right: 1px solid var(--workspace-border-default);
+  display: flex;
+  flex-direction: row;
+  gap: 0;
+  background: var(--vis-bg-secondary);
+  padding: 0 16px;
+  border-right: 1px solid var(--workspace-border-default);
 }
 
 .ribbon-tab {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 20px;
-    background: transparent;
-    border: none;
-    border-bottom: 3px solid transparent;
-    color: var(--text-muted);
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .ribbon-tab:hover {
-    color: var(--text-primary);
-    background: var(--vis-bg-hover);
-    border-bottom-color: var(--workspace-border-default);
+  color: var(--text-primary);
+  background: var(--vis-bg-hover);
+  border-bottom-color: var(--workspace-border-default);
 }
 
 .ribbon-tab.active {
-    color: var(--workspace-icon-primary);
-    background: var(--vis-bg-primary);
-    border-bottom-color: var(--workspace-icon-primary);
-    font-weight: 600;
+  color: var(--workspace-icon-primary);
+  background: var(--vis-bg-primary);
+  border-bottom-color: var(--workspace-icon-primary);
+  font-weight: 600;
 }
 
 .ribbon-tab i {
-    font-size: 16px;
+  font-size: 16px;
 }
 
 /* Ribbon Content Panels */
 .ribbon-content {
-    background: var(--vis-bg-primary);
-    padding: 12px 20px;
-    flex: 1;
-    display: flex;
-    align-items: center;
+  background: var(--vis-bg-primary);
+  padding: 12px 20px;
+  flex: 1;
+  display: flex;
+  align-items: center;
 }
 
 .ribbon-panel {
-    display: none;
-    gap: 8px;
-    align-items: center;
-    width: 100%;
+  display: none;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
 }
 
 .ribbon-panel.active {
-    display: flex;
+  display: flex;
 }
 
 /* Ribbon Groups */
 .ribbon-group {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .ribbon-group-label {
-    font-size: 10px;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    padding: 0 4px;
-    letter-spacing: 0.5px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 0 4px;
+  letter-spacing: 0.5px;
 }
 
 .ribbon-group-buttons {
-    display: flex;
-    gap: 4px;
-    flex-wrap: wrap;
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
 }
 
 /* Ribbon Buttons */
 .ribbon-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    padding: 8px 12px;
-    background: var(--vis-bg-secondary);
-    border: 1px solid var(--workspace-border-default);
-    border-radius: 6px;
-    color: var(--text-primary);
-    font-size: 11px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    min-width: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: var(--vis-bg-secondary);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-width: 60px;
 }
 
 .ribbon-btn:hover {
-    background: var(--vis-bg-hover);
-    border-color: var(--workspace-icon-hover);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 6px rgba(5, 150, 105, 0.15);
+  background: var(--vis-bg-hover);
+  border-color: var(--workspace-icon-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .ribbon-btn:active {
-    transform: translateY(0);
+  transform: translateY(0);
 }
 
 .ribbon-btn i {
-    font-size: 18px;
-    color: var(--workspace-icon-primary);
+  font-size: 18px;
+  color: var(--workspace-icon-primary);
 }
 
 .ribbon-btn span {
-    white-space: nowrap;
+  white-space: nowrap;
 }
 
 /* Large Buttons for Quick Create */
 .ribbon-btn-large {
-    min-width: 80px;
-    padding: 12px 16px;
+  min-width: 80px;
+  padding: 12px 16px;
 }
 
 .ribbon-btn-large i {
-    font-size: 24px;
+  font-size: 24px;
 }
 
 .large-buttons .ribbon-btn {
-    min-width: 80px;
+  min-width: 80px;
 }
 
 /* Preset Buttons */
 .preset-btn {
-    min-width: 70px;
+  min-width: 70px;
 }
 
 /* Removed special styling for SCITEX_STYLE - now uses default pane-header-btn style */
@@ -164,8 +164,7 @@
 
 /* Ribbon Separator */
 .ribbon-separator {
-    width: 1px;
-    background: var(--workspace-border-default);
-    margin: 0 12px;
+  width: 1px;
+  background: var(--workspace-border-default);
+  margin: 0 12px;
 }
-

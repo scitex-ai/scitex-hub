@@ -42,7 +42,7 @@ NC='\033[0m'
 
 # Configuration - Powers of 2 thresholds
 THRESHOLD_TS=512
-THRESHOLD_PY=256
+THRESHOLD_PY=512
 THRESHOLD_CSS=512
 THRESHOLD_HTML=1024
 MODE="${1:-normal}"

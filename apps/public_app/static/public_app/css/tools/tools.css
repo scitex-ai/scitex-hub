@@ -1,0 +1,333 @@
+/* =============================================================================
+ * Tools Page Styles - Three-column workspace layout
+ * Column 1: File tree sidebar | Column 2: Tool nav list | Column 3: Tool content
+ * ============================================================================= */
+
+/* Workspace layout */
+.tools-workspace {
+  display: flex;
+  overflow: hidden;
+  background: var(--workspace-bg-primary);
+}
+
+/* Column 2: Tool navigation panel (always visible) */
+.tools-nav-panel {
+  width: 260px;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  background: var(--workspace-bg-secondary);
+  border-right: 1px solid var(--workspace-border-default);
+  overflow: hidden;
+  transition:
+    width 0.2s ease,
+    min-width 0.2s ease;
+}
+
+/* Tools nav panel header */
+.tools-nav-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 50px;
+  min-height: 50px;
+  padding: 0 16px;
+  background: var(--workspace-bg-secondary);
+  border-bottom: 1px solid var(--workspace-border-default);
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+.tools-nav-header-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.tools-nav-header-title i {
+  font-size: 11px;
+  color: var(--workspace-icon-primary);
+}
+
+/* Collapsed state for tools nav panel (width + panel-title handled by shared collapsible-panel.css) */
+.tools-nav-panel.collapsed .tools-nav-list,
+.tools-nav-panel.collapsed .tools-search-bar {
+  display: none;
+}
+.tools-nav-panel.collapsed .tools-nav-header {
+  padding: 0;
+  justify-content: center;
+  height: 100%;
+  flex-direction: column;
+  border-bottom: none;
+}
+.tools-nav-panel.collapsed .tools-nav-header-title {
+  display: none;
+}
+
+/* Column 3: Tool content panel */
+.tools-content-panel {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--workspace-bg-primary);
+  overflow: hidden;
+}
+
+.tools-content-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative; /* For drop indicator positioning */
+}
+
+/* Placeholder (no tool selected) */
+.tools-placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  gap: 12px;
+}
+
+.tools-placeholder i {
+  font-size: 48px;
+  opacity: 0.3;
+}
+
+.tools-placeholder p {
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Search bar in nav panel (bottom position, like file tree) */
+.tools-search-bar {
+  position: relative;
+  padding: 8px 12px;
+  flex-shrink: 0;
+  border-top: 1px solid var(--workspace-border-default);
+  background: var(--workspace-bg-secondary);
+}
+
+.tools-search-bar .search-icon {
+  position: absolute;
+  left: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.tools-search-bar .search-input {
+  width: 100%;
+  padding: 7px 50px 7px 30px;
+  font-size: 13px;
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 6px;
+  background: var(--workspace-bg-elevated, var(--workspace-bg-tertiary));
+  color: var(--text-primary);
+  transition: border-color 0.2s;
+}
+
+.tools-search-bar .search-input:focus {
+  outline: none;
+  border-color: var(--status-info, #6b8fb3);
+}
+
+.tools-search-bar .search-shortcut {
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 10px;
+  background: var(--workspace-bg-tertiary);
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid var(--workspace-border-default);
+  pointer-events: none;
+}
+
+/* Sidebar divider */
+.sidebar-divider {
+  border: none;
+  border-top: 1px solid var(--workspace-border-default);
+  margin: 8px 12px;
+}
+
+/* Tool Navigation list */
+.tools-nav-list {
+  padding: 4px 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.tools-nav-domain {
+  margin-bottom: 2px;
+}
+
+.tools-nav-domain-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 5px 12px;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.tools-nav-domain-header:hover {
+  color: var(--text-primary);
+}
+
+.tools-nav-domain-icon {
+  font-size: 13px;
+  width: 16px;
+  text-align: center;
+}
+
+.tools-nav-domain-name {
+  flex: 1;
+  text-align: left;
+}
+
+.tools-nav-count {
+  font-size: 10px;
+  color: var(--text-muted);
+  background: var(--workspace-bg-tertiary);
+  padding: 1px 5px;
+  border-radius: 8px;
+}
+
+.tools-nav-chevron {
+  font-size: 9px;
+  transition: transform 0.15s;
+}
+
+.tools-nav-domain-header.expanded .tools-nav-chevron {
+  transform: rotate(90deg);
+}
+
+.tools-nav-items {
+  display: none;
+  padding: 1px 0;
+}
+
+.tools-nav-items.expanded {
+  display: block;
+}
+
+.tools-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px 4px 22px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s;
+  border-radius: 3px;
+  margin: 1px 4px;
+}
+
+.tools-nav-item:hover {
+  color: var(--text-primary);
+  background: var(--workspace-bg-tertiary);
+  text-decoration: none;
+}
+
+.tools-nav-item.active {
+  color: var(--text-primary);
+  background: var(--workspace-bg-elevated, var(--workspace-bg-tertiary));
+  font-weight: 500;
+}
+
+.tools-nav-item-icon {
+  font-size: 13px;
+  width: 16px;
+  text-align: center;
+}
+
+.tools-nav-item-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Iframe header bar */
+.tools-iframe-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 16px;
+  background: var(--workspace-bg-secondary);
+  border-bottom: 1px solid var(--workspace-border-default);
+  min-height: 36px;
+  flex-shrink: 0;
+}
+
+.tools-iframe-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.tools-iframe-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tools-iframe-open-btn,
+.tools-iframe-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+  text-decoration: none;
+}
+
+.tools-iframe-open-btn:hover,
+.tools-iframe-close-btn:hover {
+  color: var(--text-primary);
+  background: var(--workspace-bg-tertiary);
+}
+
+/* Iframe */
+.tools-iframe {
+  flex: 1;
+  width: 100%;
+  border: none;
+}
+
+/* No-results message in search */
+.tools-nav-no-results {
+  padding: 16px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}

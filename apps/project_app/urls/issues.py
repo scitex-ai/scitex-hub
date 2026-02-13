@@ -30,7 +30,7 @@ from ..views.issues import (
     issues_list,
 )
 
-# No app_name here - namespace is provided by parent (user_projects)
+# No app_name here - namespace is provided by parent (project_app)
 
 urlpatterns = [
     # Issue list

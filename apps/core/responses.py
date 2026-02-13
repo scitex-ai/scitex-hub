@@ -138,7 +138,7 @@ def log_error(response: ApiResponse) -> None:
         log_parts.append(f"  STDOUT: {response.stdout[:500]}")
 
     if response.exit_code is not None:
-        log_parts.append(f"  Exit code: {response.exit_code}")
+        log_parts.append(f"  Exit console: {response.exit_code}")
 
     if response.traceback and settings.DEBUG:
         log_parts.append(f"  Traceback: {response.traceback[:1000]}")

@@ -117,37 +117,30 @@
             <span class="ctrl-title"><i class="fas fa-database"></i> Sources</span>
             <div class="search-status-leds">
                 <span class="search-led"
-                      id="ledCrossrefLocal"
                       data-source="crossref_local"
                       data-status="checking"
                       title="Crossref (SciTeX) - Checking..."></span>
                 <span class="search-led"
-                      id="ledOpenalexLocal"
                       data-source="openalex_local"
                       data-status="checking"
                       title="OpenAlex (SciTeX) - Checking..."></span>
                 <span class="search-led"
-                      id="ledPubmed"
                       data-source="pubmed"
                       data-status="ready"
                       title="PubMed - External API"></span>
                 <span class="search-led"
-                      id="ledArxiv"
                       data-source="arxiv"
                       data-status="ready"
                       title="arXiv - External API"></span>
                 <span class="search-led"
-                      id="ledSemantic"
                       data-source="semantic"
                       data-status="ready"
                       title="Semantic Scholar - External API"></span>
                 <span class="search-led"
-                      id="ledCrossref"
                       data-source="crossref"
                       data-status="ready"
                       title="Crossref API - External API"></span>
                 <span class="search-led"
-                      id="ledOpenalex"
                       data-source="openalex"
                       data-status="ready"
                       title="OpenAlex API - External API"></span>
@@ -297,4 +290,4 @@
     </div>
 </div>
 {% vite_script 'scholar_app/search/search-controls' %}
-{% vite_script 'scholar_app/search/source-health-check' %}
+<!-- source-health-check moved to scholar_base.html for global health polling -->

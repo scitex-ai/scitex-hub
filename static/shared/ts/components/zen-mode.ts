@@ -12,9 +12,9 @@
  * Refactored: ZenPanelManager handles panel state capture/restore.
  */
 
-import { ZenPanelManager, SavedPanelStates } from './ZenPanelManager';
+import { ZenPanelManager, SavedPanelStates } from "./ZenPanelManager";
 
-console.log('[DEBUG] shared/ts/components/zen-mode.ts loaded');
+console.log("[DEBUG] shared/ts/components/zen-mode.ts loaded");
 
 export interface ZenModeConfig {
   /** CSS selector for header element */
@@ -34,20 +34,20 @@ export interface ZenModeConfig {
 // Re-export for backwards compatibility
 export type { SavedPanelStates };
 
-type ZenState = 'normal' | 'zen' | 'fullscreen';
+type ZenState = "normal" | "zen" | "fullscreen";
 
-const ZEN_MODE_STORAGE_KEY = 'scitex-zen-mode-active';
-const ZEN_SAVED_STATES_KEY = 'scitex-zen-saved-states';
+const ZEN_MODE_STORAGE_KEY = "scitex-zen-mode-active";
+const ZEN_SAVED_STATES_KEY = "scitex-zen-saved-states";
 
 // URL hash values for direct access (useful for screenshots/testing)
 // e.g., /writer/#zen, /code/#fullscreen, /writer/#default
-const HASH_ZEN = 'zen';
-const HASH_FULLSCREEN = 'fullscreen';
-const HASH_DEFAULT = 'default';
+const HASH_ZEN = "zen";
+const HASH_FULLSCREEN = "fullscreen";
+const HASH_DEFAULT = "default";
 
 export class ZenMode {
   private config: ZenModeConfig;
-  private currentState: ZenState = 'normal';
+  private currentState: ZenState = "normal";
   private savedStates: SavedPanelStates | null = null;
   private initialized = false;
   private exitingToNormal = false;
@@ -55,7 +55,7 @@ export class ZenMode {
 
   constructor(config: ZenModeConfig) {
     this.config = {
-      storagePrefix: 'scitex-',
+      storagePrefix: "scitex-workspace-",
       ...config,
     };
     this.panelManager = new ZenPanelManager({
@@ -80,15 +80,22 @@ export class ZenMode {
 
     // Set up keyboard shortcuts
     // Use capture phase to intercept F11 before the browser handles it
-    document.addEventListener('keydown', this.handleKeyDown.bind(this), { capture: true });
+    document.addEventListener("keydown", this.handleKeyDown.bind(this), {
+      capture: true,
+    });
 
     // Listen for fullscreen changes (e.g., user presses browser's native F11)
-    document.addEventListener('fullscreenchange', this.handleFullscreenChange.bind(this));
+    document.addEventListener(
+      "fullscreenchange",
+      this.handleFullscreenChange.bind(this),
+    );
 
-    console.log('[ZenMode] Initialized');
-    console.log('[ZenMode] Shortcuts:');
-    console.log('  F11 or Alt+Z: Cycle through normal → zen → fullscreen → normal');
-    console.log('  ESC: Exit zen/fullscreen mode');
+    console.log("[ZenMode] Initialized");
+    console.log("[ZenMode] Shortcuts:");
+    console.log(
+      "  F11 or Alt+Z: Cycle through normal → zen → fullscreen → normal",
+    );
+    console.log("  ESC: Exit zen/fullscreen mode");
   }
 
   /**
@@ -96,7 +103,7 @@ export class ZenMode {
    */
   private handleKeyDown(e: KeyboardEvent): void {
     // F11: Cycle through states (keyCode 122 for browser compatibility)
-    if (e.key === 'F11' || e.keyCode === 122) {
+    if (e.key === "F11" || e.keyCode === 122) {
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
@@ -105,7 +112,7 @@ export class ZenMode {
     }
 
     // Alt+Z: Alternative shortcut for zen mode toggle
-    if (e.altKey && (e.key === 'z' || e.key === 'Z')) {
+    if (e.altKey && (e.key === "z" || e.key === "Z")) {
       e.preventDefault();
       e.stopPropagation();
       this.cycleState();
@@ -113,8 +120,8 @@ export class ZenMode {
     }
 
     // ESC: Exit to previous state
-    if (e.key === 'Escape' || e.keyCode === 27) {
-      if (this.currentState !== 'normal') {
+    if (e.key === "Escape" || e.keyCode === 27) {
+      if (this.currentState !== "normal") {
         e.preventDefault();
         this.exitToNormal();
       }
@@ -126,13 +133,13 @@ export class ZenMode {
    */
   public cycleState(): void {
     switch (this.currentState) {
-      case 'normal':
+      case "normal":
         this.enterZenMode();
         break;
-      case 'zen':
+      case "zen":
         this.enterFullscreen();
         break;
-      case 'fullscreen':
+      case "fullscreen":
         this.exitToNormal();
         break;
     }
@@ -142,37 +149,38 @@ export class ZenMode {
    * Enter zen mode (hide all panels)
    */
   public enterZenMode(): void {
-    if (this.currentState === 'zen' || this.currentState === 'fullscreen') return;
+    if (this.currentState === "zen" || this.currentState === "fullscreen")
+      return;
 
     // Save current panel states before entering zen mode
     this.savedStates = this.panelManager.captureCurrentStates();
     this.persistSavedStates();
 
     // Add zen-mode class to body for CSS targeting
-    document.body.classList.add('zen-mode');
+    document.body.classList.add("zen-mode");
 
     // Collapse all panels
     this.panelManager.collapseAllPanels();
 
-    this.currentState = 'zen';
-    localStorage.setItem(ZEN_MODE_STORAGE_KEY, 'zen');
+    this.currentState = "zen";
+    localStorage.setItem(ZEN_MODE_STORAGE_KEY, "zen");
 
     // Dispatch event for other components to react
-    this.dispatchZenModeEvent('enter');
+    this.dispatchZenModeEvent("enter");
 
     // Show notification with shortcuts guide
     this.showNotification(
-      'Zen mode – Press <kbd>F11</kbd> for fullscreen, <kbd>Esc</kbd> to exit'
+      "Zen mode – Press <kbd>F11</kbd> for fullscreen, <kbd>Esc</kbd> to exit",
     );
 
-    console.log('[ZenMode] Entered zen mode');
+    console.log("[ZenMode] Entered zen mode");
   }
 
   /**
    * Enter fullscreen mode (zen + browser fullscreen)
    */
   public enterFullscreen(): void {
-    if (this.currentState === 'normal') {
+    if (this.currentState === "normal") {
       // If coming from normal, enter zen first
       this.enterZenMode();
     }
@@ -181,15 +189,15 @@ export class ZenMode {
     const docEl = document.documentElement;
     if (docEl.requestFullscreen) {
       docEl.requestFullscreen().catch((err) => {
-        console.warn('[ZenMode] Fullscreen request failed:', err);
+        console.warn("[ZenMode] Fullscreen request failed:", err);
       });
     }
 
-    this.currentState = 'fullscreen';
-    localStorage.setItem(ZEN_MODE_STORAGE_KEY, 'fullscreen');
-    document.body.classList.add('zen-fullscreen');
+    this.currentState = "fullscreen";
+    localStorage.setItem(ZEN_MODE_STORAGE_KEY, "fullscreen");
+    document.body.classList.add("zen-fullscreen");
 
-    console.log('[ZenMode] Entered fullscreen mode');
+    console.log("[ZenMode] Entered fullscreen mode");
   }
 
   /**
@@ -202,12 +210,12 @@ export class ZenMode {
     // Exit browser fullscreen if active
     if (document.fullscreenElement) {
       document.exitFullscreen().catch((err) => {
-        console.warn('[ZenMode] Exit fullscreen failed:', err);
+        console.warn("[ZenMode] Exit fullscreen failed:", err);
       });
     }
 
     // Remove zen mode classes
-    document.body.classList.remove('zen-mode', 'zen-fullscreen');
+    document.body.classList.remove("zen-mode", "zen-fullscreen");
 
     // Restore saved panel states
     if (this.savedStates) {
@@ -216,13 +224,13 @@ export class ZenMode {
       this.clearSavedStates();
     }
 
-    this.currentState = 'normal';
+    this.currentState = "normal";
     localStorage.removeItem(ZEN_MODE_STORAGE_KEY);
 
     // Dispatch event for other components to react
-    this.dispatchZenModeEvent('exit');
+    this.dispatchZenModeEvent("exit");
 
-    console.log('[ZenMode] Exited to normal mode');
+    console.log("[ZenMode] Exited to normal mode");
 
     // Reset flag after a short delay to allow fullscreenchange event to process
     setTimeout(() => {
@@ -239,13 +247,13 @@ export class ZenMode {
       return;
     }
 
-    if (!document.fullscreenElement && this.currentState === 'fullscreen') {
+    if (!document.fullscreenElement && this.currentState === "fullscreen") {
       // User exited fullscreen via browser (e.g., native F11 or ESC)
       // Stay in zen mode but update state
-      this.currentState = 'zen';
-      document.body.classList.remove('zen-fullscreen');
-      localStorage.setItem(ZEN_MODE_STORAGE_KEY, 'zen');
-      console.log('[ZenMode] Exited fullscreen, staying in zen mode');
+      this.currentState = "zen";
+      document.body.classList.remove("zen-fullscreen");
+      localStorage.setItem(ZEN_MODE_STORAGE_KEY, "zen");
+      console.log("[ZenMode] Exited fullscreen, staying in zen mode");
     }
   }
 
@@ -254,7 +262,10 @@ export class ZenMode {
    */
   private persistSavedStates(): void {
     if (this.savedStates) {
-      localStorage.setItem(ZEN_SAVED_STATES_KEY, JSON.stringify(this.savedStates));
+      localStorage.setItem(
+        ZEN_SAVED_STATES_KEY,
+        JSON.stringify(this.savedStates),
+      );
     }
   }
 
@@ -276,15 +287,15 @@ export class ZenMode {
     // Handle #default hash - expand all panels, clear zen state
     if (hash === HASH_DEFAULT) {
       // Clear any zen mode state
-      document.body.classList.remove('zen-mode', 'zen-fullscreen');
+      document.body.classList.remove("zen-mode", "zen-fullscreen");
       localStorage.removeItem(ZEN_MODE_STORAGE_KEY);
       localStorage.removeItem(ZEN_SAVED_STATES_KEY);
-      this.currentState = 'normal';
+      this.currentState = "normal";
       this.savedStates = null;
 
       // Expand all panels
       this.panelManager.expandAllPanels();
-      console.log('[ZenMode] Expanded all panels from URL hash #default');
+      console.log("[ZenMode] Expanded all panels from URL hash #default");
       return;
     }
 
@@ -294,16 +305,18 @@ export class ZenMode {
       this.persistSavedStates();
 
       // Enter zen mode from URL hash
-      document.body.classList.add('zen-mode');
+      document.body.classList.add("zen-mode");
       this.panelManager.collapseAllPanels();
-      this.currentState = 'zen';
-      localStorage.setItem(ZEN_MODE_STORAGE_KEY, 'zen');
+      this.currentState = "zen";
+      localStorage.setItem(ZEN_MODE_STORAGE_KEY, "zen");
 
       if (hash === HASH_FULLSCREEN) {
         // Note: Can't auto-enter fullscreen on page load due to browser restrictions
-        console.log('[ZenMode] Entered zen mode from URL hash (fullscreen requires user action)');
+        console.log(
+          "[ZenMode] Entered zen mode from URL hash (fullscreen requires user action)",
+        );
       } else {
-        console.log('[ZenMode] Entered zen mode from URL hash');
+        console.log("[ZenMode] Entered zen mode from URL hash");
       }
       return;
     }
@@ -316,21 +329,23 @@ export class ZenMode {
       try {
         this.savedStates = JSON.parse(savedStatesJson);
       } catch (e) {
-        console.warn('[ZenMode] Failed to parse saved states:', e);
+        console.warn("[ZenMode] Failed to parse saved states:", e);
       }
 
-      if (savedZenState === 'zen' || savedZenState === 'fullscreen') {
+      if (savedZenState === "zen" || savedZenState === "fullscreen") {
         // Re-enter zen mode after page load
-        document.body.classList.add('zen-mode');
+        document.body.classList.add("zen-mode");
         this.panelManager.collapseAllPanels();
-        this.currentState = 'zen';
+        this.currentState = "zen";
 
-        if (savedZenState === 'fullscreen') {
+        if (savedZenState === "fullscreen") {
           // Note: Can't auto-enter fullscreen on page load due to browser restrictions
           // User will need to press F11 again for fullscreen
-          console.log('[ZenMode] Restored zen mode (fullscreen requires user action)');
+          console.log(
+            "[ZenMode] Restored zen mode (fullscreen requires user action)",
+          );
         } else {
-          console.log('[ZenMode] Restored zen mode');
+          console.log("[ZenMode] Restored zen mode");
         }
       }
     }
@@ -342,24 +357,24 @@ export class ZenMode {
    */
   public setState(state: ZenState): void {
     switch (state) {
-      case 'normal':
-        if (this.currentState !== 'normal') {
+      case "normal":
+        if (this.currentState !== "normal") {
           this.exitToNormal();
         }
         break;
-      case 'zen':
-        if (this.currentState === 'normal') {
+      case "zen":
+        if (this.currentState === "normal") {
           this.enterZenMode();
-        } else if (this.currentState === 'fullscreen') {
+        } else if (this.currentState === "fullscreen") {
           // Exit fullscreen but stay in zen
           if (document.fullscreenElement) {
             document.exitFullscreen().catch(() => {});
           }
-          this.currentState = 'zen';
-          document.body.classList.remove('zen-fullscreen');
+          this.currentState = "zen";
+          document.body.classList.remove("zen-fullscreen");
         }
         break;
-      case 'fullscreen':
+      case "fullscreen":
         this.enterFullscreen();
         break;
     }
@@ -370,25 +385,25 @@ export class ZenMode {
    */
   private showNotification(message: string, duration: number = 3000): void {
     // Remove existing notification if any
-    const existing = document.querySelector('.zen-notification');
+    const existing = document.querySelector(".zen-notification");
     if (existing) {
       existing.remove();
     }
 
     // Create notification element
-    const notification = document.createElement('div');
-    notification.className = 'zen-notification';
+    const notification = document.createElement("div");
+    notification.className = "zen-notification";
     notification.innerHTML = message;
     document.body.appendChild(notification);
 
     // Trigger animation
     requestAnimationFrame(() => {
-      notification.classList.add('visible');
+      notification.classList.add("visible");
     });
 
     // Auto-hide after duration
     setTimeout(() => {
-      notification.classList.remove('visible');
+      notification.classList.remove("visible");
       setTimeout(() => notification.remove(), 300);
     }, duration);
   }
@@ -396,14 +411,16 @@ export class ZenMode {
   /**
    * Dispatch custom event for zen mode changes
    */
-  private dispatchZenModeEvent(action: 'enter' | 'exit'): void {
-    window.dispatchEvent(new CustomEvent('zen-mode-changed', {
-      detail: {
-        action,
-        state: this.currentState,
-        savedStates: this.savedStates,
-      }
-    }));
+  private dispatchZenModeEvent(action: "enter" | "exit"): void {
+    window.dispatchEvent(
+      new CustomEvent("zen-mode-changed", {
+        detail: {
+          action,
+          state: this.currentState,
+          savedStates: this.savedStates,
+        },
+      }),
+    );
   }
 
   /**
@@ -417,7 +434,7 @@ export class ZenMode {
    * Check if zen mode is active
    */
   public isActive(): boolean {
-    return this.currentState !== 'normal';
+    return this.currentState !== "normal";
   }
 }
 
@@ -430,12 +447,12 @@ export let zenModeInstance: ZenMode | null = null;
  */
 export function initZenMode(config?: Partial<ZenModeConfig>): ZenMode {
   const defaultConfig: ZenModeConfig = {
-    headerSelector: '.global-header',
+    headerSelector: ".global-header",
     sidebarSelector: config?.sidebarSelector,
     detailsSelector: config?.detailsSelector,
     sidebarToggleId: config?.sidebarToggleId,
     detailsToggleId: config?.detailsToggleId,
-    storagePrefix: 'scitex-',
+    storagePrefix: "scitex-workspace-",
   };
 
   zenModeInstance = new ZenMode({ ...defaultConfig, ...config });
@@ -444,11 +461,11 @@ export function initZenMode(config?: Partial<ZenModeConfig>): ZenMode {
 }
 
 // Make available globally
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   (window as any).ZenMode = ZenMode;
   (window as any).initZenMode = initZenMode;
   // Expose getter for current instance (useful for testing/screenshots)
-  Object.defineProperty(window, 'zenMode', {
+  Object.defineProperty(window, "zenMode", {
     get: () => zenModeInstance,
     configurable: true,
   });

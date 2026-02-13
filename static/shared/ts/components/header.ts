@@ -172,14 +172,31 @@ function initializeHeader(): void {
       const timeLeft = expiresAt.getTime() - now.getTime();
 
       if (timeLeft <= 0) {
-        // Session expired - redirect to expiration page
+        // Session expired - show expired indicator
         if (countdownSpan) {
           countdownSpan.textContent = "⏰ EXPIRED";
           countdownSpan.style.color = "#f44336";
         }
-        setTimeout(() => {
-          window.location.href = "/visitor-expired/";
-        }, 2000);
+
+        // Don't redirect if already on visitor management or auth pages
+        // This prevents redirect loops when user tries to sign in/up
+        const currentPath = window.location.pathname;
+        const noRedirectPaths = [
+          "/visitor-expired/",
+          "/visitor-restart/",
+          "/visitor-pool-full/",
+          "/auth/", // All auth pages (signin, signup, etc.)
+        ];
+
+        const shouldSkipRedirect = noRedirectPaths.some((path) =>
+          currentPath.startsWith(path),
+        );
+
+        if (!shouldSkipRedirect) {
+          setTimeout(() => {
+            window.location.href = "/visitor-expired/";
+          }, 2000);
+        }
         return;
       }
 
@@ -245,61 +262,16 @@ function initializeHeader(): void {
           });
         }
 
-        // Build tooltip: LED color indicates server status
+        // Build simple tooltip: just overall status
         let statusMsg = "healthy";
         if (status === "starting") {
           statusMsg = "starting up";
         } else if (status === "warning") {
-          statusMsg = "warning";
+          statusMsg = "partial";
         } else if (status === "error") {
-          statusMsg = "error";
+          statusMsg = "degraded";
         }
-        let statusTooltip = `LED: ${statusMsg} at ${timeStr}`;
-
-        // Add service details to tooltip if available
-        if (data.services) {
-          const serviceDetails: string[] = [];
-          // Infrastructure services
-          if (data.services.database !== "healthy") {
-            serviceDetails.push(`Database: ${data.services.database}`);
-          }
-          if (data.services.redis !== "healthy") {
-            serviceDetails.push(`Redis: ${data.services.redis}`);
-          }
-          if (data.services.slurm !== "healthy") {
-            serviceDetails.push(`SLURM: ${data.services.slurm}`);
-          }
-          if (data.services.apptainer !== "healthy") {
-            serviceDetails.push(`Apptainer: ${data.services.apptainer}`);
-          }
-          // Docker containers
-          if (data.services.flower && data.services.flower !== "healthy") {
-            serviceDetails.push(`Flower: ${data.services.flower}`);
-          }
-          if (
-            data.services.celery_worker &&
-            data.services.celery_worker !== "healthy"
-          ) {
-            serviceDetails.push(
-              `Celery Worker: ${data.services.celery_worker}`,
-            );
-          }
-          if (
-            data.services.celery_beat &&
-            data.services.celery_beat !== "healthy"
-          ) {
-            serviceDetails.push(`Celery Beat: ${data.services.celery_beat}`);
-          }
-          if (data.services.gitea && data.services.gitea !== "healthy") {
-            serviceDetails.push(`Gitea: ${data.services.gitea}`);
-          }
-          if (data.services.nginx && data.services.nginx !== "healthy") {
-            serviceDetails.push(`Nginx: ${data.services.nginx}`);
-          }
-          if (serviceDetails.length > 0) {
-            statusTooltip += " - " + serviceDetails.join(", ");
-          }
-        }
+        let statusTooltip = `Server: ${statusMsg}`;
 
         // Update indicator color
         serverStatusIndicator.style.background = statusColor;

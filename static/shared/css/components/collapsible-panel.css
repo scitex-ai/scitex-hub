@@ -12,24 +12,71 @@
 
 /* Collapsible panel base */
 .collapsible-panel {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    transition: width 0.2s ease, min-width 0.2s ease;
-    flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition:
+    width 0.2s ease,
+    min-width 0.2s ease;
+  flex-shrink: 0;
 }
 
-/* Collapsed state - 40px width */
+/* Collapsed state - 40px width, cursor pointer for click-to-expand */
 .collapsible-panel.collapsed {
-    width: 40px !important;
-    min-width: 40px !important;
+  width: 40px !important;
+  min-width: 40px !important;
+  cursor: pointer;
 }
 
 /* Hide content when collapsed */
 .collapsible-panel.collapsed .panel-content,
 .collapsible-panel.collapsed .sidebar-content,
-.collapsible-panel.collapsed .properties-content {
-    display: none;
+.collapsible-panel.collapsed .properties-content,
+.collapsible-panel.collapsed .panel-body,
+.collapsible-panel.collapsed .panel-footer {
+  display: none;
+}
+
+/* Collapsed header: full height, centered, vertical layout
+   Uses !important to override app-specific rules (e.g. writer's
+   height: 50px !important, max-height: 50px) */
+.collapsible-panel.collapsed .panel-header {
+  padding: 0;
+  justify-content: center !important;
+  height: 100% !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  flex-direction: column;
+  border-bottom: none;
+}
+
+/* Panel title: visible as inline heading when expanded, vertical text when collapsed */
+.collapsible-panel .panel-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  white-space: nowrap;
+}
+
+.collapsible-panel.collapsed .panel-title {
+  display: flex;
+  justify-content: center;
+  writing-mode: vertical-lr;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+/* Collapsed toggle button: compact */
+.collapsible-panel.collapsed .panel-toggle-btn {
+  border: none;
+  margin: 4px 0;
+  padding: 4px;
 }
 
 /* ===========================================================================
@@ -37,48 +84,48 @@
    =========================================================================== */
 
 .collapsible-panel .panel-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 16px;
-    height: 50px;
-    min-height: 50px;
-    flex-shrink: 0;
-    box-sizing: border-box;
-    border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
-    background: var(--workspace-bg-secondary, #151515);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  height: 50px;
+  min-height: 50px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--workspace-border-default);
+  background: var(--workspace-bg-secondary);
 }
 
 /* Collapsed header - centered toggle button */
 .collapsible-panel.collapsed .panel-header {
-    padding: 0 4px;
-    justify-content: center;
+  padding: 0 4px;
+  justify-content: center;
 }
 
 /* Header title */
 .collapsible-panel .panel-header h4,
 .collapsible-panel .panel-header h5 {
-    margin: 0;
-    padding: 0;
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 1;
-    color: var(--text-primary, #d4e1e8);
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* Header icon */
 .collapsible-panel .panel-header h4 i,
 .collapsible-panel .panel-header h5 i {
-    color: var(--workspace-icon-primary, #059669);
+  color: var(--workspace-icon-primary);
 }
 
 /* Hide title when collapsed */
 .collapsible-panel.collapsed .panel-header h4,
 .collapsible-panel.collapsed .panel-header h5 {
-    display: none;
+  display: none;
 }
 
 /* ===========================================================================
@@ -86,27 +133,27 @@
    =========================================================================== */
 
 .panel-toggle-btn {
-    background: none;
-    border: none;
-    padding: 4px 8px;
-    cursor: pointer;
-    color: var(--text-muted, #6c8ba0);
-    border-radius: 4px;
-    transition: all 0.15s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+  color: var(--text-muted);
+  border-radius: 4px;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .panel-toggle-btn:hover {
-    background: var(--workspace-bg-tertiary, #1a1a1a);
-    color: var(--workspace-icon-primary, #059669);
+  background: var(--workspace-bg-tertiary);
+  color: var(--workspace-icon-primary);
 }
 
 /* Toggle button in collapsed state - full width centered */
 .collapsible-panel.collapsed .panel-toggle-btn {
-    width: 100%;
-    padding: 4px;
+  width: 100%;
+  padding: 4px;
 }
 
 /* ===========================================================================
@@ -114,9 +161,9 @@
    =========================================================================== */
 
 .collapsible-panel .panel-content {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* ===========================================================================
@@ -124,9 +171,9 @@
    =========================================================================== */
 
 .collapsible-panel.sidebar-panel {
-    width: 250px;
-    min-width: 10px;
-    border-right: none; /* Resizer handles visual separation */
+  width: 250px;
+  min-width: 10px;
+  border-right: none; /* Resizer handles visual separation */
 }
 
 /* ===========================================================================
@@ -134,9 +181,9 @@
    =========================================================================== */
 
 .collapsible-panel.properties-panel {
-    width: 320px;
-    min-width: 10px;
-    border-left: none; /* Resizer handles visual separation */
+  width: 320px;
+  min-width: 10px;
+  border-left: none; /* Resizer handles visual separation */
 }
 
 /* ===========================================================================
@@ -144,17 +191,17 @@
    =========================================================================== */
 
 [data-theme="light"] .collapsible-panel .panel-header {
-    background: var(--workspace-bg-secondary, #ebedef);
-    border-bottom-color: var(--workspace-border-default, #b5c7d1);
+  background: var(--workspace-bg-secondary);
+  border-bottom-color: var(--workspace-border-default);
 }
 
 [data-theme="light"] .collapsible-panel .panel-header h4,
 [data-theme="light"] .collapsible-panel .panel-header h5 {
-    color: var(--text-primary, #1a2a40);
+  color: var(--text-primary);
 }
 
 [data-theme="light"] .panel-toggle-btn:hover {
-    background: var(--workspace-bg-tertiary, #d8dee4);
+  background: var(--workspace-bg-tertiary);
 }
 
 /* ===========================================================================
@@ -165,37 +212,37 @@
 /* Sidebar toggle aliases */
 .sidebar-toggle,
 .sidebar-toggle-btn {
-    background: none;
-    border: none;
-    padding: 4px 8px;
-    cursor: pointer;
-    color: var(--text-muted, #6c8ba0);
-    border-radius: 4px;
-    transition: all 0.15s ease;
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+  color: var(--text-muted);
+  border-radius: 4px;
+  transition: all 0.15s ease;
 }
 
 .sidebar-toggle:hover,
 .sidebar-toggle-btn:hover {
-    background: var(--workspace-bg-tertiary, #1a1a1a);
-    color: var(--workspace-icon-primary, #059669);
+  background: var(--workspace-bg-tertiary);
+  color: var(--workspace-icon-primary);
 }
 
 /* Properties toggle aliases */
 .properties-toggle,
 .properties-toggle-btn {
-    background: none;
-    border: none;
-    padding: 4px 8px;
-    cursor: pointer;
-    color: var(--text-muted, #6c8ba0);
-    border-radius: 4px;
-    transition: all 0.15s ease;
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+  color: var(--text-muted);
+  border-radius: 4px;
+  transition: all 0.15s ease;
 }
 
 .properties-toggle:hover,
 .properties-toggle-btn:hover {
-    background: var(--workspace-bg-tertiary, #1a1a1a);
-    color: var(--workspace-icon-primary, #059669);
+  background: var(--workspace-bg-tertiary);
+  color: var(--workspace-icon-primary);
 }
 
 /* Collapsed state for aliased toggle buttons */
@@ -203,9 +250,127 @@
 .collapsed .sidebar-toggle-btn,
 .collapsed .properties-toggle,
 .collapsed .properties-toggle-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 4px;
+}
+
+/* ===========================================================================
+   SHARED DETAILS PANEL (RIGHT PANEL)
+   Standard details/properties panel used across all workspace modules.
+   Provides: header with toggle button, content area, collapsed state.
+   Used by: Writer, Scholar, Vis, Console, Hub, Verifier
+   =========================================================================== */
+
+/* Details header - standard 50px with toggle + title */
+.details-header,
+.properties-header {
+  display: flex;
+  align-items: center;
+  min-height: 50px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--workspace-border-default);
+  background: var(--workspace-bg-secondary);
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.details-header h5,
+.properties-header h5 {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--workspace-text-primary);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.details-header h5 i,
+.properties-header h5 i {
+  color: var(--workspace-icon-primary);
+}
+
+/* Details content area */
+.details-content,
+.properties-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  color: var(--workspace-text-primary);
+}
+
+/* Collapsed state for details/properties panels */
+.collapsed .details-header h4,
+.collapsed .details-header h5,
+.collapsed .properties-header h4,
+.collapsed .properties-header h5,
+.collapsed .details-content,
+.collapsed .properties-content {
+  display: none;
+}
+
+.collapsed .details-header,
+.collapsed .properties-header {
+  padding: 0;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  flex-direction: column;
+  border-bottom: none;
+}
+
+.collapsed .details-toggle,
+.collapsed .properties-toggle,
+.collapsed .properties-toggle-btn {
+  border: none;
+  margin: 4px 0;
+  padding: 4px;
+}
+
+/* ===========================================================================
+   SHARED SIDEBAR HEADER COLLAPSED STATE
+   When a sidebar is collapsed, hide everything in the header except
+   the toggle button (.panel-toggle-btn / .sidebar-toggle / .sidebar-toggle-btn).
+   Works for console, writer, scholar, vis modules.
+   =========================================================================== */
+
+.collapsed .sidebar-header {
+  padding: 0;
+  justify-content: center;
+}
+
+.collapsed
+  .sidebar-header
+  > *:not(.panel-toggle-btn):not(.sidebar-toggle):not(.sidebar-toggle-btn):not(
+    .sidebar-title
+  ) {
+  display: none;
+}
+
+.collapsed .sidebar-header .panel-toggle-btn,
+.collapsed .sidebar-header .sidebar-toggle,
+.collapsed .sidebar-header .sidebar-toggle-btn {
+  border: none;
+  margin: 4px 0;
+  padding: 4px;
+}
+
+/* Sidebar title: centered vertical text when collapsed.
+   No flex:1 — let parent's justify-content:center align the group. */
+.collapsed .sidebar-header .sidebar-title {
+  display: flex;
+  justify-content: center;
+  writing-mode: vertical-lr;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
 }

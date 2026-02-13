@@ -104,7 +104,7 @@ def add_replication_materials_to_dataset(
 
     # Add linked code execution outputs
     if manuscript.project:
-        from apps.code_app.models import CodeExecutionJob
+        from apps.console_app.models import CodeExecutionJob
 
         # Get code jobs from the project
         code_jobs = CodeExecutionJob.objects.filter(

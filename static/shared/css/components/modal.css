@@ -80,7 +80,7 @@
 }
 
 [data-theme="dark"] .scitex-modal-header h3 {
-  color: #ffffff;
+  color: var(--text-inverse);
 }
 
 .scitex-modal-close {
@@ -106,12 +106,12 @@
 }
 
 [data-theme="dark"] .scitex-modal-close {
-  color: #8b949e;
+  color: var(--text-muted);
 }
 
 [data-theme="dark"] .scitex-modal-close:hover {
   background: var(--scitex-color-03, #2d3139);
-  color: #ffffff;
+  color: var(--text-inverse);
 }
 
 /* Modal Body */
@@ -129,7 +129,7 @@
 }
 
 [data-theme="dark"] .scitex-modal-body p {
-  color: #c9d1d9;
+  color: var(--text-primary);
 }
 
 /* Modal Footer */
@@ -164,7 +164,7 @@
 
 .scitex-btn-primary {
   background: var(--scitex-color-05, #2563eb);
-  color: #ffffff;
+  color: var(--text-inverse);
   border-color: var(--scitex-color-05, #2563eb);
 }
 
@@ -185,7 +185,7 @@
 }
 
 [data-theme="dark"] .scitex-btn-secondary {
-  color: #c9d1d9;
+  color: var(--text-primary);
   border-color: var(--scitex-color-03, #2d3139);
 }
 
@@ -211,7 +211,7 @@
 [data-theme="dark"] .scitex-modal-body textarea {
   background: var(--scitex-color-02, #1a1d24);
   border-color: var(--scitex-color-04, #3d4450);
-  color: #c9d1d9;
+  color: var(--text-primary);
 }
 
 /* Modal info box styling */

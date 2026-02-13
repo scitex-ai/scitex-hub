@@ -35,25 +35,25 @@ crossref_patterns = [
     path("api/crossref/stats/", crossref_proxy.stats, name="crossref_api_stats"),
 ]
 
-# Citation Graph API (Network Analysis)
+# Citation Graph API (Network Analysis) - under scholar_app namespace
 citation_graph_patterns = [
     path(
-        "api/citation-graph/network/",
+        "citation-graph/network/",
         citation_graph.build_network,
         name="citation_graph_network",
     ),
     path(
-        "api/citation-graph/related/",
+        "citation-graph/related/",
         citation_graph.get_related_papers,
         name="citation_graph_related",
     ),
     path(
-        "api/citation-graph/paper/",
+        "citation-graph/paper/",
         citation_graph.paper_summary,
         name="citation_graph_paper",
     ),
     path(
-        "api/citation-graph/health/",
+        "citation-graph/health/",
         citation_graph.health,
         name="citation_graph_health",
     ),

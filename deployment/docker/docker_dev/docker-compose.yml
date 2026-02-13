@@ -101,6 +101,9 @@ services:
       redis:
         condition: service_started
     
+    # Use mounted entrypoint (picks up changes without rebuild)
+    entrypoint: ["/app/deployment/docker/docker_dev/entrypoint.sh"]
+
     # Use Django's runserver with Daphne integration (see settings_dev.py)
     # Daphne in INSTALLED_APPS makes runserver use ASGI automatically
     # Hot reload works natively with Django's autoreload + django-browser-reload
@@ -121,11 +124,11 @@ services:
 
     # Health check (faster intervals for dev)
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz/"]
       interval: 10s
-      timeout: 3s
-      retries: 3
-      start_period: 60s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
     
     # Network
     networks:
@@ -240,6 +243,9 @@ services:
       redis:
         condition: service_started
 
+    # Use mounted entrypoint (picks up changes without rebuild)
+    entrypoint: ["/app/deployment/docker/docker_dev/entrypoint.sh"]
+
     # Run Celery worker with all queues
     command: >
       celery -A config --broker=redis://redis:6379/1 worker
@@ -296,6 +302,9 @@ services:
       redis:
         condition: service_started
 
+    # Use mounted entrypoint (picks up changes without rebuild)
+    entrypoint: ["/app/deployment/docker/docker_dev/entrypoint.sh"]
+
     # Run Celery beat scheduler
     command: celery -A config --broker=redis://redis:6379/1 beat --loglevel=info --scheduler=django_celery_beat.schedulers:DatabaseScheduler
 
@@ -346,6 +355,9 @@ services:
     depends_on:
       - redis
       - celery_worker
+
+    # Use mounted entrypoint (picks up changes without rebuild)
+    entrypoint: ["/app/deployment/docker/docker_dev/entrypoint.sh"]
 
     # Run Flower monitoring (--broker must come before flower subcommand)
     command: celery -A config --broker=redis://redis:6379/1 flower --port=5555
@@ -440,6 +452,8 @@ services:
       - DATABASE_TYPE=postgresql
       - APP_SECRET=${SCITEX_CLOUD_UMAMI_APP_SECRET:-scitex-umami-secret-2026}
       - DISABLE_TELEMETRY=1
+      - CLIENT_IP_HEADER=X-Forwarded-For
+      - IGNORE_IP=${SCITEX_CLOUD_UMAMI_IGNORE_IP:-}
 
     depends_on:
       postgres:

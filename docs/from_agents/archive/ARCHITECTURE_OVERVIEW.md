@@ -37,7 +37,7 @@ SciTeX-Cloud follows a **modular, domain-driven architecture** with 18 specializ
 │               RESEARCH TOOLS LAYER (Four Pillars)               │
 ├─────────────────────────────────────────────────────────────────┤
 │  scholar_app: 📚 Literature review, bibliography, citations     │
-│  code_app: 💻 Code development, Jupyter integration             │
+│  console_app: 💻 Code development, Jupyter integration             │
 │  viz_app: 📊 Data visualization, plotting                       │
 │  writer_app: ✍️ Manuscript writing, document collaboration      │
 └─────────────────────────────────────────────────────────────────┘
@@ -153,7 +153,7 @@ SciTeX-Cloud follows a **modular, domain-driven architecture** with 18 specializ
 - **Key Models:** Paper, BibTeXEntry, Annotation, Note, Repository, SearchIndex
 - **URL Routes:** `/scholar/`, `/scholar/<project>/`, `/scholar/search/`
 
-#### code_app 💻
+#### console_app 💻
 - **Purpose:** Code development and analysis
 - **Responsibilities:**
   - Jupyter notebook integration
@@ -163,7 +163,7 @@ SciTeX-Cloud follows a **modular, domain-driven architecture** with 18 specializ
   - Code analysis tools
 - **Key Services:** JupyterService, EnvironmentManager, VisualizationPipeline
 - **Key Models:** Code models for analysis and execution
-- **URL Routes:** `/code/`, `/code/<project>/`
+- **URL Routes:** `/console/`, `/console/<project>/`
 
 #### viz_app 📊
 - **Purpose:** Data visualization
@@ -297,7 +297,7 @@ Each app has its own URL prefix (except public_app which routes at root):
 /auth/          → auth_app
 /accounts/      → accounts_app
 /scholar/       → scholar_app
-/code/          → code_app
+/console/          → console_app
 /viz/           → viz_app
 /writer/        → writer_app
 /search/        → search_app

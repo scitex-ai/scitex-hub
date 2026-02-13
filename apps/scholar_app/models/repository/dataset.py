@@ -100,14 +100,14 @@ class Dataset(models.Model):
 
     # Code integration
     generated_by_job = models.ForeignKey(
-        "code_app.CodeExecutionJob",
+        "console_app.CodeExecutionJob",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="generated_datasets",
     )
     associated_notebooks = models.ManyToManyField(
-        "code_app.Notebook", related_name="associated_datasets", blank=True
+        "console_app.Notebook", related_name="associated_datasets", blank=True
     )
 
     # Manuscript integration

@@ -1,11 +1,11 @@
-/* Icon Buttons - Enhanced bluish in dark mode */
+/* Icon Buttons - Enhanced in dark mode */
 .header-icon-btn {
   width: 32px;
   height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--scitex-color-03); /* Dark muted in light mode */
+  color: var(--scitex-color-03); /* Neutral gray in light mode */
   border-radius: 6px;
   transition: all 0.2s ease;
   text-decoration: none;
@@ -30,4 +30,3 @@
 [data-theme="dark"] .header-icon-btn svg {
   filter: brightness(1.1) saturate(1.3);
 }
-

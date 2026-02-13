@@ -4,11 +4,11 @@
  *
  * NOTE: Sidebar and Details panel toggle is now handled by shared/workspace-panel-resizer.ts
  * via data-panel-resizer attributes. This module only handles the editor/preview split
- * which has unique three-state behavior (normal, expanded, collapsed).
+ * which uses binary collapse/expand with shared accordion behavior.
  */
 
 console.log(
-  "[DEBUG] apps/writer_app/static/writer_app/ts/writer/ui/panel-toggle.ts loaded"
+  "[DEBUG] apps/writer_app/static/writer_app/ts/writer/ui/panel-toggle.ts loaded",
 );
 
 // Storage keys for persistence
@@ -57,9 +57,21 @@ function saveState(state: Partial<PanelState>): void {
 }
 
 /**
+ * Clear inline width/flex styles from a panel so CSS classes take effect.
+ * The PanelResizer sets inline styles (width, flexShrink, flexGrow) that
+ * override CSS .collapsed/.expanded rules — clearing them lets flex layout work.
+ */
+function clearInlineStyles(panel: HTMLElement): void {
+  panel.style.width = "";
+  panel.style.flex = "";
+  panel.style.flexShrink = "";
+  panel.style.flexGrow = "";
+}
+
+/**
  * Toggle panel expansion/collapse
  * For sidebar and details: simple toggle collapsed state
- * For editor and preview: three-state system (normal, expanded, collapsed)
+ * For editor and preview: binary collapse/expand (shared accordion behavior)
  */
 export function togglePanel(panelType: PanelType): void {
   const editorPanel = document.querySelector(".latex-panel") as HTMLElement;
@@ -69,7 +81,9 @@ export function togglePanel(panelType: PanelType): void {
   // NOTE: Sidebar and Details toggle is handled by shared/workspace-panel-resizer.ts
   // This function only handles editor/preview toggle for the unique three-state behavior
   if (panelType === "sidebar" || panelType === "details") {
-    console.log(`[Panel Toggle] ${panelType} is now handled by WorkspacePanelResizer`);
+    console.log(
+      `[Panel Toggle] ${panelType} is now handled by WorkspacePanelResizer`,
+    );
     return;
   }
 
@@ -78,48 +92,38 @@ export function togglePanel(panelType: PanelType): void {
     return;
   }
 
-  if (panelType === "editor") {
-    // If editor is collapsed, expand it
-    if (editorPanel.classList.contains("collapsed")) {
-      editorPanel.classList.remove("collapsed");
-      editorPanel.classList.add("expanded");
-      previewPanel.classList.remove("expanded");
-      previewPanel.classList.add("collapsed");
-      saveState({ editorExpanded: true, previewExpanded: false });
-    }
-    // If editor is already expanded, return to normal
-    else if (editorPanel.classList.contains("expanded")) {
-      editorPanel.classList.remove("expanded");
-      previewPanel.classList.remove("collapsed");
-      saveState({ editorExpanded: false, previewExpanded: false });
-    }
-    // If editor is normal, expand it
-    else {
-      editorPanel.classList.add("expanded");
-      previewPanel.classList.add("collapsed");
-      saveState({ editorExpanded: true, previewExpanded: false });
-    }
-  } else if (panelType === "preview") {
-    // If preview is collapsed, expand it
-    if (previewPanel.classList.contains("collapsed")) {
-      previewPanel.classList.remove("collapsed");
-      previewPanel.classList.add("expanded");
-      editorPanel.classList.remove("expanded");
-      editorPanel.classList.add("collapsed");
-      saveState({ previewExpanded: true, editorExpanded: false });
-    }
-    // If preview is already expanded, return to normal
-    else if (previewPanel.classList.contains("expanded")) {
-      previewPanel.classList.remove("expanded");
-      editorPanel.classList.remove("collapsed");
-      saveState({ previewExpanded: false, editorExpanded: false });
-    }
-    // If preview is normal, expand it
-    else {
-      previewPanel.classList.add("expanded");
-      editorPanel.classList.add("collapsed");
-      saveState({ previewExpanded: true, editorExpanded: false });
-    }
+  // Simple binary toggle: collapse this panel / expand it back
+  const targetPanel = panelType === "editor" ? editorPanel : previewPanel;
+  const otherPanel = panelType === "editor" ? previewPanel : editorPanel;
+  const wasCollapsed = targetPanel.classList.contains("collapsed");
+
+  console.log(
+    `[Panel Toggle] ${panelType}: wasCollapsed=${wasCollapsed}, editor.classes=[${editorPanel.className}], preview.classes=[${previewPanel.className}]`,
+  );
+
+  if (wasCollapsed) {
+    // Expand: return both panels to normal
+    targetPanel.classList.remove("collapsed");
+    otherPanel.classList.remove("expanded");
+    // Clear inline styles so CSS flex defaults take over
+    clearInlineStyles(targetPanel);
+    clearInlineStyles(otherPanel);
+    saveState({ editorExpanded: false, previewExpanded: false });
+    console.log(`[Panel Toggle] ${panelType}: expanded → normal state`);
+  } else {
+    // Collapse this panel, expand the other
+    targetPanel.classList.add("collapsed");
+    targetPanel.classList.remove("expanded");
+    otherPanel.classList.add("expanded");
+    otherPanel.classList.remove("collapsed");
+    // Clear inline styles so CSS .collapsed/.expanded classes take effect
+    clearInlineStyles(targetPanel);
+    clearInlineStyles(otherPanel);
+    saveState({
+      editorExpanded: panelType === "preview",
+      previewExpanded: panelType === "editor",
+    });
+    console.log(`[Panel Toggle] ${panelType}: collapsed, other expanded`);
   }
 
   // Update resizer visibility
@@ -127,10 +131,22 @@ export function togglePanel(panelType: PanelType): void {
     const editorCollapsed = editorPanel.classList.contains("collapsed");
     const previewCollapsed = previewPanel.classList.contains("collapsed");
     // Hide resizer when one panel is fully collapsed
-    panelResizer.style.display = editorCollapsed || previewCollapsed ? "none" : "";
+    panelResizer.style.display =
+      editorCollapsed || previewCollapsed ? "none" : "";
   }
 
   updateToggleButtonIcons();
+
+  // Re-fit PDF after CSS transition completes (0.3s transition on flex)
+  setTimeout(() => {
+    const pdfViewer = (window as any).pdfViewerInstance;
+    if (pdfViewer && typeof pdfViewer.fitWidth === "function") {
+      pdfViewer.fitWidth();
+      console.log("[Panel Toggle] PDF re-fitted to new panel width");
+    }
+    window.dispatchEvent(new Event("resize"));
+  }, 350);
+
   console.log(`[Panel Toggle] ${panelType} panel toggled`);
 }
 
@@ -144,7 +160,9 @@ function updateToggleButtonIcons(): void {
   const previewPanel = document.querySelector(".preview-panel") as HTMLElement;
 
   // Update sidebar toggle button (try both IDs for compatibility)
-  const sidebarToggle = document.getElementById("sidebar-toggle-btn") || document.getElementById("sidebar-toggle");
+  const sidebarToggle =
+    document.getElementById("sidebar-toggle-btn") ||
+    document.getElementById("sidebar-toggle");
   if (sidebarToggle && sidebar) {
     const icon = sidebarToggle.querySelector("i");
     if (icon) {
@@ -173,40 +191,20 @@ function updateToggleButtonIcons(): void {
     }
   }
 
-  // Update editor toggle button
+  // Editor toggle: chevron icon is static, only update title
   const editorToggle = document.getElementById("editor-toggle-btn");
   if (editorToggle && editorPanel) {
-    const icon = editorToggle.querySelector("i");
-    if (icon) {
-      if (editorPanel.classList.contains("expanded")) {
-        icon.className = "fas fa-compress-alt";
-        editorToggle.title = "Restore editor";
-      } else if (editorPanel.classList.contains("collapsed")) {
-        icon.className = "fas fa-expand-alt";
-        editorToggle.title = "Expand editor";
-      } else {
-        icon.className = "fas fa-expand-alt";
-        editorToggle.title = "Maximize editor";
-      }
-    }
+    editorToggle.title = editorPanel.classList.contains("collapsed")
+      ? "Expand editor"
+      : "Collapse editor (Ctrl+Shift+E)";
   }
 
-  // Update preview toggle button
+  // Preview toggle: chevron icon is static, only update title
   const previewToggle = document.getElementById("preview-toggle-btn");
   if (previewToggle && previewPanel) {
-    const icon = previewToggle.querySelector("i");
-    if (icon) {
-      if (previewPanel.classList.contains("expanded")) {
-        icon.className = "fas fa-compress-alt";
-        previewToggle.title = "Restore preview";
-      } else if (previewPanel.classList.contains("collapsed")) {
-        icon.className = "fas fa-expand-alt";
-        previewToggle.title = "Expand preview";
-      } else {
-        icon.className = "fas fa-expand-alt";
-        previewToggle.title = "Maximize preview";
-      }
-    }
+    previewToggle.title = previewPanel.classList.contains("collapsed")
+      ? "Expand preview"
+      : "Collapse preview (Ctrl+Shift+P)";
   }
 }
 
@@ -227,10 +225,14 @@ export function restorePanelStates(): void {
     if (state.editorExpanded) {
       editorPanel.classList.add("expanded");
       previewPanel.classList.add("collapsed");
+      clearInlineStyles(editorPanel);
+      clearInlineStyles(previewPanel);
       if (panelResizer) panelResizer.style.display = "none";
     } else if (state.previewExpanded) {
       previewPanel.classList.add("expanded");
       editorPanel.classList.add("collapsed");
+      clearInlineStyles(editorPanel);
+      clearInlineStyles(previewPanel);
       if (panelResizer) panelResizer.style.display = "none";
     }
   }

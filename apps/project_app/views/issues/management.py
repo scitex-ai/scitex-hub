@@ -74,7 +74,7 @@ def issue_label_manage(request, username, slug):
                 messages.error(request, "Label not found")
 
         return redirect(
-            "user_projects:issue_label_manage", username=username, slug=slug
+            "project_app:issue_label_manage", username=username, slug=slug
         )
 
     # GET request
@@ -177,7 +177,7 @@ def issue_milestone_manage(request, username, slug):
                 messages.error(request, "Milestone not found")
 
         return redirect(
-            "user_projects:issue_milestone_manage", username=username, slug=slug
+            "project_app:issue_milestone_manage", username=username, slug=slug
         )
 
     # GET request

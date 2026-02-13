@@ -15,7 +15,7 @@
 Cannot be used as usernames:
 
 **System Apps:**
-`admin`, `auth`, `billing`, `cloud`, `code`, `core`, `dev`, `docs`, `integrations`, `project`, `scholar`, `viz`, `writer`
+`admin`, `auth`, `billing`, `cloud`, `console`, `core`, `dev`, `docs`, `integrations`, `project`, `scholar`, `viz`, `writer`
 
 **Resources:**
 `static`, `media`, `api`, `new`
