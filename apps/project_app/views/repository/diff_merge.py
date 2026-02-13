@@ -58,7 +58,7 @@ def diff_merge_view(request, username, slug):
             return redirect_to_login(request.get_full_path())
         else:
             messages.error(request, "You don't have permission to access this project.")
-            return redirect("user_projects:detail", username=username, slug=slug)
+            return redirect("project_app:detail", username=username, slug=slug)
 
     context = {
         "project": project,

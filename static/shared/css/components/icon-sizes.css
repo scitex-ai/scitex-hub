@@ -1,0 +1,37 @@
+/* =============================================================================
+ * Icon Size Utilities
+ * =============================================================================
+ * Standardized icon sizing for FontAwesome, SVG, and img icons.
+ * Uses variables from primitives/colors.css (--icon-xs through --icon-2xl).
+ * ============================================================================= */
+
+.icon-xs {
+  font-size: var(--icon-xs);
+  width: var(--icon-xs);
+  height: var(--icon-xs);
+}
+.icon-sm {
+  font-size: var(--icon-sm);
+  width: var(--icon-sm);
+  height: var(--icon-sm);
+}
+.icon-md {
+  font-size: var(--icon-md);
+  width: var(--icon-md);
+  height: var(--icon-md);
+}
+.icon-lg {
+  font-size: var(--icon-lg);
+  width: var(--icon-lg);
+  height: var(--icon-lg);
+}
+.icon-xl {
+  font-size: var(--icon-xl);
+  width: var(--icon-xl);
+  height: var(--icon-xl);
+}
+.icon-2xl {
+  font-size: var(--icon-2xl);
+  width: var(--icon-2xl);
+  height: var(--icon-2xl);
+}

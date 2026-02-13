@@ -4,6 +4,7 @@
 # File: /home/ywatanabe/proj/scitex-cloud/apps/public_app/views/status/health_checks.py
 # ----------------------------------------
 from __future__ import annotations
+
 import os
 
 __FILE__ = "./apps/public_app/views/status/health_checks.py"
@@ -33,16 +34,19 @@ def check_docker_containers(status_data):
     """Check Docker containers status."""
     try:
         import docker
+
         client = docker.from_env()
         scitex_env = os.environ.get("SCITEX_CLOUD_ENV", "dev")
         container_name_prefix = f"scitex-cloud-{scitex_env}"
-        containers = client.containers.list(all=True, filters={"name": container_name_prefix})
+        containers = client.containers.list(
+            all=True, filters={"name": container_name_prefix}
+        )
 
         for container in containers:
             health_status = None
             try:
-                health = container.attrs.get('State', {}).get('Health', {})
-                health_status = health.get('Status') if health else None
+                health = container.attrs.get("State", {}).get("Health", {})
+                health_status = health.get("Status") if health else None
             except Exception:
                 pass
 
@@ -54,28 +58,36 @@ def check_docker_containers(status_data):
                 display_status = container.status
                 health_class = "healthy" if is_running else "down"
 
-            status_data["services"].append({
-                "name": container.name.replace("scitex-cloud-dev-", "").replace("-1", ""),
-                "status": container.status,
-                "display_status": display_status,
-                "health_status": health_status,
-                "health_class": health_class,
-                "is_running": is_running,
-                "is_healthy": is_running and health_status in (None, "healthy"),
-                "image": container.image.tags[0] if container.image.tags else "unknown",
-            })
+            status_data["services"].append(
+                {
+                    "name": container.name.replace("scitex-cloud-dev-", "").replace(
+                        "-1", ""
+                    ),
+                    "status": container.status,
+                    "display_status": display_status,
+                    "health_status": health_status,
+                    "health_class": health_class,
+                    "is_running": is_running,
+                    "is_healthy": is_running and health_status in (None, "healthy"),
+                    "image": container.image.tags[0]
+                    if container.image.tags
+                    else "unknown",
+                }
+            )
     except Exception as e:
         logger.warning(f"Could not check Docker containers: {e}")
-        status_data["services"].append({
-            "name": "Docker",
-            "status": "unavailable",
-            "display_status": "unavailable",
-            "health_status": None,
-            "health_class": "down",
-            "is_running": False,
-            "is_healthy": False,
-            "error": str(e),
-        })
+        status_data["services"].append(
+            {
+                "name": "Docker",
+                "status": "unavailable",
+                "display_status": "unavailable",
+                "health_status": None,
+                "health_class": "down",
+                "is_running": False,
+                "is_healthy": False,
+                "error": str(e),
+            }
+        )
 
 
 def _check_ssh_banner(host: str, port: int, timeout: float = 2.0) -> tuple[bool, str]:
@@ -94,9 +106,9 @@ def _check_ssh_banner(host: str, port: int, timeout: float = 2.0) -> tuple[bool,
 
         # Try to receive SSH banner (e.g., "SSH-2.0-OpenSSH_8.9")
         try:
-            banner = sock.recv(256).decode('utf-8', errors='ignore').strip()
+            banner = sock.recv(256).decode("utf-8", errors="ignore").strip()
             sock.close()
-            if banner.startswith('SSH-'):
+            if banner.startswith("SSH-"):
                 return True, banner
             else:
                 return False, f"Invalid banner: {banner[:50]}"
@@ -111,48 +123,54 @@ def check_ssh_services(status_data):
     """Check SSH services (Workspace Gateway and Gitea) with banner verification."""
     # Workspace SSH Gateway runs in the same container (Django container)
     # So always check on localhost, regardless of Docker environment
-    workspace_ssh_host = '127.0.0.1'
+    workspace_ssh_host = "127.0.0.1"
 
     # Gitea SSH runs in separate container, use Docker network hostname
-    gitea_ssh_host = 'gitea' if Path('/.dockerenv').exists() else '127.0.0.1'
+    gitea_ssh_host = "gitea" if Path("/.dockerenv").exists() else "127.0.0.1"
 
     # Workspace SSH Gateway (port 2200) - via cloudflared at ssh.scitex.ai
     is_functional, banner_or_error = _check_ssh_banner(workspace_ssh_host, 2200)
-    status_data["ssh_services"].append({
-        "name": "Workspace SSH Gateway",
-        "port": 2200,
-        "public_url": "ssh.scitex.ai",
-        "is_running": is_functional,
-        "status": "running" if is_functional else "down",
-        "health_class": "healthy" if is_functional else "down",
-        "banner": banner_or_error if is_functional else None,
-        "error": None if is_functional else banner_or_error,
-    })
+    status_data["ssh_services"].append(
+        {
+            "name": "Workspace SSH Gateway",
+            "port": 2200,
+            "public_url": "ssh.scitex.ai",
+            "is_running": is_functional,
+            "status": "running" if is_functional else "down",
+            "health_class": "healthy" if is_functional else "down",
+            "banner": banner_or_error if is_functional else None,
+            "error": None if is_functional else banner_or_error,
+        }
+    )
 
     # Gitea SSH - via cloudflared at gitea.scitex.ai
     # Inside Docker: use internal port 22 (gitea container's SSH)
     # Outside Docker: use external mapped port from settings (default 2222)
-    gitea_ssh_port = 22 if Path('/.dockerenv').exists() else int(getattr(settings, 'SCITEX_CLOUD_GITEA_SSH_PORT', 2222))
+    gitea_ssh_port = (
+        22
+        if Path("/.dockerenv").exists()
+        else int(getattr(settings, "SCITEX_CLOUD_GITEA_SSH_PORT", 2222))
+    )
     is_functional, banner_or_error = _check_ssh_banner(gitea_ssh_host, gitea_ssh_port)
-    status_data["ssh_services"].append({
-        "name": "Gitea SSH (Git operations)",
-        "port": gitea_ssh_port,
-        "public_url": "gitea.scitex.ai",
-        "is_running": is_functional,
-        "status": "running" if is_functional else "down",
-        "health_class": "healthy" if is_functional else "down",
-        "banner": banner_or_error if is_functional else None,
-        "error": None if is_functional else banner_or_error,
-    })
+    status_data["ssh_services"].append(
+        {
+            "name": "Gitea SSH (Git operations)",
+            "port": gitea_ssh_port,
+            "public_url": "gitea.scitex.ai",
+            "is_running": is_functional,
+            "status": "running" if is_functional else "down",
+            "health_class": "healthy" if is_functional else "down",
+            "banner": banner_or_error if is_functional else None,
+            "error": None if is_functional else banner_or_error,
+        }
+    )
 
 
-def _check_local_db(name, module_path, db_env_vars, db_fallback_paths):
-    """Check a local database service via module importability and DB file existence.
+def _check_local_db(name, package_name):
+    """Check a local database service by delegating to the package's own info().
 
-    Both CrossRef Local and OpenAlex Local use this identical check pattern.
-
-    Args:
-        db_env_vars: list of env var names to check (first found wins).
+    Each package (crossref_local, openalex_local) handles mode detection
+    (DB vs HTTP) and health checking internally.
     """
     import importlib
 
@@ -163,49 +181,66 @@ def _check_local_db(name, module_path, db_env_vars, db_fallback_paths):
         "health_class": "unhealthy",
     }
 
-    # 1. Check module importability
     try:
-        mod = importlib.import_module(module_path)
-        has_search = hasattr(mod, "search")
-        has_get = hasattr(mod, "get")
-        result["module"] = True
-        result["functions"] = {"search": has_search, "get": has_get}
+        pkg = importlib.import_module(package_name)
     except ImportError as e:
         result["error"] = f"Package not installed: {e}"
         return result
 
-    if not has_search:
-        result["error"] = "Module missing 'search' function"
+    if not hasattr(pkg, "info"):
+        result["error"] = "Package missing 'info' function"
         return result
 
-    # 2. Check database file existence (try multiple env var names)
-    db_path = ""
-    for env_var in db_env_vars:
-        db_path = os.environ.get(env_var, "")
-        if db_path:
-            break
-    if not db_path:
-        for p in db_fallback_paths:
-            if Path(p).exists():
-                db_path = p
-                break
+    try:
+        pkg_info = pkg.info()
+        mode = pkg_info.get("mode", "unknown")
+        status = pkg_info.get("status", "unknown")
 
-    if db_path and Path(db_path).exists():
-        db_size_gb = round(Path(db_path).stat().st_size / (1024**3), 1)
-        result.update({
-            "is_running": True,
-            "status": "healthy",
-            "health_class": "healthy",
-            "db_path": db_path,
-            "details": f"DB {db_size_gb} GB",
-        })
-    else:
-        result.update({
-            "status": "degraded",
-            "health_class": "warning",
-            "details": "Module available, database not mounted",
-            "db_path": db_path or "not configured",
-        })
+        if status in ("ok", "healthy", "running"):
+            api_url = pkg_info.get("api_url", "")
+            result.update(
+                {
+                    "is_running": True,
+                    "status": "healthy",
+                    "health_class": "healthy",
+                    "mode": mode,
+                    "details": f"{mode} mode" + (f" ({api_url})" if api_url else ""),
+                }
+            )
+        elif status == "unreachable":
+            result.update(
+                {
+                    "status": "degraded",
+                    "health_class": "warning",
+                    "mode": mode,
+                    "details": pkg_info.get("error", "Unreachable"),
+                }
+            )
+        else:
+            result.update(
+                {
+                    "status": "degraded",
+                    "health_class": "warning",
+                    "mode": mode,
+                    "details": f"Status: {status}",
+                }
+            )
+    except FileNotFoundError:
+        result.update(
+            {
+                "status": "degraded",
+                "health_class": "warning",
+                "details": "Database not configured",
+            }
+        )
+    except Exception as e:
+        result.update(
+            {
+                "status": "degraded",
+                "health_class": "warning",
+                "details": str(e),
+            }
+        )
 
     return result
 
@@ -214,30 +249,14 @@ def check_api_services(status_data):
     """Check API services (CrossRef Local, OpenAlex Local, Gitea HTTP)."""
     status_data["api_services"] = []
 
-    # CrossRef Local DB - direct detection
+    # CrossRef Local - delegates to crossref_local.info()
     status_data["api_services"].append(
-        _check_local_db(
-            name="CrossRef Local",
-            module_path="scitex.scholar.local_dbs.crossref_scitex",
-            db_env_vars=["CROSSREF_LOCAL_DB", "CROSSREF_DB_PATH"],
-            db_fallback_paths=[
-                "/data/crossref/crossref.db",
-                "/data/crossref.db",
-            ],
-        )
+        _check_local_db("CrossRef Local", "crossref_local")
     )
 
-    # OpenAlex Local DB - direct detection (sibling of CrossRef)
+    # OpenAlex Local - delegates to openalex_local.info()
     status_data["api_services"].append(
-        _check_local_db(
-            name="OpenAlex Local",
-            module_path="scitex.scholar.local_dbs.openalex_scitex",
-            db_env_vars=["OPENALEX_LOCAL_DB", "OPENALEX_DB_PATH"],
-            db_fallback_paths=[
-                "/data/openalex/openalex.db",
-                "/data/openalex.db",
-            ],
-        )
+        _check_local_db("OpenAlex Local", "openalex_local")
     )
 
     # Gitea HTTP API - check /api/v1/version endpoint
@@ -245,36 +264,42 @@ def check_api_services(status_data):
         response = requests.get("http://gitea:3000/api/v1/version", timeout=5)
         is_healthy = response.status_code == 200
         data = response.json() if is_healthy else {}
-        status_data["api_services"].append({
-            "name": "Gitea API",
-            "url": "gitea:3000",
-            "public_url": "https://git.scitex.ai",
-            "is_running": is_healthy,
-            "status": "healthy" if is_healthy else "error",
-            "health_class": "healthy" if is_healthy else "unhealthy",
-            "response_time_ms": int(response.elapsed.total_seconds() * 1000),
-            "details": f"v{data.get('version', 'unknown')}" if data else "",
-        })
+        status_data["api_services"].append(
+            {
+                "name": "Gitea API",
+                "url": "gitea:3000",
+                "public_url": "https://git.scitex.ai",
+                "is_running": is_healthy,
+                "status": "healthy" if is_healthy else "error",
+                "health_class": "healthy" if is_healthy else "unhealthy",
+                "response_time_ms": int(response.elapsed.total_seconds() * 1000),
+                "details": f"v{data.get('version', 'unknown')}" if data else "",
+            }
+        )
     except requests.exceptions.Timeout:
-        status_data["api_services"].append({
-            "name": "Gitea API",
-            "url": "gitea:3000",
-            "public_url": "https://git.scitex.ai",
-            "is_running": False,
-            "status": "timeout",
-            "health_class": "unhealthy",
-            "error": "Request timed out",
-        })
+        status_data["api_services"].append(
+            {
+                "name": "Gitea API",
+                "url": "gitea:3000",
+                "public_url": "https://git.scitex.ai",
+                "is_running": False,
+                "status": "timeout",
+                "health_class": "unhealthy",
+                "error": "Request timed out",
+            }
+        )
     except Exception as e:
-        status_data["api_services"].append({
-            "name": "Gitea API",
-            "url": "gitea:3000",
-            "public_url": "https://git.scitex.ai",
-            "is_running": False,
-            "status": "error",
-            "health_class": "unhealthy",
-            "error": str(e),
-        })
+        status_data["api_services"].append(
+            {
+                "name": "Gitea API",
+                "url": "gitea:3000",
+                "public_url": "https://git.scitex.ai",
+                "is_running": False,
+                "status": "error",
+                "health_class": "unhealthy",
+                "error": str(e),
+            }
+        )
 
 
 def check_database(status_data):
@@ -286,8 +311,8 @@ def check_database(status_data):
                 "is_running": True,
                 "status": "connected",
                 "health_class": "healthy",
-                "backend": connection.settings_dict['ENGINE'].split('.')[-1],
-                "name": connection.settings_dict['NAME'],
+                "backend": connection.settings_dict["ENGINE"].split(".")[-1],
+                "name": connection.settings_dict["NAME"],
             }
     except Exception as e:
         status_data["database"] = {
@@ -301,9 +326,9 @@ def check_database(status_data):
 def check_redis(status_data):
     """Check Redis connection."""
     try:
-        cache.set('health_check', 'ok', 10)
-        test_value = cache.get('health_check')
-        is_connected = test_value == 'ok'
+        cache.set("health_check", "ok", 10)
+        test_value = cache.get("health_check")
+        is_connected = test_value == "ok"
         status_data["redis"] = {
             "is_running": is_connected,
             "status": "connected" if is_connected else "error",
@@ -321,7 +346,7 @@ def check_redis(status_data):
 def check_disk(status_data):
     """Check disk usage."""
     try:
-        disk = psutil.disk_usage('/')
+        disk = psutil.disk_usage("/")
         status_data["disk"] = {
             "total_tb": round(disk.total / (1024**4), 2),
             "used_tb": round(disk.used / (1024**4), 2),

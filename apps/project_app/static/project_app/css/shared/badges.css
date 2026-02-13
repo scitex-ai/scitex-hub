@@ -48,25 +48,25 @@
 }
 
 .badge--success {
-  color: #ffffff;
+  color: var(--text-inverse);
   background-color: var(--color-success-fg);
   border-color: var(--color-success-fg);
 }
 
 .badge--warning {
-  color: #ffffff;
+  color: var(--text-inverse);
   background-color: var(--color-warning-fg);
   border-color: var(--color-warning-fg);
 }
 
 .badge--danger {
-  color: #ffffff;
+  color: var(--text-inverse);
   background-color: var(--color-danger-fg);
   border-color: var(--color-danger-fg);
 }
 
 .badge--info {
-  color: #ffffff;
+  color: var(--text-inverse);
   background-color: var(--color-info-fg);
   border-color: var(--color-info-fg);
 }

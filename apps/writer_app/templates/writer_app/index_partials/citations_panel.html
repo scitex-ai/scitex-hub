@@ -1,5 +1,22 @@
 <!-- Citations Panel -->
 <div class="citations-panel-container">
+    <!-- Drop Zone for .bib File Upload -->
+    <div id="citations-drop-zone" class="media-drop-zone">
+        <input type="file"
+               id="citations-file-input"
+               accept=".bib,.bibtex"
+               multiple
+               style="display: none" />
+        <i class="fas fa-cloud-upload-alt fa-2x mb-2"></i>
+        <p class="mb-1">
+            <strong>Drop .bib files here</strong> or
+            <label for="citations-file-input"
+                   style="color: var(--scitex-color-03);
+                          cursor: pointer;
+                          text-decoration: underline">browse</label>
+        </p>
+        <small>Supported: .bib, .bibtex</small>
+    </div>
     <!-- Citations List (Scrollable Cards) -->
     <div class="citations-list" id="citations-list">
         <!-- Loading State -->
@@ -8,9 +25,7 @@
             <p>Loading citations...</p>
         </div>
         <!-- Empty State (No Citations) -->
-        <div id="citations-empty"
-             class="citations-empty-state"
-             style="display: none">
+        <div id="citations-empty" class="citations-empty-state" style="display: none">
             <i class="fas fa-book-open fa-2x mb-3 text-muted"></i>
             <p class="text-muted mb-2" style="font-weight: 600">No citations found</p>
             <div style="max-width: 400px;
@@ -22,10 +37,7 @@
                 <p style="margin: 0 0 0.75rem 0; font-size: 13px; font-weight: 600">
                     <i class="fas fa-info-circle me-1"></i>To add citations:
                 </p>
-                <ol style="margin: 0;
-                           padding-left: 1.5rem;
-                           font-size: 12px;
-                           line-height: 1.6">
+                <ol style="margin: 0; padding-left: 1.5rem; font-size: 12px; line-height: 1.6">
                     <li>
                         Visit
                         <a href="/scholar/bibtex/" target="_blank" style="font-weight: 500">Scholar → BibTeX</a>
@@ -46,9 +58,7 @@
             </div>
         </div>
         <!-- No Search Results -->
-        <div id="citations-no-results"
-             class="citations-empty-state"
-             style="display: none">
+        <div id="citations-no-results" class="citations-empty-state" style="display: none">
             <i class="fas fa-search fa-2x mb-2 text-muted"></i>
             <p class="text-muted">No citations match your search</p>
         </div>

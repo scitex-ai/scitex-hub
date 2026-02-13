@@ -4,13 +4,7 @@
 /* Tree node items and structure */
 /* ============================================================================= */
 
-/* File tree items */
-.file-tree-item {
-  padding: 2px 4px; /* Compact padding */
-  position: relative;
-  border-radius: 3px;
-  transition: all 0.15s ease;
-}
+/* .file-tree-item visual styling in sidebar.css (single source of truth) */
 
 .file-tree-item--folder {
   display: flex;
@@ -46,18 +40,7 @@
   background: var(--color-neutral-subtle, rgba(110, 118, 129, 0.2));
 }
 
-/* File tree folder and file */
-.file-tree-folder {
-  display: flex;
-  align-items: center;
-  gap: 6px; /* Compact gap */
-}
-
-.file-tree-file {
-  display: flex;
-  align-items: center;
-  gap: 6px; /* Compact gap */
-}
+/* .file-tree-folder and .file-tree-file visual styling in sidebar.css */
 
 .file-tree-folder-link {
   text-decoration: none;

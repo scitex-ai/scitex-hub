@@ -110,11 +110,11 @@ export function loadPanelCSS(panel: string): Promise<void> {
     }
 
     const cssFiles: Record<string, string> = {
-      "citations": "/static/writer_app/css/editor/citations-panel/index.css",
-      "figures": "/static/writer_app/css/editor/figures-panel/index.css",
-      "tables": "/static/writer_app/css/editor/tables-panel.css",
-      "collaboration": "/static/shared/css/collaboration/collaboration.css",
-      "history": "/static/writer_app/css/shared/history-timeline/index.css"
+      citations: "/static/writer_app/css/editor/citations-panel/index.css",
+      figures: "/static/writer_app/css/editor/figures-panel/index.css",
+      tables: "/static/writer_app/css/editor/tables-panel.css",
+      collaboration: "/static/shared/css/collaboration/collaboration.css",
+      history: "/static/writer_app/css/shared/history-timeline/index.css",
     };
 
     const cssUrl = cssFiles[panel];
@@ -128,7 +128,9 @@ export function loadPanelCSS(panel: string): Promise<void> {
     const exactMatchSelector = `link[href^="${cssUrl}"]`;
     const existingLink = document.querySelector(exactMatchSelector);
     if (existingLink) {
-      console.log(`[Writer] CSS link for ${panel} panel already exists in DOM, marking as loaded`);
+      console.log(
+        `[Writer] CSS link for ${panel} panel already exists in DOM, marking as loaded`,
+      );
       loadedCSS.add(panel);
       resolve();
       return;
@@ -136,15 +138,18 @@ export function loadPanelCSS(panel: string): Promise<void> {
 
     // Create and append link element
     console.log(`[Writer] Loading CSS for ${panel} panel: ${cssUrl}`);
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
     link.href = `${cssUrl}?v=${Date.now()}`;
-    link.setAttribute('data-panel', panel);
+    link.setAttribute("data-panel", panel);
 
     link.onload = () => {
-      loadedCSS.add(panel);
-      console.log(`[Writer] ✓ Successfully loaded CSS for ${panel} panel`);
-      resolve();
+      // Wait for browser to parse and apply CSS before resolving
+      requestAnimationFrame(() => {
+        loadedCSS.add(panel);
+        console.log(`[Writer] ✓ Successfully loaded CSS for ${panel} panel`);
+        resolve();
+      });
     };
 
     link.onerror = (error) => {
@@ -161,7 +166,15 @@ export function loadPanelCSS(panel: string): Promise<void> {
 /**
  * Switch right panel between PDF, Citations, Figures, Tables, History, and Collaboration views
  */
-export function switchRightPanel(view: "pdf" | "citations" | "figures" | "tables" | "history" | "collaboration"): void {
+export function switchRightPanel(
+  view:
+    | "pdf"
+    | "citations"
+    | "figures"
+    | "tables"
+    | "history"
+    | "collaboration",
+): void {
   const pdfView = document.getElementById("pdf-view");
   const citationsView = document.getElementById("citations-view");
   const figuresView = document.getElementById("figures-view");
@@ -176,7 +189,9 @@ export function switchRightPanel(view: "pdf" | "citations" | "figures" | "tables
   const figuresHeader = document.getElementById("figures-panel-header");
   const tablesHeader = document.getElementById("tables-panel-header");
   const historyHeader = document.getElementById("history-panel-header");
-  const collaborationHeader = document.getElementById("collaboration-panel-header");
+  const collaborationHeader = document.getElementById(
+    "collaboration-panel-header",
+  );
   // Get all view switch buttons in all panel headers
   const allPdfBtns = document.querySelectorAll(
     '#show-pdf-btn, .view-switch-btn[onclick*="pdf"]',
@@ -198,7 +213,13 @@ export function switchRightPanel(view: "pdf" | "citations" | "figures" | "tables
   );
   const previewPanel = document.querySelector(".preview-panel") as HTMLElement;
 
-  if (!pdfView || !citationsView || !figuresView || !tablesView || !historyView) {
+  if (
+    !pdfView ||
+    !citationsView ||
+    !figuresView ||
+    !tablesView ||
+    !historyView
+  ) {
     console.error("[Writer] Panel toggle elements not found");
     return;
   }
@@ -229,7 +250,14 @@ export function switchRightPanel(view: "pdf" | "citations" | "figures" | "tables
 
   // Remove all preview-panel classes
   if (previewPanel) {
-    previewPanel.classList.remove("showing-pdf", "showing-citations", "showing-figures", "showing-tables", "showing-history", "showing-collaboration");
+    previewPanel.classList.remove(
+      "showing-pdf",
+      "showing-citations",
+      "showing-figures",
+      "showing-tables",
+      "showing-history",
+      "showing-collaboration",
+    );
   }
 
   // Update shared header content based on active view
@@ -243,25 +271,62 @@ export function switchRightPanel(view: "pdf" | "citations" | "figures" | "tables
     else if (view === "collaboration") templateHeader = collaborationHeader;
 
     if (templateHeader) {
-      sharedHeader.innerHTML = templateHeader.innerHTML;
+      // Selectively replace dynamic content, preserving toggle button and panel-title
+      const headerLeft = sharedHeader.querySelector(".header-left");
+      let headerRight = sharedHeader.querySelector(".header-right");
+
+      if (headerLeft) {
+        // Remove everything from header-left EXCEPT toggle btn and panel-title
+        Array.from(headerLeft.children).forEach((child) => {
+          const el = child as HTMLElement;
+          if (
+            el.id !== "preview-toggle-btn" &&
+            !el.classList.contains("panel-title")
+          ) {
+            child.remove();
+          }
+        });
+
+        // Append template's header-left contents (cloned)
+        const templateLeft = templateHeader.querySelector(".header-left");
+        if (templateLeft) {
+          Array.from(templateLeft.children).forEach((child) => {
+            headerLeft.appendChild(child.cloneNode(true));
+          });
+        }
+      }
+
+      // Replace header-right content
+      if (headerRight) {
+        const templateRight = templateHeader.querySelector(".header-right");
+        headerRight.innerHTML = templateRight ? templateRight.innerHTML : "";
+      } else {
+        // Create header-right if it doesn't exist yet
+        const templateRight = templateHeader.querySelector(".header-right");
+        if (templateRight) {
+          sharedHeader.appendChild(templateRight.cloneNode(true));
+        }
+      }
+
       console.log(`[Writer] Updated shared header for ${view} view`);
 
-      // Update active state on buttons in the SHARED header (after innerHTML copy)
-      const sharedHeaderBtns = sharedHeader.querySelectorAll('.view-switch-btn');
+      // Update active state on buttons in the SHARED header
+      const sharedHeaderBtns =
+        sharedHeader.querySelectorAll(".view-switch-btn");
       sharedHeaderBtns.forEach((btn) => {
         const btnElement = btn as HTMLElement;
-        // Check which panel this button switches to
-        const onclickAttr = btnElement.getAttribute('onclick');
+        const onclickAttr = btnElement.getAttribute("onclick");
         if (onclickAttr) {
-          // Add active class if this button matches the current view
           if (onclickAttr.includes(`'${view}'`)) {
-            btnElement.classList.add('active');
+            btnElement.classList.add("active");
           } else {
-            btnElement.classList.remove('active');
+            btnElement.classList.remove("active");
           }
         }
       });
-      console.log(`[Writer] Updated active button state in shared header for ${view} view`);
+      console.log(
+        `[Writer] Updated active button state in shared header for ${view} view`,
+      );
     }
   }
 
@@ -279,7 +344,10 @@ export function switchRightPanel(view: "pdf" | "citations" | "figures" | "tables
 
       // Load citations if not already loaded
       const citationsPanel = (window as any).citationsPanel;
-      if (citationsPanel && typeof citationsPanel.loadCitations === "function") {
+      if (
+        citationsPanel &&
+        typeof citationsPanel.loadCitations === "function"
+      ) {
         citationsPanel.loadCitations();
       }
     });
@@ -332,7 +400,10 @@ export function switchRightPanel(view: "pdf" | "citations" | "figures" | "tables
       const initGitHistoryManager = (window as any).initGitHistoryManager;
       if (initGitHistoryManager) {
         const gitHistoryManager = initGitHistoryManager();
-        if (gitHistoryManager && typeof gitHistoryManager.loadHistory === "function") {
+        if (
+          gitHistoryManager &&
+          typeof gitHistoryManager.loadHistory === "function"
+        ) {
           gitHistoryManager.loadBranches();
           gitHistoryManager.loadStatus();
           gitHistoryManager.loadHistory();

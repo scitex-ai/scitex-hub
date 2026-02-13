@@ -8,12 +8,15 @@ console.log("[DEBUG] shared/monaco/MonacoTheme.ts loaded");
 
 /**
  * Monaco theme color constants
- * workspace-bg-monaco: #1e1e1e (dark) / #ffffff (light)
+ * Matched to terminal CSS variables for visual consistency:
+ *   dark:  --terminal-bg: #1e1e1e, --terminal-fg: #e8e8e8
+ *   light: --terminal-bg: #fdfcfa, --terminal-fg: #333333
  */
 export const MONACO_COLORS = {
   dark: {
     background: "#1e1e1e",
     gutterBackground: "#1e1e1e",
+    foreground: "#e8e8e8",
     lineHighlight: "#2d2d2d",
     lineNumber: "#858585",
     lineNumberActive: "#c6c6c6",
@@ -21,12 +24,13 @@ export const MONACO_COLORS = {
     selectionInactive: "#3a3d41",
   },
   light: {
-    background: "#ffffff",
-    gutterBackground: "#ffffff",
-    lineHighlight: "#f5f5f5",
-    lineNumber: "#6e7681",
-    lineNumberActive: "#24292f",
-    selection: "#add6ff",
+    background: "#fdfcfa",
+    gutterBackground: "#fdfcfa",
+    foreground: "#333333",
+    lineHighlight: "#f5f0eb",
+    lineNumber: "#6b6b6b",
+    lineNumberActive: "#333333",
+    selection: "#c8ddf0",
     selectionInactive: "#e5ebf1",
   },
 } as const;
@@ -44,7 +48,11 @@ export function defineScitexDarkTheme(monaco: any): void {
       { token: "comment.latex", foreground: "6A9955", fontStyle: "italic" },
       { token: "keyword.latex", foreground: "569CD6" },
       { token: "keyword.control.latex", foreground: "C586C0" },
-      { token: "keyword.section.latex", foreground: "DCDCAA", fontStyle: "bold" },
+      {
+        token: "keyword.section.latex",
+        foreground: "DCDCAA",
+        fontStyle: "bold",
+      },
       { token: "keyword.math.latex", foreground: "9CDCFE" },
       { token: "string.math.latex", foreground: "CE9178" },
       { token: "type.identifier.latex", foreground: "4EC9B0" },
@@ -55,46 +63,54 @@ export function defineScitexDarkTheme(monaco: any): void {
     ],
     colors: {
       "editor.background": MONACO_COLORS.dark.background,
+      "editor.foreground": MONACO_COLORS.dark.foreground,
       "editorGutter.background": MONACO_COLORS.dark.gutterBackground,
       "editor.lineHighlightBackground": MONACO_COLORS.dark.lineHighlight,
       "editorLineNumber.foreground": MONACO_COLORS.dark.lineNumber,
       "editorLineNumber.activeForeground": MONACO_COLORS.dark.lineNumberActive,
       "editor.selectionBackground": MONACO_COLORS.dark.selection,
-      "editor.inactiveSelectionBackground": MONACO_COLORS.dark.selectionInactive,
+      "editor.inactiveSelectionBackground":
+        MONACO_COLORS.dark.selectionInactive,
     },
   });
 }
 
 /**
  * Define SciTeX light theme for Monaco
- * Extends vs with consistent workspace colors
+ * Extends vs with consistent workspace colors (matched to terminal)
  */
 export function defineScitexLightTheme(monaco: any): void {
   monaco.editor.defineTheme("scitex-light", {
     base: "vs",
     inherit: true,
     rules: [
-      // LaTeX syntax highlighting rules (light theme)
+      // LaTeX syntax highlighting rules (light theme - eye-friendly, no pure black)
       { token: "comment.latex", foreground: "008000", fontStyle: "italic" },
-      { token: "keyword.latex", foreground: "0000FF" },
-      { token: "keyword.control.latex", foreground: "AF00DB" },
-      { token: "keyword.section.latex", foreground: "795E26", fontStyle: "bold" },
+      { token: "keyword.latex", foreground: "3366aa" },
+      { token: "keyword.control.latex", foreground: "7744aa" },
+      {
+        token: "keyword.section.latex",
+        foreground: "795E26",
+        fontStyle: "bold",
+      },
       { token: "keyword.math.latex", foreground: "001080" },
       { token: "string.math.latex", foreground: "A31515" },
       { token: "type.identifier.latex", foreground: "267F99" },
       { token: "delimiter.curly.latex", foreground: "B8860B" },
       { token: "delimiter.square.latex", foreground: "800080" },
       { token: "number.latex", foreground: "098658" },
-      { token: "operator.latex", foreground: "000000" },
+      { token: "operator.latex", foreground: "333333" },
     ],
     colors: {
       "editor.background": MONACO_COLORS.light.background,
+      "editor.foreground": MONACO_COLORS.light.foreground,
       "editorGutter.background": MONACO_COLORS.light.gutterBackground,
       "editor.lineHighlightBackground": MONACO_COLORS.light.lineHighlight,
       "editorLineNumber.foreground": MONACO_COLORS.light.lineNumber,
       "editorLineNumber.activeForeground": MONACO_COLORS.light.lineNumberActive,
       "editor.selectionBackground": MONACO_COLORS.light.selection,
-      "editor.inactiveSelectionBackground": MONACO_COLORS.light.selectionInactive,
+      "editor.inactiveSelectionBackground":
+        MONACO_COLORS.light.selectionInactive,
     },
   });
 }
@@ -106,7 +122,9 @@ export function defineScitexLightTheme(monaco: any): void {
 export function initializeMonacoThemes(monaco: any): void {
   defineScitexDarkTheme(monaco);
   defineScitexLightTheme(monaco);
-  console.log("[MonacoTheme] SciTeX themes registered: scitex-dark, scitex-light");
+  console.log(
+    "[MonacoTheme] SciTeX themes registered: scitex-dark, scitex-light",
+  );
 }
 
 /**
@@ -120,7 +138,9 @@ export function getThemeForMode(mode: "dark" | "light"): string {
  * Get current site theme mode from data-theme attribute
  */
 export function getCurrentThemeMode(): "dark" | "light" {
-  return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+  return document.documentElement.getAttribute("data-theme") === "dark"
+    ? "dark"
+    : "light";
 }
 
 /**

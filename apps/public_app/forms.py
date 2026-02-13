@@ -135,7 +135,7 @@ class VerifyCodeForm(forms.Form):
             raise forms.ValidationError("Verification code has expired")
 
         # Check if code matches
-        if verification.code != code:
+        if verification.code != console:
             raise forms.ValidationError("Invalid verification code")
 
         # Mark as verified

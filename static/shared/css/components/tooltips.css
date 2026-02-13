@@ -55,6 +55,11 @@
   transition-delay: 0.5s; /* Delay applies on hover too */
 }
 
+/* Header tooltips: extra spacing to avoid mouse overlap */
+.global-header [data-tooltip]::after {
+  bottom: -40px;
+}
+
 /* ============================================
  * POSITION: TOP
  * ============================================ */

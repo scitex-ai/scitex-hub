@@ -5,27 +5,37 @@
 
 /* Container */
 .workspace-files-tree {
-  font-family: var(--font-mono, 'JetBrains Mono', 'Monaco', 'Menlo', 'Consolas', monospace);
+  font-family: var(
+    --font-mono,
+    "JetBrains Mono",
+    "Monaco",
+    "Menlo",
+    "Consolas",
+    monospace
+  );
   font-size: 13px;
   line-height: 1.4;
   overflow: hidden; /* Children handle scrolling */
   height: 100%;
   user-select: none;
-  background-color: var(--workspace-bg-monaco, #1e1e1e);
-  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
-  margin-bottom: 1px;
-  position: relative;  /* For absolute positioning of git gutter */
+  background-color: var(--workspace-bg-monaco);
+  border-bottom: 1px solid var(--workspace-border-default);
+  position: relative; /* For absolute positioning of git gutter */
   display: flex;
   flex-direction: column;
+}
+
+/* Content wrapper - takes remaining space below search box */
+.wft-content {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 /* Prevent flash during tree updates by using content-visibility */
 .wft-tree {
   contain: layout style;
   position: relative;
-  flex: 1 1 auto;
-  overflow-y: auto;
-  min-height: 0; /* Allow shrinking in flex container */
   /* Add padding at bottom for right-click on empty space */
   padding-bottom: 100px;
 }
@@ -34,13 +44,13 @@
 .wft-item {
   display: flex;
   align-items: center;
-  padding: 4px 8px 4px 4px;
+  padding: 1px 8px 1px 4px;
   cursor: pointer;
   border-radius: 4px;
   transition: background-color 0.1s ease;
   gap: 4px;
-  min-height: 26px;
-  position: relative;  /* Needed for action buttons positioning */
+  min-height: 20px;
+  position: relative; /* Needed for action buttons positioning */
 }
 
 /* Hide project root - show children directly */
@@ -93,11 +103,11 @@
   line-height: 12px;
   text-align: center;
   transition: transform 0.15s ease;
-  color: var(--color-fg-muted, #768390);
+  color: var(--color-fg-muted);
 }
 
 .wft-chevron::before {
-  content: '▸';
+  content: "\25B8";
 }
 
 .wft-chevron.expanded {
@@ -111,18 +121,9 @@
   height: 12px;
 }
 
-/* Icon */
+/* Icon - temporarily hidden for simplified look */
 .wft-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-}
-
-.wft-icon i {
-  font-size: 14px;
+  display: none;
 }
 
 /* Name */
@@ -131,13 +132,13 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--color-fg-default, #f0f3f6);
+  color: var(--color-fg-default);
   font-weight: 400;
 }
 
 /* Symlink indicator */
 .wft-symlink {
-  color: var(--color-fg-muted, #768390);
+  color: var(--color-fg-muted);
   font-size: 11px;
   margin-left: 4px;
 }

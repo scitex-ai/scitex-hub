@@ -10,13 +10,16 @@ URL extraction and save to project functionality.
 
 import logging
 import shutil
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
+from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from django.conf import settings
-from ...models import BibTeXEnrichmentJob
+
 from apps.scholar_app.api_auth import api_key_optional
+
+from ...models import BibTeXEnrichmentJob
 
 logger = logging.getLogger(__name__)
 
@@ -167,7 +170,7 @@ def bibtex_save_to_project(request, job_id):
             return JsonResponse(
                 {
                     "success": False,
-                    "error": f"Original BibTeX file not found at expected location",
+                    "error": "Original BibTeX file not found at expected location",
                 },
                 status=404,
             )
@@ -179,7 +182,7 @@ def bibtex_save_to_project(request, job_id):
             return JsonResponse(
                 {
                     "success": False,
-                    "error": f"Enriched BibTeX file not found at expected location",
+                    "error": "Enriched BibTeX file not found at expected location",
                 },
                 status=404,
             )
@@ -191,7 +194,6 @@ def bibtex_save_to_project(request, job_id):
 
         # If project has git repository, save to git and commit
         if project.git_clone_path:
-            from apps.project_app.services.git_service import auto_commit_file
             from apps.project_app.services.bibliography_manager import (
                 ensure_bibliography_structure,
                 regenerate_bibliography,
@@ -216,8 +218,7 @@ def bibtex_save_to_project(request, job_id):
                 logger.info(
                     f"Bibliography regenerated: "
                     f"scholar={results['scholar_count']}, "
-                    f"writer={results['writer_count']}, "
-                    f"total={results['total_count']}"
+                    f"duplicates_removed={results.get('duplicates_removed', 0)}"
                 )
             else:
                 logger.warning(

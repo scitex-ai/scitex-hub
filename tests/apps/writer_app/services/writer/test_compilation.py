@@ -226,7 +226,7 @@ if __name__ == "__main__":
 #                 logger.error(
 #                     f"WriterService: Preview compilation failed - PDF not found at {temp_pdf}"
 #                 )
-#                 logger.error(f"latexmk return code: {result.returncode}")
+#                 logger.error(f"latexmk return console: {result.returncode}")
 #                 logger.error(f"latexmk output:\n{log_content}")
 #                 return {
 #                     "success": False,

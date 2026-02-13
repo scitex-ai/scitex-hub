@@ -29,7 +29,7 @@ from ..views.integration_views import (
     github_integration,
 )
 
-# No app_name here - namespace is provided by parent (user_projects)
+# No app_name here - namespace is provided by parent (project_app)
 
 # Note: slug and username are passed via kwargs from parent URL pattern
 urlpatterns = [

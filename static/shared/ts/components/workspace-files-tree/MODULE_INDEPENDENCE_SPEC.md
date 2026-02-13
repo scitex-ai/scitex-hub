@@ -107,7 +107,7 @@ scitex/
 - Only `.tex`, `.bib`, and image files
 - Must use symlinks for cross-module references
 
-### Code Module (`scitex/code/`)
+### Code Module (`scitex/console/`)
 
 **Purpose:** Full development environment
 

@@ -115,7 +115,7 @@ def workflow_trigger(request, username, slug, workflow_id):
             )
         else:
             return redirect(
-                "user_projects:workflow_run_detail",
+                "project_app:workflow_run_detail",
                 username=username,
                 slug=slug,
                 run_id=run.id,
@@ -154,7 +154,7 @@ def workflow_enable_disable(request, username, slug, workflow_id):
             )
         else:
             return redirect(
-                "user_projects:workflow_detail",
+                "project_app:workflow_detail",
                 username=username,
                 slug=slug,
                 workflow_id=workflow.id,

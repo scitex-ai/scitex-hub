@@ -52,7 +52,7 @@ export class WorkspaceKeyboardHandler {
     undoRedoHandler: UndoRedoHandler,
     contextMenuHandler: ContextMenuHandler,
     fileActions: FileActions,
-    callbacks: KeyboardHandlerCallbacks
+    callbacks: KeyboardHandlerCallbacks,
   ) {
     this.config = config;
     this.container = container;
@@ -110,34 +110,69 @@ export class WorkspaceKeyboardHandler {
     // Skip if focus is in Monaco editor or Terminal
     const activeElement = document.activeElement as HTMLElement;
     const inMonacoOrTerminal = activeElement?.closest(
-      ".monaco-editor, .xterm, .terminal-container, #editor-container"
+      ".monaco-editor, .xterm, .terminal-container, #editor-container",
     );
     if (inMonacoOrTerminal) {
       return;
     }
 
-    // Check if the event target is inside our container
+    const ctrlOrMeta = e.ctrlKey || e.metaKey;
+
+    // Ctrl+K: Context-aware search shortcut
+    // - Focus in sidebar (left) → file tree filtering
+    // - Focus elsewhere (center/right) → tools search input
+    if (ctrlOrMeta && e.key === "k") {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const sidebar = this.container.closest(
+        ".workspace-sidebar, .sidebar-content",
+      );
+      const focusInSidebar =
+        sidebar &&
+        (sidebar.contains(activeElement) || sidebar.contains(e.target as Node));
+
+      if (focusInSidebar) {
+        // Focus is in the sidebar → file tree filtering
+        this.callbacks.showSearchInput();
+      } else {
+        // Focus is in center/right → tools search bar
+        const toolsSearchInput = document.getElementById(
+          "searchInput",
+        ) as HTMLInputElement | null;
+        if (toolsSearchInput) {
+          toolsSearchInput.focus();
+          toolsSearchInput.select();
+        } else {
+          // Fallback to file tree filter if no tools search exists
+          const isVisible =
+            this.container.offsetParent !== null ||
+            this.container.offsetWidth > 0;
+          if (isVisible) {
+            this.callbacks.showSearchInput();
+          }
+        }
+      }
+      return;
+    }
+
+    // For all other shortcuts, require focus inside the tree/sidebar
+    const sidebar = this.container.closest(
+      ".workspace-sidebar, .sidebar-content",
+    );
     const isOurTree =
       this.container.contains(e.target as Node) ||
       document.activeElement === this.container ||
-      this.container.contains(document.activeElement);
+      this.container.contains(document.activeElement) ||
+      (sidebar &&
+        (sidebar.contains(e.target as Node) ||
+          sidebar.contains(document.activeElement)));
     if (!isOurTree) {
       return;
     }
 
-    const ctrlOrMeta = e.ctrlKey || e.metaKey;
     const selectedPaths = this.selectionHandler.getSelectedPaths();
     const selected = this.stateManager.getSelected();
-
-    // === Global shortcuts (work without selection) ===
-
-    // Ctrl+K: Search/Filter
-    if (ctrlOrMeta && e.key === "k") {
-      e.preventDefault();
-      e.stopPropagation();
-      this.callbacks.showSearchInput();
-      return;
-    }
 
     // Ctrl+Z: Undo
     if (ctrlOrMeta && e.key === "z" && !e.shiftKey) {
@@ -251,7 +286,7 @@ export class WorkspaceKeyboardHandler {
         selectedPaths.length > 0 ? selectedPaths[0] : selected;
       if (pathToRename && pathToRename !== "") {
         const el = this.container.querySelector(
-          `[data-path="${pathToRename}"]`
+          `[data-path="${pathToRename}"]`,
         ) as HTMLElement;
         if (el) this.fileActions.startRename(pathToRename, el);
       }

@@ -3,7 +3,7 @@
 /* ============================================================================= */
 
 .list-group-item:hover {
-  background-color: #f8f9fa;
+  background-color: var(--bg-muted);
 }
 
 .badge {

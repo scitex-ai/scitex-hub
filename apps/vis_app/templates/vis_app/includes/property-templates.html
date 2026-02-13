@@ -1,0 +1,214 @@
+<!-- Property Templates for dynamic property panel generation -->
+<div id="property-templates" style="display: none;">
+    <!-- Figure Properties Template (hidden) -->
+    <template id="template-figure-props">
+        <div class="property-group">
+            <label class="property-label">Label</label>
+            <input type="text"
+                   class="property-input"
+                   id="prop-figure-label"
+                   placeholder="Figure label" />
+        </div>
+        <div class="property-group">
+            <label class="property-label">Width (inches)</label>
+            <input type="number"
+                   class="property-input"
+                   id="prop-figure-width"
+                   value="8"
+                   step="0.5" />
+        </div>
+        <div class="property-group">
+            <label class="property-label">Height (inches)</label>
+            <input type="number"
+                   class="property-input"
+                   id="prop-figure-height"
+                   value="6"
+                   step="0.5" />
+        </div>
+    </template>
+    <!-- Axis Properties Template (hidden) -->
+    <template id="template-axis-props">
+        <div class="property-group">
+            <label class="property-label">Label</label>
+            <input type="text"
+                   class="property-input"
+                   id="prop-axis-label"
+                   placeholder="Axis label" />
+        </div>
+        <div class="property-group">
+            <label class="property-label">
+                <input type="checkbox" id="prop-axis-grid" checked />
+                Show Grid
+            </label>
+        </div>
+        <div class="property-group">
+            <label class="property-label">
+                <input type="checkbox" id="prop-axis-log-x" />
+                Log Scale X
+            </label>
+        </div>
+        <div class="property-group">
+            <label class="property-label">
+                <input type="checkbox" id="prop-axis-log-y" />
+                Log Scale Y
+            </label>
+        </div>
+    </template>
+    <!-- Labels Properties Template (hidden) -->
+    <template id="template-labels-props">
+        <div class="property-group">
+            <label class="property-label">Title</label>
+            <input type="text"
+                   class="property-input"
+                   id="prop-labels-title"
+                   placeholder="Plot title" />
+        </div>
+        <div class="property-group">
+            <label class="property-label">X Label</label>
+            <input type="text"
+                   class="property-input"
+                   id="prop-labels-x"
+                   placeholder="X-axis label" />
+        </div>
+        <div class="property-group">
+            <label class="property-label">Y Label</label>
+            <input type="text"
+                   class="property-input"
+                   id="prop-labels-y"
+                   placeholder="Y-axis label" />
+        </div>
+        <div class="property-group">
+            <label class="property-label">Font Size</label>
+            <input type="number"
+                   class="property-input"
+                   id="prop-labels-fontsize"
+                   value="12"
+                   min="6"
+                   max="24" />
+        </div>
+    </template>
+    <!-- Plot Properties Template (hidden) -->
+    <template id="template-plot-props">
+        <div class="property-group">
+            <label class="property-label">Plot Type</label>
+            <select class="property-select" id="prop-plot-type">
+                <option value="line">Line</option>
+                <option value="scatter">Scatter</option>
+                <option value="bar">Bar</option>
+                <option value="histogram">Histogram</option>
+                <option value="box">Box</option>
+            </select>
+        </div>
+        <div class="property-group">
+            <label class="property-label">X-axis Column</label>
+            <select class="property-select" id="prop-x-column">
+                <option value="">-- Select --</option>
+            </select>
+        </div>
+        <div class="property-group">
+            <label class="property-label">Y-axis Column</label>
+            <select class="property-select" id="prop-y-column">
+                <option value="">-- Select --</option>
+            </select>
+        </div>
+        <div class="property-group">
+            <label class="property-label">Color</label>
+            <input type="color" class="property-color" id="prop-plot-color" value="#4a9b7e" />
+        </div>
+        <div class="property-group">
+            <label class="property-label">Line Width</label>
+            <input type="range"
+                   class="property-range"
+                   id="prop-line-width"
+                   min="0.5"
+                   max="5"
+                   step="0.5"
+                   value="2" />
+            <span class="property-value">2</span>
+        </div>
+        <div class="property-group">
+            <label class="property-label">Marker Size</label>
+            <input type="range"
+                   class="property-range"
+                   id="prop-marker-size"
+                   min="2"
+                   max="20"
+                   step="1"
+                   value="8" />
+            <span class="property-value">8</span>
+        </div>
+    </template>
+    <!-- Guide (Legend/Colorbar) Properties Template (hidden) -->
+    <template id="template-guide-props">
+        <div class="property-group">
+            <label class="property-label">Guide Type</label>
+            <select class="property-select" id="prop-guide-type">
+                <option value="legend">Legend</option>
+                <option value="colorbar">Colorbar</option>
+            </select>
+        </div>
+        <div class="property-group" id="guide-legend-props">
+            <label class="property-label">
+                <input type="checkbox" id="prop-show-legend" checked />
+                Show Legend
+            </label>
+            <label class="property-label">Position</label>
+            <select class="property-select" id="prop-legend-position">
+                <option value="top-right">Top Right</option>
+                <option value="top-left">Top Left</option>
+                <option value="bottom-right">Bottom Right</option>
+                <option value="bottom-left">Bottom Left</option>
+            </select>
+        </div>
+        <div class="property-group" id="guide-colorbar-props">
+            <label class="property-label">Orientation</label>
+            <select class="property-select" id="prop-colorbar-orientation">
+                <option value="vertical">Vertical</option>
+                <option value="horizontal">Horizontal</option>
+            </select>
+        </div>
+    </template>
+    <!-- Annotation Properties Template (hidden) -->
+    <template id="template-annotation-props">
+        <div class="property-group">
+            <label class="property-label">Annotation Type</label>
+            <select class="property-select" id="prop-annotation-type">
+                <option value="text">Text</option>
+                <option value="arrow">Arrow</option>
+                <option value="scalebar">Scale Bar</option>
+            </select>
+        </div>
+        <div class="property-group" id="annotation-text-props">
+            <label class="property-label">Text</label>
+            <input type="text"
+                   class="property-input"
+                   id="prop-annotation-text"
+                   placeholder="Annotation text" />
+        </div>
+        <div class="property-group">
+            <label class="property-label">X Position</label>
+            <input type="number"
+                   class="property-input"
+                   id="prop-annotation-x"
+                   value="0"
+                   step="0.1" />
+        </div>
+        <div class="property-group">
+            <label class="property-label">Y Position</label>
+            <input type="number"
+                   class="property-input"
+                   id="prop-annotation-y"
+                   value="0"
+                   step="0.1" />
+        </div>
+        <div class="property-group">
+            <label class="property-label">Font Size</label>
+            <input type="number"
+                   class="property-input"
+                   id="prop-annotation-fontsize"
+                   value="12"
+                   min="6"
+                   max="24" />
+        </div>
+    </template>
+</div>

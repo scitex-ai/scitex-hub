@@ -49,19 +49,19 @@
 }
 
 .key-status.active {
-  background: #d4edda;
-  color: #155724;
+  background: var(--status-success-bg);
+  color: var(--status-success-text);
 }
 
 .key-status.inactive {
-  background: #f8d7da;
-  color: #721c24;
+  background: var(--status-error-bg);
+  color: var(--status-error-text);
 }
 
 /* New key display */
 .new-key-display {
-  background: #000;
-  color: #0f0;
+  background: var(--terminal-bg);
+  color: var(--terminal-green);
   font-family: monospace;
   padding: 1rem;
   border-radius: 4px;
@@ -219,7 +219,7 @@
   padding: 1.5rem;
   background: var(--color-canvas-subtle);
   border-radius: 6px;
-  border-left: 3px solid #007acc;
+  border-left: 3px solid var(--status-info);
 }
 
 .usage-instructions h3 {
@@ -231,8 +231,8 @@
 }
 
 .usage-instructions pre {
-  background: #000;
-  color: #0f0;
+  background: var(--terminal-bg);
+  color: var(--terminal-green);
   padding: 1rem;
   border-radius: 4px;
   overflow-x: auto;

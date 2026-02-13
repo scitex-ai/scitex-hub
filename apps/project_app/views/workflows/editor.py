@@ -89,7 +89,7 @@ def workflow_create(request, username, slug):
 
         messages.success(request, f"Workflow '{workflow_name}' created successfully")
         return redirect(
-            "user_projects:workflow_detail",
+            "project_app:workflow_detail",
             username=username,
             slug=slug,
             workflow_id=workflow.id,
@@ -163,7 +163,7 @@ def workflow_edit(request, username, slug, workflow_id):
 
         messages.success(request, f"Workflow '{workflow_name}' updated successfully")
         return redirect(
-            "user_projects:workflow_detail",
+            "project_app:workflow_detail",
             username=username,
             slug=slug,
             workflow_id=workflow.id,

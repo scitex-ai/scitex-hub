@@ -1,12 +1,12 @@
 .mvp-container {
   height: calc(100vh - 80px);
   display: flex;
-  background-color: #f8f9fa;
+  background-color: var(--workspace-bg-primary);
 }
 
 .mvp-sidebar {
   width: 280px;
-  background-color: white;
+  background-color: var(--workspace-bg-elevated);
   border-right: 1px solid var(--workspace-border-default);
   padding: 1rem;
   overflow-y: auto;
@@ -19,7 +19,7 @@
 }
 
 .mvp-toolbar {
-  background-color: white;
+  background-color: var(--workspace-bg-elevated);
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--workspace-border-default);
   display: flex;
@@ -45,7 +45,7 @@
 
 .preview-panel {
   /* width: 400px; -- REMOVED: conflicts with flex sizing in split-view.css */
-  background-color: white;
+  background-color: var(--workspace-bg-elevated);
   border-left: 1px solid var(--workspace-border-default);
   display: flex;
   flex-direction: column;
@@ -53,7 +53,7 @@
 
 .preview-header {
   padding: 1rem;
-  background-color: #f8f9fa;
+  background-color: var(--workspace-bg-primary);
   border-bottom: 1px solid var(--workspace-border-default);
   font-weight: 600;
 }
@@ -66,24 +66,24 @@
 
 .compile-status {
   padding: 0.5rem 1rem;
-  background-color: #e9ecef;
+  background-color: var(--workspace-bg-tertiary);
   border-top: 1px solid var(--workspace-border-default);
   font-size: 0.9rem;
 }
 
 .compile-status.success {
-  background-color: #d1e7dd;
-  color: #0f5132;
+  background-color: var(--status-success-bg);
+  color: var(--status-success-text);
 }
 
 .compile-status.error {
-  background-color: #f8d7da;
-  color: #721c24;
+  background-color: var(--status-error-bg);
+  color: var(--status-error-text);
 }
 
 .compile-status.running {
-  background-color: #d1ecf1;
-  color: #055160;
+  background-color: var(--status-info-bg);
+  color: var(--status-info-text);
 }
 
 .job-item {
@@ -96,7 +96,7 @@
 }
 
 .job-item:hover {
-  background-color: #f8f9fa;
+  background-color: var(--workspace-bg-primary);
 }
 
 .job-status {
@@ -108,20 +108,20 @@
 }
 
 .job-status.completed {
-  background-color: #d1e7dd;
-  color: #0f5132;
+  background-color: var(--status-success-bg);
+  color: var(--status-success-text);
 }
 .job-status.running {
-  background-color: #d1ecf1;
-  color: #055160;
+  background-color: var(--status-info-bg);
+  color: var(--status-info-text);
 }
 .job-status.failed {
-  background-color: #f8d7da;
-  color: #721c24;
+  background-color: var(--status-error-bg);
+  color: var(--status-error-text);
 }
 .job-status.queued {
-  background-color: #fff3cd;
-  color: #664d03;
+  background-color: var(--status-warning-bg);
+  color: var(--status-warning-text);
 }
 
 .quick-actions {
@@ -136,9 +136,9 @@
 }
 
 .btn-mvp {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--color-cta) 0%, #764ba2 100%);
   border: none;
-  color: white;
+  color: var(--text-inverse);
   font-weight: 500;
   padding: 0.5rem 1rem;
   border-radius: 0.375rem;
@@ -148,18 +148,18 @@
 .btn-mvp:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-  color: white;
+  color: var(--text-inverse);
 }
 
 .mvp-logo {
   font-weight: 700;
-  color: #667eea;
+  color: var(--color-cta);
   font-size: 1.1rem;
 }
 
 .progress-bar-mvp {
   height: 4px;
-  background-color: #e9ecef;
+  background-color: var(--workspace-bg-tertiary);
   border-radius: 2px;
   overflow: visible; /* Allow Monaco suggestions to overflow */
   margin: 0.5rem 0;
@@ -167,7 +167,7 @@
 
 .progress-fill-mvp {
   height: 100%;
-  background: linear-gradient(90deg, #667eea, #764ba2);
+  background: linear-gradient(90deg, var(--color-cta), #764ba2);
   transition: width 0.3s ease;
 }
 

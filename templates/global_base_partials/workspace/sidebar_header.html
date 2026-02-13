@@ -1,0 +1,64 @@
+<!-- Unified sidebar header for all workspace modules -->
+<div class="sidebar-header">
+    <button id="sidebar-toggle"
+            class="sidebar-toggle panel-toggle-btn left-panel-toggle"
+            title="Toggle sidebar (Zen: F11/Alt+Z)">
+        <i class="fas fa-chevron-left"></i>
+    </button>
+    <span class="sidebar-title">Files</span>
+    <div class="sidebar-header-actions">
+        <button class="hidden-files-toggle"
+                id="hidden-files-toggle"
+                title="Toggle hidden files">
+            <i class="fas fa-eye-slash"></i>
+        </button>
+        <button class="git-status-toggle"
+                id="git-status-toggle"
+                title="Toggle git status highlighting">
+            <i class="fas fa-code-branch"></i>
+        </button>
+        <!-- Context-aware module filter: lightbulb highlights relevant files -->
+        <div class="module-filter-buttons" id="module-filter-buttons">
+            {% if 'writer' in request.path %}
+                <button class="module-filter-btn"
+                        data-mode="writer"
+                        title="Highlight writer-related files">
+                    <i class="fas fa-lightbulb"></i>
+                </button>
+            {% elif 'scholar' in request.path %}
+                <button class="module-filter-btn"
+                        data-mode="scholar"
+                        title="Highlight scholar-related files">
+                    <i class="fas fa-lightbulb"></i>
+                </button>
+            {% elif '/vis/' in request.path %}
+                <button class="module-filter-btn"
+                        data-mode="vis"
+                        title="Highlight visualizer-related files">
+                    <i class="fas fa-lightbulb"></i>
+                </button>
+            {% elif 'console' in request.path %}
+                <button class="module-filter-btn"
+                        data-mode="code"
+                        title="Highlight console-related files">
+                    <i class="fas fa-lightbulb"></i>
+                </button>
+            {% elif 'clew' in request.path %}
+                <button class="module-filter-btn" data-mode="clew" title="Highlight clew-related files">
+                    <i class="fas fa-lightbulb"></i>
+                </button>
+            {% elif '/hub/' in request.path %}
+                <button class="module-filter-btn" data-mode="hub" title="Highlight hub-related files">
+                    <i class="fas fa-lightbulb"></i>
+                </button>
+            {% elif 'tools' in request.path %}
+                <button class="module-filter-btn"
+                        data-mode="tools"
+                        title="Highlight tools-related files">
+                    <i class="fas fa-lightbulb"></i>
+                </button>
+            {% endif %}
+        </div>
+        <span class="sidebar-header-divider"></span>
+    </div>
+</div>

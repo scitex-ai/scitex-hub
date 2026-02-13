@@ -19,7 +19,9 @@
   box-shadow: none; /* No box shadow - flat workspace design */
   /* Background is set in 10-dark-mode.css to match workspace theme */
   flex: 1;
-  transition: flex 0.3s ease, min-width 0.3s ease;
+  transition:
+    flex 0.3s ease,
+    min-width 0.3s ease;
   position: relative;
 }
 
@@ -34,12 +36,10 @@
   flex: 3;
 }
 
-/* Collapsed panel - minimal width */
+/* Collapsed panel - 40px strip with vertical text */
 .split-view .latex-panel.collapsed,
 .split-view .preview-panel.collapsed {
-  flex: 0;
-  min-width: 40px;
-  max-width: 40px;
+  flex: 0 0 40px;
   overflow: hidden;
 }
 
@@ -49,32 +49,32 @@
   display: none !important;
 }
 
-/* Collapsed panel header style - vertical text */
-.split-view .latex-panel.collapsed > .panel-header,
-.split-view .preview-panel.collapsed > .panel-header {
-  writing-mode: vertical-lr;
-  text-orientation: mixed;
-  height: 100%;
-  padding: 1rem 0.5rem;
-  justify-content: flex-start;
-  border-bottom: none;
-  flex-direction: column;
-  gap: 1rem;
+/* Hide header sub-elements when collapsed (keep toggle + panel-title) */
+.split-view
+  .latex-panel.collapsed
+  > .panel-header
+  .header-left
+  > *:not(.panel-toggle-btn):not(.panel-title),
+.split-view
+  .preview-panel.collapsed
+  > .panel-header
+  .header-left
+  > *:not(.panel-toggle-btn):not(.panel-title) {
+  display: none;
 }
 
+/* Collapsed header-left: vertical layout for toggle + title, centered */
 .split-view .latex-panel.collapsed > .panel-header .header-left,
 .split-view .preview-panel.collapsed > .panel-header .header-left {
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  width: 100%;
+  overflow: hidden;
 }
 
 .split-view .latex-panel.collapsed > .panel-header .header-right,
 .split-view .preview-panel.collapsed > .panel-header .header-right {
   display: none;
-}
-
-/* Keep toggle button normal orientation in collapsed state */
-.split-view .latex-panel.collapsed .panel-toggle-btn,
-.split-view .preview-panel.collapsed .panel-toggle-btn {
-  writing-mode: horizontal-tb;
-  text-orientation: mixed;
 }

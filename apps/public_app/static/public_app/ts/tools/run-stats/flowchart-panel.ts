@@ -1,0 +1,221 @@
+/**
+ * FlowchartPanel - Interactive statistical test decision flowchart
+ *
+ * Fetches Mermaid markup from /api/stats/flowchart/ and renders it
+ * client-side using Mermaid.js. Attaches click handlers to let users
+ * navigate "Which test should I use?" decisions.
+ */
+
+import mermaid from "mermaid";
+import { FlowchartZoom } from "./flowchart-zoom";
+
+// Mapping from SVG node IDs to test registry IDs
+// SVG node IDs follow pattern: flowchart-{node_id}-{index}
+const NODE_TEST_MAP: Record<string, string> = {
+  shapiro: "shapiro",
+  ttest_ind: "ttest_ind",
+  indep_2_nonparam: "brunnermunzel",
+  indep_2_alt: "mannwhitney",
+  ttest_paired: "ttest_paired",
+  wilcoxon: "wilcoxon",
+  anova: "anova",
+  kruskal: "kruskal",
+  tukey: "tukey",
+  games_howell: "games_howell",
+  dunnett: "dunnett",
+  cat_indep: "chi2",
+  pearson: "pearson",
+  spearman: "spearman",
+};
+
+export class FlowchartPanel {
+  private container: HTMLElement;
+  private onTestSelected: (testId: string) => void;
+  private zoom: FlowchartZoom;
+  private activeNodeId: string | null = null;
+  private savedStyles = new Map<
+    Element,
+    { stroke: string; strokeWidth: string; filter: string }
+  >();
+
+  constructor(selector: string, onTestSelected: (testId: string) => void) {
+    const el = document.querySelector<HTMLElement>(selector);
+    if (!el) throw new Error(`FlowchartPanel: ${selector} not found`);
+    this.container = el;
+    this.onTestSelected = onTestSelected;
+    this.zoom = new FlowchartZoom(el);
+  }
+
+  async load(): Promise<void> {
+    try {
+      this.initToggle();
+      const resp = await fetch("/api/stats/flowchart/");
+      if (!resp.ok) {
+        this.container.innerHTML =
+          '<div class="flowchart-error">Failed to load flowchart</div>';
+        return;
+      }
+      const mermaidText = await resp.text();
+      await this.renderMermaid(mermaidText);
+      this.styleSvg();
+      const svg = this.container.querySelector("svg");
+      if (svg) this.zoom.attach(svg as SVGElement);
+      this.attachClickHandlers();
+    } catch (err) {
+      console.error("[FlowchartPanel] Load error:", err);
+      this.container.innerHTML =
+        '<div class="flowchart-error">Flowchart unavailable</div>';
+    }
+  }
+
+  private static STORAGE_KEY = "stats-flowchart-collapsed";
+
+  private initToggle(): void {
+    const section = document.getElementById("flowchartSection");
+    const toggle = document.getElementById("flowchartToggle");
+    if (!section || !toggle) return;
+
+    // Restore saved state
+    if (localStorage.getItem(FlowchartPanel.STORAGE_KEY) === "true") {
+      section.classList.add("collapsed");
+    }
+
+    toggle.addEventListener("click", () => {
+      const collapsed = section.classList.toggle("collapsed");
+      localStorage.setItem(FlowchartPanel.STORAGE_KEY, String(collapsed));
+    });
+  }
+
+  private async renderMermaid(text: string): Promise<void> {
+    // Strip figrecipe's %%{init}%% directive — we configure Mermaid ourselves
+    const cleaned = text.replace(/^%%\{.*?\}%%\s*/s, "");
+
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: "base",
+      themeVariables: {
+        primaryColor: "#e6f3ff",
+        primaryTextColor: "#222",
+        primaryBorderColor: "#0066cc",
+        lineColor: "#888",
+        fontSize: "14px",
+        fontFamily: '"JetBrains Mono", "Courier New", monospace',
+      },
+      flowchart: {
+        curve: "basis",
+        padding: 16,
+        nodeSpacing: 30,
+        rankSpacing: 40,
+        htmlLabels: true,
+      },
+      securityLevel: "loose",
+    });
+
+    const { svg } = await mermaid.render("stats-flowchart", cleaned);
+    this.container.innerHTML = svg;
+  }
+
+  private styleSvg(): void {
+    const svg = this.container.querySelector("svg");
+    if (!svg) return;
+    // Let CSS min-width control size; container scrolls
+    svg.removeAttribute("height");
+    svg.removeAttribute("width");
+    svg.style.height = "auto";
+    svg.style.display = "block";
+  }
+
+  private attachClickHandlers(): void {
+    // Mermaid SVG nodes have id="flowchart-{nodeId}-{index}"
+    const allElements = this.container.querySelectorAll("[id^='flowchart-']");
+
+    allElements.forEach((el) => {
+      const match = el.id.match(/^flowchart-(.+)-\d+$/);
+      if (!match) return;
+
+      const nodeId = match[1];
+      const htmlEl = el as HTMLElement;
+      htmlEl.style.cursor = "pointer";
+
+      // Add hover class for CSS targeting
+      htmlEl.classList.add("flowchart-node");
+      if (nodeId in NODE_TEST_MAP) {
+        htmlEl.classList.add("flowchart-leaf");
+      }
+
+      htmlEl.addEventListener("click", (e) => {
+        e.stopPropagation();
+        this.handleNodeClick(nodeId);
+      });
+    });
+  }
+
+  private handleNodeClick(nodeId: string): void {
+    const testId = NODE_TEST_MAP[nodeId];
+    if (testId) {
+      this.highlightNode(nodeId);
+      this.onTestSelected(testId);
+    }
+  }
+
+  highlightNode(nodeId: string): void {
+    // Remove previous highlight via direct style restoration
+    this.clearHighlight();
+
+    const node = this.findSvgNode(nodeId);
+    if (!node) return;
+
+    // Directly manipulate SVG inline styles to override Mermaid's styles
+    const shapes = node.querySelectorAll("rect, polygon, circle, ellipse");
+    shapes.forEach((shape) => {
+      const el = shape as SVGElement;
+      this.savedStyles.set(el, {
+        stroke: el.style.stroke,
+        strokeWidth: el.style.strokeWidth,
+        filter: el.style.filter,
+      });
+      el.style.stroke = "#facc15";
+      el.style.strokeWidth = "3px";
+      el.style.filter = "drop-shadow(0 0 6px rgba(250, 204, 21, 0.6))";
+    });
+    this.activeNodeId = nodeId;
+    node.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "nearest",
+    });
+  }
+
+  private clearHighlight(): void {
+    for (const [el, styles] of this.savedStyles) {
+      const svgEl = el as SVGElement;
+      svgEl.style.stroke = styles.stroke;
+      svgEl.style.strokeWidth = styles.strokeWidth;
+      svgEl.style.filter = styles.filter;
+    }
+    this.savedStyles.clear();
+    this.activeNodeId = null;
+  }
+
+  /** Find the SVG node element by extracting from the flowchart-{id}-{N} pattern */
+  private findSvgNode(nodeId: string): HTMLElement | null {
+    const allNodes = this.container.querySelectorAll("[id^='flowchart-']");
+    for (const el of allNodes) {
+      const match = el.id.match(/^flowchart-(.+)-\d+$/);
+      if (match && match[1] === nodeId) {
+        return el as HTMLElement;
+      }
+    }
+    return null;
+  }
+
+  /** Reverse lookup: find node ID from test registry ID */
+  highlightByTestId(testId: string): void {
+    for (const [nodeId, tid] of Object.entries(NODE_TEST_MAP)) {
+      if (tid === testId) {
+        this.highlightNode(nodeId);
+        return;
+      }
+    }
+  }
+}

@@ -1,5 +1,6 @@
 /**
  * Landing Page Tour Steps
+ * Order: Writer, Scholar, Visualizer, Console, Verifier, Hub, Tools, Explorer
  */
 import { TourStep } from "./types";
 
@@ -8,14 +9,14 @@ export const LANDING_TOUR_STEPS: TourStep[] = [
     selector: ".header-project-selector-inline, .project-selector-btn",
     title: "Project Selector",
     description:
-      "Your current project context. We've prepared 'default-project' as a demo template so you can explore Scholar, Console, Visualizer, Writer, and other modules right away.",
+      "Your current project context. We've prepared 'default-project' as a demo template so you can explore Writer, Scholar, Visualizer, Console, and other modules right away.",
     position: "bottom",
   },
   {
-    selector: '[data-shortcut="F"]',
-    title: "Files",
+    selector: '[data-shortcut="W"]',
+    title: "Writer",
     description:
-      "Git-based file management with GitHub-like collaboration. Browse, commit, and organize files with Issues and Pull Requests for team research.",
+      "Write manuscripts and revision letters with LaTeX. Real-time preview and citation integration.",
     position: "bottom",
   },
   {
@@ -26,13 +27,6 @@ export const LANDING_TOUR_STEPS: TourStep[] = [
     position: "bottom",
   },
   {
-    selector: '[data-shortcut="C"]',
-    title: "Console (Experimental)",
-    description:
-      "Your own isolated Apptainer container. Customize and switch containers freely. See /server-status for current resource availability.",
-    position: "bottom",
-  },
-  {
     selector: '[data-shortcut="V"]',
     title: "Visualizer",
     description:
@@ -40,10 +34,24 @@ export const LANDING_TOUR_STEPS: TourStep[] = [
     position: "bottom",
   },
   {
-    selector: '[data-shortcut="W"]',
-    title: "Writer",
+    selector: '[data-shortcut="C"]',
+    title: "Console (Experimental)",
     description:
-      "Write manuscripts and revision letters with LaTeX. Real-time preview and citation integration.",
+      "Your own isolated Apptainer container. Customize and switch containers freely. See /server-status for current resource availability.",
+    position: "bottom",
+  },
+  {
+    selector: '[data-shortcut="R"]',
+    title: "Verifier",
+    description:
+      "Verify reproducibility chains. Trace any claim back to source data with interactive DAG visualization.",
+    position: "bottom",
+  },
+  {
+    selector: '[data-shortcut="H"]',
+    title: "Hub",
+    description:
+      "Central project hub for file management, overview, and cross-module navigation.",
     position: "bottom",
   },
   {

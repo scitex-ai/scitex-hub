@@ -1,0 +1,168 @@
+/* Decision Flowchart Styles for Run Stats */
+
+/* ============================================================================
+   Collapsible Toggle Header
+   ============================================================================ */
+.flowchart-section {
+  border-bottom: 1px solid var(--workspace-border-default);
+}
+
+.flowchart-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--workspace-text-muted);
+  letter-spacing: 0.5px;
+  background: var(--workspace-bg-tertiary);
+  user-select: none;
+}
+
+.flowchart-toggle:hover {
+  color: var(--workspace-text-primary);
+}
+
+.flowchart-toggle > i {
+  transition: transform 0.2s ease;
+  font-size: 10px;
+}
+
+/* ============================================================================
+   Zoom Controls (in toggle bar)
+   ============================================================================ */
+.flowchart-zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+  margin-right: 8px;
+}
+
+.flowchart-zoom-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 3px;
+  background: var(--workspace-bg-primary);
+  color: var(--workspace-text-muted);
+  cursor: pointer;
+  font-size: 9px;
+  transition: all 0.15s ease;
+}
+
+.flowchart-zoom-btn:hover {
+  color: var(--workspace-icon-primary);
+  border-color: var(--workspace-icon-primary);
+  background: var(--workspace-bg-secondary);
+}
+
+.flowchart-zoom-level {
+  font-size: 10px;
+  min-width: 32px;
+  text-align: center;
+  color: var(--workspace-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.flowchart-section.collapsed .flowchart-zoom-controls {
+  display: none;
+}
+
+.flowchart-section.collapsed .flowchart-toggle > i {
+  transform: rotate(180deg);
+}
+
+.flowchart-section.collapsed .flowchart-container {
+  max-height: 0;
+  overflow: hidden;
+  padding: 0;
+  border-bottom: none;
+}
+
+/* ============================================================================
+   Flowchart Container
+   ============================================================================ */
+.flowchart-container {
+  padding: 4px;
+  overflow: auto;
+  max-height: 55vh;
+  background: var(--workspace-bg-primary);
+  transition:
+    max-height 0.3s ease,
+    padding 0.3s ease;
+}
+
+.flowchart-container svg {
+  display: block;
+  min-width: 580px;
+  transition: transform 0.15s ease;
+}
+
+.flowchart-container .flowchart-error {
+  padding: 20px;
+  text-align: center;
+  color: var(--workspace-text-muted);
+  font-size: 12px;
+}
+
+/* Scrollbar for flowchart */
+.flowchart-container::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.flowchart-container::-webkit-scrollbar-track {
+  background: var(--workspace-bg-tertiary);
+}
+
+.flowchart-container::-webkit-scrollbar-thumb {
+  background: var(--workspace-border-default);
+  border-radius: 3px;
+}
+
+.flowchart-container::-webkit-scrollbar-thumb:hover {
+  background: var(--workspace-text-muted);
+}
+
+/* ============================================================================
+   Clickable Node Interactivity
+   ============================================================================ */
+.flowchart-node {
+  transition: opacity 0.15s ease;
+}
+
+.flowchart-node:hover {
+  opacity: 0.8;
+}
+
+.flowchart-leaf:hover {
+  opacity: 0.7;
+  filter: brightness(1.1);
+}
+
+/* Active node highlight — bright yellow stroke + glow for visibility */
+.flowchart-active rect,
+.flowchart-active polygon,
+.flowchart-active circle,
+.flowchart-active ellipse {
+  stroke: #facc15 !important;
+  stroke-width: 3px !important;
+  filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.6));
+}
+
+/* ============================================================================
+   Responsive
+   ============================================================================ */
+@media (max-width: 768px) {
+  .flowchart-container {
+    max-height: 250px;
+  }
+}

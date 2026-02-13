@@ -170,6 +170,24 @@ export class FigureCardBuilder {
       metadata.appendChild(fileType);
     }
 
+    // Add "View in Clew" link
+    if (figure.location) {
+      const dot3 = document.createElement("span");
+      dot3.className = "meta-dot";
+      dot3.textContent = "•";
+      metadata.appendChild(dot3);
+
+      const clewLink = document.createElement("a");
+      clewLink.className = "figure-clew-link";
+      clewLink.href = `/clew/?file=${encodeURIComponent(figure.location)}`;
+      clewLink.title = "View verification chain (Alt+R)";
+      clewLink.innerHTML = '<i class="fas fa-shield-alt"></i> Clew';
+      clewLink.onclick = (e: MouseEvent) => {
+        e.stopPropagation(); // Prevent card click
+      };
+      metadata.appendChild(clewLink);
+    }
+
     return metadata;
   }
 

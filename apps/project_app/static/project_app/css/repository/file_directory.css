@@ -11,7 +11,7 @@
 
 .file-item {
   padding: 0.75rem;
-  border-bottom: 1px solid var(--border-color, #ddd);
+  border-bottom: 1px solid var(--border-default);
   display: flex;
   align-items: center;
   gap: 0.75rem;

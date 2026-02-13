@@ -2,13 +2,30 @@
    PANEL RESIZER (Matches Scholar pattern)
    ========================================= */
 
-/* Panel resizer - 4px hit area, transparent by default, green on hover */
+/* Panel resizer - 4px visual, 12px hit area via padding, green on hover */
 .panel-resizer {
   width: 4px;
+  min-width: 4px;
+  max-width: 4px;
   background: transparent;
   cursor: col-resize;
   flex-shrink: 0;
   transition: background 0.15s ease;
+  z-index: 100; /* Above overflowing panel content */
+  position: relative;
+  pointer-events: auto !important;
+}
+
+/* Wider invisible hit area for easier grabbing */
+.panel-resizer::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -4px;
+  right: -4px;
+  cursor: col-resize;
+  z-index: 100;
 }
 
 .panel-resizer:hover,
@@ -25,4 +42,3 @@
 .editor-content-wrapper {
   background: var(--workspace-bg-primary) !important;
 }
-

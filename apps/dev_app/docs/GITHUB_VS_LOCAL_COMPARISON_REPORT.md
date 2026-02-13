@@ -90,7 +90,7 @@ This report compares the visual differences between GitHub's interface and the l
 - **GitHub:**
   - Comprehensive left sidebar showing entire repository structure
   - Current location highlighted: `apps` folder expanded
-  - Shows all subdirectories: auth_app, billing_app, cloud_app, code_app, etc. (16+ app directories)
+  - Shows all subdirectories: auth_app, billing_app, cloud_app, console_app, etc. (16+ app directories)
   - Additional folders visible: config, docs, externals, media, etc.
 
 - **Local:**

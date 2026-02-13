@@ -16,7 +16,7 @@
                     </div>
                     <div class="text-end">
                         <code class="text-muted">{{ commit.commit_hash|slice:":7" }}</code>
-                        <a href="{% url 'user_projects:commit_detail' project.owner.username project.slug commit.commit_hash %}"
+                        <a href="{% url 'project_app:commit_detail' project.owner.username project.slug commit.commit_hash %}"
                            class="btn btn-sm btn-outline-secondary ms-2">
                             <i class="bi bi-eye"></i> View
                         </a>

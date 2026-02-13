@@ -74,7 +74,7 @@ This document describes the relationships between TypeScript, JavaScript, Vite, 
 **Entry Points (26+):**
 | App | Entry |
 |-----|-------|
-| code_app | workspace |
+| console_app | workspace |
 | vis_app | vis-editor, editor-inline |
 | writer_app | index, collaboration-panel |
 | project_app | clone_button, create_project_type, init-git-gutter, projects/settings |
@@ -148,7 +148,7 @@ response['Expires'] = '0'
 ### Script Loading (Simple Two-Mode)
 
 ```
-{% vite_script 'code_app/workspace' %}
+{% vite_script 'console_app/workspace' %}
         │
         ▼
 ┌───────────────────┐
@@ -270,7 +270,7 @@ No more network calls on every template render. Zero latency overhead.
 **In context_processors.py:35-40:**
 ```python
 js_dirs = [
-    Path(settings.BASE_DIR) / 'apps/code_app/static/code_app/js',
+    Path(settings.BASE_DIR) / 'apps/console_app/static/console_app/js',
     Path(settings.BASE_DIR) / 'apps/vis_app/static/vis_app/js',
     Path(settings.BASE_DIR) / 'apps/writer_app/static/writer_app/js',
     Path(settings.BASE_DIR) / 'static/shared/js',
@@ -301,11 +301,11 @@ Multiple files hardcode port 5173:
 
 #### 10. Mixed Path Styles
 Entry names use inconsistent path separators:
-- `code_app/workspace` (forward slash)
+- `console_app/workspace` (forward slash)
 - `scholar_app/bibtex/status-tiles` (nested forward slash)
 
 TypeScript paths use:
-- `apps/code_app/static/code_app/ts/workspace.ts`
+- `apps/console_app/static/console_app/ts/workspace.ts`
 
 **Impact:** Potential confusion when adding new entries.
 

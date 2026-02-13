@@ -11,5 +11,5 @@
 
 .directory-item {
   padding: 0.75rem;
-  border-bottom: 1px solid var(--border-color, #ddd);
+  border-bottom: 1px solid var(--border-default);
 }

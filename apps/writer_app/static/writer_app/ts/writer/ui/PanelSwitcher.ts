@@ -9,7 +9,14 @@ import { initializeCollaboratorsPanel } from "../../collaboration-panel";
 
 export class PanelSwitcher {
   private loadedCSS: Set<string> = new Set();
-  private validPanels = ['pdf', 'citations', 'figures', 'tables', 'history', 'collaboration'];
+  private validPanels = [
+    "pdf",
+    "citations",
+    "figures",
+    "tables",
+    "history",
+    "collaboration",
+  ];
 
   constructor() {
     // Track loaded CSS to avoid duplicates
@@ -30,10 +37,10 @@ export class PanelSwitcher {
    * Setup hash change event listener for URL-based panel navigation
    */
   private setupHashChangeListener(): void {
-    window.addEventListener('hashchange', () => {
+    window.addEventListener("hashchange", () => {
       const panel = this.getPanelFromHash();
       if (panel) {
-        console.log('[PanelSwitcher] Hash changed, switching to:', panel);
+        console.log("[PanelSwitcher] Hash changed, switching to:", panel);
         this.switchPanel(panel as any);
       }
     });
@@ -47,7 +54,10 @@ export class PanelSwitcher {
     setTimeout(() => {
       const panel = this.getPanelFromHash();
       if (panel) {
-        console.log('[PanelSwitcher] Initial hash detected, switching to:', panel);
+        console.log(
+          "[PanelSwitcher] Initial hash detected, switching to:",
+          panel,
+        );
         this.switchPanel(panel as any);
       }
     }, 100);
@@ -75,8 +85,8 @@ export class PanelSwitcher {
         // Use replaceState to avoid adding to browser history for every switch
         const url = new URL(window.location.href);
         url.hash = panel;
-        history.replaceState(null, '', url.toString());
-        console.log('[PanelSwitcher] URL hash updated to:', panel);
+        history.replaceState(null, "", url.toString());
+        console.log("[PanelSwitcher] URL hash updated to:", panel);
       }
     }
   }
@@ -131,11 +141,14 @@ export class PanelSwitcher {
       link.setAttribute("data-panel", panel);
 
       link.onload = () => {
-        this.loadedCSS.add(panel);
-        console.log(
-          `[PanelSwitcher] ✓ Successfully loaded CSS for ${panel} panel`,
-        );
-        resolve();
+        // Wait for browser to parse and apply CSS before resolving
+        requestAnimationFrame(() => {
+          this.loadedCSS.add(panel);
+          console.log(
+            `[PanelSwitcher] ✓ Successfully loaded CSS for ${panel} panel`,
+          );
+          resolve();
+        });
       };
 
       link.onerror = (error) => {
@@ -156,7 +169,13 @@ export class PanelSwitcher {
    * Switch right panel between PDF, Citations, Figures, Tables, History, and Collaboration views
    */
   switchPanel(
-    view: "pdf" | "citations" | "figures" | "tables" | "history" | "collaboration",
+    view:
+      | "pdf"
+      | "citations"
+      | "figures"
+      | "tables"
+      | "history"
+      | "collaboration",
   ): void {
     // Update URL hash to reflect current panel
     this.updateUrlHash(view);
@@ -260,20 +279,52 @@ export class PanelSwitcher {
       else if (view === "collaboration") templateHeader = collaborationHeader;
 
       if (templateHeader) {
-        sharedHeader.innerHTML = templateHeader.innerHTML;
-        console.log(
-          `[PanelSwitcher] Updated shared header for ${view} view`,
-        );
+        // Selectively replace dynamic content, preserving toggle button and panel-title
+        const headerLeft = sharedHeader.querySelector(".header-left");
+        let headerRight = sharedHeader.querySelector(".header-right");
 
-        // Update active state on buttons in the SHARED header (after innerHTML copy)
+        if (headerLeft) {
+          // Remove everything from header-left EXCEPT toggle btn and panel-title
+          Array.from(headerLeft.children).forEach((child) => {
+            const el = child as HTMLElement;
+            if (
+              el.id !== "preview-toggle-btn" &&
+              !el.classList.contains("panel-title")
+            ) {
+              child.remove();
+            }
+          });
+
+          // Append template's header-left contents (cloned)
+          const templateLeft = templateHeader.querySelector(".header-left");
+          if (templateLeft) {
+            Array.from(templateLeft.children).forEach((child) => {
+              headerLeft.appendChild(child.cloneNode(true));
+            });
+          }
+        }
+
+        // Replace header-right content
+        if (headerRight) {
+          const templateRight = templateHeader.querySelector(".header-right");
+          headerRight.innerHTML = templateRight ? templateRight.innerHTML : "";
+        } else {
+          // Create header-right if it doesn't exist yet
+          const templateRight = templateHeader.querySelector(".header-right");
+          if (templateRight) {
+            sharedHeader.appendChild(templateRight.cloneNode(true));
+          }
+        }
+
+        console.log(`[PanelSwitcher] Updated shared header for ${view} view`);
+
+        // Update active state on buttons in the SHARED header
         const sharedHeaderBtns =
           sharedHeader.querySelectorAll(".view-switch-btn");
         sharedHeaderBtns.forEach((btn) => {
           const btnElement = btn as HTMLElement;
-          // Check which panel this button switches to
           const onclickAttr = btnElement.getAttribute("onclick");
           if (onclickAttr) {
-            // Add active class if this button matches the current view
             if (onclickAttr.includes(`'${view}'`)) {
               btnElement.classList.add("active");
             } else {
@@ -403,40 +454,49 @@ export class PanelSwitcher {
    * Automatically switch panel based on section name
    * Determines the most appropriate panel (PDF, Figures, or Tables) for a given section
    */
-  autoSwitchForSection(section: string | null, doctype: string = 'manuscript'): void {
+  autoSwitchForSection(
+    section: string | null,
+    doctype: string = "manuscript",
+  ): void {
     if (!section) {
       // Default to PDF if no section
-      this.switchPanel('pdf');
+      this.switchPanel("pdf");
       return;
     }
 
     const sectionLower = section.toLowerCase();
 
     // Check if this is a figures section
-    if (sectionLower.includes('figure') || sectionLower === 'figures') {
-      console.log(`[PanelSwitcher] Auto-switching to Figures panel for section: ${section}`);
-      this.switchPanel('figures');
+    if (sectionLower.includes("figure") || sectionLower === "figures") {
+      console.log(
+        `[PanelSwitcher] Auto-switching to Figures panel for section: ${section}`,
+      );
+      this.switchPanel("figures");
       return;
     }
 
     // Check if this is a tables section
-    if (sectionLower.includes('table') || sectionLower === 'tables') {
-      console.log(`[PanelSwitcher] Auto-switching to Tables panel for section: ${section}`);
-      this.switchPanel('tables');
+    if (sectionLower.includes("table") || sectionLower === "tables") {
+      console.log(
+        `[PanelSwitcher] Auto-switching to Tables panel for section: ${section}`,
+      );
+      this.switchPanel("tables");
       return;
     }
 
     // For supplementary material, prefer figures/tables if mentioned
-    if (doctype === 'supplementary') {
+    if (doctype === "supplementary") {
       // Check content type from section name
-      if (sectionLower.includes('result') || sectionLower.includes('method')) {
-        this.switchPanel('figures');
+      if (sectionLower.includes("result") || sectionLower.includes("method")) {
+        this.switchPanel("figures");
         return;
       }
     }
 
     // Default to PDF for text sections (abstract, introduction, methods, results, discussion, etc.)
-    console.log(`[PanelSwitcher] Auto-switching to PDF panel for section: ${section}`);
-    this.switchPanel('pdf');
+    console.log(
+      `[PanelSwitcher] Auto-switching to PDF panel for section: ${section}`,
+    );
+    this.switchPanel("pdf");
   }
 }

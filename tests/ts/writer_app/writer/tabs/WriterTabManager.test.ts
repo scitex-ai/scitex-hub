@@ -213,7 +213,7 @@ describe('WriterTabManager', () => {
 // 
 //     // Create the file via API
 //     try {
-//       const response = await fetch("/code/api/file-content/", {
+//       const response = await fetch("/console/api/file-content/", {
 //         method: "POST",
 //         headers: {
 //           "Content-Type": "application/json",

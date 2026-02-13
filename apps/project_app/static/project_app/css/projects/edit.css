@@ -3,8 +3,8 @@
 /* ============================================================================= */
 
 .edit-form {
-  background: white;
-  border: 1px solid #e5e5e5;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
   border-radius: 8px;
   padding: 2rem;
   max-width: 800px;
@@ -30,8 +30,8 @@
 
 .form-control:focus {
   outline: none;
-  border-color: #007acc;
-  box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.25);
+  border-color: var(--color-cta);
+  box-shadow: 0 0 0 2px var(--color-cta-hover);
 }
 
 textarea.form-control {
@@ -44,7 +44,7 @@ textarea.form-control {
 }
 
 .breadcrumb a {
-  color: #007acc;
+  color: var(--color-cta);
   text-decoration: none;
 }
 

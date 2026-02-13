@@ -10,7 +10,7 @@ SciTeX Cloud now includes integrated Read the Docs-style documentation hosting f
 
 - **docs_app**: Django application for serving documentation
   - Location: `apps/docs_app/`
-  - URLs: `/docs/`, `/docs/scholar/`, `/docs/code/`, `/docs/viz/`, `/docs/writer/`
+  - URLs: `/docs/`, `/docs/scholar/`, `/docs/console/`, `/docs/viz/`, `/docs/writer/`
 
 ### Features
 
@@ -80,7 +80,7 @@ externals/SciTeX-{Module}/docs/
 3. **Access documentation**:
    - Landing page: http://localhost:8000/docs/
    - Scholar: http://localhost:8000/docs/scholar/
-   - Code: http://localhost:8000/docs/code/
+   - Code: http://localhost:8000/docs/console/
    - Viz: http://localhost:8000/docs/viz/
    - Writer: http://localhost:8000/docs/writer/
 
@@ -156,7 +156,7 @@ jobs:
 |-----|-------------|
 | `/docs/` | Documentation landing page (all modules) |
 | `/docs/scholar/` | SciTeX Scholar documentation |
-| `/docs/code/` | SciTeX Code documentation |
+| `/docs/console/` | SciTeX Code documentation |
 | `/docs/viz/` | SciTeX Viz documentation |
 | `/docs/writer/` | SciTeX Writer documentation |
 | `/docs/{module}/{page}` | Specific documentation page |

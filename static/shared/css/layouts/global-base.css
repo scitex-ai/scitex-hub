@@ -95,9 +95,9 @@ body::before {
 
 /* Remove/reduce padding for Code/Vis/Writer pages to maximize workspace */
 body.workspace-page {
-  height: 100vh;  /* Use exact height instead of min-height for workspace pages */
-  max-height: 100vh;  /* Prevent growing beyond viewport */
-  overflow: hidden;  /* Prevent body scrolling - panels handle their own overflow */
+  height: 100vh; /* Use exact height instead of min-height for workspace pages */
+  max-height: 100vh; /* Prevent growing beyond viewport */
+  overflow: hidden; /* Prevent body scrolling - panels handle their own overflow */
 }
 
 body.workspace-page #main-content {
@@ -107,7 +107,7 @@ body.workspace-page #main-content {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  min-height: 0;  /* Allow flexbox shrinking */
+  min-height: 0; /* Allow flexbox shrinking */
 }
 
 /* Workspace containers should fill available space */
@@ -115,6 +115,9 @@ body.workspace-page #main-content .code-workspace,
 body.workspace-page #main-content .writer-workspace,
 body.workspace-page #main-content .scholar-workspace,
 body.workspace-page #main-content .vis-workspace,
+body.workspace-page #main-content .hub-workspace,
+body.workspace-page #main-content .clew-workspace,
+body.workspace-page #main-content .tools-workspace,
 body.workspace-page #main-content .vis-editor-container,
 body.workspace-page #main-content .editor-container {
   flex: 1;
@@ -236,7 +239,9 @@ body.workspace-page.landing-page .site-footer {
 .alert-dismissing {
   opacity: 0;
   transform: translateY(-10px);
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
   pointer-events: none;
 }
 

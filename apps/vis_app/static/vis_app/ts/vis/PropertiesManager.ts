@@ -404,7 +404,7 @@ export class PropertiesManager {
     const cached = this.pltzCache.get(pltzPath);
     if (!cached) return;
 
-    // Update cached data
+    // Update cached data locally for immediate UI feedback
     let obj = type === "spec" ? cached.spec : cached.style;
     for (let i = 0; i < pathParts.length - 1; i++) {
       const key = pathParts[i];
@@ -420,22 +420,34 @@ export class PropertiesManager {
     obj[pathParts[pathParts.length - 1]] = parsedValue;
 
     try {
-      const updateData: any = { path: pltzPath };
-      updateData[type] = type === "spec" ? cached.spec : cached.style;
-
-      const response = await fetch("/vis/api/bundles/pltz/update/", {
+      // Use new fine-grained property update endpoint
+      const response = await fetch("/vis/api/bundles/pltz/update-property/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "X-CSRFToken": this.csrfToken,
         },
-        body: JSON.stringify(updateData),
+        body: JSON.stringify({
+          path: pltzPath,
+          property_path: property,
+          value: parsedValue,
+        }),
       });
 
-      if (!response.ok) throw new Error("Failed to update");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to update property");
+      }
+
+      const result = await response.json();
+      console.log(`[PropertiesManager] Property updated successfully:`, result);
+
+      // Mark as dirty to trigger preview refresh
       this.renderManager.markDirtyAndScheduleRender(pltzPath);
     } catch (error) {
       console.error("[PropertiesManager] Update failed:", error);
+      // Revert local cache on failure
+      this.pltzCache.delete(pltzPath);
     }
   }
 

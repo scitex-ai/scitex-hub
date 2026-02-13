@@ -1,0 +1,20 @@
+/* Statistics Calculator Tool - Modular CSS Orchestrator */
+
+/* @import must precede all other rules per CSS spec */
+@import url("run-stats/layout.css");
+@import url("run-stats/results.css");
+@import url("run-stats/controls.css");
+
+/* CSS Variable Bridge for DataTableManager */
+:root {
+  /* Bridge vis-* variables to workspace-* theme */
+  --vis-bg-primary: var(--workspace-bg-primary);
+  --vis-bg-secondary: var(--workspace-bg-secondary);
+  --vis-bg-tertiary: var(--workspace-bg-tertiary);
+  --vis-bg-monaco: var(--workspace-bg-monaco);
+  --vis-border-default: var(--workspace-border-default);
+  --vis-text-primary: var(--workspace-text-primary);
+  --vis-text-secondary: var(--workspace-text-secondary);
+  --vis-text-muted: var(--workspace-text-muted);
+  --vis-text-link: var(--workspace-text-link);
+}

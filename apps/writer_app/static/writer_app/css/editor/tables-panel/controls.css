@@ -85,8 +85,8 @@
   top: 2rem;
   right: 0.5rem;
   z-index: 9;
-  background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--status-success) 0%, #27ae60 100%);
+  color: var(--text-inverse);
   padding: 3px 8px;
   border-radius: 4px;
   font-size: 10px;

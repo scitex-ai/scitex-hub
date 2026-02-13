@@ -288,8 +288,8 @@ code[style*="background:#e9ecef"] {
 .design-section .example-code {
   font-size: 0.9rem;
   line-height: 1.4;
-  background-color: #2d3748;
-  color: #e2e8f0;
+  background-color: var(--bg-muted);
+  color: var(--text-primary);
   border-radius: 8px;
   padding: 1rem;
 }

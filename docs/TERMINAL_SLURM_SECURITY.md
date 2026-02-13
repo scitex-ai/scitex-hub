@@ -184,8 +184,8 @@ ps aux | grep apptainer | grep -v srun
 
 ## Files Changed
 
-1. `apps/code_app/views/terminal/execution.py` - SLURM-only execution
-2. `apps/code_app/views/terminal/consumer.py` - SLURM enforcement
+1. `apps/console_app/views/terminal/execution.py` - SLURM-only execution
+2. `apps/console_app/views/terminal/consumer.py` - SLURM enforcement
 3. `deployment/slurm/install-host.sh` - Correct partition MaxTime
 4. `deployment/slurm/slurm-docker-{prod,dev}.conf` - Config files
 5. `deployment/slurm/CONFIGURATION.md` - Documentation

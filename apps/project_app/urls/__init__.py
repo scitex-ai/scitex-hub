@@ -35,7 +35,7 @@ from ..api_views_module import api_views
 from ..views import pr as pr_views
 from ..views import security as security_views
 
-app_name = "user_projects"
+app_name = "project_app"
 
 
 # Wrapper view to pass username from URL kwargs to the view

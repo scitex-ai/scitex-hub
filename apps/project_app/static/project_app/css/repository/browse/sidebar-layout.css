@@ -89,55 +89,19 @@
   transform: rotate(180deg);
 }
 
-/* Sidebar sections */
-.sidebar-section {
-  /* Layout preserved */
-  padding: 16px;
-  margin-bottom: 0;
-  position: relative;
-  /* Styling moved to central CSS - see static/css/components/sidebar.css */
-}
-
+/* .sidebar-section visual styling in sidebar.css */
+/* Collapsed sidebar overrides */
 .repo-sidebar.collapsed .sidebar-section {
-  /* Layout preserved */
   padding: 8px;
-  /* Styling moved to central CSS - see static/css/components/sidebar.css */
   border: none;
   background: transparent;
-}
-
-.sidebar-section.collapsible {
-  cursor: pointer;
-}
-
-.sidebar-section.collapsible:hover {
-  /* Styling moved to central CSS - see static/css/components/sidebar.css */
-  border-color: var(--color-accent-fg);
-  background: var(--color-neutral-muted);
 }
 
 .sidebar-section.section-collapsed .sidebar-content {
   display: none;
 }
 
-.sidebar-title {
-  /* Layout preserved */
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  /* Styling moved to central CSS - see static/css/common/typography-vars.css */
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-fg-default);
-  letter-spacing: 0.5px;
-  transition: all 0.2s ease;
-}
-
-.sidebar-title:hover {
-  /* Styling moved to central CSS - see static/css/common/typography-vars.css */
-  color: var(--color-accent-fg);
-}
+/* .sidebar-title visual styling in sidebar.css */
 
 .repo-sidebar.collapsed .sidebar-title {
   /* Layout preserved */
@@ -148,13 +112,7 @@
   font-size: 10px;
 }
 
-.sidebar-section-chevron {
-  /* Styling moved to central CSS - see static/css/components/icons.css */
-  font-size: 10px;
-  transition: transform 0.2s ease;
-  color: var(--color-fg-muted);
-}
-
+/* .sidebar-section-chevron visual styling in sidebar.css */
 .sidebar-section.section-collapsed .sidebar-section-chevron {
   transform: rotate(-90deg);
 }
@@ -163,55 +121,13 @@
   display: none;
 }
 
-.sidebar-item {
-  /* Layout preserved */
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px 14px;
-  margin: 3px 0;
-  /* Styling moved to central CSS - see static/css/components/sidebar.css */
-  font-size: 16px;
-  color: var(--color-fg-muted);
-  border-radius: 6px;
-  transition: all 0.2s ease;
-}
-
-.sidebar-item:hover {
-  /* Styling moved to central CSS - see static/css/components/sidebar.css */
-  background: var(--color-neutral-muted);
-  color: var(--color-fg-default);
-}
-
-.sidebar-item strong {
-  /* Styling moved to central CSS - see static/css/common/typography-vars.css */
-  color: var(--color-fg-default);
-  font-size: 17px;
-}
+/* .sidebar-item visual styling in sidebar.css */
 
 .repo-sidebar.collapsed .sidebar-item {
   display: none;
 }
 
-.sidebar-link {
-  /* Layout preserved */
-  display: block;
-  padding: 12px 14px;
-  text-decoration: none;
-  /* Styling moved to central CSS - see static/css/components/buttons.css */
-  color: var(--color-accent-fg);
-  font-size: 16px;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-}
-
-.sidebar-link:hover {
-  transform: translateX(3px);
-  text-decoration: none;
-  /* Styling moved to central CSS - see static/css/components/buttons.css */
-  background: var(--color-neutral-muted);
-  color: var(--color-accent-fg);
-}
+/* .sidebar-link visual styling in sidebar.css */
 
 .repo-sidebar.collapsed .sidebar-link {
   display: none;
@@ -228,4 +144,3 @@
   /* Styling moved to central CSS - see static/css/components/sidebar.css */
   opacity: 0;
 }
-

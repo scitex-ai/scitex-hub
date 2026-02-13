@@ -262,8 +262,14 @@
   filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
 }
 
-/* Dark theme - invert or adjust logo visibility */
+/* Light mode: invert white logo to black (transparent bg preserved) */
+.hero-landing .hero-logo {
+  filter: invert(1) drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
+}
+
+/* Dark mode: keep white logo as-is */
 [data-theme="dark"] .hero-landing .hero-logo {
+  filter: none;
   opacity: 0.95;
   filter: drop-shadow(0 2px 12px rgba(0, 0, 0, 0.3));
 }

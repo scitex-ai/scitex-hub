@@ -41,22 +41,28 @@ def index_view(request):
     # Check if user is not authenticated (visitor allocation may have failed)
     if not request.user.is_authenticated:
         # Check if this is a browser request (has typical browser User-Agent)
-        user_agent = request.META.get('HTTP_USER_AGENT', '')
+        user_agent = request.META.get("HTTP_USER_AGENT", "")
         is_browser = any(
             browser in user_agent
-            for browser in ['Mozilla', 'Chrome', 'Safari', 'Firefox', 'Edge', 'Opera']
+            for browser in ["Mozilla", "Chrome", "Safari", "Firefox", "Edge", "Opera"]
         )
 
         if is_browser:
             # Browser request but not authenticated - visitor pool likely exhausted
-            logger.info("[Writer] Browser request not authenticated - redirecting to visitor-pool-full")
-            return redirect('public_app:visitor_pool_full')
+            logger.info(
+                "[Writer] Browser request not authenticated - redirecting to visitor-pool-full"
+            )
+            return redirect("public_app:visitor_pool_full")
 
         # Non-browser request - return empty page
-        return render(request, "writer_app/index.html", {
-            "is_visitor": True,
-            "writer_initialized": False,
-        })
+        return render(
+            request,
+            "writer_app/index.html",
+            {
+                "is_visitor": True,
+                "writer_initialized": False,
+            },
+        )
 
     # Get document type from URL parameter or default to manuscript
     document_type = request.GET.get("doc_type", "manuscript")
@@ -99,7 +105,7 @@ def index_view(request):
                 },
             )
 
-            # Check if writer workspace actually exists and update flag if needed
+            # Auto-initialize writer workspace if not exists (ensure minimal structure)
             if not manuscript.writer_initialized:
                 from apps.project_app.services.project_filesystem import (
                     get_project_filesystem_manager,
@@ -110,8 +116,22 @@ def index_view(request):
                 if project_root:
                     writer_dir = project_root / "scitex" / "writer"
                     manuscript_dir = writer_dir / "01_manuscript"
-                    if manuscript_dir.exists():
-                        # Workspace exists - writer_initialized property will auto-detect this
+
+                    # Auto-create minimal writer structure
+                    if not manuscript_dir.exists():
+                        try:
+                            import scitex.writer as stx_writer
+
+                            # Create minimal writer workspace
+                            stx_writer.clone_project(
+                                project_dir=str(writer_dir), git_strategy="child"
+                            )
+                            logger.info(
+                                f"Auto-initialized writer workspace for: {current_project.slug}"
+                            )
+                        except Exception as e:
+                            logger.warning(f"Failed to auto-initialize writer: {e}")
+                    else:
                         logger.info(
                             f"Writer workspace detected for project: {current_project.slug}"
                         )
@@ -205,10 +225,7 @@ def initialize_workspace(request):
         # Since project is OneToOneField, only use project for lookup
         manuscript, created = Manuscript.objects.get_or_create(
             project=project,
-            defaults={
-                "owner": project.owner,
-                "title": f"{project.name} Manuscript"
-            },
+            defaults={"owner": project.owner, "title": f"{project.name} Manuscript"},
         )
 
         # Check if Writer already initialized

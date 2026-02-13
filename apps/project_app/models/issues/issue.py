@@ -168,7 +168,7 @@ class Issue(models.Model):
         from django.urls import reverse
 
         return reverse(
-            "user_projects:issue_detail",
+            "project_app:issue_detail",
             kwargs={
                 "username": self.project.owner.username,
                 "slug": self.project.slug,

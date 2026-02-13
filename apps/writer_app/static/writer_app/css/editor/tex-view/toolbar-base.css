@@ -4,11 +4,11 @@
   top: 0;
   z-index: 50; /* Lowered to stay below Monaco widgets */
   background: var(--bg-page);
-  padding: 0.25rem 1rem; /* Reduced vertical padding from 0.5rem to 0.25rem */
+  padding: 4px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 1rem;
+  gap: 16px;
 }
 
 .toolbar-left,
@@ -16,7 +16,7 @@
 .toolbar-right {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .toolbar-center {
@@ -27,21 +27,50 @@
 /* Horizontal Selector Group */
 .horizontal-selector-group {
   display: flex;
-  gap: 0.5rem;
+  gap: 8px;
   align-items: center;
 }
 
 .horizontal-selector {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .selector-label {
-  font-size: 0.9rem;
+  font-size: 14px;
   color: var(--text-muted);
   margin: 0;
   display: flex;
   align-items: center;
 }
 
+/* Toolbar Doctype Selector */
+.toolbar-doctype-select {
+  font-size: 12px;
+  height: 26px;
+  padding: 2px 24px 2px 8px;
+  min-width: 100px;
+  max-width: 140px;
+  background: var(--workspace-bg-secondary);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 4px;
+  color: var(--workspace-text-primary);
+}
+
+.toolbar-doctype-select:focus {
+  border-color: var(--workspace-icon-primary);
+  box-shadow: none;
+}
+
+/* Toolbar Section Selector (compact) */
+.header-left .section-selector-btn {
+  font-size: 12px;
+  padding: 4px 8px;
+  min-width: 120px;
+  height: 26px;
+}
+
+.header-left .section-selector-btn svg {
+  flex-shrink: 0;
+}

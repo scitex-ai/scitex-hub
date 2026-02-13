@@ -15,13 +15,8 @@ Services are organized by domain/feature:
 """
 
 # Import repository services (DOI & dataset management)
-from .repository import (
-    auto_assign_doi_on_publish,
-    validate_and_format_doi,
-    get_doi_metadata,
-    sync_dataset_with_repository,
-    upload_dataset_to_repository,
-)
+# Import export services
+from .export_packer import ExportPackerService
 
 # Import library services
 from .library_cache import (
@@ -29,9 +24,15 @@ from .library_cache import (
     cache_results_for_user,
     get_paper_from_cache,
 )
-
-# Import export services
-from .export_packer import ExportPackerService
+from .project_library_linker import ProjectLibraryLinker
+from .repository import (
+    auto_assign_doi_on_publish,
+    get_doi_metadata,
+    sync_dataset_with_repository,
+    upload_dataset_to_repository,
+    validate_and_format_doi,
+)
+from .user_library_service import UserLibraryService
 
 __all__ = [
     # DOI Services
@@ -45,6 +46,8 @@ __all__ = [
     "LibraryCacheService",
     "cache_results_for_user",
     "get_paper_from_cache",
+    "UserLibraryService",
+    "ProjectLibraryLinker",
     # Export Services
     "ExportPackerService",
 ]

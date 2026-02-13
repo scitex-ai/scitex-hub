@@ -1,19 +1,34 @@
 {% extends "global_base.html" %}
+
 {% load static %}
+
 {% block title %}{{ file_name }} - {{ project.name }}{% endblock %}
 {% block extra_css %}
-    <link rel="stylesheet"
-          href="{% static 'project_app/css/project_app.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/project_app.css' %}" />
     <link rel="stylesheet"
           href="{% static 'project_app/css/repository/browse/container-header.css' %}?v=20251129" />
     <link rel="stylesheet"
           href="{% static 'project_app/css/repository/browse/sidebar-layout.css' %}?v=20251129" />
-    <link rel="stylesheet"
-          href="{% static 'project_app/css/shared/sidebar.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/shared/sidebar.css' %}" />
     <link rel="stylesheet"
           href="{% static 'project_app/css/shared/file-tree/index.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/shared/buttons.css' %}" />
+    <!-- File view CSS modules -->
     <link rel="stylesheet"
-          href="{% static 'project_app/css/shared/buttons.css' %}" />
+          href="{% static 'project_app/css/repository/file-view/index.css' %}" />
+    <!-- Browse shared CSS needed for sidebar/tree -->
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/file-tree.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/tab-navigation.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/action-buttons.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/icon-utilities.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/tabs.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/workspace-files-tree/hidden-files-toggle.css' %}" />
     <!-- Highlight.js for syntax highlighting - Multiple themes loaded -->
     <!-- Dark Themes -->
     <link rel="stylesheet"
@@ -82,125 +97,128 @@
           class="hljs-theme"
           disabled />
     <style>
-  /* Line numbers styling - GitHub style */
-  .hljs-ln-numbers {
-    text-align: right;
-    padding-right: 16px;
-    padding-left: 10px;
-    user-select: none;
-    width: 1%;
-    min-width: 50px;
-    vertical-align: top;
-    border-right: 1px solid var(--color-border-default);
-    font-family: var(--font-mono);
-    font-size: var(--code-font-size);
-    line-height: var(--code-line-height);
-    color: var(--color-fg-muted);
-    background-color: var(--color-canvas-default);
-  }
+        /* Line numbers styling - GitHub style */
+        .hljs-ln-numbers {
+            text-align: right;
+            padding-right: 16px;
+            padding-left: 10px;
+            user-select: none;
+            width: 1%;
+            min-width: 50px;
+            vertical-align: top;
+            border-right: 1px solid var(--color-border-default);
+            font-family: var(--font-mono);
+            font-size: var(--code-font-size);
+            line-height: var(--code-line-height);
+            color: var(--color-fg-muted);
+            background-color: var(--color-canvas-default);
+        }
 
-  .hljs-ln-code {
-    padding-left: 16px;
-    padding-right: 16px;
-  }
+        .hljs-ln-code {
+            padding-left: 16px;
+            padding-right: 16px;
+        }
 
-  /* Main code block styling */
-  pre code.hljs {
-    padding: 0;
-    display: block;
-    font-family: var(--font-mono);
-    font-size: var(--code-font-size);
-    line-height: var(--code-line-height);
-    font-weight: var(--code-font-weight);
-    background: var(--color-canvas-default);
-  }
+        /* Main code block styling */
+        pre code.hljs {
+            padding: 0;
+            display: block;
+            font-family: var(--font-mono);
+            font-size: var(--code-font-size);
+            line-height: var(--code-line-height);
+            font-weight: var(--code-font-weight);
+            background: var(--color-canvas-default);
+        }
 
-  /* Code container - GitHub-style progressive scroll */
-  .file-content {
-    position: relative;
-    max-height: calc(100vh - 150px); /* Initial height */
-    overflow-y: auto; /* Independent scrollbar for code content */
-    overflow-x: hidden; /* Horizontal scroll handled by pre element */
-    transition: max-height 0.2s ease; /* Smooth expansion */
-  }
+        /* Code container - GitHub-style progressive scroll */
+        .file-content {
+            position: relative;
+            max-height: calc(100vh - 150px);
+            /* Initial height */
+            overflow-y: auto;
+            /* Independent scrollbar for code content */
+            overflow-x: hidden;
+            /* Horizontal scroll handled by pre element */
+            transition: max-height 0.2s ease;
+            /* Smooth expansion */
+        }
 
-  /* When container reaches top (sticky mode), expand code block to full viewport */
-  .file-container.sticky-mode .file-content {
-    max-height: calc(
-      100vh - 120px
-    ); /* Maximum height - minimize header space */
-  }
+        /* When container reaches top (sticky mode), expand code block to full viewport */
+        .file-container.sticky-mode .file-content {
+            max-height: calc(100vh - 120px);
+            /* Maximum height - minimize header space */
+        }
 
-  .file-content pre {
-    margin: 0;
-    border-radius: 6px;
-    overflow-x: auto;
-    background: var(--color-canvas-default);
-  }
+        .file-content pre {
+            margin: 0;
+            border-radius: 6px;
+            overflow-x: auto;
+            background: var(--color-canvas-default);
+        }
 
-  /* Scroll shadows removed - not needed with page-wide scrollbar */
-  /* Smart scrolling pattern: page handles vertical scroll, pre handles horizontal scroll only */
+        /* Scroll shadows removed - not needed with page-wide scrollbar */
+        /* Smart scrolling pattern: page handles vertical scroll, pre handles horizontal scroll only */
 
-  /* Theme selector styling */
-  #code-theme-selector {
-    border: 1px solid var(--color-border-default);
-    border-radius: 6px;
-    color: var(--color-fg-default);
-    background-color: var(--color-canvas-subtle);
-    transition:
-      border-color 0.2s,
-      background-color 0.2s;
-    padding: 5px 12px;
-    font-size: 14px;
-  }
+        /* Theme selector styling */
+        #code-theme-selector {
+            border: 1px solid var(--color-border-default);
+            border-radius: 6px;
+            color: var(--color-fg-default);
+            background-color: var(--color-canvas-subtle);
+            transition:
+                border-color 0.2s,
+                background-color 0.2s;
+            padding: 5px 12px;
+            font-size: 14px;
+        }
 
-  #code-theme-selector:hover {
-    border-color: var(--color-border-muted);
-  }
+        #code-theme-selector:hover {
+            border-color: var(--color-border-muted);
+        }
 
-  #code-theme-selector:focus {
-    outline: 2px solid var(--color-accent-emphasis);
-    outline-offset: -1px;
-    border-color: var(--color-accent-emphasis);
-  }
+        #code-theme-selector:focus {
+            outline: 2px solid var(--color-accent-emphasis);
+            outline-offset: -1px;
+            border-color: var(--color-accent-emphasis);
+        }
 
-  /* Ensure proper rendering for all themes */
-  .hljs {
-    overflow-x: auto;
-    background: var(--color-canvas-default);
-  }
+        /* Ensure proper rendering for all themes */
+        .hljs {
+            overflow-x: auto;
+            background: var(--color-canvas-default);
+        }
 
-  /* Override some theme defaults for consistency */
-  .hljs-ln-line {
-    white-space: pre;
-  }
+        /* Override some theme defaults for consistency */
+        .hljs-ln-line {
+            white-space: pre;
+        }
 
-  /* Line number table styling */
-  .hljs-ln {
-    border-spacing: 0;
-    width: 100%;
-  }
+        /* Line number table styling */
+        .hljs-ln {
+            border-spacing: 0;
+            width: 100%;
+        }
 
-  .hljs-ln tbody {
-    display: table;
-    width: 100%;
-  }
+        .hljs-ln tbody {
+            display: table;
+            width: 100%;
+        }
 
-  .hljs-ln-n {
-    text-align: right;
-  }
+        .hljs-ln-n {
+            text-align: right;
+        }
     </style>
 {% endblock %}
 {% block content %}
     <div class="container-fluid browse-container">
         {% include "project_app/repository/file_view_partials/file_view_breadcrumb.html" %}
         {% include "project_app/repository/file_view_partials/file_view_tabs.html" %}
-        {% include "project_app/repository/file_view_partials/file_view_header.html" %}
         <!-- Main Content Area with Sidebar -->
         <div class="repo-layout" id="repo-layout">
             {% include 'project_app/repository/browse_partials/browse_sidebar.html' %}
             <!-- File Content (RIGHT side) -->
             <div class="repo-main">
+                {% include "project_app/repository/file_view_partials/file_view_header.html" %}
                 <div class="file-container">
                     {% if render_type == 'markdown' %}
                         {% include "project_app/repository/file_view_partials/file_view_content_markdown.html" %}

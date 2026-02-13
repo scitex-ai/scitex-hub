@@ -3,9 +3,9 @@
 /* Custom properties for this page */
 .about-container {
   --accent-glow: rgba(74, 155, 126, 0.4);
-  --accent-gradient: linear-gradient(135deg, #4a9b7e 0%, #6c8ba0 100%);
-  --card-bg: rgba(26, 42, 64, 0.6);
-  --card-border: rgba(108, 139, 160, 0.2);
+  --accent-gradient: linear-gradient(135deg, #4a9b7e 0%, #777777 100%);
+  --card-bg: rgba(28, 28, 28, 0.6);
+  --card-border: rgba(119, 119, 119, 0.2);
   --card-hover-border: rgba(74, 155, 126, 0.4);
   max-width: 1200px;
   margin: 0 auto;

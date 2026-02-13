@@ -47,7 +47,7 @@ from ..views.repository.api import (
 )
 
 # Note: slug and username are passed via kwargs from parent URL pattern
-# No app_name here - namespace is provided by parent (user_projects)
+# No app_name here - namespace is provided by parent (project_app)
 urlpatterns = [
     # Project root - Repository overview
     # /<username>/<slug>/

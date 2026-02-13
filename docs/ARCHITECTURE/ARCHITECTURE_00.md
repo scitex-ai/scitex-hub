@@ -26,7 +26,7 @@
 - **Writer**: http://127.0.0.1:8000/writer/
 - **Scholar**: http://127.0.0.1:8000/scholar/bibtex/
 - **Vis**: http://127.0.0.1:8000/vis/vis/
-- **Code**: http://127.0.0.1:8000/code/
+- **Code**: http://127.0.0.1:8000/console/
 
 ### Module Capabilities
 

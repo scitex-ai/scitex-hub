@@ -14,7 +14,7 @@ Successfully reorganized SciTeX Cloud with automatic app discovery, clean databa
 1. **auth_app** - `/auth/` - Authentication and user management
 2. **billing_app** - `/billing/` - Pricing and subscriptions
 3. **cloud_app** - `/cloud/` - Main website and landing pages
-4. **code_app** - `/code/` - Code execution and data analysis
+4. **console_app** - `/console/` - Code execution and data analysis
 5. **workspace_app** - `/core/` - Core functionality and projects
 6. **dev_app** - `/dev/` - **NEW** Development tools (design system at `/dev/design.html`)
 7. **project_app** - `/project/` - Project management
@@ -145,9 +145,9 @@ $ python manage.py check
 1. **Info:** `auth_app/urls.py has no urlpatterns, skipping`
    - Expected - auth_app may use views from cloud_app
 
-2. **Warning:** `Could not register URLs for code_app: No module named 'apps.api'`
-   - code_app has dependency on removed api app
-   - Can be fixed later if code_app functionality is needed
+2. **Warning:** `Could not register URLs for console_app: No module named 'apps.api'`
+   - console_app has dependency on removed api app
+   - Can be fixed later if console_app functionality is needed
 
 3. **Warning:** `URL namespace 'cloud_app' isn't unique`
    - Multiple URL includes with same namespace
@@ -211,7 +211,7 @@ python manage.py startapp new_feature_app apps/new_feature_app
 - **Design System:** http://scitex.ai/dev/design.html
 - **Admin:** http://scitex.ai/admin/
 - **Dashboard:** http://scitex.ai/dashboard/ → redirects to /core/
-- **Modules:** /scholar/, /writer/, /code/, /viz/
+- **Modules:** /scholar/, /writer/, /console/, /viz/
 
 ---
 

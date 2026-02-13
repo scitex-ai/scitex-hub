@@ -1,0 +1,75 @@
+/* Run Stats - Data Table Grid Styles */
+
+/* ============================================================================
+   Container
+   ============================================================================ */
+.data-table-container {
+  height: 100%;
+  width: 100%;
+}
+
+/* ============================================================================
+   Editable Table Grid (vis_app patterns)
+   ============================================================================ */
+.stats-data-panel .editable-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  user-select: none;
+}
+
+.stats-data-panel .editable-table thead th {
+  background: var(--workspace-bg-tertiary);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.stats-data-panel .editable-table td.row-number,
+.stats-data-panel .editable-table th.row-number-header {
+  position: sticky;
+  left: 0;
+  z-index: 50;
+  background: var(--workspace-bg-tertiary);
+  min-width: 50px;
+  max-width: 50px;
+  width: 50px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.stats-data-panel .editable-table th.row-number-header {
+  z-index: 150;
+}
+
+.stats-data-panel .editable-table th {
+  padding: 8px;
+  text-align: center;
+  border: 1px solid var(--workspace-border-default);
+  font-weight: 600;
+  position: relative;
+}
+
+.stats-data-panel .editable-table td {
+  padding: 6px 8px;
+  border: 1px solid var(--workspace-border-default);
+  cursor: cell;
+  text-align: center;
+}
+
+.stats-data-panel .editable-table tr.row-even {
+  background: var(--workspace-bg-primary);
+}
+
+.stats-data-panel .editable-table tr.row-odd {
+  background: var(--workspace-bg-secondary);
+}
+
+.stats-data-panel .column-resize-handle {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  cursor: col-resize;
+}

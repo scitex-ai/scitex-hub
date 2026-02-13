@@ -291,10 +291,10 @@
 
 /* Light theme */
 [data-theme="light"] .source-item {
-  background: var(--workspace-bg-primary, #f3f4f6);
-  border-color: var(--workspace-border-default, #b5c7d1);
-  color: var(--text-primary, #1a2a40);
+  background: var(--workspace-bg-primary);
+  border-color: var(--workspace-border-default);
+  color: var(--text-primary);
 }
 [data-theme="light"] .source-item:hover {
-  background: var(--workspace-bg-tertiary, #d8dee4);
+  background: var(--workspace-bg-tertiary);
 }

@@ -42,7 +42,7 @@ apps/
 apps/
 ├── scholar_app/           # Literature management
 ├── writer_app/            # Scientific writing
-├── code_app/              # Data analysis
+├── console_app/              # Data analysis
 ├── viz_app/               # Visualizations
 └── engine_app/            # Emacs integration
 ```
@@ -278,7 +278,7 @@ scitex-cloud/
 │   ├── api/               # API endpoints
 │   ├── scholar_app/       # Literature
 │   ├── writer_app/        # Writing + documents
-│   ├── code_app/          # Data analysis
+│   ├── console_app/          # Data analysis
 │   ├── viz_app/           # Visualizations
 │   ├── engine_app/        # Emacs integration
 │   ├── integrations_app/  # External integrations

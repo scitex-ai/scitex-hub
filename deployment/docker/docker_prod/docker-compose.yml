@@ -299,6 +299,9 @@ services:
       - DATABASE_TYPE=postgresql
       - APP_SECRET=${SCITEX_CLOUD_UMAMI_APP_SECRET:-scitex-umami-secret-2026}
       - DISABLE_TELEMETRY=1
+      - CLIENT_IP_HEADER=X-Forwarded-For
+      - IGNORE_IP=${SCITEX_CLOUD_UMAMI_IGNORE_IP:-}
+      - SKIP_LOCATION_HEADERS=1
     depends_on:
       postgres:
         condition: service_healthy

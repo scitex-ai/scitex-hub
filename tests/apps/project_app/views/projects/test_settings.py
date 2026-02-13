@@ -62,7 +62,7 @@ if __name__ == "__main__":
 #             project.visibility = visibility
 #             project.save()
 #             messages.success(request, "Project settings updated successfully")
-#             return redirect("user_projects:settings", username=username, slug=slug)
+#             return redirect("project_app:settings", username=username, slug=slug)
 # 
 #     context = {"project": project}
 #     return render(request, "project_app/projects/settings.html", context)

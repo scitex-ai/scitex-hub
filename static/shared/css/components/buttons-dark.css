@@ -10,13 +10,19 @@
 
 [data-theme="dark"] .btn {
   border: none;
-  background-color: var(--workspace-bg-elevated, #3a3a3a); /* Workspace blackish instead of bluish */
+  background-color: var(
+    --workspace-bg-elevated,
+    #3a3a3a
+  ); /* Workspace blackish instead of bluish */
   color: var(--text-primary, #d4e1e8);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 [data-theme="dark"] .btn:hover {
-  background-color: var(--workspace-border-hover, #4a4a4a); /* Slightly lighter blackish on hover */
+  background-color: var(
+    --workspace-border-hover,
+    #4a4a4a
+  ); /* Slightly lighter blackish on hover */
   border-color: transparent;
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
@@ -49,38 +55,44 @@
 
 /* Primary Button - Dark Mode */
 [data-theme="dark"] .btn-primary {
-  background-color: var(--workspace-bg-elevated, #3a3a3a); /* Workspace blackish */
-  color: white;
+  background-color: var(
+    --workspace-bg-elevated,
+    #3a3a3a
+  ); /* Workspace blackish */
+  color: var(--text-inverse);
 }
 
 [data-theme="dark"] .btn-primary:hover,
 [data-theme="dark"] .btn-primary:focus {
-  background-color: var(--workspace-border-hover, #4a4a4a); /* Slightly lighter */
-  color: white;
+  background-color: var(
+    --workspace-border-hover,
+    #4a4a4a
+  ); /* Slightly lighter */
+  color: var(--text-inverse);
 }
 
 /* Dark Button - Dark Mode (Keep visible) */
 [data-theme="dark"] .btn-dark {
   background-color: var(--scitex-color-02);
-  color: white;
+  color: var(--text-inverse);
 }
 
 [data-theme="dark"] .btn-dark:hover,
 [data-theme="dark"] .btn-dark:focus {
   background-color: var(--scitex-color-03);
-  color: white;
+  color: var(--text-inverse);
 }
 
 /* Black Button - Dark Mode (Keep prominent) */
 [data-theme="dark"] .btn-black {
   background-color: #2d2d2d;
-  color: white;
+  color: var(--text-inverse);
 }
 
 [data-theme="dark"] .btn-black:hover,
 [data-theme="dark"] .btn-black:focus {
   background-color: #404040;
-  color: white;
+  color: var(--text-inverse);
 }
 
 /* =========================================
@@ -153,7 +165,7 @@
 [data-theme="dark"] .btn-outline-primary:focus {
   background-color: var(--scitex-color-05);
   border: var(--border-width) solid var(--scitex-color-05);
-  color: white;
+  color: var(--text-inverse);
 }
 
 /* Outline Secondary Button - Dark Mode - Brand blue hover */
@@ -167,7 +179,7 @@
 [data-theme="dark"] .btn-outline-secondary:focus {
   background-color: var(--scitex-color-04); /* Brand blue background */
   border: var(--border-width) solid var(--scitex-color-04); /* Brand blue border */
-  color: white;
+  color: var(--text-inverse);
 }
 
 /* Outline Light Button - Dark Mode */
@@ -205,14 +217,14 @@
 /* GitHub Button - Dark Mode */
 [data-theme="dark"] .btn-github {
   background-color: #1a1a1a;
-  color: white;
+  color: var(--text-inverse);
   border: none;
 }
 
 [data-theme="dark"] .btn-github:hover,
 [data-theme="dark"] .btn-github:focus {
   background-color: #2d2d2d;
-  color: white;
+  color: var(--text-inverse);
 }
 
 [data-theme="dark"] .btn-github:disabled,

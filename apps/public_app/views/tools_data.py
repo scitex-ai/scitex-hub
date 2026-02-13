@@ -11,7 +11,6 @@ from __future__ import annotations
 from .tools_data_image import IMAGE_TOOLS
 from .tools_data_other import (
     DEVELOPER_TOOLS,
-    DOCUMENT_TOOLS,
     RENDERING_TOOLS,
     RESEARCH_TOOLS,
     VIDEO_TOOLS,
@@ -27,7 +26,6 @@ __all__ = [
     "RENDERING_TOOLS",
     "DEVELOPER_TOOLS",
     "RESEARCH_TOOLS",
-    "DOCUMENT_TOOLS",
     "get_tool_domains",
 ]
 
@@ -35,6 +33,13 @@ __all__ = [
 def get_tool_domains():
     """Get all tool domains with their configurations."""
     return [
+        {
+            "name": "Research",
+            "slug": "research",
+            "icon": "🔬",
+            "description": "Literature management and citation tools",
+            "tools": RESEARCH_TOOLS,
+        },
         {
             "name": "Text",
             "slug": "text",
@@ -57,13 +62,6 @@ def get_tool_domains():
             "tools": PDF_TOOLS,
         },
         {
-            "name": "Video",
-            "slug": "video",
-            "icon": "🎬",
-            "description": "Video and animation processing",
-            "tools": VIDEO_TOOLS,
-        },
-        {
             "name": "Rendering",
             "slug": "rendering",
             "icon": "📈",
@@ -71,25 +69,18 @@ def get_tool_domains():
             "tools": RENDERING_TOOLS,
         },
         {
+            "name": "Video",
+            "slug": "video",
+            "icon": "🎬",
+            "description": "Video and animation processing",
+            "tools": VIDEO_TOOLS,
+        },
+        {
             "name": "Developer",
             "slug": "development",
             "icon": "💻",
             "description": "Web development and debugging utilities",
             "tools": DEVELOPER_TOOLS,
-        },
-        {
-            "name": "Research",
-            "slug": "research",
-            "icon": "🔬",
-            "description": "Literature management and citation tools",
-            "tools": RESEARCH_TOOLS,
-        },
-        {
-            "name": "Document Conversion",
-            "slug": "document",
-            "icon": "📄",
-            "description": "Convert documents between formats",
-            "tools": DOCUMENT_TOOLS,
         },
     ]
 

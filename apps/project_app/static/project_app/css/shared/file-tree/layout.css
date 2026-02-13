@@ -91,37 +91,7 @@
   vertical-align: text-bottom;
 }
 
-/* Sidebar sections */
-.sidebar-section {
-  padding: 0;
-  margin-bottom: 8px;
-}
-
-.sidebar-title {
-  margin-bottom: 8px;
-  padding: 4px 12px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-fg-muted, #656d76);
-  letter-spacing: 0.5px;
-}
-
-.sidebar-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 0;
-}
-
-.sidebar-link {
-  text-decoration: none;
-  display: block;
-  padding: 4px 0;
-}
-
-.sidebar-link:hover {
-  text-decoration: underline;
-}
+/* Sidebar visual styling in sidebar.css (single source of truth) */
 
 /* File tree children */
 .file-tree-children {
@@ -144,7 +114,7 @@
 }
 
 .file-tree-children.expanded > .file-tree-item::before {
-  content: '';
+  content: "";
   position: absolute;
   left: -9px;
   top: 50%;
@@ -158,11 +128,16 @@
   border-left-color: rgba(150, 150, 150, 0.3);
 }
 
-.file-tree-children.expanded .file-tree-children.expanded .file-tree-children.expanded {
+.file-tree-children.expanded
+  .file-tree-children.expanded
+  .file-tree-children.expanded {
   border-left-color: rgba(150, 150, 150, 0.25);
 }
 
-.file-tree-children.expanded .file-tree-children.expanded .file-tree-children.expanded .file-tree-children.expanded {
+.file-tree-children.expanded
+  .file-tree-children.expanded
+  .file-tree-children.expanded
+  .file-tree-children.expanded {
   border-left-color: rgba(150, 150, 150, 0.2);
 }
 
@@ -173,9 +148,15 @@
 
 /* Highlight parent guide when hovering on item */
 .file-tree-children.expanded:has(> .file-tree-item:hover),
-.file-tree-children.expanded .file-tree-children.expanded:has(> .file-tree-item:hover),
-.file-tree-children.expanded .file-tree-children.expanded .file-tree-children.expanded:has(> .file-tree-item:hover),
-.file-tree-children.expanded .file-tree-children.expanded .file-tree-children.expanded .file-tree-children.expanded:has(> .file-tree-item:hover) {
+.file-tree-children.expanded
+  .file-tree-children.expanded:has(> .file-tree-item:hover),
+.file-tree-children.expanded
+  .file-tree-children.expanded
+  .file-tree-children.expanded:has(> .file-tree-item:hover),
+.file-tree-children.expanded
+  .file-tree-children.expanded
+  .file-tree-children.expanded
+  .file-tree-children.expanded:has(> .file-tree-item:hover) {
   border-left-color: rgba(180, 180, 180, 0.6);
 }
 
@@ -201,7 +182,9 @@
   border-left-color: rgba(200, 200, 200, 0.5);
 }
 
-[data-theme="dark"] .file-tree-children.expanded > .file-tree-item:hover::before {
+[data-theme="dark"]
+  .file-tree-children.expanded
+  > .file-tree-item:hover::before {
   border-top-color: rgba(200, 200, 200, 0.5);
 }
 

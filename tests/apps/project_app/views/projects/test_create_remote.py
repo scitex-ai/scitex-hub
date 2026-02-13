@@ -200,7 +200,7 @@ if __name__ == "__main__":
 #             ),
 #         )
 # 
-#         return redirect("user_projects:detail", username=request.user.username, slug=slug)
+#         return redirect("project_app:detail", username=request.user.username, slug=slug)
 # 
 #     except Exception as e:
 #         logger.error(f"Failed to create remote project: {e}")

@@ -1,10 +1,11 @@
-from django.db import models
-from django.contrib.auth.models import User
-from django.core.validators import MinValueValidator, MaxValueValidator
+import base64
+import uuid
+
 from cryptography.fernet import Fernet
 from django.conf import settings
-import uuid
-import base64
+from django.contrib.auth.models import User
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
 
 
 class Collection(models.Model):
@@ -71,13 +72,41 @@ class UserLibrary(models.Model):
         help_text="Associated research project",
     )
 
-    # User's personal files for this paper
+    # User's personal files for this paper (legacy Django FileField storage)
     personal_pdf = models.FileField(
-        upload_to="user_library/pdfs/", blank=True, null=True
+        upload_to="user_library/pdfs/",
+        blank=True,
+        null=True,
+        help_text="[Legacy] PDF file in Django media storage",
     )
     personal_bibtex = models.FileField(
-        upload_to="user_library/bibtex/", blank=True, null=True
+        upload_to="user_library/bibtex/",
+        blank=True,
+        null=True,
+        help_text="[Legacy] BibTeX file in Django media storage",
     )
+
+    # NEW: User library storage (filesystem paths)
+    user_library_pdf_path = models.CharField(
+        max_length=500,
+        blank=True,
+        help_text="Relative path to PDF in user's scholar library (e.g., 'papers/doi/10.1000_example.pdf')",
+    )
+    user_library_bibtex_path = models.CharField(
+        max_length=500,
+        blank=True,
+        help_text="Relative path to BibTeX in user's scholar library",
+    )
+    storage_mode = models.CharField(
+        max_length=20,
+        choices=[
+            ("django_media", "Django Media Storage"),
+            ("user_library", "User Library (Symlinks)"),
+        ],
+        default="django_media",
+        help_text="Storage backend for this paper",
+    )
+
     personal_notes = models.TextField(
         blank=True, help_text="Personal notes about this paper"
     )
@@ -123,6 +152,52 @@ class UserLibrary(models.Model):
 
     def __str__(self):
         return f"{self.user.username} saved: {self.paper.title[:50]}"
+
+    def get_pdf_path(self):
+        """
+        Get actual filesystem path to PDF based on storage mode.
+
+        Returns:
+            Path object or None
+        """
+        from pathlib import Path
+
+        from apps.scholar_app.services import UserLibraryService
+
+        if self.storage_mode == "user_library" and self.user_library_pdf_path:
+            # New storage: user library
+            service = UserLibraryService(self.user)
+            return service.library_path / self.user_library_pdf_path
+        elif self.personal_pdf:
+            # Legacy storage: Django FileField
+            try:
+                return Path(self.personal_pdf.path)
+            except (ValueError, AttributeError):
+                return None
+        return None
+
+    def get_bibtex_path(self):
+        """
+        Get actual filesystem path to BibTeX based on storage mode.
+
+        Returns:
+            Path object or None
+        """
+        from pathlib import Path
+
+        from apps.scholar_app.services import UserLibraryService
+
+        if self.storage_mode == "user_library" and self.user_library_bibtex_path:
+            # New storage: user library
+            service = UserLibraryService(self.user)
+            return service.library_path / self.user_library_bibtex_path
+        elif self.personal_bibtex:
+            # Legacy storage: Django FileField
+            try:
+                return Path(self.personal_bibtex.path)
+            except (ValueError, AttributeError):
+                return None
+        return None
 
     def get_tags_list(self):
         """Return tags as a list"""

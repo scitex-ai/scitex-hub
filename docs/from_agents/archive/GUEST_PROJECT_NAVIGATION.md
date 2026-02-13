@@ -54,7 +54,7 @@ def project_context(request):
 **Workspace URLs**:
 - `/guest/demo-project/writer/` → Demo manuscript editor
 - `/guest/demo-project/scholar/` → Demo bibliography search
-- `/guest/demo-project/code/` → Demo code workspace
+- `/guest/demo-project/console/` → Demo console workspace
 - `/guest/demo-project/viz/` → Demo visualization workspace
 
 **Features**:
@@ -93,7 +93,7 @@ def project_context(request):
 2. Click "Scholar" in header
    → Routed to /ywatanabe1989/neurovista/scholar/
 3. Click "Code"
-   → Routed to /ywatanabe1989/neurovista/code/
+   → Routed to /ywatanabe1989/neurovista/console/
 4. Navigation stays within project context
 ```
 

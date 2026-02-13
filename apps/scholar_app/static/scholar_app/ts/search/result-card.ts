@@ -146,6 +146,28 @@ export function createResultCard(result: SearchResult): HTMLElement {
     });
   }
 
+  // Setup save and cite button handlers
+  const saveBtn = cardDiv.querySelector(".save-btn") as HTMLElement | null;
+  const citeBtn = cardDiv.querySelector(".cite-btn") as HTMLElement | null;
+
+  if (saveBtn) {
+    saveBtn.addEventListener("click", (e: MouseEvent) => {
+      e.stopPropagation();
+      if (window.saveToProject) {
+        window.saveToProject(saveBtn, result.id);
+      }
+    });
+  }
+
+  if (citeBtn) {
+    citeBtn.addEventListener("click", (e: MouseEvent) => {
+      e.stopPropagation();
+      if (window.copyCitation) {
+        window.copyCitation(citeBtn, result.id);
+      }
+    });
+  }
+
   return cardDiv;
 }
 

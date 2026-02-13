@@ -22,7 +22,7 @@
   min-width: 80px;
 }
 
-.panel-header {
+.split-panel > .panel-header {
   padding: 1.5rem;
   cursor: pointer;
   transition: background 0.2s ease;
@@ -31,7 +31,7 @@
   align-items: center;
 }
 
-.panel-title {
+.split-panel .panel-title {
   /* font-size: 1.3rem; */
   /* font-weight: 700; */
 }
@@ -56,7 +56,7 @@
   /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); */
 }
 
-.panel-content {
+.split-panel .panel-content {
   padding: 2rem;
   min-height: 750px;
   display: flex;
@@ -69,14 +69,13 @@
   flex-direction: column;
 }
 
-.collapsed .panel-content {
+.split-panel.collapsed .panel-content {
   display: none;
 }
 
-.collapsed .panel-header {
+.split-panel.collapsed > .panel-header {
   writing-mode: vertical-lr;
   text-orientation: mixed;
   min-height: 400px;
   justify-content: center;
 }
-

@@ -26,13 +26,6 @@ export function setupThemeToggle(editor: VisEditor): void {
     }
   };
 
-  const updateDarkModeWarning = (isDark: boolean) => {
-    const warning = document.getElementById("toolbar-dark-warning");
-    if (warning) {
-      warning.style.display = isDark ? "inline-flex" : "none";
-    }
-  };
-
   themeToggle.addEventListener("click", () => {
     canvasIsDark = !canvasIsDark;
     const canvasTheme = canvasIsDark ? "dark" : "light";
@@ -40,17 +33,14 @@ export function setupThemeToggle(editor: VisEditor): void {
 
     editor.updateCanvasTheme(canvasIsDark);
     updateThemeEmoji(canvasIsDark);
-    updateDarkModeWarning(canvasIsDark);
 
     console.log(`[InteractionHandlers] Canvas theme toggled to ${canvasTheme}`);
   });
 
-  // Apply initial theme state
+  // Apply initial emoji state only (theme already applied by applySavedThemes)
   updateThemeEmoji(canvasIsDark);
-  updateDarkModeWarning(canvasIsDark);
-  editor.updateCanvasTheme(canvasIsDark);
   console.log(
-    `[InteractionHandlers] Canvas theme restored to ${canvasThemeValue}`,
+    `[InteractionHandlers] Canvas theme toggle initialized (${canvasThemeValue})`,
   );
 }
 

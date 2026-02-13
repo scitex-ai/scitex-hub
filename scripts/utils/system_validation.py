@@ -101,7 +101,7 @@ class SystemValidator:
     def test_module_interfaces(self):
         """Test SciTeX module interfaces"""
         modules = [
-            ('/code/', 'SciTeX Code'),
+            ('/console/', 'SciTeX Code'),
             ('/writer/', 'SciTeX Writer'), 
             ('/viz/', 'SciTeX Viz'),
             ('/scholar/', 'SciTeX Scholar'),

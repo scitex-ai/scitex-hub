@@ -93,11 +93,7 @@ export class EditorListeners {
         currentSection.endsWith("/compiled_pdf") ||
         currentSection.endsWith("/compiled_tex");
       if (this.pdfPreviewManager && !isCompiledForPreview) {
-        scheduleAutoCompile(
-          this.pdfPreviewManager,
-          content,
-          currentSection,
-        );
+        scheduleAutoCompile(this.pdfPreviewManager, content, currentSection);
       }
     });
   }
@@ -130,7 +126,12 @@ export class EditorListeners {
         e.preventDefault();
         // Import handleCompileFull dynamically to avoid circular dependency
         import("../../index.js").then(({ handleCompileFull }) => {
-          handleCompileFull(this.compilationManager, this.state, "manuscript", true);
+          handleCompileFull(
+            this.compilationManager,
+            this.state,
+            "manuscript",
+            true,
+          );
           console.log(
             "[EditorListeners] Full compilation triggered via Alt+Shift+Enter",
           );
@@ -158,9 +159,7 @@ export class EditorListeners {
           e.preventDefault();
           searchInput.focus();
           searchInput.select();
-          console.log(
-            "[EditorListeners] Citation search focused via Ctrl+K",
-          );
+          console.log("[EditorListeners] Citation search focused via Ctrl+K");
         }
       }
 
@@ -172,9 +171,7 @@ export class EditorListeners {
         if (searchInput && document.activeElement === searchInput) {
           e.preventDefault();
           searchInput.blur();
-          console.log(
-            "[EditorListeners] Citation search unfocused via Escape",
-          );
+          console.log("[EditorListeners] Citation search unfocused via Escape");
         }
       }
     });
@@ -205,7 +202,9 @@ export class EditorListeners {
         if (typeof this.editor!.toggleEditorTheme === "function") {
           this.editor!.toggleEditorTheme();
         } else {
-          console.warn("[EditorListeners] toggleEditorTheme method not available on editor");
+          console.warn(
+            "[EditorListeners] toggleEditorTheme method not available on editor",
+          );
         }
       });
     }
@@ -225,10 +224,10 @@ export class EditorListeners {
       });
     }
 
-    // Setup git commit button
-    const commitBtn = document.getElementById("git-commit-btn");
-    if (commitBtn) {
-      commitBtn.addEventListener("click", () => {
+    // Setup git status/commit button (unified)
+    const gitStatusBtn = document.getElementById("git-status-display");
+    if (gitStatusBtn) {
+      gitStatusBtn.addEventListener("click", () => {
         showCommitModal(this.state);
       });
     }

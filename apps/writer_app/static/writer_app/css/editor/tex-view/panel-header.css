@@ -11,8 +11,8 @@
 
 /* Theme selector in panel header */
 .panel-header #theme-selector {
-  padding: 0.2rem 0.5rem;
-  font-size: 0.75rem;
+  padding: 3px 8px;
+  font-size: 12px;
   border: 1px solid var(--workspace-border-default);
   background: var(--workspace-bg-primary);
   color: var(--workspace-text-primary);
@@ -31,17 +31,17 @@
   min-width: 80px !important;
   font-weight: 600 !important;
   border: 1px solid var(--workspace-border-default) !important;
-  padding: 0.3rem 0.6rem !important;
+  padding: 5px 10px !important;
 }
 
 /* Force visible text in both light and dark modes */
 [data-theme="light"] .panel-header #font-size-selector {
-  color: #1a1a1a !important;
+  color: var(--text-primary) !important;
 }
 
 [data-theme="dark"] .panel-header #font-size-selector {
-  color: #e0e0e0 !important;
-  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: var(--workspace-text-primary) !important;
+  background-color: var(--workspace-bg-tertiary) !important;
 }
 
 .panel-header #font-size-selector option {
@@ -53,17 +53,17 @@
 .word-count-inline {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
-  font-size: 0.7rem;
+  gap: 5px;
+  font-size: 11px;
   color: var(--text-muted);
-  margin-left: 0.75rem;
-  padding-left: 0.75rem;
+  margin-left: 12px;
+  padding-left: 12px;
   border-left: 1px solid var(--workspace-border-default);
   text-transform: none; /* Override panel-header's uppercase */
 }
 
 .word-count-inline i {
-  font-size: 0.65rem;
+  font-size: 10px;
 }
 
 /* Hide old word count indicator at bottom */
@@ -73,8 +73,8 @@
 
 /* Preview button in panel header */
 .preview-btn-inline {
-  padding: 0.2rem 0.5rem;
-  font-size: 0.75rem;
+  padding: 3px 8px;
+  font-size: 12px;
   background: transparent;
   border: 1px solid var(--workspace-border-default);
   color: var(--workspace-text-primary);
@@ -92,8 +92,8 @@
 .auto-preview-control-panel {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
-  font-size: 0.7rem;
+  gap: 5px;
+  font-size: 11px;
 }
 
 .auto-preview-control-panel input[type="checkbox"] {
@@ -111,8 +111,8 @@
 .status-indicator {
   display: flex;
   align-items: center;
-  font-size: 0.75rem;
-  padding: 0.25rem 0.5rem;
+  font-size: 12px;
+  padding: 4px 8px;
   border-radius: 4px;
   background: var(--workspace-bg-primary);
   border: 1px solid var(--workspace-border-default);
@@ -127,7 +127,7 @@
 .countdown-content {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .countdown-circle {
@@ -141,14 +141,13 @@
 
 .countdown-text {
   position: absolute;
-  font-size: 0.7rem;
+  font-size: 11px;
   font-weight: 600;
   color: var(--color-accent-emphasis);
 }
 
 .countdown-label {
-  font-size: 0.75rem;
+  font-size: 12px;
   color: var(--text-muted);
   white-space: nowrap;
 }
-

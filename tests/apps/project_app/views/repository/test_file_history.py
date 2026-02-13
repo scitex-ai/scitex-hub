@@ -76,7 +76,7 @@ if __name__ == "__main__":
 # 
 #     if not has_access:
 #         messages.error(request, "You don't have permission to access this file.")
-#         return redirect("user_projects:detail", username=username, slug=slug)
+#         return redirect("project_app:detail", username=username, slug=slug)
 # 
 #     # Get project path
 #     from apps.project_app.services.project_filesystem import (
@@ -88,7 +88,7 @@ if __name__ == "__main__":
 # 
 #     if not project_path or not project_path.exists():
 #         messages.error(request, "Project directory not found.")
-#         return redirect("user_projects:detail", username=username, slug=slug)
+#         return redirect("project_app:detail", username=username, slug=slug)
 # 
 #     # Build breadcrumb
 #     breadcrumbs = [{"name": project.name, "url": f"/{username}/{slug}/"}]

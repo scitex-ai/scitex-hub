@@ -12,6 +12,7 @@ import { CitationSorting } from "./citations-panel/citation-sorting";
 import { CitationRenderer } from "./citations-panel/citation-renderer";
 import { CitationActions } from "./citations-panel/citation-actions";
 import { CitationLoader } from "./citations-panel/citation-loader";
+import { CitationUpload } from "./citations-panel/citation-upload";
 import { UIState } from "./citations-panel/ui-state";
 
 export type { Citation } from "./citations-panel/types";
@@ -28,6 +29,7 @@ export class CitationsPanel {
   private renderer: CitationRenderer;
   private actions: CitationActions;
   private loader: CitationLoader;
+  private upload: CitationUpload;
   private uiState: UIState;
 
   constructor() {
@@ -41,6 +43,14 @@ export class CitationsPanel {
 
     // Loader is initialized after projectId is set
     this.loader = new CitationLoader(this.projectId);
+
+    // Upload handler
+    this.upload = new CitationUpload(this.projectId);
+    this.upload.setOnUploadSuccess(() => {
+      this.isLoaded = false;
+      this.loadCitations();
+    });
+    this.upload.setupDropZone();
   }
 
   /**

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>PDF Rendering Debug</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box
+            }
+
+            body {
+                font-family: monospace;
+                background: #1e1e1e;
+                color: #ccc
+            }
+
+            .controls {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 100;
+                background: #2d2d2d;
+                padding: 8px 16px;
+                display: flex;
+                gap: 12px;
+                align-items: center;
+                flex-wrap: wrap;
+                border-bottom: 1px solid #444
+            }
+
+            .controls label {
+                font-size: 12px
+            }
+
+            .controls input,
+            .controls select {
+                background: #1e1e1e;
+                color: #fff;
+                border: 1px solid #555;
+                padding: 4px 8px
+            }
+
+            .controls input[type=range] {
+                width: 100px
+            }
+
+            .controls button {
+                background: #059669;
+                color: #fff;
+                border: none;
+                padding: 6px 12px;
+                cursor: pointer;
+                border-radius: 4px
+            }
+
+            .controls button:hover {
+                background: #047857
+            }
+
+            #info {
+                font-size: 11px;
+                color: #aaa;
+                width: 100%
+            }
+
+            #error {
+                font-size: 12px;
+                color: #ff6b6b;
+                width: 100%;
+                display: none
+            }
+
+            #container {
+                margin-top: 90px;
+                display: flex;
+                justify-content: center;
+                background: #333;
+                min-height: calc(100vh - 90px);
+                overflow: auto;
+                flex-wrap: wrap
+            }
+
+            canvas {
+                display: block;
+                box-shadow: 0 2px 12px rgba(0, 0, 0, 0.5)
+            }
+
+            .render-box {
+                text-align: center;
+                padding: 10px
+            }
+
+            .render-box h3 {
+                color: #ccc;
+                font-size: 11px;
+                margin-bottom: 8px;
+                white-space: nowrap
+            }
+        </style>
+    </head>
+    <body>
+        <div class="controls">
+            <label>
+                PDF:
+                <input id="pdfUrl" type="text" value="/writer/pdf-debug/test.pdf" style="width:260px" />
+            </label>
+            <label>
+                Scale:<span id="scaleVal">1.5</span>
+                <input id="scale" type="range" min="0.3" max="3.0" step="0.1" value="1.5" />
+            </label>
+            <label>
+                Quality:<span id="qualityVal">2.0</span>
+                <input id="quality" type="range" min="0.5" max="6.0" step="0.5" value="2.0" />
+            </label>
+            <label>
+                Pg:
+                <input id="pageNum" type="number" value="1" min="1" style="width:40px" />
+            </label>
+            <label>
+                Smooth:
+                <select id="smoothing">
+                    <option value="off">Off</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Med</option>
+                    <option value="high" selected>High</option>
+                </select>
+            </label>
+            <button id="renderBtn">Render</button>
+            <button id="fitWidthBtn">Fit Width</button>
+            <button id="compareBtn">Compare</button>
+            <button id="fetchTestBtn">Test Fetch</button>
+            <div id="info">Click "Test Fetch" first to verify PDF URL works, then "Render"</div>
+            <div id="error"></div>
+        </div>
+        <div id="container"></div>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+        <script>
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+const CDN='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174';
+let pdfDoc=null;
+const $=id=>document.getElementById(id);
+const showErr=msg=>{$('error').style.display='block';$('error').textContent='ERROR: '+msg};
+const showInfo=msg=>{$('error').style.display='none';$('info').textContent=msg};
+
+$('scale').oninput=function(){$('scaleVal').textContent=this.value};
+$('quality').oninput=function(){$('qualityVal').textContent=this.value};
+
+// Test fetch - verify the PDF URL is reachable
+$('fetchTestBtn').onclick=async()=>{
+  const url=$('pdfUrl').value;
+  showInfo('Fetching '+url+'...');
+  try{
+    const r=await fetch(url,{credentials:'same-origin'});
+    const ct=r.headers.get('content-type')||'';
+    const size=r.headers.get('content-length')||'?';
+    if(!r.ok){showErr(`HTTP ${r.status} ${r.statusText} - Content-Type: ${ct}`);return}
+    if(!ct.includes('pdf')){
+      const text=await r.text();
+      showErr(`Not PDF! Content-Type: ${ct}, Body: ${text.substring(0,200)}`);return;
+    }
+    showInfo(`OK! Status:${r.status} Content-Type:${ct} Size:${size}bytes - Ready to render!`);
+  }catch(e){showErr('Fetch failed: '+e.message)}
+};
+
+async function loadPdf(url){
+  showInfo('Loading PDF via fetch...');
+  // Fetch as blob first (handles auth cookies), then load via PDF.js
+  const resp=await fetch(url,{credentials:'same-origin'});
+  if(!resp.ok)throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+  const ct=resp.headers.get('content-type')||'';
+  if(!ct.includes('pdf'))throw new Error(`Not PDF: ${ct}`);
+  const blob=await resp.blob();
+  const arrayBuf=await blob.arrayBuffer();
+  showInfo(`Fetched ${blob.size} bytes, loading into PDF.js...`);
+  const loadingTask=pdfjsLib.getDocument({
+    data:arrayBuf,
+    cMapUrl:`${CDN}/cmaps/`,cMapPacked:true,
+    standardFontDataUrl:`${CDN}/standard_fonts/`,
+  });
+  pdfDoc=await loadingTask.promise;
+  showInfo(`Loaded: ${pdfDoc.numPages} pages (${blob.size} bytes)`);
+  return pdfDoc;
+}
+
+async function renderPage(pageNum,scale,quality,smoothing,targetEl){
+  if(!pdfDoc)return null;
+  const page=await pdfDoc.getPage(pageNum);
+  const dpr=window.devicePixelRatio||1;
+
+  // Cap canvas size to prevent GPU memory issues
+  const MAX_DIM=4096;
+  const baseVP=page.getViewport({scale});
+  const maxDim=Math.max(baseVP.width,baseVP.height);
+  const maxScale=MAX_DIM/maxDim;
+  const outputScale=Math.min(Math.max(quality,dpr),maxScale);
+
+  const displayVP=page.getViewport({scale});
+  const renderVP=page.getViewport({scale:scale*outputScale});
+
+  const canvas=document.createElement('canvas');
+  const ctx=canvas.getContext('2d',{alpha:false});
+  canvas.width=renderVP.width;
+  canvas.height=renderVP.height;
+  canvas.style.width=displayVP.width+'px';
+  canvas.style.height=displayVP.height+'px';
+
+  if(smoothing==='off'){ctx.imageSmoothingEnabled=false;canvas.style.imageRendering='pixelated'}
+  else{ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality=smoothing;canvas.style.imageRendering='auto'}
+
+  await page.render({canvasContext:ctx,viewport:renderVP}).promise;
+  targetEl.innerHTML='';targetEl.appendChild(canvas);
+  return{dW:Math.round(displayVP.width),dH:Math.round(displayVP.height),cW:canvas.width,cH:canvas.height,dpr,outputScale,effectiveDPI:Math.round(72*outputScale)};
+}
+
+// Fit width - auto-calculate scale to fill container
+$('fitWidthBtn').onclick=async()=>{
+  try{
+    const url=$('pdfUrl').value;
+    if(!pdfDoc)await loadPdf(url);
+    const page=await pdfDoc.getPage(1);
+    const baseVP=page.getViewport({scale:1.0});
+    const sb=document.createElement('div');sb.style.cssText='width:100px;height:100px;overflow:scroll;position:absolute;top:-9999px';document.body.appendChild(sb);const sbW=sb.offsetWidth-sb.clientWidth;document.body.removeChild(sb);
+    const containerW=$('container').clientWidth-sbW;
+    const fitScale=containerW/baseVP.width;
+    $('scale').value=fitScale.toFixed(1);$('scaleVal').textContent=fitScale.toFixed(2);
+    showInfo(`Fit-to-width: container=${containerW+14}px, pageW=${Math.round(baseVP.width)}pt, scale=${fitScale.toFixed(2)}`);
+    // Auto-render
+    const quality=+$('quality').value,smoothing=$('smoothing').value;
+    $('container').innerHTML='<div id="single" style="padding:0"></div>';
+    const i=await renderPage(1,fitScale,quality,smoothing,$('single'));
+    if(i)showInfo(`FitWidth scale:${fitScale.toFixed(2)} | Display:${i.dW}x${i.dH} Canvas:${i.cW}x${i.cH} DPR:${i.dpr} Quality:${i.outputScale.toFixed(1)}x DPI:${i.effectiveDPI}`);
+  }catch(e){showErr(e.message);console.error(e)}
+};
+
+$('renderBtn').onclick=async()=>{
+  try{
+    const url=$('pdfUrl').value,scale=+$('scale').value,quality=+$('quality').value;
+    const pageNum=+$('pageNum').value,smoothing=$('smoothing').value;
+    if(!pdfDoc)await loadPdf(url);
+    $('container').innerHTML='<div id="single" style="padding:20px"></div>';
+    const i=await renderPage(pageNum,scale,quality,smoothing,$('single'));
+    if(i)showInfo(`Display:${i.dW}x${i.dH} Canvas:${i.cW}x${i.cH} DPR:${i.dpr} Scale:${i.outputScale.toFixed(1)}x DPI:${i.effectiveDPI} Smooth:${smoothing}`);
+  }catch(e){showErr(e.message);console.error(e)}
+};
+
+$('compareBtn').onclick=async()=>{
+  try{
+    const url=$('pdfUrl').value,pageNum=+$('pageNum').value,scale=+$('scale').value;
+    if(!pdfDoc)await loadPdf(url);
+    const c=$('container');c.innerHTML='';c.style.display='flex';c.style.flexWrap='wrap';c.style.gap='10px';c.style.padding='10px';c.style.justifyContent='center';
+    const cfgs=[
+      {q:1.0,s:'high',l:'Q1 High'},
+      {q:2.0,s:'high',l:'Q2 High'},
+      {q:2.0,s:'off',l:'Q2 Off'},
+      {q:3.0,s:'high',l:'Q3 High'},
+      {q:4.0,s:'high',l:'Q4 High'},
+    ];
+    for(const cfg of cfgs){
+      const box=document.createElement('div');box.className='render-box';
+      const h=document.createElement('h3');h.textContent=cfg.l;box.appendChild(h);
+      const t=document.createElement('div');box.appendChild(t);c.appendChild(box);
+      const i=await renderPage(pageNum,scale,cfg.q,cfg.s,t);
+      if(i)h.textContent=`${cfg.l} (${i.cW}x${i.cH}→${i.dW}x${i.dH} ${i.effectiveDPI}dpi)`;
+    }
+    showInfo(`Comparing 5 configs at scale ${scale} | DPR:${window.devicePixelRatio}`);
+  }catch(e){showErr(e.message);console.error(e)}
+};
+        </script>
+    </body>
+</html>

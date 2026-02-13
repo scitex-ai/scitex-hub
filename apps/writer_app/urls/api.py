@@ -4,6 +4,7 @@
 # File: /home/ywatanabe/proj/scitex-cloud/apps/writer_app/urls/api.py
 # ----------------------------------------
 from __future__ import annotations
+
 import os
 
 __FILE__ = "./apps/writer_app/urls/api.py"
@@ -21,10 +22,11 @@ REST API endpoints for writer operations:
 """
 
 from django.urls import path
-from ..views.editor import api as api_views
+
 from ..views.editor import ai2_prompt
-from ..views.index import main as index_views
+from ..views.editor import api as api_views
 from ..views.git import api as git_api
+from ..views.index import main as index_views
 
 urlpatterns = [
     # Workspace initialization
@@ -250,7 +252,12 @@ urlpatterns = [
         api_views.table_update_api,
         name="api-table-update",
     ),
-    # Bibliography regeneration
+    # Bibliography upload and regeneration
+    path(
+        "project/<int:project_id>/upload-bibliography/",
+        api_views.upload_bibliography,
+        name="api-upload-bibliography",
+    ),
     path(
         "project/<int:project_id>/regenerate-bibliography/",
         api_views.regenerate_bibliography_api,

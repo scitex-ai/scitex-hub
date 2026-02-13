@@ -1,0 +1,152 @@
+{% load static %}
+
+<!-- Empty State -->
+<div class="library-details-empty" id="library-details-empty">
+    <i class="fas fa-file-alt library-details-empty-icon"></i>
+    <div class="library-details-empty-title">Select a paper to view details</div>
+    <div class="library-details-empty-description">Click on any paper from the list to see and edit its details here.</div>
+</div>
+<!-- Paper Details -->
+<div class="library-paper-details" id="library-paper-details" hidden>
+    <div class="library-details-header">
+        <h5 class="library-details-title" id="details-title"></h5>
+        <button class="library-details-close" id="library-details-close" title="Close details">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div class="library-details-content">
+        <!-- DOI -->
+        <div class="library-details-section">
+            <div class="library-details-label">DOI</div>
+            <div class="library-details-value">
+                <a href=""
+                   id="details-doi-link"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="library-details-link">
+                    <span id="details-doi"></span>
+                    <i class="fas fa-external-link-alt"></i>
+                </a>
+            </div>
+        </div>
+        <!-- Authors -->
+        <div class="library-details-section">
+            <div class="library-details-label">Authors</div>
+            <div class="library-details-value" id="details-authors"></div>
+        </div>
+        <!-- Journal + Year -->
+        <div class="library-details-section">
+            <div class="library-details-label">Publication</div>
+            <div class="library-details-value" id="details-publication"></div>
+        </div>
+        <!-- Abstract -->
+        <div class="library-details-section">
+            <div class="library-details-label">Abstract</div>
+            <div class="library-details-abstract" id="details-abstract"></div>
+        </div>
+        <!-- Reading Status -->
+        <div class="library-details-section">
+            <div class="library-details-label">Reading Status</div>
+            <div class="library-details-status-selector">
+                <label class="library-status-option">
+                    <input type="radio" name="reading-status" value="to_read" />
+                    <span class="library-status-label">
+                        <i class="fas fa-bookmark"></i>
+                        To Read
+                    </span>
+                </label>
+                <label class="library-status-option">
+                    <input type="radio" name="reading-status" value="reading" />
+                    <span class="library-status-label">
+                        <i class="fas fa-book-open"></i>
+                        Reading
+                    </span>
+                </label>
+                <label class="library-status-option">
+                    <input type="radio" name="reading-status" value="read" />
+                    <span class="library-status-label">
+                        <i class="fas fa-check-circle"></i>
+                        Read
+                    </span>
+                </label>
+                <label class="library-status-option">
+                    <input type="radio" name="reading-status" value="referenced" />
+                    <span class="library-status-label">
+                        <i class="fas fa-quote-right"></i>
+                        Referenced
+                    </span>
+                </label>
+                <label class="library-status-option">
+                    <input type="radio" name="reading-status" value="favorite" />
+                    <span class="library-status-label">
+                        <i class="fas fa-star"></i>
+                        Favorite
+                    </span>
+                </label>
+            </div>
+        </div>
+        <!-- Importance Rating -->
+        <div class="library-details-section">
+            <div class="library-details-label">Importance</div>
+            <div class="library-details-rating">
+                <i class="far fa-star library-rating-star" data-rating="1"></i>
+                <i class="far fa-star library-rating-star" data-rating="2"></i>
+                <i class="far fa-star library-rating-star" data-rating="3"></i>
+                <i class="far fa-star library-rating-star" data-rating="4"></i>
+                <i class="far fa-star library-rating-star" data-rating="5"></i>
+                <span class="library-rating-text" id="details-rating-text">Not rated</span>
+            </div>
+        </div>
+        <!-- Tags -->
+        <div class="library-details-section">
+            <div class="library-details-label">Tags</div>
+            <div class="library-details-tags-container">
+                <div class="library-details-tags" id="details-tags"></div>
+                <div class="library-details-tags-input-wrapper">
+                    <input type="text"
+                           class="library-details-tags-input"
+                           id="details-tags-input"
+                           placeholder="Add tag..." />
+                    <button class="library-details-tags-add" id="details-tags-add">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Personal Notes -->
+        <div class="library-details-section">
+            <div class="library-details-label">Personal Notes</div>
+            <textarea class="library-details-notes"
+                      id="details-notes"
+                      placeholder="Add your notes about this paper..."
+                      rows="6"></textarea>
+        </div>
+        <!-- Actions -->
+        <div class="library-details-actions">
+            <button class="library-details-save-btn" id="details-save-btn">
+                <i class="fas fa-save"></i>
+                Save Changes
+            </button>
+            <a href="#" class="library-details-view-search" id="details-view-search">
+                <i class="fas fa-search"></i>
+                View in Search
+            </a>
+        </div>
+        <!-- Danger Zone -->
+        <div class="library-details-danger-zone">
+            <button class="library-details-remove-btn" id="details-remove-btn">
+                <i class="fas fa-trash-alt"></i>
+                Remove from Library
+            </button>
+        </div>
+    </div>
+</div>
+<!-- Tag Badge Template -->
+<template id="library-tag-template">
+    <span class="library-tag">
+        <span class="library-tag-text"></span>
+        <button class="library-tag-remove">
+            <i class="fas fa-times"></i>
+        </button>
+    </span>
+</template>

@@ -96,7 +96,7 @@ scitex-cloud/
 ├── apps/                    # Django applications
 │   ├── scholar_app/        # Literature discovery
 │   ├── writer_app/         # Scientific writing
-│   ├── code_app/           # Code analysis
+│   ├── console_app/           # Code analysis
 │   ├── viz_app/            # Data visualization
 │   ├── project_app/        # Repository management
 │   ├── auth_app/           # Authentication

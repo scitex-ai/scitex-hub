@@ -17,39 +17,30 @@ The monolithic api.py file has been split into focused modules:
 
 from __future__ import annotations
 
-# Content operations
-from .content import (
-    section_view,
-    save_sections_view,
-    # Temporary stubs
-    section_history_view,
-    section_diff_view,
-    section_checkout_view,
-    section_commit_view,
-    read_tex_file_view,
-    available_sections_view,
-    presence_update_view,
-)
-
 # Compilation operations
 from .compilation import (
-    compile_api,
-    compilation_status_api,
-    compile_full_view,
     compilation_job_status,
+    compilation_status_api,
+    compile_api,
+    compile_full_view,
     # Aliases
     compile_preview_view,
     compile_view,
     preview_pdf_view,
 )
 
-# Metadata operations
-from .metadata import (
-    sections_config_view,
-    citations_api,
-    regenerate_bibliography_api,
-    # Alias
-    file_tree_view,
+# Content operations
+from .content import (
+    available_sections_view,
+    presence_update_view,
+    read_tex_file_view,
+    save_sections_view,
+    section_checkout_view,
+    section_commit_view,
+    section_diff_view,
+    # Temporary stubs
+    section_history_view,
+    section_view,
 )
 
 # File operations
@@ -62,24 +53,33 @@ from .files import (
 # Media operations
 from .media import (
     figures_api,
-    tables_api,
     refresh_figures_index,
     refresh_tables_index,
-    upload_figures,
-    upload_tables,
     table_data_api,
     table_update_api,
+    tables_api,
+    upload_figures,
+    upload_tables,
+)
+
+# Metadata operations
+from .metadata import (
+    citations_api,
+    # Alias
+    file_tree_view,
+    regenerate_bibliography_api,
+    sections_config_view,
+    upload_bibliography,
 )
 
 # Section management operations
 from .section_management import (
     section_create_view,
     section_delete_view,
-    section_toggle_exclude_view,
-    section_move_up_view,
     section_move_down_view,
+    section_move_up_view,
+    section_toggle_exclude_view,
 )
-
 
 __all__ = [
     # Content operations
@@ -104,6 +104,7 @@ __all__ = [
     "sections_config_view",
     "citations_api",
     "regenerate_bibliography_api",
+    "upload_bibliography",
     "file_tree_view",
     # File operations
     "pdf_view",

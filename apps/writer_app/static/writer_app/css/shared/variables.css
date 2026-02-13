@@ -3,16 +3,16 @@
 /* Theme-aware color tokens - matching vis.css pattern */
 :root,
 [data-theme="light"] {
-  --writer-bg: var(--workspace-bg-tertiary, #f6f8fa);
-  --writer-border: var(--workspace-border-default, #8fa4b0);
-  --writer-toolbar-bg: var(--workspace-bg-secondary, #fafbfc);
-  --writer-text-primary: var(--text-primary, #1a2a40);
-  --writer-text-secondary: var(--text-secondary, #34495e);
-  --writer-text-muted: var(--text-muted, #6c8ba0);
-  --writer-hover-bg: var(--workspace-bg-tertiary, #f6f8fa);
+  --writer-bg: var(--workspace-bg-tertiary, #f3f2f0);
+  --writer-border: var(--workspace-border-default, #999999);
+  --writer-toolbar-bg: var(--workspace-bg-secondary, #f8f7f5);
+  --writer-text-primary: var(--text-primary, #1c1c1c);
+  --writer-text-secondary: var(--text-secondary, #3a3a3a);
+  --writer-text-muted: var(--text-muted, #777777);
+  --writer-hover-bg: var(--workspace-bg-tertiary, #f3f2f0);
   --writer-active-bg: var(--workspace-bg-elevated);
   --writer-active-border: var(--workspace-border-hover);
-  --writer-surface: var(--workspace-bg-secondary, #fafbfc);
+  --writer-surface: var(--workspace-bg-secondary, #f8f7f5);
 
   /* Legacy compatibility */
   --writer-primary: var(--color-btn-primary-bg);
@@ -20,7 +20,6 @@
   --writer-secondary: var(--text-secondary);
   --writer-background: var(--bg-page);
   --writer-text: var(--text-primary);
-
 }
 
 [data-theme="dark"] {
@@ -32,8 +31,16 @@
   --writer-text-secondary: var(--text-secondary);
   --writer-text-muted: var(--text-muted);
   --writer-hover-bg: var(--workspace-bg-tertiary);
-  --writer-active-bg: rgba(255, 255, 255, 0.1);  /* Neutral light overlay instead of blue */
-  --writer-active-border: var(--workspace-border-active, #6a6a6a);  /* Neutral gray instead of blue */
+  --writer-active-bg: rgba(
+    255,
+    255,
+    255,
+    0.1
+  ); /* Neutral light overlay instead of blue */
+  --writer-active-border: var(
+    --workspace-border-active,
+    #6a6a6a
+  ); /* Neutral gray instead of blue */
   --writer-surface: var(--workspace-bg-secondary);
 
   /* Legacy compatibility */
@@ -47,14 +54,19 @@
   --editor-bg: var(--workspace-bg-primary);
   --editor-text: var(--text-primary);
   --editor-line-number: var(--text-muted);
-  --editor-selection: rgba(255, 255, 255, 0.15);  /* Neutral selection instead of blue */
+  --editor-selection: rgba(
+    255,
+    255,
+    255,
+    0.15
+  ); /* Neutral selection instead of blue */
 }
 
 :root {
   /* Editor specific - light mode defaults */
-  --editor-bg: #f6f8fa;
-  --editor-text: #1a2a40;
-  --editor-line-number: #6c8ba0;
+  --editor-bg: #f3f2f0;
+  --editor-text: #1c1c1c;
+  --editor-line-number: #777777;
   --editor-selection: rgba(0, 0, 0, 0.05);
 
   /* Spacing */
@@ -78,13 +90,10 @@
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 
-  /* Component Sizes (Phase 1: UI Improvements) */
-  --icon-size: 20px;
-  --icon-size-sm: 16px;
-  --icon-size-lg: 24px;
+  /* Component Sizes - icon sizes use shared --icon-xs..--icon-2xl from colors.css */
   --button-height: 32px;
   --button-height-sm: 28px;
-  --toolbar-height: 40px;
+  --toolbar-height: 50px;
   --statusbar-height: 24px;
 
   /* Transitions */

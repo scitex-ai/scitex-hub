@@ -53,7 +53,7 @@ def file_history_view(request, username, slug, branch, file_path):
 
     if not has_access:
         messages.error(request, "You don't have permission to access this file.")
-        return redirect("user_projects:detail", username=username, slug=slug)
+        return redirect("project_app:detail", username=username, slug=slug)
 
     # Get project path
     from apps.project_app.services.project_filesystem import (
@@ -65,7 +65,7 @@ def file_history_view(request, username, slug, branch, file_path):
 
     if not project_path or not project_path.exists():
         messages.error(request, "Project directory not found.")
-        return redirect("user_projects:detail", username=username, slug=slug)
+        return redirect("project_app:detail", username=username, slug=slug)
 
     # Build breadcrumb
     breadcrumbs = [{"name": project.name, "url": f"/{username}/{slug}/"}]
@@ -237,7 +237,7 @@ def commit_detail(request, username, slug, commit_hash):
             return redirect_to_login(request.get_full_path())
         else:
             messages.error(request, "You don't have permission to access this project.")
-            return redirect("user_projects:detail", username=username, slug=slug)
+            return redirect("project_app:detail", username=username, slug=slug)
 
     # Get project path
     from apps.project_app.services.project_filesystem import (
@@ -249,7 +249,7 @@ def commit_detail(request, username, slug, commit_hash):
 
     if not project_path or not project_path.exists():
         messages.error(request, "Project directory not found.")
-        return redirect("user_projects:detail", username=username, slug=slug)
+        return redirect("project_app:detail", username=username, slug=slug)
 
     # Fetch commit information using git
     commit_info = {}
@@ -273,7 +273,7 @@ def commit_detail(request, username, slug, commit_hash):
 
         if result.returncode != 0:
             messages.error(request, f"Commit {commit_hash} not found.")
-            return redirect("user_projects:detail", username=username, slug=slug)
+            return redirect("project_app:detail", username=username, slug=slug)
 
         parts = result.stdout.strip().split("|", 6)
         commit_info = {
@@ -363,11 +363,11 @@ def commit_detail(request, username, slug, commit_hash):
 
     except subprocess.TimeoutExpired:
         messages.error(request, "Git command timed out.")
-        return redirect("user_projects:detail", username=username, slug=slug)
+        return redirect("project_app:detail", username=username, slug=slug)
     except Exception as e:
         logger.error(f"Error fetching commit details: {e}")
         messages.error(request, f"Error fetching commit details: {e}")
-        return redirect("user_projects:detail", username=username, slug=slug)
+        return redirect("project_app:detail", username=username, slug=slug)
 
     context = {
         "project": project,

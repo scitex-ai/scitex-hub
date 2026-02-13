@@ -31,7 +31,7 @@
 }
 
 .wft-skeleton-icon.folder {
-  background: var(--folder-color, #6c8ba0);
+  background: var(--folder-color, #777777);
   opacity: 0.3;
 }
 

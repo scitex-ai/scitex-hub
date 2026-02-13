@@ -6,16 +6,18 @@ Library views for Scholar App
 This module handles personal library and collection management views.
 """
 
-from django.shortcuts import render
-from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_http_methods
-from django.contrib import messages
 import json
 import logging
 from uuid import UUID
 
-from ...models import UserLibrary, Collection, SearchIndex as Paper
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.shortcuts import render
+from django.views.decorators.http import require_http_methods
+
+from ...models import Collection, UserLibrary
+from ...models import SearchIndex as Paper
 
 logger = logging.getLogger(__name__)
 
@@ -41,21 +43,58 @@ def personal_library(request):
 def api_library_papers(request):
     """API endpoint for library papers management"""
     if request.method == "GET":
-        # Get user's library papers
+        # Get user's library papers with full metadata
         try:
-            papers = (
+            entries = (
                 UserLibrary.objects.filter(user=request.user)
                 .select_related("paper")
-                .values(
-                    "paper_id",
-                    "paper__title",
-                    "paper__doi",
-                    "paper__journal",
-                    "paper__publication_date",
-                )
+                .order_by("-saved_at")
             )
+            papers = []
+            for entry in entries:
+                p = entry.paper
+                papers.append(
+                    {
+                        "id": str(entry.id),
+                        "paper_id": str(p.id) if p else None,
+                        "title": p.title if p else "Unknown",
+                        "doi": p.doi if p else None,
+                        "journal": p.journal if p else None,
+                        "year": p.publication_date.year
+                        if p and p.publication_date
+                        else None,
+                        "authors": p.authors if p else None,
+                        "abstract": p.abstract
+                        if p and hasattr(p, "abstract")
+                        else None,
+                        "reading_status": entry.reading_status,
+                        "importance_rating": entry.importance_rating,
+                        "personal_notes": entry.personal_notes,
+                        "tags": entry.tags,
+                        "saved_at": entry.saved_at.isoformat()
+                        if entry.saved_at
+                        else None,
+                    }
+                )
 
-            return JsonResponse({"success": True, "papers": list(papers)})
+            # Also return summary stats
+            from django.db.models import Count
+
+            stats = (
+                UserLibrary.objects.filter(user=request.user)
+                .values("reading_status")
+                .annotate(count=Count("id"))
+            )
+            status_counts = {s["reading_status"]: s["count"] for s in stats}
+
+            return JsonResponse(
+                {
+                    "success": True,
+                    "papers": papers,
+                    "total": len(papers),
+                    "stats": status_counts,
+                }
+            )
         except Exception as e:
             logger.error(f"Error fetching library papers: {e}")
             return JsonResponse({"success": False, "error": str(e)}, status=400)
@@ -148,10 +187,16 @@ def api_update_library_paper(request, paper_id):
         lib_entry = UserLibrary.objects.get(user=request.user, paper_id=paper_id)
 
         # Update fields as needed
+        if "personal_notes" in data:
+            lib_entry.personal_notes = data["personal_notes"]
         if "notes" in data:
-            lib_entry.notes = data["notes"]
+            lib_entry.personal_notes = data["notes"]
         if "tags" in data:
             lib_entry.tags = data["tags"]
+        if "reading_status" in data:
+            lib_entry.reading_status = data["reading_status"]
+        if "importance_rating" in data:
+            lib_entry.importance_rating = data["importance_rating"]
 
         lib_entry.save()
 

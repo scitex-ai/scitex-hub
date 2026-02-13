@@ -1,0 +1,520 @@
+{% extends base_template|default:"global_base.html" %}
+
+{% block title %}
+    Color Picker -
+    Browser Tool | SciTeX
+{% endblock %}
+{% block meta_description %}
+    Advanced color picker with HEX, RGB, HSL conversion. Generate color palettes, harmonies, and gradients. Perfect for visualization and design work.
+{% endblock %}
+{% block head_extra %}
+    {% load static %}
+
+    <link rel="icon"
+          type="image/png"
+          sizes="192x192"
+          href="{% static 'images/scitex-icon/scitex-icon-navy-inverted-192x192.png' %}?v=3" />
+{% endblock %}
+{% block extra_css %}
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .tool-detail-container {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .tool-header {
+            background: var(--workspace-bg-secondary);
+            border-bottom: 1px solid var(--workspace-border-default);
+            padding: 12px 16px;
+            flex-shrink: 0;
+        }
+
+        .tool-breadcrumb {
+            font-size: 12px;
+            color: var(--workspace-text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .tool-breadcrumb a {
+            color: var(--workspace-text-link);
+            text-decoration: none;
+        }
+
+        .tool-breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .tool-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--workspace-text-primary);
+            margin: 0 0 4px 0;
+        }
+
+        .tool-subtitle {
+            font-size: 12px;
+            color: var(--workspace-text-secondary);
+            margin: 0;
+        }
+
+        .tool-app-container {
+            flex: 1;
+            overflow-y: auto;
+            background: var(--workspace-bg-monaco);
+        }
+
+        .picker-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            height: 100%;
+            min-height: 600px;
+        }
+
+        @media (max-width: 768px) {
+            .picker-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .picker-panel {
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--workspace-border-default);
+            background: var(--workspace-bg-secondary);
+        }
+
+        .picker-panel:last-child {
+            border-right: none;
+        }
+
+        .panel-header {
+            height: 36px;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            background: var(--workspace-bg-tertiary);
+            border-bottom: 1px solid var(--workspace-border-default);
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--workspace-text-primary);
+        }
+
+        .panel-content {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .color-picker-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .color-display {
+            flex: 1;
+            height: 80px;
+            border-radius: 6px;
+            border: 1px solid var(--workspace-border-default);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .color-display:hover {
+            transform: scale(1.02);
+        }
+
+        .color-picker-input {
+            width: 80px;
+            height: 80px;
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 6px;
+            cursor: pointer;
+            background: var(--workspace-bg-tertiary);
+            flex-shrink: 0;
+        }
+
+        .formats-section {
+            background: var(--workspace-bg-tertiary);
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid var(--workspace-border-default);
+        }
+
+        .format-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .format-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .format-label {
+            min-width: 55px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--workspace-text-secondary);
+        }
+
+        .format-input {
+            flex: 1;
+            padding: 4px 8px;
+            background: var(--workspace-bg-monaco);
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: var(--workspace-text-primary);
+        }
+
+        .format-input:focus {
+            outline: none;
+            border-color: var(--workspace-text-link);
+        }
+
+        .copy-btn {
+            padding: 3px 10px;
+            background: transparent;
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 4px;
+            font-size: 11px;
+            color: var(--workspace-text-secondary);
+            cursor: pointer;
+        }
+
+        .copy-btn:hover {
+            background: var(--workspace-bg-tertiary);
+            color: var(--workspace-text-primary);
+        }
+
+        .harmony-section {
+            margin-bottom: 16px;
+        }
+
+        .harmony-buttons {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .harmony-btn {
+            padding: 4px 10px;
+            background: transparent;
+            border: 1px solid var(--workspace-border-default);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            color: var(--workspace-text-secondary);
+        }
+
+        .harmony-btn:hover {
+            background: var(--workspace-bg-tertiary);
+            color: var(--workspace-text-primary);
+        }
+
+        .harmony-btn.active {
+            background: var(--workspace-text-link);
+            color: var(--workspace-text-primary);
+            border-color: var(--workspace-text-link);
+        }
+
+        .palette-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+        }
+
+        .palette-color {
+            aspect-ratio: 1;
+            border-radius: 6px;
+            border: 1px solid var(--workspace-border-default);
+            cursor: pointer;
+            transition: transform 0.2s;
+            position: relative;
+        }
+
+        .palette-color:hover {
+            transform: scale(1.1);
+        }
+
+        .palette-color-label {
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 9px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            font-family: 'Courier New', monospace;
+            white-space: nowrap;
+        }
+
+        .palette-color:hover .palette-color-label {
+            opacity: 1;
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--workspace-text-primary);
+            margin: 0 0 10px 0;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="tool-detail-container">
+        {% if not embed %}
+            <div class="tool-header">
+                <div class="tool-breadcrumb">
+                    <a href="{% url 'public_app:tools' %}">Tools</a>
+                </div>
+                <h1 class="tool-title">Pick Color</h1>
+                <p class="tool-subtitle">Advanced color picker with format conversion and palette generation</p>
+            </div>
+        {% endif %}
+        <div class="tool-app-container">
+            <div class="picker-content">
+                <!-- Left Panel: Color Display & Formats -->
+                <div class="picker-panel">
+                    <div class="panel-header">Color Display & Formats</div>
+                    <div class="panel-content">
+                        <div class="color-picker-row">
+                            <div id="colorDisplay" class="color-display"></div>
+                            <input type="color" id="colorPicker" value="#4a9b7e" class="color-picker-input" />
+                        </div>
+                        <div class="formats-section">
+                            <div class="format-group">
+                                <span class="format-label">HEX</span>
+                                <input type="text" id="hexInput" class="format-input" value="#4a9b7e" />
+                                <button class="copy-btn" data-format="hex">Copy</button>
+                            </div>
+                            <div class="format-group">
+                                <span class="format-label">RGB</span>
+                                <input type="text" id="rgbInput" class="format-input" readonly />
+                                <button class="copy-btn" data-format="rgb">Copy</button>
+                            </div>
+                            <div class="format-group">
+                                <span class="format-label">HSL</span>
+                                <input type="text" id="hslInput" class="format-input" readonly />
+                                <button class="copy-btn" data-format="hsl">Copy</button>
+                            </div>
+                            <div class="format-group">
+                                <span class="format-label">CMYK</span>
+                                <input type="text" id="cmykInput" class="format-input" readonly />
+                                <button class="copy-btn" data-format="cmyk">Copy</button>
+                            </div>
+                        </div>
+                        <div style="margin-top: 16px;">
+                            <h3 class="section-title">Color Harmonies</h3>
+                            <div class="harmony-buttons">
+                                <button class="harmony-btn active" data-harmony="complementary">Complementary</button>
+                                <button class="harmony-btn" data-harmony="triadic">Triadic</button>
+                                <button class="harmony-btn" data-harmony="tetradic">Tetradic</button>
+                                <button class="harmony-btn" data-harmony="analogous">Analogous</button>
+                                <button class="harmony-btn" data-harmony="monochromatic">Monochromatic</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Right Panel: Palette -->
+                <div class="picker-panel">
+                    <div class="panel-header">Generated Palette</div>
+                    <div class="panel-content">
+                        <div id="paletteGrid" class="palette-grid"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+  const colorPicker = document.getElementById('colorPicker');
+  const colorDisplay = document.getElementById('colorDisplay');
+  const hexInput = document.getElementById('hexInput');
+  const rgbInput = document.getElementById('rgbInput');
+  const hslInput = document.getElementById('hslInput');
+  const cmykInput = document.getElementById('cmykInput');
+  const paletteGrid = document.getElementById('paletteGrid');
+  const harmonyButtons = document.querySelectorAll('.harmony-btn');
+  const copyButtons = document.querySelectorAll('.copy-btn');
+
+  let currentHarmony = 'complementary';
+
+  function hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : null;
+  }
+
+  function rgbToHsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+
+    if (max === min) {
+      h = s = 0;
+    } else {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+        case g: h = ((b - r) / d + 2) / 6; break;
+        case b: h = ((r - g) / d + 4) / 6; break;
+      }
+    }
+    return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+  }
+
+  function rgbToCmyk(r, g, b) {
+    const rr = r / 255, gg = g / 255, bb = b / 255;
+    const k = 1 - Math.max(rr, gg, bb);
+    const c = (1 - rr - k) / (1 - k) || 0;
+    const m = (1 - gg - k) / (1 - k) || 0;
+    const y = (1 - bb - k) / (1 - k) || 0;
+    return { c: Math.round(c * 100), m: Math.round(m * 100), y: Math.round(y * 100), k: Math.round(k * 100) };
+  }
+
+  function hslToHex(h, s, l) {
+    s /= 100; l /= 100;
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+    const m = l - c / 2;
+    let r = 0, g = 0, b = 0;
+
+    if (h >= 0 && h < 60) { r = c; g = x; b = 0; }
+    else if (h >= 60 && h < 120) { r = x; g = c; b = 0; }
+    else if (h >= 120 && h < 180) { r = 0; g = c; b = x; }
+    else if (h >= 180 && h < 240) { r = 0; g = x; b = c; }
+    else if (h >= 240 && h < 300) { r = x; g = 0; b = c; }
+    else if (h >= 300 && h < 360) { r = c; g = 0; b = x; }
+
+    r = Math.round((r + m) * 255).toString(16).padStart(2, '0');
+    g = Math.round((g + m) * 255).toString(16).padStart(2, '0');
+    b = Math.round((b + m) * 255).toString(16).padStart(2, '0');
+
+    return `#${r}${g}${b}`;
+  }
+
+  function generateHarmony(hex) {
+    const rgb = hexToRgb(hex);
+    const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+    const colors = [hex];
+
+    switch (currentHarmony) {
+      case 'complementary':
+        colors.push(hslToHex((hsl.h + 180) % 360, hsl.s, hsl.l));
+        colors.push(hslToHex(hsl.h, hsl.s, Math.min(hsl.l + 20, 100)));
+        colors.push(hslToHex(hsl.h, hsl.s, Math.max(hsl.l - 20, 0)));
+        colors.push(hslToHex(hsl.h, Math.max(hsl.s - 30, 0), hsl.l));
+        break;
+      case 'triadic':
+        colors.push(hslToHex((hsl.h + 120) % 360, hsl.s, hsl.l));
+        colors.push(hslToHex((hsl.h + 240) % 360, hsl.s, hsl.l));
+        colors.push(hslToHex(hsl.h, hsl.s, Math.min(hsl.l + 20, 100)));
+        colors.push(hslToHex(hsl.h, hsl.s, Math.max(hsl.l - 20, 0)));
+        break;
+      case 'tetradic':
+        colors.push(hslToHex((hsl.h + 90) % 360, hsl.s, hsl.l));
+        colors.push(hslToHex((hsl.h + 180) % 360, hsl.s, hsl.l));
+        colors.push(hslToHex((hsl.h + 270) % 360, hsl.s, hsl.l));
+        colors.push(hslToHex(hsl.h, Math.max(hsl.s - 30, 0), hsl.l));
+        break;
+      case 'analogous':
+        colors.push(hslToHex((hsl.h + 30) % 360, hsl.s, hsl.l));
+        colors.push(hslToHex((hsl.h - 30 + 360) % 360, hsl.s, hsl.l));
+        colors.push(hslToHex(hsl.h, hsl.s, Math.min(hsl.l + 20, 100)));
+        colors.push(hslToHex(hsl.h, hsl.s, Math.max(hsl.l - 20, 0)));
+        break;
+      case 'monochromatic':
+        for (let i = 1; i <= 4; i++) {
+          colors.push(hslToHex(hsl.h, hsl.s, Math.max(10, Math.min(90, hsl.l + (i - 2) * 20))));
+        }
+        break;
+    }
+
+    return colors;
+  }
+
+  function updateColor(hex) {
+    const rgb = hexToRgb(hex);
+    if (!rgb) return;
+
+    const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+    const cmyk = rgbToCmyk(rgb.r, rgb.g, rgb.b);
+
+    colorDisplay.style.backgroundColor = hex;
+    hexInput.value = hex;
+    rgbInput.value = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+    hslInput.value = `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`;
+    cmykInput.value = `cmyk(${cmyk.c}%, ${cmyk.m}%, ${cmyk.y}%, ${cmyk.k}%)`;
+
+    const harmony = generateHarmony(hex);
+    paletteGrid.innerHTML = '';
+    harmony.forEach(color => {
+      const div = document.createElement('div');
+      div.className = 'palette-color';
+      div.style.backgroundColor = color;
+      div.innerHTML = `<span class="palette-color-label">${color}</span>`;
+      div.addEventListener('click', () => {
+        colorPicker.value = color;
+        updateColor(color);
+      });
+      paletteGrid.appendChild(div);
+    });
+  }
+
+  colorPicker.addEventListener('input', (e) => updateColor(e.target.value));
+
+  hexInput.addEventListener('input', (e) => {
+    if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+      colorPicker.value = e.target.value;
+      updateColor(e.target.value);
+    }
+  });
+
+  harmonyButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      harmonyButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentHarmony = btn.dataset.harmony;
+      updateColor(colorPicker.value);
+    });
+  });
+
+  copyButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const format = btn.dataset.format;
+      const input = document.getElementById(`${format}Input`);
+      navigator.clipboard.writeText(input.value);
+      const originalText = btn.textContent;
+      btn.textContent = 'Copied';
+      setTimeout(() => btn.textContent = originalText, 1000);
+    });
+  });
+
+  updateColor('#4a9b7e');
+    </script>
+{% endblock %}

@@ -30,7 +30,7 @@
   border-color: var(--color-accent-emphasis);
   box-shadow:
     inset 0 1px 2px rgba(0, 0, 0, 0.05),
-    0 0 0 3px rgba(80, 107, 122, 0.1);
+    0 0 0 3px rgba(85, 85, 85, 0.1);
   outline: none;
 }
 
@@ -41,12 +41,12 @@
 }
 
 .cm-s-scitex .CodeMirror-gutters {
-  /* background: #f6f8fa; */ /* Styling from central CSS */
-  /* border-right: 1px solid #d4e1e8; */ /* Styling from central CSS */
+  /* background: #f3f2f0; */ /* Styling from central CSS */
+  /* border-right: 1px solid #e0e0e0; */ /* Styling from central CSS */
 }
 
 .cm-s-scitex .CodeMirror-linenumber {
-  /* color: #506b7a; */ /* Styling from central CSS */
+  /* color: #555555; */ /* Styling from central CSS */
 }
 
 .cm-s-scitex .CodeMirror-cursor {
@@ -54,7 +54,7 @@
 }
 
 .cm-s-scitex .CodeMirror-selected {
-  /* background: #d4e1e8; */ /* Styling from central CSS */
+  /* background: #e0e0e0; */ /* Styling from central CSS */
 }
 
 .cm-s-scitex .CodeMirror-activeline-background {
@@ -69,63 +69,63 @@
 
 /* LaTeX syntax highlighting with SciTeX colors - Light Mode */
 .cm-s-scitex span.cm-comment {
-  /* color: #506b7a; */ /* Styling from central CSS */
+  /* color: #555555; */ /* Styling from central CSS */
   /* font-style: italic; */ /* Styling from central CSS */
 }
 
 .cm-s-scitex span.cm-keyword {
-  /* color: #34495e; */ /* Styling from central CSS */
+  /* color: #3a3a3a; */ /* Styling from central CSS */
   /* font-weight: bold; */ /* Styling from central CSS */
 }
 
 .cm-s-scitex span.cm-tag {
-  /* color: #34495e; */ /* Styling from central CSS */
+  /* color: #3a3a3a; */ /* Styling from central CSS */
 }
 
 .cm-s-scitex span.cm-bracket {
-  /* color: #506b7a; */ /* Styling from central CSS */
+  /* color: #555555; */ /* Styling from central CSS */
 }
 
 .cm-s-scitex span.cm-string {
-  /* color: #506b7a; */ /* Styling from central CSS */
+  /* color: #555555; */ /* Styling from central CSS */
 }
 
 .cm-s-scitex span.cm-number {
-  /* color: #34495e; */ /* Styling from central CSS */
+  /* color: #3a3a3a; */ /* Styling from central CSS */
 }
 
 .cm-s-scitex span.cm-variable {
-  /* color: #1a2332; */ /* Styling from central CSS */
+  /* color: #1c1c1c; */ /* Styling from central CSS */
 }
 
 .cm-s-scitex span.cm-def {
-  /* color: #34495e; */ /* Styling from central CSS */
+  /* color: #3a3a3a; */ /* Styling from central CSS */
 }
 
 .cm-s-scitex span.cm-operator {
-  /* color: #506b7a; */ /* Styling from central CSS */
+  /* color: #555555; */ /* Styling from central CSS */
 }
 
 .cm-s-scitex span.cm-builtin {
-  /* color: #34495e; */ /* Styling from central CSS */
+  /* color: #3a3a3a; */ /* Styling from central CSS */
 }
 
 .cm-s-scitex span.cm-attribute {
-  /* color: #506b7a; */ /* Styling from central CSS */
+  /* color: #555555; */ /* Styling from central CSS */
 }
 
 .cm-s-scitex span.cm-header {
-  /* color: #34495e; */ /* Styling from central CSS */
+  /* color: #3a3a3a; */ /* Styling from central CSS */
   /* font-weight: bold; */ /* Styling from central CSS */
 }
 
 .cm-s-scitex span.cm-quote {
-  /* color: #506b7a; */ /* Styling from central CSS */
+  /* color: #555555; */ /* Styling from central CSS */
   /* font-style: italic; */ /* Styling from central CSS */
 }
 
 .cm-s-scitex span.cm-link {
-  /* color: #34495e; */ /* Styling from central CSS */
+  /* color: #3a3a3a; */ /* Styling from central CSS */
   /* text-decoration: underline; */ /* Styling from central CSS */
 }
 
@@ -247,4 +247,3 @@
   right: 1rem;
   z-index: 1050; /* Below Monaco widgets (999999) */
 }
-

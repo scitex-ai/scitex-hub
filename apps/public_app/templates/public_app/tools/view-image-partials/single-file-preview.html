@@ -1,0 +1,49 @@
+<!-- Single file preview (non-bundle) -->
+<div id="singleFilePreview" style="width: 100%; max-width: 100%;">
+    <img id="imagePreview"
+         src=""
+         alt="Uploaded file"
+         style="display: none;
+                max-width: 100%;
+                height: auto;
+                border: 1px solid var(--workspace-border-default, #30363d);
+                border-radius: 4px" />
+    <div id="svgPreview"
+         style="display: none;
+                max-width: 100%;
+                overflow: auto;
+                border: 1px solid var(--workspace-border-default, #30363d);
+                border-radius: 4px;
+                background: var(--workspace-bg-secondary, #161b22);
+                padding: 16px"></div>
+    <canvas id="pdfCanvas"
+            style="display: none;
+                   max-width: 100%;
+                   border: 1px solid var(--workspace-border-default, #30363d);
+                   border-radius: 4px"></canvas>
+    <div id="pdfControls"
+         style="display: none;
+                margin-top: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 12px">
+        <button id="prevPage"
+                style="padding: 3px 10px;
+                       background: transparent;
+                       border: 1px solid var(--workspace-border-default, #30363d);
+                       border-radius: 4px;
+                       font-size: 11px;
+                       color: var(--workspace-text-secondary, #8b949e);
+                       cursor: pointer">Previous</button>
+        <span style="color: var(--workspace-text-secondary, #8b949e); font-size: 12px;">Page <span id="currentPage">1</span> / <span id="totalPages">1</span></span>
+        <button id="nextPage"
+                style="padding: 3px 10px;
+                       background: transparent;
+                       border: 1px solid var(--workspace-border-default, #30363d);
+                       border-radius: 4px;
+                       font-size: 11px;
+                       color: var(--workspace-text-secondary, #8b949e);
+                       cursor: pointer">Next</button>
+    </div>
+</div>

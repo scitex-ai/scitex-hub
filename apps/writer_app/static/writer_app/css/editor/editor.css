@@ -2,12 +2,12 @@
 /* Monaco Editor - FORCE SUGGESTIONS TO OVERLAY EVERYTHING */
 /* ============================================================ */
 
-/* Lower z-index of dev tooltips and browser overlays */
+/* Panel resizer pseudo-elements need high z-index for clickability */
 div[class*="panel-resizer"]::before,
 div[class*="panel-resizer"]::after,
 .panel-resizer::before,
 .panel-resizer::after {
-  z-index: 1 !important;
+  z-index: 100 !important;
 }
 
 /* Suggestion widget - WIDE (1400px) to fit 1920×1080 displays */
@@ -167,21 +167,19 @@ div[class*="panel-resizer"]::after,
   overflow: visible !important;
 }
 
-/* ALL parent containers - force overflow visible */
+/* Editor containers - allow Monaco widgets to overflow */
 .latex-panel,
 .editor-panel,
 .panel-content,
 .latex-editor-container,
 .editor-content-wrapper,
-.split-view,
-.split-view > *,
 .editor-view,
-.writer-editor,
-.mvp-main,
-.mvp-container,
-div[class*="panel"],
-div[class*="editor"] {
+div[class*="editor"]:not(.panel-resizer) {
   overflow: visible !important;
+}
+/* Preview panel must clip; resizer must stay clickable */
+.preview-panel {
+  overflow: hidden !important;
 }
 
 /* Body and html - last resort */
@@ -483,7 +481,7 @@ html.writer-page {
 
 .progress-bar-mvp {
   height: 4px;
-  background-color: #e9ecef;
+  background-color: var(--bg-muted);
   border-radius: 2px;
   overflow: hidden;
   margin: 0.5rem 0;

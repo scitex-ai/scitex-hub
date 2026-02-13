@@ -214,11 +214,11 @@
 .hero-silverish-ai-radial {
   background: radial-gradient(
     ellipse at center,
-    #8fa4b0 0%,
-    #6c8ba0 30%,
-    #506b7a 60%,
-    #34495e 80%,
-    #1a2332 100%
+    #999999 0%,
+    #777777 30%,
+    #555555 60%,
+    #3a3a3a 80%,
+    #1c1c1c 100%
   );
   color: var(--scitex-color-01);
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
@@ -241,10 +241,10 @@
 .hero-silverish-ai-soft {
   background: linear-gradient(
     135deg,
-    #6c8ba0 0%,
-    #8fa4b0 35%,
-    #b5c7d1 65%,
-    #d4e1e8 100%
+    #777777 0%,
+    #999999 35%,
+    #c0c0c0 65%,
+    #e0e0e0 100%
   );
   color: var(--scitex-color-01);
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
@@ -266,11 +266,11 @@
 .hero-silverish-ai-subtle {
   background: linear-gradient(
     135deg,
-    #8fa4b0 0%,
-    #a4b8c4 25%,
-    #b5c7d1 50%,
-    #c7d8df 75%,
-    #d4e1e8 100%
+    #999999 0%,
+    #acacac 25%,
+    #c0c0c0 50%,
+    #d0d0d0 75%,
+    #e0e0e0 100%
   );
   color: var(--scitex-color-01);
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.7);
@@ -293,10 +293,10 @@
 .hero-silverish-ai {
   background: linear-gradient(
     135deg,
-    #34495e 0%,
-    #506b7a 30%,
-    #6c8ba0 60%,
-    #8fa4b0 100%
+    #3a3a3a 0%,
+    #555555 30%,
+    #777777 60%,
+    #999999 100%
   );
   color: var(--scitex-color-01);
   text-shadow: 0 1px 3px rgba(255, 255, 255, 0.4);

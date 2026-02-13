@@ -1,190 +1,190 @@
 /* Sidebar Controls for Writer App */
 
-/* Compact sidebar header layout - icon + dropdowns in single horizontal line */
+/* Compact sidebar header layout - icon + actions in single horizontal line */
 /* Override flex-direction: column from tex-view/sidebar.css */
 .sidebar-header-compact,
 .sidebar-header-content.sidebar-header-compact,
 .writer-sidebar .sidebar-header-content.sidebar-header-compact {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    gap: 0.25rem !important;
-    flex-wrap: nowrap !important;
-    width: 100%;
-    /* position: relative moved to .section-selector-wrapper for proper dropdown positioning */
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 0.25rem !important;
+  flex-wrap: nowrap !important;
+  width: 100%;
 }
 
 .sidebar-header-compact .sidebar-icon {
-    color: var(--workspace-icon-primary);
-    font-size: 0.85rem;
-    flex-shrink: 0;
+  color: var(--workspace-icon-primary);
+  font-size: 0.85rem;
+  flex-shrink: 0;
 }
 
 /* Direct select styling in compact header - dark workspace colors */
 .sidebar-header-compact .sidebar-select,
 .sidebar-header-compact .section-selector-btn {
-    font-size: 0.7rem;
-    background: var(--workspace-bg-primary, #1a1d24) !important;
-    border: 1px solid var(--workspace-border-default, #2d3139) !important;
-    border-radius: var(--radius-md);
-    color: var(--text-primary);
-    height: 22px;
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    padding: 0 0.35rem;
+  font-size: 0.7rem;
+  background: var(--workspace-bg-primary, #1a1d24) !important;
+  border: 1px solid var(--workspace-border-default, #2d3139) !important;
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  height: 22px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 0.35rem;
 }
 
 .sidebar-header-compact .custom-section-selector {
-    flex: 1;
-    min-width: 0;
-    position: relative;
+  flex: 1;
+  min-width: 0;
+  position: relative;
 }
 
 /* Section selector wrapper for proper dropdown positioning */
 .section-selector-wrapper {
-    flex: 1;
-    min-width: 0;
-    position: relative;
+  flex: 1;
+  min-width: 0;
+  position: relative;
 }
 
 .sidebar-header-compact .section-selector-btn {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    cursor: pointer;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
 }
 
 .sidebar-header-compact .sidebar-select:hover,
 .sidebar-header-compact .section-selector-btn:hover {
-    border-color: var(--workspace-border-hover) !important;
+  border-color: var(--workspace-border-hover) !important;
 }
 
 .sidebar-header-compact .sidebar-select:focus,
 .sidebar-header-compact .section-selector-btn:focus {
-    outline: none;
-    border-color: var(--scitex-color-04) !important;
+  outline: none;
+  border-color: var(--scitex-color-04) !important;
 }
 
 /* Legacy selector-group styles (kept for backward compatibility) */
 .selector-group {
-    flex: 1;
-    min-width: 0;
+  flex: 1;
+  min-width: 0;
 }
 
 .selector-group label {
-    font-size: 0.7rem;
-    color: var(--color-fg-muted);
-    display: block;
-    margin-bottom: 0.2rem;
+  font-size: 0.7rem;
+  color: var(--color-fg-muted);
+  display: block;
+  margin-bottom: 0.2rem;
 }
 
 .selector-group select,
 .selector-group .section-selector-btn {
-    font-size: 0.7rem;
-    background: var(--color-canvas-subtle) !important;
-    border: 1px solid var(--color-border-default) !important;
-    border-radius: var(--radius-md);
-    color: var(--color-fg-default);
-    height: 24px;
-    width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  font-size: 0.7rem;
+  background: var(--color-canvas-subtle) !important;
+  border: 1px solid var(--color-border-default) !important;
+  border-radius: var(--radius-md);
+  color: var(--color-fg-default);
+  height: 24px;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Section Selector Button */
 .section-selector-btn {
-    width: 100%;
-    text-align: left;
-    padding: 0.25rem 0.5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  width: 100%;
+  text-align: left;
+  padding: 0.25rem 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .section-selector-btn svg {
-    flex-shrink: 0;
+  flex-shrink: 0;
 }
 
 /* Section Selector Dropdown */
 .section-selector-dropdown {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    z-index: 1000;
-    background: var(--workspace-bg-primary, #1a1d24);
-    border: 1px solid var(--workspace-border-default, #2d3139);
-    border-radius: 4px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-    margin-top: 0.25rem;
-    min-width: 200px;
-    max-width: 280px;
-    max-height: 300px;
-    overflow-y: auto;
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  background: var(--workspace-bg-primary, #1a1d24);
+  border: 1px solid var(--workspace-border-default, #2d3139);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  margin-top: 0.25rem;
+  min-width: 200px;
+  max-width: 280px;
+  max-height: 300px;
+  overflow-y: auto;
 }
 
 /* Show dropdown when open */
 .section-selector-dropdown.open {
-    display: block;
+  display: block;
 }
 
 /* Section option items in dropdown */
 .section-option {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.75rem;
-    color: var(--text-primary, #e6edf3);
-    cursor: pointer;
-    transition: background 0.15s ease;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  color: var(--text-primary, #e6edf3);
+  cursor: pointer;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .section-option:hover {
-    background: var(--workspace-bg-secondary, #22272e);
+  background: var(--workspace-bg-secondary, #22272e);
 }
 
 .section-option.active {
-    background: var(--workspace-bg-tertiary, #2d333b);
-    color: var(--scitex-color-04, #58a6ff);
+  background: var(--workspace-bg-tertiary, #2d333b);
+  color: var(--scitex-color-04, #58a6ff);
 }
 
 /* Sidebar Header Hint */
 .sidebar-header-hint {
-    margin-top: 0.5rem;
+  margin-top: 0.5rem;
 }
 
 /* PDF Viewer Styles */
 .pdfjs-viewer {
-    width: 100%;
-    height: 100%;
+  width: 100%;
+  height: 100%;
 }
 
 .pdfjs-viewer iframe {
-    width: 100%;
-    height: 100%;
-    border: none;
+  width: 100%;
+  height: 100%;
+  border: none;
 }
 
 /* Image Preview Container */
 .image-preview-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 20px;
 }
 
 .image-preview-container img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    border-radius: 4px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }

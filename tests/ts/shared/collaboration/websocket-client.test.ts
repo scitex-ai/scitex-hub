@@ -180,7 +180,7 @@ describe('websocket-client', () => {
 //     };
 // 
 //     this.ws.onclose = (event) => {
-//       console.log(`[WS] Connection closed (code: ${event.code})`);
+//       console.log(`[WS] Connection closed (console: ${event.code})`);
 //       this.stopPing();
 //       this.handleDisconnected();
 // 

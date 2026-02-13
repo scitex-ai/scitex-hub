@@ -62,7 +62,7 @@ if __name__ == "__main__":
 #     # Only project owner can edit files
 #     if not (project.owner == request.user):
 #         messages.error(request, "Only project owner can edit files.")
-#         return redirect("user_projects:detail", username=username, slug=slug)
+#         return redirect("project_app:detail", username=username, slug=slug)
 # 
 #     # Get file path
 #     from apps.project_app.services.project_filesystem import (
@@ -74,7 +74,7 @@ if __name__ == "__main__":
 # 
 #     if not project_path or not project_path.exists():
 #         messages.error(request, "Project directory not found.")
-#         return redirect("user_projects:detail", username=username, slug=slug)
+#         return redirect("project_app:detail", username=username, slug=slug)
 # 
 #     full_file_path = project_path / file_path
 # 
@@ -83,15 +83,15 @@ if __name__ == "__main__":
 #         full_file_path = full_file_path.resolve()
 #         if not str(full_file_path).startswith(str(project_path.resolve())):
 #             messages.error(request, "Invalid file path.")
-#             return redirect("user_projects:detail", username=username, slug=slug)
+#             return redirect("project_app:detail", username=username, slug=slug)
 #     except Exception:
 #         messages.error(request, "Invalid file path.")
-#         return redirect("user_projects:detail", username=username, slug=slug)
+#         return redirect("project_app:detail", username=username, slug=slug)
 # 
 #     # Check if file exists and is a file
 #     if not full_file_path.exists() or not full_file_path.is_file():
 #         messages.error(request, "File not found.")
-#         return redirect("user_projects:detail", username=username, slug=slug)
+#         return redirect("project_app:detail", username=username, slug=slug)
 # 
 #     if request.method == "POST":
 #         # Save edited content
@@ -103,7 +103,7 @@ if __name__ == "__main__":
 #                 request, f"File '{full_file_path.name}' saved successfully!"
 #             )
 #             return redirect(
-#                 "user_projects:file_view",
+#                 "project_app:file_view",
 #                 username=username,
 #                 slug=slug,
 #                 file_path=file_path,
@@ -117,7 +117,7 @@ if __name__ == "__main__":
 #             file_content = f.read()
 #     except Exception as e:
 #         messages.error(request, f"Error reading file: {e}")
-#         return redirect("user_projects:detail", username=username, slug=slug)
+#         return redirect("project_app:detail", username=username, slug=slug)
 # 
 #     # Build breadcrumb
 #     breadcrumbs = [{"name": project.name, "url": f"/{username}/{slug}/"}]

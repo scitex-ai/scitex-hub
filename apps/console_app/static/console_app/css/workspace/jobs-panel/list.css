@@ -1,0 +1,62 @@
+/**
+ * Jobs Panel - List
+ * Jobs list container and empty/loading states
+ */
+
+/* Jobs List */
+.jobs-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  background: var(--code-bg);
+}
+
+[data-theme="dark"] .jobs-list {
+  background: var(--workspace-bg-primary);
+}
+
+.jobs-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px;
+  color: var(--text-secondary, #666);
+  font-size: 13px;
+}
+
+.jobs-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 32px 16px;
+  color: var(--text-secondary, #666);
+  text-align: center;
+}
+
+.jobs-empty i {
+  font-size: 32px;
+  opacity: 0.5;
+}
+
+.jobs-empty-text {
+  font-size: 13px;
+}
+
+.jobs-unavailable {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 32px 16px;
+  color: var(--text-secondary, #666);
+  text-align: center;
+}
+
+.jobs-unavailable i {
+  font-size: 28px;
+  color: var(--status-warning);
+}

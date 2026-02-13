@@ -8,7 +8,7 @@
             Milestone management interface - Create, edit, and delete milestones for
             your project issues.
         </p>
-        <a href="{% url 'user_projects:issue_list' username=project.owner.username slug=project.slug %}"
+        <a href="{% url 'project_app:issue_list' username=project.owner.username slug=project.slug %}"
            class="btn btn-secondary">Back to Issues</a>
     </div>
 {% endblock %}

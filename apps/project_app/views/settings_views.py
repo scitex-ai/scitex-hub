@@ -26,7 +26,7 @@ def project_settings(request, username, slug):
     # Only project owner can access settings
     if project.owner != request.user:
         messages.error(request, "You don't have permission to access settings.")
-        return redirect("user_projects:detail", username=username, slug=slug)
+        return redirect("project_app:detail", username=username, slug=slug)
 
     if request.method == "POST":
         action = request.POST.get("action")
@@ -182,7 +182,7 @@ def project_settings(request, username, slug):
             messages.success(request, f'Repository "{project_name}" has been deleted')
             return redirect(f"/{request.user.username}/")
 
-        return redirect("user_projects:settings", username=username, slug=slug)
+        return redirect("project_app:settings", username=username, slug=slug)
 
     context = {
         "project": project,

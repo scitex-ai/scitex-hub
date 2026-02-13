@@ -17,7 +17,7 @@ from ..views.pr import (
     pr_list,
 )
 
-# No app_name here - namespace is provided by parent (user_projects)
+# No app_name here - namespace is provided by parent (project_app)
 
 urlpatterns = [
     # Pull Request list only

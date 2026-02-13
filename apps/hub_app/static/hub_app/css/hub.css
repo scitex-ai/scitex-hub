@@ -1,0 +1,298 @@
+/**
+ * Hub App Styles
+ * Uses workspace CSS variables for consistent theming
+ */
+
+/* Workspace Layout */
+.hub-workspace {
+  display: flex;
+  overflow: hidden;
+}
+
+/* Hub sidebar: uses shared .workspace-sidebar for base layout */
+
+.hub-main {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--workspace-bg-primary);
+  min-width: 0;
+}
+
+.hub-details {
+  width: 280px;
+  min-width: 40px;
+  background: var(--workspace-bg-primary);
+  border-left: 1px solid var(--workspace-border-default);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition:
+    width 0.2s ease,
+    min-width 0.2s ease;
+  flex-shrink: 0;
+}
+
+/* Sidebar content: base layout from shared workspace-sidebar.css */
+
+/* Collapsed width handled by shared collapsible-panel.css */
+
+/* Browse container inside Hub (reused project_app partials) */
+.hub-browse-container {
+  padding: 0.75rem 1rem;
+}
+
+/* Override browse-container styles when inside hub */
+.hub-browse-container .repo-header {
+  padding: 0;
+  margin-bottom: 0.5rem;
+}
+
+.hub-browse-container .repo-tabs-toolbar {
+  margin-bottom: 0.5rem;
+}
+
+/* Hub secondary content (cards below file browser) */
+.hub-secondary-content {
+  border-top: 1px solid var(--workspace-border-default);
+  margin-top: 1rem;
+}
+
+/* Hub content wrapper */
+.hub-content {
+  max-width: 1200px;
+  padding: 1rem;
+}
+
+/* Hub header (no-project state) */
+.hub-header h1 {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+  color: var(--workspace-text-primary);
+}
+
+.hub-header .text-muted {
+  color: var(--workspace-text-muted);
+}
+
+/* Projects grid */
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.project-card {
+  background: var(--workspace-bg-tertiary);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  transition: border-color 0.2s;
+}
+
+.project-card:hover {
+  border-color: var(--workspace-icon-primary);
+}
+
+.project-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.project-card-header h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.project-card-header h3 a {
+  color: var(--workspace-icon-primary);
+  text-decoration: none;
+}
+
+.project-card-header h3 a:hover {
+  text-decoration: underline;
+}
+
+.project-card-header .badge {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.project-card-header .badge-public {
+  background-color: var(--status-success);
+  color: white;
+}
+
+.project-card-header .badge-private {
+  background-color: var(--workspace-text-muted);
+  color: white;
+}
+
+.project-card-body p {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.85rem;
+  color: var(--workspace-text-muted);
+}
+
+.project-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--workspace-text-muted);
+}
+
+.project-meta .language-badge {
+  padding: 0.15rem 0.4rem;
+  background: var(--workspace-bg-quaternary);
+  border-radius: 4px;
+  font-weight: 500;
+  color: var(--workspace-text-primary);
+}
+
+.project-meta .meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Hub cards */
+.hub-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.hub-card {
+  background: var(--workspace-bg-tertiary);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.hub-card-header {
+  background: var(--workspace-bg-quaternary);
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--workspace-border-default);
+}
+
+.hub-card-header h2 {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--workspace-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hub-card-header h2 i {
+  color: var(--workspace-icon-primary);
+}
+
+.hub-card-body {
+  padding: 0.75rem;
+  color: var(--workspace-text-primary);
+}
+
+/* Activity list */
+.activity-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.activity-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+  color: var(--workspace-text-muted);
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--workspace-border-default);
+}
+
+.activity-list li:last-child {
+  border-bottom: none;
+}
+
+.activity-icon {
+  flex-shrink: 0;
+  color: var(--workspace-icon-primary);
+}
+
+.activity-text {
+  flex: 1;
+  color: var(--workspace-text-primary);
+}
+
+.activity-time {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  color: var(--workspace-text-muted);
+}
+
+/* Quick actions */
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+.action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 0.5rem;
+  background: var(--workspace-bg-quaternary);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--workspace-text-primary);
+  font-size: 0.8rem;
+  transition: border-color 0.2s;
+}
+
+.action-btn:hover {
+  border-color: var(--workspace-icon-primary);
+}
+
+.action-btn i {
+  font-size: 1.25rem;
+  margin-bottom: 0.25rem;
+  color: var(--workspace-icon-primary);
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+  .hub-details {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .hub-sidebar {
+    display: none;
+  }
+
+  .hub-main {
+    padding: 0.5rem;
+  }
+
+  .hub-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .projects-grid {
+    grid-template-columns: 1fr;
+  }
+}

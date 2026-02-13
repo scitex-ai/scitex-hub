@@ -16,7 +16,7 @@ The system now has **11 focused apps**:
 1. **auth_app** - Authentication and user management
 2. **billing_app** - Pricing, subscriptions, donations
 3. **cloud_app** - Landing pages, main website
-4. **code_app** - Code execution and analysis
+4. **console_app** - Code execution and analysis
 5. **workspace_app** - Core functionality, projects, user profiles
 6. **dev_app** - Development tools (design system)
 7. **project_app** - Project management
@@ -89,7 +89,7 @@ URL mapping (automatic):
 - `auth_app` → `/auth/`
 - `billing_app` → `/billing/`
 - `cloud_app` → `/cloud/`
-- `code_app` → `/code/`
+- `console_app` → `/console/`
 - `workspace_app` → `/core/`
 - `dev_app` → `/dev/`
 - `project_app` → `/project/`
@@ -172,7 +172,7 @@ Current system check status:
 
 1. Create migrations for removed `manuscript_draft` field
 2. Add auth views to `auth_app`
-3. Fix `code_app` dependency on `apps.api` (if needed)
+3. Fix `console_app` dependency on `apps.api` (if needed)
 4. Resolve cloud_app namespace duplication warning (if needed)
 
 ## Files Modified

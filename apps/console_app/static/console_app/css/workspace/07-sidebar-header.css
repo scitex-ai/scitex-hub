@@ -1,0 +1,68 @@
+/* Console sidebar header: base from shared workspace-sidebar.css
+   Only console-specific overrides here */
+
+/* Console sidebar header adds top border and box-shadow */
+.code-sidebar .sidebar-header {
+  border-top: 1px solid var(--workspace-border-default);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Sidebar header actions container */
+.code-sidebar .sidebar-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* File search container */
+.code-sidebar .file-search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.code-sidebar .file-search-input {
+  width: 140px;
+  height: 28px;
+  padding: 4px 28px 4px 8px;
+  background: var(--workspace-bg-monaco, #1e1e1e);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 12px;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.code-sidebar .file-search-input::placeholder {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.code-sidebar .file-search-input:focus {
+  border-color: var(--color-accent-fg, #58a6ff);
+  width: 180px;
+}
+
+.code-sidebar .file-search-clear {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: none;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.code-sidebar .file-search-clear:hover {
+  color: var(--text-primary);
+}
+
+.code-sidebar .file-search-input:not(:placeholder-shown) + .file-search-clear {
+  display: block;
+}

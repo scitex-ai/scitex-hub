@@ -174,7 +174,7 @@ def _create_remote_project_db(request, name, description, credential, remote_pat
             ),
         )
 
-        return redirect("user_projects:detail", username=request.user.username, slug=slug)
+        return redirect("project_app:detail", username=request.user.username, slug=slug)
 
     except Exception as e:
         logger.error(f"Failed to create remote project: {e}")

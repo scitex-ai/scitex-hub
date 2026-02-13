@@ -261,7 +261,7 @@ if __name__ == "__main__":
 #         try:
 #             # Use the new user_projects namespace
 #             return reverse(
-#                 "user_projects:detail",
+#                 "project_app:detail",
 #                 kwargs={"username": self.owner.username, "slug": self.slug},
 #             )
 #         except NoReverseMatch:

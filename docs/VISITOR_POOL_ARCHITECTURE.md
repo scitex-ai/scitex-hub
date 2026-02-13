@@ -135,7 +135,7 @@ Since Django authentication identifies each visitor as a different user (`visito
    → Shows all 4 slots' current status
    → No allocation created yet
    ↓
-3. Navigates to /scholar/, /writer/, /code/, or /viz/
+3. Navigates to /scholar/, /writer/, /console/, or /viz/
    → Triggers visitor slot allocation
    → Session stores allocation_token
    → User is now assigned to visitor-00X

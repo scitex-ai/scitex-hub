@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ("project_app", "0001_initial"),
         ("writer_app", "0001_initial"),
-        ("code_app", "0001_initial"),
+        ("console_app", "0001_initial"),
     ]
 
     operations = [
@@ -1569,7 +1569,7 @@ class Migration(migrations.Migration):
             model_name="dataset",
             name="associated_notebooks",
             field=models.ManyToManyField(
-                blank=True, related_name="associated_datasets", to="code_app.notebook"
+                blank=True, related_name="associated_datasets", to="console_app.notebook"
             ),
         ),
         migrations.AddField(
@@ -1594,7 +1594,7 @@ class Migration(migrations.Migration):
                 null=True,
                 on_delete=django.db.models.deletion.SET_NULL,
                 related_name="generated_datasets",
-                to="code_app.codeexecutionjob",
+                to="console_app.codeexecutionjob",
             ),
         ),
         migrations.AddField(

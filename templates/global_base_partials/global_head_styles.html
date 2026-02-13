@@ -1,4 +1,5 @@
 {% load static %}
+
 <!-- Favicon alternate icon (conditional based on DEBUG) -->
 {% if DEBUG %}
     <link rel="alternate icon"
@@ -27,29 +28,35 @@
       crossorigin="visitor" />
 <!-- Design Tokens - Load colors first for CSS variables -->
 <link rel="stylesheet"
-      href="{% static 'shared/css/primitives/colors.css' %}" />
+      href="{% static 'shared/css/primitives/colors.css' %}?v={{ build_id }}" />
+<!-- Icon Size Utilities -->
+<link rel="stylesheet"
+      href="{% static 'shared/css/components/icon-sizes.css' %}?v={{ build_id }}" />
 <!-- Master Stylesheet - Imports all common, component, and page styles -->
-<link rel="stylesheet" href="{% static 'shared/css/common.css' %}" />
+<link rel="stylesheet" href="{% static 'shared/css/common.css' %}?v={{ build_id }}" />
 <!-- Additional Specific Styles -->
 <link rel="stylesheet"
-      href="{% static 'shared/css/base/bootstrap-override/index.css' %}" />
+      href="{% static 'shared/css/base/bootstrap-override/index.css' %}?v={{ build_id }}" />
 <link rel="stylesheet"
-      href="{% static 'shared/css/components/modal.css' %}" />
+      href="{% static 'shared/css/components/modal.css' %}?v={{ build_id }}" />
 <!-- Keyboard Shortcuts Modal Styles -->
 <link rel="stylesheet"
-      href="{% static 'shared/css/components/shortcuts-modal.css' %}" />
+      href="{% static 'shared/css/components/shortcuts-modal.css' %}?v={{ build_id }}" />
 <!-- Global Base Layout Styles -->
 <link rel="stylesheet"
-      href="{% static 'shared/css/layouts/global-base.css' %}" />
+      href="{% static 'shared/css/layouts/global-base.css' %}?v={{ build_id }}" />
+<!-- Collapsible Panel (shared collapsed states, click-to-expand) -->
+<link rel="stylesheet"
+      href="{% static 'shared/css/components/collapsible-panel.css' %}?v={{ build_id }}" />
 <!-- Zen Mode Styles (F11 for distraction-free writing) -->
 <link rel="stylesheet"
-      href="{% static 'shared/css/components/zen-mode.css' %}" />
+      href="{% static 'shared/css/components/zen-mode.css' %}?v={{ build_id }}" />
 <!-- Product Tour (step-by-step guided walkthrough) -->
 <link rel="stylesheet"
-      href="{% static 'shared/css/components/product-tour.css' %}" />
+      href="{% static 'shared/css/components/product-tour.css' %}?v={{ build_id }}" />
 <!-- Mobile Notice Banner -->
 <link rel="stylesheet"
-      href="{% static 'shared/css/components/mobile-notice.css' %}" />
+      href="{% static 'shared/css/components/mobile-notice.css' %}?v={{ build_id }}" />
 <!-- Cookie Consent Banner -->
 <link rel="stylesheet"
-      href="{% static 'shared/css/components/cookie-consent.css' %}" />
+      href="{% static 'shared/css/components/cookie-consent.css' %}?v={{ build_id }}" />

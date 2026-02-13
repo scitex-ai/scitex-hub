@@ -41,7 +41,7 @@ def repository_maintenance(request, username):
     user = get_object_or_404(User, username=username)
     if user != request.user and not request.user.is_staff:
         messages.error(request, "You don't have permission to view this page.")
-        return redirect("user_projects:list", username=request.user.username)
+        return redirect("project_app:list", username=request.user.username)
 
     context = {
         "username": username,
@@ -66,7 +66,7 @@ def github_integration(request, username, slug):
             request,
             "You don't have permission to manage GitHub integration for this project.",
         )
-        return redirect("user_projects:detail", username=username, slug=slug)
+        return redirect("project_app:detail", username=username, slug=slug)
 
     context = {
         "project": project,

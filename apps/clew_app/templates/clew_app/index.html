@@ -1,0 +1,119 @@
+{% extends "global_base.html" %}
+
+{% load static vite tree_preseed %}
+
+{% block title %}
+    SciTeX Clew
+    {% if current_project %}- {{ current_project.name }}{% endif %}
+{% endblock %}
+{% block extra_css %}
+    <!-- Shared workspace components -->
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/workspace-files-tree.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/workspace-sidebar.css' %}" />
+    <link rel="stylesheet" href="{% static 'shared/css/components/panel-resizer.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'shared/css/components/workspace-files-tree/hidden-files-toggle.css' %}" />
+    <!-- Clew specific styles -->
+    <link rel="stylesheet" href="{% static 'clew_app/css/clew.css' %}" />
+{% endblock %}
+{% block content %}
+    {% if current_project %}
+        <div id="workspace-project-config"
+             style="display: none"
+             data-username="{{ current_project.owner.username }}"
+             data-slug="{{ current_project.slug }}"
+             data-mode="clew"></div>
+    {% endif %}
+    <div class="clew-workspace">
+        <!-- LEFT SIDEBAR - PROJECT NAVIGATOR -->
+        {% if current_project %}
+            <aside class="clew-sidebar workspace-sidebar" id="clew-sidebar">
+                {% include "global_base_partials/workspace/sidebar_header.html" %}
+                <div class="sidebar-content" id="file-tree">
+                    <div class="wft-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Loading...
+                    </div>
+                </div>
+            </aside>
+            <!-- Resizer between sidebar and workspace -->
+            <div class="panel-resizer"
+                 id="sidebar-resizer"
+                 data-panel-resizer
+                 data-storage-prefix="scitex-workspace-"
+                 data-target=".clew-sidebar"
+                 data-direction="left"
+                 data-min-width="40"
+                 data-default-width="250"
+                 data-storage-key="sidebar-width"
+                 data-collapse-key="scitex-workspace-sidebar-collapsed"
+                 data-toggle-btn="sidebar-toggle"></div>
+        {% else %}
+            <aside class="clew-sidebar workspace-sidebar" id="clew-sidebar">
+                {% include "global_base_partials/workspace/sidebar_header.html" %}
+                <div class="sidebar-content">
+                    <div class="sidebar-empty-state">
+                        <i class="fas fa-folder-open"></i>
+                        <p>No project selected</p>
+                        <a href="/new/" class="btn btn-primary btn-sm">Create Project</a>
+                    </div>
+                </div>
+            </aside>
+        {% endif %}
+        <!-- CENTER - DAG VISUALIZATION WORKSPACE -->
+        <main class="clew-main">
+            <div class="clew-header">
+                <span class="clew-header-title"><i class="fas fa-check-circle"></i> Clew Verification</span>
+            </div>
+            <div class="dag-visualization-area">
+                <div class="dag-placeholder">
+                    <i class="fas fa-project-diagram fa-3x"></i>
+                    <h3>DAG Visualization</h3>
+                    <p>Verification chain will appear here</p>
+                    <p class="text-muted">
+                        Uses <code>scitex.verify</code> package for dependency tracking
+                    </p>
+                </div>
+            </div>
+        </main>
+        <!-- Details resizer (auto-initialized via data attributes) -->
+        <div class="panel-resizer"
+             id="details-resizer"
+             data-panel-resizer
+             data-storage-prefix="scitex-clew-"
+             data-target=".clew-details"
+             data-direction="right"
+             data-min-width="40"
+             data-default-width="280"
+             data-storage-key="details-width"
+             data-collapse-key="clew-details-collapsed"
+             data-toggle-btn="details-toggle"></div>
+        <!-- RIGHT SIDEBAR - DETAILS -->
+        <aside class="clew-details collapsible-panel" id="clew-details">
+            <div class="details-header">
+                <button class="details-toggle panel-toggle-btn right-panel-toggle"
+                        id="details-toggle"
+                        title="Toggle details (Ctrl+Shift+D)">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <span class="panel-title">
+                    <i class="fas fa-sliders-h"></i> Details
+                </span>
+            </div>
+            <div class="details-content" id="clew-details-content">
+                <div class="details-placeholder">
+                    <i class="fas fa-info-circle"></i>
+                    <p>Select a node to view verification details</p>
+                </div>
+            </div>
+        </aside>
+    </div>
+{% endblock %}
+{% block extra_js %}
+    {% vite_hmr_client %}
+    {% vite_script 'shared/workspace-panel-resizer' %}
+    {% tree_preseed_script current_project %}
+    {% vite_script 'shared/workspace-tree-init' %}
+    {% vite_script 'clew_app/clew-init' %}
+{% endblock %}

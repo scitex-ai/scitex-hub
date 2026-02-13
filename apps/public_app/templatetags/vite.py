@@ -8,7 +8,7 @@ In production (DEBUG=False): Uses built files from staticfiles/vite manifest
 
 Usage in templates:
   {% load vite %}
-  {% vite_script 'code_app/workspace' %}
+  {% vite_script 'console_app/workspace' %}
 
 Note: In development, Vite dev server must be running (npm run dev).
       No fallback to tsc-compiled JS - keeps the system simple and predictable.
@@ -67,7 +67,7 @@ def vite_script(entry_name: str):
     In production (DEBUG=False): Load from Vite-built manifest
 
     Args:
-        entry_name: Entry name like 'code_app/workspace'
+        entry_name: Entry name like 'console_app/workspace'
     """
     if settings.DEBUG:
         # Development: Load from Vite dev server (HMR enabled)
@@ -125,7 +125,7 @@ def _entry_to_ts_path(entry_name: str) -> str:
     # Map entry names to actual TS file locations
     mappings = {
         # Code app
-        "code_app/workspace": "apps/code_app/static/code_app/ts/workspace.ts",
+        "console_app/workspace": "apps/console_app/static/console_app/ts/workspace.ts",
         # Vis app
         "vis_app/vis-editor": "apps/vis_app/static/vis_app/ts/vis-editor.ts",
         "vis_app/editor-inline": "apps/vis_app/static/vis_app/ts/editor-inline.ts",
@@ -177,7 +177,8 @@ def _entry_to_ts_path(entry_name: str) -> str:
         "public_app/server-status": "apps/public_app/static/public_app/ts/server-status.ts",
         "public_app/landing-demos-inline": "apps/public_app/static/public_app/ts/landing-demos-inline.ts",
         "public_app/landing/module-cards": "apps/public_app/static/public_app/ts/landing/module-cards.ts",
-        "public_app/tools/plot-viewer/index": "apps/public_app/static/public_app/ts/tools/plot-viewer/index.ts",
+        "public_app/tools/view-plot/index": "apps/public_app/static/public_app/ts/tools/view-plot/index.ts",
+        "public_app/tools/run-stats": "apps/public_app/static/public_app/ts/tools/run-stats/index.ts",
         "public_app/pages/api-docs": "apps/public_app/static/public_app/ts/pages/api-docs.ts",
         "public_app/pages/release-timeline": "apps/public_app/static/public_app/ts/pages/release-timeline.ts",
         # Accounts app
@@ -228,11 +229,13 @@ def _entry_to_ts_path(entry_name: str) -> str:
         "shared/components/seekbar": "static/shared/ts/components/seekbar.ts",
         "shared/utils/highlight-js-bibtex": "static/shared/ts/utils/highlight-js-bibtex.ts",
         "shared/workspace-panel-resizer": "static/shared/ts/components/workspace-panel-resizer.ts",
+        "shared/collapsible-panel-click-expand": "static/shared/ts/components/collapsible-panel-click-expand.ts",
         "shared/utils/analytics": "static/shared/ts/utils/analytics.ts",
         "shared/utils/visitor-heartbeat": "static/shared/ts/utils/visitor-heartbeat.ts",
         "shared/components/product-tour": "static/shared/ts/components/product-tour.ts",
         "shared/components/cookie-consent": "static/shared/ts/components/cookie-consent.ts",
         "shared/components/project-selector": "static/shared/ts/components/project-selector.ts",
+        "shared/workspace-tree-init": "static/shared/ts/components/workspace-files-tree/auto-init.ts",
         # Landing page
         "public_app/landing/hero-demo": "apps/public_app/static/public_app/ts/landing/hero-demo.ts",
         "public_app/pages/visitor-pool-full": "apps/public_app/static/public_app/ts/pages/visitor-pool-full.ts",

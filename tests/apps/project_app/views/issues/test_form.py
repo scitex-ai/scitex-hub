@@ -67,7 +67,7 @@ if __name__ == "__main__":
 #         # Validation
 #         if not title:
 #             messages.error(request, "Issue title is required")
-#             return redirect("user_projects:issue_create", username=username, slug=slug)
+#             return redirect("project_app:issue_create", username=username, slug=slug)
 # 
 #         # Create issue
 #         issue = Issue.objects.create(
@@ -152,7 +152,7 @@ if __name__ == "__main__":
 #         if not title:
 #             messages.error(request, "Issue title is required")
 #             return redirect(
-#                 "user_projects:issue_edit",
+#                 "project_app:issue_edit",
 #                 username=username,
 #                 slug=slug,
 #                 issue_number=issue_number,

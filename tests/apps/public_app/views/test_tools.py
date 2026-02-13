@@ -311,7 +311,7 @@ if __name__ == "__main__":
 #                     "name": "Statistics Calculator",
 #                     "description": "Quick statistical analysis for research data with descriptive stats, t-tests, and correlations.",
 #                     "use_case": "Verify experimental results before plotting",
-#                     "bookmarklet_url": "/tools/statistics-calculator/",
+#                     "bookmarklet_url": "/tools/run-stats/",
 #                     "icon": "📈",
 #                 },
 #             ],
@@ -395,9 +395,9 @@ if __name__ == "__main__":
 #     return render(request, "public_app/tools/pdf-merger.html")
 # 
 # 
-# def tool_statistics_calculator(request):
+# def tool_run_stats(request):
 #     """Statistics Calculator tool detail page."""
-#     return render(request, "public_app/tools/statistics-calculator.html")
+#     return render(request, "public_app/tools/run-stats.html")
 # 
 # 
 # def tool_pdf_splitter(request):

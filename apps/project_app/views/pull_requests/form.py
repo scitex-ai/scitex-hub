@@ -40,7 +40,7 @@ def pr_create(request, username, slug):
     # Check permissions
     if not project.can_edit(request.user):
         messages.error(request, "You don't have permission to create pull requests")
-        return redirect("user_projects:detail", username=username, slug=slug)
+        return redirect("project_app:detail", username=username, slug=slug)
 
     # Get compare parameters (base and head branches)
     base_branch = request.GET.get("base", project.current_branch or "main")
@@ -103,7 +103,7 @@ def pr_create(request, username, slug):
                     request, f"Pull request #{pr.number} created successfully"
                 )
                 return redirect(
-                    "user_projects:pr_detail",
+                    "project_app:pr_detail",
                     username=username,
                     slug=slug,
                     pr_number=pr.number,

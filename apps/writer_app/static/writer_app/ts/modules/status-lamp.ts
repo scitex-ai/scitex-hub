@@ -7,7 +7,12 @@ console.log(
   "[DEBUG] /home/ywatanabe/proj/scitex-cloud/apps/writer_app/static/writer_app/ts/modules/status-lamp.ts loaded",
 );
 
-export type CompileStatus = "idle" | "ready" | "compiling" | "success" | "error";
+export type CompileStatus =
+  | "idle"
+  | "ready"
+  | "compiling"
+  | "success"
+  | "error";
 
 export class StatusLampManager {
   // Preview compilation lamp (quick compile for live preview)
@@ -33,7 +38,9 @@ export class StatusLampManager {
 
     // Full compilation status (next to "Auto Full (15s)")
     this.fullCompileLamp = document.getElementById("fullcompile-status-lamp");
-    this.fullCompileButton = document.getElementById("fullcompile-toggle-button");
+    this.fullCompileButton = document.getElementById(
+      "fullcompile-toggle-button",
+    );
 
     // Git status display (left side)
     this.gitStatusDisplay = document.getElementById("git-status-display");
@@ -88,6 +95,13 @@ export class StatusLampManager {
 
     this.previewLamp.setAttribute("title", tooltip);
 
+    // Sync Details panel LED
+    const detailsLamp = document.getElementById("details-preview-lamp");
+    if (detailsLamp) {
+      detailsLamp.setAttribute("data-status", status);
+      detailsLamp.setAttribute("title", tooltip);
+    }
+
     // Update button icon
     this.updateButtonIcon(this.previewButton, status);
 
@@ -134,6 +148,13 @@ export class StatusLampManager {
 
     this.fullCompileLamp.setAttribute("title", tooltip);
 
+    // Sync Details panel LED
+    const detailsLamp = document.getElementById("details-full-lamp");
+    if (detailsLamp) {
+      detailsLamp.setAttribute("data-status", status);
+      detailsLamp.setAttribute("title", tooltip);
+    }
+
     // Update button icon
     this.updateButtonIcon(this.fullCompileButton, status);
 
@@ -146,7 +167,8 @@ export class StatusLampManager {
   public setGitInfo(branch?: string, unpushed?: number): void {
     this.gitInfo = { branch, unpushed };
 
-    if (!this.gitBranchName || !this.gitUnpushedCount || !this.gitStatusDisplay) return;
+    if (!this.gitBranchName || !this.gitUnpushedCount || !this.gitStatusDisplay)
+      return;
 
     // Update branch name
     if (branch) {
@@ -171,7 +193,9 @@ export class StatusLampManager {
     }
     this.gitStatusDisplay.setAttribute("title", tooltip);
 
-    console.log(`[StatusLamp] Git: ${branch}${unpushed ? ` ↑${unpushed}` : ""}`);
+    console.log(
+      `[StatusLamp] Git: ${branch}${unpushed ? ` ↑${unpushed}` : ""}`,
+    );
   }
 
   /**
@@ -233,7 +257,10 @@ export class StatusLampManager {
   /**
    * Update button icon based on compilation status
    */
-  private updateButtonIcon(button: HTMLElement | null, status: CompileStatus): void {
+  private updateButtonIcon(
+    button: HTMLElement | null,
+    status: CompileStatus,
+  ): void {
     if (!button) return;
 
     const icon = button.querySelector("i");
@@ -245,14 +272,20 @@ export class StatusLampManager {
     // Update icon and tooltip based on status
     if (status === "compiling") {
       icon.classList.add("fa-stop");
-      button.setAttribute("title", button.id.includes("preview")
-        ? "Stop preview compilation"
-        : "Stop full compilation");
+      button.setAttribute(
+        "title",
+        button.id.includes("preview")
+          ? "Stop preview compilation"
+          : "Stop full compilation",
+      );
     } else {
       icon.classList.add("fa-play");
-      button.setAttribute("title", button.id.includes("preview")
-        ? "Start preview compilation (Alt+Enter)"
-        : "Start full compilation (Alt+Shift+Enter)");
+      button.setAttribute(
+        "title",
+        button.id.includes("preview")
+          ? "Start preview compilation (Alt+Enter)"
+          : "Start full compilation (Alt+Shift+Enter)",
+      );
     }
   }
 }

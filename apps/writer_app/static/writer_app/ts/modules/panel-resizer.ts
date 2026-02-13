@@ -47,7 +47,9 @@ export class PanelResizer {
     this.resizer.style.flexShrink = "0";
     this.resizer.style.flexGrow = "0";
     this.resizer.style.background = "transparent";
-    console.log("[PanelResizer] Forced resizer dimensions via JS (4px, transparent)");
+    console.log(
+      "[PanelResizer] Forced resizer dimensions via JS (4px, transparent)",
+    );
 
     this.resizer.addEventListener("mousedown", (e) => this.handleMouseDown(e), {
       capture: true,
@@ -192,8 +194,25 @@ export class PanelResizer {
    * Restore saved panel width from state persistence
    */
   restoreSavedWidth(): void {
+    if (!this.leftPanel || !this.rightPanel) return;
+
+    // Don't restore inline flex when panels are in collapsed/expanded state
+    // panel-toggle.ts manages these states via CSS classes
+    const hasCollapseState =
+      this.leftPanel.classList.contains("collapsed") ||
+      this.leftPanel.classList.contains("expanded") ||
+      this.rightPanel.classList.contains("collapsed") ||
+      this.rightPanel.classList.contains("expanded");
+
+    if (hasCollapseState) {
+      console.log(
+        "[PanelResizer] Panel has collapsed/expanded state, skipping inline flex restore",
+      );
+      return;
+    }
+
     const savedWidth = statePersistence.getSavedPanelWidth();
-    if (savedWidth && this.leftPanel && this.rightPanel) {
+    if (savedWidth) {
       const leftPercent = savedWidth;
 
       // Validate saved width (must be between 20% and 80%)
@@ -214,7 +233,9 @@ export class PanelResizer {
 
       console.log("[PanelResizer] Restored panel width:", leftPercent + "%");
     } else {
-      console.log("[PanelResizer] No saved width, using default 50:50 (editor:preview)");
+      console.log(
+        "[PanelResizer] No saved width, using default 50:50 (editor:preview)",
+      );
       // Set default to 50:50 for balanced workspace
       this.resetToDefault();
     }
@@ -233,7 +254,9 @@ export class PanelResizer {
     this.rightPanel.style.flex = `0 0 ${defaultRightPercent}%`;
     statePersistence.savePanelWidth(defaultLeftPercent);
 
-    console.log(`[PanelResizer] Reset to ${defaultLeftPercent}:${defaultRightPercent} split (editor:preview)`);
+    console.log(
+      `[PanelResizer] Reset to ${defaultLeftPercent}:${defaultRightPercent} split (editor:preview)`,
+    );
   }
 
   /**

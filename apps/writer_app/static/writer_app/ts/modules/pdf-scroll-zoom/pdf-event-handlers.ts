@@ -28,7 +28,7 @@ export class PDFEventHandlers {
   constructor(
     container: HTMLElement | null,
     zoomControl: PDFZoomControl,
-    modeManager: PDFModeManager
+    modeManager: PDFModeManager,
   ) {
     this.container = container;
     this.zoomControl = zoomControl;
@@ -52,8 +52,11 @@ export class PDFEventHandlers {
     document.addEventListener("keydown", (e) => this.handleKeyDown(e));
     document.addEventListener("keyup", (e) => this.handleKeyUp(e));
 
-    // Mouse wheel scrolling within PDF (use capture phase)
-    this.container.addEventListener("wheel", (e) => this.handleWheel(e), true);
+    // Mouse wheel within PDF (capture phase, non-passive for Ctrl+wheel zoom)
+    this.container.addEventListener("wheel", (e) => this.handleWheel(e), {
+      passive: false,
+      capture: true,
+    });
 
     // Also handle editor scrolling - find editor container and prioritize it
     const editorContainer = document.querySelector(".latex-panel");
@@ -103,7 +106,11 @@ export class PDFEventHandlers {
     }
 
     // Ctrl+Space: Enter command mode (prefix key)
-    if (this.isCtrlPressed && e.key === " " && !this.modeManager.isWaitingForCommandState()) {
+    if (
+      this.isCtrlPressed &&
+      e.key === " " &&
+      !this.modeManager.isWaitingForCommandState()
+    ) {
       e.preventDefault();
       this.modeManager.enterCommandMode();
       return;
@@ -123,7 +130,11 @@ export class PDFEventHandlers {
     }
 
     // Spacebar: activate hand/pan tool (like PDF Studio)
-    if (e.key === " " && !this.modeManager.isSpacePressedState() && !this.isCtrlPressed) {
+    if (
+      e.key === " " &&
+      !this.modeManager.isSpacePressedState() &&
+      !this.isCtrlPressed
+    ) {
       this.modeManager.setSpacePressed(true);
       // Change cursor to grab/hand when spacebar is held
       if (this.pdfViewer) {
@@ -133,15 +144,9 @@ export class PDFEventHandlers {
       console.log("[PDFEventHandlers] Spacebar pressed - Hand tool activated");
     }
 
-    // Only handle zoom shortcuts when focus is on PDF viewer or preview panel
-    const activeElement = document.activeElement;
-    const previewPanel = document.querySelector('.preview-panel');
-    const isOverPDF = this.pdfViewer && (
-      activeElement === this.pdfViewer ||
-      activeElement?.closest('.preview-panel') !== null ||
-      this.pdfViewer.contains(activeElement) ||
-      (previewPanel && previewPanel.contains(activeElement))
-    );
+    // Only handle zoom shortcuts when cursor is hovering over PDF viewer
+    const previewPanel = document.querySelector(".preview-panel");
+    const isOverPDF = previewPanel && previewPanel.matches(":hover");
 
     // Ctrl + Plus: zoom in (only when over PDF)
     if (this.isCtrlPressed && (e.key === "+" || e.key === "=") && isOverPDF) {
@@ -177,24 +182,29 @@ export class PDFEventHandlers {
       if (this.pdfViewer && !this.isPanning) {
         this.pdfViewer.style.cursor = this.originalCursor || "auto";
       }
-      console.log("[PDFEventHandlers] Spacebar released - Hand tool deactivated");
+      console.log(
+        "[PDFEventHandlers] Spacebar released - Hand tool deactivated",
+      );
     }
   }
 
   /**
-   * Handle mouse wheel - ALWAYS prioritize PDF scroll
-   * Don't prevent default - let CSS handle scrolling, just check if we're over PDF
+   * Handle mouse wheel - Ctrl+wheel zooms PDF, plain wheel scrolls natively
    */
   private handleWheel(e: WheelEvent): void {
     if (!this.container) return;
-    if (!this.pdfViewer) return;
 
     const isOverPDF = this.container.contains(e.target as Node);
     if (!isOverPDF) return;
 
-    // DON'T prevent default - let browser handle native scrolling
-    // The CSS will make the PDF viewer scrollable with overflow-y: scroll
-    // This allows native smooth scrolling
+    // Ctrl+wheel over PDF: prevent browser page zoom, let PDF.js handle zoom
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      // Don't stopPropagation — PDF.js PDFZoom handler needs the event to re-render
+      return;
+    }
+
+    // Plain wheel: let browser handle native scrolling
   }
 
   /**
@@ -224,9 +234,10 @@ export class PDFEventHandlers {
 
     // Spacebar + left click OR middle mouse button OR hand mode for panning
     // But NOT in text selection mode
-    const canPan = (e.button === 0 && this.modeManager.isSpacePressedState()) ||
-                   (e.button === 1) ||
-                   (e.button === 0 && currentMode === "hand");
+    const canPan =
+      (e.button === 0 && this.modeManager.isSpacePressedState()) ||
+      e.button === 1 ||
+      (e.button === 0 && currentMode === "hand");
 
     if (canPan && currentMode !== "text") {
       e.preventDefault();
@@ -259,7 +270,10 @@ export class PDFEventHandlers {
       this.dragStartY = e.clientY;
       this.dragStartZoom = this.zoomControl.getCurrentZoom();
 
-      console.log("[PDFEventHandlers] Starting zoom drag from:", this.dragStartZoom);
+      console.log(
+        "[PDFEventHandlers] Starting zoom drag from:",
+        this.dragStartZoom,
+      );
 
       // Change cursor to indicate zoom mode
       if (this.pdfViewer) {

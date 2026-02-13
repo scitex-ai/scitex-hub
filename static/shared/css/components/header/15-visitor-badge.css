@@ -14,8 +14,7 @@
 }
 
 [data-theme="dark"] .header-visitor-badge {
-  color: #f0ad4e;
-  background-color: rgba(240, 173, 78, 0.1);
-  border-color: rgba(240, 173, 78, 0.3);
+  color: var(--status-warning);
+  background-color: var(--status-warning-bg);
+  border-color: var(--status-warning-border);
 }
-

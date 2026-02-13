@@ -55,7 +55,7 @@ def _check_project_access(request, project, username, slug):
             return redirect_to_login(request.get_full_path())
         else:
             messages.error(request, "You don't have permission to access this project.")
-            return redirect("user_projects:detail", username=username, slug=slug)
+            return redirect("project_app:detail", username=username, slug=slug)
 
     return None
 
@@ -81,7 +81,7 @@ def _get_project_filesystem(project, username, slug):
 
     if not project_path or not project_path.exists():
         messages.error(None, "Project directory not found.")
-        return None, redirect("user_projects:detail", username=username, slug=slug)
+        return None, redirect("project_app:detail", username=username, slug=slug)
 
     return manager, project_path
 
@@ -103,11 +103,11 @@ def _validate_path_security(full_path, project_path, username, slug):
         resolved_path = full_path.resolve()
         if not str(resolved_path).startswith(str(project_path.resolve())):
             messages.error(None, "Invalid directory path.")
-            return redirect("user_projects:detail", username=username, slug=slug)
+            return redirect("project_app:detail", username=username, slug=slug)
         return resolved_path
     except Exception:
         messages.error(None, "Invalid directory path.")
-        return redirect("user_projects:detail", username=username, slug=slug)
+        return redirect("project_app:detail", username=username, slug=slug)
 
 
 def _build_file_breadcrumb(username, slug, file_path, project_name):

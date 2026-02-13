@@ -15,12 +15,14 @@ Backward compatibility exports are provided below.
 
 from __future__ import annotations
 
+from .bibliography import regenerate_bibliography_api
+from .bibliography_upload import upload_bibliography
+from .citations import citations_api
+from .file_tree import file_tree_view
+
 # Import all views for backward compatibility
 from .section_scanner import _scan_project_sections
 from .sections import sections_config_view
-from .citations import citations_api
-from .bibliography import regenerate_bibliography_api
-from .file_tree import file_tree_view
 
 # Public API
 __all__ = [
@@ -32,6 +34,7 @@ __all__ = [
     "citations_api",
     # Bibliography views
     "regenerate_bibliography_api",
+    "upload_bibliography",
 ]
 
 # EOF

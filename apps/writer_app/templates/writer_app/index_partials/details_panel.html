@@ -1,69 +1,81 @@
 <!-- Details Panel (rightmost panel) -->
-<aside class="writer-details" id="writer-details">
+<aside class="writer-details collapsible-panel" id="writer-details">
     <div class="details-header">
-        <button class="details-toggle panel-toggle-btn right-panel-toggle" id="details-toggle" title="Toggle details (Ctrl+Shift+D) (Zen: F11/Alt+Z)">
+        <button class="details-toggle panel-toggle-btn right-panel-toggle"
+                id="details-toggle"
+                title="Toggle details (Ctrl+Shift+D) (Zen: F11/Alt+Z)">
             <i class="fas fa-chevron-right"></i>
         </button>
-        <h5><i class="fas fa-sliders-h"></i> Details</h5>
+        <span class="panel-title">
+            <i class="fas fa-sliders-h"></i> Details
+        </span>
     </div>
     <div class="details-content" id="writer-details-content">
-        <!-- Compilation Settings Section -->
-        <div class="details-section">
-            <div class="details-section__header" onclick="this.parentElement.classList.toggle('collapsed')">
+        <!-- Compilation - Preview -->
+        <div class="details-section collapsed" data-section="preview-log">
+            <div class="details-section__header">
                 <h6 class="details-section__title">
-                    <i class="fas fa-cog"></i> Compilation
+                    <i class="fas fa-eye"></i> Compilation - Preview
+                    <span class="status-lamp-dot" id="details-preview-lamp" data-status="idle"></span>
                 </h6>
                 <i class="fas fa-chevron-down details-section__toggle"></i>
             </div>
             <div class="details-section__content">
-                <!-- Auto Preview -->
                 <div class="details-option">
                     <label class="details-option__label">
-                        <input type="checkbox" id="details-auto-preview" checked>
-                        <span>Auto Preview</span>
+                        <input type="checkbox" id="details-auto-preview" checked />
+                        <span>Compile on Change</span>
                     </label>
-                    <span class="details-option__hint">Compile on change</span>
                 </div>
-                <!-- Auto Full Compile -->
+                <button id="details-preview-compile-btn"
+                        class="btn btn-sm btn-outline-primary w-100 mb-2">
+                    <i class="fas fa-play me-1"></i> Compile Preview
+                </button>
+                <div id="details-preview-log" class="details-compilation-log">Click Preview to compile...</div>
+            </div>
+        </div>
+        <!-- Compilation - Full -->
+        <div class="details-section collapsed" data-section="full-log">
+            <div class="details-section__header">
+                <h6 class="details-section__title">
+                    <i class="fas fa-file-pdf"></i> Compilation - Full
+                    <span class="status-lamp-dot" id="details-full-lamp" data-status="idle"></span>
+                </h6>
+                <i class="fas fa-chevron-down details-section__toggle"></i>
+            </div>
+            <div class="details-section__content">
                 <div class="details-option">
                     <label class="details-option__label">
-                        <input type="checkbox" id="details-auto-full">
-                        <span>Auto Full Compile</span>
+                        <input type="checkbox" id="details-auto-full" />
+                        <span>Compile on Save</span>
                     </label>
-                    <span class="details-option__hint">Full manuscript on save</span>
                 </div>
-                <!-- Add Figures -->
                 <div class="details-option">
                     <label class="details-option__label">
-                        <input type="checkbox" id="details-add-figs" checked>
+                        <input type="checkbox" id="details-add-figs" checked />
                         <span>Include Figures</span>
                     </label>
                 </div>
-                <!-- Add Tables -->
                 <div class="details-option">
                     <label class="details-option__label">
-                        <input type="checkbox" id="details-add-tables" checked>
+                        <input type="checkbox" id="details-add-tables" checked />
                         <span>Include Tables</span>
                     </label>
                 </div>
-                <!-- Draft Mode -->
-                <div class="details-option">
-                    <label class="details-option__label">
-                        <input type="checkbox" id="details-draft-mode">
-                        <span>Draft Mode</span>
-                    </label>
-                    <span class="details-option__hint">Faster compilation</span>
-                </div>
-                <!-- Compile Button -->
-                <button id="details-compile-btn" class="btn btn-primary btn-sm w-100 mt-2">
+                <button id="details-full-compile-btn" class="btn btn-sm btn-outline-primary w-100 mb-2">
                     <i class="fas fa-rocket me-1"></i> Compile Full
                 </button>
+                <button id="details-compile-btn"
+                        class="btn btn-primary btn-sm w-100 mb-2"
+                        style="display: none">
+                    <i class="fas fa-rocket me-1"></i> Compile Full
+                </button>
+                <div id="details-full-log" class="details-compilation-log">Click Full to compile...</div>
             </div>
         </div>
-
         <!-- Project Info Section -->
-        <div class="details-section">
-            <div class="details-section__header" onclick="this.parentElement.classList.toggle('collapsed')">
+        <div class="details-section collapsed" data-section="project-info">
+            <div class="details-section__header">
                 <h6 class="details-section__title">
                     <i class="fas fa-info-circle"></i> Project Info
                 </h6>
@@ -88,10 +100,9 @@
                 </div>
             </div>
         </div>
-
         <!-- Shortcuts Section -->
-        <div class="details-section collapsed">
-            <div class="details-section__header" onclick="this.parentElement.classList.toggle('collapsed')">
+        <div class="details-section collapsed" data-section="shortcuts">
+            <div class="details-section__header">
                 <h6 class="details-section__title">
                     <i class="fas fa-keyboard"></i> Shortcuts
                 </h6>
@@ -122,3 +133,54 @@
         </div>
     </div>
 </aside>
+<script>
+// Details panel section toggle with localStorage persistence
+(function() {
+    const STORAGE_KEY = "writer-details-sections";
+
+    function loadStates() {
+        try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); }
+        catch { return {}; }
+    }
+
+    function saveState(sectionId, collapsed) {
+        const states = loadStates();
+        states[sectionId] = collapsed;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(states));
+    }
+
+    // Restore saved states on load
+    const saved = loadStates();
+    document.querySelectorAll("#writer-details-content .details-section[data-section]").forEach(function(section) {
+        const id = section.getAttribute("data-section");
+        if (id && saved[id] !== undefined) {
+            section.classList.toggle("collapsed", saved[id]);
+        }
+    });
+
+    // Attach click handlers
+    document.querySelectorAll("#writer-details-content .details-section__header").forEach(function(header) {
+        header.addEventListener("click", function() {
+            var section = header.parentElement;
+            section.classList.toggle("collapsed");
+            var id = section.getAttribute("data-section");
+            if (id) saveState(id, section.classList.contains("collapsed"));
+        });
+    });
+    // Wire compile buttons to existing window handlers
+    var previewBtn = document.getElementById("details-preview-compile-btn");
+    if (previewBtn) {
+        previewBtn.addEventListener("click", function(e) {
+            e.stopPropagation();
+            if (window.handlePreviewClick) window.handlePreviewClick();
+        });
+    }
+    var fullBtn = document.getElementById("details-full-compile-btn");
+    if (fullBtn) {
+        fullBtn.addEventListener("click", function(e) {
+            e.stopPropagation();
+            if (window.handleFullCompileClick) window.handleFullCompileClick();
+        });
+    }
+})();
+</script>

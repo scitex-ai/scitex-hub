@@ -10,8 +10,8 @@
 {% block content %}
     <div class="container-fluid"
          style="max-width: 1280px"
-         data-issue-close-url="{% url 'user_projects:issue_api_close' username=project.owner.username slug=project.slug issue_number=issue.number %}"
-         data-issue-reopen-url="{% url 'user_projects:issue_api_reopen' username=project.owner.username slug=project.slug issue_number=issue.number %}">
+         data-issue-close-url="{% url 'project_app:issue_api_close' username=project.owner.username slug=project.slug issue_number=issue.number %}"
+         data-issue-reopen-url="{% url 'project_app:issue_api_reopen' username=project.owner.username slug=project.slug issue_number=issue.number %}">
         <!-- Breadcrumb -->
         <div style="padding: 1rem 0">
             <a href="/{{ project.owner.username }}/"
@@ -22,7 +22,7 @@
                style="color: var(--color-accent-fg);
                       text-decoration: none">{{ project.name }}</a>
             <span style="color: var(--color-fg-muted)">/</span>
-            <a href="{% url 'user_projects:issue_list' username=project.owner.username slug=project.slug %}"
+            <a href="{% url 'project_app:issue_list' username=project.owner.username slug=project.slug %}"
                style="color: var(--color-accent-fg);
                       text-decoration: none">Issues</a>
             <span style="color: var(--color-fg-muted)">/</span>
@@ -82,7 +82,7 @@
             {% if can_comment %}
                 <div class="new-comment-form">
                     <form method="POST"
-                          action="{% url 'user_projects:issue_comment_create' username=project.owner.username slug=project.slug issue_number=issue.number %}">
+                          action="{% url 'project_app:issue_comment_create' username=project.owner.username slug=project.slug issue_number=issue.number %}">
                         {% csrf_token %}
                         <textarea name="content"
                                   class="new-comment-textarea"

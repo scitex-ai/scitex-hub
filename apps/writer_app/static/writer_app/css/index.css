@@ -27,7 +27,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: var(--bg-secondary, #f8f9fa);
+  background: var(--workspace-bg-secondary);
 }
 
 /* TeX editor specific styles */
@@ -40,7 +40,7 @@
 .pdf-viewer {
   flex: 1;
   overflow: auto;
-  background: #525252;
+  background: var(--workspace-bg-secondary);
 }
 
 .pdf-viewer canvas {
@@ -84,7 +84,7 @@
   position: fixed;
   bottom: 20px;
   right: 20px;
-  background: white;
+  background: var(--workspace-bg-elevated);
   padding: 1rem;
   border-radius: 0.375rem;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);

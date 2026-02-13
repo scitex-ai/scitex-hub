@@ -10,7 +10,7 @@
  * - TableFillHandle: Fill handle drag functionality
  * - TableColumnRow: Column/row operations & resizing
  *
- * This shared component can be used across multiple apps (vis_app, code_app).
+ * This shared component can be used across multiple apps (vis_app, console_app).
  */
 
 import { Dataset, DataTableConfig } from './types.ts';

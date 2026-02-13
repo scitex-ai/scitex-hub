@@ -1,7 +1,8 @@
 /**
  * Search UI Handler
  *
- * Manages the search input box UI for the workspace files tree.
+ * Always-visible search input for the workspace files tree.
+ * Ctrl+K focuses it; Escape clears and blurs.
  */
 
 import type { SearchHandler } from "./SearchHandler";
@@ -16,11 +17,13 @@ export class SearchUIHandler {
   private container: HTMLElement;
   private searchHandler: SearchHandler;
   private callbacks: SearchUICallbacks;
+  private searchBox: HTMLDivElement | null = null;
+  private input: HTMLInputElement | null = null;
 
   constructor(
     container: HTMLElement,
     searchHandler: SearchHandler,
-    callbacks: SearchUICallbacks
+    callbacks: SearchUICallbacks,
   ) {
     this.container = container;
     this.searchHandler = searchHandler;
@@ -28,101 +31,123 @@ export class SearchUIHandler {
   }
 
   /**
-   * Show search input box (triggered by Ctrl+K)
+   * Render the search box (call once during init).
+   * The box is always visible at the top of the container.
    */
-  show(): void {
-    // Check if search input already exists
-    let searchBox = this.container.querySelector(
-      ".wft-search-box"
-    ) as HTMLDivElement;
-    if (searchBox) {
-      // Focus existing input
-      const input = searchBox.querySelector("input");
-      input?.focus();
-      input?.select();
-      return;
-    }
+  render(): void {
+    if (this.searchBox) return;
 
-    // Create search box
-    searchBox = document.createElement("div");
-    searchBox.className = "wft-search-box";
-    searchBox.innerHTML = `
+    this.searchBox = document.createElement("div");
+    this.searchBox.className = "wft-search-box";
+    this.searchBox.innerHTML = `
       <div class="wft-search-input-wrapper">
         <i class="fas fa-search wft-search-icon"></i>
-        <input type="text" class="wft-search-input" placeholder="Search files... (Esc to close)" autofocus />
-        <button class="wft-search-clear" title="Clear search (Esc)">
+        <input type="text" class="wft-search-input" placeholder="Filter files..." />
+        <kbd class="wft-search-kbd">Ctrl K</kbd>
+        <button class="wft-search-clear" title="Clear (Esc)" style="display: none;">
           <i class="fas fa-times"></i>
         </button>
       </div>
     `;
 
-    // Insert at top of container
-    this.container.insertBefore(searchBox, this.container.firstChild);
+    // Insert at the bottom of the container
+    this.container.appendChild(this.searchBox);
 
-    const input = searchBox.querySelector("input") as HTMLInputElement;
-    const clearBtn = searchBox.querySelector(
-      ".wft-search-clear"
+    this.input = this.searchBox.querySelector("input") as HTMLInputElement;
+    const clearBtn = this.searchBox.querySelector(
+      ".wft-search-clear",
     ) as HTMLButtonElement;
-
-    // Focus and select existing query if any
-    input.value = this.searchHandler.getQuery();
-    input.focus();
-    input.select();
+    const kbd = this.searchBox.querySelector(".wft-search-kbd") as HTMLElement;
 
     // Handle input changes with debounce
     let debounceTimer: number | null = null;
-    input.addEventListener("input", () => {
+    this.input.addEventListener("input", () => {
       if (debounceTimer) clearTimeout(debounceTimer);
       debounceTimer = window.setTimeout(() => {
-        this.callbacks.setSearchQuery(input.value);
+        const val = this.input!.value;
+        this.callbacks.setSearchQuery(val);
+        // Toggle clear button and kbd visibility
+        clearBtn.style.display = val ? "flex" : "none";
+        kbd.style.display = val ? "none" : "flex";
       }, 150);
     });
 
     // Handle keyboard events
-    input.addEventListener("keydown", (e) => {
+    this.input.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         e.preventDefault();
         e.stopPropagation();
-        this.hide();
+        this.clear();
       } else if (e.key === "Enter") {
         e.preventDefault();
-        // Navigate to first match
         const matches = this.searchHandler.getMatchingItems();
         if (matches.length > 0) {
           this.callbacks.selectFile(matches[0].path);
-          this.hide();
+          this.clear();
         }
       } else if (e.key === "ArrowDown") {
         e.preventDefault();
-        // Focus the tree for navigation
         this.container.focus();
+      }
+    });
+
+    // Hide kbd on focus, show on blur if empty
+    this.input.addEventListener("focus", () => {
+      kbd.style.display = "none";
+    });
+    this.input.addEventListener("blur", () => {
+      if (!this.input!.value) {
+        kbd.style.display = "flex";
       }
     });
 
     // Clear button
     clearBtn.addEventListener("click", () => {
-      input.value = "";
-      this.callbacks.clearSearch();
-      input.focus();
+      this.clear();
+      this.input!.focus();
     });
   }
 
   /**
-   * Hide search input box
+   * Focus the search input (triggered by Ctrl+K)
    */
-  hide(): void {
-    const searchBox = this.container.querySelector(".wft-search-box");
-    if (searchBox) {
-      searchBox.remove();
-      this.callbacks.clearSearch();
-      this.container.focus();
-    }
+  show(): void {
+    if (!this.searchBox) this.render();
+    this.input?.focus();
+    this.input?.select();
   }
 
   /**
-   * Check if search box is visible
+   * Clear search and blur
+   */
+  private clear(): void {
+    if (this.input) {
+      this.input.value = "";
+      this.input.blur();
+    }
+    this.callbacks.clearSearch();
+    const clearBtn = this.searchBox?.querySelector(
+      ".wft-search-clear",
+    ) as HTMLElement | null;
+    const kbd = this.searchBox?.querySelector(
+      ".wft-search-kbd",
+    ) as HTMLElement | null;
+    if (clearBtn) clearBtn.style.display = "none";
+    if (kbd) kbd.style.display = "flex";
+    this.container.focus();
+  }
+
+  /**
+   * Hide/remove search box (for cleanup)
+   */
+  hide(): void {
+    this.clear();
+  }
+
+  /**
+   * Check if search input is focused
    */
   isVisible(): boolean {
-    return !!this.container.querySelector(".wft-search-box");
+    return document.activeElement === this.input;
   }
 }

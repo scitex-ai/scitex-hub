@@ -215,6 +215,15 @@ async function initializeEditor(config: any): Promise<void> {
   // Set module-level PDF preview manager reference
   modulePdfPreviewManager = pdfPreviewManager;
 
+  // Re-compile preview when render quality (DPI) changes
+  document.addEventListener("pdf-quality-changed", () => {
+    const content = editor.getContent?.() ?? editor.getValue?.() ?? "";
+    if (content.trim() && pdfPreviewManager) {
+      console.log("[Writer] DPI changed, triggering preview recompilation");
+      pdfPreviewManager.compileQuick(content, state.currentSection);
+    }
+  });
+
   // Setup additional event listeners
   try {
     setupSectionListeners(sectionsManager, editor, state, writerStorage);

@@ -1,11 +1,10 @@
 {% extends "global_base.html" %}
+
 {% load static %}
-{% block title %}
-    {{ breadcrumb_path }} - {{ project.name }}
-{% endblock %}
+
+{% block title %}{{ breadcrumb_path }} - {{ project.name }}{% endblock %}
 {% block extra_css %}
-    <link rel="stylesheet"
-          href="{% static 'project_app/css/project_app.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/project_app.css' %}" />
     <!-- Browse CSS Modules - Refactored 2025-11-28 -->
     <link rel="stylesheet"
           href="{% static 'project_app/css/repository/browse/container-header.css' %}?v=20251129" />
@@ -34,12 +33,10 @@
     <link rel="stylesheet"
           href="{% static 'project_app/css/repository/browse/toolbar.css' %}" />
     <!-- Shared CSS -->
-    <link rel="stylesheet"
-          href="{% static 'project_app/css/shared/sidebar.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/shared/sidebar.css' %}" />
     <link rel="stylesheet"
           href="{% static 'project_app/css/shared/file-tree/index.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'project_app/css/shared/buttons.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/shared/buttons.css' %}" />
 {% endblock %}
 {% block content %}
     <div class="container-fluid browse-container">
@@ -49,9 +46,7 @@
         <div class="repo-layout" id="repo-layout">
             {% include "project_app/repository/browse_partials/browse_sidebar.html" %}
             <!-- Main Content (RIGHT side) -->
-            <div class="repo-main">
-                {% include "project_app/repository/browse_partials/browse_file_browser.html" %}
-            </div>
+            <div class="repo-main">{% include "project_app/repository/browse_partials/browse_file_browser.html" %}</div>
         </div>
     </div>
     {% include 'project_app/repository/browse_partials/browse_scripts.html' %}

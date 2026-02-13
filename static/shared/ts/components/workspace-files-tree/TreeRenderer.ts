@@ -12,6 +12,9 @@ export class TreeRenderer {
   private config: TreeConfig;
   private stateManager: TreeStateManager;
   private filter: TreeFilter;
+  private searchMatches: Set<string> = new Set();
+  private searchAncestors: Set<string> = new Set();
+  private searchActive = false;
 
   constructor(
     config: TreeConfig,
@@ -49,25 +52,35 @@ export class TreeRenderer {
       </div>`;
   }
 
+  /** Set search match info for color highlighting */
+  setSearchInfo(matches: Set<string>, ancestors: Set<string>): void {
+    this.searchMatches = matches;
+    this.searchAncestors = ancestors;
+    this.searchActive = matches.size > 0 || ancestors.size > 0;
+  }
+
+  /** Render git panel HTML (for placement outside tree content) */
+  renderGitPanelHtml(gitSummary?: {
+    staged: number;
+    modified: number;
+    untracked: number;
+  }): string {
+    if (this.config.showGitStatus === false || !gitSummary) return "";
+    return this.renderGitPanel(gitSummary);
+  }
+
   /** Render the entire tree */
   render(
     items: TreeItem[],
     gitSummary?: { staged: number; modified: number; untracked: number },
   ): string {
     const filteredItems = this.filter.filterTree(items);
-    let html = "";
 
-    // Render tree with root header
-    html += `<div class="wft-tree">`;
-    // Root item (project root) - clickable to select root for operations
+    // Render tree with root header (git panel rendered separately)
+    let html = `<div class="wft-tree">`;
     html += this.renderRootItem();
     html += this.renderItems(filteredItems, 0);
     html += `</div>`;
-
-    // Render git panel at bottom if git status is enabled
-    if (this.config.showGitStatus !== false && gitSummary) {
-      html += this.renderGitPanel(gitSummary);
-    }
 
     return html;
   }
@@ -99,7 +112,7 @@ export class TreeRenderer {
         <div class="wft-git-panel-header">
           <div class="wft-git-panel-title">
             <i class="fab fa-git-alt"></i>
-            <span>Source Control</span>
+            <span>Git</span>
           </div>
           <div class="wft-git-panel-actions">
             <button class="wft-git-panel-btn secondary" data-action="git-stage-all" title="Stage all changes">
@@ -166,10 +179,14 @@ export class TreeRenderer {
     const classes = ["wft-item", "wft-folder"];
     if (isExpanded) classes.push("expanded");
     if (isInactive) classes.push("inactive");
+    if (this.searchActive) {
+      if (this.searchMatches.has(item.path)) classes.push("wft-search-match");
+      else if (this.searchAncestors.has(item.path))
+        classes.push("wft-search-ancestor");
+      else classes.push("wft-search-dim");
+    }
 
-    // Git status data attributes for git-gutter styling
     const gitDataAttrs = this.getGitDataAttributes(item.git_status);
-    // Title shows full path with git status if present
     const titleAttr = this.getItemTitleAttribute(item.path, item.git_status);
 
     let html = `<div class="${classes.join(" ")}"
@@ -224,10 +241,12 @@ export class TreeRenderer {
     if (isDisabled) classes.push("disabled");
     if (isSelected) classes.push("selected");
     if (isTarget) classes.push("target");
+    if (this.searchActive) {
+      if (this.searchMatches.has(item.path)) classes.push("wft-search-match");
+      else classes.push("wft-search-dim");
+    }
 
-    // Git status data attributes for git-gutter styling
     const gitDataAttrs = this.getGitDataAttributes(item.git_status);
-    // Title shows full path with git status if present
     const titleAttr = this.getItemTitleAttribute(item.path, item.git_status);
 
     let html = `<div class="${classes.join(" ")}"

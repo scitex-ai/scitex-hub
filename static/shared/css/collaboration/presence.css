@@ -8,32 +8,37 @@
  * ========================================================================== */
 
 .collab-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 4px 12px;
-    border-radius: 12px;
-    background-color: #e8f5e9;
-    color: #2e7d32;
-    font-size: 12px;
-    font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border-radius: 12px;
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .collab-status.collab-active {
-    animation: pulse 2s infinite;
+  animation: pulse 2s infinite;
 }
 
 .collab-status::before {
-    content: '';
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background-color: #4caf50;
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #4caf50;
 }
 
 @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.7; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 
 /* ============================================================================
@@ -41,41 +46,41 @@
  * ========================================================================== */
 
 #collaborators-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 12px;
-    max-height: 200px;
-    overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  max-height: 200px;
+  overflow-y: auto;
 }
 
 .collaborator-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 8px;
-    border-radius: 4px;
-    background-color: #f5f5f5;
-    transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  background-color: #f5f5f5;
+  transition: background-color 0.2s;
 }
 
 .collaborator-item:hover {
-    background-color: #e0e0e0;
+  background-color: #e0e0e0;
 }
 
 .collaborator-indicator {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    border: 2px solid #fff;
-    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
 }
 
 .collaborator-name {
-    font-size: 13px;
-    font-weight: 500;
-    color: #333;
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
 }
 
 /* ============================================================================
@@ -83,50 +88,51 @@
  * ========================================================================== */
 
 #collaboration-toggle {
-    position: relative;
-    padding: 8px 16px;
-    border: 2px solid #e0e0e0;
-    border-radius: 8px;
-    background-color: #fff;
-    color: #666;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
+  position: relative;
+  padding: 8px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #fff;
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 #collaboration-toggle:hover {
-    border-color: #4caf50;
-    color: #4caf50;
+  border-color: #4caf50;
+  color: #4caf50;
 }
 
 #collaboration-toggle.active {
-    border-color: #4caf50;
-    background-color: #4caf50;
-    color: #fff;
+  border-color: #4caf50;
+  background-color: #4caf50;
+  color: #fff;
 }
 
 #collaboration-toggle.active::before {
-    content: '';
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background-color: #fff;
-    animation: pulse-dot 1.5s infinite;
+  content: "";
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #fff;
+  animation: pulse-dot 1.5s infinite;
 }
 
 @keyframes pulse-dot {
-    0%, 100% {
-        opacity: 1;
-        transform: scale(1);
-    }
-    50% {
-        opacity: 0.5;
-        transform: scale(1.2);
-    }
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.2);
+  }
 }
 
 /* ============================================================================
@@ -134,18 +140,18 @@
  * ========================================================================== */
 
 #collaboration-info {
-    margin-top: 16px;
-    padding: 16px;
-    background-color: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
+  margin-top: 16px;
+  padding: 16px;
+  background-color: var(--bg-muted);
+  border: 1px solid var(--border-muted);
+  border-radius: 8px;
 }
 
 #collaboration-info h4 {
-    margin: 0 0 12px 0;
-    font-size: 14px;
-    font-weight: 600;
-    color: #333;
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
 }
 
 /* ============================================================================
@@ -153,33 +159,33 @@
  * ========================================================================== */
 
 .connection-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    color: #666;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #666;
 }
 
 .connection-status::before {
-    content: '';
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background-color: #ccc;
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #ccc;
 }
 
 .connection-status.connected::before {
-    background-color: #4caf50;
-    animation: pulse-dot 2s infinite;
+  background-color: #4caf50;
+  animation: pulse-dot 2s infinite;
 }
 
 .connection-status.connecting::before {
-    background-color: #ff9800;
-    animation: pulse-dot 1s infinite;
+  background-color: #ff9800;
+  animation: pulse-dot 1s infinite;
 }
 
 .connection-status.disconnected::before {
-    background-color: #f44336;
+  background-color: #f44336;
 }
 
 /* ============================================================================
@@ -187,14 +193,14 @@
  * ========================================================================== */
 
 .collaborators-grid {
-    padding: 12px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    overflow-y: auto;
-    flex: 1;
-    min-height: 0;
-    align-content: flex-start;
+  padding: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 60px;
+  align-content: flex-start;
 }
 
 /* ============================================================================
@@ -202,50 +208,62 @@
  * ========================================================================== */
 
 .connection-status-badge {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    background: var(--workspace-bg-secondary);
-    border-radius: 12px;
-    font-size: 12px;
-    border: 1px solid var(--workspace-border-default);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--workspace-bg-secondary);
+  border-radius: 12px;
+  font-size: 12px;
+  border: 1px solid var(--workspace-border-default);
 }
 
 .status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .status-dot.online {
-    background: #28a745;
-    animation: pulse-green 2s infinite;
+  background: #28a745;
+  animation: pulse-green 2s infinite;
 }
 
 .status-dot.offline {
-    background: #6c757d;
+  background: #6c757d;
 }
 
 .status-dot.connecting {
-    background: #ffa500;
-    animation: pulse-orange 1s infinite;
+  background: #ffa500;
+  animation: pulse-orange 1s infinite;
 }
 
 @keyframes pulse-green {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.6; transform: scale(1.1); }
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
 }
 
 @keyframes pulse-orange {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .status-text {
-    color: var(--workspace-text-primary);
-    font-weight: 500;
+  color: var(--workspace-text-primary);
+  font-weight: 500;
 }
 
 /* ============================================================================
@@ -253,50 +271,50 @@
  * ========================================================================== */
 
 [data-theme="dark"] .collab-status {
-    background-color: rgba(76, 175, 80, 0.15);
-    color: #81c784;
+  background-color: rgba(76, 175, 80, 0.15);
+  color: #81c784;
 }
 
 [data-theme="dark"] .collaborator-item {
-    background-color: rgba(255, 255, 255, 0.05);
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 [data-theme="dark"] .collaborator-item:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 [data-theme="dark"] .collaborator-name {
-    color: var(--text-primary, #e8e8e8);
+  color: var(--text-primary, #e8e8e8);
 }
 
 [data-theme="dark"] #collaboration-toggle {
-    border-color: rgba(255, 255, 255, 0.12);
-    background-color: rgba(255, 255, 255, 0.05);
-    color: var(--text-primary, #e8e8e8);
+  border-color: rgba(255, 255, 255, 0.12);
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary, #e8e8e8);
 }
 
 [data-theme="dark"] #collaboration-toggle:hover {
-    border-color: #4caf50;
-    color: #81c784;
+  border-color: #4caf50;
+  color: #81c784;
 }
 
 [data-theme="dark"] #collaboration-toggle.active {
-    border-color: #4caf50;
-    background-color: #4caf50;
-    color: #fff;
+  border-color: #4caf50;
+  background-color: #4caf50;
+  color: #fff;
 }
 
 [data-theme="dark"] #collaboration-info {
-    background-color: rgba(255, 255, 255, 0.03);
-    border-color: rgba(255, 255, 255, 0.12);
+  background-color: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 [data-theme="dark"] #collaboration-info h4 {
-    color: var(--text-primary, #e8e8e8);
+  color: var(--text-primary, #e8e8e8);
 }
 
 [data-theme="dark"] .connection-status {
-    color: var(--text-secondary, #b0b0b0);
+  color: var(--text-secondary, #b0b0b0);
 }
 
 /* ============================================================================
@@ -304,15 +322,15 @@
  * ========================================================================== */
 
 @media (max-width: 768px) {
-    #collaborators-list {
-        max-height: 150px;
-    }
+  #collaborators-list {
+    max-height: 150px;
+  }
 
-    .collaborator-item {
-        padding: 4px 6px;
-    }
+  .collaborator-item {
+    padding: 4px 6px;
+  }
 
-    .collaborator-name {
-        font-size: 12px;
-    }
+  .collaborator-name {
+    font-size: 12px;
+  }
 }

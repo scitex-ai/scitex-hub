@@ -136,7 +136,7 @@ describe('main', () => {
 //   const moduleRoutes: Record<string, string> = {
 //     'f': '/files/',
 //     's': '/scholar/',
-//     'c': '/code/',
+//     'c': '/console/',
 //     'v': '/vis/',
 //     'w': '/writer/',
 //   };

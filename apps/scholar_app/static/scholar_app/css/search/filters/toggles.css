@@ -53,7 +53,7 @@
 #source_crossref:checked + .scitex-toggle-label {
   background-color: #3498db !important;
   border-color: #3498db !important;
-  color: white !important;
+  color: var(--text-inverse) !important;
 }
 
 /* PubMed - Red */
@@ -67,7 +67,7 @@
 #source_pubmed:checked + .scitex-toggle-label {
   background-color: #e74c3c !important;
   border-color: #e74c3c !important;
-  color: white !important;
+  color: var(--text-inverse) !important;
 }
 
 /* Semantic Scholar - Purple */
@@ -81,7 +81,7 @@
 #source_semantic:checked + .scitex-toggle-label {
   background-color: #9b59b6 !important;
   border-color: #9b59b6 !important;
-  color: white !important;
+  color: var(--text-inverse) !important;
 }
 
 /* arXiv - Orange */
@@ -95,7 +95,7 @@
 #source_arxiv:checked + .scitex-toggle-label {
   background-color: #f39c12 !important;
   border-color: #f39c12 !important;
-  color: white !important;
+  color: var(--text-inverse) !important;
 }
 
 /* OpenAlex - Teal */
@@ -109,7 +109,7 @@
 #source_openalex:checked + .scitex-toggle-label {
   background-color: #1abc9c !important;
   border-color: #1abc9c !important;
-  color: white !important;
+  color: var(--text-inverse) !important;
 }
 
 /* Source badge sizing and layout */

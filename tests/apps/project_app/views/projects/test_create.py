@@ -161,7 +161,7 @@ if __name__ == "__main__":
 #             handle_scitex_initialization(request, project, manager)
 # 
 #         return redirect(
-#             "user_projects:detail",
+#             "project_app:detail",
 #             username=request.user.username,
 #             slug=project.slug,
 #         )
