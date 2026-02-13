@@ -279,6 +279,16 @@ urlpatterns = [
         api_views.stats_flowchart,
         name="api_stats_flowchart",
     ),
+    path(
+        "api/stats/plot/",
+        api_views.stats_plot,
+        name="api_stats_plot",
+    ),
+    path(
+        "api/plot/",
+        api_views.plot_endpoint,
+        name="api_plot",
+    ),
 ]
 
 # EOF

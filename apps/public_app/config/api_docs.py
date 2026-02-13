@@ -33,28 +33,31 @@ API_DOC_SECTIONS = {
             {"id": "rate-limits", "title": "Rate Limits", "emoji": "🚦"},
         ],
     },
-    "public-api": {
-        "emoji": "🌐",
-        "text": "Public API",
-        "title": "🌐 Public API",
-        "template": "public_app/pages/api-docs-partials/public-api.html",
-        "badge": "New",
-        "subsections": [
-            {"id": "public-search", "title": "Public Search", "emoji": "🔍"},
-            {"id": "public-info", "title": "API Info", "emoji": "ℹ️"},
-        ],
-    },
     "scholar-api": {
         "emoji": "📚",
         "text": "Scholar API",
         "title": "📚 Scholar API",
         "template": "public_app/pages/api-docs-partials/scholar-api.html",
         "subsections": [
+            {"id": "public-search", "title": "Public Search", "emoji": "🌐"},
+            {"id": "public-info", "title": "API Info", "emoji": "ℹ️"},
             {"id": "scholar-search", "title": "Search Papers", "emoji": "🔍"},
             {"id": "scholar-databases", "title": "Database Search", "emoji": "🗄️"},
             {"id": "scholar-bibtex", "title": "BibTeX Enrichment", "emoji": "📝"},
             {"id": "scholar-export", "title": "Export Citations", "emoji": "📤"},
             {"id": "scholar-library", "title": "Library Management", "emoji": "📖"},
+        ],
+    },
+    "plot-api": {
+        "emoji": "🎨",
+        "text": "Plot API",
+        "title": "🎨 Plot API",
+        "template": "public_app/pages/api-docs-partials/plot-api.html",
+        "badge": "New",
+        "subsections": [
+            {"id": "plot-quick", "title": "Quick Plot", "emoji": "🖼️"},
+            {"id": "plot-create", "title": "Create Plot", "emoji": "🔧"},
+            {"id": "plot-types", "title": "Plot Types", "emoji": "📊"},
         ],
     },
     "stats-api": {
@@ -64,6 +67,7 @@ API_DOC_SECTIONS = {
         "template": "public_app/pages/api-docs-partials/stats-api.html",
         "badge": "New",
         "subsections": [
+            {"id": "stats-plot", "title": "Quick Plot", "emoji": "🖼️"},
             {"id": "stats-calculate", "title": "Run Tests", "emoji": "🧪"},
             {"id": "stats-describe", "title": "Descriptive", "emoji": "📈"},
             {"id": "stats-recommend", "title": "Recommendations", "emoji": "💡"},
@@ -111,8 +115,8 @@ API_DOC_SECTIONS = {
 # Order of sections in navigation
 API_DOC_SECTION_ORDER = [
     "getting-started",
-    "public-api",
     "scholar-api",
+    "plot-api",
     "stats-api",
     "writer-api",
     "project-api",

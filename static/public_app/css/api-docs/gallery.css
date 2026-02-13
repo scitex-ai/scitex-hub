@@ -1,0 +1,51 @@
+/**
+ * API Documentation - Plot Gallery
+ * Live preview grid for plot API examples
+ */
+
+/* Plot Gallery — live preview grid */
+.api-plot-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+.api-plot-item {
+  background: var(--color-canvas-subtle, var(--bg-secondary));
+  border: 1px solid var(--color-border-default, var(--border-color));
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.api-plot-item > strong {
+  display: block;
+  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+  color: var(--color-fg-default);
+}
+
+.api-live-preview {
+  text-align: center;
+  margin-bottom: 0.75rem;
+  background: white;
+  border-radius: 6px;
+  padding: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.api-live-preview img {
+  max-width: 100%;
+  max-height: 240px;
+  border-radius: 4px;
+}
+
+.api-plot-item .api-example {
+  margin-bottom: 0;
+}
+
+.api-plot-item .api-example-body pre {
+  font-size: 0.7rem;
+  white-space: pre-wrap;
+  word-break: break-all;
+}

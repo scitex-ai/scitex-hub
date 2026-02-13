@@ -1,0 +1,23 @@
+{
+  "defaults": {
+    "standard": "WCAG2AA",
+    "runners": ["axe"],
+    "chromeLaunchConfig": {
+      "args": ["--no-sandbox", "--disable-setuid-sandbox"]
+    },
+    "timeout": 30000,
+    "wait": 1000
+  },
+  "urls": [
+    "http://127.0.0.1:8000/",
+    "http://127.0.0.1:8000/tools/",
+    "http://127.0.0.1:8000/api-docs/",
+    "http://127.0.0.1:8000/api-docs/scholar-api/",
+    "http://127.0.0.1:8000/api-docs/plot-api/",
+    "http://127.0.0.1:8000/api-docs/stats-api/",
+    "http://127.0.0.1:8000/api-docs/writer-api/",
+    "http://127.0.0.1:8000/api-docs/project-api/",
+    "http://127.0.0.1:8000/api-docs/resources/",
+    "http://127.0.0.1:8000/dev/tests/"
+  ]
+}

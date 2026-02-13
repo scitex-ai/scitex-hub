@@ -24,12 +24,14 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from .api_docx import docx2tex_convert
+from .api_plot import plot_endpoint  # noqa: F401
 from .api_stats import (
     stats_calculate,
     stats_correct,
     stats_describe,
     stats_effect_size,
     stats_flowchart,  # noqa: F401
+    stats_plot,  # noqa: F401
     stats_posthoc,
     stats_power,
     stats_recommend,
@@ -48,11 +50,13 @@ logger = logging.getLogger("scitex")  # noqa: STX-I007
 __all__ = [
     "read_image_metadata",
     "docx2tex_convert",
+    "plot_endpoint",
     "stats_calculate",
     "stats_correct",
     "stats_describe",
     "stats_effect_size",
     "stats_flowchart",
+    "stats_plot",
     "stats_posthoc",
     "stats_power",
     "stats_recommend",

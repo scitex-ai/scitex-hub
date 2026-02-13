@@ -22,10 +22,10 @@
   font-size: 0.75rem;
   font-weight: 600;
   padding: 0.35rem 0.75rem;
-  background: rgba(var(--scitex-color-01-rgb, 99, 102, 241), 0.15);
-  color: var(--scitex-color-01);
+  background: var(--bg-muted);
+  color: var(--text-primary);
   border-radius: 20px;
-  border: 1px solid var(--scitex-color-01);
+  border: 1px solid var(--border-default);
 }
 
 /* Download Dropdown */

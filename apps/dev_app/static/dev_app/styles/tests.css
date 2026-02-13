@@ -257,6 +257,71 @@
   margin-left: 1rem;
 }
 
+/* Category Header */
+.test-category-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.test-category-header .tests-section-title {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.test-category-count {
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+}
+
+.test-category-count.all-pass {
+  background: rgba(40, 167, 69, 0.12);
+  color: var(--success-color, #28a745);
+}
+
+.test-category-count.has-fail {
+  background: rgba(220, 53, 69, 0.12);
+  color: var(--danger-color, #dc3545);
+}
+
+.test-category {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.test-category:last-child {
+  border-bottom: none;
+}
+
+/* Test Card Row Layout */
+.test-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+/* Plot Preview */
+.test-preview {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: center;
+}
+
+.test-preview img {
+  max-width: 280px;
+  max-height: 210px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: white;
+}
+
 /* Responsive */
 @media (max-width: 992px) {
   .tests-layout {
