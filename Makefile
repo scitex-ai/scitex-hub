@@ -184,18 +184,16 @@ validate-docker:
 	@echo -e "$(CYAN)🔍 Checking for container conflicts...$(NC)"
 	@RUNNING=$$(docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-cloud-(dev|staging|prod)-' | sed 's/scitex-cloud-//' | sed 's/-//' | sort -u); \
 	COUNT=$$(echo "$$RUNNING" | wc -w); \
-	if [ $$COUNT -gt 1 ]; then \
-		echo -e "$(RED)❌ CONFLICT: Multiple environments running:$(NC)"; \
-		for env in $$RUNNING; do \
-			echo "  - $$env"; \
-		done; \
-		echo -e "$(YELLOW)   Run 'make stop-all' to clean up$(NC)"; \
-		exit 1; \
-	fi; \
+	HAS_DEV=$$(echo "$$RUNNING" | grep -c 'dev' || true); \
 	if [ $$COUNT -eq 0 ]; then \
 		echo -e "$(GREEN)✅ No containers running$(NC)"; \
-	else \
+	elif [ $$COUNT -eq 1 ]; then \
 		echo -e "$(GREEN)✅ Only $$RUNNING is running$(NC)"; \
+	elif [ $$HAS_DEV -gt 0 ] && [ $$COUNT -gt 1 ]; then \
+		echo -e "$(YELLOW)⚠️  Warning: dev running with other environments (may have port conflicts)$(NC)"; \
+		for env in $$RUNNING; do echo "  - $$env"; done; \
+	else \
+		echo -e "$(GREEN)✅ Running environments: $$RUNNING$(NC)"; \
 	fi
 
 # Validation alias

@@ -25,7 +25,7 @@
   background: var(--bg-muted);
   color: var(--text-primary);
   border-radius: 20px;
-  border: 1px solid var(--border-default);
+  border: 1px solid var(--border-muted);
 }
 
 /* Download Dropdown */
@@ -41,8 +41,8 @@
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
   font-weight: 500;
-  color: white;
-  background: var(--scitex-color-01);
+  color: var(--text-inverse);
+  background: var(--text-primary);
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -50,7 +50,7 @@
 }
 
 .btn-download:hover {
-  background: var(--scitex-color-02, #4f46e5);
+  opacity: 0.85;
 }
 
 .download-menu {
@@ -59,11 +59,11 @@
   right: 0;
   top: 100%;
   margin-top: 0.5rem;
-  background: var(--color-canvas-overlay, #1c1c1c);
-  border: 1px solid var(--color-border-default);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
   border-radius: 6px;
   min-width: 180px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 100;
 }
 
@@ -76,14 +76,14 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1rem;
-  color: var(--color-fg-default);
+  color: var(--text-primary);
   text-decoration: none;
   font-size: 0.875rem;
   transition: background 0.15s ease;
 }
 
 .download-menu a:hover {
-  background: var(--color-canvas-subtle);
+  background: var(--bg-muted);
 }
 
 .download-menu a:first-child {
@@ -97,7 +97,7 @@
 .download-menu i {
   width: 16px;
   text-align: center;
-  color: var(--scitex-color-01);
+  color: var(--text-muted);
 }
 
 /* Alpha Notice Banner */
@@ -105,26 +105,22 @@
   display: flex;
   align-items: flex-start;
   gap: 1rem;
-  background: linear-gradient(
-    135deg,
-    rgba(251, 191, 36, 0.15) 0%,
-    rgba(217, 119, 6, 0.1) 100%
-  );
-  border: 1px solid rgba(251, 191, 36, 0.4);
-  border-radius: 12px;
+  background: var(--status-warning-bg);
+  border: 1px solid var(--status-warning-border);
+  border-radius: 8px;
   padding: 1rem 1.25rem;
   margin-bottom: 1.5rem;
 }
 
 .api-alpha-notice > i {
-  color: #f59e0b;
+  color: var(--status-warning);
   font-size: 1.25rem;
   flex-shrink: 0;
   margin-top: 0.1rem;
 }
 
 .api-alpha-notice strong {
-  color: #f59e0b;
+  color: var(--status-warning);
   font-size: 1rem;
   display: block;
   margin-bottom: 0.25rem;
@@ -141,17 +137,17 @@
 .api-section-title {
   font-size: 2rem;
   font-weight: 700;
-  color: var(--color-fg-default);
+  color: var(--text-primary);
   margin-bottom: 2rem;
   padding-bottom: 1rem;
-  border-bottom: 2px solid var(--scitex-color-01);
+  border-bottom: 2px solid var(--border-default);
 }
 
 /* Section Styling */
 .api-section {
   margin-bottom: 4rem;
   padding-bottom: 2rem;
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: 1px solid var(--border-muted);
 }
 
 .api-section:last-of-type {
@@ -161,7 +157,7 @@
 .api-section h2 {
   font-size: 1.75rem;
   font-weight: 600;
-  color: var(--color-fg-default);
+  color: var(--text-primary);
   margin-bottom: 1rem;
   display: flex;
   align-items: center;
@@ -169,13 +165,13 @@
 }
 
 .api-section h2 i {
-  color: var(--scitex-color-01);
+  color: var(--text-muted);
   font-size: 1.5rem;
 }
 
 .api-lead {
   font-size: 1.125rem;
-  color: var(--color-fg-muted);
+  color: var(--text-muted);
   line-height: 1.7;
   margin-bottom: 2rem;
 }
@@ -183,48 +179,44 @@
 .api-section h3 {
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--color-fg-default);
+  color: var(--text-primary);
   margin: 2rem 0 1rem;
 }
 
 .api-section h4 {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--color-fg-default);
+  color: var(--text-primary);
   margin: 1.5rem 0 0.75rem;
 }
 
 .api-section h5 {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--color-fg-muted);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin: 1rem 0 0.5rem;
 }
 
 .api-section > p {
-  color: var(--color-fg-muted);
+  color: var(--text-muted);
   line-height: 1.6;
   margin-bottom: 1.5rem;
 }
 
 /* Highlight Box (for important callouts) */
 .api-highlight-box {
-  background: linear-gradient(
-    135deg,
-    rgba(var(--scitex-color-01-rgb, 99, 102, 241), 0.1),
-    rgba(var(--scitex-color-01-rgb, 99, 102, 241), 0.05)
-  );
-  border: 1px solid var(--scitex-color-01);
+  background: var(--bg-muted);
+  border: 1px solid var(--border-default);
   border-radius: 8px;
   padding: 1rem 1.25rem;
   margin-bottom: 1.5rem;
-  color: var(--color-fg-default);
+  color: var(--text-primary);
 }
 
 .api-highlight-box strong {
-  color: var(--scitex-color-01);
+  color: var(--text-primary);
 }
 
 /* Badge for new features */
@@ -235,8 +227,8 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   padding: 0.2rem 0.5rem;
-  background: var(--scitex-color-01);
-  color: white;
+  background: var(--text-muted);
+  color: var(--text-inverse);
   border-radius: 4px;
   vertical-align: middle;
   margin-left: 0.5rem;
@@ -251,8 +243,8 @@
 }
 
 .api-info-card {
-  background: var(--color-canvas-subtle);
-  border: 1px solid var(--color-border-default);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-muted);
   border-radius: 8px;
   padding: 1.25rem;
   text-align: center;
@@ -265,7 +257,7 @@
 
 .api-info-icon {
   font-size: 1.5rem;
-  color: var(--scitex-color-01);
+  color: var(--text-muted);
   margin-bottom: 0.5rem;
 }
 
@@ -274,14 +266,14 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--color-fg-muted);
+  color: var(--text-muted);
   margin: 0 0 0.25rem;
 }
 
 .api-info-card code,
 .api-info-card span {
   font-size: 0.9375rem;
-  color: var(--color-fg-default);
+  color: var(--text-primary);
 }
 
 .api-base-url {
@@ -303,7 +295,7 @@
   transform: translateX(-50%);
   display: flex;
   gap: 2px;
-  background: var(--color-canvas-inset);
+  background: var(--bg-muted);
   border-radius: 4px;
   padding: 2px;
 }
@@ -317,18 +309,18 @@
   background: transparent;
   border: none;
   border-radius: 3px;
-  color: var(--color-fg-muted);
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .switch-btn:hover {
-  color: var(--color-fg-default);
+  color: var(--text-primary);
 }
 
 .switch-btn.active {
-  background: var(--scitex-color-01);
-  color: white;
+  background: var(--text-primary);
+  color: var(--text-inverse);
 }
 
 .api-switchable-value {
@@ -348,7 +340,7 @@
   right: 0.5rem;
   background: transparent;
   border: none;
-  color: var(--color-fg-muted);
+  color: var(--text-muted);
   cursor: pointer;
   padding: 0.25rem;
   opacity: 0;
@@ -360,11 +352,11 @@
 }
 
 .copy-btn-mini:hover {
-  color: var(--scitex-color-01);
+  color: var(--text-primary);
 }
 
 .copy-btn-mini.copied {
-  color: var(--color-success-fg);
+  color: var(--status-success);
 }
 
 /* Tabs */
@@ -372,7 +364,7 @@
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1.5rem;
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: 1px solid var(--border-muted);
   padding-bottom: 0;
 }
 
@@ -380,7 +372,7 @@
   padding: 0.75rem 1.25rem;
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--color-fg-muted);
+  color: var(--text-muted);
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
@@ -390,12 +382,12 @@
 }
 
 .api-tab:hover {
-  color: var(--color-fg-default);
+  color: var(--text-primary);
 }
 
 .api-tab.active {
-  color: var(--scitex-color-01);
-  border-bottom-color: var(--scitex-color-01);
+  color: var(--text-primary);
+  border-bottom-color: var(--text-primary);
 }
 
 .api-tab-content {
@@ -411,9 +403,9 @@
   display: flex;
   gap: 0;
   margin-bottom: 0;
-  background: var(--color-canvas-inset);
+  background: var(--bg-muted);
   border-radius: 6px 6px 0 0;
-  border: 1px solid var(--color-border-default);
+  border: 1px solid var(--border-muted);
   border-bottom: none;
   overflow: hidden;
 }
@@ -422,7 +414,7 @@
   padding: 0.5rem 1rem;
   font-size: 0.75rem;
   font-weight: 500;
-  color: var(--color-fg-muted);
+  color: var(--text-muted);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -432,21 +424,17 @@
 }
 
 .api-example-tab:hover {
-  color: var(--color-fg-default);
-  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+  background: rgba(0, 0, 0, 0.03);
 }
 
 .api-example-tab.active {
-  color: var(--scitex-color-01);
-  background: var(--color-canvas-default);
+  color: var(--text-primary);
+  background: var(--bg-surface);
 }
 
 .api-example-tab.campaign-tab {
-  border-left: 1px solid var(--color-border-default);
-}
-
-.api-example-tab.campaign-tab::before {
-  content: "🎯 ";
+  border-left: 1px solid var(--border-muted);
 }
 
 .api-example.with-tabs .api-example-header {
@@ -463,7 +451,7 @@
 
 /* Campaign token highlight */
 .token-highlight {
-  background: rgba(var(--scitex-color-01-rgb, 99, 102, 241), 0.2);
+  background: var(--bg-muted);
   border-radius: 3px;
   padding: 0 0.25rem;
 }

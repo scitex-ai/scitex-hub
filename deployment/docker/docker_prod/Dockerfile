@@ -45,7 +45,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Install scitex from PyPI with all extras
 # Use --refresh to force fresh package resolution (avoid stale cache picking old versions)
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system --refresh "scitex[all]==2.16.2"
+    uv pip install --system --refresh "scitex[all]>=2.17.8"
 
 # Pre-generate matplotlib font cache (avoids 10+ minute startup delay)
 RUN echo "Pre-generating matplotlib font cache..." && \

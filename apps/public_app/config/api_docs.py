@@ -25,6 +25,7 @@ API_DOC_SECTIONS = {
         "text": "Getting Started",
         "title": "🚀 Getting Started",
         "template": "public_app/pages/api-docs-partials/getting-started.html",
+        "visibility": "public",
         "subsections": [
             {"id": "introduction", "title": "Introduction", "emoji": "📖"},
             {"id": "authentication", "title": "Authentication", "emoji": "🔐"},
@@ -38,6 +39,7 @@ API_DOC_SECTIONS = {
         "text": "Scholar API",
         "title": "📚 Scholar API",
         "template": "public_app/pages/api-docs-partials/scholar-api.html",
+        "visibility": "public",
         "subsections": [
             {"id": "public-search", "title": "Public Search", "emoji": "🌐"},
             {"id": "public-info", "title": "API Info", "emoji": "ℹ️"},
@@ -53,6 +55,7 @@ API_DOC_SECTIONS = {
         "text": "Plot API",
         "title": "🎨 Plot API",
         "template": "public_app/pages/api-docs-partials/plot-api.html",
+        "visibility": "public",
         "badge": "New",
         "subsections": [
             {"id": "plot-quick", "title": "Quick Plot", "emoji": "🖼️"},
@@ -65,6 +68,7 @@ API_DOC_SECTIONS = {
         "text": "Stats API",
         "title": "📊 Stats API",
         "template": "public_app/pages/api-docs-partials/stats-api.html",
+        "visibility": "public",
         "badge": "New",
         "subsections": [
             {"id": "stats-plot", "title": "Quick Plot", "emoji": "🖼️"},
@@ -83,6 +87,7 @@ API_DOC_SECTIONS = {
         "text": "Writer API",
         "title": "✍️ Writer API",
         "template": "public_app/pages/api-docs-partials/writer-api.html",
+        "visibility": "internal",
         "subsections": [
             {"id": "writer-sections", "title": "Sections", "emoji": "📑"},
             {"id": "writer-compile", "title": "Compilation", "emoji": "⚙️"},
@@ -94,6 +99,7 @@ API_DOC_SECTIONS = {
         "text": "Project API",
         "title": "📁 Project API",
         "template": "public_app/pages/api-docs-partials/project-api.html",
+        "visibility": "internal",
         "subsections": [
             {"id": "project-files", "title": "File Operations", "emoji": "📄"},
             {"id": "project-git", "title": "Git Operations", "emoji": "🔀"},
@@ -104,6 +110,7 @@ API_DOC_SECTIONS = {
         "text": "Resources",
         "title": "📦 Resources",
         "template": "public_app/pages/api-docs-partials/resources.html",
+        "visibility": "internal",
         "subsections": [
             {"id": "sdks", "title": "SDKs & Libraries", "emoji": "🛠️"},
             {"id": "webhooks", "title": "Webhooks", "emoji": "🔔"},

@@ -289,30 +289,6 @@ services:
       retries: 3
       start_period: 180s
 
-  # CrossRef API - Fast local paper metadata search
-  crossref:
-    build:
-      context: ../crossref_local
-      dockerfile: Dockerfile
-    image: scitex-crossref-prod:latest
-    ports:
-      - "31291:31291"
-    volumes:
-      # Mount CrossRef database from host (read-only)
-      - /home/ywatanabe/proj/crossref-local/data:/data:ro
-    environment:
-      - CROSSREF_DB_PATH=/data/crossref.db
-      - LOG_LEVEL=info
-    restart: always
-    networks:
-      - scitex-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "--max-time", "25", "http://localhost:31291/health"]
-      interval: 30s
-      timeout: 30s
-      retries: 3
-      start_period: 120s
-
   # Umami - Privacy-focused web analytics
   umami:
     image: ghcr.io/umami-software/umami:postgresql-latest
@@ -404,7 +380,6 @@ services:
     depends_on:
       - django
       - gitea
-      - crossref
       - ws_ssh_proxy
     restart: always
     networks:

@@ -20,7 +20,11 @@ logger = logging.getLogger("scitex")
 
 # Chart output directory (shared between Django and Celery containers via /app volume)
 CHART_DIR = Path("/app/data/charts")
-CHART_DIR.mkdir(exist_ok=True)
+try:
+    CHART_DIR.mkdir(parents=True, exist_ok=True)
+except (OSError, FileNotFoundError):
+    # Flower container doesn't have data volume mounted - skip directory creation
+    pass
 
 # Supported configurations
 METRIC_TYPES = [

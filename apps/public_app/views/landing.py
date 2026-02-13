@@ -4,6 +4,7 @@
 # File: /home/ywatanabe/proj/scitex-cloud/apps/public_app/views/landing.py
 # ----------------------------------------
 from __future__ import annotations
+
 import os
 
 __FILE__ = "./apps/public_app/views/landing.py"
@@ -16,7 +17,36 @@ Landing and Marketing Views
 Handles landing page and premium subscription pricing.
 """
 
+import importlib.metadata
+
 from django.shortcuts import render
+
+# Pip package names for ecosystem table (scitex-cloud uses SCITEX_CLOUD_VERSION from context processor)
+_ECOSYSTEM_PACKAGES = [
+    "scitex",
+    "figrecipe",
+    "scitex-writer",
+    "scitex-dataset",
+    "scitex-linter",
+    "crossref-local",
+    "openalex-local",
+]
+
+
+def _get_ecosystem_versions():
+    """Get installed versions of ecosystem packages.
+
+    Returns dict with underscored keys (Django templates can't handle hyphens).
+    e.g. {"scitex": "2.17.7", "figrecipe": "1.2.0", ...}
+    """
+    versions = {}
+    for pkg in _ECOSYSTEM_PACKAGES:
+        key = pkg.replace("-", "_")
+        try:
+            versions[key] = importlib.metadata.version(pkg)
+        except importlib.metadata.PackageNotFoundError:
+            versions[key] = ""
+    return versions
 
 
 def index(request):
@@ -26,10 +56,10 @@ def index(request):
     Shows the landing page to all visitors, including authenticated users.
     Visitor auto-login is handled by VisitorAutoLoginMiddleware.
     """
-    # Features are now in HTML partials at:
-    # apps/public_app/templates/public_app/landing_partials/features/
-
-    return render(request, "public_app/landing.html")
+    context = {
+        "ecosystem_versions": _get_ecosystem_versions(),
+    }
+    return render(request, "public_app/landing.html", context)
 
 
 def premium_subscription(request):

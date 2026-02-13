@@ -15,214 +15,260 @@
                     <tr>
                         <th>Python Package</th>
                         <th>Python Module</th>
+                        <th>Version</th>
                         <th>Description</th>
-                        <th>Links</th>
+                        <th>GitHub</th>
+                        <th>Docs</th>
                     </tr>
                 </thead>
                 <tbody>
                     <!-- scitex-python (main package) -->
                     <tr>
                         <td class="package-name">
-                            <strong>scitex-python</strong>
-                            <span class="badge badge-primary">Core</span>
+                            <strong>scitex</strong>
+                            <br />
+                            <span class="package-alias">(scitex-python)</span>
                         </td>
                         <td>
                             <code>scitex</code>
                         </td>
+                        <td class="package-version">
+                            <code>{{ ecosystem_versions.scitex|default:"—" }}</code>
+                        </td>
                         <td>Main Python package with unified API for scientific research</td>
-                        <td class="package-links">
+                        <td class="package-link-cell">
                             <a href="https://github.com/ywatanabe1989/scitex-python"
                                target="_blank"
                                class="link-btn github-btn"
-                               title="View on GitHub">
-                                <i class="fab fa-github"></i>
-                            </a>
+                               title="GitHub"><i class="fab fa-github"></i></a>
+                        </td>
+                        <td class="package-link-cell">
                             <a href="https://scitex-python.readthedocs.io"
                                target="_blank"
                                class="link-btn docs-btn"
                                title="Read the Docs">
-                                <i class="fas fa-book"></i>
+                                <svg class="rtd-icon" viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                                    <path d="M7.732 0a59.316 59.316 0 0 0-4.977.218V24l4.977-.29V0zm1.037.2v23.527l7.497-.437V1.054A69.42 69.42 0 0 0 8.769.199zM17.3 1.182V23.27l3.945-.23V2.164A43.089 43.089 0 0 0 17.3 1.182z" />
+                                </svg>
                             </a>
                         </td>
                     </tr>
-                    <!-- scitex.cloud -->
+                    <!-- scitex-cloud -->
                     <tr>
                         <td class="package-name">
-                            <strong>scitex.cloud</strong>
+                            <strong>scitex-cloud</strong>
                         </td>
                         <td>
                             <code>scitex.cloud</code>
                         </td>
+                        <td class="package-version">
+                            <code>{{ SCITEX_CLOUD_VERSION|default:"—" }}</code>
+                        </td>
                         <td>Django web application (this site)</td>
-                        <td class="package-links">
+                        <td class="package-link-cell">
                             <a href="https://github.com/ywatanabe1989/scitex-cloud"
                                target="_blank"
                                class="link-btn github-btn"
-                               title="View on GitHub">
-                                <i class="fab fa-github"></i>
-                            </a>
+                               title="GitHub"><i class="fab fa-github"></i></a>
+                        </td>
+                        <td class="package-link-cell">
                             <a href="https://scitex-cloud.readthedocs.io"
                                target="_blank"
                                class="link-btn docs-btn"
                                title="Read the Docs">
-                                <i class="fas fa-book"></i>
+                                <svg class="rtd-icon" viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                                    <path d="M7.732 0a59.316 59.316 0 0 0-4.977.218V24l4.977-.29V0zm1.037.2v23.527l7.497-.437V1.054A69.42 69.42 0 0 0 8.769.199zM17.3 1.182V23.27l3.945-.23V2.164A43.089 43.089 0 0 0 17.3 1.182z" />
+                                </svg>
                             </a>
                         </td>
                     </tr>
+                    <!-- Standalone packages (collapsed by default) -->
+                    <tr class="standalone-toggle-row">
+                        <td colspan="6">
+                            <button class="standalone-toggle"
+                                    onclick="this.closest('table').classList.toggle('show-standalone'); this.querySelector('.toggle-text').textContent = this.closest('table').classList.contains('show-standalone') ? 'Hide standalone packages' : 'Show downstream standalone packages'; this.querySelector('.toggle-icon').style.transform = this.closest('table').classList.contains('show-standalone') ? 'rotate(90deg)' : '';">
+                                <i class="fas fa-chevron-right toggle-icon"></i>
+                                <span class="toggle-text">Show downstream standalone packages</span>
+                                <span class="standalone-count">6</span>
+                            </button>
+                        </td>
+                    </tr>
                     <!-- figrecipe -->
-                    <tr>
+                    <tr class="standalone-row">
                         <td class="package-name">
                             <strong>figrecipe</strong>
                         </td>
                         <td>
                             <code>scitex.plt</code>
                         </td>
+                        <td class="package-version">
+                            <code>{{ ecosystem_versions.figrecipe|default:"—" }}</code>
+                        </td>
                         <td>Publication-ready matplotlib figures with auto CSV export</td>
-                        <td class="package-links">
+                        <td class="package-link-cell">
                             <a href="https://github.com/ywatanabe1989/figrecipe"
                                target="_blank"
                                class="link-btn github-btn"
-                               title="View on GitHub">
-                                <i class="fab fa-github"></i>
-                            </a>
+                               title="GitHub"><i class="fab fa-github"></i></a>
+                        </td>
+                        <td class="package-link-cell">
                             <a href="https://figrecipe.readthedocs.io"
                                target="_blank"
                                class="link-btn docs-btn"
                                title="Read the Docs">
-                                <i class="fas fa-book"></i>
+                                <svg class="rtd-icon" viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                                    <path d="M7.732 0a59.316 59.316 0 0 0-4.977.218V24l4.977-.29V0zm1.037.2v23.527l7.497-.437V1.054A69.42 69.42 0 0 0 8.769.199zM17.3 1.182V23.27l3.945-.23V2.164A43.089 43.089 0 0 0 17.3 1.182z" />
+                                </svg>
                             </a>
                         </td>
                     </tr>
                     <!-- scitex-writer -->
-                    <tr>
+                    <tr class="standalone-row">
                         <td class="package-name">
                             <strong>scitex-writer</strong>
                         </td>
                         <td>
                             <code>scitex.writer</code>
                         </td>
+                        <td class="package-version">
+                            <code>{{ ecosystem_versions.scitex_writer|default:"—" }}</code>
+                        </td>
                         <td>LaTeX manuscript compilation with journal templates</td>
-                        <td class="package-links">
+                        <td class="package-link-cell">
                             <a href="https://github.com/ywatanabe1989/scitex-writer"
                                target="_blank"
                                class="link-btn github-btn"
-                               title="View on GitHub">
-                                <i class="fab fa-github"></i>
-                            </a>
+                               title="GitHub"><i class="fab fa-github"></i></a>
+                        </td>
+                        <td class="package-link-cell">
                             <a href="https://scitex-writer.readthedocs.io"
                                target="_blank"
                                class="link-btn docs-btn"
                                title="Read the Docs">
-                                <i class="fas fa-book"></i>
+                                <svg class="rtd-icon" viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                                    <path d="M7.732 0a59.316 59.316 0 0 0-4.977.218V24l4.977-.29V0zm1.037.2v23.527l7.497-.437V1.054A69.42 69.42 0 0 0 8.769.199zM17.3 1.182V23.27l3.945-.23V2.164A43.089 43.089 0 0 0 17.3 1.182z" />
+                                </svg>
                             </a>
                         </td>
                     </tr>
                     <!-- scitex-dataset -->
-                    <tr>
+                    <tr class="standalone-row">
                         <td class="package-name">
                             <strong>scitex-dataset</strong>
                         </td>
                         <td>
                             <code>scitex.dataset</code>
                         </td>
+                        <td class="package-version">
+                            <code>{{ ecosystem_versions.scitex_dataset|default:"—" }}</code>
+                        </td>
                         <td>Scientific dataset search across OpenNeuro, DANDI, PhysioNet</td>
-                        <td class="package-links">
+                        <td class="package-link-cell">
                             <a href="https://github.com/ywatanabe1989/scitex-dataset"
                                target="_blank"
                                class="link-btn github-btn"
-                               title="View on GitHub">
-                                <i class="fab fa-github"></i>
-                            </a>
+                               title="GitHub"><i class="fab fa-github"></i></a>
+                        </td>
+                        <td class="package-link-cell">
                             <a href="https://scitex-dataset.readthedocs.io"
                                target="_blank"
                                class="link-btn docs-btn"
                                title="Read the Docs">
-                                <i class="fas fa-book"></i>
+                                <svg class="rtd-icon" viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                                    <path d="M7.732 0a59.316 59.316 0 0 0-4.977.218V24l4.977-.29V0zm1.037.2v23.527l7.497-.437V1.054A69.42 69.42 0 0 0 8.769.199zM17.3 1.182V23.27l3.945-.23V2.164A43.089 43.089 0 0 0 17.3 1.182z" />
+                                </svg>
                             </a>
                         </td>
                     </tr>
                     <!-- scitex-linter -->
-                    <tr>
+                    <tr class="standalone-row">
                         <td class="package-name">
                             <strong>scitex-linter</strong>
                         </td>
                         <td>
                             <code>scitex.linter</code>
                         </td>
+                        <td class="package-version">
+                            <code>{{ ecosystem_versions.scitex_linter|default:"—" }}</code>
+                        </td>
                         <td>SciTeX coding style linter for Python scripts</td>
-                        <td class="package-links">
+                        <td class="package-link-cell">
                             <a href="https://github.com/ywatanabe1989/scitex-linter"
                                target="_blank"
                                class="link-btn github-btn"
-                               title="View on GitHub">
-                                <i class="fab fa-github"></i>
-                            </a>
+                               title="GitHub"><i class="fab fa-github"></i></a>
+                        </td>
+                        <td class="package-link-cell">
                             <a href="https://scitex-linter.readthedocs.io"
                                target="_blank"
                                class="link-btn docs-btn"
                                title="Read the Docs">
-                                <i class="fas fa-book"></i>
+                                <svg class="rtd-icon" viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                                    <path d="M7.732 0a59.316 59.316 0 0 0-4.977.218V24l4.977-.29V0zm1.037.2v23.527l7.497-.437V1.054A69.42 69.42 0 0 0 8.769.199zM17.3 1.182V23.27l3.945-.23V2.164A43.089 43.089 0 0 0 17.3 1.182z" />
+                                </svg>
                             </a>
                         </td>
                     </tr>
                     <!-- crossref-local -->
-                    <tr>
+                    <tr class="standalone-row">
                         <td class="package-name">
                             <strong>crossref-local</strong>
                         </td>
                         <td>
                             <code>scitex.scholar.crossref_scitex</code>
                         </td>
+                        <td class="package-version">
+                            <code>{{ ecosystem_versions.crossref_local|default:"—" }}</code>
+                        </td>
                         <td>Local CrossRef database (167M+ papers)</td>
-                        <td class="package-links">
+                        <td class="package-link-cell">
                             <a href="https://github.com/ywatanabe1989/crossref-local"
                                target="_blank"
                                class="link-btn github-btn"
-                               title="View on GitHub">
-                                <i class="fab fa-github"></i>
-                            </a>
+                               title="GitHub"><i class="fab fa-github"></i></a>
+                        </td>
+                        <td class="package-link-cell">
                             <a href="https://crossref-local.readthedocs.io"
                                target="_blank"
                                class="link-btn docs-btn"
                                title="Read the Docs">
-                                <i class="fas fa-book"></i>
+                                <svg class="rtd-icon" viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                                    <path d="M7.732 0a59.316 59.316 0 0 0-4.977.218V24l4.977-.29V0zm1.037.2v23.527l7.497-.437V1.054A69.42 69.42 0 0 0 8.769.199zM17.3 1.182V23.27l3.945-.23V2.164A43.089 43.089 0 0 0 17.3 1.182z" />
+                                </svg>
                             </a>
                         </td>
                     </tr>
                     <!-- openalex-local -->
-                    <tr>
+                    <tr class="standalone-row">
                         <td class="package-name">
                             <strong>openalex-local</strong>
                         </td>
                         <td>
                             <code>scitex.scholar.openalex_scitex</code>
                         </td>
+                        <td class="package-version">
+                            <code>{{ ecosystem_versions.openalex_local|default:"—" }}</code>
+                        </td>
                         <td>Local OpenAlex database (250M+ papers)</td>
-                        <td class="package-links">
+                        <td class="package-link-cell">
                             <a href="https://github.com/ywatanabe1989/openalex-local"
                                target="_blank"
                                class="link-btn github-btn"
-                               title="View on GitHub">
-                                <i class="fab fa-github"></i>
-                            </a>
+                               title="GitHub"><i class="fab fa-github"></i></a>
+                        </td>
+                        <td class="package-link-cell">
                             <a href="https://openalex-local.readthedocs.io"
                                target="_blank"
                                class="link-btn docs-btn"
                                title="Read the Docs">
-                                <i class="fas fa-book"></i>
+                                <svg class="rtd-icon" viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                                    <path d="M7.732 0a59.316 59.316 0 0 0-4.977.218V24l4.977-.29V0zm1.037.2v23.527l7.497-.437V1.054A69.42 69.42 0 0 0 8.769.199zM17.3 1.182V23.27l3.945-.23V2.164A43.089 43.089 0 0 0 17.3 1.182z" />
+                                </svg>
                             </a>
                         </td>
                     </tr>
                 </tbody>
             </table>
-        </div>
-        <!-- GitHub Organization Link -->
-        <div class="ecosystem-cta">
-            <a href="https://github.com/ywatanabe1989"
-               target="_blank"
-               class="btn btn-outline-primary btn-lg">
-                <i class="fab fa-github"></i> View All Repositories
-            </a>
         </div>
     </div>
 </section>

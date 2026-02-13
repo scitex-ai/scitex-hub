@@ -214,37 +214,57 @@ class CitationGraphService:
 
     def health_check(self) -> Dict:
         """
-        Check service health.
+        Check service health with caching to prevent flood attacks.
+
+        Health status is cached for 30 seconds to reduce database load.
 
         Returns:
             Dictionary with health status
         """
+        # Check cache first (30 second TTL prevents flood attacks)
+        cache_key = "citation_graph:health_status"
+        cached_status = cache.get(cache_key)
+        if cached_status:
+            cached_status['cached'] = True
+            return cached_status
+
         try:
             # Try to get a sample paper
             test_doi = "10.1038/s41586-020-2008-3"
             summary = self.get_paper_summary(test_doi, use_cache=False)
 
             if summary:
-                return {
+                result = {
                     'status': 'healthy',
                     'database': self.db_path,
-                    'database_accessible': True
+                    'database_accessible': True,
+                    'cached': False
                 }
             else:
-                return {
+                result = {
                     'status': 'degraded',
                     'database': self.db_path,
                     'database_accessible': True,
-                    'warning': 'Test DOI not found'
+                    'warning': 'Test DOI not found',
+                    'cached': False
                 }
+
+            # Cache for 30 seconds
+            cache.set(cache_key, result, 30)
+            return result
+
         except Exception as e:
             logger.error(f"Health check failed: {e}")
-            return {
+            result = {
                 'status': 'unhealthy',
                 'database': self.db_path,
                 'database_accessible': False,
-                'error': str(e)
+                'error': str(e),
+                'cached': False
             }
+            # Cache failures for 10 seconds (shorter to allow recovery detection)
+            cache.set(cache_key, result, 10)
+            return result
 
 
 # Service mode tracking (not singleton - create fresh per request for DB connections)

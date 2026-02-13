@@ -67,6 +67,14 @@ CELERY_BEAT_SCHEDULE = {
             "expires": 55.0,  # Expire after 55 seconds if not started
         },
     },
+    # Check for request flood patterns every 1 minute
+    "check-request-flood": {
+        "task": "apps.public_app.tasks.check_request_flood",
+        "schedule": 60.0,  # Every 1 minute
+        "options": {
+            "expires": 55.0,  # Expire after 55 seconds if not started
+        },
+    },
 }
 
 # EOF

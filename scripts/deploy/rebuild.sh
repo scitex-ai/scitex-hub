@@ -83,10 +83,14 @@ fi
 echo ""
 echo -e "${CYAN}🔄 Rebuilding ${ENV} environment...${NC}"
 
-# Step 1: Stop services
+# Step 1: Stop and remove services
 echo -e "${CYAN}  1. Stopping ${ENV}...${NC}"
 cd "$DOCKER_DIR"
-$COMPOSE_CMD down --remove-orphans 2>/dev/null || true
+$COMPOSE_CMD down --remove-orphans --volumes=false 2>/dev/null || true
+
+# Remove any leftover containers (handles edge cases like "Created" state)
+echo -e "${CYAN}  1b. Cleaning up leftover containers...${NC}"
+docker ps -a --format '{{.Names}}' | grep "^scitex-cloud-${ENV}-" | xargs -r docker rm -f 2>/dev/null || true
 
 # Step 2: Build images
 echo -e "${CYAN}  2. Building Docker images...${NC}"
