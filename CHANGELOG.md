@@ -5,6 +5,19 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.1-alpha] - 2026-02-13
+
+### Added
+- **Stats API Documentation**: Full API docs for 8 stats endpoints at `/api-docs/stats-api/`
+  - calculate, describe, recommend, effect-size, posthoc, power, correct, flowchart
+  - Documented `plot: true` parameter for figure generation (base64 PNG)
+- **Panel Tooltips**: Dynamic tooltips on collapsible panel headers ("Double-click to collapse" / "Click to expand")
+  - MutationObserver-based state tracking across all apps
+  - Fixed tooltip text inheriting `text-transform: uppercase` from panel headers
+
+### Fixed
+- **Tooltip Uppercase**: Added `text-transform: none` to tooltip CSS to prevent inheritance
+
 ## [0.8.0-alpha] - 2026-02-13
 
 ### Added
