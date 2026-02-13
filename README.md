@@ -5,7 +5,7 @@
 
 <p align="center">
   <a href="https://scitex.ai">
-    <img src="static/shared/images/scitex-logo-blue-cropped.png" alt="SciTeX Cloud" width="400">
+    <img src="static/shared/images/scitex_logos/logo-files/png/scitex-logo-blue-cropped.png" alt="SciTeX Cloud" width="400">
   </a>
 </p>
 
@@ -208,7 +208,7 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md).
 ---
 
 <p align="center">
-  <a href="https://scitex.ai" target="_blank"><img src="static/shared/images/scitex-icon-navy-inverted.png" alt="SciTeX" width="40"/></a>
+  <a href="https://scitex.ai" target="_blank"><img src="static/shared/images/scitex_logos/scitex-icons/scitex-icon-navy-inverted.png" alt="SciTeX" width="40"/></a>
   <br>
   AGPL-3.0
 </p>
