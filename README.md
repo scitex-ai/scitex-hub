@@ -386,7 +386,7 @@ MIT License - See [LICENSE](./LICENSE)
 ## Contact
 
 - **GitHub**: https://github.com/SciTeX-AI
-- **Author**: Yusuke Watanabe (ywatanabe@scitex.ai)
+- **Website**: https://scitex.ai
 
 ---
 
