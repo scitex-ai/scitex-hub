@@ -5,6 +5,24 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0-alpha] - 2026-02-13
+
+### Added
+- **Collapsible Panel UX Simplification**: Hide toggle buttons when expanded, collapse via resizer drag or double-click header
+- **Green Hover Feedback**: Green-tinted background on collapsed panels (click-to-expand hint) and expanded headers (double-click-to-collapse hint) with edge glow
+- **Opt-in Title Hiding**: `data-hide-title-expanded` attribute hides panel titles when content is self-explanatory (Editor, Preview, Terminal, Data)
+- **Flowchart Zoom Controls**: Dedicated zoom for run-stats decision flowchart (Ctrl+/-, Ctrl+0, Ctrl+Scroll, toolbar buttons, 25-300% range, persisted)
+
+### Fixed
+- **Collapsed Panel Chevron Centering**: Override `flex: 1` on panel-title in collapsed column layout
+- **Tools Label Regression**: Reverted merged panel-title/tools-nav-header-title spans that caused label to disappear when collapsed
+
+### Changed
+- **Removed Tooltip System**: Replaced tooltip-based expand/collapse hints with visual green hover feedback
+- **Panel CSS Consolidation**: Unified details/properties panel-title styling across Vis, Writer, Scholar, Hub, Clew
+
+---
+
 ## [0.7.0-alpha] - 2026-02-05
 
 ### Added
