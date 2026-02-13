@@ -32,20 +32,27 @@ def cache_buster(request):
         # Check files every 2 seconds to avoid excessive file system calls
         if current_time - _last_check_time > 2:
             try:
-                # Check modification time of all key JS directories
-                js_dirs = [
+                # Check modification time of key JS and CSS directories
+                static_dirs = [
                     Path(settings.BASE_DIR) / "apps/console_app/static/console_app/js",
                     Path(settings.BASE_DIR) / "apps/vis_app/static/vis_app/js",
                     Path(settings.BASE_DIR) / "apps/writer_app/static/writer_app/js",
                     Path(settings.BASE_DIR) / "static/shared/js",
+                    Path(settings.BASE_DIR) / "static/shared/css",
+                    Path(settings.BASE_DIR) / "apps/writer_app/static/writer_app/css",
+                    Path(settings.BASE_DIR) / "apps/scholar_app/static/scholar_app/css",
+                    Path(settings.BASE_DIR) / "apps/console_app/static/console_app/css",
+                    Path(settings.BASE_DIR) / "apps/vis_app/static/vis_app/css",
+                    Path(settings.BASE_DIR) / "apps/public_app/static/public_app/css",
                 ]
                 max_mtime = 0
-                for js_dir in js_dirs:
-                    if js_dir.exists():
-                        for js_file in js_dir.rglob("*.js"):
-                            mtime = js_file.stat().st_mtime
-                            if mtime > max_mtime:
-                                max_mtime = mtime
+                for static_dir in static_dirs:
+                    if static_dir.exists():
+                        for static_file in static_dir.rglob("*"):
+                            if static_file.suffix in (".js", ".css"):
+                                mtime = static_file.stat().st_mtime
+                                if mtime > max_mtime:
+                                    max_mtime = mtime
                 _cached_build_id = (
                     str(int(max_mtime)) if max_mtime else str(int(current_time))
                 )

@@ -229,6 +229,7 @@ def _entry_to_ts_path(entry_name: str) -> str:
         "shared/components/seekbar": "static/shared/ts/components/seekbar.ts",
         "shared/utils/highlight-js-bibtex": "static/shared/ts/utils/highlight-js-bibtex.ts",
         "shared/workspace-panel-resizer": "static/shared/ts/components/workspace-panel-resizer.ts",
+        "shared/collapsible-panel-click-expand": "static/shared/ts/components/collapsible-panel-click-expand.ts",
         "shared/utils/analytics": "static/shared/ts/utils/analytics.ts",
         "shared/utils/visitor-heartbeat": "static/shared/ts/utils/visitor-heartbeat.ts",
         "shared/components/product-tour": "static/shared/ts/components/product-tour.ts",
