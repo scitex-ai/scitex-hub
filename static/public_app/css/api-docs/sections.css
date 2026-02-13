@@ -131,7 +131,7 @@
 }
 
 .api-alpha-notice p {
-  color: var(--color-fg-muted);
+  color: var(--text-muted);
   font-size: 0.9rem;
   margin: 0;
   line-height: 1.5;
