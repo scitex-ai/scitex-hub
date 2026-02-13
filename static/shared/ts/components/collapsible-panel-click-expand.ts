@@ -27,6 +27,9 @@ const HEADER_SELECTORS = [
   ".pane-header",
 ].join(", ");
 
+const INTERACTIVE_SELECTORS =
+  "button, a, input, select, textarea, .dropdown, .btn, [role='button'], [role='menu'], [role='listbox'], label, .form-select, .form-control";
+
 function findToggleBtn(panel: Element): HTMLElement | null {
   return panel.querySelector(TOGGLE_SELECTORS) as HTMLElement;
 }
@@ -40,7 +43,8 @@ function updateTooltips(panel: Element): void {
     if (header) header.removeAttribute("data-tooltip");
   } else {
     panel.removeAttribute("data-tooltip");
-    if (header) header.setAttribute("data-tooltip", "Double-click to collapse");
+    // Don't set tooltip here — mouseover handler manages it based on foldable state
+    if (header) header.removeAttribute("data-tooltip");
   }
 }
 
@@ -74,7 +78,35 @@ function initPanelInteractions(): void {
     observer.observe(panel, { attributes: true, attributeFilter: ["class"] });
   });
 
-  // Double-click on expanded panel header → collapse
+  // Toggle foldable state: green bg + tooltip only on empty header space
+  document.addEventListener("mouseover", (e) => {
+    const target = e.target as HTMLElement;
+    const header = target.closest(HEADER_SELECTORS) as HTMLElement;
+    if (!header) return;
+
+    if (target === header) {
+      // Cursor on empty space → foldable
+      header.classList.add("foldable");
+      const panel = header.closest(PANEL_SELECTORS);
+      if (panel && !panel.matches(".collapsed")) {
+        header.setAttribute("data-tooltip", "Double-click to collapse");
+      }
+    } else {
+      // Cursor on a child element → unfoldable
+      header.classList.remove("foldable");
+      header.removeAttribute("data-tooltip");
+    }
+  });
+
+  // Remove foldable when mouse leaves header entirely
+  document.addEventListener("mouseout", (e) => {
+    const target = e.target as HTMLElement;
+    if (target.matches(HEADER_SELECTORS)) {
+      target.classList.remove("foldable");
+    }
+  });
+
+  // Double-click on expanded panel header → collapse (only empty space)
   document.addEventListener("dblclick", (e) => {
     // Skip if a click-to-expand just fired (prevents expand→collapse flash)
     if (Date.now() - lastExpandTime < 500) return;
@@ -83,8 +115,8 @@ function initPanelInteractions(): void {
     const header = target.closest(HEADER_SELECTORS);
     if (!header) return;
 
-    // Don't trigger on buttons or interactive elements
-    if (target.closest("button, a, input, select, textarea")) return;
+    // Only trigger when clicking the header div itself (empty space)
+    if (target !== header) return;
 
     const panel = header.closest(PANEL_SELECTORS);
     if (!panel || panel.matches(".collapsed")) return;

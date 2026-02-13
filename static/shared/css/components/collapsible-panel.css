@@ -96,26 +96,31 @@
   background: var(--workspace-bg-secondary);
 }
 
-/* Expanded header hover: green hint for double-click-to-collapse */
-.collapsible-panel:not(.collapsed) .panel-header:hover,
-.collapsible-panel:not(.collapsed) .pane-header:hover,
-.collapsible-panel:not(.collapsed) .details-header:hover,
-.collapsible-panel:not(.collapsed) .properties-header:hover,
-.collapsible-panel:not(.collapsed) .tools-nav-header:hover,
-.collapsible-panel:not(.collapsed) .terminal-panel-top:hover {
-  background: #122a22 !important;
+/* Expanded header hover: green hint only on empty space (foldable state)
+   JS adds .foldable class when cursor is on empty header area */
+.collapsible-panel:not(.collapsed) .panel-header.foldable,
+.collapsible-panel:not(.collapsed) .pane-header.foldable,
+.collapsible-panel:not(.collapsed) .details-header.foldable,
+.collapsible-panel:not(.collapsed) .properties-header.foldable,
+.collapsible-panel:not(.collapsed) .tools-nav-header.foldable,
+.collapsible-panel:not(.collapsed) .terminal-panel-top.foldable {
+  background: rgba(5, 150, 105, 0.08) !important;
 }
-[data-theme="light"] .collapsible-panel:not(.collapsed) .panel-header:hover,
-[data-theme="light"] .collapsible-panel:not(.collapsed) .pane-header:hover,
-[data-theme="light"] .collapsible-panel:not(.collapsed) .details-header:hover,
+[data-theme="light"] .collapsible-panel:not(.collapsed) .panel-header.foldable,
+[data-theme="light"] .collapsible-panel:not(.collapsed) .pane-header.foldable,
 [data-theme="light"]
   .collapsible-panel:not(.collapsed)
-  .properties-header:hover,
-[data-theme="light"] .collapsible-panel:not(.collapsed) .tools-nav-header:hover,
+  .details-header.foldable,
 [data-theme="light"]
   .collapsible-panel:not(.collapsed)
-  .terminal-panel-top:hover {
-  background: #e0f2e9 !important;
+  .properties-header.foldable,
+[data-theme="light"]
+  .collapsible-panel:not(.collapsed)
+  .tools-nav-header.foldable,
+[data-theme="light"]
+  .collapsible-panel:not(.collapsed)
+  .terminal-panel-top.foldable {
+  background: rgba(5, 150, 105, 0.06) !important;
 }
 
 /* Collapsed header - centered toggle button */
@@ -231,7 +236,7 @@
 .collapsible-panel.collapsed:hover .properties-header,
 .collapsible-panel.collapsed:hover .tools-nav-header,
 .collapsible-panel.collapsed:hover .terminal-panel-top {
-  background: #122a22 !important;
+  background: rgba(5, 150, 105, 0.08) !important;
 }
 .collapsible-panel.collapsed:hover {
   box-shadow: inset -3px 0 10px -4px var(--workspace-icon-primary);
@@ -246,7 +251,7 @@
 [data-theme="light"] .collapsible-panel.collapsed:hover .properties-header,
 [data-theme="light"] .collapsible-panel.collapsed:hover .tools-nav-header,
 [data-theme="light"] .collapsible-panel.collapsed:hover .terminal-panel-top {
-  background: #e0f2e9 !important;
+  background: rgba(5, 150, 105, 0.06) !important;
 }
 
 /* ===========================================================================

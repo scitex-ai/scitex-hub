@@ -84,7 +84,20 @@
                  data-toggle-btn="sidebar-toggle"></div>
             <!-- CENTER WORKSPACE -->
             <div class="vis-workspace">
-                <!-- Split View: Data Table + Canvas -->
+                <!-- figrecipe Editor (shown when recipe file opened) -->
+                <iframe id="figrecipe-frame"
+                        src=""
+                        style="display:none;
+                               width:100%;
+                               height:100%;
+                               border:none;
+                               position:absolute;
+                               inset:0;
+                               z-index:10;
+                               background:var(--bg-primary)"
+                        allow="clipboard-read; clipboard-write">
+                </iframe>
+                <!-- Split View: Data Table + Canvas (original editor) -->
                 <div class="workspace-split-view">
                     <!-- Left: Data Table -->
                     <div class="split-pane split-pane-left collapsible-panel"
@@ -107,6 +120,7 @@
                                     <i class="fas fa-plus"></i>
                                 </button>
                             </div>
+                            <span class="badge badge-wip" style="margin-left:4px">WIP</span>
                             <div class="pane-header-buttons">
                                 <!-- Import/Header/Index moved to right-click context menu -->
                                 <button class="pane-header-btn"
@@ -190,6 +204,7 @@
                                     <i class="fas fa-plus"></i>
                                 </button>
                             </div>
+                            <span class="badge badge-wip" style="margin-left:4px">WIP</span>
                             <!-- Gallery Category Buttons (hover to see plot types) -->
                             <div class="gallery-categories" id="gallery-categories">
                                 <button class="category-btn"
@@ -521,4 +536,43 @@
     <!-- Vis app modules (Vite) -->
     {% vite_script 'vis_app/editor-inline' %}
     {% vite_script 'vis_app/vis-editor' %}
+    <!-- figrecipe integration: open recipe files in embedded editor -->
+    <script>
+    (function() {
+      var RECIPE_EXTS = ['.yaml', '.yml'];
+      var frame = document.getElementById('figrecipe-frame');
+      var splitView = document.querySelector('.workspace-split-view');
+
+      function openInFigrecipe(recipePath) {
+        if (!frame || !splitView) return;
+        frame.src = '/vis/figrecipe/?recipe=' + encodeURIComponent(recipePath);
+        frame.style.display = 'block';
+        splitView.style.display = 'none';
+      }
+
+      function closeFigrecipe() {
+        if (!frame || !splitView) return;
+        frame.src = '';
+        frame.style.display = 'none';
+        splitView.style.display = '';
+      }
+
+      // Expose globally for sidebar file click handler
+      window.openInFigrecipe = openInFigrecipe;
+      window.closeFigrecipe = closeFigrecipe;
+
+      // Hook into file tree clicks
+      document.addEventListener('click', function(e) {
+        var link = e.target.closest('[data-file-path]');
+        if (!link) return;
+        var path = link.getAttribute('data-file-path') || '';
+        var ext = path.substring(path.lastIndexOf('.')).toLowerCase();
+        if (RECIPE_EXTS.indexOf(ext) !== -1) {
+          e.preventDefault();
+          e.stopPropagation();
+          openInFigrecipe(path);
+        }
+      });
+    })();
+    </script>
 {% endblock %}
