@@ -75,12 +75,6 @@
         {% endif %}
         <!-- Main Area -->
         <main class="hub-main">
-            {% if is_demo %}
-                <div class="alert alert-info mb-3">
-                    <i class="fas fa-info-circle"></i>
-                    Demo mode - Changes will not be saved after session expires
-                </div>
-            {% endif %}
             {% if current_project %}
                 <!-- GitHub-style file browser (reusing project_app partials) -->
                 <div class="hub-browse-container">
