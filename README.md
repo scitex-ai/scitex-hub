@@ -357,28 +357,6 @@ chmod +x scripts/server/start
 
 ## Contributing
 
-<details>
-<summary><b>How to Contribute</b></summary>
-
-1. Fork repository
-2. Create feature branch: `git checkout -b feature/name`
-3. Commit: `git commit -m 'feat: Add feature'`
-4. Push: `git push origin feature/name`
-5. Open Pull Request
-
-**Code Style:**
-- Django best practices
-- Apps in `apps/XXX_app/` format
-- No files in project root
-- Theme-responsive CSS
-- Environment files in `SECRET/` (never commit)
-
-</details>
-
----
-
-## Contributing
-
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
