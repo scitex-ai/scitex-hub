@@ -118,17 +118,42 @@ export class WorkspaceKeyboardHandler {
 
     const ctrlOrMeta = e.ctrlKey || e.metaKey;
 
-    // Ctrl+K: Search/Filter - global shortcut, works regardless of focus
-    // as long as the tree is visible on the page
+    // Ctrl+K: Context-aware search shortcut
+    // - Focus in sidebar (left) → file tree filtering
+    // - Focus elsewhere (center/right) → tools search input
     if (ctrlOrMeta && e.key === "k") {
-      const isVisible =
-        this.container.offsetParent !== null || this.container.offsetWidth > 0;
-      if (isVisible) {
-        e.preventDefault();
-        e.stopPropagation();
+      e.preventDefault();
+      e.stopPropagation();
+
+      const sidebar = this.container.closest(
+        ".workspace-sidebar, .sidebar-content",
+      );
+      const focusInSidebar =
+        sidebar &&
+        (sidebar.contains(activeElement) || sidebar.contains(e.target as Node));
+
+      if (focusInSidebar) {
+        // Focus is in the sidebar → file tree filtering
         this.callbacks.showSearchInput();
-        return;
+      } else {
+        // Focus is in center/right → tools search bar
+        const toolsSearchInput = document.getElementById(
+          "searchInput",
+        ) as HTMLInputElement | null;
+        if (toolsSearchInput) {
+          toolsSearchInput.focus();
+          toolsSearchInput.select();
+        } else {
+          // Fallback to file tree filter if no tools search exists
+          const isVisible =
+            this.container.offsetParent !== null ||
+            this.container.offsetWidth > 0;
+          if (isVisible) {
+            this.callbacks.showSearchInput();
+          }
+        }
       }
+      return;
     }
 
     // For all other shortcuts, require focus inside the tree/sidebar

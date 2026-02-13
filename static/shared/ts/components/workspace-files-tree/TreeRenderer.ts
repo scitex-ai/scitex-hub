@@ -59,25 +59,28 @@ export class TreeRenderer {
     this.searchActive = matches.size > 0 || ancestors.size > 0;
   }
 
+  /** Render git panel HTML (for placement outside tree content) */
+  renderGitPanelHtml(gitSummary?: {
+    staged: number;
+    modified: number;
+    untracked: number;
+  }): string {
+    if (this.config.showGitStatus === false || !gitSummary) return "";
+    return this.renderGitPanel(gitSummary);
+  }
+
   /** Render the entire tree */
   render(
     items: TreeItem[],
     gitSummary?: { staged: number; modified: number; untracked: number },
   ): string {
     const filteredItems = this.filter.filterTree(items);
-    let html = "";
 
-    // Render tree with root header
-    html += `<div class="wft-tree">`;
-    // Root item (project root) - clickable to select root for operations
+    // Render tree with root header (git panel rendered separately)
+    let html = `<div class="wft-tree">`;
     html += this.renderRootItem();
     html += this.renderItems(filteredItems, 0);
     html += `</div>`;
-
-    // Render git panel at bottom if git status is enabled
-    if (this.config.showGitStatus !== false && gitSummary) {
-      html += this.renderGitPanel(gitSummary);
-    }
 
     return html;
   }

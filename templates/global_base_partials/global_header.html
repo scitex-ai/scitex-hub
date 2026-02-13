@@ -180,13 +180,15 @@
                     <i class="fas fa-terminal nav-icon-fa"></i>
                     <span class="nav-label">Console</span>
                 </a>
-                <a href="/verifier/"
-                   class="header-nav-item {% if 'verifier' in request.path %}active{% endif %}"
-                   data-tooltip="Reproducibility verification (Alt+R)"
-                   data-shortcut="R">
-                    <i class="fas fa-shield-alt nav-icon-fa"></i>
-                    <span class="nav-label">Verifier</span>
-                </a>
+                {% if DEBUG %}
+                    <a href="/clew/"
+                       class="header-nav-item {% if 'clew' in request.path %}active{% endif %}"
+                       data-tooltip="Reproducibility verification (Alt+R)"
+                       data-shortcut="R">
+                        <i class="fas fa-shield-alt nav-icon-fa"></i>
+                        <span class="nav-label">Clew</span>
+                    </a>
+                {% endif %}
                 <a href="/hub/"
                    class="header-nav-item {% if '/hub/' in request.path %}active{% endif %}"
                    data-tooltip="Project hub (Alt+H)"

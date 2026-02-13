@@ -1,5 +1,11 @@
 <!-- Unified sidebar header for all workspace modules -->
 <div class="sidebar-header">
+    <button id="sidebar-toggle"
+            class="sidebar-toggle panel-toggle-btn left-panel-toggle"
+            title="Toggle sidebar (Zen: F11/Alt+Z)">
+        <i class="fas fa-chevron-left"></i>
+    </button>
+    <span class="sidebar-title">Files</span>
     <div class="sidebar-header-actions">
         <button class="hidden-files-toggle"
                 id="hidden-files-toggle"
@@ -37,10 +43,8 @@
                         title="Highlight console-related files">
                     <i class="fas fa-lightbulb"></i>
                 </button>
-            {% elif 'verifier' in request.path %}
-                <button class="module-filter-btn"
-                        data-mode="verifier"
-                        title="Highlight verifier-related files">
+            {% elif 'clew' in request.path %}
+                <button class="module-filter-btn" data-mode="clew" title="Highlight clew-related files">
                     <i class="fas fa-lightbulb"></i>
                 </button>
             {% elif '/hub/' in request.path %}
@@ -57,9 +61,4 @@
         </div>
         <span class="sidebar-header-divider"></span>
     </div>
-    <button id="sidebar-toggle"
-            class="sidebar-toggle panel-toggle-btn left-panel-toggle"
-            title="Toggle sidebar (Zen: F11/Alt+Z)">
-        <i class="fas fa-chevron-left"></i>
-    </button>
 </div>

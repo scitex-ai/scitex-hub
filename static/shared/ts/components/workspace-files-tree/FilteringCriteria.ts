@@ -31,7 +31,7 @@ export const ALLOW_DIRECTORIES: Record<WorkspaceMode, string[]> = {
   writer: ["scitex/writer"],
   code: [], // All directories allowed
   console: [], // All directories allowed (legacy)
-  verifier: ["scitex/verify"],
+  clew: ["scitex/verify"],
   hub: [], // All directories allowed
   files: [], // All directories allowed
   tools: [], // All directories allowed
@@ -104,7 +104,7 @@ export const DENY_DIRECTORIES: Record<WorkspaceMode, string[]> = {
     ".git", // Too noisy even in code mode (legacy)
   ],
 
-  verifier: ["node_modules", ".git", "__pycache__", ".venv", "venv"],
+  clew: ["node_modules", ".git", "__pycache__", ".venv", "venv"],
 
   hub: ["node_modules", ".git", "__pycache__", ".venv", "venv"],
 
@@ -133,7 +133,7 @@ export const ALLOW_FILENAMES: Record<WorkspaceMode, string[]> = {
   writer: [],
   code: [],
   console: [],
-  verifier: [],
+  clew: [],
   hub: [],
   files: [],
   tools: [],
@@ -157,7 +157,7 @@ export const DENY_FILENAMES: Record<WorkspaceMode, string[]> = {
   writer: [".DS_Store", "Thumbs.db"],
   code: [".DS_Store", "Thumbs.db"],
   console: [".DS_Store", "Thumbs.db"],
-  verifier: [".DS_Store", "Thumbs.db"],
+  clew: [".DS_Store", "Thumbs.db"],
   hub: [".DS_Store", "Thumbs.db"],
   files: [".DS_Store", "Thumbs.db"],
   tools: [".DS_Store", "Thumbs.db"],
@@ -223,7 +223,7 @@ export const ALLOW_EXTENSIONS: Record<WorkspaceMode, string[] | "all"> = {
 
   code: "all",
   console: "all",
-  verifier: "all",
+  clew: "all",
   hub: "all",
   files: "all",
   tools: "all",
@@ -256,7 +256,7 @@ export const DENY_EXTENSIONS: Record<WorkspaceMode, string[]> = {
   ],
   code: [],
   console: [],
-  verifier: [],
+  clew: [],
   hub: [],
   files: [],
   tools: [],
@@ -316,7 +316,7 @@ export const PRESERVE_EMPTY_DIRECTORIES: Record<WorkspaceMode, string[]> = {
 
   code: [],
   console: [],
-  verifier: ["scitex/verify"],
+  clew: ["scitex/verify"],
   hub: [],
   files: [],
   tools: [],
@@ -379,7 +379,7 @@ export const DEFAULT_FOCUS_PATHS: Record<WorkspaceMode, string> = {
   writer: "scitex/writer/01_manuscript",
   code: "scripts",
   console: "scripts",
-  verifier: "scitex/verify",
+  clew: "scitex/verify",
   hub: "",
   files: "",
   tools: "",

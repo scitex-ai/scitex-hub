@@ -303,14 +303,12 @@ export class WorkspaceFilesTree {
     if (!el) {
       el = document.createElement("div");
       el.className = "wft-content";
-      // Remove orphaned children (loading skeleton) but keep search box
       const searchBox = this.container!.querySelector(
         ":scope > .wft-search-box",
       );
-      Array.from(this.container!.children).forEach((child) => {
-        if (child !== searchBox) child.remove();
+      Array.from(this.container!.children).forEach((c) => {
+        if (c !== searchBox) c.remove();
       });
-      // Insert before search box so tree is on top, search at bottom
       if (searchBox) this.container!.insertBefore(el, searchBox);
       else this.container!.appendChild(el);
     }
@@ -327,6 +325,14 @@ export class WorkspaceFilesTree {
       : { matches: new Set<string>(), ancestors: new Set<string>() };
     this.renderer.setSearchInfo(info.matches, info.ancestors);
     this.contentEl().innerHTML = this.renderer.render(data, this.gitSummary);
+    // Git panel: place after search box (under filter input)
+    this.container.querySelector(":scope > .wft-git-panel")?.remove();
+    const gitHtml = this.renderer.renderGitPanelHtml(this.gitSummary);
+    if (gitHtml) {
+      const sb = this.container.querySelector(":scope > .wft-search-box");
+      if (sb) sb.insertAdjacentHTML("afterend", gitHtml);
+      else this.container.insertAdjacentHTML("beforeend", gitHtml);
+    }
   }
 
   private rerender(): void {

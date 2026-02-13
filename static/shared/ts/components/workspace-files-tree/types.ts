@@ -8,7 +8,7 @@ export type WorkspaceMode =
   | "vis"
   | "writer"
   | "scholar"
-  | "verifier"
+  | "clew"
   | "hub"
   | "files"
   | "tools"
@@ -138,7 +138,7 @@ export const MODE_FILTERS: Record<WorkspaceMode, Partial<FilterConfig>> = {
     allowedExtensions: [".bib"],
     hiddenPatterns: ["__pycache__", "node_modules", ".git", ".venv", "build"],
   },
-  verifier: {
+  clew: {
     allowedExtensions: [],
     hiddenPatterns: ["__pycache__", "node_modules", ".git", ".venv"],
   },
@@ -175,7 +175,7 @@ export const DEFAULT_EXPAND_PATHS: Record<WorkspaceMode, string[]> = {
   vis: ["scitex", "scitex/vis"],
   writer: ["scitex", "scitex/writer", "scitex/writer/01_manuscript"],
   scholar: ["scitex", "scitex/scholar", "scitex/scholar/bib_files"],
-  verifier: ["scitex", "scitex/verify"],
+  clew: ["scitex", "scitex/verify"],
   hub: [],
   files: [],
   tools: [],
