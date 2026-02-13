@@ -50,6 +50,10 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
       rootDir,
       "apps/vis_app/static/vis_app/ts/editor-inline.ts",
     ),
+    "vis_app/vis-panel-toggle": r(
+      rootDir,
+      "apps/vis_app/static/vis_app/ts/vis-panel-toggle.ts",
+    ),
 
     // Writer app
     "writer_app/index": r(
@@ -224,6 +228,10 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
       rootDir,
       "static/shared/ts/components/workspace-panel-resizer.ts",
     ),
+    "shared/collapsible-panel-click-expand": r(
+      rootDir,
+      "static/shared/ts/components/collapsible-panel-click-expand.ts",
+    ),
     "shared/utils/theme-switcher": r(
       rootDir,
       "static/shared/ts/utils/theme-switcher.ts",
@@ -387,9 +395,9 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
     ),
 
     // Verifier app
-    "verifier_app/verifier-init": r(
+    "clew_app/clew-init": r(
       rootDir,
-      "apps/verifier_app/static/verifier_app/ts/verifier-init.ts",
+      "apps/clew_app/static/clew_app/ts/clew-init.ts",
     ),
 
     // Hub app (tree init moved to shared/workspace-tree-init)

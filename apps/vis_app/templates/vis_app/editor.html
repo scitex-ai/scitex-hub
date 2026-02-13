@@ -87,7 +87,7 @@
                 <!-- Split View: Data Table + Canvas -->
                 <div class="workspace-split-view">
                     <!-- Left: Data Table -->
-                    <div class="split-pane split-pane-left" id="data-pane">
+                    <div class="split-pane split-pane-left collapsible-panel" id="data-pane">
                         <div class="pane-header">
                             <!-- Data Dropdown (replaces tabs for horizontal space efficiency) -->
                             <div class="data-dropdown-container" id="data-dropdown-container">
@@ -132,9 +132,12 @@
                                     <span>Revert</span>
                                 </button>
                             </div>
-                            <button class="pane-resize-btn" id="data-pane-toggle" title="Toggle Data Pane">
+                            <button class="pane-resize-btn panel-toggle-btn left-panel-toggle"
+                                    id="data-pane-toggle"
+                                    title="Toggle Data Pane">
                                 <i class="fas fa-chevron-left"></i>
                             </button>
+                            <span class="panel-title">Data</span>
                         </div>
                         <div class="pane-content">
                             <div class="data-table-container" id="data-table-container">
@@ -159,11 +162,14 @@
                          data-collapse-key="data-pane-collapsed"
                          data-toggle-btn="data-pane-toggle"></div>
                     <!-- Right: Canvas -->
-                    <div class="split-pane split-pane-right" id="canvas-pane">
+                    <div class="split-pane split-pane-right collapsible-panel" id="canvas-pane">
                         <div class="pane-header">
-                            <button class="pane-resize-btn" id="canvas-pane-toggle" title="Toggle Canvas Pane">
+                            <button class="pane-resize-btn panel-toggle-btn right-panel-toggle"
+                                    id="canvas-pane-toggle"
+                                    title="Toggle Canvas Pane">
                                 <i class="fas fa-chevron-right"></i>
                             </button>
+                            <span class="panel-title">Canvas</span>
                             <!-- Figure Dropdown (replaces tabs for horizontal space efficiency) -->
                             <div class="figure-dropdown-container" id="figure-dropdown-container">
                                 <button class="figure-dropdown-toggle"
@@ -350,7 +356,7 @@
                  data-collapse-key="vis-properties-collapsed"
                  data-toggle-btn="properties-toggle"></div>
             <!-- RIGHT DETAILS PANEL -->
-            <div class="vis-properties" id="vis-properties">
+            <div class="vis-properties collapsible-panel" id="vis-properties">
                 <div class="properties-header">
                     <button class="properties-toggle-btn panel-toggle-btn right-panel-toggle"
                             id="properties-toggle"
@@ -360,6 +366,7 @@
                     <h4>
                         <i class="fas fa-sliders-h"></i> Details
                     </h4>
+                    <span class="panel-title">Details</span>
                 </div>
                 <!-- Selected Item Info -->
                 <div class="selected-item-info">
@@ -501,6 +508,8 @@
 {% block extra_js %}
     <!-- Vite HMR client (dev only) -->
     {% vite_hmr_client %}
+    <!-- Binary toggle for data/canvas panes (must load before panel-resizer to intercept) -->
+    {% vite_script 'vis_app/vis-panel-toggle' %}
     <!-- Panel resizer (auto-initializes from data attributes) -->
     {% vite_script 'shared/workspace-panel-resizer' %}
     {% tree_preseed_script current_project %}

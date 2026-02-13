@@ -89,28 +89,23 @@
     flex 0.2s ease;
 }
 
-/* Collapsed data pane */
-.split-pane-left.collapsed {
-  width: 40px !important;
-  min-width: 40px;
-}
-
+/* Collapsed data pane - width handled by shared collapsible-panel.css */
 .split-pane-left.collapsed .pane-header {
-  padding: 0 8px;
+  padding: 0;
   justify-content: center;
+  height: 100%;
+  flex-direction: column;
+  border-bottom: none;
 }
 
 .split-pane-left.collapsed .pane-header-buttons,
-.split-pane-left.collapsed .data-tabs-bar {
+.split-pane-left.collapsed .data-tabs-bar,
+.split-pane-left.collapsed .data-dropdown-container {
   display: none;
 }
 
 .split-pane-left.collapsed .pane-content {
   display: none;
-}
-
-.split-pane-left.collapsed .pane-resize-btn i {
-  transform: rotate(180deg);
 }
 
 /* Dark mode: consistent split pane background */
@@ -124,50 +119,48 @@
   background: var(--vis-bg-primary);
   position: relative;
   min-width: 10px;
-  max-width: none; /* Ensure no max-width constraint when expanded */
   min-height: 0; /* Allow flexbox shrinking */
   display: flex;
   flex-direction: column;
   transition:
     flex 0.2s ease,
     min-width 0.2s ease,
-    max-width 0.2s ease,
     width 0.2s ease;
 }
 
-/* Collapsed canvas pane - shrinks to narrow strip at right edge */
+/* Collapsed canvas pane - width handled by shared collapsible-panel.css */
 .split-pane-right.collapsed {
   flex: 0 0 40px;
-  min-width: 40px;
-  max-width: 40px;
-  width: 40px;
 }
 
 /* When canvas is collapsed, data pane expands to fill available space */
 .workspace-split-view:has(.split-pane-right.collapsed) .split-pane-left {
-  flex: 1;
+  flex: 1 !important; /* Override inline flex-grow/shrink from resizer */
   width: auto !important; /* Override inline styles */
 }
 
+/* When data pane is collapsed, canvas expands to fill available space */
+.workspace-split-view:has(.split-pane-left.collapsed) .split-pane-right {
+  flex: 1 !important;
+  width: auto !important;
+}
+
 .split-pane-right.collapsed .pane-header {
-  padding: 0 8px;
+  padding: 0;
   flex-direction: column;
-  justify-content: flex-start;
-  height: auto;
-  padding-top: 8px;
+  justify-content: center;
+  height: 100%;
+  border-bottom: none;
 }
 
 .split-pane-right.collapsed .gallery-categories,
-.split-pane-right.collapsed .pane-header-buttons {
+.split-pane-right.collapsed .pane-header-buttons,
+.split-pane-right.collapsed .figure-dropdown-container {
   display: none;
 }
 
 .split-pane-right.collapsed .pane-content {
   display: none;
-}
-
-.split-pane-right.collapsed .pane-resize-btn i {
-  transform: rotate(180deg);
 }
 
 /* Dark mode: consistent split pane background */
