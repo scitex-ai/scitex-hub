@@ -31,32 +31,7 @@ function findToggleBtn(panel: Element): HTMLElement | null {
   return panel.querySelector(TOGGLE_SELECTORS) as HTMLElement;
 }
 
-const TOOLTIP_COLLAPSE = "Double-click to collapse";
-const TOOLTIP_EXPAND = "Click to expand";
-
-function applyTooltips(): void {
-  document.querySelectorAll(HEADER_SELECTORS).forEach((header) => {
-    const panel = header.closest(PANEL_SELECTORS);
-    if (!panel) return;
-    (header as HTMLElement).title = panel.matches(".collapsed")
-      ? TOOLTIP_EXPAND
-      : TOOLTIP_COLLAPSE;
-  });
-  document.querySelectorAll(COLLAPSED_SELECTORS).forEach((panel) => {
-    (panel as HTMLElement).title = TOOLTIP_EXPAND;
-  });
-}
-
 function initPanelInteractions(): void {
-  applyTooltips();
-
-  // Re-apply tooltips after any toggle (uses capture to run after toggle)
-  document.addEventListener(
-    "click",
-    () => requestAnimationFrame(applyTooltips),
-    true,
-  );
-
   // Track when click-to-expand fires to prevent dblclick race condition:
   // Without this, double-clicking a collapsed panel would expand (click)
   // then immediately collapse (dblclick), creating a flash with no net change.
@@ -71,9 +46,6 @@ function initPanelInteractions(): void {
     const toggleBtn = findToggleBtn(panel);
     if (toggleBtn && target !== toggleBtn && !toggleBtn.contains(target)) {
       lastExpandTime = Date.now();
-      console.log(
-        `[Accordion] Click-to-expand: panel=${panel.id || panel.className}, toggleBtn=${toggleBtn.id || toggleBtn.className}`,
-      );
       toggleBtn.click();
     }
   });
@@ -95,9 +67,6 @@ function initPanelInteractions(): void {
 
     const toggleBtn = findToggleBtn(panel);
     if (toggleBtn) {
-      console.log(
-        `[Accordion] Double-click-to-collapse: panel=${panel.id || panel.className}, toggleBtn=${toggleBtn.id || toggleBtn.className}`,
-      );
       toggleBtn.click();
     }
   });

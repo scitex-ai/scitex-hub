@@ -37,7 +37,8 @@
   background: var(--workspace-bg-secondary, #151515);
 }
 
-.details-header h5 {
+.details-header h5,
+.details-header .panel-title {
   margin: 0;
   font-size: 14px;
   font-weight: 600;
@@ -47,7 +48,8 @@
   gap: 8px;
 }
 
-.details-header h5 i {
+.details-header h5 i,
+.details-header .panel-title i {
   color: var(--workspace-icon-primary, #059669);
   font-size: 14px;
 }
