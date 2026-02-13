@@ -122,6 +122,60 @@
 }
 
 /* =========================
+   Development Lifecycle Badges
+   ========================= */
+
+.badge-wip {
+  color: white;
+  background-color: var(--status-error);
+}
+
+.badge-alpha {
+  color: white;
+  background-color: #f59e0b;
+}
+
+.badge-beta {
+  color: #1a1a1a;
+  background-color: #eab308;
+}
+
+.badge-stable {
+  color: white;
+  background-color: var(--status-success);
+}
+
+.badge-bug {
+  color: white;
+  background-color: #dc2626;
+}
+
+[data-theme="dark"] .badge-wip {
+  color: white;
+  background-color: var(--status-error);
+}
+
+[data-theme="dark"] .badge-alpha {
+  color: white;
+  background-color: #f59e0b;
+}
+
+[data-theme="dark"] .badge-beta {
+  color: #1a1a1a;
+  background-color: #eab308;
+}
+
+[data-theme="dark"] .badge-stable {
+  color: white;
+  background-color: var(--status-success);
+}
+
+[data-theme="dark"] .badge-bug {
+  color: white;
+  background-color: #dc2626;
+}
+
+/* =========================
    Badge Size Variants
    ========================= */
 
