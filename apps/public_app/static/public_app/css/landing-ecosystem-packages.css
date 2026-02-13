@@ -78,10 +78,9 @@
   font-family: "SF Mono", Monaco, "Cascadia Code", monospace;
 }
 
-/* Links column */
-.packages-table .package-links {
-  display: flex;
-  gap: 0.625rem;
+/* Link cells */
+.packages-table .package-link-cell {
+  text-align: center;
   white-space: nowrap;
 }
 
@@ -169,6 +168,54 @@
 [data-theme="dark"] .link-btn.docs-btn:hover {
   background-color: var(--scitex-color-04);
   color: white;
+}
+
+/* Standalone packages toggle */
+.standalone-toggle-row td {
+  padding: 0.5rem 1rem !important;
+  border-bottom: none !important;
+}
+
+.standalone-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  background: none;
+  border: 1px solid var(--border-light, rgba(128, 128, 128, 0.2));
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.standalone-toggle:hover {
+  color: var(--text-primary);
+  border-color: var(--border-default, rgba(128, 128, 128, 0.4));
+}
+
+.standalone-toggle .toggle-icon {
+  font-size: 0.6rem;
+  transition: transform 0.2s ease;
+}
+
+.standalone-count {
+  font-size: 0.7rem;
+  background: var(--bg-muted, rgba(128, 128, 128, 0.1));
+  padding: 0.1rem 0.4rem;
+  border-radius: 10px;
+  color: var(--text-muted);
+}
+
+/* Hidden by default */
+.packages-table .standalone-row {
+  display: none;
+}
+
+.packages-table.show-standalone .standalone-row {
+  display: table-row;
 }
 
 /* Ecosystem CTA */
