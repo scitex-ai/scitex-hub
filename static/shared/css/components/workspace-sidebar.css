@@ -61,6 +61,11 @@
   min-width: 0;
 }
 
+/* Sidebar title: hidden when expanded, vertical text when collapsed */
+.workspace-sidebar .sidebar-title {
+  display: none;
+}
+
 .workspace-sidebar .sidebar-header h4,
 .workspace-sidebar .sidebar-header h5 {
   margin: 0;
@@ -124,6 +129,7 @@
 .workspace-sidebar.collapsed {
   width: 40px;
   min-width: 40px;
+  cursor: pointer;
 }
 
 .workspace-sidebar.collapsed .sidebar-content {
@@ -131,25 +137,45 @@
 }
 
 .workspace-sidebar.collapsed .sidebar-header {
-  padding: 0 4px;
+  padding: 0;
   justify-content: center;
+  height: 100%;
+  flex-direction: column;
+  border-bottom: none;
 }
 
-/* Hide everything in header except the toggle button */
+/* Hide everything in header except the toggle button and sidebar title */
 .workspace-sidebar.collapsed
   .sidebar-header
-  > *:not(.sidebar-toggle):not(.sidebar-toggle-btn):not(.panel-toggle-btn) {
+  > *:not(.sidebar-toggle):not(.sidebar-toggle-btn):not(.panel-toggle-btn):not(
+    .sidebar-title
+  ) {
   display: none;
+}
+
+/* Show sidebar title vertically when collapsed, centered in panel.
+   No flex:1 — let parent's justify-content:center align the toggle+title
+   group in the middle, consistent with DATA/CANVAS/DETAILS panels. */
+.workspace-sidebar.collapsed .sidebar-title {
+  display: flex;
+  justify-content: center;
+  writing-mode: vertical-lr;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary, #8ba7b8);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
 }
 
 .workspace-sidebar.collapsed .sidebar-toggle,
 .workspace-sidebar.collapsed .sidebar-toggle-btn,
 .workspace-sidebar.collapsed .panel-toggle-btn {
-  width: 100%;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border: none;
+  margin: 4px 0;
+  padding: 4px;
 }
 
 /* ===========================================================================
