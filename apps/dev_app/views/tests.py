@@ -110,6 +110,12 @@ class TestMonitorView(TemplateView):
                 icon="fas fa-key",
                 results=self._test_auth_api(base_url),
             ),
+            TestCategory(
+                key="web-api",
+                name="Web API Docs",
+                icon="fas fa-book",
+                results=self._test_web_api_docs(base_url),
+            ),
         ]
 
         # Recalculate stats for each category
@@ -229,11 +235,6 @@ class TestMonitorView(TemplateView):
             self._run_test(
                 "Server status page",
                 f"{base_url}/server-status/",
-                expected_status=200,
-            ),
-            self._run_test(
-                "Web API docs page",
-                f"{base_url}/docs/web-api/",
                 expected_status=200,
             ),
         ]
@@ -437,3 +438,38 @@ class TestMonitorView(TemplateView):
                 expected_status=401,
             ),
         ]
+
+    def _test_web_api_docs(self, base_url: str) -> list[TestResult]:
+        """Test Web API documentation pages."""
+        from apps.public_app.config.api_docs import (
+            API_DOC_SECTION_ORDER,
+            API_DOC_SECTIONS,
+        )
+
+        results = [
+            self._run_test(
+                "Docs index",
+                f"{base_url}/docs/web-api/",
+                expected_status=200,
+                preview_url="/docs/web-api/",
+            ),
+        ]
+        for key in API_DOC_SECTION_ORDER:
+            section = API_DOC_SECTIONS[key]
+            results.append(
+                self._run_test(
+                    section["text"],
+                    f"{base_url}/docs/web-api/{key}/",
+                    expected_status=200,
+                    preview_url=f"/docs/web-api/{key}/",
+                )
+            )
+        # Legacy redirect
+        results.append(
+            self._run_test(
+                "Legacy redirect (/api-docs/)",
+                f"{base_url}/api-docs/",
+                expected_status=302,
+            )
+        )
+        return results
