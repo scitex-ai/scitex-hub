@@ -47,147 +47,157 @@ fi
 sync_slurm_uid || echo_warning "SLURM UID sync skipped - terminal may have issues"
 
 # ============================================
-# Install SciTeX in Editable Mode (Optional)
+# Install SciTeX Ecosystem (Editable Mode)
+# Skip on hot-reload — packages persist in container
 # ============================================
-try_scitex_installation_in_editable_mode() {
-    if [ -d "/scitex-python" ]; then
-        # Check if scitex-code is a valid Python project
-        if [ -f "/scitex-python/pyproject.toml" ] || [ -f "/scitex-python/setup.py" ]; then
-            # Check if scitex is already installed in editable mode from /scitex-python
-            # Use pip show without -f flag (much faster)
-            if pip show scitex 2>/dev/null | grep -q "Location:.*scitex-python"; then
-                echo -e "${GREEN}✅ Scitex already installed in editable mode${NC}"
-            else
-                echo_info "Installing scitex (editable mode)..."
+if [ -f "$MIGRATION_SENTINEL" ]; then
+    echo_info "Hot-reload restart - skipping package installations"
+else
 
-                uv pip install -e "/scitex-python[all]" --link-mode=copy >/dev/null
+    # ============================================
+    # Install SciTeX in Editable Mode (Optional)
+    # ============================================
+    try_scitex_installation_in_editable_mode() {
+        if [ -d "/scitex-python" ]; then
+            # Check if scitex-code is a valid Python project
+            if [ -f "/scitex-python/pyproject.toml" ] || [ -f "/scitex-python/setup.py" ]; then
+                # Check if scitex is already installed in editable mode from /scitex-python
+                # Use pip show without -f flag (much faster)
+                if pip show scitex 2>/dev/null | grep -q "Location:.*scitex-python"; then
+                    echo -e "${GREEN}✅ Scitex already installed in editable mode${NC}"
+                else
+                    echo_info "Installing scitex (editable mode)..."
+
+                    uv pip install -e "/scitex-python[all]" --link-mode=copy >/dev/null
+                fi
+                verify_scitex_package
+            else
+                echo -e "⚠️  WARNING: /scitex-python exists but is not a valid Python package"
+                echo -e "   (missing pyproject.toml or setup.py at root)"
+                echo -e "   Skipping scitex package installation..."
             fi
-            verify_scitex_package
         else
-            echo -e "⚠️  WARNING: /scitex-python exists but is not a valid Python package"
-            echo -e "   (missing pyproject.toml or setup.py at root)"
+            echo -e "⚠️  WARNING: /scitex-python not mounted!"
             echo -e "   Skipping scitex package installation..."
         fi
-    else
-        echo -e "⚠️  WARNING: /scitex-python not mounted!"
-        echo -e "   Skipping scitex package installation..."
-    fi
-}
-try_scitex_installation_in_editable_mode
+    }
+    try_scitex_installation_in_editable_mode
 
-# ============================================
-# Install figrecipe in Editable Mode (Optional)
-# ============================================
-try_figrecipe_installation_in_editable_mode() {
-    if [ -d "/figrecipe" ]; then
-        if [ -f "/figrecipe/pyproject.toml" ] || [ -f "/figrecipe/setup.py" ]; then
-            if pip show figrecipe 2>/dev/null | grep -q "Location:.*figrecipe"; then
-                echo -e "${GREEN}✅ figrecipe already installed in editable mode${NC}"
+    # ============================================
+    # Install figrecipe in Editable Mode (Optional)
+    # ============================================
+    try_figrecipe_installation_in_editable_mode() {
+        if [ -d "/figrecipe" ]; then
+            if [ -f "/figrecipe/pyproject.toml" ] || [ -f "/figrecipe/setup.py" ]; then
+                if pip show figrecipe 2>/dev/null | grep -q "Location:.*figrecipe"; then
+                    echo -e "${GREEN}✅ figrecipe already installed in editable mode${NC}"
+                else
+                    echo_info "Installing figrecipe (editable mode)..."
+                    uv pip install -e "/figrecipe[all]" --link-mode=copy >/dev/null
+                fi
             else
-                echo_info "Installing figrecipe (editable mode)..."
-                uv pip install -e "/figrecipe[all]" --link-mode=copy >/dev/null
+                echo -e "⚠️  WARNING: /figrecipe exists but is not a valid Python package"
             fi
         else
-            echo -e "⚠️  WARNING: /figrecipe exists but is not a valid Python package"
+            echo -e "⚠️  WARNING: /figrecipe not mounted, skipping..."
         fi
-    else
-        echo -e "⚠️  WARNING: /figrecipe not mounted, skipping..."
-    fi
-}
-try_figrecipe_installation_in_editable_mode
+    }
+    try_figrecipe_installation_in_editable_mode
 
-# ============================================
-# Install scitex-writer in Editable Mode (Optional)
-# ============================================
-try_scitex_writer_installation_in_editable_mode() {
-    if [ -d "/scitex-writer" ]; then
-        if [ -f "/scitex-writer/pyproject.toml" ] || [ -f "/scitex-writer/setup.py" ]; then
-            if pip show scitex-writer 2>/dev/null | grep -q "Location:.*scitex-writer"; then
-                echo -e "${GREEN}✅ scitex-writer already installed in editable mode${NC}"
+    # ============================================
+    # Install scitex-writer in Editable Mode (Optional)
+    # ============================================
+    try_scitex_writer_installation_in_editable_mode() {
+        if [ -d "/scitex-writer" ]; then
+            if [ -f "/scitex-writer/pyproject.toml" ] || [ -f "/scitex-writer/setup.py" ]; then
+                if pip show scitex-writer 2>/dev/null | grep -q "Location:.*scitex-writer"; then
+                    echo -e "${GREEN}✅ scitex-writer already installed in editable mode${NC}"
+                else
+                    echo_info "Installing scitex-writer (editable mode)..."
+                    uv pip install -e "/scitex-writer[all]" --link-mode=copy >/dev/null
+                fi
             else
-                echo_info "Installing scitex-writer (editable mode)..."
-                uv pip install -e "/scitex-writer[all]" --link-mode=copy >/dev/null
+                echo -e "⚠️  WARNING: /scitex-writer exists but is not a valid Python package"
             fi
         else
-            echo -e "⚠️  WARNING: /scitex-writer exists but is not a valid Python package"
+            echo -e "⚠️  WARNING: /scitex-writer not mounted, skipping..."
         fi
-    else
-        echo -e "⚠️  WARNING: /scitex-writer not mounted, skipping..."
-    fi
-}
-try_scitex_writer_installation_in_editable_mode
+    }
+    try_scitex_writer_installation_in_editable_mode
 
-# ============================================
-# Install crossref-local in Editable Mode (Optional)
-# ============================================
-try_crossref_local_installation_in_editable_mode() {
-    if [ -d "/crossref-local" ]; then
-        if [ -f "/crossref-local/pyproject.toml" ] || [ -f "/crossref-local/setup.py" ]; then
-            if pip show crossref-local 2>/dev/null | grep -q "Location:.*crossref-local"; then
-                echo -e "${GREEN}✅ crossref-local already installed in editable mode${NC}"
+    # ============================================
+    # Install crossref-local in Editable Mode (Optional)
+    # ============================================
+    try_crossref_local_installation_in_editable_mode() {
+        if [ -d "/crossref-local" ]; then
+            if [ -f "/crossref-local/pyproject.toml" ] || [ -f "/crossref-local/setup.py" ]; then
+                if pip show crossref-local 2>/dev/null | grep -q "Location:.*crossref-local"; then
+                    echo -e "${GREEN}✅ crossref-local already installed in editable mode${NC}"
+                else
+                    echo_info "Installing crossref-local (editable mode)..."
+                    uv pip install -e "/crossref-local[all]" --link-mode=copy >/dev/null
+                fi
             else
-                echo_info "Installing crossref-local (editable mode)..."
-                uv pip install -e "/crossref-local[all]" --link-mode=copy >/dev/null
+                echo -e "⚠️  WARNING: /crossref-local exists but is not a valid Python package"
             fi
         else
-            echo -e "⚠️  WARNING: /crossref-local exists but is not a valid Python package"
+            echo -e "⚠️  WARNING: /crossref-local not mounted, skipping..."
         fi
-    else
-        echo -e "⚠️  WARNING: /crossref-local not mounted, skipping..."
-    fi
-}
-try_crossref_local_installation_in_editable_mode
+    }
+    try_crossref_local_installation_in_editable_mode
 
-# ============================================
-# Install openalex-local in Editable Mode (Optional)
-# ============================================
-try_openalex_local_installation_in_editable_mode() {
-    if [ -d "/openalex-local" ]; then
-        if [ -f "/openalex-local/pyproject.toml" ] || [ -f "/openalex-local/setup.py" ]; then
-            if pip show openalex-local 2>/dev/null | grep -q "Location:.*openalex-local"; then
-                echo -e "${GREEN}✅ openalex-local already installed in editable mode${NC}"
+    # ============================================
+    # Install openalex-local in Editable Mode (Optional)
+    # ============================================
+    try_openalex_local_installation_in_editable_mode() {
+        if [ -d "/openalex-local" ]; then
+            if [ -f "/openalex-local/pyproject.toml" ] || [ -f "/openalex-local/setup.py" ]; then
+                if pip show openalex-local 2>/dev/null | grep -q "Location:.*openalex-local"; then
+                    echo -e "${GREEN}✅ openalex-local already installed in editable mode${NC}"
+                else
+                    echo_info "Installing openalex-local (editable mode)..."
+                    uv pip install -e "/openalex-local[all]" --link-mode=copy >/dev/null
+                fi
             else
-                echo_info "Installing openalex-local (editable mode)..."
-                uv pip install -e "/openalex-local[all]" --link-mode=copy >/dev/null
+                echo -e "⚠️  WARNING: /openalex-local exists but is not a valid Python package"
             fi
         else
-            echo -e "⚠️  WARNING: /openalex-local exists but is not a valid Python package"
+            echo -e "⚠️  WARNING: /openalex-local not mounted, skipping..."
         fi
-    else
-        echo -e "⚠️  WARNING: /openalex-local not mounted, skipping..."
-    fi
-}
-try_openalex_local_installation_in_editable_mode
+    }
+    try_openalex_local_installation_in_editable_mode
 
-# ============================================
-# Install socialia in Editable Mode (Optional)
-# ============================================
-try_socialia_installation_in_editable_mode() {
-    if [ -d "/socialia" ]; then
-        if [ -f "/socialia/pyproject.toml" ] || [ -f "/socialia/setup.py" ]; then
-            if pip show socialia 2>/dev/null | grep -q "Location:.*socialia"; then
-                echo -e "${GREEN}✅ socialia already installed in editable mode${NC}"
+    # ============================================
+    # Install socialia in Editable Mode (Optional)
+    # ============================================
+    try_socialia_installation_in_editable_mode() {
+        if [ -d "/socialia" ]; then
+            if [ -f "/socialia/pyproject.toml" ] || [ -f "/socialia/setup.py" ]; then
+                if pip show socialia 2>/dev/null | grep -q "Location:.*socialia"; then
+                    echo -e "${GREEN}✅ socialia already installed in editable mode${NC}"
+                else
+                    echo_info "Installing socialia (editable mode)..."
+                    uv pip install -e "/socialia[all]" --link-mode=copy >/dev/null
+                fi
             else
-                echo_info "Installing socialia (editable mode)..."
-                uv pip install -e "/socialia[all]" --link-mode=copy >/dev/null
+                echo -e "⚠️  WARNING: /socialia exists but is not a valid Python package"
             fi
         else
-            echo -e "⚠️  WARNING: /socialia exists but is not a valid Python package"
+            echo -e "⚠️  WARNING: /socialia not mounted, skipping..."
         fi
-    else
-        echo -e "⚠️  WARNING: /socialia not mounted, skipping..."
-    fi
-}
-try_socialia_installation_in_editable_mode
+    }
+    try_socialia_installation_in_editable_mode
 
-add_insufficient_python_packages() {
-    # Check if pygments is already installed before attempting to install
-    if ! python -c "import pygments" 2>/dev/null; then
-        echo_info "Installing pygments..."
-        pip install --no-cache-dir pygments >/dev/null 2>&1 || true
-    fi
-}
-add_insufficient_python_packages
+    add_insufficient_python_packages() {
+        # Check if pygments is already installed before attempting to install
+        if ! python -c "import pygments" 2>/dev/null; then
+            echo_info "Installing pygments..."
+            pip install --no-cache-dir pygments >/dev/null 2>&1 || true
+        fi
+    }
+    add_insufficient_python_packages
+
+fi # end: skip package installs on hot-reload
 
 # ============================================
 # Pre-generate Matplotlib Font Cache (Runtime - First Start Only)
@@ -299,8 +309,22 @@ start_typescript_build_watcher_fallback() {
     fi
 }
 
-# Start Vite (with fallback to tsc --watch)
-start_vite_dev_server
+# Only start web-related services for the Django container (not celery/flower)
+# Check if the command ($@) is the Django runserver
+IS_DJANGO_CONTAINER=false
+for arg in "$@"; do
+    if [ "$arg" = "runserver" ]; then
+        IS_DJANGO_CONTAINER=true
+        break
+    fi
+done
+
+if [ "$IS_DJANGO_CONTAINER" = true ]; then
+    # Start Vite (with fallback to tsc --watch)
+    start_vite_dev_server
+else
+    echo_info "Non-Django container - skipping Vite dev server"
+fi
 
 # ============================================
 # Database & Django Setup
@@ -434,8 +458,6 @@ start_terminal_broker_if_needed() {
         echo_success "Terminal broker already running"
     fi
 }
-start_terminal_broker_if_needed
-
 # Start SSH Gateway (Background) - check if port 2200 is in use
 start_ssh_gateway_if_needed() {
     if ! nc -z 127.0.0.1 2200 2>/dev/null; then
@@ -457,8 +479,6 @@ start_ssh_gateway_if_needed() {
         echo_success "SSH gateway already running on port 2200"
     fi
 }
-start_ssh_gateway_if_needed
-
 # Start Gitea Auto-Sync Daemon (Background) - check if process exists
 start_gitea_auto_sync_if_needed() {
     if ! pgrep -f "auto_sync_workspaces" >/dev/null 2>&1; then
@@ -475,8 +495,14 @@ start_gitea_auto_sync_if_needed() {
         echo_success "Gitea auto-sync daemon already running"
     fi
 }
-start_gitea_auto_sync_if_needed
-
+# Django-only: terminal broker, SSH gateway, auto-sync (skip for celery/flower)
+if [ "$IS_DJANGO_CONTAINER" = true ]; then
+    start_terminal_broker_if_needed
+    start_ssh_gateway_if_needed
+    start_gitea_auto_sync_if_needed
+else
+    echo_info "Non-Django container - skipping background services"
+fi
 # ============================================
 # Start Application
 # ============================================
