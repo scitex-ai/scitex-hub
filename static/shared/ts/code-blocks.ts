@@ -109,6 +109,9 @@ class CodeBlockManager {
    * Process a single code block
    */
   private processCodeBlock(codeBlock: HTMLElement): void {
+    // Skip code blocks inside .api-example (they have their own copy/label UI)
+    if (codeBlock.closest(".api-example")) return;
+
     // Apply syntax highlighting if hljs is available
     if (
       typeof (window as any).hljs !== "undefined" &&
