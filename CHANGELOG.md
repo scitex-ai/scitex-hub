@@ -5,6 +5,23 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0-alpha] - 2026-02-15
+
+### Added
+- **Event Bus API**: Async event bus for task notifications (HPC tests, job completion, webhooks)
+  - POST/GET endpoints at `/api/events/` with authentication
+  - Event schema with type, status, payload, source fields
+- **CSV Upload**: File upload support for Plot and Stats API endpoints
+- **Web API Docs**: New test category at `/dev/tests/` with lazy loading
+- **Pre-commit**: pytest-testmon hook for incremental testing
+
+### Changed
+- **API Registry**: Extracted endpoint definitions into `api_endpoints/` modules
+- **Landing Page**: Sleek outlined badges for hero section
+
+### Fixed
+- **CI**: Upgraded deprecated GitHub Actions (upload-artifact v3→v4, setup-python v4→v5, codeql-action v2→v3)
+
 ## [0.8.3-alpha] - 2026-02-14
 
 ### Added
