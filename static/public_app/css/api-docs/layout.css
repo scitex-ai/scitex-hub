@@ -147,10 +147,9 @@
 
 /* Active section indicator */
 .api-nav-section.active-section {
-  background: var(--bg-muted);
-  border-radius: 6px;
-  padding: 0.5rem;
-  margin: 0 -0.5rem 1rem -0.5rem;
+  border-left: 2px solid var(--text-muted);
+  padding-left: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .api-nav-section.active-section h4 a,

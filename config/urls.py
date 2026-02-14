@@ -23,6 +23,7 @@ from django.views.generic import RedirectView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from apps.accounts_app.api.user_views import api_search_users
+from apps.integrations_app.views_events import list_events, receive_event
 from apps.project_app.views import (
     accept_invitation,
     api_check_name_availability,
@@ -149,6 +150,9 @@ urlpatterns = [
         "favicon.ico",
         RedirectView.as_view(url="/static/shared/images/favicon.png", permanent=True),
     ),
+    # Event bus API (APIKey auth, CSRF exempt)
+    path("api/events/", receive_event, name="event_receive"),
+    path("api/events/list/", list_events, name="event_list"),
     # API endpoints
     path("api/users/search/", api_search_users, name="api_search_users"),
     path("project/api/check-name/", api_check_name_availability, name="api_check_name"),

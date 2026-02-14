@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SciTeX architecture diagram using figrecipe Schematic."""
+"""SciTeX architecture diagram using figrecipe Diagram."""
 
 import matplotlib
 
@@ -14,7 +14,7 @@ def main(CONFIG=stx.session.INJECTED):
     fr.load_style("SCITEX")
 
     W, H = 170, 105
-    s = fr.Schematic(title="", width_mm=W, height_mm=H)
+    s = fr.Diagram(title="", width_mm=W, height_mm=H)
 
     bw, bh = 24, 15
 
@@ -108,7 +108,7 @@ def main(CONFIG=stx.session.INJECTED):
     s.add_arrow("scholar", "writer")
 
     fig, ax = fr.subplots()
-    ax.schematic(s, id="scitex_arch")
+    ax.diagram(s, id="scitex_arch")
 
     from pathlib import Path
 

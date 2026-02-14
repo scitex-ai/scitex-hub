@@ -3,6 +3,31 @@
  * Uses workspace CSS variables for consistent theming
  */
 
+/* WIP Badge */
+.wip-badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  border: 1px solid var(--text-muted);
+  border-radius: 4px;
+  vertical-align: middle;
+}
+
+/* WIP Banner - always visible at top of hub */
+.hub-wip-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--workspace-border-default);
+}
+
 /* Workspace Layout */
 .hub-workspace {
   display: flex;

@@ -21,7 +21,9 @@
                 <div class="d-flex align-items-center gap-2">
                     <button class="btn btn-outline-secondary btn-sm"
                             onclick="copyAllResults()"
-                            title="Copy results">
+                            title="Copy results"
+                            id="copy-btn"
+                            disabled>
                         <i class="fas fa-copy"></i> Copy
                     </button>
                     <a href="{% url 'dev_app:tests' %}"
@@ -33,15 +35,17 @@
             <div class="tests-summary">
                 <div class="stat passed">
                     <i class="fas fa-check-circle"></i>
-                    <span>{{ passed }} passed</span>
+                    <span id="summary-passed">
+                        <i class="fas fa-spinner fa-spin"></i> running
+                    </span>
                 </div>
                 <div class="stat failed">
                     <i class="fas fa-times-circle"></i>
-                    <span>{{ failed }} failed</span>
+                    <span id="summary-failed">-- failed</span>
                 </div>
                 <div class="stat total">
                     <i class="fas fa-list"></i>
-                    <span>{{ total }} total</span>
+                    <span id="summary-total">-- total</span>
                 </div>
             </div>
         </div>
@@ -56,16 +60,18 @@
                        class="tests-nav-item {% if not current_category %}active{% endif %}">
                         <i class="fas fa-list"></i>
                         <span>All Tests</span>
-                        <span class="nav-stats {% if all_passed %}all-pass{% else %}has-fail{% endif %}">{{ passed }}/{{ total }}</span>
+                        <span class="nav-stats" id="nav-all">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </span>
                     </a>
-                    {% for category in categories %}
+                    {% for cat in categories %}
                         <div class="tests-nav-section">
-                            <a href="{% url 'dev_app:tests_category' category.key %}"
-                               class="tests-nav-item {% if current_category == category.key %}active{% endif %}">
-                                <i class="{{ category.icon }}"></i>
-                                <span>{{ category.name }}</span>
-                                <span class="nav-stats {% if category.all_passed %}all-pass{% else %}has-fail{% endif %}">
-                                    {{ category.passed_count }}/{{ category.results|length }}
+                            <a href="{% url 'dev_app:tests_category' cat.key %}"
+                               class="tests-nav-item {% if current_category == cat.key %}active{% endif %}">
+                                <i class="{{ cat.icon }}"></i>
+                                <span>{{ cat.name }}</span>
+                                <span class="nav-stats" id="nav-{{ cat.key }}">
+                                    <i class="fas fa-spinner fa-spin"></i>
                                 </span>
                             </a>
                         </div>
@@ -74,70 +80,23 @@
             </aside>
             <!-- Main Content -->
             <main class="tests-main">
-                {% if all_passed %}
-                    <div class="all-passed-banner">
-                        <i class="fas fa-check-circle fa-lg"></i>
-                        <strong>All {{ total }} tests passed!</strong>
-                    </div>
-                {% else %}
-                    <div class="has-failures-banner">
-                        <i class="fas fa-exclamation-triangle fa-lg"></i>
-                        <strong>{{ failed }} test(s) failed</strong>
-                    </div>
-                {% endif %}
-                {% for category in display_categories %}
-                    <section class="test-category" id="{{ category.key }}">
+                <div id="status-banner"></div>
+                {% for cat in display_categories %}
+                    <section class="test-category" id="{{ cat.key }}" data-category="{{ cat.key }}">
                         <div class="test-category-header">
                             <h2 class="tests-section-title">
-                                <i class="{{ category.icon }}"></i> {{ category.name }}
+                                <i class="{{ cat.icon }}"></i> {{ cat.name }}
                             </h2>
-                            <span class="test-category-count {% if category.all_passed %}all-pass{% else %}has-fail{% endif %}">
-                                {{ category.passed_count }}/{{ category.results|length }}
+                            <span class="test-category-count" id="count-{{ cat.key }}">
+                                <i class="fas fa-spinner fa-spin"></i> running...
                             </span>
                         </div>
-                        {% for result in category.results %}
-                            <div class="test-card {% if result.passed %}passed{% else %}failed{% endif %}"
-                                 data-endpoint="{{ result.endpoint }}"
-                                 data-method="{{ result.method }}"
-                                 data-status="{{ result.actual_status }}">
-                                <div class="test-row">
-                                    <div class="test-info">
-                                        <div class="test-name">{{ result.name }}</div>
-                                        <div class="test-endpoint">
-                                            <span class="test-method {{ result.method }}">{{ result.method }}</span>
-                                            <code>{{ result.endpoint }}</code>
-                                        </div>
-                                        {% if result.error %}
-                                            <div class="test-error">
-                                                <i class="fas fa-exclamation-circle"></i> {{ result.error }}
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="test-status">
-                                        <span class="test-http-code">
-                                            {% if result.actual_status %}
-                                                HTTP {{ result.actual_status }}
-                                            {% else %}
-                                                --
-                                            {% endif %}
-                                        </span>
-                                        <span class="test-badge {% if result.passed %}passed{% else %}failed{% endif %}">
-                                            {% if result.passed %}
-                                                <i class="fas fa-check"></i> PASS
-                                            {% else %}
-                                                <i class="fas fa-times"></i> FAIL
-                                            {% endif %}
-                                        </span>
-                                        <span class="test-duration">{{ result.duration_ms }}ms</span>
-                                    </div>
-                                </div>
-                                {% if result.preview_url and result.passed %}
-                                    <div class="test-preview">
-                                        <img src="{{ result.preview_url }}" alt="{{ result.name }}" loading="lazy" />
-                                    </div>
-                                {% endif %}
+                        <div class="test-results" id="results-{{ cat.key }}">
+                            <div class="test-loading">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                Running {{ cat.name }} tests...
                             </div>
-                        {% endfor %}
+                        </div>
                     </section>
                 {% endfor %}
             </main>
@@ -146,38 +105,131 @@
 {% endblock %}
 {% block extra_js %}
     <script>
+(function() {
+    const allCategories = [
+        {% for cat in categories %}"{{ cat.key }}"{% if not forloop.last %},{% endif %}{% endfor %}
+    ];
+    const displayCategories = new Set([
+        {% for cat in display_categories %}"{{ cat.key }}"{% if not forloop.last %},{% endif %}{% endfor %}
+    ]);
+
+    let totalPassed = 0, totalFailed = 0, totalTests = 0, completedCategories = 0;
+
+    function esc(text) {
+        if (text == null) return '';
+        return String(text).replace(/&/g,'&amp;').replace(/</g,'&lt ;') .replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }  function renderTestCard(r) { const cls = r.passed ? 'passed' : 'failed'; const badge = r.passed ? '<i class="fas fa-check"></i> PASS'
+            : '<i class="fas fa-times"></i> FAIL';
+        const code = r.actual_status ? `HTTP ${r.actual_status}` : '--';
+        const err = r.error
+            ? `<div class="test-error"><i class="fas fa-exclamation-circle"></i> ${esc(r.error)}</div>`
+            : '';
+        const preview = (r.preview_url && r.passed)
+            ? `<div class="test-preview"><img src="${esc(r.preview_url)}" alt="${esc(r.name)}" loading="lazy" /></div>`
+            : '';
+        return `<div class="test-card ${cls}" data-endpoint="${esc(r.endpoint)}" data-method="${esc(r.method)}" data-status="${r.actual_status}">
+            <div class="test-row">
+                <div class="test-info">
+                    <div class="test-name">${esc(r.name)}</div>
+                    <div class="test-endpoint">
+                        <span class="test-method ${esc(r.method)}">${esc(r.method)}</span>
+                        <code>${esc(r.endpoint)}</code>
+                    </div>
+                    ${err}
+                </div>
+                <div class="test-status">
+                    <span class="test-http-code">${code}</span>
+                    <span class="test-badge ${cls}">${badge}</span>
+                    <span class="test-duration">${r.duration_ms}ms</span>
+                </div>
+            </div>
+            ${preview}
+        </div>`;
+    }
+
+    function updateSummary() {
+        const p = document.getElementById('summary-passed');
+        const f = document.getElementById('summary-failed');
+        const t = document.getElementById('summary-total');
+        const nav = document.getElementById('nav-all');
+
+        f.textContent = `${totalFailed} failed`;
+        t.textContent = `${totalTests} total`;
+
+        if (completedCategories < allCategories.length) {
+            p.innerHTML = `${totalPassed} passed <i class="fas fa-spinner fa-spin" style="font-size:0.7em;opacity:0.5"></i>`;
+        } else {
+            p.textContent = `${totalPassed} passed`;
+            const ok = totalFailed === 0;
+            nav.className = `nav-stats ${ok ? 'all-pass' : 'has-fail'}`;
+            nav.textContent = `${totalPassed}/${totalTests}`;
+            const banner = document.getElementById('status-banner');
+            banner.innerHTML = ok
+                ? `<div class="all-passed-banner"><i class="fas fa-check-circle fa-lg"></i> <strong>All ${totalTests} tests passed!</strong></div>`
+                : `<div class="has-failures-banner"><i class="fas fa-exclamation-triangle fa-lg"></i> <strong>${totalFailed} test(s) failed</strong></div>`;
+            document.getElementById('copy-btn').disabled = false;
+        }
+    }
+
+    async function runCategory(key) {
+        try {
+            const resp = await fetch(`/dev/api/tests/run/${key}/`);
+            const data = await resp.json();
+            const navEl = document.getElementById(`nav-${key}`);
+            if (navEl) {
+                navEl.className = `nav-stats ${data.all_passed ? 'all-pass' : 'has-fail'}`;
+                navEl.textContent = `${data.passed_count}/${data.total}`;
+            }
+            if (displayCategories.has(key)) {
+                const box = document.getElementById(`results-${key}`);
+                const cnt = document.getElementById(`count-${key}`);
+                if (box) box.innerHTML = data.results.map(renderTestCard).join('');
+                if (cnt) {
+                    cnt.className = `test-category-count ${data.all_passed ? 'all-pass' : 'has-fail'}`;
+                    cnt.textContent = `${data.passed_count}/${data.total}`;
+                }
+            }
+            totalPassed += data.passed_count;
+            totalFailed += (data.total - data.passed_count);
+            totalTests += data.total;
+        } catch (err) {
+            if (displayCategories.has(key)) {
+                const box = document.getElementById(`results-${key}`);
+                if (box) box.innerHTML = `<div class="test-card failed"><div class="test-row"><div class="test-info"><div class="test-name">Failed to fetch</div><div class="test-error"><i class="fas fa-exclamation-circle"></i> ${esc(err.message)}</div></div></div></div>`;
+            }
+            const navEl = document.getElementById(`nav-${key}`);
+            if (navEl) { navEl.className = 'nav-stats has-fail'; navEl.textContent = 'ERR'; }
+        }
+        completedCategories++;
+        updateSummary();
+    }
+
+    allCategories.forEach(key => runCategory(key));
+})();
+
 function copyAllResults() {
-    const results = [];
-    results.push('# API Test Results');
-    results.push('');
-    results.push(`Passed: {{ passed }}/{{ total }}`);
-    results.push(`Failed: {{ failed }}/{{ total }}`);
-    results.push('');
-
-    document.querySelectorAll('.test-category').forEach(category => {
-        const title = category.querySelector('.tests-section-title').textContent.trim();
-        results.push(`## ${title}`);
-        results.push('');
-
-        category.querySelectorAll('.test-card').forEach(card => {
-            const name = card.querySelector('.test-name').textContent.trim();
-            const method = card.dataset.method;
-            const endpoint = card.dataset.endpoint;
-            const status = card.dataset.status || '--';
-            const passed = card.classList.contains('passed') ? 'PASS' : 'FAIL';
-            const duration = card.querySelector('.test-duration').textContent.trim();
-
-            results.push(`- [${passed}] ${name}`);
-            results.push(`  ${method} ${endpoint} → HTTP ${status} (${duration})`);
+    const lines = ['# API Test Results', '',
+        document.getElementById('summary-passed').textContent.trim(),
+        document.getElementById('summary-failed').textContent.trim(),
+        document.getElementById('summary-total').textContent.trim(), ''];
+    document.querySelectorAll('.test-category').forEach(cat => {
+        const title = cat.querySelector('.tests-section-title');
+        if (title) { lines.push(`## ${title.textContent.trim()}`); lines.push(''); }
+        cat.querySelectorAll('.test-card').forEach(card => {
+            const name = card.querySelector('.test-name')?.textContent.trim();
+            const m = card.dataset.method, ep = card.dataset.endpoint;
+            const st = card.dataset.status || '--';
+            const ok = card.classList.contains('passed') ? 'PASS' : 'FAIL';
+            const dur = card.querySelector('.test-duration')?.textContent.trim() || '';
+            lines.push(`- [${ok}] ${name}`);
+            lines.push(`  ${m} ${ep} → HTTP ${st} (${dur})`);
         });
-        results.push('');
+        lines.push('');
     });
-
-    navigator.clipboard.writeText(results.join('\n')).then(() => {
-        const btn = document.querySelector('[onclick="copyAllResults()"]');
-        const originalHTML = btn.innerHTML;
+    navigator.clipboard.writeText(lines.join('\n')).then(() => {
+        const btn = document.getElementById('copy-btn');
+        const orig = btn.innerHTML;
         btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-        setTimeout(() => { btn.innerHTML = originalHTML; }, 2000);
+        setTimeout(() => { btn.innerHTML = orig; }, 2000);
     });
 }
     </script>

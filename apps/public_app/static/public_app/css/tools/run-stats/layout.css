@@ -219,13 +219,13 @@
   white-space: nowrap;
 }
 .test-btn:hover {
-  background: var(--workspace-bg-monaco);
-  border-color: var(--workspace-text-link);
+  background: var(--bg-muted, #2e2e2e);
+  border-color: var(--text-muted, #8a8a8a);
 }
 .test-btn.active {
-  background: rgba(59, 130, 246, 0.15);
-  border-color: #3b82f6;
-  color: #3b82f6;
+  background: var(--bg-muted, #2e2e2e);
+  border-color: var(--text-muted, #8a8a8a);
+  color: var(--text-primary, #d2d2d2);
 }
 .test-btn .test-description {
   display: none;

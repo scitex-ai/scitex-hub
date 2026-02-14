@@ -201,6 +201,37 @@ class SlackWebhook(models.Model):
         return f"Slack webhook for {self.connection.user.username}"
 
 
+class Event(models.Model):
+    """General-purpose event for async task results.
+
+    Stores events from CLI, HPC, CI, or any external process.
+    Used by the SciTeX event bus (scitex.events.emit → POST /api/events/).
+    """
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="events")
+    type = models.CharField(
+        max_length=50, db_index=True, help_text="Event type (e.g., test_complete)"
+    )
+    project = models.CharField(max_length=100, db_index=True, help_text="Project name")
+    status = models.CharField(max_length=20, help_text="success or failure")
+    payload = models.JSONField(default=dict, help_text="Event-specific data")
+    source = models.CharField(
+        max_length=20, default="local", help_text="Origin: local, hpc, ci"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["user", "type", "-created_at"]),
+        ]
+        verbose_name = "Event"
+        verbose_name_plural = "Events"
+
+    def __str__(self):
+        return f"{self.type} | {self.project} | {self.status} ({self.created_at})"
+
+
 class IntegrationLog(models.Model):
     """Log integration activities"""
 

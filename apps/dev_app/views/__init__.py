@@ -42,7 +42,7 @@ from .sections import (
     DesignWorkspaceColorsView,
     DesignWorkspaceIconsView,
 )
-from .tests import TestMonitorView
+from .tests import TestMonitorView, run_tests_api
 
 __all__ = [
     # base.py
@@ -84,4 +84,5 @@ __all__ = [
     "DesignAllView",
     # tests.py
     "TestMonitorView",
+    "run_tests_api",
 ]

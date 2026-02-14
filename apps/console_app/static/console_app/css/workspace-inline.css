@@ -3,6 +3,12 @@
  * Extracted inline styles from workspace.html template
  * ============================================================================ */
 
+/* Jobs badge - neutral color */
+.panel-tab-badge {
+  background: var(--text-muted, #8a8a8a);
+  color: var(--bg-page, #ffffff);
+}
+
 /* Project data container (hidden) */
 #project-data {
   display: none;

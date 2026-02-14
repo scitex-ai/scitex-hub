@@ -73,9 +73,17 @@
                     </div>
                     <div id="testSelectionPanel">{# Populated by TypeScript from test-registry.ts #}</div>
                 </div>
-                <div class="panel-footer">
-                    <button id="calculateBtn" class="btn btn-primary btn-block">Calculate</button>
-                    <button id="recommendBtn" class="btn btn-secondary btn-block" style="margin-top: 6px;">Recommend Test</button>
+                <div class="panel-footer" style="display:flex; gap:6px;">
+                    <button id="calculateBtn" class="btn btn-primary" style="flex:1;">Calculate</button>
+                    <button id="recommendBtn" class="btn btn-secondary" style="flex:1;">
+                        Recommend Test <span class="wip-badge"
+       style="font-size:0.6rem;
+              padding:1px 4px;
+              margin-left:4px;
+              border:1px solid var(--text-muted);
+              border-radius:3px;
+              opacity:0.7">WIP</span>
+                    </button>
                 </div>
             </div>
             {# Resizer: Tests ↔ Data #}
