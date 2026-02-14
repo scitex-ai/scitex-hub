@@ -3,7 +3,7 @@ name = "scitex-cloud"
 version = "0.9.0-alpha"
 description = "SciTeX Cloud - Deployment and management CLI for SciTeX"
 readme = "README.md"
-license = {text = "AGPL-3.0"}
+license = "AGPL-3.0-only"
 requires-python = ">=3.11"
 authors = [
     {name = "SciTeX Team", email = "contact@scitex.ai"},
@@ -16,6 +16,13 @@ classifiers = [
 dependencies = [
     "click>=8.0",
 ]
+
+[project.urls]
+Homepage = "https://scitex.ai"
+Repository = "https://github.com/ywatanabe1989/scitex-cloud"
+Documentation = "https://scitex-cloud.readthedocs.io"
+Issues = "https://github.com/ywatanabe1989/scitex-cloud/issues"
+Changelog = "https://github.com/ywatanabe1989/scitex-cloud/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 dev = [

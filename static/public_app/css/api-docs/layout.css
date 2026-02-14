@@ -147,8 +147,6 @@
 
 /* Active section indicator */
 .api-nav-section.active-section {
-  border-left: 2px solid var(--text-muted);
-  padding-left: 0.5rem;
   margin-bottom: 1rem;
 }
 
@@ -187,7 +185,6 @@
   background: var(--bg-muted);
   color: var(--text-primary);
   font-weight: 600;
-  border-left: 2px solid var(--text-primary);
 }
 
 /* Main Content */
