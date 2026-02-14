@@ -25,6 +25,7 @@ urlpatterns = [
     path(
         "tests/<str:category>/", views.TestMonitorView.as_view(), name="tests_category"
     ),
+    path("api/tests/run/<str:category>/", views.run_tests_api, name="tests_run_api"),
     path("api/console/", log_console, name="console_log"),
     path("api/console/logs/", get_console_logs, name="console_logs_get"),
     path("design/", views.DesignGuidelinesView.as_view(), name="design"),

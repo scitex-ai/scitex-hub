@@ -3,14 +3,15 @@
 """
 Test monitoring dashboard view.
 
-Displays API health check results in real-time.
-Available in all environments for transparency.
+Displays API health check results with lazy loading.
+Tests run per-category via AJAX for real-time progress.
 """
 
 import time
 from dataclasses import dataclass, field
 
 import requests
+from django.http import JsonResponse
 from django.views.generic import TemplateView
 
 
@@ -50,8 +51,31 @@ class TestCategory:
         self.all_passed = all(r.passed for r in self.results) if self.results else True
 
 
+CATEGORY_DEFS = [
+    {"key": "core", "name": "Core Services", "icon": "fas fa-server"},
+    {"key": "pages", "name": "Pages", "icon": "fas fa-file"},
+    {"key": "modules", "name": "Modules", "icon": "fas fa-cubes"},
+    {"key": "scholar-api", "name": "Scholar API", "icon": "fas fa-book"},
+    {"key": "stats-api", "name": "Stats API", "icon": "fas fa-chart-bar"},
+    {"key": "plot-api", "name": "Plot API", "icon": "fas fa-palette"},
+    {"key": "auth-api", "name": "Auth API", "icon": "fas fa-key"},
+    {"key": "web-api", "name": "Web API Docs", "icon": "fas fa-book"},
+]
+
+_CATEGORY_METHOD_MAP = {
+    "core": "_test_core_services",
+    "pages": "_test_pages",
+    "modules": "_test_modules",
+    "scholar-api": "_test_scholar_api",
+    "stats-api": "_test_stats_api",
+    "plot-api": "_test_plot_api",
+    "auth-api": "_test_auth_api",
+    "web-api": "_test_web_api_docs",
+}
+
+
 class TestMonitorView(TemplateView):
-    """Test monitoring dashboard."""
+    """Test monitoring dashboard — renders skeleton, tests load via AJAX."""
 
     template_name = "dev_app/tests.html"
 
@@ -61,91 +85,20 @@ class TestMonitorView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Use internal URL for self-testing (container listens on 8000,
-        # but host-mapped port differs per environment)
-        base_url = "http://localhost:8000"
         current_category = self.kwargs.get("category")
 
-        # Build all categories
-        categories = [
-            TestCategory(
-                key="core",
-                name="Core Services",
-                icon="fas fa-server",
-                results=self._test_core_services(base_url),
-            ),
-            TestCategory(
-                key="pages",
-                name="Pages",
-                icon="fas fa-file",
-                results=self._test_pages(base_url),
-            ),
-            TestCategory(
-                key="modules",
-                name="Modules",
-                icon="fas fa-cubes",
-                results=self._test_modules(base_url),
-            ),
-            TestCategory(
-                key="scholar-api",
-                name="Scholar API",
-                icon="fas fa-book",
-                results=self._test_scholar_api(base_url),
-            ),
-            TestCategory(
-                key="stats-api",
-                name="Stats API",
-                icon="fas fa-chart-bar",
-                results=self._test_stats_api(base_url),
-            ),
-            TestCategory(
-                key="plot-api",
-                name="Plot API",
-                icon="fas fa-palette",
-                results=self._test_plot_api(base_url),
-            ),
-            TestCategory(
-                key="auth-api",
-                name="Auth API",
-                icon="fas fa-key",
-                results=self._test_auth_api(base_url),
-            ),
-            TestCategory(
-                key="web-api",
-                name="Web API Docs",
-                icon="fas fa-book",
-                results=self._test_web_api_docs(base_url),
-            ),
-        ]
-
-        # Recalculate stats for each category
-        for cat in categories:
-            cat.calculate_stats()
-
-        # Filter display categories
         if current_category:
-            display_categories = [c for c in categories if c.key == current_category]
+            display_categories = [
+                d for d in CATEGORY_DEFS if d["key"] == current_category
+            ]
         else:
-            display_categories = categories
-
-        # Calculate totals
-        all_results = []
-        for cat in categories:
-            all_results.extend(cat.results)
-
-        passed = sum(1 for r in all_results if r.passed)
-        failed = sum(1 for r in all_results if not r.passed)
+            display_categories = CATEGORY_DEFS
 
         context.update(
             {
-                "categories": categories,
+                "categories": CATEGORY_DEFS,
                 "display_categories": display_categories,
                 "current_category": current_category,
-                "passed": passed,
-                "failed": failed,
-                "total": len(all_results),
-                "all_passed": failed == 0,
-                "base_url": base_url,
             }
         )
         return context
@@ -162,7 +115,6 @@ class TestMonitorView(TemplateView):
     ) -> TestResult:
         """Run a single test and return result."""
         start = time.time()
-        # Use shorter timeout to avoid blocking page load
         timeout = 5
         try:
             if method == "GET":
@@ -182,7 +134,7 @@ class TestMonitorView(TemplateView):
 
             return TestResult(
                 name=name,
-                endpoint=url.split(self.request.get_host())[-1],
+                endpoint=url.replace("http://localhost:8000", ""),
                 method=method,
                 expected_status=expected_status,
                 actual_status=resp.status_code,
@@ -194,7 +146,7 @@ class TestMonitorView(TemplateView):
             duration_ms = (time.time() - start) * 1000
             return TestResult(
                 name=name,
-                endpoint=url,
+                endpoint=url.replace("http://localhost:8000", ""),
                 method=method,
                 expected_status=expected_status,
                 actual_status=0,
@@ -473,3 +425,39 @@ class TestMonitorView(TemplateView):
             )
         )
         return results
+
+
+def run_tests_api(request, category):
+    """API endpoint: run tests for a single category, return JSON."""
+    method_name = _CATEGORY_METHOD_MAP.get(category)
+    if not method_name:
+        return JsonResponse({"error": f"Unknown category: {category}"}, status=404)
+
+    base_url = "http://localhost:8000"
+    runner = TestMonitorView()
+    runner.request = request
+
+    results = getattr(runner, method_name)(base_url)
+
+    return JsonResponse(
+        {
+            "category": category,
+            "results": [
+                {
+                    "name": r.name,
+                    "endpoint": r.endpoint,
+                    "method": r.method,
+                    "expected_status": r.expected_status,
+                    "actual_status": r.actual_status,
+                    "passed": r.passed,
+                    "duration_ms": r.duration_ms,
+                    "error": r.error,
+                    "preview_url": r.preview_url,
+                }
+                for r in results
+            ],
+            "passed_count": sum(1 for r in results if r.passed),
+            "total": len(results),
+            "all_passed": all(r.passed for r in results),
+        }
+    )
