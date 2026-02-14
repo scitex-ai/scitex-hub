@@ -70,7 +70,7 @@ class ClewApp {
           Tracking ${stats.unique_files} unique files
         </p>
         <p class="text-muted">
-          Uses <code>scitex.verify</code> package for dependency tracking
+          Uses <code>scitex.clew</code> package for dependency tracking
         </p>
       `;
       placeholder.innerHTML = statsHtml;
@@ -120,7 +120,7 @@ class ClewApp {
         <div class="dag-placeholder">
           <i class="fas fa-info-circle fa-3x"></i>
           <h3>No Verification Data</h3>
-          <p>This file has not been tracked by scitex.verify</p>
+          <p>This file has not been tracked by scitex.clew</p>
           <p class="text-muted">
             Run your analysis scripts with <code>@stx.session</code> decorator
             to enable verification tracking

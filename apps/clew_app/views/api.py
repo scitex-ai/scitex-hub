@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Clew API views - Thin wrappers around scitex.verify package."""
+"""Clew API views - Thin wrappers around scitex.clew package."""
 
 from __future__ import annotations
 
@@ -13,10 +13,10 @@ from django.views.decorators.http import require_http_methods
 def verification_status(request):
     """Get verification status summary (like git status).
 
-    Wrapper around scitex.verify.get_status()
+    Wrapper around scitex.clew.get_status()
     """
     try:
-        status = stx.verify.get_status()
+        status = stx.clew.get_status()
         return JsonResponse(
             {
                 "success": True,
@@ -42,14 +42,14 @@ def list_runs(request):
     - offset: int (default: 0)
     - status: str (optional filter)
 
-    Wrapper around scitex.verify.list_runs()
+    Wrapper around scitex.clew.list_runs()
     """
     try:
         limit = int(request.GET.get("limit", 50))
         offset = int(request.GET.get("offset", 0))
         status_filter = request.GET.get("status")
 
-        runs = stx.verify.list_runs(limit=limit, status=status_filter)
+        runs = stx.clew.list_runs(limit=limit, status=status_filter)
 
         # Apply offset manually (list_runs doesn't support it)
         if offset > 0:
@@ -83,7 +83,7 @@ def verify_chain(request):
     Query parameters:
     - target: str (required) - Path to target file
 
-    Wrapper around scitex.verify.verify_chain()
+    Wrapper around scitex.clew.verify_chain()
     """
     target = request.GET.get("target")
     if not target:
@@ -96,7 +96,7 @@ def verify_chain(request):
         )
 
     try:
-        chain = stx.verify.verify_chain(target)
+        chain = stx.clew.verify_chain(target)
 
         # Convert dataclass to dict for JSON serialization
         chain_data = {
@@ -150,7 +150,7 @@ def verify_run(request):
     - session_id: str (required)
     - from_scratch: bool (optional, default: false)
 
-    Wrapper around scitex.verify.verify_run()
+    Wrapper around scitex.clew.verify_run()
     """
     session_id = request.GET.get("session_id")
     if not session_id:
@@ -164,7 +164,7 @@ def verify_run(request):
 
     try:
         from_scratch = request.GET.get("from_scratch", "false").lower() == "true"
-        verification = stx.verify.run(session_id, from_scratch=from_scratch)
+        verification = stx.clew.run(session_id, from_scratch=from_scratch)
 
         # Convert dataclass to dict
         verification_data = {
@@ -213,7 +213,7 @@ def get_dag_data(request):
     - target_file: str (optional)
     - path_mode: str (optional, default: "name")
 
-    Wrapper around scitex.verify._viz._json.generate_dag_json()
+    Wrapper around scitex.clew._viz._json.generate_dag_json()
     """
     try:
         session_id = request.GET.get("session_id")
@@ -221,7 +221,7 @@ def get_dag_data(request):
         path_mode = request.GET.get("path_mode", "name")
 
         # Import the visualization function
-        from scitex.verify._viz._json import generate_dag_json
+        from scitex.clew._viz._json import generate_dag_json  # noqa: E402
 
         dag_data = generate_dag_json(
             session_id=session_id,
@@ -255,7 +255,7 @@ def get_mermaid_dag(request):
     - show_hashes: bool (optional, default: false)
     - path_mode: str (optional, default: "name")
 
-    Wrapper around scitex.verify.generate_mermaid_dag()
+    Wrapper around scitex.clew.generate_mermaid_dag()
     """
     try:
         session_id = request.GET.get("session_id")
@@ -263,7 +263,7 @@ def get_mermaid_dag(request):
         show_hashes = request.GET.get("show_hashes", "false").lower() == "true"
         path_mode = request.GET.get("path_mode", "name")
 
-        mermaid_code = stx.verify.generate_mermaid_dag(
+        mermaid_code = stx.clew.generate_mermaid_dag(
             session_id=session_id,
             target_file=target_file,
             show_hashes=show_hashes,
@@ -292,10 +292,10 @@ def get_mermaid_dag(request):
 def database_stats(request):
     """Get database statistics.
 
-    Wrapper around scitex.verify.stats()
+    Wrapper around scitex.clew.stats()
     """
     try:
-        stats = stx.verify.stats()
+        stats = stx.clew.stats()
         return JsonResponse(
             {
                 "success": True,

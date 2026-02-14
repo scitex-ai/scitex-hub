@@ -2,59 +2,10 @@
 <section id="introduction" class="api-section">
     <h2>Introduction</h2>
     <p class="api-lead">
-        The SciTeX API enables you to programmatically access all SciTeX features.
-        Search academic papers, manage your research library, compile LaTeX documents,
-        and integrate with your existing workflows.
+        The SciTeX Web API lets you search academic papers, create publication-ready plots,
+        and run statistical tests — all via simple HTTP requests.
+        Upload CSV files or pass data inline. No SDK required.
     </p>
-    <div class="api-info-cards">
-        <!-- Base URL Card -->
-        <div class="api-info-card api-info-card-switchable" data-switch="base-url">
-            <div class="api-card-switch">
-                <button class="switch-btn active" data-value="local" title="Local dev">Local</button>
-                <button class="switch-btn" data-value="cloud" title="Production">Cloud</button>
-            </div>
-            <h4>Base URL</h4>
-            <code class="api-switchable-value"
-                  data-local="{{ request.build_absolute_uri|slice:':-1' }}"
-                  data-cloud="https://scitex.ai">{{ request.build_absolute_uri|slice:":-1" }}</code>
-        </div>
-        <!-- Format Card -->
-        <div class="api-info-card api-info-card-switchable" data-switch="format">
-            <div class="api-card-switch">
-                <button class="switch-btn active" data-value="json" title="JSON format">JSON</button>
-                <button class="switch-btn" data-value="bibtex" title="BibTeX export">BibTeX</button>
-            </div>
-            <h4>Format</h4>
-            <code class="api-switchable-value"
-                  data-json="application/json"
-                  data-bibtex="application/x-bibtex">application/json</code>
-        </div>
-        <!-- API Key Card -->
-        <div class="api-info-card api-info-card-switchable" data-switch="auth">
-            <div class="api-card-switch">
-                <button class="switch-btn active" data-value="campaign" title="Alpha token">Campaign</button>
-                {% if user.is_authenticated %}
-                    <button class="switch-btn" data-value="mykey" title="Your key">My Key</button>
-                {% endif %}
-            </div>
-            <h4>API Key</h4>
-            <code class="api-switchable-value api-key-display"
-                  data-campaign="{{ campaign_token }}"
-                  data-mykey="{% if user_api_key %}{{ user_api_key }}{% else %}Create at /api-keys/{% endif %}">{{ campaign_token }}</code>
-            <button class="copy-btn-mini" title="Copy">
-                <i class="fas fa-copy"></i>
-            </button>
-        </div>
-        <!-- Version Card -->
-        <div class="api-info-card api-info-card-switchable" data-switch="version">
-            <div class="api-card-switch">
-                <button class="switch-btn active" data-value="v1" title="Stable">v1</button>
-                <button class="switch-btn" data-value="latest" title="Latest">Latest</button>
-            </div>
-            <h4>Version</h4>
-            <code class="api-switchable-value" data-v1="v1 (stable)" data-latest="{{ version }}">v1 (stable)</code>
-        </div>
-    </div>
 </section>
 <!-- Authentication -->
 <section id="authentication" class="api-section">

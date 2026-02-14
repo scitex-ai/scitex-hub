@@ -39,3 +39,14 @@ repos:
     hooks:
       - id: black
         language_version: python3.11
+
+  # Incremental testing
+  - repo: local
+    hooks:
+      - id: pytest-testmon
+        name: pytest-testmon
+        entry: python -m pytest --testmon -x -q --tb=short
+        language: system
+        types: [python]
+        pass_filenames: false
+        stages: [pre-commit]

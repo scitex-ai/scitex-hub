@@ -203,18 +203,18 @@
 }
 
 [data-theme="dark"] {
-  /* Restore original blue-tinted primitives for dark mode
-   * (light mode uses warm neutral grays defined in :root) */
-  --_scitex-01: #1a2a40;
-  --_scitex-02: #34495e;
-  --_scitex-03: #506b7a;
-  --_scitex-04: #6c8ba0;
-  --_scitex-05: #8fa4b0;
-  --_scitex-06: #b5c7d1;
-  --_scitex-07: #d4e1e8;
-  --_white: #fafbfc;
-  --_gray-subtle: #f6f8fa;
-  --_warm-white: #fefefe;
+  /* Neutral warm gray primitives for dark mode
+   * (matches light mode philosophy — no blue tint) */
+  --_scitex-01: #1c1c1c;
+  --_scitex-02: #2e2e2e;
+  --_scitex-03: #474747;
+  --_scitex-04: #6a6a6a;
+  --_scitex-05: #8a8a8a;
+  --_scitex-06: #b0b0b0;
+  --_scitex-07: #d2d2d2;
+  --_white: #f8f7f5;
+  --_gray-subtle: #f3f2f0;
+  --_warm-white: #faf9f7;
   --_success: #4a9b7e;
   --_cta: #3b82f6;
   --_cta-hover: #2563eb;
@@ -227,7 +227,7 @@
   --text-color: var(--text-primary); /* Alias for legacy compatibility */
 
   /* Background - flip to dark */
-  --bg-page: #0f1419;
+  --bg-page: #121212;
   --bg-surface: var(--_scitex-01);
   --bg-muted: var(--_scitex-02);
 

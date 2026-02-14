@@ -28,9 +28,13 @@ body:has(.browse-container) #main-content {
 
 /* GitHub-style repository header - Theme-aware */
 .repo-header {
-  padding: 0.75rem 0 1rem 0; /* Compact: 0.75rem top, 1rem bottom */
-  margin-bottom: 1rem; /* Space between header and tabs */
+  padding: 0.75rem 0 1rem 0;
+  margin-bottom: 1rem;
   border-bottom: 1px solid var(--color-border-default);
+}
+
+.repo-header-left + .repo-header-right {
+  margin-top: 0.75rem;
 }
 
 .repo-header-main {
@@ -131,4 +135,3 @@ body:has(.browse-container) #main-content {
 .repo-description {
   color: var(--color-fg-muted);
 }
-

@@ -8,7 +8,7 @@ from django.urls import path
 
 from ..views import api
 
-# API patterns - thin wrappers around scitex.verify package
+# API patterns - thin wrappers around scitex.clew package
 urlpatterns = [
     # Verification status and statistics
     path("status/", api.verification_status, name="clew_api_status"),

@@ -75,6 +75,9 @@
         {% endif %}
         <!-- Main Area -->
         <main class="hub-main">
+            <div style="padding:0.5rem 1rem;">
+                <span class="badge badge-wip">WIP</span>
+            </div>
             {% if current_project %}
                 <!-- GitHub-style file browser (reusing project_app partials) -->
                 <div class="hub-browse-container">
@@ -121,66 +124,7 @@
                     {% endif %}
                 </div>
             {% endif %}
-            <!-- Secondary content: Activity + Quick Actions -->
-            <div class="hub-content hub-secondary-content">
-                <div class="hub-cards">
-                    <div class="hub-card">
-                        <div class="hub-card-header">
-                            <h2>
-                                <i class="fas fa-history"></i> Recent Activity
-                            </h2>
-                        </div>
-                        <div class="hub-card-body">
-                            {% if recent_activities %}
-                                <ul class="activity-list">
-                                    {% for activity in recent_activities %}
-                                        <li>
-                                            <span class="activity-icon">
-                                                {% if activity.activity_type == "commit" %}
-                                                    <i class="fas fa-code-branch"></i>
-                                                {% elif activity.activity_type == "star" %}
-                                                    <i class="fas fa-star"></i>
-                                                {% elif activity.activity_type == "follow" %}
-                                                    <i class="fas fa-user-plus"></i>
-                                                {% else %}
-                                                    <i class="fas fa-circle"></i>
-                                                {% endif %}
-                                            </span>
-                                            <span class="activity-text">{{ activity.description }}</span>
-                                            <span class="activity-time text-muted">{{ activity.created_at|timesince }} ago</span>
-                                        </li>
-                                    {% endfor %}
-                                </ul>
-                            {% else %}
-                                <p class="text-muted">No recent activity</p>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="hub-card">
-                        <div class="hub-card-header">
-                            <h2>
-                                <i class="fas fa-bolt"></i> Quick Actions
-                            </h2>
-                        </div>
-                        <div class="hub-card-body">
-                            <div class="quick-actions">
-                                <a href="/writer/" class="action-btn">
-                                    <i class="fas fa-pen"></i> Writer
-                                </a>
-                                <a href="/vis/" class="action-btn">
-                                    <i class="fas fa-chart-bar"></i> Visualizer
-                                </a>
-                                <a href="/scholar/" class="action-btn">
-                                    <i class="fas fa-graduation-cap"></i> Scholar
-                                </a>
-                                <a href="/console/" class="action-btn">
-                                    <i class="fas fa-terminal"></i> Console
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- Secondary content removed -->
         </main>
         <!-- Details resizer (auto-initialized via data attributes) -->
         <div class="panel-resizer"

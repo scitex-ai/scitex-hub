@@ -4,4 +4,10 @@
  * SLURM job management panel for the code workspace
  */
 
-@import url('./jobs-panel/index.css');
+@import url("./jobs-panel/index.css");
+
+/* Badge override - ensure neutral color (import chain may not resolve) */
+.panel-tab-badge {
+  background: var(--text-muted, #8a8a8a) !important;
+  color: var(--bg-page, #ffffff) !important;
+}
