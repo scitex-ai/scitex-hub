@@ -65,12 +65,15 @@ def build_spec_from_query(params: dict) -> dict:
     kind_map = {"box": "boxplot", "violin": "violinplot"}
     plot_kind = kind_map.get(kind, kind)
 
-    # Figure dimensions
-    width = int(params.get("width", 80))
-    height = int(params.get("height", 60))
+    # Figure dimensions (only override if explicitly provided; SCITEX style defaults apply)
+    figure = {"style": "SCITEX"}
+    if "width" in params:
+        figure["width_mm"] = int(params["width"])
+    if "height" in params:
+        figure["height_mm"] = int(params["height"])
 
     spec = {
-        "figure": {"width_mm": width, "height_mm": height, "style": "SCITEX"},
+        "figure": figure,
         "plots": [],
     }
 
@@ -221,11 +224,15 @@ def build_spec_from_csv(csv_path, params: dict) -> dict:
     kind_map = {"box": "boxplot", "violin": "violinplot"}
     plot_kind = kind_map.get(kind, kind)
 
-    width = int(params.get("width", 80))
-    height = int(params.get("height", 60))
+    # Figure dimensions (only override if explicitly provided; SCITEX style defaults apply)
+    figure = {"style": "SCITEX"}
+    if "width" in params:
+        figure["width_mm"] = int(params["width"])
+    if "height" in params:
+        figure["height_mm"] = int(params["height"])
 
     spec = {
-        "figure": {"width_mm": width, "height_mm": height, "style": "SCITEX"},
+        "figure": figure,
         "plots": [],
     }
 
