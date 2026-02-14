@@ -181,6 +181,7 @@ markers = [
     "auth: Authentication and authorization tests",
     "user: User management tests",
     "integration: Integration tests",
+    "django_db: Tests requiring database access (pytest-django)",
 ]
 filterwarnings = [
     "ignore::DeprecationWarning",
