@@ -17,6 +17,13 @@ dependencies = [
     "click>=8.0",
 ]
 
+[project.urls]
+Homepage = "https://scitex.ai"
+Repository = "https://github.com/ywatanabe1989/scitex-cloud"
+Documentation = "https://scitex-cloud.readthedocs.io"
+Issues = "https://github.com/ywatanabe1989/scitex-cloud/issues"
+Changelog = "https://github.com/ywatanabe1989/scitex-cloud/blob/main/CHANGELOG.md"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0",
