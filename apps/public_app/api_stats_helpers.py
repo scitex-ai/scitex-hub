@@ -187,19 +187,11 @@ def run_descriptive(body: dict) -> dict:
     result["count"] = len(data)
     result["min"] = float(np.nanmin(data))
     result["max"] = float(np.nanmax(data))
-    # Rename for frontend clarity
-    rename = {
-        "nanmean": "mean",
-        "nanstd": "std",
-        "nanq25": "q25",
-        "nanq50": "median",
-        "nanq75": "q75",
-    }
-    return {rename.get(k, k): v for k, v in result.items()}
+    return result
 
 
 def run_statistical_test(body: dict) -> dict:
-    """Route to scitex.stats public API and return result dict."""
+    """Route to scitex.stats.run_test() and return result dict."""
     import scitex as stx
 
     # Resolve dataset+column spec into raw arrays
@@ -213,84 +205,17 @@ def run_statistical_test(body: dict) -> dict:
         if body.get("groups")
         else None
     )
-    alternative = body.get("alternative", "two-sided")
     plot = body.get("plot", False)
-    popmean = body.get("popmean", 0)
 
-    router = {
-        "ttest": lambda: stx.stats.test_ttest_ind(
-            data, data2, alternative=alternative, plot=plot, return_as="dict"
-        ),
-        "ttest_ind": lambda: stx.stats.test_ttest_ind(
-            data, data2, alternative=alternative, plot=plot, return_as="dict"
-        ),
-        "ttest_rel": lambda: stx.stats.test_ttest_rel(
-            data, data2, plot=plot, return_as="dict"
-        ),
-        "ttest_paired": lambda: stx.stats.test_ttest_rel(
-            data, data2, plot=plot, return_as="dict"
-        ),
-        "ttest_1samp": lambda: stx.stats.test_ttest_1samp(
-            data, popmean=popmean, plot=plot, return_as="dict"
-        ),
-        "anova": lambda: stx.stats.test_anova(groups, plot=plot, return_as="dict"),
-        "brunnermunzel": lambda: stx.stats.test_brunner_munzel(
-            data, data2, alternative=alternative, plot=plot, return_as="dict"
-        ),
-        "mannwhitneyu": lambda: stx.stats.test_mannwhitneyu(
-            data, data2, alternative=alternative, plot=plot, return_as="dict"
-        ),
-        "mann_whitney": lambda: stx.stats.test_mannwhitneyu(
-            data, data2, alternative=alternative, plot=plot, return_as="dict"
-        ),
-        "wilcoxon": lambda: stx.stats.test_wilcoxon(
-            data, data2, plot=plot, return_as="dict"
-        ),
-        "kruskal": lambda: stx.stats.test_kruskal(groups, plot=plot, return_as="dict"),
-        "friedman": lambda: stx.stats.test_friedman(
-            np.column_stack(groups), plot=plot, return_as="dict"
-        ),
-        "chi2": lambda: stx.stats.test_chi2(
-            np.array(body["groups"], dtype=float)
-            if body.get("groups")
-            else np.vstack([data, data2]),
-            plot=plot,
-            return_as="dict",
-        ),
-        "fisher": lambda: stx.stats.test_fisher(
-            np.array(body["groups"], dtype=float)
-            if body.get("groups")
-            else np.vstack([data, data2]),
-            plot=plot,
-            return_as="dict",
-        ),
-        "shapiro": lambda: stx.stats.test_shapiro(data, plot=plot, return_as="dict"),
-        "ks_1samp": lambda: stx.stats.test_ks_1samp(data, plot=plot, return_as="dict"),
-        "ks_2samp": lambda: stx.stats.test_ks_2samp(
-            data, data2, plot=plot, return_as="dict"
-        ),
-        "pearson": lambda: stx.stats.test_pearson(
-            data, data2, plot=plot, return_as="dict"
-        ),
-        "spearman": lambda: stx.stats.test_spearman(
-            data, data2, plot=plot, return_as="dict"
-        ),
-        "kendall": lambda: stx.stats.test_kendall(
-            data, data2, plot=plot, return_as="dict"
-        ),
-    }
-
-    if test_name not in router:
-        raise ValueError(f"Unknown test: {test_name}")
-
-    result = router[test_name]()
-
-    # Handle functions that return (result, fig) tuple
-    if isinstance(result, tuple):
-        result = result[0]
-
-    # Normalize keys for frontend compatibility
-    out = _normalize_result(result)
+    out = stx.stats.run_test(
+        test_name,
+        data=data,
+        data2=data2,
+        groups=groups,
+        alternative=body.get("alternative", "two-sided"),
+        plot=plot,
+        popmean=body.get("popmean", 0),
+    )
 
     # Capture figure if plotting was enabled
     if plot:
@@ -303,6 +228,7 @@ def run_statistical_test(body: dict) -> dict:
 
 def run_effect_size(body: dict) -> dict:
     """Calculate effect size using scitex.stats.effect_sizes."""
+    import numpy as np
     import scitex as stx
 
     measure = body["measure"]
@@ -410,9 +336,9 @@ def run_power_analysis(body: dict) -> dict:
             effect_size=effect_size, power=power, alpha=alpha, test_type=test_type
         )
         return {
-            "n_required": int(n_required)
-            if isinstance(n_required, (int, float))
-            else n_required,
+            "n_required": (
+                int(n_required) if isinstance(n_required, (int, float)) else n_required
+            ),
             "effect_size": effect_size,
             "alpha": alpha,
             "power": power,
@@ -461,47 +387,6 @@ def run_recommend(body: dict) -> dict:
     )
     recommendations = stx.stats.recommend_tests(ctx, top_k=body.get("top_k", 5))
     return {"recommendations": recommendations}
-
-
-def _normalize_result(result: dict) -> dict:
-    """Normalize scitex.stats result dict for frontend."""
-    out = {}
-    for k, v in result.items():
-        if isinstance(v, np.bool_):
-            out[k] = bool(v)
-        elif isinstance(v, (np.floating, np.integer)):
-            fv = float(v)
-            out[k] = None if (np.isinf(fv) or np.isnan(fv)) else fv
-        elif isinstance(v, float) and (np.isinf(v) or np.isnan(v)):
-            out[k] = None
-        elif isinstance(v, np.ndarray):
-            out[k] = v.tolist()
-        else:
-            out[k] = v
-
-    # Map scitex keys to frontend-expected keys
-    if "pvalue" in out and "p_value" not in out:
-        out["p_value"] = out["pvalue"]
-    if "test_method" in out and "test" not in out:
-        out["test"] = out["test_method"]
-
-    # Build formatted string if not present
-    if "formatted" not in out and "statistic" in out and "p_value" in out:
-        symbol = out.get("stat_symbol", "stat")
-        stat_val = out["statistic"]
-        p_val = out["p_value"]
-        parts = [
-            f"{symbol} = {stat_val:.3f}" if stat_val is not None else f"{symbol} = N/A",
-            f"p = {p_val:.4f}" if p_val is not None else "p = N/A",
-        ]
-        if "effect_size" in out and out["effect_size"] is not None:
-            metric = out.get("effect_size_metric", "d")
-            parts.append(f"{metric} = {out['effect_size']:.3f}")
-        if "stars" in out:
-            parts.append(out["stars"])
-        out["formatted"] = ", ".join(parts)
-
-    return out
 
 
 # EOF

@@ -5,8 +5,6 @@
 import io
 import logging
 
-import numpy as np
-
 logger = logging.getLogger("scitex")
 
 __all__ = ["build_spec_from_query", "build_spec_from_csv", "render_figure"]
@@ -19,6 +17,14 @@ DATA_KINDS = {"hist", "box", "boxplot", "violin", "violinplot"}
 LABEL_KINDS = {"pie"}
 # Plot kinds that reshape data into a 2D matrix
 MATRIX_KINDS = {"heatmap", "imshow"}
+
+_ALL_KINDS = XY_KINDS | DATA_KINDS | LABEL_KINDS | MATRIX_KINDS
+_KIND_ALIASES = {"box": "boxplot", "violin": "violinplot"}
+
+_UNSUPPORTED_KIND_MSG = (
+    "Use: line, scatter, bar, barh, hist, box, violin, pie, "
+    "heatmap, step, errorbar, stem"
+)
 
 
 def _parse_floats(s: str) -> list:
@@ -39,6 +45,51 @@ def _try_parse_floats(s: str) -> list:
         return _parse_strings(s)
 
 
+def _init_spec(params: dict) -> tuple:
+    """Validate kind and build the common spec scaffold.
+
+    Returns (spec, plot_entry, kind, plot_kind).
+    """
+    kind = params.get("kind", "").lower()
+    if not kind:
+        raise ValueError("'kind' parameter is required")
+
+    plot_kind = _KIND_ALIASES.get(kind, kind)
+
+    figure = {"style": "SCITEX"}
+    if "width" in params:
+        figure["width_mm"] = int(params["width"])
+    if "height" in params:
+        figure["height_mm"] = int(params["height"])
+
+    spec = {"figure": figure, "plots": []}
+    plot_entry = {"type": plot_kind}
+
+    return spec, plot_entry, kind, plot_kind
+
+
+def _finalize_spec(spec: dict, plot_entry: dict, params: dict) -> dict:
+    """Apply common styling and decorations, append plot_entry."""
+    color = params.get("color", "")
+    if color:
+        plot_entry["color"] = color
+
+    spec["plots"].append(plot_entry)
+
+    for key in ("title", "xlabel", "ylabel"):
+        val = params.get(key, "")
+        if val:
+            spec[key] = val
+
+    return spec
+
+
+def _validate_kind(kind: str):
+    """Raise ValueError if kind is not recognized."""
+    if kind not in _ALL_KINDS and kind not in _KIND_ALIASES:
+        raise ValueError(f"Unsupported kind: '{kind}'. {_UNSUPPORTED_KIND_MSG}")
+
+
 def build_spec_from_query(params: dict) -> dict:
     """Convert GET query parameters to a figrecipe spec dict.
 
@@ -57,147 +108,116 @@ def build_spec_from_query(params: dict) -> dict:
     ValueError
         If required parameters are missing or invalid.
     """
-    kind = params.get("kind", "").lower()
-    if not kind:
-        raise ValueError("'kind' parameter is required")
+    spec, plot_entry, kind, plot_kind = _init_spec(params)
 
-    # Normalize aliases
-    kind_map = {"box": "boxplot", "violin": "violinplot"}
-    plot_kind = kind_map.get(kind, kind)
-
-    # Figure dimensions (only override if explicitly provided; SCITEX style defaults apply)
-    figure = {"style": "SCITEX"}
-    if "width" in params:
-        figure["width_mm"] = int(params["width"])
-    if "height" in params:
-        figure["height_mm"] = int(params["height"])
-
-    spec = {
-        "figure": figure,
-        "plots": [],
-    }
-
-    plot_entry = {"type": plot_kind}
-
-    # --- XY kinds ---
     if kind in XY_KINDS:
-        y_str = params.get("y", "")
-        if not y_str:
-            raise ValueError(f"'y' parameter is required for kind={kind}")
-        plot_entry["y"] = _parse_floats(y_str)
-
-        x_str = params.get("x", "")
-        if x_str:
-            x_vals = _try_parse_floats(x_str)
-            if isinstance(x_vals[0], str):
-                # Categorical x-axis (bar chart with labels)
-                spec["xticks"] = {
-                    "positions": list(range(len(x_vals))),
-                    "labels": x_vals,
-                }
-                plot_entry["x"] = list(range(len(x_vals)))
-            else:
-                plot_entry["x"] = x_vals
-
-        # Error bars
-        yerr_str = params.get("yerr", "")
-        if yerr_str:
-            plot_entry["yerr"] = _parse_floats(yerr_str)
-            if kind != "errorbar":
-                plot_entry["type"] = "errorbar"
-
-    # --- Distribution kinds (data, data2, ...) ---
+        _query_xy(spec, plot_entry, params, kind)
     elif kind in DATA_KINDS or plot_kind in DATA_KINDS:
-        groups = []
-        group_labels = []
-
-        data_str = params.get("data", "")
-        if not data_str:
-            raise ValueError(f"'data' parameter is required for kind={kind}")
-        groups.append(_parse_floats(data_str))
-        group_labels.append("Group 1")
-
-        for i in range(2, 7):
-            extra = params.get(f"data{i}", "")
-            if extra:
-                groups.append(_parse_floats(extra))
-                group_labels.append(f"Group {i}")
-
-        labels_str = params.get("labels", "")
-        if labels_str:
-            group_labels = _parse_strings(labels_str)
-
-        if plot_kind in ("boxplot", "violinplot"):
-            plot_entry["data"] = groups
-            plot_entry["positions"] = list(range(len(groups)))
-            spec["xticks"] = {
-                "positions": list(range(len(groups))),
-                "labels": group_labels[: len(groups)],
-            }
-        else:
-            # Histogram: single or multiple datasets
-            if len(groups) == 1:
-                plot_entry["x"] = groups[0]
-            else:
-                plot_entry["x"] = groups
-
-    # --- Pie ---
+        _query_distribution(spec, plot_entry, params, kind, plot_kind)
     elif kind in LABEL_KINDS:
-        data_str = params.get("data", "")
-        if not data_str:
-            raise ValueError("'data' parameter is required for kind=pie")
-        plot_entry["x"] = _parse_floats(data_str)
-
-        labels_str = params.get("labels", "")
-        if labels_str:
-            plot_entry["labels"] = _parse_strings(labels_str)
-
-    # --- Heatmap / imshow ---
+        _query_pie(plot_entry, params)
     elif kind in MATRIX_KINDS:
-        data_str = params.get("data", "")
-        if not data_str:
-            raise ValueError(f"'data' parameter is required for kind={kind}")
-        flat = _parse_floats(data_str)
-        nrows = int(params.get("nrows", 0))
-        ncols = int(params.get("ncols", 0))
-
-        if nrows and ncols:
-            if len(flat) != nrows * ncols:
-                raise ValueError(
-                    f"data length {len(flat)} != nrows*ncols ({nrows}*{ncols})"
-                )
-            matrix = np.array(flat).reshape(nrows, ncols).tolist()
-        else:
-            # Auto square
-            n = len(flat)
-            side = int(np.ceil(np.sqrt(n)))
-            padded = flat + [0] * (side * side - n)
-            matrix = np.array(padded).reshape(side, side).tolist()
-
-        plot_entry["data"] = matrix
-        plot_entry["type"] = "imshow"
-
+        _query_matrix(plot_entry, params, kind)
     else:
-        raise ValueError(
-            f"Unsupported kind: '{kind}'. "
-            "Use: line, scatter, bar, barh, hist, box, violin, pie, "
-            "heatmap, step, errorbar, stem"
-        )
+        _validate_kind(kind)
 
-    # Optional styling
-    color = params.get("color", "")
-    if color:
-        plot_entry["color"] = color
+    return _finalize_spec(spec, plot_entry, params)
 
-    spec["plots"].append(plot_entry)
 
-    # Axes decorations
-    for key in ("title", "xlabel", "ylabel"):
-        val = params.get(key, "")
-        if val:
-            spec[key] = val
+def _query_xy(spec, plot_entry, params, kind):
+    y_str = params.get("y", "")
+    if not y_str:
+        raise ValueError(f"'y' parameter is required for kind={kind}")
+    plot_entry["y"] = _parse_floats(y_str)
 
-    return spec
+    x_str = params.get("x", "")
+    if x_str:
+        x_vals = _try_parse_floats(x_str)
+        if isinstance(x_vals[0], str):
+            spec["xticks"] = {
+                "positions": list(range(len(x_vals))),
+                "labels": x_vals,
+            }
+            plot_entry["x"] = list(range(len(x_vals)))
+        else:
+            plot_entry["x"] = x_vals
+
+    yerr_str = params.get("yerr", "")
+    if yerr_str:
+        plot_entry["yerr"] = _parse_floats(yerr_str)
+        if kind != "errorbar":
+            plot_entry["type"] = "errorbar"
+
+
+def _query_distribution(spec, plot_entry, params, kind, plot_kind):
+    groups = []
+    group_labels = []
+
+    data_str = params.get("data", "")
+    if not data_str:
+        raise ValueError(f"'data' parameter is required for kind={kind}")
+    groups.append(_parse_floats(data_str))
+    group_labels.append("Group 1")
+
+    for i in range(2, 7):
+        extra = params.get(f"data{i}", "")
+        if extra:
+            groups.append(_parse_floats(extra))
+            group_labels.append(f"Group {i}")
+
+    labels_str = params.get("labels", "")
+    if labels_str:
+        group_labels = _parse_strings(labels_str)
+
+    if plot_kind in ("boxplot", "violinplot"):
+        plot_entry["data"] = groups
+        plot_entry["positions"] = list(range(len(groups)))
+        spec["xticks"] = {
+            "positions": list(range(len(groups))),
+            "labels": group_labels[: len(groups)],
+        }
+    else:
+        if len(groups) == 1:
+            plot_entry["x"] = groups[0]
+        else:
+            plot_entry["x"] = groups
+
+
+def _query_pie(plot_entry, params):
+    data_str = params.get("data", "")
+    if not data_str:
+        raise ValueError("'data' parameter is required for kind=pie")
+    plot_entry["x"] = _parse_floats(data_str)
+
+    labels_str = params.get("labels", "")
+    if labels_str:
+        plot_entry["labels"] = _parse_strings(labels_str)
+
+
+def _query_matrix(plot_entry, params, kind):
+    data_str = params.get("data", "")
+    if not data_str:
+        raise ValueError(f"'data' parameter is required for kind={kind}")
+    flat = _parse_floats(data_str)
+    nrows = int(params.get("nrows", 0))
+    ncols = int(params.get("ncols", 0))
+
+    import numpy as np
+
+    if nrows and ncols:
+        if len(flat) != nrows * ncols:
+            raise ValueError(
+                f"data length {len(flat)} != nrows*ncols ({nrows}*{ncols})"
+            )
+        matrix = np.array(flat).reshape(nrows, ncols).tolist()
+    else:
+        n = len(flat)
+        side = int(np.ceil(np.sqrt(n)))
+        padded = flat + [0] * (side * side - n)
+        matrix = np.array(padded).reshape(side, side).tolist()
+
+    plot_entry["data"] = matrix
+    plot_entry["type"] = "imshow"
 
 
 def build_spec_from_csv(csv_path, params: dict) -> dict:
@@ -217,34 +237,14 @@ def build_spec_from_csv(csv_path, params: dict) -> dict:
     dict
         Figrecipe-compatible spec.
     """
-    kind = params.get("kind", "").lower()
-    if not kind:
-        raise ValueError("'kind' parameter is required")
-
-    kind_map = {"box": "boxplot", "violin": "violinplot"}
-    plot_kind = kind_map.get(kind, kind)
-
-    # Figure dimensions (only override if explicitly provided; SCITEX style defaults apply)
-    figure = {"style": "SCITEX"}
-    if "width" in params:
-        figure["width_mm"] = int(params["width"])
-    if "height" in params:
-        figure["height_mm"] = int(params["height"])
-
-    spec = {
-        "figure": figure,
-        "plots": [],
-    }
-
-    plot_entry = {"type": plot_kind, "data_file": str(csv_path)}
+    spec, plot_entry, kind, plot_kind = _init_spec(params)
+    plot_entry["data_file"] = str(csv_path)
 
     if kind in XY_KINDS:
-        # x_col and y_col become column name strings for figrecipe
         y_col = params.get("y_col", "")
         if not y_col:
             raise ValueError("'y_col' is required for XY plot kinds")
         plot_entry["y"] = y_col
-
         x_col = params.get("x_col", "")
         if x_col:
             plot_entry["x"] = x_col
@@ -260,7 +260,6 @@ def build_spec_from_csv(csv_path, params: dict) -> dict:
         if not data_col:
             raise ValueError("'data_col' is required for pie charts")
         plot_entry["x"] = data_col
-
         labels_col = params.get("labels_col", "")
         if labels_col:
             plot_entry["labels"] = labels_col
@@ -273,24 +272,9 @@ def build_spec_from_csv(csv_path, params: dict) -> dict:
         plot_entry["type"] = "imshow"
 
     else:
-        raise ValueError(
-            f"Unsupported kind: '{kind}'. "
-            "Use: line, scatter, bar, barh, hist, box, violin, pie, "
-            "heatmap, step, errorbar, stem"
-        )
+        _validate_kind(kind)
 
-    color = params.get("color", "")
-    if color:
-        plot_entry["color"] = color
-
-    spec["plots"].append(plot_entry)
-
-    for key in ("title", "xlabel", "ylabel"):
-        val = params.get(key, "")
-        if val:
-            spec[key] = val
-
-    return spec
+    return _finalize_spec(spec, plot_entry, params)
 
 
 def render_figure(spec: dict) -> bytes:
