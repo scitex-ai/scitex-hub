@@ -51,24 +51,9 @@
   margin-right: 0.4rem;
 }
 
-/* WIP Badge */
-.wip-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
+/* Position badge in header */
+.clew-header .badge {
   margin-left: auto;
-  padding: 0.3rem 0.75rem;
-  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
-  color: white;
-  font-size: 0.75rem;
-  font-weight: 600;
-  border-radius: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.wip-badge i {
-  font-size: 0.8rem;
 }
 
 /* DAG Visualization Area */
