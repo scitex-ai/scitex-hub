@@ -203,31 +203,31 @@
 }
 
 [data-theme="dark"] {
-  /* Neutral warm gray primitives for dark mode
-   * (matches light mode philosophy — no blue tint) */
-  --_scitex-01: #1c1c1c;
-  --_scitex-02: #2e2e2e;
-  --_scitex-03: #474747;
-  --_scitex-04: #6a6a6a;
-  --_scitex-05: #8a8a8a;
-  --_scitex-06: #b0b0b0;
-  --_scitex-07: #d2d2d2;
-  --_white: #f8f7f5;
-  --_gray-subtle: #f3f2f0;
-  --_warm-white: #faf9f7;
+  /* Cool-tinted dark primitives (GitHub Dark inspired)
+   * Professional, modern feel with slight blue tint */
+  --_scitex-01: #161b22;
+  --_scitex-02: #21262d;
+  --_scitex-03: #30363d;
+  --_scitex-04: #484f58;
+  --_scitex-05: #6e7681;
+  --_scitex-06: #8b949e;
+  --_scitex-07: #e6edf3;
+  --_white: #f0f6fc;
+  --_gray-subtle: #f0f6fc;
+  --_warm-white: #f0f6fc;
   --_success: #4a9b7e;
   --_cta: #3b82f6;
   --_cta-hover: #2563eb;
 
   /* Text - flip to light */
-  --text-primary: var(--_scitex-07);
-  --text-secondary: var(--_scitex-05);
-  --text-muted: var(--_scitex-04);
+  --text-primary: #e6edf3;
+  --text-secondary: #c9d1d9;
+  --text-muted: #8b949e;
   --text-inverse: var(--_scitex-01);
   --text-color: var(--text-primary); /* Alias for legacy compatibility */
 
   /* Background - flip to dark */
-  --bg-page: #121212;
+  --bg-page: #0d1117;
   --bg-surface: var(--_scitex-01);
   --bg-muted: var(--_scitex-02);
 
@@ -235,59 +235,59 @@
   --border-default: var(--_scitex-03);
   --border-muted: var(--_scitex-02);
 
-  /* Workspace-specific colors - professional blackish theme for Code/Writer/Vis */
-  --workspace-bg-primary: #0d0d0d; /* Almost pure black - main panels */
-  --workspace-bg-secondary: #151515; /* Very dark gray - secondary panels */
-  --workspace-bg-tertiary: #1a1a1a; /* Subtle lighter - hover states */
-  --workspace-bg-elevated: #1f1f1f; /* Slightly elevated surfaces */
-  --workspace-bg-monaco: #1e1e1e; /* Monaco/VS Code editor background - matches terminal-bg */
-  --workspace-border-subtle: #1a1a1a; /* Subtle borders between panels */
-  --workspace-border-default: #3a3a3a; /* Default borders - increased contrast (was #252525) */
-  --workspace-border-hover: #4a4a4a; /* Hover state - slightly lighter gray */
-  --workspace-border-active: #5a5a5a; /* Active/dragging - even lighter */
-  --workspace-slider-hover: #6a6a6a; /* Slider handle hover */
-  --workspace-slider-active: #7a7a7a; /* Slider handle active */
-  --workspace-ruler-bg: #1a1a1a; /* Rulers and guides background - distinct from dark canvas */
-  --workspace-ruler-border: #1a1a1a; /* Ruler borders */
+  /* Workspace-specific colors - cool-tinted dark theme for Code/Writer/Vis */
+  --workspace-bg-primary: #0d1117; /* GitHub dark - main panels */
+  --workspace-bg-secondary: #161b22; /* Slightly elevated - secondary panels */
+  --workspace-bg-tertiary: #1c2128; /* Subtle lighter - hover states */
+  --workspace-bg-elevated: #21262d; /* Elevated surfaces */
+  --workspace-bg-monaco: #0d1117; /* Dark panels/sidebars bg (Monaco editor bg handled by JS theme) */
+  --workspace-border-subtle: #21262d; /* Subtle borders between panels */
+  --workspace-border-default: #30363d; /* Default borders */
+  --workspace-border-hover: #484f58; /* Hover state */
+  --workspace-border-active: #6e7681; /* Active/dragging */
+  --workspace-slider-hover: #6e7681; /* Slider handle hover */
+  --workspace-slider-active: #8b949e; /* Slider handle active */
+  --workspace-ruler-bg: #161b22; /* Rulers and guides background */
+  --workspace-ruler-border: #21262d; /* Ruler borders */
 
   /* Workspace icon color scheme (TOGGLE: swap _icon-green ↔ _icon-white below) */
   /* Green scheme (dark mode) */
-  --_icon-green-primary: #6ba89a;
-  --_icon-green-hover: #7eb8aa;
-  --_icon-green-active: #91c8ba;
-  /* White/neutral scheme (eye-friendly, dark mode) */
-  --_icon-white-primary: #9ca3af;
-  --_icon-white-hover: #b0b7c3;
-  --_icon-white-active: #c4cad4;
+  --_icon-green-primary: #7ee787;
+  --_icon-green-hover: #aff5b4;
+  --_icon-green-active: #56d364;
+  /* White/neutral scheme (cool-tinted, dark mode) */
+  --_icon-white-primary: #8b949e;
+  --_icon-white-hover: #c9d1d9;
+  --_icon-white-active: #e6edf3;
 
   /* Active scheme: change '_icon-white' to '_icon-green' to switch back */
   --workspace-icon-primary: var(--_icon-white-primary);
-  --workspace-icon-secondary: #9ca3af; /* Light gray - secondary actions */
-  --workspace-icon-muted: #6b7280; /* Medium gray - muted/inactive */
+  --workspace-icon-secondary: #8b949e; /* Cool gray - secondary actions */
+  --workspace-icon-muted: #6e7681; /* Cool medium gray - muted/inactive */
   --workspace-icon-hover: var(--_icon-white-hover);
   --workspace-icon-active: var(--_icon-white-active);
 
-  /* Terminal colors - dark theme */
-  --terminal-bg: #1e1e1e;
-  --terminal-fg: #e8e8e8;
-  --terminal-cursor: #6c8ba0;
-  --terminal-cursor-accent: #1e1e1e;
-  --terminal-black: #34495e;
-  --terminal-red: #d49191;
-  --terminal-green: #5fc9a4;
-  --terminal-yellow: #e8c88c;
-  --terminal-blue: #6eb5ff;
-  --terminal-magenta: #b89cd9;
-  --terminal-cyan: #72c7d1;
-  --terminal-white: #e8e8e8;
-  --terminal-bright-black: #506b7a;
-  --terminal-bright-red: #e8a5a5;
-  --terminal-bright-green: #6fd9b5;
-  --terminal-bright-yellow: #f5d8a0;
-  --terminal-bright-blue: #85c5ff;
-  --terminal-bright-magenta: #c9b0e8;
-  --terminal-bright-cyan: #8cd9e0;
-  --terminal-bright-white: #f5f5f5;
+  /* Terminal colors - cool dark theme */
+  --terminal-bg: #0d1117;
+  --terminal-fg: #e6edf3;
+  --terminal-cursor: #58a6ff;
+  --terminal-cursor-accent: #0d1117;
+  --terminal-black: #484f58;
+  --terminal-red: #ff7b72;
+  --terminal-green: #7ee787;
+  --terminal-yellow: #e3b341;
+  --terminal-blue: #79c0ff;
+  --terminal-magenta: #d2a8ff;
+  --terminal-cyan: #76e3ea;
+  --terminal-white: #e6edf3;
+  --terminal-bright-black: #6e7681;
+  --terminal-bright-red: #ffa198;
+  --terminal-bright-green: #aff5b4;
+  --terminal-bright-yellow: #f8e3a1;
+  --terminal-bright-blue: #a5d6ff;
+  --terminal-bright-magenta: #e2c5ff;
+  --terminal-bright-cyan: #b3f0ff;
+  --terminal-bright-white: #f0f6fc;
 
   /* Status colors - adjust for dark mode readability */
   --status-success: #6ba89a;

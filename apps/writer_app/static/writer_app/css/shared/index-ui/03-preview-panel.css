@@ -132,7 +132,7 @@
 }
 
 [data-theme="dark"] .text-preview {
-  background: var(--workspace-bg-monaco, #1e1e1e) !important;
+  background: #1e1e1e !important;
 }
 
 /* Remove all focus outlines from preview pane */

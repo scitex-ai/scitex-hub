@@ -15,8 +15,7 @@ export {
   registerLatexCompletionProvider,
   registerCitationCompletionProvider,
   registerCitationHoverProvider,
-  defineScitexTheme,
-  setupThemeObserver,
+  setupMonacoTheme,
   createMonacoEditor,
   initializeMonacoEditor,
 } from "./init/index";

@@ -17,9 +17,8 @@ import {
   registerLatexCompletionProvider,
   registerCitationCompletionProvider,
   registerCitationHoverProvider,
-  defineScitexTheme,
+  setupMonacoTheme,
   createMonacoEditor,
-  setupThemeObserver,
 } from "./monaco-editor/monaco-init";
 import {
   setupMonacoEditorListeners,
@@ -109,8 +108,8 @@ export class EnhancedEditor {
         registerCitationCompletionProvider(monaco);
         registerCitationHoverProvider(monaco);
 
-        // Define custom SciTeX dark theme
-        defineScitexTheme(monaco);
+        // Setup themes + observer (identical to Console)
+        setupMonacoTheme(monaco);
 
         // Get initial value before replacing element
         const textareaElement = element as HTMLTextAreaElement;
@@ -128,7 +127,7 @@ export class EnhancedEditor {
           monaco,
           editorContainer,
           initialValue,
-          config
+          config,
         );
 
         this.editor = this.monacoEditor;
@@ -139,7 +138,7 @@ export class EnhancedEditor {
         injectSpellCheckStyles();
         this.spellChecker = new SpellChecker(monaco, this.monacoEditor, {
           enabled: true,
-          language: 'en-US',
+          language: "en-US",
           skipLaTeXCommands: true,
           skipMathMode: true,
           skipCodeBlocks: true,
@@ -154,17 +153,16 @@ export class EnhancedEditor {
           this.monacoEditor,
           this.editorType,
           this.spellChecker,
-          this.history
+          this.history,
         );
         this.config = new EditorConfig(
           this.editor,
           this.monacoEditor,
-          this.editorType
+          this.editorType,
         );
-        this.spellCheckIntegration = new SpellCheckIntegration(this.spellChecker);
-
-        // Listen for global theme changes and update editor theme
-        setupThemeObserver(monaco);
+        this.spellCheckIntegration = new SpellCheckIntegration(
+          this.spellChecker,
+        );
 
         console.log("[Editor] Monaco Editor initialized with LaTeX support");
       } catch (error) {
@@ -195,8 +193,9 @@ export class EnhancedEditor {
       monaco,
       undefined, // Don't pass direct callback
       this.cursorManager.getCurrentSectionId(),
-      (sectionId: string) => this.cursorManager.saveCursorPosition(this.monacoEditor, sectionId),
-      () => this.onChangeCallback // Getter function for late binding
+      (sectionId: string) =>
+        this.cursorManager.saveCursorPosition(this.monacoEditor, sectionId),
+      () => this.onChangeCallback, // Getter function for late binding
     );
 
     // Setup drag-and-drop for citation insertion
@@ -243,12 +242,12 @@ export class EnhancedEditor {
         this.monacoEditor,
         this.editorType,
         this.spellChecker,
-        this.history
+        this.history,
       );
       this.config = new EditorConfig(
         this.editor,
         this.monacoEditor,
-        this.editorType
+        this.editorType,
       );
       this.spellCheckIntegration = new SpellCheckIntegration(this.spellChecker);
 
@@ -324,7 +323,7 @@ export class EnhancedEditor {
   undo(): boolean {
     return this.history.undo(
       this.editorType === "monaco" ? this.monacoEditor : this.editor,
-      this.editorType
+      this.editorType,
     );
   }
 
@@ -334,7 +333,7 @@ export class EnhancedEditor {
   redo(): boolean {
     return this.history.redo(
       this.editorType === "monaco" ? this.monacoEditor : this.editor,
-      this.editorType
+      this.editorType,
     );
   }
 
@@ -413,7 +412,7 @@ export class EnhancedEditor {
       this.monacoEditor,
       sectionId,
       content,
-      (c: string) => this.setContent(c)
+      (c: string) => this.setContent(c),
     );
   }
 
@@ -453,35 +452,22 @@ export class EnhancedEditor {
   }
 
   /**
-   * Toggle Monaco editor theme independently from global theme
+   * Toggle Monaco editor theme
    */
   toggleEditorTheme(): void {
-    if (this.editorType !== "monaco" || !this.monacoEditor) {
+    const monaco = (window as any).monaco;
+    if (this.editorType !== "monaco" || !this.monacoEditor || !monaco) {
       console.warn("[Editor] Cannot toggle theme - Monaco editor not active");
       return;
     }
 
-    const monaco = (window as any).monaco;
-    if (!monaco) {
-      console.warn("[Editor] Cannot toggle theme - Monaco not available");
-      return;
-    }
-
-    // Get current theme from editor
-    const currentTheme = this.monacoEditor.getOption(monaco.editor.EditorOption.theme);
-    // Toggle between scitex themes (with fallback for legacy vs-dark/vs)
+    // Toggle between scitex themes (global, same as Console)
+    const currentTheme = this.monacoEditor.getOption(
+      monaco.editor.EditorOption.theme,
+    );
     const isDark = currentTheme === "scitex-dark" || currentTheme === "vs-dark";
     const newTheme = isDark ? "scitex-light" : "scitex-dark";
-
-    // Update editor theme
-    this.monacoEditor.updateOptions({ theme: newTheme });
-
-    // Store preference
-    localStorage.setItem("monaco-editor-theme-writer", newTheme);
-
-    // Update toggle button emoji
-    this.updateThemeToggleButton(newTheme);
-
+    monaco.editor.setTheme(newTheme);
     console.log(`[Editor] Monaco theme toggled to: ${newTheme}`);
   }
 
@@ -494,21 +480,5 @@ export class EnhancedEditor {
       return "vs-dark";
     }
     return this.monacoEditor.getOption(monaco.editor.EditorOption.theme);
-  }
-
-  /**
-   * Update theme toggle button emoji
-   */
-  private updateThemeToggleButton(theme: string): void {
-    const toggleBtn = document.getElementById("monaco-theme-toggle");
-    const themeIcon = toggleBtn?.querySelector(".theme-icon");
-
-    if (themeIcon) {
-      const isDark = theme === "scitex-dark" || theme === "vs-dark";
-      themeIcon.textContent = isDark ? "🌙" : "☀️";
-      toggleBtn?.setAttribute("title",
-        isDark ? "Switch to light editor theme" : "Switch to dark editor theme"
-      );
-    }
   }
 }
