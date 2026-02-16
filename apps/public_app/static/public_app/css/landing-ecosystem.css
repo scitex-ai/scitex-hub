@@ -271,9 +271,11 @@
 }
 
 .ecosystem-diagram-img {
+  display: block;
   width: 100%;
   max-width: 900px;
   height: auto;
+  margin: 0 auto;
   border-radius: 8px;
 }
 
@@ -286,7 +288,7 @@
 }
 
 [data-theme="dark"] .ecosystem-diagram-dark {
-  display: inline;
+  display: block;
 }
 
 /* ============================================================================
