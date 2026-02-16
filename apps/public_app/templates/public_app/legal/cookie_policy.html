@@ -7,7 +7,7 @@
     Policy - SciTeX
 {% endblock %}
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'shared/css/components/page-header.css' %}" />
+    <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
     <style>
         .policy-section {
             padding: var(--spacing-xxl) 0;
@@ -123,12 +123,10 @@
 {% endblock %}
 {% block content %}
     <div class="container pt-4">
-        <section class="page-header">
-            <h1>
-                <i class="fas fa-cookie-bite"></i> Cookie Policy
-            </h1>
-            <p>Understanding how we use cookies to improve your experience</p>
-        </section>
+        <header class="minimal-hero">
+            <h1 class="minimal-hero-title">Cookie Policy</h1>
+            <p class="minimal-hero-subtitle">Understanding how we use cookies to improve your experience</p>
+        </header>
     </div>
     <section class="policy-section">
         <div class="container policy-container">

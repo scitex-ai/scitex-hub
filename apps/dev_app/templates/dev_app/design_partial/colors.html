@@ -190,85 +190,95 @@
             </div>
         </div>
         <h4 class="mt-4 mb-3">Brand Colors (Primitives)</h4>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem">
+            These auto-switch between light (warm gray) and dark (cool-tinted) modes.
+        </p>
         <div class="color-palette mb-4"
              style="display: grid;
                     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
                     gap: 1rem">
-            <div style="background-color: #1a2a40;
-                        color: white;
+            <div style="background-color: var(--_scitex-01);
+                        color: var(--text-inverse);
                         padding: 1rem;
                         border-radius: 6px;
                         text-align: center">
                 <strong style="display: block; font-size: 0.9rem">--_scitex-01</strong>
-                <small>#1a2a40</small>
+                <small class="brand-color-val" data-var="--_scitex-01"></small>
             </div>
-            <div style="background-color: #34495e;
-                        color: white;
+            <div style="background-color: var(--_scitex-02);
+                        color: var(--text-inverse);
                         padding: 1rem;
                         border-radius: 6px;
                         text-align: center">
                 <strong style="display: block; font-size: 0.9rem">--_scitex-02</strong>
-                <small>#34495e</small>
+                <small class="brand-color-val" data-var="--_scitex-02"></small>
             </div>
-            <div style="background-color: #506b7a;
+            <div style="background-color: var(--_scitex-03);
                         color: white;
                         padding: 1rem;
                         border-radius: 6px;
                         text-align: center">
                 <strong style="display: block; font-size: 0.9rem">--_scitex-03</strong>
-                <small>#506b7a</small>
+                <small class="brand-color-val" data-var="--_scitex-03"></small>
             </div>
-            <div style="background-color: #6c8ba0;
+            <div style="background-color: var(--_scitex-04);
                         color: white;
                         padding: 1rem;
                         border-radius: 6px;
                         text-align: center">
                 <strong style="display: block; font-size: 0.9rem">--_scitex-04</strong>
-                <small>#6c8ba0</small>
+                <small class="brand-color-val" data-var="--_scitex-04"></small>
             </div>
-            <div style="background-color: #8fa4b0;
+            <div style="background-color: var(--_scitex-05);
                         color: white;
                         padding: 1rem;
                         border-radius: 6px;
                         text-align: center">
                 <strong style="display: block; font-size: 0.9rem">--_scitex-05</strong>
-                <small>#8fa4b0</small>
+                <small class="brand-color-val" data-var="--_scitex-05"></small>
             </div>
-            <div style="background-color: #b5c7d1;
-                        color: #1a2a40;
+            <div style="background-color: var(--_scitex-06);
+                        color: var(--_scitex-01);
                         padding: 1rem;
                         border-radius: 6px;
                         text-align: center">
                 <strong style="display: block; font-size: 0.9rem">--_scitex-06</strong>
-                <small>#b5c7d1</small>
+                <small class="brand-color-val" data-var="--_scitex-06"></small>
             </div>
-            <div style="background-color: #d4e1e8;
-                        color: #1a2a40;
+            <div style="background-color: var(--_scitex-07);
+                        color: var(--_scitex-01);
                         padding: 1rem;
                         border-radius: 6px;
                         text-align: center">
                 <strong style="display: block; font-size: 0.9rem">--_scitex-07</strong>
-                <small>#d4e1e8</small>
+                <small class="brand-color-val" data-var="--_scitex-07"></small>
             </div>
-            <div style="background-color: #ffffff;
-                        color: #1a2a40;
+            <div style="background-color: var(--_white);
+                        color: var(--_scitex-01);
                         padding: 1rem;
                         border-radius: 6px;
                         text-align: center;
                         border: 1px solid var(--border-default)">
                 <strong style="display: block; font-size: 0.9rem">--_white</strong>
-                <small>#ffffff</small>
+                <small class="brand-color-val" data-var="--_white"></small>
             </div>
-            <div style="background-color: #f6f8fa;
-                        color: #1a2a40;
+            <div style="background-color: var(--_gray-subtle);
+                        color: var(--_scitex-01);
                         padding: 1rem;
                         border-radius: 6px;
                         text-align: center;
                         border: 1px solid var(--border-default)">
                 <strong style="display: block; font-size: 0.9rem">--_gray-subtle</strong>
-                <small>#f6f8fa</small>
+                <small class="brand-color-val" data-var="--_gray-subtle"></small>
             </div>
         </div>
+        <script>
+            document.querySelectorAll('.brand-color-val').forEach(el => {
+                const varName = el.dataset.var;
+                const value = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+                el.textContent = value;
+            });
+        </script>
     </div>
     <div class="demo-box">
         <h3 class="mb-3">Usage Guide</h3>

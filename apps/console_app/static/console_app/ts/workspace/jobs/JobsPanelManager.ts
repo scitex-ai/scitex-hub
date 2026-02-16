@@ -415,8 +415,6 @@ export class JobsPanelManager {
    * Cancel a single job
    */
   public async cancelJob(jobId: number): Promise<void> {
-    if (!confirm(`Cancel job #${jobId}?`)) return;
-
     try {
       const csrfToken = (
         document.querySelector(

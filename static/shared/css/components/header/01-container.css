@@ -50,9 +50,9 @@
 
 /* Header Container - Dark Mode with scattered dots (matches ecosystem) */
 [data-theme="dark"] .global-header {
-  background-color: var(--scitex-color-01); /* Dark: #1a2332 */
-  border-bottom: 1px solid var(--scitex-color-04); /* More visible border with accent color */
-  box-shadow: none; /* Remove shadow in dark mode - border provides separation */
+  background-color: var(--bg-page);
+  border-bottom: 1px solid var(--border-default);
+  box-shadow: none;
 }
 
 [data-theme="dark"] .global-header::before {

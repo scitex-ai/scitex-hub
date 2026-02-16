@@ -85,7 +85,7 @@
 }
 
 .feature-item p {
-  color: var(--color-fg-muted);
+  color: var(--text-secondary);
   margin: 0;
   line-height: 1.6;
 }
@@ -113,7 +113,7 @@
 }
 
 .stat-label {
-  color: var(--color-fg-muted);
+  color: var(--text-secondary);
   font-size: 0.9rem;
   margin-top: 0.5rem;
 }
@@ -134,7 +134,7 @@
 }
 
 .cta-section p {
-  color: var(--color-fg-muted);
+  color: var(--text-secondary);
   margin-bottom: 2rem;
   font-size: 1.1rem;
 }
@@ -199,7 +199,9 @@
   border: 1px solid var(--color-border-default);
   border-radius: 12px;
   padding: 1.5rem;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .ecosystem-card:hover {
@@ -237,7 +239,7 @@
 }
 
 .ecosystem-desc {
-  color: var(--color-fg-muted);
+  color: var(--text-secondary);
   font-size: 0.9rem;
   margin: 0 0 1rem 0;
   line-height: 1.4;
@@ -250,7 +252,7 @@
 }
 
 .ecosystem-highlights li {
-  color: var(--color-fg-muted);
+  color: var(--text-secondary);
   font-size: 0.85rem;
   padding: 0.25rem 0;
   padding-left: 1.25rem;
@@ -285,7 +287,7 @@
 }
 
 .release-date {
-  color: var(--color-fg-muted);
+  color: var(--text-secondary);
   font-size: 0.8rem;
   font-style: italic;
 }

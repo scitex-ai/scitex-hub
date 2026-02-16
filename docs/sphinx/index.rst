@@ -8,6 +8,7 @@ SciTeX Cloud is a deployment and management CLI for the SciTeX scientific writin
    :caption: Contents:
 
    installation
+   setup
    quickstart
    api/index
 

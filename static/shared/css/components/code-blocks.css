@@ -156,10 +156,9 @@ pre code span::-webkit-selection {
   color: inherit;
 }
 
-/* Zenburn theme colors - explicit rules to override inheritance */
-/* These are Zenburn colors from highlight.js Zenburn theme */
+/* Zenburn theme colors on cool dark backgrounds */
 
-/* Comments - light gray */
+/* Comments - golden */
 .hljs-comment {
   color: #d0bf8f !important;
 }
@@ -169,17 +168,18 @@ pre code span::-webkit-selection {
   color: #cc9393 !important;
 }
 
-/* Numbers, literals, attributes - light blue/cyan */
+/* Numbers, literals - light cyan */
 .hljs-number,
 .hljs-literal {
   color: #8cd0d3 !important;
 }
 
+/* Attributes - light cyan */
 .hljs-attr {
   color: #93e0e5 !important;
 }
 
-/* Built-in functions and keywords - yellow */
+/* Built-in functions - yellow */
 .hljs-built_in {
   color: #e0cf9f !important;
 }
@@ -217,7 +217,7 @@ pre code span::-webkit-selection {
   color: #dca3a3 !important;
 }
 
-/* Emphasis and strong - maintain colors */
+/* Emphasis and strong */
 .hljs-emphasis {
   font-style: italic !important;
   color: #dca3a3 !important;
@@ -228,7 +228,7 @@ pre code span::-webkit-selection {
   color: #dca3a3 !important;
 }
 
-/* Parameters - light blue */
+/* Parameters - light cyan */
 .hljs-params {
   color: #93e0e5 !important;
 }
@@ -379,7 +379,7 @@ pre[data-language="tex"]::before {
    ========================================= */
 
 [data-theme="dark"] pre {
-  background-color: #1a2332 !important;
+  background-color: #1e1e1e !important;
   border: 1px solid var(--border-default);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }

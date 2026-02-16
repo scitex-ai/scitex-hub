@@ -1,100 +1,102 @@
 {% extends "global_base.html" %}
+
 {% load static %}
+
 {% block title %}
     Terms of Use
     - SciTeX
 {% endblock %}
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'shared/css/components/page-header.css' %}">
+    <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
     <style>
-  .policy-section {
-    padding: var(--spacing-xxl) 0;
-  }
+        .policy-section {
+            padding: var(--spacing-xxl) 0;
+        }
 
-  .policy-container {
-    max-width: 800px;
-    margin: 0 auto;
-  }
+        .policy-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
 
-  .policy-content {
-    background-color: var(--bg-surface);
-    border-radius: var(--border-radius-lg);
-    padding: var(--spacing-xl);
-    box-shadow: var(--box-shadow-sm);
-    color: var(--text-primary);
-  }
+        .policy-content {
+            background-color: var(--bg-surface);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-xl);
+            box-shadow: var(--box-shadow-sm);
+            color: var(--text-primary);
+        }
 
-  .policy-content h2 {
-    color: var(--text-primary);
-    margin-top: var(--spacing-xl);
-    margin-bottom: var(--spacing-md);
-    padding-bottom: var(--spacing-xs);
-    border-bottom: 1px solid var(--border-muted);
-  }
+        .policy-content h2 {
+            color: var(--text-primary);
+            margin-top: var(--spacing-xl);
+            margin-bottom: var(--spacing-md);
+            padding-bottom: var(--spacing-xs);
+            border-bottom: 1px solid var(--border-muted);
+        }
 
-  .policy-content h2:first-child {
-    margin-top: 0;
-  }
+        .policy-content h2:first-child {
+            margin-top: 0;
+        }
 
-  .policy-content h3 {
-    color: var(--text-primary);
-    margin-top: var(--spacing-lg);
-    margin-bottom: var(--spacing-sm);
-  }
+        .policy-content h3 {
+            color: var(--text-primary);
+            margin-top: var(--spacing-lg);
+            margin-bottom: var(--spacing-sm);
+        }
 
-  .policy-content p {
-    margin-bottom: var(--spacing-md);
-    color: var(--text-secondary);
-  }
+        .policy-content p {
+            margin-bottom: var(--spacing-md);
+            color: var(--text-secondary);
+        }
 
-  .policy-content ul,
-  .policy-content ol {
-    margin-bottom: var(--spacing-md);
-    padding-left: 2rem;
-    color: var(--text-secondary);
-  }
+        .policy-content ul,
+        .policy-content ol {
+            margin-bottom: var(--spacing-md);
+            padding-left: 2rem;
+            color: var(--text-secondary);
+        }
 
-  .policy-content li {
-    margin-bottom: var(--spacing-xs);
-  }
+        .policy-content li {
+            margin-bottom: var(--spacing-xs);
+        }
 
-  .policy-content a {
-    color: #3498db;
-    text-decoration: none;
-  }
+        .policy-content a {
+            color: #3498db;
+            text-decoration: none;
+        }
 
-  .policy-content a:hover {
-    text-decoration: underline;
-  }
+        .policy-content a:hover {
+            text-decoration: underline;
+        }
 
-  .policy-content .highlight {
-    background-color: var(--color-accent-subtle);
-    padding: var(--spacing-md);
-    border-radius: var(--border-radius);
-    margin: var(--spacing-lg) 0;
-    border-left: 3px solid var(--text-primary);
-  }
+        .policy-content .highlight {
+            background-color: var(--color-accent-subtle);
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius);
+            margin: var(--spacing-lg) 0;
+            border-left: 3px solid var(--text-primary);
+        }
 
-  .policy-meta {
-    text-align: center;
-    margin-top: var(--spacing-lg);
-    color: var(--text-muted);
-    font-size: 0.9rem;
-  }
+        .policy-meta {
+            text-align: center;
+            margin-top: var(--spacing-lg);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
 
-  address {
-    font-style: normal;
-    color: var(--text-secondary);
-    line-height: 1.8;
-  }
+        address {
+            font-style: normal;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
     </style>
 {% endblock %}
 {% block content %}
     <div class="container pt-4">
-        <section class="page-header">
-            <h1><i class="fas fa-file-contract"></i> Terms of Use</h1>
-            <p>Please read these terms carefully before using our platform</p>
-        </section>
+        <header class="minimal-hero">
+            <h1 class="minimal-hero-title">Terms of Use</h1>
+            <p class="minimal-hero-subtitle">Please read these terms carefully before using our platform</p>
+        </header>
     </div>
     <section class="policy-section">
         <div class="container policy-container">
@@ -316,8 +318,7 @@
                         account. Your cancellation will take effect at the end of the current
                         paid term. If you are unsatisfied with our services, please email us
                         at
-                        <a href="mailto:support@scitex.ai"
-                           aria-label="Email support at support@scitex.ai">support@scitex.ai</a>.
+                        <a href="mailto:support@scitex.ai" aria-label="Email support at support@scitex.ai">support@scitex.ai</a>.
                     </p>
                     <h2 id="termination">Termination</h2>
                     <p>
@@ -329,8 +330,7 @@
                     <p>
                         If you wish to terminate your account, you may simply discontinue
                         using the platform, or contact us at
-                        <a href="mailto:support@scitex.ai"
-                           aria-label="Email support at support@scitex.ai">support@scitex.ai</a>.
+                        <a href="mailto:support@scitex.ai" aria-label="Email support at support@scitex.ai">support@scitex.ai</a>.
                     </p>
                     <p>
                         All provisions of the Terms which by their nature should survive

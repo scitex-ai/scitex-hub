@@ -8,14 +8,14 @@
 /* Section Background and Layout */
 .section-ecosystem {
   background: linear-gradient(180deg, var(--bg-page) 0%, var(--bg-muted) 100%);
-  padding: var(--spacing-xxl) 0;
+  padding: 1rem 0 var(--spacing-xxl);
 }
 
 [data-theme="dark"] .section-ecosystem {
   background: linear-gradient(
     180deg,
     var(--bg-page) 0%,
-    var(--scitex-color-01) 100%
+    var(--bg-surface) 100%
   );
 }
 
@@ -226,22 +226,22 @@
  * ========================================================================== */
 
 [data-theme="dark"] .module-card-simple {
-  background-color: var(--scitex-color-02);
-  border-color: var(--scitex-color-03);
+  background-color: var(--bg-muted);
+  border-color: var(--border-default);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 [data-theme="dark"] .module-card-simple h3 {
-  color: var(--scitex-color-07);
+  color: var(--text-primary);
 }
 
 [data-theme="dark"] .module-card-simple .module-tagline {
-  color: var(--scitex-color-05);
+  color: var(--text-muted);
 }
 
 [data-theme="dark"] .module-card-simple:hover {
-  background-color: var(--scitex-color-03);
-  border-color: var(--scitex-color-04);
+  background-color: var(--border-default);
+  border-color: var(--_scitex-04);
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
 }
 
@@ -254,14 +254,39 @@
 }
 
 [data-theme="dark"] .module-github-btn {
-  background-color: var(--scitex-color-05);
-  color: var(--scitex-color-01);
+  background-color: var(--_scitex-05);
+  color: var(--bg-surface);
   font-weight: 600;
 }
 
 [data-theme="dark"] .module-github-btn:hover {
-  background-color: var(--scitex-color-06);
-  color: var(--scitex-color-01);
+  background-color: var(--text-muted);
+  color: var(--bg-surface);
+}
+
+/* Ecosystem Diagram */
+.ecosystem-diagram {
+  margin: 2rem auto;
+  text-align: center;
+}
+
+.ecosystem-diagram-img {
+  width: 100%;
+  max-width: 900px;
+  height: auto;
+  border-radius: 8px;
+}
+
+.ecosystem-diagram-dark {
+  display: none;
+}
+
+[data-theme="dark"] .ecosystem-diagram-light {
+  display: none;
+}
+
+[data-theme="dark"] .ecosystem-diagram-dark {
+  display: inline;
 }
 
 /* ============================================================================

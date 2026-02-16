@@ -631,55 +631,7 @@
                 </div>
             </div>
         </div>
-        <!-- Architecture Diagrams -->
-        <div class="status-section">
-            <h2 class="section-title">
-                <i class="fas fa-sitemap"></i> System Architecture
-            </h2>
-            <!-- Module Integration -->
-            <div class="architecture-card">
-                <h3 class="architecture-title">
-                    <i class="fas fa-puzzle-piece"></i> Module Integration
-                </h3>
-                <p class="architecture-description">
-                    SciTeX Cloud modules (Writer, Scholar, Console, Visualizer) with central Files hub and AI Engine integration
-                </p>
-                <div class="architecture-diagram-container">
-                    <object type="image/svg+xml"
-                            data="{% static 'public_app/images/architecture/ARCHITECTURE_01.svg' %}"
-                            class="architecture-svg architecture-svg-module">
-                        <img src="{% static 'public_app/images/architecture/ARCHITECTURE_01.svg' %}"
-                             alt="Module Integration Architecture" />
-                    </object>
-                </div>
-            </div>
-            <!-- Infrastructure Diagram -->
-            <div class="architecture-card">
-                <h3 class="architecture-title">
-                    <i class="fas fa-network-wired"></i> Infrastructure Deployment
-                </h3>
-                <p class="architecture-description">
-                    Complete infrastructure stack showing Docker services, host services (SLURM, Munge, Apptainer), and network architecture
-                </p>
-                <div class="architecture-diagram-container">
-                    <object type="image/svg+xml"
-                            data="{% static 'public_app/images/architecture/ARCHITECTURE_02.svg' %}"
-                            class="architecture-svg architecture-svg-infra">
-                        <img src="{% static 'public_app/images/architecture/ARCHITECTURE_02.svg' %}"
-                             alt="Infrastructure Architecture" />
-                    </object>
-                </div>
-            </div>
-            <!-- Architecture Info -->
-            <div class="info-box info-box-with-margin">
-                <p>
-                    <i class="fas fa-info-circle"></i>
-                    <strong>Documentation:</strong> Detailed architecture documentation available at
-                    <a href="{% static 'public_app/docs/ARCHITECTURE/ARCHITECTURE_00.md' %}"
-                       target="_blank">ARCHITECTURE_00.md</a>
-                </p>
-            </div>
-        </div>
+        <!-- Architecture moved to /setup/ (Self-Hosting Guide) -->
     </div>
     {% vite_script 'public_app/server-status' %}
 {% endblock %}

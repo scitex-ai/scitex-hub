@@ -18,10 +18,10 @@ Core health checking for Docker, SSH, Database, Redis, Disk, and API services.
 """
 
 import logging
+import os
 import socket
 from pathlib import Path
 
-import psutil
 import requests
 from django.conf import settings
 from django.core.cache import cache
@@ -69,9 +69,9 @@ def check_docker_containers(status_data):
                     "health_class": health_class,
                     "is_running": is_running,
                     "is_healthy": is_running and health_status in (None, "healthy"),
-                    "image": container.image.tags[0]
-                    if container.image.tags
-                    else "unknown",
+                    "image": (
+                        container.image.tags[0] if container.image.tags else "unknown"
+                    ),
                 }
             )
     except Exception as e:
@@ -346,13 +346,17 @@ def check_redis(status_data):
 def check_disk(status_data):
     """Check disk usage."""
     try:
-        disk = psutil.disk_usage("/")
+        st = os.statvfs("/")
+        total = st.f_blocks * st.f_frsize
+        free = st.f_bavail * st.f_frsize
+        used = total - free
+        percent_used = round((used / total) * 100, 1) if total > 0 else 0
         status_data["disk"] = {
-            "total_tb": round(disk.total / (1024**4), 2),
-            "used_tb": round(disk.used / (1024**4), 2),
-            "free_tb": round(disk.free / (1024**4), 2),
-            "percent_used": disk.percent,
-            "is_healthy": disk.percent < 90,
+            "total_tb": round(total / (1024**4), 2),
+            "used_tb": round(used / (1024**4), 2),
+            "free_tb": round(free / (1024**4), 2),
+            "percent_used": percent_used,
+            "is_healthy": percent_used < 90,
         }
     except Exception as e:
         status_data["disk"] = {

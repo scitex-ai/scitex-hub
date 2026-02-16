@@ -1,32 +1,48 @@
 {% extends "global_base.html" %}
+
 {% load static %}
+
 {% block title %}Design System - All Components - SciTeX{% endblock %}
 {% block meta_description %}Complete SciTeX Design System reference - all components and guidelines.{% endblock %}
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'shared/css/common.css' %}" />
-    <link rel="stylesheet" href="{% static 'shared/css/components/page-header.css' %}" />
+    <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
     <link rel="stylesheet" href="{% static 'shared/css/components/code-blocks.css' %}" />
     <link rel="stylesheet" href="{% static 'shared/css/components/theme-cards.css' %}" />
     <!-- Design System CSS Modules -->
     <link rel="stylesheet" href="{% static 'dev_app/styles/design/00-design.css' %}" />
-    <link rel="stylesheet" href="{% static 'dev_app/styles/design/01-component-library.css' %}" />
-    <link rel="stylesheet" href="{% static 'dev_app/styles/design/02-section-headers.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'dev_app/styles/design/01-component-library.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'dev_app/styles/design/02-section-headers.css' %}" />
     <link rel="stylesheet" href="{% static 'dev_app/styles/design/03-info-box.css' %}" />
-    <link rel="stylesheet" href="{% static 'dev_app/styles/design/04-grid-layouts.css' %}" />
-    <link rel="stylesheet" href="{% static 'dev_app/styles/design/05-flexible-layouts.css' %}" />
-    <link rel="stylesheet" href="{% static 'dev_app/styles/design/06-content-containers.css' %}" />
-    <link rel="stylesheet" href="{% static 'dev_app/styles/design/07-text-utilities.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'dev_app/styles/design/04-grid-layouts.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'dev_app/styles/design/05-flexible-layouts.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'dev_app/styles/design/06-content-containers.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'dev_app/styles/design/07-text-utilities.css' %}" />
     <link rel="stylesheet" href="{% static 'dev_app/styles/design/08-badge-tag.css' %}" />
     <link rel="stylesheet" href="{% static 'dev_app/styles/design/09-code-blocks.css' %}" />
-    <link rel="stylesheet" href="{% static 'dev_app/styles/design/10-demo-content.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'dev_app/styles/design/10-demo-content.css' %}" />
     <link rel="stylesheet" href="{% static 'dev_app/styles/design/11-row-layouts.css' %}" />
-    <link rel="stylesheet" href="{% static 'dev_app/styles/design/12-section-subsections.css' %}" />
-    <link rel="stylesheet" href="{% static 'dev_app/styles/design/13-component-library-section.css' %}" />
-    <link rel="stylesheet" href="{% static 'dev_app/styles/design/14-dark-mode-demos.css' %}" />
-    <link rel="stylesheet" href="{% static 'dev_app/styles/design/15-dark-mode-displays.css' %}" />
-    <link rel="stylesheet" href="{% static 'dev_app/styles/design/16-button-spacing.css' %}" />
-    <link rel="stylesheet" href="{% static 'dev_app/styles/design/17-theme-buttons.css' %}" />
-    <link rel="stylesheet" href="{% static 'dev_app/styles/design/18-component-buttons.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'dev_app/styles/design/12-section-subsections.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'dev_app/styles/design/13-component-library-section.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'dev_app/styles/design/14-dark-mode-demos.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'dev_app/styles/design/15-dark-mode-displays.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'dev_app/styles/design/16-button-spacing.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'dev_app/styles/design/17-theme-buttons.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'dev_app/styles/design/18-component-buttons.css' %}" />
     <style>
         /* Print-optimized styles */
         .design-all-container {
@@ -34,10 +50,12 @@
             margin: 0 auto;
             padding: 2rem;
         }
+
         .design-section {
             margin-bottom: 4rem;
             page-break-inside: avoid;
         }
+
         .design-section-header {
             display: flex;
             align-items: center;
@@ -46,11 +64,13 @@
             margin-bottom: 1.5rem;
             border-bottom: 2px solid var(--workspace-border-default, #3a3a3a);
         }
+
         .design-section-header h2 {
             margin: 0;
             font-size: 1.5rem;
             color: var(--text-primary, #d4e1e8);
         }
+
         .design-section-number {
             display: inline-flex;
             align-items: center;
@@ -63,17 +83,20 @@
             font-size: 0.875rem;
             font-weight: 600;
         }
+
         .design-toc {
             background: var(--workspace-bg-secondary, #151515);
             border: 1px solid var(--workspace-border-default, #3a3a3a);
             padding: 1.5rem;
             margin-bottom: 3rem;
         }
+
         .design-toc h3 {
             margin: 0 0 1rem 0;
             font-size: 1rem;
             color: var(--text-primary, #d4e1e8);
         }
+
         .design-toc-list {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -82,6 +105,7 @@
             padding: 0;
             margin: 0;
         }
+
         .design-toc-list a {
             display: flex;
             align-items: center;
@@ -93,54 +117,63 @@
             border-radius: 4px;
             transition: background 0.15s;
         }
+
         .design-toc-list a:hover {
             background: var(--workspace-bg-tertiary, #1a1a1a);
             color: var(--workspace-icon-primary, #059669);
         }
+
         .design-toc-list .toc-number {
             font-size: 0.75rem;
             color: var(--text-muted, #6c8ba0);
             min-width: 1.5rem;
         }
+
         /* Print styles */
         @media print {
-            .design-toc { page-break-after: always; }
-            .design-section { page-break-inside: avoid; }
-            .design-section-header { page-break-after: avoid; }
+            .design-toc {
+                page-break-after: always;
+            }
+
+            .design-section {
+                page-break-inside: avoid;
+            }
+
+            .design-section-header {
+                page-break-after: avoid;
+            }
         }
     </style>
 {% endblock %}
 {% block content %}
     <div class="design-all-container">
-        <section class="page-header" style="margin-bottom: 2rem;">
-            <h1><i class="fas fa-palette"></i> SciTeX Design System</h1>
-            <p>Complete Component Reference</p>
-        </section>
-
+        <header class="minimal-hero" style="margin-bottom: 2rem;">
+            <h1 class="minimal-hero-title">SciTeX Design System</h1>
+            <p class="minimal-hero-subtitle">Complete Component Reference</p>
+        </header>
         <!-- Table of Contents -->
         <nav class="design-toc">
             <h3>Table of Contents</h3>
             <ul class="design-toc-list">
                 {% for section in sections %}
-                <li>
-                    <a href="#section-{{ forloop.counter }}">
-                        <span class="toc-number">{{ forloop.counter }}.</span>
-                        {{ section.title }}
-                    </a>
-                </li>
+                    <li>
+                        <a href="#section-{{ forloop.counter }}">
+                            <span class="toc-number">{{ forloop.counter }}.</span>
+                            {{ section.title }}
+                        </a>
+                    </li>
                 {% endfor %}
             </ul>
         </nav>
-
         <!-- All Sections -->
         {% for section in sections %}
-        <section class="design-section" id="section-{{ forloop.counter }}">
-            <div class="design-section-header">
-                <span class="design-section-number">{{ forloop.counter }}</span>
-                <h2>{{ section.title }}</h2>
-            </div>
-            {% include section.partial %}
-        </section>
+            <section class="design-section" id="section-{{ forloop.counter }}">
+                <div class="design-section-header">
+                    <span class="design-section-number">{{ forloop.counter }}</span>
+                    <h2>{{ section.title }}</h2>
+                </div>
+                {% include section.partial %}
+            </section>
         {% endfor %}
     </div>
 {% endblock %}

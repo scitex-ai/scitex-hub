@@ -27,3 +27,8 @@ body {
 .text-dark {
   color: var(--text-primary);
 }
+
+/* Override Bootstrap's pink/red inline code color */
+code {
+  color: var(--text-secondary);
+}

@@ -16,7 +16,7 @@ declare function setupMonacoThemeObserver(monaco: any): void;
 declare function getThemeForMode(mode: "dark" | "light"): string;
 declare function getCurrentThemeMode(): "dark" | "light";
 
-// Dynamic loader for MonacoTheme
+// Dynamic loader for shared Monaco modules
 async function loadMonacoTheme(): Promise<{
   initializeMonacoThemes: typeof initializeMonacoThemes;
   setupMonacoThemeObserver: typeof setupMonacoThemeObserver;
@@ -27,9 +27,19 @@ async function loadMonacoTheme(): Promise<{
   return await import("@/monaco/MonacoTheme");
 }
 
-// Cached module reference
+async function loadMonacoDefaults(): Promise<{
+  MONACO_EDITOR_DEFAULTS: Record<string, any>;
+}> {
+  // @ts-ignore - Runtime dynamic import
+  return await import("@/monaco/MonacoDefaults");
+}
+
+// Cached module references
 let monacoThemeModule: Awaited<ReturnType<typeof loadMonacoTheme>> | null =
   null;
+let monacoDefaultsModule: Awaited<
+  ReturnType<typeof loadMonacoDefaults>
+> | null = null;
 
 export class MonacoManager {
   private editor: any = null;
@@ -190,9 +200,12 @@ export class MonacoManager {
       welcomeScreen.style.display = "none";
     }
 
-    // Load theme module if not cached
+    // Load shared modules if not cached
     if (!monacoThemeModule) {
       monacoThemeModule = await loadMonacoTheme();
+    }
+    if (!monacoDefaultsModule) {
+      monacoDefaultsModule = await loadMonacoDefaults();
     }
 
     // Initialize shared SciTeX themes
@@ -206,30 +219,13 @@ export class MonacoManager {
     // Setup observer to auto-switch Monaco theme when global theme changes
     monacoThemeModule.setupMonacoThemeObserver(monaco);
 
-    // Create Monaco editor
+    // Create Monaco editor using shared defaults
+    const { MONACO_EDITOR_DEFAULTS } = monacoDefaultsModule;
     this.editor = monaco.editor.create(container, {
+      ...MONACO_EDITOR_DEFAULTS,
       value: "",
       language: language,
       theme: initialTheme,
-      automaticLayout: true,
-      fontSize: 14,
-      fontFamily: "'JetBrains Mono', 'Monaco', 'Menlo', monospace",
-      minimap: { enabled: true },
-      lineNumbers: "on",
-      renderWhitespace: "selection",
-      scrollBeyondLastLine: false,
-      wordWrap: "on",
-      tabSize: 4,
-      insertSpaces: true,
-      glyphMargin: true,
-      suggest: {
-        showKeywords: true,
-        showSnippets: true,
-      },
-      quickSuggestions: true,
-      parameterHints: { enabled: true },
-      formatOnPaste: true,
-      formatOnType: true,
     });
 
     console.log("[MonacoManager] Monaco editor created successfully");

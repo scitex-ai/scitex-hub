@@ -1,31 +1,36 @@
 {% extends 'global_base.html' %}
+
 {% load static vite %}
+
 {% block title %}Release Notes - SciTeX Cloud{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'shared/css/components/page-header.css' %}" />
-<link rel="stylesheet" href="{% static 'public_app/css/release-notes.css' %}" />
+    <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
+    <link rel="stylesheet" href="{% static 'public_app/css/release-notes.css' %}" />
 {% endblock %}
 {% block extra_js %}
-<!-- Chart.js libraries -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-{% vite_script 'public_app/pages/release-timeline' %}
+    <!-- Chart.js libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    {% vite_script 'public_app/pages/release-timeline' %}
 {% endblock %}
 {% block content %}
     <div class="release-notes-container">
-        <div class="page-header">
-            <h1><i class="fas fa-rocket"></i> SciTeX Ecosystem Releases</h1>
-            <p>Building the future of scientific research automation</p>
-        </div>
-
+        <header class="minimal-hero">
+            <h1 class="minimal-hero-title">Releases</h1>
+            <p class="minimal-hero-subtitle">SciTeX ecosystem development history</p>
+        </header>
         <!-- SciTeX Ecosystem Section -->
         <div class="ecosystem-releases">
-            <h2 class="ecosystem-header"><i class="fas fa-cubes"></i> SciTeX Ecosystem — Latest Releases</h2>
+            <h2 class="ecosystem-header">
+                <i class="fas fa-cubes"></i> SciTeX Ecosystem — Latest Releases
+            </h2>
             <div class="ecosystem-grid">
                 <!-- scitex (Python toolkit) -->
                 <div class="ecosystem-card">
                     <div class="ecosystem-card-header">
-                        <h3><i class="fab fa-python"></i> scitex</h3>
+                        <h3>
+                            <i class="fab fa-python"></i> scitex
+                        </h3>
                         <span class="version-badge">v2.15.1</span>
                     </div>
                     <p class="ecosystem-desc">Python toolkit + MCP server for research automation</p>
@@ -40,11 +45,12 @@
                     </div>
                     <span class="release-date">January 24, 2026</span>
                 </div>
-
                 <!-- figrecipe -->
                 <div class="ecosystem-card">
                     <div class="ecosystem-card-header">
-                        <h3><i class="fas fa-chart-bar"></i> figrecipe</h3>
+                        <h3>
+                            <i class="fas fa-chart-bar"></i> figrecipe
+                        </h3>
                         <span class="version-badge">v0.19.0</span>
                     </div>
                     <p class="ecosystem-desc">Reproducible scientific figures as first-class objects</p>
@@ -59,11 +65,12 @@
                     </div>
                     <span class="release-date">January 25, 2026</span>
                 </div>
-
                 <!-- crossref-local -->
                 <div class="ecosystem-card">
                     <div class="ecosystem-card-header">
-                        <h3><i class="fas fa-database"></i> crossref-local</h3>
+                        <h3>
+                            <i class="fas fa-database"></i> crossref-local
+                        </h3>
                         <span class="version-badge">v0.4.0</span>
                     </div>
                     <p class="ecosystem-desc">Local database of 167M+ academic works</p>
@@ -77,11 +84,12 @@
                     </div>
                     <span class="release-date">January 24, 2026</span>
                 </div>
-
                 <!-- scitex-writer -->
                 <div class="ecosystem-card">
                     <div class="ecosystem-card-header">
-                        <h3><i class="fas fa-file-alt"></i> scitex-writer</h3>
+                        <h3>
+                            <i class="fas fa-file-alt"></i> scitex-writer
+                        </h3>
                         <span class="version-badge">v2.2.1</span>
                     </div>
                     <p class="ecosystem-desc">LaTeX manuscript writing for AI agents</p>
@@ -95,11 +103,12 @@
                     </div>
                     <span class="release-date">January 19, 2025</span>
                 </div>
-
                 <!-- scitex-cloud -->
                 <div class="ecosystem-card">
                     <div class="ecosystem-card-header">
-                        <h3><i class="fas fa-cloud"></i> scitex-cloud</h3>
+                        <h3>
+                            <i class="fas fa-cloud"></i> scitex-cloud
+                        </h3>
                         <span class="version-badge">v{{ SCITEX_CLOUD_VERSION }}</span>
                     </div>
                     <p class="ecosystem-desc">Web platform for research collaboration</p>
@@ -115,27 +124,26 @@
                 </div>
             </div>
         </div>
-
-        <hr class="section-divider">
-
-        <h2 class="cloud-header"><i class="fas fa-cloud"></i> SciTeX Cloud — Detailed Changelog</h2>
-
+        <hr class="section-divider" />
+        <h2 class="cloud-header">
+            <i class="fas fa-cloud"></i> SciTeX Cloud — Detailed Changelog
+        </h2>
         <div class="stats-box">
             <div class="stat-item">
-                <span class="stat-number">1790</span>
+                <span class="stat-number">2,125</span>
                 <span class="stat-label">Total Commits</span>
             </div>
             <div class="stat-item">
-                <span class="stat-number">8</span>
+                <span class="stat-number">9</span>
                 <span class="stat-label">Months of Development</span>
             </div>
             <div class="stat-item">
-                <span class="stat-number">4</span>
-                <span class="stat-label">Core Modules</span>
+                <span class="stat-number">46</span>
+                <span class="stat-label">Pull Requests</span>
             </div>
             <div class="stat-item">
-                <span class="stat-number">2</span>
-                <span class="stat-label">Contributors</span>
+                <span class="stat-number">6</span>
+                <span class="stat-label">Core Modules</span>
             </div>
         </div>
         <!-- Development Timeline Chart -->
@@ -145,10 +153,158 @@
                 <canvas id="commitTimeline"></canvas>
             </div>
         </div>
+        <!-- v0.9.1-alpha -->
+        <div class="release-month">
+            <div class="month-header">
+                <h2>February 2026 — v0.9.1-alpha</h2>
+                <span class="month-badge">Latest Release</span>
+            </div>
+            <ul class="feature-list">
+                <li class="feature-item">
+                    <h3>Stats Delegation to scitex Package</h3>
+                    <p>
+                        Stats logic fully delegated to scitex Python package, keeping Django as a thin wrapper. Pre-commit hooks updated with testmon integration.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>Four Freedoms for Research</h3>
+                    <p>
+                        Added the "Four Freedoms for Research" manifesto to README and landing page, establishing the project's open-source philosophy.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>PyPI and Plot API Improvements</h3>
+                    <p>
+                        Fixed SPDX license format and added project.urls to pyproject.toml for PyPI. SCITEX style now controls default figure dimensions in the Plot API.
+                    </p>
+                </li>
+            </ul>
+        </div>
+        <!-- v0.9.0-alpha -->
+        <div class="release-month">
+            <div class="month-header">
+                <h2>February 2026 — v0.9.0-alpha</h2>
+                <span class="month-badge">Web API</span>
+            </div>
+            <ul class="feature-list">
+                <li class="feature-item">
+                    <h3>Web API Documentation Redesign</h3>
+                    <p>
+                        Renamed API Docs to "Web API Documentation" with sleek coloring, migrated URL to /docs/web-api/, and added public/internal endpoint classification.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>CSV File Upload for Plot and Stats API</h3>
+                    <p>
+                        Both Plot and Stats API endpoints now accept CSV file uploads. Documentation updated with upload sections and live preview galleries.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>Event Bus and API Modularization</h3>
+                    <p>
+                        New event bus API for async task notifications. Endpoint definitions extracted into api_endpoints/ modules. Lazy loading for /dev/tests/ pages.
+                    </p>
+                </li>
+            </ul>
+        </div>
+        <!-- v0.8.x-alpha -->
+        <div class="release-month">
+            <div class="month-header">
+                <h2>February 2026 — v0.8.0 to v0.8.5-alpha</h2>
+                <span class="month-badge">Workspace Overhaul</span>
+            </div>
+            <ul class="feature-list">
+                <li class="feature-item">
+                    <h3>Complete Workspace Rebuild</h3>
+                    <p>
+                        Major overhaul: code_app renamed to console_app, Tools page rebuilt as workspace layout with 24+ tools, Hub gains GitHub-style file browser. All modules now share a unified file tree with hidden files toggle and module filter.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>CSS Variable Migration</h3>
+                    <p>
+                        Replaced all hardcoded colors with CSS variables across the entire project (public, writer, scholar, console, vis, project apps). Full dark/light mode support on every page.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>Statistics and Plot API</h3>
+                    <p>
+                        Full scitex.stats coverage with 23 tests, interactive decision flowchart, APA formatting, and Brunner-Munzel test. New public Plot API endpoint with GET/POST support and live preview gallery.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>Accessibility and Ecosystem</h3>
+                    <p>
+                        WCAG 2.2 AA accessibility CI with pa11y-ci. Ecosystem table with version column, collapsible standalone packages, and Read the Docs SVG logos. Rate limiting for health endpoints.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>Scholar and E2E Testing</h3>
+                    <p>
+                        Scholar library management tab with save-to-project. Comprehensive E2E tests for auth, projects, visitors, and signup. Figrecipe editor integration in Vis module.
+                    </p>
+                </li>
+            </ul>
+        </div>
+        <!-- v0.7.x-alpha -->
+        <div class="release-month">
+            <div class="month-header">
+                <h2>February 2026 — v0.7.0 to v0.7.2-alpha</h2>
+                <span class="month-badge">MCP Server</span>
+            </div>
+            <ul class="feature-list">
+                <li class="feature-item">
+                    <h3>MCP Server with 23 Tools</h3>
+                    <p>
+                        Added MCP server and Python API for AI agent integration. 23 tools across scholar, writer, stats, and plot modules. Gitea CLI commands migrated from scitex-python.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>Read the Docs and API Dashboard</h3>
+                    <p>
+                        Sphinx documentation setup with RTD hosting. /api/versions/ endpoint for ecosystem health. API test monitoring dashboard with sidebar navigation.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>Production Environment and Performance</h3>
+                    <p>
+                        Renamed 'nas' to 'prod' environment. Centralized env files in deployment/docker/envs/. Pre-generated matplotlib font cache (eliminating 10+ min startup). Debounced toolbar updates fixing O(n^2) rendering.
+                    </p>
+                </li>
+            </ul>
+        </div>
+        <!-- v0.6.6 to v0.6.12-alpha -->
+        <div class="release-month">
+            <div class="month-header">
+                <h2>January–February 2026 — v0.6.6 to v0.6.12-alpha</h2>
+                <span class="month-badge">Platform Polish</span>
+            </div>
+            <ul class="feature-list">
+                <li class="feature-item">
+                    <h3>Modular Architecture and OAuth</h3>
+                    <p>
+                        All apps refactored into modular file structure. Google and ORCID OAuth for signup. Database-driven publications page. GitLab-style project creation landing.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>Terminal Broker and Infrastructure</h3>
+                    <p>
+                        Terminal Broker prevents Daphne deadlocks and zombie processes. PgBouncer connection pooler for DB stability. GitHub-style issue templates. Organization management commands.
+                    </p>
+                </li>
+                <li class="feature-item">
+                    <h3>Analytics and Deployment</h3>
+                    <p>
+                        Replaced Google Analytics with privacy-focused Umami. Cloudflare cache purge integration. Staging environment on port 31294. Comprehensive deployment documentation.
+                    </p>
+                </li>
+            </ul>
+        </div>
+        <!-- v0.6.5-alpha -->
         <div class="release-month">
             <div class="month-header">
                 <h2>January 2026 — v0.6.5-alpha</h2>
-                <span class="month-badge">Latest Release</span>
+                <span class="month-badge">Bug Fixes</span>
             </div>
             <ul class="feature-list">
                 <li class="feature-item">
@@ -828,8 +984,7 @@
             </p>
             <div class="cta-buttons">
                 <a href="/signup/" class="btn btn-primary">Get Started Free</a>
-                <a href="{% url 'public_app:index' %}#features"
-                   class="btn btn-outline-primary">Learn More</a>
+                <a href="{% url 'public_app:index' %}#features" class="btn btn-outline-primary">Learn More</a>
             </div>
         </div>
     </div>
