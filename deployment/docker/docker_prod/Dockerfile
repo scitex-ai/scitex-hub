@@ -164,11 +164,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     texlive-science \
     texlive-pictures \
     texlive-plain-generic \
+    texlive-publishers \
     # bibtex is included in texlive-bibtex-extra
     latexdiff \
     latexmk \
     ghostscript \
     poppler-utils \
+    # GNU parallel for faster LaTeX compilation
+    parallel \
     # Image processing runtime
     imagemagick \
     # Browser runtime (Chromium for Mermaid/Playwright)
