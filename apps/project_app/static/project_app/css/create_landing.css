@@ -323,13 +323,15 @@ textarea.form-control {
 }
 
 .btn-primary {
-  background: var(--color-btn-primary-bg, #238636);
-  border: 1px solid var(--color-btn-primary-border, #238636);
-  color: white;
+  background: var(--color-btn-primary-bg);
+  border: 1px solid var(--color-btn-primary-border);
+  color: var(--color-btn-primary-text);
 }
 
 .btn-primary:hover {
-  background: var(--color-btn-primary-hoverBg, #2ea043);
+  background: var(--color-btn-primary-hover-bg);
+  border-color: var(--color-btn-primary-hover-bg);
+  color: var(--color-btn-primary-text);
 }
 
 /* Info Box */
