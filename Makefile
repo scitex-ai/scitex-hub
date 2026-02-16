@@ -102,7 +102,13 @@ SHELL := /bin/bash
 	check-host \
 	ensure-executable \
 	info \
-	regenerate-gallery
+	regenerate-gallery \
+	visitor-status \
+	visitor-init \
+	visitor-reset \
+	visitor-reset-workspaces \
+	visitor-reset-workspaces-dry \
+	visitor-cleanup
 
 .DEFAULT_GOAL := help
 
@@ -336,6 +342,13 @@ help-all:
 	@echo -e "  slurm-stop                   Stop SLURM services"
 	@echo -e "  slurm-status                 Check SLURM status"
 	@echo -e "  slurm-fix                    Fix SLURM issues"
+	@echo -e ""
+	@echo -e "$(CYAN)🏊 Visitor Pool:$(NC)"
+	@echo -e "  ENV=<env> visitor-status     Show pool status"
+	@echo -e "  ENV=<env> visitor-init       Initialize visitor pool"
+	@echo -e "  ENV=<env> visitor-reset      Free all allocations"
+	@echo -e "  ENV=<env> visitor-reset-workspaces  Re-clone template"
+	@echo -e "  ENV=<env> visitor-cleanup    Free expired allocations"
 	@echo -e ""
 
 # ============================================
