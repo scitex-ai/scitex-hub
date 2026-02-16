@@ -1,5 +1,7 @@
 {% extends "global_base.html" %}
+
 {% load static %}
+
 {% block title %}Demos - SciTeX Ecosystem{% endblock %}
 {% block meta_description %}
     Explore the SciTeX ecosystem through interactive demos. See how scitex-cloud and scitex-python work together to streamline research workflows from literature to publication.
@@ -17,14 +19,14 @@
         <!-- Hero Section -->
         <header class="minimal-hero">
             <h1 class="minimal-hero-title">Demo Videos</h1>
-            <p class="minimal-hero-subtitle">
-                See SciTeX tools in action. These demos showcase AI agents automating
-                research workflows via scitex MCP (Model Context Protocol) server.
-            </p>
+            <p class="minimal-hero-subtitle">SciTeX ecosystem demo videos.</p>
         </header>
         <!-- Tab Navigation -->
         <div class="demos-tabs">
-            <button class="demos-tab active" data-tab="local-mcp">
+            <button class="demos-tab active" data-tab="all">
+                <i class="fas fa-th"></i> All
+            </button>
+            <button class="demos-tab" data-tab="local-mcp">
                 <i class="fas fa-plug"></i> Local MCP
             </button>
             <button class="demos-tab" data-tab="local-python">
@@ -33,20 +35,358 @@
             <button class="demos-tab" data-tab="local-cli">
                 <i class="fas fa-terminal"></i> Local CLI
             </button>
-            <button class="demos-tab" data-tab="cloud-mcp">
-                <i class="fas fa-cloud"></i> Cloud MCP
-            </button>
-            <button class="demos-tab" data-tab="cloud-python">
-                <i class="fas fa-cloud"></i> Cloud Python
-            </button>
-            <button class="demos-tab" data-tab="cloud-cli">
-                <i class="fas fa-cloud"></i> Cloud CLI
+            <button class="demos-tab" data-tab="cloud">
+                <i class="fas fa-cloud"></i> Cloud
             </button>
         </div>
         <!-- Tab Content -->
         <div class="demos-tab-content">
+            <!-- All Tab -->
+            <section class="demos-tab-pane active" id="all">
+                <div class="video-gallery">
+                    <!-- Cloud: scitex-cloud (5:24) -->
+                    <div class="video-card">
+                        <div class="video-thumbnail-wrapper">
+                            <a href="{% url 'public_app:video_player' 'scitex-cloud' %}">
+                                <img src="/media/videos/scitex-cloud-v0.9.3-demo-thumbnail.png"
+                                     alt="scitex-cloud demo thumbnail"
+                                     class="video-thumbnail" />
+                                <div class="video-play-overlay">
+                                    <i class="fas fa-play-circle"></i>
+                                </div>
+                            </a>
+                            <span class="video-badge cloud-badge"><i class="fas fa-cloud"></i> Cloud</span>
+                            <span class="video-duration">5:24</span>
+                        </div>
+                        <div class="video-info">
+                            <h3 class="video-title">SciTeX Cloud v0.9.3</h3>
+                            <p class="video-description">
+                                Self-hosted research platform. Scholar, Writer, Console, and Visualizer
+                                modules in a unified web interface. Deploy on your lab's NAS or server.
+                            </p>
+                            <div class="video-links">
+                                <a href="https://github.com/ywatanabe1989/scitex-cloud"
+                                   target="_blank"
+                                   class="video-link">
+                                    <i class="fab fa-github"></i> Repository
+                                </a>
+                                <a href="{% url 'public_app:video_player' 'scitex-cloud' %}" class="video-link">
+                                    <i class="fas fa-play"></i> Watch
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Local MCP: Automated Research (43:33) -->
+                    <div class="video-card">
+                        <div class="video-thumbnail-wrapper">
+                            <a href="{% url 'public_app:video_player' 'scitex-automated-research' %}">
+                                <img src="/media/videos/scitex-automated-research-demo-thumbnail.png"
+                                     alt="scitex-automated-research demo thumbnail"
+                                     class="video-thumbnail" />
+                                <div class="video-play-overlay">
+                                    <i class="fas fa-play-circle"></i>
+                                </div>
+                            </a>
+                            <span class="video-badge local-mcp-badge"><i class="fas fa-plug"></i> Local MCP</span>
+                            <span class="video-duration">43:33</span>
+                        </div>
+                        <div class="video-info">
+                            <h3 class="video-title">Automated Research by AI Agent</h3>
+                            <p class="video-description">
+                                <strong>40 min - Almost zero human intervention.</strong> AI agent
+                                conducts full research via <code>scitex</code> MCP: literature
+                                search, data analysis (3x3 factorial, N=180), statistical tests
+                                (ANOVA, post-hoc), 4 figures, 21-page manuscript, peer review
+                                response.
+                            </p>
+                            <div class="video-links">
+                                <div class="video-links-row">
+                                    <a href="https://github.com/ywatanabe1989/scitex-code"
+                                       target="_blank"
+                                       class="video-link">
+                                        <i class="fab fa-github"></i> Repository
+                                    </a>
+                                    <a href="{% url 'public_app:video_player' 'scitex-automated-research' %}"
+                                       class="video-link">
+                                        <i class="fas fa-play"></i> Watch 4x
+                                    </a>
+                                </div>
+                                <div class="video-links-row">
+                                    <a href="/media/videos/scitex-automated-research-demo-manuscript.pdf"
+                                       target="_blank"
+                                       class="video-link">
+                                        <i class="fas fa-file-alt"></i> Manuscript
+                                    </a>
+                                    <a href="/media/videos/scitex-automated-research-demo-revision.pdf"
+                                       target="_blank"
+                                       class="video-link">
+                                        <i class="fas fa-file-contract"></i> Revision
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Local MCP: figrecipe (10:39) -->
+                    <div class="video-card">
+                        <div class="video-thumbnail-wrapper">
+                            <a href="{% url 'public_app:video_player' 'figrecipe' %}">
+                                <img src="/media/videos/figrecipe-v0.14.0-demo-thumbnail.png"
+                                     alt="figrecipe demo thumbnail"
+                                     class="video-thumbnail" />
+                                <div class="video-play-overlay">
+                                    <i class="fas fa-play-circle"></i>
+                                </div>
+                            </a>
+                            <span class="video-badge local-mcp-badge"><i class="fas fa-plug"></i> Local MCP</span>
+                            <span class="video-duration">10:39</span>
+                        </div>
+                        <div class="video-info">
+                            <h3 class="video-title">Graphing by AI Agent</h3>
+                            <p class="video-description">
+                                AI agent creates publication-ready scientific figures via
+                                <code>scitex</code> MCP. Reproducible recipes for automated plot
+                                generation.
+                            </p>
+                            <div class="video-links">
+                                <a href="https://github.com/ywatanabe1989/figrecipe"
+                                   target="_blank"
+                                   class="video-link">
+                                    <i class="fab fa-github"></i> Repository
+                                </a>
+                                <a href="{% url 'public_app:video_player' 'figrecipe' %}" class="video-link">
+                                    <i class="fas fa-play"></i> Watch 4x
+                                </a>
+                                <a href="/media/videos/figrecipe-v0.14.0-demo.pdf"
+                                   target="_blank"
+                                   class="video-link">
+                                    <i class="fas fa-file-pdf"></i> Prompt+Report
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Local MCP: crossref-local (15:23) -->
+                    <div class="video-card">
+                        <div class="video-thumbnail-wrapper">
+                            <a href="{% url 'public_app:video_player' 'crossref-local' %}">
+                                <img src="/media/videos/crossref-local-v0.3.1-demo-thumbnail.png"
+                                     alt="crossref-local demo thumbnail"
+                                     class="video-thumbnail" />
+                                <div class="video-play-overlay">
+                                    <i class="fas fa-play-circle"></i>
+                                </div>
+                            </a>
+                            <span class="video-badge local-mcp-badge"><i class="fas fa-plug"></i> Local MCP</span>
+                            <span class="video-duration">15:23</span>
+                        </div>
+                        <div class="video-info">
+                            <h3 class="video-title">Literature Search by AI Agent</h3>
+                            <p class="video-description">
+                                AI agent searches 167M+ academic works via
+                                <code>scitex</code> MCP. Local database with fast full-text search
+                                for offline literature discovery.
+                            </p>
+                            <div class="video-links">
+                                <a href="https://github.com/ywatanabe1989/crossref-local"
+                                   target="_blank"
+                                   class="video-link">
+                                    <i class="fab fa-github"></i> Repository
+                                </a>
+                                <a href="{% url 'public_app:video_player' 'crossref-local' %}" class="video-link">
+                                    <i class="fas fa-play"></i> Watch 4x
+                                </a>
+                                <a href="/media/videos/crossref-local-v0.3.1-demo.pdf"
+                                   target="_blank"
+                                   class="video-link">
+                                    <i class="fas fa-file-pdf"></i> Prompt+Report
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Local MCP: scitex-writer (28:07) -->
+                    <div class="video-card">
+                        <div class="video-thumbnail-wrapper">
+                            <a href="{% url 'public_app:video_player' 'scitex-writer' %}">
+                                <img src="/media/videos/scitex-writer-v2.2.0-demo-thumbnail.png"
+                                     alt="scitex-writer demo thumbnail"
+                                     class="video-thumbnail" />
+                                <div class="video-play-overlay">
+                                    <i class="fas fa-play-circle"></i>
+                                </div>
+                            </a>
+                            <span class="video-badge local-mcp-badge"><i class="fas fa-plug"></i> Local MCP</span>
+                            <span class="video-duration">28:07</span>
+                        </div>
+                        <div class="video-info">
+                            <h3 class="video-title">Manuscript Writing by AI Agent</h3>
+                            <p class="video-description">
+                                AI agent writes scientific manuscripts via
+                                <code>scitex</code> MCP. Automated literature integration, LaTeX
+                                compilation, and revision tracking.
+                            </p>
+                            <div class="video-links">
+                                <div class="video-links-row">
+                                    <a href="https://github.com/ywatanabe1989/scitex"
+                                       target="_blank"
+                                       class="video-link">
+                                        <i class="fab fa-github"></i> Repository
+                                    </a>
+                                    <a href="{% url 'public_app:video_player' 'scitex-writer' %}" class="video-link">
+                                        <i class="fas fa-play"></i> Watch 4x
+                                    </a>
+                                </div>
+                                <div class="video-links-row">
+                                    <a href="/media/videos/scitex-writer-v2.2.0-demo.pdf"
+                                       target="_blank"
+                                       class="video-link">
+                                        <i class="fas fa-file-pdf"></i> Prompt+Report
+                                    </a>
+                                    <a href="/media/videos/scitex-writer-v2.2.0-demo-manuscript.pdf"
+                                       target="_blank"
+                                       class="video-link">
+                                        <i class="fas fa-file-alt"></i> Manuscript
+                                    </a>
+                                    <a href="/media/videos/scitex-writer-v2.2.0-demo-revision.pdf"
+                                       target="_blank"
+                                       class="video-link">
+                                        <i class="fas fa-file-contract"></i> Revision
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Local Python: scitex.scholar (3:24) -->
+                    <div class="video-card">
+                        <div class="video-thumbnail-wrapper">
+                            <a href="{% url 'public_app:video_player' 'scholar-module' %}">
+                                <img src="{% static 'public_app/videos/landing/thumbnails/scholar-demo.jpg' %}"
+                                     alt="scitex.scholar demo thumbnail"
+                                     class="video-thumbnail" />
+                                <div class="video-play-overlay">
+                                    <i class="fas fa-play-circle"></i>
+                                </div>
+                            </a>
+                            <span class="video-badge local-python-badge"><i class="fab fa-python"></i> Local Python</span>
+                            <span class="video-duration">3:24</span>
+                        </div>
+                        <div class="video-info">
+                            <h3 class="video-title">scitex.scholar</h3>
+                            <p class="video-description">
+                                Literature discovery & enrichment. Search 167M+ academic works via local database.
+                                Automatic PDF download with institutional credentials.
+                            </p>
+                            <div class="video-links">
+                                <a href="{% url 'public_app:video_player' 'scholar-module' %}" class="video-link">
+                                    <i class="fas fa-play"></i> Watch 4x
+                                </a>
+                                <a href="https://github.com/ywatanabe1989/scitex-code"
+                                   target="_blank"
+                                   class="video-link">
+                                    <i class="fab fa-github"></i> Repository
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Local Python: scitex.writer (0:38) -->
+                    <div class="video-card">
+                        <div class="video-thumbnail-wrapper">
+                            <a href="{% url 'public_app:video_player' 'writer-module' %}">
+                                <img src="{% static 'public_app/videos/landing/thumbnails/writer-demo.jpg' %}"
+                                     alt="scitex.writer demo thumbnail"
+                                     class="video-thumbnail" />
+                                <div class="video-play-overlay">
+                                    <i class="fas fa-play-circle"></i>
+                                </div>
+                            </a>
+                            <span class="video-badge local-python-badge"><i class="fab fa-python"></i> Local Python</span>
+                            <span class="video-duration">0:38</span>
+                        </div>
+                        <div class="video-info">
+                            <h3 class="video-title">scitex.writer</h3>
+                            <p class="video-description">
+                                LaTeX manuscript writing with automated compilation.
+                                Integrates with BibTeX for citation management.
+                            </p>
+                            <div class="video-links">
+                                <a href="{% url 'public_app:video_player' 'writer-module' %}" class="video-link">
+                                    <i class="fas fa-play"></i> Watch 4x
+                                </a>
+                                <a href="https://github.com/ywatanabe1989/scitex-writer"
+                                   target="_blank"
+                                   class="video-link">
+                                    <i class="fab fa-github"></i> Repository
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Local Python: scitex.{session,plt,io} (0:29) -->
+                    <div class="video-card">
+                        <div class="video-thumbnail-wrapper">
+                            <a href="{% url 'public_app:video_player' 'console-module' %}">
+                                <img src="{% static 'public_app/videos/landing/thumbnails/console-demo.jpg' %}"
+                                     alt="scitex.session, scitex.plt, scitex.io demo thumbnail"
+                                     class="video-thumbnail" />
+                                <div class="video-play-overlay">
+                                    <i class="fas fa-play-circle"></i>
+                                </div>
+                            </a>
+                            <span class="video-badge local-python-badge"><i class="fab fa-python"></i> Local Python</span>
+                            <span class="video-duration">0:29</span>
+                        </div>
+                        <div class="video-info">
+                            <h3 class="video-title">scitex.{session,plt,io}</h3>
+                            <p class="video-description">
+                                Reproducible experiment tracking with @stx.session decorator.
+                                Publication-ready figures and universal file I/O.
+                            </p>
+                            <div class="video-links">
+                                <a href="{% url 'public_app:video_player' 'console-module' %}" class="video-link">
+                                    <i class="fas fa-play"></i> Watch 4x
+                                </a>
+                                <a href="https://github.com/ywatanabe1989/scitex-code"
+                                   target="_blank"
+                                   class="video-link">
+                                    <i class="fab fa-github"></i> Repository
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Local Python: scitex.plt (0:05) -->
+                    <div class="video-card">
+                        <div class="video-thumbnail-wrapper">
+                            <a href="{% url 'public_app:video_player' 'visualizer-module' %}">
+                                <img src="{% static 'public_app/videos/landing/thumbnails/visualizer-demo.jpg' %}"
+                                     alt="scitex.plt demo thumbnail"
+                                     class="video-thumbnail" />
+                                <div class="video-play-overlay">
+                                    <i class="fas fa-play-circle"></i>
+                                </div>
+                            </a>
+                            <span class="video-badge local-python-badge"><i class="fab fa-python"></i> Local Python</span>
+                            <span class="video-duration">0:05</span>
+                        </div>
+                        <div class="video-info">
+                            <h3 class="video-title">scitex.plt</h3>
+                            <p class="video-description">
+                                Publication-ready scientific figures with reproducible recipes.
+                                Auto-exports data CSV alongside plots.
+                            </p>
+                            <div class="video-links">
+                                <a href="{% url 'public_app:video_player' 'visualizer-module' %}"
+                                   class="video-link">
+                                    <i class="fas fa-play"></i> Watch 4x
+                                </a>
+                                <a href="https://github.com/ywatanabe1989/figrecipe"
+                                   target="_blank"
+                                   class="video-link">
+                                    <i class="fab fa-github"></i> Repository
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
             <!-- Local MCP Tab -->
-            <section class="demos-tab-pane active" id="local-mcp">
+            <section class="demos-tab-pane" id="local-mcp">
                 <div class="video-gallery">
                     <!-- scitex-automated-research demo -->
                     <div class="video-card">
@@ -60,6 +400,7 @@
                                 </div>
                             </a>
                             <span class="video-badge claude-badge"><i class="fas fa-robot"></i> AI Agent</span>
+                            <span class="video-duration">43:33</span>
                         </div>
                         <div class="video-info">
                             <h3 class="video-title">Automated Research by AI Agent</h3>
@@ -109,6 +450,7 @@
                                 </div>
                             </a>
                             <span class="video-badge claude-badge"><i class="fas fa-robot"></i> AI Agent</span>
+                            <span class="video-duration">10:39</span>
                         </div>
                         <div class="video-info">
                             <h3 class="video-title">Graphing by AI Agent</h3>
@@ -123,8 +465,7 @@
                                    class="video-link">
                                     <i class="fab fa-github"></i> Repository
                                 </a>
-                                <a href="{% url 'public_app:video_player' 'figrecipe' %}"
-                                   class="video-link">
+                                <a href="{% url 'public_app:video_player' 'figrecipe' %}" class="video-link">
                                     <i class="fas fa-play"></i> Watch 4x
                                 </a>
                                 <a href="/media/videos/figrecipe-v0.14.0-demo.pdf"
@@ -147,6 +488,7 @@
                                 </div>
                             </a>
                             <span class="video-badge claude-badge"><i class="fas fa-robot"></i> AI Agent</span>
+                            <span class="video-duration">15:23</span>
                         </div>
                         <div class="video-info">
                             <h3 class="video-title">Literature Search by AI Agent</h3>
@@ -161,8 +503,7 @@
                                    class="video-link">
                                     <i class="fab fa-github"></i> Repository
                                 </a>
-                                <a href="{% url 'public_app:video_player' 'crossref-local' %}"
-                                   class="video-link">
+                                <a href="{% url 'public_app:video_player' 'crossref-local' %}" class="video-link">
                                     <i class="fas fa-play"></i> Watch 4x
                                 </a>
                                 <a href="/media/videos/crossref-local-v0.3.1-demo.pdf"
@@ -185,6 +526,7 @@
                                 </div>
                             </a>
                             <span class="video-badge claude-badge"><i class="fas fa-robot"></i> AI Agent</span>
+                            <span class="video-duration">28:07</span>
                         </div>
                         <div class="video-info">
                             <h3 class="video-title">Manuscript Writing by AI Agent</h3>
@@ -200,8 +542,7 @@
                                        class="video-link">
                                         <i class="fab fa-github"></i> Repository
                                     </a>
-                                    <a href="{% url 'public_app:video_player' 'scitex-writer' %}"
-                                       class="video-link">
+                                    <a href="{% url 'public_app:video_player' 'scitex-writer' %}" class="video-link">
                                         <i class="fas fa-play"></i> Watch 4x
                                     </a>
                                 </div>
@@ -242,6 +583,7 @@
                                 </div>
                             </a>
                             <span class="video-badge python-badge"><i class="fab fa-python"></i> Python</span>
+                            <span class="video-duration">3:24</span>
                         </div>
                         <div class="video-info">
                             <h3 class="video-title">scitex.scholar</h3>
@@ -250,8 +592,7 @@
                                 Automatic PDF download with institutional credentials.
                             </p>
                             <div class="video-links">
-                                <a href="{% url 'public_app:video_player' 'scholar-module' %}"
-                                   class="video-link">
+                                <a href="{% url 'public_app:video_player' 'scholar-module' %}" class="video-link">
                                     <i class="fas fa-play"></i> Watch 4x
                                 </a>
                                 <a href="https://github.com/ywatanabe1989/scitex-code"
@@ -274,6 +615,7 @@
                                 </div>
                             </a>
                             <span class="video-badge python-badge"><i class="fab fa-python"></i> Python</span>
+                            <span class="video-duration">0:38</span>
                         </div>
                         <div class="video-info">
                             <h3 class="video-title">scitex.writer</h3>
@@ -282,8 +624,7 @@
                                 Integrates with BibTeX for citation management.
                             </p>
                             <div class="video-links">
-                                <a href="{% url 'public_app:video_player' 'writer-module' %}"
-                                   class="video-link">
+                                <a href="{% url 'public_app:video_player' 'writer-module' %}" class="video-link">
                                     <i class="fas fa-play"></i> Watch 4x
                                 </a>
                                 <a href="https://github.com/ywatanabe1989/scitex-writer"
@@ -306,6 +647,7 @@
                                 </div>
                             </a>
                             <span class="video-badge python-badge"><i class="fab fa-python"></i> Python</span>
+                            <span class="video-duration">0:29</span>
                         </div>
                         <div class="video-info">
                             <h3 class="video-title">scitex.{session,plt,io}</h3>
@@ -314,8 +656,7 @@
                                 Publication-ready figures and universal file I/O.
                             </p>
                             <div class="video-links">
-                                <a href="{% url 'public_app:video_player' 'console-module' %}"
-                                   class="video-link">
+                                <a href="{% url 'public_app:video_player' 'console-module' %}" class="video-link">
                                     <i class="fas fa-play"></i> Watch 4x
                                 </a>
                                 <a href="https://github.com/ywatanabe1989/scitex-code"
@@ -338,6 +679,7 @@
                                 </div>
                             </a>
                             <span class="video-badge python-badge"><i class="fab fa-python"></i> Python</span>
+                            <span class="video-duration">0:05</span>
                         </div>
                         <div class="video-info">
                             <h3 class="video-title">scitex.plt</h3>
@@ -372,37 +714,41 @@
                     </p>
                 </div>
             </section>
-            <!-- Cloud MCP Tab -->
-            <section class="demos-tab-pane" id="cloud-mcp">
-                <div class="demos-placeholder">
-                    <i class="fas fa-cloud"></i>
-                    <h3>Cloud MCP Demos</h3>
-                    <p>Coming Soon</p>
-                    <p class="demos-placeholder-desc">AI agents connect to scitex.ai cloud via MCP. No local setup required.</p>
-                </div>
-            </section>
-            <!-- Cloud Python Tab -->
-            <section class="demos-tab-pane" id="cloud-python">
-                <div class="demos-placeholder">
-                    <i class="fas fa-cloud"></i>
-                    <h3>Cloud Python API Demos</h3>
-                    <p>Coming Soon</p>
-                    <p class="demos-placeholder-desc">
-                        Access scitex.ai cloud services via Python SDK. Scalable research
-                        workflows in the cloud.
-                    </p>
-                </div>
-            </section>
-            <!-- Cloud CLI Tab -->
-            <section class="demos-tab-pane" id="cloud-cli">
-                <div class="demos-placeholder">
-                    <i class="fas fa-cloud"></i>
-                    <h3>Cloud CLI Demos</h3>
-                    <p>Coming Soon</p>
-                    <p class="demos-placeholder-desc">
-                        Command-line access to scitex.ai cloud. Submit jobs and retrieve
-                        results from anywhere.
-                    </p>
+            <!-- Cloud Tab (General) -->
+            <section class="demos-tab-pane" id="cloud">
+                <div class="video-gallery">
+                    <!-- scitex-cloud demo -->
+                    <div class="video-card">
+                        <div class="video-thumbnail-wrapper">
+                            <a href="{% url 'public_app:video_player' 'scitex-cloud' %}">
+                                <img src="/media/videos/scitex-cloud-v0.9.3-demo-thumbnail.png"
+                                     alt="scitex-cloud demo thumbnail"
+                                     class="video-thumbnail" />
+                                <div class="video-play-overlay">
+                                    <i class="fas fa-play-circle"></i>
+                                </div>
+                            </a>
+                            <span class="video-badge cloud-badge"><i class="fas fa-cloud"></i> Cloud</span>
+                            <span class="video-duration">5:24</span>
+                        </div>
+                        <div class="video-info">
+                            <h3 class="video-title">SciTeX Cloud v0.9.3</h3>
+                            <p class="video-description">
+                                Self-hosted research platform. Scholar, Writer, Console, and Visualizer
+                                modules in a unified web interface. Deploy on your lab's NAS or server.
+                            </p>
+                            <div class="video-links">
+                                <a href="https://github.com/ywatanabe1989/scitex-cloud"
+                                   target="_blank"
+                                   class="video-link">
+                                    <i class="fab fa-github"></i> Repository
+                                </a>
+                                <a href="{% url 'public_app:video_player' 'scitex-cloud' %}" class="video-link">
+                                    <i class="fas fa-play"></i> Watch
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
         </div>
@@ -431,8 +777,8 @@
 
             // Handle URL hash on page load
             const hash = window.location.hash.slice(1);
-            if (hash && !activateTab(hash)) {
-                activateTab("local-mcp"); // Default fallback
+            if (!hash || !activateTab(hash)) {
+                activateTab("all"); // Default fallback
             }
 
             tabs.forEach((tab) => {

@@ -94,6 +94,16 @@ VIDEO_CATALOG = {
             "Auto-exports data CSV alongside plots."
         ),
     },
+    # Cloud demos
+    "scitex-cloud": {
+        "title": "SciTeX Cloud v0.9.3 Demo",
+        "url": "/media/videos/scitex-cloud-v0.9.3-demo.mp4",
+        "thumbnail": "/media/videos/scitex-cloud-v0.9.3-demo-thumbnail.png",
+        "description": (
+            "SciTeX Cloud — self-hosted research platform. Scholar, Writer, "
+            "Console, and Visualizer modules in a unified web interface."
+        ),
+    },
 }
 
 

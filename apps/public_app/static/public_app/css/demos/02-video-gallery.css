@@ -75,6 +75,36 @@
   color: white;
 }
 
+.cloud-badge {
+  background: #10b981;
+  color: #fff;
+}
+
+.local-mcp-badge {
+  background: #d97757;
+  color: #fff;
+}
+
+.local-python-badge {
+  background: #3776ab;
+  color: #fff;
+}
+
+/* Video duration */
+.video-duration {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.75rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 3px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  z-index: 10;
+}
+
 /* Play overlay */
 .video-play-overlay {
   position: absolute;
