@@ -4,107 +4,56 @@
 Export views for Scholar App
 
 This module handles citation format exports (BibTeX, RIS, etc.)
+All formatting delegated to citation_formats (single source of truth).
 """
 
-from django.http import HttpResponse, JsonResponse
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_http_methods
+import csv
 import json
 import logging
+from io import StringIO
 from uuid import UUID
 
-from ...models import SearchIndex as Paper, Collection
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.http import require_http_methods
+
+from ...models import Collection
+from ...models import SearchIndex as Paper
+from ...services.citation_formats import (
+    paper_from_orm,
+    to_bibtex,
+    to_csv_row,
+    to_endnote,
+    to_ris,
+)
 
 logger = logging.getLogger(__name__)
 
+_FORMAT_FUNCS = {
+    "bibtex": to_bibtex,
+    "ris": to_ris,
+    "endnote": to_endnote,
+}
 
-def format_bibtex(paper):
-    """Format a paper as BibTeX entry"""
-    authors = ", ".join([f"{a.first_name} {a.last_name}" for a in paper.authors.all()])
-    year = paper.publication_date.year if paper.publication_date else "n.d."
-
-    bibtex = f"""@article{{{paper.id},
-    author = {{{authors}}},
-    title = {{{paper.title}}},
-    journal = {{{paper.journal.name if paper.journal else "Unknown"}}},
-    year = {{{year}}}
-"""
-
-    if paper.doi:
-        bibtex += f"    doi = {{{paper.doi}}},\n"
-    if paper.pmid:
-        bibtex += f"    pmid = {{{paper.pmid}}},\n"
-    if paper.url:
-        bibtex += f"    url = {{{paper.url}}},\n"
-
-    bibtex += "}\n"
-    return bibtex
+_FORMAT_EXT = {
+    "bibtex": ".bib",
+    "ris": ".ris",
+    "endnote": ".enw",
+    "csv": ".csv",
+}
 
 
-def format_ris(paper):
-    """Format a paper as RIS entry"""
-    authors = "\n".join(
-        [f"AU  - {a.first_name} {a.last_name}" for a in paper.authors.all()]
-    )
-    year = paper.publication_date.year if paper.publication_date else ""
-
-    ris = f"""TY  - JOUR
-{authors}
-TI  - {paper.title}
-JO  - {paper.journal.name if paper.journal else "Unknown"}
-PY  - {year}
-"""
-
-    if paper.doi:
-        ris += f"DO  - {paper.doi}\n"
-    if paper.pmid:
-        ris += f"M1  - {paper.pmid}\n"
-    if paper.url:
-        ris += f"UR  - {paper.url}\n"
-    if paper.abstract:
-        ris += f"AB  - {paper.abstract}\n"
-
-    ris += "ER  -\n"
-    return ris
+def _get_papers(paper_ids):
+    """Fetch papers by IDs with prefetch for authors/journal."""
+    return Paper.objects.filter(id__in=paper_ids).prefetch_related("authors", "journal")
 
 
-def format_endnote(paper):
-    """Format a paper as EndNote entry"""
-    authors = ", ".join([f"{a.first_name} {a.last_name}" for a in paper.authors.all()])
-    year = paper.publication_date.year if paper.publication_date else ""
-
-    endnote = f"""%0 Journal Article
-%A {authors}
-%T {paper.title}
-%J {paper.journal.name if paper.journal else "Unknown"}
-%D {year}
-"""
-
-    if paper.doi:
-        endnote += f"%R {paper.doi}\n"
-    if paper.url:
-        endnote += f"%U {paper.url}\n"
-    if paper.abstract:
-        endnote += f"%X {paper.abstract}\n"
-
-    return endnote
-
-
-def format_csv_row(paper):
-    """Format a paper as CSV row"""
-    authors = "; ".join([f"{a.first_name} {a.last_name}" for a in paper.authors.all()])
-    year = paper.publication_date.year if paper.publication_date else ""
-
-    return {
-        "Title": paper.title,
-        "Authors": authors,
-        "Journal": paper.journal.name if paper.journal else "Unknown",
-        "Year": year,
-        "DOI": paper.doi or "",
-        "PMID": paper.pmid or "",
-        "URL": paper.url or "",
-        "Abstract": paper.abstract or "",
-    }
+def _format_papers(papers, fmt):
+    """Format papers into citation string using shared formatter."""
+    func = _FORMAT_FUNCS.get(fmt)
+    if not func:
+        raise ValueError(f"Unsupported format: {fmt}")
+    return "\n".join(func(paper_from_orm(p)) for p in papers)
 
 
 @login_required
@@ -113,19 +62,13 @@ def export_bibtex(request):
     """Export papers as BibTeX"""
     try:
         paper_ids = request.GET.get("paper_ids", "").split(",")
-
         if not paper_ids or paper_ids == [""]:
             return JsonResponse(
                 {"success": False, "error": "No papers specified"}, status=400
             )
 
-        # Optimize query: prefetch authors to avoid N+1 query problem
-        papers = Paper.objects.filter(id__in=paper_ids).prefetch_related(
-            "authors", "journal"
-        )
-        bibtex_content = "\n".join([format_bibtex(paper) for paper in papers])
-
-        response = HttpResponse(bibtex_content, content_type="text/plain")
+        content = _format_papers(_get_papers(paper_ids), "bibtex")
+        response = HttpResponse(content, content_type="text/plain")
         response["Content-Disposition"] = 'attachment; filename="papers.bib"'
         return response
 
@@ -140,19 +83,13 @@ def export_ris(request):
     """Export papers as RIS"""
     try:
         paper_ids = request.GET.get("paper_ids", "").split(",")
-
         if not paper_ids or paper_ids == [""]:
             return JsonResponse(
                 {"success": False, "error": "No papers specified"}, status=400
             )
 
-        # Optimize query: prefetch authors to avoid N+1 query problem
-        papers = Paper.objects.filter(id__in=paper_ids).prefetch_related(
-            "authors", "journal"
-        )
-        ris_content = "\n".join([format_ris(paper) for paper in papers])
-
-        response = HttpResponse(ris_content, content_type="text/plain")
+        content = _format_papers(_get_papers(paper_ids), "ris")
+        response = HttpResponse(content, content_type="text/plain")
         response["Content-Disposition"] = 'attachment; filename="papers.ris"'
         return response
 
@@ -167,19 +104,13 @@ def export_endnote(request):
     """Export papers as EndNote"""
     try:
         paper_ids = request.GET.get("paper_ids", "").split(",")
-
         if not paper_ids or paper_ids == [""]:
             return JsonResponse(
                 {"success": False, "error": "No papers specified"}, status=400
             )
 
-        # Optimize query: prefetch authors to avoid N+1 query problem
-        papers = Paper.objects.filter(id__in=paper_ids).prefetch_related(
-            "authors", "journal"
-        )
-        endnote_content = "\n".join([format_endnote(paper) for paper in papers])
-
-        response = HttpResponse(endnote_content, content_type="text/plain")
+        content = _format_papers(_get_papers(paper_ids), "endnote")
+        response = HttpResponse(content, content_type="text/plain")
         response["Content-Disposition"] = 'attachment; filename="papers.enw"'
         return response
 
@@ -193,21 +124,13 @@ def export_endnote(request):
 def export_csv(request):
     """Export papers as CSV"""
     try:
-        import csv
-        from io import StringIO
-
         paper_ids = request.GET.get("paper_ids", "").split(",")
-
         if not paper_ids or paper_ids == [""]:
             return JsonResponse(
                 {"success": False, "error": "No papers specified"}, status=400
             )
 
-        # Optimize query: prefetch authors to avoid N+1 query problem
-        papers = Paper.objects.filter(id__in=paper_ids).prefetch_related(
-            "authors", "journal"
-        )
-
+        papers = _get_papers(paper_ids)
         output = StringIO()
         fieldnames = [
             "Title",
@@ -220,10 +143,9 @@ def export_csv(request):
             "Abstract",
         ]
         writer = csv.DictWriter(output, fieldnames=fieldnames)
-
         writer.writeheader()
         for paper in papers:
-            writer.writerow(format_csv_row(paper))
+            writer.writerow(to_csv_row(paper_from_orm(paper)))
 
         response = HttpResponse(output.getvalue(), content_type="text/csv")
         response["Content-Disposition"] = 'attachment; filename="papers.csv"'
@@ -248,26 +170,15 @@ def export_bulk_citations(request):
                 {"success": False, "error": "No papers specified"}, status=400
             )
 
-        # Optimize query: prefetch authors to avoid N+1 query problem
-        papers = Paper.objects.filter(id__in=paper_ids).prefetch_related(
-            "authors", "journal"
-        )
-
-        if format_type == "bibtex":
-            content = "\n".join([format_bibtex(paper) for paper in papers])
-            filename = "papers.bib"
-        elif format_type == "ris":
-            content = "\n".join([format_ris(paper) for paper in papers])
-            filename = "papers.ris"
-        elif format_type == "endnote":
-            content = "\n".join([format_endnote(paper) for paper in papers])
-            filename = "papers.enw"
-        else:
+        if format_type not in _FORMAT_FUNCS:
             return JsonResponse(
                 {"success": False, "error": f"Unsupported format: {format_type}"},
                 status=400,
             )
 
+        papers = _get_papers(paper_ids)
+        content = _format_papers(papers, format_type)
+        filename = f"papers{_FORMAT_EXT.get(format_type, '.txt')}"
         return JsonResponse({"success": True, "content": content, "filename": filename})
 
     except Exception as e:
@@ -284,20 +195,12 @@ def export_collection(request, collection_id):
         format_type = request.GET.get("format", "bibtex")
 
         collection = Collection.objects.get(id=collection_id, user=request.user)
-
-        # Optimize query: prefetch authors to avoid N+1 query problem
         papers = collection.papers.all().prefetch_related("authors", "journal")
 
-        if format_type == "bibtex":
-            content = "\n".join([format_bibtex(paper) for paper in papers])
-            filename = f"{collection.name}.bib"
-        elif format_type == "ris":
-            content = "\n".join([format_ris(paper) for paper in papers])
-            filename = f"{collection.name}.ris"
+        if format_type in _FORMAT_FUNCS:
+            content = _format_papers(papers, format_type)
+            filename = f"{collection.name}{_FORMAT_EXT.get(format_type, '.txt')}"
         elif format_type == "csv":
-            import csv
-            from io import StringIO
-
             output = StringIO()
             fieldnames = [
                 "Title",
@@ -310,11 +213,9 @@ def export_collection(request, collection_id):
                 "Abstract",
             ]
             writer = csv.DictWriter(output, fieldnames=fieldnames)
-
             writer.writeheader()
             for paper in papers:
-                writer.writerow(format_csv_row(paper))
-
+                writer.writerow(to_csv_row(paper_from_orm(paper)))
             content = output.getvalue()
             filename = f"{collection.name}.csv"
         else:
@@ -343,21 +244,17 @@ def get_citation(request):
         format_type = request.GET.get("format", "bibtex")
 
         paper = Paper.objects.get(id=paper_id)
+        paper_dict = paper_from_orm(paper)
 
-        if format_type == "bibtex":
-            content = format_bibtex(paper)
-        elif format_type == "ris":
-            content = format_ris(paper)
-        elif format_type == "endnote":
-            content = format_endnote(paper)
-        else:
+        func = _FORMAT_FUNCS.get(format_type)
+        if not func:
             return JsonResponse(
                 {"success": False, "error": f"Unsupported format: {format_type}"},
                 status=400,
             )
 
         return JsonResponse(
-            {"success": True, "citation": content, "format": format_type}
+            {"success": True, "citation": func(paper_dict), "format": format_type}
         )
 
     except Paper.DoesNotExist:
