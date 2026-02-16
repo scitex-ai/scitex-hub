@@ -2,7 +2,7 @@
 Template Operations Manager Module
 
 Handles template cloning, copying, and customization for projects.
-Delegates README and config generation to readme_config_ops.
+Delegates all business logic to scitex.template.
 """
 
 import logging
@@ -10,58 +10,73 @@ from pathlib import Path
 from typing import Optional, Tuple
 
 from ...models import Project
-from .readme_config_ops import ReadmeConfigOperationsManager
 
 logger = logging.getLogger(__name__)
+
+
+def _project_metadata(project: Project) -> dict:
+    """Extract plain metadata dict from a Django Project model."""
+    owner = project.owner
+    return {
+        "name": project.name,
+        "description": project.description or "",
+        "owner": owner.username if owner else "",
+        "owner_full_name": (owner.get_full_name() if owner else "") or "",
+        "id": project.id,
+        "created_at": (
+            project.created_at.strftime("%Y-%m-%d") if project.created_at else ""
+        ),
+        "updated_at": (
+            project.updated_at.strftime("%Y-%m-%d %H:%M:%S")
+            if project.updated_at
+            else ""
+        ),
+        "progress": getattr(project, "progress", 0),
+        "hypotheses": getattr(project, "hypotheses", "") or "",
+    }
 
 
 class TemplateOperationsManager:
     """Manages template creation and customization for projects."""
 
     def __init__(self, filesystem_manager):
-        """
-        Initialize TemplateOperationsManager.
-
-        Args:
-            filesystem_manager: Parent ProjectFilesystemManager instance
-        """
         self.manager = filesystem_manager
-        self.readme_config = ReadmeConfigOperationsManager(filesystem_manager)
 
-    # Delegate README/Config operations
     def create_minimal_readme(self, project: Project, project_path: Path):
         """Create minimal README file for empty projects."""
-        return self.readme_config.create_minimal_readme(project, project_path)
+        from scitex.template import create_minimal_readme
+
+        create_minimal_readme(str(project_path), _project_metadata(project))
 
     def create_project_readme(self, project: Project, project_path: Path):
         """Create comprehensive README file for the project."""
-        return self.readme_config.create_project_readme(project, project_path)
+        from scitex.template import create_project_readme
+
+        create_project_readme(str(project_path), _project_metadata(project))
 
     def create_project_config_files(self, project: Project, project_path: Path):
         """Create essential configuration files for the project."""
-        return self.readme_config.create_project_config_files(project, project_path)
+        from scitex.template import (
+            create_env_template,
+            create_paths_config,
+            create_project_config,
+        )
+
+        meta = _project_metadata(project)
+        create_project_config(str(project_path), meta)
+        create_paths_config(str(project_path))
+        create_env_template(str(project_path), meta)
 
     def create_requirements_file(self, project: Project, project_path: Path):
         """Create requirements.txt with essential scientific packages."""
-        return self.readme_config.create_requirements_file(project, project_path)
+        from scitex.template import create_requirements_file
+
+        create_requirements_file(str(project_path))
 
     def copy_from_example_template(
         self, project_path: Path, project: Project, template_type: str = "research"
     ) -> bool:
-        """
-        Copy template structure from local or remote source.
-
-        For research template: Uses local master copy
-        For others: Uses git clone from GitHub
-
-        Args:
-            project_path: Path where project will be created
-            project: Project instance
-            template_type: Template type ('research', 'pip_project', 'singularity')
-
-        Returns:
-            True if template was copied successfully, False otherwise
-        """
+        """Copy template structure from local or remote source."""
         try:
             if project_path.exists():
                 logger.info(
@@ -72,162 +87,50 @@ class TemplateOperationsManager:
             if not project_path.parent.exists():
                 project_path.parent.mkdir(parents=True, exist_ok=True)
 
-            if template_type == "minimal":
-                return self._copy_minimal_template(project_path, project)
-            elif template_type == "research":
-                return self._copy_research_template(project_path, project)
-            else:
-                return self._copy_git_template(project_path, project, template_type)
+            from scitex.template import clone_template
+
+            template_id = (
+                "minimal" if template_type in ("minimal", "research") else template_type
+            )
+            git_strategy = "child" if template_type in ("minimal", "research") else None
+
+            success = clone_template(
+                template_id=template_id,
+                project_dir=str(project_path),
+                git_strategy=git_strategy,
+            )
+
+            if success:
+                self._customize_after_clone(project_path, project, template_type)
+                logger.info(
+                    f"Successfully created {template_type} template at {project_path}"
+                )
+
+            return success
 
         except ImportError as e:
             logger.error(f"scitex package not available: {e}")
-            logger.info("Fallback: Project will be created with basic structure")
             return False
         except Exception as e:
             logger.error(f"Error creating {template_type} project template: {e}")
             return False
 
-    def _copy_research_template(self, project_path: Path, project: Project) -> bool:
-        """Delegate to scitex.template for research template (now uses minimal)."""
-        try:
-            from scitex.template import clone_template
-
-            success = clone_template(
-                template_id="minimal",
-                project_dir=str(project_path),
-                git_strategy="child",
-            )
-
-            if success:
-                self._customize_template_for_project(project_path, project, "research")
-                logger.info(f"Successfully created minimal template at {project_path}")
-
-            return success
-        except ImportError:
-            logger.error("scitex.template not available")
-            return False
-
-    def _copy_minimal_template(self, project_path: Path, project: Project) -> bool:
-        """Delegate to scitex.template for minimal template."""
-        try:
-            from scitex.template import clone_template
-
-            success = clone_template(
-                template_id="minimal",
-                project_dir=str(project_path),
-                git_strategy="child",
-            )
-
-            if success:
-                self._customize_template_for_project(project_path, project, "minimal")
-                logger.info(f"Successfully created minimal template at {project_path}")
-
-            return success
-        except ImportError:
-            logger.error("scitex.template not available")
-            return False
-
-    def _customize_minimal_template(self, project_path: Path, project: Project):
-        """Customize minimal template with project-specific information."""
-        try:
-            # Update title.tex
-            title_file = project_path / "scitex" / "writer" / "00_shared" / "title.tex"
-            if title_file.exists():
-                title_file.write_text(
-                    f"%% -*- coding: utf-8 -*-\n\\title{{{project.name}}}\n\n%%%% EOF\n"
-                )
-
-            # Update authors.tex if owner has name
-            if project.owner:
-                author_name = project.owner.get_full_name() or project.owner.username
-                author_file = (
-                    project_path / "scitex" / "writer" / "00_shared" / "authors.tex"
-                )
-                if author_file.exists():
-                    author_file.write_text(
-                        f"%% -*- coding: utf-8 -*-\n"
-                        f"\\author[1]{{{author_name}\\corref{{cor1}}}}\n\n"
-                        f"\\address[1]{{Institution, Department, City, Country}}\n\n"
-                        f"\\cortext[cor1]{{Corresponding author.}}\n\n"
-                        f"%%%% EOF\n"
-                    )
-
-            logger.info(f"Customized minimal template for project: {project.name}")
-
-        except Exception as e:
-            logger.error(f"Error customizing minimal template: {e}")
-
-    def _copy_git_template(
+    def _customize_after_clone(
         self, project_path: Path, project: Project, template_type: str
-    ) -> bool:
-        """Clone template from GitHub using unified dispatcher."""
-        from scitex.template import clone_template
-
-        logger.info(f"Cloning {template_type} template from GitHub to {project_path}")
-        success = clone_template(
-            template_id=template_type,
-            project_dir=str(project_path),
-            git_strategy=None,
-        )
-
-        if success:
-            self._customize_template_for_project(project_path, project, template_type)
-            logger.info(
-                f"Successfully created {template_type} template at {project_path}"
-            )
-
-        return success
-
-    def _customize_template_for_project(
-        self, project_path: Path, project: Project, template_type: str = "research"
     ):
-        """Customize the copied template with project-specific information."""
-        try:
-            readme_path = project_path / "README.md"
-            if readme_path.exists():
-                readme_content = readme_path.read_text()
-                readme_content = readme_content.replace(
-                    "# SciTeX Example Research Project", f"# {project.name}"
-                )
-                readme_content = readme_content.replace(
-                    "This is an example research project",
-                    f"{project.description or 'Research project created with SciTeX Cloud'}",
-                )
-                readme_path.write_text(readme_content)
+        """Customize template after cloning — delegates to scitex.template."""
+        from scitex.template import customize_minimal_template, customize_template
 
-            paper_dir = project_path / "paper"
-            if paper_dir.exists():
-                title_file = paper_dir / "manuscript" / "src" / "title.tex"
-                if title_file.exists():
-                    title_file.write_text(f"\\title{{{project.name}}}")
-
-                author_file = paper_dir / "manuscript" / "src" / "authors.tex"
-                if author_file.exists() and project.owner:
-                    author_name = (
-                        project.owner.get_full_name() or project.owner.username
-                    )
-                    author_file.write_text(f"\\author{{{author_name}}}")
-
-            logger.info(f"Customized template for project: {project.name}")
-
-        except Exception as e:
-            logger.error(f"Error customizing template: {e}")
+        meta = _project_metadata(project)
+        if template_type == "minimal":
+            customize_minimal_template(str(project_path), meta)
+        else:
+            customize_template(str(project_path), meta, template_type)
 
     def initialize_scitex_writer_template(
         self, project: Project
     ) -> Tuple[bool, Optional[Path]]:
-        """
-        Initialize SciTeX Writer template structure for a project.
-
-        Delegates to WriterService from writer_app which uses
-        scitex.writer.Writer() to properly initialize the complete workspace.
-
-        Args:
-            project: Project instance
-
-        Returns:
-            Tuple of (success: bool, path: Optional[Path])
-        """
+        """Initialize SciTeX Writer template structure for a project."""
         try:
             try:
                 from apps.writer_app.services import WriterService
@@ -236,21 +139,22 @@ class TemplateOperationsManager:
                 return False, None
 
             writer_service = WriterService(project.id, project.owner.id)
-            writer = writer_service.writer
             writer_path = writer_service.writer_dir
 
             if writer_path and writer_path.exists():
-                logger.info(f"✓ Writer template initialized at: {writer_path}")
+                logger.info(f"Writer template initialized at: {writer_path}")
                 return True, writer_path
-            else:
-                logger.warning(
-                    f"Writer initialization returned path but directory doesn't exist: "
-                    f"{writer_path}"
-                )
-                return False, None
+
+            logger.warning(
+                f"Writer initialization returned path but directory doesn't exist: {writer_path}"
+            )
+            return False, None
 
         except Exception as e:
             logger.error(
                 f"Error initializing SciTeX Writer template: {e}", exc_info=True
             )
             return False, None
+
+
+# EOF

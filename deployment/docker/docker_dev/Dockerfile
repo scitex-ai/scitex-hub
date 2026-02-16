@@ -213,8 +213,10 @@ COPY pyproject.toml ./
 COPY src/ ./src/
 
 # Install SciTeX Cloud Python dependencies with cache mount
+# scitex[all] provides numpy, matplotlib, pandas etc. needed by plot/stats APIs
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system ".[django,test]"
+    uv pip install --system ".[django,test]" && \
+    uv pip install --system "scitex[all]"
 
 # Install Playwright browsers (must persist in image for runtime use)
 # Note: We already have chromium and dependencies installed above,
