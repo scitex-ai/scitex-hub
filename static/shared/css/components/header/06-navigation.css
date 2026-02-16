@@ -61,12 +61,6 @@
   letter-spacing: 0.3px;
 }
 
-/* WIP Badge variant - orange/amber for work in progress */
-.nav-badge-wip {
-  background: #d97706;
-  color: white;
-}
-
 /* Unified Nav Dropdown Menu */
 .header-nav-dropdown {
   position: absolute;
