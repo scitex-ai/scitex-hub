@@ -14,4 +14,6 @@ export {
   setupMonacoTheme,
 } from "./MonacoTheme";
 
+export { MONACO_EDITOR_DEFAULTS } from "./MonacoDefaults";
+
 // EOF

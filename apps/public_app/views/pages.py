@@ -21,6 +21,7 @@ from .pages_donate import donate
 # Re-export donate for backward compatibility
 __all__ = [
     "about",
+    "setup_guide",
     "demos",
     "video_player",
     "publications",
@@ -30,6 +31,11 @@ __all__ = [
     "keyboard_shortcuts",
     "contributors",
 ]
+
+
+def setup_guide(request):
+    """Setup guide - how to deploy SciTeX Cloud anywhere."""
+    return render(request, "public_app/pages/setup.html")
 
 
 def about(request):

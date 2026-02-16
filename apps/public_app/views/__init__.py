@@ -39,6 +39,7 @@ from .pages import (
     open_source,
     pricing,
     publications,
+    setup_guide,
     video_player,
 )
 
@@ -100,6 +101,7 @@ __all__ = [
     "premium_subscription",
     # Pages
     "about",
+    "setup_guide",
     "demos",
     "open_source",
     "video_player",

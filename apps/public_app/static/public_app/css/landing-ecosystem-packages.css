@@ -124,12 +124,12 @@
  * ========================================================================== */
 
 [data-theme="dark"] .packages-table thead th {
-  color: var(--scitex-color-05);
+  color: var(--text-muted);
   border-bottom-color: rgba(255, 255, 255, 0.1);
 }
 
 [data-theme="dark"] .packages-table td {
-  color: var(--scitex-color-05);
+  color: var(--text-secondary);
   border-bottom-color: rgba(255, 255, 255, 0.06);
 }
 
@@ -138,15 +138,15 @@
 }
 
 [data-theme="dark"] .packages-table .package-name {
-  color: var(--scitex-color-07);
+  color: var(--text-primary);
 }
 
 [data-theme="dark"] .packages-table code {
-  color: var(--scitex-color-05);
+  color: var(--text-muted);
 }
 
 [data-theme="dark"] .link-btn.github-btn {
-  color: var(--scitex-color-05);
+  color: var(--text-muted);
   border-color: rgba(255, 255, 255, 0.2);
 }
 
@@ -157,12 +157,12 @@
 }
 
 [data-theme="dark"] .link-btn.docs-btn {
-  color: var(--scitex-color-06);
-  border-color: var(--scitex-color-04);
+  color: var(--text-secondary);
+  border-color: var(--_scitex-04);
 }
 
 [data-theme="dark"] .link-btn.docs-btn:hover {
-  background-color: var(--scitex-color-04);
+  background-color: var(--_scitex-04);
   color: white;
 }
 

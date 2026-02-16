@@ -10,18 +10,16 @@ import { registerLatexLanguage } from "./LanguageRegistration";
 import { registerLatexCompletionProvider } from "./CompletionProvider";
 import { registerCitationCompletionProvider } from "./CitationCompletion";
 import { registerCitationHoverProvider } from "./CitationHover";
-import { defineScitexTheme, defineScitexLightTheme, setupThemeObserver } from "./EditorTheme";
+import { setupMonacoTheme } from "./EditorTheme";
 import { createMonacoEditor } from "./EditorFactory";
 
-// Re-export all functions for backward compatibility
+// Re-export all functions
 export {
   registerLatexLanguage,
   registerLatexCompletionProvider,
   registerCitationCompletionProvider,
   registerCitationHoverProvider,
-  defineScitexTheme,
-  defineScitexLightTheme,
-  setupThemeObserver,
+  setupMonacoTheme,
   createMonacoEditor,
 };
 
@@ -33,7 +31,7 @@ export function initializeMonacoEditor(
   monaco: any,
   container: HTMLElement,
   initialValue: string,
-  config: any
+  config: any,
 ): any {
   console.log("[Monaco] Starting initialization...");
 
@@ -47,14 +45,10 @@ export function initializeMonacoEditor(
   // Step 3: Register hover providers
   registerCitationHoverProvider(monaco);
 
-  // Step 4: Define custom themes
-  defineScitexTheme(monaco);
-  defineScitexLightTheme(monaco);
+  // Step 4: Setup themes (both dark + light) and observer — identical to Console
+  setupMonacoTheme(monaco);
 
-  // Step 5: Setup theme observer for auto-switching
-  setupThemeObserver(monaco);
-
-  // Step 6: Create editor instance
+  // Step 5: Create editor instance (uses shared defaults)
   const editor = createMonacoEditor(monaco, container, initialValue, config);
 
   console.log("[Monaco] Initialization complete");

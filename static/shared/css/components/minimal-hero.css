@@ -23,11 +23,7 @@
   text-align: center;
   padding: 3rem 2rem;
   margin-bottom: 3rem;
-  background: linear-gradient(
-    135deg,
-    var(--bg-surface) 0%,
-    var(--bg-muted) 100%
-  );
+  background: transparent;
   border-radius: 16px;
   border: 1px solid var(--border-default);
 }
@@ -49,7 +45,7 @@
 
 /* Dark Mode */
 [data-theme="dark"] .minimal-hero {
-  background: linear-gradient(135deg, var(--bg-200) 0%, var(--bg-surface) 100%);
+  background: transparent;
 }
 
 /* Responsive */

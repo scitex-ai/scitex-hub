@@ -15,12 +15,16 @@ from ..git_service import GitService
 
 # Lazy import to avoid pydantic/fastmcp version conflict at startup
 Writer = None
+
+
 def _get_writer_class():
     global Writer
     if Writer is None:
         from scitex.writer import Writer as _Writer
+
         Writer = _Writer
     return Writer
+
 
 # Import mixins
 from .compilation import CompilationMixin
@@ -166,7 +170,8 @@ class WriterService(
                 #
                 # Template Version: Pass branch/tag from Django settings to control which
                 # version of scitex-writer template is cloned when creating new workspaces
-                self._writer = Writer(
+                WriterClass = _get_writer_class()
+                self._writer = WriterClass(
                     self.writer_dir,  # Already points to: {project-root}/scitex/writer/
                     # name=project.name,  # REMOVED - causes extra subdirectory creation
                     git_strategy="parent",  # Use parent project's git repository

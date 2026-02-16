@@ -23,6 +23,7 @@ urlpatterns = [
     path("cloud/", lambda request: redirect("public_app:index"), name="cloud"),
     # Concept and vision pages
     path("about/", views.about, name="about"),
+    path("setup/", views.setup_guide, name="setup"),
     path("open-source/", views.open_source, name="open_source"),
     path("demos/", views.demos, name="demos"),
     path("demos/watch/<str:video_id>/", views.video_player, name="video_player"),

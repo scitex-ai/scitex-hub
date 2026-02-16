@@ -30,8 +30,7 @@
   outline: none !important;
 }
 
-/* Dark mode - use Monaco editor background color (#1e1e1e) */
+/* Dark mode - match Monaco editor background (#1e1e1e, set by JS theme) */
 [data-theme="dark"] .text-preview {
-  background: var(--workspace-bg-monaco, #1e1e1e) !important;
+  background: #1e1e1e !important;
 }
-

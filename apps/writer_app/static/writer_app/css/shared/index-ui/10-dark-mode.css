@@ -14,34 +14,28 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* PDF viewer and preview areas - use Monaco background (#1e1e1e) */
+/* PDF viewer and preview areas - match Monaco editor background */
 [data-theme="dark"] .pdf-preview-container,
 [data-theme="dark"] .pdf-preview-viewer,
 [data-theme="dark"] #pdf-view,
 [data-theme="dark"] .right-panel-view {
-  background-color: var(--workspace-bg-monaco, #1e1e1e) !important;
+  background-color: #1e1e1e !important;
 }
 
 [data-theme="dark"] .split-view {
   background-color: var(--workspace-bg-primary) !important;
 }
 
-/* Force Monaco editor to use Monaco background (#1e1e1e) */
+/* Editor container wrappers - match Monaco JS theme background (#1e1e1e) */
 [data-theme="dark"] .writer-editor,
 [data-theme="dark"] .editor-content-wrapper,
 [data-theme="dark"] .latex-panel,
 [data-theme="dark"] .writer-monaco-editor {
-  background-color: var(--workspace-bg-monaco, #1e1e1e) !important;
+  background-color: #1e1e1e !important;
 }
 
-/* Monaco editor background - use standard VS Code dark theme (#1e1e1e) */
-[data-theme="dark"] .monaco-editor,
-[data-theme="dark"] .monaco-editor .overflow-guard,
-[data-theme="dark"] .monaco-editor-background,
-[data-theme="dark"] .monaco-editor .margin,
-[data-theme="dark"] .monaco-editor .margin-view-overlays {
-  background-color: var(--workspace-bg-monaco, #1e1e1e) !important;
-}
+/* Monaco editor background controlled by shared MonacoTheme.ts (scitex-dark/scitex-light) */
+/* No CSS overrides — let Monaco's JS theme system handle editor colors (same as Console) */
 
 [data-theme="dark"] .horizontal-selector-group:hover {
   background: var(--workspace-bg-tertiary);
@@ -55,12 +49,12 @@
   background: var(--workspace-bg-tertiary);
 }
 
-/* Sidebar/File tree area - use Monaco background (#1e1e1e) for consistency */
+/* Sidebar/File tree area - dark tint-black (#0d1117) via --workspace-bg-monaco */
 [data-theme="dark"] .writer-sidebar,
 [data-theme="dark"] .sidebar-content,
 [data-theme="dark"] #writer-file-tree,
 [data-theme="dark"] .workspace-files-tree {
-  background-color: var(--workspace-bg-monaco, #1e1e1e) !important;
+  background-color: var(--workspace-bg-monaco, #0d1117) !important;
 }
 
 /* Writer workspace main container */

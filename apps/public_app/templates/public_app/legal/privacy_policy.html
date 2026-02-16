@@ -7,7 +7,7 @@
     Policy - SciTeX
 {% endblock %}
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'shared/css/components/page-header.css' %}" />
+    <link rel="stylesheet" href="{% static 'shared/css/components/minimal-hero.css' %}" />
     <style>
         .policy-section {
             padding: var(--spacing-xxl) 0;
@@ -93,12 +93,10 @@
 {% endblock %}
 {% block content %}
     <div class="container pt-4">
-        <section class="page-header">
-            <h1>
-                <i class="fas fa-shield-alt"></i> Privacy Policy
-            </h1>
-            <p>Learn how we collect, use, and protect your information</p>
-        </section>
+        <header class="minimal-hero">
+            <h1 class="minimal-hero-title">Privacy Policy</h1>
+            <p class="minimal-hero-subtitle">Learn how we collect, use, and protect your information</p>
+        </header>
     </div>
     <section class="policy-section">
         <div class="container policy-container">
