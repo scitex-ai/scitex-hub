@@ -24,6 +24,15 @@ sync_slurm_uid || echo_warning "SLURM UID sync skipped - terminal may have issue
 # ============================================
 verify_scitex_package
 
+# ============================================
+# TEMPORARY FIX: Upgrade scitex-writer to 2.6.5+
+# Needed because Docker layer cache has older version
+# TODO: Remove after next full rebuild with --no-cache
+# ============================================
+echo_info "Upgrading scitex-writer (temporary fix for scripts directory)..."
+pip install --quiet --upgrade "scitex-writer>=2.6.5" 2>/dev/null || true
+echo_success "scitex-writer upgraded"
+
 # Ensure we're NOT using editable install
 if [ -d "/scitex-code" ]; then
     echo -e "⚠️  WARNING: /scitex-code detected in production!"
