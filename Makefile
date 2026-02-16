@@ -595,6 +595,33 @@ test: validate
 	@echo -e "$(CYAN)🧪 Running tests ($(ENV))...$(NC)"
 	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) exec django python manage.py test
 
+# ============================================
+# Visitor Pool Management
+# ============================================
+visitor-status: validate
+	@echo -e "$(CYAN)📊 Visitor pool status ($(ENV))...$(NC)"
+	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) exec django python manage.py create_visitor_pool --status
+
+visitor-init: validate
+	@echo -e "$(CYAN)🏊 Initializing visitor pool ($(ENV))...$(NC)"
+	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) exec django python manage.py create_visitor_pool
+
+visitor-reset: validate
+	@echo -e "$(CYAN)🔄 Resetting visitor allocations ($(ENV))...$(NC)"
+	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) exec django python manage.py reset_visitor_pool
+
+visitor-reset-workspaces: validate
+	@echo -e "$(CYAN)🔄 Resetting visitor workspaces with latest template ($(ENV))...$(NC)"
+	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) exec django python manage.py reset_visitor_workspaces
+
+visitor-reset-workspaces-dry: validate
+	@echo -e "$(CYAN)👁️  Preview visitor workspace reset ($(ENV))...$(NC)"
+	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) exec django python manage.py reset_visitor_workspaces --dry-run
+
+visitor-cleanup: validate
+	@echo -e "$(CYAN)🧹 Cleaning up expired visitor allocations ($(ENV))...$(NC)"
+	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) exec django python manage.py reset_visitor_pool --free-expired
+
 # E2E Testing Commands
 test-e2e: validate
 	@echo -e "$(CYAN)🎭 Running E2E tests ($(ENV))...$(NC)"
