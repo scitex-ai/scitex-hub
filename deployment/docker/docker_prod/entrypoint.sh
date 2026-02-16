@@ -48,6 +48,13 @@ run_migrations
 collect_static_files
 
 # ============================================
+# Clear Template Cache (ensure fresh templates)
+# ============================================
+echo_info "Clearing template cache..."
+rm -rf /home/scitex/.scitex/templates/ 2>/dev/null || true
+echo_success "Template cache cleared"
+
+# ============================================
 # Initialize Visitor Pool
 # ============================================
 echo_info "Initializing visitor pool..."
