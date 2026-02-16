@@ -1,0 +1,91 @@
+/* Setup Guide Page */
+.setup-subtitle {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+}
+
+.setup-list {
+  padding-left: 1.5rem;
+  line-height: 1.8;
+}
+
+.setup-steps {
+  padding-left: 1.5rem;
+  counter-reset: step;
+}
+
+.setup-steps li {
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.about-narrative pre {
+  background: var(--bg-secondary, #f5f5f5);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 6px;
+  padding: 1rem;
+  overflow-x: auto;
+  margin: 0.75rem 0;
+}
+
+.about-narrative pre code {
+  font-family: "SF Mono", "Fira Code", "Fira Mono", monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .about-narrative pre {
+  background: var(--bg-secondary, #1a1a2e);
+  border-color: var(--border-color, #333);
+}
+
+.setup-external-link {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.setup-diagram {
+  display: block;
+  margin: 1rem 0;
+}
+
+.setup-diagram-img {
+  width: 100%;
+  max-width: 900px;
+  height: auto;
+  border-radius: 8px;
+  margin: 0 auto;
+  display: block;
+}
+
+/* JS-based dark theme: swap diagram via CSS */
+[data-theme="dark"] .setup-diagram-light {
+  display: none;
+}
+
+[data-theme="dark"] .setup-diagram-dark {
+  display: block;
+}
+
+.setup-diagram-dark {
+  display: none;
+}
+
+/* Infrastructure Deployment SVG */
+.setup-architecture-diagram {
+  margin: 1.5rem 0;
+  overflow-x: auto;
+}
+
+.setup-architecture-svg {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid var(--border-default);
+}
+
+[data-theme="dark"] .setup-architecture-svg {
+  filter: invert(0.88) hue-rotate(180deg);
+}
