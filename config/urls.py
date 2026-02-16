@@ -194,11 +194,13 @@ urlpatterns = [
     ),
 ]
 
+# Clew verification (available in all environments)
+urlpatterns += [
+    path("clew/", include(("apps.clew_app.urls", "clew"))),
+]
+
 # Add development-only apps BEFORE catch-all username pattern
 if settings.DEBUG:
-    urlpatterns += [
-        path("clew/", include(("apps.clew_app.urls", "clew"))),
-    ]
     # Add django-browser-reload URLs for hot reload
     if "django_browser_reload" in settings.INSTALLED_APPS:
         urlpatterns += [

@@ -253,6 +253,16 @@ pre code span::-webkit-selection {
   box-shadow: none !important;
 }
 
+/* Suppress language badges and header bar inside .api-example (has its own header) */
+.api-example pre::before,
+.api-example pre::after {
+  display: none !important;
+}
+
+.api-example pre {
+  padding-top: 1.5rem !important;
+}
+
 /* Language label badges using ::before on pre element */
 pre::before {
   position: absolute;
