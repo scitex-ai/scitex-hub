@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Citation export core — thin wrappers around citation_formats.
+"""Citation export core — thin wrappers around scitex.scholar.formatting.
 
 Maintains backward-compatible API for callers that use positional args.
-All formatting logic lives in ``services.citation_formats``.
+All formatting logic lives in ``scitex.scholar.formatting``.
 """
 
 from __future__ import annotations
@@ -13,9 +13,9 @@ import re
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-
-from ...services.citation_formats import (
-    paper_from_dict,
+from scitex.scholar.formatting import (
+    generate_cite_key,
+    paper_normalize,
     to_bibtex,
     to_endnote,
     to_ris,
@@ -25,36 +25,20 @@ from ...services.citation_formats import (
 @require_http_methods(["POST"])
 @login_required
 def export_citation(request):
-    """Placeholder for export_citation — TODO: implement."""
+    """Placeholder for export_citation."""
     return JsonResponse({"error": "Not implemented"}, status=501)
 
 
 def generate_citation(paper_data, format_type):
     """Generate citation in the specified format from a dict."""
-    paper = paper_from_dict(paper_data)
-    paper["cite_key"] = generate_citation_key(
-        paper_data.get("authors", ""), paper_data.get("year", "")
-    )
+    paper = paper_normalize(paper_data)
+    paper["cite_key"] = generate_cite_key(paper)
 
     dispatch = {"bibtex": to_bibtex, "endnote": to_endnote, "ris": to_ris}
     func = dispatch.get(format_type.lower())
     if func is None:
         return None
     return func(paper)
-
-
-def generate_citation_key(authors, year):
-    """Generate a citation key from authors string and year."""
-    try:
-        if authors and isinstance(authors, str):
-            first_author = authors.split(",")[0].split(" and ")[0].strip()
-            first_author = first_author.replace("Dr.", "").replace("Prof.", "").strip()
-            last_name = first_author.split()[-1] if first_author.split() else "Unknown"
-            last_name = "".join(c for c in last_name if c.isalnum())
-            return f"{last_name}{year}"
-        return f"Unknown{year}"
-    except (IndexError, AttributeError, TypeError, ValueError):
-        return f"Paper{year}"
 
 
 def generate_bibtex(

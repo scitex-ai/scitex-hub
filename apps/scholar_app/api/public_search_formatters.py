@@ -11,7 +11,8 @@ from __future__ import annotations
 import csv
 import io
 
-from ..services.citation_formats import paper_from_dict, to_bibtex
+from scitex.scholar.formatting import paper_normalize as paper_from_dict
+from scitex.scholar.formatting import to_bibtex
 
 
 def normalize_result(result: dict) -> dict:
