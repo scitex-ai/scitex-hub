@@ -62,8 +62,8 @@ services:
     ports:
       - "${SCITEX_CLOUD_HTTP_PORT:-8000}:8000"
       - "${SCITEX_CLOUD_SSH_PORT:-2200}:2200"
-      - "5678:5678"   # debugpy
-      - "5173:5173"   # Vite HMR
+      - "${SCITEX_CLOUD_DEBUGPY_PORT:-5678}:5678"   # debugpy
+      - "${SCITEX_CLOUD_VITE_PORT:-5173}:5173"      # Vite HMR
     env_file:
       - ./envs/.env.dev
     environment:
@@ -100,7 +100,7 @@ services:
   # ============================================
   postgres:
     ports:
-      - "5433:5432"
+      - "${SCITEX_CLOUD_POSTGRES_PORT:-5433}:5432"
     command:
       - postgres
       - -c
@@ -115,7 +115,7 @@ services:
   # ============================================
   redis:
     ports:
-      - "6379:6379"
+      - "${SCITEX_CLOUD_REDIS_PORT:-6379}:6379"
     command: redis-server --appendonly yes --loglevel debug
 
   # ============================================
@@ -221,7 +221,7 @@ services:
       - ../../../crossref-local:/crossref-local:cached
       - ../../../socialia:/socialia:cached
     ports:
-      - "5555:5555"
+      - "${SCITEX_CLOUD_FLOWER_PORT:-5555}:5555"
     env_file:
       - ./envs/.env.dev
     environment:
@@ -273,7 +273,7 @@ services:
     working_dir: /figrecipe
     command: ["bash", "-c", "find /figrecipe -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null; pip install --no-cache-dir -q -e /figrecipe[editor] && python -c 'import figrecipe as fr; fr.edit(source=None, port=5500, host=\"0.0.0.0\", open_browser=False)'"]
     ports:
-      - "5500:5500"
+      - "${SCITEX_CLOUD_FIGRECIPE_PORT:-5500}:5500"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5500/ping', timeout=5)"]

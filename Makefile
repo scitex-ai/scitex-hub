@@ -158,7 +158,13 @@ ifdef ENV
   # Set DOCKER_DIR based on environment (each env has its own docker-compose.yml)
   ifeq ($(ENV),dev)
     DOCKER_DIR := $(DOCKER_BASE_DIR)/docker_dev
-    COMPOSE_CMD := docker compose
+    # Auto-detect worktree .env.worktree for port isolation
+    WORKTREE_ENV := $(wildcard $(DOCKER_BASE_DIR)/docker_dev/.env.worktree)
+    ifneq ($(WORKTREE_ENV),)
+      COMPOSE_CMD := docker compose --env-file .env.worktree
+    else
+      COMPOSE_CMD := docker compose
+    endif
   else ifeq ($(ENV),staging)
     DOCKER_DIR := $(DOCKER_BASE_DIR)
     COMPOSE_CMD := docker compose -f docker-compose.yml -f docker-compose.staging.yml
@@ -460,6 +466,11 @@ start:
 	@echo -e ""
 	@# Start the requested environment
 	@echo -e "$(CYAN)Starting $(ENV) services...$(NC)"
+	@if [ -f "$(DOCKER_DIR)/.env.worktree" ]; then \
+		echo -e "$(YELLOW)  Worktree mode: using .env.worktree for port isolation$(NC)"; \
+		grep -E '^SCITEX_CLOUD_HTTP_PORT' "$(DOCKER_DIR)/.env.worktree" | head -1 | \
+			sed 's/.*=//' | xargs -I{} echo -e "$(YELLOW)  HTTP port: {}$(NC)"; \
+	fi
 	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) up -d || (echo "$(RED)❌ Start failed. Run 'make ENV=$(ENV) start' to retry$(NC)"; exit 1)
 	@echo -e ""
 	@echo -e "$(GREEN)✅ $(ENV) environment is now running$(NC)"

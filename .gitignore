@@ -315,6 +315,7 @@ venv.bak/
 .env
 .env.local
 .env.*.local
+.env.worktree
 
 # Spyder project settings
 .spyderproject
