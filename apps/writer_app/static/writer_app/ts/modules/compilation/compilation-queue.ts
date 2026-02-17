@@ -127,6 +127,17 @@ export class CompilationQueue {
       "success",
     );
 
+    // Update details panel
+    const detailsLog = document.getElementById("details-full-log");
+    if (detailsLog) {
+      const successDiv = document.createElement("div");
+      successDiv.style.color = "var(--color-success-fg)";
+      successDiv.style.marginTop = "0.5rem";
+      successDiv.textContent = `✓ Full compilation completed successfully`;
+      detailsLog.appendChild(successDiv);
+      detailsLog.scrollTop = detailsLog.scrollHeight;
+    }
+
     if (pdfPath) {
       this.ui.showSuccess(pdfPath);
       this.state.notifyComplete("full", pdfPath);
@@ -147,6 +158,17 @@ export class CompilationQueue {
       `[${new Date().toLocaleTimeString()}] ✗ Compilation failed`,
       "error",
     );
+
+    // Update details panel
+    const detailsLog = document.getElementById("details-full-log");
+    if (detailsLog) {
+      const errorDiv = document.createElement("div");
+      errorDiv.style.color = "var(--color-danger-fg)";
+      errorDiv.style.marginTop = "0.5rem";
+      errorDiv.textContent = `✗ Compilation failed`;
+      detailsLog.appendChild(errorDiv);
+      detailsLog.scrollTop = detailsLog.scrollHeight;
+    }
 
     const errorMsg = data.result?.error || "Compilation failed";
     const errorLog = data.log || "";

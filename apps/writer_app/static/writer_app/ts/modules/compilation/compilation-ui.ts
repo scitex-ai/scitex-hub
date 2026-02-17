@@ -25,7 +25,7 @@ export class CompilationUI {
   }
 
   /**
-   * Update log div
+   * Update log div and mirror to Details panel
    */
   updateLogDiv(content: string, logType: string): void {
     const logDiv = document.getElementById("compilation-log-inline");
@@ -35,10 +35,13 @@ export class CompilationUI {
       logDiv.innerHTML = content;
       logDiv.scrollTop = logDiv.scrollHeight;
     }
+
+    // Mirror to Details panel sidebar
+    this.updateDetailsLog(content, logType);
   }
 
   /**
-   * Append to log div
+   * Append to log div and mirror to Details panel
    */
   appendToLogDiv(content: string, logType: string): void {
     const logDiv = document.getElementById("compilation-log-inline");
@@ -47,6 +50,28 @@ export class CompilationUI {
     if (logDiv && output?.getAttribute("data-log-type") === logType) {
       logDiv.innerHTML += content;
       logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    // Mirror append to Details panel sidebar
+    const detailsLogId =
+      logType === "preview" ? "details-preview-log" : "details-full-log";
+    const detailsLog = document.getElementById(detailsLogId);
+    if (detailsLog) {
+      detailsLog.innerHTML += content;
+      detailsLog.scrollTop = detailsLog.scrollHeight;
+    }
+  }
+
+  /**
+   * Update Details panel sidebar log
+   */
+  private updateDetailsLog(content: string, logType: string): void {
+    const detailsLogId =
+      logType === "preview" ? "details-preview-log" : "details-full-log";
+    const detailsLog = document.getElementById(detailsLogId);
+    if (detailsLog) {
+      detailsLog.innerHTML = content;
+      detailsLog.scrollTop = detailsLog.scrollHeight;
     }
   }
 
@@ -85,7 +110,9 @@ export class CompilationUI {
   /**
    * Append success message to log
    */
-  appendSuccessMessage(message: string = "Preview compilation completed successfully"): string {
+  appendSuccessMessage(
+    message: string = "Preview compilation completed successfully",
+  ): string {
     return `<div style="color: var(--color-success-fg); margin-top: 0.5rem;">✓ ${message}</div>`;
   }
 
@@ -159,10 +186,7 @@ export class CompilationUI {
   /**
    * Append incremental log updates
    */
-  appendIncrementalLog(
-    newLogsHtml: string,
-    isHtml: boolean = true,
-  ): void {
+  appendIncrementalLog(newLogsHtml: string, isHtml: boolean = true): void {
     const logDiv = document.getElementById("compilation-log-inline");
     if (!logDiv) return;
 
@@ -186,6 +210,26 @@ export class CompilationUI {
             appendLog(line);
           });
       }
+    }
+
+    // Mirror incremental logs to Details panel (full compilation)
+    const detailsLog = document.getElementById("details-full-log");
+    if (detailsLog && newLogsHtml.trim()) {
+      if (isHtml) {
+        const clone = document.createElement("span");
+        clone.innerHTML = newLogsHtml;
+        detailsLog.appendChild(clone);
+      } else {
+        newLogsHtml
+          .trim()
+          .split("\n")
+          .forEach((line) => {
+            const div = document.createElement("div");
+            div.textContent = line;
+            detailsLog.appendChild(div);
+          });
+      }
+      detailsLog.scrollTop = detailsLog.scrollHeight;
     }
   }
 }

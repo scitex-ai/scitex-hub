@@ -25,7 +25,9 @@ export class CompilationPreview {
    */
   async compile(options: CompilationOptions): Promise<CompilationJob | null> {
     if (!options.content) {
-      console.error("[CompilationPreview] Content is required for preview compilation");
+      console.error(
+        "[CompilationPreview] Content is required for preview compilation",
+      );
       return null;
     }
 
@@ -38,8 +40,12 @@ export class CompilationPreview {
     statusLamp.startPreviewCompilation();
     this.state.notifyProgress(0, "Preparing preview...");
 
-    // Initialize preview log
+    // Initialize preview log (main panel + details panel)
     this.ui.initializePreviewLog();
+    const detailsPreviewLog = document.getElementById("details-preview-log");
+    if (detailsPreviewLog) {
+      detailsPreviewLog.innerHTML = `<div>Starting preview compilation...</div>`;
+    }
 
     try {
       const result = await this.api.compilePreview(options, 60000);
