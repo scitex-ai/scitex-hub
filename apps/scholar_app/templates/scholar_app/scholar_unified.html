@@ -38,6 +38,8 @@
           href="{% static 'scholar_app/css/scholar-search-inline.css' %}" />
     <link rel="stylesheet" href="{% static 'scholar_app/css/search/search-main.css' %}" />
     <link rel="stylesheet"
+          href="{% static 'scholar_app/css/search/search-controls-sources.css' %}?v={{ build_id }}" />
+    <link rel="stylesheet"
           href="{% static 'scholar_app/css/search/results-header.css' %}" />
     <link rel="stylesheet" href="{% static 'shared/css/components/terminal-log.css' %}" />
     <link rel="stylesheet" href="{% static 'scholar_app/css/graph/citation-graph.css' %}" />
@@ -730,6 +732,8 @@
     {{ block.super }}
     <!-- Panel resizer (auto-initializes from data attributes) -->
     {% vite_script 'shared/workspace-panel-resizer' %}
+    <!-- Source health check (LED indicators for local DB availability) -->
+    {% vite_script 'scholar_app/search/source-health-check' %}
     {% if current_project %}
         <!-- Standardized project config for shared tree init -->
         <div id="workspace-project-config"

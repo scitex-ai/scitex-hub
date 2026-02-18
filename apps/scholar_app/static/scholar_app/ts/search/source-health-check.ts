@@ -184,5 +184,9 @@ export function setSourceReady(sourceName: string): void {
   if (readyId) updateIndicatorById(readyId, "ready", tooltip);
 }
 
-// Initialize on DOM ready
-document.addEventListener("DOMContentLoaded", initHealthChecks);
+// Initialize on DOM ready (ES modules load deferred, so DOMContentLoaded may have already fired)
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initHealthChecks);
+} else {
+  initHealthChecks();
+}
