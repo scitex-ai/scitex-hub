@@ -39,7 +39,7 @@ def _get_writer_project_path(project, user, is_visitor):
 
 @api_login_optional
 @require_http_methods(["POST"])
-def generate_ai2_prompt_view(request, project_id):
+def generate_asta_view(request, project_id):
     """Generate AI2 Asta prompt from manuscript files.
 
     Delegates to scitex.writer.prompts.generate_asta().

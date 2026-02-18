@@ -266,7 +266,7 @@ urlpatterns = [
     # AI2 Asta prompt generation
     path(
         "project/<int:project_id>/generate-ai2-prompt/",
-        ai2_prompt.generate_ai2_prompt_view,
+        ai2_prompt.generate_asta_view,
         name="api-generate-ai2-prompt",
     ),
 ]
