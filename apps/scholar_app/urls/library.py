@@ -56,6 +56,16 @@ library_patterns = [
         library_views.api_remove_library_paper,
         name="api_remove_library_paper",
     ),
+    path(
+        "api/library/papers/<uuid:paper_id>/bibtex/",
+        library_views.api_library_paper_bibtex,
+        name="api_library_paper_bibtex",
+    ),
+    path(
+        "api/library/export-named-bib/",
+        library_views.api_library_export_named_bib,
+        name="api_library_export_named_bib",
+    ),
 ]
 
 # Project linking endpoints (separate module)

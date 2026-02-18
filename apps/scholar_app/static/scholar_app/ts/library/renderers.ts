@@ -2,7 +2,8 @@
  * HTML rendering functions for Scholar Library
  */
 
-import { LibraryPaper, LibraryStats } from "./types";
+import { API, LibraryPaper, LibraryStats } from "./types";
+import { LibraryAPI } from "./api";
 
 export class LibraryRenderers {
   static escapeHtml(text: string): string {
@@ -212,6 +213,30 @@ export class LibraryRenderers {
                     placeholder="Add your notes here...">${this.escapeHtml(paper.personal_notes || "")}</textarea>
         </div>
 
+        ${
+          paper.pdf_path
+            ? `
+        <div class="library-detail-section">
+          <div class="library-detail-label">PDF</div>
+          <div id="library-pdf-container">
+            <button class="library-detail-btn" id="library-view-pdf-btn">
+              <i class="fas fa-file-pdf"></i> View PDF
+            </button>
+          </div>
+        </div>`
+            : ""
+        }
+
+        <div class="library-detail-section">
+          <div class="library-detail-label">
+            BibTeX
+            <button class="library-detail-btn-inline" id="library-bibtex-toggle">
+              <i class="fas fa-code"></i>
+            </button>
+          </div>
+          <pre class="library-bibtex-viewer hidden" id="library-bibtex-content">Loading...</pre>
+        </div>
+
         <button class="library-save-btn" id="library-save-btn">
           <i class="fas fa-save"></i> Save Changes
         </button>
@@ -237,6 +262,42 @@ export class LibraryRenderers {
       "library-export-single-btn",
     );
     if (exportSingleBtn) exportSingleBtn.addEventListener("click", onExport);
+
+    // BibTeX toggle — lazy fetch on first show
+    const bibtexToggle = document.getElementById("library-bibtex-toggle");
+    const bibtexContent = document.getElementById(
+      "library-bibtex-content",
+    ) as HTMLPreElement | null;
+    let bibtexLoaded = false;
+    if (bibtexToggle && bibtexContent) {
+      bibtexToggle.addEventListener("click", async () => {
+        bibtexContent.classList.toggle("hidden");
+        if (!bibtexContent.classList.contains("hidden") && !bibtexLoaded) {
+          bibtexLoaded = true;
+          try {
+            const bibtex = await LibraryAPI.fetchPaperBibtex(paper.paper_id);
+            bibtexContent.textContent = bibtex || "(no BibTeX available)";
+          } catch {
+            bibtexContent.textContent = "(failed to load BibTeX)";
+          }
+        }
+      });
+    }
+
+    // PDF inline viewer
+    const viewPdfBtn = document.getElementById("library-view-pdf-btn");
+    if (viewPdfBtn && paper.pdf_path) {
+      viewPdfBtn.addEventListener("click", () => {
+        const container = document.getElementById("library-pdf-container");
+        if (!container) return;
+        container.innerHTML = `
+          <iframe
+            class="library-pdf-viewer"
+            src="${API.servePdf(paper.pdf_path!)}"
+            title="PDF Viewer">
+          </iframe>`;
+      });
+    }
   }
 
   static renderEmptyDetailsPanel(): void {

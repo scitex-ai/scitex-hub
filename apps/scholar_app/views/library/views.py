@@ -60,20 +60,23 @@ def api_library_papers(request):
                         "title": p.title if p else "Unknown",
                         "doi": p.doi if p else None,
                         "journal": p.journal if p else None,
-                        "year": p.publication_date.year
-                        if p and p.publication_date
-                        else None,
+                        "year": (
+                            p.publication_date.year
+                            if p and p.publication_date
+                            else None
+                        ),
                         "authors": p.authors if p else None,
-                        "abstract": p.abstract
-                        if p and hasattr(p, "abstract")
-                        else None,
+                        "abstract": (
+                            p.abstract if p and hasattr(p, "abstract") else None
+                        ),
                         "reading_status": entry.reading_status,
                         "importance_rating": entry.importance_rating,
                         "personal_notes": entry.personal_notes,
                         "tags": entry.tags,
-                        "saved_at": entry.saved_at.isoformat()
-                        if entry.saved_at
-                        else None,
+                        "saved_at": (
+                            entry.saved_at.isoformat() if entry.saved_at else None
+                        ),
+                        "pdf_path": entry.user_library_pdf_path or None,
                     }
                 )
 
@@ -232,6 +235,111 @@ def api_remove_library_paper(request, paper_id):
     except Exception as e:
         logger.error(f"Error removing library paper: {e}")
         return JsonResponse({"success": False, "error": str(e)}, status=400)
+
+
+@login_required
+@require_http_methods(["GET"])
+def api_library_paper_bibtex(request, paper_id):
+    """Generate BibTeX for a single library paper on demand.
+
+    GET /api/library/papers/<paper_id>/bibtex/
+
+    Returns BibTeX text generated via scitex.scholar.formatting.
+    """
+    try:
+        from scitex.scholar.formatting import to_bibtex
+
+        paper_id = UUID(str(paper_id))
+        entry = UserLibrary.objects.select_related("paper").get(
+            user=request.user, paper_id=paper_id
+        )
+        p = entry.paper
+
+        if p and p.bibtex_content:
+            bibtex = p.bibtex_content
+        elif p:
+            paper_dict = {
+                "title": p.title or "",
+                "authors_str": p.authors or "",
+                "year": str(p.publication_date.year) if p.publication_date else "",
+                "journal": str(p.journal) if p.journal else "",
+                "doi": p.doi or "",
+                "pmid": p.pmid or "",
+                "arxiv_id": p.arxiv_id or "",
+                "abstract": getattr(p, "abstract", "") or "",
+                "document_type": "article",
+            }
+            bibtex = to_bibtex(paper_dict)
+        else:
+            return JsonResponse({"error": "Paper not found"}, status=404)
+
+        return JsonResponse({"bibtex": bibtex})
+
+    except UserLibrary.DoesNotExist:
+        return JsonResponse({"error": "Paper not in library"}, status=404)
+    except Exception as e:
+        logger.error(f"Error generating BibTeX: {e}")
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def api_library_export_named_bib(request):
+    """Export selected library papers as a named .bib file.
+
+    POST /api/library/export-named-bib/
+    Body: {"paper_ids": [...], "query": "search query"}
+
+    Filename is sanitized from query. Delegates to scitex.scholar.formatting.
+    """
+    try:
+        from django.http import HttpResponse
+        from scitex.scholar.formatting import sanitize_filename, to_bibtex
+
+        data = json.loads(request.body)
+        paper_ids = data.get("paper_ids", [])
+        query = data.get("query", "library_export")
+
+        if not paper_ids:
+            return JsonResponse({"error": "paper_ids required"}, status=400)
+
+        entries = UserLibrary.objects.filter(
+            user=request.user, paper_id__in=paper_ids
+        ).select_related("paper")
+
+        bibtex_parts = []
+        for entry in entries:
+            p = entry.paper
+            if not p:
+                continue
+            if p.bibtex_content:
+                bibtex_parts.append(p.bibtex_content.strip())
+            else:
+                paper_dict = {
+                    "title": p.title or "",
+                    "authors_str": p.authors or "",
+                    "year": str(p.publication_date.year) if p.publication_date else "",
+                    "journal": str(p.journal) if p.journal else "",
+                    "doi": p.doi or "",
+                    "pmid": p.pmid or "",
+                    "arxiv_id": p.arxiv_id or "",
+                    "abstract": getattr(p, "abstract", "") or "",
+                    "document_type": "article",
+                }
+                bibtex_parts.append(to_bibtex(paper_dict).strip())
+
+        combined = "\n\n".join(bibtex_parts)
+        filename = sanitize_filename(query) + ".bib"
+
+        response = HttpResponse(combined, content_type="text/plain; charset=utf-8")
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response
+
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+    except Exception as e:
+        logger.error(f"Error exporting named bib: {e}")
+        return JsonResponse({"error": str(e)}, status=500)
 
 
 # EOF

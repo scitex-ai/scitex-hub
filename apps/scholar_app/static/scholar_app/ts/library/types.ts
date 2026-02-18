@@ -7,8 +7,12 @@ export const API = {
   collections: "/scholar/api/library/collections/",
   updatePaper: (id: string) => `/scholar/api/library/papers/${id}/update/`,
   removePaper: (id: string) => `/scholar/api/library/papers/${id}/remove/`,
+  paperBibtex: (id: string) => `/scholar/api/library/papers/${id}/bibtex/`,
   exportBibtex: "/scholar/api/export/bibtex/",
+  exportNamedBib: "/scholar/api/library/export-named-bib/",
   importBibtex: "/scholar/api/import/bibtex/",
+  servePdf: (path: string) =>
+    `/scholar/api/pdf/serve/?path=${encodeURIComponent(path)}`,
 };
 
 export interface LibraryPaper {
@@ -25,6 +29,7 @@ export interface LibraryPaper {
   personal_notes: string;
   tags: string[];
   saved_at: string;
+  pdf_path: string | null;
 }
 
 export interface LibraryStats {
