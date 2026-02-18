@@ -1,5 +1,14 @@
 /* Scholar Library Tab - Main List Styles */
 
+/* Library tab wrapper — absorbs flex:1 from .scholar-tab-content > div:first-child */
+.library-tab-inner {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
 /* Tab Badge */
 .scholar-tab-badge {
   display: inline-flex;
