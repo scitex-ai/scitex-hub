@@ -11,30 +11,9 @@ from __future__ import annotations
 import csv
 import io
 
+from scitex.scholar.formatting import paper_from_search_result as normalize_result
 from scitex.scholar.formatting import paper_normalize as paper_from_dict
 from scitex.scholar.formatting import to_bibtex
-
-
-def normalize_result(result: dict) -> dict:
-    """Normalize result to standard format with all fields."""
-    return {
-        "title": result.get("title") or "Unknown",
-        "authors": result.get("authors") or "",
-        "journal": (result.get("journal") or "").replace(r"\s*\(IF.*\)", ""),
-        "year": str(result.get("year") or ""),
-        "doi": result.get("doi") or result.get("DOI") or "",
-        "pmid": result.get("pmid") or "",
-        "arxiv_id": result.get("arxiv_id") or "",
-        "citations": result.get("citations") or result.get("citation_count") or 0,
-        "impact_factor": result.get("impact_factor") or 0,
-        "is_open_access": result.get("is_open_access", False),
-        "abstract": result.get("abstract") or result.get("snippet") or "",
-        "url": result.get("externalUrl")
-        or result.get("external_url")
-        or result.get("pdf_url")
-        or "",
-        "source": result.get("source") or "unknown",
-    }
 
 
 def to_bibtex_with_metrics(results: list[dict]) -> str:

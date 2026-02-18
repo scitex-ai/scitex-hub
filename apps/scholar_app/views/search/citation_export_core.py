@@ -8,8 +8,6 @@ All formatting logic lives in ``scitex.scholar.formatting``.
 
 from __future__ import annotations
 
-import re
-
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
@@ -92,11 +90,14 @@ def generate_ris(title, authors, journal, year, doi, url, volume, pages, pmid):
     return to_ris(paper)
 
 
+def generate_citation_key(last_name, year):
+    """Generate a citation key. Delegates to scitex.scholar.formatting."""
+    return _make_citation_key(last_name, year)
+
+
 def sanitize_filename(filename):
-    """Sanitize filename for safe download."""
-    filename = re.sub(r'[<>:"/\\|?*]', "_", filename)
-    filename = filename[:50]
-    return re.sub(r"\s+", "_", filename.strip())
+    """Sanitize filename for safe download. Delegates to scitex.scholar.formatting."""
+    return _sanitize_filename(filename)
 
 
 def get_file_extension(format_type):
