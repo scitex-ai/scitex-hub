@@ -184,9 +184,19 @@ export function setSourceReady(sourceName: string): void {
   if (readyId) updateIndicatorById(readyId, "ready", tooltip);
 }
 
+// Trim template whitespace from searchLog initial content
+function trimSearchLog(): void {
+  const el = document.getElementById("searchLog");
+  if (el) el.textContent = (el.textContent || "").trim();
+}
+
 // Initialize on DOM ready (ES modules load deferred, so DOMContentLoaded may have already fired)
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initHealthChecks);
+  document.addEventListener("DOMContentLoaded", () => {
+    trimSearchLog();
+    initHealthChecks();
+  });
 } else {
+  trimSearchLog();
   initHealthChecks();
 }
