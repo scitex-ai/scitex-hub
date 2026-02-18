@@ -68,7 +68,11 @@ export class CompilationQueue {
         this.handleCompleted(data);
       } else if (data.status === "failed") {
         this.handleFailed(data);
-      } else if (data.status === "processing" || data.status === "pending") {
+      } else if (
+        data.status === "processing" ||
+        data.status === "pending" ||
+        data.status === "running"
+      ) {
         // Continue polling
         setTimeout(() => this.pollStatus(jobId, projectId, attempts + 1), 1000);
       }

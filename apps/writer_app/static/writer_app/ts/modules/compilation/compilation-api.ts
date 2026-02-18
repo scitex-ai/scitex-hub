@@ -77,7 +77,25 @@ export class CompilationAPI {
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
-      console.log("[CompilationAPI] Starting full compilation:", options.docType);
+      // Determine effective color mode (same logic as compilePreview)
+      let effectiveColorMode = options.colorMode || "light";
+      if (!options.colorMode) {
+        const savedPdfTheme = localStorage.getItem("pdf-color-mode");
+        if (savedPdfTheme === "light" || savedPdfTheme === "dark") {
+          effectiveColorMode = savedPdfTheme;
+        } else {
+          const globalTheme =
+            document.documentElement.getAttribute("data-theme") || "light";
+          effectiveColorMode = globalTheme === "dark" ? "dark" : "light";
+        }
+      }
+
+      console.log(
+        "[CompilationAPI] Starting full compilation:",
+        options.docType,
+        "color_mode:",
+        effectiveColorMode,
+      );
 
       const response = await fetch(
         `/writer/api/project/${options.projectId}/compile_full/`,
@@ -90,6 +108,7 @@ export class CompilationAPI {
           body: JSON.stringify({
             doc_type: options.docType,
             timeout: timeoutMs / 1000,
+            color_mode: effectiveColorMode,
             no_figs: options.noFigs || false,
             ppt2tif: options.ppt2tif || false,
             crop_tif: options.cropTif || false,

@@ -11,11 +11,13 @@ Handles cloning of Gitea repositories and bibliography structure setup.
 import logging
 import subprocess
 from pathlib import Path
+
+from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.conf import settings
+
 from ..models import Project
-from .project_init_helpers import _initialize_writer_structure
+from .project_init_helpers import _initialize_scitex_structure
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +45,7 @@ def _clone_gitea_repo_to_data_dir(project):
         # Remove directory if exists but not a git repo
         if project_dir.exists():
             import shutil
+
             shutil.rmtree(project_dir)
 
         # Clone from Gitea using HTTP with embedded token for authentication
@@ -113,8 +116,8 @@ def _clone_gitea_repo_to_data_dir(project):
             # Setup Python virtual environment with scitex (DISABLED - use shared scitex)
             # _setup_project_venv(project, project_dir)
 
-            # Initialize scitex writer structure in scitex/writer subdirectory
-            _initialize_writer_structure(project, project_dir)
+            # Initialize scitex structure (writer + scholar + integration)
+            _initialize_scitex_structure(project, project_dir)
 
         else:
             logger.error(f"Failed to clone repo: {result.stderr}")

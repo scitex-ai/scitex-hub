@@ -65,23 +65,54 @@ export class PDFViewer {
     console.log("[PDFViewer] displayPdf() called with PDF.js viewer");
     console.log("[PDFViewer] PDF URL:", pdfUrl);
 
-    // Extract theme from URL
-    const pdfTheme = pdfUrl.includes("-dark.pdf") ? "dark" : "light";
-    console.log("[PDFViewer] PDF theme:", pdfTheme);
+    // For preview PDFs (with theme baked in), sync viewer to match the PDF theme.
+    // For full compilation PDFs, preserve user's current color mode preference.
+    const isPreviewPdf = pdfUrl.includes("preview-");
+    if (isPreviewPdf) {
+      const pdfTheme = pdfUrl.includes("-dark.pdf") ? "dark" : "light";
+      console.log("[PDFViewer] Preview PDF theme:", pdfTheme);
 
-    // Update color mode if needed
-    if (pdfTheme !== this.state.colorMode) {
-      console.log("[PDFViewer] Updating color mode to match PDF:", pdfTheme);
-      this.state.colorMode = pdfTheme;
-      this.pdfViewer.setColorMode(pdfTheme);
+      if (pdfTheme !== this.state.colorMode) {
+        console.log(
+          "[PDFViewer] Syncing viewer color mode to preview PDF:",
+          pdfTheme,
+        );
+        this.state.colorMode = pdfTheme;
+        this.pdfViewer.setColorMode(pdfTheme);
 
-      // Update button icon to match
-      const pdfScrollZoomHandler = (window as any).pdfScrollZoomHandler;
-      if (
-        pdfScrollZoomHandler &&
-        typeof pdfScrollZoomHandler.setColorMode === "function"
-      ) {
-        pdfScrollZoomHandler.setColorMode(pdfTheme);
+        const pdfScrollZoomHandler = (window as any).pdfScrollZoomHandler;
+        if (
+          pdfScrollZoomHandler &&
+          typeof pdfScrollZoomHandler.setColorMode === "function"
+        ) {
+          pdfScrollZoomHandler.setColorMode(pdfTheme);
+        }
+      }
+    } else {
+      // Full compilation PDF: apply user's preferred color mode
+      const savedPdfTheme = localStorage.getItem("pdf-color-mode");
+      const preferredMode =
+        savedPdfTheme === "dark" || savedPdfTheme === "light"
+          ? savedPdfTheme
+          : document.documentElement.getAttribute("data-theme") === "dark"
+            ? "dark"
+            : "light";
+
+      console.log(
+        "[PDFViewer] Full PDF — applying user preference:",
+        preferredMode,
+      );
+      if (preferredMode !== this.state.colorMode) {
+        this.state.colorMode = preferredMode as "light" | "dark";
+        this.pdfViewer.setColorMode(preferredMode as "light" | "dark");
+
+        const pdfScrollZoomHandler = (window as any).pdfScrollZoomHandler;
+        if (
+          pdfScrollZoomHandler &&
+          typeof pdfScrollZoomHandler.setColorMode === "function"
+        ) {
+          pdfScrollZoomHandler.setColorMode(preferredMode);
+        }
       }
     }
 
@@ -114,7 +145,10 @@ export class PDFViewer {
     console.log("[PDFViewer] ✓ PDF loaded via PDF.js canvas viewer");
     console.log("[PDFViewer] ✓ Current PDF URL set to:", pdfUrl);
     console.log("[PDFViewer] ✓ Theme:", this.state.colorMode);
-    console.log("[PDFViewer] ✓ Render quality:", this.state.renderQuality + "x");
+    console.log(
+      "[PDFViewer] ✓ Render quality:",
+      this.state.renderQuality + "x",
+    );
     console.log("[PDFViewer] ========================================");
   }
 
@@ -200,7 +234,10 @@ export class PDFViewer {
     this.state.colorMode = colorMode;
     if (this.pdfViewer) {
       this.pdfViewer.setColorMode(colorMode);
-      console.log("[PDFViewer] ✓ PDF.js viewer color mode updated to:", colorMode);
+      console.log(
+        "[PDFViewer] ✓ PDF.js viewer color mode updated to:",
+        colorMode,
+      );
     }
   }
 

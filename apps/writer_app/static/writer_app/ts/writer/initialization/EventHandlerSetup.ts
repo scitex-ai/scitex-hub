@@ -93,9 +93,7 @@ export class EventHandlerSetup {
 
       // Toggle color mode
       const newMode =
-        this.pdfScrollZoomHandler.getColorMode() === "dark"
-          ? "light"
-          : "dark";
+        this.pdfScrollZoomHandler.getColorMode() === "dark" ? "light" : "dark";
       console.log("[EventHandlerSetup] PDF color mode switching to:", newMode);
 
       // Update handler state and button
@@ -145,14 +143,28 @@ export class EventHandlerSetup {
       } else {
         // Start compilation
         if (this.pdfPreviewManager) {
-          const latexEditor = document.getElementById(
-            "latex-editor-textarea",
-          ) as HTMLTextAreaElement;
-          if (latexEditor && latexEditor.value.trim()) {
+          // Get content from editor object (works with both Monaco and textarea)
+          const content = this.editor?.getContent?.();
+          if (content && content.trim()) {
             console.log(
               "[EventHandlerSetup] Triggering PDF preview compilation",
             );
-            this.pdfPreviewManager.compileQuick(latexEditor.value);
+            this.pdfPreviewManager.compileQuick(content);
+          } else {
+            // Fallback: try textarea directly
+            const latexEditor = document.getElementById(
+              "latex-editor-textarea",
+            ) as HTMLTextAreaElement;
+            if (latexEditor && latexEditor.value.trim()) {
+              console.log(
+                "[EventHandlerSetup] Triggering PDF preview compilation (textarea fallback)",
+              );
+              this.pdfPreviewManager.compileQuick(latexEditor.value);
+            } else {
+              console.warn(
+                "[EventHandlerSetup] No content available for preview compilation",
+              );
+            }
           }
         }
       }
@@ -171,7 +183,12 @@ export class EventHandlerSetup {
       } else {
         // Start compilation
         console.log("[EventHandlerSetup] Full compilation button clicked");
-        handleCompileFull(this.compilationManager, this.state, "manuscript", true);
+        handleCompileFull(
+          this.compilationManager,
+          this.state,
+          "manuscript",
+          false,
+        );
       }
     };
   }
@@ -217,7 +234,12 @@ export class EventHandlerSetup {
             console.log(
               "[EventHandlerSetup] Auto-full-compile: Triggering compilation after 15s",
             );
-            handleCompileFull(this.compilationManager, this.state, "manuscript", false);
+            handleCompileFull(
+              this.compilationManager,
+              this.state,
+              "manuscript",
+              false,
+            );
           }, 15000); // 15 seconds
         });
       }
@@ -229,48 +251,64 @@ export class EventHandlerSetup {
    * Listens for file selection from the file tree and loads content into Monaco editor
    */
   private setupFileTreeLoader(): void {
-    console.log('[EventHandlerSetup] Setting up file tree loader');
-    console.log('[EventHandlerSetup] Editor type:', this.editor?.getEditorType?.());
-    console.log('[EventHandlerSetup] Editor methods:', Object.keys(this.editor || {}));
+    console.log("[EventHandlerSetup] Setting up file tree loader");
+    console.log(
+      "[EventHandlerSetup] Editor type:",
+      this.editor?.getEditorType?.(),
+    );
+    console.log(
+      "[EventHandlerSetup] Editor methods:",
+      Object.keys(this.editor || {}),
+    );
 
-    window.addEventListener('writer:fileContentLoaded', (event: any) => {
+    window.addEventListener("writer:fileContentLoaded", (event: any) => {
       const { path, content } = event.detail;
-      console.log(`[EventHandlerSetup] Event received: writer:fileContentLoaded`);
-      console.log(`[EventHandlerSetup] Path: ${path}, Content length: ${content?.length}`);
+      console.log(
+        `[EventHandlerSetup] Event received: writer:fileContentLoaded`,
+      );
+      console.log(
+        `[EventHandlerSetup] Path: ${path}, Content length: ${content?.length}`,
+      );
 
       if (!this.editor) {
-        console.error('[EventHandlerSetup] Editor is not available!');
+        console.error("[EventHandlerSetup] Editor is not available!");
         return;
       }
 
       if (content === undefined) {
-        console.error('[EventHandlerSetup] Content is undefined!');
+        console.error("[EventHandlerSetup] Content is undefined!");
         return;
       }
 
       try {
         // Set content in the editor
-        console.log('[EventHandlerSetup] Calling editor.setContent()...');
+        console.log("[EventHandlerSetup] Calling editor.setContent()...");
         this.editor.setContent(content);
-        console.log(`[EventHandlerSetup] ✓ File content loaded into editor: ${path}`);
+        console.log(
+          `[EventHandlerSetup] ✓ File content loaded into editor: ${path}`,
+        );
 
         // Update state
         if (this.state) {
           this.state.currentFile = path;
-          console.log('[EventHandlerSetup] ✓ State updated with current file');
+          console.log("[EventHandlerSetup] ✓ State updated with current file");
         }
 
         // Trigger quick preview compilation for .tex files
-        if (path.endsWith('.tex') && this.pdfPreviewManager) {
-          console.log(`[EventHandlerSetup] Triggering preview compilation for: ${path}`);
+        if (path.endsWith(".tex") && this.pdfPreviewManager) {
+          console.log(
+            `[EventHandlerSetup] Triggering preview compilation for: ${path}`,
+          );
           setTimeout(() => {
             this.pdfPreviewManager.compileQuick(content, path);
           }, 300);
         }
       } catch (error) {
-        console.error('[EventHandlerSetup] Error loading file content:', error);
+        console.error("[EventHandlerSetup] Error loading file content:", error);
       }
     });
-    console.log('[EventHandlerSetup] ✓ File tree loader event listener attached');
+    console.log(
+      "[EventHandlerSetup] ✓ File tree loader event listener attached",
+    );
   }
 }
