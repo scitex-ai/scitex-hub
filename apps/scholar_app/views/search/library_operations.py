@@ -125,8 +125,93 @@ def save_paper(request):
 @require_http_methods(["POST"])
 @login_required
 def save_papers_bulk(request):
-    """Placeholder for save_papers_bulk - TODO: implement"""
-    return JsonResponse({"error": "Not implemented"}, status=501)
+    """Save a batch of search result papers to the user's project bibliography.
+
+    Accepts JSON: {project_id, papers: [{title, authors, year, doi, ...}]}
+    - Max 500 papers per request (frontend sends batches)
+    - Generates BibTeX via scitex.scholar.formatting.papers_to_format()
+    - Writes ONE .bib file per batch
+    - Regenerates merged bibliography once at end
+    """
+    import json
+
+    from scitex.scholar.formatting import paper_from_search_result, papers_to_format
+
+    from apps.project_app.models import Project
+    from apps.project_app.services.bibliography_manager import (
+        ensure_bibliography_structure,
+        regenerate_bibliography,
+    )
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
+
+    project_id = data.get("project_id")
+    papers = data.get("papers", [])
+
+    if not project_id:
+        return JsonResponse(
+            {"success": False, "error": "No project selected"}, status=400
+        )
+    if not papers:
+        return JsonResponse(
+            {"success": False, "error": "No papers provided"}, status=400
+        )
+    if len(papers) > 500:
+        return JsonResponse(
+            {"success": False, "error": "Max 500 papers per batch"}, status=400
+        )
+
+    try:
+        project = Project.objects.get(id=project_id, owner=request.user)
+    except Project.DoesNotExist:
+        return JsonResponse(
+            {"success": False, "error": "Project not found"}, status=404
+        )
+
+    if not project.git_clone_path:
+        return JsonResponse(
+            {"success": False, "error": "Project has no git repository"},
+            status=400,
+        )
+
+    try:
+        project_path = Path(project.git_clone_path)
+        ensure_bibliography_structure(project_path)
+
+        bib_dir = project_path / "scitex" / "scholar" / "bib_files"
+        bib_dir.mkdir(parents=True, exist_ok=True)
+
+        # Normalize papers via scitex and generate BibTeX
+        normalized = [paper_from_search_result(p) for p in papers]
+        bibtex_content = papers_to_format(normalized, "bibtex")
+
+        # Write single batch file
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        filename = f"search_bulk_{timestamp}.bib"
+        bib_file = bib_dir / filename
+        bib_file.write_text(bibtex_content, encoding="utf-8")
+
+        logger.info(f"Bulk saved {len(papers)} papers to: {bib_file}")
+
+        # Regenerate merged bibliography once
+        results = regenerate_bibliography(project_path, project.name)
+
+        return JsonResponse(
+            {
+                "success": True,
+                "saved": len(papers),
+                "file_path": f"scitex/scholar/bib_files/{filename}",
+                "total_citations": results.get("scholar_count", 0),
+                "duplicates_removed": results.get("duplicates_removed", 0),
+            }
+        )
+
+    except Exception as e:
+        logger.error(f"Bulk save failed: {e}", exc_info=True)
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 
 @require_http_methods(["POST"])

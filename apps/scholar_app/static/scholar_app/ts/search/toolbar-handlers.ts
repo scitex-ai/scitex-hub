@@ -6,12 +6,14 @@
  */
 
 import {
+  getAllPapers,
   getSelectedPapers,
   exportPapers,
   updateToolbarState,
   initSelectionListener,
   initCopyShortcut,
 } from "./results-toolbar";
+import { getCsrfToken } from "../common/scholar-index/utilities";
 
 /**
  * Abstract toggle click handler
@@ -142,6 +144,53 @@ function attachHandler(
 }
 
 /**
+ * Save papers to project in batches of 500 via bulk API
+ */
+async function savePapersBulk(
+  papers: ReturnType<typeof getAllPapers>,
+  projectId: string,
+  csrfToken: string,
+): Promise<void> {
+  const BATCH_SIZE = 500;
+  const log = document.getElementById("searchLog");
+  const total = papers.length;
+  const batches = Math.ceil(total / BATCH_SIZE);
+  let totalSaved = 0;
+  let totalDuplicates = 0;
+
+  for (let i = 0; i < batches; i++) {
+    const batch = papers.slice(i * BATCH_SIZE, (i + 1) * BATCH_SIZE);
+    const progress = Math.min((i + 1) * BATCH_SIZE, total);
+    if (log)
+      log.textContent = `Saving batch ${i + 1}/${batches} (${progress.toLocaleString()}/${total.toLocaleString()})...`;
+
+    try {
+      const resp = await fetch("/scholar/api/papers/save-bulk/", {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": csrfToken,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ project_id: projectId, papers: batch }),
+      });
+      const data = await resp.json();
+      if (data.success) {
+        totalSaved += data.saved || 0;
+        totalDuplicates += data.duplicates_removed || 0;
+      } else {
+        if (log) log.textContent += `\nBatch ${i + 1} error: ${data.error}`;
+      }
+    } catch (err) {
+      if (log) log.textContent += `\nBatch ${i + 1} failed: ${err}`;
+    }
+  }
+
+  const msg = `Saved ${totalSaved.toLocaleString()} papers to project (${totalDuplicates} duplicates merged).`;
+  if (log) log.textContent = msg;
+  alert(msg);
+}
+
+/**
  * Setup toolbar button handlers
  */
 export function setupToolbarHandlers(): void {
@@ -150,24 +199,35 @@ export function setupToolbarHandlers(): void {
     handleAbstractToggle(this);
   });
 
-  // Save Selected button
+  // Save to Project button — bulk save all results via backend API
   attachHandler("saveSelectedBtn", function () {
-    const papers = getSelectedPapers();
+    const selected = getSelectedPapers();
+    const papers = selected.length > 0 ? selected : getAllPapers();
     if (papers.length === 0) {
-      alert("No papers selected. Click on papers to select them.");
+      alert("No search results to save.");
       return;
     }
-    const saved = JSON.parse(
-      localStorage.getItem("scitex_saved_papers") || "[]",
-    );
-    const newPapers = papers.filter(
-      (p) => !saved.some((s: { title: string }) => s.title === p.title),
-    );
-    saved.push(...newPapers);
-    localStorage.setItem("scitex_saved_papers", JSON.stringify(saved));
-    alert(
-      `Saved ${newPapers.length.toLocaleString()} paper(s) to library. (${(papers.length - newPapers.length).toLocaleString()} already saved)`,
-    );
+
+    const projectId = sessionStorage.getItem("scholar_selected_project_id");
+    if (!projectId) {
+      alert("No project selected. Please select a project first.");
+      return;
+    }
+    const csrfToken = getCsrfToken();
+    if (!csrfToken) {
+      alert("Session expired. Please refresh the page.");
+      return;
+    }
+
+    const label = selected.length > 0 ? "selected" : "all";
+    if (
+      !confirm(
+        `Save ${papers.length.toLocaleString()} ${label} paper(s) to project?`,
+      )
+    )
+      return;
+
+    savePapersBulk(papers, projectId, csrfToken);
   });
 
   // Open URLs button
