@@ -10,8 +10,10 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from scitex import logging
+from scitex.scholar import ensure_workspace
+from scitex.scholar.formatting import make_citation_key
 
-from .citation_export_core import generate_bibtex, generate_citation_key
+from .citation_export_core import generate_bibtex
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +30,6 @@ def save_paper(request):
     """
     from apps.project_app.models import Project
     from apps.project_app.services.bibliography_manager import (
-        ensure_bibliography_structure,
         regenerate_bibliography,
     )
 
@@ -68,11 +69,9 @@ def save_paper(request):
 
     try:
         # Extract first author's last name for citation key
-        # Search results use "First Last, First Last" format
-        # generate_citation_key expects "Last, First" or single name
         first_author = (authors or "Unknown").split(",")[0].strip()
         last_name = first_author.split()[-1] if first_author.split() else "Unknown"
-        citation_key = generate_citation_key(last_name, year)
+        citation_key = make_citation_key(last_name, year)
         bibtex_entry = generate_bibtex(
             citation_key,
             title,
@@ -92,7 +91,7 @@ def save_paper(request):
             )
 
         project_path = Path(project.git_clone_path)
-        ensure_bibliography_structure(project_path)
+        ensure_workspace(project_path)
 
         bib_dir = project_path / "scitex" / "scholar" / "bib_files"
         bib_dir.mkdir(parents=True, exist_ok=True)

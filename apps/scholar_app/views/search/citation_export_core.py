@@ -23,7 +23,7 @@ from scitex.scholar.formatting import (
 
 __all__ = [
     "generate_cite_key",
-    "generate_citation_key",
+    "make_citation_key",
     "generate_bibtex",
     "generate_endnote",
     "generate_ris",
@@ -100,11 +100,6 @@ def generate_ris(title, authors, journal, year, doi, url, volume, pages, pmid):
         "pmid": pmid or "",
     }
     return to_ris(paper)
-
-
-def generate_citation_key(last_name, year):
-    """Generate a citation key. Delegates to scitex.scholar.formatting."""
-    return make_citation_key(last_name, year)
 
 
 def get_file_extension(format_type):

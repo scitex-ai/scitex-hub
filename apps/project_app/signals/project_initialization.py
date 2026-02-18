@@ -130,7 +130,7 @@ def _clone_gitea_repo_to_data_dir(project):
 
 
 @receiver(post_save, sender=Project)
-def ensure_bibliography_structure(sender, instance, created, **kwargs):
+def on_project_created_init_bibliography(sender, instance, created, **kwargs):
     """
     Ensure bibliography directory structure exists after project creation.
 
@@ -143,12 +143,12 @@ def ensure_bibliography_structure(sender, instance, created, **kwargs):
 
     try:
         from apps.project_app.services.bibliography_manager import (
-            ensure_bibliography_structure as ensure_structure,
+            ensure_bibliography_structure,
         )
 
         project_path = Path(instance.git_clone_path)
         if project_path.exists():
-            results = ensure_structure(project_path)
+            results = ensure_bibliography_structure(project_path)
             if results["success"]:
                 logger.info(f"✓ Bibliography structure initialized for {instance.slug}")
             else:

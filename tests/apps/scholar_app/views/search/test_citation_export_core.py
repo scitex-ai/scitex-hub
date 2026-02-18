@@ -7,29 +7,29 @@ import pytest
 from apps.scholar_app.views.search.citation_export_core import (
     generate_bibtex,
     generate_citation,
-    generate_citation_key,
     generate_endnote,
     generate_ris,
     get_file_extension,
+    make_citation_key,
     sanitize_filename,
 )
 
 
 class TestGenerateCitationKey:
-    """generate_citation_key delegates to scitex.scholar.formatting.make_citation_key."""
+    """make_citation_key delegates to scitex.scholar.formatting.make_citation_key."""
 
     def test_basic(self):
-        result = generate_citation_key("Smith", 2020)
+        result = make_citation_key("Smith", 2020)
         assert "smith" in result.lower()
         assert "2020" in result
 
     def test_no_year(self):
-        result = generate_citation_key("Jones", None)
+        result = make_citation_key("Jones", None)
         assert isinstance(result, str)
         assert len(result) > 0
 
     def test_returns_string(self):
-        assert isinstance(generate_citation_key("Doe", 1999), str)
+        assert isinstance(make_citation_key("Doe", 1999), str)
 
 
 class TestSanitizeFilename:
