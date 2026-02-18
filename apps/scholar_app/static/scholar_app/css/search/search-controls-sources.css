@@ -96,30 +96,36 @@
 
 /* Source ready indicator - for local databases */
 .source-ready-indicator {
-  font-size: inherit;
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
   margin-left: 0.25rem;
-  transition: color 0.3s ease;
+  font-size: 0;
+  line-height: 0;
+  vertical-align: middle;
+  transition: background 0.3s ease;
 }
 
 .source-ready-indicator[data-status="checking"] {
-  color: var(--text-muted, #6c8ba0);
+  background: var(--text-muted, #6c8ba0);
   animation: ready-pulse 1s ease-in-out infinite;
 }
 
 .source-ready-indicator[data-status="ready"] {
-  color: var(--status-success, #5a9a7e);
+  background: var(--status-success, #5a9a7e);
 }
 
 .source-ready-indicator[data-status="working"] {
-  color: var(--status-success, #5a9a7e);
+  background: var(--status-success, #5a9a7e);
   animation: ready-flash 0.5s ease-in-out infinite;
 }
 
 .source-ready-indicator[data-status="unavailable"] {
-  color: var(--color-error, #ef4444);
+  background: var(--color-error, #ef4444);
 }
 .source-ready-indicator[data-status="external"] {
-  color: var(--status-success, #5a9a7e);
+  background: var(--status-success, #5a9a7e);
 }
 
 @keyframes ready-pulse {
