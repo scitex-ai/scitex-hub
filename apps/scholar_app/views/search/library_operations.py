@@ -138,10 +138,7 @@ def save_papers_bulk(request):
     from scitex.scholar.formatting import paper_from_search_result, papers_to_format
 
     from apps.project_app.models import Project
-    from apps.project_app.services.bibliography_manager import (
-        ensure_bibliography_structure,
-        regenerate_bibliography,
-    )
+    from apps.project_app.services.bibliography_manager import regenerate_bibliography
 
     try:
         data = json.loads(request.body)
@@ -179,10 +176,11 @@ def save_papers_bulk(request):
 
     try:
         project_path = Path(project.git_clone_path)
-        ensure_bibliography_structure(project_path)
+        ensure_workspace(
+            project_path
+        )  # Creates scitex/scholar/{bib_files,library,prompts}
 
         bib_dir = project_path / "scitex" / "scholar" / "bib_files"
-        bib_dir.mkdir(parents=True, exist_ok=True)
 
         # Normalize papers via scitex and generate BibTeX
         normalized = [paper_from_search_result(p) for p in papers]
