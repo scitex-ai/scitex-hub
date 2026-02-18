@@ -19,7 +19,7 @@ function cleanupTemplateText(): void {
 function trimTerminalLogs(): void {
   document.querySelectorAll<HTMLElement>(".terminal-log").forEach((el) => {
     if (el.children.length === 0 && el.textContent) {
-      el.textContent = el.textContent.trim();
+      el.textContent = el.textContent.replace(/\s+/g, " ").trim();
     }
   });
 }
