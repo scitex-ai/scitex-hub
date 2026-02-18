@@ -789,6 +789,8 @@
     {% if current_project %}
         {% vite_script 'scholar_app/bibtex/scholar-ai2-integration' %}
     {% endif %}
+    <!-- Library Scripts -->
+    {% vite_script 'scholar_app/library/library-init' %}
     <!-- Graph Scripts -->
     {% vite_script 'scholar_app/graph/citation-graph' %}
     <!-- Tab Switching Script -->

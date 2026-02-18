@@ -195,18 +195,14 @@ class LibraryManager {
     }
 
     const importBtn = document.getElementById("library-import-btn");
-    if (importBtn) {
-      const fileInput = document.createElement("input");
-      fileInput.type = "file";
-      fileInput.accept = ".bib";
-      fileInput.style.display = "none";
-      document.body.appendChild(fileInput);
-
+    const fileInput = document.getElementById(
+      "bibtex-file-input",
+    ) as HTMLInputElement | null;
+    if (importBtn && fileInput) {
       fileInput.addEventListener("change", async (e) => {
         const file = (e.target as HTMLInputElement).files?.[0];
         if (file) await this.importBibtexFile(file);
       });
-
       importBtn.addEventListener("click", () => fileInput.click());
     }
   }

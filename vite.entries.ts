@@ -314,6 +314,10 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
       rootDir,
       "apps/scholar_app/static/scholar_app/ts/graph/citation-graph.ts",
     ),
+    "scholar_app/library/library-init": r(
+      rootDir,
+      "apps/scholar_app/static/scholar_app/ts/library/library-init.ts",
+    ),
     ...generateEntries(
       rootDir,
       "apps/scholar_app/static/scholar_app/ts/search",
