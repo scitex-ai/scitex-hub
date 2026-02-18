@@ -64,6 +64,11 @@
             <i class="fas fa-file-export"></i>
             <span>Export RIS</span>
         </button>
+        <!-- Zotero import button — shown only when local Zotero DB is detected -->
+        <button class="library-action-btn hidden" id="zotero-import-btn" title="">
+            <i class="fas fa-z"></i>
+            <span>Import from Zotero</span>
+        </button>
     </div>
     <div class="library-actions-right">
         <button class="library-action-btn" id="library-refresh-btn">
@@ -71,6 +76,138 @@
         </button>
     </div>
 </div>
+<!-- Zotero Import Modal -->
+<div id="zotero-import-modal" class="library-modal hidden">
+    <div class="library-modal-content">
+        <div class="library-modal-header">
+            <h3>
+                <i class="fas fa-database"></i> Import from Zotero
+            </h3>
+            <button class="library-modal-close" id="zotero-modal-close">&times;</button>
+        </div>
+        <div class="library-modal-body">
+            <p class="zotero-db-info">
+                Zotero database: <code id="zotero-db-path"></code>
+            </p>
+            <div class="zotero-import-options">
+                <label class="zotero-option">
+                    <input type="radio" name="zotero-mode" value="all" checked />
+                    All papers
+                </label>
+                <label class="zotero-option">
+                    <input type="radio" name="zotero-mode" value="collection" />
+                    By collection
+                    <select id="zotero-collection-select" class="zotero-select" disabled>
+                        <option value="">Loading...</option>
+                    </select>
+                </label>
+                <label class="zotero-option">
+                    <input type="radio" name="zotero-mode" value="tags" />
+                    By tags
+                    <select id="zotero-tags-select" class="zotero-select" multiple disabled></select>
+                </label>
+            </div>
+        </div>
+        <div class="library-modal-footer">
+            <button class="library-action-btn" id="zotero-import-confirm">
+                <i class="fas fa-file-import"></i> Import
+            </button>
+            <button class="library-action-btn" id="zotero-modal-cancel">Cancel</button>
+        </div>
+    </div>
+</div>
+<script>
+(function () {
+    // Check Zotero availability on load
+    fetch('/scholar/api/library/zotero/status/')
+        .then(r => r.json())
+        .then(data => {
+            if (!data.available) return;
+            const btn = document.getElementById('zotero-import-btn');
+            btn.classList.remove('hidden');
+            btn.title = 'Zotero DB: ' + data.db_path;
+            document.getElementById('zotero-db-path').textContent = data.db_path;
+
+            // Load collections and tags
+            fetch('/scholar/api/library/zotero/collections/')
+                .then(r => r.json())
+                .then(d => {
+                    const sel = document.getElementById('zotero-collection-select');
+                    sel.innerHTML = (d.collections || [])
+                        .map(c => `<option value="${c}">${c}</option>`).join('');
+                });
+            fetch('/scholar/api/library/zotero/tags/')
+                .then(r => r.json())
+                .then(d => {
+                    const sel = document.getElementById('zotero-tags-select');
+                    sel.innerHTML = (d.tags || [])
+                        .map(t => `<option value="${t.name}">${t.name} (${t.count})</option>`).join('');
+                });
+        })
+        .catch(() => {});
+
+    // Open modal
+    document.getElementById('zotero-import-btn').addEventListener('click', () => {
+        document.getElementById('zotero-import-modal').classList.remove('hidden');
+    });
+
+    // Close modal
+    ['zotero-modal-close', 'zotero-modal-cancel'].forEach(id => {
+        document.getElementById(id).addEventListener('click', () => {
+            document.getElementById('zotero-import-modal').classList.add('hidden');
+        });
+    });
+
+    // Enable/disable selects based on mode
+    document.querySelectorAll('input[name="zotero-mode"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            document.getElementById('zotero-collection-select').disabled = radio.value !== 'collection';
+            document.getElementById('zotero-tags-select').disabled = radio.value !== 'tags';
+        });
+    });
+
+    // Import
+    document.getElementById('zotero-import-confirm').addEventListener('click', () => {
+        const mode = document.querySelector('input[name="zotero-mode"]:checked').value;
+        const body = { mode };
+        if (mode === 'collection') {
+            body.collection = document.getElementById('zotero-collection-select').value;
+        } else if (mode === 'tags') {
+            body.tags = Array.from(document.getElementById('zotero-tags-select').selectedOptions)
+                .map(o => o.value);
+        }
+
+        const btn = document.getElementById('zotero-import-confirm');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing...';
+
+        fetch('/scholar/api/library/zotero/import/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.cookie.match(/csrftoken=([^;]+)/)?.[1] || ''
+            },
+            body: JSON.stringify(body)
+        })
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('zotero-import-modal').classList.add('hidden');
+            const msg = data.error
+                ? `Zotero import failed: ${data.error}`
+                : `Imported ${data.imported} papers from Zotero (${data.skipped} skipped / already in library)`;
+            alert(msg);
+            if (!data.error && data.imported > 0) {
+                document.getElementById('library-refresh-btn').click();
+            }
+        })
+        .catch(err => alert('Import error: ' + err))
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-file-import"></i> Import';
+        });
+    });
+})();
+</script>
 <!-- Collection Filter -->
 <div class="library-collection-filter" id="library-collection-filter">
     <button class="library-collection-pill active" data-collection="all">All</button>
