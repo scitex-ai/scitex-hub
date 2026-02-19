@@ -182,9 +182,7 @@ export class JobsPanelManager {
     const refreshBtn = document.getElementById("jobs-refresh");
     const statusText = document.getElementById("jobs-status-text");
     const statusDot = document.querySelector(".jobs-status-dot");
-
     if (!jobsList) return;
-
     // Show spinner on refresh button
     if (showSpinner && refreshBtn) {
       const icon = refreshBtn.querySelector("i");
@@ -326,9 +324,7 @@ export class JobsPanelManager {
           : job.state === "COMPLETED"
             ? "completed"
             : "failed";
-
     const showReason = job.state === "PENDING" && job.reason;
-
     return `
       <div class="job-card" data-job-id="${job.job_id}">
         <div class="job-card-header">
