@@ -56,6 +56,16 @@ export function initializeVisEditor(): void {
       console.log(
         `[VisEditor] Project context: ${projectOwner}/${projectSlug}`,
       );
+
+      // Inject project context into the global AI panel
+      const aiContext = {
+        page: "visualizer",
+        project: projectSlug,
+        project_slug: projectSlug,
+      };
+      if ((window as any).scitexAI) {
+        (window as any).scitexAI.setContext(aiContext);
+      }
     }
 
     // Expose to window for external access
@@ -185,7 +195,9 @@ function setupExportHandlers(canvasManager: any): void {
     }
   });
 
-  console.log("[VisEditor] Export dropdown handlers initialized (backend-based)");
+  console.log(
+    "[VisEditor] Export dropdown handlers initialized (backend-based)",
+  );
 }
 
 /**
@@ -240,9 +252,8 @@ async function loadFigureFromDiskIfExists(
  */
 async function initializeBundleComponents(editorInstance: any): Promise<void> {
   try {
-    const { pltzBundleManager, figzBundleManager } = await import(
-      "../vis/index.js"
-    );
+    const { pltzBundleManager, figzBundleManager } =
+      await import("../vis/index.js");
 
     // Expose bundle managers to window for canvas integration
     (window as any).visEditor.pltzBundleManager = pltzBundleManager;
