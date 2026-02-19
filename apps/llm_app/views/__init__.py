@@ -1,3 +1,4 @@
+from apps.llm_app.views.bash import api_bash_exec
 from apps.llm_app.views.chat import (
     api_chat,
     api_chat_stream,
@@ -16,6 +17,7 @@ from apps.llm_app.views.providers import (
 from apps.llm_app.views.stt import api_stt, api_stt_models
 
 __all__ = [
+    "api_bash_exec",
     "api_available_providers",
     "api_list_providers",
     "api_add_provider",

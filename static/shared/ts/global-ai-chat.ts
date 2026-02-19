@@ -10,6 +10,12 @@ import { readActiveProjectSlug } from "./components/global-ai-chat/context";
 import { VoiceRecorder } from "./components/global-ai-chat/recorder";
 import { speakText } from "./components/global-ai-chat/speech";
 import { fetchAndPopulateSttModels } from "./components/global-ai-chat/stt-models";
+import {
+  MODEL_KEY,
+  fetchCurrentModel,
+  setModelBadge,
+} from "./components/global-ai-chat/model-badge";
+import { appendToolTags } from "./components/global-ai-chat/tool-tags";
 import { runUIActions, UIActionArgs } from "./components/ui-action/index";
 import {
   StoredMessage,
@@ -17,9 +23,9 @@ import {
   loadMessages,
   saveMessage,
 } from "./components/global-ai-chat/storage";
+import { getCsrfToken } from "./utils/csrf";
 
 const PANEL_OPEN_KEY = "scitex_ai_open";
-const MODEL_KEY = "scitex_ai_model";
 const SPEAK_KEY = "scitex_ai_speak";
 
 interface AiContext {
@@ -153,8 +159,8 @@ class GlobalAIChat {
     this.restoreConversation();
 
     const savedModel = sessionStorage.getItem(MODEL_KEY);
-    if (savedModel) this.setModelBadge(savedModel);
-    this.fetchCurrentModel();
+    if (savedModel) setModelBadge(this.modelBadge, savedModel);
+    fetchCurrentModel((m) => setModelBadge(this.modelBadge, m));
 
     if (sessionStorage.getItem(PANEL_OPEN_KEY) === "1") {
       this.open();
@@ -194,16 +200,6 @@ class GlobalAIChat {
     sessionStorage.removeItem(PANEL_OPEN_KEY);
   }
 
-  private getCsrf(): string {
-    return (
-      (
-        document.querySelector(
-          'input[name="csrfmiddlewaretoken"]',
-        ) as HTMLInputElement
-      )?.value ?? ""
-    );
-  }
-
   private toggleSpeak(): void {
     this.autoSpeak = !this.autoSpeak;
     this.speakBtn?.classList.toggle("active", this.autoSpeak);
@@ -217,7 +213,7 @@ class GlobalAIChat {
   private async speak(text: string): Promise<void> {
     this.currentAudio?.pause();
     this.currentAudio = null;
-    this.currentAudio = await speakText(text, this.getCsrf());
+    this.currentAudio = await speakText(text, getCsrfToken());
   }
 
   private toggleRecording(): void {
@@ -226,7 +222,7 @@ class GlobalAIChat {
       this.recorder.stop();
     } else {
       void this.recorder.start(
-        () => this.getCsrf(),
+        () => getCsrfToken(),
         (text) => {
           if (!this.inputEl) return;
           const cur = this.inputEl.value.trim();
@@ -258,7 +254,7 @@ class GlobalAIChat {
     for (const msg of stored) {
       const el = this.createMsgEl(msg.role);
       el.appendChild(document.createTextNode(msg.text));
-      if (msg.toolsUsed?.length) this.appendToolTags(el, msg.toolsUsed);
+      if (msg.toolsUsed?.length) appendToolTags(el, msg.toolsUsed);
     }
   }
 
@@ -270,44 +266,16 @@ class GlobalAIChat {
     return el;
   }
 
-  private appendToolTags(msgEl: HTMLElement, tools: string[]): void {
-    let toolsDiv = msgEl.querySelector<HTMLElement>(".scitex-ai-tools");
-    if (!toolsDiv) {
-      toolsDiv = document.createElement("div");
-      toolsDiv.className = "scitex-ai-tools";
-      msgEl.appendChild(toolsDiv);
-    }
-    for (const name of tools) {
-      const tag = document.createElement("span");
-      tag.className = "scitex-ai-tool-tag";
-      tag.textContent = name;
-      toolsDiv.appendChild(tag);
-    }
-  }
-
-  private fetchCurrentModel(): void {
-    fetch("/llm/api/model/")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.success && data.model) this.setModelBadge(data.model);
-      })
-      .catch(() => {});
-  }
-
-  private setModelBadge(modelName: string): void {
-    if (!this.modelBadge) return;
-    const display = modelName.includes("/")
-      ? modelName.split("/").slice(1).join("/")
-      : modelName;
-    this.modelBadge.textContent = display;
-    this.modelBadge.title = modelName;
-    sessionStorage.setItem(MODEL_KEY, modelName);
-  }
-
   private async send(): Promise<void> {
     if (this.busy || !this.inputEl || !this.messagesEl) return;
     const prompt = this.inputEl.value.trim();
     if (!prompt) return;
+
+    // Bash mode: "! <command>" executes shell and returns output
+    if (prompt.startsWith("!")) {
+      await this.execBash(prompt.slice(1).trim());
+      return;
+    }
 
     this.currentAudio?.pause();
     this.currentAudio = null;
@@ -337,7 +305,7 @@ class GlobalAIChat {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-CSRFToken": this.getCsrf(),
+          "X-CSRFToken": getCsrfToken(),
         },
         body: JSON.stringify({ prompt, context: this.context }),
       });
@@ -382,7 +350,7 @@ class GlobalAIChat {
           }
 
           if (event.type === "model") {
-            this.setModelBadge(event.name as string);
+            setModelBadge(this.modelBadge, event.name as string);
           } else if (event.type === "chunk") {
             if (!hasText) {
               msgEl.appendChild(document.createTextNode(event.text as string));
@@ -397,7 +365,7 @@ class GlobalAIChat {
             this.messagesEl!.scrollTop = this.messagesEl!.scrollHeight;
           } else if (event.type === "tool_start") {
             toolsUsed.push(event.name as string);
-            this.appendToolTags(msgEl, [event.name as string]);
+            appendToolTags(msgEl, [event.name as string]);
             hasText = false; // next chunk starts fresh after the tool tag
 
             // Browser-native tools: server skips MCP call, browser executes.
@@ -465,6 +433,46 @@ class GlobalAIChat {
       const errEl = this.createMsgEl("error");
       errEl.textContent = `Network error: ${err}`;
       saveMessage({ role: "error", text: errEl.textContent });
+    } finally {
+      this.busy = false;
+      this.sendBtn!.disabled = false;
+    }
+  }
+
+  private async execBash(command: string): Promise<void> {
+    if (!this.messagesEl) return;
+    this.messagesEl.querySelector(".scitex-ai-empty")?.remove();
+    const userEl = this.createMsgEl("user");
+    userEl.textContent = `! ${command}`;
+    saveMessage({ role: "user", text: `! ${command}` });
+    this.inputEl!.value = "";
+    this.inputEl!.style.height = "auto";
+    this.busy = true;
+    this.sendBtn!.disabled = true;
+    try {
+      const resp = await fetch("/llm/api/bash/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCsrfToken(),
+        },
+        body: JSON.stringify({ command }),
+      });
+      const d = (await resp.json()) as {
+        stdout?: string;
+        stderr?: string;
+        returncode?: number;
+        error?: string;
+      };
+      const outEl = this.createMsgEl("assistant");
+      const text = d.error
+        ? `Error: ${d.error}`
+        : `${d.stdout || ""}${d.stderr ? `\nstderr: ${d.stderr}` : ""}`.trim() ||
+          "(no output)";
+      outEl.innerHTML = `<pre style="margin:0;white-space:pre-wrap;font-family:monospace">${text}</pre>`;
+      saveMessage({ role: "assistant", text });
+    } catch (err) {
+      this.createMsgEl("error").textContent = `Bash error: ${err}`;
     } finally {
       this.busy = false;
       this.sendBtn!.disabled = false;
