@@ -1,19 +1,29 @@
 from django.urls import path
+from django.views.generic import RedirectView
+
 from .views import (
-    profile_view,
-    profile_edit,
-    appearance_settings,
     account_settings,
-    git_integrations,
-    ssh_keys,
-    remote_credentials,
-    api_keys,
+    ai_providers,
     api_generate_ssh_key,
+    api_keys,
+    appearance_settings,
+    git_integrations,
+    profile_edit,
+    profile_view,
+    remote_credentials,
+    repository_health,
+    ssh_keys,
 )
 
 app_name = "accounts_app"
 
 urlpatterns = [
+    # Settings root redirect
+    path(
+        "settings/",
+        RedirectView.as_view(pattern_name="accounts_app:profile_edit"),
+        name="settings",
+    ),
     # Profile views
     path("profile/", profile_view, name="profile"),
     path("settings/profile/", profile_edit, name="profile_edit"),
@@ -21,12 +31,15 @@ urlpatterns = [
     path("settings/account/", account_settings, name="account"),
     # Integrations
     path("settings/integrations/", git_integrations, name="git_integrations"),
+    path("settings/ai-providers/", ai_providers, name="ai_providers"),
     # SSH Keys
     path("settings/ssh-keys/", ssh_keys, name="ssh_keys"),
     # Remote Credentials
     path("settings/remote/", remote_credentials, name="remote_credentials"),
     # API Keys
     path("settings/api-keys/", api_keys, name="api_keys"),
+    # Repositories
+    path("settings/repository-health/", repository_health, name="repository_health"),
     # API Endpoints
     path(
         "api/ssh-keys/generate/",

@@ -1,0 +1,127 @@
+"""AI Providers settings page - manage LLM API key connections."""
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect, render
+
+from apps.integrations_app.models import IntegrationConnection
+from apps.llm_app.models import LLMConnection
+from apps.llm_app.utils import ALL_LLM_SERVICE_IDS, LLM_PROVIDERS
+
+
+def _mask_key(key):
+    """Mask API key for display: show first 4 and last 4 chars."""
+    if not key or len(key) < 8:
+        return None
+    return f"{key[:4]}...{key[-4:]}"
+
+
+def _handle_create(request):
+    """Handle creating a new LLM provider connection."""
+    service = request.POST.get("service", "").strip()
+    api_key = request.POST.get("api_key", "").strip()
+    default_model = request.POST.get("default_model", "").strip()
+
+    if not service or service not in ALL_LLM_SERVICE_IDS:
+        messages.error(request, "Please select a valid provider.")
+        return
+
+    needs_key = LLM_PROVIDERS.get(service, {}).get("needs_key", True)
+    if not api_key and needs_key:
+        messages.error(request, "API key is required.")
+        return
+
+    existing = IntegrationConnection.objects.filter(
+        user=request.user, service=service
+    ).first()
+    if existing:
+        messages.error(
+            request,
+            f"{existing.get_service_display()} is already connected. Delete it first.",
+        )
+        return
+
+    connection = IntegrationConnection.objects.create(
+        user=request.user,
+        service=service,
+        status="active",
+    )
+    if api_key:
+        connection.set_api_key(api_key)
+        connection.save()
+
+    LLMConnection.objects.create(
+        connection=connection,
+        default_model=default_model,
+    )
+    messages.success(
+        request, f"{connection.get_service_display()} connected successfully!"
+    )
+
+
+def _handle_delete(request):
+    """Handle deleting an LLM provider connection."""
+    provider_id = request.POST.get("provider_id")
+    try:
+        connection = IntegrationConnection.objects.get(
+            id=provider_id,
+            user=request.user,
+            service__in=tuple(ALL_LLM_SERVICE_IDS),
+        )
+        name = connection.get_service_display()
+        connection.delete()
+        messages.success(request, f"{name} disconnected.")
+    except IntegrationConnection.DoesNotExist:
+        messages.error(request, "Provider not found.")
+
+
+@login_required
+def ai_providers(request):
+    """AI Providers settings page."""
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "create":
+            _handle_create(request)
+        elif action == "delete":
+            _handle_delete(request)
+        return redirect("accounts_app:ai_providers")
+
+    connections = (
+        IntegrationConnection.objects.filter(
+            user=request.user,
+            service__in=tuple(ALL_LLM_SERVICE_IDS),
+        )
+        .select_related("llm_connection")
+        .order_by("-created_at")
+    )
+
+    providers = []
+    for conn in connections:
+        data = {
+            "id": conn.id,
+            "service": conn.service,
+            "service_display": conn.get_service_display(),
+            "status": conn.status,
+            "masked_key": _mask_key(conn.get_api_key()),
+            "default_model": "",
+            "total_requests": 0,
+            "total_tokens_used": 0,
+            "estimated_cost_usd": 0,
+        }
+        if hasattr(conn, "llm_connection"):
+            llm = conn.llm_connection
+            data.update(
+                {
+                    "default_model": llm.default_model,
+                    "total_requests": llm.total_requests,
+                    "total_tokens_used": llm.total_tokens_used,
+                    "estimated_cost_usd": llm.estimated_cost_usd,
+                }
+            )
+        providers.append(data)
+
+    return render(
+        request,
+        "accounts_app/ai_providers.html",
+        {"providers": providers},
+    )

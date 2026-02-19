@@ -1,5 +1,5 @@
 """Profile management views."""
-import logging
+
 import os
 from pathlib import Path
 
@@ -9,8 +9,6 @@ from django.shortcuts import redirect, render
 
 from apps.accounts_app.models import UserProfile
 
-logger = logging.getLogger(__name__)
-
 
 def calculate_storage_usage(user):
     """Calculate storage usage for user's local projects."""
@@ -18,8 +16,12 @@ def calculate_storage_usage(user):
 
     total_storage_bytes = 0
     try:
-        for project in Project.objects.filter(user=user, project_type='local'):
-            project_path = Path(project.git_clone_path) if hasattr(project, 'git_clone_path') and project.git_clone_path else None
+        for project in Project.objects.filter(user=user, project_type="local"):
+            project_path = (
+                Path(project.git_clone_path)
+                if hasattr(project, "git_clone_path") and project.git_clone_path
+                else None
+            )
             if project_path and project_path.exists():
                 for root, dirs, files in os.walk(project_path):
                     for file in files:
@@ -29,15 +31,15 @@ def calculate_storage_usage(user):
                                 total_storage_bytes += os.path.getsize(file_path)
                         except (OSError, FileNotFoundError):
                             pass
-    except Exception as e:
-        logger.warning(f"Error calculating storage usage: {e}")
+    except Exception:
+        pass
 
     return total_storage_bytes
 
 
 def human_readable_size(bytes_size):
     """Convert bytes to human-readable format."""
-    for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+    for unit in ["B", "KB", "MB", "GB", "TB"]:
         if bytes_size < 1024.0:
             return f"{bytes_size:.1f} {unit}"
         bytes_size /= 1024.0
@@ -51,21 +53,22 @@ def gather_resource_statistics(user):
 
     # Project statistics
     total_projects = Project.objects.filter(owner=user).count()
-    local_projects = Project.objects.filter(owner=user, project_type='local').count()
-    remote_projects = Project.objects.filter(owner=user, project_type='remote').count()
+    local_projects = Project.objects.filter(owner=user, project_type="local").count()
+    remote_projects = Project.objects.filter(owner=user, project_type="remote").count()
 
     # Remote credentials
-    remote_credentials_count = RemoteCredential.objects.filter(user=user, is_active=True).count()
+    remote_credentials_count = RemoteCredential.objects.filter(
+        user=user, is_active=True
+    ).count()
 
     # Active services (TensorBoard, Jupyter, etc.)
     active_services = ProjectService.objects.filter(
-        user=user,
-        status__in=['starting', 'running']
+        user=user, status__in=["starting", "running"]
     ).count()
 
     # SSH keys count
-    workspace_ssh_keys = user.ssh_public_keys.filter(key_type='workspace').count()
-    git_ssh_keys = user.ssh_public_keys.filter(key_type='git').count()
+    workspace_ssh_keys = user.ssh_public_keys.filter(key_type="workspace").count()
+    git_ssh_keys = user.ssh_public_keys.filter(key_type="git").count()
     total_ssh_keys = workspace_ssh_keys + git_ssh_keys
 
     # Storage usage
@@ -107,40 +110,49 @@ def profile_view(request):
 
 @login_required
 def profile_edit(request):
-    """Edit user profile (GitHub-style settings page)."""
-    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    """Edit user profile and account settings (unified page)."""
+    from apps.accounts_app.views.settings_views import (
+        handle_change_email,
+        handle_change_password,
+    )
+
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
 
     if request.method == "POST":
-        # Update user basic info
-        request.user.first_name = request.POST.get("first_name", "").strip()
-        request.user.last_name = request.POST.get("last_name", "").strip()
-        request.user.email = request.POST.get("email", "").strip()
-        request.user.save()
+        action = request.POST.get("action", "")
 
-        # Update profile info
-        profile.bio = request.POST.get("bio", "").strip()
-        profile.location = request.POST.get("location", "").strip()
-        profile.timezone = request.POST.get("timezone", "").strip() or "UTC"
-        profile.institution = request.POST.get("institution", "").strip()
-        profile.website = request.POST.get("website", "").strip()
-        profile.orcid = request.POST.get("orcid", "").strip()
-        profile.google_scholar = request.POST.get("google_scholar", "").strip()
-        profile.twitter = request.POST.get("twitter", "").strip()
+        if action == "change_email":
+            if handle_change_email(request):
+                return redirect("/auth/verify-email/?type=email_change")
+        elif action == "change_password":
+            handle_change_password(request)
+        else:
+            # Profile data update (email handled separately via OTP flow)
+            request.user.first_name = request.POST.get("first_name", "").strip()
+            request.user.last_name = request.POST.get("last_name", "").strip()
+            request.user.save()
 
-        # Handle avatar upload
-        if "avatar" in request.FILES:
-            profile.avatar = request.FILES["avatar"]
+            profile.bio = request.POST.get("bio", "").strip()
+            profile.location = request.POST.get("location", "").strip()
+            profile.timezone = request.POST.get("timezone", "").strip() or "UTC"
+            profile.institution = request.POST.get("institution", "").strip()
+            profile.website = request.POST.get("website", "").strip()
+            profile.orcid = request.POST.get("orcid", "").strip()
+            profile.google_scholar = request.POST.get("google_scholar", "").strip()
+            profile.twitter = request.POST.get("twitter", "").strip()
 
-        profile.save()
+            if "avatar" in request.FILES:
+                profile.avatar = request.FILES["avatar"]
 
-        messages.success(request, "Profile updated successfully!")
+            profile.save()
+            messages.success(request, "Profile updated successfully!")
+
         return redirect("accounts_app:profile_edit")
 
     context = {
         "profile": profile,
         "user": request.user,
     }
-
     return render(request, "accounts_app/profile_edit.html", context)
 
 

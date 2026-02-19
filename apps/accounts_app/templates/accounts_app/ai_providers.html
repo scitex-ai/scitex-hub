@@ -1,0 +1,134 @@
+{% extends 'global_base.html' %}
+
+{% load static vite %}
+
+{% block title %}AI Providers - Settings - SciTeX Cloud{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/layouts/settings-layout.css' %}" />
+    <link rel="stylesheet" href="{% static 'accounts_app/css/ai_providers.css' %}" />
+{% endblock %}
+{% block content %}
+    <div class="settings-page">
+        <div class="settings-layout">
+            <!-- Left Navigation -->
+            <aside class="settings-nav">
+                {% include 'accounts_app/partials/settings_nav.html' with active='ai_providers' %}
+            </aside>
+            <!-- Main Content -->
+            <main class="settings-content">
+                <div class="settings-header">
+                    <h1 class="settings-title">AI Providers</h1>
+                    <p class="settings-subtitle">Connect your LLM API keys to enable AI co-pilot features across SciTeX Cloud.</p>
+                </div>
+                <!-- Add Provider Form -->
+                <details class="provider-details">
+                    <summary class="provider-summary">
+                        <i class="fas fa-plus"></i> Add a new provider
+                    </summary>
+                    <div class="create-form">
+                        <form method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="create" />
+                            <div class="form-group">
+                                <label for="service">Provider *</label>
+                                <select class="form-control" id="service" name="service" required>
+                                    <option value="">Loading providers...</option>
+                                </select>
+                                <small id="provider-hint">Choose which AI provider to connect.</small>
+                            </div>
+                            <div class="form-group" id="api-key-group">
+                                <label for="api_key">API Key *</label>
+                                <input type="password"
+                                       class="form-control"
+                                       id="api_key"
+                                       name="api_key"
+                                       placeholder="Paste your API key here"
+                                       autocomplete="new-password" />
+                                <small id="api-key-hint">Your key is encrypted at rest. <span id="api-key-link"></span></small>
+                            </div>
+                            <div class="form-group">
+                                <label for="default_model">Default Model</label>
+                                <input type="text"
+                                       class="form-control"
+                                       id="default_model"
+                                       name="default_model"
+                                       list="model-suggestions"
+                                       placeholder="Select or type a model name"
+                                       autocomplete="off" />
+                                <datalist id="model-suggestions"></datalist>
+                                <small>Leave blank for provider default.</small>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Add provider</button>
+                        </form>
+                    </div>
+                </details>
+                <!-- Existing Providers -->
+                <details class="settings-details">
+                    <summary class="settings-summary">
+                        <i class="fas fa-list"></i> List registered providers
+                    </summary>
+                    {% if providers %}
+                        {% for p in providers %}
+                            <div class="provider-card">
+                                <div class="provider-header">
+                                    <div>
+                                        <h3>{{ p.service_display }}</h3>
+                                        {% if p.masked_key %}
+                                            <div class="provider-key-row">
+                                                <span class="provider-key" data-provider-id="{{ p.id }}">{{ p.masked_key }}</span>
+                                                <button type="button"
+                                                        class="btn-reveal-key"
+                                                        data-provider-id="{{ p.id }}"
+                                                        title="Show/hide API key">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <span class="provider-status {{ p.status }}">{{ p.status }}</span>
+                                </div>
+                                {% if p.default_model %}
+                                    <div class="provider-meta">
+                                        <strong>Model:</strong> <code>{{ p.default_model }}</code>
+                                    </div>
+                                {% endif %}
+                                <div class="provider-meta">
+                                    <strong>Requests:</strong> {{ p.total_requests }}
+                                    &middot;
+                                    <strong>Tokens:</strong> {{ p.total_tokens_used|default:"0" }}
+                                    &middot;
+                                    <strong>Cost:</strong> ${{ p.estimated_cost_usd|floatformat:4 }}
+                                </div>
+                                <div class="provider-actions">
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-primary test-provider-btn"
+                                            data-provider-id="{{ p.id }}">
+                                        <i class="fas fa-plug"></i> Test
+                                    </button>
+                                    <form method="POST"
+                                          onsubmit="return confirm('Delete this provider? AI features using it will stop working.');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete" />
+                                        <input type="hidden" name="provider_id" value="{{ p.id }}" />
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </form>
+                                </div>
+                                <div class="provider-test-result" id="test-result-{{ p.id }}"></div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state-card">
+                            <h3>No AI providers connected yet.</h3>
+                            <p>Add a provider above to enable AI co-pilot features in Writer, Scholar, and Console.</p>
+                        </div>
+                    {% endif %}
+                </details>
+            </main>
+        </div>
+    </div>
+{% endblock %}
+{% block extra_js %}
+    {% vite_script 'accounts_app/ai_providers' %}
+{% endblock %}

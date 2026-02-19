@@ -296,6 +296,7 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
       rootDir,
       "static/shared/ts/components/workspace-files-tree/auto-init.ts",
     ),
+    "shared/global-ai-chat": r(rootDir, "static/shared/ts/global-ai-chat.ts"),
 
     // Scholar app
     "scholar_app/scholar-config": r(
@@ -390,6 +391,10 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
     "accounts_app/remote_credentials": r(
       rootDir,
       "apps/accounts_app/static/accounts_app/ts/remote_credentials.ts",
+    ),
+    "accounts_app/ai_providers": r(
+      rootDir,
+      "apps/accounts_app/static/accounts_app/ts/ai_providers.ts",
     ),
 
     // Social app

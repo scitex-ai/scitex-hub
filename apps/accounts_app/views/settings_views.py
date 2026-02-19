@@ -1,4 +1,5 @@
 """Account settings and integrations views."""
+
 import secrets
 
 from django.contrib import messages
@@ -85,22 +86,18 @@ def handle_change_password(request):
 
 @login_required
 def account_settings(request):
-    """Account settings page (email, password, delete account)."""
-    if request.method == "POST":
-        action = request.POST.get("action")
+    """Redirect to unified profile settings page."""
+    return redirect("accounts_app:profile_edit")
 
-        if action == "change_email":
-            if handle_change_email(request):
-                return redirect(f"/auth/verify-email/?type=email_change")
-        elif action == "change_password":
-            handle_change_password(request)
 
-        return redirect("accounts_app:account")
-
-    context = {
-        "user": request.user,
-    }
-    return render(request, "accounts_app/account_settings.html", context)
+@login_required
+def repository_health(request):
+    """Repository Health inline settings page."""
+    return render(
+        request,
+        "accounts_app/repository_health.html",
+        {"username": request.user.username},
+    )
 
 
 @login_required
@@ -132,14 +129,14 @@ def git_integrations(request):
 
     context = {
         "profile": profile,
-        "github_token_masked": mask_token(profile.github_token)
-        if profile.github_token
-        else None,
-        "gitlab_token_masked": mask_token(profile.gitlab_token)
-        if profile.gitlab_token
-        else None,
-        "bitbucket_token_masked": mask_token(profile.bitbucket_token)
-        if profile.bitbucket_token
-        else None,
+        "github_token_masked": (
+            mask_token(profile.github_token) if profile.github_token else None
+        ),
+        "gitlab_token_masked": (
+            mask_token(profile.gitlab_token) if profile.gitlab_token else None
+        ),
+        "bitbucket_token_masked": (
+            mask_token(profile.bitbucket_token) if profile.bitbucket_token else None
+        ),
     }
     return render(request, "accounts_app/git_integrations.html", context)
