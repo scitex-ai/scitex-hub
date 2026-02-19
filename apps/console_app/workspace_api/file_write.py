@@ -4,20 +4,16 @@ Code Workspace API Views - File operations for the simple editor.
 
 import json
 import logging
-import subprocess
-from pathlib import Path
 
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from django.contrib.auth.decorators import login_required
+
 from apps.project_app.models import Project
-from apps.project_app.services.git_status import get_git_status, get_file_diff
-from apps.project_app.services.git_service import git_commit_and_push
 
 logger = logging.getLogger(__name__)
 
 
-@require_http_methods(["GET"])
+@require_http_methods(["POST"])
 def api_save_file(request):
     """Save file content (supports both local and remote projects)."""
     try:
@@ -40,22 +36,23 @@ def api_save_file(request):
         else:
             # For visitor users, check if this is their allocated visitor project
             visitor_project_id = request.session.get("visitor_project_id")
-            has_access = (visitor_project_id and project.id == visitor_project_id)
+            has_access = visitor_project_id and project.id == visitor_project_id
 
         if not has_access:
             return JsonResponse({"error": "Unauthorized"}, status=403)
 
         # Get project path (works for both local and remote projects)
-        from apps.project_app.services.project_service_manager import ProjectServiceManager
+        from apps.project_app.services.project_service_manager import (
+            ProjectServiceManager,
+        )
+
         service_manager = ProjectServiceManager(project)
         project_path = service_manager.get_project_path()
 
         file_full_path = project_path / file_path
 
         # Security check
-        if not str(file_full_path.resolve()).startswith(
-            str(project_path.resolve())
-        ):
+        if not str(file_full_path.resolve()).startswith(str(project_path.resolve())):
             return JsonResponse({"error": "Invalid file path"}, status=400)
 
         file_full_path.parent.mkdir(parents=True, exist_ok=True)
@@ -66,12 +63,14 @@ def api_save_file(request):
         # Auto-commit disabled - users should commit manually when ready
         # Git tracks changes but doesn't auto-commit, so git gutter shows modifications
 
-        return JsonResponse({
-            "success": True,
-            "message": "File saved successfully",
-            "path": file_path,
-            "project_type": project.project_type,
-        })
+        return JsonResponse(
+            {
+                "success": True,
+                "message": "File saved successfully",
+                "path": file_path,
+                "project_type": project.project_type,
+            }
+        )
 
     except Exception as e:
         logger.error(f"Error saving file: {e}", exc_info=True)
