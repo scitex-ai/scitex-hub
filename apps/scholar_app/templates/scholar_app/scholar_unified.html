@@ -885,5 +885,23 @@
         // The sidebar-toggle and properties-toggle buttons are managed by
         // static/shared/ts/components/workspace-panel-resizer.ts
         // which provides unified panel resizing and collapse functionality.
+
+        {% if current_project %}
+        // Inject project context into global AI panel so AI knows which project is active
+        (function injectAIContext() {
+            const ctx = {
+                page: "scholar",
+                project: "{{ current_project.name|escapejs }}",
+                project_slug: "{{ current_project.slug|escapejs }}",
+            };
+            if (window.scitexAI) {
+                window.scitexAI.setContext(ctx);
+            } else {
+                document.addEventListener("DOMContentLoaded", () => {
+                    if (window.scitexAI) window.scitexAI.setContext(ctx);
+                });
+            }
+        })();
+        {% endif %}
     </script>
 {% endblock %}
