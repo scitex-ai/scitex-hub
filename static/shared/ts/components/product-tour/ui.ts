@@ -22,8 +22,11 @@ export function createTooltip(): HTMLElement {
       <h3 class="product-tour-title"></h3>
       <p class="product-tour-description"></p>
       <div class="product-tour-actions">
-        <button class="product-tour-btn product-tour-prev">&larr; Previous</button>
-        <button class="product-tour-btn product-tour-next primary">Next &rarr;</button>
+        <button class="product-tour-btn product-tour-stop stop">Stop tour</button>
+        <div style="display:flex;gap:8px;margin-left:auto">
+          <button class="product-tour-btn product-tour-prev">&larr; Prev</button>
+          <button class="product-tour-btn product-tour-next success">Next &rarr;</button>
+        </div>
       </div>
     </div>
     <div class="product-tour-arrow"></div>
@@ -126,10 +129,10 @@ export function highlightElement(element: Element): void {
   highlightOverlay.style.height = `${visibleHeight}px`;
   highlightOverlay.style.pointerEvents = "none";
   highlightOverlay.style.zIndex = "10001";
-  highlightOverlay.style.border = "4px solid var(--accent-color, #6366f1)";
+  highlightOverlay.style.border = "4px solid var(--color-accent-fg, #0969da)";
   highlightOverlay.style.borderRadius = "8px";
   highlightOverlay.style.boxShadow =
-    "inset 0 0 20px rgba(99, 102, 241, 0.3), 0 0 20px rgba(99, 102, 241, 0.4)";
+    "inset 0 0 20px rgba(9, 105, 218, 0.2), 0 0 20px rgba(9, 105, 218, 0.4)";
   highlightOverlay.style.animation =
     "product-tour-pulse 2s ease-in-out infinite";
 }
@@ -161,7 +164,7 @@ export function showRestartHint(): void {
   restartHintTooltip.innerHTML = `
     <div class="product-tour-tooltip-content">
       <div class="product-tour-tooltip-header">
-        <span class="product-tour-step-indicator" style="color: var(--accent-color, #6366f1);">
+        <span class="product-tour-step-indicator" style="color: var(--color-accent-fg, #0969da);">
           <i class="fas fa-redo"></i> Tip
         </span>
       </div>
@@ -186,10 +189,10 @@ export function showRestartHint(): void {
   tourBtnHighlight.style.height = `${rect.height}px`;
   tourBtnHighlight.style.pointerEvents = "none";
   tourBtnHighlight.style.zIndex = "10001";
-  tourBtnHighlight.style.border = "4px solid var(--accent-color, #6366f1)";
+  tourBtnHighlight.style.border = "4px solid var(--color-accent-fg, #0969da)";
   tourBtnHighlight.style.borderRadius = "8px";
   tourBtnHighlight.style.boxShadow =
-    "inset 0 0 20px rgba(99, 102, 241, 0.3), 0 0 20px rgba(99, 102, 241, 0.4)";
+    "inset 0 0 20px rgba(9, 105, 218, 0.2), 0 0 20px rgba(9, 105, 218, 0.4)";
   tourBtnHighlight.style.animation =
     "product-tour-pulse 2s ease-in-out infinite";
 
