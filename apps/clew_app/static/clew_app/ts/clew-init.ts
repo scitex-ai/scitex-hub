@@ -3,7 +3,18 @@
  * Sets up the DAG visualization interface and file tree
  */
 
-import { clewApi, type DagData } from "./api-client";
+import mermaid from "mermaid";
+import { clewApi } from "./api-client";
+
+// Initialize mermaid once at module load
+mermaid.initialize({
+  startOnLoad: false,
+  theme: document.documentElement.classList.contains("dark-mode")
+    ? "dark"
+    : "default",
+  securityLevel: "loose",
+  flowchart: { curve: "basis" },
+});
 
 class ClewApp {
   private dagArea: HTMLElement | null = null;
@@ -26,20 +37,15 @@ class ClewApp {
   }
 
   async initialize() {
-    // File tree is now initialized by shared/workspace-tree-init
-
     if (!this.projectOwner || !this.projectSlug) {
       console.log("[Clew] No project selected");
       return;
     }
 
-    // Load initial statistics
     await this.loadStats();
-
-    // Setup event listeners
     this.setupEventListeners();
+    this.setupHeaderButtons();
 
-    // Check for file parameter in URL
     const urlParams = new URLSearchParams(window.location.search);
     const targetFile = urlParams.get("file");
     if (targetFile) {
@@ -51,29 +57,52 @@ class ClewApp {
     const response = await clewApi.getStats();
     if (response.success && response.data) {
       this.updateStatsDisplay(response.data);
-    } else {
-      console.error("[Clew] Failed to load stats:", response.error);
     }
   }
 
   private updateStatsDisplay(stats: any) {
     const placeholder = this.dagArea?.querySelector(".dag-placeholder");
     if (placeholder) {
-      const statsHtml = `
+      placeholder.innerHTML = `
         <i class="fas fa-project-diagram fa-3x"></i>
         <h3>DAG Visualization</h3>
         <p>Database contains ${stats.total_runs} runs</p>
         <p class="text-muted">
           ${stats.success_runs} successful, ${stats.failed_runs} failed
         </p>
-        <p class="text-muted">
-          Tracking ${stats.unique_files} unique files
-        </p>
-        <p class="text-muted">
-          Uses <code>scitex.clew</code> package for dependency tracking
-        </p>
+        <p class="text-muted">Tracking ${stats.unique_files} unique files</p>
+        ${stats.total_runs > 0 ? '<button class="btn btn-sm btn-outline-primary mt-2" id="showAllDag">Show all runs</button>' : ""}
       `;
-      placeholder.innerHTML = statsHtml;
+      const btn = placeholder.querySelector("#showAllDag");
+      btn?.addEventListener("click", () => this.renderFullDag());
+    }
+  }
+
+  private setupHeaderButtons() {
+    const header = document.querySelector(".clew-header");
+    if (!header) return;
+
+    const btn = document.createElement("button");
+    btn.className = "btn btn-sm btn-outline-secondary ms-2";
+    btn.innerHTML = '<i class="fas fa-play-circle"></i> Add Examples';
+    btn.title = "Load example Clew pipeline scripts into this project";
+    btn.addEventListener("click", () => this.addExamples(btn));
+    header.appendChild(btn);
+  }
+
+  private async addExamples(btn: HTMLButtonElement) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+
+    const response = await clewApi.addExamples();
+    if (response.success) {
+      btn.innerHTML = '<i class="fas fa-check"></i> Examples added';
+      await this.loadStats();
+    } else {
+      btn.innerHTML = '<i class="fas fa-play-circle"></i> Add Examples';
+      btn.disabled = false;
+      console.error("[Clew] Failed to add examples:", response.error);
+      alert(`Failed to add examples: ${response.error}`);
     }
   }
 
@@ -92,81 +121,58 @@ class ClewApp {
 
     const response = await clewApi.verifyChain(filePath);
     if (response.success && response.data) {
-      await this.renderDag(filePath);
+      await this.renderMermaidDag(filePath);
       this.showChainDetails(response.data);
     } else {
       this.showError(response.error || "Failed to load verification chain");
     }
   }
 
-  private async renderDag(targetFile: string) {
-    const response = await clewApi.getDagJson({
-      targetFile,
-      pathMode: "name",
-    });
-
-    if (response.success && response.data) {
-      this.renderDagVisualization(response.data);
-    } else {
-      this.showError(response.error || "Failed to load DAG data");
-    }
+  private async renderFullDag() {
+    this.showLoading();
+    await this.renderMermaidDag(undefined);
   }
 
-  private renderDagVisualization(dagData: DagData) {
+  private async renderMermaidDag(targetFile?: string) {
     if (!this.dagArea) return;
 
-    if (dagData.metadata.empty || dagData.nodes.length === 0) {
+    const response = await clewApi.getMermaidDag(
+      targetFile ? { targetFile, pathMode: "name" } : { pathMode: "name" },
+    );
+
+    if (!response.success || !response.data?.mermaid) {
+      this.showError(response.error || "Failed to load DAG");
+      return;
+    }
+
+    const code = response.data.mermaid.trim();
+    if (!code || code === "graph TD") {
       this.dagArea.innerHTML = `
         <div class="dag-placeholder">
           <i class="fas fa-info-circle fa-3x"></i>
           <h3>No Verification Data</h3>
-          <p>This file has not been tracked by scitex.clew</p>
-          <p class="text-muted">
-            Run your analysis scripts with <code>@stx.session</code> decorator
-            to enable verification tracking
-          </p>
+          <p>Run scripts with <code>@stx.session</code> to enable tracking</p>
+          <p class="text-muted">Or click "Add Examples" to load sample pipelines</p>
         </div>
       `;
       return;
     }
 
-    const dagHtml = this.generateSimpleDagHtml(dagData);
-    this.dagArea.innerHTML = dagHtml;
-  }
+    // Render using mermaid
+    const containerId = "mermaid-dag-" + Date.now();
+    const wrapper = document.createElement("div");
+    wrapper.className = "dag-mermaid-wrapper";
+    wrapper.innerHTML = `<div class="mermaid" id="${containerId}">${code}</div>`;
+    this.dagArea.innerHTML = "";
+    this.dagArea.appendChild(wrapper);
 
-  private generateSimpleDagHtml(dagData: DagData): string {
-    const { nodes, links } = dagData;
-
-    let html = '<div class="dag-simple-view">';
-    html += `<h4>Verification Chain (${nodes.length} nodes, ${links.length} edges)</h4>`;
-
-    const scripts = nodes.filter((n) => n.type === "script");
-    const files = nodes.filter((n) => n.type === "file");
-
-    html += "<div class='dag-section'>";
-    html += `<h5>Scripts (${scripts.length})</h5><ul>`;
-    scripts.forEach((node) => {
-      const statusIcon =
-        node.status === "verified"
-          ? '<i class="fas fa-check-circle text-success"></i>'
-          : '<i class="fas fa-times-circle text-danger"></i>';
-      html += `<li>${statusIcon} ${node.name}</li>`;
-    });
-    html += "</ul></div>";
-
-    html += "<div class='dag-section'>";
-    html += `<h5>Files (${files.length})</h5><ul>`;
-    files.forEach((node) => {
-      const statusIcon =
-        node.status === "verified"
-          ? '<i class="fas fa-check-circle text-success"></i>'
-          : '<i class="fas fa-times-circle text-danger"></i>';
-      html += `<li>${statusIcon} ${node.name} (${node.role})</li>`;
-    });
-    html += "</ul></div>";
-
-    html += "</div>";
-    return html;
+    try {
+      await mermaid.run({ nodes: [wrapper.querySelector(".mermaid")!] });
+    } catch (err) {
+      console.error("[Clew] Mermaid render error:", err);
+      // Fallback: show code as preformatted text
+      wrapper.innerHTML = `<pre class="dag-mermaid-code">${code}</pre>`;
+    }
   }
 
   private showChainDetails(chainData: any) {
@@ -193,7 +199,6 @@ class ClewApp {
       `;
     });
     html += "</div>";
-
     this.detailsPanel.innerHTML = html;
   }
 

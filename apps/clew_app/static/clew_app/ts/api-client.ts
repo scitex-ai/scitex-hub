@@ -106,19 +106,36 @@ export interface DatabaseStats {
 export class ClewApiClient {
   private baseUrl = "/clew";
 
+  private getCsrf(): string {
+    const match = document.cookie.match(/csrftoken=([^;]+)/);
+    return match ? match[1] : "";
+  }
+
   private async fetchJson<T>(
     endpoint: string,
     params?: Record<string, string>,
+    method: "GET" | "POST" = "GET",
   ): Promise<ApiResponse<T>> {
     const url = new URL(`${this.baseUrl}${endpoint}`, window.location.origin);
-    if (params) {
+    if (method === "GET" && params) {
       Object.entries(params).forEach(([key, value]) => {
         url.searchParams.append(key, value);
       });
     }
 
     try {
-      const response = await fetch(url.toString());
+      const init: RequestInit =
+        method === "POST"
+          ? {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": this.getCsrf(),
+              },
+              body: JSON.stringify(params ?? {}),
+            }
+          : {};
+      const response = await fetch(url.toString(), init);
       const data = await response.json();
       return data;
     } catch (error) {
@@ -226,6 +243,13 @@ export class ClewApiClient {
     if (params?.pathMode) queryParams.path_mode = params.pathMode;
 
     return this.fetchJson<{ mermaid: string }>("/dag/mermaid/", queryParams);
+  }
+
+  /**
+   * Add example Clew pipeline scripts to the current project
+   */
+  async addExamples(): Promise<ApiResponse<{ message: string }>> {
+    return this.fetchJson<{ message: string }>("/add-examples/", {}, "POST");
   }
 }
 
