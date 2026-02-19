@@ -347,6 +347,13 @@ export class WorkspacePanelResizer {
     const toggleBtn = config.toggleButtonId
       ? document.getElementById(config.toggleButtonId)
       : null;
+
+    // Suppress transitions during initial state restore to prevent load animation
+    if (targetPanel) {
+      targetPanel.style.transition = "none";
+      void targetPanel.offsetWidth; // Force reflow so suppression takes effect
+    }
+
     if (targetPanel && toggleBtn && config.collapseStorageKey) {
       this.restoreCollapseState(config, targetPanel, toggleBtn);
     }
@@ -356,6 +363,13 @@ export class WorkspacePanelResizer {
 
     // Finally attach toggle click handler (skip restoreCollapseState since already done)
     this.initToggleClickHandler(config);
+
+    // Re-enable transitions after state is fully restored
+    if (targetPanel) {
+      requestAnimationFrame(() => {
+        targetPanel.style.transition = "";
+      });
+    }
   }
 
   /**
