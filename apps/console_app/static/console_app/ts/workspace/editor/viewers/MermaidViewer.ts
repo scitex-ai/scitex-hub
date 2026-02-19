@@ -47,9 +47,10 @@ export class MermaidViewer {
       const { default: mermaid } = await import("mermaid");
       mermaid.initialize({
         startOnLoad: false,
-        theme: document.documentElement.classList.contains("dark-mode")
-          ? "dark"
-          : "default",
+        theme:
+          document.documentElement.getAttribute("data-theme") === "dark"
+            ? "dark"
+            : "default",
         securityLevel: "loose",
       });
 
