@@ -11,7 +11,9 @@ import { WorkspaceOrchestrator } from "./workspace/index";
 // Panel resizing: Auto-initialized via data attributes in HTML template
 import type { EditorConfig, Project } from "./workspace/core/types";
 
-console.log("[DEBUG] apps/console_app/static/console_app/ts/workspace.ts loaded");
+console.log(
+  "[DEBUG] apps/console_app/static/console_app/ts/workspace.ts loaded",
+);
 
 // Make toggleCodeFolder available globally for HTML onclick handlers
 (window as any).toggleCodeFolder = toggleCodeFolder;
@@ -50,7 +52,7 @@ function getEditorConfig(): EditorConfig {
 
 function getCSRFToken(): string {
   const csrfInput = document.querySelector(
-    'input[name="csrfmiddlewaretoken"]'
+    'input[name="csrfmiddlewaretoken"]',
   ) as HTMLInputElement;
   return csrfInput?.value || "";
 }
@@ -72,6 +74,27 @@ function initWorkspace() {
   (window as any).createFolderInFolder = (parentPath: string) => {
     orchestrator.createFolderInFolder(parentPath);
   };
+
+  // Inject project context into the global AI panel
+  const projectEl = document.getElementById("project-data");
+  if (projectEl && (window as any).scitexAI) {
+    (window as any).scitexAI.setContext({
+      page: "console",
+      project: projectEl.dataset.projectName ?? "",
+      project_slug: projectEl.dataset.projectSlug ?? "",
+    });
+  } else if (projectEl) {
+    // Global AI may not be ready yet — set context once it's initialized
+    document.addEventListener("DOMContentLoaded", () => {
+      if ((window as any).scitexAI) {
+        (window as any).scitexAI.setContext({
+          page: "console",
+          project: projectEl.dataset.projectName ?? "",
+          project_slug: projectEl.dataset.projectSlug ?? "",
+        });
+      }
+    });
+  }
 
   console.log("[workspace.ts] Workspace orchestrator created");
 }
