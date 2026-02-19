@@ -38,7 +38,7 @@ export class EventHandler {
    */
   private setupCompleteListener(): void {
     this.compilationManager.onComplete((_jobId, pdfUrl) => {
-      this.viewer.displayPdf(pdfUrl);
+      this.viewer.displayPdf(pdfUrl, true);
     });
   }
 

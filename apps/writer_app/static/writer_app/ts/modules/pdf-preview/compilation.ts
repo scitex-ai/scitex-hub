@@ -124,10 +124,10 @@ export class CompilationHandler {
   }
 
   /**
-   * Get existing PDF URL
+   * Get existing PDF URL (without cache-buster — displayPdf() adds it when loading)
    */
   getExistingPdfUrl(sectionName: string, colorMode: "light" | "dark"): string {
-    return `/writer/api/project/${this.projectId}/pdf/preview-${sectionName}-${colorMode}.pdf?t=${Date.now()}`;
+    return `/writer/api/project/${this.projectId}/pdf/preview-${sectionName}-${colorMode}.pdf`;
   }
 
   /**

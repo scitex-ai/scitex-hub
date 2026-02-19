@@ -114,12 +114,20 @@ export class PDFPreviewManager {
         sectionName || "preview",
         colorMode,
       );
-      console.log(
-        "[PDFPreviewManager] ✓ Found existing PDF for",
-        colorMode,
-        "theme, showing immediately",
-      );
-      this.viewer.displayPdf(url);
+      const currentUrl = this.viewer.getCurrentPdfUrl();
+      if (currentUrl === url) {
+        // Already showing this PDF — skip redundant reload to prevent flash
+        console.log(
+          "[PDFPreviewManager] ✓ Existing PDF already displayed, skipping redundant reload",
+        );
+      } else {
+        console.log(
+          "[PDFPreviewManager] ✓ Found existing PDF for",
+          colorMode,
+          "theme, showing immediately",
+        );
+        this.viewer.displayPdf(url);
+      }
     } else {
       console.log(
         "[PDFPreviewManager] No existing",

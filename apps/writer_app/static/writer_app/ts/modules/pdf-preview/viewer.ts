@@ -53,11 +53,20 @@ export class PDFViewer {
   }
 
   /**
-   * Display PDF using PDF.js canvas viewer
+   * Display PDF using PDF.js canvas viewer.
+   * Pass force=true to reload even when the URL hasn't changed (e.g. after fresh compile).
    */
-  displayPdf(pdfUrl: string): void {
+  displayPdf(pdfUrl: string, force = false): void {
     if (!this.container || !this.pdfViewer) {
       console.error("[PDFViewer] No container or PDFJSViewer available");
+      return;
+    }
+
+    // Skip reload if showing the same URL and not forced (prevents flash on redundant calls)
+    if (!force && this.state.currentPdfUrl === pdfUrl) {
+      console.log(
+        "[PDFViewer] Same PDF URL already displayed, skipping reload",
+      );
       return;
     }
 
