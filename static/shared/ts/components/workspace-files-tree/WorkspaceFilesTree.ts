@@ -31,6 +31,7 @@ import {
 } from "./handlers/GitStatusHandler.ts";
 import type { SearchUIHandler } from "./handlers/SearchUIHandler.ts";
 import { initializeTreeHandlers } from "./handlers/TreeInitHandler.ts";
+import { getCsrfToken } from "../../utils/csrf.ts";
 import "./modals/index.js";
 
 export class WorkspaceFilesTree {
@@ -61,6 +62,8 @@ export class WorkspaceFilesTree {
   private treeData: TreeItem[] = [];
   private gitSummary: GitSummary = { staged: 0, modified: 0, untracked: 0 };
   private isLoading = false;
+  private pollTimer: ReturnType<typeof setInterval> | null = null;
+  private readonly POLL_INTERVAL_MS = 30_000;
 
   constructor(config: TreeConfig) {
     this.config = { showFolderActions: true, showGitStatus: true, ...config };
@@ -83,14 +86,14 @@ export class WorkspaceFilesTree {
       this.config,
       this.stateManager,
       () => this.treeData,
-      () => this.getCsrfToken(),
+      () => getCsrfToken(),
       () => this.rerender(),
       (type, detail) => this.emitEvent(type, detail),
       () => this.refresh(),
     );
     this.gitActions = new GitActions(
       this.config,
-      () => this.getCsrfToken(),
+      () => getCsrfToken(),
       () => this.refresh(),
       (message, type) => this.showMessage(message, type),
     );
@@ -104,7 +107,7 @@ export class WorkspaceFilesTree {
       (folderPath) => this.fileActions.createNewFile(folderPath),
       (folderPath) => this.fileActions.createNewFolder(folderPath),
       (path) => this.fileActions.copyFile(path),
-      (action, path) => this.handleGitAction(action, path),
+      (action, path) => this.gitActionDispatcher?.dispatch(action, path),
     );
     this.directoryFilterHandler = new DirectoryFilterHandler(() =>
       this.rerender(),
@@ -125,13 +128,13 @@ export class WorkspaceFilesTree {
     );
     this.undoRedoHandler = new UndoRedoHandler(
       this.config,
-      () => this.getCsrfToken(),
+      () => getCsrfToken(),
       () => this.refresh(),
       (message, type) => this.showMessage(message, type),
     );
     this.dragDropHandlers = new DragDropHandlers(
       this.config,
-      () => this.getCsrfToken(),
+      () => getCsrfToken(),
       () => this.refresh(),
       (message, type) => this.showMessage(message, type),
       () => this.selectionHandler.getSelectedPaths(),
@@ -142,7 +145,7 @@ export class WorkspaceFilesTree {
     );
     this.clipboardHandler = new ClipboardHandler(
       this.config,
-      () => this.getCsrfToken(),
+      () => getCsrfToken(),
       () => this.refresh(),
       (message, type) => this.showMessage(message, type),
       () => this.selectionHandler.getSelectedPaths(),
@@ -152,7 +155,7 @@ export class WorkspaceFilesTree {
       this.undoRedoHandler.recordOperation(op),
     );
     this.contextMenuHandler = new ContextMenuHandler(
-      (action, path) => this.handleContextMenuAction(action, path),
+      (action, path) => this.contextMenuActionHandler?.handle(action, path),
       () => this.clipboardHandler.hasClipboard(),
       (path) => this.isItemDirectory(path),
       () => this.undoRedoHandler.canUndo(),
@@ -164,7 +167,7 @@ export class WorkspaceFilesTree {
     );
     this.fileOperations = new TreeFileOperations(
       this.config,
-      () => this.getCsrfToken(),
+      () => getCsrfToken(),
       () => this.refresh(),
       (message, type) => this.showMessage(message, type),
       (path) => this.stateManager.expand(path),
@@ -194,14 +197,6 @@ export class WorkspaceFilesTree {
     return parts.join("/");
   }
 
-  private async handleContextMenuAction(
-    action: string,
-    path: string,
-  ): Promise<void> {
-    if (this.contextMenuActionHandler)
-      await this.contextMenuActionHandler.handle(action, path);
-  }
-
   async initialize(): Promise<void> {
     this.container = document.getElementById(this.config.containerId);
     if (!this.container)
@@ -224,11 +219,11 @@ export class WorkspaceFilesTree {
         isItemDirectory: (path) => this.isItemDirectory(path),
         getContainer: () => this.container,
         refresh: () => this.refresh(),
-        getCsrfToken: () => this.getCsrfToken(),
+        getCsrfToken: () => getCsrfToken(),
         showMessage: (msg, type) => this.showMessage(msg, type),
         getParentPath: (path) => this.getParentPath(path),
         handleContextMenuAction: (action, path) =>
-          this.handleContextMenuAction(action, path),
+          this.contextMenuActionHandler?.handle(action, path),
         getTreeData: () => this.treeData,
         setSearchQuery: (query) => this.setSearchQuery(query),
         clearSearch: () => this.clearSearch(),
@@ -255,6 +250,11 @@ export class WorkspaceFilesTree {
     } else {
       await this.loadTree();
     }
+
+    // Auto-reload: poll for external file system changes every 30s
+    this.pollTimer = setInterval(() => {
+      if (!this.isLoading) this.loadTree().catch(console.error);
+    }, this.POLL_INTERVAL_MS);
   }
 
   private handleFileClick(path: string, event?: MouseEvent): void {
@@ -371,18 +371,6 @@ export class WorkspaceFilesTree {
     }
   }
 
-  private getCsrfToken(): string {
-    const meta = document
-      .querySelector('meta[name="csrf-token"]')
-      ?.getAttribute("content");
-    if (meta) return meta;
-    for (const c of document.cookie.split(";")) {
-      const [n, v] = c.trim().split("=");
-      if (n === "csrftoken") return v;
-    }
-    return "";
-  }
-
   private emitEvent(type: string, detail: any): void {
     if (!this.container) return;
     this.container.dispatchEvent(
@@ -394,11 +382,6 @@ export class WorkspaceFilesTree {
     } else if (type === "folder-toggle" && this.config.onFolderToggle) {
       this.config.onFolderToggle(detail.path, detail.expanded);
     }
-  }
-
-  private async handleGitAction(action: string, path: string): Promise<void> {
-    if (this.gitActionDispatcher)
-      await this.gitActionDispatcher.dispatch(action, path);
   }
 
   private showMessage(
@@ -512,5 +495,11 @@ export class WorkspaceFilesTree {
   setShowGitStatus(show: boolean): void {
     this.config.showGitStatus = show;
     this.container?.classList.toggle("wft-no-git", !show);
+  }
+  destroy(): void {
+    if (this.pollTimer !== null) {
+      clearInterval(this.pollTimer);
+      this.pollTimer = null;
+    }
   }
 }
