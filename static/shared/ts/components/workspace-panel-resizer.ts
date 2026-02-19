@@ -364,10 +364,14 @@ export class WorkspacePanelResizer {
     // Finally attach toggle click handler (skip restoreCollapseState since already done)
     this.initToggleClickHandler(config);
 
-    // Re-enable transitions after state is fully restored
+    // Re-enable transitions after state is fully restored.
+    // Double-rAF ensures the browser paints the restored width before transitions
+    // are active, preventing the unwanted "resize animation on page load" flash.
     if (targetPanel) {
       requestAnimationFrame(() => {
-        targetPanel.style.transition = "";
+        requestAnimationFrame(() => {
+          targetPanel.style.transition = "";
+        });
       });
     }
   }
