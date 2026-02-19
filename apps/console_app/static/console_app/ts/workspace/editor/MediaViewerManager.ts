@@ -6,7 +6,12 @@
 
 import type { FileType } from "../core/types";
 import type { DataTableManager } from "@/components/data-table/index.js";
-import { PdfViewer, ImageViewer, CsvViewer } from "./viewers/index.js";
+import {
+  PdfViewer,
+  ImageViewer,
+  CsvViewer,
+  MermaidViewer,
+} from "./viewers/index.js";
 
 export class MediaViewerManager {
   private container: HTMLElement | null = null;
@@ -16,11 +21,13 @@ export class MediaViewerManager {
   private pdfViewer: PdfViewer;
   private imageViewer: ImageViewer;
   private csvViewer: CsvViewer;
+  private mermaidViewer: MermaidViewer;
 
   constructor() {
     this.pdfViewer = new PdfViewer();
     this.imageViewer = new ImageViewer();
     this.csvViewer = new CsvViewer();
+    this.mermaidViewer = new MermaidViewer();
     this.initContainer();
   }
 
@@ -75,7 +82,11 @@ export class MediaViewerManager {
   /**
    * Display a file in the media viewer
    */
-  displayFile(filePath: string, fileType: FileType, blobUrl?: string): void {
+  async displayFile(
+    filePath: string,
+    fileType: FileType,
+    blobUrl?: string,
+  ): Promise<void> {
     if (!this.container) {
       this.initContainer();
     }
@@ -88,13 +99,34 @@ export class MediaViewerManager {
 
     switch (fileType) {
       case "image":
-        this.imageViewer.display(wrapper, filePath, blobUrl, this.createToolbar.bind(this));
+        this.imageViewer.display(
+          wrapper,
+          filePath,
+          blobUrl,
+          this.createToolbar.bind(this),
+        );
         break;
       case "pdf":
-        this.pdfViewer.display(wrapper, filePath, blobUrl, this.createToolbar.bind(this));
+        this.pdfViewer.display(
+          wrapper,
+          filePath,
+          blobUrl,
+          this.createToolbar.bind(this),
+        );
         break;
       case "csv":
-        this.csvViewer.display(wrapper, filePath, this.createToolbar.bind(this));
+        this.csvViewer.display(
+          wrapper,
+          filePath,
+          this.createToolbar.bind(this),
+        );
+        break;
+      case "mermaid":
+        await this.mermaidViewer.display(
+          wrapper,
+          filePath,
+          this.createToolbar.bind(this),
+        );
         break;
       case "binary":
         this.displayBinaryPlaceholder(wrapper, filePath);
@@ -111,7 +143,10 @@ export class MediaViewerManager {
   /**
    * Display placeholder for binary files
    */
-  private displayBinaryPlaceholder(wrapper: HTMLElement, filePath: string): void {
+  private displayBinaryPlaceholder(
+    wrapper: HTMLElement,
+    filePath: string,
+  ): void {
     wrapper.className = "media-viewer-binary-wrapper";
 
     const fileName = filePath.split("/").pop() || filePath;
@@ -145,7 +180,14 @@ export class MediaViewerManager {
     toolbar.className = "media-viewer-toolbar";
 
     const fileName = filePath.split("/").pop() || filePath;
-    const icon = fileType === "image" ? "fa-image" : fileType === "pdf" ? "fa-file-pdf" : "fa-file";
+    const icon =
+      fileType === "image"
+        ? "fa-image"
+        : fileType === "pdf"
+          ? "fa-file-pdf"
+          : fileType === "mermaid"
+            ? "fa-project-diagram"
+            : "fa-file";
 
     toolbar.innerHTML = `
       <div class="media-viewer-toolbar-left">
@@ -167,7 +209,9 @@ export class MediaViewerManager {
       downloadBtn?.addEventListener("click", () => this.downloadFile(filePath));
 
       const openNewTabBtn = document.getElementById("media-open-new-tab");
-      openNewTabBtn?.addEventListener("click", () => this.openInNewTab(filePath));
+      openNewTabBtn?.addEventListener("click", () =>
+        this.openInNewTab(filePath),
+      );
     }, 0);
 
     return toolbar;
