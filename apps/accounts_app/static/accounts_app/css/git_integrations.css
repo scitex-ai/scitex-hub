@@ -2,13 +2,58 @@
    GIT INTEGRATIONS PAGE STYLES
    ======================================================================== */
 
+/* Collapsible section wrapper */
+.form-section-details {
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.form-section-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-fg-default);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  background: var(--color-canvas-subtle);
+}
+
+.form-section-summary::-webkit-details-marker {
+  display: none;
+}
+
+.form-section-summary::before {
+  content: "▶";
+  font-size: 10px;
+  transition: transform 0.15s;
+  color: var(--color-fg-muted);
+}
+
+.form-section-details[open] > .form-section-summary::before {
+  transform: rotate(90deg);
+}
+
+.connected-badge {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--color-success-subtle, #1a3a2a);
+  color: var(--color-success-fg, #3fb950);
+  margin-left: auto;
+}
+
 /* Form sections */
 .form-section {
   background: var(--color-canvas-default);
-  border: 1px solid var(--color-border-default);
-  border-radius: 6px;
-  padding: 24px;
-  margin-bottom: 24px;
+  padding: 20px 24px 24px;
+  margin-bottom: 0;
 }
 
 /* Section header */

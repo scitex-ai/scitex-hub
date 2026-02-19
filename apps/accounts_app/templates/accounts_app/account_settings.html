@@ -1,23 +1,22 @@
 {% extends "global_base.html" %}
+
 {% load static vite %}
+
 {% block title %}
     Account
     Settings
 {% endblock %}
 {% block extra_css %}
-    <link rel="stylesheet"
-          href="{% static 'shared/css/layouts/settings-layout.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'accounts_app/css/account-modals.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'accounts_app/css/account_settings.css' %}" />
+    <link rel="stylesheet" href="{% static 'shared/css/layouts/settings-layout.css' %}" />
+    <link rel="stylesheet" href="{% static 'accounts_app/css/account-modals.css' %}" />
+    <link rel="stylesheet" href="{% static 'accounts_app/css/account_settings.css' %}" />
 {% endblock %}
 {% block content %}
     <div class="settings-page">
         <div class="settings-layout">
             <!-- Left Navigation -->
             <aside class="settings-nav">
-                {%include 'accounts_app/partials/settings_nav.html' with active='account'%}
+                {% include 'accounts_app/partials/settings_nav.html' with active='account' %}
             </aside>
             <!-- Right Content -->
             <main class="settings-content">
@@ -38,132 +37,134 @@
                     </div>
                 {% endif %}
                 <!-- Change Email -->
-                <form method="post" class="form-section">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="change_email" />
-                    <div class="section-header">
-                        <h2 class="section-title">Change Email</h2>
-                        <p class="section-subtitle">Update your email address</p>
-                    </div>
-                    <div class="mb-3">
-                        <p class="current-email-text">
-                            Current email:
-                            <strong class="current-email-value">{{ user.email }}</strong>
-                        </p>
-                    </div>
-                    <div class="form-group">
-                        <label for="new_email">New email address</label>
-                        <input type="email"
-                               id="new_email"
-                               name="new_email"
-                               class="form-control"
-                               required
-                               placeholder="new@example.com" />
-                    </div>
-                    <button type="submit" class="btn-save">
-                        <i class="fas fa-check"></i>
-                        Update email
-                    </button>
-                </form>
+                <details class="settings-details">
+                    <summary class="settings-summary">
+                        <i class="fas fa-envelope"></i> Change Email
+                    </summary>
+                    <form method="post" class="form-section">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="change_email" />
+                        <div class="mb-3">
+                            <p class="current-email-text">
+                                Current email:
+                                <strong class="current-email-value">{{ user.email }}</strong>
+                            </p>
+                        </div>
+                        <div class="form-group">
+                            <label for="new_email">New email address</label>
+                            <input type="email"
+                                   id="new_email"
+                                   name="new_email"
+                                   class="form-control"
+                                   required
+                                   placeholder="new@example.com" />
+                        </div>
+                        <button type="submit" class="btn-save">
+                            <i class="fas fa-check"></i>
+                            Update email
+                        </button>
+                    </form>
+                </details>
                 <!-- Change Password -->
-                <form method="post" class="form-section">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="change_password" />
-                    <div class="section-header">
-                        <h2 class="section-title">Change Password</h2>
-                        <p class="section-subtitle">Update your password</p>
+                <details class="settings-details">
+                    <summary class="settings-summary">
+                        <i class="fas fa-lock"></i> Change Password
+                    </summary>
+                    <form method="post" class="form-section">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="change_password" />
+                        <div class="form-group">
+                            <label for="current_password">Current password</label>
+                            <div class="input-group">
+                                <input type="password"
+                                       id="current_password"
+                                       name="current_password"
+                                       class="form-control"
+                                       required />
+                                <button class="btn btn-outline-secondary toggle-password"
+                                        type="button"
+                                        data-target="current_password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="new_password">New password</label>
+                            <div class="input-group">
+                                <input type="password"
+                                       id="new_password"
+                                       name="new_password"
+                                       class="form-control"
+                                       required
+                                       minlength="8" />
+                                <button class="btn btn-outline-secondary toggle-password"
+                                        type="button"
+                                        data-target="new_password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirm_password">Confirm new password</label>
+                            <div class="input-group">
+                                <input type="password"
+                                       id="confirm_password"
+                                       name="confirm_password"
+                                       class="form-control"
+                                       required
+                                       minlength="8" />
+                                <button class="btn btn-outline-secondary toggle-password"
+                                        type="button"
+                                        data-target="confirm_password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Password Requirements -->
+                        <div class="password-rules mb-3">
+                            <div class="password-rules-title">Password Requirements:</div>
+                            <div class="password-rule invalid" id="rule-length">
+                                <i class="fas fa-times"></i> At least 8 characters
+                            </div>
+                            <div class="password-rule invalid" id="rule-lowercase">
+                                <i class="fas fa-times"></i> At least one lowercase letter
+                            </div>
+                            <div class="password-rule invalid" id="rule-uppercase">
+                                <i class="fas fa-times"></i> At least one uppercase letter
+                            </div>
+                            <div class="password-rule invalid" id="rule-number">
+                                <i class="fas fa-times"></i> At least one number
+                            </div>
+                            <div class="password-rule invalid" id="rule-special">
+                                <i class="fas fa-times"></i> At least one special character
+                                (!@#$%^&*)
+                            </div>
+                            <div class="password-rule invalid" id="rule-match">
+                                <i class="fas fa-times"></i> Passwords match
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-save">
+                            <i class="fas fa-check"></i>
+                            Update password
+                        </button>
+                    </form>
+                </details>
+                <!-- Delete Account -->
+                <details class="settings-details">
+                    <summary class="settings-summary">
+                        <i class="fas fa-trash"></i> Delete Account
+                    </summary>
+                    <div class="form-section danger-zone">
+                        <p class="danger-zone-description">
+                            Once you delete your account, there is no going back. Please be
+                            certain.
+                        </p>
+                        <button type="button" class="btn btn-danger" onclick="showDeleteAccountModal()">
+                            <i class="fas fa-trash"></i>
+                            Delete account
+                        </button>
                     </div>
-                    <div class="form-group">
-                        <label for="current_password">Current password</label>
-                        <div class="input-group">
-                            <input type="password"
-                                   id="current_password"
-                                   name="current_password"
-                                   class="form-control"
-                                   required />
-                            <button class="btn btn-outline-secondary toggle-password"
-                                    type="button"
-                                    data-target="current_password">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="new_password">New password</label>
-                        <div class="input-group">
-                            <input type="password"
-                                   id="new_password"
-                                   name="new_password"
-                                   class="form-control"
-                                   required
-                                   minlength="8" />
-                            <button class="btn btn-outline-secondary toggle-password"
-                                    type="button"
-                                    data-target="new_password">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="confirm_password">Confirm new password</label>
-                        <div class="input-group">
-                            <input type="password"
-                                   id="confirm_password"
-                                   name="confirm_password"
-                                   class="form-control"
-                                   required
-                                   minlength="8" />
-                            <button class="btn btn-outline-secondary toggle-password"
-                                    type="button"
-                                    data-target="confirm_password">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <!-- Password Requirements -->
-                    <div class="password-rules mb-3">
-                        <div class="password-rules-title">Password Requirements:</div>
-                        <div class="password-rule invalid" id="rule-length">
-                            <i class="fas fa-times"></i> At least 8 characters
-                        </div>
-                        <div class="password-rule invalid" id="rule-lowercase">
-                            <i class="fas fa-times"></i> At least one lowercase letter
-                        </div>
-                        <div class="password-rule invalid" id="rule-uppercase">
-                            <i class="fas fa-times"></i> At least one uppercase letter
-                        </div>
-                        <div class="password-rule invalid" id="rule-number">
-                            <i class="fas fa-times"></i> At least one number
-                        </div>
-                        <div class="password-rule invalid" id="rule-special">
-                            <i class="fas fa-times"></i> At least one special character
-                            (!@#$%^&*)
-                        </div>
-                        <div class="password-rule invalid" id="rule-match">
-                            <i class="fas fa-times"></i> Passwords match
-                        </div>
-                    </div>
-                    <button type="submit" class="btn-save">
-                        <i class="fas fa-check"></i>
-                        Update password
-                    </button>
-                </form>
-                <div class="form-section danger-zone">
-                    <div class="section-header">
-                        <h2 class="section-title danger-zone-title">Delete Account</h2>
-                        <p class="section-subtitle">Permanently delete your SciTeX account</p>
-                    </div>
-                    <p class="danger-zone-description">
-                        Once you delete your account, there is no going back. Please be
-                        certain.
-                    </p>
-                    <button type="button"
-                            class="btn btn-danger"
-                            onclick="showDeleteAccountModal()">
-                        <i class="fas fa-trash"></i>
-                        Delete account
-                    </button>
-                </div>
+                </details>
             </main>
         </div>
     </div>

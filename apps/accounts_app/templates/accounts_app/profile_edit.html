@@ -1,165 +1,189 @@
 {% extends 'global_base.html' %}
-{% load static %}
-{% block title %}
-    Settings -
-    SciTeX Cloud
-{% endblock %}
+
+{% load static vite %}
+
+{% block title %}Profile - Settings - SciTeX Cloud{% endblock %}
 {% block extra_css %}
-    <link rel="stylesheet"
-          href="{% static 'shared/css/layouts/settings-layout.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'accounts_app/css/profile_edit.css' %}" />
+    <link rel="stylesheet" href="{% static 'shared/css/layouts/settings-layout.css' %}" />
+    <link rel="stylesheet" href="{% static 'accounts_app/css/profile_edit.css' %}" />
+    <link rel="stylesheet" href="{% static 'accounts_app/css/account_settings.css' %}" />
+    <link rel="stylesheet" href="{% static 'accounts_app/css/account-modals.css' %}" />
 {% endblock %}
 {% block content %}
     <div class="settings-page">
         <div class="settings-layout">
             <!-- Left Navigation -->
             <aside class="settings-nav">
-                {%include 'accounts_app/partials/settings_nav.html' with active='profile'%}
+                {% include 'accounts_app/partials/settings_nav.html' with active='profile' %}
             </aside>
             <!-- Right Content -->
             <main class="settings-content">
                 <div class="settings-header">
-                    <h1 class="settings-title">Public profile</h1>
-                    <p class="settings-subtitle">
-                        This information will be displayed publicly on your profile at
-                        <a href="/{{ user.username }}/">/{{ user.username }}/</a>
-                    </p>
+                    <h1 class="settings-title">Profile</h1>
+                    <p class="settings-subtitle">Manage your public profile and account security settings.</p>
                 </div>
+                <!-- Messages -->
+                {% if messages %}
+                    <div class="mb-4">
+                        {% for message in messages %}
+                            <div class="alert-banner alert-banner-{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}info{% endif %} mb-3">
+                                <div class="warning-banner-container">
+                                    <div class="warning-banner-content">
+                                        <i class="warning-banner-icon fas fa-{% if message.tags == 'error' %}exclamation-circle{% elif message.tags == 'success' %}check-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+                                        <div class="warning-banner-text">
+                                            <div class="warning-banner-description">{{ message }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <!-- Public profile -->
+                <div class="settings-group-label">
+                    <i class="fas fa-globe"></i> Public profile
+                </div>
+                <!-- Profile form -->
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     <!-- Profile Picture -->
-                    <div class="form-section">
-                        <h2 class="form-section-title">Profile picture</h2>
-                        <div class="avatar-upload">
-                            <div class="avatar-preview">
-                                {% if profile.avatar %}
-                                    <img src="{{ profile.avatar.url }}" alt="{{ user.username }}" />
-                                {% else %}
-                                    {{ user.username|slice:":1"|upper }}
-                                {% endif %}
-                            </div>
-                            <div class="avatar-upload-controls">
-                                <div class="file-input-wrapper">
-                                    <input type="file" name="avatar" id="avatar-input" accept="image/*" />
-                                    <label for="avatar-input" class="file-input-label">
-                                        <i class="fas fa-upload"></i>
-                                        <span>Upload new picture</span>
-                                    </label>
+                    <details class="settings-details">
+                        <summary class="settings-summary">
+                            <i class="fas fa-user-circle"></i> Profile picture
+                        </summary>
+                        <div class="form-section">
+                            <div class="avatar-upload">
+                                <div class="avatar-preview">
+                                    {% if profile.avatar %}
+                                        <img src="{{ profile.avatar.url }}" alt="{{ user.username }}" />
+                                    {% else %}
+                                        {{ user.username|slice:":1"|upper }}
+                                    {% endif %}
                                 </div>
-                                <p class="form-help mt-2">Max size: 2MB. Recommended: 500x500px square image.</p>
+                                <div class="avatar-upload-controls">
+                                    <div class="file-input-wrapper">
+                                        <input type="file" name="avatar" id="avatar-input" accept="image/*" />
+                                        <label for="avatar-input" class="file-input-label">
+                                            <i class="fas fa-upload"></i>
+                                            <span>Upload new picture</span>
+                                        </label>
+                                    </div>
+                                    <p class="form-help mt-2">Max size: 2MB. Recommended: 500x500px square image.</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    </details>
                     <!-- Basic Information -->
-                    <div class="form-section">
-                        <h2 class="form-section-title">Basic information</h2>
-                        <div class="form-group">
-                            <label for="username">Username</label>
-                            <input type="text" id="username" value="{{ user.username }}" disabled />
-                            <p class="form-help">Username cannot be changed</p>
-                        </div>
-                        <div class="form-group">
-                            <label for="first_name">First name</label>
-                            <input type="text"
-                                   id="first_name"
-                                   name="first_name"
-                                   value="{{ user.first_name }}" />
-                        </div>
-                        <div class="form-group">
-                            <label for="last_name">Last name</label>
-                            <input type="text"
-                                   id="last_name"
-                                   name="last_name"
-                                   value="{{ user.last_name }}" />
-                        </div>
-                        <div class="form-group">
-                            <label for="email">Email</label>
-                            <input type="email"
-                                   id="email"
-                                   name="email"
-                                   value="{{ user.email }}"
-                                   required />
-                        </div>
-                        <div class="form-group">
-                            <label for="bio">Bio</label>
-                            <textarea id="bio" name="bio" placeholder="Tell us about yourself...">
+                    <details class="settings-details">
+                        <summary class="settings-summary">
+                            <i class="fas fa-id-card"></i> Basic information
+                        </summary>
+                        <div class="form-section">
+                            <div class="form-group">
+                                <label>Username</label>
+                                <input type="text" value="{{ user.username }}" disabled />
+                                <p class="form-help">Username cannot be changed</p>
+                            </div>
+                            <div class="form-group">
+                                <label for="first_name">First name</label>
+                                <input type="text" id="first_name" name="first_name" value="{{ user.first_name }}" />
+                            </div>
+                            <div class="form-group">
+                                <label for="last_name">Last name</label>
+                                <input type="text" id="last_name" name="last_name" value="{{ user.last_name }}" />
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" value="{{ user.email }}" disabled />
+                                <p class="form-help">
+                                    To change your email, use the <strong>Change Email</strong> section below.
+                                </p>
+                            </div>
+                            <div class="form-group">
+                                <label for="bio">Bio</label>
+                                <textarea id="bio" name="bio" placeholder="Tell us about yourself...">
 {{ profile.bio }}</textarea>
-                            <p class="form-help">Brief description for your profile. Markdown is not supported.</p>
+                                <p class="form-help">Brief description for your profile. Markdown is not supported.</p>
+                            </div>
                         </div>
-                    </div>
+                    </details>
                     <!-- Location & Institution -->
-                    <div class="form-section">
-                        <h2 class="form-section-title">Location & Affiliation</h2>
-                        <div class="form-group">
-                            <label for="location">Location</label>
-                            <input type="text"
-                                   id="location"
-                                   name="location"
-                                   value="{{ profile.location }}"
-                                   placeholder="e.g., Tokyo, Japan"
-                                   autocomplete="off" />
-                            <input type="hidden"
-                                   id="timezone"
-                                   name="timezone"
-                                   value="{{ profile.timezone }}" />
-                            <div id="location-suggestions" class="location-suggestions"></div>
-                            <p class="form-help">
-                                {% if profile.timezone %}
-                                    <i class="fas fa-clock"></i> Timezone:
-                                    <strong>{{ profile.timezone }}</strong>
-                                {% else %}
-                                    Start typing to see location suggestions
-                                {% endif %}
-                            </p>
+                    <details class="settings-details">
+                        <summary class="settings-summary">
+                            <i class="fas fa-map-marker-alt"></i> Location & Affiliation
+                        </summary>
+                        <div class="form-section">
+                            <div class="form-group">
+                                <label for="location">Location</label>
+                                <input type="text"
+                                       id="location"
+                                       name="location"
+                                       value="{{ profile.location }}"
+                                       placeholder="e.g., Tokyo, Japan"
+                                       autocomplete="off" />
+                                <input type="hidden" id="timezone" name="timezone" value="{{ profile.timezone }}" />
+                                <div id="location-suggestions" class="location-suggestions"></div>
+                                <p class="form-help">
+                                    {% if profile.timezone %}
+                                        <i class="fas fa-clock"></i> Timezone:
+                                        <strong>{{ profile.timezone }}</strong>
+                                    {% else %}
+                                        Start typing to see location suggestions
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="form-group">
+                                <label for="institution">Institution</label>
+                                <input type="text"
+                                       id="institution"
+                                       name="institution"
+                                       value="{{ profile.institution }}"
+                                       placeholder="e.g., The University of Tokyo" />
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="institution">Institution</label>
-                            <input type="text"
-                                   id="institution"
-                                   name="institution"
-                                   value="{{ profile.institution }}"
-                                   placeholder="e.g., The University of Tokyo" />
-                        </div>
-                    </div>
+                    </details>
                     <!-- Links -->
-                    <div class="form-section">
-                        <h2 class="form-section-title">Links</h2>
-                        <div class="form-group">
-                            <label for="website">Website</label>
-                            <input type="url"
-                                   id="website"
-                                   name="website"
-                                   value="{{ profile.website }}"
-                                   placeholder="https://your-website.com" />
+                    <details class="settings-details">
+                        <summary class="settings-summary">
+                            <i class="fas fa-link"></i> Links
+                        </summary>
+                        <div class="form-section">
+                            <div class="form-group">
+                                <label for="website">Website</label>
+                                <input type="url"
+                                       id="website"
+                                       name="website"
+                                       value="{{ profile.website }}"
+                                       placeholder="https://your-website.com" />
+                            </div>
+                            <div class="form-group">
+                                <label for="twitter">Twitter</label>
+                                <input type="text"
+                                       id="twitter"
+                                       name="twitter"
+                                       value="{{ profile.twitter }}"
+                                       placeholder="username (without @)" />
+                            </div>
+                            <div class="form-group">
+                                <label for="google_scholar">Google Scholar</label>
+                                <input type="url"
+                                       id="google_scholar"
+                                       name="google_scholar"
+                                       value="{{ profile.google_scholar }}"
+                                       placeholder="https://scholar.google.com/citations?user=..." />
+                            </div>
+                            <div class="form-group">
+                                <label for="orcid">ORCID</label>
+                                <input type="text"
+                                       id="orcid"
+                                       name="orcid"
+                                       value="{{ profile.orcid }}"
+                                       placeholder="0000-0000-0000-0000" />
+                                <p class="form-help">Your ORCID identifier (e.g., 0000-0001-2345-6789)</p>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="twitter">Twitter</label>
-                            <input type="text"
-                                   id="twitter"
-                                   name="twitter"
-                                   value="{{ profile.twitter }}"
-                                   placeholder="username (without @)" />
-                        </div>
-                        <div class="form-group">
-                            <label for="google_scholar">Google Scholar</label>
-                            <input type="url"
-                                   id="google_scholar"
-                                   name="google_scholar"
-                                   value="{{ profile.google_scholar }}"
-                                   placeholder="https://scholar.google.com/citations?user=..." />
-                        </div>
-                        <div class="form-group">
-                            <label for="orcid">ORCID</label>
-                            <input type="text"
-                                   id="orcid"
-                                   name="orcid"
-                                   value="{{ profile.orcid }}"
-                                   placeholder="0000-0000-0000-0000" />
-                            <p class="form-help">Your ORCID identifier (e.g., 0000-0001-2345-6789)</p>
-                        </div>
-                    </div>
-                    <!-- Actions -->
+                    </details>
+                    <!-- Save profile -->
                     <div class="form-actions">
                         <button type="submit" class="btn-save">
                             <i class="fas fa-check"></i>
@@ -168,24 +192,189 @@
                         <a href="/{{ user.username }}/" class="btn-cancel">Cancel</a>
                     </div>
                 </form>
+                <!-- Private / Account security -->
+                <div class="settings-group-label settings-group-label-private">
+                    <i class="fas fa-lock"></i> Private
+                </div>
+                <!-- Change Email -->
+                <details class="settings-details">
+                    <summary class="settings-summary">
+                        <i class="fas fa-envelope"></i> Change Email
+                    </summary>
+                    <form method="post" class="form-section">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="change_email" />
+                        <div class="mb-3">
+                            <p class="current-email-text">
+                                Current email: <strong class="current-email-value">{{ user.email }}</strong>
+                            </p>
+                        </div>
+                        <div class="form-group">
+                            <label for="new_email">New email address</label>
+                            <input type="email"
+                                   id="new_email"
+                                   name="new_email"
+                                   class="form-control"
+                                   required
+                                   placeholder="new@example.com" />
+                        </div>
+                        <button type="submit" class="btn-save">
+                            <i class="fas fa-check"></i> Update email
+                        </button>
+                    </form>
+                </details>
+                <!-- Change Password -->
+                <details class="settings-details">
+                    <summary class="settings-summary">
+                        <i class="fas fa-lock"></i> Change Password
+                    </summary>
+                    <form method="post" class="form-section">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="change_password" />
+                        <div class="form-group">
+                            <label for="current_password">Current password</label>
+                            <div class="input-group">
+                                <input type="password"
+                                       id="current_password"
+                                       name="current_password"
+                                       class="form-control"
+                                       required />
+                                <button class="btn btn-outline-secondary toggle-password"
+                                        type="button"
+                                        data-target="current_password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="new_password">New password</label>
+                            <div class="input-group">
+                                <input type="password"
+                                       id="new_password"
+                                       name="new_password"
+                                       class="form-control"
+                                       required
+                                       minlength="8" />
+                                <button class="btn btn-outline-secondary toggle-password"
+                                        type="button"
+                                        data-target="new_password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirm_password">Confirm new password</label>
+                            <div class="input-group">
+                                <input type="password"
+                                       id="confirm_password"
+                                       name="confirm_password"
+                                       class="form-control"
+                                       required
+                                       minlength="8" />
+                                <button class="btn btn-outline-secondary toggle-password"
+                                        type="button"
+                                        data-target="confirm_password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="password-rules mb-3">
+                            <div class="password-rules-title">Password Requirements:</div>
+                            <div class="password-rule invalid" id="rule-length">
+                                <i class="fas fa-times"></i> At least 8 characters
+                            </div>
+                            <div class="password-rule invalid" id="rule-lowercase">
+                                <i class="fas fa-times"></i> At least one lowercase letter
+                            </div>
+                            <div class="password-rule invalid" id="rule-uppercase">
+                                <i class="fas fa-times"></i> At least one uppercase letter
+                            </div>
+                            <div class="password-rule invalid" id="rule-number">
+                                <i class="fas fa-times"></i> At least one number
+                            </div>
+                            <div class="password-rule invalid" id="rule-special">
+                                <i class="fas fa-times"></i> At least one special character (!@#$%^&*)
+                            </div>
+                            <div class="password-rule invalid" id="rule-match">
+                                <i class="fas fa-times"></i> Passwords match
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-save">
+                            <i class="fas fa-check"></i> Update password
+                        </button>
+                    </form>
+                </details>
+                <!-- Delete Account -->
+                <details class="settings-details">
+                    <summary class="settings-summary">
+                        <i class="fas fa-trash"></i> Delete Account
+                    </summary>
+                    <div class="form-section danger-zone">
+                        <p class="danger-zone-description">Once you delete your account, there is no going back. Please be certain.</p>
+                        <button type="button" class="btn btn-danger" onclick="showDeleteAccountModal()">
+                            <i class="fas fa-trash"></i> Delete account
+                        </button>
+                    </div>
+                </details>
             </main>
+        </div>
+    </div>
+    <!-- Delete Account Modal -->
+    <div id="deleteAccountModal" class="delete-account-modal">
+        <div class="delete-account-modal-content">
+            <div class="delete-account-modal-header">
+                <svg width="48"
+                     height="48"
+                     viewBox="0 0 16 16"
+                     fill="#d73a49"
+                     class="delete-account-modal-icon">
+                    <path d="M6.5 1.75a.25.25 0 01.25-.25h2.5a.25.25 0 01.25.25V3h-3V1.75zm4.5 0V3h2.25a.75.75 0 110 1.5H2.75a.75.75 0 010-1.5H5V1.75C5 .784 5.784 0 6.75 0h2.5C10.216 0 11 .784 11 1.75zM4.496 6.675a.75.75 0 10-1.492.15l.66 6.6A1.75 1.75 0 005.405 15h5.19c.9 0 1.652-.681 1.741-1.576l.66-6.6a.75.75 0 00-1.492-.149l-.66 6.6a.25.25 0 01-.249.225h-5.19a.25.25 0 01-.249-.225l-.66-6.6z" />
+                </svg>
+                <h2 class="delete-account-modal-title">Delete your account</h2>
+            </div>
+            <div class="delete-account-warning">
+                <p class="delete-account-warning-title">Warning: This action cannot be undone!</p>
+                <p class="delete-account-warning-text">
+                    This will permanently delete your account
+                    <strong>{{ user.username }}</strong>, all your projects, files, and data.
+                </p>
+            </div>
+            <p class="delete-account-confirm-text">
+                Please type <strong class="delete-account-username">{{ user.username }}</strong> to confirm.
+            </p>
+            <input type="text"
+                   id="deleteAccountConfirmInput"
+                   data-username="{{ user.username }}"
+                   placeholder="{{ user.username }}"
+                   oninput="checkDeleteAccountInput()"
+                   class="delete-account-confirm-input" />
+            <div class="delete-account-modal-actions">
+                <button type="button"
+                        onclick="hideDeleteAccountModal()"
+                        class="delete-account-cancel-btn">Cancel</button>
+                <button type="button"
+                        id="deleteAccountConfirmButton"
+                        data-delete-url="{% url 'auth_app:delete-account' %}"
+                        data-username="{{ user.username }}"
+                        onclick="submitDeleteAccount()"
+                        disabled
+                        class="delete-account-confirm-btn">I understand the consequences, delete my account</button>
+            </div>
         </div>
     </div>
     <script>
   // Preview avatar before upload
-  document
-    .getElementById("avatar-input")
-    ?.addEventListener("change", function (e) {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          const preview = document.querySelector(".avatar-preview");
-          preview.innerHTML = `<img src="${e.target.result}" alt="Avatar preview">`;
-        };
-        reader.readAsDataURL(file);
-      }
-    });
+  document.getElementById("avatar-input")?.addEventListener("change", function (e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const preview = document.querySelector(".avatar-preview");
+        preview.innerHTML = `<img src="${e.target.result}" alt="Avatar preview" />`;
+      };
+      reader.readAsDataURL(file);
+    }
+  });
 
   // Location autocomplete with timezone
   (function () {
@@ -194,120 +383,60 @@
     const suggestionsDiv = document.getElementById("location-suggestions");
     let citiesData = [];
 
-    // Load cities/timezones data
     fetch("/static/data/cities_timezones.json")
       .then((response) => response.json())
-      .then((data) => {
-        citiesData = data;
-      })
+      .then((data) => { citiesData = data; })
       .catch((err) => console.error("Failed to load cities data:", err));
 
-    // Show suggestions on input
     locationInput.addEventListener("input", function (e) {
       const query = e.target.value.trim().toLowerCase();
-
-      if (query.length < 2) {
-        suggestionsDiv.classList.remove("show");
-        return;
-      }
-
-      // Filter cities matching query
-      const matches = citiesData
-        .filter((item) => item.city.toLowerCase().includes(query))
-        .slice(0, 10); // Limit to 10 results
-
-      if (matches.length === 0) {
-        suggestionsDiv.classList.remove("show");
-        return;
-      }
-
-      // Render suggestions
-      suggestionsDiv.innerHTML = matches
-        .map(
-          (item) => `
-            <div class="location-suggestion-item" data-city="${item.city}" data-timezone="${item.timezone}">
-                <span class="location-city">${item.city}</span>
-                <span class="location-timezone"><i class="fas fa-clock"></i> ${item.timezone}</span>
-            </div>
-        `,
-        )
-        .join("");
-
+      if (query.length < 2) { suggestionsDiv.classList.remove("show"); return; }
+      const matches = citiesData.filter((item) => item.city.toLowerCase().includes(query)).slice(0, 10);
+      if (matches.length === 0) { suggestionsDiv.classList.remove("show"); return; }
+      suggestionsDiv.innerHTML = matches.map((item) => `
+        <div class="location-suggestion-item" data-city="${item.city}" data-timezone="${item.timezone}">
+          <span class="location-city">${item.city}</span>
+          <span class="location-timezone"><i class="fas fa-clock"></i> ${item.timezone}</span>
+        </div>`).join("");
       suggestionsDiv.classList.add("show");
-
-      // Add click handlers
-      suggestionsDiv
-        .querySelectorAll(".location-suggestion-item")
-        .forEach((item) => {
-          item.addEventListener("click", function () {
-            const city = this.dataset.city;
-            const timezone = this.dataset.timezone;
-
-            locationInput.value = city;
-            timezoneInput.value = timezone;
-            suggestionsDiv.classList.remove("show");
-
-            // Update help text
-            const helpText =
-              locationInput.parentElement.querySelector(".form-help");
-            helpText.innerHTML = `<i class="fas fa-clock"></i> Timezone: <strong>${timezone}</strong>`;
-          });
+      suggestionsDiv.querySelectorAll(".location-suggestion-item").forEach((item) => {
+        item.addEventListener("click", function () {
+          locationInput.value = this.dataset.city;
+          timezoneInput.value = this.dataset.timezone;
+          suggestionsDiv.classList.remove("show");
+          const helpText = locationInput.parentElement.querySelector(".form-help");
+          helpText.innerHTML = `<i class="fas fa-clock"></i> Timezone: <strong>${this.dataset.timezone}</strong>`;
         });
+      });
     });
 
-    // Hide suggestions when clicking outside
     document.addEventListener("click", function (e) {
-      if (
-        !locationInput.contains(e.target) &&
-        !suggestionsDiv.contains(e.target)
-      ) {
+      if (!locationInput.contains(e.target) && !suggestionsDiv.contains(e.target))
         suggestionsDiv.classList.remove("show");
-      }
     });
 
-    // Handle keyboard navigation
     locationInput.addEventListener("keydown", function (e) {
-      const items = suggestionsDiv.querySelectorAll(
-        ".location-suggestion-item",
-      );
+      const items = suggestionsDiv.querySelectorAll(".location-suggestion-item");
       if (items.length === 0) return;
-
-      let currentIndex = Array.from(items).findIndex((item) =>
-        item.classList.contains("active"),
-      );
-
+      let idx = Array.from(items).findIndex((i) => i.classList.contains("active"));
       if (e.key === "ArrowDown") {
         e.preventDefault();
-        if (currentIndex < items.length - 1) {
-          items[currentIndex]?.classList.remove("active");
-          items[currentIndex + 1].classList.add("active");
-        } else {
-          items[currentIndex]?.classList.remove("active");
-          items[0].classList.add("active");
-        }
+        items[idx]?.classList.remove("active");
+        items[idx < items.length - 1 ? idx + 1 : 0].classList.add("active");
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
-        if (currentIndex > 0) {
-          items[currentIndex].classList.remove("active");
-          items[currentIndex - 1].classList.add("active");
-        } else {
-          items[currentIndex]?.classList.remove("active");
-          items[items.length - 1].classList.add("active");
-        }
+        items[idx]?.classList.remove("active");
+        items[idx > 0 ? idx - 1 : items.length - 1].classList.add("active");
       } else if (e.key === "Enter") {
         e.preventDefault();
-        const activeItem = suggestionsDiv.querySelector(
-          ".location-suggestion-item.active",
-        );
-        if (activeItem) {
-          activeItem.click();
-        } else if (items.length > 0) {
-          items[0].click();
-        }
+        (suggestionsDiv.querySelector(".location-suggestion-item.active") || items[0])?.click();
       } else if (e.key === "Escape") {
         suggestionsDiv.classList.remove("show");
       }
     });
   })();
     </script>
+{% endblock %}
+{% block extra_js %}
+    {% vite_script 'accounts_app/account-settings' %}
 {% endblock %}

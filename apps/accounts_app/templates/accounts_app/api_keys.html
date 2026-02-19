@@ -1,11 +1,11 @@
 {% extends 'global_base.html' %}
+
 {% load static %}
+
 {% block title %}API Keys - Settings - SciTeX Cloud{% endblock %}
 {% block extra_css %}
-    <link rel="stylesheet"
-          href="{% static 'shared/css/layouts/settings-layout.css' %}">
-    <link rel="stylesheet"
-          href="{% static 'accounts_app/css/api_keys.css' %}">
+    <link rel="stylesheet" href="{% static 'shared/css/layouts/settings-layout.css' %}" />
+    <link rel="stylesheet" href="{% static 'accounts_app/css/api_keys.css' %}" />
 {% endblock %}
 {% block content %}
     <div class="settings-page">
@@ -17,8 +17,8 @@
             <!-- Main Content -->
             <main class="settings-content">
                 <div class="settings-header">
-                    <h1 class="settings-title">Personal access tokens</h1>
-                    <p class="settings-subtitle">Tokens you have generated that can be used to access the SciTeX Cloud API.</p>
+                    <h1 class="settings-title">API Keys</h1>
+                    <p class="settings-subtitle">API keys you have generated that can be used to access the SciTeX Cloud API.</p>
                 </div>
                 <!-- New Key Alert (shown once after creation) -->
                 {% if new_api_key %}
@@ -41,14 +41,14 @@
                     </div>
                 {% endif %}
                 <!-- Create New Key Form -->
-                <details {% if not api_keys %}open{% endif %} class="api-keys-details">
+                <details class="api-keys-details">
                     <summary class="api-keys-summary">
-                        <i class="fas fa-plus"></i> Generate new token
+                        <i class="fas fa-plus"></i> Add new API key
                     </summary>
                     <div class="create-form">
                         <form method="POST">
                             {% csrf_token %}
-                            <input type="hidden" name="action" value="create">
+                            <input type="hidden" name="action" value="create" />
                             <div class="form-group">
                                 <label for="key-name">Key Name *</label>
                                 <input type="text"
@@ -56,127 +56,120 @@
                                        id="key-name"
                                        name="name"
                                        required
-                                       placeholder="e.g., CLI Tool, GitHub Actions, Personal Script">
+                                       placeholder="e.g., CLI Tool, GitHub Actions, Personal Script" />
                                 <small>A descriptive name to help you remember what this key is for.</small>
                             </div>
                             <div class="form-group">
                                 <label>Permissions (Scopes)</label>
                                 <div class="checkbox-group">
                                     <label>
-                                        <input type="checkbox" name="scopes" value="*" checked>
+                                        <input type="checkbox" name="scopes" value="*" checked />
                                         <span>Full Access (All permissions)</span>
                                     </label>
                                     <label>
-                                        <input type="checkbox" name="scopes" value="project:read">
+                                        <input type="checkbox" name="scopes" value="project:read" />
                                         <span>Read Projects</span>
                                     </label>
                                     <label>
-                                        <input type="checkbox" name="scopes" value="project:write">
+                                        <input type="checkbox" name="scopes" value="project:write" />
                                         <span>Write Projects</span>
                                     </label>
                                     <label>
-                                        <input type="checkbox" name="scopes" value="scholar:read">
+                                        <input type="checkbox" name="scopes" value="scholar:read" />
                                         <span>Read Scholar Data</span>
                                     </label>
                                 </div>
                                 <small>Select which parts of your account this key can access.</small>
                             </div>
-                            <button type="submit" class="btn btn-primary">Generate token</button>
+                            <button type="submit" class="btn btn-primary">Generate API key</button>
                         </form>
                     </div>
                 </details>
                 <!-- Existing Keys List -->
-                {% if api_keys %}<h2 class="active-tokens-heading">Active tokens</h2>{% endif %}
-                {% if api_keys %}
-                    {% for key in api_keys %}
-                        <div class="api-key-card">
-                            <div class="key-header">
-                                <div>
-                                    <h3>{{ key.name }}</h3>
-                                    <div class="key-prefix">{{ key.key_prefix }}••••••••••••••••</div>
-                                </div>
-                                <span class="key-status {% if key.is_active %}active{% else %}inactive{% endif %}">
-                                    {% if key.is_active %}
-                                        Active
-                                    {% else %}
-                                        Inactive
-                                    {% endif %}
-                                </span>
-                            </div>
-                            <div class="key-scopes">
-                                <strong>Scopes:</strong>
-                                {% if '*' in key.scopes %}
-                                    Full Access
-                                {% else %}
-                                    {{ key.scopes|join:", " }}
-                                {% endif %}
-                            </div>
-                            <div class="key-metadata">
-                                <p>
-                                    <strong>Created:</strong> {{ key.created_at|date:"Y-m-d H:i" }}
-                                </p>
-                                {% if key.last_used_at %}
-                                    <p>
-                                        <strong>Last used:</strong> {{ key.last_used_at|date:"Y-m-d H:i" }}
-                                    </p>
-                                {% else %}
-                                    <p>
-                                        <strong>Last used:</strong> Never
-                                    </p>
-                                {% endif %}
-                                {% if key.expires_at %}
-                                    <p>
-                                        <strong>Expires:</strong> {{ key.expires_at|date:"Y-m-d H:i" }}
-                                    </p>
-                                {% endif %}
-                            </div>
-                            <div class="key-actions">
-                                <form method="POST">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="action" value="toggle">
-                                    <input type="hidden" name="key_id" value="{{ key.id }}">
-                                    <button type="submit" class="btn btn-sm btn-outline-primary">
+                <details class="settings-details">
+                    <summary class="settings-summary">
+                        <i class="fas fa-code"></i> Active API keys
+                    </summary>
+                    {% if api_keys %}
+                        {% for key in api_keys %}
+                            <div class="api-key-card">
+                                <div class="key-header">
+                                    <div>
+                                        <h3>{{ key.name }}</h3>
+                                        <div class="key-prefix">{{ key.key_prefix }}••••••••••••••••</div>
+                                    </div>
+                                    <span class="key-status {% if key.is_active %}active{% else %}inactive{% endif %}">
                                         {% if key.is_active %}
-                                            ⏸️ Deactivate
+                                            Active
                                         {% else %}
-                                            ▶️ Activate
+                                            Inactive
                                         {% endif %}
-                                    </button>
-                                </form>
-                                <form method="POST"
-                                      onsubmit="return confirm('Are you sure you want to delete this API key? Applications using it will stop working.');">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="action" value="delete">
-                                    <input type="hidden" name="key_id" value="{{ key.id }}">
-                                    <button type="submit" class="btn btn-sm btn-danger">🗑️ Delete</button>
-                                </form>
+                                    </span>
+                                </div>
+                                <div class="key-scopes">
+                                    <strong>Scopes:</strong>
+                                    {% if '*' in key.scopes %}
+                                        Full Access
+                                    {% else %}
+                                        {{ key.scopes|join:", " }}
+                                    {% endif %}
+                                </div>
+                                <div class="key-metadata">
+                                    <p>
+                                        <strong>Created:</strong> {{ key.created_at|date:"Y-m-d H:i" }}
+                                    </p>
+                                    {% if key.last_used_at %}
+                                        <p>
+                                            <strong>Last used:</strong> {{ key.last_used_at|date:"Y-m-d H:i" }}
+                                        </p>
+                                    {% else %}
+                                        <p>
+                                            <strong>Last used:</strong> Never
+                                        </p>
+                                    {% endif %}
+                                    {% if key.expires_at %}
+                                        <p>
+                                            <strong>Expires:</strong> {{ key.expires_at|date:"Y-m-d H:i" }}
+                                        </p>
+                                    {% endif %}
+                                </div>
+                                <div class="key-actions">
+                                    <form method="POST">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="toggle" />
+                                        <input type="hidden" name="key_id" value="{{ key.id }}" />
+                                        <button type="submit" class="btn btn-sm btn-outline-primary">
+                                            {% if key.is_active %}
+                                                ⏸️ Deactivate
+                                            {% else %}
+                                                ▶️ Activate
+                                            {% endif %}
+                                        </button>
+                                    </form>
+                                    <form method="POST"
+                                          onsubmit="return confirm('Are you sure you want to delete this API key? Applications using it will stop working.');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete" />
+                                        <input type="hidden" name="key_id" value="{{ key.id }}" />
+                                        <button type="submit" class="btn btn-sm btn-danger">🗑️ Delete</button>
+                                    </form>
+                                </div>
                             </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state-card">
+                            <h3>You don't have any API keys yet.</h3>
+                            <p>Generate an API key above to access the SciTeX Cloud API programmatically.</p>
                         </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="empty-state-card">
-                        <h3>
-                            You don't have any personal access tokens yet.
-                        </h3>
-                        <p>
-                            Generate a token above to access the SciTeX Cloud API programmatically.
-                        </p>
-                    </div>
-                {% endif %}
-                <!-- Usage Instructions -->
-                <div class="usage-instructions">
-                    <h3>How to use API keys</h3>
-                    <p>Include your API key in the Authorization header of your HTTP requests:</p>
-                    <pre><code>curl -H "Authorization: Bearer scitex_your_key_here" \
-https://scitex.ai/api/projects/</code></pre>
-                    <p>Or in Python:</p>
-                    <pre><code>import requests
-headers = {"Authorization": "Bearer scitex_your_key_here"}
-response = requests.get("https://scitex.ai/api/projects/", headers=headers)</code></pre>
-                </main>
-            </div>
+                    {% endif %}
+                </details>
+                <p class="api-docs-link">
+                    See <a href="{% url 'public_app:api-docs' %}">Web API docs</a> for usage examples.
+                </p>
+            </main>
         </div>
-        <script>
+    </div>
+    <script>
 function copyNewAPIKey(event) {
     event.preventDefault();
     const keyElement = document.getElementById('new-api-key');
@@ -193,5 +186,5 @@ function copyNewAPIKey(event) {
         alert('Failed to copy: ' + err);
     });
 }
-        </script>
-    {% endblock %}
+    </script>
+{% endblock %}
