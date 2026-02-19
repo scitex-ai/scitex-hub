@@ -78,6 +78,8 @@ django = [
     "django-widget-tweaks>=1.5",
     # Language detection
     "pygments",
+    # LLM integration
+    "litellm>=1.0",
     # Journal impact factors
     "impact-factor>=1.1",
     # Jupyter support
@@ -85,6 +87,8 @@ django = [
     "nbconvert>=7.0",
     # PDF generation
     "weasyprint>=60.0",
+    # fastmcp 2.10.6 is incompatible with pydantic>=2.12 (TypeError: default+default_factory)
+    "pydantic<2.12",
 ]
 test = [
     "pytest>=8.4",
@@ -199,3 +203,9 @@ filterwarnings = [
 ]
 log_cli = true
 log_cli_level = "INFO"
+
+
+[tool.uv.extra-build-dependencies]
+# sktime==0.8.1 needs pkg_resources at build time but doesn't declare it.
+# pkg_resources is provided by setuptools. This injects it into uv's build isolation.
+sktime = ["setuptools"]

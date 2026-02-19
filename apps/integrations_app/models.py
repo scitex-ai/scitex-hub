@@ -1,8 +1,18 @@
+import base64
+import hashlib
+
 from cryptography.fernet import Fernet
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
+
+
+def _get_fernet_key() -> bytes:
+    """Derive a valid 32-byte Fernet key from Django's SECRET_KEY."""
+    return base64.urlsafe_b64encode(
+        hashlib.sha256(settings.SECRET_KEY.encode()).digest()
+    )
 
 
 class IntegrationConnection(models.Model):
@@ -18,6 +28,12 @@ class IntegrationConnection(models.Model):
         ("discord", "Discord"),
         ("anthropic", "Anthropic (Claude)"),
         ("openai", "OpenAI (GPT)"),
+        ("gemini", "Google (Gemini)"),
+        ("mistral", "Mistral AI"),
+        ("xai", "xAI (Grok)"),
+        ("deepseek", "DeepSeek"),
+        ("openrouter", "OpenRouter"),
+        ("ollama", "Ollama (local)"),
         ("local_llm", "Local LLM (Ollama/LM Studio)"),
     ]
 
@@ -76,14 +92,14 @@ class IntegrationConnection(models.Model):
         """Encrypt sensitive data"""
         if not value:
             return ""
-        f = Fernet(settings.SCITEX_CLOUD_DJANGO_SECRET_KEY[:32].encode().ljust(32)[:32])
+        f = Fernet(_get_fernet_key())
         return f.encrypt(value.encode()).decode()
 
     def decrypt_value(self, encrypted_value):
         """Decrypt sensitive data"""
         if not encrypted_value:
             return ""
-        f = Fernet(settings.SCITEX_CLOUD_DJANGO_SECRET_KEY[:32].encode().ljust(32)[:32])
+        f = Fernet(_get_fernet_key())
         return f.decrypt(encrypted_value.encode()).decode()
 
     def set_access_token(self, token):
