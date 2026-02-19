@@ -47,41 +47,31 @@ fi
 sync_slurm_uid || echo_warning "SLURM UID sync skipped - terminal may have issues"
 
 # ============================================
+# Install SciTeX in Editable Mode (Always — every start)
+# ============================================
+# scitex is NOT baked into the dev image — it must be installed from the mounted
+# /scitex-python volume. -eU ensures deps (e.g. sktime) are upgraded to match
+# the local pyproject.toml constraints on every container start.
+if [ -d "/scitex-python" ]; then
+    if [ -f "/scitex-python/pyproject.toml" ] || [ -f "/scitex-python/setup.py" ]; then
+        echo_info "Installing scitex (editable + upgrade)..."
+        uv pip install -e "/scitex-python[all]" --link-mode=copy >/dev/null
+        verify_scitex_package
+    else
+        echo -e "⚠️  WARNING: /scitex-python exists but is not a valid Python package"
+        echo -e "   (missing pyproject.toml or setup.py at root)"
+    fi
+else
+    echo -e "⚠️  WARNING: /scitex-python not mounted!"
+fi
+
+# ============================================
 # Install SciTeX Ecosystem (Editable Mode)
 # Skip on hot-reload — packages persist in container
 # ============================================
 if [ -f "$MIGRATION_SENTINEL" ]; then
     echo_info "Hot-reload restart - skipping package installations"
 else
-
-    # ============================================
-    # Install SciTeX in Editable Mode (Optional)
-    # ============================================
-    try_scitex_installation_in_editable_mode() {
-        if [ -d "/scitex-python" ]; then
-            # Check if scitex-code is a valid Python project
-            if [ -f "/scitex-python/pyproject.toml" ] || [ -f "/scitex-python/setup.py" ]; then
-                # Check if scitex is already installed in editable mode from /scitex-python
-                # Use pip show without -f flag (much faster)
-                if pip show scitex 2>/dev/null | grep -q "Location:.*scitex-python"; then
-                    echo -e "${GREEN}✅ Scitex already installed in editable mode${NC}"
-                else
-                    echo_info "Installing scitex (editable mode)..."
-
-                    uv pip install -e "/scitex-python[all]" --link-mode=copy >/dev/null
-                fi
-                verify_scitex_package
-            else
-                echo -e "⚠️  WARNING: /scitex-python exists but is not a valid Python package"
-                echo -e "   (missing pyproject.toml or setup.py at root)"
-                echo -e "   Skipping scitex package installation..."
-            fi
-        else
-            echo -e "⚠️  WARNING: /scitex-python not mounted!"
-            echo -e "   Skipping scitex package installation..."
-        fi
-    }
-    try_scitex_installation_in_editable_mode
 
     # ============================================
     # Install figrecipe in Editable Mode (Optional)

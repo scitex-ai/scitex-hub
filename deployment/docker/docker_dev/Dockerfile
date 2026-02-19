@@ -145,11 +145,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # ============================================
 # Install external tools - cached unless versions change
 
-# Install uv (fast package manager)
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
-    mv /root/.local/bin/uv /usr/local/bin/uv && \
-    mv /root/.local/bin/uvx /usr/local/bin/uvx && \
-    chmod 755 /usr/local/bin/uv /usr/local/bin/uvx
+# Install uv (fast package manager) — pinned version for reproducibility
+ENV UV_VERSION=0.9.28
+RUN curl -LsSf "https://github.com/astral-sh/uv/releases/download/${UV_VERSION}/uv-x86_64-unknown-linux-musl.tar.gz" \
+        -o /tmp/uv.tar.gz \
+    && tar -xzf /tmp/uv.tar.gz -C /tmp \
+    && mv /tmp/uv-x86_64-unknown-linux-musl/uv /usr/local/bin/uv \
+    && mv /tmp/uv-x86_64-unknown-linux-musl/uvx /usr/local/bin/uvx \
+    && chmod 755 /usr/local/bin/uv /usr/local/bin/uvx \
+    && rm -rf /tmp/uv.tar.gz /tmp/uv-x86_64-unknown-linux-musl \
+    && uv --version
 
 # Install yq (YAML parser for scitex.writer)
 RUN YQ_VERSION=v4.44.3 && \
@@ -159,6 +164,31 @@ RUN YQ_VERSION=v4.44.3 && \
 
 # Install inotify-tools (lightweight file watcher for template hot reload)
 RUN apt-get update && apt-get install -y --no-install-recommends inotify-tools && rm -rf /var/lib/apt/lists/*
+
+# ============================================
+# Whisper.cpp (Speech-to-Text)
+# ============================================
+# Baked into the image for consistency across dev / staging / production.
+# cmake + ffmpeg are the only build-time additions; no runtime host dependency.
+# Binary: /opt/whisper/bin/whisper-cli   Model: /opt/whisper/models/ggml-base.en.bin
+ENV WHISPER_CLI=/opt/whisper/bin/whisper-cli \
+    WHISPER_MODEL=/opt/whisper/models/ggml-base.en.bin
+RUN apt-get update && apt-get install -y --no-install-recommends cmake ffmpeg \
+    && rm -rf /var/lib/apt/lists/* \
+    && git clone --depth 1 https://github.com/ggerganov/whisper.cpp.git /tmp/whisper.cpp \
+    && cmake -S /tmp/whisper.cpp -B /tmp/whisper-build \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DWHISPER_BUILD_SERVER=OFF \
+        -DWHISPER_BUILD_EXAMPLES=ON \
+        -DBUILD_SHARED_LIBS=OFF \
+    && cmake --build /tmp/whisper-build --target whisper-cli -j$(nproc) \
+    && mkdir -p /opt/whisper/bin /opt/whisper/models \
+    && cp /tmp/whisper-build/bin/whisper-cli /opt/whisper/bin/whisper-cli \
+    && wget -q -O /opt/whisper/models/ggml-tiny.en.bin \
+        "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.en.bin" \
+    && wget -q -O /opt/whisper/models/ggml-base.en.bin \
+        "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin" \
+    && rm -rf /tmp/whisper.cpp /tmp/whisper-build
 
 # ============================================
 # Apptainer/Singularity Installation
@@ -213,10 +243,11 @@ COPY pyproject.toml ./
 COPY src/ ./src/
 
 # Install SciTeX Cloud Python dependencies with cache mount
-# scitex[all] provides numpy, matplotlib, pandas etc. needed by plot/stats APIs
+# scitex is NOT installed here for dev — entrypoint.sh installs it in editable+upgrade
+# mode from the mounted /scitex-python volume at container startup (-eU).
+# This avoids sktime==0.8.1 build failures from PyPI while keeping deps fresh.
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system ".[django,test]" && \
-    uv pip install --system "scitex[all]"
+    uv pip install --system ".[django,test]"
 
 # Install Playwright browsers (must persist in image for runtime use)
 # Note: We already have chromium and dependencies installed above,

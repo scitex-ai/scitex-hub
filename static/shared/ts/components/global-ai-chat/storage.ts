@@ -1,0 +1,27 @@
+/**
+ * sessionStorage helpers for AI Agent conversation persistence.
+ */
+
+const STORAGE_KEY = "scitex_ai_conversation";
+export const MAX_STORED = 40;
+
+export interface StoredMessage {
+  role: "user" | "assistant" | "error";
+  text: string;
+  toolsUsed?: string[];
+}
+
+export function saveMessage(msg: StoredMessage): void {
+  const stored = loadMessages();
+  stored.push(msg);
+  if (stored.length > MAX_STORED) stored.splice(0, stored.length - MAX_STORED);
+  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+}
+
+export function loadMessages(): StoredMessage[] {
+  return JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? "[]");
+}
+
+export function clearMessages(): void {
+  sessionStorage.removeItem(STORAGE_KEY);
+}
