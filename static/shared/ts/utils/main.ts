@@ -291,7 +291,7 @@ function initGlobalZenMode(): void {
  */
 function initAltKeyShortcutBadges(): void {
   const navItems = document.querySelectorAll<HTMLElement>(
-    ".header-nav-item[data-shortcut]",
+    ".header-nav-item[data-shortcut], .header-ai-toggle[data-shortcut]",
   );
   if (navItems.length === 0) return;
 
@@ -302,8 +302,8 @@ function initAltKeyShortcutBadges(): void {
       position: absolute;
       top: -8px;
       right: -8px;
-      background: var(--color-accent-emphasis, #0969da);
-      color: white;
+      background: var(--scitex-color-01, #333333);
+      color: #ffffff;
       font-size: 10px;
       font-weight: 700;
       font-family: 'JetBrains Mono', monospace;
@@ -320,8 +320,12 @@ function initAltKeyShortcutBadges(): void {
       opacity: 1;
       transform: scale(1);
     }
-    .header-nav-item {
+    .header-nav-item, .header-ai-toggle {
       position: relative;
+    }
+    [data-theme="dark"] .shortcut-badge {
+      background: var(--scitex-color-07, #e6edf3);
+      color: var(--scitex-color-01, #161b22);
     }
   `;
   document.head.appendChild(style);

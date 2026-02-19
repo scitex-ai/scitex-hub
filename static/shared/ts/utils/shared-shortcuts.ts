@@ -5,10 +5,12 @@
  * by any app-specific shortcuts. If a conflict is detected, an error will be logged.
  *
  * Reserved Shortcuts:
+ * - Alt+A: Toggle AI Assistant
  * - Alt+Z: Toggle Zen Mode
  * - Alt+F: Go to Files Mode
  * - Alt+S: Go to Scholar Mode
  * - Alt+C: Go to Code Mode
+ * - Alt+T: Go to Tools
  * - Alt+V: Go to Vis Mode
  * - Alt+W: Go to Writer Mode
  * - Alt+/: Show Keyboard Shortcuts Help
@@ -30,27 +32,115 @@ export interface SharedShortcut {
  * Reserved shared shortcuts - these MUST NOT be overridden
  */
 export const SHARED_SHORTCUTS: SharedShortcut[] = [
-  { key: 'z', altKey: true, ctrlKey: false, shiftKey: false, metaKey: false, description: 'Toggle Zen Mode', action: 'zen-mode' },
-  { key: 'f', altKey: true, ctrlKey: false, shiftKey: false, metaKey: false, description: 'Go to Files', action: 'navigate-files' },
-  { key: 's', altKey: true, ctrlKey: false, shiftKey: false, metaKey: false, description: 'Go to Scholar', action: 'navigate-scholar' },
-  { key: 'c', altKey: true, ctrlKey: false, shiftKey: false, metaKey: false, description: 'Go to Code', action: 'navigate-code' },
-  { key: 'v', altKey: true, ctrlKey: false, shiftKey: false, metaKey: false, description: 'Go to Vis', action: 'navigate-vis' },
-  { key: 'w', altKey: true, ctrlKey: false, shiftKey: false, metaKey: false, description: 'Go to Writer', action: 'navigate-writer' },
-  { key: '/', altKey: true, ctrlKey: false, shiftKey: false, metaKey: false, description: 'Show Keyboard Shortcuts', action: 'show-shortcuts' },
-  { key: 'F11', altKey: false, ctrlKey: false, shiftKey: false, metaKey: false, description: 'Cycle Zen/Fullscreen modes', action: 'zen-cycle' },
+  {
+    key: "a",
+    altKey: true,
+    ctrlKey: false,
+    shiftKey: false,
+    metaKey: false,
+    description: "Toggle AI Assistant",
+    action: "toggle-ai",
+  },
+  {
+    key: "t",
+    altKey: true,
+    ctrlKey: false,
+    shiftKey: false,
+    metaKey: false,
+    description: "Go to Tools",
+    action: "navigate-tools",
+  },
+  {
+    key: "z",
+    altKey: true,
+    ctrlKey: false,
+    shiftKey: false,
+    metaKey: false,
+    description: "Toggle Zen Mode",
+    action: "zen-mode",
+  },
+  {
+    key: "f",
+    altKey: true,
+    ctrlKey: false,
+    shiftKey: false,
+    metaKey: false,
+    description: "Go to Files",
+    action: "navigate-files",
+  },
+  {
+    key: "s",
+    altKey: true,
+    ctrlKey: false,
+    shiftKey: false,
+    metaKey: false,
+    description: "Go to Scholar",
+    action: "navigate-scholar",
+  },
+  {
+    key: "c",
+    altKey: true,
+    ctrlKey: false,
+    shiftKey: false,
+    metaKey: false,
+    description: "Go to Code",
+    action: "navigate-code",
+  },
+  {
+    key: "v",
+    altKey: true,
+    ctrlKey: false,
+    shiftKey: false,
+    metaKey: false,
+    description: "Go to Vis",
+    action: "navigate-vis",
+  },
+  {
+    key: "w",
+    altKey: true,
+    ctrlKey: false,
+    shiftKey: false,
+    metaKey: false,
+    description: "Go to Writer",
+    action: "navigate-writer",
+  },
+  {
+    key: "/",
+    altKey: true,
+    ctrlKey: false,
+    shiftKey: false,
+    metaKey: false,
+    description: "Show Keyboard Shortcuts",
+    action: "show-shortcuts",
+  },
+  {
+    key: "F11",
+    altKey: false,
+    ctrlKey: false,
+    shiftKey: false,
+    metaKey: false,
+    description: "Cycle Zen/Fullscreen modes",
+    action: "zen-cycle",
+  },
 ];
 
 /**
  * Generate a unique key identifier for a shortcut
  */
-function getShortcutKey(shortcut: { key: string; altKey: boolean; ctrlKey: boolean; shiftKey: boolean; metaKey: boolean }): string {
+function getShortcutKey(shortcut: {
+  key: string;
+  altKey: boolean;
+  ctrlKey: boolean;
+  shiftKey: boolean;
+  metaKey: boolean;
+}): string {
   const parts: string[] = [];
-  if (shortcut.ctrlKey) parts.push('Ctrl');
-  if (shortcut.altKey) parts.push('Alt');
-  if (shortcut.shiftKey) parts.push('Shift');
-  if (shortcut.metaKey) parts.push('Meta');
+  if (shortcut.ctrlKey) parts.push("Ctrl");
+  if (shortcut.altKey) parts.push("Alt");
+  if (shortcut.shiftKey) parts.push("Shift");
+  if (shortcut.metaKey) parts.push("Meta");
   parts.push(shortcut.key.toLowerCase());
-  return parts.join('+');
+  return parts.join("+");
 }
 
 /**
@@ -82,9 +172,15 @@ export function checkShortcutConflict(
   altKey: boolean = false,
   ctrlKey: boolean = false,
   shiftKey: boolean = false,
-  metaKey: boolean = false
+  metaKey: boolean = false,
 ): SharedShortcut | null {
-  const proposedKey = getShortcutKey({ key, altKey, ctrlKey, shiftKey, metaKey });
+  const proposedKey = getShortcutKey({
+    key,
+    altKey,
+    ctrlKey,
+    shiftKey,
+    metaKey,
+  });
 
   for (const shortcut of SHARED_SHORTCUTS) {
     const reservedKey = getShortcutKey(shortcut);
@@ -107,29 +203,34 @@ export function checkShortcutConflict(
  */
 export function registerAppShortcut(
   key: string,
-  modifiers: { altKey?: boolean; ctrlKey?: boolean; shiftKey?: boolean; metaKey?: boolean },
+  modifiers: {
+    altKey?: boolean;
+    ctrlKey?: boolean;
+    shiftKey?: boolean;
+    metaKey?: boolean;
+  },
   description: string,
-  handler: (e: KeyboardEvent) => void
+  handler: (e: KeyboardEvent) => void,
 ): boolean {
   const conflict = checkShortcutConflict(
     key,
     modifiers.altKey || false,
     modifiers.ctrlKey || false,
     modifiers.shiftKey || false,
-    modifiers.metaKey || false
+    modifiers.metaKey || false,
   );
 
   if (conflict) {
     console.error(
       `[SharedShortcuts] CONFLICT: Cannot register "${description}" ` +
-      `(${getShortcutKey({ key, ...modifiers, altKey: modifiers.altKey || false, ctrlKey: modifiers.ctrlKey || false, shiftKey: modifiers.shiftKey || false, metaKey: modifiers.metaKey || false })}) - ` +
-      `Reserved for "${conflict.description}" (${conflict.action})`
+        `(${getShortcutKey({ key, ...modifiers, altKey: modifiers.altKey || false, ctrlKey: modifiers.ctrlKey || false, shiftKey: modifiers.shiftKey || false, metaKey: modifiers.metaKey || false })}) - ` +
+        `Reserved for "${conflict.description}" (${conflict.action})`,
     );
     return false;
   }
 
   // No conflict, safe to register
-  document.addEventListener('keydown', (e: KeyboardEvent) => {
+  document.addEventListener("keydown", (e: KeyboardEvent) => {
     if (
       e.key.toLowerCase() === key.toLowerCase() &&
       e.altKey === (modifiers.altKey || false) &&
@@ -141,7 +242,9 @@ export function registerAppShortcut(
     }
   });
 
-  console.log(`[SharedShortcuts] Registered: ${description} (${getShortcutKey({ key, ...modifiers, altKey: modifiers.altKey || false, ctrlKey: modifiers.ctrlKey || false, shiftKey: modifiers.shiftKey || false, metaKey: modifiers.metaKey || false })})`);
+  console.log(
+    `[SharedShortcuts] Registered: ${description} (${getShortcutKey({ key, ...modifiers, altKey: modifiers.altKey || false, ctrlKey: modifiers.ctrlKey || false, shiftKey: modifiers.shiftKey || false, metaKey: modifiers.metaKey || false })})`,
+  );
   return true;
 }
 
@@ -149,28 +252,31 @@ export function registerAppShortcut(
  * Get formatted list of all shared shortcuts for display
  */
 export function getSharedShortcutsList(): string {
-  return SHARED_SHORTCUTS.map(s => {
+  return SHARED_SHORTCUTS.map((s) => {
     const keyCombo = getShortcutKey(s);
     return `${keyCombo}: ${s.description}`;
-  }).join('\n');
+  }).join("\n");
 }
 
 /**
  * Get shared shortcuts as HTML for modal display
  */
 export function getSharedShortcutsHTML(): string {
-  let html = '<h3>Global Shortcuts (Always Active)</h3><ul>';
+  let html = "<h3>Global Shortcuts (Always Active)</h3><ul>";
   for (const shortcut of SHARED_SHORTCUTS) {
     const keyCombo = getShortcutKey(shortcut);
-    const displayKey = keyCombo.replace(/\+/g, ' + ').replace('alt', 'Alt').replace('ctrl', 'Ctrl');
+    const displayKey = keyCombo
+      .replace(/\+/g, " + ")
+      .replace("alt", "Alt")
+      .replace("ctrl", "Ctrl");
     html += `<li><kbd>${displayKey}</kbd> - ${shortcut.description}</li>`;
   }
-  html += '</ul>';
+  html += "</ul>";
   return html;
 }
 
 // Log shared shortcuts on module load
-console.log('[SharedShortcuts] Reserved shortcuts:');
-SHARED_SHORTCUTS.forEach(s => {
+console.log("[SharedShortcuts] Reserved shortcuts:");
+SHARED_SHORTCUTS.forEach((s) => {
   console.log(`  ${getShortcutKey(s)}: ${s.description}`);
 });
