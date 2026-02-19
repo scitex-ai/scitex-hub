@@ -57,6 +57,50 @@
             color: var(--color-accent-fg);
             text-decoration: none;
         }
+
+        .section-freedoms {
+            padding: 3rem 0;
+            border-bottom: 1px solid var(--border-default);
+            margin-bottom: 2rem;
+        }
+
+        .section-freedoms .section-heading {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .section-freedoms .section-heading h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .freedoms-list {
+            list-style: none;
+            padding: 0;
+            max-width: 640px;
+            margin: 0 auto 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .freedoms-list li {
+            padding: 0.75rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-default);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .freedoms-footer {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-top: 1rem;
+        }
     </style>
 {% endblock %}
 {% block content %}
@@ -65,6 +109,8 @@
         <header class="minimal-hero">
             <h1 class="minimal-hero-title">Why Open Source Matters</h1>
         </header>
+        <!-- Four Freedoms -->
+        {% include 'public_app/landing_partials/landing_freedoms.html' %}
         <!-- Narrative Content -->
         <article class="about-narrative">
             <section class="about-section">

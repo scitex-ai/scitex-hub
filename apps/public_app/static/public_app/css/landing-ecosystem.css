@@ -273,22 +273,10 @@
 .ecosystem-diagram-img {
   display: block;
   width: 100%;
-  max-width: 900px;
+  max-width: 1200px;
   height: auto;
   margin: 0 auto;
   border-radius: 8px;
-}
-
-.ecosystem-diagram-dark {
-  display: none;
-}
-
-[data-theme="dark"] .ecosystem-diagram-light {
-  display: none;
-}
-
-[data-theme="dark"] .ecosystem-diagram-dark {
-  display: block;
 }
 
 /* ============================================================================
