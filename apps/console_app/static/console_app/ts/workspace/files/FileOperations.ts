@@ -12,31 +12,51 @@ export class FileOperations {
     this.config = config;
   }
 
-  async loadFile(filePath: string): Promise<{ content: string; success: boolean }> {
+  async loadFile(
+    filePath: string,
+  ): Promise<{ content: string; success: boolean }> {
     if (!this.config.currentProject) {
       return { content: "", success: false };
     }
 
     try {
       const projectId = this.config.currentProject?.id;
-      const response = await fetch(`/code/api/file-content/${encodeURIComponent(filePath)}?project_id=${projectId}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": this.config.csrfToken,
+      const response = await fetch(
+        `/code/api/file-content/${encodeURIComponent(filePath)}?project_id=${projectId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": this.config.csrfToken,
+          },
         },
-      });
+      );
+
+      if (!response.ok) {
+        const text = await response.text().catch(() => "(unreadable)");
+        console.error(
+          `[FileOperations] HTTP ${response.status} loading file:`,
+          text.slice(0, 200),
+        );
+        return { content: "", success: false };
+      }
 
       const data = await response.json();
 
       if (data.success) {
         return { content: data.content, success: true };
       } else {
-        console.error("[FileOperations] Failed to load file:", data.message);
+        console.error(
+          "[FileOperations] Failed to load file:",
+          data.error || data.message || "(no error detail)",
+        );
         return { content: "", success: false };
       }
     } catch (err) {
-      console.error("[FileOperations] Error loading file:", err);
+      console.error(
+        "[FileOperations] Error loading file:",
+        err instanceof Error ? err.message : String(err),
+      );
       return { content: "", success: false };
     }
   }
