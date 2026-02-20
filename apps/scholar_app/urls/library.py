@@ -109,6 +109,7 @@ bibtex_import_patterns = [
 # Zotero integration endpoints
 from ..views.library.zotero_import import (
     zotero_collections,
+    zotero_export,
     zotero_import,
     zotero_status,
     zotero_tags,
@@ -117,6 +118,7 @@ from ..views.library.zotero_import import (
 zotero_patterns = [
     path("api/library/zotero/status/", zotero_status, name="zotero_status"),
     path("api/library/zotero/import/", zotero_import, name="zotero_import"),
+    path("api/library/zotero/export/", zotero_export, name="zotero_export"),
     path(
         "api/library/zotero/collections/", zotero_collections, name="zotero_collections"
     ),

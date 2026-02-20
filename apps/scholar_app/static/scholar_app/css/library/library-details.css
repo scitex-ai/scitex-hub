@@ -10,7 +10,7 @@
 }
 
 .library-detail-header {
-  padding: 16px;
+  padding: 10px 12px;
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -29,12 +29,12 @@
 }
 
 .library-detail-body {
-  padding: 16px;
+  padding: 10px 12px;
   flex: 1;
 }
 
 .library-detail-section {
-  margin-bottom: 20px;
+  margin-bottom: 14px;
 }
 
 .library-detail-label {
@@ -127,7 +127,7 @@
 
 /* Detail Actions */
 .library-detail-actions {
-  padding: 16px;
+  padding: 10px 12px;
   border-top: 1px solid var(--border-color);
   display: flex;
   gap: 8px;
