@@ -119,7 +119,8 @@ body.workspace-page #main-content .hub-workspace,
 body.workspace-page #main-content .clew-workspace,
 body.workspace-page #main-content .tools-workspace,
 body.workspace-page #main-content .vis-editor-container,
-body.workspace-page #main-content .editor-container {
+body.workspace-page #main-content .editor-container,
+body.workspace-page #main-content .unified-workspace-outer {
   flex: 1;
   min-height: 0; /* Allow shrinking */
 }
