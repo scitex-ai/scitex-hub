@@ -1,210 +1,210 @@
-
 {% load static vite %}
 
-    <!-- Scholar CSS — moved to <head> by unified-workspace.ts -->
-    <link rel="stylesheet" href="{% static 'shared/css/primitives/colors.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'scholar_app/css/common/01-workspace-colors.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'scholar_app/css/common/02-layout-system.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'scholar_app/css/common/03-badge-system.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'scholar_app/css/common/04-card-components.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'scholar_app/css/common/05-utilities.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'scholar_app/css/common/06-ui-components.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'scholar_app/css/common/07-workspace-layout.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet" href="{% static 'shared/css/common.css' %}" />
-    <link rel="stylesheet" href="{% static 'scholar_app/css/index.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'scholar_app/css/scholar-search-inline.css' %}" />
-    <link rel="stylesheet" href="{% static 'scholar_app/css/search/search-main.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'scholar_app/css/search/search-controls-sources.css' %}?v={{ build_id }}" />
-    <link rel="stylesheet"
-          href="{% static 'scholar_app/css/search/results-header.css' %}" />
-    <link rel="stylesheet" href="{% static 'shared/css/components/terminal-log.css' %}" />
-    <link rel="stylesheet" href="{% static 'scholar_app/css/graph/citation-graph.css' %}" />
-    <link rel="stylesheet" href="{% static 'scholar_app/css/library/library.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'scholar_app/css/library/library-details.css' %}" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.css"
-          rel="stylesheet" />
-    <style>
-        .scholar-tab-content {
-            display: none !important;
-        }
+<!-- Scholar CSS — moved to <head> by unified-workspace.ts -->
+<link rel="stylesheet" href="{% static 'shared/css/primitives/colors.css' %}" />
+<link rel="stylesheet"
+      href="{% static 'scholar_app/css/common/01-workspace-colors.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'scholar_app/css/common/02-layout-system.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'scholar_app/css/common/03-badge-system.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'scholar_app/css/common/04-card-components.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'scholar_app/css/common/05-utilities.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'scholar_app/css/common/06-ui-components.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'scholar_app/css/common/07-workspace-layout.css' %}?v={{ build_id }}" />
+<link rel="stylesheet" href="{% static 'shared/css/common.css' %}" />
+<link rel="stylesheet" href="{% static 'scholar_app/css/index.css' %}" />
+<link rel="stylesheet"
+      href="{% static 'scholar_app/css/scholar-search-inline.css' %}" />
+<link rel="stylesheet" href="{% static 'scholar_app/css/search/search-main.css' %}" />
+<link rel="stylesheet"
+      href="{% static 'scholar_app/css/search/search-controls-sources.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'scholar_app/css/search/results-header.css' %}" />
+<link rel="stylesheet" href="{% static 'shared/css/components/terminal-log.css' %}" />
+<link rel="stylesheet" href="{% static 'scholar_app/css/graph/citation-graph.css' %}" />
+<link rel="stylesheet" href="{% static 'scholar_app/css/library/library.css' %}" />
+<link rel="stylesheet"
+      href="{% static 'scholar_app/css/library/library-details.css' %}" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.css"
+      rel="stylesheet" />
+<style>
+    .scholar-tab-content {
+        display: none !important;
+    }
 
-        .scholar-tab-content.active {
-            display: flex !important;
-            flex-direction: column;
-            flex: 1;
-            min-height: 0;
-        }
+    .scholar-tab-content.active {
+        display: flex !important;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+    }
 
-        .scholar-details-content {
-            display: none;
-        }
+    .scholar-details-content {
+        display: none;
+    }
 
-        .scholar-details-content.active {
-            display: block;
-        }
-    </style>
-    <!-- Scholar main content (no sidebar/right-panel: unified workspace provides those) -->
-    <!-- Note: #workspace-project-config is already present in the unified workspace shell -->
-    <main class="scholar-main"
-          style="flex:1;
-                 display:flex;
-                 flex-direction:column;
-                 overflow:hidden;
-                 min-width:0">
-        <div class="pane-header">
-            <nav class="scholar-tabs">
-                <a href="#library" class="scholar-tab" data-tab="library">
-                    <i class="fas fa-book-reader"></i> Library
-                    {% if library_count %}<span class="scholar-tab-badge">{{ library_count }}</span>{% endif %}
-                </a>
-                <a href="#search" class="scholar-tab" data-tab="search">
-                    <i class="fas fa-search"></i> Search
-                </a>
-                <a href="#bibtex" class="scholar-tab" data-tab="bibtex">
-                    <i class="fas fa-wand-magic-sparkles"></i> Metadata Enrichment
-                </a>
-                <a href="#graph" class="scholar-tab" data-tab="graph">
-                    <i class="fas fa-project-diagram"></i> Citation Graph
-                    <span class="badge badge-wip">WIP</span>
-                </a>
-            </nav>
-            <div class="pane-header-actions"></div>
-        </div>
-        <div class="pane-content">
-            <!-- Search Tab -->
-            <div id="tab-search" class="scholar-tab-content" data-tab="search">
-                <div class="scholar-search-container">
-                    {% include "scholar_app/search_partials/search.html" with show_results=True %}
-                </div>
-                <div id="scholar-config-data" data-bibtex-upload-url="{% url 'scholar_app:bibtex_upload' %}" data-resource-status-url="{% url 'scholar_app:bibtex_resource_status' %}" data-scitex-search-url="{% url 'scholar_app:api_scitex_search' %}" data-scitex-capabilities-url="{% url 'scholar_app:api_scitex_capabilities' %}" data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}" data-user-projects='[{% for project in user_projects %}{"id": {{ project.id }}, "name": "{{ project.name|escapejs }}"}
-                    {% if not forloop.last %},{% endif %}
-                {% endfor %}
-                ]' data-current-project='{% if current_project %}{"id": {{ current_project.id }}, "name": "{{ current_project.name|escapejs }}"}
-            {% else %}
-                null
-            {% endif %}
-            '></div>
+    .scholar-details-content.active {
+        display: block;
+    }
+</style>
+<!-- Scholar main content (no sidebar/right-panel: unified workspace provides those) -->
+<!-- Note: #workspace-project-config is already present in the unified workspace shell -->
+<main class="scholar-main"
+      style="flex:1;
+             display:flex;
+             flex-direction:column;
+             overflow:hidden;
+             min-width:0">
+    <div class="pane-header">
+        <nav class="scholar-tabs">
+            <a href="#library" class="scholar-tab" data-tab="library">
+                <i class="fas fa-book-reader"></i> Library
+                {% if library_count %}<span class="scholar-tab-badge">{{ library_count }}</span>{% endif %}
+            </a>
+            <a href="#search" class="scholar-tab" data-tab="search">
+                <i class="fas fa-search"></i> Search
+            </a>
+            <a href="#bibtex" class="scholar-tab" data-tab="bibtex">
+                <i class="fas fa-wand-magic-sparkles"></i> Metadata Enrichment
+            </a>
+            <a href="#graph" class="scholar-tab" data-tab="graph">
+                <i class="fas fa-project-diagram"></i> Citation Graph
+                <span class="badge badge-wip">WIP</span>
+            </a>
+        </nav>
+        <div class="pane-header-actions"></div>
     </div>
-    <!-- BibTeX Tab -->
-    <div id="tab-bibtex" class="scholar-tab-content" data-tab="bibtex">
-        {% include "scholar_app/bibtex_partials/enrich.html" %}
-        {% if current_project %}
-            {% include "writer_app/compilation_view_partials/ai2_modal.html" %}
+    <div class="pane-content">
+        <!-- Search Tab -->
+        <div id="tab-search" class="scholar-tab-content" data-tab="search">
+            <div class="scholar-search-container">
+                {% include "scholar_app/search_partials/search.html" with show_results=True %}
+            </div>
+            <div id="scholar-config-data" data-bibtex-upload-url="{% url 'scholar_app:bibtex_upload' %}" data-resource-status-url="{% url 'scholar_app:bibtex_resource_status' %}" data-scitex-search-url="{% url 'scholar_app:api_scitex_search' %}" data-scitex-capabilities-url="{% url 'scholar_app:api_scitex_capabilities' %}" data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}" data-user-projects='[{% for project in user_projects %}{"id": {{ project.id }}, "name": "{{ project.name|escapejs }}"}
+                {% if not forloop.last %},{% endif %}
+            {% endfor %}
+            ]' data-current-project='{% if current_project %}{"id": {{ current_project.id }}, "name": "{{ current_project.name|escapejs }}"}
+        {% else %}
+            null
         {% endif %}
-    </div>
-    <!-- Graph Tab -->
-    <div id="tab-graph" class="scholar-tab-content" data-tab="graph">
-        <div class="citation-graph-container">
-            <div class="graph-input-section">
-                <div class="graph-card">
-                    <div class="graph-card__header">
-                        <div class="graph-card__title">
-                            <i class="fas fa-project-diagram"></i>
-                            <span>Citation Network Explorer</span>
-                        </div>
+        '></div>
+</div>
+<!-- BibTeX Tab -->
+<div id="tab-bibtex" class="scholar-tab-content" data-tab="bibtex">
+    {% include "scholar_app/bibtex_partials/enrich.html" %}
+    {% if current_project %}
+        {% include "writer_app/compilation_view_partials/ai2_modal.html" %}
+    {% endif %}
+</div>
+<!-- Graph Tab -->
+<div id="tab-graph" class="scholar-tab-content" data-tab="graph">
+    <div class="citation-graph-container">
+        <div class="graph-input-section">
+            <div class="graph-card">
+                <div class="graph-card__header">
+                    <div class="graph-card__title">
+                        <i class="fas fa-project-diagram"></i>
+                        <span>Citation Network Explorer</span>
                     </div>
-                    <div class="graph-card__body">
-                        <p class="graph-description">
-                            Build a citation network from a DOI to discover related papers through bibliographic coupling and co-citation analysis.
-                        </p>
-                        <form id="graphForm" class="graph-form">
-                            <div class="form-row">
-                                <div class="form-group form-group--doi">
-                                    <label for="doiInput" class="form-label">Enter DOI</label>
-                                    <div class="input-wrapper">
-                                        <input type="text"
-                                               id="doiInput"
-                                               name="doi"
-                                               class="form-input"
-                                               placeholder="e.g., 10.1038/s41586-020-2008-3"
-                                               required />
-                                        <button type="submit" class="btn-build" id="buildGraphBtn">
-                                            <i class="fas fa-project-diagram"></i>
-                                            <span>Build Graph</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="form-group form-group--options">
-                                    <label for="topN" class="form-label">Related Papers</label>
-                                    <select id="topN" name="top_n" class="form-select">
-                                        <option value="10">10 papers</option>
-                                        <option value="20" selected>20 papers</option>
-                                        <option value="30">30 papers</option>
-                                        <option value="50">50 papers</option>
-                                    </select>
+                </div>
+                <div class="graph-card__body">
+                    <p class="graph-description">
+                        Build a citation network from a DOI to discover related papers through bibliographic coupling and co-citation analysis.
+                    </p>
+                    <form id="graphForm" class="graph-form">
+                        <div class="form-row">
+                            <div class="form-group form-group--doi">
+                                <label for="doiInput" class="form-label">Enter DOI</label>
+                                <div class="input-wrapper">
+                                    <input type="text"
+                                           id="doiInput"
+                                           name="doi"
+                                           class="form-input"
+                                           placeholder="e.g., 10.1038/s41586-020-2008-3"
+                                           required />
+                                    <button type="submit" class="btn-build" id="buildGraphBtn">
+                                        <i class="fas fa-project-diagram"></i>
+                                        <span>Build Graph</span>
+                                    </button>
                                 </div>
                             </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            <div id="graphVisualization" class="graph-visualization hidden">
-                <div class="graph-card graph-card--full">
-                    <div class="graph-card__header">
-                        <div class="graph-card__title">
-                            <i class="fas fa-share-alt"></i>
-                            <span id="graphTitle">Citation Network</span>
+                            <div class="form-group form-group--options">
+                                <label for="topN" class="form-label">Related Papers</label>
+                                <select id="topN" name="top_n" class="form-select">
+                                    <option value="10">10 papers</option>
+                                    <option value="20" selected>20 papers</option>
+                                    <option value="30">30 papers</option>
+                                    <option value="50">50 papers</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="graph-controls">
-                            <button class="btn-control" id="fitViewBtn" title="Fit to View">
-                                <i class="fas fa-expand"></i>
-                            </button>
-                            <button class="btn-control" id="resetZoomBtn" title="Reset Zoom">
-                                <i class="fas fa-compress-arrows-alt"></i>
-                            </button>
-                            <button class="btn-control" id="downloadSvgBtn" title="Download SVG">
-                                <i class="fas fa-download"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="graph-card__body graph-canvas-wrapper">
-                        <div id="graphCanvas"></div>
-                        <div id="nodeDetailsPanel" class="node-details-panel hidden"></div>
-                    </div>
+                    </form>
                 </div>
-            </div>
-            <div id="relatedPapersList" class="related-papers-section hidden">
-                <div class="graph-card">
-                    <div class="graph-card__header">
-                        <div class="graph-card__title">
-                            <i class="fas fa-list-ol"></i><span>Related Papers</span>
-                        </div>
-                    </div>
-                    <div class="graph-card__body">
-                        <div id="relatedPapersContent"></div>
-                    </div>
-                </div>
-            </div>
-            <div id="graphLoading" class="graph-loading hidden">
-                <div class="loading-spinner">
-                    <div class="spinner-ring"></div>
-                    <div class="spinner-ring"></div>
-                    <div class="spinner-ring"></div>
-                </div>
-                <p class="loading-text">Building citation network...</p>
-            </div>
-            <div id="graphError" class="graph-error hidden">
-                <i class="fas fa-exclamation-triangle"></i>
-                <p id="graphErrorMessage"></p>
-                <button class="btn-retry"
-                        onclick="document.getElementById('graphError').classList.add('hidden')">Dismiss</button>
             </div>
         </div>
+        <div id="graphVisualization" class="graph-visualization hidden">
+            <div class="graph-card graph-card--full">
+                <div class="graph-card__header">
+                    <div class="graph-card__title">
+                        <i class="fas fa-share-alt"></i>
+                        <span id="graphTitle">Citation Network</span>
+                    </div>
+                    <div class="graph-controls">
+                        <button class="btn-control" id="fitViewBtn" title="Fit to View">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                        <button class="btn-control" id="resetZoomBtn" title="Reset Zoom">
+                            <i class="fas fa-compress-arrows-alt"></i>
+                        </button>
+                        <button class="btn-control" id="downloadSvgBtn" title="Download SVG">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="graph-card__body graph-canvas-wrapper">
+                    <div id="graphCanvas"></div>
+                    <div id="nodeDetailsPanel" class="node-details-panel hidden"></div>
+                </div>
+            </div>
+        </div>
+        <div id="relatedPapersList" class="related-papers-section hidden">
+            <div class="graph-card">
+                <div class="graph-card__header">
+                    <div class="graph-card__title">
+                        <i class="fas fa-list-ol"></i><span>Related Papers</span>
+                    </div>
+                </div>
+                <div class="graph-card__body">
+                    <div id="relatedPapersContent"></div>
+                </div>
+            </div>
+        </div>
+        <div id="graphLoading" class="graph-loading hidden">
+            <div class="loading-spinner">
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+            </div>
+            <p class="loading-text">Building citation network...</p>
+        </div>
+        <div id="graphError" class="graph-error hidden">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p id="graphErrorMessage"></p>
+            <button class="btn-retry"
+                    onclick="document.getElementById('graphError').classList.add('hidden')">Dismiss</button>
+        </div>
     </div>
-    <!-- Library Tab -->
-    <div id="tab-library" class="scholar-tab-content" data-tab="library">
-        <div class="library-tab-inner">{% include "scholar_app/library_partials/library_main.html" %}</div>
-    </div>
+</div>
+<!-- Library Tab -->
+<div id="tab-library" class="scholar-tab-content" data-tab="library">
+    <div class="library-tab-inner">{% include "scholar_app/library_partials/library_main.html" %}</div>
+    <div class="library-details-panel">{% include "scholar_app/library_partials/library_details.html" %}</div>
+</div>
 </div>
 </main>
 <!-- Scholar global config -->

@@ -1,12 +1,30 @@
 /* Scholar Library Tab - Main List Styles */
 
-/* Library tab wrapper — absorbs flex:1 from .scholar-tab-content > div:first-child */
+/* Library split layout: paper list (left) | details (right) */
+#tab-library.active {
+  flex-direction: row !important;
+}
+
+/* Paper list column — fixed width, scrollable internally */
 .library-tab-inner {
-  flex: 1;
+  width: 360px;
+  min-width: 260px;
+  flex-shrink: 0;
   min-height: 0;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid var(--workspace-border-default);
+}
+
+/* Details panel column — grows to fill remaining width */
+.library-details-panel {
+  flex: 1;
+  min-width: 0;
   overflow-y: auto;
+  background-color: var(--workspace-bg-primary);
+  display: flex;
+  flex-direction: column;
 }
 
 /* Tab Badge */
