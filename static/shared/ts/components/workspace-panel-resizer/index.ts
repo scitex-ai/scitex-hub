@@ -17,8 +17,8 @@
  * ```
  */
 
-export { PanelConfig } from "./types";
-import { PanelConfig } from "./types";
+export type { PanelConfig } from "./types";
+import type { PanelConfig } from "./types";
 import { restoreCollapseState } from "./state";
 import { updateToggleIcon, initToggleClickHandler } from "./toggle";
 import { initResizer } from "./resizer";

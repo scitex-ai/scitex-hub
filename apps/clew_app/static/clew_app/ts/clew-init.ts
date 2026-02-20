@@ -237,8 +237,14 @@ class ClewApp {
   }
 }
 
-// Initialize when DOM is ready
-document.addEventListener("DOMContentLoaded", () => {
+// Initialize when DOM is ready (supports both direct load and AJAX injection)
+function initClew() {
   const app = new ClewApp();
   app.initialize();
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initClew);
+} else {
+  initClew();
+}

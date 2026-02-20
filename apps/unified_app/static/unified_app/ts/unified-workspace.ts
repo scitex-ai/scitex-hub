@@ -50,6 +50,33 @@ async function switchModule(name: string, partialUrl: string): Promise<void> {
     const html = await response.text();
     center.innerHTML = html;
 
+    // Move injected <link rel="stylesheet"> tags to <head> so browser fetches CSS
+    center.querySelectorAll('link[rel="stylesheet"]').forEach((link) => {
+      const href = (link as HTMLLinkElement).href;
+      if (href && !document.querySelector(`link[href="${href}"]`)) {
+        document.head.appendChild(link); // moves node from center to head
+      } else {
+        link.remove(); // duplicate — discard
+      }
+    });
+
+    // Execute injected <script> tags (innerHTML doesn't run them natively)
+    center.querySelectorAll("script").forEach((oldScript) => {
+      const newScript = document.createElement("script");
+      if ((oldScript as HTMLScriptElement).src) {
+        newScript.src = (oldScript as HTMLScriptElement).src;
+        newScript.type = oldScript.type || "text/javascript";
+        newScript.async = false;
+      } else {
+        if (oldScript.type) newScript.type = oldScript.type;
+        newScript.textContent = oldScript.textContent;
+      }
+      Array.from(oldScript.attributes)
+        .filter((a) => a.name !== "src" && a.name !== "type")
+        .forEach((a) => newScript.setAttribute(a.name, a.value));
+      oldScript.replaceWith(newScript);
+    });
+
     // Update active tab in UI
     document.querySelectorAll(".unified-tab-btn").forEach((btn) => {
       btn.classList.toggle(

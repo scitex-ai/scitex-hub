@@ -1,6 +1,6 @@
 /** Width and collapse state persistence helpers for WorkspacePanelResizer */
 
-import { PanelConfig } from "./types";
+import type { PanelConfig } from "./types";
 
 export function saveWidth(
   storagePrefix: string,

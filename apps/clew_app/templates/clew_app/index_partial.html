@@ -1,10 +1,45 @@
 {% extends "unified_app/module_base.html" %}
 
+{% load static vite %}
+
 {% block module_content %}
-    <div class="clew-partial-content p-3">
-        <p class="text-muted">Clew module - partial support coming soon.</p>
-        <a href="/clew/" class="btn btn-outline-secondary btn-sm">
-            <i class="fas fa-external-link-alt"></i> Open full Clew
-        </a>
+    <!-- Clew CSS — loaded into <head> by unified workspace JS -->
+    <link rel="stylesheet" href="{% static 'clew_app/css/clew.css' %}" />
+    {% if current_project %}
+        <div id="workspace-project-config"
+             style="display: none"
+             data-username="{{ current_project.owner.username }}"
+             data-slug="{{ current_project.slug }}"
+             data-mode="clew"></div>
+    {% endif %}
+    <div class="clew-main unified-clew-main" style="flex:1;overflow:auto;">
+        <div class="clew-header">
+            <span class="clew-header-title">
+                <i class="fas fa-check-circle"></i> Clew Verification
+            </span>
+            <span class="badge badge-wip">WIP</span>
+        </div>
+        <div class="dag-visualization-area">
+            <div class="dag-placeholder">
+                <img src="{% static 'clew_app/clew-icon.svg' %}"
+                     alt="Clew"
+                     style="width:3rem;
+                            height:3rem;
+                            opacity:0.6" />
+                <h3>DAG Visualization</h3>
+                {% if current_project %}
+                    <p>
+                        Verification chain for <strong>{{ current_project.name }}</strong>
+                    </p>
+                {% else %}
+                    <p>Verification chain will appear here</p>
+                {% endif %}
+                <p class="text-muted">
+                    Uses <code>scitex.clew</code> package for dependency tracking
+                </p>
+            </div>
+        </div>
     </div>
+    <!-- Clew init script — executed by unified workspace after injection -->
+    {% vite_script 'clew_app/clew-init' %}
 {% endblock %}

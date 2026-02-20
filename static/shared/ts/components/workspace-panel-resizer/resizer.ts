@@ -1,6 +1,6 @@
 /** Drag-resize mouse event logic for WorkspacePanelResizer */
 
-import { PanelConfig } from "./types";
+import type { PanelConfig } from "./types";
 import { saveWidth, restoreWidth } from "./state";
 import { updateToggleIcon } from "./toggle";
 

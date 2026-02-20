@@ -1,6 +1,6 @@
 /** Toggle icon update and click-handler logic for WorkspacePanelResizer */
 
-import { PanelConfig } from "./types";
+import type { PanelConfig } from "./types";
 import { getValidExpandWidth } from "./state";
 
 export function updateToggleIcon(

@@ -10,6 +10,31 @@ from django.shortcuts import render
 
 from apps.project_app.services.project_utils import get_current_project
 
+
+def _get_scholar_context(request, base_context: dict) -> dict:
+    """Enrich context with Scholar-specific variables."""
+    from apps.project_app.models import Project
+
+    user_projects = []
+    library_count = 0
+    if request.user.is_authenticated:
+        user_projects = list(
+            Project.objects.filter(owner=request.user).order_by("name")
+        )
+        try:
+            from apps.scholar_app.models import UserLibrary
+
+            library_count = UserLibrary.objects.filter(user=request.user).count()
+        except Exception:
+            pass
+    return {
+        **base_context,
+        "user_projects": user_projects,
+        "library_count": library_count,
+        "build_id": "unified",
+    }
+
+
 # Modules that support partial loading (Phase 1)
 PARTIAL_MODULES = {
     "files": "hub_app/index_partial.html",
@@ -101,6 +126,8 @@ def unified_content(request: HttpRequest, module: str) -> HttpResponse:
         "current_project": current_project,
         "all_modules": ALL_MODULES,
     }
+    if module == "scholar":
+        context = _get_scholar_context(request, context)
     return render(request, template_name, context)
 
 
