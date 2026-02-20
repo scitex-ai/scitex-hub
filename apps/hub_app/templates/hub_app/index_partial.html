@@ -1,0 +1,22 @@
+{% extends "unified_app/module_base.html" %}
+
+{% load static %}
+
+{% block module_content %}
+    <div class="hub-partial-content">
+        {% if current_project %}
+            <div class="hub-browse-container p-3">
+                {% include 'project_app/repository/browse_partials/browse_header.html' %}
+                {% include 'project_app/repository/browse_partials/browse_tabs.html' with active_tab='code' %}
+                {% include 'project_app/repository/browse_partials/browse_empty_state.html' %}
+                {% include 'project_app/repository/browse_partials/browse_file_browser.html' %}
+                {% include 'project_app/repository/browse_partials/browse_readme.html' %}
+            </div>
+        {% else %}
+            <div class="hub-partial-no-project p-4 text-center text-muted">
+                <i class="fas fa-folder-open fa-2x mb-3"></i>
+                <p>Select a project to browse files.</p>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

@@ -11,15 +11,13 @@ Django URL configuration modules are not scripts.
 from __future__ import annotations
 
 # ----------------------------------------
-
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import re_path
-from django.views.static import serve
-from django.urls import include, path
+from django.urls import include, path, re_path
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import RedirectView
+from django.views.static import serve
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from apps.accounts_app.api.user_views import api_search_users
@@ -145,6 +143,7 @@ urlpatterns = [
     ),
     path("search/", include(("apps.search_app.urls", "search_app"))),
     path("social/", include(("apps.social_app.urls", "social_app"))),
+    path("unified/", include(("apps.unified_app.urls", "unified_app"))),
     # Favicon redirect to prevent 404 errors
     path(
         "favicon.ico",

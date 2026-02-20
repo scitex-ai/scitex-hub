@@ -1,0 +1,27 @@
+{% load static %}
+
+<nav class="unified-tabs" id="unified-tab-bar" aria-label="Workspace modules">
+    {% for mod in all_modules %}
+        {% if mod.partial %}
+            <button class="unified-tab-btn {% if mod.name == current_module %}active{% endif %}"
+                    data-module="{{ mod.name }}"
+                    data-mode="partial"
+                    data-partial-url="{% url 'unified_app:unified_content' module=mod.name %}"
+                    type="button"
+                    aria-label="{{ mod.label }}">
+                <i class="fas {{ mod.icon }}"></i>
+                <span class="tab-label">{{ mod.label }}</span>
+            </button>
+        {% else %}
+            <a class="unified-tab-btn {% if mod.name == current_module %}active{% endif %}"
+               href="{{ mod.href }}"
+               data-module="{{ mod.name }}"
+               data-mode="external"
+               aria-label="{{ mod.label }} (opens in current page)">
+                <i class="fas {{ mod.icon }}"></i>
+                <span class="tab-label">{{ mod.label }}</span>
+                <i class="fas fa-external-link-alt fa-xs tab-external-icon"></i>
+            </a>
+        {% endif %}
+    {% endfor %}
+</nav>
