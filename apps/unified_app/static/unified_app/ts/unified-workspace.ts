@@ -1,8 +1,21 @@
 /**
  * Unified Workspace - module tab switching and state management.
+ * Header nav links act as tab switchers on /unified/ pages.
  */
 
 const STORAGE_KEY = "scitex-unified-active-module";
+
+/** Maps header nav href → unified module name */
+const HREF_TO_MODULE: Record<string, string> = {
+  "/writer/": "writer",
+  "/scholar/": "scholar",
+  "/vis/": "vis",
+  "/vis/editor/": "vis",
+  "/console/": "console",
+  "/console/workspace/": "console",
+  "/clew/": "clew",
+  "/hub/": "hub",
+};
 
 const moduleInitializers: Map<string, () => void> = new Map();
 
@@ -102,11 +115,45 @@ async function switchModule(name: string, partialUrl: string): Promise<void> {
       }
     }
 
+    // Update header nav active state
+    updateHeaderNavActive(name);
+
+    // Dispatch resize so canvas/xterm re-render to correct dimensions
+    setTimeout(() => window.dispatchEvent(new Event("resize")), 100);
+
     console.log(`[Unified] Switched to module: ${name}`);
   } catch (err) {
     center.innerHTML = `<div class="unified-center-error p-4 text-danger">Error loading module: ${String(err)}</div>`;
     console.error("[Unified] Module load error:", err);
   }
+}
+
+function updateHeaderNavActive(moduleName: string): void {
+  document.querySelectorAll(".header-nav-item").forEach((el) => {
+    const href = (el as HTMLAnchorElement).getAttribute("href") || "";
+    const mapped = HREF_TO_MODULE[href] || HREF_TO_MODULE[href + "/"];
+    el.classList.toggle("active", mapped === moduleName);
+  });
+}
+
+/** Intercept global header nav clicks on /unified/ pages to switch modules inline. */
+function interceptHeaderNav(): void {
+  document.querySelectorAll(".header-nav-item").forEach((link) => {
+    link.addEventListener("click", (e) => {
+      const href = (link as HTMLAnchorElement).getAttribute("href") || "";
+      const moduleName = HREF_TO_MODULE[href] || HREF_TO_MODULE[href + "/"];
+      if (!moduleName) return; // not a known module — let it navigate normally
+
+      const btn = document.querySelector(
+        `[data-module="${moduleName}"][data-mode="partial"]`,
+      ) as HTMLElement | null;
+      if (btn && btn.dataset.partialUrl) {
+        e.preventDefault();
+        e.stopPropagation();
+        switchModule(moduleName, btn.dataset.partialUrl);
+      }
+    });
+  });
 }
 
 function initTabBar(): void {
@@ -165,10 +212,12 @@ if (typeof document !== "undefined") {
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => {
       initTabBar();
+      interceptHeaderNav();
       autoLoadInitialModule();
     });
   } else {
     initTabBar();
+    interceptHeaderNav();
     autoLoadInitialModule();
   }
 }
