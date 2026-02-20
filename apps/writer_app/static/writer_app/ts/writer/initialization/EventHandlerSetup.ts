@@ -3,7 +3,7 @@
  * Handles setup of global event handlers and window functions
  */
 
-import { statusLamp } from "../../modules/index";
+import { statusLamp, setLoadingContent } from "../../modules/index";
 import { handleCompileFull } from "../../utils/index";
 
 export class EventHandlerSetup {
@@ -46,29 +46,16 @@ export class EventHandlerSetup {
       const { url } = event.detail;
       console.log("[EventHandlerSetup] Loading existing PDF:", url);
 
-      const textPreview = document.getElementById("text-preview");
-      if (!textPreview) {
-        console.warn("[EventHandlerSetup] text-preview element not found");
-        return;
+      if (this.pdfPreviewManager) {
+        // Use PDFPreviewManager to display via PDFJSViewer, which updates
+        // state.currentPdfUrl — prevents SectionLoading from showing it again
+        this.pdfPreviewManager.displayPdfFromUrl(url);
+        console.log("[EventHandlerSetup] ✓ Existing PDF loaded in preview");
+      } else {
+        console.warn(
+          "[EventHandlerSetup] pdfPreviewManager not available for existing PDF load",
+        );
       }
-
-      // Display the PDF using PDF.js canvas (same approach as PDFViewer)
-      textPreview.innerHTML = `
-        <div class="pdf-preview-container" style="height: 100%; width: 100%;">
-          <div class="pdf-preview-viewer" id="pdf-viewer-pane" style="height: 100%; width: 100%;">
-            <iframe
-              src="${url}#toolbar=0&navpanes=0&scrollbar=1&view=FitW&zoom=page-width"
-              type="application/pdf"
-              width="100%"
-              height="100%"
-              title="PDF Preview"
-              frameborder="0"
-              style="display: block;">
-            </iframe>
-          </div>
-        </div>
-      `;
-      console.log("[EventHandlerSetup] ✓ Existing PDF loaded in preview");
     });
     console.log("[EventHandlerSetup] ✓ Existing PDF loader attached");
   }
@@ -287,9 +274,14 @@ export class EventHandlerSetup {
       }
 
       try {
-        // Set content in the editor
+        // Set content in the editor.
+        // Guard with setLoadingContent to prevent Monaco onChange from
+        // triggering auto-save/compile during programmatic content loading.
         console.log("[EventHandlerSetup] Calling editor.setContent()...");
+        setLoadingContent(true);
         this.editor.setContent(content);
+        // Keep flag set briefly to cover synchronous onChange handlers
+        setTimeout(() => setLoadingContent(false), 200);
         console.log(
           `[EventHandlerSetup] ✓ File content loaded into editor: ${path}`,
         );
@@ -300,17 +292,13 @@ export class EventHandlerSetup {
           console.log("[EventHandlerSetup] ✓ State updated with current file");
         }
 
-        // Trigger quick preview compilation for .tex files
-        if (path.endsWith(".tex") && this.pdfPreviewManager) {
-          console.log(
-            `[EventHandlerSetup] Triggering preview compilation for: ${path}`,
-          );
-          setTimeout(() => {
-            // forceCompile=true: file explicitly opened, compile even if same URL
-            this.pdfPreviewManager.compileQuick(content, path, true);
-          }, 300);
-        }
+        // NOTE: Do NOT call compileQuick here for section .tex files.
+        // SectionLoading.ts handles the initial preview via compileQuick()
+        // after loadSectionContent() completes. Calling with the file path
+        // as sectionId uses wrong sectionName (e.g. "abstract.tex" vs "abstract")
+        // causing 404 HEAD check and unnecessary compilation → flash.
       } catch (error) {
+        setLoadingContent(false);
         console.error("[EventHandlerSetup] Error loading file content:", error);
       }
     });

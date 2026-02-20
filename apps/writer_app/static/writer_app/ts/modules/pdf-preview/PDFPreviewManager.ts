@@ -176,6 +176,15 @@ export class PDFPreviewManager {
   }
 
   /**
+   * Display a PDF from a direct URL (updates state.currentPdfUrl).
+   * Used by the existing-PDF loader to show cached PDFs on page start
+   * without triggering compilation.
+   */
+  displayPdfFromUrl(url: string): void {
+    this.viewer.displayPdf(url);
+  }
+
+  /**
    * Display placeholder
    */
   displayPlaceholder(): void {
