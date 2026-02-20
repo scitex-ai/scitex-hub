@@ -7,6 +7,7 @@ import logging
 import subprocess
 from pathlib import Path
 
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
@@ -15,6 +16,7 @@ from apps.project_app.models import Project
 logger = logging.getLogger(__name__)
 
 
+@login_required
 @require_http_methods(["POST"])
 def api_execute_script(request):
     """Execute a Python script."""
@@ -86,9 +88,18 @@ def api_execute_script(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+@login_required
 @require_http_methods(["POST"])
 def api_execute_command(request):
-    """Execute a bash command in user's home directory context."""
+    """Execute a bash command in user's project directory via setpriv (UID isolation).
+
+    Security model:
+    - Requires login — no unauthenticated access
+    - Caller must own or collaborate on the project
+    - Command runs under the user's OS UID/GID via setpriv (no shell=True)
+    - Project directory validated to be within user's data jail
+    - Minimal environment (no Django secrets exposed)
+    """
     try:
         data = json.loads(request.body)
         project_id = data.get("project_id")
@@ -99,68 +110,68 @@ def api_execute_command(request):
 
         project = Project.objects.select_related("owner").get(id=project_id)
 
-        # Check permissions (allow authenticated users and visitors with allocated project)
-        if request.user.is_authenticated:
-            has_access = (
-                request.user == project.owner
-                or request.user in project.collaborators.all()
-            )
-        else:
-            # For visitor users, check if this is their allocated visitor project
-            visitor_project_id = request.session.get("visitor_project_id")
-            has_access = visitor_project_id and project.id == visitor_project_id
-
+        # Permission: must be owner or collaborator
+        has_access = (
+            request.user == project.owner or request.user in project.collaborators.all()
+        )
         if not has_access:
             return JsonResponse({"error": "Unauthorized"}, status=403)
 
-        # Security: Block dangerous commands
-        dangerous_commands = ["rm -rf /", "dd", "mkfs", ":(){:|:&};:", "chmod -R 777 /"]
-        if any(dangerous in command for dangerous in dangerous_commands):
-            return JsonResponse({"error": "Dangerous command blocked"}, status=403)
+        from apps.accounts_app.services.unix_user import (
+            ensure_linux_account,
+            get_unix_uid,
+        )
+        from apps.project_app.services.filesystem.permissions import (
+            get_user_data_root,
+            validate_path_in_user_jail,
+        )
 
-        # Get user info and project directory
-        import os
-
-        username = project.owner.username
-        # Use /home/username as home dir (standard Linux path)
-        home_dir = f"/home/{username}"
+        # Resolve and validate CWD — must be within the requesting user's jail
         project_dir = Path(project.git_clone_path)
-
-        # Set up environment to feel like user's terminal
-        env = os.environ.copy()
-        env["HOME"] = home_dir
-        env["USER"] = username
-        env["LOGNAME"] = username
-        env["PWD"] = str(project_dir)
-        env["HOSTNAME"] = "scitex-cloud"
-        env["TERM"] = "xterm-256color"  # Enable terminal features like clear
-
-        # SciTeX Cloud Code-specific env vars for scitex.plt auto-detection
-        env["SCITEX_CLOUD_CODE_WORKSPACE"] = "true"  # Marker for scitex.plt
-        env["SCITEX_CLOUD_CODE_BACKEND"] = "inline"  # Use inline plotting in terminal
-        env["SCITEX_CLOUD_CODE_SESSION_ID"] = str(project.id)  # Session tracking
-        env["SCITEX_CLOUD_CODE_PROJECT_ROOT"] = str(project_dir)  # Project root
-        env["SCITEX_CLOUD_CODE_USERNAME"] = username  # Username for debugging
-
-        # Remove other sensitive Django env vars from user's view
-        sensitive_vars = [
-            k
-            for k in env.keys()
-            if (
-                k.startswith("DJANGO_")
-                or "SECRET" in k
-                or "PASSWORD" in k
-                or "API_KEY" in k
+        jail = get_user_data_root(request.user)
+        if not validate_path_in_user_jail(request.user, project_dir):
+            logger.warning(
+                "api_execute_command: CWD %s outside jail for %s",
+                project_dir,
+                request.user.username,
             )
-            and not k.startswith("SCITEX_")
-        ]
-        for var in sensitive_vars:
-            env.pop(var, None)
+            return JsonResponse(
+                {"error": "Access denied: project directory outside your home."},
+                status=403,
+            )
 
-        # Execute command in project directory (like cd ~/proj/project-name)
+        # Ensure Linux account exists (idempotent, best-effort)
+        try:
+            ensure_linux_account(request.user)
+        except Exception:
+            pass
+
+        uid = get_unix_uid(request.user)
+        username = request.user.username
+
+        env = {
+            "HOME": str(jail),
+            "USER": username,
+            "LOGNAME": username,
+            "PATH": "/usr/local/bin:/usr/bin:/bin",
+            "TERM": "xterm-256color",
+            "SCITEX_CLOUD_CODE_WORKSPACE": "true",
+            "SCITEX_CLOUD_CODE_BACKEND": "inline",
+            "SCITEX_CLOUD_CODE_SESSION_ID": str(project.id),
+            "SCITEX_CLOUD_CODE_PROJECT_ROOT": str(project_dir),
+        }
+
         result = subprocess.run(
-            command,
-            shell=True,
+            [
+                "setpriv",
+                f"--reuid={uid}",
+                f"--regid={uid}",
+                "--clear-groups",
+                "--",
+                "bash",
+                "-c",
+                command,
+            ],
             cwd=str(project_dir),
             capture_output=True,
             text=True,
@@ -180,8 +191,12 @@ def api_execute_command(request):
 
     except subprocess.TimeoutExpired:
         return JsonResponse({"error": "Command timed out (30 sec limit)"}, status=408)
+    except FileNotFoundError:
+        return JsonResponse(
+            {"error": "setpriv not found. Ensure util-linux is installed."}, status=500
+        )
     except Exception as e:
-        logger.error(f"Error executing command: {e}", exc_info=True)
+        logger.error("Error executing command: %s", e, exc_info=True)
         return JsonResponse({"error": str(e)}, status=500)
 
 
