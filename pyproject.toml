@@ -177,6 +177,8 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+DJANGO_SETTINGS_MODULE = "config.settings.settings_dev"
+norecursedirs = ["data", "docs", "scripts", "static", "deployment", "node_modules", ".git", "__pycache__", "*.egg-info", ".dev"]
 addopts = [
     "--verbose",
     "--strict-markers",

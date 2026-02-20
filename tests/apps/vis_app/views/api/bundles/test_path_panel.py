@@ -90,10 +90,10 @@ class TestGetFigzPanelPreview:
         from apps.vis_app.views.api.bundles.path_panel import get_figz_panel_preview
 
         with patch(
-            "apps.vis_app.views.api.bundles._path_helpers.resolve_bundle_path"
+            "apps.vis_app.views.api.bundles.path_panel.resolve_bundle_path"
         ) as mock_resolve:
             mock_resolve.return_value = Path("/data/projects/owner/slug/figure.figz")
-            with patch("apps.vis_app.views.api.bundles.path_panel.Figz") as MockFigz:
+            with patch("scitex.fig.Figz") as MockFigz:
                 mock_figz = Mock()
                 mock_figz.get_panel_pltz.return_value = None
                 MockFigz.return_value = mock_figz

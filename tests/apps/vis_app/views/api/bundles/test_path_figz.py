@@ -41,7 +41,7 @@ class TestLoadFigzByPath:
         from apps.vis_app.views.api.bundles.path_figz import load_figz_by_path
 
         with patch(
-            "apps.vis_app.views.api.bundles._path_helpers.resolve_bundle_path"
+            "apps.vis_app.views.api.bundles.path_figz.resolve_bundle_path"
         ) as mock_resolve:
             mock_resolve.return_value = Path("/data/projects/owner/slug/figure.figz")
             with patch(

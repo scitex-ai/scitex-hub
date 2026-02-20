@@ -35,9 +35,9 @@ class TestAPIDocSections:
     def test_section_order_matches_sections(self):
         """All sections in order list must exist in sections dict."""
         for key in API_DOC_SECTION_ORDER:
-            assert key in API_DOC_SECTIONS, (
-                f"Section {key} in order but not in sections"
-            )
+            assert (
+                key in API_DOC_SECTIONS
+            ), f"Section {key} in order but not in sections"
 
     def test_all_sections_in_order(self):
         """All sections must be in the order list."""
@@ -87,25 +87,30 @@ class TestAPIDocSections:
             assert template.endswith(".html")
 
 
+@pytest.fixture
+def client():
+    """Django test client (without pytest-django dependency)."""
+    from django.test import Client
+
+    return Client()
+
+
 class TestAPIDocURLs:
     """Test API documentation URL generation."""
 
-    @pytest.mark.django_db
     def test_section_urls_are_valid(self, client):
         """Each section URL should return 200."""
         for key in API_DOC_SECTION_ORDER:
             response = client.get(f"/docs/web-api/{key}/")
-            assert response.status_code == 200, (
-                f"Section {key} returned {response.status_code}"
-            )
+            assert (
+                response.status_code == 200
+            ), f"Section {key} returned {response.status_code}"
 
-    @pytest.mark.django_db
     def test_main_api_docs_url(self, client):
         """Main API docs URL should return 200."""
         response = client.get("/docs/web-api/")
         assert response.status_code == 200
 
-    @pytest.mark.django_db
     def test_invalid_section_redirects_to_default(self, client):
         """Invalid section should show default section."""
         response = client.get("/docs/web-api/nonexistent/")
