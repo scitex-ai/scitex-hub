@@ -173,3 +173,20 @@ body.no-transition * {
   transition: none !important;
   animation-duration: 0.001ms !important;
 }
+
+/* Hide resizable panels until JS restores saved widths from localStorage.
+   Prevents the visible "jump" from default width to saved width on page load.
+   The .panels-ready class is added by autoInitPanels() after all widths are set. */
+body.no-transition .workspace-three-col .ws-ai-pane,
+body.no-transition .workspace-three-col .ws-worktree-pane,
+body.no-transition .workspace-shell .ws-ai-pane,
+body.no-transition .workspace-shell .ws-worktree-pane {
+  visibility: hidden;
+}
+
+body.no-transition .workspace-three-col.panels-ready .ws-ai-pane,
+body.no-transition .workspace-three-col.panels-ready .ws-worktree-pane,
+body.no-transition .workspace-shell.panels-ready .ws-ai-pane,
+body.no-transition .workspace-shell.panels-ready .ws-worktree-pane {
+  visibility: visible;
+}

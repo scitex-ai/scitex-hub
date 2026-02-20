@@ -138,8 +138,13 @@ export function autoInitPanels(): void {
     `[WorkspacePanelResizer] Auto-initialized ${resizers.length} panel(s)`,
   );
 
+  // Mark panels as ready (makes them visible via CSS) and remove no-transition guard.
+  // Double-rAF ensures all width changes have been painted before transitions re-enable.
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
+      document
+        .querySelectorAll(".workspace-three-col, .workspace-shell")
+        .forEach((el) => el.classList.add("panels-ready"));
       document.body.classList.remove("no-transition");
     });
   });
