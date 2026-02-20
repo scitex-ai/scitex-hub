@@ -5,6 +5,16 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.5-alpha] - 2026-02-20
+
+### Security
+- **Project RBAC enforced (Plan B)**: All write endpoints now use `project.can_edit()` to enforce
+  `ProjectMembership.permission_level`. Collaborators with `permission_level="read"` are correctly
+  rejected from file save/create/delete and git commit operations.
+  (`apps/console_app/workspace_api/`, `apps/project_app/views/repository/api/permissions.py`)
+- **`api_git_commit` hardened**: Added `@login_required`; visitor sessions can no longer commit.
+- **Security architecture doc updated**: Layer 4 promoted from PARTIAL to ENFORCED (v1.1).
+
 ## [0.9.4-alpha] - 2026-02-20
 
 ### Security

@@ -5,6 +5,7 @@ Code Workspace API Views - File operations for the simple editor.
 import json
 import logging
 
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
@@ -13,6 +14,7 @@ from apps.project_app.models import Project
 logger = logging.getLogger(__name__)
 
 
+@login_required
 @require_http_methods(["POST"])
 def api_create_file(request):
     """Create a new file (supports both local and remote projects)."""
@@ -27,18 +29,8 @@ def api_create_file(request):
 
         project = Project.objects.select_related("owner").get(id=project_id)
 
-        # Check permissions (allow authenticated users and visitors with allocated project)
-        if request.user.is_authenticated:
-            has_access = (
-                request.user == project.owner
-                or request.user in project.collaborators.all()
-            )
-        else:
-            # For visitor users, check if this is their allocated visitor project
-            visitor_project_id = request.session.get("visitor_project_id")
-            has_access = visitor_project_id and project.id == visitor_project_id
-
-        if not has_access:
+        # Write access: owner or collaborator with write/admin permission_level
+        if not project.can_edit(request.user):
             return JsonResponse({"error": "Unauthorized"}, status=403)
 
         # Get project path (works for both local and remote projects)
@@ -83,6 +75,7 @@ def api_create_file(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+@login_required
 @require_http_methods(["POST"])
 def api_delete_file(request):
     """Delete a file or folder (supports both local and remote projects)."""
@@ -96,18 +89,8 @@ def api_delete_file(request):
 
         project = Project.objects.select_related("owner").get(id=project_id)
 
-        # Check permissions (allow authenticated users and visitors with allocated project)
-        if request.user.is_authenticated:
-            has_access = (
-                request.user == project.owner
-                or request.user in project.collaborators.all()
-            )
-        else:
-            # For visitor users, check if this is their allocated visitor project
-            visitor_project_id = request.session.get("visitor_project_id")
-            has_access = visitor_project_id and project.id == visitor_project_id
-
-        if not has_access:
+        # Write access: owner or collaborator with write/admin permission_level
+        if not project.can_edit(request.user):
             return JsonResponse({"error": "Unauthorized"}, status=403)
 
         # Get project path (works for both local and remote projects)
