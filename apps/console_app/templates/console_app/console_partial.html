@@ -3,6 +3,39 @@
 {% load static vite tree_preseed %}
 
 {% block module_content %}
+    <!-- Critical xterm helper rules — inline so they apply before xterm.open() with no CDN latency -->
+    <style>
+        .xterm .xterm-helpers {
+            position: absolute;
+            top: 0;
+            z-index: 5;
+        }
+
+        .xterm .xterm-helper-textarea {
+            padding: 0;
+            border: 0;
+            margin: 0;
+            position: absolute;
+            opacity: 0;
+            left: -9999em;
+            top: 0;
+            width: 0;
+            height: 0;
+            z-index: -5;
+            white-space: nowrap;
+            overflow: hidden;
+            resize: none;
+        }
+
+        .xterm .xterm-char-measure-element {
+            display: inline-block;
+            visibility: hidden;
+            position: absolute;
+            top: 0;
+            left: -9999em;
+            line-height: normal;
+        }
+    </style>
     <!-- Console CSS — moved to <head> by unified-workspace.ts -->
     <link rel="stylesheet" href="{% static 'project_app/css/shared/sidebar.css' %}" />
     <link rel="stylesheet"
