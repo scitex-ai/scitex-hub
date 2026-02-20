@@ -8,8 +8,8 @@ from django.db import transaction
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
-# Project root is the working directory for user commands
-_PROJECT_ROOT = "/home/ywatanabe/proj/scitex-cloud"
+# Project root inside the Docker container
+_PROJECT_ROOT = "/app"
 _TIMEOUT_SECONDS = 30
 
 
