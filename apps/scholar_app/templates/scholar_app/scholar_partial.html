@@ -293,6 +293,35 @@
 {% endif %}
 {% vite_script 'scholar_app/library/library-init' %}
 {% vite_script 'scholar_app/graph/citation-graph' %}
+<!-- Graph input mode switching (inline for SPA reliability) -->
+<script>
+    (function() {
+        function initGraphInputTabs() {
+            var tabs = document.querySelectorAll('.graph-input-tab');
+            if (!tabs.length) return;
+            tabs.forEach(function(tab) {
+                tab.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    var mode = this.getAttribute('data-input-mode');
+                    if (!mode) return;
+                    tabs.forEach(function(t) { t.classList.remove('active'); });
+                    tab.classList.add('active');
+                    document.querySelectorAll('.graph-input-panel').forEach(function(p) {
+                        p.classList.add('hidden');
+                    });
+                    var panelId = 'graphInput' + mode.charAt(0).toUpperCase() + mode.slice(1);
+                    var panel = document.getElementById(panelId);
+                    if (panel) panel.classList.remove('hidden');
+                });
+            });
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initGraphInputTabs);
+        } else {
+            initGraphInputTabs();
+        }
+    })();
+</script>
 <!-- Tab switching (readyState pattern for AJAX injection) -->
 <script>
     (function() {
