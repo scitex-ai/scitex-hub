@@ -106,8 +106,3 @@
 }
 
 /* Collapsed states handled by workspace-sidebar + collapsible-panel CSS */
-
-/* Hide the tab bar — global header nav acts as the switcher on /unified/ pages */
-body.unified-workspace .unified-tabs {
-  display: none;
-}
