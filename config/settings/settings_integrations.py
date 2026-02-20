@@ -56,7 +56,9 @@ SCITEX_SCHOLAR_USER_LIBRARY_ROOT = Path(
 # User data root for multi-user Django deployments
 # If set, user libraries will be at: {USER_DATA_ROOT}/users/{username}/.scitex/scholar/library/
 USER_DATA_ROOT = (
-    Path(os.getenv("USER_DATA_ROOT", "")) if os.getenv("USER_DATA_ROOT") else None
+    Path(os.getenv("SCITEX_CLOUD_USER_DATA_ROOT", ""))
+    if os.getenv("SCITEX_CLOUD_USER_DATA_ROOT")
+    else None
 )
 
 # Public API campaign key (shared key for experiments/demos)
