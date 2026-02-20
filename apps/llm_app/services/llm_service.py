@@ -1,7 +1,6 @@
 import time
 from typing import Any, Dict, Optional
 
-from django.db import models
 from django.utils import timezone
 
 from apps.integrations_app.models import IntegrationConnection
@@ -36,21 +35,15 @@ class UserLLMService:
         self.connection = None
         self.llm_connection = None
 
-        # Try to load the scitex.llm module
-        try:
-            import scitex.llm
-
-            self.scitex_llm = scitex.llm
-        except (ImportError, AttributeError):
-            self.scitex_llm = None
-
         self._find_active_connection()
 
     def _find_active_connection(self):
-        """Find the active LLM connection for the user"""
+        """Find the active LLM connection for the user."""
+        from apps.llm_app.utils import ALL_LLM_SERVICE_IDS
+
         query = IntegrationConnection.objects.filter(
             user=self.user,
-            service__in=["anthropic", "openai", "local_llm"],
+            service__in=list(ALL_LLM_SERVICE_IDS),
             status="active",
         ).select_related("llm_connection")
 
@@ -118,39 +111,45 @@ class UserLLMService:
         start_time = time.time()
 
         try:
+            import litellm
+
             # Get API key
+            from apps.llm_app.utils import LLM_PROVIDERS
+
             api_key = self.connection.get_api_key()
-            if not api_key:
+            needs_key = LLM_PROVIDERS.get(self.connection.service, {}).get(
+                "needs_key", True
+            )
+            if not api_key and needs_key:
                 raise LLMProviderError("No API key configured for this connection")
 
-            # Call the appropriate provider
-            if self.scitex_llm is None:
-                # Stub response when scitex.llm is not available
-                raise LLMProviderError(
-                    "scitex.llm module not available. "
-                    "This is a placeholder service. "
-                    "Actual LLM calls will be implemented when scitex.llm is ready."
-                )
+            from apps.llm_app.utils import litellm_model_string
 
-            # TODO: Replace with actual scitex.llm calls when available
-            # Example structure:
-            # if self.connection.service == "anthropic":
-            #     response = self.scitex_llm.anthropic.complete(
-            #         api_key=api_key,
-            #         model=model_to_use,
-            #         prompt=prompt,
-            #         max_tokens=max_tokens,
-            #         temperature=temperature,
-            #         **kwargs
-            #     )
-            # elif self.connection.service == "openai":
-            #     response = self.scitex_llm.openai.complete(...)
-            # elif self.connection.service == "local_llm":
-            #     response = self.scitex_llm.local.complete(...)
+            litellm_model = litellm_model_string(self.connection.service, model_to_use)
 
-            raise NotImplementedError(
-                f"Provider {self.connection.service} not yet implemented"
+            result = litellm.completion(
+                model=litellm_model,
+                messages=[{"role": "user", "content": prompt}],
+                api_key=api_key,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                **kwargs,
             )
+
+            # Cost from litellm (uses up-to-date provider pricing)
+            try:
+                estimated_cost = litellm.completion_cost(completion_response=result)
+            except Exception:
+                estimated_cost = 0.0
+
+            response = {
+                "text": result.choices[0].message.content,
+                "usage": {
+                    "prompt_tokens": result.usage.prompt_tokens,
+                    "completion_tokens": result.usage.completion_tokens,
+                },
+                "estimated_cost": estimated_cost,
+            }
 
         except Exception as e:
             # Log failed request
@@ -177,10 +176,7 @@ class UserLLMService:
         completion_tokens = response.get("usage", {}).get("completion_tokens", 0)
         total_tokens = prompt_tokens + completion_tokens
 
-        # Estimate cost (placeholder - should be provider-specific)
-        estimated_cost = self._estimate_cost(
-            self.connection.service, model_to_use, prompt_tokens, completion_tokens
-        )
+        estimated_cost = response.get("estimated_cost", 0.0)
 
         # Log successful request
         self._log_usage(
@@ -211,42 +207,6 @@ class UserLLMService:
             "response_time_ms": response_time_ms,
         }
 
-    def _estimate_cost(
-        self, provider: str, model: str, prompt_tokens: int, completion_tokens: int
-    ) -> float:
-        """
-        Estimate cost based on provider pricing.
-
-        This is a placeholder implementation with rough estimates.
-        Should be updated with actual pricing from each provider.
-        """
-        # Rough pricing estimates (per 1K tokens)
-        pricing = {
-            "anthropic": {
-                "claude-sonnet-4-5": {"prompt": 0.003, "completion": 0.015},
-                "claude-opus-4": {"prompt": 0.015, "completion": 0.075},
-                "default": {"prompt": 0.003, "completion": 0.015},
-            },
-            "openai": {
-                "gpt-4": {"prompt": 0.03, "completion": 0.06},
-                "gpt-3.5-turbo": {"prompt": 0.0005, "completion": 0.0015},
-                "default": {"prompt": 0.001, "completion": 0.002},
-            },
-            "local_llm": {
-                "default": {"prompt": 0.0, "completion": 0.0},  # Local is free
-            },
-        }
-
-        provider_pricing = pricing.get(provider, {})
-        model_pricing = provider_pricing.get(model, provider_pricing.get("default", {}))
-
-        prompt_cost = (prompt_tokens / 1000) * model_pricing.get("prompt", 0)
-        completion_cost = (completion_tokens / 1000) * model_pricing.get(
-            "completion", 0
-        )
-
-        return prompt_cost + completion_cost
-
     def _log_usage(
         self,
         app_name: str,
@@ -275,72 +235,206 @@ class UserLLMService:
             error_message=error_message,
         )
 
-    def get_usage_stats(self, days: int = 30) -> Dict[str, Any]:
+    async def complete_with_tools(
+        self,
+        messages: list,
+        app_name: str,
+        feature: str,
+        model: Optional[str] = None,
+        max_tokens: int = 8192,
+        temperature: float = 0.3,
+    ) -> Dict[str, Any]:
         """
-        Get usage statistics for the connection.
+        Generate a completion with MCP tool access (async).
 
-        Args:
-            days: Number of days to look back
+        Loads tools from the scitex MCP server, runs the LLM + tool loop,
+        and logs usage.
 
         Returns:
-            Dictionary with usage statistics
+            Dict with text, tools_used, usage, cost info.
         """
+        from asgiref.sync import sync_to_async
+
+        from apps.llm_app.services.mcp_client import load_openai_tools, run_tool_loop
+
         if not self.connection:
-            return {"error": "No active connection"}
+            raise LLMProviderError("No active LLM connection found for this user")
 
-        since = timezone.now() - timezone.timedelta(days=days)
-        logs = self.connection.llm_usage_logs.filter(created_at__gte=since)
+        allowed, error_msg = await sync_to_async(self.check_rate_limits)()
+        if not allowed:
+            raise RateLimitError(error_msg)
 
-        # Overall stats
-        total_requests = logs.count()
-        successful_requests = logs.filter(success=True).count()
-        failed_requests = logs.filter(success=False).count()
+        model_to_use = model or self.llm_connection.default_model
+        if not model_to_use:
+            raise LLMProviderError("No model specified and no default model configured")
 
-        # Token usage
-        token_stats = logs.aggregate(
-            total_tokens=models.Sum("total_tokens"),
-            total_prompt_tokens=models.Sum("prompt_tokens"),
-            total_completion_tokens=models.Sum("completion_tokens"),
+        api_key = await sync_to_async(self.connection.get_api_key)()
+        from apps.llm_app.utils import LLM_PROVIDERS, litellm_model_string
+
+        needs_key = LLM_PROVIDERS.get(self.connection.service, {}).get(
+            "needs_key", True
         )
+        if not api_key and needs_key:
+            raise LLMProviderError("No API key configured for this connection")
 
-        # Cost
-        total_cost = (
-            logs.aggregate(total_cost=models.Sum("estimated_cost_usd"))["total_cost"]
-            or 0
+        litellm_model = litellm_model_string(self.connection.service, model_to_use)
+        log_usage = sync_to_async(self._log_usage)
+
+        start_time = time.time()
+        try:
+            tools = await load_openai_tools()
+            text, tools_used = await run_tool_loop(
+                litellm_model=litellm_model,
+                api_key=api_key,
+                messages=messages,
+                tools=tools,
+                max_tokens=max_tokens,
+                temperature=temperature,
+            )
+        except Exception as e:
+            response_time_ms = int((time.time() - start_time) * 1000)
+            await log_usage(
+                app_name=app_name,
+                feature=feature,
+                model_used=model_to_use,
+                prompt_tokens=0,
+                completion_tokens=0,
+                total_tokens=0,
+                response_time_ms=response_time_ms,
+                estimated_cost_usd=0,
+                success=False,
+                error_message=str(e),
+            )
+            raise
+
+        response_time_ms = int((time.time() - start_time) * 1000)
+        await log_usage(
+            app_name=app_name,
+            feature=feature,
+            model_used=model_to_use,
+            prompt_tokens=0,
+            completion_tokens=0,
+            total_tokens=0,
+            response_time_ms=response_time_ms,
+            estimated_cost_usd=0,
+            success=True,
         )
-
-        # Per-app breakdown
-        app_breakdown = {}
-        for log in logs.values("app_name").annotate(
-            count=models.Count("id"),
-            tokens=models.Sum("total_tokens"),
-            cost=models.Sum("estimated_cost_usd"),
-        ):
-            app_breakdown[log["app_name"]] = {
-                "requests": log["count"],
-                "tokens": log["tokens"],
-                "cost": float(log["cost"] or 0),
-            }
-
-        # Daily usage
-        daily_usage = self.llm_connection.get_daily_usage()
 
         return {
-            "provider": self.connection.get_service_display(),
-            "period_days": days,
-            "total_requests": total_requests,
-            "successful_requests": successful_requests,
-            "failed_requests": failed_requests,
-            "token_usage": {
-                "total": token_stats["total_tokens"] or 0,
-                "prompt": token_stats["total_prompt_tokens"] or 0,
-                "completion": token_stats["total_completion_tokens"] or 0,
-            },
-            "total_cost_usd": float(total_cost),
-            "by_app": app_breakdown,
-            "today": daily_usage,
-            "rate_limits": {
-                "daily_request_limit": self.llm_connection.daily_request_limit,
-                "daily_token_limit": self.llm_connection.daily_token_limit,
-            },
+            "text": text,
+            "tools_used": tools_used,
+            "response_time_ms": response_time_ms,
         }
+
+    async def complete_with_tools_streaming(
+        self,
+        messages: list,
+        app_name: str,
+        feature: str,
+        model: Optional[str] = None,
+        max_tokens: int = 8192,
+        temperature: float = 0.3,
+    ):
+        """
+        Streaming version of complete_with_tools.
+
+        Yields SSE-ready dicts:
+          {"type": "model",      "name": "provider/model"}
+          {"type": "chunk",      "text": "..."}
+          {"type": "tool_start", "name": "tool_name"}
+          {"type": "tool_end",   "name": "tool_name"}
+          {"type": "done",       "tools_used": [...], "response_time_ms": N}
+          {"type": "error",      "error": "..."}
+        """
+        from asgiref.sync import sync_to_async
+
+        from apps.llm_app.services.mcp_client import (
+            load_openai_tools,
+            run_tool_loop_streaming,
+        )
+        from apps.llm_app.utils import LLM_PROVIDERS, litellm_model_string
+
+        if not self.connection:
+            yield {"type": "error", "error": "No active LLM connection found"}
+            return
+
+        allowed, error_msg = await sync_to_async(self.check_rate_limits)()
+        if not allowed:
+            yield {"type": "error", "error": error_msg}
+            return
+
+        model_to_use = model or self.llm_connection.default_model
+        if not model_to_use:
+            yield {
+                "type": "error",
+                "error": "No model specified and no default model configured",
+            }
+            return
+
+        api_key = await sync_to_async(self.connection.get_api_key)()
+        needs_key = LLM_PROVIDERS.get(self.connection.service, {}).get(
+            "needs_key", True
+        )
+        if not api_key and needs_key:
+            yield {
+                "type": "error",
+                "error": "No API key configured for this connection",
+            }
+            return
+
+        litellm_model = litellm_model_string(self.connection.service, model_to_use)
+        yield {"type": "model", "name": litellm_model or model_to_use}
+
+        log_usage = sync_to_async(self._log_usage)
+        start_time = time.time()
+        tools_used: list[str] = []
+
+        try:
+            tools = await load_openai_tools()
+            async for event in run_tool_loop_streaming(
+                litellm_model=litellm_model,
+                api_key=api_key,
+                messages=messages,
+                tools=tools,
+                max_tokens=max_tokens,
+                temperature=temperature,
+            ):
+                if event["type"] == "tool_start":
+                    tools_used.append(event["name"])
+                if event["type"] == "done":
+                    response_time_ms = int((time.time() - start_time) * 1000)
+                    await log_usage(
+                        app_name=app_name,
+                        feature=feature,
+                        model_used=model_to_use,
+                        prompt_tokens=0,
+                        completion_tokens=0,
+                        total_tokens=0,
+                        response_time_ms=response_time_ms,
+                        estimated_cost_usd=0,
+                        success=True,
+                    )
+                    yield {**event, "response_time_ms": response_time_ms}
+                else:
+                    yield event
+        except Exception as e:
+            response_time_ms = int((time.time() - start_time) * 1000)
+            await log_usage(
+                app_name=app_name,
+                feature=feature,
+                model_used=model_to_use,
+                prompt_tokens=0,
+                completion_tokens=0,
+                total_tokens=0,
+                response_time_ms=response_time_ms,
+                estimated_cost_usd=0,
+                success=False,
+                error_message=str(e),
+            )
+            yield {"type": "error", "error": str(e)}
+
+    def get_usage_stats(self, days: int = 30) -> Dict[str, Any]:
+        """Get usage statistics for the connection."""
+        from apps.llm_app.services._usage_stats import get_usage_stats as _fn
+
+        return _fn(self.connection, self.llm_connection, days)

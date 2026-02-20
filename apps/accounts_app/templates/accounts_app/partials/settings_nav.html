@@ -1,4 +1,5 @@
 {% load static %}
+
 <!-- Settings Navigation - Reusable partial -->
 <!-- Personal Settings -->
 <div class="settings-nav-section">
@@ -6,12 +7,7 @@
     <a href="{% url 'accounts_app:profile_edit' %}"
        class="settings-nav-item {% if active == 'profile' %}active{% endif %}">
         <i class="fas fa-user"></i>
-        <span>Public profile</span>
-    </a>
-    <a href="{% url 'accounts_app:account' %}"
-       class="settings-nav-item {% if active == 'account' %}active{% endif %}">
-        <i class="fas fa-shield-alt"></i>
-        <span>Account</span>
+        <span>Profile</span>
     </a>
     <a href="{% url 'accounts_app:appearance' %}"
        class="settings-nav-item {% if active == 'appearance' %}active{% endif %}">
@@ -27,6 +23,11 @@
         <i class="fab fa-git-alt"></i>
         <span>Git platforms</span>
     </a>
+    <a href="{% url 'accounts_app:ai_providers' %}"
+       class="settings-nav-item {% if active == 'ai_providers' %}active{% endif %}">
+        <i class="fas fa-robot"></i>
+        <span>AI providers</span>
+    </a>
 </div>
 <!-- Authentication & Tokens -->
 <div class="settings-nav-section">
@@ -34,20 +35,20 @@
     <a href="{% url 'accounts_app:ssh_keys' %}"
        class="settings-nav-item {% if active == 'ssh_keys' %}active{% endif %}">
         <i class="fas fa-key"></i>
-        <span>SSH and GPG keys</span>
+        <span>SSH keys</span>
     </a>
     <a href="{% url 'accounts_app:api_keys' %}"
        class="settings-nav-item {% if active == 'api_keys' %}active{% endif %}">
         <i class="fas fa-code"></i>
-        <span>Personal access tokens</span>
+        <span>API keys</span>
     </a>
 </div>
 <!-- Repositories (Advanced) -->
 <div class="settings-nav-section">
     <div class="settings-nav-header">Repositories</div>
-    <a href="{% url 'project_app:repository_maintenance' username=user.username %}"
-       class="settings-nav-item {% if active == 'repository_maintenance' %}active{% endif %}">
-        <i class="fas fa-tools"></i>
-        <span>Maintenance</span>
+    <a href="{% url 'accounts_app:repository_health' %}"
+       class="settings-nav-item {% if active == 'repository_health' %}active{% endif %}">
+        <i class="fas fa-heartbeat"></i>
+        <span>Repository Health</span>
     </a>
 </div>

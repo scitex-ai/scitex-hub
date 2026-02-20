@@ -183,8 +183,10 @@ function startTour(config?: PageTourConfig): void {
   const closeBtn = tourTooltip.querySelector(".product-tour-close");
   const prevBtn = tourTooltip.querySelector(".product-tour-prev");
   const nextBtn = tourTooltip.querySelector(".product-tour-next");
+  const stopBtn = tourTooltip.querySelector(".product-tour-stop");
 
   closeBtn?.addEventListener("click", () => endTour(false));
+  stopBtn?.addEventListener("click", () => endTour(false));
   prevBtn?.addEventListener("click", prevStep);
   nextBtn?.addEventListener("click", nextStep);
 

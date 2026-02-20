@@ -40,7 +40,15 @@ export class CompilationFull {
     this.state.setCompiling(true);
     statusLamp.startFullCompilation();
 
+    // Initialize details panel log
+    const detailsLog = document.getElementById("details-full-log");
+    if (detailsLog) {
+      detailsLog.innerHTML = `<div>Starting full compilation...</div>`;
+    }
+
     this.state.notifyProgress(0, "Preparing full compilation...");
+
+    let handedOffToPolling = false;
 
     try {
       const result = await this.api.compileFull(options, 300000);
@@ -49,10 +57,12 @@ export class CompilationFull {
 
       if (result?.job_id) {
         // Job started, begin polling for status
+        // Polling queue will call setCompiling(false) on completion/failure
         console.log(
           "[CompilationFull] Job started, polling status:",
           result.job_id,
         );
+        handedOffToPolling = true;
         this.queue.pollStatus(result.job_id, options.projectId);
         return { id: result.job_id, status: "processing", progress: 0 };
       } else if (result?.success === true) {
@@ -97,7 +107,11 @@ export class CompilationFull {
       this.state.setCurrentJob(null);
       return null;
     } finally {
-      this.state.setCompiling(false);
+      // Only reset compiling if not handed off to polling queue
+      // Polling queue handles setCompiling(false) on completion/failure
+      if (!handedOffToPolling) {
+        this.state.setCompiling(false);
+      }
     }
   }
 

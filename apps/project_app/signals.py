@@ -21,15 +21,15 @@ The signals/__init__.py file imports and registers all handlers.
 from .signals import (
     create_gitea_repository,
     delete_gitea_repository,
-    ensure_bibliography_structure,
-    track_visibility_change,
+    on_project_created_init_bibliography,
     sync_project_visibility,
+    track_visibility_change,
 )
 
 __all__ = [
     "create_gitea_repository",
     "delete_gitea_repository",
-    "ensure_bibliography_structure",
+    "on_project_created_init_bibliography",
     "track_visibility_change",
     "sync_project_visibility",
 ]

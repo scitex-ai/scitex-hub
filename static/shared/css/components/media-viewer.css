@@ -385,3 +385,124 @@
 .media-viewer-status .file-size {
   margin-left: auto;
 }
+
+/* ========================================
+   MERMAID DIAGRAM VIEWER
+   ======================================== */
+
+.media-viewer-mermaid-wrapper,
+.mermaid-viewer-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.media-viewer-mermaid-content {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+/* Mermaid SVG output — center and cap max width */
+.mermaid-viewer-wrapper .mermaid,
+.media-viewer-mermaid-content .mermaid {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mermaid-viewer-wrapper .mermaid svg,
+.media-viewer-mermaid-content .mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ========================================
+   PLACEHOLDER (empty / error states)
+   ======================================== */
+
+.media-viewer-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.media-viewer-placeholder i {
+  font-size: 36px;
+  opacity: 0.6;
+}
+
+.media-viewer-placeholder p {
+  font-size: 13px;
+  max-width: 360px;
+  line-height: 1.5;
+}
+
+/* ========================================
+   BINARY FILE PLACEHOLDER
+   ======================================== */
+
+.media-viewer-binary-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.media-viewer-binary-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.media-viewer-binary-icon {
+  font-size: 48px;
+  opacity: 0.5;
+}
+
+.media-viewer-binary-filename {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  word-break: break-all;
+}
+
+.media-viewer-binary-info {
+  font-size: 13px;
+  max-width: 320px;
+  line-height: 1.5;
+}
+
+.media-viewer-download-btn {
+  margin-top: 8px;
+  padding: 8px 20px;
+  background: var(--status-info, #3b82f6);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: opacity 0.15s ease;
+}
+
+.media-viewer-download-btn:hover {
+  opacity: 0.85;
+}

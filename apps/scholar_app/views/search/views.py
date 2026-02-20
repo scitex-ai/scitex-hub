@@ -37,10 +37,10 @@ from .citation_export_core import (
     export_citation,
     generate_bibtex,
     generate_citation,
-    generate_citation_key,
     generate_endnote,
     generate_ris,
     get_file_extension,
+    make_citation_key,
     sanitize_filename,
 )
 from .citations import (
@@ -170,7 +170,7 @@ __all__ = [
     # Citation Export
     "export_citation",
     "generate_citation",
-    "generate_citation_key",
+    "make_citation_key",
     "generate_bibtex",
     "generate_endnote",
     "generate_ris",

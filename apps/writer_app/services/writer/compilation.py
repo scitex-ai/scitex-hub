@@ -2,7 +2,7 @@
 LaTeX compilation operations for Writer.
 
 Thin wrapper delegating to scitex.writer.compile for all compilation.
-Django should import from scitex (the main interface), not directly from scitex_writer.
+Django imports from scitex_writer._compile for compilation functions.
 """
 
 from typing import TYPE_CHECKING, Callable, Optional
@@ -105,7 +105,7 @@ class CompilationMixin:
         """
         try:
             # Use standalone compile function from scitex.writer._compile
-            from scitex.writer._compile import compile_manuscript
+            from scitex_writer._compile import compile_manuscript
 
             result = compile_manuscript(
                 project_dir=self.writer_dir,
@@ -167,7 +167,7 @@ class CompilationMixin:
         """
         try:
             # Use standalone compile function from scitex.writer._compile
-            from scitex.writer._compile import compile_supplementary
+            from scitex_writer._compile import compile_supplementary
 
             result = compile_supplementary(
                 project_dir=self.writer_dir,
@@ -221,7 +221,7 @@ class CompilationMixin:
         """
         try:
             # Use standalone compile function from scitex.writer._compile
-            from scitex.writer._compile import compile_revision
+            from scitex_writer._compile import compile_revision
 
             result = compile_revision(
                 project_dir=self.writer_dir,

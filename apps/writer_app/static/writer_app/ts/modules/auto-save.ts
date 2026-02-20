@@ -58,14 +58,16 @@ export function scheduleAutoCompile(
 ): void {
   if (!pdfPreviewManager) return;
 
+  // Always clear existing timeout first (even during loading), to cancel any
+  // previously-queued compile that may have been scheduled before isLoadingContent
+  // was set (race condition: FileLoader resolves before SectionLoading sets flag)
+  clearTimeout(compileTimeout);
+
   // Skip auto-compile if we're just loading content (not user editing)
   if (isLoadingContent) {
     console.log("[Writer] Skipping auto-compile during content load");
     return;
   }
-
-  // Clear existing timeout
-  clearTimeout(compileTimeout);
 
   // Schedule compilation after user stops typing
   compileTimeout = setTimeout(() => {
@@ -74,7 +76,8 @@ export function scheduleAutoCompile(
       sectionId,
     );
     // Pass section ID for section-specific preview
-    pdfPreviewManager.compileQuick(content, sectionId);
+    // forceCompile=true: user edited content, must recompile even if same URL
+    pdfPreviewManager.compileQuick(content, sectionId, true);
   }, 2000); // Wait 2 seconds after user stops typing
 }
 
@@ -148,7 +151,11 @@ export async function saveSections(
     try {
       validateSaveSectionsResponse(data);
     } catch (validationError) {
-      console.error("[Writer] Save response failed validation:", validationError, data);
+      console.error(
+        "[Writer] Save response failed validation:",
+        validationError,
+        data,
+      );
       return;
     }
 

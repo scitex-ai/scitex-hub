@@ -1,0 +1,372 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# Timestamp: "2026-02-19"
+# File: apps/llm_app/services/mcp_client.py
+
+"""
+Thin MCP client that connects to the scitex MCP server via HTTP
+and provides tools in OpenAI-compatible format for litellm.
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+from typing import Any
+
+from django.conf import settings
+
+logger = logging.getLogger(__name__)
+
+# Maximum number of tool-call round-trips before forcing a text reply
+MAX_TOOL_ROUNDS = 10
+
+
+def _mcp_tool_to_openai(tool) -> dict[str, Any]:
+    """Convert an mcp.types.Tool to OpenAI function-calling format."""
+    return {
+        "type": "function",
+        "function": {
+            "name": tool.name,
+            "description": tool.description or "",
+            "parameters": tool.inputSchema or {"type": "object", "properties": {}},
+        },
+    }
+
+
+_UI_ACTION_TOOL: dict[str, Any] = {
+    "type": "function",
+    "function": {
+        "name": "ui_action",
+        "description": (
+            "Drive the browser UI to give the user a live demo or tutorial. "
+            "Use this when the user asks how to use a feature or requests a walkthrough. "
+            "Supported actions: navigate (go to URL), highlight (focus an element with optional message), "
+            "scroll (scroll element into view), fill (type into an input), click (click an element), "
+            "clear (remove all highlights). Steps execute sequentially with delay_ms between each."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "steps": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "action": {
+                                "type": "string",
+                                "enum": [
+                                    "navigate",
+                                    "highlight",
+                                    "scroll",
+                                    "fill",
+                                    "click",
+                                    "clear",
+                                ],
+                            },
+                            "url": {
+                                "type": "string",
+                                "description": "For navigate: destination URL (e.g. /scholar/)",
+                            },
+                            "selector": {
+                                "type": "string",
+                                "description": "CSS selector for the target element",
+                            },
+                            "message": {
+                                "type": "string",
+                                "description": "For highlight: tooltip message to display",
+                            },
+                            "value": {
+                                "type": "string",
+                                "description": "For fill: text to type into the input",
+                            },
+                            "position": {
+                                "type": "string",
+                                "enum": ["top", "bottom", "left", "right"],
+                                "description": "Tooltip position relative to element",
+                            },
+                        },
+                        "required": ["action"],
+                    },
+                },
+                "delay_ms": {
+                    "type": "integer",
+                    "description": "Milliseconds between steps (default: 900)",
+                },
+            },
+            "required": ["steps"],
+        },
+    },
+}
+
+
+async def load_openai_tools() -> list[dict[str, Any]]:
+    """Fetch tool definitions from the scitex MCP server (OpenAI format)."""
+    from fastmcp import Client
+
+    url = getattr(settings, "SCITEX_MCP_URL", "http://scitex-mcp:8085/mcp")
+    async with Client(url) as client:
+        mcp_tools = await client.list_tools()
+    tools = [_mcp_tool_to_openai(t) for t in mcp_tools]
+    tools.append(_UI_ACTION_TOOL)
+    return tools
+
+
+async def execute_tool_call(name: str, arguments: dict[str, Any]) -> str:
+    """Execute a single tool call on the MCP server, return text result."""
+    from fastmcp import Client
+
+    url = getattr(settings, "SCITEX_MCP_URL", "http://scitex-mcp:8085/mcp")
+    async with Client(url) as client:
+        result = await client.call_tool(name, arguments)
+
+    # Flatten CallToolResult content list into a single string
+    parts = []
+    for item in result.content:
+        if hasattr(item, "text"):
+            parts.append(item.text)
+        else:
+            parts.append(str(item))
+    return "\n".join(parts)
+
+
+def build_tool_result_message(tool_call, result_text: str) -> dict[str, Any]:
+    """Build an OpenAI-format tool result message."""
+    return {
+        "role": "tool",
+        "tool_call_id": tool_call.id,
+        "content": result_text,
+    }
+
+
+async def run_tool_loop(
+    *,
+    litellm_model: str,
+    api_key: str | None,
+    messages: list[dict[str, Any]],
+    tools: list[dict[str, Any]],
+    max_tokens: int = 8192,
+    temperature: float = 0.3,
+) -> tuple[str, list[str]]:
+    """
+    Run the LLM + tool-call loop until a text response is produced.
+
+    Returns:
+        (final_text, tools_used): The assistant reply and list of tool names called.
+    """
+    import litellm
+
+    tools_used: list[str] = []
+
+    for _round in range(MAX_TOOL_ROUNDS):
+        response = await litellm.acompletion(
+            model=litellm_model,
+            messages=messages,
+            tools=tools,
+            api_key=api_key,
+            max_tokens=max_tokens,
+            temperature=temperature,
+        )
+        choice = response.choices[0]
+        assistant_msg = choice.message
+
+        # If no tool calls, we have the final text reply
+        if not getattr(assistant_msg, "tool_calls", None):
+            return assistant_msg.content or "", tools_used
+
+        # Append assistant message with tool_calls to conversation
+        messages.append(assistant_msg.model_dump())
+
+        # Execute each tool call
+        for tc in assistant_msg.tool_calls:
+            tool_name = tc.function.name
+            try:
+                args = json.loads(tc.function.arguments)
+            except (json.JSONDecodeError, TypeError):
+                args = {}
+
+            tools_used.append(tool_name)
+            logger.info("MCP tool call: %s(%s)", tool_name, list(args.keys()))
+
+            try:
+                result_text = await execute_tool_call(tool_name, args)
+            except Exception as exc:
+                logger.error("MCP tool %s failed: %s", tool_name, exc)
+                result_text = f"Error executing {tool_name}: {exc}"
+
+            messages.append(build_tool_result_message(tc, result_text))
+
+    # Safety: hit max rounds, ask LLM for final answer without tools
+    response = await litellm.acompletion(
+        model=litellm_model,
+        messages=messages,
+        api_key=api_key,
+        max_tokens=max_tokens,
+        temperature=temperature,
+    )
+    return response.choices[0].message.content or "", tools_used
+
+
+async def run_tool_loop_streaming(
+    *,
+    litellm_model: str,
+    api_key: str | None,
+    messages: list[dict[str, Any]],
+    tools: list[dict[str, Any]],
+    max_tokens: int = 8192,
+    temperature: float = 0.3,
+):
+    """
+    Streaming version of run_tool_loop.
+
+    Yields dicts:
+      {"type": "chunk",      "text": "..."}
+      {"type": "tool_start", "name": "tool_name"}
+      {"type": "tool_end",   "name": "tool_name"}
+      {"type": "done",       "tools_used": [...]}
+    """
+    import litellm
+
+    tools_used: list[str] = []
+
+    for _round in range(MAX_TOOL_ROUNDS):
+        response = await litellm.acompletion(
+            model=litellm_model,
+            messages=messages,
+            tools=tools,
+            api_key=api_key,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            stream=True,
+        )
+
+        accumulated_content = ""
+        # {index: {"id": ..., "function": {"name": ..., "arguments": ...}}}
+        accumulated_tool_calls: dict[int, dict[str, Any]] = {}
+
+        async for chunk in response:
+            choice = chunk.choices[0]
+            delta = choice.delta
+
+            if getattr(delta, "content", None):
+                accumulated_content += delta.content
+                yield {"type": "chunk", "text": delta.content}
+
+            if getattr(delta, "tool_calls", None):
+                for tc in delta.tool_calls:
+                    idx = tc.index
+                    if idx not in accumulated_tool_calls:
+                        accumulated_tool_calls[idx] = {
+                            "id": "",
+                            "type": "function",
+                            "function": {"name": "", "arguments": ""},
+                        }
+                    if tc.id:
+                        accumulated_tool_calls[idx]["id"] = tc.id
+                    if tc.function and tc.function.name:
+                        accumulated_tool_calls[idx]["function"][
+                            "name"
+                        ] = tc.function.name
+                    if tc.function and tc.function.arguments:
+                        accumulated_tool_calls[idx]["function"][
+                            "arguments"
+                        ] += tc.function.arguments
+
+        if not accumulated_tool_calls:
+            yield {"type": "done", "tools_used": tools_used}
+            return
+
+        # Append assistant message with accumulated tool_calls
+        messages.append(
+            {
+                "role": "assistant",
+                "content": accumulated_content or None,
+                "tool_calls": list(accumulated_tool_calls.values()),
+            }
+        )
+
+        # Execute each tool call
+        for idx in sorted(accumulated_tool_calls):
+            tc = accumulated_tool_calls[idx]
+            tool_name = tc["function"]["name"]
+            tools_used.append(tool_name)
+            raw_args = tc["function"]["arguments"] or "{}"
+
+            # Include args so browser can intercept browser-native tools (e.g. audio_speak)
+            yield {"type": "tool_start", "name": tool_name, "args": raw_args}
+
+            try:
+                args = json.loads(raw_args)
+            except (json.JSONDecodeError, TypeError) as exc:
+                # Arguments were truncated (likely hit max_tokens mid-JSON).
+                logger.error(
+                    "MCP tool %s has malformed arguments (truncated?): %s … Error: %s",
+                    tool_name,
+                    raw_args[:120],
+                    exc,
+                )
+                messages.append(
+                    {
+                        "role": "tool",
+                        "tool_call_id": tc["id"],
+                        "content": (
+                            "Error: tool arguments were truncated before parsing. "
+                            "Please retry with shorter content or split into smaller writes."
+                        ),
+                    }
+                )
+                yield {"type": "tool_end", "name": tool_name}
+                continue
+
+            # Browser-native tools: server skips MCP execution, browser handles them.
+            # audio_speak: browser plays audio via /llm/api/tts/
+            # ui_action: browser drives DOM (navigate, highlight, fill, click, scroll)
+            if tool_name in ("audio_speak", "ui_action"):
+                yield {"type": "tool_end", "name": tool_name}
+                content = (
+                    "Speaking... (audio delivered to browser)"
+                    if tool_name == "audio_speak"
+                    else "UI action delivered to browser."
+                )
+                messages.append(
+                    {
+                        "role": "tool",
+                        "tool_call_id": tc["id"],
+                        "content": content,
+                    }
+                )
+                continue
+
+            try:
+                result_text = await execute_tool_call(tool_name, args)
+            except Exception as exc:
+                logger.error("MCP tool %s failed: %s", tool_name, exc)
+                result_text = f"Error executing {tool_name}: {exc}"
+
+            yield {"type": "tool_end", "name": tool_name}
+            messages.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": tc["id"],
+                    "content": result_text,
+                }
+            )
+
+    # Safety: hit max rounds, get final answer without tools
+    response = await litellm.acompletion(
+        model=litellm_model,
+        messages=messages,
+        api_key=api_key,
+        max_tokens=max_tokens,
+        temperature=temperature,
+        stream=True,
+    )
+    async for chunk in response:
+        delta = chunk.choices[0].delta
+        if getattr(delta, "content", None):
+            yield {"type": "chunk", "text": delta.content}
+
+    yield {"type": "done", "tools_used": tools_used}
+
+
+# EOF

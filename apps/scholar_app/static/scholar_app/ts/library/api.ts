@@ -89,4 +89,54 @@ export class LibraryAPI {
   static exportAllPapers(): void {
     window.location.href = API.exportBibtex;
   }
+
+  static async fetchPaperBibtex(paperId: string): Promise<string> {
+    const response = await fetch(API.paperBibtex(paperId), {
+      credentials: "same-origin",
+    });
+    if (!response.ok) throw new Error("Failed to fetch BibTeX");
+    const data = await response.json();
+    return data.bibtex || "";
+  }
+
+  static exportNamedBib(paperIds: string[], query: string): void {
+    const body = JSON.stringify({ paper_ids: paperIds, query });
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = API.exportNamedBib;
+    const csrfInput = document.createElement("input");
+    csrfInput.type = "hidden";
+    csrfInput.name = "csrfmiddlewaretoken";
+    csrfInput.value = this.getCsrfToken();
+    form.appendChild(csrfInput);
+    const bodyInput = document.createElement("input");
+    bodyInput.type = "hidden";
+    bodyInput.name = "__body";
+    bodyInput.value = body;
+    form.appendChild(bodyInput);
+    // Use fetch for proper JSON POST download
+    fetch(API.exportNamedBib, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": this.getCsrfToken(),
+      },
+      credentials: "same-origin",
+      body,
+    })
+      .then((r) => r.blob())
+      .then((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        const filename =
+          query
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "_")
+            .slice(0, 50) + ".bib";
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+  }
 }

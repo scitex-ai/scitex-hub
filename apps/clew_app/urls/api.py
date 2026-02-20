@@ -21,6 +21,8 @@ urlpatterns = [
     # DAG visualization data
     path("dag/json/", api.get_dag_data, name="clew_api_dag_json"),
     path("dag/mermaid/", api.get_mermaid_dag, name="clew_api_dag_mermaid"),
+    # Example pipeline initialization
+    path("add-examples/", api.add_examples, name="clew_api_add_examples"),
 ]
 
 

@@ -14,6 +14,7 @@ class TestPlaceholder:
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
 
+
 if __name__ == "__main__":
     import os
 
@@ -42,19 +43,19 @@ if __name__ == "__main__":
 # - storage.py: Database storage functions
 # - project_views.py: Project-specific views
 # """
-# 
+#
 # # Import all functions from modular files to maintain backward compatibility
 # from .search_core import (
 #     simple_search_with_tab,
 # )
-# 
+#
 # from .search_helpers import (
 #     extract_search_filters,
 #     search_database_papers,
 #     apply_advanced_filters,
 #     get_paper_authors,
 # )
-# 
+#
 # from .engines import (
 #     search_papers_online,
 #     search_with_scitex_scholar,
@@ -69,7 +70,7 @@ if __name__ == "__main__":
 #     search_plos,
 #     search_semantic_scholar,
 # )
-# 
+#
 # from .api_search import (
 #     api_search_arxiv,
 #     api_search_pubmed,
@@ -84,14 +85,14 @@ if __name__ == "__main__":
 #     api_search_unified,
 #     api_search_syntax_help,
 # )
-# 
+#
 # from .saved_searches import (
 #     save_search,
 #     get_saved_searches,
 #     delete_saved_search,
 #     run_saved_search,
 # )
-# 
+#
 # from .library_operations import (
 #     save_paper,
 #     save_papers_bulk,
@@ -100,27 +101,27 @@ if __name__ == "__main__":
 #     mock_save_paper,
 #     mock_get_citation,
 # )
-# 
+#
 # from .citation_export_core import (
 #     export_citation,
 #     generate_citation,
-#     generate_citation_key,
+#     make_citation_key,
 #     generate_bibtex,
 #     generate_endnote,
 #     generate_ris,
 #     sanitize_filename,
 #     get_file_extension,
 # )
-# 
+#
 # from .storage import (
 #     store_search_result,
 #     _create_paper_authors,
 # )
-# 
+#
 # from .project_views import (
 #     project_library,
 # )
-# 
+#
 # # Re-export from other modules that were previously in this file
 # from .page_views import (
 #     simple_search,
@@ -135,13 +136,13 @@ if __name__ == "__main__":
 #     pricing,
 #     personal_library,
 # )
-# 
+#
 # from .preferences import (
 #     get_user_preferences,
 #     save_user_preferences,
 #     save_source_preferences,
 # )
-# 
+#
 # from .citations import (
 #     get_impact_factor_instance,
 #     get_journal_impact_factor,
@@ -149,12 +150,12 @@ if __name__ == "__main__":
 #     get_pubmed_citations,
 #     validate_citation_count,
 # )
-# 
+#
 # from .recommendations import (
 #     paper_recommendations,
 #     user_recommendations,
 # )
-# 
+#
 # __all__ = [
 #     # Search Core
 #     'simple_search',
@@ -203,7 +204,7 @@ if __name__ == "__main__":
 #     # Citation Export
 #     'export_citation',
 #     'generate_citation',
-#     'generate_citation_key',
+#     'make_citation_key',
 #     'generate_bibtex',
 #     'generate_endnote',
 #     'generate_ris',

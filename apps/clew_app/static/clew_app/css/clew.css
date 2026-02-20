@@ -51,6 +51,11 @@
   margin-right: 0.4rem;
 }
 
+/* Position badge in header */
+.clew-header .badge {
+  margin-left: auto;
+}
+
 /* DAG Visualization Area */
 .dag-visualization-area {
   flex: 1;
@@ -226,4 +231,29 @@
 .badge-secondary {
   color: #fff;
   background-color: var(--workspace-text-muted, #6c757d);
+}
+
+/* Mermaid DAG wrapper */
+.dag-mermaid-wrapper {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.dag-mermaid-wrapper svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.dag-mermaid-code {
+  font-size: 0.8rem;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  overflow: auto;
+  white-space: pre;
 }

@@ -4,6 +4,7 @@
 # File: /home/ywatanabe/proj/scitex-cloud/apps/writer_app/views/index/main.py
 # ----------------------------------------
 from __future__ import annotations
+
 import os
 
 __FILE__ = "./apps/writer_app/views/index/main.py"
@@ -12,13 +13,16 @@ __DIR__ = os.path.dirname(__FILE__)
 
 """Main index view for SciTeX Writer - Simple editor/PDF viewer layout."""
 
-from django.shortcuts import render, redirect
-from django.http import JsonResponse
-from ...models import Manuscript
-from apps.project_app.models import Project
-from apps.project_app.services import get_current_project
 import json
 import logging
+
+from django.http import JsonResponse
+from django.shortcuts import redirect, render
+
+from apps.project_app.models import Project
+from apps.project_app.services import get_current_project
+
+from ...models import Manuscript
 
 logger = logging.getLogger(__name__)
 
@@ -120,12 +124,9 @@ def index_view(request):
                     # Auto-create minimal writer structure
                     if not manuscript_dir.exists():
                         try:
-                            import scitex.writer as stx_writer
+                            from scitex.writer import ensure_workspace
 
-                            # Create minimal writer workspace
-                            stx_writer.clone_project(
-                                project_dir=str(writer_dir), git_strategy="child"
-                            )
+                            ensure_workspace(str(project_root))
                             logger.info(
                                 f"Auto-initialized writer workspace for: {current_project.slug}"
                             )

@@ -1,0 +1,428 @@
+{% extends "global_base.html" %}
+
+{% load static vite %}
+
+{% block title %}Repository Health - Settings{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/layouts/settings-layout.css' %}" />
+    <style>
+        .health-status {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .health-card {
+            background: var(--bg-page);
+            border: 1px solid var(--border-default);
+            border-radius: 6px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .health-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .health-card.active {
+            border-width: 3px;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        }
+
+        .health-card-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .health-card-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .health-card.critical {
+            border-color: #da3633;
+            background-color: rgba(218, 54, 51, 0.05);
+        }
+
+        .health-card.warning {
+            border-color: #d29922;
+            background-color: rgba(210, 153, 34, 0.08);
+        }
+
+        .health-card.success {
+            border-color: #1a7f3a;
+            background-color: rgba(26, 127, 58, 0.05);
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid var(--border-default);
+            border-top-color: var(--color-accent-fg);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .issues-section {
+            margin-bottom: 2rem;
+        }
+
+        .issues-section h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .issues-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .issue-item {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            padding: 1.5rem;
+            background: var(--bg-page);
+            border: 1px solid var(--border-default);
+            border-radius: 6px;
+        }
+
+        .issue-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .issue-status-columns {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-default);
+        }
+
+        .status-column {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .status-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            letter-spacing: 0.05em;
+        }
+
+        .status-value {
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            font-family: monospace;
+            word-break: break-all;
+        }
+
+        .issue-icon {
+            font-size: 1.5rem;
+            margin-top: 0.125rem;
+            flex-shrink: 0;
+        }
+
+        .issue-icon.healthy {
+            color: #1a7f3a;
+        }
+
+        .issue-icon.critical {
+            color: #da3633;
+        }
+
+        .issue-icon.warning {
+            color: #d4a574;
+        }
+
+        .issue-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .issue-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            word-break: break-all;
+        }
+
+        .issue-name {
+            font-family: monospace;
+            background: var(--bg-surface);
+            padding: 0.125rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+        }
+
+        .issue-message {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .issue-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.75rem;
+        }
+
+        .issue-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            border: 1px solid var(--border-default);
+            border-radius: 0.25rem;
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .issue-button:hover {
+            background: var(--bg-page);
+            border-color: var(--color-accent-fg);
+            color: var(--color-accent-fg);
+        }
+
+        .issue-button.delete {
+            color: #da3633;
+            border-color: #da3633;
+        }
+
+        .issue-button.delete:hover {
+            background: rgba(218, 54, 51, 0.1);
+        }
+
+        .issue-button.sync {
+            color: #0969da;
+            border-color: #0969da;
+        }
+
+        .issue-button.sync:hover {
+            background: rgba(9, 105, 218, 0.1);
+        }
+
+        .issue-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .issue-status {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-processing {
+            background: rgba(9, 105, 218, 0.1);
+            color: #0969da;
+        }
+
+        .status-success {
+            background: rgba(26, 127, 58, 0.1);
+            color: #1a7f3a;
+        }
+
+        .status-error {
+            background: rgba(218, 54, 51, 0.1);
+            color: #da3633;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .empty-state-message {
+            color: var(--text-secondary);
+        }
+
+        .confirmation-dialog {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .confirmation-dialog.show {
+            display: flex;
+        }
+
+        .dialog-content {
+            background: var(--bg-surface);
+            border-radius: 6px;
+            padding: 2rem;
+            max-width: 500px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .dialog-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .dialog-message {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .dialog-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .dialog-button {
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .dialog-button.cancel {
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            border: 1px solid var(--border-default);
+        }
+
+        .dialog-button.cancel:hover {
+            background: var(--bg-page);
+            border-color: var(--color-accent-fg);
+        }
+
+        .dialog-button.confirm {
+            background: #da3633;
+            color: white;
+        }
+
+        .dialog-button.confirm:hover {
+            background: #bf2626;
+        }
+
+        .error-message {
+            background: rgba(218, 54, 51, 0.1);
+            border: 1px solid #da3633;
+            color: #da3633;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+
+        .error-message strong {
+            font-weight: 600;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="settings-page">
+        <div class="settings-layout">
+            <!-- Left Navigation -->
+            <aside class="settings-nav">
+                {% include 'accounts_app/partials/settings_nav.html' with active='repository_health' %}
+            </aside>
+            <!-- Right Content -->
+            <main class="settings-content">
+                <div class="settings-header">
+                    <h1 class="settings-title">Repository Health</h1>
+                    <p class="settings-subtitle">Monitor and manage the health of your Git repositories.</p>
+                </div>
+                {% csrf_token %}
+                <!-- Username data for TypeScript -->
+                <div id="maintenance-data" style="display: none" data-username="{{ username }}"></div>
+                <!-- Error message -->
+                <div id="error-message" class="error-message" style="display: none">
+                    <strong>Error:</strong> <span id="error-text"></span>
+                </div>
+                <!-- Health status cards -->
+                <div class="health-status" id="health-status">
+                    <div class="health-card">
+                        <div class="loading-spinner"></div>
+                        <div class="health-card-label">Loading...</div>
+                    </div>
+                </div>
+                <!-- Issues list -->
+                <div class="issues-section">
+                    <h2>Repository Status</h2>
+                    <div class="issues-list" id="issues-list">
+                        <div style="text-align: center; padding: 2rem; color: var(--text-secondary)">
+                            <div class="loading-spinner"></div>
+                            Loading repository information...
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <!-- Confirmation dialog -->
+    <div class="confirmation-dialog" id="confirmation-dialog">
+        <div class="dialog-content">
+            <div class="dialog-title">Confirm Action</div>
+            <div class="dialog-message" id="dialog-message"></div>
+            <div class="dialog-actions">
+                <button type="button"
+                        class="dialog-button cancel"
+                        id="dialog-cancel"
+                        onclick="closeDialog()">Cancel</button>
+                <button type="button"
+                        class="dialog-button confirm"
+                        id="dialog-confirm"
+                        onclick="executeAction()">Confirm</button>
+            </div>
+        </div>
+    </div>
+    <!-- Repository Maintenance Script (TypeScript-compiled) -->
+    {% vite_script 'project_app/repository/admin/index' %}
+{% endblock %}

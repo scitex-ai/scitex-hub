@@ -97,9 +97,17 @@ export class PDFPreviewManager {
   }
 
   /**
-   * Compile minimal document for quick preview
+   * Compile minimal document for quick preview.
+   * @param forceCompile - When true, always compile even if an existing PDF is shown.
+   *   Use true for user-initiated recompiles (auto-save, toolbar button, DPI change).
+   *   Default false skips compilation when an existing PDF is already displayed,
+   *   preventing flash on initial page load.
    */
-  async compileQuick(content: string, sectionId?: string): Promise<void> {
+  async compileQuick(
+    content: string,
+    sectionId?: string,
+    forceCompile = false,
+  ): Promise<void> {
     const sectionName = sectionId ? sectionId.split("/").pop() : "preview";
     const colorMode = this.viewer.getColorMode();
 
@@ -114,12 +122,36 @@ export class PDFPreviewManager {
         sectionName || "preview",
         colorMode,
       );
-      console.log(
-        "[PDFPreviewManager] ✓ Found existing PDF for",
-        colorMode,
-        "theme, showing immediately",
-      );
-      this.viewer.displayPdf(url);
+      const currentUrl = this.viewer.getCurrentPdfUrl();
+      if (currentUrl === url) {
+        if (!forceCompile) {
+          // Already showing this PDF and not a user-triggered compile — skip.
+          // Prevents flash from redundant page-load compilation calls.
+          console.log(
+            "[PDFPreviewManager] ✓ Existing PDF already displayed, skipping (not forced)",
+          );
+          return;
+        }
+        // forceCompile=true: fall through to compile (e.g. user edited content)
+        console.log(
+          "[PDFPreviewManager] Existing PDF displayed but force=true, recompiling",
+        );
+      } else {
+        // Different URL — show cached PDF immediately
+        console.log(
+          "[PDFPreviewManager] ✓ Found existing PDF for",
+          colorMode,
+          "theme, showing immediately",
+        );
+        this.viewer.displayPdf(url);
+        if (!forceCompile) {
+          // Skip compilation on page load — user edits will trigger recompile
+          console.log(
+            "[PDFPreviewManager] Skipping compilation — cached PDF shown, user edits will trigger recompile",
+          );
+          return;
+        }
+      }
     } else {
       console.log(
         "[PDFPreviewManager] No existing",
@@ -141,6 +173,15 @@ export class PDFPreviewManager {
     sectionId?: string,
   ): Promise<void> {
     await this.colorModeManager.setColorMode(colorMode, content, sectionId);
+  }
+
+  /**
+   * Display a PDF from a direct URL (updates state.currentPdfUrl).
+   * Used by the existing-PDF loader to show cached PDFs on page start
+   * without triggering compilation.
+   */
+  displayPdfFromUrl(url: string): void {
+    this.viewer.displayPdf(url);
   }
 
   /**

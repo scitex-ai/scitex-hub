@@ -56,12 +56,23 @@ library_patterns = [
         library_views.api_remove_library_paper,
         name="api_remove_library_paper",
     ),
+    path(
+        "api/library/papers/<uuid:paper_id>/bibtex/",
+        library_views.api_library_paper_bibtex,
+        name="api_library_paper_bibtex",
+    ),
+    path(
+        "api/library/export-named-bib/",
+        library_views.api_library_export_named_bib,
+        name="api_library_export_named_bib",
+    ),
 ]
 
 # Project linking endpoints (separate module)
 from ..views.library.project_linking import (
     api_link_paper_to_project,
     api_project_papers,
+    api_setup_project_workspace,
     api_unlink_paper_from_project,
 )
 
@@ -81,6 +92,35 @@ project_linking_patterns = [
         api_project_papers,
         name="api_project_papers",
     ),
+    path(
+        "api/library/projects/<uuid:project_id>/setup-workspace/",
+        api_setup_project_workspace,
+        name="api_setup_project_workspace",
+    ),
+]
+
+# BibTeX import endpoint
+from ..views.library.bibtex_import import api_import_bibtex
+
+bibtex_import_patterns = [
+    path("api/import/bibtex/", api_import_bibtex, name="api_import_bibtex"),
+]
+
+# Zotero integration endpoints
+from ..views.library.zotero_import import (
+    zotero_collections,
+    zotero_import,
+    zotero_status,
+    zotero_tags,
+)
+
+zotero_patterns = [
+    path("api/library/zotero/status/", zotero_status, name="zotero_status"),
+    path("api/library/zotero/import/", zotero_import, name="zotero_import"),
+    path(
+        "api/library/zotero/collections/", zotero_collections, name="zotero_collections"
+    ),
+    path("api/library/zotero/tags/", zotero_tags, name="zotero_tags"),
 ]
 
 # Research Trend Analysis
@@ -165,7 +205,9 @@ recommendation_patterns = [
 urlpatterns = (
     export_patterns
     + library_patterns
+    + bibtex_import_patterns
     + project_linking_patterns
+    + zotero_patterns
     + trend_patterns
     + annotation_patterns
     + recommendation_patterns

@@ -55,20 +55,15 @@
 
 /* Primary Button - Dark Mode */
 [data-theme="dark"] .btn-primary {
-  background-color: var(
-    --workspace-bg-elevated,
-    #3a3a3a
-  ); /* Workspace blackish */
-  color: var(--text-inverse);
+  background-color: var(--color-btn-primary-bg, var(--scitex-color-04, #238636));
+  color: var(--color-btn-primary-text, #ffffff);
+  border-color: var(--color-btn-primary-border, var(--scitex-color-04, #238636));
 }
 
 [data-theme="dark"] .btn-primary:hover,
 [data-theme="dark"] .btn-primary:focus {
-  background-color: var(
-    --workspace-border-hover,
-    #4a4a4a
-  ); /* Slightly lighter */
-  color: var(--text-inverse);
+  background-color: var(--color-btn-primary-hover-bg, var(--scitex-color-05, #2ea043));
+  color: var(--color-btn-primary-text, #ffffff);
 }
 
 /* Dark Button - Dark Mode (Keep visible) */

@@ -174,10 +174,10 @@
                 <h1 class="display-4 fw-bold mb-3">SCITEX Framework Templates</h1>
                 <p class="lead mb-4">Ready-to-use scientific computing templates for reproducible research</p>
                 <div class="d-flex justify-content-center gap-3">
-                    <a href="{% url "console:editor' %}" class="btn btn-light btn-lg">
+                    <a href="{% url "console:editor" %}" class="btn btn-light btn-lg">
                         <i class="fas fa-code me-2"></i>Open Editor
                     </a>
-                    <a href="{% url "console:analysis' %}" class="btn btn-outline-light btn-lg">
+                    <a href="{% url "console:analysis" %}" class="btn btn-outline-light btn-lg">
                         <i class="fas fa-chart-bar me-2"></i>Data Analysis
                     </a>
                 </div>
@@ -720,7 +720,7 @@ fig = splt.create_figure(figsize=(12, 8), style='publication')
 
 # Main plot: Bar plot with error bars
 ax = plt.gca()
-bars = ax.bar(summary_stats['treatment'], summary_stats['mean'], 
+bars = ax.bar(summary_stats['treatment'], summary_stats['mean'],
               yerr=summary_stats['sem'], capsize=5, alpha=0.8,
               color=['#3498db', '#e74c3c', '#2ecc71', '#f39c12'])
 
@@ -777,7 +777,7 @@ fig, axes = plt.subplots(2, 2, figsize=(12, 10))
 fig.suptitle('Multi-panel Scientific Figure', fontsize=16, fontweight='bold')
 
 # Panel A: Box plot
-axes[0,0].boxplot([df[df['treatment'] == t]['response'] for t in summary_stats['treatment']], 
+axes[0,0].boxplot([df[df['treatment'] == t]['response'] for t in summary_stats['treatment']],
                   labels=summary_stats['treatment'])
 axes[0,0].set_title('A) Distribution by Treatment', fontweight='bold')
 axes[0,0].set_ylabel('Response Variable')

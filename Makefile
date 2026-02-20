@@ -102,7 +102,13 @@ SHELL := /bin/bash
 	check-host \
 	ensure-executable \
 	info \
-	regenerate-gallery
+	regenerate-gallery \
+	visitor-status \
+	visitor-init \
+	visitor-reset \
+	visitor-reset-workspaces \
+	visitor-reset-workspaces-dry \
+	visitor-cleanup
 
 .DEFAULT_GOAL := help
 
@@ -152,7 +158,13 @@ ifdef ENV
   # Set DOCKER_DIR based on environment (each env has its own docker-compose.yml)
   ifeq ($(ENV),dev)
     DOCKER_DIR := $(DOCKER_BASE_DIR)/docker_dev
-    COMPOSE_CMD := docker compose
+    # Auto-detect worktree .env.worktree for port isolation
+    WORKTREE_ENV := $(wildcard $(DOCKER_BASE_DIR)/docker_dev/.env.worktree)
+    ifneq ($(WORKTREE_ENV),)
+      COMPOSE_CMD := docker compose --env-file .env.worktree
+    else
+      COMPOSE_CMD := docker compose
+    endif
   else ifeq ($(ENV),staging)
     DOCKER_DIR := $(DOCKER_BASE_DIR)
     COMPOSE_CMD := docker compose -f docker-compose.yml -f docker-compose.staging.yml
@@ -337,6 +349,13 @@ help-all:
 	@echo -e "  slurm-status                 Check SLURM status"
 	@echo -e "  slurm-fix                    Fix SLURM issues"
 	@echo -e ""
+	@echo -e "$(CYAN)🏊 Visitor Pool:$(NC)"
+	@echo -e "  ENV=<env> visitor-status     Show pool status"
+	@echo -e "  ENV=<env> visitor-init       Initialize visitor pool"
+	@echo -e "  ENV=<env> visitor-reset      Free all allocations"
+	@echo -e "  ENV=<env> visitor-reset-workspaces  Re-clone template"
+	@echo -e "  ENV=<env> visitor-cleanup    Free expired allocations"
+	@echo -e ""
 
 # ============================================
 # Status & Information
@@ -447,6 +466,11 @@ start:
 	@echo -e ""
 	@# Start the requested environment
 	@echo -e "$(CYAN)Starting $(ENV) services...$(NC)"
+	@if [ -f "$(DOCKER_DIR)/.env.worktree" ]; then \
+		echo -e "$(YELLOW)  Worktree mode: using .env.worktree for port isolation$(NC)"; \
+		grep -E '^SCITEX_CLOUD_HTTP_PORT' "$(DOCKER_DIR)/.env.worktree" | head -1 | \
+			sed 's/.*=//' | xargs -I{} echo -e "$(YELLOW)  HTTP port: {}$(NC)"; \
+	fi
 	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) up -d || (echo "$(RED)❌ Start failed. Run 'make ENV=$(ENV) start' to retry$(NC)"; exit 1)
 	@echo -e ""
 	@echo -e "$(GREEN)✅ $(ENV) environment is now running$(NC)"
@@ -594,6 +618,33 @@ collectstatic: validate
 test: validate
 	@echo -e "$(CYAN)🧪 Running tests ($(ENV))...$(NC)"
 	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) exec django python manage.py test
+
+# ============================================
+# Visitor Pool Management
+# ============================================
+visitor-status: validate
+	@echo -e "$(CYAN)📊 Visitor pool status ($(ENV))...$(NC)"
+	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) exec django python manage.py create_visitor_pool --status
+
+visitor-init: validate
+	@echo -e "$(CYAN)🏊 Initializing visitor pool ($(ENV))...$(NC)"
+	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) exec django python manage.py create_visitor_pool
+
+visitor-reset: validate
+	@echo -e "$(CYAN)🔄 Resetting visitor allocations ($(ENV))...$(NC)"
+	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) exec django python manage.py reset_visitor_pool
+
+visitor-reset-workspaces: validate
+	@echo -e "$(CYAN)🔄 Resetting visitor workspaces with latest template ($(ENV))...$(NC)"
+	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) exec django python manage.py reset_visitor_workspaces
+
+visitor-reset-workspaces-dry: validate
+	@echo -e "$(CYAN)👁️  Preview visitor workspace reset ($(ENV))...$(NC)"
+	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) exec django python manage.py reset_visitor_workspaces --dry-run
+
+visitor-cleanup: validate
+	@echo -e "$(CYAN)🧹 Cleaning up expired visitor allocations ($(ENV))...$(NC)"
+	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) exec django python manage.py reset_visitor_pool --free-expired
 
 # E2E Testing Commands
 test-e2e: validate

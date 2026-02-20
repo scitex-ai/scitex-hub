@@ -226,6 +226,72 @@
   text-decoration: none;
 }
 
+/* Collapsible settings sections */
+.settings-details {
+  margin-bottom: 16px;
+}
+
+.settings-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 15px;
+  list-style: none;
+  user-select: none;
+  margin-bottom: 12px;
+  color: var(--text-primary);
+}
+
+.settings-summary::-webkit-details-marker {
+  display: none;
+}
+
+.settings-summary::before {
+  content: "";
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 5px 0 5px 8px;
+  border-color: transparent transparent transparent var(--text-secondary);
+  transition: transform 0.15s;
+  flex-shrink: 0;
+}
+
+.settings-details[open] > .settings-summary::before {
+  transform: rotate(90deg);
+}
+
+/* Section group labels (Public / Private) */
+.settings-group-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  padding: 4px 4px 8px;
+  margin-top: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.settings-group-label i {
+  font-size: 10px;
+}
+
+.settings-group-label-private {
+  margin-top: 48px;
+}
+
 /* Responsive Design */
 @media (max-width: 992px) {
   .settings-layout {

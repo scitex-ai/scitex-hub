@@ -8,8 +8,6 @@ NAS bind mount permission issues.
 """
 
 import os
-import stat
-import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
@@ -21,7 +19,6 @@ class TestUserDataPermissions:
 
     def test_healthy_permissions(self, tmp_path):
         """Test that accessible directories report healthy status."""
-        from apps.public_app.views.status.health_checks import check_user_data_permissions
 
         # Create test directory structure
         users_dir = tmp_path / "users"
@@ -37,7 +34,15 @@ class TestUserDataPermissions:
         with patch("apps.public_app.views.status.health_checks.Path") as mock_path:
             mock_path.return_value = users_dir
             # Actually use the real path for iteration
-            with patch.object(Path, "__new__", lambda cls, *args: users_dir if args and args[0] == "/app/data/users" else Path.__new__(cls)):
+            with patch.object(
+                Path,
+                "__new__",
+                lambda cls, *args: (
+                    users_dir
+                    if args and args[0] == "/app/data/users"
+                    else Path.__new__(cls)
+                ),
+            ):
                 # Direct test with tmp_path
                 check_user_data_permissions_with_path(status_data, users_dir)
 
@@ -45,6 +50,7 @@ class TestUserDataPermissions:
         assert status_data["user_data_permissions"]["health_class"] == "healthy"
         assert len(status_data["user_data_permissions"]["broken_dirs"]) == 0
 
+    @pytest.mark.skipif(os.getuid() == 0, reason="chmod 000 has no effect as root")
     def test_broken_permissions(self, tmp_path):
         """Test that inaccessible directories report unhealthy status."""
         # Create test directory structure
@@ -67,7 +73,10 @@ class TestUserDataPermissions:
             assert status_data["user_data_permissions"]["is_healthy"] is False
             assert status_data["user_data_permissions"]["health_class"] == "unhealthy"
             assert len(status_data["user_data_permissions"]["broken_dirs"]) > 0
-            assert "visitor-001/proj" in status_data["user_data_permissions"]["broken_dirs"]
+            assert (
+                "visitor-001/proj"
+                in status_data["user_data_permissions"]["broken_dirs"]
+            )
         finally:
             # Restore permissions for cleanup
             os.chmod(proj_dir, 0o755)
@@ -82,6 +91,7 @@ class TestUserDataPermissions:
         assert status_data["user_data_permissions"]["is_healthy"] is True
         assert status_data["user_data_permissions"]["health_class"] == "healthy"
 
+    @pytest.mark.skipif(os.getuid() == 0, reason="chmod 000 has no effect as root")
     def test_partially_broken_permissions(self, tmp_path):
         """Test with some accessible and some inaccessible directories."""
         users_dir = tmp_path / "users"
@@ -105,8 +115,14 @@ class TestUserDataPermissions:
 
             assert status_data["user_data_permissions"]["is_healthy"] is False
             assert status_data["user_data_permissions"]["health_class"] == "unhealthy"
-            assert "visitor-002/proj" in status_data["user_data_permissions"]["broken_dirs"]
-            assert "visitor-001/proj" not in status_data["user_data_permissions"]["broken_dirs"]
+            assert (
+                "visitor-002/proj"
+                in status_data["user_data_permissions"]["broken_dirs"]
+            )
+            assert (
+                "visitor-001/proj"
+                not in status_data["user_data_permissions"]["broken_dirs"]
+            )
         finally:
             os.chmod(visitor2_proj, 0o755)
 

@@ -12,7 +12,7 @@ from datetime import timedelta
 
 import pytest
 from django.contrib.auth.models import User
-from django.test import TestCase, TransactionTestCase
+from django.test import TestCase
 from django.utils import timezone
 
 from apps.project_app.models import Project, VisitorAllocation
@@ -59,7 +59,7 @@ class TestVisitorPoolStatus(TestCase):
         assert status["allocated"] >= 0
 
 
-class TestVisitorAllocation(TransactionTestCase):
+class TestVisitorAllocation(TestCase):
     """Test visitor slot allocation."""
 
     def setUp(self):
@@ -135,7 +135,7 @@ class TestVisitorAllocation(TransactionTestCase):
         assert VisitorPool.SESSION_KEY_VISITOR_ID not in session
 
 
-class TestVisitorAllocationExpiration(TransactionTestCase):
+class TestVisitorAllocationExpiration(TestCase):
     """Test handling of expired allocations."""
 
     def setUp(self):

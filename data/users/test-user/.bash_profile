@@ -1,1 +1,0 @@
-proj/dotfiles/bash_profile

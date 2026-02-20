@@ -7,111 +7,54 @@ Export packing service for Scholar app.
 Handles resolving symlinks and packaging project papers for export.
 """
 
-import os
 import io
-import zipfile
 import json
 import logging
-from typing import Optional, List, Dict, Any
+import zipfile
 from datetime import datetime
+from typing import Any, Dict, List
+
 from django.contrib.auth.models import User
-from ..models import SearchIndex, UserLibrary, Collection, LibraryExport
+from scitex.scholar.formatting import FORMAT_EXTENSIONS, to_bibtex, to_ris
+
+from ..models import Collection, LibraryExport, SearchIndex
+from .citation_formats import paper_from_orm
 
 logger = logging.getLogger(__name__)
 
 
-class ExportPackerService:
-    """Service for packing and exporting papers with resolved references."""
-
-    EXPORT_FORMATS = {
-        "bibtex": ".bib",
-        "endnote": ".enw",
-        "ris": ".ris",
-        "csv": ".csv",
-        "json": ".json",
+def _generate_json(paper: SearchIndex) -> Dict[str, Any]:
+    """Generate JSON representation of a paper."""
+    return {
+        "id": str(paper.id),
+        "title": paper.title,
+        "journal": paper.journal.name if paper.journal else "",
+        "year": paper.publication_date.year if paper.publication_date else None,
+        "doi": paper.doi,
+        "pmid": paper.pmid,
+        "arxiv_id": paper.arxiv_id,
+        "abstract": paper.abstract,
+        "url": paper.external_url,
+        "pdf_url": paper.pdf_url,
+        "citations": paper.citation_count,
+        "open_access": paper.is_open_access,
+        "source": paper.source,
     }
 
-    @staticmethod
-    def generate_bibtex(paper: SearchIndex) -> str:
-        """Generate BibTeX entry for a paper."""
-        # Create citation key from author and year
-        authors = paper.authors or "Unknown"
-        first_author = authors.split(",")[0].split()[-1] if authors else "Unknown"
-        year = paper.publication_date.year if paper.publication_date else "0000"
-        key = f"{first_author}{year}"
 
-        # Determine entry type
-        entry_type = "article"
-        if paper.document_type == "preprint":
-            entry_type = "misc"
-        elif paper.document_type == "book":
-            entry_type = "book"
-        elif paper.document_type == "conference":
-            entry_type = "inproceedings"
+def _format_paper(paper: SearchIndex, export_format: str):
+    """Format a single paper in the given export format."""
+    if export_format == "bibtex":
+        return to_bibtex(paper_from_orm(paper))
+    elif export_format == "ris":
+        return to_ris(paper_from_orm(paper))
+    elif export_format == "json":
+        return _generate_json(paper)
+    return ""
 
-        lines = [f"@{entry_type}{{{key},"]
-        lines.append(f'  title = {{{paper.title}}},')
-        lines.append(f'  author = {{{paper.authors or "Unknown"}}},')
 
-        if paper.journal:
-            lines.append(f'  journal = {{{paper.journal}}},')
-        if paper.publication_date:
-            lines.append(f'  year = {{{paper.publication_date.year}}},')
-        if paper.doi:
-            lines.append(f'  doi = {{{paper.doi}}},')
-        if paper.pmid:
-            lines.append(f'  pmid = {{{paper.pmid}}},')
-        if paper.external_url:
-            lines.append(f'  url = {{{paper.external_url}}},')
-        if paper.abstract:
-            abstract = paper.abstract[:500].replace("{", "\\{").replace("}", "\\}")
-            lines.append(f'  abstract = {{{abstract}}},')
-
-        lines.append("}")
-        return "\n".join(lines)
-
-    @staticmethod
-    def generate_ris(paper: SearchIndex) -> str:
-        """Generate RIS entry for a paper."""
-        lines = ["TY  - JOUR"]
-
-        lines.append(f"TI  - {paper.title}")
-        if paper.authors:
-            for author in paper.authors.split(","):
-                lines.append(f"AU  - {author.strip()}")
-        if paper.journal:
-            lines.append(f"JO  - {paper.journal}")
-        if paper.publication_date:
-            lines.append(f"PY  - {paper.publication_date.year}")
-        if paper.doi:
-            lines.append(f"DO  - {paper.doi}")
-        if paper.abstract:
-            lines.append(f"AB  - {paper.abstract[:1000]}")
-        if paper.external_url:
-            lines.append(f"UR  - {paper.external_url}")
-
-        lines.append("ER  -")
-        return "\n".join(lines)
-
-    @staticmethod
-    def generate_json(paper: SearchIndex) -> Dict[str, Any]:
-        """Generate JSON representation of a paper."""
-        return {
-            "id": str(paper.id),
-            "title": paper.title,
-            "authors": paper.authors,
-            "journal": paper.journal,
-            "year": paper.publication_date.year if paper.publication_date else None,
-            "doi": paper.doi,
-            "pmid": paper.pmid,
-            "arxiv_id": paper.arxiv_id,
-            "abstract": paper.abstract,
-            "url": paper.external_url,
-            "pdf_url": paper.pdf_url,
-            "citations": paper.citation_count,
-            "open_access": paper.is_open_access,
-            "source": paper.source,
-        }
+class ExportPackerService:
+    """Service for packing and exporting papers with resolved references."""
 
     @staticmethod
     def pack_project(
@@ -151,7 +94,9 @@ class ExportPackerService:
             citations = []
             notes_content = []
             manifest = {
-                "project_name": project.name if hasattr(project, "name") else str(project),
+                "project_name": (
+                    project.name if hasattr(project, "name") else str(project)
+                ),
                 "exported_at": datetime.now().isoformat(),
                 "total_papers": len(library_entries),
                 "format": export_format,
@@ -169,12 +114,7 @@ class ExportPackerService:
                 manifest["papers"].append(paper_info)
 
                 # Generate citation in requested format
-                if export_format == "bibtex":
-                    citations.append(ExportPackerService.generate_bibtex(paper))
-                elif export_format == "ris":
-                    citations.append(ExportPackerService.generate_ris(paper))
-                elif export_format == "json":
-                    citations.append(ExportPackerService.generate_json(paper))
+                citations.append(_format_paper(paper, export_format))
 
                 # Collect notes
                 if include_notes and entry.personal_notes:
@@ -191,7 +131,7 @@ class ExportPackerService:
                         logger.error(f"Failed to include PDF for {paper.title}: {e}")
 
             # Write citations file
-            ext = ExportPackerService.EXPORT_FORMATS.get(export_format, ".txt")
+            ext = FORMAT_EXTENSIONS.get(export_format, ".txt")
             if export_format == "json":
                 zf.writestr(f"references{ext}", json.dumps(citations, indent=2))
             else:
@@ -246,14 +186,9 @@ class ExportPackerService:
 
             for entry in library_entries:
                 paper = entry.paper
-                if export_format == "bibtex":
-                    citations.append(ExportPackerService.generate_bibtex(paper))
-                elif export_format == "ris":
-                    citations.append(ExportPackerService.generate_ris(paper))
-                elif export_format == "json":
-                    citations.append(ExportPackerService.generate_json(paper))
+                citations.append(_format_paper(paper, export_format))
 
-            ext = ExportPackerService.EXPORT_FORMATS.get(export_format, ".txt")
+            ext = FORMAT_EXTENSIONS.get(export_format, ".txt")
             if export_format == "json":
                 zf.writestr(f"{collection.name}{ext}", json.dumps(citations, indent=2))
             else:
@@ -295,12 +230,11 @@ class ExportPackerService:
         citations = []
 
         for paper in papers:
-            if export_format == "bibtex":
-                citations.append(ExportPackerService.generate_bibtex(paper))
-            elif export_format == "ris":
-                citations.append(ExportPackerService.generate_ris(paper))
-            elif export_format == "json":
-                citations.append(json.dumps(ExportPackerService.generate_json(paper)))
+            result = _format_paper(paper, export_format)
+            if export_format == "json":
+                citations.append(json.dumps(result))
+            else:
+                citations.append(result)
 
         return "\n\n".join(citations)
 

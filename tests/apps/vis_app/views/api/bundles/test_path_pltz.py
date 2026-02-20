@@ -45,9 +45,7 @@ class TestGetPltzPreviewByPath:
         mock_project = Mock()
         mock_project.get_local_path.return_value = Path("/data/projects/owner/slug")
 
-        with patch(
-            "apps.vis_app.views.api.bundles._path_helpers.Project"
-        ) as MockProject:
+        with patch("apps.project_app.models.Project") as MockProject:
             MockProject.objects.get.return_value = mock_project
             with patch(
                 "apps.vis_app.services.pltz_service.PltzService.get_preview_image"

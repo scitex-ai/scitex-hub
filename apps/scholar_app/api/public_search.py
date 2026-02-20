@@ -35,7 +35,14 @@ import logging
 
 from django.http import HttpRequest, HttpResponse, JsonResponse
 
-from .public_search_formatters import normalize_result, to_bibtex, to_csv, to_text
+from .public_search_formatters import (
+    normalize_result,
+    to_csv,
+    to_text,
+)
+from .public_search_formatters import (
+    to_bibtex_with_metrics as to_bibtex,
+)
 from .public_search_utils import (
     RATE_LIMIT_ANONYMOUS,
     RATE_LIMIT_USER,

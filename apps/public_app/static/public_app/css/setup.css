@@ -60,19 +60,6 @@
   display: block;
 }
 
-/* JS-based dark theme: swap diagram via CSS */
-[data-theme="dark"] .setup-diagram-light {
-  display: none;
-}
-
-[data-theme="dark"] .setup-diagram-dark {
-  display: block;
-}
-
-.setup-diagram-dark {
-  display: none;
-}
-
 /* Infrastructure Deployment SVG */
 .setup-architecture-diagram {
   margin: 1.5rem 0;

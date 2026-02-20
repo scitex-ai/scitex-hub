@@ -342,10 +342,10 @@
   --color-danger-emphasis: var(--status-error);
   --color-danger-subtle: var(--status-error);
   --color-success-fg: var(--status-success);
-  --color-btn-primary-bg: var(--_scitex-04);
+  --color-btn-primary-bg: var(--_success);
   --color-btn-primary-text: var(--_white);
-  --color-btn-primary-border: var(--_scitex-04);
-  --color-btn-primary-hover-bg: var(--_scitex-05);
+  --color-btn-primary-border: var(--_success);
+  --color-btn-primary-hover-bg: #5aaa8e;
   --color-btn-bg: var(--bg-surface);
   --color-btn-text: var(--text-primary);
   --color-btn-border: var(--border-default);

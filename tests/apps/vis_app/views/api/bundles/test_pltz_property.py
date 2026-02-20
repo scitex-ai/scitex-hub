@@ -3,10 +3,9 @@
 """Tests for apps/vis_app/views/api/bundles/pltz_property.py - Property update endpoints."""
 
 import json
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
-from django.contrib.auth import get_user_model
 from django.test import RequestFactory
 
 from apps.vis_app.views.api.bundles.pltz_property import (
@@ -14,13 +13,15 @@ from apps.vis_app.views.api.bundles.pltz_property import (
     update_pltz_property,
 )
 
-User = get_user_model()
-
 
 @pytest.fixture
 def user():
-    """Create a test user."""
-    return User.objects.create_user(username="testuser", password="testpass123")
+    """Create a mock authenticated user (no DB needed)."""
+    u = Mock()
+    u.is_authenticated = True
+    u.id = 1
+    u.username = "testuser"
+    return u
 
 
 @pytest.fixture

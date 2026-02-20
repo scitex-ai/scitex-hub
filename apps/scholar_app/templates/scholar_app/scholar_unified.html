@@ -38,6 +38,8 @@
           href="{% static 'scholar_app/css/scholar-search-inline.css' %}" />
     <link rel="stylesheet" href="{% static 'scholar_app/css/search/search-main.css' %}" />
     <link rel="stylesheet"
+          href="{% static 'scholar_app/css/search/search-controls-sources.css' %}?v={{ build_id }}" />
+    <link rel="stylesheet"
           href="{% static 'scholar_app/css/search/results-header.css' %}" />
     <link rel="stylesheet" href="{% static 'shared/css/components/terminal-log.css' %}" />
     <link rel="stylesheet" href="{% static 'scholar_app/css/graph/citation-graph.css' %}" />
@@ -445,6 +447,10 @@
         <main class="scholar-main">
             <div class="pane-header">
                 <nav class="scholar-tabs">
+                    <a href="#library" class="scholar-tab" data-tab="library">
+                        <i class="fas fa-book-reader"></i> Library
+                        {% if library_count %}<span class="scholar-tab-badge">{{ library_count }}</span>{% endif %}
+                    </a>
                     <a href="#search" class="scholar-tab" data-tab="search">
                         <i class="fas fa-search"></i> Search
                     </a>
@@ -453,10 +459,6 @@
                     </a>
                     <a href="#graph" class="scholar-tab" data-tab="graph">
                         <i class="fas fa-project-diagram"></i> Citation Graph <span class="badge badge-wip">WIP</span>
-                    </a>
-                    <a href="#library" class="scholar-tab" data-tab="library">
-                        <i class="fas fa-book-reader"></i> Library <span class="badge badge-wip">WIP</span>
-                        {% if library_count %}<span class="scholar-tab-badge">{{ library_count }}</span>{% endif %}
                     </a>
                 </nav>
                 <div class="pane-header-actions"></div>
@@ -594,10 +596,10 @@
             </div>
         </div>
     </div>
-</div>
-<!-- Library Tab Content -->
-<div id="tab-library" class="scholar-tab-content" data-tab="library">
-    {% include "scholar_app/library_partials/library_main.html" %}
+    <!-- Library Tab Content -->
+    <div id="tab-library" class="scholar-tab-content" data-tab="library">
+        <div class="library-tab-inner">{% include "scholar_app/library_partials/library_main.html" %}</div>
+    </div>
 </div>
 </main>
 <!-- Properties resizer (auto-initialized via data attributes) -->
@@ -730,6 +732,8 @@
     {{ block.super }}
     <!-- Panel resizer (auto-initializes from data attributes) -->
     {% vite_script 'shared/workspace-panel-resizer' %}
+    <!-- Source health check (LED indicators for local DB availability) -->
+    {% vite_script 'scholar_app/search/source-health-check' %}
     {% if current_project %}
         <!-- Standardized project config for shared tree init -->
         <div id="workspace-project-config"
@@ -789,13 +793,15 @@
     {% if current_project %}
         {% vite_script 'scholar_app/bibtex/scholar-ai2-integration' %}
     {% endif %}
+    <!-- Library Scripts -->
+    {% vite_script 'scholar_app/library/library-init' %}
     <!-- Graph Scripts -->
     {% vite_script 'scholar_app/graph/citation-graph' %}
     <!-- Tab Switching Script -->
     <script>
         (function() {
-            const TAB_ORDER = ['search', 'bibtex', 'graph', 'library'];
-            const DEFAULT_TAB = 'search';
+            const TAB_ORDER = ['library', 'search', 'bibtex', 'graph'];
+            const DEFAULT_TAB = 'library';
 
             function getActiveTab() {
                 const hash = window.location.hash.slice(1);
@@ -879,5 +885,23 @@
         // The sidebar-toggle and properties-toggle buttons are managed by
         // static/shared/ts/components/workspace-panel-resizer.ts
         // which provides unified panel resizing and collapse functionality.
+
+        {% if current_project %}
+        // Inject project context into global AI panel so AI knows which project is active
+        (function injectAIContext() {
+            const ctx = {
+                page: "scholar",
+                project: "{{ current_project.name|escapejs }}",
+                project_slug: "{{ current_project.slug|escapejs }}",
+            };
+            if (window.scitexAI) {
+                window.scitexAI.setContext(ctx);
+            } else {
+                document.addEventListener("DOMContentLoaded", () => {
+                    if (window.scitexAI) window.scitexAI.setContext(ctx);
+                });
+            }
+        })();
+        {% endif %}
     </script>
 {% endblock %}

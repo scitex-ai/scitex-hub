@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, Optional
 # Lazy imports to avoid pydantic/fastmcp version conflict at startup
 if TYPE_CHECKING:
     from scitex.writer import Writer
-    from scitex.writer._compile import CompilationResult
+    from scitex_writer._compile import CompilationResult
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ def _get_writer_class():
 def _get_compilation_result_class():
     global _CompilationResult
     if _CompilationResult is None:
-        from scitex.writer._compile import CompilationResult
+        from scitex_writer._compile import CompilationResult
 
         _CompilationResult = CompilationResult
     return _CompilationResult
@@ -134,9 +134,9 @@ class CompilerService:
                 on_compile(
                     {
                         "success": result.success,
-                        "pdf_url": str(result.output_pdf)
-                        if result.output_pdf
-                        else None,
+                        "pdf_url": (
+                            str(result.output_pdf) if result.output_pdf else None
+                        ),
                         "error": result.error if not result.success else None,
                         "log": result.log,
                     }

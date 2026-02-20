@@ -43,9 +43,8 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --system daphne==4.1.2 psycopg2-binary
 
 # Install scitex from PyPI with all extras
-# Use --refresh to force fresh package resolution (avoid stale cache picking old versions)
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system --refresh "scitex[all]==2.16.2"
+# Pin exact version and disable cache to ensure fresh install
+RUN uv pip install --system --no-cache "scitex[all]==2.17.14"
 
 # Install Playwright browsers
 RUN --mount=type=cache,target=/root/.cache/ms-playwright \

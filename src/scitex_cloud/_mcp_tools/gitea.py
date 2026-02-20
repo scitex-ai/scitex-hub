@@ -3,8 +3,6 @@
 # File: src/scitex_cloud/_mcp_tools/gitea.py
 """Gitea CLI tools for FastMCP server."""
 
-from __future__ import annotations
-
 import json
 import subprocess
 from pathlib import Path

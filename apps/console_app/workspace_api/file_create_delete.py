@@ -4,20 +4,16 @@ Code Workspace API Views - File operations for the simple editor.
 
 import json
 import logging
-import subprocess
-from pathlib import Path
 
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from django.contrib.auth.decorators import login_required
+
 from apps.project_app.models import Project
-from apps.project_app.services.git_status import get_git_status, get_file_diff
-from apps.project_app.services.git_service import git_commit_and_push
 
 logger = logging.getLogger(__name__)
 
 
-@require_http_methods(["GET"])
+@require_http_methods(["POST"])
 def api_create_file(request):
     """Create a new file (supports both local and remote projects)."""
     try:
@@ -40,22 +36,23 @@ def api_create_file(request):
         else:
             # For visitor users, check if this is their allocated visitor project
             visitor_project_id = request.session.get("visitor_project_id")
-            has_access = (visitor_project_id and project.id == visitor_project_id)
+            has_access = visitor_project_id and project.id == visitor_project_id
 
         if not has_access:
             return JsonResponse({"error": "Unauthorized"}, status=403)
 
         # Get project path (works for both local and remote projects)
-        from apps.project_app.services.project_service_manager import ProjectServiceManager
+        from apps.project_app.services.project_service_manager import (
+            ProjectServiceManager,
+        )
+
         service_manager = ProjectServiceManager(project)
         project_path = service_manager.get_project_path()
 
         file_full_path = project_path / file_path
 
         # Security check
-        if not str(file_full_path.resolve()).startswith(
-            str(project_path.resolve())
-        ):
+        if not str(file_full_path.resolve()).startswith(str(project_path.resolve())):
             return JsonResponse({"error": "Invalid file path"}, status=400)
 
         # Check if file already exists
@@ -72,12 +69,14 @@ def api_create_file(request):
         # Auto-commit disabled - users should commit manually when ready
         # New files will show as "untracked" in git gutter
 
-        return JsonResponse({
-            "success": True,
-            "message": "File created successfully",
-            "path": file_path,
-            "project_type": project.project_type,
-        })
+        return JsonResponse(
+            {
+                "success": True,
+                "message": "File created successfully",
+                "path": file_path,
+                "project_type": project.project_type,
+            }
+        )
 
     except Exception as e:
         logger.error(f"Error creating file: {e}", exc_info=True)
@@ -106,22 +105,23 @@ def api_delete_file(request):
         else:
             # For visitor users, check if this is their allocated visitor project
             visitor_project_id = request.session.get("visitor_project_id")
-            has_access = (visitor_project_id and project.id == visitor_project_id)
+            has_access = visitor_project_id and project.id == visitor_project_id
 
         if not has_access:
             return JsonResponse({"error": "Unauthorized"}, status=403)
 
         # Get project path (works for both local and remote projects)
-        from apps.project_app.services.project_service_manager import ProjectServiceManager
+        from apps.project_app.services.project_service_manager import (
+            ProjectServiceManager,
+        )
+
         service_manager = ProjectServiceManager(project)
         project_path = service_manager.get_project_path()
 
         file_full_path = project_path / file_path
 
         # Security check
-        if not str(file_full_path.resolve()).startswith(
-            str(project_path.resolve())
-        ):
+        if not str(file_full_path.resolve()).startswith(str(project_path.resolve())):
             return JsonResponse({"error": "Invalid file path"}, status=400)
 
         if not file_full_path.exists():
@@ -129,6 +129,7 @@ def api_delete_file(request):
 
         # Delete file or folder
         import shutil
+
         if file_full_path.is_dir():
             shutil.rmtree(file_full_path)
         else:
@@ -137,12 +138,14 @@ def api_delete_file(request):
         # Auto-commit disabled - users should commit manually when ready
         # Deleted files will show with strike-through in git gutter until committed
 
-        return JsonResponse({
-            "success": True,
-            "message": "Deleted successfully",
-            "path": file_path,
-            "project_type": project.project_type,
-        })
+        return JsonResponse(
+            {
+                "success": True,
+                "message": "Deleted successfully",
+                "path": file_path,
+                "project_type": project.project_type,
+            }
+        )
 
     except Exception as e:
         logger.error(f"Error deleting: {e}", exc_info=True)

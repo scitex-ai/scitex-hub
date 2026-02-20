@@ -38,23 +38,28 @@ if ENV_FILE.exists():
             elif line.startswith("SCITEX_CLOUD_TEST_USER_PASSWORD="):
                 TEST_USER_PASSWORD = line.split("=", 1)[1]
 
-if not TEST_USER_USERNAME or not TEST_USER_PASSWORD:
-    raise RuntimeError(f"Test credentials not found in {ENV_FILE}")
+CREDENTIALS_AVAILABLE = bool(TEST_USER_USERNAME and TEST_USER_PASSWORD)
+if not CREDENTIALS_AVAILABLE:
+    import warnings
+
+    warnings.warn(
+        f"Test credentials not found in {ENV_FILE} — panel resizer tests will be skipped"
+    )
 
 print(f"[panel_resizer conftest] Using credentials: username={TEST_USER_USERNAME}")
 
 # Import ALL utilities from scitex.browser
 from scitex.browser import (
+    SyncBrowserSession,
+    TestMonitor,
+    collect_console_logs,
     inject_visual_effects,
-    show_cursor_at,
+    save_failure_artifacts,
+    setup_console_interceptor,
     show_click_effect,
+    show_cursor_at,
     show_step,
     show_test_result,
-    setup_console_interceptor,
-    collect_console_logs,
-    save_failure_artifacts,
-    TestMonitor,
-    SyncBrowserSession,
 )
 
 # Re-export for use in test files
@@ -70,16 +75,37 @@ __all__ = [
 
 # Workspace configurations
 WORKSPACE_APPS = [
-    {"name": "scholar", "url": "/scholar/", "sidebar": ".scholar-sidebar", "resizer": "#sidebar-resizer"},
-    {"name": "code", "url": "/console/", "sidebar": ".code-sidebar", "resizer": "#sidebar-resizer"},
-    {"name": "vis", "url": "/vis/", "sidebar": ".vis-sidebar", "resizer": "#sidebar-resizer"},
-    {"name": "writer", "url": "/writer/", "sidebar": ".writer-sidebar", "resizer": "#sidebar-resizer"},
+    {
+        "name": "scholar",
+        "url": "/scholar/",
+        "sidebar": ".scholar-sidebar",
+        "resizer": "#sidebar-resizer",
+    },
+    {
+        "name": "code",
+        "url": "/console/",
+        "sidebar": ".code-sidebar",
+        "resizer": "#sidebar-resizer",
+    },
+    {
+        "name": "vis",
+        "url": "/vis/",
+        "sidebar": ".vis-sidebar",
+        "resizer": "#sidebar-resizer",
+    },
+    {
+        "name": "writer",
+        "url": "/writer/",
+        "sidebar": ".writer-sidebar",
+        "resizer": "#sidebar-resizer",
+    },
 ]
 
 
 def highlight_element(page: Page, selector: str, duration_ms: int = 1000):
     """Highlight an element with red border for visual debugging."""
-    page.evaluate("""
+    page.evaluate(
+        """
     ([selector, duration]) => {
         const element = document.querySelector(selector);
         if (!element) return;
@@ -102,7 +128,9 @@ def highlight_element(page: Page, selector: str, duration_ms: int = 1000):
         document.body.appendChild(overlay);
         setTimeout(() => { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, duration);
     }
-    """, [selector, duration_ms])
+    """,
+        [selector, duration_ms],
+    )
 
 
 def login_and_navigate(page: Page, base_url: str, credentials: dict, app: dict) -> bool:
@@ -171,7 +199,14 @@ def visual_click(page: Page, selector: str):
     element.click()
 
 
-def visual_drag(page: Page, start_x: float, start_y: float, end_x: float, end_y: float, steps: int = 10):
+def visual_drag(
+    page: Page,
+    start_x: float,
+    start_y: float,
+    end_x: float,
+    end_y: float,
+    steps: int = 10,
+):
     """Drag with visual cursor feedback."""
     inject_visual_effects(page)
     show_cursor_at(page, start_x, start_y, "normal")
@@ -196,6 +231,7 @@ def visual_drag(page: Page, start_x: float, start_y: float, end_x: float, end_y:
 # ============================================================================
 # Fixtures
 # ============================================================================
+
 
 @pytest.fixture(scope="session", autouse=True)
 def cleanup_zombie_browsers():

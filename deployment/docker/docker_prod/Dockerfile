@@ -164,11 +164,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     texlive-science \
     texlive-pictures \
     texlive-plain-generic \
+    texlive-publishers \
     # bibtex is included in texlive-bibtex-extra
     latexdiff \
     latexmk \
     ghostscript \
     poppler-utils \
+    # GNU parallel for faster LaTeX compilation
+    parallel \
     # Image processing runtime
     imagemagick \
     # Browser runtime (Chromium for Mermaid/Playwright)
@@ -254,6 +257,15 @@ COPY --from=tool-builder /usr/local/bin/yq /usr/local/bin/yq
 RUN if [ -f /etc/ImageMagick-6/policy.xml ]; then \
         sed -i 's/<policy domain="coder" rights="none" pattern="PDF" \/>/<policy domain="coder" rights="read|write" pattern="PDF" \/>/g' /etc/ImageMagick-6/policy.xml || true; \
     fi
+
+# Install setpriv (util-linux) + setcap for per-user UID isolation.
+# cap_setuid,cap_setgid+eip lets the 'scitex' user (UID 1000) drop to
+# app UIDs (100000+) via setpriv without sudo.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        util-linux \
+        libcap2-bin \
+    && setcap 'cap_setuid,cap_setgid+eip' /usr/bin/setpriv \
+    && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user and directories
 RUN useradd -m -u 1000 scitex && \

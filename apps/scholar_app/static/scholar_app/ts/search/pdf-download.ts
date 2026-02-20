@@ -9,39 +9,11 @@ console.log(
   "[DEBUG] apps/scholar_app/static/scholar_app/ts/search/pdf-download.ts loaded",
 );
 
-export {};
-
-// PDF status types
-type PDFStatus =
-  | "unknown"
-  | "checking"
-  | "available"
-  | "downloading"
-  | "downloaded"
-  | "unavailable"
-  | "error";
-
-// API response interfaces
-interface PDFStatusResponse {
-  status: string;
-  has_pdf: boolean;
-  path?: string;
-  filename?: string;
-  size_bytes?: number;
-  is_open_access?: boolean;
-  can_download?: boolean;
-}
-
-interface PDFDownloadResponse {
-  status: string;
-  downloaded: boolean;
-  path?: string;
-  filename?: string;
-  method?: string;
-  size_bytes?: number;
-  reason?: string;
-  error?: string;
-}
+import type {
+  PDFStatus,
+  PDFStatusResponse,
+  PDFDownloadResponse,
+} from "./pdf-download-types";
 
 /**
  * PDF Download Manager

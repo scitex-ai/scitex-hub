@@ -128,7 +128,7 @@
                     <h1>
                         <i class="fas fa-tasks me-2"></i>Execution Jobs
                     </h1>
-                    <a href="{% url "console:editor' %}" class="btn btn-primary">
+                    <a href="{% url "console:editor" %}" class="btn btn-primary">
                         <i class="fas fa-plus me-1"></i>New Code
                     </a>
                 </div>
@@ -170,10 +170,10 @@
                     </div>
                     <!-- Filter Tabs -->
                     <div class="filter-tabs">
-                        <a href="{% url "console:jobs' %}"
+                        <a href="{% url "console:jobs" %}"
                            class="filter-tab {% if not status_filter %}active{% endif %}">All Jobs</a>
                         {% for status_code, status_name in status_choices %}
-                            <a href="{% url "console:jobs' %}?status={{ status_code }}"
+                            <a href="{% url "console:jobs" %}?status={{ status_code }}"
                                class="filter-tab {% if status_filter == status_code %}active{% endif %}">
                                 {{ status_name }}
                             </a>
@@ -229,12 +229,12 @@
                                             {% endif %}
                                         </div>
                                         <div class="btn-group" role="group">
-                                            <a href="{% url "console:job_detail' job.job_id %}"
+                                            <a href="{% url "console:job_detail" job.job_id %}"
                                                class="btn btn-sm btn-outline-primary">
                                                 <i class="fas fa-eye me-1"></i>View
                                             </a>
                                             {% if job.output_files or job.plot_files %}
-                                                <a href="{% url "console:job_detail' job.job_id %}#files"
+                                                <a href="{% url "console:job_detail" job.job_id %}#files"
                                                    class="btn btn-sm btn-outline-success">
                                                     <i class="fas fa-download me-1"></i>Files
                                                 </a>
@@ -297,7 +297,7 @@
                                     You haven't executed any code yet.
                                 {% endif %}
                             </p>
-                            <a href="{% url "console:editor' %}" class="btn btn-primary">
+                            <a href="{% url "console:editor" %}" class="btn btn-primary">
                                 <i class="fas fa-plus me-1"></i>Start Coding
                             </a>
                         </div>
@@ -308,7 +308,7 @@
         <script>
   function loadJobInEditor(jobId) {
     // Redirect to editor with job ID parameter
-    window.location.href = `{% url "console:editor' %}?job=${jobId}`;
+    window.location.href = `{% url "console:editor" %}?job=${jobId}`;
   }
 
   // Auto-refresh running jobs

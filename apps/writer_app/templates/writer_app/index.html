@@ -256,6 +256,17 @@
       console.log('%c[Writer] User:', 'color: #4CAF50; font-weight: bold', window.WRITER_CONFIG.username);
       console.log('%c[Writer] Project ID:', 'color: #2196F3', window.WRITER_CONFIG.projectId);
   }
+
+  // Inject project context into global AI panel so AI knows which project is active
+  document.addEventListener("DOMContentLoaded", () => {
+      if (window.scitexAI && window.WRITER_CONFIG.projectSlug) {
+          window.scitexAI.setContext({
+              page: "writer",
+              project: window.WRITER_CONFIG.projectName,
+              project_slug: window.WRITER_CONFIG.projectSlug,
+          });
+      }
+  });
         </script>
         <!-- Import map for module resolution -->
         <script type="importmap">

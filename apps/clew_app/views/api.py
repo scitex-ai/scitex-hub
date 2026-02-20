@@ -5,7 +5,9 @@
 from __future__ import annotations
 
 import scitex as stx
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_http_methods
 
 
@@ -300,6 +302,68 @@ def database_stats(request):
             {
                 "success": True,
                 "data": stats,
+            }
+        )
+    except Exception as e:
+        return JsonResponse(
+            {
+                "success": False,
+                "error": str(e),
+            },
+            status=500,
+        )
+
+
+@login_required
+@csrf_protect
+@require_http_methods(["POST"])
+def add_examples(request):
+    """Copy example Clew pipeline scripts into the user's project workspace.
+
+    Copies from scitex-code examples/scitex/clew/ into the project and runs them.
+    """
+    import shutil
+    import subprocess
+    from pathlib import Path
+
+    try:
+        # Source: examples bundled with scitex-code
+        src_dir = Path(stx.__file__).parent.parent / "examples" / "scitex" / "clew"
+        if not src_dir.exists():
+            return JsonResponse(
+                {"success": False, "error": f"Examples not found at {src_dir}"},
+                status=404,
+            )
+
+        # Destination: project workspace (use project from request context if available)
+        workspace_root = Path.home() / "clew-examples"
+        workspace_root.mkdir(parents=True, exist_ok=True)
+
+        # Copy only .py and .sh scripts (skip _out directories)
+        copied = []
+        for item in sorted(src_dir.iterdir()):
+            if item.is_file() and item.suffix in (".py", ".sh"):
+                dest = workspace_root / item.name
+                shutil.copy2(item, dest)
+                copied.append(item.name)
+
+        # Run the example pipeline in background (00_run_all.sh if available)
+        run_all = workspace_root / "00_run_all.sh"
+        if run_all.exists():
+            subprocess.Popen(
+                ["bash", str(run_all)],
+                cwd=str(workspace_root),
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+
+        return JsonResponse(
+            {
+                "success": True,
+                "data": {
+                    "message": f"Copied {len(copied)} example files to {workspace_root}",
+                    "files": copied,
+                },
             }
         )
     except Exception as e:

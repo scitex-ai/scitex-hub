@@ -17,10 +17,7 @@ export class ToolbarHandler {
   private autoPreviewTimeout: ReturnType<typeof setTimeout> | null = null;
   private storageAutoPreviewKey: string = "scitex-auto-preview";
 
-  constructor(
-    latexEditor: HTMLTextAreaElement | null,
-    pdfPreviewManager: any,
-  ) {
+  constructor(latexEditor: HTMLTextAreaElement | null, pdfPreviewManager: any) {
     this.autoPreviewCheckbox = document.getElementById(
       "auto-preview-checkbox",
     ) as HTMLInputElement;
@@ -70,9 +67,7 @@ export class ToolbarHandler {
           ).checked;
         }
       });
-      console.log(
-        "[ToolbarHandler] Auto preview checkbox (panel) initialized",
-      );
+      console.log("[ToolbarHandler] Auto preview checkbox (panel) initialized");
     }
 
     // Preview button - toolbar
@@ -202,7 +197,8 @@ export class ToolbarHandler {
       if (editorContent.trim()) {
         console.log("[ToolbarHandler] Triggering PDF preview compilation");
         // Use quick compile for live preview (text only)
-        this.pdfPreviewManager.compileQuick(editorContent);
+        // forceCompile=true: user triggered preview from toolbar
+        this.pdfPreviewManager.compileQuick(editorContent, undefined, true);
       }
     }
   }

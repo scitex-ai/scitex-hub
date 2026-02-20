@@ -4,7 +4,7 @@
 
 """API endpoint for generating AI2 Asta prompts.
 
-Thin wrapper delegating to scitex.writer.prompts.generate_ai2_prompt().
+Thin wrapper delegating to scitex.writer.prompts.generate_asta().
 Django should import from scitex (the main interface), not directly from scitex_writer.
 """
 
@@ -39,10 +39,10 @@ def _get_writer_project_path(project, user, is_visitor):
 
 @api_login_optional
 @require_http_methods(["POST"])
-def generate_ai2_prompt_view(request, project_id):
+def generate_asta_view(request, project_id):
     """Generate AI2 Asta prompt from manuscript files.
 
-    Delegates to scitex.writer.prompts.generate_ai2_prompt().
+    Delegates to scitex.writer.prompts.generate_asta().
     """
     try:
         project = Project.objects.get(id=project_id)
@@ -75,7 +75,7 @@ def generate_ai2_prompt_view(request, project_id):
         # Import at runtime to avoid import-time issues with module re-exports
         from scitex.writer import prompts as sw_prompts
 
-        result = sw_prompts.generate_ai2_prompt(project_path, search_type)
+        result = sw_prompts.generate_asta(project_path, search_type)
         status_code = 200 if result.get("success") else 400
         return JsonResponse(result, status=status_code)
 

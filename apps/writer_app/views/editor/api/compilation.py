@@ -4,13 +4,16 @@
 """Compilation endpoints - preview and full compilation."""
 
 from __future__ import annotations
+
 import json
 import logging
-import uuid
 import threading
-from django.http import JsonResponse
+import uuid
+
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
+
 from ..auth_utils import api_login_optional, get_user_for_request
 
 logger = logging.getLogger(__name__)
@@ -34,8 +37,9 @@ def compile_api(request, project_id):
         }
     """
     try:
-        from ....services import WriterService
         from apps.project_app.models import Project
+
+        from ....services import WriterService
 
         data = json.loads(request.body)
         content = data.get("content", "")
@@ -85,7 +89,7 @@ def compile_api(request, project_id):
                 f"[CompileAPI] Converted PDF path to URL: {result['output_pdf']}"
             )
             logger.info(
-                f"[CompileAPI] Note: Alternate theme will be compiled in background for instant switching"
+                "[CompileAPI] Note: Alternate theme will be compiled in background for instant switching"
             )
 
         return JsonResponse(result)
@@ -137,6 +141,7 @@ def compile_full_view(request, project_id):
         {
             "doc_type": "manuscript|supplementary|revision",
             "timeout": 300 (optional),
+            "color_mode": "light" (optional: light, dark),
             # Manuscript options:
             "no_figs": false,
             "ppt2tif": false,
@@ -154,6 +159,7 @@ def compile_full_view(request, project_id):
         data = json.loads(request.body)
         doc_type = data.get("doc_type", "manuscript")
         timeout = data.get("timeout", 300)
+        color_mode = data.get("color_mode", "light")
 
         # Extract compilation options
         comp_options = {
@@ -164,9 +170,12 @@ def compile_full_view(request, project_id):
             "verbose": data.get("verbose", False),
             "force": data.get("force", False),
             "track_changes": data.get("track_changes", False),
+            "color_mode": color_mode,
         }
 
-        logger.info(f"[CompileFullAPI] project_id={project_id}, doc_type={doc_type}")
+        logger.info(
+            f"[CompileFullAPI] project_id={project_id}, doc_type={doc_type}, color_mode={color_mode}"
+        )
 
         # Get project and service
         project = Project.objects.get(id=project_id)
@@ -190,6 +199,7 @@ def compile_full_view(request, project_id):
             "result": None,
             "project_id": project_id,
             "doc_type": doc_type,
+            "color_mode": color_mode,
         }
 
         # Start compilation in background thread
@@ -329,7 +339,7 @@ def compilation_job_status(request, project_id, job_id):
         )
 
     # Convert ANSI codes to HTML
-    from ....utils.ansi_to_html import ansi_to_html
+    from apps.common.utils.ansi_to_html import ansi_to_html
 
     raw_log = "\n".join(job["log"])
     html_log = ansi_to_html(raw_log)
@@ -343,6 +353,7 @@ def compilation_job_status(request, project_id, job_id):
             "log": raw_log,  # Plain text for parsing
             "log_html": html_log,  # HTML with colors
             "result": job["result"],
+            "color_mode": job.get("color_mode", "light"),
         }
     )
 

@@ -5,8 +5,8 @@
  * Features:
  * - F11 cycle: normal → zen → fullscreen → normal
  * - ESC: exit to previous state
- * - Remembers panel states before entering zen mode
- * - Restores panel states when exiting zen mode
+ * - Session-only: zen mode resets on page reload (all panes visible by default)
+ * - URL hash support: #zen, #fullscreen, #default for testing/screenshots
  * - Works with existing WorkspacePanelResizer component
  *
  * Refactored: ZenPanelManager handles panel state capture/restore.
@@ -152,9 +152,8 @@ export class ZenMode {
     if (this.currentState === "zen" || this.currentState === "fullscreen")
       return;
 
-    // Save current panel states before entering zen mode
+    // Save current panel states before entering zen mode (in-memory only)
     this.savedStates = this.panelManager.captureCurrentStates();
-    this.persistSavedStates();
 
     // Add zen-mode class to body for CSS targeting
     document.body.classList.add("zen-mode");
@@ -163,7 +162,6 @@ export class ZenMode {
     this.panelManager.collapseAllPanels();
 
     this.currentState = "zen";
-    localStorage.setItem(ZEN_MODE_STORAGE_KEY, "zen");
 
     // Dispatch event for other components to react
     this.dispatchZenModeEvent("enter");
@@ -194,7 +192,6 @@ export class ZenMode {
     }
 
     this.currentState = "fullscreen";
-    localStorage.setItem(ZEN_MODE_STORAGE_KEY, "fullscreen");
     document.body.classList.add("zen-fullscreen");
 
     console.log("[ZenMode] Entered fullscreen mode");
@@ -221,11 +218,9 @@ export class ZenMode {
     if (this.savedStates) {
       this.panelManager.restorePanelStates(this.savedStates);
       this.savedStates = null;
-      this.clearSavedStates();
     }
 
     this.currentState = "normal";
-    localStorage.removeItem(ZEN_MODE_STORAGE_KEY);
 
     // Dispatch event for other components to react
     this.dispatchZenModeEvent("exit");
@@ -252,28 +247,8 @@ export class ZenMode {
       // Stay in zen mode but update state
       this.currentState = "zen";
       document.body.classList.remove("zen-fullscreen");
-      localStorage.setItem(ZEN_MODE_STORAGE_KEY, "zen");
       console.log("[ZenMode] Exited fullscreen, staying in zen mode");
     }
-  }
-
-  /**
-   * Persist saved states to localStorage (for page refresh)
-   */
-  private persistSavedStates(): void {
-    if (this.savedStates) {
-      localStorage.setItem(
-        ZEN_SAVED_STATES_KEY,
-        JSON.stringify(this.savedStates),
-      );
-    }
-  }
-
-  /**
-   * Clear saved states from localStorage
-   */
-  private clearSavedStates(): void {
-    localStorage.removeItem(ZEN_SAVED_STATES_KEY);
   }
 
   /**
@@ -300,18 +275,15 @@ export class ZenMode {
     }
 
     if (hash === HASH_ZEN || hash === HASH_FULLSCREEN) {
-      // Save current states before entering zen (for later restoration)
+      // Save current states before entering zen (for later restoration via ESC)
       this.savedStates = this.panelManager.captureCurrentStates();
-      this.persistSavedStates();
 
-      // Enter zen mode from URL hash
+      // Enter zen mode from URL hash (session-only, not persisted)
       document.body.classList.add("zen-mode");
       this.panelManager.collapseAllPanels();
       this.currentState = "zen";
-      localStorage.setItem(ZEN_MODE_STORAGE_KEY, "zen");
 
       if (hash === HASH_FULLSCREEN) {
-        // Note: Can't auto-enter fullscreen on page load due to browser restrictions
         console.log(
           "[ZenMode] Entered zen mode from URL hash (fullscreen requires user action)",
         );
@@ -321,34 +293,11 @@ export class ZenMode {
       return;
     }
 
-    // Fall back to localStorage
-    const savedZenState = localStorage.getItem(ZEN_MODE_STORAGE_KEY);
-    const savedStatesJson = localStorage.getItem(ZEN_SAVED_STATES_KEY);
-
-    if (savedZenState && savedStatesJson) {
-      try {
-        this.savedStates = JSON.parse(savedStatesJson);
-      } catch (e) {
-        console.warn("[ZenMode] Failed to parse saved states:", e);
-      }
-
-      if (savedZenState === "zen" || savedZenState === "fullscreen") {
-        // Re-enter zen mode after page load
-        document.body.classList.add("zen-mode");
-        this.panelManager.collapseAllPanels();
-        this.currentState = "zen";
-
-        if (savedZenState === "fullscreen") {
-          // Note: Can't auto-enter fullscreen on page load due to browser restrictions
-          // User will need to press F11 again for fullscreen
-          console.log(
-            "[ZenMode] Restored zen mode (fullscreen requires user action)",
-          );
-        } else {
-          console.log("[ZenMode] Restored zen mode");
-        }
-      }
-    }
+    // Clean up any stale zen mode state from localStorage
+    // Zen mode is session-only — all panes shown by default on page load
+    localStorage.removeItem(ZEN_MODE_STORAGE_KEY);
+    localStorage.removeItem(ZEN_SAVED_STATES_KEY);
+    console.log("[ZenMode] Starting in normal mode (all panes visible)");
   }
 
   /**

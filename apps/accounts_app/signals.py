@@ -1,8 +1,10 @@
+import logging
+
+from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.contrib.auth.models import User
+
 from .models import UserProfile
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -11,7 +13,7 @@ logger = logging.getLogger(__name__)
 def create_user_profile(sender, instance, created, **kwargs):
     """Create UserProfile when a new User is created (if not already exists)"""
     if created:
-        UserProfile.objects.get_or_create(user=instance)
+        profile, _ = UserProfile.objects.get_or_create(user=instance)
 
         # Create Gitea user account automatically
         try:
@@ -26,6 +28,26 @@ def create_user_profile(sender, instance, created, **kwargs):
                 f"Failed to auto-create Gitea user for {instance.username}: {e}"
             )
             # Don't fail user creation if Gitea sync fails
+
+        # Provision OS-level Linux account and data directory ownership.
+        # Non-fatal: log warnings but never break user creation.
+        try:
+            from apps.accounts_app.services.unix_user import (
+                enforce_data_dir_ownership,
+                ensure_linux_account,
+                get_unix_uid,
+            )
+
+            ensure_linux_account(instance)
+            enforce_data_dir_ownership(instance)
+            uid = get_unix_uid(instance)
+            profile.unix_uid = uid
+            profile.unix_gid = uid
+            profile.save(update_fields=["unix_uid", "unix_gid"])
+        except Exception as exc:
+            logger.warning(
+                f"Failed to provision Linux account for {instance.username}: {exc}"
+            )
 
         # Create a default project for the new user
         create_default_project_for_user(instance)

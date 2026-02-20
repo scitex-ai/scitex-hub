@@ -30,11 +30,16 @@ def figz_class():
     import os
     import sys
 
-    SCITEX_CODE_PATH = os.environ.get("SCITEX_CODE_PATH", "/home/ywatanabe/proj/scitex-code")
+    SCITEX_CODE_PATH = os.environ.get(
+        "SCITEX_CODE_PATH", "/home/ywatanabe/proj/scitex-code"
+    )
     if f"{SCITEX_CODE_PATH}/src" not in sys.path:
         sys.path.insert(0, f"{SCITEX_CODE_PATH}/src")
 
-    from scitex.fig import Figz
+    try:
+        from scitex.fig import Figz
+    except (ImportError, ModuleNotFoundError):
+        pytest.skip("scitex[fig] not installed (requires pip install scitex[fig])")
 
     return Figz
 
@@ -45,7 +50,9 @@ def pltz_class():
     import os
     import sys
 
-    SCITEX_CODE_PATH = os.environ.get("SCITEX_CODE_PATH", "/home/ywatanabe/proj/scitex-code")
+    SCITEX_CODE_PATH = os.environ.get(
+        "SCITEX_CODE_PATH", "/home/ywatanabe/proj/scitex-code"
+    )
     if f"{SCITEX_CODE_PATH}/src" not in sys.path:
         sys.path.insert(0, f"{SCITEX_CODE_PATH}/src")
 
@@ -79,7 +86,9 @@ class TestFigzEmbeddedPanels:
 
         # Create figz and add panel
         figz = figz_class.create(figz_path, "Figure1")
-        figz.add_panel("A", pltz_bytes, {"x_mm": 10, "y_mm": 10}, {"width_mm": 80, "height_mm": 60})
+        figz.add_panel(
+            "A", pltz_bytes, {"x_mm": 10, "y_mm": 10}, {"width_mm": 80, "height_mm": 60}
+        )
 
         # Verify panel is embedded
         assert len(figz.panels) == 1
@@ -102,7 +111,9 @@ class TestFigzEmbeddedPanels:
             pltz_bytes = f.read()
 
         figz = figz_class.create(figz_path, "Figure1")
-        figz.add_panel("A", pltz_bytes, {"x_mm": 5, "y_mm": 5}, {"width_mm": 80, "height_mm": 68})
+        figz.add_panel(
+            "A", pltz_bytes, {"x_mm": 5, "y_mm": 5}, {"width_mm": 80, "height_mm": 68}
+        )
 
         # Reload figz
         figz2 = figz_class(figz_path)
@@ -142,7 +153,9 @@ class TestFigzEmbeddedPanels:
 class TestSaveCanvasAsBundle:
     """Test save_canvas_as_bundle preserves embedded panels."""
 
-    def test_save_preserves_embedded_panels(self, temp_figz_dir, figz_class, pltz_class):
+    def test_save_preserves_embedded_panels(
+        self, temp_figz_dir, figz_class, pltz_class
+    ):
         """Test that save_canvas_as_bundle preserves embedded panel bytes."""
         from apps.vis_app.services.figz import save_canvas_as_bundle
 
@@ -155,7 +168,12 @@ class TestSaveCanvasAsBundle:
             original_pltz_bytes = f.read()
 
         figz = figz_class.create(figz_path, "Figure1")
-        figz.add_panel("A", original_pltz_bytes, {"x_mm": 5, "y_mm": 5}, {"width_mm": 80, "height_mm": 68})
+        figz.add_panel(
+            "A",
+            original_pltz_bytes,
+            {"x_mm": 5, "y_mm": 5},
+            {"width_mm": 80, "height_mm": 68},
+        )
 
         # Verify panel was created correctly
         figz_check = figz_class(figz_path)
@@ -195,7 +213,9 @@ class TestSaveCanvasAsBundle:
 
         assert result["saved"] is True
         # Verify result path matches expected path
-        assert result["path"] == str(figz_path), f"Path mismatch: {result['path']} != {figz_path}"
+        assert result["path"] == str(
+            figz_path
+        ), f"Path mismatch: {result['path']} != {figz_path}"
 
         # Reload and verify panel bytes are preserved
         figz2 = figz_class(figz_path)
@@ -203,7 +223,9 @@ class TestSaveCanvasAsBundle:
 
         retrieved_bytes = figz2.get_panel_pltz("A")
         assert retrieved_bytes is not None, "Panel bytes are None after save"
-        assert retrieved_bytes == original_pltz_bytes, f"Bytes mismatch: {len(retrieved_bytes) if retrieved_bytes else 0} vs {len(original_pltz_bytes)}"
+        assert (
+            retrieved_bytes == original_pltz_bytes
+        ), f"Bytes mismatch: {len(retrieved_bytes) if retrieved_bytes else 0} vs {len(original_pltz_bytes)}"
 
         # Verify position was updated
         panel = figz2.get_panel("A")

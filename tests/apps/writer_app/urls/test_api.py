@@ -14,6 +14,7 @@ class TestPlaceholder:
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
 
+
 if __name__ == "__main__":
     import os
 
@@ -31,13 +32,13 @@ if __name__ == "__main__":
 # # ----------------------------------------
 # from __future__ import annotations
 # import os
-# 
+#
 # __FILE__ = "./apps/writer_app/urls/api.py"
 # __DIR__ = os.path.dirname(__FILE__)
 # # ----------------------------------------
 # """
 # Writer App API URLs
-# 
+#
 # REST API endpoints for writer operations:
 # - Section read/write
 # - Compilation (preview & full)
@@ -45,13 +46,13 @@ if __name__ == "__main__":
 # - Presence tracking
 # - File operations
 # """
-# 
+#
 # from django.urls import path
 # from ..views.editor import api as api_views
 # from ..views.editor import ai2_prompt
 # from ..views.index import main as index_views
 # from ..views.git import api as git_api
-# 
+#
 # urlpatterns = [
 #     # Workspace initialization
 #     path(
@@ -285,11 +286,11 @@ if __name__ == "__main__":
 #     # AI2 Asta prompt generation
 #     path(
 #         "project/<int:project_id>/generate-ai2-prompt/",
-#         ai2_prompt.generate_ai2_prompt_view,
+#         ai2_prompt.generate_asta_view,
 #         name="api-generate-ai2-prompt",
 #     ),
 # ]
-# 
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

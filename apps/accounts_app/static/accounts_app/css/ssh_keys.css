@@ -1,16 +1,8 @@
-/* SSH keys page-specific styles */
-.settings-content {
-  max-width: 800px;
-}
+/* ========================================================================
+   SSH KEYS PAGE STYLES
+   ======================================================================== */
 
-.ssh-key-card {
-  border: 1px solid var(--color-border-default);
-  border-radius: 6px;
-  padding: 1.5rem;
-  background: var(--color-canvas-default);
-  margin-bottom: 1.5rem;
-}
-
+/* Settings header */
 .settings-header {
   margin-bottom: 24px;
   padding-bottom: 16px;
@@ -30,82 +22,177 @@
   margin: 0;
 }
 
-.danger-zone {
-  border: 1px solid var(--status-error);
+/* Details/Summary (collapsible add form) */
+.ssh-details {
+  margin-bottom: 2rem;
+}
+
+.ssh-summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 1rem;
+  background: var(--color-canvas-subtle);
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+}
+
+.ssh-summary i {
+  margin-right: 0.5rem;
+}
+
+/* Create form */
+.create-form {
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  padding: 1.5rem;
+  background: var(--color-canvas-subtle);
+  margin-bottom: 2rem;
+  margin-top: 1rem;
+}
+
+/* Form groups */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.form-group small {
+  color: var(--color-fg-muted);
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--color-border-default);
+  border-radius: 4px;
+  background: var(--color-canvas-default);
+  color: var(--color-fg-default);
+}
+
+textarea.form-control {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 13px;
+  resize: vertical;
+}
+
+/* Active keys heading */
+.active-keys-heading {
+  margin-bottom: 1rem;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* SSH key card */
+.ssh-key-card {
+  border: 1px solid var(--color-border-default);
   border-radius: 6px;
   padding: 1.5rem;
   background: var(--color-canvas-default);
+  margin-bottom: 1rem;
+}
+
+.ssh-key-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.ssh-key-header h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.ssh-key-fingerprint {
+  margin-top: 0.25rem;
+}
+
+.ssh-key-fingerprint code {
+  font-size: 12px;
+  background: var(--color-canvas-subtle);
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: var(--color-fg-muted);
+}
+
+.ssh-key-actions form {
+  display: inline;
+}
+
+.ssh-key-meta {
+  font-size: 13px;
+  color: var(--color-fg-muted);
+  display: flex;
+  gap: 1.5rem;
+}
+
+/* Empty state */
+.empty-state-card {
+  padding: 2rem;
+  border: 1px solid var(--color-border-default);
+  border-radius: 6px;
+  background: var(--color-canvas-default);
+  margin-bottom: 2rem;
+}
+
+.empty-state-card h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.empty-state-card p {
+  color: var(--color-fg-muted);
+  margin: 0;
+  font-size: 14px;
+}
+
+/* Help section */
+.ssh-help {
   margin-top: 2rem;
 }
 
-.danger-zone-title {
-  color: var(--status-error);
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0 0 1rem 0;
-}
-
-.danger-zone-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: start;
-}
-
-.danger-zone-text h4 {
-  margin: 0 0 0.25rem 0;
+.ssh-help summary {
+  cursor: pointer;
   font-size: 14px;
   font-weight: 600;
-}
-
-.danger-zone-text p {
-  margin: 0;
-  font-size: 12px;
   color: var(--color-fg-muted);
+  padding: 0.5rem 0;
 }
 
-.key-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: start;
-  margin-bottom: 1rem;
-}
-
-.key-fingerprint {
-  font-family: monospace;
-  font-size: 0.85rem;
-  color: var(--color-fg-muted);
+.ssh-help-content {
+  margin-top: 1rem;
+  padding: 1.5rem;
   background: var(--color-canvas-subtle);
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-}
-
-.key-content {
-  background: var(--color-canvas-subtle);
-  padding: 1rem;
   border-radius: 6px;
-  margin-bottom: 1rem;
-}
-
-.key-content pre {
-  margin: 0;
-  font-size: 0.85rem;
-  overflow-x: auto;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-}
-
-.instructions-box {
-  background: var(--color-canvas-subtle);
   border-left: 3px solid var(--status-info);
-  padding: 1rem;
-  border-radius: 4px;
-  margin: 1rem 0;
 }
 
-.no-key-message {
-  text-align: center;
-  padding: 3rem 2rem;
-  border: 2px dashed var(--color-border-default);
-  border-radius: 6px;
-  background: var(--color-canvas-subtle);
+.ssh-help-content p {
+  margin: 0.75rem 0 0.25rem;
+  font-size: 14px;
+}
+
+.ssh-help-content pre {
+  background: var(--terminal-bg);
+  color: var(--terminal-green);
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-size: 13px;
+}
+
+.ssh-help-warning {
+  color: var(--status-warning-text, var(--color-fg-muted));
+  font-size: 13px;
+  margin-top: 1rem !important;
+}
+
+.ssh-help-warning i {
+  margin-right: 0.25rem;
 }

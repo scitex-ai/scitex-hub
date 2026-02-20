@@ -19,13 +19,14 @@
  * ```
  */
 
-import type { MediaViewerConfig, FileType } from './types.ts';
-import { detectFileType } from './types.ts';
-import { ImageViewer } from './ImageViewer.ts';
-import { PdfViewer } from './PdfViewer.ts';
-import { BinaryPlaceholder } from './BinaryPlaceholder.ts';
+import type { MediaViewerConfig, FileType } from "./types.ts";
+import { detectFileType } from "./types.ts";
+import { ImageViewer } from "./ImageViewer.ts";
+import { PdfViewer } from "./PdfViewer.ts";
+import { BinaryPlaceholder } from "./BinaryPlaceholder.ts";
+import { MermaidViewer } from "./MermaidViewer.ts";
 // CsvEditor from media-editor module
-import { CsvEditor } from '../media-editor/CsvEditor.ts';
+import { CsvEditor } from "../media-editor/CsvEditor.ts";
 
 export class MediaViewer {
   private config: MediaViewerConfig;
@@ -34,6 +35,7 @@ export class MediaViewer {
   private imageViewer: ImageViewer;
   private pdfViewer: PdfViewer;
   private csvEditor: CsvEditor;
+  private mermaidViewer: MermaidViewer;
   private binaryPlaceholder: BinaryPlaceholder;
   private editorElement: HTMLElement | null = null;
 
@@ -43,6 +45,7 @@ export class MediaViewer {
     this.pdfViewer = new PdfViewer(config);
     // CsvEditor uses MediaEditorConfig which is compatible with MediaViewerConfig
     this.csvEditor = new CsvEditor(config as any);
+    this.mermaidViewer = new MermaidViewer(config);
     this.binaryPlaceholder = new BinaryPlaceholder(config);
     this.initContainer();
   }
@@ -52,20 +55,20 @@ export class MediaViewer {
    */
   private initContainer(): void {
     // Resolve container from ID or element
-    if (typeof this.config.container === 'string') {
+    if (typeof this.config.container === "string") {
       this.container = document.getElementById(this.config.container);
     } else {
       this.container = this.config.container;
     }
 
     if (!this.container) {
-      console.error('[MediaViewer] Container not found');
+      console.error("[MediaViewer] Container not found");
       return;
     }
 
     // Add media viewer class
-    this.container.classList.add('media-viewer-container');
-    this.container.style.display = 'none';
+    this.container.classList.add("media-viewer-container");
+    this.container.style.display = "none";
   }
 
   /**
@@ -73,7 +76,7 @@ export class MediaViewer {
    * This is optional - only needed when MediaViewer coexists with an editor
    */
   setEditorElement(element: HTMLElement | string): void {
-    if (typeof element === 'string') {
+    if (typeof element === "string") {
       this.editorElement = document.getElementById(element);
     } else {
       this.editorElement = element;
@@ -85,10 +88,10 @@ export class MediaViewer {
    */
   show(): void {
     if (this.container) {
-      this.container.style.display = 'flex';
+      this.container.style.display = "flex";
     }
     if (this.editorElement) {
-      this.editorElement.style.display = 'none';
+      this.editorElement.style.display = "none";
     }
     this.config.onVisibilityChange?.(true);
   }
@@ -98,10 +101,10 @@ export class MediaViewer {
    */
   hide(): void {
     if (this.container) {
-      this.container.style.display = 'none';
+      this.container.style.display = "none";
     }
     if (this.editorElement) {
-      this.editorElement.style.display = 'block';
+      this.editorElement.style.display = "block";
     }
     this.config.onVisibilityChange?.(false);
   }
@@ -112,7 +115,11 @@ export class MediaViewer {
    * @param fileType - Type of file (auto-detected if not provided)
    * @param blobUrl - Optional blob URL for local files
    */
-  async displayFile(filePath: string, fileType?: FileType, blobUrl?: string): Promise<void> {
+  async displayFile(
+    filePath: string,
+    fileType?: FileType,
+    blobUrl?: string,
+  ): Promise<void> {
     if (!this.container) {
       this.initContainer();
     }
@@ -122,25 +129,28 @@ export class MediaViewer {
     const type = fileType || detectFileType(filePath);
 
     // Text files should be handled by the editor, not media viewer
-    if (type === 'text') {
+    if (type === "text") {
       this.hide();
       return;
     }
 
     this.currentFilePath = filePath;
-    this.container.innerHTML = '';
+    this.container.innerHTML = "";
 
     switch (type) {
-      case 'image':
+      case "image":
         this.imageViewer.render(this.container, filePath, blobUrl);
         break;
-      case 'pdf':
+      case "pdf":
         this.pdfViewer.render(this.container, filePath, blobUrl);
         break;
-      case 'csv':
+      case "csv":
         await this.csvEditor.render(this.container, filePath);
         break;
-      case 'binary':
+      case "mermaid":
+        await this.mermaidViewer.render(this.container, filePath);
+        break;
+      case "binary":
         this.binaryPlaceholder.render(this.container, filePath);
         break;
       default:
@@ -156,7 +166,7 @@ export class MediaViewer {
    */
   canDisplay(filePath: string): boolean {
     const type = detectFileType(filePath);
-    return type !== 'text';
+    return type !== "text";
   }
 
   /**
@@ -171,7 +181,7 @@ export class MediaViewer {
    */
   cleanup(): void {
     if (this.container) {
-      this.container.innerHTML = '';
+      this.container.innerHTML = "";
     }
     this.currentFilePath = null;
     this.pdfViewer.cleanup();
@@ -181,10 +191,10 @@ export class MediaViewer {
    * Check if the viewer is currently visible
    */
   isVisible(): boolean {
-    return this.container?.style.display !== 'none';
+    return this.container?.style.display !== "none";
   }
 }
 
 // Re-export types and utilities
-export { detectFileType } from './types.ts';
-export type { FileType, MediaViewerConfig } from './types.ts';
+export { detectFileType } from "./types.ts";
+export type { FileType, MediaViewerConfig } from "./types.ts";

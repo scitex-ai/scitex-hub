@@ -47,14 +47,19 @@ export function setupCompilationListeners(
       // but it gets overwritten by this callback. So we need to display
       // the PDF in the preview pane here instead of opening a new window.
       const pdfViewerInstance = (window as any).pdfViewerInstance;
-      if (pdfViewerInstance && typeof pdfViewerInstance.loadPDF === "function") {
+      if (
+        pdfViewerInstance &&
+        typeof pdfViewerInstance.loadPDF === "function"
+      ) {
         console.log("[Compilation] Displaying PDF in preview pane:", pdfUrl);
         pdfViewerInstance.loadPDF(pdfUrl);
       } else {
         // Fallback: dispatch event to load PDF
         console.log("[Compilation] Dispatching loadExistingPDF event:", pdfUrl);
         window.dispatchEvent(
-          new CustomEvent("writer:loadExistingPDF", { detail: { url: pdfUrl } })
+          new CustomEvent("writer:loadExistingPDF", {
+            detail: { url: pdfUrl },
+          }),
         );
       }
     }
@@ -66,7 +71,6 @@ export function setupCompilationListeners(
     showToastFn("Compilation error: " + error);
   });
 }
-
 
 /**
  * Handle full manuscript compilation (no content sent - uses workspace)
@@ -139,9 +143,10 @@ export async function handleCompileFull(
         `${docLabel.charAt(0).toUpperCase() + docLabel.slice(1)} compiled successfully`,
         "success",
       );
-    } else {
-      showToast("Compilation failed", "error");
+    } else if (!result) {
+      showToast("Compilation failed to start", "error");
     }
+    // Note: status "processing" means polling is handling completion/failure feedback
   } catch (error) {
     showToast(
       "Compilation error: " +

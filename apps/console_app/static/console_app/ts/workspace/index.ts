@@ -69,7 +69,11 @@ export class WorkspaceOrchestrator {
     // Initialize git managers
     this.gitStatusManager = new GitStatusManager(config);
     this.gitOperations = new GitOperations(config);
-    this.commitManager = new CommitManager(config, this.gitOperations, this.gitStatusManager);
+    this.commitManager = new CommitManager(
+      config,
+      this.gitOperations,
+      this.gitStatusManager,
+    );
 
     // Initialize specialized managers
     this.scratchManager = new ScratchManager(config, this.monacoManager);
@@ -81,25 +85,31 @@ export class WorkspaceOrchestrator {
     const openFilesMap = new Map<string, OpenFile>();
 
     // Initialize file managers with shared map
-    this.fileTabManager = new FileTabManager(openFilesMap, () => {}, () => {});
+    this.fileTabManager = new FileTabManager(
+      openFilesMap,
+      () => {},
+      () => {},
+    );
     this.fileStateManager = new FileStateManager(
       this.monacoManager,
       this.fileOperations,
       this.fileTabManager,
       this.gitStatusManager,
-      openFilesMap
+      openFilesMap,
     );
 
     // Update FileTabManager callbacks
     this.fileTabManager.setCallbacks(
       this.fileStateManager.switchToFile.bind(this.fileStateManager),
-      this.fileStateManager.closeTab.bind(this.fileStateManager)
+      this.fileStateManager.closeTab.bind(this.fileStateManager),
     );
 
     // Set rename callback for file tabs
-    this.fileTabManager.setRenameCallback(async (oldPath: string, newPath: string) => {
-      await this.fileCommandHandler.renameFile(oldPath, newPath);
-    });
+    this.fileTabManager.setRenameCallback(
+      async (oldPath: string, newPath: string) => {
+        await this.fileCommandHandler.renameFile(oldPath, newPath);
+      },
+    );
 
     // Set new file callback for + button (inline input workflow)
     this.fileTabManager.setNewFileCallback(async (fileName: string) => {
@@ -108,21 +118,24 @@ export class WorkspaceOrchestrator {
 
     this.fileTreeManager = new FileTreeManager(
       config,
-      this.fileStateManager.handleFileClick.bind(this.fileStateManager)
+      this.fileStateManager.handleFileClick.bind(this.fileStateManager),
     );
 
-    this.uiComponents = new UIComponents(config, this.handleContextMenuAction.bind(this));
+    this.uiComponents = new UIComponents(
+      config,
+      this.handleContextMenuAction.bind(this),
+    );
 
     this.fileCommandHandler = new FileCommandHandler(
       this.fileOperations,
       this.fileTreeManager,
       this.fileStateManager,
       this.uiComponents,
-      this.visitorManager
+      this.visitorManager,
     );
 
     // Start initialization
-    this.init().catch(err => {
+    this.init().catch((err) => {
       console.error("[WorkspaceOrchestrator] Initialization failed:", err);
     });
   }
@@ -148,13 +161,13 @@ export class WorkspaceOrchestrator {
 
     try {
       await Promise.all([
-        this.fileTreeManager.loadFileTree().catch(err => {
+        this.fileTreeManager.loadFileTree().catch((err) => {
           console.error("[WorkspaceOrchestrator] File tree failed:", err);
         }),
-        this.scratchManager.initialize(this.fileStateManager).catch(err => {
+        this.scratchManager.initialize(this.fileStateManager).catch((err) => {
           console.error("[WorkspaceOrchestrator] Scratch buffer failed:", err);
         }),
-        this.ptyManager.initialize().catch(err => {
+        this.ptyManager.initialize().catch((err) => {
           console.error("[WorkspaceOrchestrator] PTY failed:", err);
         }),
       ]);
@@ -163,7 +176,9 @@ export class WorkspaceOrchestrator {
       await this.restoreSavedTabs();
 
       const endTime = performance.now();
-      console.log(`[WorkspaceOrchestrator] Initialized in ${Math.round(endTime - startTime)}ms`);
+      console.log(
+        `[WorkspaceOrchestrator] Initialized in ${Math.round(endTime - startTime)}ms`,
+      );
 
       this.setupThemeListeners();
     } catch (err) {
@@ -180,25 +195,35 @@ export class WorkspaceOrchestrator {
       return;
     }
 
-    console.log("[WorkspaceOrchestrator] Restoring", savedState.openFiles.length, "tabs");
+    console.log(
+      "[WorkspaceOrchestrator] Restoring",
+      savedState.openFiles.length,
+      "tabs",
+    );
 
     // Load each saved file
     for (const filePath of savedState.openFiles) {
       try {
         await this.fileStateManager.loadFile(filePath);
       } catch (err) {
-        console.warn(`[WorkspaceOrchestrator] Failed to restore tab: ${filePath}`, err);
+        console.warn(
+          `[WorkspaceOrchestrator] Failed to restore tab: ${filePath}`,
+          err,
+        );
       }
     }
 
     // Switch to the last active file if it was restored
-    if (savedState.currentFile && this.fileStateManager.isFileOpen(savedState.currentFile)) {
+    if (
+      savedState.currentFile &&
+      this.fileStateManager.isFileOpen(savedState.currentFile)
+    ) {
       await this.fileStateManager.switchToFile(savedState.currentFile);
     }
   }
 
   private setupThemeListeners(): void {
-    document.addEventListener('theme-changed', (event: Event) => {
+    document.addEventListener("theme-changed", (event: Event) => {
       const customEvent = event as CustomEvent<{ theme: string }>;
       const theme = customEvent.detail.theme;
 
@@ -247,24 +272,34 @@ export class WorkspaceOrchestrator {
     });
 
     // Keybinding mode selector
-    const keybindingMode = document.getElementById("keybinding-mode") as HTMLSelectElement;
+    const keybindingMode = document.getElementById(
+      "keybinding-mode",
+    ) as HTMLSelectElement;
     keybindingMode?.addEventListener("change", (e) => {
-      this.monacoManager.setKeybindingMode((e.target as HTMLSelectElement).value);
+      this.monacoManager.setKeybindingMode(
+        (e.target as HTMLSelectElement).value,
+      );
     });
 
     // Monaco theme toggle
-    document.getElementById("monaco-theme-toggle")?.addEventListener("click", () => {
-      this.monacoManager.toggleEditorTheme();
-    });
+    document
+      .getElementById("monaco-theme-toggle")
+      ?.addEventListener("click", () => {
+        this.monacoManager.toggleEditorTheme();
+      });
 
     // Shortcuts buttons
-    document.getElementById("btn-editor-shortcuts")?.addEventListener("click", () => {
-      this.shortcutsManager.showEditorShortcuts();
-    });
+    document
+      .getElementById("btn-editor-shortcuts")
+      ?.addEventListener("click", () => {
+        this.shortcutsManager.showEditorShortcuts();
+      });
 
-    document.getElementById("btn-terminal-shortcuts")?.addEventListener("click", () => {
-      this.shortcutsManager.showTerminalShortcuts();
-    });
+    document
+      .getElementById("btn-terminal-shortcuts")
+      ?.addEventListener("click", () => {
+        this.shortcutsManager.showTerminalShortcuts();
+      });
 
     // Keyboard shortcuts
     this.attachKeyboardShortcuts();
@@ -274,87 +309,91 @@ export class WorkspaceOrchestrator {
 
   private attachKeyboardShortcuts(): void {
     // Use capture phase (true) for Emacs chords to intercept BEFORE Monaco handles them
-    document.addEventListener("keydown", (e) => {
-      const keybindingMode = (document.getElementById("keybinding-mode") as HTMLSelectElement)?.value || "emacs";
-      const isEmacs = keybindingMode === "emacs";
+    document.addEventListener(
+      "keydown",
+      (e) => {
+        const keybindingMode =
+          (document.getElementById("keybinding-mode") as HTMLSelectElement)
+            ?.value || "emacs";
+        const isEmacs = keybindingMode === "emacs";
 
-      // Handle Emacs C-x prefix chord
-      if (isEmacs && e.ctrlKey && e.key === "x" && !e.shiftKey && !e.altKey) {
-        e.preventDefault();
-        e.stopPropagation(); // Prevent Monaco from seeing this
-        this.startEmacsChord();
-        console.log("[Emacs] C-x prefix started");
-        return;
-      }
-
-      // Handle Emacs C-x C-f (new file) and C-x C-s (save)
-      // MUST run in capture phase to intercept before Monaco's C-f handler
-      if (isEmacs && this.emacsChordState.ctrlXPressed && e.ctrlKey) {
-        if (e.key === "f") {
+        // Handle Emacs C-x prefix chord
+        if (isEmacs && e.ctrlKey && e.key === "x" && !e.shiftKey && !e.altKey) {
           e.preventDefault();
-          e.stopPropagation(); // Prevent Monaco from handling C-f as cursor movement
-          this.clearEmacsChord();
-          console.log("[Emacs] C-x C-f triggered - showing inline new file input");
-          this.fileTabManager.triggerNewFileInput();
+          e.stopPropagation(); // Prevent Monaco from seeing this
+          this.startEmacsChord();
+          console.log("[Emacs] C-x prefix started");
           return;
         }
-        if (e.key === "s") {
-          e.preventDefault();
-          e.stopPropagation(); // Prevent Monaco from handling C-s
+
+        // Handle Emacs C-x C-f (new file) and C-x C-s (save)
+        // MUST run in capture phase to intercept before Monaco's C-f handler
+        if (isEmacs && this.emacsChordState.ctrlXPressed && e.ctrlKey) {
+          if (e.key === "f") {
+            e.preventDefault();
+            e.stopPropagation(); // Prevent Monaco from handling C-f as cursor movement
+            this.clearEmacsChord();
+            console.log(
+              "[Emacs] C-x C-f triggered - showing inline new file input",
+            );
+            this.fileTabManager.triggerNewFileInput();
+            return;
+          }
+          if (e.key === "s") {
+            e.preventDefault();
+            e.stopPropagation(); // Prevent Monaco from handling C-s
+            this.clearEmacsChord();
+            console.log("[Emacs] C-x C-s triggered - saving file");
+            this.fileStateManager.saveCurrentFile();
+            return;
+          }
+          // Any other key after C-x clears the chord
           this.clearEmacsChord();
-          console.log("[Emacs] C-x C-s triggered - saving file");
+        }
+
+        // Ctrl+S: Save (all modes)
+        if (e.ctrlKey && e.key === "s") {
+          e.preventDefault();
           this.fileStateManager.saveCurrentFile();
-          return;
         }
-        // Any other key after C-x clears the chord
-        this.clearEmacsChord();
-      }
 
-      // Ctrl+S: Save (all modes)
-      if (e.ctrlKey && e.key === "s") {
-        e.preventDefault();
-        this.fileStateManager.saveCurrentFile();
-      }
+        // Ctrl+N: New file (non-Emacs modes, as Emacs uses C-n for cursor down)
+        if (!isEmacs && e.ctrlKey && e.key === "n") {
+          e.preventDefault();
+          this.fileTabManager.triggerNewFileInput();
+        }
 
-      // Ctrl+N: New file (non-Emacs modes, as Emacs uses C-n for cursor down)
-      if (!isEmacs && e.ctrlKey && e.key === "n") {
-        e.preventDefault();
-        this.fileTabManager.triggerNewFileInput();
-      }
+        // Ctrl+Tab: Next file tab
+        if (e.ctrlKey && e.key === "Tab" && !e.shiftKey) {
+          e.preventDefault();
+          this.fileTabManager.switchToNextTab();
+        }
 
-      // Ctrl+Tab: Next file tab
-      if (e.ctrlKey && e.key === "Tab" && !e.shiftKey) {
-        e.preventDefault();
-        this.fileTabManager.switchToNextTab();
-      }
+        // Ctrl+Shift+T: New terminal tab
+        if (e.ctrlKey && e.shiftKey && e.key === "T") {
+          e.preventDefault();
+          this.ptyManager.createNewTerminal();
+        }
 
-      // Ctrl+Shift+T: New terminal tab
-      if (e.ctrlKey && e.shiftKey && e.key === "T") {
-        e.preventDefault();
-        this.ptyManager.createNewTerminal();
-      }
-
-      // Ctrl+PageDown/PageUp: Terminal tabs
-      if (e.ctrlKey && e.key === "PageDown") {
-        e.preventDefault();
-        this.ptyManager.switchToNextTab();
-      }
-      if (e.ctrlKey && e.key === "PageUp") {
-        e.preventDefault();
-        this.ptyManager.switchToPrevTab();
-      }
-
-      // Ctrl+K: Focus file search input
-      if (e.ctrlKey && e.key === "k") {
-        e.preventDefault();
-        this.focusFileSearch();
-      }
-    }, true); // Capture phase to intercept before Monaco
+        // Ctrl+PageDown/PageUp: Terminal tabs
+        if (e.ctrlKey && e.key === "PageDown") {
+          e.preventDefault();
+          this.ptyManager.switchToNextTab();
+        }
+        if (e.ctrlKey && e.key === "PageUp") {
+          e.preventDefault();
+          this.ptyManager.switchToPrevTab();
+        }
+      },
+      true,
+    ); // Capture phase to intercept before Monaco
   }
 
   /** Focus the file search input */
   private focusFileSearch(): void {
-    const searchInput = document.getElementById("file-search-input") as HTMLInputElement;
+    const searchInput = document.getElementById(
+      "file-search-input",
+    ) as HTMLInputElement;
     if (searchInput) {
       searchInput.focus();
       searchInput.select();
@@ -363,8 +402,12 @@ export class WorkspaceOrchestrator {
 
   /** Setup file search functionality */
   private setupFileSearch(): void {
-    const searchInput = document.getElementById("file-search-input") as HTMLInputElement;
-    const clearBtn = document.getElementById("file-search-clear") as HTMLButtonElement;
+    const searchInput = document.getElementById(
+      "file-search-input",
+    ) as HTMLInputElement;
+    const clearBtn = document.getElementById(
+      "file-search-clear",
+    ) as HTMLButtonElement;
 
     if (!searchInput) return;
 
@@ -398,7 +441,9 @@ export class WorkspaceOrchestrator {
         // Focus tree for keyboard navigation
         const treeContainer = document.getElementById("file-tree");
         if (treeContainer) {
-          const firstItem = treeContainer.querySelector(".wft-item") as HTMLElement;
+          const firstItem = treeContainer.querySelector(
+            ".wft-item",
+          ) as HTMLElement;
           if (firstItem) {
             firstItem.click();
             searchInput.blur();
@@ -453,10 +498,8 @@ export class WorkspaceOrchestrator {
     }
 
     // Run regular file
-    await this.runManager.runFile(
-      currentFile,
-      terminal,
-      () => this.fileStateManager.saveCurrentFile()
+    await this.runManager.runFile(currentFile, terminal, () =>
+      this.fileStateManager.saveCurrentFile(),
     );
   }
 }

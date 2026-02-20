@@ -1,1 +1,0 @@
-../../proj/dotfiles/ipython/ipython_config.py

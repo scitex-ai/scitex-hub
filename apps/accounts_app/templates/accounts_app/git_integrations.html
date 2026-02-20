@@ -1,14 +1,14 @@
 {% extends "global_base.html" %}
+
 {% load static %}
+
 {% block title %}
     Git
     Integrations - Settings
 {% endblock %}
 {% block extra_css %}
-    <link rel="stylesheet"
-          href="{% static 'shared/css/layouts/settings-layout.css' %}" />
-    <link rel="stylesheet"
-          href="{% static 'accounts_app/css/git_integrations.css' %}" />
+    <link rel="stylesheet" href="{% static 'shared/css/layouts/settings-layout.css' %}" />
+    <link rel="stylesheet" href="{% static 'accounts_app/css/git_integrations.css' %}" />
 {% endblock %}
 {% block content %}
     <div class="settings-page">
@@ -19,6 +19,10 @@
             </aside>
             <!-- Right Content -->
             <main class="settings-content">
+                <div class="settings-header">
+                    <h1 class="settings-title">Git platforms</h1>
+                    <p class="settings-subtitle">Connect your Git platform accounts to enable repository import and sync.</p>
+                </div>
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
                     {% if messages %}
@@ -37,110 +41,105 @@
                             {% endfor %}
                         </div>
                     {% endif %}
-                    <div class="form-section">
-                        <div class="section-header">
-                            <h2 class="section-title">Git Platform Integration</h2>
-                            <p class="section-subtitle">
-                                Connect your GitHub, GitLab, and Bitbucket accounts to import
-                                private repositories
-                            </p>
+                    <!-- GitHub -->
+                    <details class="settings-details">
+                        <summary class="settings-summary">
+                            <i class="fab fa-github"></i> GitHub
+                            {% if profile.github_token %}<span class="connected-badge">connected</span>{% endif %}
+                        </summary>
+                        <div class="form-section">
+                            <div class="form-group">
+                                <label for="github_profile">Username</label>
+                                <input type="text"
+                                       id="github_profile"
+                                       name="github_profile"
+                                       value="{{ profile.github_profile }}"
+                                       placeholder="username" />
+                                <p class="form-help">
+                                    github.com/<span id="github-preview">{{ profile.github_profile|default:"username" }}</span>
+                                </p>
+                            </div>
+                            <div class="form-group">
+                                <label for="github_token">Personal Access Token</label>
+                                <input type="password"
+                                       id="github_token"
+                                       name="github_token"
+                                       value=""
+                                       autocomplete="new-password"
+                                       placeholder="{% if github_token_masked %}{{ github_token_masked }}{% else %}ghp_xxxxxxxxxxxx or github_pat_xxxxx{% endif %}" />
+                                <p class="form-help">
+                                    {% if profile.github_token %}Token saved: <code>{{ github_token_masked }}</code> •{% endif %}
+                                    <a href="https://github.com/settings/tokens" target="_blank">Create token</a>
+                                </p>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="github_token">GitHub Personal Access Token</label>
-                            <input type="password"
-                                   id="github_token"
-                                   name="github_token"
-                                   value=""
-                                   placeholder="{% if github_token_masked %}{{ github_token_masked }}{% else %}ghp_xxxxxxxxxxxx or github_pat_xxxxx{% endif %}" />
-                            <p class="form-help">
-                                {% if profile.github_token %}
-                                    ✅ Token saved:
-                                    <code>{{ github_token_masked }}</code>
-                                {% else %}
-                                    No token saved
-                                {% endif %}
-                                •
-                                <a href="https://github.com/settings/tokens" target="_blank">Create token on GitHub →</a>
-                            </p>
+                    </details>
+                    <!-- GitLab -->
+                    <details class="settings-details">
+                        <summary class="settings-summary">
+                            <i class="fab fa-gitlab"></i> GitLab
+                            {% if profile.gitlab_token %}<span class="connected-badge">connected</span>{% endif %}
+                        </summary>
+                        <div class="form-section">
+                            <div class="form-group">
+                                <label for="gitlab_profile">Username</label>
+                                <input type="text"
+                                       id="gitlab_profile"
+                                       name="gitlab_profile"
+                                       value="{{ profile.gitlab_profile }}"
+                                       placeholder="username" />
+                                <p class="form-help">
+                                    gitlab.com/<span id="gitlab-preview">{{ profile.gitlab_profile|default:"username" }}</span>
+                                </p>
+                            </div>
+                            <div class="form-group">
+                                <label for="gitlab_token">Personal Access Token</label>
+                                <input type="password"
+                                       id="gitlab_token"
+                                       name="gitlab_token"
+                                       value=""
+                                       autocomplete="new-password"
+                                       placeholder="{% if gitlab_token_masked %}{{ gitlab_token_masked }}{% else %}glpat-xxxxxxxxxxxx{% endif %}" />
+                                <p class="form-help">
+                                    {% if profile.gitlab_token %}Token saved: <code>{{ gitlab_token_masked }}</code> •{% endif %}
+                                    <a href="https://gitlab.com/-/profile/personal_access_tokens" target="_blank">Create token</a>
+                                </p>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="gitlab_token">GitLab Personal Access Token</label>
-                            <input type="password"
-                                   id="gitlab_token"
-                                   name="gitlab_token"
-                                   value=""
-                                   placeholder="{% if gitlab_token_masked %}{{ gitlab_token_masked }}{% else %}glpat-xxxxxxxxxxxx{% endif %}" />
-                            <p class="form-help">
-                                {% if profile.gitlab_token %}
-                                    ✅ Token saved:
-                                    <code>{{ gitlab_token_masked }}</code>
-                                {% else %}
-                                    No token saved
-                                {% endif %}
-                                •
-                                <a href="https://gitlab.com/-/profile/personal_access_tokens"
-                                   target="_blank">Create token on GitLab →</a>
-                            </p>
+                    </details>
+                    <!-- Bitbucket -->
+                    <details class="settings-details">
+                        <summary class="settings-summary">
+                            <i class="fab fa-bitbucket"></i> Bitbucket
+                            {% if profile.bitbucket_token %}<span class="connected-badge">connected</span>{% endif %}
+                        </summary>
+                        <div class="form-section">
+                            <div class="form-group">
+                                <label for="bitbucket_profile">Username</label>
+                                <input type="text"
+                                       id="bitbucket_profile"
+                                       name="bitbucket_profile"
+                                       value="{{ profile.bitbucket_profile }}"
+                                       placeholder="username" />
+                                <p class="form-help">
+                                    bitbucket.org/<span id="bitbucket-preview">{{ profile.bitbucket_profile|default:"username" }}</span>
+                                </p>
+                            </div>
+                            <div class="form-group">
+                                <label for="bitbucket_token">App Password</label>
+                                <input type="password"
+                                       id="bitbucket_token"
+                                       name="bitbucket_token"
+                                       value=""
+                                       autocomplete="new-password"
+                                       placeholder="{% if bitbucket_token_masked %}{{ bitbucket_token_masked }}{% else %}ATBB...{% endif %}" />
+                                <p class="form-help">
+                                    {% if profile.bitbucket_token %}Password saved: <code>{{ bitbucket_token_masked }}</code> •{% endif %}
+                                    <a href="https://bitbucket.org/account/settings/app-passwords/" target="_blank">Create app password</a>
+                                </p>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="bitbucket_token">Bitbucket App Password</label>
-                            <input type="password"
-                                   id="bitbucket_token"
-                                   name="bitbucket_token"
-                                   value=""
-                                   placeholder="{% if bitbucket_token_masked %}{{ bitbucket_token_masked }}{% else %}ATBB...{% endif %}" />
-                            <p class="form-help">
-                                {% if profile.bitbucket_token %}
-                                    ✅ Password saved:
-                                    <code>{{ bitbucket_token_masked }}</code>
-                                {% else %}
-                                    No password saved
-                                {% endif %}
-                                •
-                                <a href="https://bitbucket.org/account/settings/app-passwords/"
-                                   target="_blank">Create app password on Bitbucket →</a>
-                            </p>
-                        </div>
-                    </div>
-                    <div class="form-section">
-                        <div class="section-header">
-                            <h2 class="section-title">Git Hosting Profiles</h2>
-                            <p class="section-subtitle">Your public profile usernames on different Git platforms</p>
-                        </div>
-                        <div class="form-group">
-                            <label for="github_profile">GitHub Username</label>
-                            <input type="text"
-                                   id="github_profile"
-                                   name="github_profile"
-                                   value="{{ profile.github_profile }}"
-                                   placeholder="username" />
-                            <p class="form-help">
-                                Your GitHub profile: github.com/<span id="github-preview">{{ profile.github_profile|default:"username" }}</span>
-                            </p>
-                        </div>
-                        <div class="form-group">
-                            <label for="gitlab_profile">GitLab Username</label>
-                            <input type="text"
-                                   id="gitlab_profile"
-                                   name="gitlab_profile"
-                                   value="{{ profile.gitlab_profile }}"
-                                   placeholder="username" />
-                            <p class="form-help">
-                                Your GitLab profile: gitlab.com/<span id="gitlab-preview">{{ profile.gitlab_profile|default:"username" }}</span>
-                            </p>
-                        </div>
-                        <div class="form-group">
-                            <label for="bitbucket_profile">Bitbucket Username</label>
-                            <input type="text"
-                                   id="bitbucket_profile"
-                                   name="bitbucket_profile"
-                                   value="{{ profile.bitbucket_profile }}"
-                                   placeholder="username" />
-                            <p class="form-help">
-                                Your Bitbucket profile: bitbucket.org/<span id="bitbucket-preview">{{ profile.bitbucket_profile|default:"username" }}</span>
-                            </p>
-                        </div>
-                    </div>
+                    </details>
                     <!-- Actions -->
                     <div class="form-actions">
                         <button type="submit" class="btn-save">

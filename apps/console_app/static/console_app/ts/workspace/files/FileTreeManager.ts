@@ -97,6 +97,9 @@ export class FileTreeManager {
       // Initialize the tree (this loads data and renders)
       await this.tree.initialize();
 
+      // Expose globally so global-ai-chat.ts can trigger refresh after file writes
+      (window as any).workspaceFilesTree = this.tree;
+
       // Initialize hidden files toggle
       const { initHiddenFilesToggle } =
         await import("@/components/workspace-files-tree/HiddenFilesToggle");

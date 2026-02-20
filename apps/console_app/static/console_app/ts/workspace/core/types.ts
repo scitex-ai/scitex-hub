@@ -15,7 +15,7 @@ export interface EditorConfig {
   csrfToken: string;
 }
 
-export type FileType = 'text' | 'image' | 'pdf' | 'csv' | 'binary';
+export type FileType = "text" | "image" | "pdf" | "csv" | "mermaid" | "binary";
 
 export interface OpenFile {
   path: string;
@@ -58,7 +58,14 @@ export const LANGUAGE_MAP: { [key: string]: string } = {
 
 /** Image file extensions */
 export const IMAGE_EXTENSIONS = new Set([
-  ".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".bmp", ".ico"
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".gif",
+  ".webp",
+  ".svg",
+  ".bmp",
+  ".ico",
 ]);
 
 /** PDF file extension */
@@ -67,26 +74,51 @@ export const PDF_EXTENSIONS = new Set([".pdf"]);
 /** CSV/TSV file extensions for table view */
 export const CSV_EXTENSIONS = new Set([".csv", ".tsv"]);
 
+/** Mermaid diagram file extensions */
+export const MERMAID_EXTENSIONS = new Set([".mmd", ".mermaid"]);
+
 /** Binary file extensions that cannot be displayed as text */
 export const BINARY_EXTENSIONS = new Set([
-  ".zip", ".tar", ".gz", ".rar", ".7z",
-  ".exe", ".dll", ".so", ".dylib",
-  ".mp3", ".mp4", ".wav", ".avi", ".mkv", ".mov",
-  ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
-  ".woff", ".woff2", ".ttf", ".eot", ".otf"
+  ".zip",
+  ".tar",
+  ".gz",
+  ".rar",
+  ".7z",
+  ".exe",
+  ".dll",
+  ".so",
+  ".dylib",
+  ".mp3",
+  ".mp4",
+  ".wav",
+  ".avi",
+  ".mkv",
+  ".mov",
+  ".doc",
+  ".docx",
+  ".xls",
+  ".xlsx",
+  ".ppt",
+  ".pptx",
+  ".woff",
+  ".woff2",
+  ".ttf",
+  ".eot",
+  ".otf",
 ]);
 
 /**
  * Detect file type from file path extension
  */
 export function detectFileType(filePath: string): FileType {
-  const ext = filePath.substring(filePath.lastIndexOf('.')).toLowerCase();
+  const ext = filePath.substring(filePath.lastIndexOf(".")).toLowerCase();
 
-  if (IMAGE_EXTENSIONS.has(ext)) return 'image';
-  if (PDF_EXTENSIONS.has(ext)) return 'pdf';
-  if (CSV_EXTENSIONS.has(ext)) return 'csv';
-  if (BINARY_EXTENSIONS.has(ext)) return 'binary';
-  return 'text';
+  if (IMAGE_EXTENSIONS.has(ext)) return "image";
+  if (PDF_EXTENSIONS.has(ext)) return "pdf";
+  if (CSV_EXTENSIONS.has(ext)) return "csv";
+  if (MERMAID_EXTENSIONS.has(ext)) return "mermaid";
+  if (BINARY_EXTENSIONS.has(ext)) return "binary";
+  return "text";
 }
 
 export const DEFAULT_SCRATCH_CONTENT = `# Welcome to Code Editor
