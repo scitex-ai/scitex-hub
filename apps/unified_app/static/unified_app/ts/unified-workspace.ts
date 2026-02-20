@@ -64,10 +64,13 @@ async function switchModule(name: string, partialUrl: string): Promise<void> {
     center.innerHTML = html;
 
     // Move injected <link rel="stylesheet"> tags to <head> so browser fetches CSS
+    // Track newly-added links to dispatch resize after they load (fixes xterm measure race)
+    const newLinks: HTMLLinkElement[] = [];
     center.querySelectorAll('link[rel="stylesheet"]').forEach((link) => {
       const href = (link as HTMLLinkElement).href;
       if (href && !document.querySelector(`link[href="${href}"]`)) {
         document.head.appendChild(link); // moves node from center to head
+        newLinks.push(link as HTMLLinkElement);
       } else {
         link.remove(); // duplicate — discard
       }
@@ -118,8 +121,26 @@ async function switchModule(name: string, partialUrl: string): Promise<void> {
     // Update header nav active state
     updateHeaderNavActive(name);
 
-    // Dispatch resize so canvas/xterm re-render to correct dimensions
-    setTimeout(() => window.dispatchEvent(new Event("resize")), 100);
+    // Dispatch resize so canvas/xterm re-render to correct dimensions.
+    // If new CSS links were added, wait for them to load first (fixes xterm measure race).
+    const dispatchResize = () => window.dispatchEvent(new Event("resize"));
+    if (newLinks.length > 0) {
+      const loaded = newLinks.map(
+        (l) =>
+          new Promise<void>((resolve) => {
+            if (l.sheet) {
+              resolve();
+            } else {
+              l.addEventListener("load", () => resolve(), { once: true });
+              l.addEventListener("error", () => resolve(), { once: true });
+            }
+          }),
+      );
+      Promise.all(loaded).then(dispatchResize);
+      setTimeout(dispatchResize, 600); // fallback if load events don't fire
+    } else {
+      setTimeout(dispatchResize, 100);
+    }
 
     // Notify cached ES modules (they don't re-run on second switch)
     document.dispatchEvent(

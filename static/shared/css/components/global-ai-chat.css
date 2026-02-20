@@ -331,8 +331,8 @@ body.scitex-ai-open #main-content {
   font-size: 0.8125rem;
   font-family: inherit;
   resize: none;
-  min-height: 2rem;
-  max-height: 6rem;
+  min-height: 4rem;
+  max-height: 8rem;
   outline: none;
 }
 
