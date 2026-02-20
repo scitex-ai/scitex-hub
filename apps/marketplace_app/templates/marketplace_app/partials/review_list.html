@@ -1,0 +1,35 @@
+{% if reviews %}
+    <ul class="mp-review-list" aria-label="User reviews">
+        {% for review in reviews %}
+            <li class="mp-review-item">
+                <div class="mp-review-header">
+                    <div class="mp-review-avatar" aria-hidden="true">{{ review.user.username|slice:":1"|upper }}</div>
+                    <div class="mp-review-user-info">
+                        <span class="mp-review-username">{{ review.user.username }}</span>
+                        <div class="mp-review-stars" aria-label="Rating: {{ review.rating }} out of 5">
+                            {% for i in "12345" %}
+                                <i class="{% if forloop.counter <= review.rating %}fas{% else %}far{% endif %} fa-star"
+                                   aria-hidden="true"></i>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <time class="mp-review-date" datetime="{{ review.created_at|date:'c' }}">
+                        {{ review.created_at|date:"Y-m-d" }}
+                    </time>
+                </div>
+                {% if review.title %}<h4 class="mp-review-title-text">{{ review.title }}</h4>{% endif %}
+                {% if review.body %}<p class="mp-review-body">{{ review.body }}</p>{% endif %}
+                {% if review.is_from_installer %}
+                    <span class="mp-badge mp-badge-verified mp-badge-sm">
+                        <i class="fas fa-download" aria-hidden="true"></i> Verified Install
+                    </span>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <div class="mp-review-empty">
+        <i class="far fa-comment-dots" aria-hidden="true"></i>
+        <p>No reviews yet. Be the first to review this module.</p>
+    </div>
+{% endif %}

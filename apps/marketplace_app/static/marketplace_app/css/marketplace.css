@@ -1,0 +1,8 @@
+/* Marketplace — main entry point: imports all partials */
+@import url("marketplace/layout.css");
+@import url("marketplace/cards.css");
+@import url("marketplace/badges.css");
+@import url("marketplace/buttons.css");
+@import url("marketplace/detail.css");
+@import url("marketplace/my_modules.css");
+@import url("marketplace/reviews.css");

@@ -8,7 +8,11 @@ Added to TEMPLATES["OPTIONS"]["context_processors"] in settings.
 
 from __future__ import annotations
 
+import logging
+
 from .registry import extract_module_from_path, get_all_modules, is_workspace_path
+
+logger = logging.getLogger(__name__)
 
 
 def workspace_context(request):
@@ -17,7 +21,9 @@ def workspace_context(request):
     is_ws = is_workspace_path(path)
     active_name = extract_module_from_path(path) if is_ws else None
 
-    modules = get_all_modules()
+    all_modules = get_all_modules()
+    modules = _filter_modules_for_user(request, all_modules)
+
     for mod in modules:
         mod.is_active = mod.name == active_name
 
@@ -32,6 +38,39 @@ def workspace_context(request):
         "active_module_name": active_name,
         "active_module": active_mod,
     }
+
+
+def _filter_modules_for_user(request, modules):
+    """Filter and reorder modules based on user's marketplace installations."""
+    if not request.user.is_authenticated:
+        return modules
+
+    try:
+        from apps.marketplace_app.models import ModuleInstallation
+
+        installations = {
+            inst.module.module_name: inst
+            for inst in ModuleInstallation.objects.filter(
+                user=request.user
+            ).select_related("module")
+        }
+    except Exception:
+        # marketplace_app not migrated yet or other DB issue
+        return modules
+
+    if not installations:
+        # No installations = first-time user, show all modules
+        return modules
+
+    visible = []
+    for mod in modules:
+        inst = installations.get(mod.name)
+        if inst and inst.is_enabled:
+            mod.order = inst.tab_order
+            visible.append(mod)
+
+    visible.sort(key=lambda m: m.order)
+    return visible
 
 
 # EOF

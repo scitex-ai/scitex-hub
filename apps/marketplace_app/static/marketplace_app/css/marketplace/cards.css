@@ -1,0 +1,119 @@
+/* Marketplace — module card styles */
+
+.mp-card {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--workspace-bg-primary, var(--bg-primary));
+  border: 1px solid var(--workspace-border-default, var(--border-color));
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+.mp-card:hover {
+  border-color: var(--workspace-icon-primary, var(--accent));
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.mp-card-link {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0.85rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.mp-card-link:hover {
+  text-decoration: none;
+  color: inherit;
+}
+
+.mp-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin-bottom: 0.5rem;
+}
+
+.mp-card-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--workspace-bg-secondary, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--workspace-border-default, var(--border-color));
+  font-size: 1.1rem;
+  color: var(--workspace-icon-primary, var(--accent));
+}
+
+.mp-card-title-area {
+  flex: 1;
+  min-width: 0;
+}
+
+.mp-card-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mp-card-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.mp-card-description {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Card footer */
+.mp-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.85rem;
+  border-top: 1px solid var(--workspace-border-default, var(--border-color));
+  background-color: var(--workspace-bg-secondary, rgba(0, 0, 0, 0.08));
+  gap: 8px;
+}
+
+.mp-card-stats {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.mp-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.mp-stat i.fa-star,
+.mp-stat i.fa-star-half-alt {
+  color: #f6c90e;
+}
+
+.mp-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
