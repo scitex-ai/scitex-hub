@@ -11,6 +11,7 @@ Endpoint definitions live in api_endpoints/ subdirectory, one file per category.
 from __future__ import annotations
 
 from .api_endpoints import (
+    MCP_CATEGORY,
     PLOT_CATEGORY,
     PROJECT_CATEGORY,
     PUBLIC_CATEGORY,
@@ -27,6 +28,7 @@ API_REGISTRY = {
     "project": PROJECT_CATEGORY,
     "plot": PLOT_CATEGORY,
     "stats": STATS_CATEGORY,
+    "mcp": MCP_CATEGORY,
 }
 
 # Rate Limits

@@ -249,12 +249,12 @@ services:
     # Use mounted entrypoint (picks up changes without rebuild)
     entrypoint: ["/app/deployment/docker/docker_dev/entrypoint.sh"]
 
-    command: ["python", "-c", "from scitex.mcp_server import run_server; run_server(transport='http', port=8085)"]
+    command: ["python", "-c", "from scitex.mcp_server import run_server; run_server(transport='sse', port=8085)"]
 
     restart: unless-stopped
 
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8085/mcp"]
+      test: ["CMD-SHELL", "curl -fsS --max-time 2 -o /dev/null http://localhost:8085/sse || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3

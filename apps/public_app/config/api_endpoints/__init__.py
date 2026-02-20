@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """API endpoint definitions by category."""
 
+from .mcp import MCP_CATEGORY
 from .plot import PLOT_CATEGORY
 from .project import PROJECT_CATEGORY
 from .public import PUBLIC_CATEGORY
@@ -16,4 +17,5 @@ __all__ = [
     "PROJECT_CATEGORY",
     "PLOT_CATEGORY",
     "STATS_CATEGORY",
+    "MCP_CATEGORY",
 ]
