@@ -169,7 +169,16 @@ class GlobalAIChat {
     if (savedModel) setModelBadge(this.modelBadge, savedModel);
     fetchCurrentModel((m) => setModelBadge(this.modelBadge, m));
 
-    if (sessionStorage.getItem(PANEL_OPEN_KEY) === "1") this.open();
+    if (sessionStorage.getItem(PANEL_OPEN_KEY) === "1") {
+      // Suppress transition during state restore — only animate on user toggle
+      document.body.classList.add("no-transition");
+      this.open();
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          document.body.classList.remove("no-transition");
+        });
+      });
+    }
 
     window.scitexAI = {
       setContext: (ctx) => {
