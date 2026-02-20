@@ -185,27 +185,7 @@
         </div>
     {% else %}
         <div class="code-workspace">
-            <!-- Left Sidebar: File Tree -->
-            <aside id="code-sidebar" class="code-sidebar repo-sidebar workspace-sidebar">
-                {% include "global_base_partials/workspace/sidebar_header.html" %}
-                <div id="file-tree" class="file-tree-container">
-                    <div class="tree-loading">
-                        <i class="fas fa-spinner fa-spin"></i> Loading file tree...
-                    </div>
-                </div>
-            </aside>
-            <!-- Resizer between sidebar and editor (auto-initialized via data attributes) -->
-            <div class="panel-resizer"
-                 id="sidebar-resizer"
-                 data-panel-resizer
-                 data-storage-prefix="scitex-workspace-"
-                 data-target=".code-sidebar"
-                 data-direction="left"
-                 data-min-width="40"
-                 data-default-width="280"
-                 data-storage-key="sidebar-width"
-                 data-collapse-key="scitex-workspace-sidebar-collapsed"
-                 data-toggle-btn="sidebar-toggle"></div>
+            <!-- Sidebar removed: unified workspace provides the file tree via ws-worktree-pane -->
             <!-- Center: Editor Area -->
             <div class="code-editor-area">
                 <!-- Unified top bar: file tabs | toolbar actions | shortcuts -->

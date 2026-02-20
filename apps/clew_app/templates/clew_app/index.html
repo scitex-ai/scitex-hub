@@ -27,40 +27,7 @@
              data-mode="clew"></div>
     {% endif %}
     <div class="clew-workspace">
-        <!-- LEFT SIDEBAR - PROJECT NAVIGATOR -->
-        {% if current_project %}
-            <aside class="clew-sidebar workspace-sidebar" id="clew-sidebar">
-                {% include "global_base_partials/workspace/sidebar_header.html" %}
-                <div class="sidebar-content" id="file-tree">
-                    <div class="wft-loading">
-                        <i class="fas fa-spinner fa-spin"></i> Loading...
-                    </div>
-                </div>
-            </aside>
-            <!-- Resizer between sidebar and workspace -->
-            <div class="panel-resizer"
-                 id="sidebar-resizer"
-                 data-panel-resizer
-                 data-storage-prefix="scitex-workspace-"
-                 data-target=".clew-sidebar"
-                 data-direction="left"
-                 data-min-width="40"
-                 data-default-width="250"
-                 data-storage-key="sidebar-width"
-                 data-collapse-key="scitex-workspace-sidebar-collapsed"
-                 data-toggle-btn="sidebar-toggle"></div>
-        {% else %}
-            <aside class="clew-sidebar workspace-sidebar" id="clew-sidebar">
-                {% include "global_base_partials/workspace/sidebar_header.html" %}
-                <div class="sidebar-content">
-                    <div class="sidebar-empty-state">
-                        <i class="fas fa-folder-open"></i>
-                        <p>No project selected</p>
-                        <a href="/new/" class="btn btn-primary btn-sm">Create Project</a>
-                    </div>
-                </div>
-            </aside>
-        {% endif %}
+        <!-- Sidebar removed: unified workspace provides the file tree via ws-worktree-pane -->
         <!-- CENTER - DAG VISUALIZATION WORKSPACE -->
         <main class="clew-main">
             <div class="clew-header">

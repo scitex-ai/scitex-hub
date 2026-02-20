@@ -43,45 +43,7 @@
          MAIN CONTENT AREA
          ======================================================================== -->
         <div class="vis-main">
-            <!-- LEFT SIDEBAR - PROJECT NAVIGATOR -->
-            <div class="vis-sidebar workspace-sidebar">
-                {% include "global_base_partials/workspace/sidebar_header.html" %}
-                <div class="sidebar-content" id="files-tree">
-                    {% if current_project %}
-                        <!-- WorkspaceFilesTree will render here -->
-                        <div class="wft-loading">Loading...</div>
-                    {% elif needs_project_creation %}
-                        <div class="tree-empty-state">
-                            <i class="fas fa-folder-plus"></i>
-                            <p>No project selected</p>
-                            <small>Create a project to start visualizing your data.</small>
-                            <div class="empty-state-actions">
-                                <a href="{% url 'project_app:project_create' %}" class="btn btn-primary btn-sm">
-                                    <i class="fas fa-plus"></i> Create Project
-                                </a>
-                            </div>
-                        </div>
-                    {% else %}
-                        <div class="tree-empty-state">
-                            <i class="fas fa-folder-open"></i>
-                            <p>Select a project to view files</p>
-                            <small>Use the project selector in the header to choose a project.</small>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-            <!-- Sidebar Resizer (auto-initialized via data attributes) -->
-            <div class="panel-resizer"
-                 id="sidebar-resizer"
-                 data-panel-resizer
-                 data-storage-prefix="scitex-workspace-"
-                 data-target=".vis-sidebar"
-                 data-direction="left"
-                 data-min-width="40"
-                 data-default-width="250"
-                 data-storage-key="sidebar-width"
-                 data-collapse-key="scitex-workspace-sidebar-collapsed"
-                 data-toggle-btn="sidebar-toggle"></div>
+            <!-- Sidebar removed: unified workspace provides the file tree via ws-worktree-pane -->
             <!-- CENTER WORKSPACE -->
             <div class="vis-workspace">
                 <!-- figrecipe Editor (shown when recipe file opened) -->
