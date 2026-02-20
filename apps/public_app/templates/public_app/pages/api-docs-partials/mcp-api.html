@@ -1,0 +1,177 @@
+<!-- MCP Overview -->
+<section id="mcp-overview" class="api-section">
+    <h2>
+        <i class="fas fa-robot"></i> MCP Server Overview
+    </h2>
+    <p>
+        SciTeX exposes a <strong>Model Context Protocol (MCP)</strong> server at
+        <code>https://scitex.ai/mcp</code>.
+        Connect any MCP-compatible AI client — Claude Desktop, Claude Code, or your own agent —
+        to get direct access to 100+ scientific tools: plotting, statistics, literature management,
+        LaTeX compilation, and more.
+    </p>
+    <div class="api-callout api-callout-info">
+        <i class="fas fa-info-circle"></i>
+        <div>
+            <strong>Requires an API key</strong> with <em>MCP tools</em> or <em>Full Access</em> scope.
+            Generate one at <a href="{% url 'accounts_app:api_keys' %}">Settings → API Keys</a>.
+        </div>
+    </div>
+</section>
+<!-- Connect a Client -->
+<section id="mcp-connect" class="api-section">
+    <h2>
+        <i class="fas fa-plug"></i> Connect a Client
+    </h2>
+    <p>
+        Add the following to your MCP client configuration and replace <code>YOUR_API_KEY</code>:
+    </p>
+    <h4>
+        Claude Desktop / Claude Code (<code>claude_desktop_config.json</code>)
+    </h4>
+    <div class="code-block">
+        <div class="code-header">
+            <span>JSON</span>
+        </div>
+        <pre><code>{
+  "mcpServers": {
+    "scitex": {
+      "type": "streamable-http",
+      "url": "https://scitex.ai/mcp",
+      "headers": { "Authorization": "Bearer YOUR_API_KEY" }
+    }
+  }
+}</code></pre>
+    </div>
+    <h4>Python (fastmcp client)</h4>
+    <div class="code-block">
+        <div class="code-header">
+            <span>Python</span>
+        </div>
+        <pre><code>from fastmcp import Client
+async with Client(
+    "https://scitex.ai/mcp",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+) as client:
+    tools = await client.list_tools()
+    result = await client.call_tool("stats_run_test", {
+        "test_name": "ttest_ind",
+        "data": [[1, 2, 3], [4, 5, 6]],
+    })
+    print(result)</code></pre>
+    </div>
+</section>
+<!-- Authentication -->
+<section id="mcp-auth" class="api-section">
+    <h2>
+        <i class="fas fa-lock"></i> Authentication
+    </h2>
+    <p>
+        All requests to <code>/mcp</code> require a Bearer token in the
+        <code>Authorization</code> header.
+    </p>
+    <table class="api-table">
+        <thead>
+            <tr>
+                <th>Header</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <code>Authorization</code>
+                </td>
+                <td>
+                    <code>Bearer YOUR_API_KEY</code>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <h4>Required Scope</h4>
+    <p>
+        The API key must have the <code>mcp</code> scope or the <code>*</code> (Full Access) scope.
+        Keys with only <code>project:read</code> or <code>scholar:read</code> scopes will be rejected
+        with <code>401 Unauthorized</code>.
+    </p>
+    <div class="api-callout api-callout-warning">
+        <i class="fas fa-exclamation-triangle"></i>
+        <div>
+            <strong>Keep your key secret.</strong>
+            API keys are shown only once at creation time.
+            If compromised, deactivate or delete it from
+            <a href="{% url 'accounts_app:api_keys' %}">Settings → API Keys</a>.
+        </div>
+    </div>
+</section>
+<!-- Available Tools -->
+<section id="mcp-tools" class="api-section">
+    <h2>
+        <i class="fas fa-tools"></i> Available Tools
+    </h2>
+    <p>
+        The MCP server exposes all SciTeX tools. Call
+        <code>client.list_tools()</code> for the live list.
+        Key tool categories:
+    </p>
+    <table class="api-table">
+        <thead>
+            <tr>
+                <th>Prefix</th>
+                <th>Category</th>
+                <th>Examples</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <code>plt_*</code>
+                </td>
+                <td>Plotting</td>
+                <td>plt_plot, plt_compose, plt_crop</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>stats_*</code>
+                </td>
+                <td>Statistics</td>
+                <td>stats_run_test, stats_power_analysis, stats_describe</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>scholar_*</code>
+                </td>
+                <td>Literature</td>
+                <td>scholar_search_papers, scholar_enrich_bibtex, scholar_parse_pdf_content</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>diagram_*</code>
+                </td>
+                <td>Diagrams</td>
+                <td>diagram_create, diagram_compile_mermaid, diagram_render</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>writer_*</code>
+                </td>
+                <td>LaTeX Manuscript</td>
+                <td>writer_compile_manuscript, writer_add_figure, writer_add_table</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>introspect_*</code>
+                </td>
+                <td>Code Inspection</td>
+                <td>introspect_signature, introspect_source, introspect_api</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>project_*</code>
+                </td>
+                <td>Project Files</td>
+                <td>project_read_file, project_write_file, project_search_files</td>
+            </tr>
+        </tbody>
+    </table>
+</section>

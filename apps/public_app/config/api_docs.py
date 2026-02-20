@@ -107,6 +107,20 @@ API_DOC_SECTIONS = {
             {"id": "project-git", "title": "Git Operations", "emoji": "🔀"},
         ],
     },
+    "mcp-api": {
+        "emoji": "🤖",
+        "text": "MCP Server",
+        "title": "🤖 MCP Server",
+        "template": "public_app/pages/api-docs-partials/mcp-api.html",
+        "visibility": "public",
+        "badge": "New",
+        "subsections": [
+            {"id": "mcp-overview", "title": "Overview", "emoji": "📖"},
+            {"id": "mcp-connect", "title": "Connect a Client", "emoji": "🔌"},
+            {"id": "mcp-auth", "title": "Authentication", "emoji": "🔐"},
+            {"id": "mcp-tools", "title": "Available Tools", "emoji": "🛠️"},
+        ],
+    },
     "resources": {
         "emoji": "📦",
         "text": "Resources",
@@ -129,6 +143,7 @@ API_DOC_SECTION_ORDER = [
     "stats-api",
     "writer-api",
     "project-api",
+    "mcp-api",
     "resources",
 ]
 
