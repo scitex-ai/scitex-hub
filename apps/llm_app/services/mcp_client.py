@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Timestamp: "2026-02-19"
+# Timestamp: "2026-02-20"
 # File: apps/llm_app/services/mcp_client.py
 
 """
-Thin MCP client that connects to the scitex MCP server via HTTP
-and provides tools in OpenAI-compatible format for litellm.
+Thin MCP client that runs scitex tools in-process (no separate container).
+
+FastMCP's Client(mcp_instance) uses in-memory transport — zero network overhead.
 """
 
 from __future__ import annotations
@@ -14,12 +15,22 @@ import json
 import logging
 from typing import Any
 
-from django.conf import settings
-
 logger = logging.getLogger(__name__)
 
 # Maximum number of tool-call round-trips before forcing a text reply
 MAX_TOOL_ROUNDS = 10
+
+# Lazy-loaded scitex MCP instance (avoids import-time side effects at startup)
+_scitex_mcp = None
+
+
+def _get_mcp():
+    global _scitex_mcp
+    if _scitex_mcp is None:
+        from scitex.mcp_server import mcp
+
+        _scitex_mcp = mcp
+    return _scitex_mcp
 
 
 def _mcp_tool_to_openai(tool) -> dict[str, Any]:
@@ -101,11 +112,10 @@ _UI_ACTION_TOOL: dict[str, Any] = {
 
 
 async def load_openai_tools() -> list[dict[str, Any]]:
-    """Fetch tool definitions from the scitex MCP server (OpenAI format)."""
+    """Fetch tool definitions from the in-process scitex MCP server (OpenAI format)."""
     from fastmcp import Client
 
-    url = getattr(settings, "SCITEX_MCP_URL", "http://scitex-mcp:8085/mcp")
-    async with Client(url) as client:
+    async with Client(_get_mcp()) as client:
         mcp_tools = await client.list_tools()
     tools = [_mcp_tool_to_openai(t) for t in mcp_tools]
     tools.append(_UI_ACTION_TOOL)
@@ -113,11 +123,10 @@ async def load_openai_tools() -> list[dict[str, Any]]:
 
 
 async def execute_tool_call(name: str, arguments: dict[str, Any]) -> str:
-    """Execute a single tool call on the MCP server, return text result."""
+    """Execute a single tool call in-process, return text result."""
     from fastmcp import Client
 
-    url = getattr(settings, "SCITEX_MCP_URL", "http://scitex-mcp:8085/mcp")
-    async with Client(url) as client:
+    async with Client(_get_mcp()) as client:
         result = await client.call_tool(name, arguments)
 
     # Flatten CallToolResult content list into a single string

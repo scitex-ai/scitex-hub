@@ -301,40 +301,27 @@ def check_api_services(status_data):
             }
         )
 
-    # SciTeX MCP Server (SSE endpoint)
-    mcp_url = getattr(settings, "SCITEX_MCP_URL", "http://scitex-mcp:8085/sse")
+    # SciTeX MCP Server (in-process — verify tools are importable)
     try:
-        response = requests.get(mcp_url, timeout=3, stream=True)
-        response.close()
-        is_healthy = response.status_code in (200, 405)
+        from scitex.mcp_server import mcp as _mcp
+
+        tool_count = len(_mcp._tool_manager._tools)
         status_data["api_services"].append(
             {
-                "name": "SciTeX MCP Server",
-                "url": mcp_url,
+                "name": "SciTeX MCP Tools",
+                "url": "in-process",
                 "public_url": "/mcp (auth required)",
-                "is_running": is_healthy,
-                "status": "healthy" if is_healthy else "error",
-                "health_class": "healthy" if is_healthy else "unhealthy",
-                "details": f"SSE transport ({response.status_code})",
-            }
-        )
-    except requests.exceptions.Timeout:
-        status_data["api_services"].append(
-            {
-                "name": "SciTeX MCP Server",
-                "url": mcp_url,
-                "public_url": "/mcp (auth required)",
-                "is_running": False,
-                "status": "timeout",
-                "health_class": "unhealthy",
-                "error": "Request timed out",
+                "is_running": True,
+                "status": "healthy",
+                "health_class": "healthy",
+                "details": f"{tool_count} tools loaded",
             }
         )
     except Exception as e:
         status_data["api_services"].append(
             {
-                "name": "SciTeX MCP Server",
-                "url": mcp_url,
+                "name": "SciTeX MCP Tools",
+                "url": "in-process",
                 "public_url": "/mcp (auth required)",
                 "is_running": False,
                 "status": "error",
