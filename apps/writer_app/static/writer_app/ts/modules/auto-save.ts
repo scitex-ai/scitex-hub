@@ -58,14 +58,16 @@ export function scheduleAutoCompile(
 ): void {
   if (!pdfPreviewManager) return;
 
+  // Always clear existing timeout first (even during loading), to cancel any
+  // previously-queued compile that may have been scheduled before isLoadingContent
+  // was set (race condition: FileLoader resolves before SectionLoading sets flag)
+  clearTimeout(compileTimeout);
+
   // Skip auto-compile if we're just loading content (not user editing)
   if (isLoadingContent) {
     console.log("[Writer] Skipping auto-compile during content load");
     return;
   }
-
-  // Clear existing timeout
-  clearTimeout(compileTimeout);
 
   // Schedule compilation after user stops typing
   compileTimeout = setTimeout(() => {

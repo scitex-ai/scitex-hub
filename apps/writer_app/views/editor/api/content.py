@@ -230,7 +230,10 @@ def save_sections_view(request, project_id):
             {
                 "success": True,
                 "sections_saved": saved_count,
+                "sections_skipped": 0,
                 "message": f"Saved {saved_count} sections",
+                "errors": [],
+                "error_details": {},
             }
         )
 
