@@ -74,7 +74,8 @@ export function scheduleAutoCompile(
       sectionId,
     );
     // Pass section ID for section-specific preview
-    pdfPreviewManager.compileQuick(content, sectionId);
+    // forceCompile=true: user edited content, must recompile even if same URL
+    pdfPreviewManager.compileQuick(content, sectionId, true);
   }, 2000); // Wait 2 seconds after user stops typing
 }
 
@@ -148,7 +149,11 @@ export async function saveSections(
     try {
       validateSaveSectionsResponse(data);
     } catch (validationError) {
-      console.error("[Writer] Save response failed validation:", validationError, data);
+      console.error(
+        "[Writer] Save response failed validation:",
+        validationError,
+        data,
+      );
       return;
     }
 

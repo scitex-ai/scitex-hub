@@ -149,7 +149,8 @@ export class EventHandlerSetup {
             console.log(
               "[EventHandlerSetup] Triggering PDF preview compilation",
             );
-            this.pdfPreviewManager.compileQuick(content);
+            // forceCompile=true: user clicked compile button
+            this.pdfPreviewManager.compileQuick(content, undefined, true);
           } else {
             // Fallback: try textarea directly
             const latexEditor = document.getElementById(
@@ -159,7 +160,12 @@ export class EventHandlerSetup {
               console.log(
                 "[EventHandlerSetup] Triggering PDF preview compilation (textarea fallback)",
               );
-              this.pdfPreviewManager.compileQuick(latexEditor.value);
+              // forceCompile=true: user clicked compile button
+              this.pdfPreviewManager.compileQuick(
+                latexEditor.value,
+                undefined,
+                true,
+              );
             } else {
               console.warn(
                 "[EventHandlerSetup] No content available for preview compilation",
@@ -300,7 +306,8 @@ export class EventHandlerSetup {
             `[EventHandlerSetup] Triggering preview compilation for: ${path}`,
           );
           setTimeout(() => {
-            this.pdfPreviewManager.compileQuick(content, path);
+            // forceCompile=true: file explicitly opened, compile even if same URL
+            this.pdfPreviewManager.compileQuick(content, path, true);
           }, 300);
         }
       } catch (error) {

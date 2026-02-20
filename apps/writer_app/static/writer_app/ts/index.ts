@@ -220,7 +220,8 @@ async function initializeEditor(config: any): Promise<void> {
     const content = editor.getContent?.() ?? editor.getValue?.() ?? "";
     if (content.trim() && pdfPreviewManager) {
       console.log("[Writer] DPI changed, triggering preview recompilation");
-      pdfPreviewManager.compileQuick(content, state.currentSection);
+      // forceCompile=true: render quality changed, must recompile
+      pdfPreviewManager.compileQuick(content, state.currentSection, true);
     }
   });
 
