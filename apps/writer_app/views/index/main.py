@@ -28,51 +28,9 @@ from ...models import Manuscript
 logger = logging.getLogger(__name__)
 
 
-def index_view(request):
-    """SciTeX Writer main page - Simple editor with PDF viewer.
-
-    Layout:
-    - Left panel: LaTeX editor with 2 dropdowns (doc_type + section)
-    - Right panel: PDF preview
-
-    Uses 2-dropdown system:
-    1. Document type selector (shared/manuscript/supplementary/revision)
-    2. Section selector (filtered by document type)
-
-    For authenticated users: loads their project
-    For visitor users: provides demo workspace
-    If visitor pool is exhausted: redirect to visitor-pool-full page
-    """
-    # Check if user is not authenticated (visitor allocation may have failed)
-    if not request.user.is_authenticated:
-        # Check if this is a browser request (has typical browser User-Agent)
-        user_agent = request.META.get("HTTP_USER_AGENT", "")
-        is_browser = any(
-            browser in user_agent
-            for browser in ["Mozilla", "Chrome", "Safari", "Firefox", "Edge", "Opera"]
-        )
-
-        if is_browser:
-            # Browser request but not authenticated - visitor pool likely exhausted
-            logger.info(
-                "[Writer] Browser request not authenticated - redirecting to visitor-pool-full"
-            )
-            return redirect("public_app:visitor_pool_full")
-
-        # Non-browser request - return empty page
-        return render(
-            request,
-            "writer_app/index.html",
-            {
-                "is_visitor": True,
-                "writer_initialized": False,
-            },
-        )
-
-    # Get document type from URL parameter or default to manuscript
+def build_writer_context(request, current_project=None):
+    """Build writer-specific template context for both full page and partial views."""
     document_type = request.GET.get("doc_type", "manuscript")
-
-    # Validate document type
     valid_doc_types = ["manuscript", "shared", "supplementary", "revision"]
     if document_type not in valid_doc_types:
         document_type = "manuscript"
@@ -83,72 +41,83 @@ def index_view(request):
         "document_type": document_type,
     }
 
-    if request.user.is_authenticated:
-        # Mark as demo if visitor
-        if request.user.username.startswith("visitor-"):
-            context["is_demo"] = True
-            context["visitor_username"] = request.user.username
+    if not request.user.is_authenticated:
+        return context
 
-        # Get user's projects for project selector
-        user_projects = Project.objects.filter(owner=request.user).order_by("name")
-        context["user_projects"] = user_projects
+    if request.user.username.startswith("visitor-"):
+        context["is_demo"] = True
+        context["visitor_username"] = request.user.username
 
-        # Get current project (from session/header selector)
+    user_projects = Project.objects.filter(owner=request.user).order_by("name")
+    context["user_projects"] = user_projects
+
+    if current_project is None:
         current_project = get_current_project(request, user=request.user)
-        if current_project:
-            context["current_project"] = current_project
-            context["project"] = current_project
 
-            # Get or create manuscript record
-            # Since project is OneToOneField, only use project for lookup
-            manuscript, created = Manuscript.objects.get_or_create(
-                project=current_project,
-                defaults={
-                    "owner": current_project.owner,
-                    "title": f"{current_project.name} Manuscript",
-                    "description": f"Manuscript for {current_project.name}",
-                },
+    if current_project:
+        context["current_project"] = current_project
+        context["project"] = current_project
+
+        manuscript, created = Manuscript.objects.get_or_create(
+            project=current_project,
+            defaults={
+                "owner": current_project.owner,
+                "title": f"{current_project.name} Manuscript",
+                "description": f"Manuscript for {current_project.name}",
+            },
+        )
+
+        if not manuscript.writer_initialized:
+            from apps.project_app.services.project_filesystem import (
+                get_project_filesystem_manager,
             )
 
-            # Auto-initialize writer workspace if not exists (ensure minimal structure)
-            if not manuscript.writer_initialized:
-                from apps.project_app.services.project_filesystem import (
-                    get_project_filesystem_manager,
-                )
+            manager = get_project_filesystem_manager(request.user)
+            project_root = manager.get_project_root_path(current_project)
+            if project_root:
+                manuscript_dir = project_root / "scitex" / "writer" / "01_manuscript"
+                if not manuscript_dir.exists():
+                    try:
+                        from scitex.writer import ensure_workspace
 
-                manager = get_project_filesystem_manager(request.user)
-                project_root = manager.get_project_root_path(current_project)
-                if project_root:
-                    writer_dir = project_root / "scitex" / "writer"
-                    manuscript_dir = writer_dir / "01_manuscript"
-
-                    # Auto-create minimal writer structure
-                    if not manuscript_dir.exists():
-                        try:
-                            from scitex.writer import ensure_workspace
-
-                            ensure_workspace(str(project_root))
-                            logger.info(
-                                f"Auto-initialized writer workspace for: {current_project.slug}"
-                            )
-                        except Exception as e:
-                            logger.warning(f"Failed to auto-initialize writer: {e}")
-                    else:
+                        ensure_workspace(str(project_root))
                         logger.info(
-                            f"Writer workspace detected for project: {current_project.slug}"
+                            f"Auto-initialized writer workspace for: {current_project.slug}"
                         )
+                    except Exception as e:
+                        logger.warning(f"Failed to auto-initialize writer: {e}")
 
-            context["manuscript"] = manuscript
-            context["manuscript_id"] = manuscript.id
-            context["writer_initialized"] = manuscript.writer_initialized
+        context["manuscript"] = manuscript
+        context["manuscript_id"] = manuscript.id
+        context["writer_initialized"] = manuscript.writer_initialized
+    else:
+        context["needs_project_creation"] = True
 
-            # Note: Section content is now loaded dynamically via API when user
-            # selects from hierarchical dropdown. No need to pre-load.
-            # Sections will be fetched on-demand via /writer/api/project/{id}/section/{section_id}/
-        else:
-            # User authenticated but no project selected
-            context["needs_project_creation"] = True
+    return context
 
+
+def index_view(request):
+    """SciTeX Writer main page - Simple editor with PDF viewer."""
+    if not request.user.is_authenticated:
+        user_agent = request.META.get("HTTP_USER_AGENT", "")
+        is_browser = any(
+            browser in user_agent
+            for browser in ["Mozilla", "Chrome", "Safari", "Firefox", "Edge", "Opera"]
+        )
+
+        if is_browser:
+            logger.info(
+                "[Writer] Browser request not authenticated - redirecting to visitor-pool-full"
+            )
+            return redirect("public_app:visitor_pool_full")
+
+        return render(
+            request,
+            "writer_app/index.html",
+            {"is_visitor": True, "writer_initialized": False},
+        )
+
+    context = build_writer_context(request)
     return render(request, "writer_app/index.html", context)
 
 

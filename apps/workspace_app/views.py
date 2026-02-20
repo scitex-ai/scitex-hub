@@ -183,7 +183,16 @@ def workspace_module_content(request, module):
     current_project = (
         get_current_project(request) if request.user.is_authenticated else None
     )
-    return render(request, template, {"current_project": current_project})
+
+    # Module-specific context builders
+    if module == "writer":
+        from apps.writer_app.views.index.main import build_writer_context
+
+        ctx = build_writer_context(request, current_project)
+    else:
+        ctx = {"current_project": current_project}
+
+    return render(request, template, ctx)
 
 
 # EOF
