@@ -109,3 +109,39 @@
 .detail-doi a:hover {
   text-decoration: underline;
 }
+
+/* Save to Library button */
+.btn-save-to-library {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 12px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--workspace-icon-primary);
+  background: var(--workspace-bg-tertiary);
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-save-to-library:hover {
+  background: var(--workspace-icon-primary);
+  color: white;
+  border-color: var(--workspace-icon-primary);
+}
+
+.btn-save-to-library:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.btn-save-to-library.saved {
+  background: var(--workspace-icon-primary);
+  color: white;
+  border-color: var(--workspace-icon-primary);
+}
