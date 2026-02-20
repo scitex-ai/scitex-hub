@@ -4,8 +4,8 @@ import asyncio
 import json
 
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_http_methods
 
 # Project root is the working directory for user commands
@@ -13,8 +13,8 @@ _PROJECT_ROOT = "/home/ywatanabe/proj/scitex-cloud"
 _TIMEOUT_SECONDS = 30
 
 
+@transaction.non_atomic_requests
 @login_required
-@csrf_protect
 @require_http_methods(["POST"])
 async def api_bash_exec(request):
     """Execute a shell command and return stdout/stderr.
