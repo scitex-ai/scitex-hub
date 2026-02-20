@@ -121,6 +121,11 @@ async function switchModule(name: string, partialUrl: string): Promise<void> {
     // Dispatch resize so canvas/xterm re-render to correct dimensions
     setTimeout(() => window.dispatchEvent(new Event("resize")), 100);
 
+    // Notify cached ES modules (they don't re-run on second switch)
+    document.dispatchEvent(
+      new CustomEvent("unified:module:switched", { detail: { module: name } }),
+    );
+
     console.log(`[Unified] Switched to module: ${name}`);
   } catch (err) {
     center.innerHTML = `<div class="unified-center-error p-4 text-danger">Error loading module: ${String(err)}</div>`;

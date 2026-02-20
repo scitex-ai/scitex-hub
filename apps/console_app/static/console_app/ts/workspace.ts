@@ -108,5 +108,19 @@ if (document.readyState === "loading") {
   initWorkspace();
 }
 
+// Reinit hook for unified workspace:
+// ES modules are cached and NOT re-executed on second switch. This listener
+// fires every time the unified workspace switches to "console", allowing
+// the workspace to re-attach Monaco/xterm to the freshly-injected DOM.
+document.addEventListener("unified:module:switched", (e: Event) => {
+  const { module } = (e as CustomEvent).detail;
+  if (module === "console") {
+    console.log(
+      "[workspace.ts] Reinitializing Code Workspace (unified switch)...",
+    );
+    initWorkspace();
+  }
+});
+
 // Export for debugging
 (window as any).getEditorConfig = getEditorConfig;

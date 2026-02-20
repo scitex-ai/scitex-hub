@@ -162,6 +162,16 @@ if (document.readyState === "loading") {
   initWriterApplication();
 }
 
+// Reinit hook for unified workspace: ES modules are cached and NOT re-executed
+// on second switch. This listener fires every time unified switches to "writer".
+document.addEventListener("unified:module:switched", (e: Event) => {
+  const { module } = (e as CustomEvent).detail;
+  if (module === "writer") {
+    console.log("[Writer] Reinitializing (unified switch)...");
+    initWriterApplication();
+  }
+});
+
 /**
  * Initialize editor and its components using modular architecture
  */
