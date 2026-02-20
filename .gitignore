@@ -861,3 +861,7 @@ paper/
 tests/ui/artifacts/
 mgmt
 viewed.md
+
+# Generated plot/diagram artifacts
+example_plot.yaml
+scripts/assets/workflow_out/
