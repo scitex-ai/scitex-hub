@@ -6,7 +6,7 @@ Active tab is inferred from request.path; no extra context variable needed.
 {% endcomment %}
 {% if user.is_authenticated %}
     {% with p=request.path %}
-        {% if '/hub/' in p or '/console/' in p or '/writer/' in p or '/scholar/' in p or '/vis/' in p or '/clew/' in p %}
+        {% if '/hub/' in p or '/console/' in p or '/writer/' in p or '/scholar/' in p or '/vis/' in p or '/clew/' in p or '/tools/' in p %}
             <nav class="module-tab-bar" aria-label="Workspace modules">
                 <a href="/hub/"
                    class="module-tab-btn{% if '/hub/' in p %} active{% endif %}"
@@ -43,6 +43,12 @@ Active tab is inferred from request.path; no extra context variable needed.
                    aria-label="Clew">
                     <i class="fas fa-project-diagram"></i>
                     <span class="tab-label">Clew</span>
+                </a>
+                <a href="/tools/"
+                   class="module-tab-btn{% if '/tools/' in p %} active{% endif %}"
+                   aria-label="Tools">
+                    <i class="fas fa-tools"></i>
+                    <span class="tab-label">Tools</span>
                 </a>
             </nav>
         {% endif %}
