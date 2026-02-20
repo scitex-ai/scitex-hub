@@ -54,16 +54,6 @@ class CitationGraphManager {
       getDepthColor: () => "#3B82F6",
     });
 
-    new GraphInputHandler({
-      onDoiSelected: (doi) => {
-        const doiInput = document.getElementById(
-          "doiInput",
-        ) as HTMLInputElement;
-        if (doiInput) doiInput.value = doi;
-      },
-      escapeHtml: (text) => this.escapeHtml(text),
-    });
-
     this.init();
   }
 
@@ -197,7 +187,7 @@ class CitationGraphManager {
     tooltip.id = "graphTooltip";
     tooltip.className = "graph-tooltip";
     tooltip.innerHTML = `
-      <div class="tooltip-title">${this.escapeHtml(node.title)}</div>
+      <div class="tooltip-title">${escapeHtml(node.title)}</div>
       <div class="tooltip-authors">${node.authors.slice(0, 3).join(", ")}${node.authors.length > 3 ? "..." : ""}</div>
       <div class="tooltip-meta">
         <span class="tooltip-year">${node.year}</span>
@@ -237,7 +227,7 @@ class CitationGraphManager {
         </button>
       </div>
       <div class="node-details-content">
-        <div class="detail-title">${this.escapeHtml(node.title)}</div>
+        <div class="detail-title">${escapeHtml(node.title)}</div>
         <div class="detail-authors">${node.authors.join(", ")}</div>
         <div class="detail-meta-row">
           <span class="detail-year">Published: ${node.year}</span>
@@ -288,7 +278,7 @@ class CitationGraphManager {
             <div class="related-paper-item" data-doi="${paper.id}">
               <div class="paper-rank">${i + 1}</div>
               <div class="paper-info">
-                <div class="paper-title">${this.escapeHtml(paper.title)}</div>
+                <div class="paper-title">${escapeHtml(paper.title)}</div>
                 <div class="paper-meta">
                   <span class="paper-authors">${paper.authors.slice(0, 2).join(", ")}${paper.authors.length > 2 ? " et al." : ""}</span>
                   <span class="paper-year">${paper.year}</span>
@@ -392,20 +382,29 @@ class CitationGraphManager {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   }
+}
 
-  private escapeHtml(text: string): string {
-    const div = document.createElement("div");
-    div.textContent = text;
-    return div.innerHTML;
-  }
+function escapeHtml(text: string): string {
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
 }
 
 // Initialize (handle both direct load and SPA injection)
-if (document.readyState === "loading") {
-  document.addEventListener(
-    "DOMContentLoaded",
-    () => new CitationGraphManager(),
-  );
-} else {
+function initAll(): void {
+  // Input handler doesn't need config — always initialize for tab switching
+  new GraphInputHandler({
+    onDoiSelected: (doi) => {
+      const doiInput = document.getElementById("doiInput") as HTMLInputElement;
+      if (doiInput) doiInput.value = doi;
+    },
+    escapeHtml,
+  });
   new CitationGraphManager();
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initAll);
+} else {
+  initAll();
 }
