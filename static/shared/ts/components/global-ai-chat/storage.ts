@@ -15,13 +15,13 @@ export function saveMessage(msg: StoredMessage): void {
   const stored = loadMessages();
   stored.push(msg);
   if (stored.length > MAX_STORED) stored.splice(0, stored.length - MAX_STORED);
-  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
 }
 
 export function loadMessages(): StoredMessage[] {
-  return JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? "[]");
+  return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]");
 }
 
 export function clearMessages(): void {
-  sessionStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(STORAGE_KEY);
 }

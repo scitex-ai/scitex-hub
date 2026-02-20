@@ -108,9 +108,22 @@ class GlobalAIChat {
 
     document.body.classList.add("scitex-ai-present");
 
-    document
-      .getElementById("scitex-ai-toggle")
-      ?.addEventListener("click", () => this.toggle());
+    // In workspace three-col layout, WPR owns the AI panel toggle; skip here to avoid double-toggle
+    if (!this.panel?.closest(".workspace-three-col")) {
+      document
+        .getElementById("scitex-ai-toggle")
+        ?.addEventListener("click", () => this.toggle());
+    }
+
+    // Gear button toggles settings panel
+    const settingsBtn = document.getElementById("scitex-ai-settings-btn");
+    const settingsPanel = document.getElementById("scitex-ai-settings-panel");
+    if (settingsBtn && settingsPanel) {
+      settingsBtn.addEventListener("click", () => {
+        settingsPanel.style.display =
+          settingsPanel.style.display === "none" ? "" : "none";
+      });
+    }
     this.fab?.addEventListener("click", () => this.toggle());
     this.clearBtn?.addEventListener("click", () => this.clearConversation());
     this.sendBtn?.addEventListener("click", () => this.send());

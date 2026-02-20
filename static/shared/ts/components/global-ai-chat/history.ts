@@ -7,7 +7,7 @@ const MAX_HISTORY = 50;
 
 export function loadHistory(): string[] {
   try {
-    const saved = sessionStorage.getItem(HISTORY_KEY);
+    const saved = localStorage.getItem(HISTORY_KEY);
     return saved ? (JSON.parse(saved) as string[]) : [];
   } catch {
     return [];
@@ -18,7 +18,7 @@ export function pushHistory(history: string[], text: string): string[] {
   if (!text || text === history[0]) return history; // deduplicate consecutive
   const next = [text, ...history].slice(0, MAX_HISTORY);
   try {
-    sessionStorage.setItem(HISTORY_KEY, JSON.stringify(next));
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
   } catch {
     /* storage full — ignore */
   }

@@ -496,6 +496,10 @@ export class WorkspaceFilesTree {
     this.config.showGitStatus = show;
     this.container?.classList.toggle("wft-no-git", !show);
   }
+  /** Replace the file select callback after initialization (used by modules attaching to shared tree). */
+  setOnFileSelect(handler: (path: string, item: TreeItem) => void): void {
+    this.config.onFileSelect = handler;
+  }
   destroy(): void {
     if (this.pollTimer !== null) {
       clearInterval(this.pollTimer);

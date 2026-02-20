@@ -55,6 +55,15 @@ export function initToggleClickHandler(
   }
   toggleBtn.dataset.wprToggleInit = "true";
 
+  // Double-click on the sidebar header also toggles the panel
+  const sidebarHeader =
+    targetPanel.querySelector<HTMLElement>(".sidebar-header");
+  if (sidebarHeader) {
+    sidebarHeader.addEventListener("dblclick", () => {
+      toggleBtn.click();
+    });
+  }
+
   toggleBtn.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();

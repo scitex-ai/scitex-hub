@@ -44,11 +44,24 @@
         {% endif %}
         <!-- Module Tab Bar — workspace navigation (hub, console, writer, scholar, vis, clew) -->
         {% include 'global_base_partials/module_tab_bar.html' %}
-        <main id="main-content">
-            {% block content %}{% endblock %}
-        </main>
+        <!-- Page content: three-col on authenticated workspace pages, plain otherwise -->
+        <div id="workspace-three-col"
+             class="{% if '/hub/' in request.path or '/console/' in request.path or '/writer/' in request.path or '/scholar/' in request.path or '/vis/' in request.path or '/clew/' in request.path or '/tools/' in request.path %}{% if user.is_authenticated %}workspace-three-col{% endif %}{% endif %}">
+            {% if '/hub/' in request.path or '/console/' in request.path or '/writer/' in request.path or '/scholar/' in request.path or '/vis/' in request.path or '/clew/' in request.path or '/tools/' in request.path %}
+                {% if user.is_authenticated %}
+                    {% include 'global_base_partials/workspace_ai_pane.html' %}
+                    {% include 'global_base_partials/workspace_worktree_pane.html' %}
+                {% endif %}
+            {% endif %}
+            <main id="main-content"
+                  class="{% if '/hub/' in request.path or '/console/' in request.path or '/writer/' in request.path or '/scholar/' in request.path or '/vis/' in request.path or '/clew/' in request.path or '/tools/' in request.path %}{% if user.is_authenticated %}ws-module-pane{% endif %}{% endif %}">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
         {% include 'global_base_partials/global_footer.html' %}
-        {% include 'global_base_partials/global_ai_panel.html' %}
+        {% if '/hub/' not in request.path and '/console/' not in request.path and '/writer/' not in request.path and '/scholar/' not in request.path and '/vis/' not in request.path and '/clew/' not in request.path and '/tools/' not in request.path %}
+            {% include 'global_base_partials/global_ai_panel.html' %}
+        {% endif %}
         {% include 'global_base_partials/global_body_scripts.html' %}
         {% block extra_js %}{% endblock %}
     </body>
