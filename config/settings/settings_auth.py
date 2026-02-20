@@ -1,13 +1,15 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Timestamp: 2026-02-04
 # File: config/settings/settings_auth.py
 """Authentication and OAuth settings for SciTeX Cloud."""
 
 import os
 from datetime import timedelta
 
+import scitex as stx
+
+# ---------------------------------------
 # ORCID OAuth (legacy - for profile linking)
+# ---------------------------------------
 ORCID_CLIENT_ID = os.getenv("SCITEX_CLOUD_ORCID_CLIENT_ID") or os.getenv(
     "ORCID_CLIENT_ID", ""
 )
@@ -21,21 +23,16 @@ ORCID_REDIRECT_URI = os.getenv(
 # ---------------------------------------
 # Django-Allauth Settings (Social Login)
 # ---------------------------------------
-# Required for django-allauth
 SITE_ID = 1
 
-# Allauth account settings
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_LOGOUT_ON_GET = True
 ACCOUNT_UNIQUE_EMAIL = True
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = True
-ACCOUNT_AUTHENTICATION_METHOD = "username_email"
+ACCOUNT_LOGIN_METHODS = {"email", "username"}
+ACCOUNT_SIGNUP_FIELDS = ["email*", "username*", "password1*", "password2*"]
 ACCOUNT_EMAIL_VERIFICATION = "optional"
 ACCOUNT_SIGNUP_REDIRECT_URL = "/"
 ACCOUNT_LOGOUT_REDIRECT_URL = "/"
-
-# Allow authenticated users to access signup/login pages
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 
 # Social account settings
@@ -45,16 +42,10 @@ SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
 SOCIALACCOUNT_LOGIN_ON_GET = True
 SOCIALACCOUNT_QUERY_EMAIL = True
 
-# Provider-specific settings
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
-        "SCOPE": [
-            "profile",
-            "email",
-        ],
-        "AUTH_PARAMS": {
-            "access_type": "online",
-        },
+        "SCOPE": ["profile", "email"],
+        "AUTH_PARAMS": {"access_type": "online"},
         "OAUTH_PKCE_ENABLED": True,
         "FETCH_USERINFO": True,
     },
@@ -64,7 +55,6 @@ SOCIALACCOUNT_PROVIDERS = {
     },
 }
 
-# Google OAuth credentials
 GOOGLE_CLIENT_ID = os.getenv("SCITEX_CLOUD_GOOGLE_CLIENT_ID") or os.getenv(
     "SCITEX_GOOGLE_CLIENT_ID", ""
 )
@@ -72,7 +62,6 @@ GOOGLE_CLIENT_SECRET = os.getenv("SCITEX_CLOUD_GOOGLE_CLIENT_SECRET") or os.gete
     "SCITEX_GOOGLE_CLIENT_SECRET", ""
 )
 
-# Custom adapters for SciTeX-specific user handling
 ACCOUNT_ADAPTER = "apps.auth_app.adapters.SciTexAccountAdapter"
 SOCIALACCOUNT_ADAPTER = "apps.auth_app.adapters.SciTexSocialAccountAdapter"
 
@@ -81,7 +70,7 @@ SOCIALACCOUNT_ADAPTER = "apps.auth_app.adapters.SciTexSocialAccountAdapter"
 # JWT Settings
 # ---------------------------------------
 def get_simple_jwt_settings(secret_key: str) -> dict:
-    """Get SIMPLE_JWT settings. Requires SECRET_KEY from main settings."""
+    """Build SIMPLE_JWT settings. Called by settings_shared with SECRET_KEY."""
     return {
         "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
         "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
@@ -96,5 +85,14 @@ def get_simple_jwt_settings(secret_key: str) -> dict:
         "USER_ID_CLAIM": "user_id",
     }
 
+
+@stx.session
+def main(CONFIG=stx.session.INJECTED):
+    """Settings module — not meant to be executed directly."""
+    return 0
+
+
+if __name__ == "__main__":
+    main()
 
 # EOF
