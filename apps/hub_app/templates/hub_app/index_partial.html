@@ -1,4 +1,3 @@
-{% extends "unified_app/module_base.html" %}
 
 {% load static %}
 
@@ -27,8 +26,6 @@
     <link rel="stylesheet"
           href="{% static 'project_app/css/repository/file_browser.css' %}" />
     <link rel="stylesheet" href="{% static 'hub_app/css/hub.css' %}" />
-{% endblock %}
-{% block module_content %}
     <div class="hub-partial-content">
         {% if current_project %}
             <div class="hub-browse-container p-3">
@@ -45,4 +42,3 @@
             </div>
         {% endif %}
     </div>
-{% endblock %}

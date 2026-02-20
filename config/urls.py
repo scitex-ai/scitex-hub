@@ -143,7 +143,6 @@ urlpatterns = [
     ),
     path("search/", include(("apps.search_app.urls", "search_app"))),
     path("social/", include(("apps.social_app.urls", "social_app"))),
-    path("unified/", include(("apps.unified_app.urls", "unified_app"))),
     # Favicon redirect to prevent 404 errors
     path(
         "favicon.ico",

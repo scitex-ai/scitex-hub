@@ -6,7 +6,7 @@ Active tab is inferred from request.path; no extra context variable needed.
 {% endcomment %}
 {% if user.is_authenticated %}
     {% with p=request.path %}
-        {% if '/hub/' in p or '/console/' in p or '/writer/' in p or '/scholar/' in p or '/vis/' in p or '/clew/' in p or '/unified/' in p %}
+        {% if '/hub/' in p or '/console/' in p or '/writer/' in p or '/scholar/' in p or '/vis/' in p or '/clew/' in p %}
             <nav class="module-tab-bar" aria-label="Workspace modules">
                 <a href="/hub/"
                    class="module-tab-btn{% if '/hub/' in p %} active{% endif %}"

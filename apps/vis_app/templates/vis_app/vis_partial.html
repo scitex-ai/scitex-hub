@@ -1,8 +1,6 @@
-{% extends "unified_app/module_base.html" %}
 
 {% load static vite tree_preseed %}
 
-{% block module_content %}
     <!-- Vis CSS -- moved to <head> by unified-workspace.ts -->
     <link rel="stylesheet"
           href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d" />
@@ -557,4 +555,3 @@
     <!-- Vis app modules (Vite) -->
     {% vite_script 'vis_app/editor-inline' %}
     {% vite_script 'vis_app/vis-editor' %}
-{% endblock %}

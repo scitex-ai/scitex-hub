@@ -1,8 +1,6 @@
-{% extends "unified_app/module_base.html" %}
 
 {% load static vite tree_preseed %}
 
-{% block module_content %}
     <!-- Critical xterm helper rules — inline so they apply before xterm.open() with no CDN latency -->
     <style>
         .xterm .xterm-helpers {
@@ -662,4 +660,3 @@
     {% tree_preseed_script current_project %}
     <!-- Load console workspace module via Vite -->
     {% vite_script 'console_app/workspace' %}
-{% endblock %}

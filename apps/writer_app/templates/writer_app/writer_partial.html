@@ -1,8 +1,6 @@
-{% extends "unified_app/module_base.html" %}
 
 {% load static vite tree_preseed %}
 
-{% block module_content %}
     <!-- Writer CSS — moved to <head> by unified workspace JS -->
     <link rel="stylesheet"
           href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d" />
@@ -208,4 +206,3 @@
         {% tree_preseed_script project %}
         {% vite_script 'writer_app/index' %}
     {% endif %}
-{% endblock %}

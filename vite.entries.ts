@@ -409,12 +409,6 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
       "apps/clew_app/static/clew_app/ts/clew-init.ts",
     ),
 
-    // Unified workspace app
-    "unified_app/unified-workspace": r(
-      rootDir,
-      "apps/unified_app/static/unified_app/ts/unified-workspace.ts",
-    ),
-
     // Hub app (tree init moved to shared/workspace-tree-init)
   };
 }
