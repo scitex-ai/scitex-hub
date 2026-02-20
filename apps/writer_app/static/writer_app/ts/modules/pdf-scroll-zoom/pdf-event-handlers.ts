@@ -105,25 +105,7 @@ export class PDFEventHandlers {
       this.isCtrlPressed = true;
     }
 
-    // Ctrl+Space: Enter command mode (prefix key)
-    if (
-      this.isCtrlPressed &&
-      e.key === " " &&
-      !this.modeManager.isWaitingForCommandState()
-    ) {
-      e.preventDefault();
-      this.modeManager.enterCommandMode();
-      return;
-    }
-
-    // Handle commands when in command mode
-    if (this.modeManager.isWaitingForCommandState()) {
-      e.preventDefault();
-      this.modeManager.handleCommandKey(e.key);
-      return;
-    }
-
-    // Escape: Exit hand/zoom mode to text mode, or cancel command mode
+    // Escape: exit hand/zoom mode back to text mode
     if (e.key === "Escape") {
       this.modeManager.handleEscapeKey();
       return;

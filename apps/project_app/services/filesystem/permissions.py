@@ -5,9 +5,16 @@ This module handles all permission-related validation.
 """
 
 from pathlib import Path
-from typing import Optional
+
+from django.conf import settings
 from django.contrib.auth.models import User
+
 from ...models import Project
+
+
+def get_user_data_root(user: User) -> Path:
+    """Return the root data directory for a user (their filesystem jail)."""
+    return Path(settings.BASE_DIR) / "data" / "users" / str(user.username)
 
 
 def can_access_project(user: User, project: Project) -> bool:
@@ -36,3 +43,12 @@ def validate_path_in_project(project_path: Path, target_path: Path) -> bool:
         return True
     except ValueError:
         return False
+
+
+def validate_path_in_user_jail(user: User, target_path: Path) -> bool:
+    """
+    Validate that a path stays within the user's own data directory.
+
+    Use this wherever a user-supplied or derived path must not escape their jail.
+    """
+    return validate_path_in_project(get_user_data_root(user), target_path)

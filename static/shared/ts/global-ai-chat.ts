@@ -23,6 +23,8 @@ import {
   loadMessages,
   saveMessage,
 } from "./components/global-ai-chat/storage";
+import { execBashCommand } from "./components/global-ai-chat/bash-exec";
+import { loadHistory, pushHistory } from "./components/global-ai-chat/history";
 import { getCsrfToken } from "./utils/csrf";
 
 const PANEL_OPEN_KEY = "scitex_ai_open";
@@ -51,7 +53,6 @@ declare global {
 class GlobalAIChat {
   private fab: HTMLElement | null = null;
   private panel: HTMLElement | null = null;
-  private panelHeader: HTMLElement | null = null;
   private messagesEl: HTMLElement | null = null;
   private inputEl: HTMLTextAreaElement | null = null;
   private sendBtn: HTMLButtonElement | null = null;
@@ -68,10 +69,14 @@ class GlobalAIChat {
   private context: AiContext = {};
   private recorder: VoiceRecorder | null = null;
 
+  // C-p / C-n history (readline-style)
+  private history: string[] = [];
+  private historyIdx = -1;
+  private historyDraft = "";
+
   init(): void {
     this.fab = document.getElementById("scitex-ai-fab");
     this.panel = document.getElementById("scitex-ai-panel");
-    this.panelHeader = document.getElementById("scitex-ai-panel-header");
     this.messagesEl = document.getElementById("scitex-ai-messages");
     this.inputEl = document.getElementById(
       "scitex-ai-input",
@@ -93,26 +98,19 @@ class GlobalAIChat {
 
     if (!this.panel) return;
 
-    // Volume visualizer bars (shown during recording)
     const volBars = Array.from(
       document.querySelectorAll<HTMLElement>(".scitex-ai-vol-bar"),
     );
     this.recorder = new VoiceRecorder(volBars, this.micBtn);
 
-    // Populate STT model selector from server
-    if (this.sttModelSelect) {
+    if (this.sttModelSelect)
       fetchAndPopulateSttModels(this.sttModelSelect, this.micBtn);
-    }
 
-    // Mark body so CSS can offset #main-content by 40px
     document.body.classList.add("scitex-ai-present");
 
-    // Toggle button (panel-toggle-btn) — collapsible-panel-click-expand.ts
-    // also handles click-to-expand and dblclick-to-collapse automatically
     document
       .getElementById("scitex-ai-toggle")
       ?.addEventListener("click", () => this.toggle());
-    // FAB header button also toggles
     this.fab?.addEventListener("click", () => this.toggle());
     this.clearBtn?.addEventListener("click", () => this.clearConversation());
     this.sendBtn?.addEventListener("click", () => this.send());
@@ -122,10 +120,21 @@ class GlobalAIChat {
     this.speakBtn?.addEventListener("click", () => this.toggleSpeak());
     this.micBtn?.addEventListener("click", () => this.toggleRecording());
 
+    this.history = loadHistory();
+
     this.inputEl?.addEventListener("keydown", (e: KeyboardEvent) => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
         this.send();
+        return;
+      }
+      if (e.ctrlKey && e.key === "p") {
+        e.preventDefault();
+        this.navigateHistory(-1);
+      }
+      if (e.ctrlKey && e.key === "n") {
+        e.preventDefault();
+        this.navigateHistory(1);
       }
     });
 
@@ -138,21 +147,19 @@ class GlobalAIChat {
 
     document.addEventListener("keydown", (e: KeyboardEvent) => {
       if (e.altKey && e.key === "a") {
-        const target = e.target as HTMLElement;
-        const inEditor =
-          target.closest("#monaco-editor") ||
-          target.closest(".xterm") ||
-          target.closest(".CodeMirror");
-        if (!inEditor) {
+        const t = e.target as HTMLElement;
+        if (
+          !t.closest("#monaco-editor") &&
+          !t.closest(".xterm") &&
+          !t.closest(".CodeMirror")
+        ) {
           e.preventDefault();
           this.toggle();
         }
       }
     });
 
-    // Inject current page URL so AI understands its context
     this.context.page = window.location.href;
-
     const slug = readActiveProjectSlug();
     if (slug) this.context.project_slug = slug;
 
@@ -162,13 +169,10 @@ class GlobalAIChat {
     if (savedModel) setModelBadge(this.modelBadge, savedModel);
     fetchCurrentModel((m) => setModelBadge(this.modelBadge, m));
 
-    if (sessionStorage.getItem(PANEL_OPEN_KEY) === "1") {
-      this.open();
-    }
-    // else: panel starts collapsed (HTML default class="...collapsed")
+    if (sessionStorage.getItem(PANEL_OPEN_KEY) === "1") this.open();
 
     window.scitexAI = {
-      setContext: (ctx: AiContext) => {
+      setContext: (ctx) => {
         this.context = { ...this.context, ...ctx };
       },
       open: () => this.open(),
@@ -266,12 +270,26 @@ class GlobalAIChat {
     return el;
   }
 
+  private navigateHistory(delta: -1 | 1): void {
+    if (!this.inputEl || this.history.length === 0) return;
+    if (this.historyIdx === -1) this.historyDraft = this.inputEl.value;
+    const next = this.historyIdx + delta;
+    if (next < -1 || next >= this.history.length) return;
+    this.historyIdx = next;
+    this.inputEl.value = next === -1 ? this.historyDraft : this.history[next];
+    this.inputEl.dispatchEvent(new Event("input"));
+    const len = this.inputEl.value.length;
+    this.inputEl.setSelectionRange(len, len);
+  }
+
   private async send(): Promise<void> {
     if (this.busy || !this.inputEl || !this.messagesEl) return;
     const prompt = this.inputEl.value.trim();
     if (!prompt) return;
 
-    // Bash mode: "! <command>" executes shell and returns output
+    this.history = pushHistory(this.history, prompt);
+    this.historyIdx = -1;
+
     if (prompt.startsWith("!")) {
       await this.execBash(prompt.slice(1).trim());
       return;
@@ -279,13 +297,10 @@ class GlobalAIChat {
 
     this.currentAudio?.pause();
     this.currentAudio = null;
-
     this.messagesEl.querySelector(".scitex-ai-empty")?.remove();
-
     const userEl = this.createMsgEl("user");
     userEl.textContent = prompt;
     saveMessage({ role: "user", text: prompt });
-
     this.inputEl.value = "";
     this.inputEl.style.height = "auto";
 
@@ -293,7 +308,6 @@ class GlobalAIChat {
     typing.className = "scitex-ai-typing";
     typing.textContent = "Thinking...";
     this.messagesEl.appendChild(typing);
-
     this.busy = true;
     this.sendBtn!.disabled = true;
 
@@ -314,8 +328,9 @@ class GlobalAIChat {
         typing.remove();
         const errEl = this.createMsgEl("error");
         try {
-          const data = (await resp.json()) as { error?: string };
-          errEl.textContent = data.error ?? `Request failed: ${resp.status}`;
+          errEl.textContent =
+            ((await resp.json()) as { error?: string }).error ??
+            `Request failed: ${resp.status}`;
         } catch {
           errEl.textContent = `Request failed: ${resp.status}`;
         }
@@ -357,35 +372,33 @@ class GlobalAIChat {
               hasText = true;
             } else {
               let last: Text | null = null;
-              for (const node of msgEl.childNodes) {
+              for (const node of msgEl.childNodes)
                 if (node.nodeType === Node.TEXT_NODE) last = node as Text;
-              }
               if (last) last.textContent += event.text as string;
             }
             this.messagesEl!.scrollTop = this.messagesEl!.scrollHeight;
           } else if (event.type === "tool_start") {
             toolsUsed.push(event.name as string);
             appendToolTags(msgEl, [event.name as string]);
-            hasText = false; // next chunk starts fresh after the tool tag
-
-            // Browser-native tools: server skips MCP call, browser executes.
+            hasText = false;
             if (event.name === "audio_speak" && event.args) {
               try {
-                const args = JSON.parse(event.args as string) as Record<
+                const a = JSON.parse(event.args as string) as Record<
                   string,
                   unknown
                 >;
-                if (args.text) void this.speak(args.text as string);
+                if (a.text) void this.speak(a.text as string);
               } catch {
-                /* ignore */
+                /**/
               }
             }
             if (event.name === "ui_action" && event.args) {
               try {
-                const args = JSON.parse(event.args as string) as UIActionArgs;
-                void runUIActions(args);
+                void runUIActions(
+                  JSON.parse(event.args as string) as UIActionArgs,
+                );
               } catch {
-                /* ignore */
+                /**/
               }
             }
           } else if (event.type === "error") {
@@ -397,7 +410,6 @@ class GlobalAIChat {
         }
       }
 
-      // Refresh file tree if the AI wrote any files
       if (
         toolsUsed.includes("project_write_file") &&
         window.workspaceFilesTree
@@ -423,10 +435,8 @@ class GlobalAIChat {
           text: msgText,
           toolsUsed,
         } as StoredMessage);
-        // Auto-speak full response if toggle is on and AI didn't call audio_speak
-        if (msgText && this.autoSpeak && !toolsUsed.includes("audio_speak")) {
+        if (msgText && this.autoSpeak && !toolsUsed.includes("audio_speak"))
           void this.speak(msgText);
-        }
       }
     } catch (err) {
       typing.remove();
@@ -450,28 +460,12 @@ class GlobalAIChat {
     this.busy = true;
     this.sendBtn!.disabled = true;
     try {
-      const resp = await fetch("/llm/api/bash/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": getCsrfToken(),
-        },
-        body: JSON.stringify({
-          command,
-          project_slug: readActiveProjectSlug(),
-        }),
-      });
-      const d = (await resp.json()) as {
-        stdout?: string;
-        stderr?: string;
-        returncode?: number;
-        error?: string;
-      };
+      const { text } = await execBashCommand(
+        command,
+        readActiveProjectSlug(),
+        getCsrfToken(),
+      );
       const outEl = this.createMsgEl("assistant");
-      const text = d.error
-        ? `Error: ${d.error}`
-        : `${d.stdout || ""}${d.stderr ? `\nstderr: ${d.stderr}` : ""}`.trim() ||
-          "(no output)";
       outEl.innerHTML = `<pre style="margin:0;white-space:pre-wrap;font-family:monospace">${text}</pre>`;
       saveMessage({ role: "assistant", text });
     } catch (err) {
