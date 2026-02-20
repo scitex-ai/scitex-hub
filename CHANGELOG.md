@@ -5,6 +5,32 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.4-alpha] - 2026-02-20
+
+### Security
+- **Per-user Linux UID isolation**: Each Django user gets a real Linux UID (100000 + user.pk).
+  Bash exec commands run via `setpriv --reuid/--regid`, blocking cross-user filesystem reads at OS level.
+  Data directories are `chmod 700` owned by the user's UID.
+  (`apps/accounts_app/services/unix_user.py`, `sync_unix_users` management command)
+- **Console workspace command exec hardened**: Added `@login_required` and replaced `shell=True` +
+  bypassable blocklist with `setpriv` UID isolation — consistent with llm_app bash exec.
+- **Bash exec CWD jail**: CWD validated with `validate_path_in_user_jail()` before execution.
+- **Dockerfile**: Installs `util-linux` + `libcap2-bin`, sets `cap_setuid,cap_setgid+eip` on setpriv.
+- **Container startup**: `sync_unix_users` runs on both dev and prod startup to backfill existing users.
+
+### Added
+- **Security tests**: 31 unit tests for UID isolation system and bash exec security
+  (`tests/apps/accounts_app/services/test_unix_user.py`, `tests/apps/llm_app/views/test_bash.py`)
+- **Security architecture doc**: `docs/MASTER/00_SECURITY_PERMISSION_ARCHITECTURE.md` —
+  full 6-layer threat model, attack surface table, verification commands, roadmap.
+- **UserProfile fields**: `unix_uid` and `unix_gid` fields added (migration 0008).
+
+### Fixed
+- **Writer PDF flash**: Eliminated PDF reload flash on page load (forceCompile flag, stable URL comparison).
+- **Bash exec CWD**: Fixed CWD resolution to use active project directory inside Docker paths.
+- **Bash exec 500**: Fixed ATOMIC_REQUESTS conflict with async bash view.
+- **Template/MCP**: Mismatched URL quotes and pydantic Optional error.
+
 ## [0.9.0-alpha] - 2026-02-15
 
 ### Added
