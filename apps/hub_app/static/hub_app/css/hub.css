@@ -61,8 +61,19 @@
 
 /* Collapsed width handled by shared collapsible-panel.css */
 
+/* Hub partial fills unified module wrapper */
+.hub-partial-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
 /* Browse container inside Hub (reused project_app partials) */
 .hub-browse-container {
+  flex: 1;
+  overflow-y: auto;
   padding: 0.75rem 1rem;
 }
 
