@@ -23,6 +23,11 @@ class CitationGraphManager {
   private transform: Transform = { x: 0, y: 0, k: 1 };
   private isDragging = false;
   private selectedNode: NetworkNode | null = null;
+  private activeEdgeFilters: Set<string> = new Set([
+    "coupling",
+    "cocitation",
+    "direct",
+  ]);
 
   constructor() {
     const config = window.CITATION_GRAPH_CONFIG;
@@ -61,6 +66,22 @@ class CitationGraphManager {
     document
       .getElementById("fitViewBtn")
       ?.addEventListener("click", () => this.fitToView());
+
+    // Edge type filter toggles
+    document.querySelectorAll(".edge-filter-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const type = btn.getAttribute("data-edge-type");
+        if (!type) return;
+        if (this.activeEdgeFilters.has(type)) {
+          this.activeEdgeFilters.delete(type);
+          btn.classList.remove("active");
+        } else {
+          this.activeEdgeFilters.add(type);
+          btn.classList.add("active");
+        }
+        this.renderer.filterEdges(this.activeEdgeFilters);
+      });
+    });
   }
 
   private async fetchWithTimeout(
@@ -256,6 +277,7 @@ class CitationGraphManager {
       <div class="tooltip-authors">${node.authors.slice(0, 3).join(", ")}${node.authors.length > 3 ? "..." : ""}</div>
       <div class="tooltip-meta">
         <span class="tooltip-year">${node.year}</span>
+        ${node.citation_count != null ? `<span class="tooltip-citations"><i class="fas fa-quote-right"></i> ${node.citation_count}</span>` : ""}
         ${node.similarity_score ? `<span class="tooltip-score">Score: ${node.similarity_score.toFixed(1)}</span>` : ""}
       </div>
       <div class="tooltip-hint">Click to view details</div>
@@ -295,12 +317,18 @@ class CitationGraphManager {
       <div class="node-details-content">
         <div class="detail-title">${this.escapeHtml(node.title)}</div>
         <div class="detail-authors">${node.authors.join(", ")}</div>
-        <div class="detail-year">Published: ${node.year}</div>
-        ${node.similarity_score ? `<div class="detail-score">Similarity Score: <strong>${node.similarity_score.toFixed(2)}</strong></div>` : ""}
+        <div class="detail-meta-row">
+          <span class="detail-year">Published: ${node.year}</span>
+          ${node.citation_count != null ? `<span class="detail-citations"><i class="fas fa-quote-right"></i> ${node.citation_count} citations</span>` : ""}
+        </div>
+        ${node.similarity_score ? `<div class="detail-score">Similarity: <strong>${node.similarity_score.toFixed(2)}</strong></div>` : ""}
         <div class="detail-doi"><a href="https://doi.org/${node.id}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> View on DOI.org</a></div>
-        <button class="btn-save-to-library" data-doi="${node.id}">
-          <i class="fas fa-bookmark"></i> Save to Library
-        </button>
+        <div class="detail-actions">
+          ${!node.is_seed ? `<button class="btn-explore-from" data-doi="${node.id}"><i class="fas fa-project-diagram"></i> Explore from here</button>` : ""}
+          <button class="btn-save-to-library" data-doi="${node.id}">
+            <i class="fas fa-bookmark"></i> Save to Library
+          </button>
+        </div>
       </div>
     `;
 
@@ -309,6 +337,18 @@ class CitationGraphManager {
       ?.addEventListener("click", () => {
         saveNodeToLibrary(node);
       });
+
+    panel.querySelector(".btn-explore-from")?.addEventListener("click", () => {
+      this.exploreFromNode(node);
+    });
+  }
+
+  private exploreFromNode(node: NetworkNode): void {
+    const doiInput = document.getElementById("doiInput") as HTMLInputElement;
+    if (!doiInput) return;
+    doiInput.value = node.id;
+    const form = document.getElementById("graphForm");
+    form?.dispatchEvent(new Event("submit", { cancelable: true }));
   }
 
   private async fetchRelatedPapers(doi: string, limit: number): Promise<void> {
@@ -458,7 +498,12 @@ class CitationGraphManager {
   }
 }
 
-// Initialize on DOM ready
-document.addEventListener("DOMContentLoaded", () => {
+// Initialize (handle both direct load and SPA injection)
+if (document.readyState === "loading") {
+  document.addEventListener(
+    "DOMContentLoaded",
+    () => new CitationGraphManager(),
+  );
+} else {
   new CitationGraphManager();
-});
+}

@@ -154,6 +154,19 @@
                         <span id="graphTitle">Citation Network</span>
                     </div>
                     <div class="graph-controls">
+                        <div class="edge-filter-group" title="Toggle edge types">
+                            <button class="edge-filter-btn active"
+                                    data-edge-type="coupling"
+                                    title="Bibliographic coupling">
+                                <span class="edge-color-dot edge-dot-coupling"></span>Coupling
+                            </button>
+                            <button class="edge-filter-btn active" data-edge-type="cocitation" title="Co-citation">
+                                <span class="edge-color-dot edge-dot-cocitation"></span>Co-cite
+                            </button>
+                            <button class="edge-filter-btn active" data-edge-type="direct" title="Direct citation">
+                                <span class="edge-color-dot edge-dot-direct"></span>Direct
+                            </button>
+                        </div>
                         <button class="btn-control" id="fitViewBtn" title="Fit to View">
                             <i class="fas fa-expand"></i>
                         </button>

@@ -19,6 +19,7 @@ export interface NetworkNode {
   authors: string[];
   is_seed: boolean;
   similarity_score?: number;
+  citation_count?: number;
   x?: number;
   y?: number;
   vx?: number;
