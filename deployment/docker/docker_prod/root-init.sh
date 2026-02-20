@@ -113,5 +113,15 @@ fi
 echo "✅ Root initialization complete"
 echo ""
 
+# ============================================
+# Sync Unix accounts for all Django users
+# ============================================
+# Creates Linux user accounts (UID=100000+user.pk) and sets data dir ownership.
+# Non-fatal: warnings only if DB is not yet available or sync fails.
+if command -v python >/dev/null 2>&1 && [ -f "/app/manage.py" ]; then
+    echo "🔒 Syncing Unix user accounts..."
+    cd /app && python manage.py sync_unix_users 2>&1 || echo "⚠️  WARNING: sync_unix_users failed (non-fatal)"
+fi
+
 # Now run the regular entrypoint as scitex user
 exec gosu scitex "$@"

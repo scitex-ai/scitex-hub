@@ -10,6 +10,11 @@ from django.db import transaction
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
+from apps.accounts_app.services.unix_user import (
+    enforce_data_dir_ownership,
+    ensure_linux_account,
+    get_unix_uid,
+)
 from apps.project_app.services.filesystem.permissions import (
     get_user_data_root,
     validate_path_in_user_jail,
@@ -42,45 +47,28 @@ def _get_project_cwd(user, project_slug: str) -> Path:
     return jail
 
 
-def _build_jailed_command(command: str, jail: str) -> str:
-    """
-    Wrap the user command so that `cd` cannot navigate outside the jail.
-
-    Note: this prevents directory-traversal via `cd` but does NOT prevent
-    reading files via absolute paths — OS-level sandboxing (chroot/namespaces)
-    is required for complete isolation.
-    """
-    safe_jail = jail.replace("'", "'\\''")
-    return f"""_JAIL='{safe_jail}'
-cd() {{
-    if [ $# -eq 0 ]; then
-        builtin cd "$_JAIL" || return 1
-    else
-        builtin cd "$@" || return 1
-    fi
-    _cur="$(pwd -P 2>/dev/null)"
-    case "$_cur" in
-        "$_JAIL"|"$_JAIL"/*) ;;
-        *)
-            builtin cd - >/dev/null 2>&1
-            echo "Access denied: cannot navigate outside your home directory" >&2
-            return 1
-            ;;
-    esac
-}}
-{command}
-"""
+def _ensure_user_provisioned(user) -> None:
+    """Best-effort: create Linux account + fix data dir ownership if missing."""
+    try:
+        ensure_linux_account(user)
+        enforce_data_dir_ownership(user)
+    except Exception:
+        pass  # Non-fatal; setpriv will fail if account is missing (handled below)
 
 
 @transaction.non_atomic_requests
 @login_required
 @require_http_methods(["POST"])
 async def api_bash_exec(request):
-    """Execute a shell command restricted to the requesting user's data directory.
+    """Execute a shell command as the requesting user's Linux UID via setpriv.
+
+    Security model:
+    - CWD is validated to be within user's data jail (validate_path_in_user_jail)
+    - Command runs under the user's OS UID/GID (setpriv --reuid/--regid)
+    - Data directory is chmod 700 — other UIDs cannot read it
+    - Minimal environment (HOME, USER, PATH only)
 
     Used by the AI chat "!" prefix mode (e.g. "! ls").
-    CWD is jailed to /data/users/<username>/ via validate_path_in_user_jail.
-    The `cd` built-in is wrapped to prevent navigating outside the jail.
     """
     try:
         data = json.loads(request.body)
@@ -94,30 +82,43 @@ async def api_bash_exec(request):
     project_slug = data.get("project_slug", "").strip()
     cwd_path = await sync_to_async(_get_project_cwd)(request.user, project_slug)
 
-    # Hard permission check using centralised validator
-    jail = await sync_to_async(get_user_data_root)(request.user)
+    # Hard permission check: CWD must be within user's jail
     if not await sync_to_async(validate_path_in_user_jail)(request.user, cwd_path):
         return JsonResponse(
             {"error": "Access denied: working directory outside your home."},
             status=403,
         )
 
+    # Ensure Linux account exists (idempotent)
+    await sync_to_async(_ensure_user_provisioned)(request.user)
+
+    jail = await sync_to_async(get_user_data_root)(request.user)
+    uid = await sync_to_async(get_unix_uid)(request.user)
+    gid = uid
+
     jail_str = str(jail)
     cwd_str = str(cwd_path)
-    wrapped = _build_jailed_command(command, jail_str)
+    username = str(request.user.username)
 
     # Minimal environment — strip inherited vars that could leak info or be abused
     env = {
         "HOME": jail_str,
-        "USER": str(request.user.username),
-        "LOGNAME": str(request.user.username),
+        "USER": username,
+        "LOGNAME": username,
         "PATH": "/usr/local/bin:/usr/bin:/bin",
         "TERM": "xterm-256color",
     }
 
     try:
-        proc = await asyncio.create_subprocess_shell(
-            wrapped,
+        proc = await asyncio.create_subprocess_exec(
+            "setpriv",
+            f"--reuid={uid}",
+            f"--regid={gid}",
+            "--clear-groups",
+            "--",
+            "bash",
+            "-c",
+            command,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             cwd=cwd_str,
@@ -143,5 +144,12 @@ async def api_bash_exec(request):
             }
         )
 
+    except FileNotFoundError:
+        return JsonResponse(
+            {
+                "error": "setpriv not found. Ensure util-linux is installed in the container."
+            },
+            status=500,
+        )
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)

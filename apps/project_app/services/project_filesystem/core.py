@@ -8,9 +8,8 @@ Extracted from project_filesystem.py for better maintainability.
 """
 
 import json
-from pathlib import Path
 from datetime import datetime
-from typing import Dict
+from pathlib import Path
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -92,6 +91,19 @@ class ProjectFilesystemManager:
 
             # Create user workspace info file
             self._create_workspace_info()
+
+            # Enforce OS-level ownership on the data root so this user's UID
+            # owns the directory exclusively (chmod 700).
+            try:
+                from apps.accounts_app.services.unix_user import (
+                    enforce_data_dir_ownership,
+                )
+
+                enforce_data_dir_ownership(self.user)
+            except Exception as exc:
+                print(
+                    f"Warning: could not enforce data dir ownership for {self.user.username}: {exc}"
+                )
 
             return True
         except Exception as e:

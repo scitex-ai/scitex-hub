@@ -199,6 +199,21 @@ class UserProfile(models.Model):
         null=True, blank=True, help_text="When account deletion was scheduled"
     )
 
+    # OS-level isolation: each Django user maps to a real Linux UID/GID.
+    # UID = 100000 + user.pk (deterministic, LDAP-ready).
+    # Set automatically via signals.py on user creation.
+    unix_uid = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        unique=True,
+        help_text="Linux UID for OS-level process isolation (100000 + user.pk)",
+    )
+    unix_gid = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Linux GID for OS-level process isolation (same as unix_uid)",
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -165,6 +165,16 @@ RUN YQ_VERSION=v4.44.3 && \
 # Install inotify-tools (lightweight file watcher for template hot reload)
 RUN apt-get update && apt-get install -y --no-install-recommends inotify-tools && rm -rf /var/lib/apt/lists/*
 
+# Install setpriv (util-linux) + libcap2-bin (setcap) for per-user UID isolation.
+# setcap grants cap_setuid/cap_setgid to the setpriv binary so non-root users
+# (prod: scitex, UID 1000) can drop to app UIDs (100000+) without sudo.
+# In dev the container runs as root so setpriv works without capabilities.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        util-linux \
+        libcap2-bin \
+    && setcap 'cap_setuid,cap_setgid+eip' /usr/bin/setpriv \
+    && rm -rf /var/lib/apt/lists/*
+
 # ============================================
 # Whisper.cpp (Speech-to-Text)
 # ============================================

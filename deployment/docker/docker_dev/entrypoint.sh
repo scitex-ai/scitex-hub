@@ -328,6 +328,11 @@ if [ ! -f "$MIGRATION_SENTINEL" ]; then
 
     # Mark migrations as done (persists in /app/logs volume)
     touch "$MIGRATION_SENTINEL"
+
+    # Sync Unix user accounts (Linux UID isolation)
+    echo_info "Syncing Unix user accounts (UID isolation)..."
+    python manage.py sync_unix_users 2>&1 | grep -v "ERRO\|WARN" || true
+    echo_success "Unix user accounts synced"
 else
     # Hot-reload restart - skip migrations
     echo_info "Hot-reload restart detected - skipping migrations"
