@@ -86,7 +86,7 @@ async function switchModule(name: string, partialUrl: string): Promise<void> {
     });
 
     // Update URL without full reload
-    const newUrl = `/unified/${name === "files" ? "" : name + "/"}`;
+    const newUrl = `/unified/${name === "hub" ? "" : name + "/"}`;
     history.pushState({ module: name }, "", newUrl);
 
     // Save to localStorage
@@ -143,7 +143,7 @@ function getInitialModule(): string {
   if (saved) return saved;
 
   // 3. Default
-  return "files";
+  return "hub";
 }
 
 function autoLoadInitialModule(): void {

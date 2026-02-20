@@ -117,6 +117,7 @@
 /* Collapsed: 40px strip (workspace-sidebar sets min-width: 40px already) */
 .scitex-ai-panel.workspace-sidebar.collapsed {
   width: 40px;
+  overflow: hidden; /* prevent content from bleeding outside the 40px strip */
 }
 
 /* Expanded: 380px */
@@ -124,8 +125,8 @@
   width: 380px;
 }
 
-/* sidebar-content: flex column for messages + input */
-.scitex-ai-panel .sidebar-content {
+/* sidebar-content: flex column for messages + input (only when expanded) */
+.scitex-ai-panel:not(.collapsed) .sidebar-content {
   background: var(--bg-secondary, #161b22) !important;
   padding: 0 !important;
   display: flex !important;
