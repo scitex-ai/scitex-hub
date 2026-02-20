@@ -104,21 +104,24 @@ def api_docs_section(request, section):
     if settings.DEBUG and request.user.is_authenticated:
         test_password = getattr(settings, "TEST_USER_PASSWORD", "")
 
-    return render(
-        request,
-        "public_app/pages/api_docs_section.html",
-        {
-            "section_title": section_info["title"],
-            "section_template": section_info["template"],
-            "current_section": section,
-            "sections": get_all_sections(),
-            "campaign_token": get_active_campaign_token(),
-            "user_api_key": user_api_key,
-            "version": version,
-            "test_password": test_password,
-            "debug": settings.DEBUG,
-        },
-    )
+    context = {
+        "section_title": section_info["title"],
+        "section_template": section_info["template"],
+        "current_section": section,
+        "sections": get_all_sections(),
+        "campaign_token": get_active_campaign_token(),
+        "user_api_key": user_api_key,
+        "version": version,
+        "test_password": test_password,
+        "debug": settings.DEBUG,
+    }
+
+    if section == "mcp-api":
+        from apps.public_app.config.mcp_tools import MCP_TOOLS
+
+        context["mcp_tools"] = MCP_TOOLS
+
+    return render(request, "public_app/pages/api_docs_section.html", context)
 
 
 def releases_view(request):

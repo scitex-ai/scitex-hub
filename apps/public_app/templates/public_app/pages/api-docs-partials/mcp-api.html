@@ -1,9 +1,39 @@
 <style>
     #mcp-tools .api-table th:first-child,
     #mcp-tools .api-table td:first-child {
-        width: 260px;
-        min-width: 260px;
+        width: 240px;
+        min-width: 240px;
         white-space: nowrap;
+    }
+
+    #mcp-tools details summary {
+        cursor: pointer;
+        font-size: 0.85em;
+        color: var(--accent-primary, #4a9eff);
+        margin-top: 0.3em;
+    }
+
+    #mcp-tools .api-table-sm {
+        margin: 0.5em 0;
+        font-size: 0.85em;
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    #mcp-tools .api-table-sm th,
+    #mcp-tools .api-table-sm td {
+        padding: 0.25em 0.5em;
+        border: 1px solid var(--border-color, #333);
+    }
+
+    #mcp-tools .api-table-sm th {
+        background: var(--bg-tertiary, #1a1a2e);
+        font-weight: 600;
+    }
+
+    #mcp-tools .returns {
+        font-size: 0.85em;
+        margin: 0.4em 0 0.1em;
     }
 </style>
 <!-- MCP Overview -->
@@ -75,8 +105,7 @@ async with Client(
         <i class="fas fa-lock"></i> Authentication
     </h2>
     <p>
-        All requests to <code>/mcp</code> require a Bearer token in the
-        <code>Authorization</code> header.
+        All requests to <code>/mcp</code> require a Bearer token in the <code>Authorization</code> header.
     </p>
     <table class="api-table">
         <thead>
@@ -98,878 +127,88 @@ async with Client(
     </table>
     <h4>Required Scope</h4>
     <p>
-        The API key must have the <code>mcp</code> scope or the <code>*</code> (Full Access) scope.
-        Keys with only <code>project:read</code> or <code>scholar:read</code> scopes will be rejected
+        The API key must have the <code>mcp</code> scope or <code>*</code> (Full Access).
+        Keys with only <code>project:read</code> or <code>scholar:read</code> will be rejected
         with <code>401 Unauthorized</code>.
     </p>
     <div class="api-callout api-callout-warning">
         <i class="fas fa-exclamation-triangle"></i>
         <div>
             <strong>Keep your key secret.</strong>
-            API keys are shown only once at creation time.
-            If compromised, deactivate or delete it from
+            API keys are shown only once at creation. If compromised, deactivate or delete it from
             <a href="{% url 'accounts_app:api_keys' %}">Settings → API Keys</a>.
         </div>
     </div>
 </section>
-<!-- Available Tools -->
+<!-- Available Tools (generated from mcp_tools context) -->
 <section id="mcp-tools" class="api-section">
     <h2>
         <i class="fas fa-tools"></i> Available Tools
     </h2>
     <p>
-        100+ tools across 13 categories. Call <code>client.list_tools()</code> for the live list.
+        {{ mcp_tools|length }} categories. Click tool rows to expand parameters &amp; return types.
+        Call <code>client.list_tools()</code> for the live list.
     </p>
-    <h4>
-        <i class="fas fa-chart-line"></i> Plotting — <code>plt_*</code>
-    </h4>
-    <table class="api-table">
-        <thead>
-            <tr>
-                <th>Tool</th>
-                <th>Description</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>
-                    <code>plt_plot</code>
-                </td>
-                <td>Create a matplotlib figure from a declarative specification.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>plt_reproduce</code>
-                </td>
-                <td>Reproduce a figure from a saved YAML recipe.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>plt_compose</code>
-                </td>
-                <td>Compose multiple figures into a single figure with panel labels.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>plt_info</code>
-                </td>
-                <td>Get information about a recipe file.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>plt_validate</code>
-                </td>
-                <td>Validate that a recipe can reproduce its original figure.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>plt_crop</code>
-                </td>
-                <td>Crop whitespace from a figure image.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>plt_extract_data</code>
-                </td>
-                <td>Extract plotted data arrays from a saved recipe.</td>
-            </tr>
-        </tbody>
-    </table>
-    <h4>
-        <i class="fas fa-flask"></i> Statistics — <code>stats_*</code>
-    </h4>
-    <table class="api-table">
-        <thead>
-            <tr>
-                <th>Tool</th>
-                <th>Description</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>
-                    <code>stats_run_test</code>
-                </td>
-                <td>Execute a statistical test on provided data.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>stats_recommend_tests</code>
-                </td>
-                <td>Recommend appropriate statistical tests based on data characteristics.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>stats_format_results</code>
-                </td>
-                <td>Format statistical results in journal style (APA, Nature, etc.).</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>stats_power_analysis</code>
-                </td>
-                <td>Calculate statistical power or required sample size.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>stats_describe</code>
-                </td>
-                <td>Calculate descriptive statistics for data.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>stats_effect_size</code>
-                </td>
-                <td>Calculate effect size between groups.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>stats_normality_test</code>
-                </td>
-                <td>Test whether data follows a normal distribution.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>stats_posthoc_test</code>
-                </td>
-                <td>Run post-hoc pairwise comparisons after significant ANOVA/Kruskal.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>stats_correct_pvalues</code>
-                </td>
-                <td>Apply multiple comparison correction to p-values.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>stats_p_to_stars</code>
-                </td>
-                <td>Convert p-value to significance stars (*, **, ***, ns).</td>
-            </tr>
-        </tbody>
-    </table>
-    <h4>
-        <i class="fas fa-graduation-cap"></i> Literature — <code>scholar_*</code>
-    </h4>
-    <table class="api-table">
-        <thead>
-            <tr>
-                <th>Tool</th>
-                <th>Description</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>
-                    <code>scholar_search_papers</code>
-                </td>
-                <td>Search for scientific papers.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>scholar_fetch_papers</code>
-                </td>
-                <td>Fetch papers to your library.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>scholar_enrich_bibtex</code>
-                </td>
-                <td>Enrich BibTeX entries with metadata.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>scholar_parse_bibtex</code>
-                </td>
-                <td>Parse a BibTeX file and return paper objects.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>scholar_parse_pdf_content</code>
-                </td>
-                <td>Parse PDF content to extract text, sections (IMRaD), tables, images, and metadata.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>scholar_resolve_dois</code>
-                </td>
-                <td>Resolve DOIs from paper titles using Crossref API.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>scholar_resolve_openurls</code>
-                </td>
-                <td>Resolve publisher URLs via OpenURL resolver for institutional access.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>scholar_download_pdfs_batch</code>
-                </td>
-                <td>Download PDFs for multiple papers with progress tracking.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>scholar_validate_pdfs</code>
-                </td>
-                <td>Validate PDF files in library for completeness and readability.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>scholar_export_papers</code>
-                </td>
-                <td>Export papers to various formats (BibTeX, RIS, JSON, CSV).</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>scholar_get_library_status</code>
-                </td>
-                <td>Get status of the paper library.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>scholar_create_project</code>
-                </td>
-                <td>Create a new scholar project for organizing papers.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>scholar_list_projects</code>
-                </td>
-                <td>List all scholar projects in the library.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>scholar_add_papers_to_project</code>
-                </td>
-                <td>Add papers to a project by DOI or from BibTeX file.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>scholar_authenticate</code>
-                </td>
-                <td>Start SSO login for institutional access (OpenAthens, Shibboleth).</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>scholar_check_auth_status</code>
-                </td>
-                <td>Check current authentication status without starting login.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>scholar_logout</code>
-                </td>
-                <td>Logout from institutional authentication and clear session cache.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>scholar_list_jobs</code>
-                </td>
-                <td>List all background jobs with their status.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>scholar_get_job_status</code>
-                </td>
-                <td>Get detailed status of a specific job including progress.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>scholar_start_job</code>
-                </td>
-                <td>Start a pending job that was submitted with async mode.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>scholar_cancel_job</code>
-                </td>
-                <td>Cancel a running or pending job.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>scholar_get_job_result</code>
-                </td>
-                <td>Get the result of a completed job.</td>
-            </tr>
-        </tbody>
-    </table>
-    <h4>
-        <i class="fas fa-pen-fancy"></i> LaTeX Manuscript — <code>writer_*</code>
-    </h4>
-    <table class="api-table">
-        <thead>
-            <tr>
-                <th>Tool</th>
-                <th>Description</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>
-                    <code>writer_compile_manuscript</code>
-                </td>
-                <td>Compile the full LaTeX manuscript to PDF.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_compile_content</code>
-                </td>
-                <td>Compile a specific content section.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_compile_revision</code>
-                </td>
-                <td>Compile a revision document with tracked changes.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_compile_supplementary</code>
-                </td>
-                <td>Compile supplementary materials.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_add_figure</code>
-                </td>
-                <td>Add a figure to the manuscript.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_add_table</code>
-                </td>
-                <td>Add a table to the manuscript.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_add_claim</code>
-                </td>
-                <td>Add a scientific claim to the manuscript.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_list_claims</code>
-                </td>
-                <td>List all claims in the manuscript.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_get_claim</code>
-                </td>
-                <td>Get a specific claim by ID.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_remove_claim</code>
-                </td>
-                <td>Remove a claim from the manuscript.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_render_claims</code>
-                </td>
-                <td>Render all claims to LaTeX.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_format_claim</code>
-                </td>
-                <td>Format a claim for output.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_add_bibentry</code>
-                </td>
-                <td>Add a BibTeX entry to the bibliography.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_get_bibentry</code>
-                </td>
-                <td>Get a BibTeX entry by key.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_list_bibentries</code>
-                </td>
-                <td>List all bibliography entries.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_list_bibfiles</code>
-                </td>
-                <td>List all BibTeX files in the project.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_remove_bibentry</code>
-                </td>
-                <td>Remove a BibTeX entry.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_merge_bibfiles</code>
-                </td>
-                <td>Merge multiple BibTeX files.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_list_figures</code>
-                </td>
-                <td>List all figures in the manuscript.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_list_tables</code>
-                </td>
-                <td>List all tables in the manuscript.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_get_project_info</code>
-                </td>
-                <td>Get manuscript project metadata.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_list_document_types</code>
-                </td>
-                <td>List supported document types and templates.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_csv_to_latex</code>
-                </td>
-                <td>Convert a CSV file to a LaTeX table.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_latex_to_csv</code>
-                </td>
-                <td>Extract data from a LaTeX table to CSV.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_convert_figure</code>
-                </td>
-                <td>Convert a figure to a different format.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_export_manuscript</code>
-                </td>
-                <td>Export manuscript to a submission-ready archive.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_get_pdf</code>
-                </td>
-                <td>Get the compiled PDF as base64.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_pdf_to_images</code>
-                </td>
-                <td>Convert PDF pages to images.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_clone_project</code>
-                </td>
-                <td>Clone a manuscript project template.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_guideline_build</code>
-                </td>
-                <td>Build journal submission guidelines.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_guideline_get</code>
-                </td>
-                <td>Get guidelines for a specific journal.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_guideline_list</code>
-                </td>
-                <td>List all available journal guidelines.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>writer_prompts_asta</code>
-                </td>
-                <td>Get ASTA writing prompts for manuscript sections.</td>
-            </tr>
-        </tbody>
-    </table>
-    <h4>
-        <i class="fas fa-sitemap"></i> Diagrams — <code>diagram_*</code>
-    </h4>
-    <table class="api-table">
-        <thead>
-            <tr>
-                <th>Tool</th>
-                <th>Description</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>
-                    <code>diagram_create</code>
-                </td>
-                <td>Create a diagram from a YAML specification file or dictionary.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>diagram_compile_mermaid</code>
-                </td>
-                <td>Compile diagram specification to Mermaid format.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>diagram_compile_graphviz</code>
-                </td>
-                <td>Compile diagram specification to Graphviz DOT format.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>diagram_render</code>
-                </td>
-                <td>Render diagram to image file (PNG, SVG, PDF).</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>diagram_split</code>
-                </td>
-                <td>Split a large diagram into smaller parts for multi-column layouts.</td>
-            </tr>
-        </tbody>
-    </table>
-    <h4>
-        <i class="fas fa-search-plus"></i> Code Inspection — <code>introspect_*</code>
-    </h4>
-    <table class="api-table">
-        <thead>
-            <tr>
-                <th>Tool</th>
-                <th>Description</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>
-                    <code>introspect_signature</code>
-                </td>
-                <td>Get function/class signature with parameters and types.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>introspect_source</code>
-                </td>
-                <td>Get source code of a Python object.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>introspect_docstring</code>
-                </td>
-                <td>Get docstring of a Python object.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>introspect_api</code>
-                </td>
-                <td>List the API tree of a module recursively.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>introspect_dir</code>
-                </td>
-                <td>List members of module/class (like dir()).</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>introspect_exports</code>
-                </td>
-                <td>Get __all__ exports of a module.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>introspect_examples</code>
-                </td>
-                <td>Find usage examples in tests/examples directories.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>introspect_class_hierarchy</code>
-                </td>
-                <td>Get class inheritance hierarchy (MRO + subclasses).</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>introspect_type_hints</code>
-                </td>
-                <td>Get detailed type hint analysis for function/class.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>introspect_imports</code>
-                </td>
-                <td>Get all imports from a module (AST-based static analysis).</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>introspect_dependencies</code>
-                </td>
-                <td>Get module dependencies (what it imports).</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>introspect_call_graph</code>
-                </td>
-                <td>Get function call graph (with timeout protection).</td>
-            </tr>
-        </tbody>
-    </table>
-    <h4>
-        <i class="fas fa-folder-open"></i> Project Files — <code>project_*</code>
-    </h4>
-    <table class="api-table">
-        <thead>
-            <tr>
-                <th>Tool</th>
-                <th>Description</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>
-                    <code>project_list_files</code>
-                </td>
-                <td>List files and directories in a project directory.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>project_read_file</code>
-                </td>
-                <td>Read the content of a file in a project.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>project_write_file</code>
-                </td>
-                <td>Write or create a file in a project.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>project_search_files</code>
-                </td>
-                <td>Search project files by name glob and/or content substring.</td>
-            </tr>
-        </tbody>
-    </table>
-    <h4>
-        <i class="fas fa-check-double"></i> Reproducibility — <code>clew_*</code>
-    </h4>
-    <table class="api-table">
-        <thead>
-            <tr>
-                <th>Tool</th>
-                <th>Description</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>
-                    <code>clew_list</code>
-                </td>
-                <td>List all tracked runs with verification status.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>clew_run</code>
-                </td>
-                <td>Verify a specific session run by checking all file hashes.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>clew_chain</code>
-                </td>
-                <td>Verify the dependency chain for a target file.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>clew_status</code>
-                </td>
-                <td>Show verification status summary (like git status).</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>clew_stats</code>
-                </td>
-                <td>Show verification database statistics.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>clew_mermaid</code>
-                </td>
-                <td>Generate Mermaid diagram for verification DAG.</td>
-            </tr>
-        </tbody>
-    </table>
-    <h4>
-        <i class="fas fa-copy"></i> Templates — <code>template_*</code>
-    </h4>
-    <table class="api-table">
-        <thead>
-            <tr>
-                <th>Tool</th>
-                <th>Description</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>
-                    <code>template_clone_template</code>
-                </td>
-                <td>Create a new project by cloning a template.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>template_get_code_template</code>
-                </td>
-                <td>Get a code template for scripts and modules.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>template_list_code_templates</code>
-                </td>
-                <td>List all available code templates.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>template_list_git_strategies</code>
-                </td>
-                <td>List available git initialization strategies for template cloning.</td>
-            </tr>
-        </tbody>
-    </table>
-    <h4>
-        <i class="fas fa-code"></i> Developer — <code>dev_*</code>
-    </h4>
-    <table class="api-table">
-        <thead>
-            <tr>
-                <th>Tool</th>
-                <th>Description</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>
-                    <code>dev_list_versions</code>
-                </td>
-                <td>List versions across the scitex ecosystem.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>dev_get_config</code>
-                </td>
-                <td>Get current developer configuration.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>dev_test_local</code>
-                </td>
-                <td>Run project tests locally via pytest.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>dev_test_hpc</code>
-                </td>
-                <td>Run project tests on HPC (Spartan) via Slurm.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>dev_test_hpc_poll</code>
-                </td>
-                <td>Check HPC test job status.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>dev_test_hpc_result</code>
-                </td>
-                <td>Fetch full HPC test output.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>dev_rename</code>
-                </td>
-                <td>Bulk rename files, contents, directories, and symlinks.</td>
-            </tr>
-        </tbody>
-    </table>
-    <h4>
-        <i class="fas fa-volume-up"></i> Audio &amp; UI — <code>audio_*</code> / <code>ui_*</code>
-    </h4>
-    <table class="api-table">
-        <thead>
-            <tr>
-                <th>Tool</th>
-                <th>Description</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>
-                    <code>audio_speak</code>
-                </td>
-                <td>Convert text to speech with smart routing (local, remote, or auto).</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>ui_notify</code>
-                </td>
-                <td>Send a notification via configured backends.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>ui_get_notification_config</code>
-                </td>
-                <td>Get current notification configuration.</td>
-            </tr>
-        </tbody>
-    </table>
-    <h4>
-        <i class="fas fa-camera"></i> Capture &amp; Usage — <code>capture_*</code> / <code>usage_*</code>
-    </h4>
-    <table class="api-table">
-        <thead>
-            <tr>
-                <th>Tool</th>
-                <th>Description</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>
-                    <code>capture_capture_screenshot</code>
-                </td>
-                <td>Capture screenshot — monitor, window, browser, or everything.</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>usage_show</code>
-                </td>
-                <td>Show usage examples for a scitex module (plt, stats, session, etc.).</td>
-            </tr>
-            <tr>
-                <td>
-                    <code>usage_list</code>
-                </td>
-                <td>List available usage topics.</td>
-            </tr>
-        </tbody>
-    </table>
+    {% for category in mcp_tools %}
+        <h4>
+            <i class="fas {{ category.icon }}"></i>
+            {{ category.category }} — <code>{{ category.prefix }}</code>
+        </h4>
+        <table class="api-table">
+            <thead>
+                <tr>
+                    <th>Tool</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tool in category.tools %}
+                    <tr>
+                        <td>
+                            <code>{{ tool.name }}</code>
+                        </td>
+                        <td>
+                            {{ tool.desc }}
+                            {% if tool.params %}
+                                <details>
+                                    <summary>Parameters &amp; Returns ▸</summary>
+                                    <table class="api-table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Type</th>
+                                                <th>Default</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for p in tool.params %}
+                                                <tr>
+                                                    <td>
+                                                        <code>{{ p.name }}</code>
+                                                    </td>
+                                                    <td>
+                                                        <code>{{ p.type }}</code>
+                                                    </td>
+                                                    <td>
+                                                        {% if p.default == "required" %}
+                                                            <strong>required</strong>
+                                                        {% else %}
+                                                            <code>{{ p.default }}</code>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                    <p class="returns">
+                                        <strong>Returns:</strong> <code>{{ tool.returns }}</code>
+                                    </p>
+                                </details>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endfor %}
 </section>
