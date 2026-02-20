@@ -456,7 +456,10 @@ class GlobalAIChat {
           "Content-Type": "application/json",
           "X-CSRFToken": getCsrfToken(),
         },
-        body: JSON.stringify({ command }),
+        body: JSON.stringify({
+          command,
+          project_slug: readActiveProjectSlug(),
+        }),
       });
       const d = (await resp.json()) as {
         stdout?: string;
