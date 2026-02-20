@@ -4,15 +4,15 @@ Code Workspace API Views - File operations for the simple editor.
 
 import json
 import logging
-import subprocess
 from pathlib import Path
 
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from django.contrib.auth.decorators import login_required
+
 from apps.project_app.models import Project
-from apps.project_app.services.git_status import get_git_status, get_file_diff
 from apps.project_app.services.git_service import git_commit_and_push
+from apps.project_app.services.git_status import get_file_diff, get_git_status
 
 logger = logging.getLogger(__name__)
 
@@ -46,13 +46,10 @@ def api_get_git_status(request):
         for path, status_obj in statuses.items():
             status_dict[path] = {
                 "status": status_obj.status,
-                "staged": status_obj.staged
+                "staged": status_obj.staged,
             }
 
-        return JsonResponse({
-            "success": True,
-            "statuses": status_dict
-        })
+        return JsonResponse({"success": True, "statuses": status_dict})
 
     except Exception as e:
         logger.error(f"Error getting git status: {e}", exc_info=True)
@@ -86,22 +83,16 @@ def api_get_file_diff(request, file_path):
         # Convert to JSON-serializable format
         diff_list = []
         for diff in diffs:
-            diff_list.append({
-                "line": diff.line_number,
-                "status": diff.status
-            })
+            diff_list.append({"line": diff.line_number, "status": diff.status})
 
-        return JsonResponse({
-            "success": True,
-            "diffs": diff_list,
-            "path": file_path
-        })
+        return JsonResponse({"success": True, "diffs": diff_list, "path": file_path})
 
     except Exception as e:
         logger.error(f"Error getting file diff for {file_path}: {e}", exc_info=True)
         return JsonResponse({"error": str(e)}, status=500)
 
 
+@login_required
 @require_http_methods(["POST"])
 def api_git_commit(request):
     """Commit changes to git."""
@@ -112,22 +103,14 @@ def api_git_commit(request):
         push = data.get("push", True)
 
         if not project_id or not message:
-            return JsonResponse({"error": "project_id and message required"}, status=400)
+            return JsonResponse(
+                {"error": "project_id and message required"}, status=400
+            )
 
         project = Project.objects.select_related("owner").get(id=project_id)
 
-        # Check permissions (allow authenticated users and visitors with allocated project)
-        if request.user.is_authenticated:
-            has_access = (
-                request.user == project.owner
-                or request.user in project.collaborators.all()
-            )
-        else:
-            # For visitor users, check if this is their allocated visitor project
-            visitor_project_id = request.session.get("visitor_project_id")
-            has_access = (visitor_project_id and project.id == visitor_project_id)
-
-        if not has_access:
+        # Write access: owner or collaborator with write/admin permission_level
+        if not project.can_edit(request.user):
             return JsonResponse({"error": "Unauthorized"}, status=403)
 
         # Commit all changes
@@ -140,17 +123,24 @@ def api_git_commit(request):
         )
 
         if success:
-            return JsonResponse({
-                "success": True,
-                "message": output,
-            })
+            return JsonResponse(
+                {
+                    "success": True,
+                    "message": output,
+                }
+            )
         else:
-            return JsonResponse({
-                "success": False,
-                "error": output,
-            }, status=400)
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": output,
+                },
+                status=400,
+            )
 
     except Exception as e:
         logger.error(f"Error committing changes: {e}", exc_info=True)
         return JsonResponse({"error": str(e)}, status=500)
+
+
 # EOF

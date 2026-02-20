@@ -30,15 +30,18 @@ def check_project_read_access(request, project) -> bool:
     else:
         # For visitor users, check if this is their allocated visitor project
         visitor_project_id = request.session.get("visitor_project_id")
-        return (
-            project.visibility == "public"
-            or (visitor_project_id and project.id == visitor_project_id)
+        return project.visibility == "public" or (
+            visitor_project_id and project.id == visitor_project_id
         )
 
 
 def check_project_write_access(request, project) -> bool:
     """
     Check if user has write access to project.
+
+    Enforces ProjectMembership.permission_level — collaborators with role
+    "read" are NOT granted write access.  Only owner, and collaborators
+    with permission_level in ["write", "admin"] may modify the project.
 
     Args:
         request: Django request object
@@ -47,10 +50,9 @@ def check_project_write_access(request, project) -> bool:
     Returns:
         True if user has write access, False otherwise
     """
-    return (
-        project.owner == request.user
-        or project.collaborators.filter(id=request.user.id).exists()
-    )
+    if not request.user.is_authenticated:
+        return False
+    return project.can_edit(request.user)
 
 
 def check_user_repository_access(request, user) -> bool:
