@@ -74,10 +74,12 @@
   border-right: 1px solid var(--workspace-border-default, #30363d);
 }
 
-/* Center content */
+/* Center content — overflow:hidden so flex children (terminal, editor) can fill height */
 .unified-main {
   flex: 1;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background: var(--workspace-bg-primary, #0d1117);
   min-width: 200px;
 }
@@ -93,36 +95,14 @@
   gap: 8px;
 }
 
-/* Right details panel */
-.unified-details {
-  flex-shrink: 0;
-  width: 280px;
-  min-width: 40px;
-  overflow-y: auto;
-  background: var(--workspace-bg-secondary, #161b22);
-  border-left: 1px solid var(--workspace-border-default, #30363d);
-}
-
-/* Details panel header */
-.details-header {
-  display: flex;
-  align-items: center;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--workspace-border-default, #30363d);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--workspace-text-secondary, #8b949e);
-  cursor: pointer;
-}
-
-.details-title {
-  flex: 1;
-}
-
-/* Module wrapper (inside center) */
+/* Module wrapper fills the center and passes height to module content */
 .unified-module-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100%;
+  overflow: hidden;
 }
 
 /* Collapsed states handled by workspace-sidebar + collapsible-panel CSS */

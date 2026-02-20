@@ -155,6 +155,7 @@ def unified_content(request: HttpRequest, module: str) -> HttpResponse:
     context = {
         "current_module": module,
         "current_project": current_project,
+        "project": current_project,  # browse_header.html uses {{ project }}
         "all_modules": ALL_MODULES,
     }
     if module == "scholar":

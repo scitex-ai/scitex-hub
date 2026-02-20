@@ -58,29 +58,7 @@
                     <i class="fas fa-spinner fa-spin"></i> Loading module...
                 </div>
             </main>
-            <!-- Right details resizer -->
-            <div class="panel-resizer"
-                 id="details-resizer"
-                 data-panel-resizer
-                 data-storage-prefix="scitex-unified-"
-                 data-target=".unified-details"
-                 data-direction="right"
-                 data-min-width="40"
-                 data-default-width="280"
-                 data-storage-key="details-width"
-                 data-collapse-key="scitex-unified-details-collapsed"
-                 data-toggle-btn="details-toggle"></div>
-            <!-- Right panel -->
-            <aside class="unified-details collapsible-panel" id="unified-details">
-                <div class="details-header collapsible-panel-header"
-                     id="details-toggle"
-                     data-tooltip="Double-click to collapse">
-                    <span class="details-title">Details</span>
-                </div>
-                <div class="details-content">
-                    <p class="text-muted p-3">Module details will appear here.</p>
-                </div>
-            </aside>
+            <!-- Note: no unified right panel — each module provides its own right panel -->
         </div>
     </div>
 {% endblock %}
