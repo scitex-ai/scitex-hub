@@ -115,3 +115,111 @@
   border-color: var(--workspace-icon-primary, #059669);
   color: var(--workspace-icon-primary, #059669);
 }
+
+/* Input mode tabs */
+.graph-input-tabs {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
+  padding-bottom: 8px;
+}
+
+.graph-input-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.graph-input-tab:hover {
+  color: var(--text-primary);
+}
+
+.graph-input-tab.active {
+  color: var(--workspace-icon-primary);
+  border-bottom-color: var(--workspace-icon-primary);
+}
+
+.graph-input-panel.hidden {
+  display: none;
+}
+
+/* Search results dropdown */
+.graph-search-results {
+  max-height: 240px;
+  overflow-y: auto;
+  margin-top: 8px;
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 4px;
+}
+
+.graph-search-item,
+.graph-library-item {
+  padding: 10px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--workspace-border-default);
+  transition: background 0.1s;
+}
+
+.graph-search-item:last-child,
+.graph-library-item:last-child {
+  border-bottom: none;
+}
+
+.graph-search-item:hover,
+.graph-library-item:hover {
+  background: var(--workspace-bg-hover, rgba(177, 186, 196, 0.08));
+}
+
+.graph-search-item__title,
+.graph-library-item__title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.graph-search-item__meta,
+.graph-library-item__meta {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.graph-search-item__doi {
+  font-size: 10px;
+  color: var(--workspace-icon-primary);
+  font-family: monospace;
+  margin-top: 2px;
+}
+
+.graph-search-item__no-doi {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 2px;
+}
+
+.graph-search-loading,
+.graph-library-loading {
+  padding: 16px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* Library list */
+.graph-library-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--workspace-border-default);
+  border-radius: 4px;
+}

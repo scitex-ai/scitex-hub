@@ -2,26 +2,34 @@
  * Citation Graph Visualization
  * Interactive force-directed network visualization for citation relationships
  *
- * Refactored: Extracted ForceSimulation, GraphRenderer, and types for maintainability.
+ * Refactored: Extracted ForceSimulation, GraphRenderer, GraphInteraction,
+ * GraphInputHandler, and types for maintainability.
  */
 
 import type {
   CitationGraphConfig,
   NetworkNode,
-  NetworkEdge,
   NetworkData,
   RelatedPaper,
   Transform,
 } from "./types";
 import { GraphRenderer } from "./GraphRenderer";
+import { GraphInputHandler } from "./GraphInputHandler";
+import {
+  setupZoomPan,
+  startNodeDrag,
+  type InteractionState,
+} from "./GraphInteraction";
 import { saveNodeToLibrary } from "./library-bridge";
 
 class CitationGraphManager {
   private config: CitationGraphConfig;
   private currentData: NetworkData | null = null;
   private renderer: GraphRenderer;
-  private transform: Transform = { x: 0, y: 0, k: 1 };
-  private isDragging = false;
+  private interactionState: InteractionState = {
+    transform: { x: 0, y: 0, k: 1 },
+    isDragging: false,
+  };
   private selectedNode: NetworkNode | null = null;
   private activeEdgeFilters: Set<string> = new Set([
     "coupling",
@@ -41,11 +49,29 @@ class CitationGraphManager {
       onNodeHover: (node, el) => this.showNodeTooltip(node, el),
       onNodeLeave: () => this.hideNodeTooltip(),
       onNodeClick: (node) => this.selectNode(node),
-      onNodeDragStart: (e, node) => this.startNodeDrag(e, node),
+      onNodeDragStart: (e, node) =>
+        startNodeDrag(e, node, this.renderer, this.interactionState),
       getDepthColor: () => "#3B82F6",
     });
 
+    new GraphInputHandler({
+      onDoiSelected: (doi) => {
+        const doiInput = document.getElementById(
+          "doiInput",
+        ) as HTMLInputElement;
+        if (doiInput) doiInput.value = doi;
+      },
+      escapeHtml: (text) => this.escapeHtml(text),
+    });
+
     this.init();
+  }
+
+  private get transform(): Transform {
+    return this.interactionState.transform;
+  }
+  private set transform(t: Transform) {
+    this.interactionState.transform = t;
   }
 
   private init(): void {
@@ -90,7 +116,6 @@ class CitationGraphManager {
   ): Promise<Response> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
     try {
       const response = await fetch(url, { signal: controller.signal });
       clearTimeout(timeoutId);
@@ -107,11 +132,9 @@ class CitationGraphManager {
   private async checkServiceHealth(): Promise<void> {
     const statusEl = document.getElementById("serviceStatus");
     if (!statusEl) return;
-
     try {
       const response = await fetch(this.config.urls.health);
       const data = await response.json();
-
       statusEl.innerHTML =
         data.status === "healthy"
           ? `<div class="status-indicator status-healthy"><i class="fas fa-check-circle"></i><span>Service available</span></div>`
@@ -123,33 +146,25 @@ class CitationGraphManager {
 
   private async handleSubmit(e: Event): Promise<void> {
     e.preventDefault();
-
     const doiInput = document.getElementById("doiInput") as HTMLInputElement;
     const topNSelect = document.getElementById("topN") as HTMLSelectElement;
-
     if (!doiInput?.value) {
       this.showError("Please enter a DOI");
       return;
     }
-
     const doi = doiInput.value.trim();
     const topN = parseInt(topNSelect?.value || "20", 10);
-
     this.showLoading(true);
     this.hideError();
-
     try {
       const networkUrl = `${this.config.urls.buildNetwork}?doi=${encodeURIComponent(doi)}&top_n=${topN}`;
       const networkResponse = await this.fetchWithTimeout(networkUrl, 120000);
-
       if (!networkResponse.ok) {
         const errorData = await networkResponse.json();
         throw new Error(errorData.error || "Failed to build network");
       }
-
       const networkData: NetworkData = await networkResponse.json();
       this.currentData = networkData;
-
       this.renderGraph(networkData);
       await this.fetchRelatedPapers(doi, topN);
     } catch (err) {
@@ -163,11 +178,8 @@ class CitationGraphManager {
   private renderGraph(data: NetworkData): void {
     const container = document.getElementById("graphVisualization");
     const canvas = document.getElementById("graphCanvas");
-
     if (!container || !canvas) return;
-
     container.classList.remove("hidden");
-
     const titleEl = document.getElementById("graphTitle");
     if (titleEl) {
       const seedNode = data.nodes.find((n) => n.is_seed);
@@ -175,100 +187,12 @@ class CitationGraphManager {
         ? `Network: ${seedNode.title.substring(0, 50)}...`
         : "Citation Network";
     }
-
     this.renderer.render(canvas, data.nodes, data.edges);
-    this.setupZoomPan(canvas);
-  }
-
-  private setupZoomPan(container: HTMLElement): void {
-    const svg = this.renderer.getSvg();
-    if (!svg) return;
-
-    let isPanning = false;
-    let startX = 0;
-    let startY = 0;
-
-    svg.addEventListener("wheel", (e) => {
-      e.preventDefault();
-      const scaleFactor = e.deltaY > 0 ? 0.9 : 1.1;
-      const rect = svg.getBoundingClientRect();
-      const mouseX = e.clientX - rect.left;
-      const mouseY = e.clientY - rect.top;
-
-      const newK = Math.max(0.1, Math.min(5, this.transform.k * scaleFactor));
-      this.transform.x =
-        mouseX - (mouseX - this.transform.x) * (newK / this.transform.k);
-      this.transform.y =
-        mouseY - (mouseY - this.transform.y) * (newK / this.transform.k);
-      this.transform.k = newK;
-
-      this.renderer.applyTransform(this.transform);
-    });
-
-    svg.addEventListener("mousedown", (e) => {
-      if (e.target === svg || (e.target as Element).closest(".graph-edges")) {
-        isPanning = true;
-        startX = e.clientX - this.transform.x;
-        startY = e.clientY - this.transform.y;
-        svg.style.cursor = "grabbing";
-      }
-    });
-
-    svg.addEventListener("mousemove", (e) => {
-      if (isPanning && !this.isDragging) {
-        this.transform.x = e.clientX - startX;
-        this.transform.y = e.clientY - startY;
-        this.renderer.applyTransform(this.transform);
-      }
-    });
-
-    svg.addEventListener("mouseup", () => {
-      isPanning = false;
-      svg.style.cursor = "grab";
-    });
-    svg.addEventListener("mouseleave", () => {
-      isPanning = false;
-      svg.style.cursor = "grab";
-    });
-    svg.style.cursor = "grab";
-  }
-
-  private startNodeDrag(e: MouseEvent, node: NetworkNode): void {
-    e.stopPropagation();
-    this.isDragging = true;
-
-    const svg = this.renderer.getSvg()!;
-    const rect = svg.getBoundingClientRect();
-
-    const onMouseMove = (moveEvent: MouseEvent) => {
-      const x =
-        (moveEvent.clientX - rect.left - this.transform.x) / this.transform.k;
-      const y =
-        (moveEvent.clientY - rect.top - this.transform.y) / this.transform.k;
-      node.fx = x;
-      node.fy = y;
-      node.x = x;
-      node.y = y;
-      this.renderer.getSimulation()?.reheat();
-    };
-
-    const onMouseUp = () => {
-      this.isDragging = false;
-      if (!node.is_seed) {
-        node.fx = null;
-        node.fy = null;
-      }
-      document.removeEventListener("mousemove", onMouseMove);
-      document.removeEventListener("mouseup", onMouseUp);
-    };
-
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mouseup", onMouseUp);
+    setupZoomPan(this.renderer, this.interactionState);
   }
 
   private showNodeTooltip(node: NetworkNode, element: SVGGElement): void {
     document.getElementById("graphTooltip")?.remove();
-
     const tooltip = document.createElement("div");
     tooltip.id = "graphTooltip";
     tooltip.className = "graph-tooltip";
@@ -282,7 +206,6 @@ class CitationGraphManager {
       </div>
       <div class="tooltip-hint">Click to view details</div>
     `;
-
     document.body.appendChild(tooltip);
     const rect = element.getBoundingClientRect();
     tooltip.style.left = `${rect.left + rect.width / 2}px`;
@@ -305,7 +228,6 @@ class CitationGraphManager {
   private showNodeDetails(node: NetworkNode): void {
     const panel = document.getElementById("nodeDetailsPanel");
     if (!panel) return;
-
     panel.classList.remove("hidden");
     panel.innerHTML = `
       <div class="node-details-header">
@@ -331,13 +253,9 @@ class CitationGraphManager {
         </div>
       </div>
     `;
-
     panel
       .querySelector(".btn-save-to-library")
-      ?.addEventListener("click", () => {
-        saveNodeToLibrary(node);
-      });
-
+      ?.addEventListener("click", () => saveNodeToLibrary(node));
     panel.querySelector(".btn-explore-from")?.addEventListener("click", () => {
       this.exploreFromNode(node);
     });
@@ -355,16 +273,12 @@ class CitationGraphManager {
     const container = document.getElementById("relatedPapersList");
     const content = document.getElementById("relatedPapersContent");
     if (!container || !content) return;
-
     try {
       const url = `${this.config.urls.relatedPapers}?doi=${encodeURIComponent(doi)}&limit=${limit}`;
       const response = await this.fetchWithTimeout(url, 60000);
-
       if (!response.ok) throw new Error("Failed to fetch related papers");
-
       const data = await response.json();
       const papers: RelatedPaper[] = data.related || [];
-
       content.innerHTML =
         papers.length === 0
           ? '<p class="empty-message">No related papers found</p>'
@@ -388,7 +302,6 @@ class CitationGraphManager {
           `,
               )
               .join("");
-
       content.querySelectorAll(".related-paper-item").forEach((item) => {
         item.addEventListener("click", () => {
           const paperDoi = item.getAttribute("data-doi");
@@ -398,7 +311,6 @@ class CitationGraphManager {
           }
         });
       });
-
       container.classList.remove("hidden");
     } catch (err) {
       console.error("Error fetching related papers:", err);
@@ -412,7 +324,6 @@ class CitationGraphManager {
     const loading = document.getElementById("graphLoading");
     const visualization = document.getElementById("graphVisualization");
     const related = document.getElementById("relatedPapersList");
-
     if (show) {
       loading?.classList.remove("hidden");
       visualization?.classList.add("hidden");
@@ -442,46 +353,37 @@ class CitationGraphManager {
 
   private fitToView(): void {
     if (!this.currentData) return;
-
     const svg = this.renderer.getSvg();
     if (!svg) return;
-
     const nodes = this.currentData.nodes;
     if (nodes.length === 0) return;
-
     const minX = Math.min(...nodes.map((n) => n.x || 0));
     const maxX = Math.max(...nodes.map((n) => n.x || 0));
     const minY = Math.min(...nodes.map((n) => n.y || 0));
     const maxY = Math.max(...nodes.map((n) => n.y || 0));
-
     const padding = 50;
     const graphWidth = maxX - minX + padding * 2;
     const graphHeight = maxY - minY + padding * 2;
-
     const svgRect = svg.getBoundingClientRect();
     const scale = Math.min(
       svgRect.width / graphWidth,
       svgRect.height / graphHeight,
       2,
     );
-
     this.transform = {
       x: svgRect.width / 2 - ((minX + maxX) / 2) * scale,
       y: svgRect.height / 2 - ((minY + maxY) / 2) * scale,
       k: scale,
     };
-
     this.renderer.applyTransform(this.transform);
   }
 
   private downloadSvg(): void {
     const svg = document.getElementById("citationGraphSvg");
     if (!svg) return;
-
     const svgData = new XMLSerializer().serializeToString(svg);
     const blob = new Blob([svgData], { type: "image/svg+xml" });
     const url = URL.createObjectURL(blob);
-
     const link = document.createElement("a");
     link.href = url;
     link.download = "citation-graph.svg";

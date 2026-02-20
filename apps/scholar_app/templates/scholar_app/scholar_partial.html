@@ -112,34 +112,68 @@
                     </div>
                 </div>
                 <div class="graph-card__body">
-                    <p class="graph-description">
-                        Build a citation network from a DOI to discover related papers through bibliographic coupling and co-citation analysis.
-                    </p>
+                    <div class="graph-input-tabs">
+                        <button class="graph-input-tab active" data-input-mode="doi">
+                            <i class="fas fa-fingerprint"></i> DOI
+                        </button>
+                        <button class="graph-input-tab" data-input-mode="search">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                        <button class="graph-input-tab" data-input-mode="library">
+                            <i class="fas fa-bookmark"></i> Library
+                        </button>
+                    </div>
                     <form id="graphForm" class="graph-form">
-                        <div class="form-row">
-                            <div class="form-group form-group--doi">
-                                <label for="doiInput" class="form-label">Enter DOI</label>
-                                <div class="input-wrapper">
-                                    <input type="text"
-                                           id="doiInput"
-                                           name="doi"
-                                           class="form-input"
-                                           placeholder="e.g., 10.1038/s41586-020-2008-3"
-                                           required />
-                                    <button type="submit" class="btn-build" id="buildGraphBtn">
-                                        <i class="fas fa-project-diagram"></i>
-                                        <span>Build Graph</span>
-                                    </button>
+                        <!-- DOI input (default) -->
+                        <div id="graphInputDoi" class="graph-input-panel">
+                            <div class="form-row">
+                                <div class="form-group form-group--doi">
+                                    <div class="input-wrapper">
+                                        <input type="text"
+                                               id="doiInput"
+                                               name="doi"
+                                               class="form-input"
+                                               placeholder="e.g., 10.1038/s41586-020-2008-3" />
+                                        <button type="submit" class="btn-build" id="buildGraphBtn">
+                                            <i class="fas fa-project-diagram"></i>
+                                            <span>Build</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group--options">
+                                    <select id="topN" name="top_n" class="form-select">
+                                        <option value="10">10</option>
+                                        <option value="20" selected>20</option>
+                                        <option value="30">30</option>
+                                        <option value="50">50</option>
+                                    </select>
                                 </div>
                             </div>
-                            <div class="form-group form-group--options">
-                                <label for="topN" class="form-label">Related Papers</label>
-                                <select id="topN" name="top_n" class="form-select">
-                                    <option value="10">10 papers</option>
-                                    <option value="20" selected>20 papers</option>
-                                    <option value="30">30 papers</option>
-                                    <option value="50">50 papers</option>
-                                </select>
+                        </div>
+                        <!-- Search input -->
+                        <div id="graphInputSearch" class="graph-input-panel hidden">
+                            <div class="form-row">
+                                <div class="form-group form-group--doi">
+                                    <div class="input-wrapper">
+                                        <input type="text"
+                                               id="graphSearchInput"
+                                               class="form-input"
+                                               placeholder="Search by title, author, or keywords..." />
+                                        <button type="button" class="btn-build" id="graphSearchBtn">
+                                            <i class="fas fa-search"></i>
+                                            <span>Search</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="graphSearchResults" class="graph-search-results hidden"></div>
+                        </div>
+                        <!-- Library picker -->
+                        <div id="graphInputLibrary" class="graph-input-panel hidden">
+                            <div id="graphLibraryList" class="graph-library-list">
+                                <p class="graph-library-loading">
+                                    <i class="fas fa-spinner fa-spin"></i> Loading library...
+                                </p>
                             </div>
                         </div>
                     </form>
