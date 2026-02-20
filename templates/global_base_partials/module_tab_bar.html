@@ -1,0 +1,50 @@
+{% load static %}
+
+{% comment %}
+Module tab bar — workspace navigation shown on all module pages.
+Active tab is inferred from request.path; no extra context variable needed.
+{% endcomment %}
+{% if user.is_authenticated %}
+    {% with p=request.path %}
+        {% if '/hub/' in p or '/console/' in p or '/writer/' in p or '/scholar/' in p or '/vis/' in p or '/clew/' in p or '/unified/' in p %}
+            <nav class="module-tab-bar" aria-label="Workspace modules">
+                <a href="/hub/"
+                   class="module-tab-btn{% if '/hub/' in p %} active{% endif %}"
+                   aria-label="Hub">
+                    <i class="fas fa-folder"></i>
+                    <span class="tab-label">Hub</span>
+                </a>
+                <a href="/console/workspace/"
+                   class="module-tab-btn{% if '/console/' in p %} active{% endif %}"
+                   aria-label="Console">
+                    <i class="fas fa-terminal"></i>
+                    <span class="tab-label">Console</span>
+                </a>
+                <a href="/writer/"
+                   class="module-tab-btn{% if '/writer/' in p %} active{% endif %}"
+                   aria-label="Writer">
+                    <i class="fas fa-pen"></i>
+                    <span class="tab-label">Writer</span>
+                </a>
+                <a href="/scholar/"
+                   class="module-tab-btn{% if '/scholar/' in p %} active{% endif %}"
+                   aria-label="Scholar">
+                    <i class="fas fa-book"></i>
+                    <span class="tab-label">Scholar</span>
+                </a>
+                <a href="/vis/editor/"
+                   class="module-tab-btn{% if '/vis/' in p %} active{% endif %}"
+                   aria-label="Visualizer">
+                    <i class="fas fa-chart-bar"></i>
+                    <span class="tab-label">Vis</span>
+                </a>
+                <a href="/clew/"
+                   class="module-tab-btn{% if '/clew/' in p %} active{% endif %}"
+                   aria-label="Clew">
+                    <i class="fas fa-project-diagram"></i>
+                    <span class="tab-label">Clew</span>
+                </a>
+            </nav>
+        {% endif %}
+    {% endwith %}
+{% endif %}

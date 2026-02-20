@@ -42,6 +42,8 @@
                 {% endfor %}
             </div>
         {% endif %}
+        <!-- Module Tab Bar — workspace navigation (hub, console, writer, scholar, vis, clew) -->
+        {% include 'global_base_partials/module_tab_bar.html' %}
         <main id="main-content">
             {% block content %}{% endblock %}
         </main>
