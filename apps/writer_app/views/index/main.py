@@ -16,6 +16,7 @@ __DIR__ = os.path.dirname(__FILE__)
 import json
 import logging
 
+from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 
