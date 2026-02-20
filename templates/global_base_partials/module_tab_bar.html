@@ -3,23 +3,12 @@
 {% comment %}
 Module tab bar — workspace navigation shown on all module pages.
 Active tab is inferred from request.path; no extra context variable needed.
+Order matches global header: Writer, Scholar, Vis, Console, Clew, Hub, Tools.
 {% endcomment %}
 {% if user.is_authenticated %}
     {% with p=request.path %}
         {% if '/hub/' in p or '/console/' in p or '/writer/' in p or '/scholar/' in p or '/vis/' in p or '/clew/' in p or '/tools/' in p %}
             <nav class="module-tab-bar" aria-label="Workspace modules">
-                <a href="/hub/"
-                   class="module-tab-btn{% if '/hub/' in p %} active{% endif %}"
-                   aria-label="Hub">
-                    <i class="fas fa-project-diagram"></i>
-                    <span class="tab-label">Hub</span>
-                </a>
-                <a href="/console/workspace/"
-                   class="module-tab-btn{% if '/console/' in p %} active{% endif %}"
-                   aria-label="Console">
-                    <i class="fas fa-terminal"></i>
-                    <span class="tab-label">Console</span>
-                </a>
                 <a href="/writer/"
                    class="module-tab-btn{% if '/writer/' in p %} active{% endif %}"
                    aria-label="Writer">
@@ -37,6 +26,12 @@ Active tab is inferred from request.path; no extra context variable needed.
                    aria-label="Visualizer">
                     <i class="fas fa-chart-bar"></i>
                     <span class="tab-label">Vis</span>
+                </a>
+                <a href="/console/workspace/"
+                   class="module-tab-btn{% if '/console/' in p %} active{% endif %}"
+                   aria-label="Console">
+                    <i class="fas fa-terminal"></i>
+                    <span class="tab-label">Console</span>
                 </a>
                 <a href="/clew/"
                    class="module-tab-btn{% if '/clew/' in p %} active{% endif %}"
@@ -56,6 +51,12 @@ Active tab is inferred from request.path; no extra context variable needed.
                         <line x1="85" y1="82" x2="95" y2="95" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" />
                     </svg>
                     <span class="tab-label">Clew</span>
+                </a>
+                <a href="/hub/"
+                   class="module-tab-btn{% if '/hub/' in p %} active{% endif %}"
+                   aria-label="Hub">
+                    <i class="fas fa-project-diagram"></i>
+                    <span class="tab-label">Hub</span>
                 </a>
                 <a href="/tools/"
                    class="module-tab-btn{% if '/tools/' in p %} active{% endif %}"
