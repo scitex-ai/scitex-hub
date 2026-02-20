@@ -454,6 +454,9 @@ export const workspacePanelResizer = new WorkspacePanelResizer();
 export function autoInitPanels(): void {
   const resizers = document.querySelectorAll("[data-panel-resizer]");
 
+  // Suppress ALL transitions during panel state restore (covers siblings/parents too)
+  document.body.classList.add("no-transition");
+
   resizers.forEach((el) => {
     const resizer = el as HTMLElement;
     const storagePrefix = resizer.dataset.storagePrefix || "scitex-";
@@ -485,6 +488,14 @@ export function autoInitPanels(): void {
   console.log(
     `[WorkspacePanelResizer] Auto-initialized ${resizers.length} panel(s)`,
   );
+
+  // Re-enable transitions after all panels initialized.
+  // Double-rAF ensures the browser paints restored positions before transitions become active.
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      document.body.classList.remove("no-transition");
+    });
+  });
 }
 
 // Auto-initialize on DOMContentLoaded
