@@ -17,8 +17,6 @@
  * ```
  */
 
-console.log("[DEBUG] shared/ts/components/workspace-panel-resizer loaded");
-
 export { PanelConfig } from "./types";
 import { PanelConfig } from "./types";
 import { restoreCollapseState } from "./state";
@@ -94,7 +92,16 @@ export class WorkspacePanelResizer {
 
 export const workspacePanelResizer = new WorkspacePanelResizer();
 
+let _autoInitDone = false;
+
 export function autoInitPanels(): void {
+  if (_autoInitDone) {
+    console.log(
+      "[WorkspacePanelResizer] autoInitPanels already done, skipping duplicate call.",
+    );
+    return;
+  }
+  _autoInitDone = true;
   const resizers = document.querySelectorAll("[data-panel-resizer]");
 
   document.body.classList.add("no-transition");

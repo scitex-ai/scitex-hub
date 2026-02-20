@@ -127,7 +127,6 @@
 {% endblock %}
 {% block extra_js %}
     {% vite_hmr_client %}
-    {% vite_script 'shared/workspace-panel-resizer' %}
     {% tree_preseed_script current_project %}
     {% vite_script 'shared/workspace-tree-init' %}
     {% vite_script 'public_app/tools-panel' %}

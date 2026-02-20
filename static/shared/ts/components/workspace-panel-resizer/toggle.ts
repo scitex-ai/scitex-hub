@@ -46,6 +46,15 @@ export function initToggleClickHandler(
     return;
   }
 
+  // Guard: prevent double-registering click handler on same element
+  if (toggleBtn.dataset.wprToggleInit === "true") {
+    console.log(
+      `[WorkspacePanelResizer] Toggle already initialized for ${config.toggleButtonId}, skipping.`,
+    );
+    return;
+  }
+  toggleBtn.dataset.wprToggleInit = "true";
+
   toggleBtn.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();

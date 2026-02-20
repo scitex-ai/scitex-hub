@@ -629,8 +629,6 @@
     <script src="https://cdn.jsdelivr.net/npm/xterm-addon-image@0.6.0/lib/xterm-addon-image.js"></script>
     <!-- Vite HMR client (only in dev when Vite server is running) -->
     {% vite_hmr_client %}
-    <!-- Panel resizer (auto-initializes from data attributes) -->
-    {% vite_script 'shared/workspace-panel-resizer' %}
     <!-- Load workspace module via Vite (HMR in dev, bundled in prod) -->
     {% vite_script 'console_app/workspace' %}
 {% endblock %}

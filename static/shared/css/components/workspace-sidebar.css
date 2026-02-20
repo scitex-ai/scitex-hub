@@ -178,13 +178,6 @@
   padding: 4px;
 }
 
-/* Hide sidebar toggle when expanded */
-.workspace-sidebar:not(.collapsed) .sidebar-toggle,
-.workspace-sidebar:not(.collapsed) .sidebar-toggle-btn,
-.workspace-sidebar:not(.collapsed) .panel-toggle-btn {
-  display: none;
-}
-
 /* Expanded header: green hint only on empty space (foldable state)
    JS adds .foldable class when cursor is on empty header area */
 .workspace-sidebar:not(.collapsed) .sidebar-header.foldable {

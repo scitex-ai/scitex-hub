@@ -360,8 +360,6 @@
 {% endblock %}
 {% block extra_js %}
     {{ block.super }}
-    <!-- Panel resizer (auto-initializes from data attributes) -->
-    {% vite_script 'shared/workspace-panel-resizer' %}
     <!-- Keyboard shortcuts modal handler -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {

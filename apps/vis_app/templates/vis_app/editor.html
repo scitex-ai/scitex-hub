@@ -528,8 +528,6 @@
     {% vite_hmr_client %}
     <!-- Binary toggle for data/canvas panes (must load before panel-resizer to intercept) -->
     {% vite_script 'vis_app/vis-panel-toggle' %}
-    <!-- Panel resizer (auto-initializes from data attributes) -->
-    {% vite_script 'shared/workspace-panel-resizer' %}
     {% tree_preseed_script current_project %}
     <!-- Fabric.js for canvas manipulation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>

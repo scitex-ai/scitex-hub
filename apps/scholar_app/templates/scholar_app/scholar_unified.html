@@ -730,8 +730,6 @@
 {% endblock %}
 {% block extra_js %}
     {{ block.super }}
-    <!-- Panel resizer (auto-initializes from data attributes) -->
-    {% vite_script 'shared/workspace-panel-resizer' %}
     <!-- Source health check (LED indicators for local DB availability) -->
     {% vite_script 'scholar_app/search/source-health-check' %}
     {% if current_project %}
