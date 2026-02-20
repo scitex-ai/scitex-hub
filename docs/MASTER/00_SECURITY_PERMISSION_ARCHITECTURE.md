@@ -1,7 +1,7 @@
 # SciTeX Cloud — Security & Permission Architecture
 
 **Date:** 2026-02-20
-**Status:** Partially Implemented — see section status tags
+**Status:** Mostly Implemented — see section status tags
 
 ---
 
@@ -20,7 +20,7 @@ Browser ──HTTPS──► Django (auth) ──► Command path
          Terminal                    exec                  queries
               │                         │                         │
        SLURM + Apptainer         setpriv (UID)          Django models
-       (✅ ENFORCED)              (✅ ENFORCED)          (🔲 PARTIAL)
+       (✅ ENFORCED)              (✅ ENFORCED)          (✅ ENFORCED)
               │                         │
          UID preserved             OS chmod 700
          inside container          per-user dir
@@ -146,20 +146,39 @@ RUN apt-get install -y util-linux libcap2-bin && \
 
 ---
 
-## Layer 4 — Django Model-Level Permissions  🔲 PARTIAL
+## Layer 4 — Django Model-Level Permissions  ✅ ENFORCED
 
-Project-scoped RBAC is partially implemented.  Current state:
+Project-scoped RBAC is enforced at all write endpoints via `ProjectMembership.permission_level`.
 
 | Object | Who can access | Enforcement |
 |--------|---------------|-------------|
-| `Project` | Owner + members | `ProjectMembership` FK check in views |
+| `Project` (read) | Owner + any member + public | `collaborators.filter().exists()` or `visibility=="public"` |
+| `Project` (write) | Owner + write/admin members | `project.can_edit(user)` — checks `permission_level in ["write","admin"]` |
 | `UserProfile` | Owner only | `request.user == profile.user` |
 | Visitor workspace | Visitor user only | UID isolation (Layer 3) |
 | Scholar library | Project members | path constructed from project root |
 
-**Gaps (planned):**
-- Fine-grained read/write roles on project membership (currently all members
-  have equal access)
+**Write endpoints enforcing `permission_level`:**
+- `api_save_file`, `api_create_file`, `api_delete_file` — `@login_required` + `project.can_edit()`
+- `api_git_commit` — `@login_required` + `project.can_edit()` (visitors cannot commit)
+- `check_project_write_access()` — delegates to `project.can_edit()` for all repo API views
+
+**Key method:**
+```python
+# apps/project_app/models/repository/project_methods.py
+def can_edit(self, user):
+    if not user or not user.is_authenticated:
+        return False
+    if user == self.owner:
+        return True
+    try:
+        membership = self.memberships.get(user=user)
+        return membership.permission_level in ["write", "admin"]
+    except ProjectMembership.DoesNotExist:
+        return False
+```
+
+**Remaining gaps (planned):**
 - Admin-panel enforcement (superuser can currently see any project via ORM)
 - Rate limiting per user on API endpoints
 
@@ -231,7 +250,7 @@ Will be revisited when HPC integration (SLURM) is extended to bash exec.
 | Privilege escalation via bash exec | No `sudo`, no SUID scripts | ✅ |
 | CSRF on state-changing endpoints | Django `CsrfViewMiddleware` | ✅ |
 | XSS via file content | Templates use `{{ var\|escape }}` | ✅ |
-| Fine-grained project RBAC | Membership model partial | 🔲 |
+| Fine-grained project RBAC | `project.can_edit()` on all write endpoints | ✅ |
 | SSO / centralized identity | LDAP planned | 🔲 |
 | bash exec container isolation | Apptainer planned | 🔲 |
 
@@ -275,15 +294,17 @@ ps aux | grep apptainer | grep -v srun   # Should be empty (all via SLURM)
 
 ## Roadmap
 
-| Priority | Item | Effort |
-|----------|------|--------|
-| High | Fine-grained project roles (read/write member) | Medium |
-| Medium | LDAP/FreeIPA integration | Large |
-| Medium | Apptainer for AI-chat bash exec | Medium |
-| Low | Rate limiting on API endpoints | Small |
-| Low | Audit log (who ran what command, when) | Small |
+| Priority | Item | Effort | Status |
+|----------|------|--------|--------|
+| ~~High~~ | ~~Fine-grained project roles (read/write member)~~ | ~~Medium~~ | ✅ Done (`455a13cc`) |
+| Medium | LDAP/FreeIPA integration | Large | 🔲 Planned |
+| Medium | Apptainer for AI-chat bash exec | Medium | 🔲 Planned |
+| Low | Rate limiting on API endpoints | Small | 🔲 Planned |
+| Low | Audit log (who ran what command, when) | Small | 🔲 Planned |
 
 ---
 
-**Document Version:** 1.0
+**Document Version:** 1.1
 **Last Updated:** 2026-02-20
+**Changelog:**
+- v1.1: Layer 4 updated to ENFORCED — Plan B (`455a13cc`) added `project.can_edit()` to all write endpoints
