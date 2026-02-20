@@ -100,11 +100,18 @@
   height: calc(100vh - 64px);
   z-index: 900; /* below header (1000) */
   box-shadow: 4px 0 16px rgba(0, 0, 0, 0.25);
-  overflow: hidden;
+  overflow: visible; /* allow right-edge drag handle hit area */
   transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   background: var(--bg-secondary, #161b22) !important;
   border-right: 1px solid var(--border-default, #30363d) !important;
   border-bottom: none !important;
+}
+
+/* Keep inner content contained so overflow:visible on panel doesn't leak */
+.scitex-ai-panel .sidebar-header,
+.scitex-ai-panel .sidebar-content {
+  overflow: hidden;
+  max-width: 100%;
 }
 
 /* Collapsed: 40px strip (workspace-sidebar sets min-width: 40px already) */
