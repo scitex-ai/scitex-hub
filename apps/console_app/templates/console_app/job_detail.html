@@ -202,10 +202,10 @@
                 </div>
                 <div class="col-md-4 text-end">
                     <div class="btn-group" role="group">
-                        <a href="{% url "console:jobs' %}" class="btn btn-light">
+                        <a href="{% url "console:jobs" %}" class="btn btn-light">
                             <i class="fas fa-arrow-left me-1"></i>Back to Jobs
                         </a>
-                        <a href="{% url "console:editor' %}?job={{ job.job_id }}" class="btn btn-light">
+                        <a href="{% url "console:editor" %}?job={{ job.job_id }}" class="btn btn-light">
                             <i class="fas fa-edit me-1"></i>Edit Code
                         </a>
                     </div>
@@ -455,7 +455,7 @@
     // Auto-refresh for running jobs
     {% if job.status == 'running' %}
     function checkJobStatus() {
-      fetch(`{% url "console:job_status' job.job_id %}`)
+      fetch(`{% url "console:job_status" job.job_id %}`)
         .then(response => response.json())
         .then(data => {
           if (data.status !== 'running') {

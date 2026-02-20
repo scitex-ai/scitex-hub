@@ -3,8 +3,6 @@
 # File: src/scitex_cloud/_mcp_tools/api.py
 """Django API tools for FastMCP server."""
 
-from __future__ import annotations
-
 import json
 import os
 from typing import Optional
