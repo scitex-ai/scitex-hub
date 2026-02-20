@@ -10,48 +10,13 @@ from django.utils.safestring import mark_safe
 
 register = template.Library()
 
-_CLEW_SVG_NAV = (
-    '<svg class="nav-icon-svg" viewBox="0 0 100 100" fill="none" '
-    'xmlns="http://www.w3.org/2000/svg" width="20" height="20">'
-    '<circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="5"/>'
-    '<line x1="10" y1="50" x2="90" y2="50" stroke="currentColor" stroke-width="4.5"/>'
-    '<line x1="13" y1="35" x2="87" y2="35" stroke="currentColor" stroke-width="4"/>'
-    '<line x1="13" y1="65" x2="87" y2="65" stroke="currentColor" stroke-width="4"/>'
-    '<path d="M30 12 Q70 30 70 50 Q70 70 30 88" stroke="currentColor" stroke-width="4" fill="none"/>'
-    '<path d="M70 12 Q30 30 30 50 Q30 70 70 88" stroke="currentColor" stroke-width="4" fill="none"/>'
-    '<line x1="85" y1="82" x2="95" y2="95" stroke="currentColor" stroke-width="4.5" stroke-linecap="round"/>'
-    "</svg>"
-)
-
-_CLEW_SVG_TAB = (
-    '<svg class="tab-icon-svg" viewBox="0 0 100 100" fill="none" '
-    'xmlns="http://www.w3.org/2000/svg" width="16" height="16" style="flex-shrink:0">'
-    '<circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="5"/>'
-    '<line x1="10" y1="50" x2="90" y2="50" stroke="currentColor" stroke-width="4.5"/>'
-    '<line x1="13" y1="35" x2="87" y2="35" stroke="currentColor" stroke-width="4"/>'
-    '<line x1="13" y1="65" x2="87" y2="65" stroke="currentColor" stroke-width="4"/>'
-    '<path d="M30 12 Q70 30 70 50 Q70 70 30 88" stroke="currentColor" stroke-width="4" fill="none"/>'
-    '<path d="M70 12 Q30 30 30 50 Q30 70 70 88" stroke="currentColor" stroke-width="4" fill="none"/>'
-    '<line x1="85" y1="82" x2="95" y2="95" stroke="currentColor" stroke-width="4.5" stroke-linecap="round"/>'
-    "</svg>"
-)
-
-# Canonical icon definitions — ground truth for ALL templates
-_MODULE_ICONS = {
-    "writer": {"fa": "fa-pen"},
-    "scholar": {"fa": "fa-graduation-cap"},
-    "vis": {"fa": "fa-chart-line"},
-    "console": {"fa": "fa-terminal"},
-    "clew": {"nav_svg": _CLEW_SVG_NAV, "tab_svg": _CLEW_SVG_TAB},
-    "hub": {"fa": "fa-project-diagram"},
-    "tools": {"fa": "fa-tools"},
-}
-
 
 @register.simple_tag
 def module_icon(name, context="tab"):
     """
     Render the canonical icon for a workspace module.
+
+    Reads icon data from the central module registry (apps.workspace_app.registry).
 
     Args:
         name: Module name (writer, scholar, vis, console, clew, hub, tools)
@@ -62,15 +27,23 @@ def module_icon(name, context="tab"):
         {% module_icon "writer" %}          {# tab bar #}
         {% module_icon "writer" "nav" %}    {# global header #}
     """
-    icon = _MODULE_ICONS.get(name)
-    if not icon:
+    from apps.workspace_app.registry import get_module
+
+    mod = get_module(name)
+    if not mod:
         return mark_safe("")
-    if "fa" in icon:
+
+    # FontAwesome icon
+    if mod.icon_fa:
         css_class = "nav-icon-fa" if context == "nav" else ""
         return mark_safe(
-            f'<i class="fas {icon["fa"]} {css_class}"></i>'.replace("  ", " ").strip()
+            f'<i class="fas {mod.icon_fa} {css_class}"></i>'.replace("  ", " ").strip()
         )
-    # SVG (Clew)
-    if context == "nav":
-        return mark_safe(icon["nav_svg"])
-    return mark_safe(icon["tab_svg"])
+
+    # Custom SVG icon
+    if context == "nav" and mod.icon_svg_nav:
+        return mark_safe(mod.icon_svg_nav)
+    if mod.icon_svg_tab:
+        return mark_safe(mod.icon_svg_tab)
+
+    return mark_safe("")

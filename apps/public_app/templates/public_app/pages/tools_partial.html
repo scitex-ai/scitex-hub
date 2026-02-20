@@ -1,0 +1,87 @@
+{% load static vite tree_preseed %}
+
+<!-- Tools page CSS -->
+<link rel="stylesheet" href="{% static 'public_app/css/tools/tools.css' %}" />
+<!-- Project config for shared tree auto-init -->
+{% if current_project %}
+    <div id="workspace-project-config"
+         style="display: none"
+         data-username="{{ current_project.owner.username }}"
+         data-slug="{{ current_project.slug }}"
+         data-mode="tools"></div>
+{% endif %}
+<!-- Workspace layout: 3 columns -->
+<div class="tools-workspace">
+    <!-- Sidebar removed: unified workspace provides the file tree via ws-worktree-pane -->
+    <!-- Column 2: Tool selector (always visible) -->
+    <div class="tools-nav-panel collapsible-panel" id="tools-nav-panel">
+        <!-- Header -->
+        <div class="tools-nav-header">
+            <button class="panel-toggle-btn left-panel-toggle"
+                    id="tools-nav-toggle"
+                    title="Collapse tools panel">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <span class="panel-title">Tools</span>
+            <span class="tools-nav-header-title"><i class="fas fa-wrench"></i> Tools</span>
+        </div>
+        <!-- Tool navigation by domain -->
+        <div class="tools-nav-list" id="tools-nav-list">
+            {% for domain in domains %}
+                <div class="tools-nav-domain">
+                    <button class="tools-nav-domain-header expanded" data-domain="{{ domain.slug }}">
+                        <span class="tools-nav-domain-icon">{{ domain.icon }}</span>
+                        <span class="tools-nav-domain-name">{{ domain.name }}</span>
+                        <span class="tools-nav-count">{{ domain.tools|length }}</span>
+                        <i class="fas fa-chevron-right tools-nav-chevron"></i>
+                    </button>
+                    <div class="tools-nav-items expanded">
+                        {% for tool in domain.tools %}
+                            <a class="tools-nav-item"
+                               href="#"
+                               data-tool-url="{{ tool.bookmarklet_url }}?embed=1"
+                               data-tool-name="{{ tool.name }}"
+                               data-tool-slug="{{ tool.bookmarklet_url }}">
+                                <span class="tools-nav-item-icon">{{ tool.icon }}</span>
+                                <span class="tools-nav-item-name">{{ tool.name }}</span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <!-- Search Box (bottom, like file tree) -->
+        <div class="tools-search-bar">
+            <span class="search-icon"><i class="fas fa-search"></i></span>
+            <input type="text" class="search-input" id="searchInput" placeholder="Search tools..." />
+            <span class="search-shortcut">Ctrl K</span>
+        </div>
+    </div>
+    <!-- Nav-to-content resizer -->
+    <div class="panel-resizer"
+         id="tools-nav-resizer"
+         data-panel-resizer
+         data-storage-prefix="scitex-workspace-"
+         data-target=".tools-nav-panel"
+         data-direction="left"
+         data-min-width="40"
+         data-default-width="260"
+         data-storage-key="tools-nav-width"
+         data-toggle-btn="tools-nav-toggle"
+         data-collapse-key="scitex-workspace-tools-nav-collapsed"></div>
+    <!-- Column 3: Tool content (always visible) -->
+    <main class="tools-content-panel" id="tools-content-panel">
+        <!-- Iframe header removed for cleaner look - tools fill full space -->
+        <!-- Iframe or placeholder -->
+        <div class="tools-content-body" id="tools-content-body">
+            <div class="tools-placeholder" id="tools-placeholder">
+                <i class="fas fa-wrench"></i>
+                <p>Select a tool from the list</p>
+            </div>
+            <iframe id="tools-iframe" class="tools-iframe" src="" frameborder="0" hidden></iframe>
+        </div>
+    </main>
+</div>
+{% tree_preseed_script current_project %}
+{% vite_script 'shared/workspace-tree-init' %}
+{% vite_script 'public_app/tools-panel' %}

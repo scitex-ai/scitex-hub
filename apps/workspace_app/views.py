@@ -165,34 +165,23 @@ def workspace_module_content(request, module):
         from django.http import HttpResponseForbidden
 
         return HttpResponseForbidden("Direct access not allowed")
-    PARTIAL_MAP = {
-        "hub": "hub_app/index_partial.html",
-        "writer": "writer_app/writer_partial.html",
-        "scholar": "scholar_app/scholar_partial.html",
-        "console": "console_app/console_partial.html",
-        "vis": "vis_app/vis_partial.html",
-        "clew": "clew_app/index_partial.html",
-    }
-    template = PARTIAL_MAP.get(module)
-    if not template:
+
+    from .registry import get_module
+
+    mod_config = get_module(module)
+    if not mod_config or not mod_config.partial_template:
         from django.http import HttpResponseNotFound
 
         return HttpResponseNotFound(f"Module '{module}' not found")
+
     from apps.project_app.services.project_utils import get_current_project
 
     current_project = (
         get_current_project(request) if request.user.is_authenticated else None
     )
 
-    # Module-specific context builders
-    if module == "writer":
-        from apps.writer_app.views.index.main import build_writer_context
-
-        ctx = build_writer_context(request, current_project)
-    else:
-        ctx = {"current_project": current_project}
-
-    return render(request, template, ctx)
+    ctx = mod_config.build_context(request, current_project)
+    return render(request, mod_config.partial_template, ctx)
 
 
 # EOF

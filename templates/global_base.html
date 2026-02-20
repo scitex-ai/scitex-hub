@@ -18,8 +18,8 @@
     </head>
     <body data-user-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}"
           data-user-type="{% if user.is_authenticated and user.username|slice:':8' == 'visitor-' %}visitor{% elif user.is_authenticated %}registered{% else %}anonymous{% endif %}"
-          data-track-module="{% if '/console/' in request.path %}code{% elif '/vis/' in request.path %}vis{% elif '/writer/' in request.path %}writer{% elif '/scholar/' in request.path %}scholar{% elif '/tools/' in request.path %}tools{% elif '/server-status' in request.path %}server_status{% elif '/explore/' in request.path %}explore{% elif '/files/' in request.path or '/workspace/' in request.path %}files{% endif %}"
-          class="{% if request.path == '/' %}workspace-page landing-page{% elif '/console/' in request.path %}workspace-page code-workspace no-transition{% elif '/vis/' in request.path %}workspace-page vis-workspace no-transition{% elif '/writer/' in request.path %}workspace-page writer-page no-transition{% elif '/scholar/' in request.path %}workspace-page scholar-page no-transition{% elif '/clew/' in request.path %}workspace-page clew-page no-transition{% elif '/hub/' in request.path %}workspace-page hub-page no-transition{% elif '/tools/' in request.path %}workspace-page tools-page no-transition{% elif '/workspace/' in request.path %}workspace-page no-transition{% elif '/explore/' in request.path %}workspace-page explore-page{% endif %}">
+          data-track-module="{% if active_module %}{{ active_module.get_track_module }}{% elif '/server-status' in request.path %}server_status{% elif '/explore/' in request.path %}explore{% elif '/files/' in request.path or '/workspace/' in request.path %}files{% endif %}"
+          class="{% if request.path == '/' %}workspace-page landing-page{% elif active_module %}workspace-page {{ active_module.body_class }} no-transition{% elif '/workspace/' in request.path %}workspace-page no-transition{% elif '/explore/' in request.path %}workspace-page explore-page{% endif %}">
         <!-- Hidden CSRF token for JavaScript API calls -->
         <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" />
         {% include 'global_base_partials/global_header.html' %}
@@ -46,20 +46,18 @@
         {% include 'global_base_partials/module_tab_bar.html' %}
         <!-- Page content: three-col on authenticated workspace pages, plain otherwise -->
         <div id="workspace-three-col"
-             class="{% if '/hub/' in request.path or '/console/' in request.path or '/writer/' in request.path or '/scholar/' in request.path or '/vis/' in request.path or '/clew/' in request.path or '/tools/' in request.path %}{% if user.is_authenticated %}workspace-three-col{% endif %}{% endif %}">
-            {% if '/hub/' in request.path or '/console/' in request.path or '/writer/' in request.path or '/scholar/' in request.path or '/vis/' in request.path or '/clew/' in request.path or '/tools/' in request.path %}
-                {% if user.is_authenticated %}
-                    {% include 'global_base_partials/workspace_ai_pane.html' %}
-                    {% include 'global_base_partials/workspace_worktree_pane.html' %}
-                {% endif %}
+             class="{% if is_workspace_page and user.is_authenticated %}workspace-three-col{% endif %}">
+            {% if is_workspace_page and user.is_authenticated %}
+                {% include 'global_base_partials/workspace_ai_pane.html' %}
+                {% include 'global_base_partials/workspace_worktree_pane.html' %}
             {% endif %}
             <main id="main-content"
-                  class="{% if '/hub/' in request.path or '/console/' in request.path or '/writer/' in request.path or '/scholar/' in request.path or '/vis/' in request.path or '/clew/' in request.path or '/tools/' in request.path %}{% if user.is_authenticated %}ws-module-pane{% endif %}{% endif %}">
+                  class="{% if is_workspace_page and user.is_authenticated %}ws-module-pane{% endif %}">
                 {% block content %}{% endblock %}
             </main>
         </div>
         {% include 'global_base_partials/global_footer.html' %}
-        {% if '/hub/' not in request.path and '/console/' not in request.path and '/writer/' not in request.path and '/scholar/' not in request.path and '/vis/' not in request.path and '/clew/' not in request.path and '/tools/' not in request.path %}
+        {% if not is_workspace_page %}
             {% include 'global_base_partials/global_ai_panel.html' %}
         {% endif %}
         {% include 'global_base_partials/global_body_scripts.html' %}

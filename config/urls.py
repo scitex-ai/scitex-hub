@@ -126,6 +126,7 @@ urlpatterns = [
     path("vis/", include(("apps.vis_app.urls", "vis"))),
     path("writer/", include(("apps.writer_app.urls", "writer_app"))),
     path("workspace/", include(("apps.workspace_app.urls", "workspace_app"))),
+    path("example/", include(("apps.example_app.urls", "example_app"))),
     # LLM/Agent Support
     path("llm/", include(("apps.llm_app.urls", "llm_app"))),
     # Deveopment

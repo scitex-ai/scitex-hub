@@ -1,58 +1,21 @@
-{% load static %}
 {% load module_icons %}
 
 {% comment %}
 Module tab bar — workspace navigation shown on all module pages.
-Active tab is inferred from request.path; no extra context variable needed.
-Order matches global header: Writer, Scholar, Vis, Console, Clew, Hub, Tools.
+Active tab is driven by the registry context processor (workspace_modules).
+Order is determined by each module's `order` field in registry.py.
 {% endcomment %}
-{% if user.is_authenticated %}
-    {% with p=request.path %}
-        {% if '/hub/' in p or '/console/' in p or '/writer/' in p or '/scholar/' in p or '/vis/' in p or '/clew/' in p or '/tools/' in p %}
-            <nav class="module-tab-bar" aria-label="Workspace modules">
-                <a href="/writer/"
-                   class="module-tab-btn{% if '/writer/' in p %} active{% endif %}"
-                   aria-label="Writer">
-                    {% module_icon "writer" %}
-                    <span class="tab-label">Writer</span>
-                </a>
-                <a href="/scholar/"
-                   class="module-tab-btn{% if '/scholar/' in p %} active{% endif %}"
-                   aria-label="Scholar">
-                    {% module_icon "scholar" %}
-                    <span class="tab-label">Scholar</span>
-                </a>
-                <a href="/vis/"
-                   class="module-tab-btn{% if '/vis/' in p %} active{% endif %}"
-                   aria-label="Visualizer">
-                    {% module_icon "vis" %}
-                    <span class="tab-label">Vis</span>
-                </a>
-                <a href="/console/"
-                   class="module-tab-btn{% if '/console/' in p %} active{% endif %}"
-                   aria-label="Console">
-                    {% module_icon "console" %}
-                    <span class="tab-label">Console</span>
-                </a>
-                <a href="/clew/"
-                   class="module-tab-btn{% if '/clew/' in p %} active{% endif %}"
-                   aria-label="Clew">
-                    {% module_icon "clew" %}
-                    <span class="tab-label">Clew</span>
-                </a>
-                <a href="/hub/"
-                   class="module-tab-btn{% if '/hub/' in p %} active{% endif %}"
-                   aria-label="Hub">
-                    {% module_icon "hub" %}
-                    <span class="tab-label">Hub</span>
-                </a>
-                <a href="/tools/"
-                   class="module-tab-btn{% if '/tools/' in p %} active{% endif %}"
-                   aria-label="Tools">
-                    {% module_icon "tools" %}
-                    <span class="tab-label">Tools</span>
-                </a>
-            </nav>
-        {% endif %}
-    {% endwith %}
+{% if user.is_authenticated and is_workspace_page %}
+    <nav class="module-tab-bar"
+         aria-label="Workspace modules"
+         data-workspace-modules="{{ workspace_module_names_csv }}">
+        {% for mod in workspace_modules %}
+            <a href="/{{ mod.name }}/"
+               class="module-tab-btn{% if mod.is_active %} active{% endif %}"
+               aria-label="{{ mod.label }}">
+                {% module_icon mod.name %}
+                <span class="tab-label">{{ mod.label }}</span>
+            </a>
+        {% endfor %}
+    </nav>
 {% endif %}
