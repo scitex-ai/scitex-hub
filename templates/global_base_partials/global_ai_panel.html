@@ -1,6 +1,6 @@
 {% load static %}
 
-{% if user.is_authenticated and request.path != '/' %}
+{% if user.is_authenticated and ('/console/' in request.path or '/vis/' in request.path or '/writer/' in request.path or '/scholar/' in request.path or '/clew/' in request.path or '/hub/' in request.path or '/tools/' in request.path) %}
     <!-- Global AI Agent Panel: uses workspace-sidebar for consistent fold/expand behavior -->
     <div id="scitex-ai-panel"
          class="scitex-ai-panel workspace-sidebar collapsed"

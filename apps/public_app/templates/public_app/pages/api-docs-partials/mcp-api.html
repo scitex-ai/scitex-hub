@@ -110,16 +110,16 @@ async with Client(
         <i class="fas fa-tools"></i> Available Tools
     </h2>
     <p>
-        The MCP server exposes all SciTeX tools. Call
+        The MCP server exposes 100+ SciTeX tools. Call
         <code>client.list_tools()</code> for the live list.
-        Key tool categories:
+        Tools are organized by prefix:
     </p>
     <table class="api-table">
         <thead>
             <tr>
                 <th>Prefix</th>
                 <th>Category</th>
-                <th>Examples</th>
+                <th>Key Tools</th>
             </tr>
         </thead>
         <tbody>
@@ -128,49 +128,95 @@ async with Client(
                     <code>plt_*</code>
                 </td>
                 <td>Plotting</td>
-                <td>plt_plot, plt_compose, plt_crop</td>
+                <td>plt_plot, plt_compose, plt_reproduce, plt_crop, plt_extract_data</td>
             </tr>
             <tr>
                 <td>
                     <code>stats_*</code>
                 </td>
                 <td>Statistics</td>
-                <td>stats_run_test, stats_power_analysis, stats_describe</td>
+                <td>
+                    stats_run_test, stats_recommend_tests, stats_power_analysis, stats_describe, stats_effect_size, stats_posthoc_test, stats_correct_pvalues
+                </td>
             </tr>
             <tr>
                 <td>
                     <code>scholar_*</code>
                 </td>
                 <td>Literature</td>
-                <td>scholar_search_papers, scholar_enrich_bibtex, scholar_parse_pdf_content</td>
+                <td>
+                    scholar_search_papers, scholar_enrich_bibtex, scholar_parse_pdf_content, scholar_fetch_papers, scholar_export_papers, scholar_create_project
+                </td>
             </tr>
             <tr>
                 <td>
                     <code>diagram_*</code>
                 </td>
                 <td>Diagrams</td>
-                <td>diagram_create, diagram_compile_mermaid, diagram_render</td>
+                <td>diagram_create, diagram_compile_mermaid, diagram_compile_graphviz, diagram_render, diagram_split</td>
             </tr>
             <tr>
                 <td>
                     <code>writer_*</code>
                 </td>
                 <td>LaTeX Manuscript</td>
-                <td>writer_compile_manuscript, writer_add_figure, writer_add_table</td>
+                <td>writer_compile_manuscript, writer_add_figure, writer_add_table, writer_add_claim, writer_list_claims</td>
             </tr>
             <tr>
                 <td>
                     <code>introspect_*</code>
                 </td>
                 <td>Code Inspection</td>
-                <td>introspect_signature, introspect_source, introspect_api</td>
+                <td>introspect_signature, introspect_source, introspect_api, introspect_docstring, introspect_call_graph</td>
             </tr>
             <tr>
                 <td>
                     <code>project_*</code>
                 </td>
                 <td>Project Files</td>
-                <td>project_read_file, project_write_file, project_search_files</td>
+                <td>project_read_file, project_write_file, project_list_files, project_search_files</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>clew_*</code>
+                </td>
+                <td>Reproducibility</td>
+                <td>clew_list, clew_run, clew_chain, clew_status, clew_mermaid</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>template_*</code>
+                </td>
+                <td>Templates</td>
+                <td>template_clone_template, template_get_code_template, template_list_code_templates</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>dev_*</code>
+                </td>
+                <td>Developer</td>
+                <td>dev_list_versions, dev_get_config, dev_test_local, dev_rename</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>audio_*</code>
+                </td>
+                <td>Audio</td>
+                <td>audio_speak</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>ui_*</code>
+                </td>
+                <td>Notifications</td>
+                <td>ui_notify, ui_get_notification_config</td>
+            </tr>
+            <tr>
+                <td>
+                    <code>usage_*</code>
+                </td>
+                <td>Examples</td>
+                <td>usage_show, usage_list</td>
             </tr>
         </tbody>
     </table>
