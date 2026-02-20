@@ -444,6 +444,29 @@ body.scitex-ai-open #main-content {
   }
 }
 
+/* ============================================================
+   Unified Workspace: AI panel floats on the RIGHT
+   (regular pages keep left-side positioning above)
+   ============================================================ */
+
+body.unified-workspace .scitex-ai-panel.workspace-sidebar {
+  left: auto;
+  right: 0;
+  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.25);
+  border-right: none !important;
+  border-left: 1px solid var(--border-default, #30363d) !important;
+}
+
+body.unified-workspace.scitex-ai-present #main-content {
+  margin-left: 0;
+  margin-right: 40px;
+}
+
+body.unified-workspace.scitex-ai-open #main-content {
+  margin-left: 0;
+  margin-right: 388px;
+}
+
 /* File tree refresh flash — triggered when AI writes a file */
 @keyframes wft-ai-refresh-flash {
   0% {
