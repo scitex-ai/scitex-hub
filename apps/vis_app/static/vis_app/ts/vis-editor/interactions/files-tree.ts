@@ -40,7 +40,7 @@ export async function setupFilesTree(
         console.log(`[InteractionHandlers] File selected: ${path}`);
         const fullPath = `/app/data/users/${projectOwner}/proj/${projectSlug}/${path}`;
 
-        if (path.endsWith(".figz")) {
+        if (path.endsWith(".fig.zip")) {
           await handleFigzSelection(editor, fullPath);
           return;
         }
@@ -149,7 +149,7 @@ function setupTreeEventListeners(editor: VisEditor, _filesTree: any): void {
 
     const managers = editor.getManagers();
 
-    if (deletedPath?.endsWith(".figz")) {
+    if (deletedPath?.endsWith(".fig.zip")) {
       console.log(
         "[InteractionHandlers] Figz bundle deleted, cleaning up tabs and canvas",
       );

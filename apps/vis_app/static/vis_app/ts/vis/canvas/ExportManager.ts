@@ -203,7 +203,7 @@ export class ExportManager {
 
       // Get the blob (zip file)
       const blob = await response.blob();
-      const filename = `figure-${Date.now()}.figz`;
+      const filename = `figure-${Date.now()}.fig.zip`;
 
       // Download the zip
       const url = URL.createObjectURL(blob);
