@@ -284,13 +284,28 @@ export class EditorCallbackHandlers {
       const currentData = this.deps.dataTableManager.getCurrentData?.();
       if (currentData && currentData.rows && currentData.rows.length > 0) {
         const headers = currentData.columns || Object.keys(currentData.rows[0]);
-        const dataRows = currentData.rows.map((row: any) =>
-          headers.map((col: string) => String(row[col] ?? "")),
+        // Check if the table has actual data (not just the blank initialization rows)
+        const hasRealData = currentData.rows.slice(0, 5).some((row: any) =>
+          headers.some((col: string) => {
+            const val = row[col];
+            return (
+              val !== null && val !== undefined && String(val).trim() !== ""
+            );
+          }),
         );
-        userCsvData = [headers, ...dataRows];
-        console.log(
-          `[VisEditor] User has ${currentData.rows.length} rows — will use user's data for rendering`,
-        );
+        if (hasRealData) {
+          const dataRows = currentData.rows.map((row: any) =>
+            headers.map((col: string) => String(row[col] ?? "")),
+          );
+          userCsvData = [headers, ...dataRows];
+          console.log(
+            `[VisEditor] User has ${currentData.rows.length} rows — will use user's data for rendering`,
+          );
+        } else {
+          console.log(
+            `[VisEditor] Table has ${currentData.rows.length} blank rows — will use gallery CSV for rendering`,
+          );
+        }
       }
 
       // Store current plot info for re-rendering
