@@ -479,8 +479,7 @@ function initSearch(): void {
     return;
   }
 
-  // Attach search history to input
-  searchHistory.attachToInput(searchInput);
+  // Input history (Up/Down, Ctrl+P/N) handled globally by shared/ts/utils/input-history.ts
 
   // Intercept form submission
   searchForm.addEventListener("submit", function (e: Event) {

@@ -1,8 +1,9 @@
 /**
- * Global Ctrl+P / Ctrl+N input history for all text inputs.
+ * Global input history for all text inputs.
  *
- * Emacs-style navigation: Ctrl+P recalls the previous (older) entry,
- * Ctrl+N moves forward (newer). History is persisted per-input in localStorage.
+ * Navigation: Up arrow / Ctrl+P recalls previous (older) entry,
+ * Down arrow / Ctrl+N moves forward (newer).
+ * History is persisted per-input in localStorage.
  */
 
 const STORAGE_PREFIX = "scitex:input-history:";
@@ -114,16 +115,36 @@ function handleKeydown(e: KeyboardEvent): void {
     return; // don't preventDefault — let the form/handler process Enter normally
   }
 
-  if (!e.ctrlKey || e.altKey || e.shiftKey || e.metaKey) return;
+  // For textareas: only use arrows for history at first/last line
+  const isTextarea = el instanceof HTMLTextAreaElement;
+  const arrowUpOk = !isTextarea || el.selectionStart === 0;
+  const arrowDownOk = !isTextarea || el.selectionStart === el.value.length;
 
-  if (e.key === "p" || e.key === "P") {
+  // Up arrow (at top) or Ctrl+P → previous
+  const isPrev =
+    (e.key === "ArrowUp" && arrowUpOk) ||
+    (e.ctrlKey &&
+      !e.altKey &&
+      !e.shiftKey &&
+      !e.metaKey &&
+      (e.key === "p" || e.key === "P"));
+  // Down arrow (at bottom) or Ctrl+N → next
+  const isNext =
+    (e.key === "ArrowDown" && arrowDownOk) ||
+    (e.ctrlKey &&
+      !e.altKey &&
+      !e.shiftKey &&
+      !e.metaKey &&
+      (e.key === "n" || e.key === "N"));
+
+  if (isPrev) {
     e.preventDefault();
     const value = prev(key, el.value);
     if (value !== null) {
       el.value = value;
       el.dispatchEvent(new Event("input", { bubbles: true }));
     }
-  } else if (e.key === "n" || e.key === "N") {
+  } else if (isNext) {
     e.preventDefault();
     const value = next(key);
     if (value !== null) {
