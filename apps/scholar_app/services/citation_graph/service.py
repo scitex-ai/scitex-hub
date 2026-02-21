@@ -5,13 +5,13 @@ Business logic layer for citation network analysis.
 Wraps the scitex.scholar.citation_graph module with caching and error handling.
 """
 
+import hashlib
 import logging
 from pathlib import Path
-from typing import Optional, Dict, List
+from typing import Dict, List, Optional
+
 from django.conf import settings
 from django.core.cache import cache
-import hashlib
-import json
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ class CitationGraphService:
     def _get_database_path(self) -> str:
         """Get CrossRef database path from settings."""
         # Try settings first
-        db_path = getattr(settings, 'CROSSREF_DB_PATH', None)
+        db_path = getattr(settings, "CROSSREF_DB_PATH", None)
 
         if not db_path:
             # Fallback to default location
@@ -49,6 +49,7 @@ class CitationGraphService:
         """Initialize the CitationGraphBuilder."""
         try:
             from scitex.scholar.citation_graph import CitationGraphBuilder
+
             self.builder = CitationGraphBuilder(self.db_path)
             logger.info(f"Citation graph builder initialized with DB: {self.db_path}")
         except ImportError as e:
@@ -87,7 +88,7 @@ class CitationGraphService:
             cached = cache.get(cache_key)
             if cached:
                 logger.debug(f"Cache hit for paper summary: {doi}")
-                cached['cached'] = True
+                cached["cached"] = True
                 return cached
 
         # Get from database
@@ -96,7 +97,7 @@ class CitationGraphService:
             if summary:
                 # Cache for 1 hour
                 cache.set(cache_key, summary, 3600)
-                summary['cached'] = False
+                summary["cached"] = False
                 return summary
             else:
                 logger.warning(f"Paper not found: {doi}")
@@ -112,7 +113,7 @@ class CitationGraphService:
         weight_coupling: float = 2.0,
         weight_cocitation: float = 2.0,
         weight_direct: float = 1.0,
-        use_cache: bool = True
+        use_cache: bool = True,
     ) -> Dict:
         """
         Build citation network graph for a paper.
@@ -129,11 +130,12 @@ class CitationGraphService:
             Dictionary with network graph data
         """
         cache_key = self._create_cache_key(
-            "network", doi,
+            "network",
+            doi,
             top_n=top_n,
             wc=weight_coupling,
             wco=weight_cocitation,
-            wd=weight_direct
+            wd=weight_direct,
         )
 
         # Check cache
@@ -141,7 +143,7 @@ class CitationGraphService:
             cached = cache.get(cache_key)
             if cached:
                 logger.debug(f"Cache hit for citation network: {doi}")
-                cached['metadata']['cached'] = True
+                cached["metadata"]["cached"] = True
                 return cached
 
         # Build network
@@ -152,13 +154,13 @@ class CitationGraphService:
                 top_n=top_n,
                 weight_coupling=weight_coupling,
                 weight_cocitation=weight_cocitation,
-                weight_direct=weight_direct
+                weight_direct=weight_direct,
             )
 
             # Convert to dict
             result = graph.to_dict()
-            result['metadata']['cached'] = False
-            result['metadata']['build_time'] = None  # Could add timing here
+            result["metadata"]["cached"] = False
+            result["metadata"]["build_time"] = None  # Could add timing here
 
             # Cache for 1 hour
             cache.set(cache_key, result, 3600)
@@ -175,10 +177,7 @@ class CitationGraphService:
             raise
 
     def get_related_papers(
-        self,
-        doi: str,
-        limit: int = 10,
-        use_cache: bool = True
+        self, doi: str, limit: int = 10, use_cache: bool = True
     ) -> List[Dict]:
         """
         Get list of related papers without full network graph.
@@ -194,21 +193,15 @@ class CitationGraphService:
             List of paper dictionaries sorted by similarity
         """
         # Build small network and extract just the nodes
-        network = self.build_network(
-            doi=doi,
-            top_n=limit,
-            use_cache=use_cache
-        )
+        network = self.build_network(doi=doi, top_n=limit, use_cache=use_cache)
 
         # Extract and sort nodes
         nodes = sorted(
-            network['nodes'],
-            key=lambda n: n.get('similarity_score', 0),
-            reverse=True
+            network["nodes"], key=lambda n: n.get("similarity_score", 0), reverse=True
         )
 
         # Remove seed paper
-        related = [n for n in nodes if n['id'].lower() != doi.lower()]
+        related = [n for n in nodes if n["id"].lower() != doi.lower()]
 
         return related[:limit]
 
@@ -225,7 +218,7 @@ class CitationGraphService:
         cache_key = "citation_graph:health_status"
         cached_status = cache.get(cache_key)
         if cached_status:
-            cached_status['cached'] = True
+            cached_status["cached"] = True
             return cached_status
 
         try:
@@ -235,18 +228,18 @@ class CitationGraphService:
 
             if summary:
                 result = {
-                    'status': 'healthy',
-                    'database': self.db_path,
-                    'database_accessible': True,
-                    'cached': False
+                    "status": "healthy",
+                    "database": self.db_path,
+                    "database_accessible": True,
+                    "cached": False,
                 }
             else:
                 result = {
-                    'status': 'degraded',
-                    'database': self.db_path,
-                    'database_accessible': True,
-                    'warning': 'Test DOI not found',
-                    'cached': False
+                    "status": "degraded",
+                    "database": self.db_path,
+                    "database_accessible": True,
+                    "warning": "Test DOI not found",
+                    "cached": False,
                 }
 
             # Cache for 30 seconds
@@ -256,47 +249,173 @@ class CitationGraphService:
         except Exception as e:
             logger.error(f"Health check failed: {e}")
             result = {
-                'status': 'unhealthy',
-                'database': self.db_path,
-                'database_accessible': False,
-                'error': str(e),
-                'cached': False
+                "status": "unhealthy",
+                "database": self.db_path,
+                "database_accessible": False,
+                "error": str(e),
+                "cached": False,
             }
             # Cache failures for 10 seconds (shorter to allow recovery detection)
             cache.set(cache_key, result, 10)
             return result
 
 
-# Service mode tracking (not singleton - create fresh per request for DB connections)
-_use_proxy = None
+# Service mode: 'local_db', 'http', 'proxy', or None (not yet determined)
+_service_mode = None
+
+
+class CitationGraphHTTPService(CitationGraphService):
+    """
+    Citation graph service using crossref-local HTTP API.
+
+    Uses CitationGraphBuilder with api_url instead of db_path.
+    Inherits caching and error handling from CitationGraphService.
+    """
+
+    def __init__(self, api_url: str):
+        """Initialize service with crossref-local HTTP API URL."""
+        self.api_url = api_url
+        self.db_path = None
+        self.builder = None
+        self._initialize_builder_http()
+
+    def _initialize_builder_http(self):
+        """Initialize the CitationGraphBuilder with HTTP mode."""
+        from scitex.scholar.citation_graph import CitationGraphBuilder
+
+        self.builder = CitationGraphBuilder(api_url=self.api_url)
+        logger.info(f"Citation graph builder initialized with HTTP: {self.api_url}")
+
+    def health_check(self) -> Dict:
+        """Check service health via crossref-local HTTP API."""
+        cache_key = "citation_graph:health_status"
+        cached_status = cache.get(cache_key)
+        if cached_status:
+            cached_status["cached"] = True
+            return cached_status
+
+        try:
+            from crossref_local.remote import RemoteClient
+
+            client = RemoteClient(self.api_url)
+            health = client.health(timeout=5)
+
+            result = {
+                "status": "healthy",
+                "mode": "http",
+                "api_url": self.api_url,
+                "database_accessible": True,
+                "cached": False,
+            }
+            cache.set(cache_key, result, 30)
+            return result
+
+        except Exception as e:
+            logger.error(f"HTTP health check failed: {e}")
+            result = {
+                "status": "unhealthy",
+                "mode": "http",
+                "api_url": self.api_url,
+                "database_accessible": False,
+                "error": str(e),
+                "cached": False,
+            }
+            cache.set(cache_key, result, 10)
+            return result
+
+
+def _detect_crossref_http_url() -> Optional[str]:
+    """
+    Detect crossref-local HTTP API URL from environment or Django settings.
+
+    Checks in order:
+    1. CROSSREF_LOCAL_API_URL env var
+    2. settings.CROSSREF_LOCAL_API_URL
+    3. settings.CROSSREF_INTERNAL_URL (Docker service name, e.g. http://crossref:31291)
+    4. http://localhost:31291 (default)
+
+    Returns:
+        API URL string if available and reachable, None otherwise
+    """
+    import os
+
+    try:
+        from crossref_local._core.config import DEFAULT_API_URL
+    except ImportError:
+        DEFAULT_API_URL = None
+
+    candidates = [
+        os.environ.get("CROSSREF_LOCAL_API_URL"),
+        getattr(settings, "CROSSREF_LOCAL_API_URL", None),
+        getattr(settings, "CROSSREF_INTERNAL_URL", None),
+        DEFAULT_API_URL,
+    ]
+
+    try:
+        from crossref_local.remote import RemoteClient
+
+        for url in candidates:
+            if not url:
+                continue
+            try:
+                client = RemoteClient(url)
+                if client.is_reachable(timeout=3):
+                    logger.debug(f"crossref-local HTTP reachable at {url}")
+                    return url
+            except (ConnectionError, OSError):
+                continue
+    except ImportError as e:
+        logger.debug(f"crossref_local package not available: {e}")
+
+    return None
 
 
 def get_citation_graph_service():
     """
     Get citation graph service instance.
 
-    Creates fresh service per call to avoid stale database connections.
-    Falls back to proxy service when local database is unavailable.
+    Fallback chain:
+    1. Local SQLite database (fastest, requires local DB file)
+    2. crossref-local HTTP API (localhost:31291, requires running server)
+    3. Remote proxy (scitex.ai, slowest fallback)
 
     Returns:
-        CitationGraphService or CitationGraphProxyService instance
+        CitationGraphService, CitationGraphHTTPService, or CitationGraphProxyService
     """
-    global _use_proxy
+    global _service_mode
 
-    # If we already know to use proxy, use it
-    if _use_proxy is True:
+    # Use cached mode decision
+    if _service_mode == "proxy":
         from .proxy import CitationGraphProxyService
-        return CitationGraphProxyService()
 
-    # Try local service first
-    try:
-        service = CitationGraphService()
-        _use_proxy = False
-        logger.info("Using local citation graph service")
-        return service
-    except (FileNotFoundError, ImportError) as e:
-        # Fall back to proxy
-        logger.warning(f"Local service unavailable ({e}), using NAS proxy")
-        from .proxy import CitationGraphProxyService
-        _use_proxy = True
         return CitationGraphProxyService()
+    if _service_mode == "http":
+        url = _detect_crossref_http_url()
+        if url:
+            return CitationGraphHTTPService(url)
+        # HTTP no longer available, reset
+        _service_mode = None
+
+    # 1. Try local SQLite database
+    if _service_mode != "http":
+        try:
+            service = CitationGraphService()
+            _service_mode = "local_db"
+            logger.info("Using local citation graph service (SQLite)")
+            return service
+        except (FileNotFoundError, ImportError) as e:
+            logger.debug(f"Local DB not available: {e}")
+
+    # 2. Try crossref-local HTTP API
+    http_url = _detect_crossref_http_url()
+    if http_url:
+        _service_mode = "http"
+        logger.info(f"Using crossref-local HTTP service: {http_url}")
+        return CitationGraphHTTPService(http_url)
+
+    # 3. Fall back to proxy
+    logger.warning("No local service available, using proxy")
+    from .proxy import CitationGraphProxyService
+
+    _service_mode = "proxy"
+    return CitationGraphProxyService()
