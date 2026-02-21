@@ -498,4 +498,8 @@ class GlobalAIChat {
 }
 
 const globalAI = new GlobalAIChat();
-document.addEventListener("DOMContentLoaded", () => globalAI.init());
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => globalAI.init());
+} else {
+  globalAI.init();
+}

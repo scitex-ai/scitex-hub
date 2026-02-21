@@ -384,6 +384,10 @@ function initAltKeyShortcutBadges(): void {
 }
 
 // Initialize when DOM is ready
-document.addEventListener("DOMContentLoaded", () => {
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => {
+    initApp();
+  });
+} else {
   initApp();
-});
+}

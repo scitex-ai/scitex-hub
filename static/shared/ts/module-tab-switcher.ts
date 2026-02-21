@@ -39,6 +39,15 @@ async function switchModule(name: string): Promise<void> {
   const pane = document.getElementById("main-content");
   if (!pane) return;
 
+  // Skip if the full-page template already rendered this module's content.
+  // The server-rendered page includes module-specific wrappers (e.g. .scholar-workspace)
+  // that the partial does not — replacing them would destroy the details panel.
+  const alreadyLoaded = pane.querySelector(`.${name}-workspace, .${name}-main`);
+  if (alreadyLoaded && !pane.classList.contains("switching")) {
+    updateActiveTab(name);
+    return;
+  }
+
   pane.classList.add("switching");
 
   try {

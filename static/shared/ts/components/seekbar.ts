@@ -204,14 +204,23 @@ export class ScitexSeekbar {
  * Auto-initialization from DOM
  * Automatically initializes all elements with data-scitex-seekbar attribute
  */
-document.addEventListener("DOMContentLoaded", () => {
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => {
+    const autoInit = document.querySelectorAll<HTMLElement>(
+      '[data-scitex-seekbar="auto"]',
+    );
+    autoInit.forEach((element) => {
+      new ScitexSeekbar(element);
+    });
+  });
+} else {
   const autoInit = document.querySelectorAll<HTMLElement>(
     '[data-scitex-seekbar="auto"]',
   );
   autoInit.forEach((element) => {
     new ScitexSeekbar(element);
   });
-});
+}
 
 // ============================================================================
 // Global Export

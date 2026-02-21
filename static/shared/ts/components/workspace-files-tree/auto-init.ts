@@ -33,6 +33,9 @@ export async function autoInitWorkspaceTree(): Promise<WorkspaceFilesTree | null
   const mode = (configEl.dataset.mode || "hub") as WorkspaceMode;
   const containerId = configEl.dataset.container || "file-tree";
 
+  // Skip if container element doesn't exist (e.g. three-column layout uses worktree pane instead)
+  if (!document.getElementById(containerId)) return null;
+
   const onFileSelect =
     window.scitexOnFileSelect ||
     ((path: string) => {

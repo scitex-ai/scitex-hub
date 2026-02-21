@@ -28,10 +28,15 @@ function trimTerminalLogs(): void {
 cleanupTemplateText();
 
 // Run again after DOM is fully loaded
-document.addEventListener("DOMContentLoaded", () => {
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => {
+    cleanupTemplateText();
+    trimTerminalLogs();
+  });
+} else {
   cleanupTemplateText();
   trimTerminalLogs();
-});
+}
 
 // Run once more after a short delay to catch any late additions
 setTimeout(cleanupTemplateText, 100);

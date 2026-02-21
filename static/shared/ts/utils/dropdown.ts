@@ -66,6 +66,10 @@ function initDropdowns(): void {
 }
 
 // Initialize when DOM is ready
-document.addEventListener("DOMContentLoaded", () => {
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => {
+    initDropdowns();
+  });
+} else {
   initDropdowns();
-});
+}
