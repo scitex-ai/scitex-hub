@@ -31,6 +31,7 @@ class CitationGraphManager {
     isDragging: false,
   };
   private selectedNode: NetworkNode | null = null;
+  private tooltipHideTimer: ReturnType<typeof setTimeout> | null = null;
   private activeEdgeFilters: Set<string> = new Set([
     "coupling",
     "cocitation",
@@ -182,10 +183,20 @@ class CitationGraphManager {
   }
 
   private showNodeTooltip(node: NetworkNode, element: SVGGElement): void {
-    document.getElementById("graphTooltip")?.remove();
-    const tooltip = document.createElement("div");
-    tooltip.id = "graphTooltip";
-    tooltip.className = "graph-tooltip";
+    // Cancel any pending hide
+    if (this.tooltipHideTimer) {
+      clearTimeout(this.tooltipHideTimer);
+      this.tooltipHideTimer = null;
+    }
+
+    let tooltip = document.getElementById("graphTooltip");
+    if (!tooltip) {
+      tooltip = document.createElement("div");
+      tooltip.id = "graphTooltip";
+      tooltip.className = "graph-tooltip";
+      document.body.appendChild(tooltip);
+    }
+
     tooltip.innerHTML = `
       <div class="tooltip-title">${escapeHtml(node.title)}</div>
       <div class="tooltip-authors">${node.authors.slice(0, 3).join(", ")}${node.authors.length > 3 ? "..." : ""}</div>
@@ -196,14 +207,19 @@ class CitationGraphManager {
       </div>
       <div class="tooltip-hint">Click to view details</div>
     `;
-    document.body.appendChild(tooltip);
+
+    tooltip.style.display = "";
     const rect = element.getBoundingClientRect();
     tooltip.style.left = `${rect.left + rect.width / 2}px`;
     tooltip.style.top = `${rect.top - 10}px`;
   }
 
   private hideNodeTooltip(): void {
-    document.getElementById("graphTooltip")?.remove();
+    if (this.tooltipHideTimer) clearTimeout(this.tooltipHideTimer);
+    this.tooltipHideTimer = setTimeout(() => {
+      const tooltip = document.getElementById("graphTooltip");
+      if (tooltip) tooltip.style.display = "none";
+    }, 50);
   }
 
   private selectNode(node: NetworkNode): void {
