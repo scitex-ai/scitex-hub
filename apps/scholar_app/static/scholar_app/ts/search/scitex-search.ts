@@ -413,8 +413,56 @@ function startUnifiedSearch(query: string): void {
   });
 }
 
-// Initialize on DOM ready
-document.addEventListener("DOMContentLoaded", function () {
+/**
+ * Execute the search flow: hide empty state, show quotes, start search
+ */
+function executeSearch(searchInput: HTMLInputElement): void {
+  const query = searchInput.value.trim();
+  if (!query) return;
+
+  console.log("[SciTeX Search] Executing search for:", query);
+
+  searchHistory.addQuery(query);
+
+  if (typeof window.saveSourcePreferences === "function") {
+    window.saveSourcePreferences();
+  }
+
+  // Keep toolbar visible but clear result cards and empty state
+  const resultsHeader = document.getElementById("resultsHeader");
+  if (resultsHeader) resultsHeader.style.display = "flex";
+
+  document.querySelectorAll(".result-card").forEach((card) => {
+    (card as HTMLElement).style.display = "none";
+  });
+  const emptyState = document.getElementById("searchEmptyState");
+  if (emptyState) emptyState.style.display = "none";
+
+  // Show progressive results container with loading quote
+  showSearchLoading();
+
+  // Setup handlers on existing toolbar and start timer
+  setupToolbarHandlers();
+  showToolbarStatus();
+
+  // Reset progress indicators
+  document.querySelectorAll(".progress-source").forEach((source) => {
+    const badge = source.querySelector(".badge") as HTMLElement | null;
+    const spinner = source.querySelector(
+      ".spinner-border",
+    ) as HTMLElement | null;
+    const count = source.querySelector(".count") as HTMLElement | null;
+
+    if (badge) badge.className = "badge bg-secondary";
+    if (spinner) spinner.style.display = "inline-block";
+    if (count) count.textContent = "0";
+  });
+
+  startUnifiedSearch(query);
+}
+
+// Initialize search system
+function initSearch(): void {
   console.log("[SciTeX Search] Initializing unified search system...");
 
   const searchForm = document.getElementById(
@@ -423,9 +471,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const searchInput = document.querySelector(
     'input[name="q"]',
   ) as HTMLInputElement | null;
-  const progressiveResults = document.getElementById(
-    "progressiveResults",
-  ) as HTMLElement | null;
 
   if (!searchForm || !searchInput) {
     console.log(
@@ -440,51 +485,26 @@ document.addEventListener("DOMContentLoaded", function () {
   // Intercept form submission
   searchForm.addEventListener("submit", function (e: Event) {
     e.preventDefault();
-    const query = searchInput.value.trim();
-
-    if (query) {
-      searchHistory.addQuery(query);
-    }
-
-    if (typeof window.saveSourcePreferences === "function") {
-      window.saveSourcePreferences();
-    }
-
-    // Keep toolbar visible but clear result cards and empty state
-    // The toolbar in #resultsHeader is the single source of truth
-    const resultsHeader = document.getElementById("resultsHeader");
-    if (resultsHeader) resultsHeader.style.display = "flex";
-
-    document.querySelectorAll(".result-card").forEach((card) => {
-      (card as HTMLElement).style.display = "none";
-    });
-    const emptyState = document.getElementById("searchEmptyState");
-    if (emptyState) emptyState.style.display = "none";
-
-    // Show progressive results container with loading quote
-    showSearchLoading();
-
-    // Setup handlers on existing toolbar and start timer
-    setupToolbarHandlers();
-    showToolbarStatus();
-
-    // Reset progress indicators
-    document.querySelectorAll(".progress-source").forEach((source) => {
-      const badge = source.querySelector(".badge") as HTMLElement | null;
-      const spinner = source.querySelector(
-        ".spinner-border",
-      ) as HTMLElement | null;
-      const count = source.querySelector(".count") as HTMLElement | null;
-
-      if (badge) badge.className = "badge bg-secondary";
-      if (spinner) spinner.style.display = "inline-block";
-      if (count) count.textContent = "0";
-    });
-
-    startUnifiedSearch(query);
+    executeSearch(searchInput);
   });
+
+  // Direct click handler on search button (most reliable path for global Enter handler)
+  const searchButton = document.getElementById("searchButton");
+  if (searchButton) {
+    searchButton.addEventListener("click", function (e: Event) {
+      e.preventDefault();
+      executeSearch(searchInput);
+    });
+  }
 
   setupKeyboardShortcuts();
 
   console.log("[SciTeX Search] Initialization complete");
-});
+}
+
+// Handle both pre- and post-DOMContentLoaded module loading
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initSearch);
+} else {
+  initSearch();
+}

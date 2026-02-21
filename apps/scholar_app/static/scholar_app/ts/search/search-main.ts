@@ -326,4 +326,10 @@ export function initSearchMain(): void {
 }
 
 // Auto-initialize on DOMContentLoaded
-document.addEventListener("DOMContentLoaded", initSearchMain);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", function () {
+    initSearchMain();
+  });
+} else {
+  initSearchMain();
+}

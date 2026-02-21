@@ -2,9 +2,7 @@
 
 <!-- Literature Search - Full Width Layout (Controls in Right Panel) -->
 <div class="search-container-full-width">
-    <form id="literatureSearchForm"
-          method="get"
-          action="{% url 'scholar_app:scholar_search' %}">
+    <form id="literatureSearchForm" onsubmit="event.preventDefault();">
         <!-- Search Input (Full Width) -->
         <div class="input-group input-group-lg mb-4">
             <input type="text"

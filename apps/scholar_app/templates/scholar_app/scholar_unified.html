@@ -418,7 +418,7 @@
     <div class="scholar-workspace">
         <!-- Sidebar removed: unified workspace provides the file tree via ws-worktree-pane -->
         <!-- Main content area -->
-        <main class="scholar-main">
+        <section class="scholar-main">
             <div class="pane-header">
                 <nav class="scholar-tabs">
                     <a href="#library" class="scholar-tab" data-tab="library">
@@ -488,7 +488,7 @@
                                 <i class="fas fa-bookmark"></i> Library
                             </button>
                         </div>
-                        <form id="graphForm" class="graph-form">
+                        <form id="graphForm" class="graph-form" onsubmit="event.preventDefault();">
                             <!-- DOI input (default) -->
                             <div id="graphInputDoi" class="graph-input-panel">
                                 <div class="form-row">
@@ -622,7 +622,7 @@
         <div class="library-tab-inner">{% include "scholar_app/library_partials/library_main.html" %}</div>
     </div>
 </div>
-</main>
+</section>
 <!-- Properties resizer (auto-initialized via data attributes) -->
 <div class="panel-resizer"
      id="main-resizer"
@@ -793,9 +793,27 @@
     {% vite_script 'scholar_app/scholar-config' %}
     <!-- Common Scripts -->
     {% vite_script 'scholar_app/common/project-selector' %}
-    <!-- External Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.js"></script>
-    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
+    <!-- External Libraries (deferred to avoid blocking page render) -->
+    <script defer
+            src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.js"></script>
+    <!-- Plotly.js (~3.5MB) lazy-loaded on demand by swarm-plots when search results arrive -->
+    <script>
+        window.loadPlotly = function() {
+            return new Promise(function(resolve, reject) {
+                if (typeof Plotly !== 'undefined') { resolve(Plotly); return; }
+                if (window._plotlyLoading) { window._plotlyLoading.then(resolve, reject); return; }
+                window._plotlyLoading = new Promise(function(res, rej) {
+                    var s = document.createElement('script');
+                    s.src = 'https://cdn.plot.ly/plotly-2.27.0.min.js';
+                    s.charset = 'utf-8';
+                    s.onload = function() { res(Plotly); };
+                    s.onerror = function() { rej(new Error('Failed to load Plotly.js')); };
+                    document.head.appendChild(s);
+                });
+                window._plotlyLoading.then(resolve, reject);
+            });
+        };
+    </script>
     <!-- Search Scripts -->
     {% vite_script 'scholar_app/search/nouislider-init' %}
     {% vite_script 'scholar_app/search/panel-toggle' %}

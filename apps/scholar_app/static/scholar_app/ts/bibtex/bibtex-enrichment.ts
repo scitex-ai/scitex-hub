@@ -102,8 +102,7 @@ class BibtexEnrichmentOrchestrator {
     }
 
     const uploadUrl =
-      window.SCHOLAR_CONFIG?.urls?.bibtexUpload ||
-      "/scholar/bibtex/upload/";
+      window.SCHOLAR_CONFIG?.urls?.bibtexUpload || "/scholar/bibtex/upload/";
 
     try {
       const response = await fetch(uploadUrl, {
@@ -221,14 +220,21 @@ class BibtexEnrichmentOrchestrator {
    */
   private enableActionButtonsForJob(jobId: string): void {
     // Show that job is ready
-    const runningIndicator = document.getElementById("enrichmentRunningIndicator");
+    const runningIndicator = document.getElementById(
+      "enrichmentRunningIndicator",
+    );
     if (runningIndicator) {
       runningIndicator.style.display = "none";
     }
 
     // Enable buttons
-    const buttons = ["downloadBtn", "saveToProjectBtn", "viewChangesBtn", "openUrlsMainBtn"];
-    buttons.forEach(id => {
+    const buttons = [
+      "downloadBtn",
+      "saveToProjectBtn",
+      "viewChangesBtn",
+      "openUrlsMainBtn",
+    ];
+    buttons.forEach((id) => {
       const btn = document.getElementById(id) as HTMLButtonElement | null;
       if (btn) {
         btn.disabled = false;
@@ -371,7 +377,12 @@ function initBibtexEnrichment(config: BibtexEnrichmentConfig = {}): void {
 (window as any).deleteJob = deleteJob;
 
 // Initialize on DOM ready
-document.addEventListener("DOMContentLoaded", function () {
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", function () {
+    initBibtexEnrichment();
+    loadRecentJobs();
+  });
+} else {
   initBibtexEnrichment();
   loadRecentJobs();
-});
+}

@@ -393,9 +393,17 @@ class ScholarSeekbarIntegration {
 }
 
 // Initialize on DOM ready
-document.addEventListener("DOMContentLoaded", () => {
+function initSeekbarIntegration(): void {
   // Only initialize if ScitexSeekbar is available and requested
   if (typeof ScitexSeekbar !== "undefined") {
     window.scholarSeekbar = new ScholarSeekbarIntegration();
   }
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", function () {
+    initSeekbarIntegration();
+  });
+} else {
+  initSeekbarIntegration();
+}

@@ -129,7 +129,7 @@
     <div class="scholar-workspace">
         <!-- Sidebar removed: unified workspace provides the file tree via ws-worktree-pane -->
         <!-- Main content area -->
-        <main class="scholar-main">
+        <section class="scholar-main">
             <div class="pane-header">
                 <nav class="scholar-tabs">
                     <a href="{% url 'scholar_app:index' %}"
@@ -195,7 +195,7 @@
             <div class="pane-content">
                 {% block search_content %}{% endblock %}
             </div>
-        </main>
+        </section>
         <!-- Properties resizer (auto-initialized via data attributes) -->
         <div class="panel-resizer"
              id="main-resizer"

@@ -25,11 +25,17 @@ interface SortCriterion {
 let sortCriteria: SortCriterion[] = [];
 
 // Initialize on DOM ready
-document.addEventListener("DOMContentLoaded", function () {
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", function () {
+    initializeAdvancedSorting();
+    initializeResultSelection();
+    initializeRangeFilters();
+  });
+} else {
   initializeAdvancedSorting();
   initializeResultSelection();
   initializeRangeFilters();
-});
+}
 
 /**
  * Initialize advanced sorting interface

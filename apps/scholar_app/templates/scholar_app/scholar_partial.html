@@ -54,12 +54,12 @@
 </style>
 <!-- Scholar main content (no sidebar/right-panel: unified workspace provides those) -->
 <!-- Note: #workspace-project-config is already present in the unified workspace shell -->
-<main class="scholar-main"
-      style="flex:1;
-             display:flex;
-             flex-direction:column;
-             overflow:hidden;
-             min-width:0">
+<section class="scholar-main"
+         style="flex:1;
+                display:flex;
+                flex-direction:column;
+                overflow:hidden;
+                min-width:0">
     <div class="pane-header">
         <nav class="scholar-tabs">
             <a href="#library" class="scholar-tab" data-tab="library">
@@ -252,7 +252,7 @@
     <div class="library-details-panel">{% include "scholar_app/library_partials/library_details.html" %}</div>
 </div>
 </div>
-</main>
+</section>
 <!-- Scholar global config -->
 <div id="scholar-global-config"
      class="hidden"

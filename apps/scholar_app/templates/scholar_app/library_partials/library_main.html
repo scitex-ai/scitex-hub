@@ -194,11 +194,45 @@
         </div>
         <!-- Empty state -->
         <div class="library-empty-state" id="library-empty-state" hidden>
-            <i class="fas fa-books"></i>
+            <i class="fas fa-book-open"></i>
             <div class="library-empty-title">No papers in your library</div>
             <div class="library-empty-description">Import a BibTeX file or add papers from the Search tab to get started.</div>
         </div>
         <!-- Paper cards loaded via JS -->
+        <!-- Inline fallback: resolve loading state even if Vite module is slow -->
+        <script>
+        (function() {
+            fetch('/scholar/api/library/papers/', { credentials: 'same-origin' })
+                .then(function(r) {
+                    if (!r.ok) throw new Error('HTTP ' + r.status);
+                    return r.json();
+                })
+                .then(function(data) {
+                    var loadingEl = document.getElementById('library-loading');
+                    if (!loadingEl || loadingEl.style.display === 'none') return;
+                    var papers = data.papers || [];
+                    if (papers.length === 0) {
+                        loadingEl.style.display = 'none';
+                        var emptyEl = document.getElementById('library-empty-state');
+                        if (emptyEl) {
+                            emptyEl.removeAttribute('hidden');
+                            emptyEl.style.display = '';
+                        }
+                    }
+                })
+                .catch(function() {
+                    var loadingEl = document.getElementById('library-loading');
+                    if (!loadingEl || loadingEl.style.display === 'none') return;
+                    loadingEl.style.display = 'none';
+                    var emptyEl = document.getElementById('library-empty-state');
+                    if (emptyEl) {
+                        emptyEl.removeAttribute('hidden');
+                        emptyEl.style.display = '';
+                        emptyEl.querySelector('.library-empty-title').textContent = 'No papers in your library';
+                    }
+                });
+        })();
+        </script>
     </div>
 </div>
 <!-- Paper Card Template (for JS cloning) -->

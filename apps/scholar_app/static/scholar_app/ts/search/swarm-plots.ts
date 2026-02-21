@@ -91,7 +91,8 @@ const SwarmPlots = {
   },
 
   /**
-   * Initialize swarm plots with paper data
+   * Initialize swarm plots with paper data.
+   * Lazy-loads Plotly.js (~3.5MB) only when actually needed.
    */
   init: function (papers: PaperData[]): void {
     console.log("[SwarmPlots] Initializing with", papers.length, "papers");
@@ -99,28 +100,47 @@ const SwarmPlots = {
     this.filteredIndices.clear();
     this.jitterCache.clear();
 
-    // Create plots if Plotly is available
-    if (typeof Plotly === "undefined") {
-      console.warn("[SwarmPlots] Plotly.js not loaded, skipping visualization");
-      return;
+    const self = this;
+
+    function doInit(): void {
+      if (typeof Plotly === "undefined") {
+        console.warn(
+          "[SwarmPlots] Plotly.js not available, skipping visualization",
+        );
+        return;
+      }
+      self.renderAllPlots();
+
+      // Listen for theme changes
+      const observer = new MutationObserver(() => {
+        self.renderAllPlots();
+      });
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["data-theme"],
+      });
     }
 
-    this.renderAllPlots();
-
-    // Listen for theme changes
-    const observer = new MutationObserver(() => {
-      this.renderAllPlots();
-    });
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["data-theme"],
-    });
+    // Lazy-load Plotly if not yet loaded
+    if (typeof Plotly !== "undefined") {
+      doInit();
+    } else if (typeof (window as any).loadPlotly === "function") {
+      (window as any)
+        .loadPlotly()
+        .then(() => doInit())
+        .catch((err: Error) =>
+          console.warn("[SwarmPlots] Failed to load Plotly:", err.message),
+        );
+    } else {
+      console.warn("[SwarmPlots] No Plotly loader available, skipping");
+    }
   },
 
   /**
    * Render all three swarm plots using extracted renderer functions
    */
   renderAllPlots: function (): void {
+    if (typeof Plotly === "undefined") return;
     const ctx = {
       data: this.data,
       filteredIndices: this.filteredIndices,
@@ -302,8 +322,7 @@ const SwarmPlots = {
 (window as any).SwarmPlots = SwarmPlots;
 
 // Auto-initialize if paper data is available
-document.addEventListener("DOMContentLoaded", function () {
-  // Check if paper data is available from the page
+function initSwarmPlots(): void {
   const paperDataElement = document.getElementById(
     "paperData",
   ) as HTMLElement | null;
@@ -315,4 +334,12 @@ document.addEventListener("DOMContentLoaded", function () {
       console.warn("[SwarmPlots] Failed to parse paper data:", e.message);
     }
   }
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", function () {
+    initSwarmPlots();
+  });
+} else {
+  initSwarmPlots();
+}

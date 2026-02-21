@@ -388,6 +388,10 @@ function setupPdfDownloadHandlers(): void {
 }
 
 // Initialize handlers on page load
-document.addEventListener("DOMContentLoaded", () => {
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", function () {
+    setupToolbarHandlers();
+  });
+} else {
   setupToolbarHandlers();
-});
+}

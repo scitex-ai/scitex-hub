@@ -7,7 +7,7 @@
 console.log(
   "[DEBUG] apps/scholar_app/static/scholar_app/ts/common/init-tabs.ts loaded",
 );
-document.addEventListener("DOMContentLoaded", (): void => {
+function initTabs(): void {
   const tabLinks: NodeListOf<Element> = document.querySelectorAll(".tab-link");
   const tabContents: NodeListOf<Element> = document.querySelectorAll(
     ".vertical-tab-content",
@@ -116,4 +116,12 @@ document.addEventListener("DOMContentLoaded", (): void => {
       }
     });
   }
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", function () {
+    initTabs();
+  });
+} else {
+  initTabs();
+}

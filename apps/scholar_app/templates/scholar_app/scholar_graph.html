@@ -1,5 +1,7 @@
 {% extends "scholar_app/scholar_base.html" %}
+
 {% load static vite %}
+
 {% block title %}SciTeX Scholar - Citation Graph{% endblock %}
 {% block extra_css %}
     {{ block.super }}
@@ -7,122 +9,113 @@
     <link rel="stylesheet" href="{% static 'scholar_app/css/index.css' %}" />
     <link rel="stylesheet" href="{% static 'scholar_app/css/graph/citation-graph.css' %}" />
 {% endblock %}
-
-{% block pane_header_actions %}
-{% endblock %}
-
+{% block pane_header_actions %}{% endblock %}
 {% block search_content %}
-<div class="citation-graph-container">
-    <!-- Input Section -->
-    <div class="graph-input-section">
-        <div class="graph-card">
-            <div class="graph-card__header">
-                <div class="graph-card__title">
-                    <i class="fas fa-project-diagram"></i>
-                    <span>Citation Network Explorer</span>
+    <div class="citation-graph-container">
+        <!-- Input Section -->
+        <div class="graph-input-section">
+            <div class="graph-card">
+                <div class="graph-card__header">
+                    <div class="graph-card__title">
+                        <i class="fas fa-project-diagram"></i>
+                        <span>Citation Network Explorer</span>
+                    </div>
                 </div>
-            </div>
-            <div class="graph-card__body">
-                <p class="graph-description">
-                    Build a citation network from a DOI to discover related papers through bibliographic coupling and co-citation analysis.
-                </p>
-                <form id="graphForm" class="graph-form">
-                    <div class="form-row">
-                        <div class="form-group form-group--doi">
-                            <label for="doiInput" class="form-label">Enter DOI</label>
-                            <div class="input-wrapper">
-                                <input type="text"
-                                       id="doiInput"
-                                       name="doi"
-                                       class="form-input"
-                                       placeholder="e.g., 10.1038/s41586-020-2008-3"
-                                       required>
-                                <button type="submit" class="btn-build" id="buildGraphBtn">
-                                    <i class="fas fa-project-diagram"></i>
-                                    <span>Build Graph</span>
-                                </button>
+                <div class="graph-card__body">
+                    <p class="graph-description">
+                        Build a citation network from a DOI to discover related papers through bibliographic coupling and co-citation analysis.
+                    </p>
+                    <form id="graphForm" class="graph-form" onsubmit="event.preventDefault();">
+                        <div class="form-row">
+                            <div class="form-group form-group--doi">
+                                <label for="doiInput" class="form-label">Enter DOI</label>
+                                <div class="input-wrapper">
+                                    <input type="text"
+                                           id="doiInput"
+                                           name="doi"
+                                           class="form-input"
+                                           placeholder="e.g., 10.1038/s41586-020-2008-3"
+                                           required />
+                                    <button type="submit" class="btn-build" id="buildGraphBtn">
+                                        <i class="fas fa-project-diagram"></i>
+                                        <span>Build Graph</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-group form-group--options">
+                                <label for="topN" class="form-label">Related Papers</label>
+                                <select id="topN" name="top_n" class="form-select">
+                                    <option value="10">10 papers</option>
+                                    <option value="20" selected>20 papers</option>
+                                    <option value="30">30 papers</option>
+                                    <option value="50">50 papers</option>
+                                </select>
                             </div>
                         </div>
-                        <div class="form-group form-group--options">
-                            <label for="topN" class="form-label">Related Papers</label>
-                            <select id="topN" name="top_n" class="form-select">
-                                <option value="10">10 papers</option>
-                                <option value="20" selected>20 papers</option>
-                                <option value="30">30 papers</option>
-                                <option value="50">50 papers</option>
-                            </select>
-                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- Graph Visualization Area -->
+        <div id="graphVisualization" class="graph-visualization hidden">
+            <div class="graph-card graph-card--full">
+                <div class="graph-card__header">
+                    <div class="graph-card__title">
+                        <i class="fas fa-share-alt"></i>
+                        <span id="graphTitle">Citation Network</span>
                     </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Graph Visualization Area -->
-    <div id="graphVisualization" class="graph-visualization hidden">
-        <div class="graph-card graph-card--full">
-            <div class="graph-card__header">
-                <div class="graph-card__title">
-                    <i class="fas fa-share-alt"></i>
-                    <span id="graphTitle">Citation Network</span>
+                    <div class="graph-controls">
+                        <button class="btn-control" id="fitViewBtn" title="Fit to View">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                        <button class="btn-control" id="resetZoomBtn" title="Reset Zoom">
+                            <i class="fas fa-compress-arrows-alt"></i>
+                        </button>
+                        <button class="btn-control" id="downloadSvgBtn" title="Download SVG">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
                 </div>
-                <div class="graph-controls">
-                    <button class="btn-control" id="fitViewBtn" title="Fit to View">
-                        <i class="fas fa-expand"></i>
-                    </button>
-                    <button class="btn-control" id="resetZoomBtn" title="Reset Zoom">
-                        <i class="fas fa-compress-arrows-alt"></i>
-                    </button>
-                    <button class="btn-control" id="downloadSvgBtn" title="Download SVG">
-                        <i class="fas fa-download"></i>
-                    </button>
+                <div class="graph-card__body graph-canvas-wrapper">
+                    <div id="graphCanvas"></div>
+                    <!-- Node Details Panel (appears on node click) -->
+                    <div id="nodeDetailsPanel" class="node-details-panel hidden"></div>
                 </div>
             </div>
-            <div class="graph-card__body graph-canvas-wrapper">
-                <div id="graphCanvas"></div>
-                <!-- Node Details Panel (appears on node click) -->
-                <div id="nodeDetailsPanel" class="node-details-panel hidden"></div>
-            </div>
         </div>
-    </div>
-
-    <!-- Related Papers List -->
-    <div id="relatedPapersList" class="related-papers-section hidden">
-        <div class="graph-card">
-            <div class="graph-card__header">
-                <div class="graph-card__title">
-                    <i class="fas fa-list-ol"></i>
-                    <span>Related Papers</span>
+        <!-- Related Papers List -->
+        <div id="relatedPapersList" class="related-papers-section hidden">
+            <div class="graph-card">
+                <div class="graph-card__header">
+                    <div class="graph-card__title">
+                        <i class="fas fa-list-ol"></i>
+                        <span>Related Papers</span>
+                    </div>
+                </div>
+                <div class="graph-card__body">
+                    <div id="relatedPapersContent"></div>
                 </div>
             </div>
-            <div class="graph-card__body">
-                <div id="relatedPapersContent"></div>
+        </div>
+        <!-- Loading State -->
+        <div id="graphLoading" class="graph-loading hidden">
+            <div class="loading-spinner">
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
             </div>
+            <p class="loading-text">Building citation network...</p>
+        </div>
+        <!-- Error State -->
+        <div id="graphError" class="graph-error hidden">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p id="graphErrorMessage"></p>
+            <button class="btn-retry"
+                    onclick="document.getElementById('graphError').classList.add('hidden')">Dismiss</button>
         </div>
     </div>
-
-    <!-- Loading State -->
-    <div id="graphLoading" class="graph-loading hidden">
-        <div class="loading-spinner">
-            <div class="spinner-ring"></div>
-            <div class="spinner-ring"></div>
-            <div class="spinner-ring"></div>
-        </div>
-        <p class="loading-text">Building citation network...</p>
-    </div>
-
-    <!-- Error State -->
-    <div id="graphError" class="graph-error hidden">
-        <i class="fas fa-exclamation-triangle"></i>
-        <p id="graphErrorMessage"></p>
-        <button class="btn-retry" onclick="document.getElementById('graphError').classList.add('hidden')">
-            Dismiss
-        </button>
-    </div>
-</div>
-
-<!-- Configuration for JavaScript -->
-<script>
+    <!-- Configuration for JavaScript -->
+    <script>
 window.CITATION_GRAPH_CONFIG = {
     urls: {
         buildNetwork: '{% url "scholar_app:citation_graph_network" %}',
@@ -131,93 +124,92 @@ window.CITATION_GRAPH_CONFIG = {
         health: '{% url "scholar_app:citation_graph_health" %}'
     }
 };
-</script>
+    </script>
 {% endblock %}
-
 {% block details_content %}
-<div class="graph-sidebar">
-    <div class="sidebar-section">
-        <div class="sidebar-section__header" onclick="this.parentElement.classList.toggle('collapsed')">
-            <h5 class="sidebar-section__title">
-                <i class="fas fa-heartbeat"></i> Service Status
-            </h5>
-            <i class="fas fa-chevron-down sidebar-section__toggle"></i>
-        </div>
-        <div class="sidebar-section__content">
-            <div id="serviceStatus">
-                <div class="status-indicator status-checking">
-                    <i class="fas fa-circle-notch fa-spin"></i>
-                    <span>Checking...</span>
-                </div>
+    <div class="graph-sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-section__header"
+                 onclick="this.parentElement.classList.toggle('collapsed')">
+                <h5 class="sidebar-section__title">
+                    <i class="fas fa-heartbeat"></i> Service Status
+                </h5>
+                <i class="fas fa-chevron-down sidebar-section__toggle"></i>
             </div>
-        </div>
-    </div>
-
-    <div class="sidebar-section">
-        <div class="sidebar-section__header" onclick="this.parentElement.classList.toggle('collapsed')">
-            <h5 class="sidebar-section__title">
-                <i class="fas fa-info-circle"></i> How It Works
-            </h5>
-            <i class="fas fa-chevron-down sidebar-section__toggle"></i>
-        </div>
-        <div class="sidebar-section__content">
-            <div class="info-list">
-                <div class="info-item">
-                    <i class="fas fa-link"></i>
-                    <div>
-                        <strong>Bibliographic Coupling</strong>
-                        <p>Papers sharing common references</p>
-                    </div>
-                </div>
-                <div class="info-item">
-                    <i class="fas fa-quote-right"></i>
-                    <div>
-                        <strong>Co-citation</strong>
-                        <p>Papers frequently cited together</p>
-                    </div>
-                </div>
-                <div class="info-item">
-                    <i class="fas fa-arrow-right"></i>
-                    <div>
-                        <strong>Direct Citations</strong>
-                        <p>Papers citing or cited by seed</p>
+            <div class="sidebar-section__content">
+                <div id="serviceStatus">
+                    <div class="status-indicator status-checking">
+                        <i class="fas fa-circle-notch fa-spin"></i>
+                        <span>Checking...</span>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="sidebar-section">
-        <div class="sidebar-section__header" onclick="this.parentElement.classList.toggle('collapsed')">
-            <h5 class="sidebar-section__title">
-                <i class="fas fa-keyboard"></i> Controls
-            </h5>
-            <i class="fas fa-chevron-down sidebar-section__toggle"></i>
+        <div class="sidebar-section">
+            <div class="sidebar-section__header"
+                 onclick="this.parentElement.classList.toggle('collapsed')">
+                <h5 class="sidebar-section__title">
+                    <i class="fas fa-info-circle"></i> How It Works
+                </h5>
+                <i class="fas fa-chevron-down sidebar-section__toggle"></i>
+            </div>
+            <div class="sidebar-section__content">
+                <div class="info-list">
+                    <div class="info-item">
+                        <i class="fas fa-link"></i>
+                        <div>
+                            <strong>Bibliographic Coupling</strong>
+                            <p>Papers sharing common references</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-quote-right"></i>
+                        <div>
+                            <strong>Co-citation</strong>
+                            <p>Papers frequently cited together</p>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-arrow-right"></i>
+                        <div>
+                            <strong>Direct Citations</strong>
+                            <p>Papers citing or cited by seed</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="sidebar-section__content">
-            <div class="controls-list">
-                <div class="control-item">
-                    <kbd>Scroll</kbd>
-                    <span>Zoom in/out</span>
-                </div>
-                <div class="control-item">
-                    <kbd>Drag</kbd>
-                    <span>Pan view</span>
-                </div>
-                <div class="control-item">
-                    <kbd>Drag Node</kbd>
-                    <span>Move node</span>
-                </div>
-                <div class="control-item">
-                    <kbd>Click Node</kbd>
-                    <span>View details</span>
+        <div class="sidebar-section">
+            <div class="sidebar-section__header"
+                 onclick="this.parentElement.classList.toggle('collapsed')">
+                <h5 class="sidebar-section__title">
+                    <i class="fas fa-keyboard"></i> Controls
+                </h5>
+                <i class="fas fa-chevron-down sidebar-section__toggle"></i>
+            </div>
+            <div class="sidebar-section__content">
+                <div class="controls-list">
+                    <div class="control-item">
+                        <kbd>Scroll</kbd>
+                        <span>Zoom in/out</span>
+                    </div>
+                    <div class="control-item">
+                        <kbd>Drag</kbd>
+                        <span>Pan view</span>
+                    </div>
+                    <div class="control-item">
+                        <kbd>Drag Node</kbd>
+                        <span>Move node</span>
+                    </div>
+                    <div class="control-item">
+                        <kbd>Click Node</kbd>
+                        <span>View details</span>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 {% endblock %}
-
 {% block extra_js %}
     {{ block.super }}
     {% vite_script 'scholar_app/common/project-selector' %}

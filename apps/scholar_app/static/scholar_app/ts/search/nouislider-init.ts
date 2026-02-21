@@ -35,7 +35,7 @@ declare global {
       updateFilter: (
         yearRange: [number, number] | null,
         citationsRange: [number, number] | null,
-        impactRange: [number, number] | null
+        impactRange: [number, number] | null,
       ) => void;
       init: (data: any[]) => void;
       resetFilters: () => void;
@@ -60,11 +60,14 @@ function notifySwarmPlots(): void {
     clearTimeout(updateTimeout);
   }
   updateTimeout = window.setTimeout(() => {
-    if (window.SwarmPlots && typeof window.SwarmPlots.updateFilter === 'function') {
+    if (
+      window.SwarmPlots &&
+      typeof window.SwarmPlots.updateFilter === "function"
+    ) {
       window.SwarmPlots.updateFilter(
         currentYearRange,
         currentCitationsRange,
-        currentImpactRange
+        currentImpactRange,
       );
     }
   }, 100); // 100ms debounce
@@ -75,7 +78,8 @@ if (window.__nouisliderInitialized) {
   console.log("[noUiSlider] Already initialized, skipping");
 } else {
   window.__nouisliderInitialized = true;
-  document.addEventListener("DOMContentLoaded", function () {
+
+  function initNoUiSliders(): void {
     console.log("[noUiSlider] Initializing dual-range sliders...");
 
     // Get URL parameters for initial values
@@ -220,8 +224,10 @@ if (window.__nouisliderInitialized) {
 
             if (citationsMinInput) citationsMinInput.value = String(minValue);
             if (citationsMaxInput) citationsMaxInput.value = String(maxValue);
-            if (citationsMinDisplay) citationsMinDisplay.textContent = String(minValue);
-            if (citationsMaxDisplay) citationsMaxDisplay.textContent = String(maxValue);
+            if (citationsMinDisplay)
+              citationsMinDisplay.textContent = String(minValue);
+            if (citationsMaxDisplay)
+              citationsMaxDisplay.textContent = String(maxValue);
 
             // Update SwarmPlots
             currentCitationsRange = [minValue, maxValue];
@@ -332,5 +338,13 @@ if (window.__nouisliderInitialized) {
     console.log(
       "[noUiSlider] All sliders initialized successfully with dynamic ranges",
     );
-  });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", function () {
+      initNoUiSliders();
+    });
+  } else {
+    initNoUiSliders();
+  }
 }
