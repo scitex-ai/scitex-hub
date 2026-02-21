@@ -15,13 +15,6 @@ from django.views.decorators.http import require_http_methods
 logger = logging.getLogger(__name__)
 
 
-def _get_pltz_class():
-    """Lazy import Pltz class."""
-    from scitex.plt import Pltz
-
-    return Pltz
-
-
 @login_required
 @require_http_methods(["POST"])
 def update_pltz_property(request):
@@ -76,8 +69,9 @@ def update_pltz_property(request):
         return JsonResponse({"error": f"Bundle not found: {full_path}"}, status=404)
 
     try:
-        Pltz = _get_pltz_class()
-        pltz = Pltz(full_path)
+        import figrecipe
+
+        pltz = figrecipe.Pltz(full_path)
 
         # Parse property path (e.g., "spec.axes.xlabel" → spec["axes"]["xlabel"])
         parts = property_path.split(".")
@@ -177,8 +171,9 @@ def batch_update_pltz_properties(request):
         return JsonResponse({"error": f"Bundle not found: {full_path}"}, status=404)
 
     try:
-        Pltz = _get_pltz_class()
-        pltz = Pltz(full_path)
+        import figrecipe
+
+        pltz = figrecipe.Pltz(full_path)
 
         # Apply all updates
         for update in updates:

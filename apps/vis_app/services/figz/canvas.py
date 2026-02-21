@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from .bundle_ops import get_bundle_base_path
-from .constants import get_figz_class
 
 
 def save_canvas_as_bundle(
@@ -25,7 +24,7 @@ def save_canvas_as_bundle(
     For embedded panels (pltz_path contains '#'), preserves the existing pltz bytes.
     Only updates panel positions and sizes.
     """
-    Figz = get_figz_class()
+    import figrecipe
 
     if project_owner and project_slug:
         from apps.project_app.models import Project
@@ -40,20 +39,19 @@ def save_canvas_as_bundle(
         raise ValueError("project info or user required")
 
     size_mm = {
-        "width": canvas_size.get("width_mm", 170),
-        "height": canvas_size.get("height_mm", 120),
+        "width_mm": canvas_size.get("width_mm", 170),
+        "height_mm": canvas_size.get("height_mm", 120),
     }
 
     # Pre-extract embedded panel bytes BEFORE creating new figz
-    embedded_panel_bytes = _extract_embedded_panels(bundle_path, panels, Figz)
+    embedded_panel_bytes = _extract_embedded_panels(bundle_path, panels, figrecipe.Figz)
 
     # Create new figz (this overwrites the file)
-    figz = Figz.create(bundle_path, figure_name, size_mm)
+    figz = figrecipe.Figz.create(bundle_path, figure_name, size_mm)
 
     for panel in panels:
         _add_panel_to_figz(figz, panel, embedded_panel_bytes)
 
-    figz.save()
     return {"path": str(bundle_path), "saved": True}
 
 
@@ -94,8 +92,7 @@ def _add_panel_to_figz(
             figz.add_panel(label, pltz_bytes, position, size)
     elif pltz_path and Path(pltz_path).exists():
         # Standalone pltz file
-        with open(pltz_path, "rb") as f:
-            figz.add_panel(label, f.read(), position, size)
+        figz.add_panel(label, Path(pltz_path).read_bytes(), position, size)
 
 
 # EOF

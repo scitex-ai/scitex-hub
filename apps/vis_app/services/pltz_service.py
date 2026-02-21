@@ -1,28 +1,12 @@
-"""PltzBundle Service - Thin Django wrapper around scitex.plt.Pltz."""
+"""PltzBundle Service - Thin Django wrapper around figrecipe bundle functions."""
 
 import logging
-import os
-import sys
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
 from django.conf import settings
-from django.utils.text import slugify
 
 logger = logging.getLogger(__name__)
-
-SCITEX_CODE_PATH = os.environ.get(
-    "SCITEX_CODE_PATH", "/home/ywatanabe/proj/scitex-code"
-)
-if SCITEX_CODE_PATH not in sys.path:
-    sys.path.insert(0, f"{SCITEX_CODE_PATH}/src")
-
-
-def _get_pltz_class():
-    """Lazy import Pltz class."""
-    from scitex.plt import Pltz
-
-    return Pltz
 
 
 class PltzService:
@@ -35,65 +19,27 @@ class PltzService:
 
     @staticmethod
     def load_bundle(bundle_path: Union[str, Path]) -> Dict[str, Any]:
-        """Load a pltz bundle using scitex.plt.Pltz."""
-        Pltz = _get_pltz_class()
+        """Load a pltz bundle using figrecipe.load_bundle."""
+        import figrecipe
+
         path = Path(bundle_path)
         if not path.exists():
             raise FileNotFoundError(f"Bundle not found: {path}")
-        pltz = Pltz(path)
-        return {
-            "path": str(path),
-            "is_zip": path.suffix == ".pltz",
-            "spec": pltz.spec,
-            "style": pltz.style,
-            "data": pltz.data,
-        }
-
-    @staticmethod
-    def save_bundle(
-        spec: Dict,
-        style: Dict,
-        data_csv: Optional[str] = None,
-        output_path: Optional[Union[str, Path]] = None,
-        user_id: Optional[int] = None,
-        name: Optional[str] = None,
-        as_zip: bool = True,
-    ) -> Dict[str, Any]:
-        """Save a new pltz bundle using scitex.plt.Pltz."""
-        from io import StringIO
-
-        import pandas as pd
-
-        Pltz = _get_pltz_class()
-        if output_path:
-            path = Path(output_path)
-        elif user_id and name:
-            base_path = PltzService.get_bundle_base_path(user_id)
-            base_path.mkdir(parents=True, exist_ok=True)
-            path = base_path / f"{slugify(name)}.pltz"
-        else:
-            raise ValueError("Either output_path or (user_id, name) required")
-        df = (
-            pd.read_csv(data_csv if Path(data_csv).is_file() else StringIO(data_csv))
-            if data_csv
-            else None
-        )
-        plot_type = spec.get("plot_type", "line")
-        pltz = Pltz.create(path, plot_type=plot_type, data=df, spec_overrides=spec)
-        if style:
-            pltz.style = style
-            pltz.save()
+        spec, style, data = figrecipe.load_bundle(path)
         return {
             "path": str(path),
             "is_zip": True,
-            "spec": pltz.spec,
-            "style": pltz.style,
+            "spec": spec,
+            "style": style,
+            "data": data,
         }
 
     @staticmethod
     def update_spec(bundle_path: Union[str, Path], spec: Dict) -> Dict[str, Any]:
         """Update spec.json in bundle."""
-        pltz = _get_pltz_class()(bundle_path)
+        import figrecipe
+
+        pltz = figrecipe.Pltz(bundle_path)
         pltz.spec = spec
         pltz.save()
         return {"path": str(bundle_path), "spec": spec}
@@ -101,7 +47,9 @@ class PltzService:
     @staticmethod
     def update_style(bundle_path: Union[str, Path], style: Dict) -> Dict[str, Any]:
         """Update style.json in bundle."""
-        pltz = _get_pltz_class()(bundle_path)
+        import figrecipe
+
+        pltz = figrecipe.Pltz(bundle_path)
         pltz.style = style
         pltz.save()
         return {"path": str(bundle_path), "style": style}
@@ -109,15 +57,15 @@ class PltzService:
     @staticmethod
     def get_data_csv(bundle_path: Union[str, Path]) -> Optional[str]:
         """Get data CSV content from bundle. Handles pltz inside figz bundles."""
+        import figrecipe
+
         path_str = str(bundle_path)
 
         # Handle pltz embedded in figz (path like "Figure1.figz/A.pltz")
         if ".figz/" in path_str:
-            from scitex.fig import Figz
-
-            figz_path, panel_pltz = path_str.split(".figz/", 1)
-            figz = Figz(figz_path + ".figz")
-            panel_id = panel_pltz.replace(".pltz", "")
+            figz_path_str, panel_part = path_str.split(".figz/", 1)
+            figz = figrecipe.Figz(Path(figz_path_str + ".figz"))
+            panel_id = panel_part.replace(".pltz", "").replace(".plt.zip", "")
             data = figz.get_panel_data(panel_id)
             if data is not None:
                 return data.to_csv(index=False)
@@ -125,9 +73,9 @@ class PltzService:
 
         # Standard standalone pltz
         try:
-            pltz = _get_pltz_class()(bundle_path)
-            if pltz.data is not None:
-                return pltz.data.to_csv(index=False)
+            _, _, data = figrecipe.load_bundle(bundle_path)
+            if data is not None:
+                return data.to_csv(index=False)
         except Exception as e:
             logger.warning(f"Failed to get data: {e}")
         return None
@@ -140,7 +88,7 @@ class PltzService:
         try:
             with ZipBundle(bundle_path, mode="r") as zb:
                 return zb.read_json("cache/geometry_px.json")
-        except (FileNotFoundError, Exception):
+        except Exception:
             return None
 
     @staticmethod
@@ -158,7 +106,7 @@ class PltzService:
     def is_pltz_bundle(path: Union[str, Path]) -> bool:
         """Check if path is a valid pltz bundle."""
         path = Path(path)
-        if path.suffix == ".pltz" and path.is_file():
+        if path.suffix in (".pltz", ".zip") and path.is_file():
             from scitex.io.bundle import ZipBundle
 
             try:

@@ -16,7 +16,6 @@ from .constants import (
     FIGZ_EXTENSION,
     STX_EXTENSION,
     get_bundle_module,
-    get_figz_class,
 )
 
 
@@ -53,14 +52,15 @@ def is_figure_bundle(path: Union[str, Path]) -> bool:
 
 
 def load_bundle(bundle_path: Union[str, Path]) -> Dict[str, Any]:
-    """Load a figure bundle (.stx or .figz) using scitex.fig.Figz."""
-    Figz = get_figz_class()
+    """Load a figure bundle (.stx or .figz) using figrecipe.Figz."""
+    import figrecipe
+
     path = Path(bundle_path)
 
     if not path.exists():
         raise FileNotFoundError(f"Bundle not found: {path}")
 
-    figz = Figz(path)
+    figz = figrecipe.Figz(path)
 
     content_type = "figure"
     if path.suffix == STX_EXTENSION:
@@ -68,7 +68,7 @@ def load_bundle(bundle_path: Union[str, Path]) -> Dict[str, Any]:
 
     return {
         "path": str(path),
-        "is_zip": path.suffix in BUNDLE_EXTENSIONS,
+        "is_zip": True,
         "format": "stx" if path.suffix == STX_EXTENSION else "figz",
         "content_type": content_type,
         "bundle_id": figz.spec.get("bundle_id"),
@@ -89,8 +89,9 @@ def save_bundle(
     generate_exports: bool = True,
     use_stx: bool = False,
 ) -> Dict[str, Any]:
-    """Save a new figure bundle using scitex.fig.Figz."""
-    Figz = get_figz_class()
+    """Save a new figure bundle using figrecipe.Figz."""
+    import figrecipe
+
     ext = STX_EXTENSION if use_stx else FIGZ_EXTENSION
 
     if output_path:
@@ -104,10 +105,10 @@ def save_bundle(
 
     figure_name = spec.get("figure", {}).get("id", name or "Figure")
     size_mm = spec.get("size_mm")
-    figz = Figz.create(path, figure_name, size_mm)
+    figz = figrecipe.Figz.create(path, figure_name, size_mm)
     if style:
         figz.style = style
-    figz.save()
+        figz.save()
 
     return {
         "path": str(path),

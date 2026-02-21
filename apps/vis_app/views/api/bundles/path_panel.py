@@ -132,13 +132,15 @@ def _try_figz_pltz_approach(
     position: dict,
     size: dict,
 ) -> dict | None:
-    """Attempt to add panel using scitex.fig.Figz / scitex.plt.Pltz.
+    """Attempt to add panel using figrecipe.Figz.
 
-    Returns result dict on success, None if approach is unavailable.
+    Renders the gallery plot to PNG via PlotsService, wraps it in a minimal
+    .plt.zip bundle, then stores it inside the .figz figure bundle.
+
+    Returns result dict on success, None on failure.
     """
     try:
-        from scitex.fig import Figz
-        from scitex.plt import Pltz
+        import figrecipe
 
         from apps.project_app.models import Project
 
@@ -148,60 +150,79 @@ def _try_figz_pltz_approach(
         figz_path = figures_dir / f"{figure_name}.figz"
 
         figz = (
-            Figz(figz_path)
+            figrecipe.Figz(figz_path)
             if figz_path.exists()
-            else Figz.create(figz_path, figure_name)
+            else figrecipe.Figz.create(figz_path, figure_name)
         )
 
-        with tempfile.NamedTemporaryFile(suffix=".pltz", delete=False) as f:
-            temp_pltz_path = Path(f.name)
+        # Render gallery plot to PNG via PlotsService
+        from apps.vis_app.services.plots_service import PlotsService
 
+        csv_data: list = []
+        if data_csv:
+            import csv
+            import io as _io
+
+            csv_data = list(csv.reader(_io.StringIO(data_csv)))
+
+        result = PlotsService.render_gallery_plot(
+            plot_type=gallery_plot_name,
+            category=gallery_category,
+            csv_data=csv_data,
+            overrides={},
+        )
+
+        if not result.get("success") or not result.get("image"):
+            logger.warning(
+                f"[add_panel_to_figz] Gallery render failed: {result.get('error')}"
+            )
+            return None
+
+        import base64
+        import json
+        import zipfile
+
+        image_data = result["image"].split(",", 1)[-1]
+        png_bytes = base64.b64decode(image_data)
+
+        # Create minimal .plt.zip bundle wrapping the PNG
+        tmp = Path(tempfile.mktemp(suffix=".plt.zip"))
         try:
-            pltz = Pltz.create_from_gallery(
-                temp_pltz_path, gallery_category, gallery_plot_name
-            )
-            if data_csv:
-                from io import StringIO
+            with zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as zf:
+                zf.writestr(
+                    "manifest.json",
+                    json.dumps({"bundle_type": "PLTZ", "version": "1.0"}, indent=2),
+                )
+                zf.writestr(
+                    "spec.json",
+                    json.dumps({"plot_type": gallery_plot_name}, indent=2),
+                )
+                zf.writestr("style.json", json.dumps({}, indent=2))
+                zf.writestr("exports/figure.png", png_bytes)
 
-                import pandas as pd
-
-                pltz.data = pd.read_csv(StringIO(data_csv))
-                pltz.save()
-
-            with open(temp_pltz_path, "rb") as f:
-                pltz_bytes = f.read()
-
-            figz.add_panel(panel_label, pltz_bytes, position, size)
-            logger.info(
-                f"[add_panel_to_figz] Added panel {panel_label} to {figz_path} via Figz/Pltz"
-            )
-
-            return {
-                "success": True,
-                "figz_path": str(figz_path),
-                "panel_label": panel_label,
-                "position": position,
-                "size": size,
-                "preview_url": (
-                    f"/vis/api/bundles/figz/panel-preview/"
-                    f"?path={figz_path}&panel={panel_label}"
-                ),
-            }
+            figz.add_panel(panel_label, tmp.read_bytes(), position, size)
         finally:
-            if temp_pltz_path.exists():
-                temp_pltz_path.unlink()
+            if tmp.exists():
+                tmp.unlink()
 
-    except ImportError:
         logger.info(
-            "[add_panel_to_figz] scitex.fig.Figz / scitex.plt.Pltz not available, "
-            "falling back to scitex.plt render"
+            f"[add_panel_to_figz] Added panel {panel_label} to {figz_path} via figrecipe.Figz"
         )
-        return None
+
+        return {
+            "success": True,
+            "figz_path": str(figz_path),
+            "panel_label": panel_label,
+            "position": position,
+            "size": size,
+            "preview_url": (
+                f"/vis/api/bundles/figz/panel-preview/"
+                f"?path={figz_path}&panel={panel_label}"
+            ),
+        }
+
     except Exception as e:
-        logger.warning(
-            f"[add_panel_to_figz] Figz/Pltz approach failed: {e}, "
-            "falling back to scitex.plt render"
-        )
+        logger.warning(f"[add_panel_to_figz] Figz approach failed: {e}")
         return None
 
 
@@ -354,36 +375,26 @@ def get_figz_panel_preview(request):
 
     # Try real figz bundle approach
     try:
-        from scitex.fig import Figz
-        from scitex.plt import Pltz
+        import figrecipe
 
-        figz = Figz(figz_path_resolved)
+        figz = figrecipe.Figz(figz_path_resolved)
         pltz_bytes = figz.get_panel_pltz(panel_label)
 
         if not pltz_bytes:
             return JsonResponse({"error": f"Panel {panel_label} not found"}, status=404)
 
-        with tempfile.NamedTemporaryFile(suffix=".pltz", delete=False) as f:
+        with tempfile.NamedTemporaryFile(suffix=".plt.zip", delete=False) as f:
             f.write(pltz_bytes)
             temp_path = Path(f.name)
 
         try:
-            pltz = Pltz(temp_path)
+            pltz = figrecipe.Pltz(temp_path)
             preview = pltz.get_preview() or pltz.render_preview()
             return HttpResponse(preview, content_type="image/png")
         finally:
             if temp_path.exists():
                 temp_path.unlink()
 
-    except ImportError:
-        logger.warning(
-            "[get_figz_panel_preview] scitex.fig.Figz not available "
-            f"and no virtual panel found at {figz_path}"
-        )
-        return JsonResponse(
-            {"error": f"Panel preview not available: {figz_path}/{panel_label}"},
-            status=404,
-        )
     except FileNotFoundError:
         return JsonResponse(
             {"error": f"Figz not found: {figz_path_resolved}"}, status=404

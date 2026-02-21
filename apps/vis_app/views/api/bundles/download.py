@@ -275,16 +275,14 @@ def export_figz_image(request):
     )
 
     try:
-        # Delegate to scitex.fig.io for compositing
-        from scitex.fig.io import export_figz_bundle
+        import figrecipe
 
-        image_bytes = export_figz_bundle(
-            str(bundle_path), output_format=output_format, dpi=dpi
-        )
+        figz = figrecipe.Figz(bundle_path)
+        image_bytes = figz.render_preview()
 
         if not image_bytes:
-            logger.error("[export_figz_image] export_figz_bundle returned empty bytes")
-            return JsonResponse({"error": "Export returned empty result"}, status=500)
+            logger.error("[export_figz_image] render_preview returned empty bytes")
+            return JsonResponse({"error": "No preview available in bundle"}, status=500)
 
         bundle_name = bundle_path.name.replace(".figz.d", "").replace(".figz", "")
         ext = "jpg" if output_format in ("jpg", "jpeg") else output_format
@@ -300,17 +298,10 @@ def export_figz_image(request):
         )
         response["Content-Disposition"] = f'attachment; filename="{bundle_name}.{ext}"'
         logger.info(
-            f"[export_figz_image] Successfully exported {len(image_bytes)} bytes as {output_format}"
+            f"[export_figz_image] Successfully exported {len(image_bytes)} bytes"
         )
         return response
 
-    except ImportError as e:
-        logger.error(
-            f"[export_figz_image] scitex.fig.io.export_figz_bundle not available: {e}"
-        )
-        return JsonResponse(
-            {"error": "scitex.fig.io.export_figz_bundle not available"}, status=500
-        )
     except FileNotFoundError as e:
         logger.error(f"[export_figz_image] File not found: {e}")
         return JsonResponse({"error": str(e)}, status=404)
