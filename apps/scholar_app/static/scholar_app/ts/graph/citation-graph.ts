@@ -21,6 +21,10 @@ import {
   type InteractionState,
 } from "./GraphInteraction";
 import { saveNodeToLibrary } from "./library-bridge";
+import {
+  startInspiringSpinner,
+  type SpinnerHandle,
+} from "../../../../../../static/shared/ts/components/inspiring-spinner";
 
 class CitationGraphManager {
   private config: CitationGraphConfig;
@@ -37,6 +41,7 @@ class CitationGraphManager {
     "cocitation",
     "direct",
   ]);
+  private loadingSpinner: SpinnerHandle | null = null;
 
   constructor() {
     const config = window.CITATION_GRAPH_CONFIG;
@@ -135,8 +140,8 @@ class CitationGraphManager {
     }
   }
 
-  private async handleSubmit(e: Event): Promise<void> {
-    e.preventDefault();
+  private async handleSubmit(e?: Event): Promise<void> {
+    e?.preventDefault();
     const doiInput = document.getElementById("doiInput") as HTMLInputElement;
     const topNSelect = document.getElementById("topN") as HTMLSelectElement;
     if (!doiInput?.value) {
@@ -156,6 +161,7 @@ class CitationGraphManager {
       }
       const networkData: NetworkData = await networkResponse.json();
       this.currentData = networkData;
+      this.loadingSpinner?.updateMessage("Rendering graph...");
       this.renderGraph(networkData);
       await this.fetchRelatedPapers(doi, topN);
     } catch (err) {
@@ -164,6 +170,15 @@ class CitationGraphManager {
     } finally {
       this.showLoading(false);
     }
+  }
+
+  /**
+   * Build graph from a DOI (programmatic entry point for search-to-graph flow)
+   */
+  public buildFromDoi(doi: string): void {
+    const doiInput = document.getElementById("doiInput") as HTMLInputElement;
+    if (doiInput) doiInput.value = doi;
+    this.handleSubmit();
   }
 
   private renderGraph(data: NetworkData): void {
@@ -334,7 +349,15 @@ class CitationGraphManager {
       loading?.classList.remove("hidden");
       visualization?.classList.add("hidden");
       related?.classList.add("hidden");
+      if (loading) {
+        this.loadingSpinner = startInspiringSpinner(
+          loading,
+          "Building citation network...",
+        );
+      }
     } else {
+      this.loadingSpinner?.stop();
+      this.loadingSpinner = null;
       loading?.classList.add("hidden");
     }
   }
@@ -408,15 +431,18 @@ function escapeHtml(text: string): string {
 
 // Initialize (handle both direct load and SPA injection)
 function initAll(): void {
-  // Input handler doesn't need config — always initialize for tab switching
+  const graphManager = new CitationGraphManager();
+
   new GraphInputHandler({
     onDoiSelected: (doi) => {
       const doiInput = document.getElementById("doiInput") as HTMLInputElement;
       if (doiInput) doiInput.value = doi;
     },
+    onBuildGraph: (doi) => {
+      graphManager.buildFromDoi(doi);
+    },
     escapeHtml,
   });
-  new CitationGraphManager();
 }
 
 if (document.readyState === "loading") {

@@ -5,13 +5,21 @@
  * Each mode resolves to a DOI which is then used to build the graph.
  */
 
+import {
+  startInspiringSpinner,
+  type SpinnerHandle,
+} from "../../../../../../static/shared/ts/components/inspiring-spinner";
+
 export interface GraphInputCallbacks {
   onDoiSelected: (doi: string) => void;
+  onBuildGraph: (doi: string) => void;
   escapeHtml: (text: string) => string;
 }
 
 export class GraphInputHandler {
   private callbacks: GraphInputCallbacks;
+  private searchSpinner: SpinnerHandle | null = null;
+  private librarySpinner: SpinnerHandle | null = null;
 
   constructor(callbacks: GraphInputCallbacks) {
     this.callbacks = callbacks;
@@ -61,8 +69,11 @@ export class GraphInputHandler {
 
     const query = input.value.trim();
     resultsEl.classList.remove("hidden");
-    resultsEl.innerHTML =
-      '<p class="graph-search-loading"><i class="fas fa-spinner fa-spin"></i> Searching...</p>';
+    resultsEl.innerHTML = "";
+    this.searchSpinner = startInspiringSpinner(
+      resultsEl,
+      "Searching for papers...",
+    );
 
     try {
       const response = await fetch(
@@ -73,39 +84,41 @@ export class GraphInputHandler {
       const papers = data.results || data.papers || [];
 
       if (papers.length === 0) {
+        this.searchSpinner?.stop();
+        this.searchSpinner = null;
         resultsEl.innerHTML = '<p class="empty-message">No papers found</p>';
         return;
       }
 
-      resultsEl.innerHTML = papers
-        .map(
-          (p: {
-            doi?: string;
-            title?: string;
-            authors?: string[];
-            year?: number;
-          }) => `
-          <div class="graph-search-item" data-doi="${p.doi || ""}">
-            <div class="graph-search-item__title">${this.callbacks.escapeHtml(p.title || "Untitled")}</div>
-            <div class="graph-search-item__meta">
-              ${p.authors?.slice(0, 2).join(", ") || ""}${(p.authors?.length || 0) > 2 ? " et al." : ""} (${p.year || "?"})
-            </div>
-            ${p.doi ? `<div class="graph-search-item__doi">${p.doi}</div>` : '<div class="graph-search-item__no-doi">No DOI</div>'}
-          </div>
-        `,
-        )
-        .join("");
+      // Find first paper with a DOI
+      const paperWithDoi = papers.find(
+        (p: { doi?: string }) => p.doi && p.doi.trim(),
+      );
+      if (!paperWithDoi?.doi) {
+        this.searchSpinner?.stop();
+        this.searchSpinner = null;
+        resultsEl.innerHTML =
+          '<p class="empty-message">No papers with DOI found</p>';
+        return;
+      }
 
-      resultsEl.querySelectorAll(".graph-search-item").forEach((item) => {
-        item.addEventListener("click", () => {
-          const doi = item.getAttribute("data-doi");
-          if (doi) {
-            this.selectDoi(doi);
-            resultsEl.classList.add("hidden");
-          }
-        });
-      });
+      // Auto-build graph from best match — no cards
+      this.searchSpinner?.updateMessage(
+        `Found ${papers.length} papers. Building citation network...`,
+      );
+
+      // Clean up spinner before handing off to graph builder
+      this.searchSpinner?.stop();
+      this.searchSpinner = null;
+      resultsEl.classList.add("hidden");
+
+      // Fill DOI and trigger graph build
+      const doiInput = document.getElementById("doiInput") as HTMLInputElement;
+      if (doiInput) doiInput.value = paperWithDoi.doi;
+      this.callbacks.onBuildGraph(paperWithDoi.doi);
     } catch {
+      this.searchSpinner?.stop();
+      this.searchSpinner = null;
       resultsEl.innerHTML = '<p class="error-message">Search failed</p>';
     }
   }
@@ -114,8 +127,8 @@ export class GraphInputHandler {
     const listEl = document.getElementById("graphLibraryList");
     if (!listEl) return;
 
-    listEl.innerHTML =
-      '<p class="graph-library-loading"><i class="fas fa-spinner fa-spin"></i> Loading library...</p>';
+    listEl.innerHTML = "";
+    this.librarySpinner = startInspiringSpinner(listEl, "Loading library...");
 
     try {
       const response = await fetch("/scholar/api/library/papers/", {
@@ -124,6 +137,9 @@ export class GraphInputHandler {
       if (!response.ok) throw new Error("Failed to load library");
       const data = await response.json();
       const papers = data.papers || [];
+
+      this.librarySpinner?.stop();
+      this.librarySpinner = null;
 
       if (papers.length === 0) {
         listEl.innerHTML =
@@ -155,6 +171,8 @@ export class GraphInputHandler {
         });
       });
     } catch {
+      this.librarySpinner?.stop();
+      this.librarySpinner = null;
       listEl.innerHTML = '<p class="error-message">Failed to load library</p>';
     }
   }
