@@ -79,12 +79,9 @@ else
     try_figrecipe_installation_in_editable_mode() {
         if [ -d "/figrecipe" ]; then
             if [ -f "/figrecipe/pyproject.toml" ] || [ -f "/figrecipe/setup.py" ]; then
-                if pip show figrecipe 2>/dev/null | grep -q "Location:.*figrecipe"; then
-                    echo -e "${GREEN}✅ figrecipe already installed in editable mode${NC}"
-                else
-                    echo_info "Installing figrecipe (editable mode)..."
-                    uv pip install -e "/figrecipe[all]" --link-mode=copy >/dev/null
-                fi
+                # Always reinstall from volume to pick up any new files added since last install
+                echo_info "Installing figrecipe (editable mode)..."
+                uv pip install -e "/figrecipe[all]" --link-mode=copy >/dev/null
             else
                 echo -e "⚠️  WARNING: /figrecipe exists but is not a valid Python package"
             fi
