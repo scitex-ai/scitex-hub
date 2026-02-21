@@ -133,28 +133,18 @@ def add_panel_to_figz(request):
                 status=500,
             )
 
-        png_bytes = base64.b64decode(result["image"].split(",", 1)[-1])
-
-        # Extract hitmap data from render result
-        hitmap_bytes = None
+        # Use proper figrecipe .plt.zip bundle (includes recipe.yaml for reproduction)
+        pltz_b64 = result.get("pltz_b64")
+        element_bboxes = result.get("element_bboxes", {})
         hitmap_color_map = result.get("hitmap_color_map")
-        if result.get("hitmap"):
-            hitmap_bytes = base64.b64decode(result["hitmap"].split(",", 1)[-1])
 
-        # Build data CSV from the input data used for rendering
-        data_csv = data_csv  # already a string from request body
+        if not pltz_b64:
+            raise RuntimeError(
+                f"render_gallery_plot did not return pltz_b64 for {gallery_plot_name}"
+            )
 
-        # Delegate: figrecipe wraps PNG in .plt.zip and embeds in .fig.zip
-        figz.add_panel_from_png(
-            panel_label,
-            png_bytes,
-            plot_type=gallery_plot_name,
-            position=position,
-            size=size,
-            hitmap_bytes=hitmap_bytes,
-            hitmap_color_map=hitmap_color_map,
-            data_csv=data_csv,
-        )
+        pltz_bytes = base64.b64decode(pltz_b64)
+        figz.add_panel(panel_label, pltz_bytes, position=position, size=size)
 
         logger.info(f"[add_panel_to_figz] Panel {panel_label} added to {figz_path}")
         panel_preview_url = (
@@ -170,6 +160,11 @@ def add_panel_to_figz(request):
                 "preview_url": panel_preview_url,
                 "hitmap_url": f"{panel_preview_url}&type=hitmap",
                 "hitmap_color_map": hitmap_color_map,
+                "element_bboxes": element_bboxes,
+                "figure_size_px": {
+                    "width": result.get("width", 0),
+                    "height": result.get("height", 0),
+                },
             },
             status=201,
         )

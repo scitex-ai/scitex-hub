@@ -54,15 +54,20 @@ class PlotsService:
     def render_gallery_plot(
         plot_type: str, category: str, csv_data: List[List], overrides: dict
     ) -> Dict:
-        """Render a plot from gallery template with CSV data."""
+        """Render a plot from gallery template with CSV data using figrecipe."""
+        import json as _json
+        import tempfile
+        import zipfile as _zipfile
+        from pathlib import Path as _Path
+
         os.environ["MPLBACKEND"] = "Agg"
 
         try:
-            import scitex as stx
+            import figrecipe as fr
         except ImportError as e:
-            raise ImportError(f"scitex not available: {e}")
+            raise ImportError(f"figrecipe not available: {e}")
 
-        # Explicitly re-apply scitex rcParams (Celery workers may reset matplotlib state)
+        # Re-apply scitex rcParams (Celery workers may reset matplotlib state)
         try:
             from scitex.plt._auto_config import _apply_rcparams
 
@@ -73,56 +78,133 @@ class PlotsService:
             except ImportError:
                 _apply_rcparams(False, lambda _: None)
         except Exception as _rc_err:
-            logger.debug(f"[PlotsService] rcParams apply skipped: {_rc_err}")
+            logger.warning(
+                f"[PlotsService] rcParams apply failed: {_rc_err}", exc_info=True
+            )
 
         df = prepare_dataframe(csv_data)
         fig_width = overrides.get("fig_width", 4)
         fig_height = overrides.get("fig_height", 3)
         dpi = overrides.get("dpi", 150)
 
-        fig, ax = stx.plt.subplots(figsize=(fig_width, fig_height))
         cols = df.columns.tolist()
         xy_pairs = detect_xy_column_pairs(cols)
 
+        # Use figrecipe.subplots() with mm-based margins — no tight_layout needed
+        fig, ax = fr.subplots(
+            figsize=(fig_width, fig_height),
+            margin_left_mm=12,
+            margin_bottom_mm=12,
+            margin_right_mm=5,
+            margin_top_mm=5,
+        )
+
         render_plot_by_type(ax, df, plot_type, category, overrides, xy_pairs)
         apply_plot_styling(ax, overrides)
-        fig.tight_layout()
 
-        fig.canvas.draw()
-        renderer = fig.canvas.get_renderer()
+        # Auto-set axis labels from column names if not already set via overrides
+        if not ax.get_xlabel() and not overrides.get("xlabel"):
+            x_col = xy_pairs[0][0] if xy_pairs else (cols[0] if cols else None)
+            if x_col and "_variable-" not in x_col:
+                ax.set_xlabel(x_col)
+        if not ax.get_ylabel() and not overrides.get("ylabel"):
+            y_col = xy_pairs[0][1] if xy_pairs else (cols[1] if len(cols) > 1 else None)
+            if y_col and "_variable-" not in y_col:
+                ax.set_ylabel(y_col)
 
-        buf = io.BytesIO()
-        fig.savefig(
-            buf,
-            format="png",
-            dpi=dpi,
-            bbox_inches="tight",
-        )
-        buf.seek(0)
+        # Access underlying mpl figure for renderer (needed by element_bboxes/hitmap extractors)
+        mpl_fig = fig.fig if hasattr(fig, "fig") else fig
+        mpl_fig.canvas.draw()
+        renderer = mpl_fig.canvas.get_renderer()
 
-        from PIL import Image
+        # Save via figrecipe — produces .plt.zip with recipe.yaml (reproducible)
+        pltz_bytes = None
+        png_bytes = None
+        element_bboxes = {}
+        hitmap_data = None
+        hitmap_color_map = None
+        column_mapping = {}
+        width = 0
+        height = 0
 
-        img = Image.open(buf)
-        width, height = img.size
-        buf.seek(0)
+        tmp_path = _Path(tempfile.mktemp(suffix=".plt.zip"))
+        try:
+            from figrecipe._bundle._save import save_bundle
 
-        from apps.vis_app.services.plot_renderer.element_bboxes import (
-            extract_element_bboxes,
-        )
+            save_bundle(fig, tmp_path, dpi=dpi, verbose=False)
 
-        element_bboxes = extract_element_bboxes(fig, ax, renderer, width, height)
+            # Extract PNG from bundle (figrecipe saves to exports/figure.png)
+            with _zipfile.ZipFile(tmp_path) as zf:
+                names = zf.namelist()
+                prefix = (
+                    names[0].split("/")[0] + "/" if names and "/" in names[0] else ""
+                )
+                png_name = next(
+                    (n for n in names if n.endswith(".png") and "hitmap" not in n),
+                    None,
+                )
+                if not png_name:
+                    raise RuntimeError(
+                        f"No PNG found in figrecipe bundle. Contents: {names}"
+                    )
+                png_bytes = zf.read(png_name)
 
-        hitmap_data, hitmap_color_map = _generate_hitmap(fig, dpi)
+            from PIL import Image
 
-        if xy_pairs:
-            y_cols = [pair[1] for pair in xy_pairs]
-        else:
-            y_cols = overrides.get("y_columns", cols[1:] if len(cols) > 1 else [])
-        if isinstance(y_cols, str):
-            y_cols = [y_cols]
+            img = Image.open(io.BytesIO(png_bytes))
+            width, height = img.size
 
-        column_mapping = _map_elements_to_columns(element_bboxes, y_cols, xy_pairs)
-        b64_data = base64.b64encode(buf.getvalue()).decode("utf-8")
+            from apps.vis_app.services.plot_renderer.element_bboxes import (
+                extract_element_bboxes,
+            )
+
+            mpl_ax = mpl_fig.axes[0] if mpl_fig.axes else None
+            if mpl_ax:
+                element_bboxes = extract_element_bboxes(
+                    mpl_fig, mpl_ax, renderer, width, height
+                )
+
+            hitmap_data, hitmap_color_map = _generate_hitmap(mpl_fig, dpi)
+
+            if xy_pairs:
+                y_cols = [pair[1] for pair in xy_pairs]
+            else:
+                y_cols = overrides.get("y_columns", cols[1:] if len(cols) > 1 else [])
+            if isinstance(y_cols, str):
+                y_cols = [y_cols]
+            column_mapping = _map_elements_to_columns(element_bboxes, y_cols, xy_pairs)
+
+            # Append element_bboxes and hitmap_color_map to the bundle
+            hitmap_bytes = (
+                base64.b64decode(hitmap_data.split(",", 1)[-1]) if hitmap_data else None
+            )
+            with _zipfile.ZipFile(tmp_path, "a") as zf:
+                if element_bboxes:
+                    zf.writestr(
+                        f"{prefix}metadata/element_bboxes.json",
+                        _json.dumps(element_bboxes),
+                    )
+                if hitmap_color_map:
+                    zf.writestr(
+                        f"{prefix}metadata/hitmap_color_map.json",
+                        _json.dumps({str(k): v for k, v in hitmap_color_map.items()}),
+                    )
+                if hitmap_bytes:
+                    zf.writestr(f"{prefix}exports/hitmap.png", hitmap_bytes)
+
+            pltz_bytes = tmp_path.read_bytes()
+
+        except Exception as e:
+            logger.error(
+                f"[PlotsService] Failed to render via figrecipe bundle: {e}",
+                exc_info=True,
+            )
+            raise
+        finally:
+            if tmp_path.exists():
+                tmp_path.unlink()
+
+        b64_data = base64.b64encode(png_bytes).decode("utf-8")
 
         result = {
             "success": True,
@@ -132,6 +214,9 @@ class PlotsService:
             "element_bboxes": element_bboxes,
             "column_mapping": column_mapping,
         }
+
+        if pltz_bytes:
+            result["pltz_b64"] = base64.b64encode(pltz_bytes).decode("utf-8")
 
         if hitmap_data and hitmap_color_map:
             result["hitmap"] = hitmap_data
