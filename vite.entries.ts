@@ -301,6 +301,10 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
       rootDir,
       "static/shared/ts/module-tab-switcher.ts",
     ),
+    "shared/input-history": r(
+      rootDir,
+      "static/shared/ts/utils/input-history.ts",
+    ),
     "shared/components/module-tab-context-menu": r(
       rootDir,
       "static/shared/ts/components/module-tab-context-menu.ts",
