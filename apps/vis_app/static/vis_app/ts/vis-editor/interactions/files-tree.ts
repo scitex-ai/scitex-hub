@@ -126,16 +126,17 @@ async function handlePltzSelection(
     const fileName = path.split("/").pop() || "";
     const panelName =
       fileName.replace(/\.plt\.zip$/, "").replace(/\.pltz$/, "") || "A";
-    const parentPath = fullPath.replace(`/${path.split("/").pop()}`, "");
+    // Pass fullPath as figzPath — _panel-ops.ts detects .plt.zip and uses it directly
+    // (no parent-dir#panelName trick, which the backend can't resolve for standalone pltz)
     await managers.canvasManager.loadPltzPanel(
       {
         id: panelName,
         label: panelName,
-        plot: path.split("/").pop() || "",
+        plot: fileName,
         position: { x_mm: 10, y_mm: 10 },
         size: { width_mm: 80, height_mm: 60 },
       },
-      parentPath,
+      fullPath,
     );
   } catch (error) {
     console.error("[InteractionHandlers] Failed to load pltz bundle:", error);

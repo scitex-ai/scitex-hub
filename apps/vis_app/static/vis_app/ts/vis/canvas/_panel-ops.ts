@@ -84,9 +84,13 @@ export async function loadPltzPanel(
     return;
   }
 
-  // Construct path to pltz panel inside figz bundle (e.g., Figure1.fig.zip#A)
-  // Backend PltzPreviewService handles reading from inside figz ZIP using '#' separator
-  const pltzPath = `${figzPath}#${panel.label}`;
+  // Construct path to pltz panel.
+  // - Standalone .plt.zip: use figzPath directly (backend handles plain path)
+  // - Panel embedded in .fig.zip: use figzPath#label (backend splits on '#')
+  const pltzPath =
+    figzPath.endsWith(".plt.zip") || figzPath.endsWith(".pltz")
+      ? figzPath
+      : `${figzPath}#${panel.label}`;
   const previewUrl = `/vis/api/bundles/pltz/preview/?path=${encodeURIComponent(pltzPath)}&project_owner=${encodeURIComponent(state.projectOwner)}&project_slug=${encodeURIComponent(state.projectSlug)}&t=${Date.now()}`;
 
   const mmToPx = state.bundleRenderDpi / 25.4;
