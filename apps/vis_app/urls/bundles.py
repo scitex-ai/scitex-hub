@@ -175,6 +175,12 @@ flow_patterns = [
     path(
         "api/bundles/figz/export/", api_views.export_figz_bundle, name="api_figz_export"
     ),
+    # Project file content (CSV, TSV, TXT by filesystem path)
+    path(
+        "api/bundles/project-file/",
+        api_views.get_project_file_content,
+        name="api_project_file_content",
+    ),
 ]
 
 # Download Bundle Endpoints (GET-based for direct download)

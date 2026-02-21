@@ -25,6 +25,7 @@ from .path_pltz import (
     get_pltz_data_by_path,
     get_pltz_geometry_by_path,
     get_pltz_preview_by_path,
+    get_project_file_content,
     load_pltz_by_path,
     render_pltz_by_path,
     update_pltz_by_path,
@@ -39,6 +40,8 @@ __all__ = [
     "update_pltz_by_path",
     "render_pltz_by_path",
     "create_pltz_from_plot",
+    # Project file
+    "get_project_file_content",
     # Figz
     "load_figz_by_path",
     "save_figz_canvas",

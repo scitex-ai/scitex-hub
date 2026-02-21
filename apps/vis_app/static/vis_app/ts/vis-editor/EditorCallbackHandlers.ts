@@ -278,6 +278,21 @@ export class EditorCallbackHandlers {
       console.log(`[VisEditor] CSV data rows: ${csvData?.length || 0}`);
       this.deps.updateStatusBar(`Loading: ${plot.display_name}...`);
 
+      // Capture user's current data table content BEFORE loading gallery CSV
+      // (Workflow: "Plotter buttons → Plot" uses user's data, not gallery example)
+      let userCsvData: string[][] | undefined;
+      const currentData = this.deps.dataTableManager.getCurrentData?.();
+      if (currentData && currentData.rows && currentData.rows.length > 0) {
+        const headers = currentData.columns || Object.keys(currentData.rows[0]);
+        const dataRows = currentData.rows.map((row: any) =>
+          headers.map((col: string) => String(row[col] ?? "")),
+        );
+        userCsvData = [headers, ...dataRows];
+        console.log(
+          `[VisEditor] User has ${currentData.rows.length} rows — will use user's data for rendering`,
+        );
+      }
+
       // Store current plot info for re-rendering
       if (this.deps.setCurrentPlotState) {
         this.deps.setCurrentPlotState(plot, plot.name, category, csvData || []);
@@ -290,14 +305,12 @@ export class EditorCallbackHandlers {
       });
       this.deps.propertiesManager.updateColumnDropdowns();
 
-      // Create new tab and load CSV data into data table
+      // Load gallery CSV as reference tab (shows schema; user's data preserved separately)
       if (csvData && csvData.length > 0) {
         try {
-          // Determine tab type from category for icon synchronization
           const tabType =
             this.deps.getTabTypeFromCategory?.(category) || "default";
 
-          // Create new tab with the plot data
           const tabId = dataTabManager.createAndSwitchToTab(
             plot.display_name,
             tabType,
@@ -306,11 +319,17 @@ export class EditorCallbackHandlers {
             csvData,
           );
 
-          // Load CSV into data table
-          this.deps.dataTableManager.loadFromArray(csvData, true);
-          console.log(
-            `[VisEditor] Created tab ${tabId} and loaded ${csvData.length} rows from gallery CSV`,
-          );
+          // If user has no data, load gallery CSV as current data
+          if (!userCsvData) {
+            this.deps.dataTableManager.loadFromArray(csvData, true);
+            console.log(
+              `[VisEditor] Created tab ${tabId} and loaded ${csvData.length} rows from gallery CSV`,
+            );
+          } else {
+            console.log(
+              `[VisEditor] Created gallery reference tab ${tabId} (user's data kept active)`,
+            );
+          }
         } catch (err) {
           console.error("[VisEditor] Failed to load CSV into data table:", err);
         }
@@ -333,8 +352,14 @@ export class EditorCallbackHandlers {
         );
       }
 
+      // Use user's data for rendering if available, fall back to gallery example
+      const dataForBundle = userCsvData ?? csvData;
       if (this.deps.createPltzBundleFromGallery) {
-        await this.deps.createPltzBundleFromGallery(plot, category, csvData);
+        await this.deps.createPltzBundleFromGallery(
+          plot,
+          category,
+          dataForBundle,
+        );
       }
     };
   }

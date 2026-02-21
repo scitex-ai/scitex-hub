@@ -41,6 +41,8 @@ from .bundles import (
     get_pltz_geometry_by_path,
     get_pltz_preview,
     get_pltz_preview_by_path,
+    # Project file serving
+    get_project_file_content,
     # FigzBundle endpoints
     list_figz_bundles,
     # PltzBundle endpoints
@@ -229,4 +231,6 @@ __all__ = [
     "export_figz_image",
     # Create empty figz bundle
     "create_empty_figz",
+    # Project file content (CSV/TSV/TXT by path)
+    "get_project_file_content",
 ]

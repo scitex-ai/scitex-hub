@@ -43,6 +43,7 @@ from .path_api import (
     get_pltz_data_by_path,
     get_pltz_geometry_by_path,
     get_pltz_preview_by_path,
+    get_project_file_content,
     load_figz_by_path,
     load_pltz_by_path,
     render_pltz_by_path,
@@ -98,6 +99,8 @@ __all__ = [
     "render_pltz_by_path",
     "create_pltz_from_plot",
     "save_figz_canvas",
+    # Project file serving
+    "get_project_file_content",
     # Gallery -> Figz flow (no standalone pltz)
     "add_panel_to_figz",
     "get_figz_panel_preview",

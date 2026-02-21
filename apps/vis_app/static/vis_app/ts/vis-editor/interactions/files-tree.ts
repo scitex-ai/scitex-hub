@@ -45,8 +45,13 @@ export async function setupFilesTree(
           return;
         }
 
-        if (path.endsWith(".pltz")) {
+        if (path.endsWith(".plt.zip") || path.endsWith(".pltz")) {
           await handlePltzSelection(editor, fullPath, path);
+          return;
+        }
+
+        if (path.endsWith(".csv") || path.endsWith(".tsv")) {
+          await handleCsvSelection(editor, fullPath);
           return;
         }
       },
@@ -118,7 +123,9 @@ async function handlePltzSelection(
   console.log("[InteractionHandlers] Loading pltz bundle:", fullPath);
   try {
     const managers = editor.getManagers();
-    const panelName = path.split("/").pop()?.replace(".pltz", "") || "A";
+    const fileName = path.split("/").pop() || "";
+    const panelName =
+      fileName.replace(/\.plt\.zip$/, "").replace(/\.pltz$/, "") || "A";
     const parentPath = fullPath.replace(`/${path.split("/").pop()}`, "");
     await managers.canvasManager.loadPltzPanel(
       {
@@ -133,6 +140,63 @@ async function handlePltzSelection(
   } catch (error) {
     console.error("[InteractionHandlers] Failed to load pltz bundle:", error);
   }
+}
+
+/**
+ * Handle CSV/TSV file selection - loads data into the data table
+ */
+async function handleCsvSelection(
+  editor: VisEditor,
+  fullPath: string,
+): Promise<void> {
+  console.log("[InteractionHandlers] Loading CSV file:", fullPath);
+  try {
+    const url = `/vis/api/bundles/project-file/?path=${encodeURIComponent(fullPath)}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`HTTP ${response.status}: ${errText}`);
+    }
+    const csvText = await response.text();
+    const rows = parseCsvText(csvText);
+
+    const managers = editor.getManagers();
+    managers.dataTableManager.loadFromArray(rows, true);
+
+    const fileName = fullPath.split("/").pop() || "data.csv";
+    editor.updateStatusBar(
+      `Loaded: ${fileName} (${rows.length - 1} data rows)`,
+    );
+    console.log(`[InteractionHandlers] Loaded CSV: ${rows.length} rows`);
+  } catch (error) {
+    console.error("[InteractionHandlers] Failed to load CSV:", error);
+    editor.updateStatusBar(`Failed to load CSV: ${error}`);
+  }
+}
+
+/**
+ * Parse CSV text into 2D string array, handling quoted fields with commas.
+ */
+function parseCsvText(text: string): string[][] {
+  const lines = text.trim().split("\n");
+  return lines.map((line) => {
+    const result: string[] = [];
+    let current = "";
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === "," && !inQuotes) {
+        result.push(current.trim());
+        current = "";
+      } else {
+        current += char;
+      }
+    }
+    result.push(current.trim());
+    return result;
+  });
 }
 
 /**

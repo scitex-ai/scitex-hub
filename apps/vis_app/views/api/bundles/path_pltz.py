@@ -218,6 +218,50 @@ def render_pltz_by_path(request):
 
 
 @login_required
+@require_http_methods(["GET"])
+def get_project_file_content(request):
+    """Serve raw content of a project file (CSV, TSV, TXT) by filesystem path.
+
+    Query params:
+        path:           Absolute or relative filesystem path
+        project_owner:  Optional project owner for path resolution
+        project_slug:   Optional project slug for path resolution
+    """
+    file_path = request.GET.get("path")
+    if not file_path:
+        return JsonResponse({"error": "path parameter required"}, status=400)
+
+    resolved = resolve_bundle_path(
+        file_path,
+        project_owner=request.GET.get("project_owner"),
+        project_slug=request.GET.get("project_slug"),
+        user=request.user,
+    )
+
+    if not resolved.exists():
+        return JsonResponse({"error": f"File not found: {resolved}"}, status=404)
+
+    if not resolved.is_file():
+        return JsonResponse({"error": "Path is not a file"}, status=400)
+
+    allowed_suffixes = {
+        ".csv": "text/csv",
+        ".tsv": "text/tab-separated-values",
+        ".txt": "text/plain",
+    }
+    suffix = resolved.suffix.lower()
+    if suffix not in allowed_suffixes:
+        return JsonResponse({"error": f"Unsupported file type: {suffix}"}, status=400)
+
+    try:
+        content = resolved.read_text(encoding="utf-8")
+        return HttpResponse(content, content_type=allowed_suffixes[suffix])
+    except Exception as e:
+        logger.exception(f"[get_project_file_content] Failed to read {resolved}: {e}")
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+@login_required
 @require_http_methods(["POST"])
 def create_pltz_from_plot(request):
     """Create a pltz bundle from plot type and data."""
