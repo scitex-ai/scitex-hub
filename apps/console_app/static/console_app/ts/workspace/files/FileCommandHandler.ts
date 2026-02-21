@@ -16,7 +16,7 @@ export class FileCommandHandler {
     private fileTreeManager: FileTreeManager,
     private fileStateManager: FileStateManager,
     private uiComponents: UIComponents,
-    private visitorManager: VisitorManager
+    private visitorManager: VisitorManager,
   ) {}
 
   /**
@@ -52,7 +52,7 @@ export class FileCommandHandler {
     const fileName = await this.uiComponents.showFileModal(
       "New File",
       "File name:",
-      "example.py"
+      "example.py",
     );
 
     if (!fileName) return;
@@ -94,7 +94,7 @@ export class FileCommandHandler {
     const folderName = await this.uiComponents.showFileModal(
       "New Folder",
       "Folder name:",
-      "my-folder"
+      "my-folder",
     );
 
     if (!folderName) return;
@@ -110,11 +110,13 @@ export class FileCommandHandler {
    */
   async renameFile(oldPath: string, newPath?: string): Promise<void> {
     // If newPath is provided, skip the modal
-    const targetPath = newPath ?? await this.uiComponents.showFileModal(
-      "Rename File",
-      "New name:",
-      oldPath
-    );
+    const targetPath =
+      newPath ??
+      (await this.uiComponents.showFileModal(
+        "Rename File",
+        "New name:",
+        oldPath,
+      ));
 
     if (!targetPath || targetPath === oldPath) return;
 
@@ -130,8 +132,6 @@ export class FileCommandHandler {
    * Delete file or folder
    */
   async deleteFile(filePath: string): Promise<void> {
-    if (!confirm(`Delete ${filePath}?`)) return;
-
     const success = await this.fileOperations.deleteFile(filePath);
     if (success) {
       this.fileStateManager.closeTab(filePath);
@@ -151,7 +151,7 @@ export class FileCommandHandler {
     const fileName = await this.uiComponents.showFileModal(
       "New File",
       "File name:",
-      "example.py"
+      "example.py",
     );
 
     if (!fileName) return;
@@ -176,7 +176,7 @@ export class FileCommandHandler {
     const folderName = await this.uiComponents.showFileModal(
       "New Folder",
       "Folder name:",
-      "my-folder"
+      "my-folder",
     );
 
     if (!folderName) return;

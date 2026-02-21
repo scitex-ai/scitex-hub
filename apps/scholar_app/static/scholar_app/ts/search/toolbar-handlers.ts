@@ -219,14 +219,6 @@ export function setupToolbarHandlers(): void {
       return;
     }
 
-    const label = selected.length > 0 ? "selected" : "all";
-    if (
-      !confirm(
-        `Save ${papers.length.toLocaleString()} ${label} paper(s) to project?`,
-      )
-    )
-      return;
-
     savePapersBulk(papers, projectId, csrfToken);
   });
 

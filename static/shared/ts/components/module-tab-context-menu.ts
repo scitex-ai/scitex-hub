@@ -127,11 +127,6 @@ async function toggleModule(name: string): Promise<void> {
 }
 
 async function uninstallModule(name: string): Promise<void> {
-  if (
-    !confirm(`Uninstall "${name}" module? You can reinstall from Marketplace.`)
-  ) {
-    return;
-  }
   try {
     const data = await apiPost(`${MARKETPLACE_API}/${name}/uninstall/`);
     if (data.success) {

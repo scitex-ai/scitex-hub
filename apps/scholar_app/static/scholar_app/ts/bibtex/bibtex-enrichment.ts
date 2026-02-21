@@ -159,31 +159,21 @@ class BibtexEnrichmentOrchestrator {
     const data = await response.json();
 
     if (data.requires_confirmation && data.existing_job) {
-      const msg = `You already have a job in progress: "${data.existing_job.filename}" (${data.existing_job.progress}% complete).\n\nCancel it and start a new job?`;
+      // Force cancel existing and start new job
+      formData.append("force", "true");
+      const retryResponse = await fetch(uploadUrl, {
+        method: "POST",
+        body: formData,
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+          "X-CSRFToken": csrfToken,
+        },
+      });
+      const retryData = await retryResponse.json();
 
-      if (confirm(msg)) {
-        // Resubmit with force flag
-        formData.append("force", "true");
-        const retryResponse = await fetch(uploadUrl, {
-          method: "POST",
-          body: formData,
-          headers: {
-            "X-Requested-With": "XMLHttpRequest",
-            "X-CSRFToken": csrfToken,
-          },
-        });
-        const retryData = await retryResponse.json();
-
-        if (retryData.success && retryData.job_id) {
-          this.jobPollingManager.pollJobStatus(retryData.job_id);
-          window.currentBibtexJobId = retryData.job_id;
-        }
-      } else {
-        // User declined, start monitoring existing job
-        if (data.existing_job.id) {
-          this.jobPollingManager.pollJobStatus(data.existing_job.id);
-          window.currentBibtexJobId = data.existing_job.id;
-        }
+      if (retryData.success && retryData.job_id) {
+        this.jobPollingManager.pollJobStatus(retryData.job_id);
+        window.currentBibtexJobId = retryData.job_id;
       }
     } else {
       alert(

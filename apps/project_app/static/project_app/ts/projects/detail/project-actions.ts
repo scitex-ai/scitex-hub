@@ -74,10 +74,7 @@ async function handleWatch(event: Event): Promise<void> {
 
       showNotification(data.message, "success");
     } else {
-      showNotification(
-        data.error || "Failed to update watch status",
-        "error",
-      );
+      showNotification(data.error || "Failed to update watch status", "error");
     }
   } catch (error) {
     console.error("Error toggling watch:", error);
@@ -126,14 +123,6 @@ async function handleStar(event: Event): Promise<void> {
 }
 
 async function handleFork(event: Event): Promise<void> {
-  if (
-    !confirm(
-      "Fork this repository? This will create a copy under your account.",
-    )
-  ) {
-    return;
-  }
-
   const projectData = (window as any).SCITEX_PROJECT_DATA;
   if (!projectData) return;
 

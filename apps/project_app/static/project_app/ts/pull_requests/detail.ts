@@ -44,7 +44,6 @@ function submitMerge() {
     });
 }
 function closePR() {
-  if (!confirm("Are you sure you want to close this pull request?")) return;
   // Get CSRF token
   const csrfToken = (
     document.querySelector("[name=csrfmiddlewaretoken]") as HTMLInputElement
