@@ -77,48 +77,23 @@ def create_empty_figz(request):
         )
 
     figures_dir.mkdir(parents=True, exist_ok=True)
-    bundle_dir = figures_dir / f"{figure_name}.figz.d"
-    zip_path = figures_dir / f"{figure_name}.figz"
+    zip_path = figures_dir / f"{figure_name}.fig.zip"
 
-    # Check if ZIP already exists - this is the primary storage
+    # Return existing bundle if already created
     if zip_path.exists():
         return JsonResponse(
             {
                 "success": True,
                 "bundle_path": str(zip_path),
-                "directory_path": str(bundle_dir),
                 "figure_name": figure_name,
                 "already_exists": True,
             }
         )
 
-    # If directory exists but ZIP doesn't, pack it and return
-    if bundle_dir.exists() and not zip_path.exists():
-        try:
-            from scitex.io.bundle import zip_directory
-
-            zip_directory(bundle_dir, zip_path)
-            logger.info(f"Packed existing directory to ZIP: {zip_path}")
-            return JsonResponse(
-                {
-                    "success": True,
-                    "bundle_path": str(zip_path),
-                    "directory_path": str(bundle_dir),
-                    "figure_name": figure_name,
-                    "packed_existing": True,
-                }
-            )
-        except Exception as e:
-            logger.warning(f"Failed to pack existing directory: {e}")
-
     try:
         import figrecipe
 
-        figz = figrecipe.Figz.create(
-            zip_path,
-            figure_name,
-            size_mm=canvas_size,
-        )
+        figrecipe.Figz.create(zip_path, figure_name, size_mm=canvas_size)
 
         logger.info(f"Created empty figz bundle: {zip_path}")
 
@@ -126,7 +101,6 @@ def create_empty_figz(request):
             {
                 "success": True,
                 "bundle_path": str(zip_path),
-                "directory_path": str(bundle_dir),
                 "figure_name": figure_name,
             },
             status=201,
@@ -151,8 +125,6 @@ def export_figz_bundle(request):
     Returns:
         ZIP file download
     """
-    import io
-    import zipfile
 
     try:
         data = json.loads(request.body)
@@ -180,39 +152,29 @@ def export_figz_bundle(request):
                 status=404,
             )
         figures_dir = project_root / "scitex" / "vis" / "figures"
-        figz_dirs = list(figures_dir.glob("*.figz.d"))
-        if figz_dirs:
-            bundle_path = figz_dirs[0]
+        figz_files = list(figures_dir.glob("*.fig.zip"))
+        if figz_files:
+            bundle_path = figz_files[0]
         else:
             return JsonResponse(
-                {"error": "No figz bundle found in project"}, status=404
+                {"error": "No .fig.zip bundle found in project"}, status=404
             )
     else:
         bundle_base = FigzService.get_bundle_base_path(request.user.id)
-        figz_dirs = list(bundle_base.glob("*.figz.d"))
-        if figz_dirs:
-            bundle_path = figz_dirs[0]
+        figz_files = list(bundle_base.glob("*.fig.zip"))
+        if figz_files:
+            bundle_path = figz_files[0]
         else:
-            return JsonResponse({"error": "No figz bundle found"}, status=404)
+            return JsonResponse({"error": "No .fig.zip bundle found"}, status=404)
 
     if not bundle_path.exists():
         return JsonResponse({"error": f"Bundle not found: {bundle_path}"}, status=404)
 
     try:
-        zip_buffer = io.BytesIO()
-
-        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-            for file_path in bundle_path.rglob("*"):
-                if file_path.is_file():
-                    rel_path = file_path.relative_to(bundle_path)
-                    zip_file.write(file_path, rel_path)
-
-        zip_buffer.seek(0)
-        bundle_name = bundle_path.stem.replace(".figz", "")
-
-        response = HttpResponse(zip_buffer.read(), content_type="application/zip")
-        response["Content-Disposition"] = f'attachment; filename="{bundle_name}.figz"'
-
+        with open(bundle_path, "rb") as f:
+            content = f.read()
+        response = HttpResponse(content, content_type="application/zip")
+        response["Content-Disposition"] = f'attachment; filename="{bundle_path.name}"'
         return response
 
     except Exception as e:

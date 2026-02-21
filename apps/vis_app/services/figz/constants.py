@@ -24,9 +24,9 @@ def get_bundle_module():
     return bundle
 
 
-# Supported extensions (unified .stx + legacy)
+# Supported extensions
 STX_EXTENSION = ".stx"
-FIGZ_EXTENSION = ".figz"
+FIGZ_EXTENSION = ".fig.zip"
 BUNDLE_EXTENSIONS = (STX_EXTENSION, FIGZ_EXTENSION)
 
 # Constants for backward compatibility

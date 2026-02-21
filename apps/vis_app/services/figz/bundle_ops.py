@@ -12,10 +12,8 @@ from django.conf import settings
 from django.utils.text import slugify
 
 from .constants import (
-    BUNDLE_EXTENSIONS,
     FIGZ_EXTENSION,
     STX_EXTENSION,
-    get_bundle_module,
 )
 
 
@@ -30,23 +28,21 @@ def is_figz_bundle(path: Union[str, Path]) -> bool:
 
 
 def is_figure_bundle(path: Union[str, Path]) -> bool:
-    """Check if path is a valid figure bundle (.stx or .figz)."""
-    bundle = get_bundle_module()
+    """Check if path is a valid figure bundle (.fig.zip or .stx)."""
     path = Path(path)
-
-    if path.suffix not in BUNDLE_EXTENSIONS:
-        return False
 
     if not path.is_file():
         return False
 
+    path_str = str(path)
+    if not (path_str.endswith(".fig.zip") or path.suffix == STX_EXTENSION):
+        return False
+
     try:
-        with bundle.ZipBundle(path, mode="r") as zb:
-            spec = zb.read_json("spec.json")
-            if path.suffix == STX_EXTENSION:
-                content_type = bundle.get_stx_type(spec)
-                return content_type == "figure"
-            return True
+        import figrecipe
+
+        figz = figrecipe.Figz(path)
+        return True
     except Exception:
         return False
 

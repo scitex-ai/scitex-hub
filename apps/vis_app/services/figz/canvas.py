@@ -32,9 +32,9 @@ def save_canvas_as_bundle(
         project = Project.objects.get(owner__username=project_owner, slug=project_slug)
         figures_dir = project.get_local_path() / "scitex" / "vis" / "figures"
         figures_dir.mkdir(parents=True, exist_ok=True)
-        bundle_path = figures_dir / f"{figure_name}.figz"
+        bundle_path = figures_dir / f"{figure_name}.fig.zip"
     elif user:
-        bundle_path = get_bundle_base_path(user.id) / f"{figure_name}.figz"
+        bundle_path = get_bundle_base_path(user.id) / f"{figure_name}.fig.zip"
     else:
         raise ValueError("project info or user required")
 

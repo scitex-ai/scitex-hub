@@ -61,11 +61,10 @@ class PltzService:
 
         path_str = str(bundle_path)
 
-        # Handle pltz embedded in figz (path like "Figure1.figz/A.pltz")
-        if ".figz/" in path_str:
-            figz_path_str, panel_part = path_str.split(".figz/", 1)
-            figz = figrecipe.Figz(Path(figz_path_str + ".figz"))
-            panel_id = panel_part.replace(".pltz", "").replace(".plt.zip", "")
+        # Handle pltz embedded in .fig.zip (path like "Figure1.fig.zip#A")
+        if "#" in path_str:
+            figz_path_str, panel_id = path_str.split("#", 1)
+            figz = figrecipe.Figz(Path(figz_path_str))
             data = figz.get_panel_data(panel_id)
             if data is not None:
                 return data.to_csv(index=False)
@@ -105,17 +104,16 @@ class PltzService:
     @staticmethod
     def is_pltz_bundle(path: Union[str, Path]) -> bool:
         """Check if path is a valid pltz bundle."""
-        path = Path(path)
-        if path.suffix in (".pltz", ".zip") and path.is_file():
-            from scitex.io.bundle import ZipBundle
+        import figrecipe
 
-            try:
-                with ZipBundle(path, mode="r") as zb:
-                    zb.read_json("spec.json")
-                return True
-            except Exception:
-                return False
-        return False
+        path = Path(path)
+        if not (str(path).endswith(".plt.zip") and path.is_file()):
+            return False
+        try:
+            figrecipe.Pltz(path)
+            return True
+        except Exception:
+            return False
 
     # Delegate to specialized services
     @staticmethod
