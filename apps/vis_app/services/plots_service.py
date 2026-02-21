@@ -62,6 +62,19 @@ class PlotsService:
         except ImportError as e:
             raise ImportError(f"scitex not available: {e}")
 
+        # Explicitly re-apply scitex rcParams (Celery workers may reset matplotlib state)
+        try:
+            from scitex.plt._auto_config import _apply_rcparams
+
+            try:
+                from figrecipe import load_style as _fr_load_style
+
+                _apply_rcparams(True, _fr_load_style)
+            except ImportError:
+                _apply_rcparams(False, lambda _: None)
+        except Exception as _rc_err:
+            logger.debug(f"[PlotsService] rcParams apply skipped: {_rc_err}")
+
         df = prepare_dataframe(csv_data)
         fig_width = overrides.get("fig_width", 4)
         fig_height = overrides.get("fig_height", 3)
@@ -84,9 +97,6 @@ class PlotsService:
             format="png",
             dpi=dpi,
             bbox_inches="tight",
-            transparent=True,
-            facecolor="none",
-            edgecolor="none",
         )
         buf.seek(0)
 
@@ -135,7 +145,9 @@ def _generate_hitmap(fig, dpi):
     try:
         from scitex.plt.utils._hitmap import generate_hitmap_id_colors
 
-        hitmap, color_map = generate_hitmap_id_colors(fig, dpi=dpi)
+        # Unwrap RecordingFigure to get underlying matplotlib Figure
+        mpl_fig = fig.fig if hasattr(fig, "fig") else fig
+        hitmap, color_map = generate_hitmap_id_colors(mpl_fig, dpi=dpi)
         hitmap_buf = io.BytesIO()
         from PIL import Image as PILImage
 

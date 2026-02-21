@@ -92,6 +92,7 @@ def add_panel_to_figz(request):
 
         import figrecipe
 
+        from apps.vis_app.services.gallery_generator import get_template_gallery_path
         from apps.vis_app.services.plots_service import PlotsService
 
         # Load or create .fig.zip bundle
@@ -100,6 +101,23 @@ def add_panel_to_figz(request):
             if figz_path.exists()
             else figrecipe.Figz.create(figz_path, figure_name)
         )
+
+        # If no CSV provided, load gallery default CSV
+        if not data_csv:
+            template_csv = (
+                get_template_gallery_path()
+                / gallery_category
+                / f"{gallery_plot_name}.csv"
+            )
+            if template_csv.exists():
+                data_csv = template_csv.read_text()
+                logger.info(
+                    f"[add_panel_to_figz] Using gallery default CSV: {template_csv}"
+                )
+            else:
+                logger.warning(
+                    f"[add_panel_to_figz] No gallery CSV found for {gallery_category}/{gallery_plot_name}"
+                )
 
         # Render gallery plot to PNG via PlotsService
         csv_data = list(_csv.reader(_io.StringIO(data_csv))) if data_csv else []
@@ -117,6 +135,15 @@ def add_panel_to_figz(request):
 
         png_bytes = base64.b64decode(result["image"].split(",", 1)[-1])
 
+        # Extract hitmap data from render result
+        hitmap_bytes = None
+        hitmap_color_map = result.get("hitmap_color_map")
+        if result.get("hitmap"):
+            hitmap_bytes = base64.b64decode(result["hitmap"].split(",", 1)[-1])
+
+        # Build data CSV from the input data used for rendering
+        data_csv = data_csv  # already a string from request body
+
         # Delegate: figrecipe wraps PNG in .plt.zip and embeds in .fig.zip
         figz.add_panel_from_png(
             panel_label,
@@ -124,9 +151,15 @@ def add_panel_to_figz(request):
             plot_type=gallery_plot_name,
             position=position,
             size=size,
+            hitmap_bytes=hitmap_bytes,
+            hitmap_color_map=hitmap_color_map,
+            data_csv=data_csv,
         )
 
         logger.info(f"[add_panel_to_figz] Panel {panel_label} added to {figz_path}")
+        panel_preview_url = (
+            f"/vis/api/bundles/figz/panel-preview/?path={figz_path}&panel={panel_label}"
+        )
         return JsonResponse(
             {
                 "success": True,
@@ -134,10 +167,9 @@ def add_panel_to_figz(request):
                 "panel_label": panel_label,
                 "position": position,
                 "size": size,
-                "preview_url": (
-                    f"/vis/api/bundles/figz/panel-preview/"
-                    f"?path={figz_path}&panel={panel_label}"
-                ),
+                "preview_url": panel_preview_url,
+                "hitmap_url": f"{panel_preview_url}&type=hitmap",
+                "hitmap_color_map": hitmap_color_map,
             },
             status=201,
         )
@@ -171,6 +203,8 @@ def get_figz_panel_preview(request):
         user=request.user,
     )
 
+    image_type = request.GET.get("type", "png")
+
     try:
         import figrecipe
 
@@ -180,11 +214,29 @@ def get_figz_panel_preview(request):
         if not pltz_bytes:
             return JsonResponse({"error": f"Panel {panel_label} not found"}, status=404)
 
-        # Extract PNG directly from the .plt.zip bytes
         with zipfile.ZipFile(io.BytesIO(pltz_bytes)) as zf:
-            for name in zf.namelist():
-                if name.endswith(".png") and "hitmap" not in name:
-                    return HttpResponse(zf.read(name), content_type="image/png")
+            if image_type == "hitmap":
+                # Serve hitmap PNG
+                for name in zf.namelist():
+                    if "hitmap" in name and name.endswith(".png"):
+                        return HttpResponse(zf.read(name), content_type="image/png")
+                return JsonResponse({"error": "No hitmap in panel bundle"}, status=404)
+            elif image_type == "colormap":
+                # Serve hitmap color map JSON
+                for name in zf.namelist():
+                    if "hitmap_color_map" in name and name.endswith(".json"):
+                        import json as _json
+
+                        data = _json.loads(zf.read(name))
+                        return JsonResponse(data)
+                return JsonResponse(
+                    {"error": "No color map in panel bundle"}, status=404
+                )
+            else:
+                # Default: serve figure PNG
+                for name in zf.namelist():
+                    if name.endswith(".png") and "hitmap" not in name:
+                        return HttpResponse(zf.read(name), content_type="image/png")
 
         return JsonResponse({"error": "No preview image in panel bundle"}, status=404)
 
