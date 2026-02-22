@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 from django.urls import path
+from django.views.decorators.csrf import csrf_exempt
 
 from ..views import api, registry
 
@@ -24,10 +25,8 @@ urlpatterns = [
     # Example pipeline initialization
     path("add-examples/", api.add_examples, name="clew_api_add_examples"),
     # Clew Registry — hash registration and verification
-    path("register/", registry.register_hash, name="clew_api_register"),
+    path("register/", csrf_exempt(registry.register_hash), name="clew_api_register"),
     path("verify/<str:hash_value>/", registry.verify_hash, name="clew_api_verify"),
-    # Badge — public SVG (no login required)
-    path("badge/<str:hash_value>/", registry.badge, name="clew_api_badge"),
 ]
 
 
