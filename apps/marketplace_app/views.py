@@ -187,18 +187,23 @@ def api_uninstall(request, module_name):
 @require_http_methods(["POST"])
 def api_toggle(request, module_name):
     """Toggle module enabled/disabled state."""
+    _ensure_builtin_modules()
     mp_module = get_object_or_404(MarketplaceModule, module_name=module_name)
     installation = ModuleInstallation.objects.filter(
         user=request.user, module=mp_module
     ).first()
 
     if not installation:
-        return JsonResponse(
-            {"success": False, "error": "Module not installed."}, status=400
+        # No record = implicitly enabled → toggle creates disabled record
+        installation = ModuleInstallation.objects.create(
+            user=request.user,
+            module=mp_module,
+            is_enabled=False,
+            tab_order=50,
         )
-
-    installation.is_enabled = not installation.is_enabled
-    installation.save(update_fields=["is_enabled"])
+    else:
+        installation.is_enabled = not installation.is_enabled
+        installation.save(update_fields=["is_enabled"])
 
     return JsonResponse(
         {

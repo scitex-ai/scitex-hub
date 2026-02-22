@@ -62,10 +62,15 @@ def _filter_modules_for_user(request, modules):
         # No installations = first-time user, show all modules
         return modules
 
+    # Show modules unless explicitly disabled via installation record
     visible = []
-    for mod in modules:
+    for idx, mod in enumerate(modules):
         inst = installations.get(mod.name)
-        if inst and inst.is_enabled:
+        if inst is None:
+            # No record = default visible, keep registry order
+            mod.order = (idx + 1) * 10
+            visible.append(mod)
+        elif inst.is_enabled:
             mod.order = inst.tab_order
             visible.append(mod)
 
