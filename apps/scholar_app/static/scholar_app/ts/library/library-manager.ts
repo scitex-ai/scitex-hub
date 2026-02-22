@@ -418,7 +418,7 @@ class LibraryManager {
     }
   }
 
-  private async refreshLibrary(): Promise<void> {
+  async refreshLibrary(): Promise<void> {
     await Promise.all([this.fetchPapers(), this.fetchCollections()]);
     this.renderStats();
     this.renderCollectionSidebar();
@@ -427,7 +427,17 @@ class LibraryManager {
   }
 }
 
+let _manager: LibraryManager | null = null;
+
 export function initLibraryManager(): void {
-  const manager = new LibraryManager();
-  manager.initialize();
+  if (_manager) return; // Already initialized
+  _manager = new LibraryManager();
+  _manager.initialize();
+
+  // Re-fetch papers when navigating back to Library tab
+  window.addEventListener("hashchange", () => {
+    if (window.location.hash === "#library") {
+      _manager?.refreshLibrary();
+    }
+  });
 }
