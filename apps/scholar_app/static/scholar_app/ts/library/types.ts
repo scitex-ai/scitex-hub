@@ -15,6 +15,8 @@ export const API = {
     `/scholar/api/pdf/serve/?path=${encodeURIComponent(path)}`,
 };
 
+export type ViewMode = "card" | "table";
+
 export interface LibraryPaper {
   id: string;
   paper_id: string;
@@ -30,6 +32,16 @@ export interface LibraryPaper {
   tags: string[];
   saved_at: string;
   pdf_path: string | null;
+  collection_ids: string[];
+}
+
+export interface LibraryCollection {
+  id: string;
+  name: string;
+  description: string;
+  color: string;
+  icon: string;
+  paper_count: number;
 }
 
 export interface LibraryStats {

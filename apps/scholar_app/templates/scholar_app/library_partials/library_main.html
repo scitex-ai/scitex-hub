@@ -6,6 +6,15 @@
         <!-- JS fills this with .library-stat chips -->
     </div>
     <div class="library-toolbar-actions">
+        <button class="library-action-btn active"
+                id="library-view-table-btn"
+                title="Table view">
+            <i class="fas fa-list"></i>
+        </button>
+        <button class="library-action-btn" id="library-view-card-btn" title="Card view">
+            <i class="fas fa-th-large"></i>
+        </button>
+        <span class="library-toolbar-divider"></span>
         <button class="library-action-btn" id="library-import-btn" title="Import BibTeX">
             <i class="fas fa-file-upload"></i>
         </button>
@@ -179,10 +188,7 @@
         <option value="title_asc">Title A–Z</option>
         <option value="title_desc">Title Z–A</option>
     </select>
-    <div class="library-collection-filter" id="library-collection-filter">
-        <button class="library-collection-pill active" data-collection="all">All</button>
-        <!-- Additional collections loaded via JS -->
-    </div>
+    <!-- Collection filtering moved to sidebar -->
 </div>
 <!-- Paper List -->
 <div class="library-papers-container">

@@ -2,7 +2,7 @@
  * HTML rendering functions for Scholar Library
  */
 
-import { API, LibraryPaper, LibraryStats } from "./types";
+import { API, LibraryCollection, LibraryPaper, LibraryStats } from "./types";
 import { LibraryAPI } from "./api";
 
 export class LibraryRenderers {
@@ -95,6 +95,145 @@ export class LibraryRenderers {
       card.addEventListener("click", () => {
         const paperId = card.getAttribute("data-paper-id");
         if (paperId) onPaperClick(paperId);
+      });
+    });
+  }
+
+  static renderPaperTable(
+    papers: LibraryPaper[],
+    selectedPaperId: string | null,
+    searchQuery: string,
+    onPaperClick: (paperId: string) => void,
+    onSort: (column: string) => void,
+    sortColumn: string,
+    sortAsc: boolean,
+  ): void {
+    const listContainer = document.getElementById("library-papers-list");
+    if (!listContainer) return;
+
+    if (papers.length === 0) {
+      listContainer.innerHTML = `
+        <div class="library-empty-state">
+          <i class="fas fa-book-open"></i>
+          <div class="library-empty-state-title">No papers found</div>
+          <div class="library-empty-state-description">
+            ${searchQuery ? "Try adjusting your search or filters" : "Start by importing papers from BibTeX or adding them manually"}
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    const arrow = (col: string) => {
+      if (sortColumn !== col) return "";
+      return sortAsc ? " \u25B2" : " \u25BC";
+    };
+
+    const headerHtml = `
+      <thead>
+        <tr>
+          <th class="library-table-th sortable" data-sort="title">Title${arrow("title")}</th>
+          <th class="library-table-th sortable" data-sort="authors">Authors${arrow("authors")}</th>
+          <th class="library-table-th sortable" data-sort="year">Year${arrow("year")}</th>
+          <th class="library-table-th sortable" data-sort="journal">Journal${arrow("journal")}</th>
+          <th class="library-table-th sortable" data-sort="reading_status">Status${arrow("reading_status")}</th>
+          <th class="library-table-th sortable" data-sort="importance_rating">Rating${arrow("importance_rating")}</th>
+        </tr>
+      </thead>
+    `;
+
+    const rowsHtml = papers
+      .map((paper) => {
+        const isSelected = paper.id === selectedPaperId;
+        const authors = paper.authors
+          ? this.truncateText(paper.authors, 30)
+          : "";
+        const journal = paper.journal
+          ? this.truncateText(paper.journal, 25)
+          : "";
+        return `
+          <tr class="library-table-row ${isSelected ? "selected" : ""}" data-paper-id="${paper.id}">
+            <td class="library-table-td library-table-title">${this.escapeHtml(this.truncateText(paper.title, 60))}</td>
+            <td class="library-table-td">${this.escapeHtml(authors)}</td>
+            <td class="library-table-td">${paper.year || ""}</td>
+            <td class="library-table-td">${this.escapeHtml(journal)}</td>
+            <td class="library-table-td">${this.getStatusBadgeHtml(paper.reading_status)}</td>
+            <td class="library-table-td">${this.getCompactStarsHtml(paper.importance_rating)}</td>
+          </tr>
+        `;
+      })
+      .join("");
+
+    listContainer.innerHTML = `
+      <table class="library-table">
+        ${headerHtml}
+        <tbody>${rowsHtml}</tbody>
+      </table>
+    `;
+
+    listContainer.querySelectorAll(".library-table-row").forEach((row) => {
+      row.addEventListener("click", () => {
+        const paperId = row.getAttribute("data-paper-id");
+        if (paperId) onPaperClick(paperId);
+      });
+    });
+
+    listContainer
+      .querySelectorAll(".library-table-th.sortable")
+      .forEach((th) => {
+        th.addEventListener("click", () => {
+          const col = th.getAttribute("data-sort");
+          if (col) onSort(col);
+        });
+      });
+  }
+
+  static truncateText(text: string, maxLen: number): string {
+    if (text.length <= maxLen) return text;
+    return text.slice(0, maxLen - 1) + "\u2026";
+  }
+
+  static getCompactStarsHtml(rating: number): string {
+    if (!rating) return '<span class="library-rating-compact">-</span>';
+    return `<span class="library-rating-compact">${"\u2605".repeat(rating)}</span>`;
+  }
+
+  static renderCollectionSidebar(
+    collections: LibraryCollection[],
+    selectedCollectionId: string | null,
+    totalPaperCount: number,
+    onCollectionClick: (collectionId: string | null) => void,
+  ): void {
+    const list = document.getElementById("library-sidebar-list");
+    if (!list) return;
+
+    const allActive = selectedCollectionId === null ? "active" : "";
+    let html = `
+      <div class="library-sidebar-item ${allActive}" data-collection-id="all">
+        <i class="fas fa-layer-group"></i>
+        <span class="library-sidebar-item-name">All Papers</span>
+        <span class="library-sidebar-item-count">${totalPaperCount}</span>
+      </div>
+    `;
+
+    for (const col of collections) {
+      const active = col.id === selectedCollectionId ? "active" : "";
+      const icon = col.icon || "fas fa-folder";
+      html += `
+        <div class="library-sidebar-item ${active}" data-collection-id="${col.id}">
+          <i class="${this.escapeHtml(icon)}"></i>
+          <span class="library-sidebar-item-name">${this.escapeHtml(col.name)}</span>
+          <span class="library-sidebar-item-count">${col.paper_count}</span>
+        </div>
+      `;
+    }
+
+    list.innerHTML = html;
+
+    list.querySelectorAll(".library-sidebar-item").forEach((item) => {
+      item.addEventListener("click", () => {
+        const id = item.getAttribute("data-collection-id");
+        onCollectionClick(id === "all" ? null : id);
       });
     });
   }

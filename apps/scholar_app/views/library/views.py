@@ -48,11 +48,13 @@ def api_library_papers(request):
             entries = (
                 UserLibrary.objects.filter(user=request.user)
                 .select_related("paper")
+                .prefetch_related("collections")
                 .order_by("-saved_at")
             )
             papers = []
             for entry in entries:
                 p = entry.paper
+                collection_ids = [str(c.id) for c in entry.collections.all()]
                 papers.append(
                     {
                         "id": str(entry.id),
@@ -77,6 +79,7 @@ def api_library_papers(request):
                             entry.saved_at.isoformat() if entry.saved_at else None
                         ),
                         "pdf_path": entry.user_library_pdf_path or None,
+                        "collection_ids": collection_ids,
                     }
                 )
 
@@ -139,8 +142,12 @@ def api_library_papers(request):
 def api_library_collections(request):
     """API endpoint for user's collections"""
     try:
-        collections = Collection.objects.filter(user=request.user).values(
-            "id", "name", "description"
+        from django.db.models import Count
+
+        collections = (
+            Collection.objects.filter(user=request.user)
+            .annotate(paper_count=Count("library_papers"))
+            .values("id", "name", "description", "color", "icon", "paper_count")
         )
 
         return JsonResponse({"success": True, "collections": list(collections)})

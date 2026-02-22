@@ -1,9 +1,15 @@
 /**
  * Scholar Library Tab Manager - Main Orchestrator
  * Manages the library tab functionality: filtering, searching, viewing, editing papers
+ * Supports card/table view modes, collection sidebar, and keyboard navigation
  */
 
-import { LibraryPaper, UpdatePaperData } from "./types";
+import {
+  LibraryCollection,
+  LibraryPaper,
+  UpdatePaperData,
+  ViewMode,
+} from "./types";
 import { LibraryAPI } from "./api";
 import { LibraryFilters } from "./filters";
 import { LibraryRenderers } from "./renderers";
@@ -20,6 +26,17 @@ class LibraryManager {
   private searchQuery: string = "";
   private loadingSpinner: SpinnerHandle | null = null;
 
+  // View mode
+  private viewMode: ViewMode = "table";
+
+  // Collections
+  private collections: LibraryCollection[] = [];
+  private selectedCollectionId: string | null = null;
+
+  // Table sorting
+  private sortColumn: string = "title";
+  private sortAsc: boolean = true;
+
   async initialize(): Promise<void> {
     const loadingEl = document.getElementById("library-loading");
     if (loadingEl) {
@@ -28,18 +45,25 @@ class LibraryManager {
         "Loading papers...",
       );
     }
-    await this.fetchPapers();
+    await Promise.all([this.fetchPapers(), this.fetchCollections()]);
     this.loadingSpinner?.stop();
     this.loadingSpinner = null;
     this.renderStats();
+    this.renderCollectionSidebar();
     this.applyFilters();
     this.renderPaperList();
     this.setupEventListeners();
     this.setupImportExport();
+    this.setupViewToggle();
+    this.setupKeyboardNav();
   }
 
   private async fetchPapers(): Promise<void> {
     this.papers = await LibraryAPI.fetchPapers();
+  }
+
+  private async fetchCollections(): Promise<void> {
+    this.collections = await LibraryAPI.fetchCollections();
   }
 
   private renderStats(): void {
@@ -57,32 +81,115 @@ class LibraryManager {
   }
 
   private applyFilters(): void {
-    this.filteredPapers = LibraryFilters.applyFilters(
+    let papers = LibraryFilters.applyFilters(
       this.papers,
       this.activeStatusFilter,
       this.searchQuery,
     );
+
+    // Filter by collection
+    if (this.selectedCollectionId) {
+      papers = papers.filter(
+        (p) =>
+          p.collection_ids &&
+          p.collection_ids.includes(this.selectedCollectionId!),
+      );
+    }
+
+    this.filteredPapers = papers;
   }
 
   private renderPaperList(): void {
-    LibraryRenderers.renderPaperList(
-      this.filteredPapers,
-      this.selectedPaperId,
-      this.searchQuery,
-      (paperId) => this.selectPaper(paperId),
+    // Apply table sorting if in table mode
+    if (this.viewMode === "table") {
+      this.sortFilteredPapers();
+      LibraryRenderers.renderPaperTable(
+        this.filteredPapers,
+        this.selectedPaperId,
+        this.searchQuery,
+        (paperId) => this.selectPaper(paperId),
+        (column) => this.handleTableSort(column),
+        this.sortColumn,
+        this.sortAsc,
+      );
+    } else {
+      LibraryRenderers.renderPaperList(
+        this.filteredPapers,
+        this.selectedPaperId,
+        this.searchQuery,
+        (paperId) => this.selectPaper(paperId),
+      );
+    }
+  }
+
+  private renderCollectionSidebar(): void {
+    LibraryRenderers.renderCollectionSidebar(
+      this.collections,
+      this.selectedCollectionId,
+      this.papers.length,
+      (collectionId) => this.selectCollection(collectionId),
     );
+  }
+
+  private selectCollection(collectionId: string | null): void {
+    this.selectedCollectionId = collectionId;
+    this.renderCollectionSidebar();
+    this.applyFilters();
+    this.renderPaperList();
+  }
+
+  private handleTableSort(column: string): void {
+    if (this.sortColumn === column) {
+      this.sortAsc = !this.sortAsc;
+    } else {
+      this.sortColumn = column;
+      this.sortAsc = true;
+    }
+    this.renderPaperList();
+  }
+
+  private sortFilteredPapers(): void {
+    const col = this.sortColumn;
+    const asc = this.sortAsc;
+    this.filteredPapers.sort((a, b) => {
+      let cmp = 0;
+      switch (col) {
+        case "title":
+          cmp = (a.title || "").localeCompare(b.title || "");
+          break;
+        case "authors":
+          cmp = (a.authors || "").localeCompare(b.authors || "");
+          break;
+        case "year":
+          cmp = (a.year || 0) - (b.year || 0);
+          break;
+        case "journal":
+          cmp = (a.journal || "").localeCompare(b.journal || "");
+          break;
+        case "reading_status":
+          cmp = (a.reading_status || "").localeCompare(b.reading_status || "");
+          break;
+        case "importance_rating":
+          cmp = (a.importance_rating || 0) - (b.importance_rating || 0);
+          break;
+      }
+      return asc ? cmp : -cmp;
+    });
   }
 
   private selectPaper(paperId: string): void {
     this.selectedPaperId = paperId;
 
-    document.querySelectorAll(".library-paper-card").forEach((card) => {
-      if (card.getAttribute("data-paper-id") === paperId) {
-        card.classList.add("selected");
-      } else {
-        card.classList.remove("selected");
-      }
-    });
+    // Update selection in both card and table views
+    document
+      .querySelectorAll(".library-paper-card, .library-table-row")
+      .forEach((el) => {
+        if (el.getAttribute("data-paper-id") === paperId) {
+          el.classList.add("selected");
+        } else {
+          el.classList.remove("selected");
+        }
+      });
 
     const paper = this.papers.find((p) => p.id === paperId);
     if (paper) {
@@ -159,7 +266,6 @@ class LibraryManager {
   private confirmRemovePaper(paperId: string): void {
     const paper = this.papers.find((p) => p.id === paperId);
     if (!paper) return;
-
     this.removePaper(paperId);
   }
 
@@ -172,6 +278,7 @@ class LibraryManager {
 
       LibraryRenderers.renderEmptyDetailsPanel();
       this.renderStats();
+      this.renderCollectionSidebar();
       this.applyFilters();
       this.renderPaperList();
     } catch (error) {
@@ -219,6 +326,85 @@ class LibraryManager {
     }
   }
 
+  private setupViewToggle(): void {
+    const tableBtn = document.getElementById("library-view-table-btn");
+    const cardBtn = document.getElementById("library-view-card-btn");
+
+    tableBtn?.addEventListener("click", () => {
+      this.viewMode = "table";
+      tableBtn.classList.add("active");
+      cardBtn?.classList.remove("active");
+      this.applyFilters();
+      this.renderPaperList();
+    });
+
+    cardBtn?.addEventListener("click", () => {
+      this.viewMode = "card";
+      cardBtn.classList.add("active");
+      tableBtn?.classList.remove("active");
+      this.applyFilters();
+      this.renderPaperList();
+    });
+  }
+
+  private setupKeyboardNav(): void {
+    const tabLibrary = document.getElementById("tab-library");
+    if (!tabLibrary) return;
+
+    tabLibrary.addEventListener("keydown", (e: KeyboardEvent) => {
+      // Don't capture if user is typing in an input/textarea/select
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          this.navigatePaper(1);
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          this.navigatePaper(-1);
+          break;
+        case "Escape":
+          e.preventDefault();
+          this.selectedPaperId = null;
+          LibraryRenderers.renderEmptyDetailsPanel();
+          this.renderPaperList();
+          break;
+      }
+    });
+
+    // Make the tab focusable for keyboard events
+    tabLibrary.setAttribute("tabindex", "0");
+  }
+
+  private navigatePaper(direction: number): void {
+    if (this.filteredPapers.length === 0) return;
+
+    const currentIdx = this.filteredPapers.findIndex(
+      (p) => p.id === this.selectedPaperId,
+    );
+    let nextIdx: number;
+
+    if (currentIdx === -1) {
+      nextIdx = direction > 0 ? 0 : this.filteredPapers.length - 1;
+    } else {
+      nextIdx = currentIdx + direction;
+      if (nextIdx < 0) nextIdx = 0;
+      if (nextIdx >= this.filteredPapers.length)
+        nextIdx = this.filteredPapers.length - 1;
+    }
+
+    const paper = this.filteredPapers[nextIdx];
+    if (paper) {
+      this.selectPaper(paper.id);
+      // Scroll the selected element into view
+      const selector = `[data-paper-id="${paper.id}"]`;
+      const el = document.querySelector(selector);
+      el?.scrollIntoView({ block: "nearest" });
+    }
+  }
+
   private async importBibtexFile(file: File): Promise<void> {
     try {
       const result = await LibraryAPI.importBibtex(file);
@@ -233,8 +419,9 @@ class LibraryManager {
   }
 
   private async refreshLibrary(): Promise<void> {
-    await this.fetchPapers();
+    await Promise.all([this.fetchPapers(), this.fetchCollections()]);
     this.renderStats();
+    this.renderCollectionSidebar();
     this.applyFilters();
     this.renderPaperList();
   }
