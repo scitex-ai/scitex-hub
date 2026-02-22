@@ -5,24 +5,49 @@
 from __future__ import annotations
 
 import json
+import logging
+import re
 
-from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_http_methods
 
 from ..models import HashRegistration
 
+logger = logging.getLogger(__name__)
 
-@login_required
-@csrf_protect
+_HASH_MAX_LENGTH = 64
+_VALID_SOURCE_TYPES = {"session", "file", "stamp", "manual"}
+_HASH_PATTERN = re.compile(r"^[a-fA-F0-9]+$")
+
+
+def _authenticate_request(request):
+    """Authenticate via session cookie or API key. Returns user or None."""
+    if request.user.is_authenticated:
+        return request.user
+    from apps.accounts_app.auth import authenticate_api_key
+
+    api_key = authenticate_api_key(request)
+    if api_key:
+        return api_key.user
+    return None
+
+
 @require_http_methods(["POST"])
 def register_hash(request):
     """Register a hash with server-side timestamp.
 
     POST /clew/register/
     Body: {hash, source_type?, session_id?, metadata?}
+
+    Authentication: session cookie or API key (Authorization: Bearer <key>).
     """
+    user = _authenticate_request(request)
+    if not user:
+        return JsonResponse(
+            {"success": False, "error": "Authentication required"},
+            status=401,
+        )
+
     try:
         body = json.loads(request.body)
     except (json.JSONDecodeError, ValueError):
@@ -38,19 +63,37 @@ def register_hash(request):
             status=400,
         )
 
-    if len(hash_value) > 64:
+    if len(hash_value) > _HASH_MAX_LENGTH:
         return JsonResponse(
-            {"success": False, "error": "Hash exceeds maximum length of 64"},
+            {
+                "success": False,
+                "error": f"Hash exceeds maximum length of {_HASH_MAX_LENGTH}",
+            },
+            status=400,
+        )
+
+    if not _HASH_PATTERN.match(hash_value):
+        return JsonResponse(
+            {"success": False, "error": "Hash must be hexadecimal"},
             status=400,
         )
 
     source_type = body.get("source_type", "manual")
+    if source_type not in _VALID_SOURCE_TYPES:
+        return JsonResponse(
+            {
+                "success": False,
+                "error": f"Invalid source_type. Must be one of: {', '.join(sorted(_VALID_SOURCE_TYPES))}",
+            },
+            status=400,
+        )
+
     session_id = body.get("session_id", "")
     metadata = body.get("metadata", {})
 
     registration, created = HashRegistration.objects.update_or_create(
         hash=hash_value,
-        user=request.user,
+        user=user,
         defaults={
             "source_type": source_type,
             "session_id": session_id,
@@ -73,13 +116,21 @@ def register_hash(request):
     )
 
 
-@login_required
 @require_http_methods(["GET"])
 def verify_hash(request, hash_value):
     """Verify whether a hash has been registered.
 
     GET /clew/verify/<hash>/
+
+    Public endpoint — returns anonymized proof data (no usernames).
+    Third parties (reviewers, journals) can verify without a SciTeX account.
     """
+    if len(hash_value) > _HASH_MAX_LENGTH or not _HASH_PATTERN.match(hash_value):
+        return JsonResponse(
+            {"success": False, "error": "Invalid hash format"},
+            status=400,
+        )
+
     registrations = HashRegistration.objects.filter(hash=hash_value)
 
     if not registrations.exists():
@@ -88,25 +139,20 @@ def verify_hash(request, hash_value):
                 "success": True,
                 "registered": False,
                 "hash": hash_value,
-                "registrations": [],
+                "registration_count": 0,
             }
         )
+
+    first = registrations.order_by("registered_at").first()
 
     return JsonResponse(
         {
             "success": True,
             "registered": True,
             "hash": hash_value,
-            "registrations": [
-                {
-                    "registered_at": r.registered_at.isoformat(),
-                    "user": r.user.username,
-                    "source_type": r.source_type,
-                    "session_id": r.session_id,
-                    "metadata": r.metadata,
-                }
-                for r in registrations
-            ],
+            "registration_count": registrations.count(),
+            "first_registered_at": first.registered_at.isoformat(),
+            "source_type": first.source_type,
         }
     )
 
