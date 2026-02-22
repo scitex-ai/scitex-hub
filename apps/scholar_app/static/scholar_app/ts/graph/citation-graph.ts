@@ -3,24 +3,25 @@
  * Interactive force-directed network visualization for citation relationships
  *
  * Refactored: Extracted ForceSimulation, GraphRenderer, GraphInteraction,
- * GraphInputHandler, and types for maintainability.
+ * GraphInputHandler, NodeDetailsPanel, and types for maintainability.
  */
 
 import type {
   CitationGraphConfig,
   NetworkNode,
   NetworkData,
-  RelatedPaper,
   Transform,
+  SourceInfo,
 } from "./types";
 import { GraphRenderer } from "./GraphRenderer";
 import { GraphInputHandler } from "./GraphInputHandler";
+import { GraphLibraryManager } from "./GraphLibraryManager";
+import { NodeDetailsPanel, escapeHtml } from "./NodeDetailsPanel";
 import {
   setupZoomPan,
   startNodeDrag,
   type InteractionState,
 } from "./GraphInteraction";
-import { saveNodeToLibrary } from "./library-bridge";
 import { autoSavePapers } from "../common/auto-save-library";
 import {
   startInspiringSpinner,
@@ -31,18 +32,19 @@ class CitationGraphManager {
   private config: CitationGraphConfig;
   private currentData: NetworkData | null = null;
   private renderer: GraphRenderer;
+  private detailsPanel: NodeDetailsPanel;
   private interactionState: InteractionState = {
     transform: { x: 0, y: 0, k: 1 },
     isDragging: false,
   };
-  private selectedNode: NetworkNode | null = null;
-  private tooltipHideTimer: ReturnType<typeof setTimeout> | null = null;
   private activeEdgeFilters: Set<string> = new Set([
     "coupling",
     "cocitation",
     "direct",
   ]);
   private loadingSpinner: SpinnerHandle | null = null;
+  private sourceInfo: SourceInfo | null = null;
+  private graphLibrary: GraphLibraryManager | null = null;
 
   constructor() {
     const config = window.CITATION_GRAPH_CONFIG;
@@ -52,10 +54,13 @@ class CitationGraphManager {
     }
     this.config = config;
 
+    this.detailsPanel = new NodeDetailsPanel((node) =>
+      this.buildFromDois([node.id]),
+    );
     this.renderer = new GraphRenderer({
-      onNodeHover: (node, el) => this.showNodeTooltip(node, el),
-      onNodeLeave: () => this.hideNodeTooltip(),
-      onNodeClick: (node) => this.selectNode(node),
+      onNodeHover: (node, el) => this.detailsPanel.showTooltip(node, el),
+      onNodeLeave: () => this.detailsPanel.hideTooltip(),
+      onNodeClick: (node) => this.detailsPanel.selectNode(node),
       onNodeDragStart: (e, node) =>
         startNodeDrag(e, node, this.renderer, this.interactionState),
       getDepthColor: () => "#3B82F6",
@@ -74,6 +79,15 @@ class CitationGraphManager {
   private init(): void {
     this.bindEvents();
     this.checkServiceHealth();
+    if (this.config.urls.listSavedGraphs) {
+      this.graphLibrary = new GraphLibraryManager(this.config, {
+        onLoadGraph: (data, pos) => this.loadFromSaved(data, pos),
+        onRefreshGraph: (info) => this.refreshFromRecipe(info),
+        getCurrentData: () => this.currentData,
+        getNodePositions: () => this.getNodePositions(),
+        getSourceInfo: () => this.sourceInfo,
+      });
+    }
   }
 
   private bindEvents(): void {
@@ -87,7 +101,6 @@ class CitationGraphManager {
       .getElementById("fitViewBtn")
       ?.addEventListener("click", () => this.fitToView());
 
-    // Edge type filter toggles
     document.querySelectorAll(".edge-filter-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         const type = btn.getAttribute("data-edge-type");
@@ -138,9 +151,6 @@ class CitationGraphManager {
     }
   }
 
-  /**
-   * Build graph from multiple DOIs (unified entry point for all flows)
-   */
   public async buildFromDois(dois: string[]): Promise<void> {
     if (dois.length === 0) {
       this.showError("No DOIs provided");
@@ -160,9 +170,15 @@ class CitationGraphManager {
       }
       const networkData: NetworkData = await networkResponse.json();
       this.currentData = networkData;
+      this.sourceInfo = {
+        source_type: "dois",
+        seed_dois: dois,
+        query_text: "",
+        build_params: { num_related: numRelated },
+      };
       this.loadingSpinner?.updateMessage("Rendering graph...");
       this.renderGraph(networkData);
-      // Fetch related papers for the first seed DOI
+      this.graphLibrary?.showSaveButton();
       await this.fetchRelatedPapers(dois[0], numRelated);
     } catch (err) {
       console.error("Error building citation network:", err);
@@ -172,9 +188,6 @@ class CitationGraphManager {
     }
   }
 
-  /**
-   * Build graph from a text query (delegates search + DOI detection to backend)
-   */
   public async buildFromQuery(query: string): Promise<void> {
     if (!query.trim()) {
       this.showError("Please enter a search query");
@@ -197,8 +210,15 @@ class CitationGraphManager {
         return;
       }
       this.currentData = networkData;
+      this.sourceInfo = {
+        source_type: "query",
+        seed_dois: networkData.seed_dois || [],
+        query_text: query,
+        build_params: { num_related: numRelated },
+      };
       this.loadingSpinner?.updateMessage("Rendering graph...");
       this.renderGraph(networkData);
+      this.graphLibrary?.showSaveButton();
       if (networkData.seed_dois?.length > 0) {
         await this.fetchRelatedPapers(networkData.seed_dois[0], numRelated);
       }
@@ -210,8 +230,49 @@ class CitationGraphManager {
     }
   }
 
+  /** Render a previously saved graph without API call */
+  public loadFromSaved(
+    data: NetworkData,
+    positions: Record<string, { x: number; y: number }>,
+  ): void {
+    // Restore node positions from saved layout
+    for (const node of data.nodes) {
+      const pos = positions[node.id];
+      if (pos) {
+        node.x = pos.x;
+        node.y = pos.y;
+        node.fx = pos.x;
+        node.fy = pos.y;
+      }
+    }
+    this.currentData = data;
+    this.renderGraph(data);
+    this.graphLibrary?.showSaveButton();
+  }
+
+  /** Re-build graph from saved recipe */
+  public refreshFromRecipe(info: SourceInfo): void {
+    if (info.source_type === "query" && info.query_text) {
+      this.buildFromQuery(info.query_text);
+    } else if (info.seed_dois.length > 0) {
+      this.buildFromDois(info.seed_dois);
+    }
+  }
+
+  /** Extract current node positions for saving layout */
+  public getNodePositions(): Record<string, { x: number; y: number }> {
+    const positions: Record<string, { x: number; y: number }> = {};
+    if (this.currentData) {
+      for (const node of this.currentData.nodes) {
+        if (node.x != null && node.y != null) {
+          positions[node.id] = { x: node.x, y: node.y };
+        }
+      }
+    }
+    return positions;
+  }
+
   private renderGraph(data: NetworkData): void {
-    // Auto-save all graph nodes to project bibliography
     autoSavePapers(
       data.nodes.map((n) => ({
         title: n.title,
@@ -221,7 +282,6 @@ class CitationGraphManager {
       })),
       "citation_graph",
     );
-
     const container = document.getElementById("graphVisualization");
     const canvas = document.getElementById("graphCanvas");
     if (!container || !canvas) return;
@@ -241,144 +301,14 @@ class CitationGraphManager {
     setupZoomPan(this.renderer, this.interactionState);
   }
 
-  private showNodeTooltip(node: NetworkNode, element: SVGGElement): void {
-    // Cancel any pending hide
-    if (this.tooltipHideTimer) {
-      clearTimeout(this.tooltipHideTimer);
-      this.tooltipHideTimer = null;
-    }
-
-    let tooltip = document.getElementById("graphTooltip");
-    if (!tooltip) {
-      tooltip = document.createElement("div");
-      tooltip.id = "graphTooltip";
-      tooltip.className = "graph-tooltip";
-      document.body.appendChild(tooltip);
-    }
-
-    tooltip.innerHTML = `
-      <div class="tooltip-title">${escapeHtml(node.title)}</div>
-      <div class="tooltip-authors">${node.authors.slice(0, 3).join(", ")}${node.authors.length > 3 ? "..." : ""}</div>
-      <div class="tooltip-meta">
-        <span class="tooltip-year">${node.year}</span>
-        ${node.citation_count != null ? `<span class="tooltip-citations"><i class="fas fa-quote-right"></i> ${node.citation_count}</span>` : ""}
-        ${node.similarity_score ? `<span class="tooltip-score">Score: ${node.similarity_score.toFixed(1)}</span>` : ""}
-      </div>
-      <div class="tooltip-hint">Click to view details</div>
-    `;
-
-    tooltip.style.display = "";
-    const rect = element.getBoundingClientRect();
-    tooltip.style.left = `${rect.left + rect.width / 2}px`;
-    tooltip.style.top = `${rect.top - 10}px`;
-  }
-
-  private hideNodeTooltip(): void {
-    if (this.tooltipHideTimer) clearTimeout(this.tooltipHideTimer);
-    this.tooltipHideTimer = setTimeout(() => {
-      const tooltip = document.getElementById("graphTooltip");
-      if (tooltip) tooltip.style.display = "none";
-    }, 50);
-  }
-
-  private selectNode(node: NetworkNode): void {
-    this.selectedNode = node;
-    document
-      .querySelectorAll(".graph-node")
-      .forEach((el) => el.classList.remove("selected"));
-    document.querySelector(`[data-id="${node.id}"]`)?.classList.add("selected");
-    this.showNodeDetails(node);
-  }
-
-  private showNodeDetails(node: NetworkNode): void {
-    const panel = document.getElementById("nodeDetailsPanel");
-    if (!panel) return;
-    panel.classList.remove("hidden");
-    panel.innerHTML = `
-      <div class="node-details-header">
-        <h6>${node.is_seed ? '<i class="fas fa-star"></i> Seed Paper' : '<i class="fas fa-file-alt"></i> Related Paper'}</h6>
-        <button class="btn-close-panel" onclick="document.getElementById('nodeDetailsPanel').classList.add('hidden')">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      <div class="node-details-content">
-        <div class="detail-title">${escapeHtml(node.title)}</div>
-        <div class="detail-authors">${node.authors.join(", ")}</div>
-        <div class="detail-meta-row">
-          <span class="detail-year">Published: ${node.year}</span>
-          ${node.citation_count != null ? `<span class="detail-citations"><i class="fas fa-quote-right"></i> ${node.citation_count} citations</span>` : ""}
-        </div>
-        ${node.similarity_score ? `<div class="detail-score">Similarity: <strong>${node.similarity_score.toFixed(2)}</strong></div>` : ""}
-        <div class="detail-doi"><a href="https://doi.org/${node.id}" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> View on DOI.org</a></div>
-        <div class="detail-actions">
-          ${!node.is_seed ? `<button class="btn-explore-from" data-doi="${node.id}"><i class="fas fa-project-diagram"></i> Explore from here</button>` : ""}
-          <button class="btn-save-to-library" data-doi="${node.id}">
-            <i class="fas fa-bookmark"></i> Save to Library
-          </button>
-        </div>
-      </div>
-    `;
-    panel
-      .querySelector(".btn-save-to-library")
-      ?.addEventListener("click", () => saveNodeToLibrary(node));
-    panel.querySelector(".btn-explore-from")?.addEventListener("click", () => {
-      this.exploreFromNode(node);
-    });
-  }
-
-  private exploreFromNode(node: NetworkNode): void {
-    this.buildFromDois([node.id]);
-  }
-
   private async fetchRelatedPapers(doi: string, limit: number): Promise<void> {
-    const container = document.getElementById("relatedPapersList");
-    const content = document.getElementById("relatedPapersContent");
-    if (!container || !content) return;
-    try {
-      const url = `${this.config.urls.relatedPapers}?doi=${encodeURIComponent(doi)}&limit=${limit}`;
-      const response = await this.fetchWithTimeout(url, 60000);
-      if (!response.ok) throw new Error("Failed to fetch related papers");
-      const data = await response.json();
-      const papers: RelatedPaper[] = data.related || [];
-      content.innerHTML =
-        papers.length === 0
-          ? '<p class="empty-message">No related papers found</p>'
-          : papers
-              .map(
-                (paper, i) => `
-            <div class="related-paper-item" data-doi="${paper.id}">
-              <div class="paper-rank">${i + 1}</div>
-              <div class="paper-info">
-                <div class="paper-title">${escapeHtml(paper.title)}</div>
-                <div class="paper-meta">
-                  <span class="paper-authors">${paper.authors.slice(0, 2).join(", ")}${paper.authors.length > 2 ? " et al." : ""}</span>
-                  <span class="paper-year">${paper.year}</span>
-                </div>
-              </div>
-              <div class="paper-score">
-                <div class="score-bar"><div class="score-fill" style="width: ${Math.min(100, paper.similarity_score * 2)}%"></div></div>
-                <span class="score-value">${paper.similarity_score.toFixed(1)}</span>
-              </div>
-            </div>
-          `,
-              )
-              .join("");
-      content.querySelectorAll(".related-paper-item").forEach((item) => {
-        item.addEventListener("click", () => {
-          const paperDoi = item.getAttribute("data-doi");
-          if (paperDoi && this.currentData) {
-            const node = this.currentData.nodes.find((n) => n.id === paperDoi);
-            if (node) this.selectNode(node);
-          }
-        });
-      });
-      container.classList.remove("hidden");
-    } catch (err) {
-      console.error("Error fetching related papers:", err);
-      content.innerHTML =
-        '<p class="error-message">Failed to load related papers</p>';
-      container.classList.remove("hidden");
-    }
+    await this.detailsPanel.fetchRelatedPapers(
+      doi,
+      limit,
+      this.config.urls.relatedPapers,
+      (url, ms) => this.fetchWithTimeout(url, ms),
+      this.currentData,
+    );
   }
 
   private showLoading(show: boolean): void {
@@ -463,13 +393,6 @@ class CitationGraphManager {
   }
 }
 
-function escapeHtml(text: string): string {
-  const div = document.createElement("div");
-  div.textContent = text;
-  return div.innerHTML;
-}
-
-// Initialize (handle both direct load and SPA injection)
 function initAll(): void {
   const graphManager = new CitationGraphManager();
 

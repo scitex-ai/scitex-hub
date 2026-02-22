@@ -27,7 +27,12 @@
       href="{% static 'scholar_app/css/search/results-header.css' %}" />
 <link rel="stylesheet" href="{% static 'shared/css/components/terminal-log.css' %}" />
 <link rel="stylesheet" href="{% static 'scholar_app/css/graph/citation-graph.css' %}" />
+<link rel="stylesheet" href="{% static 'scholar_app/css/graph/graph-tabs.css' %}" />
 <link rel="stylesheet" href="{% static 'scholar_app/css/library/library.css' %}" />
+<link rel="stylesheet"
+      href="{% static 'scholar_app/css/library/library-table.css' %}" />
+<link rel="stylesheet"
+      href="{% static 'scholar_app/css/library/library-sidebar.css' %}" />
 <link rel="stylesheet"
       href="{% static 'scholar_app/css/library/library-details.css' %}" />
 <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.css"
@@ -159,6 +164,12 @@
                 </div>
             </div>
         </div>
+        <div id="graphTabsBar" class="graph-tabs-bar hidden">
+            <div id="graphTabsList" class="graph-tabs-list"></div>
+            <button id="graphSaveBtn" class="graph-tab graph-tab--save hidden" title="Save graph">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
         <div id="graphVisualization" class="graph-visualization hidden">
             <div class="graph-card graph-card--full">
                 <div class="graph-card__header">
@@ -185,6 +196,9 @@
                         </button>
                         <button class="btn-control" id="resetZoomBtn" title="Reset Zoom">
                             <i class="fas fa-compress-arrows-alt"></i>
+                        </button>
+                        <button class="btn-control" id="graphSaveBtn2" title="Save Graph">
+                            <i class="fas fa-save"></i>
                         </button>
                         <button class="btn-control" id="downloadSvgBtn" title="Download SVG">
                             <i class="fas fa-download"></i>
@@ -220,6 +234,14 @@
 </div>
 <!-- Library Tab -->
 <div id="tab-library" class="scholar-tab-content" data-tab="library">
+    <div class="library-collections-sidebar" id="library-collections-sidebar">
+        <div class="library-sidebar-header">
+            <span class="library-sidebar-title">Collections</span>
+        </div>
+        <div class="library-sidebar-list" id="library-sidebar-list">
+            <!-- JS fills collection items -->
+        </div>
+    </div>
     <div class="library-tab-inner">{% include "scholar_app/library_partials/library_main.html" %}</div>
     <div class="library-details-panel">{% include "scholar_app/library_partials/library_details.html" %}</div>
 </div>
@@ -241,7 +263,13 @@
      data-url-build-network-multi="{% url 'scholar_app:citation_graph_network_multi' %}"
      data-url-related-papers="{% url 'scholar_app:citation_graph_related' %}"
      data-url-paper-summary="{% url 'scholar_app:citation_graph_paper' %}"
-     data-url-health="{% url 'scholar_app:citation_graph_health' %}"></div>
+     data-url-health="{% url 'scholar_app:citation_graph_health' %}"
+     data-url-list-saved-graphs="{% url 'scholar_app:api_list_saved_graphs' %}"
+     data-url-save-graph="{% url 'scholar_app:api_save_graph' %}"
+     data-url-load-graph="/scholar/api/graph/saved/__ID__/"
+     data-url-rename-graph="/scholar/api/graph/saved/__ID__/rename/"
+     data-url-delete-graph="/scholar/api/graph/saved/__ID__/delete/"
+     data-url-refresh-graph="/scholar/api/graph/saved/__ID__/refresh/"></div>
 <!-- External libraries -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.js"></script>
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>

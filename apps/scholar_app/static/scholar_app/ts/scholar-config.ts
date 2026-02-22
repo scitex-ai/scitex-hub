@@ -37,6 +37,12 @@ declare global {
         relatedPapers: string;
         paperSummary: string;
         health: string;
+        listSavedGraphs: string;
+        saveGraph: string;
+        loadGraph: string;
+        renameGraph: string;
+        deleteGraph: string;
+        refreshGraph: string;
       };
     };
   }
@@ -92,6 +98,12 @@ function initFromDataAttributes(): void {
         relatedPapers: graphConfigEl.dataset.urlRelatedPapers || "",
         paperSummary: graphConfigEl.dataset.urlPaperSummary || "",
         health: graphConfigEl.dataset.urlHealth || "",
+        listSavedGraphs: graphConfigEl.dataset.urlListSavedGraphs || "",
+        saveGraph: graphConfigEl.dataset.urlSaveGraph || "",
+        loadGraph: graphConfigEl.dataset.urlLoadGraph || "",
+        renameGraph: graphConfigEl.dataset.urlRenameGraph || "",
+        deleteGraph: graphConfigEl.dataset.urlDeleteGraph || "",
+        refreshGraph: graphConfigEl.dataset.urlRefreshGraph || "",
       },
     };
   }

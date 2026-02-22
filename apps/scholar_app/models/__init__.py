@@ -12,38 +12,12 @@ Organized by domain for maintainability:
 """
 
 # Core models
-from .core import (
-    Author,
-    AuthorPaper,
-    Journal,
-    Topic,
-    SearchIndex,
-    Citation,
-)
-
-# Search models
-from .search import (
-    SearchQuery,
-    SearchResult,
-    SearchFilter,
-    SavedSearch,
-)
-
-# Library models
-from .library import (
-    Collection,
-    UserLibrary,
-    LibraryExport,
-    RecommendationLog,
-    UserPreference,
-)
-
 # Annotation models (collaboration feature)
 from .annotation import (
     Annotation,
     AnnotationReply,
-    AnnotationVote,
     AnnotationTag,
+    AnnotationVote,
     CollaborationGroup,
     GroupMembership,
 )
@@ -52,15 +26,45 @@ from .annotation import (
 from .bibtex import (
     BibTeXEnrichmentJob,
 )
+from .core import (
+    Author,
+    AuthorPaper,
+    Citation,
+    Journal,
+    SearchIndex,
+    Topic,
+)
+
+# Graph models
+from .graph import (
+    SavedGraph,
+)
+
+# Library models
+from .library import (
+    Collection,
+    LibraryExport,
+    RecommendationLog,
+    UserLibrary,
+    UserPreference,
+)
 
 # Repository models
 from .repository import (
-    Repository,
-    RepositoryConnection,
     Dataset,
     DatasetFile,
     DatasetVersion,
+    Repository,
+    RepositoryConnection,
     RepositorySync,
+)
+
+# Search models
+from .search import (
+    SavedSearch,
+    SearchFilter,
+    SearchQuery,
+    SearchResult,
 )
 
 # Export all models
@@ -90,6 +94,8 @@ __all__ = [
     "AnnotationTag",
     "CollaborationGroup",
     "GroupMembership",
+    # Graph
+    "SavedGraph",
     # BibTeX
     "BibTeXEnrichmentJob",
     # Repository

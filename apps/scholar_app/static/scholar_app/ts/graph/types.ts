@@ -11,6 +11,12 @@ export interface CitationGraphConfig {
     relatedPapers: string;
     paperSummary: string;
     health: string;
+    listSavedGraphs: string;
+    saveGraph: string;
+    loadGraph: string;
+    renameGraph: string;
+    deleteGraph: string;
+    refreshGraph: string;
   };
 }
 
@@ -63,6 +69,31 @@ export interface Transform {
   x: number;
   y: number;
   k: number;
+}
+
+export interface SavedGraphSummary {
+  id: string;
+  name: string;
+  source_type: "dois" | "query" | "library";
+  node_count: number;
+  edge_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SavedGraphFull extends SavedGraphSummary {
+  graph_data: NetworkData;
+  node_positions: Record<string, { x: number; y: number }>;
+  seed_dois: string[];
+  query_text: string;
+  build_params: Record<string, unknown>;
+}
+
+export interface SourceInfo {
+  source_type: "dois" | "query" | "library";
+  seed_dois: string[];
+  query_text: string;
+  build_params: Record<string, unknown>;
 }
 
 declare global {

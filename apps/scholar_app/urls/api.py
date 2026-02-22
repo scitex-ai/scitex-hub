@@ -7,6 +7,7 @@ from __future__ import annotations
 from django.urls import path
 
 from ..api import api_keys, citation_graph, crossref_proxy, public_search
+from ..views.graph import saved_graphs as graph_views
 from ..views.search import pdf_download as pdf_views
 
 # Public Scholar API (v1) - Rate Limited
@@ -69,6 +70,40 @@ citation_graph_patterns = [
     ),
 ]
 
+# Saved Graph API (CRUD for persisted citation graphs)
+saved_graph_patterns = [
+    path(
+        "api/graph/saved/",
+        graph_views.api_list_saved_graphs,
+        name="api_list_saved_graphs",
+    ),
+    path(
+        "api/graph/saved/create/",
+        graph_views.api_save_graph,
+        name="api_save_graph",
+    ),
+    path(
+        "api/graph/saved/<uuid:graph_id>/",
+        graph_views.api_load_graph,
+        name="api_load_graph",
+    ),
+    path(
+        "api/graph/saved/<uuid:graph_id>/rename/",
+        graph_views.api_rename_graph,
+        name="api_rename_graph",
+    ),
+    path(
+        "api/graph/saved/<uuid:graph_id>/delete/",
+        graph_views.api_delete_graph,
+        name="api_delete_graph",
+    ),
+    path(
+        "api/graph/saved/<uuid:graph_id>/refresh/",
+        graph_views.api_refresh_graph,
+        name="api_refresh_graph",
+    ),
+]
+
 # PDF Download API endpoints
 pdf_patterns = [
     path("api/pdf/download/", pdf_views.api_download_pdf, name="api_download_pdf"),
@@ -101,6 +136,7 @@ urlpatterns = (
     public_api_patterns
     + crossref_patterns
     + citation_graph_patterns
+    + saved_graph_patterns
     + pdf_patterns
     + api_key_patterns
 )
