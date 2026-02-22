@@ -1,95 +1,26 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Module Maker views — context builders, API endpoints, and page views.
-
-Provides CRUD for user-authored modules, a code editor page,
-and a context builder for workspace tab integration.
-"""
+"""Module Maker — CRUD API endpoints for user modules."""
 
 from __future__ import annotations
 
 import json
 import logging
-import re
 
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
 from django.views.decorators.http import require_http_methods
 
 from apps.project_app.services.project_utils import get_current_project
 
-from .models import ModuleExecution, UserModule
+from ..models import ModuleExecution, UserModule
+from ._helpers import has_forbidden_patterns
 
 logger = logging.getLogger(__name__)
 
 
-# ---------------------------------------------------------------------------
-# Context builder (workspace tab integration)
-# ---------------------------------------------------------------------------
-def build_usermod_context(request, current_project=None):
-    """Context builder for Module Maker workspace tab.
-
-    Called by the workspace registry for AJAX partial loading.
-    Returns the user's modules list for the my_modules_partial template.
-    """
-    if request.user.is_authenticated:
-        modules = UserModule.objects.filter(author=request.user, is_active=True)
-    else:
-        modules = UserModule.objects.none()
-
-    return {
-        "current_project": current_project,
-        "modules": modules,
-    }
-
-
-# ---------------------------------------------------------------------------
-# Page views
-# ---------------------------------------------------------------------------
-@login_required
-def my_modules(request):
-    """List the current user's modules."""
-    current_project = get_current_project(request)
-    modules = UserModule.objects.filter(author=request.user, is_active=True)
-    return render(
-        request,
-        "modulemaker_app/my_modules.html",
-        {
-            "current_project": current_project,
-            "modules": modules,
-        },
-    )
-
-
-@login_required
-def editor(request, slug=None):
-    """Code editor page for creating or editing a module."""
-    current_project = get_current_project(request)
-    user_module = None
-    if slug:
-        user_module = get_object_or_404(
-            UserModule, slug=slug, author=request.user, is_active=True
-        )
-
-    from apps.marketplace_app.models import CATEGORY_CHOICES
-
-    return render(
-        request,
-        "modulemaker_app/editor.html",
-        {
-            "current_project": current_project,
-            "module": user_module,
-            "category_choices": CATEGORY_CHOICES,
-        },
-    )
-
-
-# ---------------------------------------------------------------------------
-# API endpoints
-# ---------------------------------------------------------------------------
 @login_required
 @require_http_methods(["POST"])
 def api_create_module(request):
@@ -114,8 +45,7 @@ def api_create_module(request):
             {"success": False, "error": "Source code is required."}, status=400
         )
 
-    # Validate source code: must not contain dangerous imports
-    if _has_forbidden_patterns(source_code):
+    if has_forbidden_patterns(source_code):
         return JsonResponse(
             {"success": False, "error": "Source code contains forbidden patterns."},
             status=400,
@@ -128,7 +58,6 @@ def api_create_module(request):
             status=400,
         )
 
-    # Check uniqueness
     if UserModule.objects.filter(author=request.user, slug=slug).exists():
         return JsonResponse(
             {"success": False, "error": f"Module with slug '{slug}' already exists."},
@@ -170,7 +99,7 @@ def api_update_module(request, slug):
     source_code = data.get("source_code")
     if source_code is not None:
         source_code = source_code.strip()
-        if _has_forbidden_patterns(source_code):
+        if has_forbidden_patterns(source_code):
             return JsonResponse(
                 {"success": False, "error": "Source code contains forbidden patterns."},
                 status=400,
@@ -203,7 +132,6 @@ def api_run_module(request, slug):
     """
     user_module = get_object_or_404(UserModule, slug=slug, is_active=True)
 
-    # Check visibility permissions
     if user_module.visibility == "private" and user_module.author != request.user:
         return JsonResponse(
             {"success": False, "error": "Permission denied."}, status=403
@@ -211,7 +139,6 @@ def api_run_module(request, slug):
 
     current_project = get_current_project(request)
 
-    # Placeholder execution — returns immediately with a success status
     execution = ModuleExecution.objects.create(
         module=user_module,
         user=request.user,
@@ -228,7 +155,6 @@ def api_run_module(request, slug):
         ],
     )
 
-    # Update run stats
     from django.utils import timezone
 
     user_module.run_count += 1
@@ -263,28 +189,6 @@ def api_delete_module(request, slug):
             "message": f"Module '{user_module.label}' deleted.",
         }
     )
-
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-_FORBIDDEN_PATTERNS = [
-    r"\bos\.system\b",
-    r"\bsubprocess\b",
-    r"\b__import__\b",
-    r"\beval\s*\(",
-    r"\bexec\s*\(",
-    r"\bopen\s*\(",
-    r"\bshutil\b",
-]
-
-
-def _has_forbidden_patterns(source: str) -> bool:
-    """Check if source code contains potentially dangerous patterns."""
-    for pattern in _FORBIDDEN_PATTERNS:
-        if re.search(pattern, source):
-            return True
-    return False
 
 
 # EOF

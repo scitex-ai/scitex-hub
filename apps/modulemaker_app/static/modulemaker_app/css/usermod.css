@@ -161,6 +161,82 @@
   margin: 0;
 }
 
+.usermod-header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* GitHub Import Dialog */
+.usermod-import-dialog {
+  background: var(--workspace-bg-secondary, #161b22);
+  border: 1px solid var(--workspace-border, #30363d);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.usermod-import-form h3 {
+  color: var(--workspace-text-primary, #e6edf3);
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+
+.usermod-import-hint {
+  color: var(--workspace-text-secondary, #8b949e);
+  font-size: 13px;
+  margin: 0 0 16px;
+}
+
+.usermod-import-hint code {
+  background: var(--workspace-bg-tertiary, #0d1117);
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.usermod-import-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.usermod-import-status {
+  margin-top: 12px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.usermod-import-success {
+  background: rgba(63, 185, 80, 0.1);
+  color: var(--accent-green, #3fb950);
+  border: 1px solid var(--accent-green, #3fb950);
+}
+
+.usermod-import-error {
+  background: rgba(248, 81, 73, 0.1);
+  color: var(--accent-red, #f85149);
+  border: 1px solid var(--accent-red, #f85149);
+}
+
+/* Git source badge */
+.usermod-badge--git {
+  background: rgba(139, 148, 158, 0.15);
+  color: var(--workspace-text-secondary, #8b949e);
+  font-size: 12px;
+}
+
+.usermod-source-link {
+  color: var(--accent-blue, #388bfd);
+  text-decoration: none;
+  font-size: 12px;
+}
+
+.usermod-source-link:hover {
+  text-decoration: underline;
+}
+
 /* Module grid */
 .usermod-grid {
   display: grid;

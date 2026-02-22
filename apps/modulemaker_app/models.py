@@ -61,6 +61,15 @@ class UserModule(models.Model):
         blank=True,
         related_name="shared_user_modules",
     )
+    # Git source tracking (for modules imported from GitHub/git repos)
+    source_repo_url = models.URLField(max_length=500, blank=True, default="")
+    source_repo_ref = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+        help_text="Branch, tag, or commit hash",
+    )
+
     is_active = models.BooleanField(default=True)
     run_count = models.PositiveIntegerField(default=0)
     last_run_at = models.DateTimeField(null=True, blank=True)
@@ -71,6 +80,10 @@ class UserModule(models.Model):
         unique_together = ("author", "slug")
         ordering = ["-updated_at"]
         verbose_name = "User Module"
+
+    @property
+    def is_git_sourced(self):
+        return bool(self.source_repo_url)
 
     def __str__(self):
         return f"{self.author.username}/{self.slug} v{self.version}"
