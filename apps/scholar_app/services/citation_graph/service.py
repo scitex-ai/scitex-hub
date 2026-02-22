@@ -100,6 +100,83 @@ class CitationGraphService:
         )
         return result
 
+    def _cache_key_multi(self, prefix: str, dois: List[str], **kwargs) -> str:
+        """Create cache key from multiple DOIs."""
+        key_parts = [prefix] + sorted(d.lower() for d in dois)
+        for k, v in sorted(kwargs.items()):
+            key_parts.append(f"{k}={v}")
+        key_str = ":".join(key_parts)
+        return f"citation_graph:{hashlib.md5(key_str.encode()).hexdigest()}"
+
+    def build_network_from_dois(
+        self,
+        dois: List[str],
+        num_related_per_doi: int = 20,
+        use_cache: bool = True,
+    ) -> Dict:
+        """Build citation network from multiple seed DOIs."""
+        cache_key = self._cache_key_multi(
+            "network_multi", dois, nrpd=num_related_per_doi
+        )
+
+        if use_cache:
+            cached = cache.get(cache_key)
+            if cached:
+                cached["metadata"]["cached"] = True
+                return cached
+
+        graph = self.builder.build_from_dois(
+            dois=dois,
+            num_related_per_doi=num_related_per_doi,
+        )
+
+        result = graph.to_dict()
+        result["metadata"]["cached"] = False
+        cache.set(cache_key, result, 3600)
+
+        logger.info(
+            f"Built multi-seed network for {len(dois)} DOIs: "
+            f"{len(result['nodes'])} nodes, {len(result['edges'])} edges"
+        )
+        return result
+
+    def build_network_from_query(
+        self,
+        query: str,
+        num_related_per_doi: int = 20,
+        search_limit: int = 10,
+        use_cache: bool = True,
+    ) -> Dict:
+        """Build citation network from a text query. Delegates to scitex."""
+        cache_key = self._cache_key(
+            "network_query",
+            query.lower().strip(),
+            nrpd=num_related_per_doi,
+            sl=search_limit,
+        )
+
+        if use_cache:
+            cached = cache.get(cache_key)
+            if cached:
+                cached["metadata"]["cached"] = True
+                return cached
+
+        graph = self.builder.build_from_query(
+            query=query,
+            num_related_per_doi=num_related_per_doi,
+            search_limit=search_limit,
+        )
+
+        result = graph.to_dict()
+        result["metadata"]["cached"] = False
+        cache.set(cache_key, result, 3600)
+
+        logger.info(
+            f"Built query network for '{query}': "
+            f"{len(result['nodes'])} nodes, {len(result['edges'])} edges"
+        )
+        return result
+
     def get_related_papers(
         self, doi: str, limit: int = 10, use_cache: bool = True
     ) -> List[Dict]:

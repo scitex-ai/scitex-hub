@@ -101,6 +101,44 @@ class CitationGraphProxyService:
         result["metadata"]["proxied"] = True
         return result
 
+    def build_network_from_dois(
+        self,
+        dois: List[str],
+        num_related_per_doi: int = 20,
+        use_cache: bool = True,
+    ) -> Dict:
+        """Build multi-DOI network via NAS proxy."""
+        params = {
+            "dois": ",".join(dois),
+            "num_related_per_doi": num_related_per_doi,
+        }
+        if not use_cache:
+            params["no_cache"] = "true"
+
+        result = self._make_request("network/multi", params)
+        result["metadata"]["proxied"] = True
+        return result
+
+    def build_network_from_query(
+        self,
+        query: str,
+        num_related_per_doi: int = 20,
+        search_limit: int = 10,
+        use_cache: bool = True,
+    ) -> Dict:
+        """Build query network via NAS proxy."""
+        params = {
+            "q": query,
+            "num_related_per_doi": num_related_per_doi,
+            "search_limit": search_limit,
+        }
+        if not use_cache:
+            params["no_cache"] = "true"
+
+        result = self._make_request("network/query", params)
+        result["metadata"]["proxied"] = True
+        return result
+
     def get_related_papers(
         self, doi: str, limit: int = 10, use_cache: bool = True
     ) -> List[Dict]:

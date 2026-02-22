@@ -35,13 +35,6 @@
                     {% include "scholar_app/search_partials/asta_tooltip.html" %}
                     <!-- Action Buttons -->
                     <div class="bibtex-actions">
-                        <button type="button"
-                                id="saveToProjectBtn"
-                                onclick="handleSaveToProject()"
-                                disabled
-                                class="btn btn-warning">
-                            <i class="fas fa-bookmark"></i> Save to Project
-                        </button>
                         <button id="downloadBtn" onclick="handleDownload()" disabled class="btn btn-success">
                             <i class="fas fa-file-download"></i> Download Enriched
                         </button>
@@ -67,52 +60,6 @@
                 </form>
             </div>
         </div>
-    </div>
-</div>
-<!-- Project Selector Modal -->
-<div id="projectSelectorModal" class="bibtex-modal hidden">
-    <div class="bibtex-modal__backdrop" onclick="closeProjectSelectorModal()"></div>
-    <div class="bibtex-modal__content">
-        <h3 class="bibtex-modal__title">
-            <i class="fas fa-folder-open"></i> Select Project
-        </h3>
-        {% if user.is_authenticated and user_projects %}
-            <div class="bibtex-modal__body">
-                <label>Choose a project to save the enriched BibTeX file:</label>
-                <select id="projectSelectorDropdown" class="form-control">
-                    {% for project in user_projects %}
-                        <option value="{{ project.id }}"
-                                {% if current_project and current_project.id == project.id %}selected{% endif %}>
-                            {{ project.name }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="bibtex-modal__footer">
-                <button onclick="closeProjectSelectorModal()" class="btn btn-outline-secondary">Cancel</button>
-                <button onclick="confirmProjectSelection()" class="btn btn-warning">
-                    <i class="fas fa-bookmark"></i> Save to Project
-                </button>
-            </div>
-        {% else %}
-            <div class="bibtex-modal__body">
-                <p class="text-muted">
-                    {% if not user.is_authenticated %}
-                        Please sign in to save files to projects.
-                    {% else %}
-                        You don't have any projects yet. Create a project first.
-                    {% endif %}
-                </p>
-            </div>
-            <div class="bibtex-modal__footer">
-                <button onclick="closeProjectSelectorModal()" class="btn btn-outline-secondary">Close</button>
-                {% if not user.is_authenticated %}
-                    <a href="/auth/signin/" class="btn btn-primary">Sign In</a>
-                {% else %}
-                    <a href="/new/" class="btn btn-primary">Create Project</a>
-                {% endif %}
-            </div>
-        {% endif %}
     </div>
 </div>
 <!-- Diff View Modal -->

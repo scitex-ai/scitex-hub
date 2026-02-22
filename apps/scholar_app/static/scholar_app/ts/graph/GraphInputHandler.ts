@@ -1,8 +1,8 @@
 /**
- * GraphInputHandler - Manages the three input modes for citation graph
+ * GraphInputHandler - Manages input modes for citation graph
  *
- * Modes: DOI (direct), Search (by query), Library (from saved papers)
- * Each mode resolves to a DOI which is then used to build the graph.
+ * Modes: Search (by query/DOI), Library (from saved papers)
+ * Search delegates to backend which handles DOI detection + graph building.
  */
 
 import {
@@ -11,8 +11,8 @@ import {
 } from "../../../../../../static/shared/ts/components/inspiring-spinner";
 
 export interface GraphInputCallbacks {
-  onDoiSelected: (doi: string) => void;
-  onBuildGraph: (doi: string) => void;
+  onBuildGraph: (dois: string[]) => void;
+  onBuildFromQuery: (query: string) => void;
   escapeHtml: (text: string) => string;
 }
 
@@ -60,7 +60,7 @@ export class GraphInputHandler {
       });
   }
 
-  private async handleSearchQuery(): Promise<void> {
+  private handleSearchQuery(): void {
     const input = document.getElementById(
       "graphSearchInput",
     ) as HTMLInputElement;
@@ -68,59 +68,10 @@ export class GraphInputHandler {
     if (!input?.value || !resultsEl) return;
 
     const query = input.value.trim();
-    resultsEl.classList.remove("hidden");
-    resultsEl.innerHTML = "";
-    this.searchSpinner = startInspiringSpinner(
-      resultsEl,
-      "Searching for papers...",
-    );
+    resultsEl.classList.add("hidden");
 
-    try {
-      const response = await fetch(
-        `/scholar/api/search/?q=${encodeURIComponent(query)}&limit=5`,
-      );
-      if (!response.ok) throw new Error("Search failed");
-      const data = await response.json();
-      const papers = data.results || data.papers || [];
-
-      if (papers.length === 0) {
-        this.searchSpinner?.stop();
-        this.searchSpinner = null;
-        resultsEl.innerHTML = '<p class="empty-message">No papers found</p>';
-        return;
-      }
-
-      // Find first paper with a DOI
-      const paperWithDoi = papers.find(
-        (p: { doi?: string }) => p.doi && p.doi.trim(),
-      );
-      if (!paperWithDoi?.doi) {
-        this.searchSpinner?.stop();
-        this.searchSpinner = null;
-        resultsEl.innerHTML =
-          '<p class="empty-message">No papers with DOI found</p>';
-        return;
-      }
-
-      // Auto-build graph from best match — no cards
-      this.searchSpinner?.updateMessage(
-        `Found ${papers.length} papers. Building citation network...`,
-      );
-
-      // Clean up spinner before handing off to graph builder
-      this.searchSpinner?.stop();
-      this.searchSpinner = null;
-      resultsEl.classList.add("hidden");
-
-      // Fill DOI and trigger graph build
-      const doiInput = document.getElementById("doiInput") as HTMLInputElement;
-      if (doiInput) doiInput.value = paperWithDoi.doi;
-      this.callbacks.onBuildGraph(paperWithDoi.doi);
-    } catch {
-      this.searchSpinner?.stop();
-      this.searchSpinner = null;
-      resultsEl.innerHTML = '<p class="error-message">Search failed</p>';
-    }
+    // Delegate entirely to backend — search, DOI detection, graph building
+    this.callbacks.onBuildFromQuery(query);
   }
 
   private async loadLibraryPapers(): Promise<void> {
@@ -178,14 +129,7 @@ export class GraphInputHandler {
   }
 
   private selectDoi(doi: string): void {
-    // Fill DOI input and switch to DOI tab
-    const doiInput = document.getElementById("doiInput") as HTMLInputElement;
-    if (doiInput) doiInput.value = doi;
-
-    document
-      .querySelector('.graph-input-tab[data-input-mode="doi"]')
-      ?.dispatchEvent(new Event("click"));
-
-    this.callbacks.onDoiSelected(doi);
+    // Build graph directly from library-selected DOI
+    this.callbacks.onBuildGraph([doi]);
   }
 }

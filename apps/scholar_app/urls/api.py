@@ -43,6 +43,16 @@ citation_graph_patterns = [
         name="citation_graph_network",
     ),
     path(
+        "citation-graph/network/multi/",
+        citation_graph.build_network_multi,
+        name="citation_graph_network_multi",
+    ),
+    path(
+        "citation-graph/network/query/",
+        citation_graph.build_network_query,
+        name="citation_graph_network_query",
+    ),
+    path(
         "citation-graph/related/",
         citation_graph.get_related_papers,
         name="citation_graph_related",

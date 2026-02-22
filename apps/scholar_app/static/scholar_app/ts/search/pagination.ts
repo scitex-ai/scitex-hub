@@ -9,6 +9,7 @@ import { SearchResult } from "./types";
 import { addResultToProgressive } from "./result-card";
 import { searchLog } from "./SearchLogManager";
 import { RENDER_LIMIT } from "./limit-info-display";
+import { autoSavePapers } from "../common/auto-save-library";
 
 // Pagination state
 let allFetchedResults: SearchResult[] = [];
@@ -36,6 +37,9 @@ export function resetPagination(): void {
  */
 export function addResultsToPagination(results: SearchResult[]): void {
   allFetchedResults = allFetchedResults.concat(results);
+
+  // Auto-save fetched papers to project bibliography
+  autoSavePapers(results, "search");
 }
 
 /**

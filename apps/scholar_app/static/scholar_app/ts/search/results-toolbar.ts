@@ -336,7 +336,6 @@ export function updateToolbarState(): void {
 
   // Update selection-dependent buttons
   const selectionButtons = [
-    "saveSelectedBtn",
     "openUrlsBtn",
     "exportSelectedBibtex",
     "downloadSelectedPdfs",

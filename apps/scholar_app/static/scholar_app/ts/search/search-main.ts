@@ -178,7 +178,7 @@ function updateToolbarState(): void {
     ".result-card .paper-select:checked",
   ).length;
   const hasResults = document.querySelectorAll(".result-card").length > 0;
-  const buttons = ["saveSelectedBtn", "openUrlsBtn", "exportSelectedBibtex"];
+  const buttons = ["openUrlsBtn", "exportSelectedBibtex"];
 
   buttons.forEach((id) => {
     const btn = document.getElementById(id) as HTMLButtonElement;

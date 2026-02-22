@@ -203,6 +203,37 @@ class BibtexEnrichmentOrchestrator {
 
     // Enable action buttons for completed job
     this.enableActionButtonsForJob(jobId);
+
+    // Auto-save enriched BibTeX to project
+    this.autoSaveToProject(jobId);
+  }
+
+  /**
+   * Auto-save enriched BibTeX to project (fire-and-forget)
+   */
+  private autoSaveToProject(jobId: string): void {
+    const projectInput = document.getElementById(
+      "projectSelector",
+    ) as HTMLInputElement;
+    const projectId =
+      projectInput?.value ||
+      sessionStorage.getItem("scholar_selected_project_id");
+    if (!projectId) return;
+
+    const csrfToken =
+      document.querySelector<HTMLInputElement>('[name="csrfmiddlewaretoken"]')
+        ?.value ||
+      (document.cookie.match(/csrftoken=([^;]+)/)?.[1] ?? "");
+    if (!csrfToken) return;
+
+    fetch(`/scholar/api/bibtex/job/${jobId}/save-to-project/`, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": csrfToken,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: `project_id=${encodeURIComponent(projectId)}`,
+    }).catch(() => {}); // Silent — auto-save is best-effort
   }
 
   /**
@@ -218,12 +249,7 @@ class BibtexEnrichmentOrchestrator {
     }
 
     // Enable buttons
-    const buttons = [
-      "downloadBtn",
-      "saveToProjectBtn",
-      "viewChangesBtn",
-      "openUrlsMainBtn",
-    ];
+    const buttons = ["downloadBtn", "viewChangesBtn", "openUrlsMainBtn"];
     buttons.forEach((id) => {
       const btn = document.getElementById(id) as HTMLButtonElement | null;
       if (btn) {
@@ -334,34 +360,6 @@ function initBibtexEnrichment(config: BibtexEnrichmentConfig = {}): void {
 
 (window as any).closeBibtexDiff = closeBibtexDiff;
 (window as any).toggleProcessingLogVisibility = toggleProcessingLogVisibility;
-
-(window as any).handleSaveToProject = async function (): Promise<void> {
-  const saveBtn = document.getElementById(
-    "saveToProjectBtn",
-  ) as HTMLButtonElement;
-  if (!saveBtn) return;
-
-  const originalHTML = saveBtn.innerHTML;
-  saveBtn.disabled = true;
-  saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-  saveBtn.style.opacity = "0.7";
-
-  try {
-    const jobId = window.currentBibtexJobId;
-    if (!jobId) {
-      throw new Error("No job ID found");
-    }
-
-    await saveJobToProject(jobId);
-  } catch (error) {
-    console.error("[Handle Save] Error:", error);
-    showAlert("Failed to save to project. Please try again.", "error");
-  } finally {
-    saveBtn.disabled = false;
-    saveBtn.innerHTML = originalHTML;
-    saveBtn.style.opacity = "1";
-  }
-};
 
 (window as any).saveJobToProject = saveJobToProject;
 (window as any).deleteJob = deleteJob;

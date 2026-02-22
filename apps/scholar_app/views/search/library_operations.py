@@ -196,10 +196,14 @@ def save_papers_bulk(request):
         # Regenerate merged bibliography once
         results = regenerate_bibliography(project_path, project.name)
 
+        # Also create Library records so papers appear in Library tab
+        library_saved = _upsert_library_records(request.user, project, papers)
+
         return JsonResponse(
             {
                 "success": True,
                 "saved": len(papers),
+                "library_saved": library_saved,
                 "file_path": f"scitex/scholar/bib_files/{filename}",
                 "total_citations": results.get("scholar_count", 0),
                 "duplicates_removed": results.get("duplicates_removed", 0),
@@ -209,6 +213,69 @@ def save_papers_bulk(request):
     except Exception as e:
         logger.error(f"Bulk save failed: {e}", exc_info=True)
         return JsonResponse({"success": False, "error": str(e)}, status=500)
+
+
+def _upsert_library_records(user, project, papers):
+    """Create SearchIndex + UserLibrary records so papers appear in Library tab.
+
+    Uses get_or_create keyed on DOI/title to avoid duplicates.
+    Best-effort — errors here should not fail the bulk save.
+    """
+    from apps.scholar_app.models.core import SearchIndex
+    from apps.scholar_app.models.library.models import UserLibrary
+
+    saved = 0
+    for p in papers:
+        try:
+            title = (p.get("title") or "").strip()
+            if not title:
+                continue
+
+            doi = (p.get("doi") or "").strip() or None
+            year = p.get("year")
+            pub_date = None
+            if year:
+                try:
+                    pub_date = datetime(int(year), 1, 1).date()
+                except (ValueError, TypeError):
+                    pass
+
+            # Upsert SearchIndex by DOI (unique) or title match
+            if doi:
+                paper_obj, _ = SearchIndex.objects.get_or_create(
+                    doi=doi,
+                    defaults={
+                        "title": title,
+                        "abstract": p.get("abstract", ""),
+                        "publication_date": pub_date,
+                        "source": "manual",
+                    },
+                )
+            else:
+                paper_obj, _ = SearchIndex.objects.get_or_create(
+                    title=title,
+                    doi=None,
+                    defaults={
+                        "abstract": p.get("abstract", ""),
+                        "publication_date": pub_date,
+                        "source": "manual",
+                    },
+                )
+
+            # Upsert UserLibrary
+            _, created = UserLibrary.objects.get_or_create(
+                user=user,
+                paper=paper_obj,
+                defaults={"project": project},
+            )
+            if created:
+                saved += 1
+
+        except Exception as e:
+            logger.debug(f"Library upsert skipped for '{p.get('title', '')[:50]}': {e}")
+            continue
+
+    return saved
 
 
 @require_http_methods(["POST"])

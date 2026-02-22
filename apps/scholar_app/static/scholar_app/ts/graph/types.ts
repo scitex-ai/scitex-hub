@@ -6,6 +6,8 @@
 export interface CitationGraphConfig {
   urls: {
     buildNetwork: string;
+    buildNetworkMulti: string;
+    buildNetworkQuery: string;
     relatedPapers: string;
     paperSummary: string;
     health: string;
@@ -37,10 +39,13 @@ export interface NetworkEdge {
 
 export interface NetworkData {
   seed: string;
+  seed_dois: string[];
   nodes: NetworkNode[];
   edges: NetworkEdge[];
   metadata: {
-    top_n: number;
+    top_n?: number;
+    num_related_per_doi?: number;
+    num_seeds?: number;
     weights: Record<string, number>;
     cached: boolean;
   };

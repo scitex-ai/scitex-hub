@@ -21,6 +21,7 @@ import {
   type InteractionState,
 } from "./GraphInteraction";
 import { saveNodeToLibrary } from "./library-bridge";
+import { autoSavePapers } from "../common/auto-save-library";
 import {
   startInspiringSpinner,
   type SpinnerHandle,
@@ -76,9 +77,6 @@ class CitationGraphManager {
   }
 
   private bindEvents(): void {
-    const form = document.getElementById("graphForm");
-    form?.addEventListener("submit", (e) => this.handleSubmit(e));
-
     document
       .getElementById("resetZoomBtn")
       ?.addEventListener("click", () => this.resetView());
@@ -140,20 +138,21 @@ class CitationGraphManager {
     }
   }
 
-  private async handleSubmit(e?: Event): Promise<void> {
-    e?.preventDefault();
-    const doiInput = document.getElementById("doiInput") as HTMLInputElement;
-    const topNSelect = document.getElementById("topN") as HTMLSelectElement;
-    if (!doiInput?.value) {
-      this.showError("Please enter a DOI");
+  /**
+   * Build graph from multiple DOIs (unified entry point for all flows)
+   */
+  public async buildFromDois(dois: string[]): Promise<void> {
+    if (dois.length === 0) {
+      this.showError("No DOIs provided");
       return;
     }
-    const doi = doiInput.value.trim();
-    const topN = parseInt(topNSelect?.value || "20", 10);
+    const topNSelect = document.getElementById("topN") as HTMLSelectElement;
+    const numRelated = parseInt(topNSelect?.value || "20", 10);
     this.showLoading(true);
     this.hideError();
     try {
-      const networkUrl = `${this.config.urls.buildNetwork}?doi=${encodeURIComponent(doi)}&top_n=${topN}`;
+      const doisParam = dois.map((d) => encodeURIComponent(d)).join(",");
+      const networkUrl = `${this.config.urls.buildNetworkMulti}?dois=${doisParam}&num_related_per_doi=${numRelated}`;
       const networkResponse = await this.fetchWithTimeout(networkUrl, 120000);
       if (!networkResponse.ok) {
         const errorData = await networkResponse.json();
@@ -163,7 +162,8 @@ class CitationGraphManager {
       this.currentData = networkData;
       this.loadingSpinner?.updateMessage("Rendering graph...");
       this.renderGraph(networkData);
-      await this.fetchRelatedPapers(doi, topN);
+      // Fetch related papers for the first seed DOI
+      await this.fetchRelatedPapers(dois[0], numRelated);
     } catch (err) {
       console.error("Error building citation network:", err);
       this.showError(err instanceof Error ? err.message : "An error occurred");
@@ -173,25 +173,69 @@ class CitationGraphManager {
   }
 
   /**
-   * Build graph from a DOI (programmatic entry point for search-to-graph flow)
+   * Build graph from a text query (delegates search + DOI detection to backend)
    */
-  public buildFromDoi(doi: string): void {
-    const doiInput = document.getElementById("doiInput") as HTMLInputElement;
-    if (doiInput) doiInput.value = doi;
-    this.handleSubmit();
+  public async buildFromQuery(query: string): Promise<void> {
+    if (!query.trim()) {
+      this.showError("Please enter a search query");
+      return;
+    }
+    const topNSelect = document.getElementById("topN") as HTMLSelectElement;
+    const numRelated = parseInt(topNSelect?.value || "20", 10);
+    this.showLoading(true);
+    this.hideError();
+    try {
+      const networkUrl = `${this.config.urls.buildNetworkQuery}?q=${encodeURIComponent(query)}&num_related_per_doi=${numRelated}`;
+      const networkResponse = await this.fetchWithTimeout(networkUrl, 120000);
+      if (!networkResponse.ok) {
+        const errorData = await networkResponse.json();
+        throw new Error(errorData.error || "Failed to build network");
+      }
+      const networkData: NetworkData = await networkResponse.json();
+      if (networkData.nodes.length === 0) {
+        this.showError("No papers with DOI found for this query");
+        return;
+      }
+      this.currentData = networkData;
+      this.loadingSpinner?.updateMessage("Rendering graph...");
+      this.renderGraph(networkData);
+      if (networkData.seed_dois?.length > 0) {
+        await this.fetchRelatedPapers(networkData.seed_dois[0], numRelated);
+      }
+    } catch (err) {
+      console.error("Error building citation network from query:", err);
+      this.showError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      this.showLoading(false);
+    }
   }
 
   private renderGraph(data: NetworkData): void {
+    // Auto-save all graph nodes to project bibliography
+    autoSavePapers(
+      data.nodes.map((n) => ({
+        title: n.title,
+        authors: n.authors?.join(", "),
+        year: String(n.year || ""),
+        doi: n.id,
+      })),
+      "citation_graph",
+    );
+
     const container = document.getElementById("graphVisualization");
     const canvas = document.getElementById("graphCanvas");
     if (!container || !canvas) return;
     container.classList.remove("hidden");
     const titleEl = document.getElementById("graphTitle");
     if (titleEl) {
-      const seedNode = data.nodes.find((n) => n.is_seed);
-      titleEl.textContent = seedNode
-        ? `Network: ${seedNode.title.substring(0, 50)}...`
-        : "Citation Network";
+      const seedNodes = data.nodes.filter((n) => n.is_seed);
+      if (seedNodes.length === 1) {
+        titleEl.textContent = `Network: ${seedNodes[0].title.substring(0, 50)}...`;
+      } else if (seedNodes.length > 1) {
+        titleEl.textContent = `Network: ${seedNodes.length} seed papers, ${data.nodes.length} total`;
+      } else {
+        titleEl.textContent = "Citation Network";
+      }
     }
     this.renderer.render(canvas, data.nodes, data.edges);
     setupZoomPan(this.renderer, this.interactionState);
@@ -283,11 +327,7 @@ class CitationGraphManager {
   }
 
   private exploreFromNode(node: NetworkNode): void {
-    const doiInput = document.getElementById("doiInput") as HTMLInputElement;
-    if (!doiInput) return;
-    doiInput.value = node.id;
-    const form = document.getElementById("graphForm");
-    form?.dispatchEvent(new Event("submit", { cancelable: true }));
+    this.buildFromDois([node.id]);
   }
 
   private async fetchRelatedPapers(doi: string, limit: number): Promise<void> {
@@ -434,12 +474,11 @@ function initAll(): void {
   const graphManager = new CitationGraphManager();
 
   new GraphInputHandler({
-    onDoiSelected: (doi) => {
-      const doiInput = document.getElementById("doiInput") as HTMLInputElement;
-      if (doiInput) doiInput.value = doi;
+    onBuildGraph: (dois) => {
+      graphManager.buildFromDois(dois);
     },
-    onBuildGraph: (doi) => {
-      graphManager.buildFromDoi(doi);
+    onBuildFromQuery: (query) => {
+      graphManager.buildFromQuery(query);
     },
     escapeHtml,
   });

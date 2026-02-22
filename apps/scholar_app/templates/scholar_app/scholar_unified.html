@@ -478,10 +478,7 @@
                     </div>
                     <div class="graph-card__body">
                         <div class="graph-input-tabs">
-                            <button class="graph-input-tab active" data-input-mode="doi">
-                                <i class="fas fa-fingerprint"></i> DOI
-                            </button>
-                            <button class="graph-input-tab" data-input-mode="search">
+                            <button class="graph-input-tab active" data-input-mode="search">
                                 <i class="fas fa-search"></i> Search
                             </button>
                             <button class="graph-input-tab" data-input-mode="library">
@@ -489,18 +486,17 @@
                             </button>
                         </div>
                         <form id="graphForm" class="graph-form" onsubmit="event.preventDefault();">
-                            <!-- DOI input (default) -->
-                            <div id="graphInputDoi" class="graph-input-panel">
+                            <!-- Search input (default) -->
+                            <div id="graphInputSearch" class="graph-input-panel">
                                 <div class="form-row">
                                     <div class="form-group form-group--doi">
                                         <div class="input-wrapper">
                                             <input type="text"
-                                                   id="doiInput"
-                                                   name="doi"
+                                                   id="graphSearchInput"
                                                    class="form-input"
-                                                   placeholder="e.g., 10.1038/s41586-020-2008-3" />
-                                            <button type="submit" class="btn-build" id="buildGraphBtn">
-                                                <i class="fas fa-project-diagram"></i>
+                                                   placeholder="Search by topic, DOI, title, or keywords..." />
+                                            <button type="button" class="btn-build" id="graphSearchBtn">
+                                                <i class="fas fa-search"></i>
                                                 <span>Build</span>
                                             </button>
                                         </div>
@@ -512,23 +508,6 @@
                                             <option value="30">30</option>
                                             <option value="50">50</option>
                                         </select>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Search input -->
-                            <div id="graphInputSearch" class="graph-input-panel hidden">
-                                <div class="form-row">
-                                    <div class="form-group form-group--doi">
-                                        <div class="input-wrapper">
-                                            <input type="text"
-                                                   id="graphSearchInput"
-                                                   class="form-input"
-                                                   placeholder="Search by title, author, or keywords..." />
-                                            <button type="button" class="btn-build" id="graphSearchBtn">
-                                                <i class="fas fa-search"></i>
-                                                <span>Search</span>
-                                            </button>
-                                        </div>
                                     </div>
                                 </div>
                                 <div id="graphSearchResults" class="graph-search-results hidden"></div>
@@ -780,6 +759,8 @@
     <div id="citation-graph-config"
          class="hidden"
          data-url-build-network="{% url 'scholar_app:citation_graph_network' %}"
+         data-url-build-network-multi="{% url 'scholar_app:citation_graph_network_multi' %}"
+         data-url-build-network-query="{% url 'scholar_app:citation_graph_network_query' %}"
          data-url-related-papers="{% url 'scholar_app:citation_graph_related' %}"
          data-url-paper-summary="{% url 'scholar_app:citation_graph_paper' %}"
          data-url-health="{% url 'scholar_app:citation_graph_health' %}"></div>
