@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from django.urls import path
 
-from ..views import api
+from ..views import api, registry
 
 # API patterns - thin wrappers around scitex.clew package
 urlpatterns = [
@@ -23,6 +23,11 @@ urlpatterns = [
     path("dag/mermaid/", api.get_mermaid_dag, name="clew_api_dag_mermaid"),
     # Example pipeline initialization
     path("add-examples/", api.add_examples, name="clew_api_add_examples"),
+    # Clew Registry — hash registration and verification
+    path("register/", registry.register_hash, name="clew_api_register"),
+    path("verify/<str:hash_value>/", registry.verify_hash, name="clew_api_verify"),
+    # Badge — public SVG (no login required)
+    path("badge/<str:hash_value>/", registry.badge, name="clew_api_badge"),
 ]
 
 
