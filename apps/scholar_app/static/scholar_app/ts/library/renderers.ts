@@ -2,13 +2,46 @@
  * HTML rendering functions for Scholar Library
  */
 
-import { API, LibraryCollection, LibraryPaper, LibraryStats } from "./types";
+import { API, LibraryPaper, LibraryStats } from "./types";
 import { LibraryAPI } from "./api";
 
 export class LibraryRenderers {
+  private static readonly SAFE_TAGS = new Set([
+    "i",
+    "b",
+    "em",
+    "strong",
+    "sub",
+    "sup",
+    "scp",
+  ]);
+
   static escapeHtml(text: string): string {
     const div = document.createElement("div");
     div.textContent = text;
+    return div.innerHTML;
+  }
+
+  /** Allow safe scientific markup (i, b, em, strong, sub, sup, scp), strip everything else. */
+  static sanitizeHtml(text: string): string {
+    // Decode entity-encoded safe tags (common in CrossRef/PubMed metadata)
+    const safeTagRe = /&lt;(\/?(?:i|b|em|strong|sub|sup|scp))&gt;/gi;
+    const decoded = text.replace(safeTagRe, "<$1>");
+
+    const div = document.createElement("div");
+    div.innerHTML = decoded;
+    const walker = document.createTreeWalker(div, NodeFilter.SHOW_ELEMENT);
+    const toUnwrap: Element[] = [];
+    while (walker.nextNode()) {
+      const el = walker.currentNode as Element;
+      if (!this.SAFE_TAGS.has(el.tagName.toLowerCase())) {
+        toUnwrap.push(el);
+      }
+      // Strip all attributes from any tag
+      while (el.attributes.length > 0)
+        el.removeAttribute(el.attributes[0].name);
+    }
+    for (const el of toUnwrap) el.replaceWith(...Array.from(el.childNodes));
     return div.innerHTML;
   }
 
@@ -153,7 +186,7 @@ export class LibraryRenderers {
           : "";
         return `
           <tr class="library-table-row ${isSelected ? "selected" : ""}" data-paper-id="${paper.id}">
-            <td class="library-table-td library-table-title">${this.escapeHtml(this.truncateText(paper.title, 60))}</td>
+            <td class="library-table-td library-table-title">${this.sanitizeHtml(paper.title)}</td>
             <td class="library-table-td">${this.escapeHtml(authors)}</td>
             <td class="library-table-td">${paper.year || ""}</td>
             <td class="library-table-td">${this.escapeHtml(journal)}</td>
@@ -188,6 +221,18 @@ export class LibraryRenderers {
       });
   }
 
+  /** Normalize tags to array (API may send string or string[]) */
+  private static tagsToArray(
+    tags: string | string[] | undefined | null,
+  ): string[] {
+    if (!tags) return [];
+    if (Array.isArray(tags)) return tags;
+    return tags
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+  }
+
   static truncateText(text: string, maxLen: number): string {
     if (text.length <= maxLen) return text;
     return text.slice(0, maxLen - 1) + "\u2026";
@@ -198,46 +243,6 @@ export class LibraryRenderers {
     return `<span class="library-rating-compact">${"\u2605".repeat(rating)}</span>`;
   }
 
-  static renderCollectionSidebar(
-    collections: LibraryCollection[],
-    selectedCollectionId: string | null,
-    totalPaperCount: number,
-    onCollectionClick: (collectionId: string | null) => void,
-  ): void {
-    const list = document.getElementById("library-sidebar-list");
-    if (!list) return;
-
-    const allActive = selectedCollectionId === null ? "active" : "";
-    let html = `
-      <div class="library-sidebar-item ${allActive}" data-collection-id="all">
-        <i class="fas fa-layer-group"></i>
-        <span class="library-sidebar-item-name">All Papers</span>
-        <span class="library-sidebar-item-count">${totalPaperCount}</span>
-      </div>
-    `;
-
-    for (const col of collections) {
-      const active = col.id === selectedCollectionId ? "active" : "";
-      const icon = col.icon || "fas fa-folder";
-      html += `
-        <div class="library-sidebar-item ${active}" data-collection-id="${col.id}">
-          <i class="${this.escapeHtml(icon)}"></i>
-          <span class="library-sidebar-item-name">${this.escapeHtml(col.name)}</span>
-          <span class="library-sidebar-item-count">${col.paper_count}</span>
-        </div>
-      `;
-    }
-
-    list.innerHTML = html;
-
-    list.querySelectorAll(".library-sidebar-item").forEach((item) => {
-      item.addEventListener("click", () => {
-        const id = item.getAttribute("data-collection-id");
-        onCollectionClick(id === "all" ? null : id);
-      });
-    });
-  }
-
   static renderPaperCard(
     paper: LibraryPaper,
     selectedPaperId: string | null,
@@ -245,7 +250,7 @@ export class LibraryRenderers {
     const isSelected = paper.id === selectedPaperId;
     return `
       <div class="library-paper-card ${isSelected ? "selected" : ""}" data-paper-id="${paper.id}">
-        <div class="library-paper-title">${this.escapeHtml(paper.title)}</div>
+        <div class="library-paper-title">${this.sanitizeHtml(paper.title)}</div>
         <div class="library-paper-meta">
           ${paper.authors ? `<span>${this.escapeHtml(paper.authors)}</span>` : ""}
           ${paper.journal ? `<span>${this.escapeHtml(paper.journal)}</span>` : ""}
@@ -254,7 +259,12 @@ export class LibraryRenderers {
         <div class="library-paper-badges">
           ${this.getStatusBadgeHtml(paper.reading_status)}
           ${this.getImportanceStarsHtml(paper.importance_rating)}
-          ${paper.tags?.map((tag) => `<span class="library-tag">${this.escapeHtml(tag)}</span>`).join("") || ""}
+          ${this.tagsToArray(paper.tags)
+            .map(
+              (tag) =>
+                `<span class="library-tag">${this.escapeHtml(tag)}</span>`,
+            )
+            .join("")}
         </div>
       </div>
     `;
@@ -297,7 +307,7 @@ export class LibraryRenderers {
 
     detailsPanel.innerHTML = `
       <div class="library-detail-header">
-        <div class="library-detail-title">${this.escapeHtml(paper.title)}</div>
+        <div class="library-detail-title">${this.sanitizeHtml(paper.title)}</div>
         <div class="library-detail-meta">
           ${paper.authors ? `<div>${this.escapeHtml(paper.authors)}</div>` : ""}
           ${paper.journal ? `<div>${this.escapeHtml(paper.journal)}${paper.year ? `, ${paper.year}` : ""}</div>` : ""}
@@ -311,7 +321,7 @@ export class LibraryRenderers {
             ? `
           <div class="library-detail-section">
             <div class="library-detail-label">Abstract</div>
-            <div class="library-detail-abstract">${this.escapeHtml(paper.abstract)}</div>
+            <div class="library-detail-abstract">${this.sanitizeHtml(paper.abstract)}</div>
           </div>
         `
             : ""
@@ -342,7 +352,7 @@ export class LibraryRenderers {
         <div class="library-detail-section">
           <div class="library-detail-label">Tags (comma-separated)</div>
           <input type="text" class="library-tags-input" id="library-tags-input"
-                 value="${paper.tags?.join(", ") || ""}"
+                 value="${this.tagsToArray(paper.tags).join(", ")}"
                  placeholder="e.g., machine-learning, important, follow-up">
         </div>
 

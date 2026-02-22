@@ -1,15 +1,10 @@
 /**
  * Scholar Library Tab Manager - Main Orchestrator
  * Manages the library tab functionality: filtering, searching, viewing, editing papers
- * Supports card/table view modes, collection sidebar, and keyboard navigation
+ * Supports card/table view modes and keyboard navigation
  */
 
-import {
-  LibraryCollection,
-  LibraryPaper,
-  UpdatePaperData,
-  ViewMode,
-} from "./types";
+import { LibraryPaper, UpdatePaperData, ViewMode } from "./types";
 import { LibraryAPI } from "./api";
 import { LibraryFilters } from "./filters";
 import { LibraryRenderers } from "./renderers";
@@ -27,11 +22,7 @@ class LibraryManager {
   private loadingSpinner: SpinnerHandle | null = null;
 
   // View mode
-  private viewMode: ViewMode = "table";
-
-  // Collections
-  private collections: LibraryCollection[] = [];
-  private selectedCollectionId: string | null = null;
+  private viewMode: ViewMode = "card";
 
   // Table sorting
   private sortColumn: string = "title";
@@ -45,11 +36,10 @@ class LibraryManager {
         "Loading papers...",
       );
     }
-    await Promise.all([this.fetchPapers(), this.fetchCollections()]);
+    await this.fetchPapers();
     this.loadingSpinner?.stop();
     this.loadingSpinner = null;
     this.renderStats();
-    this.renderCollectionSidebar();
     this.applyFilters();
     this.renderPaperList();
     this.setupEventListeners();
@@ -60,10 +50,6 @@ class LibraryManager {
 
   private async fetchPapers(): Promise<void> {
     this.papers = await LibraryAPI.fetchPapers();
-  }
-
-  private async fetchCollections(): Promise<void> {
-    this.collections = await LibraryAPI.fetchCollections();
   }
 
   private renderStats(): void {
@@ -81,22 +67,11 @@ class LibraryManager {
   }
 
   private applyFilters(): void {
-    let papers = LibraryFilters.applyFilters(
+    this.filteredPapers = LibraryFilters.applyFilters(
       this.papers,
       this.activeStatusFilter,
       this.searchQuery,
     );
-
-    // Filter by collection
-    if (this.selectedCollectionId) {
-      papers = papers.filter(
-        (p) =>
-          p.collection_ids &&
-          p.collection_ids.includes(this.selectedCollectionId!),
-      );
-    }
-
-    this.filteredPapers = papers;
   }
 
   private renderPaperList(): void {
@@ -120,22 +95,6 @@ class LibraryManager {
         (paperId) => this.selectPaper(paperId),
       );
     }
-  }
-
-  private renderCollectionSidebar(): void {
-    LibraryRenderers.renderCollectionSidebar(
-      this.collections,
-      this.selectedCollectionId,
-      this.papers.length,
-      (collectionId) => this.selectCollection(collectionId),
-    );
-  }
-
-  private selectCollection(collectionId: string | null): void {
-    this.selectedCollectionId = collectionId;
-    this.renderCollectionSidebar();
-    this.applyFilters();
-    this.renderPaperList();
   }
 
   private handleTableSort(column: string): void {
@@ -419,9 +378,8 @@ class LibraryManager {
   }
 
   async refreshLibrary(): Promise<void> {
-    await Promise.all([this.fetchPapers(), this.fetchCollections()]);
+    await this.fetchPapers();
     this.renderStats();
-    this.renderCollectionSidebar();
     this.applyFilters();
     this.renderPaperList();
   }

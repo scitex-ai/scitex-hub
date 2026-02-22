@@ -5,6 +5,13 @@
   flex-direction: row !important;
 }
 
+/* Override generic .scholar-tab-content > div:first-child { flex:1; padding:16px }
+   so the paper list pane uses its own sizing */
+#tab-library > .library-tab-inner {
+  flex: 0 0 auto;
+  padding: 0;
+}
+
 /* Paper list column — middle pane */
 .library-tab-inner {
   width: clamp(260px, 35%, 500px);
@@ -19,18 +26,22 @@
 /* Details panel column — right pane, grows to fill */
 .library-details-panel {
   flex: 1;
-  min-width: 0;
+  min-width: 200px;
+  max-width: 50%;
   overflow-y: auto;
+  overflow-x: hidden;
   background-color: var(--workspace-bg-primary);
   display: flex;
   flex-direction: column;
 }
 
-/* Collapse collections sidebar on narrow screens */
+/* Resizer handle between paper list and details */
+.library-resizer {
+  flex-shrink: 0;
+}
+
+/* Narrow screen: tighter paper list */
 @media (max-width: 900px) {
-  .library-collections-sidebar {
-    display: none;
-  }
   .library-tab-inner {
     width: clamp(260px, 30%, 400px);
   }

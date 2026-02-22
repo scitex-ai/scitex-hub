@@ -80,7 +80,7 @@ def api_library_papers(request):
                         "reading_status": entry.reading_status,
                         "importance_rating": entry.importance_rating,
                         "personal_notes": entry.personal_notes,
-                        "tags": entry.tags,
+                        "tags": entry.get_tags_list(),
                         "saved_at": (
                             entry.saved_at.isoformat() if entry.saved_at else None
                         ),

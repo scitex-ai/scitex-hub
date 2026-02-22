@@ -31,6 +31,8 @@
 .library-detail-body {
   padding: 10px 12px;
   flex: 1;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .library-detail-section {

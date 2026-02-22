@@ -592,6 +592,16 @@
     <!-- Library Tab Content -->
     <div id="tab-library" class="scholar-tab-content" data-tab="library">
         <div class="library-tab-inner">{% include "scholar_app/library_partials/library_main.html" %}</div>
+        <div class="panel-resizer library-resizer"
+             id="library-resizer"
+             data-panel-resizer
+             data-target=".library-details-panel"
+             data-direction="right"
+             data-min-width="200"
+             data-default-width="340"
+             data-storage-key="library-details-width"
+             data-storage-prefix="scitex-scholar-"></div>
+        <div class="library-details-panel">{% include "scholar_app/library_partials/library_details.html" %}</div>
     </div>
 </div>
 </section>
@@ -713,10 +723,7 @@
                 </div>
             </div>
         </div>
-        <!-- Library Details -->
-        <div id="details-library" class="scholar-details-content" data-tab="library">
-            {% include "scholar_app/library_partials/library_details.html" %}
-        </div>
+        <!-- Library details are rendered inline in #tab-library -->
     </div>
 </aside>
 </div>
