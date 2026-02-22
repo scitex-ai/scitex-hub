@@ -132,18 +132,31 @@ _BADGE_SVG = """<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="
 def badge(request, hash_value):
     """Return an SVG badge for a registered hash.
 
-    GET /clew/badge/<hash>/
+    GET /clew/badge/<hash>/?level=L3
 
-    Badge levels:
-    - registered (green) — hash found in registry
-    - not registered (red) — hash not found
+    Verification Levels:
+    - L1 (cache)      — hash comparison only (local)
+    - L2 (rerun)      — full re-execution (local)
+    - L3 (registered) — L2 + Clew Registry timestamp (server)
+
+    Query params:
+    - level: L1, L2, or L3 (default: auto-detect from registry)
     """
     from django.http import HttpResponse
 
+    level = request.GET.get("level", "").upper()
     registration = HashRegistration.objects.filter(hash=hash_value).first()
 
-    if registration:
-        label = "clew"
+    if level == "L1":
+        label = "clew L1"
+        value = "cache verified"
+        color = "#2196f3"  # blue
+    elif level == "L2":
+        label = "clew L2"
+        value = "reproducible"
+        color = "#ff9800"  # orange
+    elif registration:
+        label = "clew L3"
         value = "registered"
         color = "#4c1"  # green
     else:
