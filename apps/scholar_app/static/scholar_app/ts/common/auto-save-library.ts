@@ -22,7 +22,13 @@ interface PaperData {
 }
 
 function getProjectId(): string | null {
-  return sessionStorage.getItem("scholar_selected_project_id");
+  // Try sessionStorage first (set by project-selector dropdown)
+  const stored = sessionStorage.getItem("scholar_selected_project_id");
+  if (stored) return stored;
+
+  // Fall back to project ID from page config (set by Django template)
+  const configEl = document.getElementById("scholar-global-config");
+  return configEl?.dataset.projectId ?? null;
 }
 
 /**
