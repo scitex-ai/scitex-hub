@@ -7,6 +7,7 @@ Marketplace views — browse, detail, my modules, and AJAX API endpoints.
 from __future__ import annotations
 
 import json
+import logging
 
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -22,6 +23,30 @@ from .models import (
     ModuleReview,
     ModuleStar,
 )
+
+logger = logging.getLogger(__name__)
+
+# Module-level flag — ensures built-in modules exist on first marketplace visit
+_builtins_ensured = False
+
+
+def _ensure_builtin_modules():
+    """Ensure built-in modules exist in DB. Runs once per process."""
+    global _builtins_ensured
+    if _builtins_ensured:
+        return
+    if MarketplaceModule.objects.filter(is_builtin=True).exists():
+        _builtins_ensured = True
+        return
+    try:
+        from .management.commands.seed_marketplace import ensure_builtin_modules
+
+        created, _ = ensure_builtin_modules()
+        if created:
+            logger.info("[marketplace] Auto-seeded %d built-in modules", created)
+    except Exception:
+        logger.exception("[marketplace] Failed to auto-seed built-in modules")
+    _builtins_ensured = True
 
 
 # ---------------------------------------------------------------------------
@@ -43,6 +68,7 @@ def browse(request):
 
 def detail(request, module_name):
     """Module detail page — description, reviews, install button."""
+    _ensure_builtin_modules()
     mp_module = get_object_or_404(MarketplaceModule, module_name=module_name)
     reg_module = get_module(module_name)
 
@@ -306,6 +332,7 @@ def api_reorder(request):
 # ---------------------------------------------------------------------------
 def _browse_context(request, current_project=None):
     """Build browse page context."""
+    _ensure_builtin_modules()
     category = request.GET.get("category", "")
     sort = request.GET.get("sort", "popular")
     q = request.GET.get("q", "")
