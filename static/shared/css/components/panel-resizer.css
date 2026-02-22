@@ -158,3 +158,35 @@
   margin-left: 0;
   margin-right: 0;
 }
+
+/* ============================================================================
+ * No-Transition Guard
+ * ============================================================================
+ * Applied by WorkspacePanelResizer.autoInitPanels() during page load to
+ * suppress all CSS transitions (including !important ones) while panel sizes
+ * are being restored from localStorage. Prevents the "panes animating on
+ * every page load" jitter that drains user attention.
+ * Removed via double-rAF after all panels have been initialized.
+ * ========================================================================== */
+body.no-transition,
+body.no-transition * {
+  transition: none !important;
+  animation-duration: 0.001ms !important;
+}
+
+/* Hide resizable panels until JS restores saved widths from localStorage.
+   Prevents the visible "jump" from default width to saved width on page load.
+   The .panels-ready class is added by autoInitPanels() after all widths are set. */
+body.no-transition .workspace-three-col .ws-ai-pane,
+body.no-transition .workspace-three-col .ws-worktree-pane,
+body.no-transition .workspace-shell .ws-ai-pane,
+body.no-transition .workspace-shell .ws-worktree-pane {
+  visibility: hidden;
+}
+
+body.no-transition .workspace-three-col.panels-ready .ws-ai-pane,
+body.no-transition .workspace-three-col.panels-ready .ws-worktree-pane,
+body.no-transition .workspace-shell.panels-ready .ws-ai-pane,
+body.no-transition .workspace-shell.panels-ready .ws-worktree-pane {
+  visibility: visible;
+}

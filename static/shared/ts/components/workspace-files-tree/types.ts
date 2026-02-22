@@ -12,6 +12,8 @@ export type WorkspaceMode =
   | "hub"
   | "files"
   | "tools"
+  | "example"
+  | "marketplace"
   | "explorer"
   | "all";
 
@@ -154,6 +156,14 @@ export const MODE_FILTERS: Record<WorkspaceMode, Partial<FilterConfig>> = {
     allowedExtensions: [],
     hiddenPatterns: ["__pycache__", "node_modules", ".git", ".venv"],
   },
+  example: {
+    allowedExtensions: [],
+    hiddenPatterns: ["__pycache__", "node_modules", ".git", ".venv"],
+  },
+  marketplace: {
+    allowedExtensions: [],
+    hiddenPatterns: ["__pycache__", "node_modules", ".git", ".venv"],
+  },
   explorer: {
     allowedExtensions: [],
     hiddenPatterns: ["__pycache__", "node_modules", ".git", ".venv"],
@@ -172,13 +182,15 @@ export const MODE_FILTERS: Record<WorkspaceMode, Partial<FilterConfig>> = {
 export const DEFAULT_EXPAND_PATHS: Record<WorkspaceMode, string[]> = {
   console: ["scripts"],
   code: ["scripts"],
-  vis: ["scitex", "scitex/vis"],
-  writer: ["scitex", "scitex/writer", "scitex/writer/01_manuscript"],
-  scholar: ["scitex", "scitex/scholar", "scitex/scholar/bib_files"],
-  clew: ["scitex", "scitex/verify"],
+  vis: [],
+  writer: [],
+  scholar: [],
+  clew: [],
   hub: [],
   files: [],
   tools: [],
+  example: [],
+  marketplace: [],
   explorer: [],
   all: [],
 };

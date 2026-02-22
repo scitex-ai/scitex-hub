@@ -43,7 +43,7 @@ export class ContextMenuActionHandler {
     undoRedoHandler: UndoRedoHandler,
     fileActions: FileActions,
     gitActions: GitActions,
-    callbacks: ContextMenuActionCallbacks
+    callbacks: ContextMenuActionCallbacks,
   ) {
     this.config = config;
     this.selectionHandler = selectionHandler;
@@ -172,15 +172,6 @@ export class ContextMenuActionHandler {
     const pathsToDelete = this.getPathsForOperation(path);
     console.log("[ContextMenuAction] Delete:", pathsToDelete);
 
-    // Confirm if multiple files
-    if (pathsToDelete.length > 1) {
-      if (
-        !confirm(`Delete ${pathsToDelete.length} items? (Ctrl+Z to undo)`)
-      ) {
-        return;
-      }
-    }
-
     // Record for undo before deleting
     for (const p of pathsToDelete) {
       this.undoRedoHandler.recordOperation({
@@ -199,9 +190,7 @@ export class ContextMenuActionHandler {
   private async handleRename(path: string): Promise<void> {
     console.log("[ContextMenuAction] Rename:", path);
     const container = this.callbacks.getContainer();
-    const el = container?.querySelector(
-      `[data-path="${path}"]`
-    ) as HTMLElement;
+    const el = container?.querySelector(`[data-path="${path}"]`) as HTMLElement;
 
     if (el) {
       console.log("[ContextMenuAction] Found element for rename:", el);

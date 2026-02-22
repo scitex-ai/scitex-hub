@@ -54,16 +54,7 @@ export class TableEventManager {
     const modal = document.getElementById("tablePreviewModal");
     if (modal) {
       modal.addEventListener("hidden.bs.modal", () => {
-        if (this.stateManager.isModified()) {
-          const confirm = window.confirm(
-            "You have unsaved changes. Are you sure you want to close?",
-          );
-          if (!confirm) {
-            // Re-open modal
-            const bsModal = new (window as any).bootstrap.Modal(modal);
-            bsModal.show();
-          }
-        }
+        // Allow close without confirmation
       });
     }
   }
@@ -197,11 +188,6 @@ export class TableEventManager {
     const selectedRows = this.stateManager.getSelectedRows();
     if (selectedRows.size === 0) return;
 
-    const confirm = window.confirm(
-      `Are you sure you want to delete ${selectedRows.size} row(s)?`,
-    );
-    if (!confirm) return;
-
     this.stateManager.deleteRows(Array.from(selectedRows));
 
     const container = document.getElementById("table-preview-container");
@@ -246,11 +232,6 @@ export class TableEventManager {
 
     const columnName = table.columns[colIndex];
     if (!columnName) return;
-
-    const confirm = window.confirm(
-      `Are you sure you want to delete column "${columnName}"?\nAll data in this column will be lost.`,
-    );
-    if (!confirm) return;
 
     this.stateManager.deleteColumn(colIndex);
 

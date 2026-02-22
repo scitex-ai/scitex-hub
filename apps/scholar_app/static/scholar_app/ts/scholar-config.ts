@@ -32,9 +32,17 @@ declare global {
     CITATION_GRAPH_CONFIG?: {
       urls: {
         buildNetwork: string;
+        buildNetworkMulti: string;
+        buildNetworkQuery: string;
         relatedPapers: string;
         paperSummary: string;
         health: string;
+        listSavedGraphs: string;
+        saveGraph: string;
+        loadGraph: string;
+        renameGraph: string;
+        deleteGraph: string;
+        refreshGraph: string;
       };
     };
   }
@@ -85,9 +93,17 @@ function initFromDataAttributes(): void {
     window.CITATION_GRAPH_CONFIG = {
       urls: {
         buildNetwork: graphConfigEl.dataset.urlBuildNetwork || "",
+        buildNetworkMulti: graphConfigEl.dataset.urlBuildNetworkMulti || "",
+        buildNetworkQuery: graphConfigEl.dataset.urlBuildNetworkQuery || "",
         relatedPapers: graphConfigEl.dataset.urlRelatedPapers || "",
         paperSummary: graphConfigEl.dataset.urlPaperSummary || "",
         health: graphConfigEl.dataset.urlHealth || "",
+        listSavedGraphs: graphConfigEl.dataset.urlListSavedGraphs || "",
+        saveGraph: graphConfigEl.dataset.urlSaveGraph || "",
+        loadGraph: graphConfigEl.dataset.urlLoadGraph || "",
+        renameGraph: graphConfigEl.dataset.urlRenameGraph || "",
+        deleteGraph: graphConfigEl.dataset.urlDeleteGraph || "",
+        refreshGraph: graphConfigEl.dataset.urlRefreshGraph || "",
       },
     };
   }

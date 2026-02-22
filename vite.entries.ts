@@ -297,6 +297,18 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
       "static/shared/ts/components/workspace-files-tree/auto-init.ts",
     ),
     "shared/global-ai-chat": r(rootDir, "static/shared/ts/global-ai-chat.ts"),
+    "shared/module-tab-switcher": r(
+      rootDir,
+      "static/shared/ts/module-tab-switcher.ts",
+    ),
+    "shared/utils/input-history": r(
+      rootDir,
+      "static/shared/ts/utils/input-history.ts",
+    ),
+    "shared/components/module-tab-context-menu": r(
+      rootDir,
+      "static/shared/ts/components/module-tab-context-menu.ts",
+    ),
 
     // Scholar app
     "scholar_app/scholar-config": r(
@@ -410,5 +422,11 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
     ),
 
     // Hub app (tree init moved to shared/workspace-tree-init)
+
+    // Workspace shell SPA
+    "workspace_app/workspace-shell": r(
+      rootDir,
+      "static/workspace_app/ts/workspace-shell.ts",
+    ),
   };
 }

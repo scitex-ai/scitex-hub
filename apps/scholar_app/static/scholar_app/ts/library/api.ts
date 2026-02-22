@@ -2,7 +2,7 @@
  * API functions for Scholar Library
  */
 
-import { API, LibraryPaper, UpdatePaperData } from "./types";
+import { API, LibraryCollection, LibraryPaper, UpdatePaperData } from "./types";
 
 export class LibraryAPI {
   static getCsrfToken(): string {
@@ -88,6 +88,22 @@ export class LibraryAPI {
 
   static exportAllPapers(): void {
     window.location.href = API.exportBibtex;
+  }
+
+  static async fetchCollections(): Promise<LibraryCollection[]> {
+    try {
+      const response = await fetch(API.collections, {
+        credentials: "same-origin",
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch collections: ${response.statusText}`);
+      }
+      const data = await response.json();
+      return data.collections || [];
+    } catch (error) {
+      console.error("Failed to fetch collections:", error);
+      return [];
+    }
   }
 
   static async fetchPaperBibtex(paperId: string): Promise<string> {

@@ -1,65 +1,91 @@
 {% load static %}
 
-{% if user.is_authenticated and request.path != '/' %}
-    <!-- Global AI Agent Panel: uses workspace-sidebar for consistent fold/expand behavior -->
-    <div id="scitex-ai-panel"
-         class="scitex-ai-panel workspace-sidebar collapsed"
-         aria-hidden="true">
-        <div class="sidebar-header scitex-ai-panel-header" id="scitex-ai-panel-header">
-            <!-- Toggle button: shown when collapsed, hidden when expanded (workspace-sidebar.css) -->
-            <button class="panel-toggle-btn" id="scitex-ai-toggle" title="Open AI Agent (Alt+A)">
-                <i class="fas fa-chevron-right"></i>
+{% if user.is_authenticated %}
+    {% if '/workspace/' not in request.path %}
+        {% if '/console/' in request.path or '/vis/' in request.path or '/writer/' in request.path or '/scholar/' in request.path or '/clew/' in request.path or '/hub/' in request.path or '/tools/' in request.path %}
+            <!-- Floating AI button at bottom-left — always visible on workspace pages -->
+            <button id="scitex-ai-fab"
+                    class="scitex-ai-fab"
+                    title="AI Agent (Alt+A)"
+                    aria-label="Open AI Agent">
+                <i class="fas fa-robot"></i>
             </button>
-            <!-- Vertical label: shown when collapsed (workspace-sidebar.css) -->
-            <span class="sidebar-title">AI AGENT</span>
-            <!-- Expanded header content: hidden when collapsed (workspace-sidebar.css) -->
-            <span class="scitex-ai-panel-title">
-                <i class="fas fa-robot"></i> AI Agent
-                <span id="scitex-ai-model-badge" class="scitex-ai-model-badge"></span>
-            </span>
-            <div class="scitex-ai-panel-actions">
-                <button id="scitex-ai-speak" class="scitex-ai-action-btn" title="Toggle auto-speak">
-                    <i class="fas fa-volume-up"></i>
-                </button>
-                <button id="scitex-ai-clear" class="scitex-ai-action-btn" title="Clear conversation">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
-            </div>
-        </div>
-        <!-- Content area: hidden when collapsed by workspace-sidebar.css -->
-        <div class="sidebar-content scitex-ai-body">
-            <div id="scitex-ai-messages" class="scitex-ai-messages">
-                <div class="scitex-ai-empty">
-                    <i class="fas fa-robot"></i>
-                    <span>Ask anything about SciTeX.</span>
-                    <span>I can take actions: stats, plots, literature, and your current work.</span>
+            <!-- Global AI Agent Panel: uses workspace-sidebar for consistent fold/expand behavior -->
+            <div id="scitex-ai-panel"
+                 class="scitex-ai-panel workspace-sidebar collapsed"
+                 aria-hidden="true">
+                <!-- WorkspacePanelResizer: handles collapse state restore and drag resize -->
+                <div id="scitex-ai-resizer"
+                     class="panel-resizer"
+                     data-panel-resizer
+                     data-target="#scitex-ai-panel"
+                     data-direction="left"
+                     data-min-width="40"
+                     data-default-width="380"
+                     data-storage-key="ai-panel-width"
+                     data-collapse-key="scitex-ai-panel-collapsed"
+                     style="position:absolute;
+                            right:0;
+                            top:0;
+                            bottom:0;
+                            z-index:1"></div>
+                <div class="sidebar-header scitex-ai-panel-header" id="scitex-ai-panel-header">
+                    <!-- Toggle button: shown when collapsed, hidden when expanded (workspace-sidebar.css) -->
+                    <button class="panel-toggle-btn" id="scitex-ai-toggle" title="Open AI Agent (Alt+A)">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <!-- Vertical label: shown when collapsed (workspace-sidebar.css) -->
+                    <span class="sidebar-title">AI AGENT</span>
+                    <!-- Expanded header content: hidden when collapsed (workspace-sidebar.css) -->
+                    <span class="scitex-ai-panel-title">
+                        <i class="fas fa-robot"></i> AI Agent
+                        <span id="scitex-ai-model-badge" class="scitex-ai-model-badge"></span>
+                    </span>
+                    <div class="scitex-ai-panel-actions">
+                        <button id="scitex-ai-speak" class="scitex-ai-action-btn" title="Toggle auto-speak">
+                            <i class="fas fa-volume-up"></i>
+                        </button>
+                        <button id="scitex-ai-clear" class="scitex-ai-action-btn" title="Clear conversation">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <!-- Content area: hidden when collapsed by workspace-sidebar.css -->
+                <div class="sidebar-content scitex-ai-body">
+                    <div id="scitex-ai-messages" class="scitex-ai-messages">
+                        <div class="scitex-ai-empty">
+                            <i class="fas fa-robot"></i>
+                            <span>Ask anything about SciTeX.</span>
+                            <span>I can take actions: stats, plots, literature, and your current work.</span>
+                        </div>
+                    </div>
+                    <div class="scitex-ai-input-area">
+                        <textarea id="scitex-ai-input"
+                                  class="scitex-ai-input"
+                                  rows="3"
+                                  placeholder="Ask AI agent... (Enter to send)"
+                                  autocomplete="off"></textarea>
+                        <!-- Volume visualizer: 5 bars lit during recording -->
+                        <div class="scitex-ai-vol">
+                            <span class="scitex-ai-vol-bar" hidden></span>
+                            <span class="scitex-ai-vol-bar" hidden></span>
+                            <span class="scitex-ai-vol-bar" hidden></span>
+                            <span class="scitex-ai-vol-bar" hidden></span>
+                            <span class="scitex-ai-vol-bar" hidden></span>
+                        </div>
+                        <select id="scitex-ai-stt-model"
+                                class="scitex-ai-stt-model"
+                                title="STT model"
+                                style="display:none"></select>
+                        <button id="scitex-ai-mic" class="scitex-ai-mic" title="Voice input (click to record)">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <button id="scitex-ai-send" class="scitex-ai-send" title="Send (Enter)">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
-            <div class="scitex-ai-input-area">
-                <textarea id="scitex-ai-input"
-                          class="scitex-ai-input"
-                          rows="1"
-                          placeholder="Ask AI agent... (Enter to send)"
-                          autocomplete="off"></textarea>
-                <!-- Volume visualizer: 5 bars lit during recording -->
-                <div class="scitex-ai-vol">
-                    <span class="scitex-ai-vol-bar" hidden></span>
-                    <span class="scitex-ai-vol-bar" hidden></span>
-                    <span class="scitex-ai-vol-bar" hidden></span>
-                    <span class="scitex-ai-vol-bar" hidden></span>
-                    <span class="scitex-ai-vol-bar" hidden></span>
-                </div>
-                <select id="scitex-ai-stt-model"
-                        class="scitex-ai-stt-model"
-                        title="STT model"
-                        style="display:none"></select>
-                <button id="scitex-ai-mic" class="scitex-ai-mic" title="Voice input (click to record)">
-                    <i class="fas fa-microphone"></i>
-                </button>
-                <button id="scitex-ai-send" class="scitex-ai-send" title="Send (Enter)">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
-            </div>
-        </div>
-    </div>
+        {% endif %}
+    {% endif %}
 {% endif %}

@@ -6,7 +6,7 @@ from django.shortcuts import render
 
 from apps.project_app.services.project_utils import get_current_project
 
-from . import api
+from . import api, registry
 
 
 def clew_index(request):

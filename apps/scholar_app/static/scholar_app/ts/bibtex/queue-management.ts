@@ -350,10 +350,6 @@ function updateRefreshTime(timestamp: string): void {
  * Cancel a job (called from inline onclick)
  */
 (window as any).cancelJob = function (jobId: string): void {
-  if (!confirm("Are you sure you want to cancel this job?")) {
-    return;
-  }
-
   // Get CSRF token
   const csrfToken = (
     document.querySelector("[name=csrfmiddlewaretoken]") as HTMLInputElement

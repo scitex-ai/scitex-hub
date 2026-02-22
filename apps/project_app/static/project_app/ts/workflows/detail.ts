@@ -15,10 +15,6 @@ console.log(
   }
 
   function triggerWorkflow(): void {
-    if (!confirm("Run this workflow now?")) {
-      return;
-    }
-
     const csrfToken = (
       document.querySelector("[name=csrfmiddlewaretoken]") as HTMLInputElement
     )?.value;

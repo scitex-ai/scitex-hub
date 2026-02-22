@@ -19,6 +19,7 @@ from .tools_data import (
     get_tool_domains,
 )
 from .tools_views import (
+    build_tools_context,
     tool_compress_pdf,
     tool_concat_images,
     tool_concat_repo,
@@ -50,6 +51,7 @@ from .tools_views import (
 __all__ = [
     # Main tools page
     "tools",
+    "build_tools_context",
     # Tool data
     "get_tool_domains",
     "TEXT_TOOLS",

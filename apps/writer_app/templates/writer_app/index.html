@@ -155,30 +155,8 @@
             </div>
         </div>
     {% else %}
-        <!-- Writer workspace with optional sidebar (auto-initializes on first visit) -->
+        <!-- Writer workspace — file tree provided by shared worktree pane in three-column layout -->
         <div class="writer-workspace">
-            {% if project %}
-                <!-- Left sidebar: File tree -->
-                <aside class="writer-sidebar workspace-sidebar" id="writer-sidebar">
-                    {% include "global_base_partials/workspace/sidebar_header.html" %}
-                    <div class="sidebar-content" id="writer-file-tree">
-                        <!-- WorkspaceFilesTree will render here -->
-                        <div class="wft-loading">Loading...</div>
-                    </div>
-                </aside>
-                <!-- Sidebar resizer (auto-initialized via data attributes) -->
-                <div class="panel-resizer"
-                     id="sidebar-resizer"
-                     data-panel-resizer
-                     data-storage-prefix="scitex-workspace-"
-                     data-target=".writer-sidebar"
-                     data-direction="left"
-                     data-min-width="40"
-                     data-default-width="250"
-                     data-storage-key="sidebar-width"
-                     data-collapse-key="scitex-workspace-sidebar-collapsed"
-                     data-toggle-btn="sidebar-toggle"></div>
-            {% endif %}
             <!-- Main content: editor + preview -->
             <div class="writer-container">{% include "writer_app/index_partials/main_editor.html" %}</div>
             <!-- Details resizer (auto-initialized via data attributes) -->
@@ -288,7 +266,6 @@
         </script>
         <!-- Writer Application Bundle (Vite) -->
         {% vite_hmr_client %}
-        {% vite_script 'shared/workspace-panel-resizer' %}
         {% tree_preseed_script project %}
         {% vite_script 'writer_app/index' %}
         <!-- Real-Time Collaboration Script - temporarily disabled (file not found)

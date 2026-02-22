@@ -1,24 +1,32 @@
 <!-- Search Results Header - Compact -->
 <div class="results-header">
     <div class="results-info">
-        <span class="results-count" id="searchResultsText" title="Results are fetched from multiple engines (PubMed, CrossRef, arXiv, OpenAlex, Semantic Scholar), then deduplicated by DOI/title. The count shows unique papers found.">{{ results|length }} result{{ results|length|pluralize }} for "{{ query }}" <i class="fas fa-info-circle results-info-icon"></i></span>
-        {% if results %}<span class="results-source" id="sourceDisplay">· {{ sources_display|default:"selected sources" }}</span>{% endif %}
+        <span class="results-count"
+              id="searchResultsText"
+              title="Results are fetched from multiple engines (PubMed, CrossRef, arXiv, OpenAlex, Semantic Scholar), then deduplicated by DOI/title. The count shows unique papers found.">{{ results|length }} result{{ results|length|pluralize }} for "{{ query }}" <i class="fas fa-info-circle results-info-icon"></i></span>
+        {% if results %}
+            <span class="results-source" id="sourceDisplay">· {{ sources_display|default:"selected sources" }}</span>
+        {% endif %}
     </div>
     <div class="results-toolbar">
         <!-- Abstract Display Toggle -->
-        <button type="button" class="toolbar-btn" id="abstractToggleBtn" data-mode="truncated" title="Toggle abstract display">
-            Abstract: truncated
-        </button>
-        <!-- Save Selected -->
-        <button type="button" class="toolbar-btn" id="saveSelectedBtn" title="Save selected to library">
-            <i class="fas fa-save"></i> Save
-        </button>
+        <button type="button"
+                class="toolbar-btn"
+                id="abstractToggleBtn"
+                data-mode="truncated"
+                title="Toggle abstract display">Abstract: truncated</button>
         <!-- Open URLs -->
-        <button type="button" class="toolbar-btn" id="openUrlsBtn" title="Open selected in new tabs">
+        <button type="button"
+                class="toolbar-btn"
+                id="openUrlsBtn"
+                title="Open selected in new tabs">
             <i class="fas fa-external-link-alt"></i> Open URLs
         </button>
         <!-- Export BibTeX -->
-        <button type="button" class="toolbar-btn toolbar-btn--primary" id="exportSelectedBibtex" title="Download BibTeX for selected (Ctrl+C to copy)">
+        <button type="button"
+                class="toolbar-btn toolbar-btn--primary"
+                id="exportSelectedBibtex"
+                title="Download BibTeX for selected (Ctrl+C to copy)">
             <i class="fas fa-download"></i> BibTeX
         </button>
     </div>

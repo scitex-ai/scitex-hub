@@ -11,6 +11,46 @@ from apps.project_app.services.project_utils import get_current_project
 logger = logging.getLogger(__name__)
 
 
+def build_hub_context(request, current_project=None):
+    """Build hub-specific template context for both full page and partial views."""
+    context = {
+        "is_visitor": False,
+        "module_name": "Hub",
+        "module_icon": "fa-home",
+        "current_project": current_project,
+    }
+
+    # Mark as demo if visitor
+    if request.user.username.startswith("visitor-"):
+        context["is_demo"] = True
+        context["visitor_username"] = request.user.username
+
+    if current_project:
+        context["project"] = current_project
+        _add_file_browser_context(request, current_project, context)
+    else:
+        context["needs_project_creation"] = True
+
+    # Get user's projects for overview (reusing project_app models)
+    from apps.project_app.models import Project
+
+    user_projects = Project.objects.filter(owner=request.user).order_by("-updated_at")[
+        :6
+    ]
+    context["user_projects"] = user_projects
+    context["projects_count"] = Project.objects.filter(owner=request.user).count()
+
+    # Get recent activities (reusing social_app models)
+    from apps.social_app.models import Activity
+
+    recent_activities = Activity.objects.filter(user=request.user).order_by(
+        "-created_at"
+    )[:5]
+    context["recent_activities"] = recent_activities
+
+    return context
+
+
 def index_view(request):
     """Hub main page - Central project hub with GitHub-style features.
 
@@ -48,49 +88,15 @@ def index_view(request):
             },
         )
 
-    context = {
-        "is_visitor": False,
-        "module_name": "Hub",
-        "module_icon": "fa-home",
-    }
-
-    # Mark as demo if visitor
-    if request.user.username.startswith("visitor-"):
-        context["is_demo"] = True
-        context["visitor_username"] = request.user.username
-
     # Get current project from header dropdown
     current_project = get_current_project(request, user=request.user)
 
     if current_project:
-        context["current_project"] = current_project
-        context["project"] = current_project
         logger.info(
             f"[Hub] User {request.user.username} viewing project: {current_project.slug}"
         )
 
-        # Fetch file browser data (same as Files page)
-        _add_file_browser_context(request, current_project, context)
-    else:
-        context["needs_project_creation"] = True
-
-    # Get user's projects for overview (reusing project_app models)
-    from apps.project_app.models import Project
-
-    user_projects = Project.objects.filter(owner=request.user).order_by("-updated_at")[
-        :6
-    ]
-    context["user_projects"] = user_projects
-    context["projects_count"] = Project.objects.filter(owner=request.user).count()
-
-    # Get recent activities (reusing social_app models)
-    from apps.social_app.models import Activity
-
-    recent_activities = Activity.objects.filter(user=request.user).order_by(
-        "-created_at"
-    )[:5]
-    context["recent_activities"] = recent_activities
-
+    context = build_hub_context(request, current_project=current_project)
     return render(request, "hub_app/index.html", context)
 
 

@@ -257,6 +257,22 @@ export function initPanelToggle(): void {
   // NOTE: Sidebar and details toggle click handlers are now set up by
   // shared/workspace-panel-resizer.ts via data-toggle-btn attributes
 
+  // Double-click on panel headers to collapse/expand (no toggle buttons shown)
+  const editorPanelEl = document.querySelector(".latex-panel") as HTMLElement;
+  const previewPanelEl = document.querySelector(
+    ".preview-panel",
+  ) as HTMLElement;
+  const editorHeader = editorPanelEl?.querySelector(
+    ".panel-header",
+  ) as HTMLElement;
+  const previewHeader = previewPanelEl?.querySelector(
+    ".panel-header",
+  ) as HTMLElement;
+  if (editorHeader)
+    editorHeader.addEventListener("dblclick", () => togglePanel("editor"));
+  if (previewHeader)
+    previewHeader.addEventListener("dblclick", () => togglePanel("preview"));
+
   // Set up keyboard shortcuts for editor/preview only
   document.addEventListener("keydown", (e: KeyboardEvent) => {
     // Ctrl+Shift+E to toggle editor expand

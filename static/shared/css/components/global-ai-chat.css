@@ -100,16 +100,24 @@
   height: calc(100vh - 64px);
   z-index: 900; /* below header (1000) */
   box-shadow: 4px 0 16px rgba(0, 0, 0, 0.25);
-  overflow: hidden;
-  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  overflow: visible; /* allow right-edge drag handle hit area */
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   background: var(--bg-secondary, #161b22) !important;
   border-right: 1px solid var(--border-default, #30363d) !important;
   border-bottom: none !important;
 }
 
+/* Keep inner content contained so overflow:visible on panel doesn't leak */
+.scitex-ai-panel .sidebar-header,
+.scitex-ai-panel .sidebar-content {
+  overflow: hidden;
+  max-width: 100%;
+}
+
 /* Collapsed: 40px strip (workspace-sidebar sets min-width: 40px already) */
 .scitex-ai-panel.workspace-sidebar.collapsed {
   width: 40px;
+  overflow: hidden; /* prevent content from bleeding outside the 40px strip */
 }
 
 /* Expanded: 380px */
@@ -117,8 +125,8 @@
   width: 380px;
 }
 
-/* sidebar-content: flex column for messages + input */
-.scitex-ai-panel .sidebar-content {
+/* sidebar-content: flex column for messages + input (only when expanded) */
+.scitex-ai-panel:not(.collapsed) .sidebar-content {
   background: var(--bg-secondary, #161b22) !important;
   padding: 0 !important;
   display: flex !important;
@@ -323,8 +331,8 @@ body.scitex-ai-open #main-content {
   font-size: 0.8125rem;
   font-family: inherit;
   resize: none;
-  min-height: 2rem;
-  max-height: 6rem;
+  min-height: 4rem;
+  max-height: 8rem;
   outline: none;
 }
 
@@ -434,6 +442,29 @@ body.scitex-ai-open #main-content {
   50% {
     opacity: 0.45;
   }
+}
+
+/* ============================================================
+   Unified Workspace: AI panel floats on the RIGHT
+   (regular pages keep left-side positioning above)
+   ============================================================ */
+
+body.unified-workspace .scitex-ai-panel.workspace-sidebar {
+  left: auto;
+  right: 0;
+  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.25);
+  border-right: none !important;
+  border-left: 1px solid var(--border-default, #30363d) !important;
+}
+
+body.unified-workspace.scitex-ai-present #main-content {
+  margin-left: 0;
+  margin-right: 40px;
+}
+
+body.unified-workspace.scitex-ai-open #main-content {
+  margin-left: 0;
+  margin-right: 388px;
 }
 
 /* File tree refresh flash — triggered when AI writes a file */

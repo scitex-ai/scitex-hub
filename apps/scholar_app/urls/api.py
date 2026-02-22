@@ -7,6 +7,7 @@ from __future__ import annotations
 from django.urls import path
 
 from ..api import api_keys, citation_graph, crossref_proxy, public_search
+from ..views.graph import saved_graphs as graph_views
 from ..views.search import pdf_download as pdf_views
 
 # Public Scholar API (v1) - Rate Limited
@@ -43,6 +44,16 @@ citation_graph_patterns = [
         name="citation_graph_network",
     ),
     path(
+        "citation-graph/network/multi/",
+        citation_graph.build_network_multi,
+        name="citation_graph_network_multi",
+    ),
+    path(
+        "citation-graph/network/query/",
+        citation_graph.build_network_query,
+        name="citation_graph_network_query",
+    ),
+    path(
         "citation-graph/related/",
         citation_graph.get_related_papers,
         name="citation_graph_related",
@@ -56,6 +67,40 @@ citation_graph_patterns = [
         "citation-graph/health/",
         citation_graph.health,
         name="citation_graph_health",
+    ),
+]
+
+# Saved Graph API (CRUD for persisted citation graphs)
+saved_graph_patterns = [
+    path(
+        "api/graph/saved/",
+        graph_views.api_list_saved_graphs,
+        name="api_list_saved_graphs",
+    ),
+    path(
+        "api/graph/saved/create/",
+        graph_views.api_save_graph,
+        name="api_save_graph",
+    ),
+    path(
+        "api/graph/saved/<uuid:graph_id>/",
+        graph_views.api_load_graph,
+        name="api_load_graph",
+    ),
+    path(
+        "api/graph/saved/<uuid:graph_id>/rename/",
+        graph_views.api_rename_graph,
+        name="api_rename_graph",
+    ),
+    path(
+        "api/graph/saved/<uuid:graph_id>/delete/",
+        graph_views.api_delete_graph,
+        name="api_delete_graph",
+    ),
+    path(
+        "api/graph/saved/<uuid:graph_id>/refresh/",
+        graph_views.api_refresh_graph,
+        name="api_refresh_graph",
     ),
 ]
 
@@ -91,6 +136,7 @@ urlpatterns = (
     public_api_patterns
     + crossref_patterns
     + citation_graph_patterns
+    + saved_graph_patterns
     + pdf_patterns
     + api_key_patterns
 )

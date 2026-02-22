@@ -1,8 +1,9 @@
 """Index views for SciTeX Writer."""
 
-from .main import index_view, initialize_workspace
+from .main import build_writer_context, index_view, initialize_workspace
 
 __all__ = [
+    "build_writer_context",
     "index_view",
     "initialize_workspace",
 ]

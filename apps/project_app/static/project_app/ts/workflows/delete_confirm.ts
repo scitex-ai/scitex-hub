@@ -23,14 +23,7 @@ class WorkflowDeleteConfirmPage {
   }
 
   private setupConfirmation(): void {
-    this.form?.addEventListener("submit", (e) => {
-      const confirmed = confirm(
-        "Are you sure you want to delete this workflow?",
-      );
-      if (!confirmed) {
-        e.preventDefault();
-      }
-    });
+    // No confirmation needed — user explicitly submitted the form
   }
 }
 

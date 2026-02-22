@@ -1,0 +1,44 @@
+
+{% load static %}
+
+{% block module_css %}
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/container-header.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/branch-dropdown.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/icon-utilities.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/tab-navigation.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/file-browser-table.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/readme-rendering.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/action-buttons.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/split-dropdown.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/tabs.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/browse/toolbar.css' %}" />
+    <link rel="stylesheet" href="{% static 'project_app/css/shared/buttons.css' %}" />
+    <link rel="stylesheet"
+          href="{% static 'project_app/css/repository/file_browser.css' %}" />
+    <link rel="stylesheet" href="{% static 'hub_app/css/hub.css' %}" />
+    <div class="hub-partial-content">
+        {% if current_project %}
+            <div class="hub-browse-container p-3">
+                {% include 'project_app/repository/browse_partials/browse_header.html' %}
+                {% include 'project_app/repository/browse_partials/browse_tabs.html' with active_tab='code' %}
+                {% include 'project_app/repository/browse_partials/browse_empty_state.html' %}
+                {% include 'project_app/repository/browse_partials/browse_file_browser.html' %}
+                {% include 'project_app/repository/browse_partials/browse_readme.html' %}
+            </div>
+        {% else %}
+            <div class="hub-partial-no-project p-4 text-center text-muted">
+                <i class="fas fa-folder-open fa-2x mb-3"></i>
+                <p>Select a project to browse files.</p>
+            </div>
+        {% endif %}
+    </div>

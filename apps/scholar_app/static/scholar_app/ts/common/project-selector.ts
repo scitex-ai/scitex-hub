@@ -7,7 +7,7 @@
 console.log(
   "[DEBUG] apps/scholar_app/static/scholar_app/ts/common/project-selector.ts loaded",
 );
-document.addEventListener("DOMContentLoaded", (): void => {
+function initProjectSelector(): void {
   const projectSelector = document.getElementById(
     "project-selector",
   ) as HTMLSelectElement | null;
@@ -35,4 +35,12 @@ document.addEventListener("DOMContentLoaded", (): void => {
       projectSelector.value = savedProjectId;
     }
   }
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", function () {
+    initProjectSelector();
+  });
+} else {
+  initProjectSelector();
+}

@@ -1,4 +1,5 @@
 {% load static %}
+{% load module_icons %}
 
 <!-- GitHub-Style Global Header -->
 <style>
@@ -187,55 +188,42 @@
                    class="header-nav-item {% if 'writer' in request.path %}active{% endif %}"
                    data-tooltip="Manuscript writing (Alt+W)"
                    data-shortcut="W">
-                    <i class="fas fa-pen nav-icon-fa"></i>
+                    {% module_icon "writer" "nav" %}
                     <span class="nav-label">Writer</span>
                 </a>
                 <a href="/scholar/"
                    class="header-nav-item {% if 'scholar' in request.path %}active{% endif %}"
                    data-tooltip="Citation Management (Alt+S)"
                    data-shortcut="S">
-                    <i class="fas fa-graduation-cap nav-icon-fa"></i>
+                    {% module_icon "scholar" "nav" %}
                     <span class="nav-label">Scholar</span>
                 </a>
                 <a href="/vis/"
                    class="header-nav-item {% if '/vis/' in request.path %}active{% endif %}"
                    data-tooltip="Scientific Figure Editor (Alt+V)"
                    data-shortcut="V">
-                    <i class="fas fa-chart-line nav-icon-fa"></i>
+                    {% module_icon "vis" "nav" %}
                     <span class="nav-label">Visualizer</span>
                 </a>
                 <a href="/console/"
                    class="header-nav-item {% if '/console/' in request.path %}active{% endif %}"
                    data-tooltip="Console workspace (Alt+C)"
                    data-shortcut="C">
-                    <i class="fas fa-terminal nav-icon-fa"></i>
+                    {% module_icon "console" "nav" %}
                     <span class="nav-label">Console</span>
                 </a>
                 <a href="/clew/"
                    class="header-nav-item {% if 'clew' in request.path %}active{% endif %}"
                    data-tooltip="Reproducibility verification (Alt+R)"
                    data-shortcut="R">
-                    <svg class="nav-icon-svg"
-                         viewBox="0 0 100 100"
-                         fill="none"
-                         xmlns="http://www.w3.org/2000/svg"
-                         width="20"
-                         height="20">
-                        <circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="5" />
-                        <line x1="10" y1="50" x2="90" y2="50" stroke="currentColor" stroke-width="4.5" />
-                        <line x1="13" y1="35" x2="87" y2="35" stroke="currentColor" stroke-width="4" />
-                        <line x1="13" y1="65" x2="87" y2="65" stroke="currentColor" stroke-width="4" />
-                        <path d="M30 12 Q70 30 70 50 Q70 70 30 88" stroke="currentColor" stroke-width="4" fill="none" />
-                        <path d="M70 12 Q30 30 30 50 Q30 70 70 88" stroke="currentColor" stroke-width="4" fill="none" />
-                        <line x1="85" y1="82" x2="95" y2="95" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" />
-                    </svg>
+                    {% module_icon "clew" "nav" %}
                     <span class="nav-label">Clew</span>
                 </a>
                 <a href="/hub/"
                    class="header-nav-item {% if '/hub/' in request.path %}active{% endif %}"
                    data-tooltip="Project hub (Alt+H)"
                    data-shortcut="H">
-                    <i class="fas fa-th-large nav-icon-fa"></i>
+                    {% module_icon "hub" "nav" %}
                     <span class="nav-label">Hub</span>
                 </a>
                 {% comment %}
@@ -275,7 +263,7 @@
                    class="header-nav-item {% if 'tools' in request.path %}active{% endif %}"
                    data-shortcut="T"
                    data-tooltip="Research tools and bookmarklets (Alt+T)">
-                    <i class="fas fa-toolbox nav-icon-fa"></i>
+                    {% module_icon "tools" "nav" %}
                     <span class="nav-label">Tools</span>
                 </a>
             </nav>

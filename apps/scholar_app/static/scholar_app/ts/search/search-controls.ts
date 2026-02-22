@@ -180,11 +180,17 @@ function initKeyboardShortcuts(): void {
 }
 
 // Auto-initialize on DOMContentLoaded
-document.addEventListener("DOMContentLoaded", () => {
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", function () {
+    initSearchControls();
+    initKeyboardShortcuts();
+    initSearchOperators();
+  });
+} else {
   initSearchControls();
   initKeyboardShortcuts();
   initSearchOperators();
-});
+}
 
 // Export for external use
 export {

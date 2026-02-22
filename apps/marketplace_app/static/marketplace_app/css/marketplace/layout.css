@@ -1,0 +1,179 @@
+/* Marketplace — layout: container, top bar, search, sort, grid, empty state
+ * Uses project CSS variables: --workspace-bg-*, --workspace-border-default,
+ * --workspace-icon-primary, --text-primary, --text-muted, --accent, --border-color
+ */
+
+/* ─── Container ────────────────────────────────────────────────── */
+.marketplace-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem 1.25rem 2rem;
+}
+
+/* ─── Top Bar ──────────────────────────────────────────────────── */
+.marketplace-topbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+/* Category tab row */
+.marketplace-category-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  border-bottom: 1px solid var(--workspace-border-default, var(--border-color));
+  padding-bottom: 4px;
+}
+
+.marketplace-cat-tab {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  font-size: 0.82rem;
+  color: var(--text-primary);
+  background-color: transparent;
+  border: 1px solid transparent;
+  border-radius: 0;
+  text-decoration: none;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
+  white-space: nowrap;
+}
+
+.marketplace-cat-tab:hover {
+  background-color: var(--workspace-bg-secondary, rgba(255, 255, 255, 0.05));
+  border-color: var(--workspace-border-default, var(--border-color));
+}
+
+.marketplace-cat-tab.active {
+  background-color: var(--workspace-icon-primary, var(--accent));
+  color: #fff;
+  border-color: var(--workspace-icon-primary, var(--accent));
+}
+
+/* Search + sort row */
+.marketplace-search-sort {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.marketplace-search-form {
+  flex: 1;
+  min-width: 200px;
+}
+
+.marketplace-search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.marketplace-search-icon {
+  position: absolute;
+  left: 8px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  pointer-events: none;
+}
+
+.marketplace-search-input {
+  width: 100%;
+  background-color: var(--workspace-bg-secondary, var(--bg-primary));
+  border: 1px solid var(--workspace-border-default, var(--border-color));
+  color: var(--text-primary);
+  padding: 5px 28px;
+  font-size: 0.85rem;
+  border-radius: 0;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.marketplace-search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.marketplace-search-input:focus {
+  border-color: var(--workspace-icon-primary, var(--accent));
+}
+
+.marketplace-search-clear {
+  position: absolute;
+  right: 6px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  font-size: 0.85rem;
+}
+
+.marketplace-search-clear:hover {
+  color: var(--text-primary);
+}
+
+.marketplace-sort-form {
+  flex-shrink: 0;
+}
+
+.marketplace-sort-select {
+  background-color: var(--workspace-bg-secondary, var(--bg-primary));
+  border: 1px solid var(--workspace-border-default, var(--border-color));
+  color: var(--text-primary);
+  padding: 5px 8px;
+  font-size: 0.82rem;
+  border-radius: 0;
+  cursor: pointer;
+}
+
+/* ─── Module Grid ──────────────────────────────────────────────── */
+.marketplace-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 900px) {
+  .marketplace-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .marketplace-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─── Empty State ──────────────────────────────────────────────── */
+.marketplace-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.marketplace-empty-state > i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.35;
+}
+
+.marketplace-empty-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+  color: var(--text-primary);
+}
+
+.marketplace-empty-description {
+  font-size: 0.88rem;
+}

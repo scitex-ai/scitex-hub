@@ -246,7 +246,7 @@ def _check_local_db(name, package_name):
 
 
 def check_api_services(status_data):
-    """Check API services (CrossRef Local, OpenAlex Local, Gitea HTTP)."""
+    """Check API services (CrossRef Local, OpenAlex Local, Gitea HTTP, SciTeX MCP)."""
     status_data["api_services"] = []
 
     # CrossRef Local - delegates to crossref_local.info()
@@ -294,6 +294,35 @@ def check_api_services(status_data):
                 "name": "Gitea API",
                 "url": "gitea:3000",
                 "public_url": "https://git.scitex.ai",
+                "is_running": False,
+                "status": "error",
+                "health_class": "unhealthy",
+                "error": str(e),
+            }
+        )
+
+    # SciTeX MCP Server (in-process — verify tools are importable)
+    try:
+        from scitex.mcp_server import mcp as _mcp
+
+        tool_count = len(_mcp._tool_manager._tools)
+        status_data["api_services"].append(
+            {
+                "name": "SciTeX MCP Tools",
+                "url": "in-process",
+                "public_url": "/mcp (auth required)",
+                "is_running": True,
+                "status": "healthy",
+                "health_class": "healthy",
+                "details": f"{tool_count} tools loaded",
+            }
+        )
+    except Exception as e:
+        status_data["api_services"].append(
+            {
+                "name": "SciTeX MCP Tools",
+                "url": "in-process",
+                "public_url": "/mcp (auth required)",
                 "is_running": False,
                 "status": "error",
                 "health_class": "unhealthy",

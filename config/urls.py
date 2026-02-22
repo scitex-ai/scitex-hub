@@ -11,15 +11,13 @@ Django URL configuration modules are not scripts.
 from __future__ import annotations
 
 # ----------------------------------------
-
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import re_path
-from django.views.static import serve
-from django.urls import include, path
+from django.urls import include, path, re_path
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import RedirectView
+from django.views.static import serve
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from apps.accounts_app.api.user_views import api_search_users
@@ -128,6 +126,8 @@ urlpatterns = [
     path("vis/", include(("apps.vis_app.urls", "vis"))),
     path("writer/", include(("apps.writer_app.urls", "writer_app"))),
     path("workspace/", include(("apps.workspace_app.urls", "workspace_app"))),
+    path("example/", include(("apps.example_app.urls", "example_app"))),
+    path("marketplace/", include(("apps.marketplace_app.urls", "marketplace_app"))),
     # LLM/Agent Support
     path("llm/", include(("apps.llm_app.urls", "llm_app"))),
     # Deveopment

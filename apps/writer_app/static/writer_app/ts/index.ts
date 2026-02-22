@@ -138,7 +138,7 @@ import { editorLoader } from "./loaders/editor-loader";
 })();
 
 // Initialize application
-document.addEventListener("DOMContentLoaded", async () => {
+async function initWriterApplication(): Promise<void> {
   console.log("[Writer] Initializing application");
 
   const config = getWriterConfig();
@@ -153,6 +153,23 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Initialize editor components (async to wait for Monaco)
   await initializeEditor(config);
+}
+
+// Handle case where DOMContentLoaded has already fired (e.g., unified workspace dynamic injection)
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initWriterApplication);
+} else {
+  initWriterApplication();
+}
+
+// Reinit hook for unified workspace: ES modules are cached and NOT re-executed
+// on second switch. This listener fires every time unified switches to "writer".
+document.addEventListener("unified:module:switched", (e: Event) => {
+  const { module } = (e as CustomEvent).detail;
+  if (module === "writer") {
+    console.log("[Writer] Reinitializing (unified switch)...");
+    initWriterApplication();
+  }
 });
 
 /**

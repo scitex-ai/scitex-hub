@@ -205,6 +205,10 @@ function handleDrop(this: HTMLElement, e: DragEvent): boolean {
 }
 
 // Initialize on DOM ready
-document.addEventListener("DOMContentLoaded", function () {
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", function () {
+    initializeDragSort();
+  });
+} else {
   initializeDragSort();
-});
+}

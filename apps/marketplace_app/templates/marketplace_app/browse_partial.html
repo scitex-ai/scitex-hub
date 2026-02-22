@@ -1,0 +1,75 @@
+{% load static %}
+
+<link rel="stylesheet" href="{% static 'marketplace_app/css/marketplace.css' %}" />
+<div class="marketplace-container">
+    <!-- Top bar: category filter tabs, search, sort -->
+    <div class="marketplace-topbar">
+        <nav class="marketplace-category-tabs" aria-label="Module categories">
+            <a href="?category=&sort={{ active_sort }}&q={{ search_query }}"
+               class="marketplace-cat-tab {% if not active_category %}active{% endif %}">All</a>
+            {% for cat_key, cat_label in categories %}
+                <a href="?category={{ cat_key }}&sort={{ active_sort }}&q={{ search_query }}"
+                   class="marketplace-cat-tab {% if active_category == cat_key %}active{% endif %}">{{ cat_label }}</a>
+            {% endfor %}
+        </nav>
+        <div class="marketplace-search-sort">
+            <form method="get" class="marketplace-search-form" role="search">
+                <input type="hidden" name="category" value="{{ active_category }}" />
+                <input type="hidden" name="sort" value="{{ active_sort }}" />
+                <div class="marketplace-search-wrapper">
+                    <i class="fas fa-search marketplace-search-icon" aria-hidden="true"></i>
+                    <input type="text"
+                           name="q"
+                           value="{{ search_query }}"
+                           class="marketplace-search-input"
+                           placeholder="Search modules..."
+                           aria-label="Search modules" />
+                    {% if search_query %}
+                        <button type="button"
+                                class="marketplace-search-clear"
+                                onclick="this.closest('form').q.value=''; this.closest('form').submit();"
+                                aria-label="Clear search">
+                            <i class="fas fa-times" aria-hidden="true"></i>
+                        </button>
+                    {% endif %}
+                </div>
+            </form>
+            <form method="get" class="marketplace-sort-form">
+                <input type="hidden" name="category" value="{{ active_category }}" />
+                <input type="hidden" name="q" value="{{ search_query }}" />
+                <select name="sort"
+                        class="marketplace-sort-select"
+                        onchange="this.form.submit()"
+                        aria-label="Sort modules">
+                    <option value="popular" {% if active_sort == 'popular' %}selected{% endif %}>Popular</option>
+                    <option value="newest" {% if active_sort == 'newest' %}selected{% endif %}>Newest</option>
+                    <option value="rating" {% if active_sort == 'rating' %}selected{% endif %}>Rating</option>
+                </select>
+            </form>
+        </div>
+    </div>
+    <!-- Module grid -->
+    {% if modules %}
+        <div class="marketplace-grid">
+            {% for mod_item in modules %}
+                {% include "marketplace_app/partials/module_card.html" %}
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="marketplace-empty-state">
+            <i class="fas fa-store-slash" aria-hidden="true"></i>
+            <p class="marketplace-empty-title">No modules found</p>
+            <p class="marketplace-empty-description">
+                {% if search_query %}
+                    No modules match &ldquo;{{ search_query }}&rdquo;.
+                    <a href="?">Clear search</a>
+                {% elif active_category %}
+                    No modules in this category yet.
+                    <a href="?">View all</a>
+                {% else %}
+                    The marketplace is empty. Check back soon.
+                {% endif %}
+            </p>
+        </div>
+    {% endif %}
+</div>

@@ -10,7 +10,7 @@ import "./search/pdf-download";
 // Import search main functionality (auto-initializes on DOM ready)
 import "./search/search-main";
 
-document.addEventListener("DOMContentLoaded", async () => {
+async function initScholarWorkspace(): Promise<void> {
   // Lazy-load Library tab module on first activation
   const libraryTab = document.querySelector('[data-tab="library"]');
   if (libraryTab) {
@@ -31,4 +31,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   console.log("[Scholar] Workspace initialized");
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", function () {
+    initScholarWorkspace();
+  });
+} else {
+  initScholarWorkspace();
+}

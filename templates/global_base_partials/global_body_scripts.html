@@ -1,5 +1,79 @@
 {% load static vite %}
 
+<!-- Global: Prevent Enter key from submitting forms & route Enter to action buttons -->
+<style>
+    @keyframes btn-enter-press {
+        0% {
+            transform: scale(1);
+            filter: brightness(1);
+        }
+
+        40% {
+            transform: scale(0.94);
+            filter: brightness(1.3);
+        }
+
+        100% {
+            transform: scale(1);
+            filter: brightness(1);
+        }
+    }
+
+    .btn--enter-pressed {
+        animation: btn-enter-press 0.2s ease-in-out;
+    }
+</style>
+<script>
+(function() {
+    // 1. Block non-POST form submissions (JS-driven forms should not reload)
+    document.addEventListener('submit', function(e) {
+        var form = e.target;
+        if (form.tagName !== 'FORM') return;
+        var action = form.getAttribute('action');
+        var method = (form.getAttribute('method') || '').toLowerCase();
+        if (action && method === 'post') return;
+        e.preventDefault();
+    }, true);
+
+    // 2. Enter key in any input → find & click the nearest action button with visual feedback
+    document.addEventListener('keydown', function(e) {
+        if (e.key !== 'Enter') return;
+        var el = e.target;
+        if (!el || (el.tagName !== 'INPUT' && el.tagName !== 'SELECT')) return;
+        // Skip textareas (Enter should add newlines there)
+        if (el.tagName === 'TEXTAREA') return;
+
+        e.preventDefault();
+
+        // Find action button: same wrapper first, then form-level submit/primary button
+        var btn = null;
+        var wrapper = el.closest('.input-wrapper, .input-group');
+        if (wrapper) {
+            btn = wrapper.querySelector('button[type="submit"], button.btn-build, button.btn-primary, button.search-btn');
+        }
+        if (!btn) {
+            var form = el.closest('form');
+            if (form) {
+                btn = form.querySelector('button[type="submit"]')
+                   || form.querySelector('button.btn-build, button.btn-primary, button.search-btn');
+            }
+        }
+        if (!btn) return;
+
+        // Visual feedback
+        btn.classList.remove('btn--enter-pressed');
+        // Force reflow so re-adding the class restarts animation
+        void btn.offsetWidth;
+        btn.classList.add('btn--enter-pressed');
+        btn.addEventListener('animationend', function handler() {
+            btn.classList.remove('btn--enter-pressed');
+            btn.removeEventListener('animationend', handler);
+        });
+
+        btn.click();
+    }, true);
+})();
+</script>
 <!-- Template cleanup (removes stray Django template text from linter reformatting) -->
 {% vite_script 'shared/utils/template-cleanup' %}
 <!-- Bootstrap 5 JavaScript Bundle (includes Popper) -->
@@ -17,7 +91,7 @@
         script.src =
             "https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js";
         script.integrity =
-            "sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4";
+            "sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"; // pragma: allowlist secret
         script.crossOrigin = "visitor";
         script.onload = function() {
             // Restore AMD after Bootstrap loads
@@ -145,8 +219,17 @@
 {% vite_script 'shared/utils/visitor-heartbeat' %}
 <!-- Product Tour (step-by-step guided walkthrough) -->
 {% vite_script 'shared/components/product-tour' %}
+<!-- Workspace file tree auto-init (three-col shared worktree pane) -->
+{% vite_script 'shared/workspace-tree-init' %}
 <!-- Global AI Chat floating panel -->
+{% vite_script 'shared/workspace-panel-resizer' %}
 {% vite_script 'shared/global-ai-chat' %}
+<!-- Module Tab Switcher (AJAX tab switching for three-col workspace layout) -->
+{% vite_script 'shared/module-tab-switcher' %}
+<!-- Ctrl+P/N input history for all text inputs -->
+{% vite_script 'shared/utils/input-history' %}
+<!-- Module Tab Context Menu (right-click to manage modules) -->
+{% vite_script 'shared/components/module-tab-context-menu' %}
 <!-- Mobile Notice Banner Dismiss -->
 <script>
     (function() {

@@ -62,8 +62,14 @@ export function initializeAbstractToggle(): void {
 }
 
 // Auto-initialize on DOM ready
-document.addEventListener("DOMContentLoaded", function () {
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", function () {
+    console.log("[Abstract Toggle] Initializing...");
+    initializeAbstractToggle();
+    console.log("[Abstract Toggle] Initialization complete");
+  });
+} else {
   console.log("[Abstract Toggle] Initializing...");
   initializeAbstractToggle();
   console.log("[Abstract Toggle] Initialization complete");
-});
+}

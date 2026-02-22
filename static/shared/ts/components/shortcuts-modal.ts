@@ -42,6 +42,13 @@ const CONTEXT_SECTIONS: Record<AppContext, ShortcutSection[]> = {
         { keys: "Alt+Z", description: "Zen Mode" },
       ],
     },
+    {
+      title: "Input History (in text fields)",
+      shortcuts: [
+        { keys: "Ctrl+P", description: "Previous entry" },
+        { keys: "Ctrl+N", description: "Next entry" },
+      ],
+    },
   ],
   files: [
     {

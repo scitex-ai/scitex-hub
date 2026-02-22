@@ -15,9 +15,27 @@
     <!-- Common Scripts -->
     {% vite_script 'scholar_app/common/project-selector' %}
     {% vite_script 'scholar_app/common/init-tabs' %}
-    <!-- External Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.js"></script>
-    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
+    <!-- External Libraries (deferred to avoid blocking page render) -->
+    <script defer
+            src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.js"></script>
+    <!-- Plotly.js (~3.5MB) lazy-loaded on demand by swarm-plots when search results arrive -->
+    <script>
+        window.loadPlotly = function() {
+            return new Promise(function(resolve, reject) {
+                if (typeof Plotly !== 'undefined') { resolve(Plotly); return; }
+                if (window._plotlyLoading) { window._plotlyLoading.then(resolve, reject); return; }
+                window._plotlyLoading = new Promise(function(res, rej) {
+                    var s = document.createElement('script');
+                    s.src = 'https://cdn.plot.ly/plotly-2.27.0.min.js';
+                    s.charset = 'utf-8';
+                    s.onload = function() { res(Plotly); };
+                    s.onerror = function() { rej(new Error('Failed to load Plotly.js')); };
+                    document.head.appendChild(s);
+                });
+                window._plotlyLoading.then(resolve, reject);
+            });
+        };
+    </script>
     <!-- BibTeX Scripts loaded dynamically in bibtex_partials/enrich.html -->
     <!-- Search Scripts -->
     {% vite_script 'scholar_app/search/nouislider-init' %}

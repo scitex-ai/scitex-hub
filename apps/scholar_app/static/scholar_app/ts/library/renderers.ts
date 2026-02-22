@@ -6,9 +6,42 @@ import { API, LibraryPaper, LibraryStats } from "./types";
 import { LibraryAPI } from "./api";
 
 export class LibraryRenderers {
+  private static readonly SAFE_TAGS = new Set([
+    "i",
+    "b",
+    "em",
+    "strong",
+    "sub",
+    "sup",
+    "scp",
+  ]);
+
   static escapeHtml(text: string): string {
     const div = document.createElement("div");
     div.textContent = text;
+    return div.innerHTML;
+  }
+
+  /** Allow safe scientific markup (i, b, em, strong, sub, sup, scp), strip everything else. */
+  static sanitizeHtml(text: string): string {
+    // Decode entity-encoded safe tags (common in CrossRef/PubMed metadata)
+    const safeTagRe = /&lt;(\/?(?:i|b|em|strong|sub|sup|scp))&gt;/gi;
+    const decoded = text.replace(safeTagRe, "<$1>");
+
+    const div = document.createElement("div");
+    div.innerHTML = decoded;
+    const walker = document.createTreeWalker(div, NodeFilter.SHOW_ELEMENT);
+    const toUnwrap: Element[] = [];
+    while (walker.nextNode()) {
+      const el = walker.currentNode as Element;
+      if (!this.SAFE_TAGS.has(el.tagName.toLowerCase())) {
+        toUnwrap.push(el);
+      }
+      // Strip all attributes from any tag
+      while (el.attributes.length > 0)
+        el.removeAttribute(el.attributes[0].name);
+    }
+    for (const el of toUnwrap) el.replaceWith(...Array.from(el.childNodes));
     return div.innerHTML;
   }
 
@@ -99,6 +132,117 @@ export class LibraryRenderers {
     });
   }
 
+  static renderPaperTable(
+    papers: LibraryPaper[],
+    selectedPaperId: string | null,
+    searchQuery: string,
+    onPaperClick: (paperId: string) => void,
+    onSort: (column: string) => void,
+    sortColumn: string,
+    sortAsc: boolean,
+  ): void {
+    const listContainer = document.getElementById("library-papers-list");
+    if (!listContainer) return;
+
+    if (papers.length === 0) {
+      listContainer.innerHTML = `
+        <div class="library-empty-state">
+          <i class="fas fa-book-open"></i>
+          <div class="library-empty-state-title">No papers found</div>
+          <div class="library-empty-state-description">
+            ${searchQuery ? "Try adjusting your search or filters" : "Start by importing papers from BibTeX or adding them manually"}
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    const arrow = (col: string) => {
+      if (sortColumn !== col) return "";
+      return sortAsc ? " \u25B2" : " \u25BC";
+    };
+
+    const headerHtml = `
+      <thead>
+        <tr>
+          <th class="library-table-th sortable" data-sort="title">Title${arrow("title")}</th>
+          <th class="library-table-th sortable" data-sort="authors">Authors${arrow("authors")}</th>
+          <th class="library-table-th sortable" data-sort="year">Year${arrow("year")}</th>
+          <th class="library-table-th sortable" data-sort="journal">Journal${arrow("journal")}</th>
+          <th class="library-table-th sortable" data-sort="reading_status">Status${arrow("reading_status")}</th>
+          <th class="library-table-th sortable" data-sort="importance_rating">Rating${arrow("importance_rating")}</th>
+        </tr>
+      </thead>
+    `;
+
+    const rowsHtml = papers
+      .map((paper) => {
+        const isSelected = paper.id === selectedPaperId;
+        const authors = paper.authors
+          ? this.truncateText(paper.authors, 30)
+          : "";
+        const journal = paper.journal
+          ? this.truncateText(paper.journal, 25)
+          : "";
+        return `
+          <tr class="library-table-row ${isSelected ? "selected" : ""}" data-paper-id="${paper.id}">
+            <td class="library-table-td library-table-title">${this.sanitizeHtml(paper.title)}</td>
+            <td class="library-table-td">${this.escapeHtml(authors)}</td>
+            <td class="library-table-td">${paper.year || ""}</td>
+            <td class="library-table-td">${this.escapeHtml(journal)}</td>
+            <td class="library-table-td">${this.getStatusBadgeHtml(paper.reading_status)}</td>
+            <td class="library-table-td">${this.getCompactStarsHtml(paper.importance_rating)}</td>
+          </tr>
+        `;
+      })
+      .join("");
+
+    listContainer.innerHTML = `
+      <table class="library-table">
+        ${headerHtml}
+        <tbody>${rowsHtml}</tbody>
+      </table>
+    `;
+
+    listContainer.querySelectorAll(".library-table-row").forEach((row) => {
+      row.addEventListener("click", () => {
+        const paperId = row.getAttribute("data-paper-id");
+        if (paperId) onPaperClick(paperId);
+      });
+    });
+
+    listContainer
+      .querySelectorAll(".library-table-th.sortable")
+      .forEach((th) => {
+        th.addEventListener("click", () => {
+          const col = th.getAttribute("data-sort");
+          if (col) onSort(col);
+        });
+      });
+  }
+
+  /** Normalize tags to array (API may send string or string[]) */
+  private static tagsToArray(
+    tags: string | string[] | undefined | null,
+  ): string[] {
+    if (!tags) return [];
+    if (Array.isArray(tags)) return tags;
+    return tags
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+  }
+
+  static truncateText(text: string, maxLen: number): string {
+    if (text.length <= maxLen) return text;
+    return text.slice(0, maxLen - 1) + "\u2026";
+  }
+
+  static getCompactStarsHtml(rating: number): string {
+    if (!rating) return '<span class="library-rating-compact">-</span>';
+    return `<span class="library-rating-compact">${"\u2605".repeat(rating)}</span>`;
+  }
+
   static renderPaperCard(
     paper: LibraryPaper,
     selectedPaperId: string | null,
@@ -106,7 +250,7 @@ export class LibraryRenderers {
     const isSelected = paper.id === selectedPaperId;
     return `
       <div class="library-paper-card ${isSelected ? "selected" : ""}" data-paper-id="${paper.id}">
-        <div class="library-paper-title">${this.escapeHtml(paper.title)}</div>
+        <div class="library-paper-title">${this.sanitizeHtml(paper.title)}</div>
         <div class="library-paper-meta">
           ${paper.authors ? `<span>${this.escapeHtml(paper.authors)}</span>` : ""}
           ${paper.journal ? `<span>${this.escapeHtml(paper.journal)}</span>` : ""}
@@ -115,7 +259,12 @@ export class LibraryRenderers {
         <div class="library-paper-badges">
           ${this.getStatusBadgeHtml(paper.reading_status)}
           ${this.getImportanceStarsHtml(paper.importance_rating)}
-          ${paper.tags?.map((tag) => `<span class="library-tag">${this.escapeHtml(tag)}</span>`).join("") || ""}
+          ${this.tagsToArray(paper.tags)
+            .map(
+              (tag) =>
+                `<span class="library-tag">${this.escapeHtml(tag)}</span>`,
+            )
+            .join("")}
         </div>
       </div>
     `;
@@ -158,7 +307,7 @@ export class LibraryRenderers {
 
     detailsPanel.innerHTML = `
       <div class="library-detail-header">
-        <div class="library-detail-title">${this.escapeHtml(paper.title)}</div>
+        <div class="library-detail-title">${this.sanitizeHtml(paper.title)}</div>
         <div class="library-detail-meta">
           ${paper.authors ? `<div>${this.escapeHtml(paper.authors)}</div>` : ""}
           ${paper.journal ? `<div>${this.escapeHtml(paper.journal)}${paper.year ? `, ${paper.year}` : ""}</div>` : ""}
@@ -172,7 +321,7 @@ export class LibraryRenderers {
             ? `
           <div class="library-detail-section">
             <div class="library-detail-label">Abstract</div>
-            <div class="library-detail-abstract">${this.escapeHtml(paper.abstract)}</div>
+            <div class="library-detail-abstract">${this.sanitizeHtml(paper.abstract)}</div>
           </div>
         `
             : ""
@@ -203,7 +352,7 @@ export class LibraryRenderers {
         <div class="library-detail-section">
           <div class="library-detail-label">Tags (comma-separated)</div>
           <input type="text" class="library-tags-input" id="library-tags-input"
-                 value="${paper.tags?.join(", ") || ""}"
+                 value="${this.tagsToArray(paper.tags).join(", ")}"
                  placeholder="e.g., machine-learning, important, follow-up">
         </div>
 

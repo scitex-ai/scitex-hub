@@ -453,8 +453,6 @@ export class JobsPanelManager {
       return;
     }
 
-    if (!confirm(`Cancel all ${pendingJobs.length} pending jobs?`)) return;
-
     const csrfToken = (
       document.querySelector(
         'input[name="csrfmiddlewaretoken"]',

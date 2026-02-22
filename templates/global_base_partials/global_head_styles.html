@@ -18,48 +18,63 @@
       rel="stylesheet" />
 <!-- External CSS Libraries -->
 <link rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-      integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg=="
-      crossorigin="visitor"
-      referrerpolicy="no-referrer" />
-<link rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
-      integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65"
-      crossorigin="visitor" />
-<!-- Design Tokens - Load colors first for CSS variables -->
-<link rel="stylesheet"
-      href="{% static 'shared/css/primitives/colors.css' %}?v={{ build_id }}" />
-<!-- Icon Size Utilities -->
-<link rel="stylesheet"
-      href="{% static 'shared/css/components/icon-sizes.css' %}?v={{ build_id }}" />
-<!-- Master Stylesheet - Imports all common, component, and page styles -->
-<link rel="stylesheet" href="{% static 'shared/css/common.css' %}?v={{ build_id }}" />
-<!-- Additional Specific Styles -->
-<link rel="stylesheet"
-      href="{% static 'shared/css/base/bootstrap-override/index.css' %}?v={{ build_id }}" />
-<link rel="stylesheet"
-      href="{% static 'shared/css/components/modal.css' %}?v={{ build_id }}" />
-<!-- Keyboard Shortcuts Modal Styles -->
-<link rel="stylesheet"
-      href="{% static 'shared/css/components/shortcuts-modal.css' %}?v={{ build_id }}" />
-<!-- Global Base Layout Styles -->
-<link rel="stylesheet"
-      href="{% static 'shared/css/layouts/global-base.css' %}?v={{ build_id }}" />
-<!-- Collapsible Panel (shared collapsed states, click-to-expand) -->
-<link rel="stylesheet"
-      href="{% static 'shared/css/components/collapsible-panel.css' %}?v={{ build_id }}" />
-<!-- Zen Mode Styles (F11 for distraction-free writing) -->
-<link rel="stylesheet"
-      href="{% static 'shared/css/components/zen-mode.css' %}?v={{ build_id }}" />
-<!-- Product Tour (step-by-step guided walkthrough) -->
-<link rel="stylesheet"
-      href="{% static 'shared/css/components/product-tour.css' %}?v={{ build_id }}" />
-<!-- Mobile Notice Banner -->
-<link rel="stylesheet"
-      href="{% static 'shared/css/components/mobile-notice.css' %}?v={{ build_id }}" />
-<!-- Cookie Consent Banner -->
-<link rel="stylesheet"
-      href="{% static 'shared/css/components/cookie-consent.css' %}?v={{ build_id }}" />
-<!-- Global AI Chat floating panel -->
-<link rel="stylesheet"
-      href="{% static 'shared/css/components/global-ai-chat.css' %}?v={{ build_id }}" />
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" {# pragma: allowlist secret #}
+    crossorigin="visitor"
+    referrerpolicy="no-referrer" />
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+        integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" {# pragma: allowlist secret #}
+        crossorigin="visitor" />
+        <!-- Design Tokens - Load colors first for CSS variables -->
+        <link rel="stylesheet"
+              href="{% static 'shared/css/primitives/colors.css' %}?v={{ build_id }}" />
+        <!-- Icon Size Utilities -->
+        <link rel="stylesheet"
+              href="{% static 'shared/css/components/icon-sizes.css' %}?v={{ build_id }}" />
+        <!-- Master Stylesheet - Imports all common, component, and page styles -->
+        <link rel="stylesheet" href="{% static 'shared/css/common.css' %}?v={{ build_id }}" />
+        <!-- Additional Specific Styles -->
+        <link rel="stylesheet"
+              href="{% static 'shared/css/base/bootstrap-override/index.css' %}?v={{ build_id }}" />
+        <link rel="stylesheet"
+              href="{% static 'shared/css/components/modal.css' %}?v={{ build_id }}" />
+        <!-- Keyboard Shortcuts Modal Styles -->
+        <link rel="stylesheet"
+              href="{% static 'shared/css/components/shortcuts-modal.css' %}?v={{ build_id }}" />
+        <!-- Global Base Layout Styles -->
+        <link rel="stylesheet"
+              href="{% static 'shared/css/layouts/global-base.css' %}?v={{ build_id }}" />
+        <!-- Collapsible Panel (shared collapsed states, click-to-expand) -->
+        <link rel="stylesheet"
+              href="{% static 'shared/css/components/collapsible-panel.css' %}?v={{ build_id }}" />
+        <!-- Panel Resizer (no-transition guard for workspace panels) -->
+        <link rel="stylesheet"
+              href="{% static 'shared/css/components/panel-resizer.css' %}?v={{ build_id }}" />
+        <!-- Zen Mode Styles (F11 for distraction-free writing) -->
+        <link rel="stylesheet"
+              href="{% static 'shared/css/components/zen-mode.css' %}?v={{ build_id }}" />
+        <!-- Product Tour (step-by-step guided walkthrough) -->
+        <link rel="stylesheet"
+              href="{% static 'shared/css/components/product-tour.css' %}?v={{ build_id }}" />
+        <!-- Mobile Notice Banner -->
+        <link rel="stylesheet"
+              href="{% static 'shared/css/components/mobile-notice.css' %}?v={{ build_id }}" />
+        <!-- Cookie Consent Banner -->
+        <link rel="stylesheet"
+              href="{% static 'shared/css/components/cookie-consent.css' %}?v={{ build_id }}" />
+        <!-- Global AI Chat floating panel -->
+        <link rel="stylesheet"
+              href="{% static 'shared/css/components/global-ai-chat.css' %}?v={{ build_id }}" />
+        <!-- Module Tab Bar — workspace navigation across module pages -->
+        <link rel="stylesheet"
+              href="{% static 'shared/css/components/module-tab-bar.css' %}?v={{ build_id }}" />
+        <!-- Workspace sidebar (collapsed/expanded behavior — needed by three-col panes) -->
+        <link rel="stylesheet"
+              href="{% static 'shared/css/components/workspace-sidebar.css' %}?v={{ build_id }}" />
+        <!-- Panel resizer (drag-resize handles) -->
+        <link rel="stylesheet"
+              href="{% static 'shared/css/components/panel-resizer.css' %}?v={{ build_id }}" />
+        <!-- Workspace Three-Column Layout (AI | Worktree | Module) -->
+        <link rel="stylesheet"
+              href="{% static 'shared/css/components/workspace-three-col.css' %}?v={{ build_id }}" />

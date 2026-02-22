@@ -1,0 +1,85 @@
+{% load static %}
+
+{% if user.is_authenticated %}
+    <div class="ws-ai-pane" id="ws-ai-pane">
+        <div id="scitex-ai-panel"
+             class="scitex-ai-panel workspace-sidebar collapsed"
+             aria-hidden="true">
+            <!-- WorkspacePanelResizer: handles collapse state restore and drag resize -->
+            <div id="scitex-ai-resizer"
+                 class="panel-resizer"
+                 data-panel-resizer
+                 data-target="#scitex-ai-panel"
+                 data-direction="left"
+                 data-min-width="40"
+                 data-default-width="300"
+                 data-storage-key="ws-ai-panel-width"
+                 data-collapse-key="scitex-ai-panel-collapsed"
+                 data-toggle-btn="scitex-ai-toggle"
+                 style="position:absolute;
+                        right:0;
+                        top:0;
+                        bottom:0;
+                        z-index:1"></div>
+            <div class="sidebar-header scitex-ai-panel-header" id="scitex-ai-panel-header">
+                <button class="panel-toggle-btn" id="scitex-ai-toggle" title="AI Agent (Alt+A)">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <span class="sidebar-title">AI Agent</span>
+                <span class="scitex-ai-panel-title">
+                    <i class="fas fa-robot"></i> AI Agent
+                    <span id="scitex-ai-model-badge" class="scitex-ai-model-badge"></span>
+                </span>
+                <div class="scitex-ai-panel-actions">
+                    <button id="scitex-ai-speak" class="scitex-ai-action-btn" title="Toggle auto-speak">
+                        <i class="fas fa-volume-up"></i>
+                    </button>
+                    <button id="scitex-ai-settings-btn" class="scitex-ai-action-btn" title="Settings">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                    <button id="scitex-ai-clear" class="scitex-ai-action-btn" title="Clear conversation">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="scitex-ai-settings-panel"
+                 class="scitex-ai-settings-panel"
+                 style="display:none">
+                <label class="scitex-ai-settings-label">STT Model</label>
+                <select id="scitex-ai-stt-model"
+                        class="scitex-ai-stt-model"
+                        title="STT model"
+                        style="display:none"></select>
+            </div>
+            <div class="sidebar-content scitex-ai-body">
+                <div id="scitex-ai-messages" class="scitex-ai-messages">
+                    <div class="scitex-ai-empty">
+                        <i class="fas fa-robot"></i>
+                        <span>Ask anything about SciTeX.</span>
+                        <span>I can take actions: stats, plots, literature, and your current work.</span>
+                    </div>
+                </div>
+                <div class="scitex-ai-input-area">
+                    <textarea id="scitex-ai-input"
+                              class="scitex-ai-input"
+                              rows="3"
+                              placeholder="Ask AI agent... (Enter to send)"
+                              autocomplete="off"></textarea>
+                    <div class="scitex-ai-vol">
+                        <span class="scitex-ai-vol-bar" hidden></span>
+                        <span class="scitex-ai-vol-bar" hidden></span>
+                        <span class="scitex-ai-vol-bar" hidden></span>
+                        <span class="scitex-ai-vol-bar" hidden></span>
+                        <span class="scitex-ai-vol-bar" hidden></span>
+                    </div>
+                    <button id="scitex-ai-mic" class="scitex-ai-mic" title="Voice input">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                    <button id="scitex-ai-send" class="scitex-ai-send" title="Send (Enter)">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}

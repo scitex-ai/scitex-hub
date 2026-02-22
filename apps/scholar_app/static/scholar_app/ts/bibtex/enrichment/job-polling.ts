@@ -78,9 +78,7 @@ export class JobPollingManager {
     }
 
     try {
-      const response = await fetch(
-        `/scholar/api/bibtex/job/${jobId}/status/`,
-      );
+      const response = await fetch(`/scholar/api/bibtex/job/${jobId}/status/`);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
       const data: JobStatusResponse = await response.json();
@@ -104,10 +102,7 @@ export class JobPollingManager {
     } catch (error) {
       console.error("Polling error:", error);
       // Retry with longer delay on error
-      setTimeout(
-        () => this.pollJobStatus(jobId, attempts + 1),
-        5000,
-      );
+      setTimeout(() => this.pollJobStatus(jobId, attempts + 1), 5000);
     }
   }
 
@@ -192,7 +187,9 @@ export class JobPollingManager {
     try {
       const tree = (window as any).scholarWorkspaceTree;
       if (tree && typeof tree.refreshAndExpandPath === "function") {
-        console.log("[BibTeX] Refreshing workspace tree and expanding bib_files...");
+        console.log(
+          "[BibTeX] Refreshing workspace tree and expanding bib_files...",
+        );
         await tree.refreshAndExpandPath("scitex/scholar/bib_files");
       } else {
         console.warn("[BibTeX] Workspace tree not available for refresh");
@@ -220,7 +217,6 @@ export class JobPollingManager {
     }
 
     // Enable other buttons
-    setButtonState("saveToProjectBtn", true);
     setButtonState("viewChangesBtn", true);
     setButtonState("showDiffBtn", true);
     setButtonState("openUrlsBtn", true);

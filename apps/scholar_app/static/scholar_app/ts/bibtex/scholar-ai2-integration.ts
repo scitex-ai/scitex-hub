@@ -22,7 +22,7 @@ declare global {
 // Make functions globally available for the modal
 window.closeAI2PromptModal = closeAI2PromptModal;
 
-document.addEventListener("DOMContentLoaded", () => {
+function initScholarAI2(): void {
   const projectId = window.SCHOLAR_CONFIG?.projectId;
   if (!projectId) {
     console.error("[Scholar AI2] No project ID available");
@@ -30,7 +30,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Initialize button click handler
-  const scholarAI2Btn = document.getElementById("generate-ai2-prompt-scholar-btn");
+  const scholarAI2Btn = document.getElementById(
+    "generate-ai2-prompt-scholar-btn",
+  );
   if (scholarAI2Btn) {
     scholarAI2Btn.addEventListener("click", () => {
       console.log("[Scholar AI2] Opening AI2 prompt modal");
@@ -49,7 +51,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const regenerateButton = document.getElementById("regenerateAI2PromptBtn");
   if (regenerateButton) {
     regenerateButton.addEventListener("click", () => {
-      const searchTypeInputs = document.getElementsByName("ai2SearchType") as NodeListOf<HTMLInputElement>;
+      const searchTypeInputs = document.getElementsByName(
+        "ai2SearchType",
+      ) as NodeListOf<HTMLInputElement>;
       let searchType = "related";
       for (const input of searchTypeInputs) {
         if (input.checked) {
@@ -62,7 +66,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Handle search type radio button changes
-  const searchTypeInputs = document.getElementsByName("ai2SearchType") as NodeListOf<HTMLInputElement>;
+  const searchTypeInputs = document.getElementsByName(
+    "ai2SearchType",
+  ) as NodeListOf<HTMLInputElement>;
   for (const input of searchTypeInputs) {
     input.addEventListener("change", () => {
       generateAI2Prompt(projectId, input.value);
@@ -70,4 +76,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   console.log("[Scholar AI2] AI2 prompt integration initialized");
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", function () {
+    initScholarAI2();
+  });
+} else {
+  initScholarAI2();
+}

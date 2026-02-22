@@ -2,9 +2,7 @@
 
 <!-- Literature Search - Full Width Layout (Controls in Right Panel) -->
 <div class="search-container-full-width">
-    <form id="literatureSearchForm"
-          method="get"
-          action="{% url 'scholar_app:scholar_search' %}">
+    <form id="literatureSearchForm" onsubmit="event.preventDefault();">
         <!-- Search Input (Full Width) -->
         <div class="input-group input-group-lg mb-4">
             <input type="text"
@@ -105,14 +103,6 @@
                                 title="Download selected papers (BibTeX, JSON, or Text)"
                                 disabled>
                             <i class="fas fa-download"></i> Download <i class="fas fa-caret-down" style="font-size: 0.6rem; margin-left: 0.2rem;"></i>
-                        </button>
-                        <!-- Save to Project -->
-                        <button type="button"
-                                class="toolbar-btn"
-                                id="saveSelectedBtn"
-                                title="Save selected to project"
-                                disabled>
-                            <i class="fas fa-save"></i> Save to Project
                         </button>
                         <!-- Open URLs -->
                         <button type="button"

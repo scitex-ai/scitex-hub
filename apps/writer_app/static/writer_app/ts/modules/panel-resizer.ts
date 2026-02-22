@@ -228,8 +228,15 @@ export class PanelResizer {
 
       const rightPercent = 100 - leftPercent;
 
+      // Suppress transitions during restore to prevent load-time animation flash
+      document.body.classList.add("no-transition");
       this.leftPanel.style.flex = `0 0 ${leftPercent}%`;
       this.rightPanel.style.flex = `0 0 ${rightPercent}%`;
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          document.body.classList.remove("no-transition");
+        });
+      });
 
       console.log("[PanelResizer] Restored panel width:", leftPercent + "%");
     } else {
@@ -250,8 +257,15 @@ export class PanelResizer {
     const defaultLeftPercent = 50; // Balanced 50:50 split
     const defaultRightPercent = 50;
 
+    // Suppress transitions to avoid animation when resetting on init
+    document.body.classList.add("no-transition");
     this.leftPanel.style.flex = `0 0 ${defaultLeftPercent}%`;
     this.rightPanel.style.flex = `0 0 ${defaultRightPercent}%`;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        document.body.classList.remove("no-transition");
+      });
+    });
     statePersistence.savePanelWidth(defaultLeftPercent);
 
     console.log(

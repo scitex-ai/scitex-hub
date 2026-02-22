@@ -1,0 +1,78 @@
+{% load static %}
+
+<!-- Example module CSS -->
+<link rel="stylesheet" href="{% static 'example_app/css/example.css' %}" />
+<!-- Project config for shared tree auto-init -->
+{% if current_project %}
+    <div id="workspace-project-config"
+         style="display: none"
+         data-username="{{ current_project.owner.username }}"
+         data-slug="{{ current_project.slug }}"
+         data-mode="example"></div>
+{% endif %}
+<div class="example-workspace">
+    <div class="example-content">
+        <div class="example-header">
+            <h2>
+                <i class="fas fa-puzzle-piece"></i> {{ module_name }} Module
+            </h2>
+            <p class="example-description">{{ module_description }}</p>
+        </div>
+        <div class="example-card">
+            <h3>How to Create a New Module</h3>
+            <ol class="example-steps">
+                <li>
+                    <strong>Create the app:</strong>
+                    <code>apps/your_app/</code> with <code>__init__.py</code>,
+                    <code>apps.py</code>, <code>views.py</code>, <code>urls.py</code>
+                </li>
+                <li>
+                    <strong>Add templates:</strong>
+                    <code>templates/your_app/index.html</code> (extends global_base.html)
+                    and <code>index_partial.html</code> (standalone partial for AJAX)
+                </li>
+                <li>
+                    <strong>Create a context builder:</strong>
+                    <code>build_your_context(request, current_project=None)</code>
+                </li>
+                <li>
+                    <strong>Register in registry.py:</strong>
+                    Add a <code>ModuleConfig(...)</code> entry to <code>_BUILTIN_MODULES</code>
+                </li>
+                <li>
+                    <strong>Add URL pattern:</strong>
+                    <code>path("your/", include(("apps.your_app.urls", "your_app")))</code>
+                    in <code>config/urls.py</code>
+                </li>
+                <li>
+                    <strong>Add inline tests:</strong>
+                    Use <code>ModuleTestMixin</code> in <code>tests.py</code>
+                </li>
+            </ol>
+        </div>
+        <div class="example-card">
+            <h3>Module Features (from Registry)</h3>
+            <ul class="example-features">
+                {% for feature in features %}
+                    <li>
+                        <i class="fas fa-check"></i> {{ feature }}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="example-card">
+            <h3>File Structure</h3>
+            <pre class="example-tree">apps/your_app/
+├── __init__.py
+├── apps.py              # AppConfig
+├── views.py             # index_view + build_context
+├── urls.py              # URL patterns
+├── tests.py             # Inline tests with ModuleTestMixin
+├── templates/your_app/
+│   ├── index.html           # Full page (extends global_base)
+│   └── index_partial.html   # AJAX partial (standalone)
+└── static/your_app/
+    └── css/your.css         # Module-specific styles</pre>
+        </div>
+    </div>
+</div>

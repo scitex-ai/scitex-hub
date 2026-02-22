@@ -1,0 +1,67 @@
+/* Scholar Library - Table View Styles */
+
+.library-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.library-table-th {
+  position: sticky;
+  top: 0;
+  background-color: var(--workspace-bg-secondary);
+  padding: 5px 8px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  border-bottom: 2px solid var(--workspace-border-default);
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.library-table-th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.library-table-th.sortable:hover {
+  background-color: var(--workspace-bg-tertiary);
+}
+
+.library-table-row {
+  cursor: pointer;
+  transition: background-color 0.1s;
+  border-bottom: 1px solid var(--workspace-border-default);
+}
+
+.library-table-row:hover {
+  background-color: var(--workspace-bg-secondary);
+}
+
+.library-table-row.selected {
+  background-color: var(--workspace-bg-secondary);
+  box-shadow: inset 3px 0 0 var(--workspace-icon-primary);
+}
+
+.library-table-td {
+  padding: 4px 8px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 0;
+}
+
+.library-table-td.library-table-title {
+  font-weight: 500;
+  max-width: 300px;
+}
+
+.library-rating-compact {
+  color: var(--workspace-icon-primary);
+  font-size: 0.75rem;
+  letter-spacing: -1px;
+}

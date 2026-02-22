@@ -1,7 +1,7 @@
 """figrecipe editor API views for Django.
 
 Mirrors figrecipe's Flask route handlers, calling the same Python
-functions directly. Handlers are in figrecipe_handlers.py.
+functions directly. Handlers are in figrecipe_handlers/.
 """
 
 import logging
@@ -14,7 +14,7 @@ from ...services.figrecipe_editor import (
     get_or_create_editor,
     make_session_key,
 )
-from .figrecipe_handlers import HANDLERS
+from .figrecipe_handlers import HANDLERS, handle_download_fig, handle_single_call
 
 logger = logging.getLogger(__name__)
 
@@ -66,11 +66,28 @@ def figrecipe_api(request, endpoint):
         return JsonResponse({"error": err}, status=400)
 
     handler = HANDLERS.get(endpoint)
-    if not handler:
-        return JsonResponse({"error": f"Unknown endpoint: {endpoint}"}, status=404)
+    if handler:
+        try:
+            return handler(request, editor)
+        except Exception as e:
+            logger.exception("[Vis] figrecipe API error on /%s", endpoint)
+            return JsonResponse({"error": str(e)}, status=500)
 
-    try:
-        return handler(request, editor)
-    except Exception as e:
-        logger.exception("[Vis] figrecipe API error on /%s", endpoint)
-        return JsonResponse({"error": str(e)}, status=500)
+    # Parameterized endpoints: call/<call_id> and download/<fmt>
+    if endpoint.startswith("call/"):
+        call_id = endpoint[5:]
+        try:
+            return handle_single_call(request, editor, call_id)
+        except Exception as e:
+            logger.exception("[Vis] figrecipe API error on /call/%s", call_id)
+            return JsonResponse({"error": str(e)}, status=500)
+
+    if endpoint.startswith("download/"):
+        fmt = endpoint[9:]
+        try:
+            return handle_download_fig(request, editor, fmt)
+        except Exception as e:
+            logger.exception("[Vis] figrecipe API error on /download/%s", fmt)
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": f"Unknown endpoint: {endpoint}"}, status=404)

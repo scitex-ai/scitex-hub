@@ -220,8 +220,8 @@ async function loadFigureFromDiskIfExists(
     "Figure1";
 
   // Construct figz path based on project structure
-  // Path: {project_root}/scitex/vis/figures/{figureName}.figz (zipped format)
-  const figzPath = `scitex/vis/figures/${figureName}.figz`;
+  // Path: {project_root}/scitex/vis/figures/{figureName}.fig.zip (zipped format)
+  const figzPath = `scitex/vis/figures/${figureName}.fig.zip`;
 
   console.log(`[VisEditor] Checking for figz bundle: ${figzPath}`);
 

@@ -12,7 +12,8 @@ export function findTabByFigurePath(
   tabs: CanvasTab[],
   figurePath: string,
 ): CanvasTab | undefined {
-  const normalizePath = (p: string) => p.replace(/\.figz$/, "").toLowerCase();
+  const normalizePath = (p: string) =>
+    p.replace(/\.fig\.zip$/, "").toLowerCase();
   const normalizedInput = normalizePath(figurePath);
 
   return tabs.find((tab) => {
@@ -33,7 +34,7 @@ export function findTabByFigurePath(
 export function extractFigureNameFromPath(figurePath: string): string {
   const parts = figurePath.split("/");
   let filename = parts[parts.length - 1];
-  return filename.replace(/\.figz$/, "");
+  return filename.replace(/\.fig\.zip$/, "");
 }
 
 /**

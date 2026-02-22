@@ -1,17 +1,13 @@
 """
 Citation Graph Service Layer
 
-Provides business logic for citation network analysis using the
-scitex.scholar.citation_graph module.
-
-In dev environment (no local database), automatically proxies to NAS.
+Thin Django wrapper around scitex.scholar.citation_graph.
+Backend detection (DB vs HTTP) handled by crossref_local.Config.
 """
 
 from .service import CitationGraphService, get_citation_graph_service
-from .proxy import CitationGraphProxyService
 
 __all__ = [
     "CitationGraphService",
-    "CitationGraphProxyService",
-    "get_citation_graph_service"
+    "get_citation_graph_service",
 ]

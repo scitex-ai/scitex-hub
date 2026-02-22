@@ -1,0 +1,44 @@
+{% load static tree_preseed %}
+
+{% if user.is_authenticated %}
+    <div class="ws-worktree-pane" id="ws-worktree-pane">
+        <div class="workspace-sidebar" id="ws-worktree-sidebar">
+            <div id="ws-worktree-resizer"
+                 class="panel-resizer"
+                 data-panel-resizer
+                 data-target="#ws-worktree-sidebar"
+                 data-direction="left"
+                 data-min-width="40"
+                 data-default-width="240"
+                 data-storage-key="ws-worktree-width"
+                 data-collapse-key="ws-worktree-collapsed"
+                 data-toggle-btn="ws-worktree-toggle"
+                 style="position:absolute;
+                        right:0;
+                        top:0;
+                        bottom:0;
+                        z-index:1"></div>
+            <div class="sidebar-header">
+                <button class="panel-toggle-btn" id="ws-worktree-toggle" title="Toggle file tree">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <span class="sidebar-title">FILES</span>
+                <span class="sidebar-title-full"><i class="fas fa-folder-open"></i> Files</span>
+            </div>
+            <div class="sidebar-content">
+                {% if current_project %}
+                    {% tree_preseed_script current_project %}
+                    <div id="ws-worktree-tree"
+                         data-workspace-tree
+                         data-project-slug="{{ current_project.slug }}"
+                         data-username="{{ current_project.owner.username }}"></div>
+                {% else %}
+                    <div class="ws-worktree-empty">
+                        <i class="fas fa-folder"></i>
+                        <span>No project selected</span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endif %}

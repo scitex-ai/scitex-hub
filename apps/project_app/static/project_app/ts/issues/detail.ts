@@ -18,8 +18,6 @@ console.log(
   }
 
   async function closeIssue(): Promise<void> {
-    if (!confirm("Are you sure you want to close this issue?")) return;
-
     const closeUrl = document.body.dataset.issueCloseUrl;
     if (!closeUrl) {
       console.error("Issue close URL not found");

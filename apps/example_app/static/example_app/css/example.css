@@ -1,0 +1,86 @@
+/* Example module styles — reference for new module CSS */
+
+.example-workspace {
+  padding: 24px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.example-content {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.example-header {
+  margin-bottom: 24px;
+}
+
+.example-header h2 {
+  color: var(--workspace-text-primary, #e6edf3);
+  margin-bottom: 8px;
+}
+
+.example-description {
+  color: var(--workspace-text-secondary, #8b949e);
+  font-size: 15px;
+}
+
+.example-card {
+  background: var(--workspace-bg-secondary, #161b22);
+  border: 1px solid var(--workspace-border, #30363d);
+  border-radius: 6px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.example-card h3 {
+  color: var(--workspace-text-primary, #e6edf3);
+  font-size: 16px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--workspace-border, #30363d);
+  padding-bottom: 8px;
+}
+
+.example-steps {
+  color: var(--workspace-text-secondary, #8b949e);
+  line-height: 1.8;
+  padding-left: 20px;
+}
+
+.example-steps li {
+  margin-bottom: 8px;
+}
+
+.example-steps code {
+  background: var(--workspace-bg-tertiary, #0d1117);
+  color: var(--accent-blue, #388bfd);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 13px;
+}
+
+.example-features {
+  list-style: none;
+  padding: 0;
+  color: var(--workspace-text-secondary, #8b949e);
+}
+
+.example-features li {
+  padding: 4px 0;
+}
+
+.example-features li i {
+  color: var(--accent-green, #3fb950);
+  margin-right: 8px;
+  width: 16px;
+}
+
+.example-tree {
+  background: var(--workspace-bg-tertiary, #0d1117);
+  color: var(--workspace-text-secondary, #8b949e);
+  padding: 16px;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-x: auto;
+}

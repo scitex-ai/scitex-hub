@@ -1,0 +1,201 @@
+{% load static vite tree_preseed %}
+
+<!-- Writer CSS — moved to <head> by unified workspace JS -->
+<link rel="stylesheet"
+      href="{% static 'shared/css/components/workspace-files-tree.css' %}?v=20251202d" />
+<link rel="stylesheet"
+      href="{% static 'shared/css/components/workspace-sidebar.css' %}" />
+<link rel="stylesheet" href="{% static 'shared/css/components/panel-resizer.css' %}" />
+<link rel="stylesheet"
+      href="{% static 'shared/css/components/file-tabs.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'writer_app/css/editor/tex-view-main.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'writer_app/css/editor/index-editor-panels.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'writer_app/css/editor/pdf-view-main.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'writer_app/css/components/pdfjs-viewer.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'shared/css/components/alerts.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'shared/css/components/terminal-log.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'writer_app/css/shared/index-ui/00-index-ui.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'writer_app/css/shared/index-ui/01-panel-header.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'writer_app/css/shared/index-ui/02-latex-panel.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'writer_app/css/shared/index-ui/03-preview-panel.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'writer_app/css/shared/index-ui/04-toolbar.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'writer_app/css/shared/index-ui/05-compilation-output.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'writer_app/css/shared/index-ui/06-split-view.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'writer_app/css/shared/index-ui/07-panel-resizer.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'writer_app/css/shared/index-ui/08-save-status.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'writer_app/css/shared/index-ui/09-button-styling.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'writer_app/css/shared/index-ui/10-dark-mode.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'writer_app/css/shared/index-ui/11-responsive.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'writer_app/css/shared/index-ui/12-initialization-prompt.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'writer_app/css/shared/index-ui/13-accessibility.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'writer_app/css/shared/index-ui/15-details-panel.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'writer_app/css/components/status-lamp.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'writer_app/css/components/shortcuts-modal.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'writer_app/css/components/sidebar-controls.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'writer_app/css/editor/main-editor-inline.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'writer_app/css/editor/file-tabs.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'writer_app/css/editor/citations-panel/index.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'writer_app/css/editor/figures-panel/index.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="{% static 'writer_app/css/editor/tables-panel.css' %}?v={{ build_id }}" />
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/editor/editor.main.min.css" />
+<style>
+    .writer-workspace {
+        flex: 1;
+        display: flex;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .writer-container {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+    }
+</style>
+{% if needs_project_creation %}
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="card shadow-sm">
+                    <div class="card-body text-center p-5">
+                        <i class="fas fa-folder-open fa-3x text-primary mb-3"></i>
+                        <h3 class="mb-3">No Project Found</h3>
+                        <p class="text-muted mb-4">SciTeX Writer works with projects. Please create or select a project to start writing.</p>
+                        <a href="{% url 'core:index' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-plus me-2"></i>Create a Project
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <!-- Writer workspace — file tree provided by shared worktree pane in three-column layout -->
+    <div class="writer-workspace">
+        <!-- Main content: editor + preview -->
+        <div class="writer-container">{% include "writer_app/index_partials/main_editor.html" %}</div>
+        <!-- Details resizer -->
+        <div class="panel-resizer"
+             id="writer-details-resizer"
+             data-panel-resizer
+             data-storage-prefix="scitex-writer-"
+             data-target=".writer-details"
+             data-direction="right"
+             data-min-width="40"
+             data-default-width="280"
+             data-storage-key="details-width"
+             data-collapse-key="writer-details-collapsed"
+             data-toggle-btn="details-toggle"></div>
+        <!-- Details panel (rightmost) -->
+        {% include "writer_app/index_partials/details_panel.html" %}
+    </div>
+    {% include "writer_app/index_partials/word_count.html" %}
+    {% include "writer_app/compilation_view_partials/compilation_modal.html" %}
+    {% include "writer_app/compilation_view_partials/ai2_modal.html" %}
+    {% include "writer_app/index_partials/compilation_settings_modal.html" %}
+    {% include "writer_app/index_partials/git_history_modal.html" %}
+    {% include "writer_app/index_partials/table_preview_modal.html" %}
+    <!-- Writer global config for TypeScript -->
+    <script>
+    window.WRITER_CONFIG = {
+        projectId: {% if project %}{{ project.id }}{% else %}0{% endif %},
+        projectName: {% if project %}'{{ project.name|escapejs }}'{% else %}'Demo Project'{% endif %},
+        projectSlug: {% if project %}'{{ project.slug|escapejs }}'{% else %}'demo-project'{% endif %},
+        projectOwner: {% if project %}'{{ project.owner.username|escapejs }}'{% else %}null{% endif %},
+        manuscriptId: {% if manuscript %}{{ manuscript.id }}{% else %}null{% endif %},
+        manuscriptTitle: {% if manuscript %}'{{ manuscript.title|escapejs }}'{% else %}'Untitled'{% endif %},
+        userId: {% if user.is_authenticated %}{{ user.id }}{% else %}null{% endif %},
+        username: {% if user.is_authenticated %}'{{ user.username|escapejs }}'{% else %}null{% endif %},
+        visitorUsername: null,
+        isDemo: false,
+        isVisitor: false,
+        isAuthenticated: {% if user.is_authenticated %}true{% else %}false{% endif %},
+        writerInitialized: {% if writer_initialized %}true{% else %}false{% endif %},
+        documentType: '{{ document_type|default:"manuscript" }}',
+        wordCounts: {
+            abstract: {% if manuscript %}{{ manuscript.word_count_abstract|default:0 }}{% else %}0{% endif %},
+            introduction: {% if manuscript %}{{ manuscript.word_count_introduction|default:0 }}{% else %}0{% endif %},
+            methods: {% if manuscript %}{{ manuscript.word_count_methods|default:0 }}{% else %}0{% endif %},
+            results: {% if manuscript %}{{ manuscript.word_count_results|default:0 }}{% else %}0{% endif %},
+            discussion: {% if manuscript %}{{ manuscript.word_count_discussion|default:0 }}{% else %}0{% endif %}
+        },
+        sections: {
+            abstract: `{{ sections.abstract|default:""|escapejs }}`,
+            highlights: `{{ sections.highlights|default:""|escapejs }}`,
+            introduction: `{{ sections.introduction|default:""|escapejs }}`,
+            methods: `{{ sections.methods|default:""|escapejs }}`,
+            results: `{{ sections.results|default:""|escapejs }}`,
+            discussion: `{{ sections.discussion|default:""|escapejs }}`,
+            conclusion: `{{ sections.conclusion|default:""|escapejs }}`
+        },
+        csrfToken: '{{ csrf_token }}'
+    };
+    </script>
+    <!-- Import map for module resolution -->
+    <script type="importmap">
+    {
+        "imports": {
+            "@/types": "{% static 'shared/js/types/index.js' %}",
+            "@/types/": "{% static 'shared/js/types/' %}",
+            "@/utils/csrf": "{% static 'shared/js/utils/csrf.js' %}",
+            "@/utils/storage": "{% static 'shared/js/utils/storage.js' %}",
+            "@/utils/api": "{% static 'shared/js/utils/api.js' %}",
+            "@/utils/": "{% static 'shared/js/utils/' %}",
+            "@/utils": "{% static 'shared/js/utils/index.js' %}",
+            "@/writer/utils": "{% static 'writer_app/js/utils/index.js' %}",
+            "@/writer/utils/": "{% static 'writer_app/js/utils/' %}",
+            "@/writer/": "{% static 'writer_app/js/' %}",
+            "@/": "{% static 'shared/js/' %}"
+        }
+    }
+    </script>
+    <!-- Fallback panel switcher -->
+    {% if project %}
+        <script>
+    if (typeof window.switchRightPanel !== 'function') {
+        window.switchRightPanel = function(view) {
+            const views = ['pdf', 'citations', 'figures', 'tables', 'history', 'collaboration'];
+            views.forEach(v => {
+                const el = document.getElementById(v + '-view');
+                if (el) el.hidden = true;
+            });
+            const targetView = document.getElementById(view + '-view');
+            if (targetView) targetView.hidden = false;
+        };
+    }
+        </script>
+    {% endif %}
+    {% vite_hmr_client %}
+    {% tree_preseed_script project %}
+    {% vite_script 'writer_app/index' %}
+{% endif %}

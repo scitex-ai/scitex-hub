@@ -183,11 +183,6 @@
   padding: 4px;
 }
 
-/* Hide toggle button when expanded - users collapse via resizer drag or dblclick */
-.collapsible-panel:not(.collapsed) .panel-toggle-btn {
-  display: none;
-}
-
 /* Opt-in: hide title when expanded (content is self-explanatory) */
 .collapsible-panel:not(.collapsed)[data-hide-title-expanded] .panel-title {
   display: none;

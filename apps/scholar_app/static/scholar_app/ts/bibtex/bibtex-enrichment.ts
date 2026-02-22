@@ -102,8 +102,7 @@ class BibtexEnrichmentOrchestrator {
     }
 
     const uploadUrl =
-      window.SCHOLAR_CONFIG?.urls?.bibtexUpload ||
-      "/scholar/bibtex/upload/";
+      window.SCHOLAR_CONFIG?.urls?.bibtexUpload || "/scholar/bibtex/upload/";
 
     try {
       const response = await fetch(uploadUrl, {
@@ -160,31 +159,21 @@ class BibtexEnrichmentOrchestrator {
     const data = await response.json();
 
     if (data.requires_confirmation && data.existing_job) {
-      const msg = `You already have a job in progress: "${data.existing_job.filename}" (${data.existing_job.progress}% complete).\n\nCancel it and start a new job?`;
+      // Force cancel existing and start new job
+      formData.append("force", "true");
+      const retryResponse = await fetch(uploadUrl, {
+        method: "POST",
+        body: formData,
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+          "X-CSRFToken": csrfToken,
+        },
+      });
+      const retryData = await retryResponse.json();
 
-      if (confirm(msg)) {
-        // Resubmit with force flag
-        formData.append("force", "true");
-        const retryResponse = await fetch(uploadUrl, {
-          method: "POST",
-          body: formData,
-          headers: {
-            "X-Requested-With": "XMLHttpRequest",
-            "X-CSRFToken": csrfToken,
-          },
-        });
-        const retryData = await retryResponse.json();
-
-        if (retryData.success && retryData.job_id) {
-          this.jobPollingManager.pollJobStatus(retryData.job_id);
-          window.currentBibtexJobId = retryData.job_id;
-        }
-      } else {
-        // User declined, start monitoring existing job
-        if (data.existing_job.id) {
-          this.jobPollingManager.pollJobStatus(data.existing_job.id);
-          window.currentBibtexJobId = data.existing_job.id;
-        }
+      if (retryData.success && retryData.job_id) {
+        this.jobPollingManager.pollJobStatus(retryData.job_id);
+        window.currentBibtexJobId = retryData.job_id;
       }
     } else {
       alert(
@@ -214,6 +203,37 @@ class BibtexEnrichmentOrchestrator {
 
     // Enable action buttons for completed job
     this.enableActionButtonsForJob(jobId);
+
+    // Auto-save enriched BibTeX to project
+    this.autoSaveToProject(jobId);
+  }
+
+  /**
+   * Auto-save enriched BibTeX to project (fire-and-forget)
+   */
+  private autoSaveToProject(jobId: string): void {
+    const projectInput = document.getElementById(
+      "projectSelector",
+    ) as HTMLInputElement;
+    const projectId =
+      projectInput?.value ||
+      sessionStorage.getItem("scholar_selected_project_id");
+    if (!projectId) return;
+
+    const csrfToken =
+      document.querySelector<HTMLInputElement>('[name="csrfmiddlewaretoken"]')
+        ?.value ||
+      (document.cookie.match(/csrftoken=([^;]+)/)?.[1] ?? "");
+    if (!csrfToken) return;
+
+    fetch(`/scholar/api/bibtex/job/${jobId}/save-to-project/`, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": csrfToken,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: `project_id=${encodeURIComponent(projectId)}`,
+    }).catch(() => {}); // Silent — auto-save is best-effort
   }
 
   /**
@@ -221,14 +241,16 @@ class BibtexEnrichmentOrchestrator {
    */
   private enableActionButtonsForJob(jobId: string): void {
     // Show that job is ready
-    const runningIndicator = document.getElementById("enrichmentRunningIndicator");
+    const runningIndicator = document.getElementById(
+      "enrichmentRunningIndicator",
+    );
     if (runningIndicator) {
       runningIndicator.style.display = "none";
     }
 
     // Enable buttons
-    const buttons = ["downloadBtn", "saveToProjectBtn", "viewChangesBtn", "openUrlsMainBtn"];
-    buttons.forEach(id => {
+    const buttons = ["downloadBtn", "viewChangesBtn", "openUrlsMainBtn"];
+    buttons.forEach((id) => {
       const btn = document.getElementById(id) as HTMLButtonElement | null;
       if (btn) {
         btn.disabled = false;
@@ -339,39 +361,16 @@ function initBibtexEnrichment(config: BibtexEnrichmentConfig = {}): void {
 (window as any).closeBibtexDiff = closeBibtexDiff;
 (window as any).toggleProcessingLogVisibility = toggleProcessingLogVisibility;
 
-(window as any).handleSaveToProject = async function (): Promise<void> {
-  const saveBtn = document.getElementById(
-    "saveToProjectBtn",
-  ) as HTMLButtonElement;
-  if (!saveBtn) return;
-
-  const originalHTML = saveBtn.innerHTML;
-  saveBtn.disabled = true;
-  saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-  saveBtn.style.opacity = "0.7";
-
-  try {
-    const jobId = window.currentBibtexJobId;
-    if (!jobId) {
-      throw new Error("No job ID found");
-    }
-
-    await saveJobToProject(jobId);
-  } catch (error) {
-    console.error("[Handle Save] Error:", error);
-    showAlert("Failed to save to project. Please try again.", "error");
-  } finally {
-    saveBtn.disabled = false;
-    saveBtn.innerHTML = originalHTML;
-    saveBtn.style.opacity = "1";
-  }
-};
-
 (window as any).saveJobToProject = saveJobToProject;
 (window as any).deleteJob = deleteJob;
 
 // Initialize on DOM ready
-document.addEventListener("DOMContentLoaded", function () {
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", function () {
+    initBibtexEnrichment();
+    loadRecentJobs();
+  });
+} else {
   initBibtexEnrichment();
   loadRecentJobs();
-});
+}

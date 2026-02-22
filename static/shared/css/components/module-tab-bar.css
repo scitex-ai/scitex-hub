@@ -1,0 +1,101 @@
+/* ==========================================================================
+   Module Tab Bar — shared workspace navigation bar (all module pages)
+   ========================================================================== */
+
+.module-tab-bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 8px;
+  background: var(--workspace-bg-secondary, #161b22);
+  border-bottom: 1px solid var(--workspace-border-default, #30363d);
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+.module-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--workspace-text-secondary, #8b949e);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition:
+    background 0.15s,
+    color 0.15s;
+  white-space: nowrap;
+}
+
+.module-tab-btn:hover {
+  background: var(--workspace-bg-hover, rgba(177, 186, 196, 0.08));
+  color: var(--workspace-text-primary, #e6edf3);
+  text-decoration: none;
+}
+
+.module-tab-btn.active {
+  background: var(--workspace-bg-active, rgba(177, 186, 196, 0.12));
+  color: var(--workspace-text-primary, #e6edf3);
+  border-bottom: 2px solid var(--accent-blue, #388bfd);
+}
+
+/* ==========================================================================
+   Module Tab Context Menu — right-click actions
+   ========================================================================== */
+
+.module-ctx-menu {
+  background: var(--color-canvas-overlay, #2d333b);
+  border: 1px solid var(--workspace-border-default, #30363d);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  padding: 4px 0;
+  min-width: 180px;
+  font-size: 12px;
+}
+
+.module-ctx-item {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  cursor: pointer;
+  color: var(--color-fg-default, #e6edf3);
+  transition: background-color 0.1s ease;
+}
+
+.module-ctx-item:hover {
+  background: var(--color-accent-subtle, rgba(47, 129, 247, 0.15));
+}
+
+.module-ctx-icon {
+  width: 20px;
+  text-align: center;
+  margin-right: 8px;
+  color: var(--color-fg-muted, #768390);
+}
+
+.module-ctx-item:hover .module-ctx-icon {
+  color: var(--color-accent-fg, #58a6ff);
+}
+
+.module-ctx-label {
+  flex: 1;
+}
+
+.module-ctx-separator {
+  height: 1px;
+  background: var(--workspace-border-default, #30363d);
+  margin: 4px 8px;
+}
+
+.module-ctx-uninstall .module-ctx-icon {
+  color: var(--color-danger-fg, #f85149);
+}
+
+.module-ctx-uninstall:hover .module-ctx-icon {
+  color: var(--color-danger-fg, #f85149);
+}

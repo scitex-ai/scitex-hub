@@ -72,8 +72,32 @@ export class FileTreeSetup {
       pdfPreviewManager: this.pdfPreviewManager,
     });
 
+    // Register enhanced handler as the global file select handler BEFORE tree init.
+    // This ensures that when the shared worktree pane initializes (or is already initialized),
+    // it uses the writer's enhanced handler rather than the default open-in-new-tab behavior.
+    window.scitexOnFileSelect = (path: string, item: any): void => {
+      this.handleFileSelectForWriter(path, item, onFileSelectHandler);
+    };
+
     // Initialize file tree (including demo mode with projectId 0)
     if (this.config.projectId !== null && this.config.projectId !== undefined) {
+      // If the shared worktree pane already initialized window.workspaceFilesTree, attach to it.
+      if ((window as any).workspaceFilesTree) {
+        console.log(
+          "[FileTreeSetup] Shared workspaceFilesTree found, attaching writer handler",
+        );
+        this.attachToSharedTree(
+          (window as any).workspaceFilesTree,
+          onFileSelectHandler,
+        ).catch((error) => {
+          console.error(
+            "[FileTreeSetup] Failed to attach to shared tree:",
+            error,
+          );
+        });
+        return;
+      }
+
       const fileTreeContainer = document.getElementById("writer-file-tree");
       if (fileTreeContainer) {
         this.setupWithFileTree(fileTreeContainer, onFileSelectHandler).catch(
@@ -99,6 +123,97 @@ export class FileTreeSetup {
   }
 
   /**
+   * Handle file selection with writer-specific logic (tex sync, section filter, panel switch).
+   * Extracted so it can be shared between shared-tree and own-tree paths.
+   */
+  private handleFileSelectForWriter(
+    path: string,
+    item: any,
+    onFileSelectHandler: (sectionId: string, sectionName: string) => void,
+  ): void {
+    const fileName = path.split("/").pop() || "";
+    console.log("[FileTreeSetup] File selected from tree:", path, fileName);
+
+    if (path.endsWith(".tex")) {
+      const treeSync = getWriterTreeSync();
+      if (treeSync) {
+        treeSync.syncDropdownsFromTree(path);
+      } else {
+        syncDropdownsFromPath(path);
+      }
+
+      const writerFilter = (window as any).__writerFilter;
+      if (writerFilter) {
+        const section = writerFilter.extractSectionFromPath(path);
+        if (section) {
+          writerFilter.setSection(section);
+          const currentDoctype = writerFilter.getState().doctype;
+          this.panelSwitcher.autoSwitchForSection(section, currentDoctype);
+        }
+      }
+    }
+
+    onFileSelectHandler(path, fileName);
+  }
+
+  /**
+   * Attach writer-specific logic to an already-initialized shared WorkspaceFilesTree.
+   * Called when three-column layout has already set window.workspaceFilesTree.
+   */
+  private async attachToSharedTree(
+    sharedTree: any,
+    onFileSelectHandler: (sectionId: string, sectionName: string) => void,
+  ): Promise<void> {
+    // Restore saved doctype
+    const savedDoctype = this.statePersistence.getSavedDoctype();
+    const docTypeSelector = document.getElementById(
+      "doctype-selector",
+    ) as HTMLSelectElement;
+    if (docTypeSelector && savedDoctype) {
+      docTypeSelector.value = savedDoctype;
+    }
+
+    const currentDoctype = savedDoctype || "manuscript";
+    const { initializeWriterFilter } =
+      await import("../../modules/writer-file-filter");
+    const writerFilter = initializeWriterFilter(currentDoctype, null);
+    // Store on window so handleFileSelectForWriter can access it
+    (window as any).__writerFilter = writerFilter;
+
+    // Attach handler to shared tree
+    if (typeof sharedTree.setOnFileSelect === "function") {
+      sharedTree.setOnFileSelect((path: string, item: any) => {
+        this.handleFileSelectForWriter(path, item, onFileSelectHandler);
+      });
+    }
+
+    // Setup refresh button if present
+    this.setupRefreshButton(sharedTree);
+
+    // Setup doctype change handler
+    if (docTypeSelector) {
+      const { setupDoctypeChangeWithTree } = await import("./handlers/index");
+      setupDoctypeChangeWithTree(docTypeSelector, sharedTree, writerFilter, {
+        editor: this.editor,
+        sectionsManager: this.sectionsManager,
+        state: this.state,
+        pdfPreviewManager: this.pdfPreviewManager,
+        statePersistence: this.statePersistence,
+      });
+    }
+
+    // Populate section dropdown
+    await populateSectionDropdownDirect(
+      currentDoctype,
+      onFileSelectHandler,
+      this.compilationManager,
+      this.state,
+    );
+
+    console.log("[FileTreeSetup] Attached writer handler to shared tree");
+  }
+
+  /**
    * Setup with file tree container using shared WorkspaceFilesTree component
    */
   private async setupWithFileTree(
@@ -118,6 +233,8 @@ export class FileTreeSetup {
     // Initialize writer filter with current doctype
     const currentDoctype = savedDoctype || "manuscript";
     const writerFilter = initializeWriterFilter(currentDoctype, null);
+    // Store on window so handleFileSelectForWriter can access it
+    (window as any).__writerFilter = writerFilter;
     console.log(
       "[FileTreeSetup] Initialized writer filter with doctype:",
       currentDoctype,

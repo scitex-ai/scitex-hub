@@ -1,0 +1,214 @@
+<style>
+    #mcp-tools .api-table th:first-child,
+    #mcp-tools .api-table td:first-child {
+        width: 240px;
+        min-width: 240px;
+        white-space: nowrap;
+    }
+
+    #mcp-tools details summary {
+        cursor: pointer;
+        font-size: 0.85em;
+        color: var(--accent-primary, #4a9eff);
+        margin-top: 0.3em;
+    }
+
+    #mcp-tools .api-table-sm {
+        margin: 0.5em 0;
+        font-size: 0.85em;
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    #mcp-tools .api-table-sm th,
+    #mcp-tools .api-table-sm td {
+        padding: 0.25em 0.5em;
+        border: 1px solid var(--border-color, #333);
+    }
+
+    #mcp-tools .api-table-sm th {
+        background: var(--bg-tertiary, #1a1a2e);
+        font-weight: 600;
+    }
+
+    #mcp-tools .returns {
+        font-size: 0.85em;
+        margin: 0.4em 0 0.1em;
+    }
+</style>
+<!-- MCP Overview -->
+<section id="mcp-overview" class="api-section">
+    <h2>
+        <i class="fas fa-robot"></i> MCP Server Overview
+    </h2>
+    <p>
+        SciTeX exposes a <strong>Model Context Protocol (MCP)</strong> server at
+        <code>https://scitex.ai/mcp</code>.
+        Connect any MCP-compatible AI client — Claude Desktop, Claude Code, or your own agent —
+        to get direct access to 100+ scientific tools: plotting, statistics, literature management,
+        LaTeX compilation, and more.
+    </p>
+    <div class="api-callout api-callout-info">
+        <i class="fas fa-info-circle"></i>
+        <div>
+            <strong>Requires an API key</strong> with <em>MCP tools</em> or <em>Full Access</em> scope.
+            Generate one at <a href="{% url 'accounts_app:api_keys' %}">Settings → API Keys</a>.
+        </div>
+    </div>
+</section>
+<!-- Connect a Client -->
+<section id="mcp-connect" class="api-section">
+    <h2>
+        <i class="fas fa-plug"></i> Connect a Client
+    </h2>
+    <p>
+        Add the following to your MCP client configuration and replace <code>YOUR_API_KEY</code>:
+    </p>
+    <h4>
+        Claude Desktop / Claude Code (<code>claude_desktop_config.json</code>)
+    </h4>
+    <div class="code-block">
+        <div class="code-header">
+            <span>JSON</span>
+        </div>
+        <pre><code>{
+  "mcpServers": {
+    "scitex": {
+      "type": "streamable-http",
+      "url": "https://scitex.ai/mcp",
+      "headers": { "Authorization": "Bearer YOUR_API_KEY" }
+    }
+  }
+}</code></pre>
+    </div>
+    <h4>Python (fastmcp client)</h4>
+    <div class="code-block">
+        <div class="code-header">
+            <span>Python</span>
+        </div>
+        <pre><code>from fastmcp import Client
+async with Client(
+    "https://scitex.ai/mcp",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+) as client:
+    tools = await client.list_tools()
+    result = await client.call_tool("stats_run_test", {
+        "test_name": "ttest_ind",
+        "data": [[1, 2, 3], [4, 5, 6]],
+    })
+    print(result)</code></pre>
+    </div>
+</section>
+<!-- Authentication -->
+<section id="mcp-auth" class="api-section">
+    <h2>
+        <i class="fas fa-lock"></i> Authentication
+    </h2>
+    <p>
+        All requests to <code>/mcp</code> require a Bearer token in the <code>Authorization</code> header.
+    </p>
+    <table class="api-table">
+        <thead>
+            <tr>
+                <th>Header</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <code>Authorization</code>
+                </td>
+                <td>
+                    <code>Bearer YOUR_API_KEY</code>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <h4>Required Scope</h4>
+    <p>
+        The API key must have the <code>mcp</code> scope or <code>*</code> (Full Access).
+        Keys with only <code>project:read</code> or <code>scholar:read</code> will be rejected
+        with <code>401 Unauthorized</code>.
+    </p>
+    <div class="api-callout api-callout-warning">
+        <i class="fas fa-exclamation-triangle"></i>
+        <div>
+            <strong>Keep your key secret.</strong>
+            API keys are shown only once at creation. If compromised, deactivate or delete it from
+            <a href="{% url 'accounts_app:api_keys' %}">Settings → API Keys</a>.
+        </div>
+    </div>
+</section>
+<!-- Available Tools (generated from mcp_tools context) -->
+<section id="mcp-tools" class="api-section">
+    <h2>
+        <i class="fas fa-tools"></i> Available Tools
+    </h2>
+    <p>
+        {{ mcp_tools|length }} categories. Click tool rows to expand parameters &amp; return types.
+        Call <code>client.list_tools()</code> for the live list.
+    </p>
+    {% for category in mcp_tools %}
+        <h4>
+            <i class="fas {{ category.icon }}"></i>
+            {{ category.category }} — <code>{{ category.prefix }}</code>
+        </h4>
+        <table class="api-table">
+            <thead>
+                <tr>
+                    <th>Tool</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tool in category.tools %}
+                    <tr>
+                        <td>
+                            <code>{{ tool.name }}</code>
+                        </td>
+                        <td>
+                            {{ tool.desc }}
+                            {% if tool.params %}
+                                <details>
+                                    <summary>Parameters &amp; Returns ▸</summary>
+                                    <table class="api-table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Type</th>
+                                                <th>Default</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for p in tool.params %}
+                                                <tr>
+                                                    <td>
+                                                        <code>{{ p.name }}</code>
+                                                    </td>
+                                                    <td>
+                                                        <code>{{ p.type }}</code>
+                                                    </td>
+                                                    <td>
+                                                        {% if p.default == "required" %}
+                                                            <strong>required</strong>
+                                                        {% else %}
+                                                            <code>{{ p.default }}</code>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                    <p class="returns">
+                                        <strong>Returns:</strong> <code>{{ tool.returns }}</code>
+                                    </p>
+                                </details>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endfor %}
+</section>

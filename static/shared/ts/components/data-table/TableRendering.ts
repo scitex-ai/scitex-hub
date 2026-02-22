@@ -150,7 +150,7 @@ export class TableRendering {
       this.containerSelector,
     ) as HTMLElement;
     if (dataContainer && this.virtualScrollEnabled) {
-      const containerHeight = dataContainer.clientHeight || 400;
+      const containerHeight = Math.max(dataContainer.clientHeight || 400, 300);
       const visibleRowCount = Math.ceil(containerHeight / this.ROW_HEIGHT);
       this.visibleRowEnd = Math.min(
         visibleRowCount + this.BUFFER_ROWS,

@@ -108,9 +108,22 @@ class GlobalAIChat {
 
     document.body.classList.add("scitex-ai-present");
 
-    document
-      .getElementById("scitex-ai-toggle")
-      ?.addEventListener("click", () => this.toggle());
+    // In workspace three-col layout, WPR owns the AI panel toggle; skip here to avoid double-toggle
+    if (!this.panel?.closest(".workspace-three-col")) {
+      document
+        .getElementById("scitex-ai-toggle")
+        ?.addEventListener("click", () => this.toggle());
+    }
+
+    // Gear button toggles settings panel
+    const settingsBtn = document.getElementById("scitex-ai-settings-btn");
+    const settingsPanel = document.getElementById("scitex-ai-settings-panel");
+    if (settingsBtn && settingsPanel) {
+      settingsBtn.addEventListener("click", () => {
+        settingsPanel.style.display =
+          settingsPanel.style.display === "none" ? "" : "none";
+      });
+    }
     this.fab?.addEventListener("click", () => this.toggle());
     this.clearBtn?.addEventListener("click", () => this.clearConversation());
     this.sendBtn?.addEventListener("click", () => this.send());
@@ -165,11 +178,16 @@ class GlobalAIChat {
 
     this.restoreConversation();
 
+    // Sync isOpen with WorkspacePanelResizer-restored panel state
+    this.isOpen = !this.panel?.classList.contains("collapsed");
+    if (this.isOpen) {
+      this.panel?.removeAttribute("aria-hidden");
+      document.body.classList.add("scitex-ai-open");
+    }
+
     const savedModel = sessionStorage.getItem(MODEL_KEY);
     if (savedModel) setModelBadge(this.modelBadge, savedModel);
     fetchCurrentModel((m) => setModelBadge(this.modelBadge, m));
-
-    if (sessionStorage.getItem(PANEL_OPEN_KEY) === "1") this.open();
 
     window.scitexAI = {
       setContext: (ctx) => {
@@ -192,6 +210,7 @@ class GlobalAIChat {
     this.panel?.removeAttribute("aria-hidden");
     document.body.classList.add("scitex-ai-open");
     sessionStorage.setItem(PANEL_OPEN_KEY, "1");
+    localStorage.setItem("scitex-ai-panel-collapsed", "false");
     setTimeout(() => this.inputEl?.focus(), 260);
   }
 
@@ -202,6 +221,7 @@ class GlobalAIChat {
     this.panel?.setAttribute("aria-hidden", "true");
     document.body.classList.remove("scitex-ai-open");
     sessionStorage.removeItem(PANEL_OPEN_KEY);
+    localStorage.setItem("scitex-ai-panel-collapsed", "true");
   }
 
   private toggleSpeak(): void {
@@ -478,4 +498,8 @@ class GlobalAIChat {
 }
 
 const globalAI = new GlobalAIChat();
-document.addEventListener("DOMContentLoaded", () => globalAI.init());
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => globalAI.init());
+} else {
+  globalAI.init();
+}

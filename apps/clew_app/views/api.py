@@ -335,8 +335,12 @@ def add_examples(request):
                 status=404,
             )
 
-        # Destination: project workspace (use project from request context if available)
-        workspace_root = Path.home() / "clew-examples"
+        # Destination: use project workspace if available, fallback to home
+        project = getattr(request, "current_project", None)
+        if project and hasattr(project, "get_workspace_path"):
+            workspace_root = Path(project.get_workspace_path()) / "clew-examples"
+        else:
+            workspace_root = Path.home() / "clew-examples"
         workspace_root.mkdir(parents=True, exist_ok=True)
 
         # Copy only .py and .sh scripts (skip _out directories)

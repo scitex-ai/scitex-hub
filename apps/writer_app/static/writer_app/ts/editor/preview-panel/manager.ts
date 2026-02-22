@@ -176,13 +176,9 @@ export class PreviewPanelManager {
   private handleTemplateChange(): void {
     const template = this.templateSelect.value;
     if (template && LATEX_TEMPLATES[template]) {
-      if (confirm("This will replace your current content. Continue?")) {
-        this.editor.setValue(LATEX_TEMPLATES[template]);
-        this.documentTitle.value =
-          template.charAt(0).toUpperCase() + template.slice(1) + " Document";
-      } else {
-        this.templateSelect.value = "";
-      }
+      this.editor.setValue(LATEX_TEMPLATES[template]);
+      this.documentTitle.value =
+        template.charAt(0).toUpperCase() + template.slice(1) + " Document";
     }
   }
 
@@ -193,7 +189,10 @@ export class PreviewPanelManager {
     this.renderer.updateStatus("Saving...", "text-warning");
     setTimeout(() => {
       this.renderer.updateStatus("Saved", "text-success");
-      setTimeout(() => this.renderer.updateStatus("Ready", "text-success"), 2000);
+      setTimeout(
+        () => this.renderer.updateStatus("Ready", "text-success"),
+        2000,
+      );
     }, 500);
   }
 

@@ -7,6 +7,53 @@
         Upload CSV files or pass data inline. No SDK required.
     </p>
 </section>
+<!-- Which API? -->
+<section id="which-api" class="api-section">
+    <h2>Which API Should I Use?</h2>
+    <p>SciTeX offers two complementary access methods — choose based on your use case:</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem">
+        <div class="api-callout api-callout-info" style="flex-direction:column;gap:0.5rem">
+            <div style="display:flex;
+                        align-items:center;
+                        gap:0.5rem;
+                        font-size:1.1em;
+                        font-weight:700">
+                <i class="fas fa-robot"></i> MCP Server
+            </div>
+            <p style="margin:0">
+                <strong>Best for:</strong> Claude Desktop, Claude Code, AI agents
+            </p>
+            <ul style="margin:0.3rem 0 0 1rem;padding:0">
+                <li>100+ tools via Model Context Protocol</li>
+                <li>Natural language → direct tool calls</li>
+                <li>No HTTP wiring needed</li>
+            </ul>
+            <a href="{% url 'public_app:api-docs-section' 'mcp-api' %}"
+               style="margin-top:0.3rem">→ MCP Server docs</a>
+        </div>
+        <div class="api-callout"
+             style="flex-direction:column;
+                    gap:0.5rem;
+                    border-color:var(--border-color,#333)">
+            <div style="display:flex;
+                        align-items:center;
+                        gap:0.5rem;
+                        font-size:1.1em;
+                        font-weight:700">
+                <i class="fas fa-code"></i> REST API
+            </div>
+            <p style="margin:0">
+                <strong>Best for:</strong> Python scripts, curl, web apps
+            </p>
+            <ul style="margin:0.3rem 0 0 1rem;padding:0">
+                <li>Standard HTTP endpoints</li>
+                <li>Scholar, Plot, Stats, Writer, Project</li>
+                <li>JSON responses, no special client needed</li>
+            </ul>
+            <a href="#quickstart" style="margin-top:0.3rem">→ Quick Start below</a>
+        </div>
+    </div>
+</section>
 <!-- Authentication -->
 <section id="authentication" class="api-section">
     <h2>Authentication</h2>

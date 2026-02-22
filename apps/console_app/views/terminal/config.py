@@ -19,7 +19,7 @@ BASE_CONTAINER_PATH = getattr(
 )
 
 # User data directory (inside Docker container)
-USER_DATA_ROOT = Path(getattr(settings, "USER_DATA_ROOT", "/app/data/users"))
+USER_DATA_ROOT = Path(getattr(settings, "USER_DATA_ROOT", None) or "/app/data/users")
 
 
 # =============================================================================

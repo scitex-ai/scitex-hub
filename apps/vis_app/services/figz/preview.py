@@ -10,8 +10,6 @@ import tempfile
 from pathlib import Path
 from typing import Dict, Optional, Union
 
-from .constants import get_figz_class
-
 logger = logging.getLogger(__name__)
 
 
@@ -19,9 +17,10 @@ def get_preview_image(
     bundle_path: Union[str, Path], image_type: str = "png"
 ) -> Optional[bytes]:
     """Get composed figure preview image."""
-    Figz = get_figz_class()
+    import figrecipe
+
     try:
-        figz = Figz(bundle_path)
+        figz = figrecipe.Figz(bundle_path)
         return figz.render_preview()
     except Exception as e:
         logger.warning(f"Failed to get preview: {e}")
@@ -40,26 +39,27 @@ def get_preview_base64(
 
 def get_panel_previews(bundle_path: Union[str, Path]) -> Dict[str, Optional[str]]:
     """Get preview images for all panels as base64."""
-    Figz = get_figz_class()
-    from scitex.plt import Pltz
+    import figrecipe
 
     result = {}
     try:
-        figz = Figz(bundle_path)
+        figz = figrecipe.Figz(bundle_path)
         for panel_id in figz.list_panel_ids():
             pltz_bytes = figz.get_panel_pltz(panel_id)
             if pltz_bytes:
-                with tempfile.NamedTemporaryFile(suffix=".pltz", delete=False) as f:
-                    f.write(pltz_bytes)
-                    temp_path = f.name
+                tmp = Path(tempfile.mktemp(suffix=".plt.zip"))
                 try:
-                    pltz = Pltz(temp_path)
+                    tmp.write_bytes(pltz_bytes)
+                    pltz = figrecipe.Pltz(tmp)
                     preview = pltz.get_preview() or pltz.render_preview()
-                    result[panel_id] = (
-                        f"data:image/png;base64,{base64.b64encode(preview).decode('utf-8')}"
-                    )
+                    if preview:
+                        result[panel_id] = (
+                            f"data:image/png;base64,"
+                            f"{base64.b64encode(preview).decode('utf-8')}"
+                        )
                 finally:
-                    Path(temp_path).unlink(missing_ok=True)
+                    if tmp.exists():
+                        tmp.unlink()
     except Exception as e:
         logger.warning(f"Failed to get panel previews: {e}")
     return result

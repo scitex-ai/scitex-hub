@@ -32,29 +32,7 @@
     {% endif %}
     <!-- Workspace layout: 3 columns -->
     <div class="tools-workspace">
-        <!-- Column 1: File tree sidebar -->
-        <aside class="tools-sidebar workspace-sidebar" id="tools-sidebar">
-            {% include "global_base_partials/workspace/sidebar_header.html" %}
-            <div class="sidebar-content">
-                {% if current_project %}
-                    <div id="file-tree">
-                        <div class="wft-loading">Loading...</div>
-                    </div>
-                {% endif %}
-            </div>
-        </aside>
-        <!-- Sidebar resizer -->
-        <div class="panel-resizer"
-             id="sidebar-resizer"
-             data-panel-resizer
-             data-storage-prefix="scitex-workspace-"
-             data-target=".tools-sidebar"
-             data-direction="left"
-             data-min-width="40"
-             data-default-width="250"
-             data-storage-key="sidebar-width"
-             data-collapse-key="scitex-workspace-sidebar-collapsed"
-             data-toggle-btn="sidebar-toggle"></div>
+        <!-- Sidebar removed: unified workspace provides the file tree via ws-worktree-pane -->
         <!-- Column 2: Tool selector (always visible) -->
         <div class="tools-nav-panel collapsible-panel" id="tools-nav-panel">
             <!-- Header -->
@@ -127,7 +105,6 @@
 {% endblock %}
 {% block extra_js %}
     {% vite_hmr_client %}
-    {% vite_script 'shared/workspace-panel-resizer' %}
     {% tree_preseed_script current_project %}
     {% vite_script 'shared/workspace-tree-init' %}
     {% vite_script 'public_app/tools-panel' %}

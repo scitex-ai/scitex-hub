@@ -311,11 +311,6 @@ CELERY_BEAT_SCHEDULE["collect-server-metrics"] = {
 }
 
 # ---------------------------------------
-# SciTeX MCP Server
-# ---------------------------------------
-SCITEX_MCP_URL = os.environ.get("SCITEX_CLOUD_MCP_URL", "http://scitex-mcp:8085/mcp")
-
-# ---------------------------------------
 # Test User Credentials for API Docs Examples
 # ---------------------------------------
 # Used to populate API docs code examples in Private mode (dev only)

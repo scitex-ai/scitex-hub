@@ -40,13 +40,18 @@ export async function setupFilesTree(
         console.log(`[InteractionHandlers] File selected: ${path}`);
         const fullPath = `/app/data/users/${projectOwner}/proj/${projectSlug}/${path}`;
 
-        if (path.endsWith(".figz")) {
+        if (path.endsWith(".fig.zip")) {
           await handleFigzSelection(editor, fullPath);
           return;
         }
 
-        if (path.endsWith(".pltz")) {
+        if (path.endsWith(".plt.zip") || path.endsWith(".pltz")) {
           await handlePltzSelection(editor, fullPath, path);
+          return;
+        }
+
+        if (path.endsWith(".csv") || path.endsWith(".tsv")) {
+          await handleCsvSelection(editor, fullPath);
           return;
         }
       },
@@ -118,21 +123,81 @@ async function handlePltzSelection(
   console.log("[InteractionHandlers] Loading pltz bundle:", fullPath);
   try {
     const managers = editor.getManagers();
-    const panelName = path.split("/").pop()?.replace(".pltz", "") || "A";
-    const parentPath = fullPath.replace(`/${path.split("/").pop()}`, "");
+    const fileName = path.split("/").pop() || "";
+    const panelName =
+      fileName.replace(/\.plt\.zip$/, "").replace(/\.pltz$/, "") || "A";
+    // Pass fullPath as figzPath — _panel-ops.ts detects .plt.zip and uses it directly
+    // (no parent-dir#panelName trick, which the backend can't resolve for standalone pltz)
     await managers.canvasManager.loadPltzPanel(
       {
         id: panelName,
         label: panelName,
-        plot: path.split("/").pop() || "",
+        plot: fileName,
         position: { x_mm: 10, y_mm: 10 },
         size: { width_mm: 80, height_mm: 60 },
       },
-      parentPath,
+      fullPath,
     );
   } catch (error) {
     console.error("[InteractionHandlers] Failed to load pltz bundle:", error);
   }
+}
+
+/**
+ * Handle CSV/TSV file selection - loads data into the data table
+ */
+async function handleCsvSelection(
+  editor: VisEditor,
+  fullPath: string,
+): Promise<void> {
+  console.log("[InteractionHandlers] Loading CSV file:", fullPath);
+  try {
+    const url = `/vis/api/bundles/project-file/?path=${encodeURIComponent(fullPath)}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`HTTP ${response.status}: ${errText}`);
+    }
+    const csvText = await response.text();
+    const rows = parseCsvText(csvText);
+
+    const managers = editor.getManagers();
+    managers.dataTableManager.loadFromArray(rows, true);
+
+    const fileName = fullPath.split("/").pop() || "data.csv";
+    editor.updateStatusBar(
+      `Loaded: ${fileName} (${rows.length - 1} data rows)`,
+    );
+    console.log(`[InteractionHandlers] Loaded CSV: ${rows.length} rows`);
+  } catch (error) {
+    console.error("[InteractionHandlers] Failed to load CSV:", error);
+    editor.updateStatusBar(`Failed to load CSV: ${error}`);
+  }
+}
+
+/**
+ * Parse CSV text into 2D string array, handling quoted fields with commas.
+ */
+function parseCsvText(text: string): string[][] {
+  const lines = text.trim().split("\n");
+  return lines.map((line) => {
+    const result: string[] = [];
+    let current = "";
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === "," && !inQuotes) {
+        result.push(current.trim());
+        current = "";
+      } else {
+        current += char;
+      }
+    }
+    result.push(current.trim());
+    return result;
+  });
 }
 
 /**
@@ -149,7 +214,7 @@ function setupTreeEventListeners(editor: VisEditor, _filesTree: any): void {
 
     const managers = editor.getManagers();
 
-    if (deletedPath?.endsWith(".figz")) {
+    if (deletedPath?.endsWith(".fig.zip")) {
       console.log(
         "[InteractionHandlers] Figz bundle deleted, cleaning up tabs and canvas",
       );

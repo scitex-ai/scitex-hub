@@ -127,35 +127,9 @@
 {% block content %}
     <!-- Three-panel layout always active for workspace consistency -->
     <div class="scholar-workspace">
-        <!-- Left sidebar: File tree (only with project) -->
-        <aside class="scholar-sidebar workspace-sidebar {% if not current_project %}collapsed{% endif %}"
-               id="scholar-sidebar">
-            {% include "global_base_partials/workspace/sidebar_header.html" %}
-            <div class="sidebar-content" id="file-tree">
-                {% if current_project %}
-                    <!-- WorkspaceFilesTree will render here -->
-                    <div class="wft-loading">Loading...</div>
-                {% else %}
-                    <div class="sidebar-no-project">
-                        <p class="text-muted">Select a project to browse files</p>
-                    </div>
-                {% endif %}
-            </div>
-        </aside>
-        <!-- Sidebar resizer (auto-initialized via data attributes) -->
-        <div class="panel-resizer"
-             id="sidebar-resizer"
-             data-panel-resizer
-             data-storage-prefix="scitex-workspace-"
-             data-target=".scholar-sidebar"
-             data-direction="left"
-             data-min-width="40"
-             data-default-width="250"
-             data-storage-key="sidebar-width"
-             data-collapse-key="scitex-workspace-sidebar-collapsed"
-             data-toggle-btn="sidebar-toggle"></div>
+        <!-- Sidebar removed: unified workspace provides the file tree via ws-worktree-pane -->
         <!-- Main content area -->
-        <main class="scholar-main">
+        <section class="scholar-main">
             <div class="pane-header">
                 <nav class="scholar-tabs">
                     <a href="{% url 'scholar_app:index' %}"
@@ -221,7 +195,7 @@
             <div class="pane-content">
                 {% block search_content %}{% endblock %}
             </div>
-        </main>
+        </section>
         <!-- Properties resizer (auto-initialized via data attributes) -->
         <div class="panel-resizer"
              id="main-resizer"
@@ -360,8 +334,6 @@
 {% endblock %}
 {% block extra_js %}
     {{ block.super }}
-    <!-- Panel resizer (auto-initializes from data attributes) -->
-    {% vite_script 'shared/workspace-panel-resizer' %}
     <!-- Keyboard shortcuts modal handler -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {

@@ -50,6 +50,9 @@ class ClewApp {
     const targetFile = urlParams.get("file");
     if (targetFile) {
       await this.loadChainForFile(targetFile);
+    } else {
+      // Auto-render DAG on tab load if runs exist
+      await this.autoRenderDag();
     }
   }
 
@@ -128,6 +131,13 @@ class ClewApp {
     }
   }
 
+  private async autoRenderDag() {
+    const response = await clewApi.getStats();
+    if (response.success && response.data && response.data.total_runs > 0) {
+      await this.renderFullDag();
+    }
+  }
+
   private async renderFullDag() {
     this.showLoading();
     await this.renderMermaidDag(undefined);
@@ -168,11 +178,28 @@ class ClewApp {
 
     try {
       await mermaid.run({ nodes: [wrapper.querySelector(".mermaid")!] });
+      this.setupDagNodeClickHandlers(wrapper);
     } catch (err) {
       console.error("[Clew] Mermaid render error:", err);
       // Fallback: show code as preformatted text
       wrapper.innerHTML = `<pre class="dag-mermaid-code">${code}</pre>`;
     }
+  }
+
+  private setupDagNodeClickHandlers(wrapper: HTMLElement) {
+    const nodes = wrapper.querySelectorAll(".node");
+    nodes.forEach((node) => {
+      (node as HTMLElement).style.cursor = "pointer";
+      node.addEventListener("click", () => {
+        const label = node.querySelector(".nodeLabel")?.textContent?.trim();
+        if (label) {
+          // Dispatch fileSelected event so the tree and details panel update
+          document.dispatchEvent(
+            new CustomEvent("fileSelected", { detail: { path: label } }),
+          );
+        }
+      });
+    });
   }
 
   private showChainDetails(chainData: any) {
@@ -237,8 +264,14 @@ class ClewApp {
   }
 }
 
-// Initialize when DOM is ready
-document.addEventListener("DOMContentLoaded", () => {
+// Initialize when DOM is ready (supports both direct load and AJAX injection)
+function initClew() {
   const app = new ClewApp();
   app.initialize();
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initClew);
+} else {
+  initClew();
+}

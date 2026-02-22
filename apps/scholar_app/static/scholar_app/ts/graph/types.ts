@@ -6,9 +6,17 @@
 export interface CitationGraphConfig {
   urls: {
     buildNetwork: string;
+    buildNetworkMulti: string;
+    buildNetworkQuery: string;
     relatedPapers: string;
     paperSummary: string;
     health: string;
+    listSavedGraphs: string;
+    saveGraph: string;
+    loadGraph: string;
+    renameGraph: string;
+    deleteGraph: string;
+    refreshGraph: string;
   };
 }
 
@@ -19,6 +27,7 @@ export interface NetworkNode {
   authors: string[];
   is_seed: boolean;
   similarity_score?: number;
+  citation_count?: number;
   x?: number;
   y?: number;
   vx?: number;
@@ -36,10 +45,13 @@ export interface NetworkEdge {
 
 export interface NetworkData {
   seed: string;
+  seed_dois: string[];
   nodes: NetworkNode[];
   edges: NetworkEdge[];
   metadata: {
-    top_n: number;
+    top_n?: number;
+    num_related_per_doi?: number;
+    num_seeds?: number;
     weights: Record<string, number>;
     cached: boolean;
   };
@@ -57,6 +69,31 @@ export interface Transform {
   x: number;
   y: number;
   k: number;
+}
+
+export interface SavedGraphSummary {
+  id: string;
+  name: string;
+  source_type: "dois" | "query" | "library";
+  node_count: number;
+  edge_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SavedGraphFull extends SavedGraphSummary {
+  graph_data: NetworkData;
+  node_positions: Record<string, { x: number; y: number }>;
+  seed_dois: string[];
+  query_text: string;
+  build_params: Record<string, unknown>;
+}
+
+export interface SourceInfo {
+  source_type: "dois" | "query" | "library";
+  seed_dois: string[];
+  query_text: string;
+  build_params: Record<string, unknown>;
 }
 
 declare global {

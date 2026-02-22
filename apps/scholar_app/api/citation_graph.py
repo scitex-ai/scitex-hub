@@ -5,10 +5,11 @@ Provides REST API for building and analyzing citation networks.
 """
 
 import logging
-from rest_framework.decorators import api_view, throttle_classes, permission_classes
+
+from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.throttling import AnonRateThrottle
 
 from ..services.citation_graph import get_citation_graph_service
@@ -18,15 +19,17 @@ logger = logging.getLogger(__name__)
 
 class CitationGraphThrottle(AnonRateThrottle):
     """Rate limit for citation graph API: 50 requests per hour (computation intensive)"""
-    rate = '50/hour'
+
+    rate = "50/hour"
 
 
 class HealthCheckThrottle(AnonRateThrottle):
     """Rate limit for health checks: 10 requests per minute (prevents flood attacks)"""
-    rate = '10/minute'
+
+    rate = "10/minute"
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 @permission_classes([AllowAny])
 @throttle_classes([CitationGraphThrottle])
 def build_network(request):
@@ -60,32 +63,31 @@ def build_network(request):
         curl "https://scitex.ai/api/scholar/citation-graph/network/?doi=10.1038/s41586-020-2008-3&top_n=20"
     """
     # Validate DOI
-    doi = request.GET.get('doi')
+    doi = request.GET.get("doi")
     if not doi:
         return Response(
-            {'error': 'DOI parameter required'},
-            status=status.HTTP_400_BAD_REQUEST
+            {"error": "DOI parameter required"}, status=status.HTTP_400_BAD_REQUEST
         )
 
     # Parse parameters
     try:
-        top_n = int(request.GET.get('top_n', 20))
+        top_n = int(request.GET.get("top_n", 20))
         if top_n < 1 or top_n > 50:
             return Response(
-                {'error': 'top_n must be between 1 and 50'},
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "top_n must be between 1 and 50"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
-        weight_coupling = float(request.GET.get('weight_coupling', 2.0))
-        weight_cocitation = float(request.GET.get('weight_cocitation', 2.0))
-        weight_direct = float(request.GET.get('weight_direct', 1.0))
+        weight_coupling = float(request.GET.get("weight_coupling", 2.0))
+        weight_cocitation = float(request.GET.get("weight_cocitation", 2.0))
+        weight_direct = float(request.GET.get("weight_direct", 1.0))
 
-        use_cache = request.GET.get('no_cache', 'false').lower() != 'true'
+        use_cache = request.GET.get("no_cache", "false").lower() != "true"
 
     except ValueError as e:
         return Response(
-            {'error': f'Invalid parameter: {str(e)}'},
-            status=status.HTTP_400_BAD_REQUEST
+            {"error": f"Invalid parameter: {str(e)}"},
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
     # Build network
@@ -97,7 +99,7 @@ def build_network(request):
             weight_coupling=weight_coupling,
             weight_cocitation=weight_cocitation,
             weight_direct=weight_direct,
-            use_cache=use_cache
+            use_cache=use_cache,
         )
 
         return Response(network, status=status.HTTP_200_OK)
@@ -105,18 +107,141 @@ def build_network(request):
     except FileNotFoundError as e:
         logger.error(f"Database not found: {e}")
         return Response(
-            {'error': 'Citation graph service unavailable - database not configured'},
-            status=status.HTTP_503_SERVICE_UNAVAILABLE
+            {"error": "Citation graph service unavailable - database not configured"},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
         )
     except Exception as e:
         logger.error(f"Error building citation network for {doi}: {e}", exc_info=True)
         return Response(
-            {'error': f'Failed to build citation network: {str(e)}'},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            {"error": f"Failed to build citation network: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
 
-@api_view(['GET'])
+@api_view(["GET"])
+@permission_classes([AllowAny])
+@throttle_classes([CitationGraphThrottle])
+def build_network_multi(request):
+    """
+    Build citation network from multiple seed DOIs.
+
+    GET /api/scholar/citation-graph/network/multi/
+
+    Query params:
+        - dois (required): Comma-separated DOIs
+        - num_related_per_doi (optional): Related papers per DOI (default: 20, max: 50)
+        - no_cache (optional): Skip cache (default: false)
+    """
+    dois_param = request.GET.get("dois", "")
+    if not dois_param:
+        return Response(
+            {"error": "dois parameter required (comma-separated DOIs)"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    dois = [d.strip() for d in dois_param.split(",") if d.strip()]
+    if not dois:
+        return Response(
+            {"error": "At least one DOI required"}, status=status.HTTP_400_BAD_REQUEST
+        )
+    if len(dois) > 20:
+        return Response(
+            {"error": "Maximum 20 DOIs allowed"}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        num_related = int(request.GET.get("num_related_per_doi", 20))
+        num_related = max(1, min(num_related, 50))
+        use_cache = request.GET.get("no_cache", "false").lower() != "true"
+    except ValueError as e:
+        return Response(
+            {"error": f"Invalid parameter: {str(e)}"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        service = get_citation_graph_service()
+        network = service.build_network_from_dois(
+            dois=dois,
+            num_related_per_doi=num_related,
+            use_cache=use_cache,
+        )
+        return Response(network, status=status.HTTP_200_OK)
+
+    except FileNotFoundError as e:
+        logger.error(f"Database not found: {e}")
+        return Response(
+            {"error": "Citation graph service unavailable"},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+    except Exception as e:
+        logger.error(f"Error building multi-DOI network: {e}", exc_info=True)
+        return Response(
+            {"error": f"Failed to build citation network: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+@throttle_classes([CitationGraphThrottle])
+def build_network_query(request):
+    """
+    Build citation network from a text query.
+    All logic (search, DOI detection, graph building) lives in scitex.scholar.
+
+    GET /api/scholar/citation-graph/network/query/
+
+    Query params:
+        - q (required): Search query text
+        - num_related_per_doi (optional): Related papers per DOI (default: 20, max: 50)
+        - search_limit (optional): Max search results to use as seeds (default: 10, max: 20)
+        - no_cache (optional): Skip cache (default: false)
+    """
+    query = request.GET.get("q", "").strip()
+    if not query:
+        return Response(
+            {"error": "q parameter required (search query)"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        num_related = int(request.GET.get("num_related_per_doi", 20))
+        num_related = max(1, min(num_related, 50))
+        search_limit = int(request.GET.get("search_limit", 10))
+        search_limit = max(1, min(search_limit, 20))
+        use_cache = request.GET.get("no_cache", "false").lower() != "true"
+    except ValueError as e:
+        return Response(
+            {"error": f"Invalid parameter: {str(e)}"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        service = get_citation_graph_service()
+        network = service.build_network_from_query(
+            query=query,
+            num_related_per_doi=num_related,
+            search_limit=search_limit,
+            use_cache=use_cache,
+        )
+        return Response(network, status=status.HTTP_200_OK)
+
+    except FileNotFoundError as e:
+        logger.error(f"Database not found: {e}")
+        return Response(
+            {"error": "Citation graph service unavailable"},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+    except Exception as e:
+        logger.error(f"Error building query network for '{query}': {e}", exc_info=True)
+        return Response(
+            {"error": f"Failed to build citation network: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
+@api_view(["GET"])
 @permission_classes([AllowAny])
 @throttle_classes([CitationGraphThrottle])
 def get_related_papers(request):
@@ -150,57 +275,48 @@ def get_related_papers(request):
         curl "https://scitex.ai/api/scholar/citation-graph/related/?doi=10.1038/s41586-020-2008-3&limit=10"
     """
     # Validate DOI
-    doi = request.GET.get('doi')
+    doi = request.GET.get("doi")
     if not doi:
         return Response(
-            {'error': 'DOI parameter required'},
-            status=status.HTTP_400_BAD_REQUEST
+            {"error": "DOI parameter required"}, status=status.HTTP_400_BAD_REQUEST
         )
 
     # Parse parameters
     try:
-        limit = int(request.GET.get('limit', 10))
+        limit = int(request.GET.get("limit", 10))
         if limit < 1 or limit > 30:
             return Response(
-                {'error': 'limit must be between 1 and 30'},
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "limit must be between 1 and 30"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
-        use_cache = request.GET.get('no_cache', 'false').lower() != 'true'
+        use_cache = request.GET.get("no_cache", "false").lower() != "true"
 
     except ValueError as e:
         return Response(
-            {'error': f'Invalid parameter: {str(e)}'},
-            status=status.HTTP_400_BAD_REQUEST
+            {"error": f"Invalid parameter: {str(e)}"},
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
     # Get related papers
     try:
         service = get_citation_graph_service()
-        related = service.get_related_papers(
-            doi=doi,
-            limit=limit,
-            use_cache=use_cache
-        )
+        related = service.get_related_papers(doi=doi, limit=limit, use_cache=use_cache)
 
         return Response(
-            {
-                'doi': doi,
-                'related': related,
-                'count': len(related)
-            },
-            status=status.HTTP_200_OK
+            {"doi": doi, "related": related, "count": len(related)},
+            status=status.HTTP_200_OK,
         )
 
     except Exception as e:
         logger.error(f"Error getting related papers for {doi}: {e}", exc_info=True)
         return Response(
-            {'error': f'Failed to get related papers: {str(e)}'},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            {"error": f"Failed to get related papers: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 @permission_classes([AllowAny])
 def paper_summary(request):
     """
@@ -227,11 +343,10 @@ def paper_summary(request):
         curl "https://scitex.ai/api/scholar/citation-graph/paper/?doi=10.1038/s41586-020-2008-3"
     """
     # Validate DOI
-    doi = request.GET.get('doi')
+    doi = request.GET.get("doi")
     if not doi:
         return Response(
-            {'error': 'DOI parameter required'},
-            status=status.HTTP_400_BAD_REQUEST
+            {"error": "DOI parameter required"}, status=status.HTTP_400_BAD_REQUEST
         )
 
     # Get summary
@@ -243,19 +358,19 @@ def paper_summary(request):
             return Response(summary, status=status.HTTP_200_OK)
         else:
             return Response(
-                {'error': 'Paper not found in database'},
-                status=status.HTTP_404_NOT_FOUND
+                {"error": "Paper not found in database"},
+                status=status.HTTP_404_NOT_FOUND,
             )
 
     except Exception as e:
         logger.error(f"Error getting paper summary for {doi}: {e}", exc_info=True)
         return Response(
-            {'error': f'Failed to get paper summary: {str(e)}'},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            {"error": f"Failed to get paper summary: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 @permission_classes([AllowAny])
 @throttle_classes([HealthCheckThrottle])
 def health(request):
@@ -280,9 +395,6 @@ def health(request):
     except Exception as e:
         logger.error(f"Health check failed: {e}", exc_info=True)
         return Response(
-            {
-                'status': 'unhealthy',
-                'error': str(e)
-            },
-            status=status.HTTP_503_SERVICE_UNAVAILABLE
+            {"status": "unhealthy", "error": str(e)},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
         )

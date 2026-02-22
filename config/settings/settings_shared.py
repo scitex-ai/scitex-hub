@@ -7,7 +7,6 @@ Sub-modules: settings_celery, settings_logging, settings_auth, settings_integrat
 """
 
 import os
-from datetime import timedelta
 from pathlib import Path
 
 import scitex as stx
@@ -166,6 +165,7 @@ TEMPLATES = [
                 "config.context_processors.umami_analytics",
                 "config.context_processors.site_branding",
                 "config.context_processors.scitex_env",
+                "apps.workspace_app.context_processors.workspace_context",
             ],
         },
     },
@@ -261,10 +261,10 @@ SITE_URL = os.getenv("SCITEX_CLOUD_SITE_URL", "http://127.0.0.1:8000")
 # ---------------------------------------
 # Sub-module imports (celery, logging, auth, integrations)
 # ---------------------------------------
-from .settings_celery import *  # noqa: E402, F401, F403
-from .settings_logging import *  # noqa: E402, F401, F403
 from .settings_auth import *  # noqa: E402, F401, F403
+from .settings_celery import *  # noqa: E402, F401, F403
 from .settings_integrations import *  # noqa: E402, F401, F403
+from .settings_logging import *  # noqa: E402, F401, F403
 
 # SIMPLE_JWT requires SECRET_KEY defined above
 SIMPLE_JWT = get_simple_jwt_settings(SECRET_KEY)  # noqa: F821

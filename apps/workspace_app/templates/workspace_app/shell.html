@@ -1,0 +1,113 @@
+{% extends "global_base.html" %}
+
+{% load static vite %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'workspace_app/css/workspace-shell.css' %}" />
+{% endblock %}
+{% block content %}
+    <div class="workspace-shell"
+         id="workspace-shell"
+         data-active-module="{{ active_module }}">
+        <!-- Left: AI Agent pane (persistent — never re-rendered on tab switch) -->
+        <div class="ws-ai-pane" id="ws-ai-pane">
+            <div id="scitex-ai-panel"
+                 class="scitex-ai-panel workspace-sidebar collapsed"
+                 aria-hidden="true">
+                <div id="scitex-ai-resizer"
+                     class="panel-resizer"
+                     data-panel-resizer
+                     data-target="#scitex-ai-panel"
+                     data-direction="right"
+                     data-min-width="40"
+                     data-default-width="300"
+                     data-storage-key="ws-ai-panel-width"
+                     data-collapse-key="ws-ai-panel-collapsed"
+                     style="position:absolute;
+                            right:0;
+                            top:0;
+                            bottom:0;
+                            z-index:1"></div>
+                <div class="sidebar-header scitex-ai-panel-header" id="scitex-ai-panel-header">
+                    <button class="panel-toggle-btn" id="scitex-ai-toggle" title="AI Agent (Alt+A)">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <span class="sidebar-title">AI</span>
+                    <span class="scitex-ai-panel-title">
+                        <i class="fas fa-robot"></i> AI Agent
+                        <span id="scitex-ai-model-badge" class="scitex-ai-model-badge"></span>
+                    </span>
+                    <div class="scitex-ai-panel-actions">
+                        <button id="scitex-ai-speak" class="scitex-ai-action-btn" title="Toggle auto-speak">
+                            <i class="fas fa-volume-up"></i>
+                        </button>
+                        <button id="scitex-ai-clear" class="scitex-ai-action-btn" title="Clear conversation">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="sidebar-content scitex-ai-body">
+                    <div id="scitex-ai-messages" class="scitex-ai-messages">
+                        <div class="scitex-ai-empty">
+                            <i class="fas fa-robot"></i>
+                            <span>Ask anything about SciTeX.</span>
+                        </div>
+                    </div>
+                    <div class="scitex-ai-input-area">
+                        <textarea id="scitex-ai-input"
+                                  class="scitex-ai-input"
+                                  rows="3"
+                                  placeholder="Ask AI agent... (Enter to send)"
+                                  autocomplete="off"></textarea>
+                        <button id="scitex-ai-mic" class="scitex-ai-mic" title="Voice input">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <button id="scitex-ai-send" class="scitex-ai-send" title="Send (Enter)">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Middle: Worktree pane (persistent — never re-rendered on tab switch) -->
+        <div class="ws-worktree-pane" id="ws-worktree-pane">
+            <div class="workspace-sidebar" id="ws-worktree-sidebar">
+                <div id="ws-worktree-resizer"
+                     class="panel-resizer"
+                     data-panel-resizer
+                     data-target="#ws-worktree-sidebar"
+                     data-direction="right"
+                     data-min-width="40"
+                     data-default-width="250"
+                     data-storage-key="ws-worktree-width"
+                     data-collapse-key="ws-worktree-collapsed"
+                     style="position:absolute;
+                            right:0;
+                            top:0;
+                            bottom:0;
+                            z-index:1"></div>
+                <div class="sidebar-header">
+                    <button class="panel-toggle-btn" id="ws-worktree-toggle" title="Toggle file tree">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <span class="sidebar-title">FILES</span>
+                    <span class="sidebar-title-expanded"><i class="fas fa-folder-open"></i> Files</span>
+                </div>
+                <div class="sidebar-content">
+                    <div data-workspace-tree
+                         {% if current_project %}data-project-slug="{{ current_project.slug }}"{% endif %}></div>
+                </div>
+            </div>
+        </div>
+        <!-- Right: Module pane (swaps on tab click) -->
+        <div class="ws-module-pane" id="ws-module-pane">
+            <div class="ws-module-loading" id="ws-module-loading" style="display:none">
+                <i class="fas fa-spinner fa-spin"></i> Loading...
+            </div>
+            {# Initial module content is loaded by workspace-shell.ts on page load #}
+        </div>
+    </div>
+{% endblock %}
+{% block extra_js %}
+    {% vite_asset 'workspace_app/workspace-shell' %}
+{% endblock %}

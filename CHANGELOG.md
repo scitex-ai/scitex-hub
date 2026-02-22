@@ -5,6 +5,20 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.6-alpha] - 2026-02-22
+
+### Added
+- **Multi-DOI citation graph**: `/network/multi/` and `/network/query/` API endpoints
+  for building citation networks from multiple seed DOIs or text queries
+- **Auto-save to library**: Search results and bibtex enrichment auto-save to UserLibrary DB records
+- **Library sync**: `_upsert_library_records()` keeps BibTeX file saves in sync with UserLibrary model
+
+### Changed
+- **Graph input simplified**: Removed DOI tab — Search handles DOI detection automatically
+- **Save buttons removed**: All manual "Save to Project" buttons removed (search, bibtex enrichment)
+  in favor of automatic saving
+- **Django as thin wrapper**: Service/proxy layers delegate to `scitex.scholar.citation_graph`
+
 ## [0.9.5-alpha] - 2026-02-20
 
 ### Security

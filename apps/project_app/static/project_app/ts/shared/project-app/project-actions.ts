@@ -157,14 +157,6 @@ export async function handleStar(event: Event) {
  * Handle fork button click
  */
 export async function handleFork(event: Event) {
-  if (
-    !confirm(
-      "Fork this repository? This will create a copy under your account.",
-    )
-  ) {
-    return;
-  }
-
   const btn = event.currentTarget as HTMLButtonElement;
   const originalText = btn.innerHTML;
   btn.disabled = true;

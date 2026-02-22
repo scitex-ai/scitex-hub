@@ -26,11 +26,18 @@ def _tool_context(request):
     }
 
 
+def build_tools_context(request, current_project=None):
+    """Build tools-specific context for both full page and partial views."""
+    domains = get_tool_domains()
+    return {
+        "domains": domains,
+        "total_tools": sum(len(d["tools"]) for d in domains),
+        "current_project": current_project,
+    }
+
+
 def tools(request):
     """Research tools page - bookmarklets and utilities for researchers."""
-    domains = get_tool_domains()
-    total_tools = sum(len(domain["tools"]) for domain in domains)
-
     # Get current project for file tree sidebar
     current_project = None
     if request.user.is_authenticated:
@@ -50,11 +57,7 @@ def tools(request):
                 .first()
             )
 
-    context = {
-        "domains": domains,
-        "total_tools": total_tools,
-        "current_project": current_project,
-    }
+    context = build_tools_context(request, current_project=current_project)
     return render(request, "public_app/pages/tools.html", context)
 
 

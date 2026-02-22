@@ -20,7 +20,7 @@ export interface WriterTabManagerOptions {
 }
 
 export class WriterTabManager {
-  private tabManager: any = null;  // Lazily initialized FileTabManager
+  private tabManager: any = null; // Lazily initialized FileTabManager
   private openFiles: Map<string, OpenFile> = new Map();
   private currentFile: string | null = null;
   private options: WriterTabManagerOptions;
@@ -38,7 +38,8 @@ export class WriterTabManager {
     if (this.initialized) return;
 
     // Dynamic import for FileTabManager (using absolute URL path)
-    const { FileTabManager } = await import("/static/shared/ts/components/file-tabs/FileTabManager");
+    const { FileTabManager } =
+      await import("/static/shared/ts/components/file-tabs/FileTabManager");
 
     this.tabManager = new FileTabManager({
       containerId: this.options.containerId,
@@ -72,7 +73,8 @@ export class WriterTabManager {
       const currentOpenFile = this.openFiles.get(this.currentFile);
       if (currentOpenFile) {
         currentOpenFile.content = this.getEditorContent();
-        currentOpenFile.isDirty = currentOpenFile.content !== currentOpenFile.originalContent;
+        currentOpenFile.isDirty =
+          currentOpenFile.content !== currentOpenFile.originalContent;
       }
     }
 
@@ -88,7 +90,7 @@ export class WriterTabManager {
     // Load file content from server
     try {
       const response = await fetch(
-        `/code/api/file-content/${encodeURIComponent(path)}?project_id=${this.options.projectId}`
+        `/code/api/file-content/${encodeURIComponent(path)}?project_id=${this.options.projectId}`,
       );
       const data = await response.json();
 
@@ -124,7 +126,8 @@ export class WriterTabManager {
       const currentOpenFile = this.openFiles.get(this.currentFile);
       if (currentOpenFile) {
         currentOpenFile.content = this.getEditorContent();
-        currentOpenFile.isDirty = currentOpenFile.content !== currentOpenFile.originalContent;
+        currentOpenFile.isDirty =
+          currentOpenFile.content !== currentOpenFile.originalContent;
       }
     }
 
@@ -144,14 +147,6 @@ export class WriterTabManager {
   private async handleTabClose(path: string): Promise<void> {
     const file = this.openFiles.get(path);
 
-    // If dirty, confirm close
-    if (file?.isDirty) {
-      const confirmed = confirm(
-        `${path.split("/").pop()} has unsaved changes. Close anyway?`
-      );
-      if (!confirmed) return;
-    }
-
     this.openFiles.delete(path);
 
     // If closing current file, switch to another
@@ -162,7 +157,11 @@ export class WriterTabManager {
       } else {
         this.currentFile = null;
         // Clear editor or show placeholder
-        this.options.onFileLoad("", "% Select a file to start editing...", true);
+        this.options.onFileLoad(
+          "",
+          "% Select a file to start editing...",
+          true,
+        );
       }
     }
 
@@ -249,9 +248,16 @@ export class WriterTabManager {
    */
   private isNonEditableFile(path: string): boolean {
     const nonEditableFiles = [
-      "manuscript.tex", "supplementary.tex", "revision.tex",
-      "manuscript_diff.tex", "supplementary_diff.tex", "revision_diff.tex",
-      "base.tex", "wordcount.tex", "main.tex", "shared.tex",
+      "manuscript.tex",
+      "supplementary.tex",
+      "revision.tex",
+      "manuscript_diff.tex",
+      "supplementary_diff.tex",
+      "revision_diff.tex",
+      "base.tex",
+      "wordcount.tex",
+      "main.tex",
+      "shared.tex",
     ];
     const fileName = path.split("/").pop() || "";
     return nonEditableFiles.includes(fileName);

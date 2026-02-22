@@ -51,28 +51,7 @@
              data-mode="hub"></div>
     {% endif %}
     <div class="hub-workspace">
-        <!-- Left Sidebar: File Tree -->
-        {% if current_project %}
-            <aside class="hub-sidebar workspace-sidebar" id="hub-sidebar">
-                {% include "global_base_partials/workspace/sidebar_header.html" %}
-                <div id="file-tree" class="sidebar-content">
-                    <div class="wft-loading">
-                        <i class="fas fa-spinner fa-spin"></i> Loading...
-                    </div>
-                </div>
-            </aside>
-            <div class="panel-resizer"
-                 id="sidebar-resizer"
-                 data-panel-resizer
-                 data-storage-prefix="scitex-workspace-"
-                 data-target=".hub-sidebar"
-                 data-direction="left"
-                 data-min-width="40"
-                 data-default-width="250"
-                 data-storage-key="sidebar-width"
-                 data-collapse-key="scitex-workspace-sidebar-collapsed"
-                 data-toggle-btn="sidebar-toggle"></div>
-        {% endif %}
+        <!-- Sidebar removed: unified workspace provides the file tree via ws-worktree-pane -->
         <!-- Main Area -->
         <main class="hub-main">
             <div style="padding:0.5rem 1rem;">
@@ -158,7 +137,6 @@
 {% endblock %}
 {% block extra_js %}
     {% vite_hmr_client %}
-    {% vite_script 'shared/workspace-panel-resizer' %}
     {% tree_preseed_script current_project %}
     {% vite_script 'shared/workspace-tree-init' %}
     {% if current_project %}

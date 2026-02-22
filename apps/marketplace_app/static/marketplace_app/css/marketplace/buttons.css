@@ -1,0 +1,133 @@
+/* Marketplace — button styles: action, install, star, toggle */
+
+/* Primary action buttons (detail page, my_modules) */
+.mp-btn-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  border: 1px solid var(--workspace-border-default, var(--border-color));
+  background-color: var(--workspace-bg-secondary, rgba(255, 255, 255, 0.05));
+  color: var(--text-primary);
+  cursor: pointer;
+  border-radius: 0;
+  text-decoration: none;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
+}
+
+.mp-btn-action:hover {
+  background-color: var(--workspace-bg-tertiary, rgba(255, 255, 255, 0.1));
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+.mp-btn-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mp-btn-primary {
+  background-color: var(--workspace-icon-primary, var(--accent));
+  border-color: var(--workspace-icon-primary, var(--accent));
+  color: #fff;
+}
+
+.mp-btn-primary:hover {
+  background-color: var(--workspace-icon-primary, var(--accent));
+  filter: brightness(1.15);
+  color: #fff;
+}
+
+.mp-btn-secondary {
+  background-color: transparent;
+  border-color: var(--workspace-border-default, var(--border-color));
+  color: var(--text-muted);
+}
+
+.mp-btn-danger {
+  background-color: transparent;
+  border-color: #fc8181;
+  color: #fc8181;
+}
+
+.mp-btn-danger:hover {
+  background-color: rgba(252, 129, 129, 0.1);
+  color: #fc8181;
+}
+
+.mp-btn-sm {
+  padding: 3px 7px;
+  font-size: 0.75rem;
+}
+
+/* Card-level install button */
+.mp-btn-install {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  border: 1px solid var(--workspace-icon-primary, var(--accent));
+  background-color: var(--workspace-icon-primary, var(--accent));
+  color: #fff;
+  cursor: pointer;
+  border-radius: 0;
+  text-decoration: none;
+  transition: filter 0.15s;
+}
+
+.mp-btn-install:hover {
+  filter: brightness(1.15);
+  text-decoration: none;
+  color: #fff;
+}
+
+.mp-btn-install:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mp-btn-login {
+  background-color: transparent;
+  border-color: var(--workspace-border-default, var(--border-color));
+  color: var(--text-muted);
+}
+
+.mp-btn-login:hover {
+  filter: none;
+  color: var(--text-primary);
+}
+
+/* Card-level star button */
+.mp-btn-star {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background-color: transparent;
+  border: 1px solid var(--workspace-border-default, var(--border-color));
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 0;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+  font-size: 0.85rem;
+  padding: 0;
+}
+
+.mp-btn-star:hover,
+.mp-btn-star--active {
+  color: #f6c90e;
+  border-color: #f6c90e;
+}
+
+.mp-btn-star:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

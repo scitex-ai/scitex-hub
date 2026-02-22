@@ -47,36 +47,45 @@ def api_library_papers(request):
         try:
             entries = (
                 UserLibrary.objects.filter(user=request.user)
-                .select_related("paper")
+                .select_related("paper", "paper__journal")
+                .prefetch_related("collections", "paper__authors")
                 .order_by("-saved_at")
             )
             papers = []
             for entry in entries:
                 p = entry.paper
+                collection_ids = [str(c.id) for c in entry.collections.all()]
                 papers.append(
                     {
                         "id": str(entry.id),
                         "paper_id": str(p.id) if p else None,
                         "title": p.title if p else "Unknown",
                         "doi": p.doi if p else None,
-                        "journal": p.journal if p else None,
+                        "journal": str(p.journal) if p and p.journal else None,
                         "year": (
                             p.publication_date.year
                             if p and p.publication_date
                             else None
                         ),
-                        "authors": p.authors if p else None,
+                        "authors": (
+                            ", ".join(
+                                f"{a.first_name} {a.last_name}" for a in p.authors.all()
+                            )
+                            if p
+                            else None
+                        ),
                         "abstract": (
                             p.abstract if p and hasattr(p, "abstract") else None
                         ),
                         "reading_status": entry.reading_status,
                         "importance_rating": entry.importance_rating,
                         "personal_notes": entry.personal_notes,
-                        "tags": entry.tags,
+                        "tags": entry.get_tags_list(),
                         "saved_at": (
                             entry.saved_at.isoformat() if entry.saved_at else None
                         ),
                         "pdf_path": entry.user_library_pdf_path or None,
+                        "collection_ids": collection_ids,
                     }
                 )
 
@@ -139,8 +148,12 @@ def api_library_papers(request):
 def api_library_collections(request):
     """API endpoint for user's collections"""
     try:
-        collections = Collection.objects.filter(user=request.user).values(
-            "id", "name", "description"
+        from django.db.models import Count
+
+        collections = (
+            Collection.objects.filter(user=request.user)
+            .annotate(paper_count=Count("library_papers"))
+            .values("id", "name", "description", "color", "icon", "paper_count")
         )
 
         return JsonResponse({"success": True, "collections": list(collections)})

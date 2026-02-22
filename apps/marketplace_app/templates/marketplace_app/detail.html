@@ -1,0 +1,265 @@
+{% extends "global_base.html" %}
+
+{% load static %}
+
+{% block title %}{{ mp_module.module_name }} - Marketplace{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'marketplace_app/css/marketplace.css' %}" />
+{% endblock %}
+{% block content %}
+    <div class="marketplace-container">
+        <div class="mp-detail-header">
+            <div class="mp-detail-icon">
+                {% if reg_module and reg_module.icon_fa %}
+                    <i class="{{ reg_module.icon_fa }}" aria-hidden="true"></i>
+                {% else %}
+                    <i class="fas fa-puzzle-piece" aria-hidden="true"></i>
+                {% endif %}
+            </div>
+            <div class="mp-detail-meta">
+                <div class="mp-detail-title-row">
+                    <h1 class="mp-detail-title">{{ mp_module.module_name }}</h1>
+                    <div class="mp-detail-badges">
+                        <span class="mp-category-badge mp-category-{{ mp_module.category }}">{{ mp_module.get_category_display }}</span>
+                        {% if mp_module.is_builtin %}
+                            <span class="mp-badge mp-badge-builtin">
+                                <i class="fas fa-cube" aria-hidden="true"></i> Built-in
+                            </span>
+                        {% endif %}
+                        {% if mp_module.is_verified %}
+                            <span class="mp-badge mp-badge-verified">
+                                <i class="fas fa-shield-alt" aria-hidden="true"></i> Verified
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if mp_module.author %}
+                    <p class="mp-detail-author">
+                        <i class="fas fa-user" aria-hidden="true"></i>
+                        by {{ mp_module.author.get_full_name|default:mp_module.author.username }}
+                    </p>
+                {% endif %}
+                <div class="mp-detail-stats">
+                    <span class="mp-stat">
+                        <i class="fas fa-star" aria-hidden="true"></i>
+                        <span id="mp-star-count">{{ mp_module.star_count }}</span> stars
+                    </span>
+                    <span class="mp-stat">
+                        <i class="fas fa-download" aria-hidden="true"></i>
+                        {{ mp_module.install_count }} installs
+                    </span>
+                    {% if mp_module.avg_rating %}
+                        <span class="mp-stat">
+                            <i class="fas fa-star-half-alt" aria-hidden="true"></i>
+                            {{ mp_module.avg_rating }}/5
+                        </span>
+                    {% endif %}
+                </div>
+                {% if mp_module.short_description %}<p class="mp-detail-short-desc">{{ mp_module.short_description }}</p>{% endif %}
+            </div>
+            <div class="mp-detail-actions">
+                {% if user.is_authenticated %}
+                    <!-- Install / Uninstall -->
+                    {% if is_installed %}
+                        {% if not mp_module.is_builtin %}
+                            <button class="mp-btn-action mp-btn-danger"
+                                    id="mp-uninstall-btn"
+                                    data-module="{{ mp_module.module_name }}"
+                                    aria-label="Uninstall {{ mp_module.module_name }}">
+                                <i class="fas fa-trash-alt" aria-hidden="true"></i> Uninstall
+                            </button>
+                        {% else %}
+                            <span class="mp-badge-installed">
+                                <i class="fas fa-cube" aria-hidden="true"></i> Built-in
+                            </span>
+                        {% endif %}
+                    {% else %}
+                        <button class="mp-btn-action mp-btn-primary"
+                                id="mp-install-btn"
+                                data-module="{{ mp_module.module_name }}"
+                                aria-label="Install {{ mp_module.module_name }}">
+                            <i class="fas fa-download" aria-hidden="true"></i> Install
+                        </button>
+                    {% endif %}
+                    <!-- Star / Unstar -->
+                    <button class="mp-btn-action {% if is_starred %}mp-btn-star--active{% endif %}"
+                            id="mp-star-btn"
+                            data-module="{{ mp_module.module_name }}"
+                            data-starred="{{ is_starred|yesno:'true,false' }}"
+                            aria-label="{% if is_starred %}Unstar{% else %}Star{% endif %} {{ mp_module.module_name }}">
+                        <i class="{% if is_starred %}fas{% else %}far{% endif %} fa-star"
+                           aria-hidden="true"></i>
+                        {% if is_starred %}
+                            Unstar
+                        {% else %}
+                            Star
+                        {% endif %}
+                    </button>
+                    <!-- Enable / Disable (only if installed) -->
+                    {% if is_installed %}
+                        <button class="mp-btn-action"
+                                id="mp-toggle-btn"
+                                data-module="{{ mp_module.module_name }}"
+                                aria-label="Toggle {{ mp_module.module_name }}">
+                            <i class="fas fa-toggle-on" aria-hidden="true"></i> Toggle
+                        </button>
+                    {% endif %}
+                {% else %}
+                    <a href="/accounts/login/?next=/marketplace/{{ mp_module.module_name }}/"
+                       class="mp-btn-action mp-btn-primary">
+                        <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Login to install
+                    </a>
+                {% endif %}
+                <a href="/marketplace/" class="mp-btn-action mp-btn-secondary">
+                    <i class="fas fa-arrow-left" aria-hidden="true"></i> Browse
+                </a>
+            </div>
+        </div>
+        <!-- Long description -->
+        {% if mp_module.long_description %}
+            <section class="mp-detail-section">
+                <h2 class="mp-section-title">About</h2>
+                <div class="mp-detail-long-desc">{{ mp_module.long_description|linebreaks }}</div>
+            </section>
+        {% endif %}
+        <!-- External links -->
+        {% if mp_module.homepage_url or mp_module.repository_url %}
+            <section class="mp-detail-section">
+                <h2 class="mp-section-title">Links</h2>
+                <div class="mp-detail-links">
+                    {% if mp_module.homepage_url %}
+                        <a href="{{ mp_module.homepage_url }}"
+                           class="mp-link"
+                           target="_blank"
+                           rel="noopener noreferrer">
+                            <i class="fas fa-home" aria-hidden="true"></i> Homepage
+                        </a>
+                    {% endif %}
+                    {% if mp_module.repository_url %}
+                        <a href="{{ mp_module.repository_url }}"
+                           class="mp-link"
+                           target="_blank"
+                           rel="noopener noreferrer">
+                            <i class="fas fa-code-branch" aria-hidden="true"></i> Repository
+                        </a>
+                    {% endif %}
+                </div>
+            </section>
+        {% endif %}
+        <!-- Version history -->
+        {% if versions %}
+            <section class="mp-detail-section">
+                <h2 class="mp-section-title">Version History</h2>
+                <ul class="mp-version-list">
+                    {% for v in versions %}
+                        <li class="mp-version-item">
+                            <div class="mp-version-header">
+                                <span class="mp-version-number">v{{ v.version }}</span>
+                                {% if v.is_stable %}<span class="mp-badge mp-badge-stable">Stable</span>{% endif %}
+                                <span class="mp-version-date">{{ v.released_at|date:"Y-m-d" }}</span>
+                            </div>
+                            {% if v.changelog %}<p class="mp-version-changelog">{{ v.changelog }}</p>{% endif %}
+                            {% if v.min_scitex_version %}<p class="mp-version-req">Requires SciTeX &ge; {{ v.min_scitex_version }}</p>{% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+        <!-- Reviews -->
+        <section class="mp-detail-section" id="mp-reviews">
+            <h2 class="mp-section-title">Reviews</h2>
+            {% if user.is_authenticated %}
+                {% include "marketplace_app/partials/review_form.html" %}
+            {% endif %}
+            {% include "marketplace_app/partials/review_list.html" %}
+        </section>
+    </div>
+    <script>
+(function () {
+    function getCsrf() {
+        return document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+               document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+    }
+
+    function postApi(url, onSuccess, onError) {
+        fetch(url, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCsrf(), 'Content-Type': 'application/json' }
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (data.success) { onSuccess(data); }
+            else { console.error('API error:', data.error); if (onError) { onError(data); } }
+        })
+        .catch(function (err) { console.error('Fetch error:', err); if (onError) { onError({}); } });
+    }
+
+    var installBtn = document.getElementById('mp-install-btn');
+    if (installBtn) {
+        installBtn.addEventListener('click', function () {
+            installBtn.disabled = true;
+            postApi('/marketplace/api/' + installBtn.dataset.module + '/install/',
+                function () { location.reload(); },
+                function () { installBtn.disabled = false; }
+            );
+        });
+    }
+
+    var uninstallBtn = document.getElementById('mp-uninstall-btn');
+    if (uninstallBtn) {
+        uninstallBtn.addEventListener('click', function () {
+            if (!confirm('Uninstall this module?')) { return; }
+            uninstallBtn.disabled = true;
+            postApi('/marketplace/api/' + uninstallBtn.dataset.module + '/uninstall/',
+                function () { location.reload(); },
+                function () { uninstallBtn.disabled = false; }
+            );
+        });
+    }
+
+    var starBtn = document.getElementById('mp-star-btn');
+    if (starBtn) {
+        starBtn.addEventListener('click', function () {
+            var starred = starBtn.dataset.starred === 'true';
+            var endpoint = starred
+                ? '/marketplace/api/' + starBtn.dataset.module + '/unstar/'
+                : '/marketplace/api/' + starBtn.dataset.module + '/star/';
+            starBtn.disabled = true;
+            postApi(endpoint, function (data) {
+                starBtn.disabled = false;
+                var nowStarred = !starred;
+                starBtn.dataset.starred = nowStarred ? 'true' : 'false';
+                starBtn.classList.toggle('mp-btn-star--active', nowStarred);
+                starBtn.querySelector('i').className = (nowStarred ? 'fas' : 'far') + ' fa-star';
+                starBtn.textContent = ' ' + (nowStarred ? 'Unstar' : 'Star');
+                starBtn.prepend(Object.assign(document.createElement('i'), {
+                    className: (nowStarred ? 'fas' : 'far') + ' fa-star',
+                    ariaHidden: 'true'
+                }));
+                var countEl = document.getElementById('mp-star-count');
+                if (countEl && data.star_count !== undefined) {
+                    countEl.textContent = data.star_count;
+                }
+            }, function () { starBtn.disabled = false; });
+        });
+    }
+
+    var toggleBtn = document.getElementById('mp-toggle-btn');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', function () {
+            toggleBtn.disabled = true;
+            postApi('/marketplace/api/' + toggleBtn.dataset.module + '/toggle/',
+                function (data) {
+                    toggleBtn.disabled = false;
+                    var icon = toggleBtn.querySelector('i');
+                    if (icon) {
+                        icon.className = data.is_enabled ? 'fas fa-toggle-on' : 'fas fa-toggle-off';
+                    }
+                },
+                function () { toggleBtn.disabled = false; }
+            );
+        });
+    }
+}());
+    </script>
+{% endblock %}
