@@ -128,6 +128,7 @@ urlpatterns = [
     path("workspace/", include(("apps.workspace_app.urls", "workspace_app"))),
     path("example/", include(("apps.example_app.urls", "example_app"))),
     path("marketplace/", include(("apps.marketplace_app.urls", "marketplace_app"))),
+    path("modulemaker/", include(("apps.modulemaker_app.urls", "modulemaker_app"))),
     # LLM/Agent Support
     path("llm/", include(("apps.llm_app.urls", "llm_app"))),
     # Deveopment

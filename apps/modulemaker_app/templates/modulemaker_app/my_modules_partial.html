@@ -1,0 +1,57 @@
+{% load static %}
+
+<!-- My Modules grid partial -->
+<link rel="stylesheet" href="{% static 'modulemaker_app/css/usermod.css' %}" />
+<div class="usermod-workspace">
+    <div class="usermod-list-header">
+        <h2>
+            <i class="fas fa-puzzle-piece"></i> My Modules
+        </h2>
+        <a href="{% url 'modulemaker_app:editor_new' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> New Module
+        </a>
+    </div>
+    {% if modules %}
+        <div class="usermod-grid">
+            {% for mod in modules %}
+                <div class="usermod-grid-card">
+                    <div class="usermod-grid-card-header">
+                        <i class="fas {{ mod.icon }}"></i>
+                        <span class="usermod-grid-label">{{ mod.label }}</span>
+                        <span class="usermod-badge usermod-badge--{{ mod.visibility }}">{{ mod.visibility }}</span>
+                    </div>
+                    {% if mod.description %}<p class="usermod-grid-desc">{{ mod.description }}</p>{% endif %}
+                    <div class="usermod-grid-meta">
+                        <span title="Run count">
+                            <i class="fas fa-play"></i> {{ mod.run_count }}
+                        </span>
+                        {% if mod.last_run_at %}
+                            <span title="Last run">
+                                <i class="fas fa-clock"></i> {{ mod.last_run_at|timesince }} ago
+                            </span>
+                        {% endif %}
+                    </div>
+                    <div class="usermod-grid-actions">
+                        <a href="{% url 'modulemaker_app:editor' slug=mod.slug %}"
+                           class="btn btn-sm btn-outline"
+                           title="Edit module">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <button class="btn btn-sm btn-outline btn-danger usermod-delete-btn"
+                                data-slug="{{ mod.slug }}"
+                                title="Delete module">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="usermod-empty">
+            <i class="fas fa-puzzle-piece"></i>
+            <p>
+                You have no modules yet. Click <strong>New Module</strong> to get started.
+            </p>
+        </div>
+    {% endif %}
+</div>

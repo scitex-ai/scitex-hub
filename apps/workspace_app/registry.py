@@ -258,6 +258,18 @@ _BUILTIN_MODULES: list[ModuleConfig] = [
         order=90,
         hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
     ),
+    ModuleConfig(
+        name="modulemaker",
+        label="Module Maker",
+        app_name="modulemaker_app",
+        icon_fa="fa-puzzle-piece",
+        partial_template="modulemaker_app/my_modules_partial.html",
+        context_builder="apps.modulemaker_app.views.build_usermod_context",
+        body_class="modulemaker-page",
+        keyboard_shortcut="K",
+        order=85,
+        hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
+    ),
 ]
 
 # Mutable list: built-ins + external modules added at startup
