@@ -16,6 +16,22 @@ name: scitex-cloud-prod
 
 services:
   # ============================================
+  # Autoheal - Restarts unhealthy containers
+  # ============================================
+  autoheal:
+    image: willfarrell/autoheal:latest
+    environment:
+      AUTOHEAL_CONTAINER_LABEL: all
+      AUTOHEAL_INTERVAL: 60
+      AUTOHEAL_START_PERIOD: 300
+      AUTOHEAL_DEFAULT_STOP_TIMEOUT: 30
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: always
+    networks:
+      - scitex-network
+
+  # ============================================
   # Django Application (Production)
   # ============================================
   django:
@@ -25,7 +41,13 @@ services:
       args:
         BUILDKIT_INLINE_CACHE: 1
     image: scitex-cloud-prod-django:latest
-    entrypoint: ["/root-init.sh", "/entrypoint.sh"]
+    entrypoint: ["/usr/bin/tini", "--", "/root-init.sh", "/entrypoint.sh"]
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+        reservations:
+          memory: 2G
     command: ["daphne", "-b", "0.0.0.0", "-p", "8000", "--access-log", "-", "--verbosity", "1", "config.asgi:application"]
     volumes:
       - static_volume:/app/staticfiles
@@ -78,11 +100,13 @@ services:
       - /dev/fuse:/dev/fuse
     restart: always
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      test: ["CMD", "curl", "-f", "--max-time", "10", "http://localhost:8000/healthz/"]
       interval: 30s
-      timeout: 3s
+      timeout: 15s
       retries: 3
       start_period: 300s
+    labels:
+      - "autoheal=true"
     networks:
       - scitex-network
 
@@ -112,6 +136,12 @@ services:
       --queues=celery,ai_queue,search_queue,compute_queue,vis_queue
       --concurrency=8
       --prefetch-multiplier=1
+    deploy:
+      resources:
+        limits:
+          memory: 6G
+        reservations:
+          memory: 1G
     volumes:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
