@@ -9,7 +9,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterField(
             model_name="llmconnection",
-            field_name="daily_request_limit",
             name="daily_request_limit",
             field=models.IntegerField(
                 null=True,
@@ -20,7 +19,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterField(
             model_name="llmconnection",
-            field_name="daily_token_limit",
             name="daily_token_limit",
             field=models.IntegerField(
                 null=True,
