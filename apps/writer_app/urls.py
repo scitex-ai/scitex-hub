@@ -4,6 +4,7 @@
 # File: /home/ywatanabe/proj/scitex-cloud/apps/writer_app/urls.py
 # ----------------------------------------
 from __future__ import annotations
+
 import os
 
 __FILE__ = "./apps/writer_app/urls.py"
@@ -22,12 +23,12 @@ The URL structure is organized by feature domains:
 - Version Control: Git-based version management
 - arXiv: arXiv submission and integration
 - Collaboration: Real-time collaborative editing
+- Overleaf: Overleaf import/export integration
 
 All routes are defined in their respective feature modules under urls/
 """
 
-from django.urls import path
-from django.urls import include
+from django.urls import include, path
 
 app_name = "writer_app"
 
@@ -39,6 +40,8 @@ urlpatterns = [
     path("editor/", include("apps.writer_app.urls.editor")),
     path("compilation/", include("apps.writer_app.urls.compilation")),
     path("collaboration/", include("apps.writer_app.urls.collaboration")),
+    # Overleaf import/export
+    path("overleaf/", include("apps.writer_app.urls.overleaf")),
 ]
 
 # EOF

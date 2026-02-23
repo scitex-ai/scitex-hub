@@ -31,13 +31,24 @@ _builtins_ensured = False
 
 
 def _ensure_builtin_modules():
-    """Ensure built-in modules exist in DB. Runs once per process."""
+    """Ensure all built-in modules exist in DB. Runs once per process."""
     global _builtins_ensured
     if _builtins_ensured:
         return
-    if MarketplaceModule.objects.filter(is_builtin=True).exists():
+
+    from apps.workspace_app.registry import get_all_modules
+
+    registered_names = {m.name for m in get_all_modules()}
+    existing_names = set(
+        MarketplaceModule.objects.filter(is_builtin=True).values_list(
+            "module_name", flat=True
+        )
+    )
+
+    if registered_names <= existing_names:
         _builtins_ensured = True
         return
+
     try:
         from .management.commands.seed_marketplace import ensure_builtin_modules
 

@@ -1,26 +1,83 @@
-/* MCP Tools Settings — Toggle Grid */
+/* MCP Tools Settings — Toggle Grid with Categories */
 
-.mcp-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 12px;
+/* Status Bar */
+.mcp-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  border: 1px solid var(--border-color, #30363d);
+  background: var(--card-bg, #161b22);
+}
+
+.mcp-status-dot {
+  font-size: 8px;
+}
+
+.mcp-status-healthy .mcp-status-dot {
+  color: var(--success-color, #3fb950);
+}
+
+.mcp-status-warning .mcp-status-dot {
+  color: var(--warning-color, #d29922);
+}
+
+.mcp-status-error .mcp-status-dot,
+.mcp-status-unavailable .mcp-status-dot {
+  color: var(--danger-color, #f85149);
+}
+
+.mcp-status-text {
+  color: var(--text-secondary, #8b949e);
+}
+
+/* Category Sections */
+.mcp-category {
   margin-bottom: 24px;
 }
 
+.mcp-category-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted, #8b949e);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-color, #30363d);
+}
+
+/* Tool Grid */
+.mcp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+/* Toggle Card */
 .mcp-toggle-card {
   display: block;
-  padding: 14px 16px;
+  padding: 12px 14px;
   border: 1px solid var(--border-color, #30363d);
   border-radius: 8px;
   background: var(--card-bg, #161b22);
   cursor: pointer;
   transition:
     border-color 0.15s,
-    background 0.15s;
+    background 0.15s,
+    transform 0.1s;
 }
 
 .mcp-toggle-card:hover {
   border-color: var(--accent-color, #58a6ff);
+}
+
+.mcp-toggle-card:active {
+  transform: scale(0.99);
 }
 
 .mcp-toggle-card.enabled {
@@ -28,18 +85,19 @@
   background: var(--card-bg-active, #0d1117);
 }
 
+/* Card Header */
 .mcp-toggle-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .mcp-toggle-header i {
-  width: 18px;
+  width: 16px;
   text-align: center;
   color: var(--text-muted, #8b949e);
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .mcp-toggle-card.enabled .mcp-toggle-header i {
@@ -49,10 +107,27 @@
 .mcp-toggle-name {
   flex: 1;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-primary, #c9d1d9);
 }
 
+/* Tool Count Badge */
+.mcp-badge {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted, #8b949e);
+  background: var(--bg-tertiary, #21262d);
+  padding: 1px 6px;
+  border-radius: 10px;
+  line-height: 1.4;
+}
+
+.mcp-toggle-card.enabled .mcp-badge {
+  color: var(--success-color, #3fb950);
+  background: rgba(63, 185, 80, 0.1);
+}
+
+/* Description */
 .mcp-toggle-desc {
   margin: 0 0 4px;
   font-size: 12px;
@@ -63,6 +138,53 @@
 .mcp-toggle-key {
   font-size: 11px;
   color: var(--text-dimmed, #484f58);
+}
+
+/* Expandable Tool List */
+.mcp-tools-list {
+  margin: 0;
+}
+
+.mcp-tools-list summary {
+  font-size: 11px;
+  color: var(--text-dimmed, #484f58);
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+
+.mcp-tools-list summary::before {
+  content: "\25B8 ";
+  font-size: 10px;
+}
+
+.mcp-tools-list[open] summary::before {
+  content: "\25BE ";
+}
+
+.mcp-tools-list summary:hover {
+  color: var(--accent-color, #58a6ff);
+}
+
+.mcp-tools-list ul {
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.mcp-tools-list li {
+  font-size: 11px;
+  padding: 1px 0;
+}
+
+.mcp-tools-list li code {
+  font-size: 10px;
+  color: var(--text-dimmed, #484f58);
+  background: var(--code-bg, #0d1117);
+  padding: 0 3px;
+  border-radius: 2px;
 }
 
 /* Toggle Switch */
@@ -111,10 +233,34 @@
 /* Actions */
 .mcp-actions {
   display: flex;
+  align-items: center;
   gap: 8px;
   margin-bottom: 16px;
 }
 
+/* Save Toast */
+.mcp-save-toast {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--success-color, #3fb950);
+  padding: 4px 10px;
+  animation: mcp-toast-fade 0.3s ease;
+}
+
+@keyframes mcp-toast-fade {
+  from {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Info Box */
 .mcp-info {
   font-size: 13px;
   color: var(--text-muted, #8b949e);

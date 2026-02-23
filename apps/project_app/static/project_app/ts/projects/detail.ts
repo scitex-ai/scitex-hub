@@ -10,20 +10,37 @@ import {
   loadFileTree as loadFileTreeShared,
   toggleFolder as toggleFolderShared,
 } from "../shared/file-tree";
-import { initializeSidebar, toggleSidebar, toggleSidebarSection } from "./detail/sidebar";
-import { copyProjectToClipboard, downloadProjectAsFile } from "./detail/project-concatenation";
-import { loadProjectStats, toggleWatch, toggleStar, forkProject } from "./detail/project-actions";
+import {
+  initializeSidebar,
+  toggleSidebar,
+  toggleSidebarSection,
+} from "./detail/sidebar";
+import {
+  copyProjectToClipboard,
+  downloadProjectAsFile,
+} from "./detail/project-concatenation";
+import {
+  loadProjectStats,
+  toggleWatch,
+  toggleStar,
+  forkProject,
+} from "./detail/project-actions";
 import {
   toggleBranchDropdown,
   switchBranch,
   toggleAddFileDropdown,
   toggleCodeDropdown,
   toggleCopyDropdown,
+  toggleImportExportDropdown,
+  showImportModal,
+  handleExport,
   closeAllDropdowns,
 } from "./detail/toolbar-dropdowns";
 import { copyCloneUrl, downloadProjectZip } from "./detail/clone-download";
 
-console.log("[DEBUG] apps/project_app/static/project_app/ts/projects/detail.ts loaded");
+console.log(
+  "[DEBUG] apps/project_app/static/project_app/ts/projects/detail.ts loaded",
+);
 
 (function () {
   "use strict";
@@ -130,6 +147,9 @@ console.log("[DEBUG] apps/project_app/static/project_app/ts/projects/detail.ts l
   (window as any).toggleAddFileDropdown = toggleAddFileDropdown;
   (window as any).toggleCodeDropdown = toggleCodeDropdown;
   (window as any).toggleCopyDropdown = toggleCopyDropdown;
+  (window as any).toggleImportExportDropdown = toggleImportExportDropdown;
+  (window as any).showImportModal = showImportModal;
+  (window as any).handleExport = handleExport;
   (window as any).copyCloneUrl = copyCloneUrl;
   (window as any).downloadProjectZip = downloadProjectZip;
 })();

@@ -1,10 +1,13 @@
 """MCP Tools settings page — toggle MCP tool groups for Claude Code in Apptainer."""
 
+import json
 import logging
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
+from django.views.decorators.http import require_POST
 
 from apps.console_app.services.agents_config import DEFAULT_MCP_GROUPS
 
@@ -20,7 +23,7 @@ MCP_GROUP_INFO = {
     "STATS": {
         "display": "Statistics",
         "icon": "fa-calculator",
-        "desc": "23 statistical tests with effect sizes",
+        "desc": "Statistical tests with effect sizes",
     },
     "SCHOLAR": {
         "display": "Literature",
@@ -95,26 +98,94 @@ MCP_GROUP_INFO = {
     },
 }
 
+# Logical categories for organized display
+MCP_CATEGORIES = [
+    ("Research & Analysis", ["PLT", "STATS", "DATASET"]),
+    ("Writing & Publishing", ["SCHOLAR", "WRITER", "DIAGRAM"]),
+    ("Development", ["DEV", "LINTER", "INTROSPECT", "TEMPLATE", "PROJECT"]),
+    ("Automation", ["CLEW", "CAPTURE", "AUDIO", "UI", "SOCIAL"]),
+    ("System", ["USAGE"]),
+]
 
-def _build_groups_context(prefs: dict) -> list[dict]:
-    """Build template context for MCP tool groups with current toggle states."""
-    groups = []
-    for name in DEFAULT_MCP_GROUPS:
-        info = MCP_GROUP_INFO.get(
-            name, {"display": name, "icon": "fa-puzzle-piece", "desc": ""}
-        )
-        # Default: all enabled
-        enabled = prefs.get(name, True)
-        groups.append(
-            {
-                "name": name,
-                "display": info["display"],
-                "icon": info["icon"],
-                "desc": info["desc"],
-                "enabled": enabled,
+
+def _get_tool_info() -> tuple[dict, list]:
+    """Get tool counts per group and tool names. Returns (counts, tool_names_by_group)."""
+    try:
+        from scitex.mcp_server import FASTMCP_AVAILABLE
+        from scitex.mcp_server import mcp as mcp_server
+
+        if not FASTMCP_AVAILABLE or mcp_server is None:
+            return {}, {}
+
+        # FastMCP 2.x/3.x compat
+        tm = getattr(mcp_server, "_tool_manager", None)
+        if tm is not None and hasattr(tm, "_tools"):
+            tools = dict(tm._tools)
+        else:
+            return {}, {}
+
+        counts = {}
+        names = {}
+        for name in sorted(tools.keys()):
+            prefix = name.split("_")[0].upper()
+            counts[prefix] = counts.get(prefix, 0) + 1
+            names.setdefault(prefix, []).append(name)
+        return counts, names
+    except Exception:
+        return {}, {}
+
+
+def _get_mcp_status() -> dict:
+    """Get MCP server health status."""
+    try:
+        from scitex.mcp_server import FASTMCP_AVAILABLE
+        from scitex.mcp_server import mcp as mcp_server
+
+        if not FASTMCP_AVAILABLE:
+            return {"status": "unavailable", "message": "FastMCP not installed"}
+        if mcp_server is None:
+            return {"status": "unavailable", "message": "MCP server not initialized"}
+
+        tm = getattr(mcp_server, "_tool_manager", None)
+        if tm is not None and hasattr(tm, "_tools"):
+            count = len(tm._tools)
+            return {
+                "status": "healthy",
+                "message": f"{count} tools loaded",
+                "count": count,
             }
-        )
-    return groups
+        return {"status": "warning", "message": "Tool manager unavailable"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+def _build_categories_context(prefs: dict) -> list[dict]:
+    """Build template context grouped by category with tool counts."""
+    tool_counts, tool_names = _get_tool_info()
+    categories = []
+    for cat_name, group_keys in MCP_CATEGORIES:
+        groups = []
+        for name in group_keys:
+            if name not in DEFAULT_MCP_GROUPS:
+                continue
+            info = MCP_GROUP_INFO.get(
+                name, {"display": name, "icon": "fa-puzzle-piece", "desc": ""}
+            )
+            enabled = prefs.get(name, True)
+            groups.append(
+                {
+                    "name": name,
+                    "display": info["display"],
+                    "icon": info["icon"],
+                    "desc": info["desc"],
+                    "enabled": enabled,
+                    "tool_count": tool_counts.get(name, 0),
+                    "tools": tool_names.get(name, []),
+                }
+            )
+        if groups:
+            categories.append({"name": cat_name, "groups": groups})
+    return categories
 
 
 def _regenerate_claude_config(user):
@@ -136,7 +207,6 @@ def _regenerate_claude_config(user):
         if prefs.get(group, True):
             mcp_env[f"SCITEX_MCP_USE_{group}"] = "1"
 
-    # Regenerate for all projects
     proj_dir = user_data_dir / "proj"
     regenerated = False
     if proj_dir.exists():
@@ -175,5 +245,31 @@ def mcp_settings(request):
 
         return redirect("accounts_app:mcp_tools")
 
-    groups = _build_groups_context(prefs)
-    return render(request, "accounts_app/mcp_settings.html", {"groups": groups})
+    categories = _build_categories_context(prefs)
+    mcp_status = _get_mcp_status()
+    return render(
+        request,
+        "accounts_app/mcp_settings.html",
+        {"categories": categories, "mcp_status": mcp_status},
+    )
+
+
+@login_required
+@require_POST
+def mcp_settings_api(request):
+    """AJAX endpoint for saving MCP tool preferences."""
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    new_prefs = {}
+    for name in DEFAULT_MCP_GROUPS:
+        new_prefs[name] = bool(data.get(name, True))
+
+    profile = request.user.profile
+    profile.mcp_preferences = new_prefs
+    profile.save(update_fields=["mcp_preferences"])
+
+    regenerated = _regenerate_claude_config(request.user)
+    return JsonResponse({"ok": True, "regenerated": regenerated})

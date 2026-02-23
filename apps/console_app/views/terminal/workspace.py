@@ -98,6 +98,28 @@ fi
             content += sync_block
         changed = True
 
+    # Patch 3: scitex version MOTD on login
+    if "[SciTeX Cloud] scitex v" not in content:
+        motd_block = """
+# Show scitex version on login
+if command -v scitex &>/dev/null; then
+    _V=$(scitex --version 2>/dev/null | head -1)
+    echo -e "\\033[0;36m[SciTeX Cloud] scitex v${_V}\\033[0m"
+    unset _V
+fi
+"""
+        # Insert after PS1 line
+        marker = "# AI CLI tools"
+        if marker in content:
+            content = content.replace(marker, motd_block + marker)
+        else:
+            marker = "# Aliases"
+            if marker in content:
+                content = content.replace(marker, motd_block + marker)
+            else:
+                content += motd_block
+        changed = True
+
     if changed:
         bashrc.write_text(content)
         logger.info("Patched existing bashrc with AI CLI tools and agents sync")

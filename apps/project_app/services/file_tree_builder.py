@@ -94,11 +94,17 @@ def build_project_file_tree(project) -> Optional[dict]:
                 else:
                     git_status = get_inherited_untracked_status(rel_path_str)
 
+                try:
+                    mtime = item.stat().st_mtime
+                except OSError:
+                    mtime = 0
+
                 item_data = {
                     "name": item.name,
                     "type": "directory" if item.is_dir() else "file",
                     "path": rel_path_str,
                     "git_status": git_status,
+                    "mtime": mtime,
                 }
 
                 if item.is_dir() and current_depth < max_depth:

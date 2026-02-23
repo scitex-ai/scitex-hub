@@ -14,6 +14,7 @@ class TestPlaceholder:
         """Placeholder test - implement actual tests."""
         pytest.skip("Not implemented yet")
 
+
 if __name__ == "__main__":
     import os
 
@@ -28,47 +29,47 @@ if __name__ == "__main__":
 # # Timestamp: 2025-11-25 23:20:00
 # # Author: ywatanabe
 # # File: apps/console_app/job_api_views.py
-# 
+#
 # """
 # SLURM job management API views for SciTeX Cloud.
-# 
+#
 # Provides REST API endpoints for submitting and managing computational jobs
 # through SLURM and Apptainer containers.
 # """
-# 
+#
 # import json
 # import logging
 # from pathlib import Path
-# 
+#
 # from django.conf import settings
 # from django.contrib.auth.decorators import login_required
 # from django.http import JsonResponse
 # from django.views.decorators.csrf import csrf_exempt
 # from django.views.decorators.http import require_http_methods
-# 
+#
 # from .services import SlurmManager
-# 
+#
 # logger = logging.getLogger(__name__)
-# 
+#
 # # Lazy-load SLURM manager to avoid initialization errors
 # _slurm_manager = None
-# 
-# 
+#
+#
 # def get_slurm_manager():
 #     """Get or create SLURM manager instance."""
 #     global _slurm_manager
 #     if _slurm_manager is None:
 #         _slurm_manager = SlurmManager()
 #     return _slurm_manager
-# 
-# 
+#
+#
 # @login_required
 # @csrf_exempt
 # @require_http_methods(["POST"])
 # def api_submit_job(request):
 #     """
 #     Submit a computational job to SLURM.
-# 
+#
 #     POST /code/api/jobs/submit/
 #     Body: {
 #         "script_path": "/workspace/analysis.py",
@@ -79,7 +80,7 @@ if __name__ == "__main__":
 #         "partition": "normal",
 #         "env_vars": {"DEBUG": "1"}
 #     }
-# 
+#
 #     Returns:
 #         {
 #             "success": true,
@@ -90,17 +91,17 @@ if __name__ == "__main__":
 #     """
 #     try:
 #         data = json.loads(request.body)
-# 
+#
 #         # Get user workspace
 #         user_workspace = get_user_workspace(request.user)
-# 
+#
 #         # Get container path from settings
 #         container_path = Path(getattr(
 #             settings,
 #             'APPTAINER_CONTAINER_PATH',
-#             '/home/ywatanabe/proj/scitex-cloud/deployment/singularity/scitex-user-workspace.sif'
+#             '/home/ywatanabe/proj/scitex-cloud/deployment/singularity/scitex-cloud-shared-v0.1.0.sif'
 #         ))
-# 
+#
 #         # Submit job
 #         result = get_slurm_manager().submit_job(
 #             user_id=str(request.user.id),
@@ -114,14 +115,14 @@ if __name__ == "__main__":
 #             time_limit=data.get('time_limit', '01:00:00'),
 #             env_vars=data.get('env_vars', {})
 #         )
-# 
+#
 #         if result['success']:
 #             logger.info(f"Job {result['job_id']} submitted for user {request.user.username}")
 #         else:
 #             logger.error(f"Job submission failed for user {request.user.username}: {result['message']}")
-# 
+#
 #         return JsonResponse(result)
-# 
+#
 #     except json.JSONDecodeError:
 #         return JsonResponse({
 #             'success': False,
@@ -133,16 +134,16 @@ if __name__ == "__main__":
 #             'success': False,
 #             'message': f'Server error: {str(e)}'
 #         }, status=500)
-# 
-# 
+#
+#
 # @login_required
 # @require_http_methods(["GET"])
 # def api_job_status(request, job_id):
 #     """
 #     Get status of a SLURM job.
-# 
+#
 #     GET /code/api/jobs/{job_id}/status/
-# 
+#
 #     Returns:
 #         {
 #             "job_id": 42,
@@ -162,17 +163,17 @@ if __name__ == "__main__":
 #             'success': False,
 #             'message': f'Error: {str(e)}'
 #         }, status=500)
-# 
-# 
+#
+#
 # @login_required
 # @csrf_exempt
 # @require_http_methods(["POST"])
 # def api_cancel_job(request, job_id):
 #     """
 #     Cancel a running SLURM job.
-# 
+#
 #     POST /code/api/jobs/{job_id}/cancel/
-# 
+#
 #     Returns:
 #         {
 #             "success": true,
@@ -190,16 +191,16 @@ if __name__ == "__main__":
 #             'success': False,
 #             'message': f'Error: {str(e)}'
 #         }, status=500)
-# 
-# 
+#
+#
 # @login_required
 # @require_http_methods(["GET"])
 # def api_job_output(request, job_id):
 #     """
 #     Get output logs for a job.
-# 
+#
 #     GET /code/api/jobs/{job_id}/output/?tail=100
-# 
+#
 #     Returns:
 #         {
 #             "found": true,
@@ -210,13 +211,13 @@ if __name__ == "__main__":
 #     try:
 #         tail_lines = int(request.GET.get('tail', 100))
 #         user_workspace = get_user_workspace(request.user)
-# 
+#
 #         output = get_slurm_manager().get_job_output(
 #             job_id=int(job_id),
 #             workspace=user_workspace,
 #             tail_lines=tail_lines
 #         )
-# 
+#
 #         return JsonResponse(output)
 #     except Exception as e:
 #         logger.error(f"Error getting job {job_id} output: {str(e)}", exc_info=True)
@@ -224,16 +225,16 @@ if __name__ == "__main__":
 #             'found': False,
 #             'message': f'Error: {str(e)}'
 #         }, status=500)
-# 
-# 
+#
+#
 # @login_required
 # @require_http_methods(["GET"])
 # def api_queue_status(request):
 #     """
 #     Get overall cluster/queue status.
-# 
+#
 #     GET /code/api/jobs/queue/
-# 
+#
 #     Returns:
 #         {
 #             "running": 5,
@@ -251,20 +252,20 @@ if __name__ == "__main__":
 #             'success': False,
 #             'message': f'Error: {str(e)}'
 #         }, status=500)
-# 
-# 
+#
+#
 # @login_required
 # @require_http_methods(["GET"])
 # def api_user_jobs(request):
 #     """
 #     Get list of jobs for current user.
-# 
+#
 #     GET /code/api/jobs/?state=running
-# 
+#
 #     Query params:
 #         - state: Filter by state (running/pending/all)
 #         - user: Filter by user (default: all users visible)
-# 
+#
 #     Returns:
 #         {
 #             "success": true,
@@ -280,7 +281,7 @@ if __name__ == "__main__":
 #     """
 #     try:
 #         slurm = get_slurm_manager()
-# 
+#
 #         # Check if SLURM is available
 #         if not slurm.is_available():
 #             return JsonResponse({
@@ -292,17 +293,17 @@ if __name__ == "__main__":
 #                 'slurm_available': False,
 #                 'message': 'SLURM is not available on this system'
 #             })
-# 
+#
 #         # Get filter parameters
 #         state_filter = request.GET.get('state', 'all')
 #         user_filter = request.GET.get('user')  # None means all users
-# 
+#
 #         # Get jobs from SLURM
 #         result = slurm.list_jobs(user=user_filter, state=state_filter)
 #         result['slurm_available'] = True
-# 
+#
 #         return JsonResponse(result)
-# 
+#
 #     except Exception as e:
 #         logger.error(f"Error getting user jobs: {str(e)}", exc_info=True)
 #         return JsonResponse({
@@ -314,15 +315,15 @@ if __name__ == "__main__":
 #             'slurm_available': False,
 #             'message': f'Error: {str(e)}'
 #         }, status=500)
-# 
-# 
+#
+#
 # def get_user_workspace(user):
 #     """
 #     Get workspace path for user.
-# 
+#
 #     Args:
 #         user: Django User object
-# 
+#
 #     Returns:
 #         Path: User workspace directory
 #     """
@@ -332,13 +333,13 @@ if __name__ == "__main__":
 #         'USER_WORKSPACE_BASE',
 #         '/tmp/scitex_workspaces'
 #     ))
-# 
+#
 #     user_workspace = base_workspace / f"user_{user.id}"
 #     user_workspace.mkdir(parents=True, exist_ok=True)
-# 
+#
 #     return user_workspace
-# 
-# 
+#
+#
 # # EOF
 
 # --------------------------------------------------------------------------------

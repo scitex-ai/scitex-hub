@@ -73,12 +73,21 @@ def is_slurm_available() -> bool:
     return available
 
 
+class ContainerNotFoundError(Exception):
+    """Raised when no valid Apptainer SIF container is found"""
+
+    pass
+
+
 def select_container(user_data_dir: Path, project_dir: Path) -> str:
     """
     Select container with priority:
     1. Project-specific: ~/proj/{project}/.singularity/custom.sif
     2. User default: ~/.singularity/default.sif
     3. Base image: (from SLURM_CONTAINER_PATH config)
+
+    Raises ContainerNotFoundError if no valid SIF exists.
+    SECURITY: Never returns a path to a non-existent container.
     """
     # Project-specific container
     project_sif = project_dir / ".singularity" / "custom.sif"
@@ -92,7 +101,28 @@ def select_container(user_data_dir: Path, project_dir: Path) -> str:
         logger.debug(f"Using user container: {user_sif}")
         return str(user_sif)
 
-    # Base container
+    # Base container — validate it exists
+    # SLURM_CONTAINER_PATH is the host path (for SLURM jobs on compute nodes).
+    # BASE_CONTAINER_PATH is the Docker-internal path (/app/singularity/...).
+    # We validate via the Docker path (accessible from here), but return the
+    # host path for SLURM execution.
+    from .config import BASE_CONTAINER_PATH
+
+    docker_sif = Path(BASE_CONTAINER_PATH)
+    host_sif = Path(SLURM_CONTAINER_PATH)
+
+    if not docker_sif.exists() and not host_sif.exists():
+        logger.error(
+            f"Base container NOT FOUND: checked {BASE_CONTAINER_PATH} (Docker) "
+            f"and {SLURM_CONTAINER_PATH} (host) — "
+            f"build with: sudo apptainer build "
+            f"deployment/singularity/scitex-cloud-shared-v0.1.0.def"
+        )
+        raise ContainerNotFoundError(
+            f"Apptainer SIF not found at {SLURM_CONTAINER_PATH}. "
+            f"Terminal cannot start without container isolation."
+        )
+
     logger.debug(f"Using base container: {SLURM_CONTAINER_PATH}")
     return SLURM_CONTAINER_PATH
 
@@ -117,6 +147,25 @@ def exec_slurm_shell(
     host_user_dir = SLURM_USER_DATA_ROOT / username
     host_project_dir = host_user_dir / "proj" / project_slug
 
+    # Dev mode: editable source mounts
+    from .config import FIGRECIPE_DEV_SRC, SCITEX_DEV_SRC
+
+    dev_bind_args = []
+    # Note: we skip is_dir() because these are HOST paths (for SLURM),
+    # not visible from inside the Django Docker container.
+    if SCITEX_DEV_SRC:
+        dev_bind_args += [
+            "--bind",
+            f"{SCITEX_DEV_SRC}:/usr/local/lib/python3.11/site-packages/scitex:rw",
+        ]
+        logger.debug(f"Dev mode: mounting editable scitex from {SCITEX_DEV_SRC}")
+    if FIGRECIPE_DEV_SRC:
+        dev_bind_args += [
+            "--bind",
+            f"{FIGRECIPE_DEV_SRC}:/usr/local/lib/python3.11/site-packages/figrecipe:rw",
+        ]
+        logger.debug(f"Dev mode: mounting editable figrecipe from {FIGRECIPE_DEV_SRC}")
+
     # Build srun command with host paths
     cmd = [
         "srun",
@@ -136,27 +185,35 @@ def exec_slurm_shell(
         "--writable-tmpfs",
         "--hostname",
         "scitex-cloud",
+        # Pass env vars through --cleanenv (Apptainer strips inherited vars)
+        "--env",
+        "TERM=xterm-256color",
+        "--env",
+        "SCITEX_CLOUD=true",
+        "--env",
+        f"SCITEX_PROJECT={project_slug}",
+        "--env",
+        f"SCITEX_USER={username}",
+        "--env",
+        f"USER={username}",
+        "--env",
+        f"LOGNAME={username}",
         "--home",
         f"{host_user_dir}:/home/{username}",
         "--bind",
         f"{host_project_dir}:/home/{username}/proj/{project_slug}:rw",
+        *dev_bind_args,
         "--pwd",
         f"/home/{username}/proj/{project_slug}",
         container_path,  # Use host path to SIF
     ]
 
-    # Environment
+    # Environment for srun process (host-side, before exec into container)
     env = {
         "TERM": "xterm-256color",
         "PATH": "/usr/local/bin:/usr/bin:/bin",
         "LANG": "C.UTF-8",
         "LC_ALL": "C.UTF-8",
-        "SCITEX_CLOUD": "true",
-        "SCITEX_PROJECT": project_slug,
-        "SCITEX_USER": username,
-        "USER": username,  # Standard Unix USER variable
-        "LOGNAME": username,  # Standard Unix LOGNAME variable
-        "HOME": f"/home/{username}",  # Ensure HOME is set correctly
     }
 
     logger.debug(

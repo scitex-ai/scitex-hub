@@ -50,8 +50,15 @@ SOCKET_PATH = "/tmp/scitex-terminal-broker.sock"
 class TerminalSession:
     """Manages a single PTY session."""
 
-    def __init__(self, session_id: str, username: str, user_data_dir: Path,
-                 project_dir: Path, container_path: str, project_slug: str):
+    def __init__(
+        self,
+        session_id: str,
+        username: str,
+        user_data_dir: Path,
+        project_dir: Path,
+        container_path: str,
+        project_slug: str,
+    ):
         self.session_id = session_id
         self.username = username
         self.user_data_dir = user_data_dir
@@ -96,7 +103,7 @@ class TerminalSession:
 
             # Import here to avoid issues in parent process
             from apps.console_app.views.terminal.config import (
-                SLURM_CONTAINER_PATH,
+                SCITEX_DEV_SRC,
                 SLURM_CPUS,
                 SLURM_MEMORY_GB,
                 SLURM_PARTITION,
@@ -109,6 +116,15 @@ class TerminalSession:
             # Docker: /app/data/users/{username} -> Host: /opt/scitex/data/users/{username}
             host_user_dir = SLURM_USER_DATA_ROOT / self.username
             host_project_dir = host_user_dir / "proj" / self.project_slug
+
+            # Dev mode: editable scitex source mount
+            dev_bind_args = []
+            if SCITEX_DEV_SRC and Path(SCITEX_DEV_SRC).is_dir():
+                dev_bind_args = [
+                    "--bind",
+                    f"{SCITEX_DEV_SRC}:/usr/local/lib/python3.11/site-packages/scitex:rw",
+                ]
+                logger.info(f"Dev mode: mounting editable scitex from {SCITEX_DEV_SRC}")
 
             # Build environment
             env = os.environ.copy()
@@ -128,14 +144,20 @@ class TerminalSession:
                 f"--job-name=terminal_{self.username}",
                 "--chdir=/tmp",
                 "--pty",
-                "apptainer", "shell",
+                "apptainer",
+                "shell",
                 "--containall",
                 "--cleanenv",
                 "--writable-tmpfs",
-                "--hostname", "scitex-cloud",
-                "--home", f"{host_user_dir}:/home/{self.username}",
-                "--bind", f"{host_project_dir}:/home/{self.username}/proj/{self.project_slug}:rw",
-                "--pwd", f"/home/{self.username}/proj/{self.project_slug}",
+                "--hostname",
+                "scitex-cloud",
+                "--home",
+                f"{host_user_dir}:/home/{self.username}",
+                "--bind",
+                f"{host_project_dir}:/home/{self.username}/proj/{self.project_slug}:rw",
+                *dev_bind_args,
+                "--pwd",
+                f"/home/{self.username}/proj/{self.project_slug}",
                 self.container_path,
             ]
 
@@ -148,6 +170,7 @@ class TerminalSession:
 
     def start_reader(self, output_callback):
         """Start thread to read PTY output."""
+
         def reader():
             try:
                 while self.running and self.fd is not None:
@@ -258,9 +281,7 @@ class TerminalBroker:
             try:
                 client, _ = self.server_socket.accept()
                 threading.Thread(
-                    target=self._handle_client,
-                    args=(client,),
-                    daemon=True
+                    target=self._handle_client, args=(client,), daemon=True
                 ).start()
             except Exception as e:
                 if self.running:
@@ -351,11 +372,14 @@ class TerminalBroker:
             # Start reader that sends output back to client
             def output_callback(sid, data):
                 try:
-                    self._send_message(client, {
-                        "action": "output",
-                        "session_id": sid,
-                        "data": base64.b64encode(data).decode("ascii"),
-                    })
+                    self._send_message(
+                        client,
+                        {
+                            "action": "output",
+                            "session_id": sid,
+                            "data": base64.b64encode(data).decode("ascii"),
+                        },
+                    )
                 except:
                     pass
 
@@ -452,6 +476,7 @@ def main():
 if __name__ == "__main__":
     # Set up Django environment
     import django
+
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
     django.setup()
 

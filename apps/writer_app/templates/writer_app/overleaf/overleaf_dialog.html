@@ -1,0 +1,191 @@
+<!-- Overleaf Import/Export Dialog -->
+<div class="scitex-modal-overlay" id="overleafModal" style="display: none">
+    <div class="scitex-modal-content" style="max-width: 520px">
+        <div class="scitex-modal-header">
+            <h3>
+                <i class="fas fa-exchange-alt me-2"></i>Overleaf Integration
+            </h3>
+            <button type="button" class="scitex-modal-close">&times;</button>
+        </div>
+        <div class="scitex-modal-body">
+            <!-- Import Section -->
+            <div class="compilation-option-group" style="margin-bottom: 1.5rem">
+                <h6 style="margin-bottom: 0.5rem;
+                           color: var(--text-primary);
+                           font-weight: 600;
+                           font-size: 13px">
+                    <i class="fas fa-file-import me-1"></i>Import from Overleaf
+                </h6>
+                <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 0.75rem">
+                    Upload a ZIP file exported from Overleaf to import into your current project.
+                    This will overwrite existing writer content.
+                </p>
+                <form id="overleaf-import-form" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div style="display: flex; gap: 0.5rem; align-items: center">
+                        <input type="file"
+                               id="overleaf-zip-input"
+                               name="zip_file"
+                               accept=".zip"
+                               class="form-control form-control-sm"
+                               style="flex: 1;
+                                      font-size: 12px" />
+                        <button type="submit"
+                                id="overleaf-import-btn"
+                                class="scitex-btn scitex-btn-primary"
+                                style="white-space: nowrap"
+                                disabled>
+                            <i class="fas fa-upload me-1"></i>Import
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <!-- Divider -->
+            <hr style="border-color: var(--border-color); margin: 1rem 0" />
+            <!-- Export Section -->
+            <div class="compilation-option-group">
+                <h6 style="margin-bottom: 0.5rem;
+                           color: var(--text-primary);
+                           font-weight: 600;
+                           font-size: 13px">
+                    <i class="fas fa-file-export me-1"></i>Export to Overleaf
+                </h6>
+                <p style="color: var(--text-secondary); font-size: 12px; margin-bottom: 0.75rem">
+                    Download your project as an Overleaf-compatible ZIP file.
+                    You can then upload it to Overleaf.
+                </p>
+                <button type="button" id="overleaf-export-btn" class="scitex-btn scitex-btn-secondary">
+                    <i class="fas fa-download me-1"></i>Export ZIP
+                </button>
+            </div>
+            <!-- Status Area -->
+            <div id="overleaf-status"
+                 style="display: none;
+                        margin-top: 1rem;
+                        padding: 0.75rem;
+                        border-radius: 4px;
+                        font-size: 12px"></div>
+        </div>
+        <div class="scitex-modal-footer">
+            <button type="button" class="scitex-btn scitex-btn-secondary scitex-modal-close">Close</button>
+        </div>
+    </div>
+</div>
+<script>
+(function() {
+    const importForm = document.getElementById('overleaf-import-form');
+    const zipInput = document.getElementById('overleaf-zip-input');
+    const importBtn = document.getElementById('overleaf-import-btn');
+    const exportBtn = document.getElementById('overleaf-export-btn');
+    const statusArea = document.getElementById('overleaf-status');
+
+    function showStatus(message, isError) {
+        statusArea.style.display = 'block';
+        statusArea.textContent = message;
+        statusArea.style.backgroundColor = isError
+            ? 'var(--color-danger-subtle, #3d0911)'
+            : 'var(--color-success-subtle, #0d3818)';
+        statusArea.style.color = isError
+            ? 'var(--color-danger-fg, #ff7b89)'
+            : 'var(--color-success-fg, #4ae168)';
+    }
+
+    function hideStatus() {
+        statusArea.style.display = 'none';
+    }
+
+    function setLoading(btn, loading) {
+        btn.disabled = loading;
+        if (loading) {
+            btn.dataset.originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Processing...';
+        } else if (btn.dataset.originalHtml) {
+            btn.innerHTML = btn.dataset.originalHtml;
+        }
+    }
+
+    // Enable import button only when file is selected
+    zipInput.addEventListener('change', function() {
+        importBtn.disabled = !this.files.length;
+        hideStatus();
+    });
+
+    // Import handler
+    importForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        hideStatus();
+
+        const formData = new FormData(importForm);
+        setLoading(importBtn, true);
+
+        fetch("{% url 'writer_app:api_overleaf_import' %}", {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+            }
+        })
+        .then(function(resp) { return resp.json(); })
+        .then(function(data) {
+            setLoading(importBtn, false);
+            if (data.success) {
+                showStatus('Import successful. Reloading...', false);
+                setTimeout(function() { window.location.reload(); }, 1500);
+            } else {
+                showStatus('Import failed: ' + data.error, true);
+            }
+        })
+        .catch(function(err) {
+            setLoading(importBtn, false);
+            showStatus('Import failed: ' + err.message, true);
+        });
+    });
+
+    // Export handler
+    exportBtn.addEventListener('click', function() {
+        hideStatus();
+        setLoading(exportBtn, true);
+
+        var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        fetch("{% url 'writer_app:api_overleaf_export' %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken
+            }
+        })
+        .then(function(resp) {
+            if (!resp.ok) {
+                return resp.json().then(function(data) {
+                    throw new Error(data.error || 'Export failed');
+                });
+            }
+            var disposition = resp.headers.get('Content-Disposition');
+            var filename = 'project_overleaf.zip';
+            if (disposition) {
+                var match = disposition.match(/filename="?([^"]+)"?/);
+                if (match) { filename = match[1]; }
+            }
+            return resp.blob().then(function(blob) {
+                return { blob: blob, filename: filename };
+            });
+        })
+        .then(function(result) {
+            setLoading(exportBtn, false);
+            var url = URL.createObjectURL(result.blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = result.filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showStatus('Export downloaded successfully.', false);
+        })
+        .catch(function(err) {
+            setLoading(exportBtn, false);
+            showStatus('Export failed: ' + err.message, true);
+        });
+    });
+})();
+</script>

@@ -8,7 +8,7 @@ from .ai_providers_views import ai_providers
 from .api_keys_views import api_keys
 
 # MCP settings views
-from .mcp_settings_views import mcp_settings
+from .mcp_settings_views import mcp_settings, mcp_settings_api
 from .profile_views import (
     appearance_settings,
     profile_edit,
@@ -51,4 +51,5 @@ __all__ = [
     "ai_providers",
     # MCP settings views
     "mcp_settings",
+    "mcp_settings_api",
 ]

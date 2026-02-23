@@ -65,6 +65,12 @@ else
     echo -e "⚠️  WARNING: /scitex-python not mounted!"
 fi
 
+# Install scitex-cloud itself in editable mode (for scitex_cloud.module etc.)
+if [ -f "/app/pyproject.toml" ]; then
+    echo_info "Installing scitex-cloud (editable)..."
+    uv pip install -e "/app" --link-mode=copy >/dev/null 2>&1 || true
+fi
+
 # ============================================
 # Install SciTeX Ecosystem (Editable Mode)
 # Skip on hot-reload — packages persist in container

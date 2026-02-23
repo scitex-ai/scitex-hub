@@ -3,17 +3,18 @@ Repository Project Models
 Contains: Project, ProjectMembership
 """
 
-from django.db import models
 from django.contrib.auth.models import User
+from django.db import models
 
 # Import Organization models from dedicated app
 from apps.organizations_app.models import Organization, ResearchGroup
 
+from .project_gitea_methods import ProjectGiteaMethodsMixin
+from .project_managers import ProjectManager
+
 # Import mixins and managers
 from .project_methods import ProjectMethodsMixin
-from .project_gitea_methods import ProjectGiteaMethodsMixin
 from .project_scitex_methods import ProjectSciTeXMethodsMixin
-from .project_managers import ProjectManager
 
 
 class ProjectMembership(models.Model):
@@ -62,7 +63,7 @@ class Project(
     ProjectMethodsMixin,
     ProjectGiteaMethodsMixin,
     ProjectSciTeXMethodsMixin,
-    models.Model
+    models.Model,
 ):
     """Model for research projects with enhanced collaboration"""
 
@@ -72,8 +73,8 @@ class Project(
     ]
 
     PROJECT_TYPES = [
-        ('local', 'Local Repository'),    # Git-enabled, Gitea
-        ('remote', 'Remote Filesystem'),  # SSHFS mount, no Git
+        ("local", "Local Repository"),  # Git-enabled, Gitea
+        ("remote", "Remote Filesystem"),  # SSHFS mount, no Git
     ]
 
     SOURCE_CHOICES = [
@@ -96,8 +97,8 @@ class Project(
     project_type = models.CharField(
         max_length=20,
         choices=PROJECT_TYPES,
-        default='local',
-        help_text="Local (Git-enabled) or Remote (SSH mount, no Git)"
+        default="local",
+        help_text="Local (Git-enabled) or Remote (SSH mount, no Git)",
     )
 
     # Privacy settings
@@ -245,6 +246,12 @@ class Project(
         default=False, help_text="Manuscript generated"
     )
 
+    # Home project flag — undeletable, always private, one per user
+    is_home = models.BooleanField(
+        default=False,
+        help_text="Home project: persistent, always private, cannot be deleted",
+    )
+
     # Language detection
     primary_language = models.CharField(
         max_length=50,
@@ -281,4 +288,12 @@ class Project(
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = self.generate_unique_slug(self.name, owner=self.owner)
+        # Home project is always private
+        if self.is_home:
+            self.visibility = "private"
         super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        if self.is_home:
+            raise ValueError("Home project cannot be deleted")
+        return super().delete(*args, **kwargs)

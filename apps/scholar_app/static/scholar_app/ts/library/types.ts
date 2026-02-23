@@ -15,8 +15,6 @@ export const API = {
     `/scholar/api/pdf/serve/?path=${encodeURIComponent(path)}`,
 };
 
-export type ViewMode = "card" | "table";
-
 export interface LibraryPaper {
   id: string;
   paper_id: string;

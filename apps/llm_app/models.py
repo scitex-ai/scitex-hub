@@ -30,12 +30,18 @@ class LLMConnection(models.Model):
     )
     last_request_at = models.DateTimeField(null=True, blank=True)
 
-    # Rate limiting
+    # Rate limiting (None = unlimited)
     daily_request_limit = models.IntegerField(
-        default=100, help_text="Maximum requests per day (0 = unlimited)"
+        null=True,
+        blank=True,
+        default=None,
+        help_text="Maximum requests per day (empty = unlimited)",
     )
     daily_token_limit = models.IntegerField(
-        default=100000, help_text="Maximum tokens per day (0 = unlimited)"
+        null=True,
+        blank=True,
+        default=None,
+        help_text="Maximum tokens per day (empty = unlimited)",
     )
 
     # Cost tracking
@@ -87,11 +93,11 @@ class LLMConnection(models.Model):
         """Check if rate limits would be exceeded by one more request"""
         daily_usage = self.get_daily_usage()
 
-        if self.daily_request_limit > 0:
+        if self.daily_request_limit is not None:
             if daily_usage["requests"] >= self.daily_request_limit:
                 return False, "Daily request limit reached"
 
-        if self.daily_token_limit > 0:
+        if self.daily_token_limit is not None:
             if daily_usage["tokens"] >= self.daily_token_limit:
                 return False, "Daily token limit reached"
 

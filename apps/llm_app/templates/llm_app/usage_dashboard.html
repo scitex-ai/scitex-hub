@@ -253,14 +253,14 @@
                                         <td>Daily request limit</td>
                                         <td>
                                             {{ stats.today.requests }} /
-                                            {{ stats.rate_limits.daily_request_limit }}
+                                            {{ stats.rate_limits.daily_request_limit|default:"∞" }}
                                         </td>
                                     </tr>
                                     <tr>
                                         <td>Daily token limit</td>
                                         <td>
                                             {{ stats.today.tokens }} /
-                                            {{ stats.rate_limits.daily_token_limit }}
+                                            {{ stats.rate_limits.daily_token_limit|default:"∞" }}
                                         </td>
                                     </tr>
                                 </tbody>

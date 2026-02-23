@@ -15,7 +15,9 @@ from django.conf import settings
 # Base Apptainer image (shared by all users)
 # For direct Apptainer execution inside Docker container
 BASE_CONTAINER_PATH = getattr(
-    settings, "SINGULARITY_IMAGE_PATH", "/app/singularity/scitex-user-workspace.sif"
+    settings,
+    "SINGULARITY_IMAGE_PATH",
+    "/app/singularity/scitex-cloud-shared-v0.1.0.sif",
 )
 
 # User data directory (inside Docker container)
@@ -49,12 +51,27 @@ SLURM_MEMORY_GB = int(
 SLURM_CONTAINER_PATH = os.environ.get(
     "SCITEX_CLOUD_SLURM_CONTAINER_PATH"
 ) or os.environ.get(
-    "SCITEX_SLURM_CONTAINER_PATH", "/opt/scitex/singularity/scitex-user-workspace.sif"
+    "SCITEX_SLURM_CONTAINER_PATH",
+    "/opt/scitex/singularity/scitex-cloud-shared-v0.1.0.sif",
 )
 SLURM_USER_DATA_ROOT = Path(
     os.environ.get("SCITEX_CLOUD_SLURM_USER_DATA_ROOT")
     or os.environ.get("SCITEX_SLURM_USER_DATA_ROOT", "/opt/scitex/data/users")
 )
+
+# =============================================================================
+# Dev Mode: Editable source mounts
+# =============================================================================
+# In dev, bind-mount local source into the container for live editing.
+# Paths are HOST paths (for SLURM --bind), not Docker-internal paths.
+
+# scitex package source
+# Example: /home/ywatanabe/proj/scitex-code/src/scitex
+SCITEX_DEV_SRC = os.environ.get("SCITEX_CLOUD_DEV_SCITEX_SRC", "")
+
+# figrecipe package source (plotting dependency)
+# Example: /home/ywatanabe/proj/figrecipe/src/figrecipe
+FIGRECIPE_DEV_SRC = os.environ.get("SCITEX_CLOUD_DEV_FIGRECIPE_SRC", "")
 
 
 # EOF

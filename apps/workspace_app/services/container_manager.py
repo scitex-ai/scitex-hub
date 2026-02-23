@@ -16,8 +16,8 @@ except ImportError:
     docker = None  # Optional dependency for container management
 import logging
 from typing import Optional, Tuple
+
 from django.contrib.auth.models import User
-from django.conf import settings
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
@@ -41,7 +41,7 @@ class UserContainerManager:
     """
 
     # Configuration
-    IMAGE_NAME = "scitex-user-workspace:latest"
+    IMAGE_NAME = "scitex-cloud-shared-v0.1.0:latest"
     NETWORK_NAME = "scitex-cloud-dev_scitex-dev"  # Same network as web/db containers
 
     # Resource limits
@@ -69,7 +69,9 @@ class UserContainerManager:
         # This matches the existing project data structure
         return f"/app/data/users/{user.username}"
 
-    def get_or_create_container(self, user: User) -> "docker.models.containers.Container":
+    def get_or_create_container(
+        self, user: User
+    ) -> "docker.models.containers.Container":
         """
         Get existing container or create new one
 
@@ -124,22 +126,13 @@ class UserContainerManager:
                 detach=True,
                 stdin_open=True,
                 tty=True,
-
                 # Resource limits
                 mem_limit=self.DEFAULT_MEMORY_LIMIT,
                 cpu_quota=self.DEFAULT_CPU_QUOTA,
-
                 # Mount user's data
-                volumes={
-                    user_data_path: {
-                        'bind': '/home/user',
-                        'mode': 'rw'
-                    }
-                },
-
+                volumes={user_data_path: {"bind": "/home/user", "mode": "rw"}},
                 # Network - same as other SciTeX containers
                 network=self.NETWORK_NAME,
-
                 # Environment variables
                 environment={
                     "USER": "user",
@@ -147,13 +140,12 @@ class UserContainerManager:
                     "SCITEX_USERNAME": user.username,
                     "SCITEX_USER_ID": user.id,
                 },
-
                 # Labels for identification
                 labels={
                     "scitex.user": user.username,
                     "scitex.user_id": str(user.id),
                     "scitex.type": "user-workspace",
-                }
+                },
             )
 
             logger.info(f"✓ Created container for {user.username}: {container.id[:12]}")
@@ -222,10 +214,7 @@ class UserContainerManager:
             return False
 
     def exec_command(
-        self,
-        user: User,
-        command: list,
-        workdir: str = "/home/user"
+        self, user: User, command: list, workdir: str = "/home/user"
     ) -> Tuple[int, str]:
         """
         Execute command in user's container
@@ -250,10 +239,12 @@ class UserContainerManager:
 
             self._mark_activity(user)
 
-            return result.exit_code, result.output.decode('utf-8')
+            return result.exit_code, result.output.decode("utf-8")
 
         except Exception as e:
-            logger.error(f"Failed to execute command in {user.username}'s container: {e}")
+            logger.error(
+                f"Failed to execute command in {user.username}'s container: {e}"
+            )
             raise
 
     def get_container_status(self, user: User) -> Optional[dict]:
@@ -275,7 +266,7 @@ class UserContainerManager:
                 "id": container.id,
                 "name": container.name,
                 "status": container.status,
-                "created": container.attrs['Created'],
+                "created": container.attrs["Created"],
                 "image": container.image.tags[0] if container.image.tags else None,
             }
 
@@ -301,8 +292,7 @@ class UserContainerManager:
         cutoff_time = timezone.now() - timezone.timedelta(minutes=idle_minutes)
 
         idle_workspaces = UserWorkspace.objects.filter(
-            is_running=True,
-            last_activity_at__lt=cutoff_time
+            is_running=True, last_activity_at__lt=cutoff_time
         )
 
         idle_list = []
@@ -344,10 +334,7 @@ class UserContainerManager:
     # Helper methods for state tracking
 
     def _update_workspace_state(
-        self,
-        user: User,
-        container: "docker.models.containers.Container",
-        started: bool
+        self, user: User, container: "docker.models.containers.Container", started: bool
     ):
         """Update UserWorkspace model with container state"""
         from apps.workspace_app.models import UserWorkspace

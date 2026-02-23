@@ -305,7 +305,14 @@ def check_api_services(status_data):
     try:
         from scitex.mcp_server import mcp as _mcp
 
-        tool_count = len(_mcp._tool_manager._tools)
+        tm = getattr(_mcp, "_tool_manager", None)
+        if tm is not None and hasattr(tm, "_tools"):
+            tool_count = len(tm._tools)
+        else:
+            import asyncio
+
+            tools = asyncio.run(_mcp.list_tools())
+            tool_count = len(tools)
         status_data["api_services"].append(
             {
                 "name": "SciTeX MCP Tools",

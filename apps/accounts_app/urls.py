@@ -9,6 +9,7 @@ from .views import (
     appearance_settings,
     git_integrations,
     mcp_settings,
+    mcp_settings_api,
     profile_edit,
     profile_view,
     remote_credentials,
@@ -47,5 +48,10 @@ urlpatterns = [
         "api/ssh-keys/generate/",
         api_generate_ssh_key,
         name="api_generate_ssh_key",
+    ),
+    path(
+        "api/mcp-preferences/",
+        mcp_settings_api,
+        name="mcp_settings_api",
     ),
 ]

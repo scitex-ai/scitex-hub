@@ -20,26 +20,51 @@
                         Toggle which SciTeX MCP tool groups are available to Claude Code and other AI agents in your terminal.
                     </p>
                 </div>
-                <form method="POST" class="mcp-form">
+                <!-- Server Status -->
+                <div class="mcp-status-bar mcp-status-{{ mcp_status.status }}">
+                    <i class="fas fa-circle mcp-status-dot"></i>
+                    <span class="mcp-status-text">{{ mcp_status.message }}</span>
+                </div>
+                <form method="POST" id="mcp-form" class="mcp-form">
                     {% csrf_token %}
-                    <div class="mcp-grid">
-                        {% for g in groups %}
-                            <label class="mcp-toggle-card {% if g.enabled %}enabled{% endif %}">
-                                <div class="mcp-toggle-header">
-                                    <i class="fas {{ g.icon }}"></i>
-                                    <span class="mcp-toggle-name">{{ g.display }}</span>
-                                    <div class="toggle-switch">
-                                        <input type="checkbox" name="mcp_{{ g.name }}" {% if g.enabled %}checked{% endif %} />
-                                        <span class="toggle-slider"></span>
-                                    </div>
-                                </div>
-                                <p class="mcp-toggle-desc">{{ g.desc }}</p>
-                                <code class="mcp-toggle-key">{{ g.name }}</code>
-                            </label>
-                        {% endfor %}
-                    </div>
+                    {% for cat in categories %}
+                        <div class="mcp-category">
+                            <h3 class="mcp-category-title">{{ cat.name }}</h3>
+                            <div class="mcp-grid">
+                                {% for g in cat.groups %}
+                                    <label class="mcp-toggle-card {% if g.enabled %}enabled{% endif %}"
+                                           data-group="{{ g.name }}">
+                                        <div class="mcp-toggle-header">
+                                            <i class="fas {{ g.icon }}"></i>
+                                            <span class="mcp-toggle-name">{{ g.display }}</span>
+                                            {% if g.tool_count %}<span class="mcp-badge">{{ g.tool_count }}</span>{% endif %}
+                                            <div class="toggle-switch">
+                                                <input type="checkbox" name="mcp_{{ g.name }}" {% if g.enabled %}checked{% endif %} />
+                                                <span class="toggle-slider"></span>
+                                            </div>
+                                        </div>
+                                        <p class="mcp-toggle-desc">{{ g.desc }}</p>
+                                        {% if g.tools %}
+                                            <details class="mcp-tools-list">
+                                                <summary>{{ g.tool_count }} tool{{ g.tool_count|pluralize }}</summary>
+                                                <ul>
+                                                    {% for tool in g.tools %}
+                                                        <li>
+                                                            <code>{{ tool }}</code>
+                                                        </li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </details>
+                                        {% else %}
+                                            <code class="mcp-toggle-key">{{ g.name }}</code>
+                                        {% endif %}
+                                    </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
                     <div class="mcp-actions">
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn btn-primary" id="mcp-save-btn">
                             <i class="fas fa-save"></i> Save preferences
                         </button>
                         <button type="button" class="btn btn-outline-secondary" id="mcp-select-all">
@@ -48,6 +73,9 @@
                         <button type="button" class="btn btn-outline-secondary" id="mcp-deselect-all">
                             <i class="fas fa-times"></i> Deselect all
                         </button>
+                        <span id="mcp-save-toast" class="mcp-save-toast" style="display:none">
+                            <i class="fas fa-check"></i> Saved
+                        </span>
                     </div>
                     <p class="mcp-info">
                         <i class="fas fa-info-circle"></i>
@@ -61,6 +89,7 @@
 {% endblock %}
 {% block extra_js %}
     <script>
+        // Select All / Deselect All
         document.getElementById('mcp-select-all')?.addEventListener('click', () => {
             document.querySelectorAll('.mcp-toggle-card input[type="checkbox"]').forEach(cb => {
                 cb.checked = true;
@@ -73,10 +102,51 @@
                 cb.closest('.mcp-toggle-card').classList.remove('enabled');
             });
         });
+
+        // Toggle visual state on change
         document.querySelectorAll('.mcp-toggle-card input[type="checkbox"]').forEach(cb => {
             cb.addEventListener('change', () => {
                 cb.closest('.mcp-toggle-card').classList.toggle('enabled', cb.checked);
             });
+        });
+
+        // AJAX save
+        const form = document.getElementById('mcp-form');
+        form?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const prefs = {};
+            document.querySelectorAll('.mcp-toggle-card').forEach(card => {
+                const name = card.dataset.group;
+                const cb = card.querySelector('input[type="checkbox"]');
+                if (name && cb) prefs[name] = cb.checked;
+            });
+
+            const btn = document.getElementById('mcp-save-btn');
+            const toast = document.getElementById('mcp-save-toast');
+            btn.disabled = true;
+
+            try {
+                const csrf = form.querySelector('[name="csrfmiddlewaretoken"]')?.value;
+                const resp = await fetch('{% url "accounts_app:mcp_settings_api" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrf,
+                    },
+                    body: JSON.stringify(prefs),
+                });
+                if (resp.ok) {
+                    toast.style.display = 'inline-flex';
+                    setTimeout(() => { toast.style.display = 'none'; }, 2500);
+                } else {
+                    // Fallback to form submit
+                    form.submit();
+                }
+            } catch {
+                form.submit();
+            } finally {
+                btn.disabled = false;
+            }
         });
     </script>
 {% endblock %}

@@ -23,6 +23,7 @@ _CATEGORY_MAP = {
     "tools": "utility",
     "example": "other",
     "marketplace": "utility",
+    "modulemaker": "utility",
 }
 
 # Module descriptions
@@ -36,7 +37,11 @@ _DESCRIPTIONS = {
     "tools": "Collection of standalone research utilities — converters, calculators, and helpers.",
     "example": "Reference implementation for module developers. Copy this to create your own module.",
     "marketplace": "Browse, install, and manage workspace modules.",
+    "modulemaker": "Create, edit, and manage custom workspace modules with @stx.module.",
 }
+
+# Modules under active development
+_WIP_MODULES = {"modulemaker", "example", "clew", "vis"}
 
 
 def ensure_builtin_modules(author_username="ywatanabe"):
@@ -60,6 +65,7 @@ def ensure_builtin_modules(author_username="ywatanabe"):
             "is_builtin": True,
             "is_verified": True,
             "visibility": "public",
+            "status": "wip" if mod.name in _WIP_MODULES else "stable",
         }
 
         obj, was_created = MarketplaceModule.objects.update_or_create(

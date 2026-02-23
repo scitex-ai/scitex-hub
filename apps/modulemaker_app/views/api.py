@@ -127,7 +127,8 @@ def api_update_module(request, slug):
 def api_run_module(request, slug):
     """Trigger module execution (placeholder for MVP).
 
-    In the full implementation this will delegate to sandboxed execution.
+    In the full implementation this will delegate to sandboxed execution
+    via scitex_cloud.module._runner.run_module().
     For now it creates a success execution record as a placeholder.
     """
     user_module = get_object_or_404(UserModule, slug=slug, is_active=True)

@@ -73,6 +73,81 @@
                 <div id="details-full-log" class="details-compilation-log">Click Full to compile...</div>
             </div>
         </div>
+        <!-- Overleaf -->
+        <div class="mig-card collapsed" data-section="overleaf">
+            <div class="mig-card__header">
+                <h6 class="mig-card__title">
+                    <i class="fas fa-leaf" style="color:#47a141;"></i> Overleaf
+                    <span class="badge badge-wip badge-sm">WIP</span>
+                </h6>
+                <i class="fas fa-chevron-down mig-card__chevron"></i>
+            </div>
+            <div class="mig-card__content">
+                <label class="mig-card__label" for="overleaf-zip-input">
+                    <i class="fas fa-upload"></i> Import from Overleaf
+                </label>
+                <input type="file"
+                       id="overleaf-zip-input"
+                       accept=".zip"
+                       class="form-control form-control-sm mt-1 mb-1" />
+                <button id="overleaf-import-btn" class="mig-card__btn mig-card__btn--primary" disabled>
+                    <i class="fas fa-file-import"></i> Import ZIP
+                </button>
+                <div id="overleaf-import-status" class="mig-card__status" style="display:none;"></div>
+                <hr style="border-color:var(--workspace-border-default,#3a3a3a);margin:8px 0;" />
+                <button id="overleaf-export-btn" class="mig-card__btn">
+                    <i class="fas fa-file-export"></i> Export to Overleaf ZIP
+                </button>
+                <div id="overleaf-export-status" class="mig-card__status" style="display:none;"></div>
+            </div>
+        </div>
+        <!-- Prism (OpenAI) -->
+        <div class="mig-card collapsed" data-section="prism">
+            <div class="mig-card__header">
+                <h6 class="mig-card__title">
+                    <i class="fas fa-atom" style="color:#10a37f;"></i> Prism (OpenAI)
+                    <span class="badge badge-wip badge-sm">WIP</span>
+                </h6>
+                <i class="fas fa-chevron-down mig-card__chevron"></i>
+            </div>
+            <div class="mig-card__content">
+                <p class="mig-card__hint">
+                    Prism does not currently offer a public API for programmatic migration.
+                    Use the following workflows to transfer your work.
+                </p>
+                <label class="mig-card__label">
+                    <i class="fas fa-sign-in-alt" style="color:#10a37f;"></i> Import from Prism
+                </label>
+                <ol class="mig-card__steps">
+                    <li>
+                        In Prism, export your project as a <strong>ZIP</strong>
+                    </li>
+                    <li>
+                        Use <strong>Overleaf Import</strong> above to import the ZIP
+                    </li>
+                    <li>Or export BibTeX and use Scholar &rarr; Zotero Import</li>
+                </ol>
+                <label class="mig-card__label">
+                    <i class="fas fa-sign-out-alt" style="color:#10a37f;"></i> Export to Prism
+                </label>
+                <ol class="mig-card__steps">
+                    <li>
+                        Use <strong>Overleaf Export</strong> above to download a ZIP
+                    </li>
+                    <li>In Prism, import the ZIP as a new project</li>
+                </ol>
+                <p class="mig-card__hint" style="margin-bottom:0.5rem;">
+                    <i class="fas fa-info-circle"></i>
+                    No vendor lock-in — freely move between SciTeX, Prism, Overleaf, and Zotero.
+                </p>
+                <a href="https://help.openai.com/en/articles/20001050-troubleshooting-and-getting-help-in-prism"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="mig-card__btn">
+                    <i class="fas fa-external-link-alt"></i> Prism Migration Docs
+                </a>
+            </div>
+        </div>
         <!-- Project Info Section -->
         <div class="details-section collapsed" data-section="project-info">
             <div class="details-section__header">
@@ -151,15 +226,15 @@
 
     // Restore saved states on load
     const saved = loadStates();
-    document.querySelectorAll("#writer-details-content .details-section[data-section]").forEach(function(section) {
+    document.querySelectorAll("#writer-details-content [data-section]").forEach(function(section) {
         const id = section.getAttribute("data-section");
         if (id && saved[id] !== undefined) {
             section.classList.toggle("collapsed", saved[id]);
         }
     });
 
-    // Attach click handlers
-    document.querySelectorAll("#writer-details-content .details-section__header").forEach(function(header) {
+    // Attach click handlers — details-section and mig-card
+    document.querySelectorAll("#writer-details-content .details-section__header, #writer-details-content .mig-card__header").forEach(function(header) {
         header.addEventListener("click", function() {
             var section = header.parentElement;
             section.classList.toggle("collapsed");

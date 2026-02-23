@@ -23,6 +23,13 @@ CATEGORY_CHOICES = [
     ("other", "Other"),
 ]
 
+STATUS_CHOICES = [
+    ("stable", "Stable"),
+    ("wip", "WIP"),
+    ("beta", "Beta"),
+    ("deprecated", "Deprecated"),
+]
+
 
 class MarketplaceModule(models.Model):
     """Catalog entry for a workspace module."""
@@ -64,6 +71,12 @@ class MarketplaceModule(models.Model):
     )
     is_featured = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)
+    status = models.CharField(
+        max_length=15,
+        choices=STATUS_CHOICES,
+        default="stable",
+        help_text="Development status: stable, wip, beta, deprecated.",
+    )
     visibility = models.CharField(
         max_length=10,
         choices=[("public", "Public"), ("unlisted", "Unlisted")],

@@ -82,12 +82,17 @@ export function loadCompiledPDF(sectionId: string): void {
         // PDF doesn't exist - show helpful message
         textPreview.innerHTML = `
                     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 2rem; text-align: center; color: var(--color-fg-muted);">
-                        <i class="fas fa-file-pdf fa-3x mb-3" style="opacity: 0.3;"></i>
-                        <h5 style="color: var(--color-fg-default);">Full Manuscript Not Compiled Yet</h5>
-                        <p style="margin: 1rem 0;">Click the 📄 <strong>Compile</strong> button in the dropdown to generate the full manuscript PDF.</p>
-                        <small style="opacity: 0.7;">This combines all enabled sections into a single document.</small>
+                        <i class="fas fa-spinner fa-spin fa-3x mb-3" style="opacity: 0.5;"></i>
+                        <h5 style="color: var(--color-fg-default);">Compiling Manuscript...</h5>
+                        <small style="opacity: 0.7;">Combining all enabled sections into a single document.</small>
                     </div>
                 `;
+        // Auto-start compilation (delay to ensure editor is initialized)
+        setTimeout(() => {
+          if (typeof (window as any).compileManuscript === "function") {
+            (window as any).compileManuscript();
+          }
+        }, 500);
         return;
       }
 

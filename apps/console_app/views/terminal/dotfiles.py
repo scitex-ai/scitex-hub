@@ -29,6 +29,13 @@ export HISTCONTROL=ignoredups:erasedups
 # Prompt: {username}@scitex:~/path $
 PS1='\\[\\033[01;32m\\]{username}@scitex\\[\\033[00m\\]:\\[\\033[01;34m\\]\\w\\[\\033[00m\\] \\$ '
 
+# Show scitex version on login
+if command -v scitex &>/dev/null; then
+    _V=$(scitex --version 2>/dev/null | head -1)
+    echo -e "\\033[0;36m[SciTeX Cloud] scitex v${{_V}}\\033[0m"
+    unset _V
+fi
+
 # AI CLI tools (npm global prefix + nvm)
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"

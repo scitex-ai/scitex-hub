@@ -6,13 +6,13 @@ User code execution container.
 
 ```bash
 cd deployment/singularity
-sudo apptainer build scitex-user-workspace.sif scitex-user-workspace.def
+sudo apptainer build scitex-cloud-shared-v0.1.0.sif scitex-cloud-shared-v0.1.0.def
 ```
 
 ## Test
 
 ```bash
-apptainer exec scitex-user-workspace.sif python --version
+apptainer exec scitex-cloud-shared-v0.1.0.sif python --version
 ```
 
 ## Run User Code
@@ -22,12 +22,12 @@ apptainer exec \
     --contain \
     --cleanenv \
     --bind /workspace:/workspace \
-    scitex-user-workspace.sif \
+    scitex-cloud-shared-v0.1.0.sif \
     python /workspace/script.py
 ```
 
 ## With SLURM
 
 ```bash
-srun apptainer exec scitex-user-workspace.sif python script.py
+srun apptainer exec scitex-cloud-shared-v0.1.0.sif python script.py
 ```

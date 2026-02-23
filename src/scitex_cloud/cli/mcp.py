@@ -180,7 +180,9 @@ def mcp_installation():
     click.echo('         "command": "scitex-cloud",')
     click.echo('         "args": ["mcp", "start"],')
     click.echo('         "env": {')
-    click.echo('           "SCITEX_CLOUD_API_KEY": "your-api-key"')
+    click.echo(
+        '           "SCITEX_CLOUD_API_KEY": "your-api-key"'
+    )  # pragma: allowlist secret
     click.echo("         }")
     click.echo("       }")
     click.echo("     }")
@@ -233,7 +235,15 @@ def mcp_list_tools(verbose: int, as_json: bool):
         raise SystemExit(1)
 
     # Get tools
-    tools_dict = getattr(mcp_server._tool_manager, "_tools", {})
+    # FastMCP 2.x/3.x compat: _tool_manager removed in 3.x
+    tm = getattr(mcp_server, "_tool_manager", None)
+    if tm is not None and hasattr(tm, "_tools"):
+        tools_dict = dict(tm._tools)
+    else:
+        import asyncio
+
+        tools_list = asyncio.run(mcp_server.list_tools())
+        tools_dict = {t.name: t for t in tools_list}
     modules = {}
     for name in sorted(tools_dict.keys()):
         prefix = name.split("_")[0]
@@ -253,9 +263,9 @@ def mcp_list_tools(verbose: int, as_json: bool):
                     "tools": [
                         {
                             "name": t,
-                            "description": tools_dict[t].description
-                            if tools_dict.get(t)
-                            else "",
+                            "description": (
+                                tools_dict[t].description if tools_dict.get(t) else ""
+                            ),
                         }
                         for t in tool_list
                     ],

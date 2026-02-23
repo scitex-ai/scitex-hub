@@ -3,7 +3,7 @@
  * Renders tree items as HTML with icons, status indicators, and actions
  */
 
-import type { TreeItem, TreeConfig } from "./types.ts";
+import type { TreeItem, TreeConfig, SortMode } from "./types.ts";
 import type { TreeStateManager } from "./TreeState.ts";
 import type { TreeFilter } from "./TreeFilter.ts";
 import { getFileIcon, getFolderIcon } from "../../utils/file-icons.ts";
@@ -15,6 +15,7 @@ export class TreeRenderer {
   private searchMatches: Set<string> = new Set();
   private searchAncestors: Set<string> = new Set();
   private searchActive = false;
+  private sortMode: SortMode = "name";
 
   constructor(
     config: TreeConfig,
@@ -69,17 +70,42 @@ export class TreeRenderer {
     return this.renderGitPanel(gitSummary);
   }
 
+  setSortMode(mode: SortMode): void {
+    this.sortMode = mode;
+  }
+
+  /** Sort items: directories first, then by name or mtime */
+  private sortItems(items: TreeItem[]): TreeItem[] {
+    if (this.sortMode === "name") return items; // Backend already sorts by name
+    return [...items].sort((a, b) => {
+      // Directories before files
+      if (a.type !== b.type) return a.type === "directory" ? -1 : 1;
+      // Within same type: newest first (higher mtime = more recent)
+      return (b.mtime || 0) - (a.mtime || 0);
+    });
+  }
+
+  /** Recursively sort tree items and their children */
+  private sortTree(items: TreeItem[]): TreeItem[] {
+    return this.sortItems(items).map((item) =>
+      item.children
+        ? { ...item, children: this.sortTree(item.children) }
+        : item,
+    );
+  }
+
   /** Render the entire tree */
   render(
     items: TreeItem[],
     gitSummary?: { staged: number; modified: number; untracked: number },
   ): string {
     const filteredItems = this.filter.filterTree(items);
+    const sortedItems = this.sortTree(filteredItems);
 
     // Render tree with root header (git panel rendered separately)
     let html = `<div class="wft-tree">`;
     html += this.renderRootItem();
-    html += this.renderItems(filteredItems, 0);
+    html += this.renderItems(sortedItems, 0);
     html += `</div>`;
 
     return html;

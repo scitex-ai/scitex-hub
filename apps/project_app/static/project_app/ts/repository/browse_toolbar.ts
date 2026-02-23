@@ -151,6 +151,12 @@ class BrowseToolbar {
       this.toggleDropdown("code-dropdown");
     (window as any).toggleMoreDropdown = () =>
       this.toggleDropdown("more-dropdown");
+    (window as any).toggleImportExportDropdown = () =>
+      this.toggleDropdown("import-export-dropdown");
+    (window as any).showImportModal = (source: string) =>
+      this.showImportModal(source);
+    (window as any).handleExport = (target: string) =>
+      this.handleExport(target);
 
     // Expose action functions
     (window as any).switchBranch = (branch: string) =>
@@ -343,6 +349,32 @@ class BrowseToolbar {
       alert("Failed to download: " + err);
       btn.innerHTML = originalText;
     }
+  }
+
+  private showImportModal(source: string): void {
+    this.closeAllDropdowns();
+    if (
+      source === "zotero" ||
+      source === "connected-papers" ||
+      source === "prism"
+    ) {
+      window.location.href = "/scholar/#library";
+      return;
+    }
+    alert(`Import from ${source} — coming soon.`);
+  }
+
+  private handleExport(target: string): void {
+    this.closeAllDropdowns();
+    if (
+      target === "zotero" ||
+      target === "connected-papers" ||
+      target === "prism"
+    ) {
+      window.location.href = "/scholar/#library";
+      return;
+    }
+    alert(`Export to ${target} — coming soon.`);
   }
 
   private getCookie(name: string): string {

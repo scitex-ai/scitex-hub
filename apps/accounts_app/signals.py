@@ -69,16 +69,16 @@ def create_default_project_for_user(user):
         if Project.objects.filter(owner=user).exists():
             return
 
-        # Create a default project for the user
-        # The URL will be /<username>/default-project/ (no numeric suffix needed)
+        # Create a home project for the user (persistent, always private, undeletable)
+        # The URL will be /<username>/home/ (no numeric suffix needed)
         # because uniqueness is per-owner, not global
-        default_project_name = "default-project"
         default_project = Project.objects.create(
-            name=default_project_name,
-            slug=default_project_name,  # Simple slug without numeric suffix
-            description=f"Default project for {user.username}",
+            name="home",
+            slug="home",
+            description=f"Home project for {user.username}",
             owner=user,
             visibility="private",
+            is_home=True,
         )
 
         # Set as last active repository
