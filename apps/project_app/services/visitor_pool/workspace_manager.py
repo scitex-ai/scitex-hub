@@ -9,12 +9,9 @@ import logging
 import shutil
 from pathlib import Path
 
-from django.conf import settings
 from django.contrib.auth.models import User
 
 from apps.project_app.models import Project
-
-from .pool_initialization import VISITOR_TEMPLATE_ID
 
 logger = logging.getLogger(__name__)
 
@@ -25,9 +22,12 @@ class WorkspaceManager:
     VISITOR_USER_PREFIX = "visitor-"
 
     @classmethod
-    def initialize_visitor_writer_workspace(cls, project: Project, project_path: Path):
+    def ensure_manuscript_record(cls, project: Project, project_path: Path):
         """
-        Initialize writer workspace for visitor projects (Gitea-independent).
+        Ensure Manuscript DB record exists for a visitor project.
+
+        Called after scitex_minimal template clone which already creates
+        scitex/writer/ with the full writer workspace.
 
         Args:
             project: Project model instance
@@ -35,81 +35,30 @@ class WorkspaceManager:
         """
         try:
             writer_dir = project_path / "scitex" / "writer"
+            manuscript_dir = writer_dir / "01_manuscript"
 
-            logger.info(
-                f"[VisitorPool] Initializing writer workspace for {project.slug}"
-            )
-            cls._create_writer_workspace(project, writer_dir)
+            if manuscript_dir.exists():
+                from apps.writer_app.models import Manuscript
+
+                Manuscript.objects.get_or_create(
+                    project=project,
+                    defaults={
+                        "owner": project.owner,
+                        "title": f"{project.name} Manuscript",
+                    },
+                )
+                logger.info(
+                    f"[VisitorPool] Manuscript record ensured for {project.slug}"
+                )
+            else:
+                logger.warning(
+                    f"[VisitorPool] Writer workspace missing 01_manuscript: {writer_dir}"
+                )
 
         except Exception as e:
             logger.error(
-                f"[VisitorPool] Failed to initialize writer workspace for {project.slug}: {e}"
+                f"[VisitorPool] Failed to ensure manuscript record for {project.slug}: {e}"
             )
-            logger.exception("Full traceback:")
-
-    @classmethod
-    def _create_writer_workspace(cls, project: Project, writer_dir: Path):
-        """Create writer workspace and manuscript record."""
-        from scitex.writer import Writer
-
-        template_branch = getattr(settings, "SCITEX_WRITER_TEMPLATE_BRANCH", None)
-        template_tag = getattr(settings, "SCITEX_WRITER_TEMPLATE_TAG", None)
-
-        writer_kwargs = {
-            "project_dir": writer_dir,
-            "git_strategy": None,
-        }
-        if template_tag:
-            writer_kwargs["tag"] = template_tag
-        elif template_branch:
-            writer_kwargs["branch"] = template_branch
-
-        writer = Writer(**writer_kwargs)
-        cls._cleanup_writer_dev_artifacts(writer_dir)
-
-        manuscript_dir = writer_dir / "01_manuscript"
-        if manuscript_dir.exists():
-            logger.info(
-                f"[VisitorPool] Writer workspace initialized for {project.slug}"
-            )
-
-            from apps.writer_app.models import Manuscript
-
-            Manuscript.objects.get_or_create(
-                project=project,
-                defaults={
-                    "owner": project.owner,
-                    "title": f"{project.name} Manuscript",
-                },
-            )
-        else:
-            logger.warning(
-                f"[VisitorPool] Writer workspace incomplete for {project.slug}"
-            )
-
-    @classmethod
-    def _cleanup_writer_dev_artifacts(cls, writer_dir: Path):
-        """Remove development artifacts from writer workspace."""
-        DEV_ARTIFACTS = [
-            "tests",
-            "src",
-            "docs",
-            "examples",
-            ".github",
-            "pyproject.toml",
-            ".readthedocs.yaml",
-            "CHANGELOG.md",
-            "VERSION",
-            "ai",
-        ]
-        for name in DEV_ARTIFACTS:
-            path = writer_dir / name
-            if path.is_dir():
-                shutil.rmtree(path)
-            elif path.is_file():
-                path.unlink()
-            if path.exists():
-                logger.info(f"[VisitorPool] Removed writer dev artifact: {name}")
 
     @classmethod
     def reset_visitor_workspace(cls, visitor_user: User):
@@ -160,6 +109,8 @@ class WorkspaceManager:
             )
 
         try:
+            from .pool_initialization import VISITOR_TEMPLATE_ID
+
             success = clone_template(
                 VISITOR_TEMPLATE_ID,
                 str(project_path),
@@ -170,12 +121,16 @@ class WorkspaceManager:
             success = False
 
         if success:
+            from .pool_initialization import PoolInitializer
+
+            PoolInitializer._cleanup_project_dev_artifacts(project_path)
+
             project.git_clone_path = str(project_path)
             project.directory_created = True
             project.save(update_fields=["git_clone_path", "directory_created"])
 
             logger.info(f"[VisitorPool] Reset visitor workspace: {project_slug}")
-            cls.initialize_visitor_writer_workspace(project, Path(project_path))
+            cls.ensure_manuscript_record(project, Path(project_path))
         else:
             logger.error(
                 f"[VisitorPool] Failed to reset visitor workspace: {project_slug}"

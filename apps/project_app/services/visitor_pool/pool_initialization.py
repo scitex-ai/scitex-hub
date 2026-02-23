@@ -15,7 +15,7 @@ from apps.project_app.models import Project
 
 logger = logging.getLogger(__name__)
 
-VISITOR_TEMPLATE_ID = "research_minimal"
+VISITOR_TEMPLATE_ID = "scitex_minimal"
 
 
 class PoolInitializer:
@@ -135,7 +135,13 @@ class PoolInitializer:
     def _initialize_project_directory(
         cls, user: User, project: Project, project_slug: str
     ) -> bool:
-        """Initialize project directory via scitex.template.clone_template()."""
+        """Initialize project directory via scitex.template.clone_template().
+
+        Uses scitex_minimal template which creates:
+          {project}/scitex/writer/  (writer workspace)
+          {project}/scitex/scholar/ (scholar workspace)
+        No writer dirs at project root.
+        """
         from apps.project_app.services.project_filesystem import (
             get_project_filesystem_manager,
         )
@@ -164,9 +170,8 @@ class PoolInitializer:
             logger.info(
                 f"[VisitorPool] Created project: {project_slug} at {project_path}"
             )
-            WorkspaceManager.initialize_visitor_writer_workspace(
-                project, Path(project_path)
-            )
+            # scitex_minimal already creates scitex/writer/ — just register manuscript
+            WorkspaceManager.ensure_manuscript_record(project, project_path)
         else:
             logger.info(
                 f"[VisitorPool] Project directory already exists: {project_root}"
@@ -175,7 +180,7 @@ class PoolInitializer:
                 project.git_clone_path = str(project_root)
                 project.save(update_fields=["git_clone_path"])
 
-            WorkspaceManager.initialize_visitor_writer_workspace(project, project_root)
+            WorkspaceManager.ensure_manuscript_record(project, project_root)
 
         return True
 
@@ -225,9 +230,7 @@ class PoolInitializer:
 
                     from .workspace_manager import WorkspaceManager
 
-                    WorkspaceManager.initialize_visitor_writer_workspace(
-                        project, project_path
-                    )
+                    WorkspaceManager.ensure_manuscript_record(project, project_path)
                 else:
                     logger.error(
                         f"[VisitorPool] Failed to reset directory for {username}"
@@ -255,6 +258,28 @@ class PoolInitializer:
                 shutil.rmtree(path)
             elif path.is_file():
                 path.unlink()
+
+        # Clean writer dev artifacts inside scitex/writer/
+        writer_dir = project_path / "scitex" / "writer"
+        if writer_dir.exists():
+            WRITER_DEV_ARTIFACTS = [
+                "tests",
+                "src",
+                "docs",
+                "examples",
+                ".github",
+                "pyproject.toml",
+                ".readthedocs.yaml",
+                "CHANGELOG.md",
+                "VERSION",
+                "ai",
+            ]
+            for name in WRITER_DEV_ARTIFACTS:
+                path = writer_dir / name
+                if path.is_dir():
+                    shutil.rmtree(path)
+                elif path.is_file():
+                    path.unlink()
 
     @classmethod
     def _clone_template(cls, project_path: Path) -> bool:
