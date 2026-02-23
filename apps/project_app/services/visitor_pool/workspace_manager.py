@@ -65,6 +65,7 @@ class WorkspaceManager:
             writer_kwargs["branch"] = template_branch
 
         writer = Writer(**writer_kwargs)
+        cls._cleanup_writer_dev_artifacts(writer_dir)
 
         manuscript_dir = writer_dir / "01_manuscript"
         if manuscript_dir.exists():
@@ -85,6 +86,30 @@ class WorkspaceManager:
             logger.warning(
                 f"[VisitorPool] Writer workspace incomplete for {project.slug}"
             )
+
+    @classmethod
+    def _cleanup_writer_dev_artifacts(cls, writer_dir: Path):
+        """Remove development artifacts from writer workspace."""
+        DEV_ARTIFACTS = [
+            "tests",
+            "src",
+            "docs",
+            "examples",
+            ".github",
+            "pyproject.toml",
+            ".readthedocs.yaml",
+            "CHANGELOG.md",
+            "VERSION",
+            "ai",
+        ]
+        for name in DEV_ARTIFACTS:
+            path = writer_dir / name
+            if path.is_dir():
+                shutil.rmtree(path)
+            elif path.is_file():
+                path.unlink()
+            if path.exists():
+                logger.info(f"[VisitorPool] Removed writer dev artifact: {name}")
 
     @classmethod
     def reset_visitor_workspace(cls, visitor_user: User):

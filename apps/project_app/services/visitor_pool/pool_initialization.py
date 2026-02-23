@@ -139,6 +139,7 @@ class PoolInitializer:
         from apps.project_app.services.project_filesystem import (
             get_project_filesystem_manager,
         )
+
         from .workspace_manager import WorkspaceManager
 
         manager = get_project_filesystem_manager(user)
@@ -153,6 +154,8 @@ class PoolInitializer:
             success = cls._clone_template(project_path)
             if not success:
                 return False
+
+            cls._cleanup_project_dev_artifacts(project_path)
 
             project.git_clone_path = str(project_path)
             project.directory_created = True
@@ -211,6 +214,7 @@ class PoolInitializer:
                 # Clone template via scitex.template (single source of truth)
                 success = cls._clone_template(project_path)
                 if success:
+                    cls._cleanup_project_dev_artifacts(project_path)
                     reset_count += 1
 
                     project.git_clone_path = str(project_path)
@@ -238,6 +242,21 @@ class PoolInitializer:
         return reset_count
 
     @classmethod
+    def _cleanup_project_dev_artifacts(cls, project_path: Path):
+        """Remove development artifacts from project template."""
+        DEV_ARTIFACTS = [
+            ".github",
+            ".readthedocs.yaml",
+            "scripts/containers",
+        ]
+        for name in DEV_ARTIFACTS:
+            path = project_path / name
+            if path.is_dir():
+                shutil.rmtree(path)
+            elif path.is_file():
+                path.unlink()
+
+    @classmethod
     def _clone_template(cls, project_path: Path) -> bool:
         """Clone template via scitex.template.clone_template() (single source of truth)."""
         from scitex.template import clone_template
@@ -252,9 +271,9 @@ class PoolInitializer:
                 git_strategy=None,
             )
             if success:
-                logger.info(f"[VisitorPool] Template cloned successfully")
+                logger.info("[VisitorPool] Template cloned successfully")
             else:
-                logger.error(f"[VisitorPool] Template clone returned False")
+                logger.error("[VisitorPool] Template clone returned False")
             return success
 
         except Exception as e:
