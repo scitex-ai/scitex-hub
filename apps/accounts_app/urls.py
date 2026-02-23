@@ -8,6 +8,7 @@ from .views import (
     api_keys,
     appearance_settings,
     git_integrations,
+    mcp_settings,
     profile_edit,
     profile_view,
     remote_credentials,
@@ -32,6 +33,7 @@ urlpatterns = [
     # Integrations
     path("settings/integrations/", git_integrations, name="git_integrations"),
     path("settings/ai-providers/", ai_providers, name="ai_providers"),
+    path("settings/mcp-tools/", mcp_settings, name="mcp_tools"),
     # SSH Keys
     path("settings/ssh-keys/", ssh_keys, name="ssh_keys"),
     # Remote Credentials

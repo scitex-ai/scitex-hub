@@ -59,6 +59,52 @@ def api_tts(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+@login_required
+@require_http_methods(["POST"])
+def api_tts_relay(request):
+    """Relay TTS from container agent to user's browser via channel layer.
+
+    Called by scitex MCP ``audio_speak`` inside Apptainer when it detects
+    it's running in a container context (SCITEX_CONTAINER=1).  Pushes a
+    ``tts_speak`` message to the user's terminal WebSocket group so the
+    browser can call ``/llm/api/tts/`` and play audio through speakers.
+    """
+    import logging
+
+    from channels.layers import get_channel_layer
+
+    logger = logging.getLogger(__name__)
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    text = data.get("text", "").strip()[:4096]
+    if not text:
+        return JsonResponse({"error": "text required"}, status=400)
+
+    username = request.user.username
+    group_name = f"speech_{username}"
+
+    try:
+        import asyncio
+
+        channel_layer = get_channel_layer()
+        loop = asyncio.new_event_loop()
+        loop.run_until_complete(
+            channel_layer.group_send(
+                group_name,
+                {"type": "tts_speak", "text": text},
+            )
+        )
+        loop.close()
+        return JsonResponse({"success": True, "relayed_to": group_name})
+    except Exception as e:
+        logger.error("TTS relay failed: %s", e)
+        return JsonResponse({"error": str(e)}, status=500)
+
+
 def _build_system_prompt(context: dict, user, sync_to_async=None) -> str:
     """Build system prompt with skill-aware context injection."""
     from apps.llm_app.skills import build_system_prompt, get_skill_for_page

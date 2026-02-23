@@ -1,0 +1,82 @@
+{% extends 'global_base.html' %}
+
+{% load static vite %}
+
+{% block title %}MCP Tools - Settings - SciTeX Cloud{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/layouts/settings-layout.css' %}" />
+    <link rel="stylesheet" href="{% static 'accounts_app/css/mcp_settings.css' %}" />
+{% endblock %}
+{% block content %}
+    <div class="settings-page">
+        <div class="settings-layout">
+            <aside class="settings-nav">
+                {% include 'accounts_app/partials/settings_nav.html' with active='mcp_tools' %}
+            </aside>
+            <main class="settings-content">
+                <div class="settings-header">
+                    <h1 class="settings-title">MCP Tools</h1>
+                    <p class="settings-subtitle">
+                        Toggle which SciTeX MCP tool groups are available to Claude Code and other AI agents in your terminal.
+                    </p>
+                </div>
+                <form method="POST" class="mcp-form">
+                    {% csrf_token %}
+                    <div class="mcp-grid">
+                        {% for g in groups %}
+                            <label class="mcp-toggle-card {% if g.enabled %}enabled{% endif %}">
+                                <div class="mcp-toggle-header">
+                                    <i class="fas {{ g.icon }}"></i>
+                                    <span class="mcp-toggle-name">{{ g.display }}</span>
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" name="mcp_{{ g.name }}" {% if g.enabled %}checked{% endif %} />
+                                        <span class="toggle-slider"></span>
+                                    </div>
+                                </div>
+                                <p class="mcp-toggle-desc">{{ g.desc }}</p>
+                                <code class="mcp-toggle-key">{{ g.name }}</code>
+                            </label>
+                        {% endfor %}
+                    </div>
+                    <div class="mcp-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save preferences
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="mcp-select-all">
+                            <i class="fas fa-check-double"></i> Select all
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="mcp-deselect-all">
+                            <i class="fas fa-times"></i> Deselect all
+                        </button>
+                    </div>
+                    <p class="mcp-info">
+                        <i class="fas fa-info-circle"></i>
+                        Changes apply next time you start Claude Code in your terminal.
+                        The <code>scitex</code> MCP server runs locally in your container via <code>scitex mcp start</code>.
+                    </p>
+                </form>
+            </main>
+        </div>
+    </div>
+{% endblock %}
+{% block extra_js %}
+    <script>
+        document.getElementById('mcp-select-all')?.addEventListener('click', () => {
+            document.querySelectorAll('.mcp-toggle-card input[type="checkbox"]').forEach(cb => {
+                cb.checked = true;
+                cb.closest('.mcp-toggle-card').classList.add('enabled');
+            });
+        });
+        document.getElementById('mcp-deselect-all')?.addEventListener('click', () => {
+            document.querySelectorAll('.mcp-toggle-card input[type="checkbox"]').forEach(cb => {
+                cb.checked = false;
+                cb.closest('.mcp-toggle-card').classList.remove('enabled');
+            });
+        });
+        document.querySelectorAll('.mcp-toggle-card input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', () => {
+                cb.closest('.mcp-toggle-card').classList.toggle('enabled', cb.checked);
+            });
+        });
+    </script>
+{% endblock %}

@@ -4,6 +4,7 @@ from apps.llm_app.views.chat import (
     api_chat_stream,
     api_current_model,
     api_tts,
+    api_tts_relay,
 )
 from apps.llm_app.views.providers import (
     api_add_provider,
@@ -31,6 +32,7 @@ __all__ = [
     "api_chat_stream",
     "api_current_model",
     "api_tts",
+    "api_tts_relay",
     "api_stt",
     "api_stt_models",
     "api_list_skills",

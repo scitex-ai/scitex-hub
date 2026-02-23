@@ -4,6 +4,8 @@
  * Provides an embedded CLI terminal for running Claude Code, Gemini CLI, Codex.
  */
 
+import { speakText } from "./speech";
+
 const XTERM_JS_URL = "https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js";
 const XTERM_CSS_URL = "https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css";
 const FIT_ADDON_URL =
@@ -58,7 +60,12 @@ export class AIPanelConsoleMode {
 
     if (this.terminal) return; // already initialized
 
-    const Terminal = (window as any).Terminal;
+    const xterm = (window as any).Terminal;
+    const Terminal = typeof xterm === "function" ? xterm : xterm?.Terminal;
+    if (!Terminal) {
+      console.error("[AIPanelConsole] xterm.js Terminal class not available");
+      return;
+    }
     const FitAddon = (window as any).FitAddon?.FitAddon;
 
     this.terminal = new Terminal({
@@ -130,7 +137,38 @@ export class AIPanelConsoleMode {
     };
 
     this.ws.onmessage = (ev) => {
-      this.terminal.write(ev.data);
+      const data: string = ev.data;
+      // Intercept TTS speech OSC escape: \x1b]9999;speak:<base64>\x07
+      const speechPrefix = "\x1b]9999;speak:";
+      const idx = data.indexOf(speechPrefix);
+      if (idx !== -1) {
+        // Write any data before the escape to terminal
+        if (idx > 0) this.terminal.write(data.slice(0, idx));
+        // Extract base64 text between prefix and BEL (\x07)
+        const start = idx + speechPrefix.length;
+        const end = data.indexOf("\x07", start);
+        if (end !== -1) {
+          try {
+            const text = atob(data.slice(start, end));
+            const csrf =
+              document.querySelector<HTMLInputElement>(
+                "[name=csrfmiddlewaretoken]",
+              )?.value ??
+              (document.cookie.match(/csrftoken=([^;]+)/)?.[1] || "");
+            speakText(text, csrf);
+          } catch {
+            /* ignore decode errors */
+          }
+          // Write any data after the escape to terminal
+          const after = end + 1;
+          if (after < data.length) this.terminal.write(data.slice(after));
+        } else {
+          // Malformed escape — write everything to terminal
+          this.terminal.write(data);
+        }
+      } else {
+        this.terminal.write(data);
+      }
     };
 
     this.ws.onerror = () => {

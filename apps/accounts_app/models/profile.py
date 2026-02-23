@@ -214,6 +214,13 @@ class UserProfile(models.Model):
         help_text="Linux GID for OS-level process isolation (same as unix_uid)",
     )
 
+    # MCP tool group preferences for Claude Code in Apptainer
+    mcp_preferences = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="MCP tool group toggles: {GROUP_NAME: bool}",
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

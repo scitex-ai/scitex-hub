@@ -1,0 +1,137 @@
+/* MCP Tools Settings — Toggle Grid */
+
+.mcp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.mcp-toggle-card {
+  display: block;
+  padding: 14px 16px;
+  border: 1px solid var(--border-color, #30363d);
+  border-radius: 8px;
+  background: var(--card-bg, #161b22);
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.mcp-toggle-card:hover {
+  border-color: var(--accent-color, #58a6ff);
+}
+
+.mcp-toggle-card.enabled {
+  border-color: var(--success-color, #3fb950);
+  background: var(--card-bg-active, #0d1117);
+}
+
+.mcp-toggle-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.mcp-toggle-header i {
+  width: 18px;
+  text-align: center;
+  color: var(--text-muted, #8b949e);
+  font-size: 14px;
+}
+
+.mcp-toggle-card.enabled .mcp-toggle-header i {
+  color: var(--success-color, #3fb950);
+}
+
+.mcp-toggle-name {
+  flex: 1;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-primary, #c9d1d9);
+}
+
+.mcp-toggle-desc {
+  margin: 0 0 4px;
+  font-size: 12px;
+  color: var(--text-muted, #8b949e);
+  line-height: 1.4;
+}
+
+.mcp-toggle-key {
+  font-size: 11px;
+  color: var(--text-dimmed, #484f58);
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  background: var(--toggle-off, #30363d);
+  transition: background 0.2s;
+  cursor: pointer;
+}
+
+.toggle-slider::before {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  left: 2px;
+  top: 2px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background: var(--success-color, #3fb950);
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(16px);
+}
+
+/* Actions */
+.mcp-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.mcp-info {
+  font-size: 13px;
+  color: var(--text-muted, #8b949e);
+  padding: 12px;
+  border: 1px solid var(--border-color, #30363d);
+  border-radius: 6px;
+  background: var(--card-bg, #161b22);
+}
+
+.mcp-info i {
+  color: var(--accent-color, #58a6ff);
+  margin-right: 4px;
+}
+
+.mcp-info code {
+  background: var(--code-bg, #0d1117);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 12px;
+}

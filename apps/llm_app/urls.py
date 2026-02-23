@@ -37,6 +37,8 @@ urlpatterns = [
     path("api/model/", views.api_current_model, name="api_current_model"),
     # Text-to-speech: returns audio/mpeg bytes for browser playback
     path("api/tts/", views.api_tts, name="api_tts"),
+    # TTS relay: container agent → channel layer → browser speakers
+    path("api/tts/relay/", views.api_tts_relay, name="api_tts_relay"),
     # Bash exec: "!" prefix mode in AI chat
     path("api/bash/", views.api_bash_exec, name="api_bash_exec"),
     # Speech-to-text: accepts audio upload, returns transcribed text via whisper.cpp
