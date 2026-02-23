@@ -5,6 +5,12 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.3-alpha] - 2026-02-24
+
+### Fixed
+- **Bashrc corruption**: Replaced fragile incremental patching with corruption detection and full regeneration from canonical template
+- **Subtle install messages**: Changed AI CLI install messages from vivid cyan/green to subtle gray
+
 ## [0.10.2-alpha] - 2026-02-24
 
 ### Fixed
