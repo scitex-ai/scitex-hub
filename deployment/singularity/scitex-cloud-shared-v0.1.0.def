@@ -59,12 +59,20 @@ From: python:3.11-slim
     # Install uv for fast Python package management
     pip install --no-cache-dir --upgrade pip uv
 
-    # Install SciTeX with all extras (includes full scientific stack)
-    # Using uv for faster resolution and installation, with cache enabled
+    # Install SciTeX ecosystem with all extras
+    # Using uv for faster resolution and installation
     echo -e "Installing SciTeX platform (all extras)..."
-    uv pip install --system 'scitex[all]'
+    uv pip install --system \
+        'scitex[all]' \
+        'figrecipe[all]' \
+        'scitex-writer[all]' \
+        'scitex-dataset[all]' \
+        'crossref-local[all]' \
+        'openalex-local[all]' \
+        'socialia[all]' \
+        'scitex-linter[all]'
 
-    # Install additional dev tools not covered by scitex[all]
+    # Install additional dev tools not covered by extras
     uv pip install --system \
         ipdb \
         black \
