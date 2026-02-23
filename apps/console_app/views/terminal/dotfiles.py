@@ -32,7 +32,7 @@ PS1='\\[\\033[01;32m\\]{username}@scitex\\[\\033[00m\\]:\\[\\033[01;34m\\]\\w\\[
 # Show scitex version on login
 if command -v scitex &>/dev/null; then
     _V=$(scitex --version 2>/dev/null | head -1)
-    echo -e "\\033[0;36m[SciTeX Cloud] scitex v${{_V}}\\033[0m"
+    echo -e "\\033[0;36m[SciTeX Cloud] $_V\\033[0m"
     unset _V
 fi
 
@@ -62,6 +62,20 @@ fi
 # Sync MCP config to all AI tools on login
 if command -v agents &>/dev/null && [ -d ".agents" ]; then
     agents sync --quiet 2>/dev/null
+fi
+
+# Dev mode: editable install from mounted repos (only in dev with bind mounts)
+if [ ! -f /tmp/.scitex-dev-installed ] && [ -d /opt/dev/scitex-python ]; then
+    echo -e "\\033[0;90m[SciTeX] Installing dev packages (editable)...\\033[0m"
+    for repo in /opt/dev/*/; do
+        if [ -f "$repo/pyproject.toml" ]; then
+            pip install -e "$repo[all]" --quiet --no-deps 2>/dev/null || true
+        fi
+    done
+    # Resolve all deps in one pass
+    pip install -e "/opt/dev/scitex-python[all]" --quiet 2>/dev/null || true
+    touch /tmp/.scitex-dev-installed
+    echo -e "\\033[0;32m[SciTeX] Dev packages installed (editable)\\033[0m"
 fi
 
 # Aliases

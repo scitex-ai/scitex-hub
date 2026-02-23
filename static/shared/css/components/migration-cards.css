@@ -170,6 +170,91 @@
   color: var(--text-muted, #6c8ba0);
 }
 
+/* =========================================
+   Dropzone — drag-and-drop file upload
+   ========================================= */
+
+.dropzone {
+  border: 2px dashed var(--workspace-border-default, #3a3a3a);
+  border-radius: 6px;
+  padding: 1rem 0.75rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-bottom: 0.5rem;
+}
+
+.dropzone:hover {
+  border-color: var(--workspace-border-hover, #4a4a4a);
+  background: rgba(5, 150, 105, 0.04);
+}
+
+.dropzone.dropzone--dragover {
+  border-color: var(--workspace-icon-primary, #059669);
+  background: rgba(5, 150, 105, 0.08);
+}
+
+.dropzone__icon {
+  display: block;
+  font-size: 1.25rem;
+  color: var(--text-muted, #6c8ba0);
+  margin-bottom: 0.35rem;
+}
+
+.dropzone__icon--file {
+  color: var(--workspace-icon-primary, #059669);
+}
+
+.dropzone__text {
+  font-size: 0.7rem;
+  color: var(--text-muted, #6c8ba0);
+  line-height: 1.5;
+}
+
+.dropzone__text code {
+  font-size: 0.65rem;
+  background: var(--workspace-bg-tertiary, #1c2128);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.dropzone__browse {
+  color: var(--workspace-icon-primary, #059669);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.dropzone__ready {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.dropzone__filename {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--text-primary, #d4e1e8);
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dropzone__clear {
+  background: none;
+  border: none;
+  color: var(--text-muted, #6c8ba0);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.dropzone__clear:hover {
+  color: var(--status-error, #ff6b6b);
+}
+
 /* Light theme */
 [data-theme="light"] .mig-card__header {
   background: var(--workspace-bg-secondary);
@@ -183,4 +268,7 @@
 }
 [data-theme="light"] .mig-card__title {
   color: var(--text-primary);
+}
+[data-theme="light"] .dropzone__text code {
+  background: var(--workspace-bg-tertiary);
 }

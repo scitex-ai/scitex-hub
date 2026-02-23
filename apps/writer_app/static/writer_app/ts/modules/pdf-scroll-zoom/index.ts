@@ -21,3 +21,5 @@ export type { PDFInteractionMode } from "./pdf-mode-manager";
 export { PDFEventHandlers } from "./pdf-event-handlers";
 
 export { PDFViewerObserver } from "./pdf-viewer-observer";
+
+export { initPdfContextMenu } from "./pdf-context-menu";

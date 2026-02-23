@@ -133,6 +133,7 @@ def exec_slurm_shell(
     project_dir: Path,
     container_path: str,
     project_slug: str,
+    tmux_session: str = "scitex-0",
 ):
     """
     Execute shell via SLURM (REQUIRED for all users).
@@ -147,24 +148,19 @@ def exec_slurm_shell(
     host_user_dir = SLURM_USER_DATA_ROOT / username
     host_project_dir = host_user_dir / "proj" / project_slug
 
-    # Dev mode: editable source mounts
-    from .config import FIGRECIPE_DEV_SRC, SCITEX_DEV_SRC
+    # Dev mode: mount full repos for editable install
+    # Repos are mounted to /opt/dev/{name} and pip install -e runs on first login (via bashrc)
+    from .config import DEV_REPOS
 
     dev_bind_args = []
     # Note: we skip is_dir() because these are HOST paths (for SLURM),
     # not visible from inside the Django Docker container.
-    if SCITEX_DEV_SRC:
+    for repo in DEV_REPOS:
         dev_bind_args += [
             "--bind",
-            f"{SCITEX_DEV_SRC}:/usr/local/lib/python3.11/site-packages/scitex:rw",
+            f"{repo['host_path']}:/opt/dev/{repo['name']}:ro",
         ]
-        logger.debug(f"Dev mode: mounting editable scitex from {SCITEX_DEV_SRC}")
-    if FIGRECIPE_DEV_SRC:
-        dev_bind_args += [
-            "--bind",
-            f"{FIGRECIPE_DEV_SRC}:/usr/local/lib/python3.11/site-packages/figrecipe:rw",
-        ]
-        logger.debug(f"Dev mode: mounting editable figrecipe from {FIGRECIPE_DEV_SRC}")
+        logger.debug(f"Dev mode: mounting {repo['name']} from {repo['host_path']}")
 
     # Build srun command with host paths
     cmd = [
@@ -178,8 +174,9 @@ def exec_slurm_shell(
         f"--job-name=terminal_{username}",
         # Note: --account not used (SLURM accounting not configured)
         # Container execution (using host paths)
+        # Use 'exec' instead of 'shell' to run tmux for session persistence
         container_cmd,
-        "shell",
+        "exec",
         "--containall",
         "--cleanenv",
         "--writable-tmpfs",
@@ -206,6 +203,10 @@ def exec_slurm_shell(
         "--pwd",
         f"/home/{username}/proj/{project_slug}",
         container_path,  # Use host path to SIF
+        # tmux session: attach if exists, create if not (-A flag)
+        "/bin/bash",
+        "-lc",
+        f"exec tmux new-session -A -s {tmux_session}",
     ]
 
     # Environment for srun process (host-side, before exec into container)

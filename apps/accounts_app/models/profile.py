@@ -272,6 +272,20 @@ class UserProfile(models.Model):
 
         return Project.objects.filter(owner=self.user).order_by("-updated_at")
 
+    def get_active_project(self):
+        """Get active project, auto-defaulting to first owned project.
+
+        If last_active_repository is unset, picks the first project and
+        persists the choice so subsequent requests are fast.
+        """
+        if self.last_active_repository_id:
+            return self.last_active_repository
+        first = self.get_user_projects().first()
+        if first:
+            self.last_active_repository = first
+            self.save(update_fields=["last_active_repository"])
+        return first
+
     @property
     def total_collaborations(self):
         """Get total number of collaborations"""

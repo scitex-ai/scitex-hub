@@ -68,32 +68,19 @@
                     </svg>
                 </button>
             {% endif %}
-            <!-- Project Selector (for all users - visitors auto-allocated) -->
-            <div class="header-project-selector-inline">
+            <!-- Project Selector (authenticated users + visitors only) -->
+            <div class="header-project-selector-inline"
+                 {% if not user.is_authenticated and not visitor_username %}style="display: none"{% endif %}>
                 <button id="project-selector-toggle"
                         class="project-selector-btn"
                         title="{% if user.is_authenticated %}Switch projects{% else %}Current project{% endif %}">
                     <span id="project-selector-text" class="project-selector-text">
                         {% if user.is_authenticated %}
-                            {% if user.profile.last_active_repository %}
-                                {{ user.profile.last_active_repository.name }}
-                            {% else %}
-                                {% with projects=user.profile.get_user_projects %}
-                                    {% if projects|length > 0 %}
-                                        {% for project in projects %}
-                                            {% if forloop.first %}{{ project.name }}{% endif %}
-                                        {% endfor %}
-                                    {% else %}
-                                        Projects
-                                    {% endif %}
-                                {% endwith %}
-                            {% endif %}
+                            {% with active=user.profile.get_active_project %}{{ active.name|default:"No Projects" }}{% endwith %}
                         {% elif visitor_username %}
-                            {% if project %}
-                                {{ project.name }}
-                            {% else %}
-                                default-project
-                            {% endif %}
+                            {{ project.name|default:"default-project" }}
+                        {% else %}
+                            SciTeX
                         {% endif %}
                     </span>
                     <svg width="12"
@@ -160,7 +147,7 @@
                             </svg>
                             <span>Create New Project</span>
                         </a>
-                    {% else %}
+                    {% elif visitor_username %}
                         <div class="dropdown-section">
                             <div class="dropdown-section-title">Current Project</div>
                             <div class="dropdown-project-item" style="cursor: default; opacity: 0.9">
@@ -177,6 +164,28 @@
                                 <path d="M8 0a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2H9v6a1 1 0 1 1-2 0V9H1a1 1 0 0 1 0-2h6V1a1 1 0 0 1 1-1z" />
                             </svg>
                             <span>Sign up to save your work</span>
+                        </a>
+                    {% else %}
+                        <a href="/auth/signin/" class="dropdown-project-item dropdown-create-new">
+                            <svg width="14"
+                                 height="14"
+                                 viewBox="0 0 16 16"
+                                 fill="currentColor"
+                                 style="margin-right: 6px">
+                                <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z" />
+                                <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z" />
+                            </svg>
+                            <span>Sign in to access projects</span>
+                        </a>
+                        <a href="/auth/signup/" class="dropdown-project-item dropdown-create-new">
+                            <svg width="14"
+                                 height="14"
+                                 viewBox="0 0 16 16"
+                                 fill="currentColor"
+                                 style="margin-right: 6px">
+                                <path d="M8 0a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2H9v6a1 1 0 1 1-2 0V9H1a1 1 0 0 1 0-2h6V1a1 1 0 0 1 1-1z" />
+                            </svg>
+                            <span>Sign up (Free)</span>
                         </a>
                     {% endif %}
                 </div>
@@ -268,34 +277,20 @@
                 </a>
             </nav>
         </div>
-        <!-- Project Selector (for all users) - Custom Dropdown Menu -->
-        <div class="header-project-selector">
+        <!-- Project Selector (authenticated users + visitors only) -->
+        <div class="header-project-selector"
+             {% if not user.is_authenticated and not visitor_username %}style="display: none"{% endif %}>
             <!-- Project Dropdown Button -->
             <button id="project-selector-toggle"
                     class="project-selector-btn"
                     title="{% if user.is_authenticated %}Switch projects{% else %}Current project{% endif %}">
                 <span id="project-selector-text" class="project-selector-text">
                     {% if user.is_authenticated %}
-                        {% if user.profile.last_active_repository %}
-                            {{ user.profile.last_active_repository.name }}
-                        {% else %}
-                            {% with projects=user.profile.get_user_projects %}
-                                {% if projects|length > 0 %}
-                                    {% for project in projects %}
-                                        {% if forloop.first %}{{ project.name }}{% endif %}
-                                    {% endfor %}
-                                {% else %}
-                                    Projects
-                                {% endif %}
-                            {% endwith %}
-                        {% endif %}
+                        {% with active=user.profile.get_active_project %}{{ active.name|default:"No Projects" }}{% endwith %}
+                    {% elif visitor_username %}
+                        {{ project.name|default:"default-project" }}
                     {% else %}
-                        {% comment %}Visitor mode - show allocated default project from context{% endcomment %}
-                        {% if project %}
-                            {{ project.name }}
-                        {% else %}
-                            default-project
-                        {% endif %}
+                        SciTeX
                     {% endif %}
                 </span>
                 <svg width="12"
@@ -363,7 +358,7 @@
                         </svg>
                         <span>Create New Project</span>
                     </a>
-                {% else %}
+                {% elif visitor_username %}
                     <!-- Visitor mode - show current project info -->
                     {% if project %}
                         <div class="dropdown-section">
@@ -404,6 +399,29 @@
                             <path d="M8 0a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2H9v6a1 1 0 1 1-2 0V9H1a1 1 0 0 1 0-2h6V1a1 1 0 0 1 1-1z" />
                         </svg>
                         <span>Sign up to save your work</span>
+                    </a>
+                {% else %}
+                    <!-- Anonymous user - not signed in, no visitor session -->
+                    <a href="/auth/signin/" class="dropdown-project-item dropdown-create-new">
+                        <svg width="14"
+                             height="14"
+                             viewBox="0 0 16 16"
+                             fill="currentColor"
+                             style="margin-right: 6px">
+                            <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z" />
+                            <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z" />
+                        </svg>
+                        <span>Sign in to access projects</span>
+                    </a>
+                    <a href="/auth/signup/" class="dropdown-project-item dropdown-create-new">
+                        <svg width="14"
+                             height="14"
+                             viewBox="0 0 16 16"
+                             fill="currentColor"
+                             style="margin-right: 6px">
+                            <path d="M8 0a1 1 0 0 1 1 1v6h6a1 1 0 1 1 0 2H9v6a1 1 0 1 1-2 0V9H1a1 1 0 0 1 0-2h6V1a1 1 0 0 1 1-1z" />
+                        </svg>
+                        <span>Sign up (Free)</span>
                     </a>
                 {% endif %}
             </div>

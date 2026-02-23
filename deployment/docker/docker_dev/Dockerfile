@@ -297,6 +297,7 @@ RUN mkdir -p staticfiles media logs run .cache/containers
 RUN pdflatex --version && \
     bibtex --version && \
     latexdiff --version && \
+    latexmk --version && \
     convert --version && \
     mmdc --version && \
     yq --version && \

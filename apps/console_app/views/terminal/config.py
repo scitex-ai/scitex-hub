@@ -60,17 +60,30 @@ SLURM_USER_DATA_ROOT = Path(
 )
 
 # =============================================================================
-# Dev Mode: Editable source mounts
+# Dev Mode: Editable repo mounts
 # =============================================================================
-# In dev, bind-mount local source into the container for live editing.
+# In dev, bind-mount full repos into the container for editable install.
 # Paths are HOST paths (for SLURM --bind), not Docker-internal paths.
+#
+# Comma-separated entries: name:host_path:extras
+# Example: scitex-python:/home/user/proj/scitex-python:all,figrecipe:...
+DEV_REPOS_RAW = os.environ.get("SCITEX_CLOUD_DEV_REPOS", "")
 
-# scitex package source
-# Example: /home/ywatanabe/proj/scitex-code/src/scitex
+DEV_REPOS: list[dict] = []
+if DEV_REPOS_RAW:
+    for _entry in DEV_REPOS_RAW.split(","):
+        _parts = _entry.strip().split(":")
+        if len(_parts) >= 2:
+            DEV_REPOS.append(
+                {
+                    "name": _parts[0],
+                    "host_path": _parts[1],
+                    "extras": _parts[2] if len(_parts) > 2 else "all",
+                }
+            )
+
+# Legacy vars (kept for backward compat)
 SCITEX_DEV_SRC = os.environ.get("SCITEX_CLOUD_DEV_SCITEX_SRC", "")
-
-# figrecipe package source (plotting dependency)
-# Example: /home/ywatanabe/proj/figrecipe/src/figrecipe
 FIGRECIPE_DEV_SRC = os.environ.get("SCITEX_CLOUD_DEV_FIGRECIPE_SRC", "")
 
 

@@ -43,6 +43,7 @@ export class AIPanelConsoleMode {
   private connected = false;
   private resizeObserver: ResizeObserver | null = null;
   private resizeTimeout: ReturnType<typeof setTimeout> | null = null;
+  private themeObserver: MutationObserver | null = null;
 
   async init(
     container: HTMLElement,
@@ -95,6 +96,32 @@ export class AIPanelConsoleMode {
         this.ws.send(data);
       }
     });
+
+    // Right-click shortcuts: single=1, double=2, triple=3, quadruple=4
+    // Sends the digit, waits 500ms, then sends Enter
+    let rightClickCount = 0;
+    let rightClickTimer: ReturnType<typeof setTimeout> | null = null;
+    const RIGHT_CLICK_WINDOW = 400;
+
+    container.addEventListener("contextmenu", (e: MouseEvent) => {
+      e.preventDefault();
+      rightClickCount++;
+      if (rightClickTimer) clearTimeout(rightClickTimer);
+      rightClickTimer = setTimeout(() => {
+        const count = Math.min(rightClickCount, 4);
+        rightClickCount = 0;
+        rightClickTimer = null;
+        if (this.ws?.readyState === WebSocket.OPEN) {
+          this.ws.send(String(count));
+          setTimeout(() => {
+            if (this.ws?.readyState === WebSocket.OPEN) this.ws.send("\r");
+          }, 500);
+        }
+      }, RIGHT_CLICK_WINDOW);
+    });
+
+    // Listen for theme changes
+    this.observeTheme();
 
     // Clipboard support
     this.terminal.attachCustomKeyEventHandler((ev: KeyboardEvent) => {
@@ -210,11 +237,35 @@ export class AIPanelConsoleMode {
   private getTheme(): Record<string, string> {
     const s = getComputedStyle(document.documentElement);
     const get = (v: string, fb: string) => s.getPropertyValue(v).trim() || fb;
-    return {
-      background: get("--terminal-bg", "#0d1117"),
-      foreground: get("--terminal-fg", "#c9d1d9"),
-      cursor: get("--terminal-cursor", "#58a6ff"),
-    };
+    const isDark =
+      document.documentElement.getAttribute("data-theme") !== "light";
+    return isDark
+      ? {
+          background: get("--terminal-bg", "#0d1117"),
+          foreground: get("--terminal-fg", "#c9d1d9"),
+          cursor: get("--terminal-cursor", "#58a6ff"),
+        }
+      : {
+          background: get("--terminal-bg", "#ffffff"),
+          foreground: get("--terminal-fg", "#24292f"),
+          cursor: get("--terminal-cursor", "#0969da"),
+        };
+  }
+
+  /** Watch for theme attribute changes on <html> and update terminal colors */
+  private observeTheme(): void {
+    if (this.themeObserver) return;
+    this.themeObserver = new MutationObserver(() => this.updateTheme());
+    this.themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+  }
+
+  private updateTheme(): void {
+    if (!this.terminal) return;
+    const theme = this.getTheme();
+    this.terminal.options.theme = theme;
   }
 
   /** Process OSC escape sequences (speech + media), return remaining data to write */
@@ -299,6 +350,8 @@ export class AIPanelConsoleMode {
 
   destroy(): void {
     this.resizeObserver?.disconnect();
+    this.themeObserver?.disconnect();
+    this.themeObserver = null;
     if (this.resizeTimeout) clearTimeout(this.resizeTimeout);
     this.ws?.close();
     this.ws = null;

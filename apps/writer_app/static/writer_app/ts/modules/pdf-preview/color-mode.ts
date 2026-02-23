@@ -56,7 +56,18 @@ export class ColorModeManager {
     // Force reload with new theme if we have a PDF displayed
     const currentPdfUrl = this.viewer.getCurrentPdfUrl();
     if (currentPdfUrl) {
-      await this.handleColorModeSwitch(colorMode, currentPdfUrl, content, sectionId);
+      await this.handleColorModeSwitch(
+        colorMode,
+        currentPdfUrl,
+        content,
+        sectionId,
+      );
+    } else if (content && sectionId) {
+      // No PDF displayed yet, but we have content — compile with new theme
+      console.log(
+        "[ColorModeManager] No current PDF, compiling with new theme",
+      );
+      await this.compilationHandler.compileQuick(content, sectionId, colorMode);
     }
   }
 
@@ -69,8 +80,25 @@ export class ColorModeManager {
     content?: string,
     sectionId?: string,
   ): Promise<void> {
-    const match = currentPdfUrl.match(/preview-([^-]+)-(?:light|dark)\.pdf/);
-    if (!match) return;
+    // Match themed URLs: preview-abstract-light.pdf
+    // Also match non-themed URLs: preview-abstract.pdf
+    const match = currentPdfUrl.match(
+      /preview-([^-]+?)(?:-(?:light|dark))?\.pdf/,
+    );
+    if (!match) {
+      // URL doesn't match preview pattern — compile if we have content
+      if (content && sectionId) {
+        console.log(
+          "[ColorModeManager] Non-preview URL, compiling with new theme",
+        );
+        await this.compilationHandler.compileQuick(
+          content,
+          sectionId,
+          colorMode,
+        );
+      }
+      return;
+    }
 
     const sectionName = match[1];
     const themedPdfUrl = this.compilationHandler.getThemedPdfUrl(

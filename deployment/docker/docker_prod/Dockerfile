@@ -304,6 +304,7 @@ RUN chmod +x /root-init.sh /entrypoint.sh
 USER scitex
 RUN pdflatex --version && \
     bibtex --version && \
+    latexmk --version && \
     convert --version && \
     yq --version && \
     python --version && \

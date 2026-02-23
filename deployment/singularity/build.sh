@@ -60,9 +60,25 @@ if [ ! -f "$DEF_FILE" ]; then
 fi
 
 # ============================================
+# Fetch latest PyPI versions (cache-busting key)
+# ============================================
+VERSIONS_FILE="$SCRIPT_DIR/.pypi-versions"
+ECOSYSTEM_PKGS="scitex figrecipe scitex-writer scitex-dataset crossref-local openalex-local socialia scitex-linter"
+
+echo -e "${CYAN}Checking latest PyPI versions...${NC}"
+PYPI_VERSIONS=""
+for pkg in $ECOSYSTEM_PKGS; do
+    ver=$(curl -s --max-time 5 "https://pypi.org/pypi/$pkg/json" 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin)['info']['version'])" 2>/dev/null || echo "unknown")
+    PYPI_VERSIONS="${PYPI_VERSIONS}${pkg}==${ver} "
+    echo -e "  ${pkg}: ${GREEN}${ver}${NC}"
+done
+PYPI_VERSIONS=$(echo "$PYPI_VERSIONS" | xargs) # trim
+
+# ============================================
 # Smart rebuild: hash-based change detection
 # ============================================
-CURRENT_HASH=$(sha256sum "$DEF_FILE" | awk '{print $1}')
+# Hash includes BOTH the def file AND PyPI versions
+CURRENT_HASH=$(echo "$(sha256sum "$DEF_FILE" | awk '{print $1}') ${PYPI_VERSIONS}" | sha256sum | awk '{print $1}')
 
 if [ "$FORCE" = false ] && [ -f "$SIF_FILE" ] && [ -f "$HASH_FILE" ]; then
     STORED_HASH=$(cat "$HASH_FILE" 2>/dev/null || echo "")
@@ -75,7 +91,7 @@ if [ "$FORCE" = false ] && [ -f "$SIF_FILE" ] && [ -f "$HASH_FILE" ]; then
         echo -e "   Use ${YELLOW}--force${NC} to rebuild anyway"
         exit 0
     fi
-    echo -e "${YELLOW}⚠️  .def file changed — rebuild needed${NC}"
+    echo -e "${YELLOW}⚠️  Versions changed or .def updated — rebuild needed${NC}"
     echo -e "   Old hash: ${STORED_HASH:0:12}..."
     echo -e "   New hash: ${CURRENT_HASH:0:12}..."
 elif [ ! -f "$SIF_FILE" ]; then
@@ -83,6 +99,9 @@ elif [ ! -f "$SIF_FILE" ]; then
 elif [ "$FORCE" = true ]; then
     echo -e "${YELLOW}⚠️  Force rebuild requested${NC}"
 fi
+
+# Save versions for reference
+echo "$PYPI_VERSIONS" >"$VERSIONS_FILE"
 
 echo -e ""
 echo -e "${GREEN}============================================${NC}"

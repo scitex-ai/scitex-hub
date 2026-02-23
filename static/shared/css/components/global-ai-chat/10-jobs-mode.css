@@ -1,0 +1,147 @@
+/* ============================================================
+   Jobs Mode — SLURM Job List in AI Panel
+   ============================================================ */
+
+#scitex-ai-jobs-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.scitex-ai-jobs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border-default, #30363d);
+  flex-shrink: 0;
+}
+
+.scitex-ai-jobs-summary {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #8b949e);
+  font-weight: 500;
+}
+
+.scitex-ai-jobs-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.scitex-ai-jobs-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem 1rem;
+  color: var(--text-muted, #6e7681);
+  font-size: 0.8125rem;
+  text-align: center;
+}
+
+.scitex-ai-jobs-empty i {
+  font-size: 1.5rem;
+  opacity: 0.4;
+}
+
+/* Job card */
+.scitex-ai-job-card {
+  padding: 0.5rem 0.625rem;
+  margin-bottom: 0.375rem;
+  border-radius: 4px;
+  border-left: 3px solid var(--border-default, #30363d);
+  background: var(--bg-secondary, #161b22);
+  font-size: 0.75rem;
+}
+
+.scitex-ai-job-card.running {
+  border-left-color: #3fb950;
+}
+
+.scitex-ai-job-card.pending {
+  border-left-color: #d29922;
+}
+
+.scitex-ai-job-card.completed {
+  border-left-color: #8b949e;
+}
+
+.scitex-ai-job-card.failed,
+.scitex-ai-job-card.timeout {
+  border-left-color: #f85149;
+}
+
+.scitex-ai-job-card.cancelled {
+  border-left-color: #8b949e;
+  opacity: 0.7;
+}
+
+.scitex-ai-job-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.scitex-ai-job-row + .scitex-ai-job-row {
+  margin-top: 0.25rem;
+}
+
+.scitex-ai-job-state {
+  font-weight: 600;
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  min-width: 5rem;
+}
+
+.scitex-ai-job-state.running {
+  color: #3fb950;
+}
+
+.scitex-ai-job-state.pending {
+  color: #d29922;
+}
+
+.scitex-ai-job-state.completed {
+  color: #8b949e;
+}
+
+.scitex-ai-job-state.failed,
+.scitex-ai-job-state.timeout {
+  color: #f85149;
+}
+
+.scitex-ai-job-state.cancelled {
+  color: #8b949e;
+}
+
+.scitex-ai-job-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-primary, #c9d1d9);
+}
+
+.scitex-ai-job-meta {
+  font-size: 0.625rem;
+  color: var(--text-muted, #6e7681);
+}
+
+.scitex-ai-job-cancel {
+  background: none;
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 3px;
+  color: var(--text-muted, #8b949e);
+  cursor: pointer;
+  padding: 0.125rem 0.375rem;
+  font-size: 0.625rem;
+  margin-left: auto;
+}
+
+.scitex-ai-job-cancel:hover {
+  color: #f85149;
+  border-color: #f85149;
+}

@@ -93,6 +93,35 @@ class TestProjectCreate:
         assert "csrfmiddlewaretoken" in resp.text
         assert "template" in resp.text.lower()
 
+    def test_import_project_form_loads(self, authenticated_session, base_url):
+        """Import project form loads with repository URL field."""
+        resp = authenticated_session.get(f"{base_url}/new/?type=import")
+        assert resp.status_code == 200
+        assert "csrfmiddlewaretoken" in resp.text
+        assert "git_url" in resp.text
+
+    def test_remote_project_form_loads(self, authenticated_session, base_url):
+        """Remote project form loads."""
+        resp = authenticated_session.get(f"{base_url}/new/?type=remote")
+        assert resp.status_code == 200
+
+    def test_all_create_forms_have_name_availability(
+        self, authenticated_session, base_url
+    ):
+        """All create forms include the name availability check elements."""
+        # Remote excluded: when no credentials exist, form is replaced by empty state
+        for form_type in ["blank", "template", "import"]:
+            resp = authenticated_session.get(f"{base_url}/new/?type={form_type}")
+            assert (
+                resp.status_code == 200
+            ), f"Form {form_type} returned {resp.status_code}"
+            assert (
+                "name-availability" in resp.text
+            ), f"Form {form_type} missing name-availability div"
+            assert (
+                "create.ts" in resp.text
+            ), f"Form {form_type} missing create.ts script"
+
     def test_project_name_check_api(self, authenticated_session, base_url):
         """Project name availability check API works."""
         resp = authenticated_session.get(

@@ -10,6 +10,7 @@ import { modalManager } from "../ui/ModalManager";
 interface TerminalTab {
   id: string;
   name: string;
+  tmuxSession: string;
   terminal: PTYTerminal;
   containerElement: HTMLElement;
 }
@@ -45,14 +46,18 @@ export class TerminalTabManager {
 
   /**
    * Create a new terminal tab
+   * @param name Display name for the tab
+   * @param tmuxSession tmux session name (e.g., "scitex-0"). Auto-generated if omitted.
    */
-  async createTerminal(name?: string): Promise<string> {
+  async createTerminal(name?: string, tmuxSession?: string): Promise<string> {
     if (!this.mainContainer || !this.config.currentProject) {
       throw new Error("Container or project not found");
     }
 
     const terminalId = `terminal-${Date.now()}`;
-    const terminalName = name || `T${this.terminalCounter++}`;
+    const tabIndex = this.terminalCounter++;
+    const terminalName = name || `T${tabIndex}`;
+    const sessionName = tmuxSession || `scitex-${tabIndex - 1}`;
 
     // Create container for this terminal
     const containerElement = document.createElement("div");
@@ -63,10 +68,11 @@ export class TerminalTabManager {
 
     this.mainContainer.appendChild(containerElement);
 
-    // Create PTY terminal instance
+    // Create PTY terminal instance with tmux session name
     const terminal = new PTYTerminal(
       containerElement,
       this.config.currentProject.id,
+      sessionName,
     );
 
     await terminal.waitForReady();
@@ -75,6 +81,7 @@ export class TerminalTabManager {
     this.terminals.set(terminalId, {
       id: terminalId,
       name: terminalName,
+      tmuxSession: sessionName,
       terminal,
       containerElement,
     });

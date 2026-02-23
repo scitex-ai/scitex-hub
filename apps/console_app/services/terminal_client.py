@@ -67,6 +67,7 @@ class TerminalBrokerClient:
         project_dir: Path,
         container_path: str,
         project_slug: str,
+        tmux_session: str = "scitex-0",
     ) -> Optional[str]:
         """
         Spawn a new terminal session.
@@ -77,14 +78,17 @@ class TerminalBrokerClient:
             return None
 
         try:
-            await self._send_message({
-                "action": "spawn",
-                "username": username,
-                "user_data_dir": str(user_data_dir),
-                "project_dir": str(project_dir),
-                "container_path": container_path,
-                "project_slug": project_slug,
-            })
+            await self._send_message(
+                {
+                    "action": "spawn",
+                    "username": username,
+                    "user_data_dir": str(user_data_dir),
+                    "project_dir": str(project_dir),
+                    "container_path": container_path,
+                    "project_slug": project_slug,
+                    "tmux_session": tmux_session,
+                }
+            )
 
             # Start reader task to handle responses
             self._reader_task = asyncio.create_task(self._read_loop())
@@ -96,7 +100,11 @@ class TerminalBrokerClient:
                 logger.info(f"Spawned terminal session: {self.session_id}")
                 return self.session_id
             else:
-                error = response.get("error", "Unknown error") if response else "No response"
+                error = (
+                    response.get("error", "Unknown error")
+                    if response
+                    else "No response"
+                )
                 logger.error(f"Spawn failed: {error}")
                 return None
 
@@ -109,32 +117,63 @@ class TerminalBrokerClient:
         if not self._connected or not self.session_id:
             return
 
-        await self._send_message({
-            "action": "input",
-            "session_id": self.session_id,
-            "data": base64.b64encode(data).decode("ascii"),
-        })
+        await self._send_message(
+            {
+                "action": "input",
+                "session_id": self.session_id,
+                "data": base64.b64encode(data).decode("ascii"),
+            }
+        )
 
     async def resize(self, rows: int, cols: int):
         """Resize the terminal."""
         if not self._connected or not self.session_id:
             return
 
-        await self._send_message({
-            "action": "resize",
-            "session_id": self.session_id,
-            "rows": rows,
-            "cols": cols,
-        })
+        await self._send_message(
+            {
+                "action": "resize",
+                "session_id": self.session_id,
+                "rows": rows,
+                "cols": cols,
+            }
+        )
+
+    async def disconnect_only(self):
+        """Disconnect client socket without killing the terminal session.
+
+        The tmux session continues running inside the container (via SLURM).
+        A future WebSocket connection can reattach to the same tmux session.
+        """
+        if self._reader_task:
+            self._reader_task.cancel()
+            try:
+                await self._reader_task
+            except asyncio.CancelledError:
+                pass
+
+        if self.writer:
+            try:
+                self.writer.close()
+                await self.writer.wait_closed()
+            except:
+                pass
+            self.writer = None
+            self.reader = None
+
+        self.session_id = None
+        self._connected = False
 
     async def close(self):
         """Close the terminal session and connection."""
         if self.session_id:
             try:
-                await self._send_message({
-                    "action": "close",
-                    "session_id": self.session_id,
-                })
+                await self._send_message(
+                    {
+                        "action": "close",
+                        "session_id": self.session_id,
+                    }
+                )
             except:
                 pass
             self.session_id = None
@@ -235,8 +274,7 @@ async def is_broker_available() -> bool:
     """Check if the terminal broker is running."""
     try:
         reader, writer = await asyncio.wait_for(
-            asyncio.open_unix_connection(SOCKET_PATH),
-            timeout=1.0
+            asyncio.open_unix_connection(SOCKET_PATH), timeout=1.0
         )
         writer.close()
         await writer.wait_closed()

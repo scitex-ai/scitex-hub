@@ -37,6 +37,9 @@
                     <button class="scitex-ai-mode-btn" data-mode="console" title="Console (CLI Agents)">
                         <i class="fas fa-terminal"></i>
                     </button>
+                    <button class="scitex-ai-mode-btn" data-mode="jobs" title="SLURM Jobs">
+                        <i class="fas fa-tasks"></i>
+                    </button>
                 </div>
                 <div class="scitex-ai-panel-actions">
                     <button id="scitex-ai-speak" class="scitex-ai-action-btn" title="Toggle auto-speak">
@@ -141,6 +144,16 @@
                         </span>
                         <span class="scitex-ai-console-hint">claude · gemini · codex</span>
                     </div>
+                </div>
+                <!-- Jobs mode -->
+                <div id="scitex-ai-jobs-view" class="scitex-ai-view">
+                    <div class="scitex-ai-jobs-header">
+                        <span id="scitex-ai-jobs-summary" class="scitex-ai-jobs-summary">Loading...</span>
+                        <button class="scitex-ai-action-btn" id="scitex-ai-jobs-refresh" title="Refresh">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                    <div id="scitex-ai-jobs-list" class="scitex-ai-jobs-list"></div>
                 </div>
             </div>
         </div>

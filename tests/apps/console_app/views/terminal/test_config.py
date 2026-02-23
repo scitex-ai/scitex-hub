@@ -2,79 +2,92 @@
 # -*- coding: utf-8 -*-
 """Tests for apps/console_app/views/terminal/config.py"""
 
+import importlib
+import os
+from unittest import mock
+
 import pytest
 
-# from apps.console_app.views.terminal.config import ...
 
+class TestDevReposParsing:
+    """Test DEV_REPOS parsing from SCITEX_CLOUD_DEV_REPOS env var."""
 
-class TestPlaceholder:
-    """Placeholder test class - replace with actual tests."""
+    def _reload_config(self):
+        """Reload config module to pick up env changes."""
+        import apps.console_app.views.terminal.config as cfg
 
-    def test_placeholder(self):
-        """Placeholder test - implement actual tests."""
-        pytest.skip("Not implemented yet")
+        importlib.reload(cfg)
+        return cfg
+
+    @mock.patch.dict(os.environ, {"SCITEX_CLOUD_DEV_REPOS": ""}, clear=False)
+    def test_empty_env_returns_empty_list(self):
+        cfg = self._reload_config()
+        assert cfg.DEV_REPOS == []
+
+    @mock.patch.dict(
+        os.environ,
+        {"SCITEX_CLOUD_DEV_REPOS": "scitex-python:/home/user/proj/scitex-python:all"},
+        clear=False,
+    )
+    def test_single_repo_parsed(self):
+        cfg = self._reload_config()
+        assert len(cfg.DEV_REPOS) == 1
+        assert cfg.DEV_REPOS[0]["name"] == "scitex-python"
+        assert cfg.DEV_REPOS[0]["host_path"] == "/home/user/proj/scitex-python"
+        assert cfg.DEV_REPOS[0]["extras"] == "all"
+
+    @mock.patch.dict(
+        os.environ,
+        {
+            "SCITEX_CLOUD_DEV_REPOS": (
+                "scitex-python:/home/user/proj/scitex-python:all,"
+                "figrecipe:/home/user/proj/figrecipe:all"
+            )
+        },
+        clear=False,
+    )
+    def test_multiple_repos_parsed(self):
+        cfg = self._reload_config()
+        assert len(cfg.DEV_REPOS) == 2
+        assert cfg.DEV_REPOS[0]["name"] == "scitex-python"
+        assert cfg.DEV_REPOS[1]["name"] == "figrecipe"
+
+    @mock.patch.dict(
+        os.environ,
+        {"SCITEX_CLOUD_DEV_REPOS": "myrepo:/some/path"},
+        clear=False,
+    )
+    def test_missing_extras_defaults_to_all(self):
+        cfg = self._reload_config()
+        assert len(cfg.DEV_REPOS) == 1
+        assert cfg.DEV_REPOS[0]["extras"] == "all"
+
+    @mock.patch.dict(
+        os.environ,
+        {"SCITEX_CLOUD_DEV_REPOS": "bad-entry"},
+        clear=False,
+    )
+    def test_malformed_entry_skipped(self):
+        cfg = self._reload_config()
+        assert cfg.DEV_REPOS == []
+
+    @mock.patch.dict(
+        os.environ,
+        {
+            "SCITEX_CLOUD_DEV_REPOS": (
+                "scitex-python:/home/user/proj/scitex-python:all,"
+                "bad,"
+                "figrecipe:/home/user/proj/figrecipe:all"
+            )
+        },
+        clear=False,
+    )
+    def test_malformed_entry_among_valid_ones(self):
+        cfg = self._reload_config()
+        assert len(cfg.DEV_REPOS) == 2
+        assert cfg.DEV_REPOS[0]["name"] == "scitex-python"
+        assert cfg.DEV_REPOS[1]["name"] == "figrecipe"
 
 
 if __name__ == "__main__":
-    import os
-
-    import pytest
-
     pytest.main([os.path.abspath(__file__)])
-
-# --------------------------------------------------------------------------------
-# Start of Source Code from: apps/console_app/views/terminal/config.py
-# --------------------------------------------------------------------------------
-# """
-# Terminal Configuration
-# Centralized configuration for terminal sessions, SLURM, and Apptainer
-# """
-#
-# import os
-# from pathlib import Path
-# from django.conf import settings
-#
-#
-# # =============================================================================
-# # Container Configuration
-# # =============================================================================
-#
-# # Base Apptainer image (shared by all users)
-# # For direct Apptainer execution inside Docker container
-# BASE_CONTAINER_PATH = getattr(
-#     settings,
-#     'SINGULARITY_IMAGE_PATH',
-#     '/app/singularity/scitex-cloud-shared-v0.1.0.sif'
-# )
-#
-# # User data directory (inside Docker container)
-# USER_DATA_ROOT = Path(getattr(settings, 'USER_DATA_ROOT', '/app/data/users'))
-#
-#
-# # =============================================================================
-# # SLURM Configuration
-# # =============================================================================
-#
-# # SLURM settings for interactive sessions (from env vars)
-# SLURM_PARTITION = os.environ.get('SCITEX_CLOUD_QUOTA_SLURM_INTERACTIVE_PARTITION', 'express')
-# SLURM_TIME_LIMIT = os.environ.get('SCITEX_CLOUD_QUOTA_SLURM_INTERACTIVE_TIME_LIMIT', '04:00:00')
-# SLURM_CPUS = int(os.environ.get('SCITEX_CLOUD_QUOTA_SLURM_INTERACTIVE_CPUS', 2))
-# SLURM_MEMORY_GB = int(os.environ.get('SCITEX_CLOUD_QUOTA_SLURM_INTERACTIVE_MEMORY_GB', 4))
-#
-# # SLURM host paths - jobs run on compute nodes, not inside Docker
-# # These paths must be accessible from the SLURM compute nodes
-# SLURM_CONTAINER_PATH = os.environ.get(
-#     'SCITEX_SLURM_CONTAINER_PATH',
-#     '/home/ywatanabe/proj/scitex-cloud/deployment/singularity/scitex-cloud-shared-v0.1.0.sif'
-# )
-# SLURM_USER_DATA_ROOT = Path(os.environ.get(
-#     'SCITEX_SLURM_USER_DATA_ROOT',
-#     '/home/ywatanabe/proj/scitex-cloud/data/users'
-# ))
-#
-#
-# # EOF
-
-# --------------------------------------------------------------------------------
-# End of Source Code from: apps/console_app/views/terminal/config.py
-# --------------------------------------------------------------------------------

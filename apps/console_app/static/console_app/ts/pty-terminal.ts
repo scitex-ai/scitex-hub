@@ -11,12 +11,18 @@ export class PTYTerminal {
   private term: any;
   private ws: WebSocket | null = null;
   private projectId: number;
+  private tmuxSession: string;
   private imageContainer: HTMLElement | null = null;
   private readyPromise: Promise<void>;
   private readyResolve!: () => void;
 
-  constructor(containerEl: HTMLElement, projectId: number) {
+  constructor(
+    containerEl: HTMLElement,
+    projectId: number,
+    tmuxSession: string = "scitex-0",
+  ) {
     this.projectId = projectId;
+    this.tmuxSession = tmuxSession;
 
     // Create a promise that resolves when initialization is complete
     this.readyPromise = new Promise<void>((resolve) => {
@@ -177,6 +183,38 @@ export class PTYTerminal {
       return true; // Allow other keys
     });
 
+    // Right-click shortcuts: single=1, double=2, triple=3, quadruple=4
+    // Sends the digit, waits 500ms, then sends Enter
+    let rightClickCount = 0;
+    let rightClickTimer: ReturnType<typeof setTimeout> | null = null;
+    const RIGHT_CLICK_WINDOW = 400; // ms to wait for additional clicks
+
+    containerEl.addEventListener("contextmenu", (e: MouseEvent) => {
+      e.preventDefault();
+      rightClickCount++;
+
+      if (rightClickTimer) clearTimeout(rightClickTimer);
+
+      rightClickTimer = setTimeout(() => {
+        const count = Math.min(rightClickCount, 4);
+        rightClickCount = 0;
+        rightClickTimer = null;
+
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+          const digit = String(count);
+          console.log(
+            `[PTY] Right-click x${count} → sending "${digit}" + Enter`,
+          );
+          this.ws.send(digit);
+          setTimeout(() => {
+            if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+              this.ws.send("\r");
+            }
+          }, 500);
+        }
+      }, RIGHT_CLICK_WINDOW);
+    });
+
     console.log("[PTY] xterm.js initialized");
 
     // Signal that initialization is complete
@@ -185,7 +223,7 @@ export class PTYTerminal {
 
   private connect(): void {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/ws/console/terminal/?project_id=${this.projectId}`;
+    const wsUrl = `${protocol}//${window.location.host}/ws/console/terminal/?project_id=${this.projectId}&tmux_session=${this.tmuxSession}`;
 
     console.log("[PTY] Connecting to:", wsUrl);
 

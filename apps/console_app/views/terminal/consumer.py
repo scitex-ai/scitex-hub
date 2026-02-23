@@ -110,6 +110,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
             )
         )
         project_id = query_params.get("project_id")
+        self.tmux_session = query_params.get("tmux_session", "scitex-0")
 
         if not project_id:
             await self.accept()
@@ -258,6 +259,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
                 project_dir=project_dir,
                 container_path=container_path,
                 project_slug=project_slug,
+                tmux_session=self.tmux_session,
             )
 
             if not session_id:
@@ -326,6 +328,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
                         project_dir,
                         container_path,
                         project_slug,
+                        tmux_session=self.tmux_session,
                     )
                 except Exception as e:
                     import sys
@@ -434,14 +437,20 @@ class TerminalConsumer(AsyncWebsocketConsumer):
             await self.send(text_data=f"\x1b]9998;media:{b64}\x07")
 
     async def disconnect(self, close_code):
-        """Clean up on disconnect."""
+        """Clean up on disconnect.
+
+        Broker mode: Only disconnect the client socket. The tmux session
+        continues running inside the container so the user can reattach later.
+
+        Direct mode (fallback): Kill the PTY process (no persistence).
+        """
         # Leave speech channel group
         if getattr(self, "speech_group", None):
             await self.channel_layer.group_discard(self.speech_group, self.channel_name)
 
         if self.use_broker and self.broker_client:
-            # Broker mode cleanup
-            await self.broker_client.close()
+            # Broker mode: detach only — tmux session persists for reattach
+            await self.broker_client.disconnect_only()
             self.broker_client = None
         else:
             # Direct mode cleanup

@@ -88,6 +88,13 @@ console.log(
     ".btn-primary",
   ) as HTMLButtonElement | null;
 
+  // Disable submit button on load until name is validated
+  if (submitButton && nameInput && !nameInput.value.trim()) {
+    submitButton.disabled = true;
+    submitButton.style.opacity = "0.5";
+    submitButton.style.cursor = "not-allowed";
+  }
+
   // Prevent form submission if name is not available
   form?.addEventListener("submit", function (e: Event) {
     const name = nameInput?.value.trim();

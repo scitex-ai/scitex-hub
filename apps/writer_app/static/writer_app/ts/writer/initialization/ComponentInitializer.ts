@@ -19,6 +19,7 @@ import {
   EditorControls,
   GitHistoryManager,
 } from "../../modules/index";
+import { initPdfContextMenu } from "../../modules/pdf-scroll-zoom/pdf-context-menu";
 import { showToast } from "../../utils/index";
 import {
   setSectionOpsPdfPreviewManager,
@@ -164,6 +165,9 @@ export class ComponentInitializer {
     // Observe for PDF viewer changes and reinitialize zoom handler
     pdfScrollZoomHandler.observePDFViewer();
 
+    // Initialize PDF right-click context menu
+    initPdfContextMenu("text-preview");
+
     const phase2End = performance.now();
     console.log(
       `[ComponentInitializer] Phase 2: ${(phase2End - phase2Start).toFixed(2)}ms (editor + PDF components)`,
@@ -236,29 +240,46 @@ export class ComponentInitializer {
     const colorMode = localStorage.getItem("pdf-color-mode") || "light";
     const pdfUrl = `/writer/api/project/${this.config.projectId}/pdf/preview-abstract-${colorMode}.pdf`;
 
-    console.log("[ComponentInitializer] Auto-start: Checking for existing PDF...");
+    console.log(
+      "[ComponentInitializer] Auto-start: Checking for existing PDF...",
+    );
 
     // Check if PDF exists and load it
     fetch(pdfUrl, { method: "HEAD" })
       .then((response) => {
         if (response.ok) {
-          console.log("[ComponentInitializer] Auto-start: Found existing PDF, loading...");
+          console.log(
+            "[ComponentInitializer] Auto-start: Found existing PDF, loading...",
+          );
           // PDF exists, trigger display via custom event
-          window.dispatchEvent(new CustomEvent("writer:loadExistingPDF", { detail: { url: pdfUrl } }));
+          window.dispatchEvent(
+            new CustomEvent("writer:loadExistingPDF", {
+              detail: { url: pdfUrl },
+            }),
+          );
         } else {
-          console.log("[ComponentInitializer] Auto-start: No existing PDF, will compile on first edit");
+          console.log(
+            "[ComponentInitializer] Auto-start: No existing PDF, will compile on first edit",
+          );
           // No PDF exists, trigger initial compilation if content exists
           const sections = this.config.sections;
           if (sections && sections.abstract && sections.abstract.trim()) {
-            console.log("[ComponentInitializer] Auto-start: Content found, triggering initial preview compile...");
+            console.log(
+              "[ComponentInitializer] Auto-start: Content found, triggering initial preview compile...",
+            );
             setTimeout(() => {
-              pdfPreviewManager.compileQuick(sections.abstract, "manuscript/abstract");
+              pdfPreviewManager.compileQuick(
+                sections.abstract,
+                "manuscript/abstract",
+              );
             }, 1000); // Delay to ensure everything is initialized
           }
         }
       })
       .catch(() => {
-        console.log("[ComponentInitializer] Auto-start: Could not check for existing PDF");
+        console.log(
+          "[ComponentInitializer] Auto-start: Could not check for existing PDF",
+        );
       });
   }
 
