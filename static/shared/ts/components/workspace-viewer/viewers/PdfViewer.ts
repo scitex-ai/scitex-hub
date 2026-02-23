@@ -4,6 +4,7 @@
  */
 
 import type { Viewer } from "../types.ts";
+import { getFileUrl } from "../file-loader.ts";
 
 const PDFJS_CDN =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
@@ -25,7 +26,7 @@ export class PdfViewer implements Viewer {
     filePath: string,
     projectId: string,
   ): Promise<void> {
-    const rawUrl = `/console/api/file-content/${filePath}?project_id=${projectId}&raw=true`;
+    const rawUrl = getFileUrl(filePath, projectId, true);
     const fileName = filePath.split("/").pop() || filePath;
 
     container.innerHTML = "";

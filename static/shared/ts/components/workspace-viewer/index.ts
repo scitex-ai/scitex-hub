@@ -42,7 +42,7 @@ export class WorkspaceViewer {
     this.getFileUrl =
       config.getFileUrl ??
       ((filePath, raw, _download) => {
-        const base = `/console/api/file-content/${filePath}`;
+        const base = `/api/workspace/file-content/${filePath}`;
         const params = new URLSearchParams();
         if (this.projectId) params.set("project_id", this.projectId);
         if (raw) params.set("raw", "true");

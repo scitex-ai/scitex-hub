@@ -3,6 +3,7 @@
  */
 
 import type { Viewer } from "../types.ts";
+import { getFileUrl } from "../file-loader.ts";
 
 export class AudioViewer implements Viewer {
   private audio: HTMLAudioElement | null = null;
@@ -12,7 +13,7 @@ export class AudioViewer implements Viewer {
     filePath: string,
     projectId: string,
   ): Promise<void> {
-    const rawUrl = `/console/api/file-content/${filePath}?project_id=${projectId}&raw=true`;
+    const rawUrl = getFileUrl(filePath, projectId, true);
     const fileName = filePath.split("/").pop() || filePath;
     const ext = fileName.includes(".")
       ? fileName.split(".").pop()?.toUpperCase()

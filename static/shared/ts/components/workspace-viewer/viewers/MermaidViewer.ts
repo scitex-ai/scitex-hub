@@ -4,6 +4,7 @@
  */
 
 import type { Viewer } from "../types.ts";
+import { getFileUrl } from "../file-loader.ts";
 
 export class MermaidViewer implements Viewer {
   private abortController: AbortController | null = null;
@@ -13,7 +14,7 @@ export class MermaidViewer implements Viewer {
     filePath: string,
     projectId: string,
   ): Promise<void> {
-    const apiUrl = `/console/api/file-content/${filePath}?project_id=${projectId}`;
+    const apiUrl = getFileUrl(filePath, projectId, false);
 
     container.innerHTML =
       '<div style="color:#888; padding:10px;">Loading diagram...</div>';

@@ -5,6 +5,7 @@
  */
 
 import type { Viewer } from "../types.ts";
+import { getFileUrl } from "../file-loader.ts";
 
 export class CsvViewer implements Viewer {
   private abortController: AbortController | null = null;
@@ -14,7 +15,7 @@ export class CsvViewer implements Viewer {
     filePath: string,
     projectId: string,
   ): Promise<void> {
-    const apiUrl = `/console/api/file-content/${filePath}?project_id=${projectId}`;
+    const apiUrl = getFileUrl(filePath, projectId, false);
     const fileName = filePath.split("/").pop() || filePath;
 
     container.innerHTML = "";
