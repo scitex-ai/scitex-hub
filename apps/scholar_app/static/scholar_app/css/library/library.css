@@ -12,10 +12,12 @@
   padding: 0;
 }
 
-/* Paper list column — middle pane */
+/* Paper list column — left pane, resizable via library-resizer */
 .library-tab-inner {
-  width: clamp(260px, 35%, 500px);
+  width: 400px;
   flex-shrink: 0;
+  flex-grow: 0;
+  min-width: 200px;
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -23,11 +25,10 @@
   border-right: 1px solid var(--workspace-border-default);
 }
 
-/* Details panel column — right pane, grows to fill */
+/* Details panel column — right pane, grows to fill remaining space */
 .library-details-panel {
   flex: 1;
   min-width: 200px;
-  max-width: 50%;
   overflow-y: auto;
   overflow-x: hidden;
   background-color: var(--workspace-bg-primary);
@@ -38,13 +39,6 @@
 /* Resizer handle between paper list and details */
 .library-resizer {
   flex-shrink: 0;
-}
-
-/* Narrow screen: tighter paper list */
-@media (max-width: 900px) {
-  .library-tab-inner {
-    width: clamp(260px, 30%, 400px);
-  }
 }
 
 /* Tab Badge */

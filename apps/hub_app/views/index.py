@@ -13,11 +13,24 @@ logger = logging.getLogger(__name__)
 
 def build_hub_context(request, current_project=None):
     """Build hub-specific template context for both full page and partial views."""
+
     context = {
         "is_visitor": False,
         "module_name": "Hub",
         "module_icon": "fa-home",
         "current_project": current_project,
+    }
+
+    # Quick Reference: SSH and URL info
+    host = request.get_host()
+    is_dev = "127.0.0.1" in host or "localhost" in host
+    ssh_hostname = "127.0.0.1" if is_dev else "ssh.scitex.ai"
+    ssh_port = "2200" if is_dev else ""
+    context["quick_ref"] = {
+        "ssh_hostname": ssh_hostname,
+        "ssh_port": ssh_port,
+        "is_dev": is_dev,
+        "username": request.user.username,
     }
 
     # Mark as demo if visitor

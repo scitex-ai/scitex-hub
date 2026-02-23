@@ -11,7 +11,6 @@ import { initHiddenFilesToggle } from "./HiddenFilesToggle.ts";
 import { initGitStatusToggle } from "./GitStatusToggle.ts";
 import { initModuleFilterButtons } from "./ModuleFilterButtons.ts";
 import { initSortToggle } from "./SortToggle.ts";
-import { FilePreviewPanel } from "./FilePreviewPanel.ts";
 
 declare global {
   interface Window {
@@ -87,21 +86,7 @@ export async function autoInitWorktreePanes(): Promise<void> {
     const username = pane.dataset.username;
     if (!slug || !username) continue;
 
-    // Initialize file preview panel if present in DOM
-    const previewEl = document.getElementById("ws-worktree-preview");
-    let previewPanel: FilePreviewPanel | null = null;
-    if (previewEl) {
-      previewPanel = new FilePreviewPanel(previewEl);
-      previewPanel.configure(username, slug);
-      // Close button
-      document
-        .getElementById("ws-preview-close")
-        ?.addEventListener("click", () => {
-          previewPanel?.hide();
-        });
-    }
-
-    // Delegate to custom handler if set; preview is handled via DOM event below
+    // Delegate to custom handler if set; file viewing handled by workspace-viewer pane
     const onFileSelect = window.scitexOnFileSelect || (() => {});
 
     const tree = new WorkspaceFilesTree({
@@ -116,13 +101,6 @@ export async function autoInitWorktreePanes(): Promise<void> {
 
     await tree.initialize();
 
-    // Preview panel: listen via DOM event so it persists even when modules replace onFileSelect
-    if (previewPanel) {
-      pane.addEventListener("file-select", ((e: CustomEvent) => {
-        const path = e.detail?.path;
-        if (path) previewPanel!.show(path);
-      }) as EventListener);
-    }
     initHiddenFilesToggle(tree);
     initGitStatusToggle(tree);
     initSortToggle(tree);

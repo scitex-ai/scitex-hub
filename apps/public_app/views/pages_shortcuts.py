@@ -19,7 +19,6 @@ KEYBOARD_SHORTCUTS_DATA = [
                 "shortcuts": [
                     {"keys": "Alt+F", "description": "Files"},
                     {"keys": "Alt+S", "description": "Scholar"},
-                    {"keys": "Alt+C", "description": "Console"},
                     {"keys": "Alt+V", "description": "Visualizer"},
                     {"keys": "Alt+W", "description": "Writer"},
                     {"keys": "Alt+Z", "description": "Zen Mode"},
@@ -70,36 +69,6 @@ KEYBOARD_SHORTCUTS_DATA = [
                 "shortcuts": [
                     {"keys": "Ctrl+S", "description": "Save to library"},
                     {"keys": "Ctrl+C", "description": "Copy citation"},
-                ],
-            },
-        ],
-    },
-    {
-        "name": "Console",
-        "slug": "code",
-        "icon": "💻",
-        "description": "Terminal workspace",
-        "sections": [
-            {
-                "title": "Files",
-                "shortcuts": [
-                    {"keys": "Ctrl+S", "description": "Save file"},
-                    {"keys": "Ctrl+N", "description": "New file"},
-                    {"keys": "Ctrl+Tab", "description": "Next tab"},
-                    {"keys": "Ctrl+Shift+Tab", "description": "Prev tab"},
-                ],
-            },
-            {
-                "title": "Terminal",
-                "shortcuts": [
-                    {"keys": "Ctrl+Shift+T", "description": "New terminal"},
-                    {"keys": "Ctrl+`", "description": "Toggle terminal"},
-                ],
-            },
-            {
-                "title": "View",
-                "shortcuts": [
-                    {"keys": "Ctrl+B", "description": "Toggle sidebar"},
                 ],
             },
         ],

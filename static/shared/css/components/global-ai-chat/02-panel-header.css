@@ -50,24 +50,14 @@
   color: #5a9a7e; /* success green — indicates feature is on */
 }
 
-/* Model badge — inline in the panel title */
+/* Model badge — inline in the settings panel LLM label */
 .scitex-ai-model-badge {
-  font-size: 0.625rem;
+  font-size: 0.6rem;
   font-family: monospace;
-  font-weight: 500;
-  color: var(--text-muted, #8b949e);
-  background: var(--bg-hover, rgba(255, 255, 255, 0.07));
-  border: 1px solid var(--border-default, #30363d);
-  padding: 1px 5px;
-  border-radius: 3px;
-  vertical-align: middle;
-  opacity: 0.85;
-  empty-cells: hide;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
-  display: block;
+  font-weight: 400;
+  color: var(--text-dimmed, #484f58);
+  display: inline;
+  margin-left: 0.25rem;
 }
 
 .scitex-ai-model-badge:empty {

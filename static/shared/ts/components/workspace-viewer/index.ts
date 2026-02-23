@@ -1,0 +1,261 @@
+/**
+ * WorkspaceViewer - Coordinates tab management and file viewing.
+ *
+ * Responsibilities:
+ * - Open/close files via TabManager
+ * - Route to Monaco (text) or a dedicated media viewer (images, PDF, CSV, etc.)
+ * - Lazy-load Monaco editor; fall back to <pre> when unavailable
+ * - Manage show/hide of monacoContainer vs mediaContainer
+ */
+
+import { TabManager } from "./TabManager.ts";
+import { ViewerRouter } from "./ViewerRouter.ts";
+import { detectFileType, LANGUAGE_MAP, type TabInfo } from "./types.ts";
+
+export interface WorkspaceViewerConfig {
+  tabsContainer: HTMLElement;
+  monacoContainer: HTMLElement;
+  mediaContainer: HTMLElement;
+  /** Base localStorage key for tab state. Defaults to "ws-viewer-tabs". */
+  storageKey?: string;
+  /** Build the URL for loading file content (raw text or media). */
+  getFileUrl?: (filePath: string, raw?: boolean, download?: boolean) => string;
+}
+
+export class WorkspaceViewer {
+  private tabManager: TabManager;
+  private router: ViewerRouter;
+  private monacoContainer: HTMLElement;
+  private mediaContainer: HTMLElement;
+  private projectId: string = "";
+  private monacoEditor: any = null;
+  private getFileUrl: (
+    filePath: string,
+    raw?: boolean,
+    download?: boolean,
+  ) => string;
+
+  constructor(config: WorkspaceViewerConfig) {
+    this.monacoContainer = config.monacoContainer;
+    this.mediaContainer = config.mediaContainer;
+
+    this.getFileUrl =
+      config.getFileUrl ??
+      ((filePath, raw, _download) => {
+        const base = `/console/api/file-content/${filePath}`;
+        const params = new URLSearchParams();
+        if (this.projectId) params.set("project_id", this.projectId);
+        if (raw) params.set("raw", "true");
+        return `${base}?${params.toString()}`;
+      });
+
+    this.router = new ViewerRouter();
+
+    this.tabManager = new TabManager({
+      container: config.tabsContainer,
+      storageKey: config.storageKey ?? "ws-viewer-tabs",
+      onSwitch: (path) => this.handleTabSwitch(path),
+      onClose: (path) => this.handleTabClose(path),
+    });
+  }
+
+  setProjectId(id: string): void {
+    this.projectId = id;
+  }
+
+  /** Open a file: create a tab and display its content. */
+  async openFile(filePath: string): Promise<void> {
+    const fileType = detectFileType(filePath);
+    const title = filePath.split("/").pop() || filePath;
+
+    const tabInfo: TabInfo = { path: filePath, title, fileType };
+    this.tabManager.openTab(tabInfo);
+
+    // Rendering is triggered by TabManager's onSwitch callback,
+    // but if the tab was already active openTab won't fire onSwitch again.
+    // Re-render explicitly to make sure the content is shown.
+    await this.renderFile(filePath);
+  }
+
+  /** Close a file tab (content cleanup handled in handleTabClose). */
+  closeFile(filePath: string): void {
+    this.tabManager.closeTab(filePath);
+  }
+
+  destroy(): void {
+    this.router.destroyAll();
+    if (this.monacoEditor) {
+      try {
+        this.monacoEditor.dispose();
+      } catch {
+        // ignore
+      }
+      this.monacoEditor = null;
+    }
+  }
+
+  // --- Private ---
+
+  private async handleTabSwitch(path: string): Promise<void> {
+    await this.renderFile(path);
+  }
+
+  private handleTabClose(path: string): void {
+    const active = this.tabManager.getActiveTab();
+    if (!active) {
+      // No tabs remain — hide both panels
+      this.monacoContainer.style.display = "none";
+      this.mediaContainer.style.display = "none";
+    }
+    // The router keeps viewer instances alive for reuse; they are cleaned up on destroy().
+  }
+
+  private async renderFile(filePath: string): Promise<void> {
+    const fileType = detectFileType(filePath);
+
+    if (fileType === "text") {
+      await this.showTextFile(filePath);
+    } else {
+      await this.showMediaFile(filePath);
+    }
+  }
+
+  private async showTextFile(filePath: string): Promise<void> {
+    this.mediaContainer.style.display = "none";
+    this.monacoContainer.style.display = "block";
+
+    // Fetch raw content
+    let content = "";
+    try {
+      const url = this.getFileUrl(filePath, true, false);
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      content = await response.text();
+    } catch (err) {
+      console.error("[WorkspaceViewer] Failed to load file:", filePath, err);
+      content = `// Error loading file: ${filePath}\n// ${err}`;
+    }
+
+    const language =
+      LANGUAGE_MAP[
+        filePath.substring(filePath.lastIndexOf(".")).toLowerCase()
+      ] ?? "plaintext";
+
+    // Try Monaco first, fall back to <pre>
+    const monaco = (window as any).monaco;
+    if (monaco) {
+      await this.loadIntoMonaco(content, language);
+    } else {
+      // Attempt lazy load
+      const monacoLoaded = await this.tryLazyLoadMonaco();
+      if (monacoLoaded) {
+        await this.loadIntoMonaco(content, language);
+      } else {
+        this.showFallbackPre(content);
+      }
+    }
+  }
+
+  private async showMediaFile(filePath: string): Promise<void> {
+    this.monacoContainer.style.display = "none";
+    this.mediaContainer.style.display = "block";
+
+    const viewer = this.router.getViewer(filePath);
+    if (!viewer) {
+      // Binary or unrecognised — show a simple placeholder
+      this.mediaContainer.innerHTML = `
+        <div class="ws-viewer-placeholder">
+          <p>Cannot preview: <code>${filePath.split("/").pop()}</code></p>
+        </div>`;
+      return;
+    }
+
+    try {
+      await viewer.render(this.mediaContainer, filePath, this.projectId);
+    } catch (err) {
+      console.error("[WorkspaceViewer] Viewer render error:", err);
+      this.mediaContainer.innerHTML = `
+        <div class="ws-viewer-placeholder">
+          <p>Error rendering file: ${err instanceof Error ? err.message : String(err)}</p>
+        </div>`;
+    }
+  }
+
+  // --- Monaco helpers ---
+
+  private async loadIntoMonaco(
+    content: string,
+    language: string,
+  ): Promise<void> {
+    const monaco = (window as any).monaco;
+    if (!monaco) return;
+
+    if (!this.monacoEditor) {
+      this.monacoEditor = monaco.editor.create(this.monacoContainer, {
+        value: content,
+        language,
+        automaticLayout: true,
+        theme: this.resolveMonacoTheme(),
+        fontSize: 14,
+        fontFamily: "'JetBrains Mono', 'Monaco', 'Menlo', monospace",
+        minimap: { enabled: true },
+        scrollBeyondLastLine: false,
+        wordWrap: "on",
+        readOnly: true,
+      });
+    } else {
+      const model = this.monacoEditor.getModel();
+      if (model) {
+        monaco.editor.setModelLanguage(model, language);
+      }
+      this.monacoEditor.setValue(content);
+    }
+  }
+
+  private resolveMonacoTheme(): string {
+    const saved = localStorage.getItem("monaco-editor-theme");
+    if (saved) return saved;
+    return document.documentElement.getAttribute("data-theme") === "dark"
+      ? "vs-dark"
+      : "vs";
+  }
+
+  private async tryLazyLoadMonaco(): Promise<boolean> {
+    try {
+      // If the Monaco AMD loader is on the page, wait for the ready event
+      await new Promise<void>((resolve, reject) => {
+        if ((window as any).monaco) {
+          resolve();
+          return;
+        }
+        const timeout = setTimeout(
+          () => reject(new Error("Monaco timeout")),
+          3000,
+        );
+        window.addEventListener(
+          "monaco-ready",
+          () => {
+            clearTimeout(timeout);
+            resolve();
+          },
+          { once: true },
+        );
+      });
+      return !!(window as any).monaco;
+    } catch {
+      return false;
+    }
+  }
+
+  private showFallbackPre(content: string): void {
+    this.monacoContainer.innerHTML = "";
+    const pre = document.createElement("pre");
+    pre.className = "ws-viewer-fallback-pre";
+    pre.textContent = content;
+    this.monacoContainer.appendChild(pre);
+  }
+}
+
+// Named re-exports so consumers can import from this entry point.
+export { detectFileType } from "./types.ts";
+export type { FileType, TabInfo, Viewer } from "./types.ts";
