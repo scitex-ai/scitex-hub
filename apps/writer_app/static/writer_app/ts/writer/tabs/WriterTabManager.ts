@@ -185,7 +185,7 @@ export class WriterTabManager {
 
     // Create the file via API
     try {
-      const response = await fetch("/console/api/file-content/", {
+      const response = await fetch("/api/workspace/file-content/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

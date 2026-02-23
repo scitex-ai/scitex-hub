@@ -1,8 +1,10 @@
 from django.urls import path
-from . import views, default_workspace_views, workspace_views, job_api_views
+from django.views.generic import RedirectView
+
+from . import default_workspace_views, job_api_views, views, workspace_views
 from . import workspace_api as workspace_api_views
-from .views import service_api_lifecycle, service_api_list
 from .views import api as api_views
+from .views import service_api_lifecycle, service_api_list
 
 app_name = "code"
 
@@ -15,29 +17,80 @@ urlpatterns = [
     ),
     # Main workspace - simple file editor (replaces redirect)
     path("", workspace_views.code_workspace, name="index"),
-    # Workspace API endpoints
-    path("api/file-content/<path:file_path>", workspace_api_views.api_get_file_content, name="api_file_content"),
+    # Workspace API endpoints (file-content redirects to shared workspace_api app)
+    path(
+        "api/file-content/<path:file_path>",
+        RedirectView.as_view(
+            url="/api/workspace/file-content/%(file_path)s",
+            query_string=True,
+        ),
+        name="api_file_content_redirect",
+    ),
     path("api/save/", workspace_api_views.api_save_file, name="api_save_file"),
-    path("api/execute/", workspace_api_views.api_execute_script, name="api_execute_script"),
-    path("api/command/", workspace_api_views.api_execute_command, name="api_execute_command"),
-    path("api/create-file/", workspace_api_views.api_create_file, name="api_create_file"),
+    path(
+        "api/execute/",
+        workspace_api_views.api_execute_script,
+        name="api_execute_script",
+    ),
+    path(
+        "api/command/",
+        workspace_api_views.api_execute_command,
+        name="api_execute_command",
+    ),
+    path(
+        "api/create-file/", workspace_api_views.api_create_file, name="api_create_file"
+    ),
     path("api/delete/", workspace_api_views.api_delete_file, name="api_delete_file"),
     # Git status and diff endpoints
-    path("api/git-status/", workspace_api_views.api_get_git_status, name="api_git_status"),
-    path("api/file-diff/<path:file_path>", workspace_api_views.api_get_file_diff, name="api_file_diff"),
+    path(
+        "api/git-status/", workspace_api_views.api_get_git_status, name="api_git_status"
+    ),
+    path(
+        "api/file-diff/<path:file_path>",
+        workspace_api_views.api_get_file_diff,
+        name="api_file_diff",
+    ),
     path("api/git-commit/", workspace_api_views.api_git_commit, name="api_git_commit"),
     # SLURM job management API
     path("api/jobs/submit/", job_api_views.api_submit_job, name="api_submit_job"),
-    path("api/jobs/<int:job_id>/status/", job_api_views.api_job_status, name="api_job_status_slurm"),
-    path("api/jobs/<int:job_id>/cancel/", job_api_views.api_cancel_job, name="api_cancel_job"),
-    path("api/jobs/<int:job_id>/output/", job_api_views.api_job_output, name="api_job_output"),
+    path(
+        "api/jobs/<int:job_id>/status/",
+        job_api_views.api_job_status,
+        name="api_job_status_slurm",
+    ),
+    path(
+        "api/jobs/<int:job_id>/cancel/",
+        job_api_views.api_cancel_job,
+        name="api_cancel_job",
+    ),
+    path(
+        "api/jobs/<int:job_id>/output/",
+        job_api_views.api_job_output,
+        name="api_job_output",
+    ),
     path("api/jobs/queue/", job_api_views.api_queue_status, name="api_queue_status"),
     path("api/jobs/", job_api_views.api_user_jobs, name="api_user_jobs"),
     # Project Service API (TensorBoard, Jupyter, etc.)
-    path("api/service-types/", service_api_list.service_types_api, name="api_service_types"),
-    path("api/services/<str:username>/<str:project_slug>/", service_api_list.ServiceListAPI.as_view(), name="api_service_list"),
-    path("api/services/<str:username>/<str:project_slug>/start/", service_api_lifecycle.ServiceStartAPI.as_view(), name="api_service_start"),
-    path("api/services/<str:service_id>/stop/", service_api_lifecycle.ServiceStopAPI.as_view(), name="api_service_stop"),
+    path(
+        "api/service-types/",
+        service_api_list.service_types_api,
+        name="api_service_types",
+    ),
+    path(
+        "api/services/<str:username>/<str:project_slug>/",
+        service_api_list.ServiceListAPI.as_view(),
+        name="api_service_list",
+    ),
+    path(
+        "api/services/<str:username>/<str:project_slug>/start/",
+        service_api_lifecycle.ServiceStartAPI.as_view(),
+        name="api_service_start",
+    ),
+    path(
+        "api/services/<str:service_id>/stop/",
+        service_api_lifecycle.ServiceStopAPI.as_view(),
+        name="api_service_stop",
+    ),
     # Landing pages
     path("features/", views.features, name="features"),
     path("pricing/", views.pricing, name="pricing"),

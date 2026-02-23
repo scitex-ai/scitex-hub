@@ -151,6 +151,8 @@ urlpatterns = [
         "favicon.ico",
         RedirectView.as_view(url="/static/shared/images/favicon.png", permanent=True),
     ),
+    # Shared workspace API (file content, etc.)
+    path("api/workspace/", include("apps.workspace_api.urls")),
     # Event bus API (APIKey auth, CSRF exempt)
     path("api/events/", receive_event, name="event_receive"),
     path("api/events/list/", list_events, name="event_list"),

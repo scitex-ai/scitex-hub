@@ -1,6 +1,8 @@
 {% if user.is_authenticated %}
     <div class="ws-viewer-pane" id="ws-viewer-pane">
-        <div class="workspace-sidebar collapsed" id="ws-viewer-sidebar">
+        <div class="workspace-sidebar collapsed"
+             id="ws-viewer-sidebar"
+             data-ai-hint="You can open project files in the viewer pane using ui_action with action='open-file' and path='relative/file/path'. Example: ui_action(steps=[{action:'open-file', path:'src/main.py'}])">
             <div id="ws-viewer-resizer"
                  class="panel-resizer"
                  data-panel-resizer

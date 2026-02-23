@@ -23,7 +23,7 @@ const BINARY_MEDIA_TYPES = new Set<FileType>([
 ]);
 
 /** Default API endpoint for file content */
-const DEFAULT_API_ENDPOINT = "/console/api/file-content/";
+const DEFAULT_API_ENDPOINT = "/api/workspace/file-content/";
 
 /** Configurable API endpoint — can be overridden for different apps */
 let apiEndpoint = DEFAULT_API_ENDPOINT;

@@ -2,18 +2,26 @@
  * UI Action Executor — browser-side handler for the AI's `ui_action` tool.
  * The server skips MCP execution; the browser intercepts and drives the DOM.
  *
- * Supported actions: navigate | highlight | scroll | fill | click | clear
+ * Supported actions: navigate | highlight | scroll | fill | click | clear | open-file
  */
 
 import { clearHighlights, highlightElement } from "../product-tour/ui";
 
 export interface UIStep {
-  action: "navigate" | "highlight" | "scroll" | "fill" | "click" | "clear";
+  action:
+    | "navigate"
+    | "highlight"
+    | "scroll"
+    | "fill"
+    | "click"
+    | "clear"
+    | "open-file";
   url?: string;
   selector?: string;
   message?: string;
   value?: string;
   position?: "top" | "bottom" | "left" | "right";
+  path?: string; // File path for open-file action
 }
 
 export interface UIActionArgs {
@@ -158,6 +166,21 @@ async function executeStep(step: UIStep): Promise<void> {
       clearHighlights();
       removeTooltip();
       break;
+
+    case "open-file": {
+      const viewer = (window as any).workspaceViewer;
+      if (step.path && viewer) {
+        // Auto-expand viewer pane if collapsed
+        const sidebar = document.getElementById("ws-viewer-sidebar");
+        if (sidebar?.classList.contains("collapsed")) {
+          sidebar.classList.remove("collapsed");
+          const savedWidth = localStorage.getItem("ws-viewer-width");
+          sidebar.style.width = savedWidth ? `${savedWidth}px` : "480px";
+        }
+        await viewer.openFile(step.path);
+      }
+      break;
+    }
   }
 }
 
