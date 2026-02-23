@@ -205,3 +205,39 @@
   color: var(--color-fg-muted, #768390);
   font-style: italic;
 }
+
+/* ========== File change flash feedback (create/edit/delete) ========== */
+@keyframes wft-flash-create {
+  0% {
+    background-color: rgba(34, 197, 94, 0.4);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+@keyframes wft-flash-edit {
+  0% {
+    background-color: rgba(234, 179, 8, 0.3);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+@keyframes wft-flash-delete {
+  0% {
+    background-color: rgba(239, 68, 68, 0.4);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.wft-flash-create {
+  animation: wft-flash-create 1.5s ease-out;
+}
+.wft-flash-edit {
+  animation: wft-flash-edit 1.5s ease-out;
+}
+.wft-flash-delete {
+  animation: wft-flash-delete 1.5s ease-out;
+}

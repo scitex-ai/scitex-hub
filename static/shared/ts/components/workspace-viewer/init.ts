@@ -52,6 +52,9 @@ function initWorkspaceViewer(): void {
 
   window.workspaceViewer = viewer;
 
+  // Hide empty state — scratch tab is always open
+  if (emptyState) emptyState.style.display = "none";
+
   // Listen for file-select events from the worktree pane
   const worktreeTree = document.getElementById("ws-worktree-tree");
   if (worktreeTree) {

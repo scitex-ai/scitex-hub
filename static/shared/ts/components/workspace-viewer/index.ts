@@ -8,7 +8,7 @@
  * - Manage show/hide of monacoContainer vs mediaContainer
  */
 
-import { TabManager } from "./TabManager.ts";
+import { SCRATCH_PATH, TabManager } from "./TabManager.ts";
 import { ViewerRouter } from "./ViewerRouter.ts";
 import { detectFileType, LANGUAGE_MAP, type TabInfo } from "./types.ts";
 
@@ -29,6 +29,7 @@ export class WorkspaceViewer {
   private mediaContainer: HTMLElement;
   private projectId: string = "";
   private monacoEditor: any = null;
+  private scratchContent: string = "";
   private getFileUrl: (
     filePath: string,
     raw?: boolean,
@@ -57,6 +58,8 @@ export class WorkspaceViewer {
       onSwitch: (path) => this.handleTabSwitch(path),
       onClose: (path) => this.handleTabClose(path),
     });
+
+    this.initScratchTab();
   }
 
   setProjectId(id: string): void {
@@ -94,7 +97,58 @@ export class WorkspaceViewer {
     }
   }
 
+  /** Write content to the scratch buffer (used by AI agents). */
+  writeScratch(content: string): void {
+    this.scratchContent = content;
+    localStorage.setItem("ws-scratch-content", content);
+    // If scratch tab is active, update the editor
+    if (this.tabManager.getActiveTab() === SCRATCH_PATH && this.monacoEditor) {
+      const currentValue = this.monacoEditor.getValue();
+      if (currentValue !== content) {
+        this.monacoEditor.setValue(content);
+      }
+    }
+  }
+
+  /** Append content to the scratch buffer. */
+  appendScratch(content: string): void {
+    this.scratchContent += content;
+    localStorage.setItem("ws-scratch-content", this.scratchContent);
+    if (this.tabManager.getActiveTab() === SCRATCH_PATH && this.monacoEditor) {
+      const model = this.monacoEditor.getModel();
+      if (model) {
+        const lastLine = model.getLineCount();
+        const lastCol = model.getLineMaxColumn(lastLine);
+        this.monacoEditor.executeEdits("scratch-append", [
+          {
+            range: {
+              startLineNumber: lastLine,
+              startColumn: lastCol,
+              endLineNumber: lastLine,
+              endColumn: lastCol,
+            },
+            text: content,
+          },
+        ]);
+        this.scratchContent = this.monacoEditor.getValue();
+      }
+    }
+  }
+
   // --- Private ---
+
+  private initScratchTab(): void {
+    this.scratchContent =
+      localStorage.getItem("ws-scratch-content") ||
+      "# Scratch\n\nShared workspace between you and AI.\n";
+
+    const tabInfo: TabInfo = {
+      path: SCRATCH_PATH,
+      title: "*scratch*",
+      fileType: "text",
+    };
+    this.tabManager.openTab(tabInfo);
+  }
 
   private async handleTabSwitch(path: string): Promise<void> {
     await this.renderFile(path);
@@ -111,6 +165,11 @@ export class WorkspaceViewer {
   }
 
   private async renderFile(filePath: string): Promise<void> {
+    if (filePath === SCRATCH_PATH) {
+      await this.showScratchBuffer();
+      return;
+    }
+
     const fileType = detectFileType(filePath);
 
     if (fileType === "text") {
@@ -181,6 +240,69 @@ export class WorkspaceViewer {
     }
   }
 
+  // --- Scratch buffer ---
+
+  private async showScratchBuffer(): Promise<void> {
+    this.mediaContainer.style.display = "none";
+    this.monacoContainer.style.display = "block";
+
+    const monaco = (window as any).monaco;
+    if (monaco) {
+      await this.loadScratchIntoMonaco(this.scratchContent);
+    } else {
+      const loaded = await this.tryLazyLoadMonaco();
+      if (loaded) {
+        await this.loadScratchIntoMonaco(this.scratchContent);
+      } else {
+        this.showFallbackPre(this.scratchContent);
+      }
+    }
+  }
+
+  private async loadScratchIntoMonaco(content: string): Promise<void> {
+    const monaco = (window as any).monaco;
+    if (!monaco) return;
+
+    if (!this.monacoEditor) {
+      this.monacoEditor = monaco.editor.create(this.monacoContainer, {
+        value: content,
+        language: "markdown",
+        automaticLayout: true,
+        theme: this.resolveMonacoTheme(),
+        fontSize: 14,
+        fontFamily: "'JetBrains Mono', 'Monaco', 'Menlo', monospace",
+        minimap: { enabled: false },
+        scrollBeyondLastLine: false,
+        wordWrap: "on",
+        readOnly: false,
+      });
+    } else {
+      // Switch existing editor to writable markdown mode
+      this.monacoEditor.updateOptions({ readOnly: false });
+      const model = this.monacoEditor.getModel();
+      if (model) {
+        monaco.editor.setModelLanguage(model, "markdown");
+      }
+      this.monacoEditor.setValue(content);
+    }
+
+    // Auto-save on change (debounced)
+    // Remove previous listener by re-registering (Monaco disposes old listeners
+    // when the editor is disposed; here we just overwrite via closure).
+    if (!(this.monacoEditor as any)._scratchSaveRegistered) {
+      let saveTimer: ReturnType<typeof setTimeout> | null = null;
+      this.monacoEditor.onDidChangeModelContent(() => {
+        if (this.tabManager.getActiveTab() !== SCRATCH_PATH) return;
+        this.scratchContent = this.monacoEditor.getValue();
+        if (saveTimer) clearTimeout(saveTimer);
+        saveTimer = setTimeout(() => {
+          localStorage.setItem("ws-scratch-content", this.scratchContent);
+        }, 500);
+      });
+      (this.monacoEditor as any)._scratchSaveRegistered = true;
+    }
+  }
+
   // --- Monaco helpers ---
 
   private async loadIntoMonaco(
@@ -209,6 +331,7 @@ export class WorkspaceViewer {
         monaco.editor.setModelLanguage(model, language);
       }
       this.monacoEditor.setValue(content);
+      this.monacoEditor.updateOptions({ readOnly: true });
     }
   }
 
@@ -257,5 +380,6 @@ export class WorkspaceViewer {
 }
 
 // Named re-exports so consumers can import from this entry point.
+export { SCRATCH_PATH } from "./TabManager.ts";
 export { detectFileType } from "./types.ts";
 export type { FileType, TabInfo, Viewer } from "./types.ts";

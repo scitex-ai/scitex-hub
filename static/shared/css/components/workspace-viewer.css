@@ -128,6 +128,19 @@
 }
 
 /* ============================================================
+   Scratch tab — always first, non-closeable, distinct style
+   ============================================================ */
+
+.ws-viewer-tab[data-path="*scratch*"] {
+  font-style: italic;
+  border-left: 2px solid var(--accent-primary, #3b82f6);
+}
+
+.ws-viewer-tab[data-path="*scratch*"] .ws-viewer-tab-name::before {
+  content: "\270E ";
+}
+
+/* ============================================================
    Viewer content area
    ============================================================ */
 

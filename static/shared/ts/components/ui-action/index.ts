@@ -2,7 +2,9 @@
  * UI Action Executor — browser-side handler for the AI's `ui_action` tool.
  * The server skips MCP execution; the browser intercepts and drives the DOM.
  *
- * Supported actions: navigate | highlight | scroll | fill | click | clear | open-file
+ * Supported actions:
+ *   navigate | highlight | scroll | fill | click | clear |
+ *   open-file | flash-file | write-scratch | append-scratch
  */
 
 import { clearHighlights, highlightElement } from "../product-tour/ui";
@@ -15,13 +17,18 @@ export interface UIStep {
     | "fill"
     | "click"
     | "clear"
-    | "open-file";
+    | "open-file"
+    | "flash-file"
+    | "write-scratch"
+    | "append-scratch";
   url?: string;
   selector?: string;
   message?: string;
   value?: string;
   position?: "top" | "bottom" | "left" | "right";
-  path?: string; // File path for open-file action
+  path?: string; // File path for open-file and flash-file actions
+  flashType?: "create" | "edit" | "delete"; // Flash type for flash-file action
+  content?: string; // Content for write-scratch / append-scratch actions
 }
 
 export interface UIActionArgs {
@@ -181,6 +188,31 @@ async function executeStep(step: UIStep): Promise<void> {
       }
       break;
     }
+
+    case "flash-file": {
+      if (step.path) {
+        flashFileTreeNode(step.path, step.flashType ?? "edit");
+      }
+      break;
+    }
+
+    case "write-scratch": {
+      const viewer = (window as any).workspaceViewer;
+      if (viewer && step.content !== undefined) {
+        viewer.writeScratch(step.content);
+        // Switch to scratch tab
+        await viewer.openFile("*scratch*");
+      }
+      break;
+    }
+
+    case "append-scratch": {
+      const viewer = (window as any).workspaceViewer;
+      if (viewer && step.content !== undefined) {
+        viewer.appendScratch(step.content);
+      }
+      break;
+    }
   }
 }
 
@@ -193,3 +225,56 @@ export async function runUIActions(args: UIActionArgs): Promise<void> {
     if (step.action !== "navigate") await sleep(delay);
   }
 }
+
+/* ============================================================
+   File tree flash feedback
+   ============================================================ */
+
+/** Apply a brief color flash to an element */
+function flashElement(
+  el: HTMLElement,
+  type: "create" | "edit" | "delete",
+): void {
+  const className = `wft-flash-${type}`;
+  // Remove any existing flash classes
+  el.classList.remove("wft-flash-create", "wft-flash-edit", "wft-flash-delete");
+  // Force reflow to restart animation if re-triggered
+  void el.offsetWidth;
+  el.classList.add(className);
+  el.addEventListener(
+    "animationend",
+    () => {
+      el.classList.remove(className);
+    },
+    { once: true },
+  );
+}
+
+/** Flash a file tree node to indicate create/edit/delete */
+export function flashFileTreeNode(
+  filePath: string,
+  type: "create" | "edit" | "delete" = "edit",
+): void {
+  // Try exact data-path match first
+  const node = document.querySelector(
+    `.wft-item[data-path="${CSS.escape(filePath)}"]`,
+  ) as HTMLElement | null;
+
+  if (node) {
+    flashElement(node, type);
+    return;
+  }
+
+  // Fallback: match by path suffix (handles relative vs absolute differences)
+  const candidates = document.querySelectorAll(".wft-item[data-path]");
+  for (const el of candidates) {
+    const elPath = (el as HTMLElement).dataset.path;
+    if (elPath && (elPath.endsWith(filePath) || filePath.endsWith(elPath))) {
+      flashElement(el as HTMLElement, type);
+      return;
+    }
+  }
+}
+
+// Expose globally so agents and WebSocket handlers can call it
+(window as any).flashFileTreeNode = flashFileTreeNode;
