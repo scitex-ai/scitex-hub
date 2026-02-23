@@ -125,6 +125,25 @@ zotero_patterns = [
     path("api/library/zotero/tags/", zotero_tags, name="zotero_tags"),
 ]
 
+# Connected Papers integration endpoints
+from ..views.library.connected_papers_import import (
+    connected_papers_import,
+    connected_papers_status,
+)
+
+connected_papers_patterns = [
+    path(
+        "api/library/connected-papers/status/",
+        connected_papers_status,
+        name="connected_papers_status",
+    ),
+    path(
+        "api/library/connected-papers/import/",
+        connected_papers_import,
+        name="connected_papers_import",
+    ),
+]
+
 # Research Trend Analysis
 trend_patterns = [
     path("trends/", trending_views.research_trends, name="research_trends"),
@@ -210,6 +229,7 @@ urlpatterns = (
     + bibtex_import_patterns
     + project_linking_patterns
     + zotero_patterns
+    + connected_papers_patterns
     + trend_patterns
     + annotation_patterns
     + recommendation_patterns

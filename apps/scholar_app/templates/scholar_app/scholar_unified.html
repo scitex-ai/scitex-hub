@@ -630,6 +630,10 @@
         </span>
     </div>
     <div class="properties-content" id="scholar-details-panel">
+        <!-- Library Details -->
+        <div id="details-library" class="scholar-details-content" data-tab="library">
+            {% include "scholar_app/library_partials/library_import_export.html" %}
+        </div>
         <!-- Search Details -->
         <div id="details-search" class="scholar-details-content" data-tab="search">
             {% include "scholar_app/search_partials/search_controls.html" %}
@@ -641,7 +645,7 @@
         <!-- Graph Details -->
         <div id="details-graph" class="scholar-details-content" data-tab="graph">
             <div class="graph-sidebar">
-                <div class="sidebar-section">
+                <div class="sidebar-section collapsed">
                     <div class="sidebar-section__header"
                          onclick="this.parentElement.classList.toggle('collapsed')">
                         <h5 class="sidebar-section__title">
@@ -658,7 +662,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="sidebar-section">
+                <div class="sidebar-section collapsed">
                     <div class="sidebar-section__header"
                          onclick="this.parentElement.classList.toggle('collapsed')">
                         <h5 class="sidebar-section__title">
@@ -692,7 +696,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="sidebar-section">
+                <div class="sidebar-section collapsed">
                     <div class="sidebar-section__header"
                          onclick="this.parentElement.classList.toggle('collapsed')">
                         <h5 class="sidebar-section__title">
