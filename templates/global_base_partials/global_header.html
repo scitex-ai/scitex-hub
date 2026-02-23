@@ -214,13 +214,6 @@
                     {% module_icon "vis" "nav" %}
                     <span class="nav-label">Visualizer</span>
                 </a>
-                <a href="/console/"
-                   class="header-nav-item {% if '/console/' in request.path %}active{% endif %}"
-                   data-tooltip="Console workspace (Alt+C)"
-                   data-shortcut="C">
-                    {% module_icon "console" "nav" %}
-                    <span class="nav-label">Console</span>
-                </a>
                 <a href="/clew/"
                    class="header-nav-item {% if 'clew' in request.path %}active{% endif %}"
                    data-tooltip="Reproducibility verification (Alt+R)"

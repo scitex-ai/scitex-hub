@@ -179,14 +179,18 @@ body.no-transition * {
    The .panels-ready class is added by autoInitPanels() after all widths are set. */
 body.no-transition .workspace-three-col .ws-ai-pane,
 body.no-transition .workspace-three-col .ws-worktree-pane,
+body.no-transition .workspace-three-col .ws-viewer-pane,
 body.no-transition .workspace-shell .ws-ai-pane,
-body.no-transition .workspace-shell .ws-worktree-pane {
+body.no-transition .workspace-shell .ws-worktree-pane,
+body.no-transition .workspace-shell .ws-viewer-pane {
   visibility: hidden;
 }
 
 body.no-transition .workspace-three-col.panels-ready .ws-ai-pane,
 body.no-transition .workspace-three-col.panels-ready .ws-worktree-pane,
+body.no-transition .workspace-three-col.panels-ready .ws-viewer-pane,
 body.no-transition .workspace-shell.panels-ready .ws-ai-pane,
-body.no-transition .workspace-shell.panels-ready .ws-worktree-pane {
+body.no-transition .workspace-shell.panels-ready .ws-worktree-pane,
+body.no-transition .workspace-shell.panels-ready .ws-viewer-pane {
   visibility: visible;
 }

@@ -1,0 +1,41 @@
+{% if user.is_authenticated %}
+    <div class="ws-viewer-pane" id="ws-viewer-pane">
+        <div class="workspace-sidebar collapsed" id="ws-viewer-sidebar">
+            <div id="ws-viewer-resizer"
+                 class="panel-resizer"
+                 data-panel-resizer
+                 data-target="#ws-viewer-sidebar"
+                 data-direction="left"
+                 data-min-width="40"
+                 data-default-width="480"
+                 data-storage-key="ws-viewer-width"
+                 data-collapse-key="ws-viewer-collapsed"
+                 data-toggle-btn="ws-viewer-toggle"
+                 style="position:absolute;
+                        right:0;
+                        top:0;
+                        bottom:0;
+                        z-index:1"></div>
+            <div class="sidebar-header">
+                <button class="panel-toggle-btn" id="ws-viewer-toggle" title="Toggle viewer">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <span class="sidebar-title">VIEWER</span>
+                <span class="sidebar-title-full"><i class="fas fa-eye"></i> Viewer</span>
+                <div class="sidebar-header-actions ws-viewer-header-actions">
+                    <div id="ws-viewer-tabs" class="ws-viewer-tabs"></div>
+                </div>
+            </div>
+            <div class="sidebar-content ws-viewer-body">
+                <div id="ws-viewer-content" class="ws-viewer-content">
+                    <div id="ws-viewer-monaco" class="ws-viewer-monaco" style="display:none"></div>
+                    <div id="ws-viewer-media" class="ws-viewer-media" style="display:none"></div>
+                    <div id="ws-viewer-empty" class="ws-viewer-empty">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Click a file to open</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}

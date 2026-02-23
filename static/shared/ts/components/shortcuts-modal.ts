@@ -8,7 +8,7 @@ console.log("[DEBUG] shortcuts-modal.ts loaded");
 /**
  * App context types
  */
-type AppContext = "global" | "files" | "scholar" | "code" | "vis" | "writer";
+type AppContext = "global" | "files" | "scholar" | "vis" | "writer";
 
 /**
  * Shortcut definition
@@ -36,7 +36,6 @@ const CONTEXT_SECTIONS: Record<AppContext, ShortcutSection[]> = {
       shortcuts: [
         { keys: "Alt+F", description: "Files" },
         { keys: "Alt+S", description: "Scholar" },
-        { keys: "Alt+C", description: "Console" },
         { keys: "Alt+V", description: "Visualizer" },
         { keys: "Alt+W", description: "Writer" },
         { keys: "Alt+Z", description: "Zen Mode" },
@@ -83,28 +82,6 @@ const CONTEXT_SECTIONS: Record<AppContext, ShortcutSection[]> = {
         { keys: "Ctrl+S", description: "Save to library" },
         { keys: "Ctrl+C", description: "Copy citation" },
       ],
-    },
-  ],
-  console: [
-    {
-      title: "Files",
-      shortcuts: [
-        { keys: "Ctrl+S", description: "Save file" },
-        { keys: "Ctrl+N", description: "New file" },
-        { keys: "Ctrl+Tab", description: "Next tab" },
-        { keys: "Ctrl+Shift+Tab", description: "Prev tab" },
-      ],
-    },
-    {
-      title: "Terminal",
-      shortcuts: [
-        { keys: "Ctrl+Shift+T", description: "New terminal" },
-        { keys: "Ctrl+`", description: "Toggle terminal" },
-      ],
-    },
-    {
-      title: "View",
-      shortcuts: [{ keys: "Ctrl+B", description: "Toggle sidebar" }],
     },
   ],
   vis: [
@@ -208,7 +185,6 @@ function detectContext(): AppContext {
   const path = window.location.pathname;
   if (path.startsWith("/files/")) return "files";
   if (path.startsWith("/scholar/")) return "scholar";
-  if (path.startsWith("/console/")) return "code";
   if (path.startsWith("/vis/")) return "vis";
   if (path.startsWith("/writer/")) return "writer";
   return "global";
@@ -222,7 +198,6 @@ function getContextName(context: AppContext): string {
     global: "Global",
     files: "Files",
     scholar: "Scholar",
-    console: "Console",
     vis: "Visualizer",
     writer: "Writer",
   };

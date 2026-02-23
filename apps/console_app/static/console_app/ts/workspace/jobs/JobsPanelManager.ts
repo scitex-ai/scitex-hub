@@ -155,19 +155,17 @@ export class JobsPanelManager {
       const response = await fetch("/console/api/jobs/");
       const data: JobsResponse = await response.json();
 
-      const badge = document.getElementById("jobs-badge");
-      if (!badge) return;
-
       const activeJobs = data.running + data.pending;
-
-      if (activeJobs > 0) {
-        badge.textContent = String(activeJobs);
-        badge.style.display = "inline-flex";
-        badge.classList.toggle("has-jobs", activeJobs !== this.lastJobCount);
-      } else {
-        badge.style.display = "none";
+      for (const id of ["jobs-badge", "ai-jobs-badge"]) {
+        const el = document.getElementById(id);
+        if (!el) continue;
+        if (activeJobs > 0) {
+          el.textContent = String(activeJobs);
+          el.style.display = "inline-flex";
+        } else {
+          el.style.display = "none";
+        }
       }
-
       this.lastJobCount = activeJobs;
     } catch (error) {
       console.warn("[JobsPanelManager] Failed to update badge:", error);

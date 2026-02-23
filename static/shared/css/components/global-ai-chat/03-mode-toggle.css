@@ -35,6 +35,23 @@
   border-color: rgba(90, 154, 126, 0.4);
 }
 
+/* Job count badge on mode buttons */
+.ai-mode-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  font-size: 0.6rem;
+  font-weight: 600;
+  background-color: var(--workspace-icon-primary, #5a9a7e);
+  color: #fff;
+  border-radius: 7px;
+  margin-left: 2px;
+  line-height: 1;
+}
+
 /* ============================================================
    View Switching (Chat / Console views)
    ============================================================ */

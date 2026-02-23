@@ -296,6 +296,10 @@ export function getEntryPoints(rootDir: string): Record<string, string> {
       rootDir,
       "static/shared/ts/components/workspace-files-tree/auto-init.ts",
     ),
+    "shared/workspace-viewer-init": r(
+      rootDir,
+      "static/shared/ts/components/workspace-viewer/init.ts",
+    ),
     "shared/global-ai-chat": r(rootDir, "static/shared/ts/global-ai-chat.ts"),
     "shared/module-tab-switcher": r(
       rootDir,

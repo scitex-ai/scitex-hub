@@ -50,6 +50,7 @@
             {% if is_workspace_page and user.is_authenticated %}
                 {% include 'global_base_partials/workspace_ai_pane.html' %}
                 {% include 'global_base_partials/workspace_worktree_pane.html' %}
+                {% include 'global_base_partials/workspace_viewer_pane.html' %}
             {% endif %}
             <main id="main-content"
                   class="{% if is_workspace_page and user.is_authenticated %}ws-module-pane{% endif %}">

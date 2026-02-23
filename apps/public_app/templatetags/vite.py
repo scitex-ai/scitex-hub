@@ -236,6 +236,7 @@ def _entry_to_ts_path(entry_name: str) -> str:
         "shared/components/cookie-consent": "static/shared/ts/components/cookie-consent.ts",
         "shared/components/project-selector": "static/shared/ts/components/project-selector.ts",
         "shared/workspace-tree-init": "static/shared/ts/components/workspace-files-tree/auto-init.ts",
+        "shared/workspace-viewer-init": "static/shared/ts/components/workspace-viewer/init.ts",
         # Landing page
         "public_app/landing/hero-demo": "apps/public_app/static/public_app/ts/landing/hero-demo.ts",
         "public_app/pages/visitor-pool-full": "apps/public_app/static/public_app/ts/pages/visitor-pool-full.ts",

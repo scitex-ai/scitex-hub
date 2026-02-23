@@ -1,0 +1,183 @@
+/**
+ * @component Workspace Viewer Pane
+ * @description Collapsible viewer/editor pane for files. Same pattern as
+ *   ws-ai-pane and ws-worktree-pane. Sits between worktree and module content.
+ * @category Layouts
+ * @darkmode true
+ */
+
+/* ============================================================
+   Viewer pane flex item
+   ============================================================ */
+
+.ws-viewer-pane {
+  flex-shrink: 0;
+  position: relative;
+  overflow: visible;
+}
+
+#ws-viewer-sidebar {
+  position: relative;
+  height: 100%;
+  width: 480px;
+  background: var(--bg-secondary, #161b22);
+  border-right: 1px solid var(--border-default, #30363d);
+  overflow: visible;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#ws-viewer-sidebar.collapsed {
+  width: 40px;
+  overflow: hidden;
+}
+
+/* Short label shown when collapsed; full label shown when expanded */
+#ws-viewer-sidebar .sidebar-title-full {
+  display: none;
+}
+
+#ws-viewer-sidebar:not(.collapsed) .sidebar-title-full {
+  display: inline;
+}
+
+#ws-viewer-sidebar:not(.collapsed) .sidebar-title {
+  display: none;
+}
+
+/* Hide header actions when collapsed */
+#ws-viewer-sidebar.collapsed .ws-viewer-header-actions {
+  display: none;
+}
+
+/* ============================================================
+   Tab bar (inside header)
+   ============================================================ */
+
+.ws-viewer-tabs {
+  display: flex;
+  gap: 1px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex: 1;
+  min-width: 0;
+  margin-left: 8px;
+  scrollbar-width: none;
+}
+
+.ws-viewer-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.ws-viewer-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  font-size: 0.7rem;
+  color: var(--text-muted, #8b949e);
+  background: transparent;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  white-space: nowrap;
+  max-width: 140px;
+  transition: all 0.15s ease;
+}
+
+.ws-viewer-tab:hover {
+  color: var(--text-primary, #c9d1d9);
+  background: var(--bg-tertiary, #21262d);
+}
+
+.ws-viewer-tab.active {
+  color: var(--text-primary, #c9d1d9);
+  background: var(--bg-tertiary, #21262d);
+}
+
+.ws-viewer-tab-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ws-viewer-tab-close {
+  font-size: 0.65rem;
+  opacity: 0;
+  padding: 0 2px;
+  line-height: 1;
+  color: var(--text-muted, #8b949e);
+  cursor: pointer;
+  transition: opacity 0.1s;
+}
+
+.ws-viewer-tab:hover .ws-viewer-tab-close,
+.ws-viewer-tab.active .ws-viewer-tab-close {
+  opacity: 1;
+}
+
+.ws-viewer-tab-close:hover {
+  color: var(--danger-color, #f85149);
+}
+
+/* Drag-and-drop */
+.ws-viewer-tab.dragging {
+  opacity: 0.4;
+}
+
+.ws-viewer-tab.drag-over {
+  border-left: 2px solid var(--accent-color, #58a6ff);
+}
+
+/* ============================================================
+   Viewer content area
+   ============================================================ */
+
+.ws-viewer-body {
+  display: flex;
+  flex-direction: column;
+  height: calc(100% - 36px); /* minus header */
+  overflow: hidden;
+}
+
+.ws-viewer-content {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.ws-viewer-monaco {
+  width: 100%;
+  height: 100%;
+}
+
+.ws-viewer-media {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+
+/* Empty state */
+.ws-viewer-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 0.5rem;
+  color: var(--text-muted, #8b949e);
+  font-size: 0.85rem;
+}
+
+.ws-viewer-empty i {
+  font-size: 1.5rem;
+  opacity: 0.5;
+}
+
+/* ============================================================
+   Responsive: hide on narrow viewports
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .ws-viewer-pane {
+    display: none;
+  }
+}

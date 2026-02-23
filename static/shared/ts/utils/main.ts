@@ -122,7 +122,6 @@ function initModuleSwitcher(): void {
   const moduleRoutes: Record<string, string> = {
     f: "/files/",
     s: "/scholar/",
-    c: "/console/",
     v: "/vis/",
     w: "/writer/",
   };

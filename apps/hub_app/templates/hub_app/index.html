@@ -57,6 +57,60 @@
             <div style="padding:0.5rem 1rem;">
                 <span class="badge badge-wip">WIP</span>
             </div>
+            {% if quick_ref %}
+                <div class="hub-quick-ref"
+                     style="margin:0 1rem 1rem;
+                            padding:0.75rem 1rem;
+                            background:var(--workspace-bg-secondary, #161b22);
+                            border:1px solid var(--workspace-border-default, #30363d);
+                            border-radius:6px;
+                            font-size:0.85rem;
+                            line-height:1.6">
+                    <h4 style="margin:0 0 0.5rem;
+                               font-size:0.9rem;
+                               color:var(--text-primary, #e6edf3)">
+                        <i class="fas fa-info-circle"></i> Quick Reference
+                    </h4>
+                    <div style="color:var(--text-muted, #8b949e);">
+                        <div style="margin-bottom:0.4rem;">
+                            <strong>SSH Access:</strong>
+                            {% if quick_ref.is_dev %}
+                                <code style="background:var(--workspace-bg-tertiary, #0d1117);
+                                             padding:2px 6px;
+                                             border-radius:3px">ssh -p {{ quick_ref.ssh_port }} {{ quick_ref.username }}@{{ quick_ref.ssh_hostname }}</code>
+                            {% else %}
+                                Via <a href="https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/"
+    target="_blank">cloudflared</a> tunnel &mdash; see <a href="/accounts/settings/ssh-keys/">SSH Keys</a>
+                            {% endif %}
+                        </div>
+                        <div style="margin-bottom:0.4rem;">
+                            <strong>Shortcuts:</strong>
+                            <kbd style="background:var(--workspace-bg-tertiary, #0d1117);
+                                        padding:1px 5px;
+                                        border-radius:3px;
+                                        font-size:0.8rem">Alt+A</kbd> AI Panel &nbsp;
+                            <kbd style="background:var(--workspace-bg-tertiary, #0d1117);
+                                        padding:1px 5px;
+                                        border-radius:3px;
+                                        font-size:0.8rem">Alt+S</kbd> Scholar &nbsp;
+                            <kbd style="background:var(--workspace-bg-tertiary, #0d1117);
+                                        padding:1px 5px;
+                                        border-radius:3px;
+                                        font-size:0.8rem">Alt+W</kbd> Writer &nbsp;
+                            <kbd style="background:var(--workspace-bg-tertiary, #0d1117);
+                                        padding:1px 5px;
+                                        border-radius:3px;
+                                        font-size:0.8rem">?</kbd> All shortcuts
+                        </div>
+                        <div>
+                            <strong>Links:</strong>
+                            <a href="/accounts/settings/ssh-keys/">SSH Keys</a> &middot;
+                            <a href="/server-status/">Server Status</a> &middot;
+                            <a href="/keyboard-shortcuts/">All Shortcuts</a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
             {% if current_project %}
                 <!-- GitHub-style file browser (reusing project_app partials) -->
                 <div class="hub-browse-container">

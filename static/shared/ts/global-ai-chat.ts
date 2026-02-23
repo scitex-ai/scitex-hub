@@ -12,10 +12,6 @@ import { AIPanelChatMode } from "./components/global-ai-chat/chat-mode";
 import { AIPanelJobsMode } from "./components/global-ai-chat/jobs-mode";
 import { fetchAndPopulateSttModels } from "./components/global-ai-chat/stt-models";
 import { fetchAndPopulateLlmModels } from "./components/global-ai-chat/llm-model-selector";
-import {
-  getAudioMode,
-  initAudioModeSelector,
-} from "./components/global-ai-chat/audio-settings";
 import { fetchMcpStatus } from "./components/global-ai-chat/mcp-status";
 import {
   MODEL_KEY,
@@ -52,12 +48,9 @@ class GlobalAIChat {
   private messagesEl: HTMLElement | null = null;
   private inputEl: HTMLTextAreaElement | null = null;
   private sendBtn: HTMLButtonElement | null = null;
-  private clearBtn: HTMLButtonElement | null = null;
-  private speakBtn: HTMLButtonElement | null = null;
   private micBtn: HTMLButtonElement | null = null;
   private sttModelSelect: HTMLSelectElement | null = null;
   private llmModelSelect: HTMLSelectElement | null = null;
-  private audioModeSelect: HTMLSelectElement | null = null;
   private mcpBadge: HTMLElement | null = null;
   private modelBadge: HTMLElement | null = null;
 
@@ -80,12 +73,6 @@ class GlobalAIChat {
     this.sendBtn = document.getElementById(
       "scitex-ai-send",
     ) as HTMLButtonElement;
-    this.clearBtn = document.getElementById(
-      "scitex-ai-clear",
-    ) as HTMLButtonElement;
-    this.speakBtn = document.getElementById(
-      "scitex-ai-speak",
-    ) as HTMLButtonElement;
     this.micBtn = document.getElementById("scitex-ai-mic") as HTMLButtonElement;
     this.sttModelSelect = document.getElementById(
       "scitex-ai-stt-model",
@@ -93,41 +80,32 @@ class GlobalAIChat {
     this.llmModelSelect = document.getElementById(
       "scitex-ai-llm-model",
     ) as HTMLSelectElement;
-    this.audioModeSelect = document.getElementById(
-      "scitex-ai-audio-mode",
-    ) as HTMLSelectElement;
     this.mcpBadge = document.getElementById("scitex-ai-mcp-badge");
     this.modelBadge = document.getElementById("scitex-ai-model-badge");
 
     if (!this.panel) return;
 
     // Initialise chat mode (encapsulates messaging logic)
-    const autoSpeak = getAudioMode() !== "off";
-    const volBars = Array.from(
-      document.querySelectorAll<HTMLElement>(".scitex-ai-vol-bar"),
-    );
     this.chatMode = new AIPanelChatMode();
     this.chatMode.init(
       {
         messagesEl: this.messagesEl,
         inputEl: this.inputEl,
         sendBtn: this.sendBtn,
-        speakBtn: this.speakBtn,
+        speakBtn: null,
         micBtn: this.micBtn,
         sttModelSelect: this.sttModelSelect,
         modelBadge: this.modelBadge,
-        volBars,
+        volBars: [],
       },
       this.context,
-      autoSpeak,
+      false,
     );
 
     if (this.sttModelSelect)
       fetchAndPopulateSttModels(this.sttModelSelect, this.micBtn);
     if (this.llmModelSelect)
       fetchAndPopulateLlmModels(this.llmModelSelect, this.modelBadge);
-    if (this.audioModeSelect)
-      initAudioModeSelector(this.audioModeSelect, this.speakBtn);
     fetchMcpStatus(this.mcpBadge);
 
     document.body.classList.add("scitex-ai-present");
@@ -151,15 +129,7 @@ class GlobalAIChat {
 
     this.setupModeToggle();
     this.fab?.addEventListener("click", () => this.toggle());
-    this.clearBtn?.addEventListener("click", () =>
-      this.chatMode?.clearConversation(),
-    );
     this.sendBtn?.addEventListener("click", () => void this.chatMode?.send());
-
-    if (autoSpeak) this.speakBtn?.classList.add("active");
-    this.speakBtn?.addEventListener("click", () =>
-      this.chatMode?.toggleSpeak(),
-    );
     this.micBtn?.addEventListener("click", () =>
       this.chatMode?.toggleRecording(),
     );
