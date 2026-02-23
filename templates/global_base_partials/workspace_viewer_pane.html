@@ -26,11 +26,17 @@
                 <span class="sidebar-title-full"><i class="fas fa-eye"></i> Viewer</span>
                 <div class="sidebar-header-actions ws-viewer-header-actions">
                     <div id="ws-viewer-tabs" class="ws-viewer-tabs"></div>
+                    <div id="ws-viewer-mode-toggle" class="ws-viewer-mode-toggle" style="display:none">
+                        <button class="ws-viewer-mode-btn active" data-mode="edit" title="Edit">Edit</button>
+                        <button class="ws-viewer-mode-btn" data-mode="preview" title="Preview">Preview</button>
+                        <button class="ws-viewer-mode-btn" data-mode="split" title="Split">Split</button>
+                    </div>
                 </div>
             </div>
             <div class="sidebar-content ws-viewer-body">
                 <div id="ws-viewer-content" class="ws-viewer-content">
                     <div id="ws-viewer-monaco" class="ws-viewer-monaco" style="display:none"></div>
+                    <div id="ws-viewer-preview" class="ws-viewer-preview" style="display:none"></div>
                     <div id="ws-viewer-media" class="ws-viewer-media" style="display:none"></div>
                     <div id="ws-viewer-empty" class="ws-viewer-empty">
                         <i class="fas fa-file-alt"></i>

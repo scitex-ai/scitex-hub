@@ -92,6 +92,16 @@ export class TabManager {
       const tab = this.createTabElement(path, info);
       this.container.appendChild(tab);
     });
+
+    // "+" button to open a file from the worktree
+    const addBtn = document.createElement("button");
+    addBtn.className = "ws-viewer-tab-add";
+    addBtn.innerHTML = "+";
+    addBtn.title = "Open file";
+    addBtn.addEventListener("click", () => {
+      document.dispatchEvent(new CustomEvent("workspace-file-pick"));
+    });
+    this.container.appendChild(addBtn);
   }
 
   saveState(): void {

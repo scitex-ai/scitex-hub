@@ -40,10 +40,17 @@ function initWorkspaceViewer(): void {
 
   if (!tabsContainer || !monacoContainer || !mediaContainer) return;
 
+  const previewContainer =
+    document.getElementById("ws-viewer-preview") ?? undefined;
+  const modeToggle =
+    document.getElementById("ws-viewer-mode-toggle") ?? undefined;
+
   const viewer = new WorkspaceViewer({
     tabsContainer,
     monacoContainer,
     mediaContainer,
+    previewContainer,
+    modeToggle,
     storageKey: "ws-viewer",
   });
 

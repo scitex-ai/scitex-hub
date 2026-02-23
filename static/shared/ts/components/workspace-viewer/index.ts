@@ -5,31 +5,40 @@
  * - Open/close files via TabManager
  * - Route to Monaco (text) or a dedicated media viewer (images, PDF, CSV, etc.)
  * - Lazy-load Monaco editor; fall back to <pre> when unavailable
- * - Manage show/hide of monacoContainer vs mediaContainer
+ * - Manage show/hide of monacoContainer vs mediaContainer vs previewContainer
+ * - Edit / Preview / Split mode toggle for markdown files
  */
 
+import { MarkdownPreviewPanel } from "./MarkdownPreview.ts";
+import { ScratchBuffer } from "./ScratchBuffer.ts";
 import { SCRATCH_PATH, TabManager } from "./TabManager.ts";
 import { ViewerRouter } from "./ViewerRouter.ts";
 import { detectFileType, LANGUAGE_MAP, type TabInfo } from "./types.ts";
+
+type ViewMode = "edit" | "preview" | "split";
 
 export interface WorkspaceViewerConfig {
   tabsContainer: HTMLElement;
   monacoContainer: HTMLElement;
   mediaContainer: HTMLElement;
-  /** Base localStorage key for tab state. Defaults to "ws-viewer-tabs". */
+  previewContainer?: HTMLElement;
+  modeToggle?: HTMLElement;
   storageKey?: string;
-  /** Build the URL for loading file content (raw text or media). */
   getFileUrl?: (filePath: string, raw?: boolean, download?: boolean) => string;
 }
 
 export class WorkspaceViewer {
   private tabManager: TabManager;
   private router: ViewerRouter;
+  private scratch: ScratchBuffer;
   private monacoContainer: HTMLElement;
   private mediaContainer: HTMLElement;
+  private previewContainer: HTMLElement | null;
+  private previewPanel: MarkdownPreviewPanel | null = null;
+  private modeToggle: HTMLElement | null;
+  private viewMode: ViewMode = "edit";
   private projectId: string = "";
   private monacoEditor: any = null;
-  private scratchContent: string = "";
   private getFileUrl: (
     filePath: string,
     raw?: boolean,
@@ -39,6 +48,8 @@ export class WorkspaceViewer {
   constructor(config: WorkspaceViewerConfig) {
     this.monacoContainer = config.monacoContainer;
     this.mediaContainer = config.mediaContainer;
+    this.previewContainer = config.previewContainer ?? null;
+    this.modeToggle = config.modeToggle ?? null;
 
     this.getFileUrl =
       config.getFileUrl ??
@@ -50,6 +61,19 @@ export class WorkspaceViewer {
         return `${base}?${params.toString()}`;
       });
 
+    if (this.previewContainer) {
+      this.previewPanel = new MarkdownPreviewPanel(this.previewContainer);
+    }
+
+    this.scratch = new ScratchBuffer(this.getFileUrl);
+
+    // Restore saved view mode
+    const savedMode = localStorage.getItem("ws-viewer-mode") as ViewMode | null;
+    if (savedMode && ["edit", "preview", "split"].includes(savedMode)) {
+      this.viewMode = savedMode;
+    }
+
+    this.initModeToggle();
     this.router = new ViewerRouter();
 
     this.tabManager = new TabManager({
@@ -64,23 +88,18 @@ export class WorkspaceViewer {
 
   setProjectId(id: string): void {
     this.projectId = id;
+    this.scratch.setProjectId(id);
+    if (this.previewPanel) this.previewPanel.setProjectId(id);
   }
 
-  /** Open a file: create a tab and display its content. */
   async openFile(filePath: string): Promise<void> {
     const fileType = detectFileType(filePath);
     const title = filePath.split("/").pop() || filePath;
-
     const tabInfo: TabInfo = { path: filePath, title, fileType };
     this.tabManager.openTab(tabInfo);
-
-    // Rendering is triggered by TabManager's onSwitch callback,
-    // but if the tab was already active openTab won't fire onSwitch again.
-    // Re-render explicitly to make sure the content is shown.
     await this.renderFile(filePath);
   }
 
-  /** Close a file tab (content cleanup handled in handleTabClose). */
   closeFile(filePath: string): void {
     this.tabManager.closeTab(filePath);
   }
@@ -91,7 +110,7 @@ export class WorkspaceViewer {
       try {
         this.monacoEditor.dispose();
       } catch {
-        // ignore
+        /* ignore */
       }
       this.monacoEditor = null;
     }
@@ -99,21 +118,16 @@ export class WorkspaceViewer {
 
   /** Write content to the scratch buffer (used by AI agents). */
   writeScratch(content: string): void {
-    this.scratchContent = content;
-    localStorage.setItem("ws-scratch-content", content);
-    // If scratch tab is active, update the editor
+    this.scratch.write(content);
     if (this.tabManager.getActiveTab() === SCRATCH_PATH && this.monacoEditor) {
       const currentValue = this.monacoEditor.getValue();
-      if (currentValue !== content) {
-        this.monacoEditor.setValue(content);
-      }
+      if (currentValue !== content) this.monacoEditor.setValue(content);
     }
   }
 
   /** Append content to the scratch buffer. */
   appendScratch(content: string): void {
-    this.scratchContent += content;
-    localStorage.setItem("ws-scratch-content", this.scratchContent);
+    this.scratch.append(content);
     if (this.tabManager.getActiveTab() === SCRATCH_PATH && this.monacoEditor) {
       const model = this.monacoEditor.getModel();
       if (model) {
@@ -130,7 +144,7 @@ export class WorkspaceViewer {
             text: content,
           },
         ]);
-        this.scratchContent = this.monacoEditor.getValue();
+        this.scratch.syncFromEditor(this.monacoEditor.getValue());
       }
     }
   }
@@ -138,10 +152,6 @@ export class WorkspaceViewer {
   // --- Private ---
 
   private initScratchTab(): void {
-    this.scratchContent =
-      localStorage.getItem("ws-scratch-content") ||
-      "# Scratch\n\nShared workspace between you and AI.\n";
-
     const tabInfo: TabInfo = {
       path: SCRATCH_PATH,
       title: "*scratch*",
@@ -155,23 +165,24 @@ export class WorkspaceViewer {
   }
 
   private handleTabClose(path: string): void {
-    const active = this.tabManager.getActiveTab();
-    if (!active) {
-      // No tabs remain — hide both panels
+    if (!this.tabManager.getActiveTab()) {
       this.monacoContainer.style.display = "none";
       this.mediaContainer.style.display = "none";
+      if (this.previewContainer) this.previewContainer.style.display = "none";
     }
-    // The router keeps viewer instances alive for reuse; they are cleaned up on destroy().
   }
 
   private async renderFile(filePath: string): Promise<void> {
-    if (filePath === SCRATCH_PATH) {
+    // Show mode toggle only for scratch/markdown files
+    const isScratch = filePath === SCRATCH_PATH;
+    const isMd = filePath.endsWith(".md");
+    this.showModeToggle(isScratch || isMd);
+
+    if (isScratch) {
       await this.showScratchBuffer();
       return;
     }
-
     const fileType = detectFileType(filePath);
-
     if (fileType === "text") {
       await this.showTextFile(filePath);
     } else {
@@ -181,9 +192,10 @@ export class WorkspaceViewer {
 
   private async showTextFile(filePath: string): Promise<void> {
     this.mediaContainer.style.display = "none";
+    if (this.previewContainer) this.previewContainer.style.display = "none";
     this.monacoContainer.style.display = "block";
+    this.monacoContainer.style.width = "100%";
 
-    // Fetch raw content
     let content = "";
     try {
       const url = this.getFileUrl(filePath, true, false);
@@ -200,35 +212,27 @@ export class WorkspaceViewer {
         filePath.substring(filePath.lastIndexOf(".")).toLowerCase()
       ] ?? "plaintext";
 
-    // Try Monaco first, fall back to <pre>
     const monaco = (window as any).monaco;
-    if (monaco) {
+    if (monaco || (await this.tryLazyLoadMonaco())) {
       await this.loadIntoMonaco(content, language);
     } else {
-      // Attempt lazy load
-      const monacoLoaded = await this.tryLazyLoadMonaco();
-      if (monacoLoaded) {
-        await this.loadIntoMonaco(content, language);
-      } else {
-        this.showFallbackPre(content);
-      }
+      this.showFallbackPre(content);
     }
   }
 
   private async showMediaFile(filePath: string): Promise<void> {
     this.monacoContainer.style.display = "none";
+    if (this.previewContainer) this.previewContainer.style.display = "none";
     this.mediaContainer.style.display = "block";
 
     const viewer = this.router.getViewer(filePath);
     if (!viewer) {
-      // Binary or unrecognised — show a simple placeholder
       this.mediaContainer.innerHTML = `
         <div class="ws-viewer-placeholder">
           <p>Cannot preview: <code>${filePath.split("/").pop()}</code></p>
         </div>`;
       return;
     }
-
     try {
       await viewer.render(this.mediaContainer, filePath, this.projectId);
     } catch (err) {
@@ -244,19 +248,15 @@ export class WorkspaceViewer {
 
   private async showScratchBuffer(): Promise<void> {
     this.mediaContainer.style.display = "none";
-    this.monacoContainer.style.display = "block";
 
     const monaco = (window as any).monaco;
-    if (monaco) {
-      await this.loadScratchIntoMonaco(this.scratchContent);
+    if (monaco || (await this.tryLazyLoadMonaco())) {
+      await this.loadScratchIntoMonaco(this.scratch.content);
     } else {
-      const loaded = await this.tryLazyLoadMonaco();
-      if (loaded) {
-        await this.loadScratchIntoMonaco(this.scratchContent);
-      } else {
-        this.showFallbackPre(this.scratchContent);
-      }
+      this.monacoContainer.style.display = "block";
+      this.showFallbackPre(this.scratch.content);
     }
+    this.applyScratchViewMode();
   }
 
   private async loadScratchIntoMonaco(content: string): Promise<void> {
@@ -277,29 +277,87 @@ export class WorkspaceViewer {
         readOnly: false,
       });
     } else {
-      // Switch existing editor to writable markdown mode
       this.monacoEditor.updateOptions({ readOnly: false });
       const model = this.monacoEditor.getModel();
-      if (model) {
-        monaco.editor.setModelLanguage(model, "markdown");
-      }
+      if (model) monaco.editor.setModelLanguage(model, "markdown");
       this.monacoEditor.setValue(content);
     }
 
-    // Auto-save on change (debounced)
-    // Remove previous listener by re-registering (Monaco disposes old listeners
-    // when the editor is disposed; here we just overwrite via closure).
     if (!(this.monacoEditor as any)._scratchSaveRegistered) {
-      let saveTimer: ReturnType<typeof setTimeout> | null = null;
       this.monacoEditor.onDidChangeModelContent(() => {
         if (this.tabManager.getActiveTab() !== SCRATCH_PATH) return;
-        this.scratchContent = this.monacoEditor.getValue();
-        if (saveTimer) clearTimeout(saveTimer);
-        saveTimer = setTimeout(() => {
-          localStorage.setItem("ws-scratch-content", this.scratchContent);
-        }, 500);
+        this.scratch.syncFromEditor(this.monacoEditor.getValue());
+        // Update preview if in split/preview mode
+        if (this.viewMode !== "edit" && this.previewPanel) {
+          this.previewPanel.render(this.scratch.content);
+        }
       });
       (this.monacoEditor as any)._scratchSaveRegistered = true;
+    }
+  }
+
+  // --- View mode toggle ---
+
+  private initModeToggle(): void {
+    if (!this.modeToggle) return;
+    const buttons = this.modeToggle.querySelectorAll<HTMLButtonElement>(
+      ".ws-viewer-mode-btn",
+    );
+    buttons.forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.mode === this.viewMode);
+      btn.addEventListener("click", () => {
+        const mode = btn.dataset.mode as ViewMode;
+        if (mode) this.setViewMode(mode);
+      });
+    });
+  }
+
+  private setViewMode(mode: ViewMode): void {
+    this.viewMode = mode;
+    localStorage.setItem("ws-viewer-mode", mode);
+    if (this.modeToggle) {
+      this.modeToggle
+        .querySelectorAll<HTMLButtonElement>(".ws-viewer-mode-btn")
+        .forEach((b) => b.classList.toggle("active", b.dataset.mode === mode));
+    }
+    if (this.tabManager.getActiveTab() === SCRATCH_PATH) {
+      this.applyScratchViewMode();
+    }
+  }
+
+  private showModeToggle(show: boolean): void {
+    if (this.modeToggle)
+      this.modeToggle.style.display = show ? "inline-flex" : "none";
+  }
+
+  private applyScratchViewMode(): void {
+    const hasPreview = !!this.previewContainer && !!this.previewPanel;
+    switch (this.viewMode) {
+      case "edit":
+        this.monacoContainer.style.display = "block";
+        this.monacoContainer.style.width = "100%";
+        if (this.previewContainer) this.previewContainer.style.display = "none";
+        break;
+      case "preview":
+        this.monacoContainer.style.display = "none";
+        if (hasPreview) {
+          this.previewContainer!.style.display = "block";
+          this.previewContainer!.style.width = "100%";
+          this.previewPanel!.render(this.scratch.content);
+        }
+        break;
+      case "split":
+        this.monacoContainer.style.display = "block";
+        this.monacoContainer.style.width = "50%";
+        if (hasPreview) {
+          this.previewContainer!.style.display = "block";
+          this.previewContainer!.style.width = "50%";
+          this.previewPanel!.render(this.scratch.content);
+        }
+        break;
+    }
+    if (this.monacoEditor && this.monacoContainer.style.display !== "none") {
+      this.monacoEditor.layout();
     }
   }
 
@@ -311,7 +369,6 @@ export class WorkspaceViewer {
   ): Promise<void> {
     const monaco = (window as any).monaco;
     if (!monaco) return;
-
     if (!this.monacoEditor) {
       this.monacoEditor = monaco.editor.create(this.monacoContainer, {
         value: content,
@@ -327,9 +384,7 @@ export class WorkspaceViewer {
       });
     } else {
       const model = this.monacoEditor.getModel();
-      if (model) {
-        monaco.editor.setModelLanguage(model, language);
-      }
+      if (model) monaco.editor.setModelLanguage(model, language);
       this.monacoEditor.setValue(content);
       this.monacoEditor.updateOptions({ readOnly: true });
     }
@@ -345,7 +400,6 @@ export class WorkspaceViewer {
 
   private async tryLazyLoadMonaco(): Promise<boolean> {
     try {
-      // If the Monaco AMD loader is on the page, wait for the ready event
       await new Promise<void>((resolve, reject) => {
         if ((window as any).monaco) {
           resolve();
