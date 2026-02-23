@@ -5,6 +5,12 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.1-alpha] - 2026-02-23
+
+### Fixed
+- **Django startup crash**: Removed invalid `field_name` kwarg from `AlterField` in
+  `llm_app/migrations/0002_remove_default_rate_limits.py` that caused TypeError on startup
+
 ## [0.10.0-alpha] - 2026-02-23
 
 ### Added
