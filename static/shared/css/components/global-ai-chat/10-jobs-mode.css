@@ -2,8 +2,7 @@
    Jobs Mode — SLURM Job List in AI Panel
    ============================================================ */
 
-#scitex-ai-jobs-view {
-  display: flex;
+#scitex-ai-jobs-view.active {
   flex-direction: column;
   height: 100%;
 }
