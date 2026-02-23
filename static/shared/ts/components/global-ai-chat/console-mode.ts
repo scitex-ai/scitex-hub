@@ -172,6 +172,12 @@ export class AIPanelConsoleMode {
       this.connected = true;
       this.setStatus("connected");
       this.sendResize();
+      // Disable tmux mouse mode so normal text selection works
+      setTimeout(() => {
+        if (this.ws?.readyState === WebSocket.OPEN) {
+          this.ws.send("tmux set -g mouse off 2>/dev/null\r");
+        }
+      }, 500);
     };
 
     this.ws.onmessage = (ev) => {
