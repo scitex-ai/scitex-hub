@@ -41,6 +41,14 @@
                         <i class="fas fa-robot"></i> AI Agent
                         <span id="scitex-ai-model-badge" class="scitex-ai-model-badge"></span>
                     </span>
+                    <div class="scitex-ai-mode-toggle">
+                        <button class="scitex-ai-mode-btn active" data-mode="chat" title="AI Chat">
+                            <i class="fas fa-comments"></i>
+                        </button>
+                        <button class="scitex-ai-mode-btn" data-mode="console" title="Console (CLI Agents)">
+                            <i class="fas fa-terminal"></i>
+                        </button>
+                    </div>
                     <div class="scitex-ai-panel-actions">
                         <button id="scitex-ai-speak" class="scitex-ai-action-btn" title="Toggle auto-speak">
                             <i class="fas fa-volume-up"></i>
@@ -52,37 +60,50 @@
                 </div>
                 <!-- Content area: hidden when collapsed by workspace-sidebar.css -->
                 <div class="sidebar-content scitex-ai-body">
-                    <div id="scitex-ai-messages" class="scitex-ai-messages">
-                        <div class="scitex-ai-empty">
-                            <i class="fas fa-robot"></i>
-                            <span>Ask anything about SciTeX.</span>
-                            <span>I can take actions: stats, plots, literature, and your current work.</span>
+                    <!-- Chat mode -->
+                    <div id="scitex-ai-chat-view" class="scitex-ai-view active">
+                        <div id="scitex-ai-messages" class="scitex-ai-messages">
+                            <div class="scitex-ai-empty">
+                                <i class="fas fa-robot"></i>
+                                <span>Ask anything about SciTeX.</span>
+                                <span>I can take actions: stats, plots, literature, and your current work.</span>
+                            </div>
+                        </div>
+                        <div class="scitex-ai-input-area">
+                            <textarea id="scitex-ai-input"
+                                      class="scitex-ai-input"
+                                      rows="3"
+                                      placeholder="Ask AI agent... (Enter to send)"
+                                      autocomplete="off"></textarea>
+                            <!-- Volume visualizer: 5 bars lit during recording -->
+                            <div class="scitex-ai-vol">
+                                <span class="scitex-ai-vol-bar" hidden></span>
+                                <span class="scitex-ai-vol-bar" hidden></span>
+                                <span class="scitex-ai-vol-bar" hidden></span>
+                                <span class="scitex-ai-vol-bar" hidden></span>
+                                <span class="scitex-ai-vol-bar" hidden></span>
+                            </div>
+                            <select id="scitex-ai-stt-model"
+                                    class="scitex-ai-stt-model"
+                                    title="STT model"
+                                    style="display:none"></select>
+                            <button id="scitex-ai-mic" class="scitex-ai-mic" title="Voice input (click to record)">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                            <button id="scitex-ai-send" class="scitex-ai-send" title="Send (Enter)">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
                         </div>
                     </div>
-                    <div class="scitex-ai-input-area">
-                        <textarea id="scitex-ai-input"
-                                  class="scitex-ai-input"
-                                  rows="3"
-                                  placeholder="Ask AI agent... (Enter to send)"
-                                  autocomplete="off"></textarea>
-                        <!-- Volume visualizer: 5 bars lit during recording -->
-                        <div class="scitex-ai-vol">
-                            <span class="scitex-ai-vol-bar" hidden></span>
-                            <span class="scitex-ai-vol-bar" hidden></span>
-                            <span class="scitex-ai-vol-bar" hidden></span>
-                            <span class="scitex-ai-vol-bar" hidden></span>
-                            <span class="scitex-ai-vol-bar" hidden></span>
+                    <!-- Console mode -->
+                    <div id="scitex-ai-console-view" class="scitex-ai-view">
+                        <div id="scitex-ai-terminal" class="scitex-ai-terminal"></div>
+                        <div class="scitex-ai-console-bar">
+                            <span class="scitex-ai-console-status" id="scitex-ai-console-status">
+                                <i class="fas fa-circle"></i> Not connected
+                            </span>
+                            <span class="scitex-ai-console-hint">claude · gemini · codex</span>
                         </div>
-                        <select id="scitex-ai-stt-model"
-                                class="scitex-ai-stt-model"
-                                title="STT model"
-                                style="display:none"></select>
-                        <button id="scitex-ai-mic" class="scitex-ai-mic" title="Voice input (click to record)">
-                            <i class="fas fa-microphone"></i>
-                        </button>
-                        <button id="scitex-ai-send" class="scitex-ai-send" title="Send (Enter)">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
                     </div>
                 </div>
             </div>

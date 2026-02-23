@@ -1,0 +1,89 @@
+/* ============================================================
+   Panel header: AI-specific overrides
+   (workspace-sidebar.css handles base)
+   ============================================================ */
+
+.scitex-ai-panel-header {
+  cursor: default;
+  user-select: none;
+  border-bottom: 1px solid var(--border-default, #30363d) !important;
+  background: var(--bg-tertiary, #0d1117) !important;
+  min-height: 50px !important;
+}
+
+.scitex-ai-panel-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow: hidden;
+  min-width: 0;
+  flex: 1 1 0;
+}
+
+.scitex-ai-panel-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.scitex-ai-action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted, #8b949e);
+  padding: 0.25rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  transition:
+    color 0.15s,
+    background 0.15s;
+}
+
+.scitex-ai-action-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover, rgba(255, 255, 255, 0.08));
+}
+
+.scitex-ai-action-btn.active {
+  color: #5a9a7e; /* success green — indicates feature is on */
+}
+
+/* Model badge — inline in the panel title */
+.scitex-ai-model-badge {
+  font-size: 0.625rem;
+  font-family: monospace;
+  font-weight: 500;
+  color: var(--text-muted, #8b949e);
+  background: var(--bg-hover, rgba(255, 255, 255, 0.07));
+  border: 1px solid var(--border-default, #30363d);
+  padding: 1px 5px;
+  border-radius: 3px;
+  vertical-align: middle;
+  opacity: 0.85;
+  empty-cells: hide;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  display: block;
+}
+
+.scitex-ai-model-badge:empty {
+  display: none;
+}
+
+/* Context chip shown in panel header */
+.scitex-ai-context-chip {
+  font-size: 0.65rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-muted, #8b949e);
+  font-family: monospace;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

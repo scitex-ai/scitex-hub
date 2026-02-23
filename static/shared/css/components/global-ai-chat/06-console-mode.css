@@ -1,0 +1,46 @@
+/* ============================================================
+   Console Terminal Container
+   ============================================================ */
+
+.scitex-ai-terminal {
+  flex: 1;
+  overflow: hidden;
+  background: var(--terminal-bg, #0d1117);
+}
+
+.scitex-ai-console-bar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.3rem 0.75rem;
+  border-top: 1px solid var(--border-default, #30363d);
+  background: var(--bg-tertiary, #0d1117);
+  font-size: 0.6875rem;
+}
+
+.scitex-ai-console-status {
+  color: var(--text-muted, #8b949e);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.scitex-ai-console-status .fa-circle {
+  font-size: 0.5rem;
+}
+
+.scitex-ai-console-status.connected {
+  color: #5a9a7e;
+}
+
+.scitex-ai-console-status.connected .fa-circle {
+  color: #5a9a7e;
+}
+
+.scitex-ai-console-hint {
+  color: var(--text-muted, #8b949e);
+  opacity: 0.6;
+  font-family: monospace;
+  font-size: 0.625rem;
+}
