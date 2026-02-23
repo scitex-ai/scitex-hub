@@ -39,7 +39,7 @@ export PATH="$HOME/.npm-global/bin:$PATH"
 
 # Auto-install AI CLI tools on first login (one-time setup)
 if ! command -v claude &>/dev/null && ! [ -f "$HOME/.ai-cli-installed" ]; then
-    echo -e "\\033[0;36m[SciTeX] Installing AI CLI tools (one-time setup)...\\033[0m"
+    echo -e "\\033[0;90m[SciTeX] Installing AI CLI tools (one-time setup)...\\033[0m"
     if ! command -v node &>/dev/null; then
         curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
         export NVM_DIR="$HOME/.nvm"
@@ -51,7 +51,7 @@ if ! command -v claude &>/dev/null && ! [ -f "$HOME/.ai-cli-installed" ]; then
         npm config set prefix "$HOME/.npm-global"
         npm install -g @anthropic-ai/claude-code @openai/codex @google/gemini-cli @agents-dev/cli 2>/dev/null
         touch "$HOME/.ai-cli-installed"
-        echo -e "\\033[0;32m[SciTeX] AI CLI tools installed: claude, codex, gemini, agents\\033[0m"
+        echo -e "\\033[0;90m[SciTeX] AI CLI tools installed: claude, codex, gemini, agents\\033[0m"
     fi
 fi
 

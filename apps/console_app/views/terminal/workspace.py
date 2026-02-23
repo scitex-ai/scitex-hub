@@ -41,102 +41,47 @@ async def ensure_workspace(user_data_dir: Path, username: str, project_slug: str
 
 
 def _patch_bashrc_ai_tools(dotfiles_dir: Path):
-    """Add AI CLI tools auto-install block to existing bashrc if missing."""
+    """Ensure bashrc matches canonical template. Regenerates if corrupted."""
     bashrc = dotfiles_dir / "bashrc"
     if not bashrc.exists():
         return
 
     content = bashrc.read_text()
-    changed = False
 
-    # Patch 1: AI CLI tools auto-install block
-    if ".ai-cli-installed" not in content:
-        ai_block = """
-# AI CLI tools (npm global prefix + nvm)
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-export PATH="$HOME/.npm-global/bin:$PATH"
+    # Detect corruption: orphaned done/fi, duplicate blocks, missing sections
+    is_corrupted = (
+        "\n    done\n" in content  # orphaned loop terminator
+        or content.count("agents sync") > 1  # duplicate blocks
+        or ".scitex-dev-installed" in content  # old dev block remnant
+        or "# Show scitex version" in content  # old MOTD remnant
+    )
 
-# Auto-install AI CLI tools on first login (one-time setup)
-if ! command -v claude &>/dev/null && ! [ -f "$HOME/.ai-cli-installed" ]; then
-    echo -e "\\033[0;36m[SciTeX] Installing AI CLI tools (one-time setup)...\\033[0m"
-    if ! command -v node &>/dev/null; then
-        curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
-        export NVM_DIR="$HOME/.nvm"
-        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-        nvm install 20 --lts 2>/dev/null
-    fi
-    if command -v npm &>/dev/null; then
-        mkdir -p "$HOME/.npm-global"
-        npm config set prefix "$HOME/.npm-global"
-        npm install -g @anthropic-ai/claude-code @openai/codex @google/gemini-cli @agents-dev/cli 2>/dev/null
-        touch "$HOME/.ai-cli-installed"
-        echo -e "\\033[0;32m[SciTeX] AI CLI tools installed: claude, codex, gemini, agents\\033[0m"
-    fi
-fi
-"""
-        marker = "# Aliases"
-        if marker in content:
-            content = content.replace(marker, ai_block + marker)
-        else:
-            content += ai_block
-        changed = True
+    # Check required sections exist
+    has_all_sections = all(
+        marker in content
+        for marker in [
+            "tmux set -g mouse off",
+            ".ai-cli-installed",
+            "agents sync",
+            "# Aliases",
+        ]
+    )
 
-    # Patch 2: agents sync block (pushes MCP config to all AI CLIs)
-    if ".agents-synced" not in content:
-        sync_block = """
-# Sync MCP config to all AI tools on login
-if command -v agents &>/dev/null && [ -d ".agents" ]; then
-    agents sync --quiet 2>/dev/null
-fi
-"""
-        # Insert after .ai-cli-installed block (after the closing fi)
-        marker = "# Aliases"
-        if marker in content:
-            content = content.replace(marker, sync_block + marker)
-        else:
-            content += sync_block
-        changed = True
+    if is_corrupted or not has_all_sections:
+        # Extract username from PS1 prompt line
+        username = "visitor"
+        for line in content.splitlines():
+            if "@scitex" in line and "PS1=" in line:
+                import re
 
-    # Patch 3: Add tmux mouse off for normal text selection
-    if "tmux set -g mouse off" not in content:
-        mouse_line = "# Disable tmux mouse mode for normal text selection\ntmux set -g mouse off 2>/dev/null\n"
-        marker = "# AI CLI tools"
-        if marker in content:
-            content = content.replace(marker, mouse_line + "\n" + marker)
-        else:
-            marker = "# Aliases"
-            if marker in content:
-                content = content.replace(marker, mouse_line + "\n" + marker)
-        changed = True
+                m = re.search(r"\\](\S+?)@scitex", line)
+                if m:
+                    username = m.group(1)
+                break
 
-    # Patch 4: Remove old dev install block (too slow at login)
-    if ".scitex-dev-installed" in content:
-        import re
-
-        content = re.sub(
-            r"\n# Dev mode:.*?fi\n",
-            "\n",
-            content,
-            flags=re.DOTALL,
-        )
-        changed = True
-
-    # Patch 5: Remove version MOTD block (no longer needed)
-    if "# Show scitex version" in content:
-        import re
-
-        content = re.sub(
-            r"\n# Show scitex version.*?fi\n",
-            "\n",
-            content,
-            flags=re.DOTALL,
-        )
-        changed = True
-
-    if changed:
-        bashrc.write_text(content)
-        logger.info("Patched existing bashrc with AI CLI tools and agents sync")
+        # Regenerate from canonical template
+        create_dotfiles_repo(dotfiles_dir, username)
+        logger.info(f"Regenerated bashrc for {username} (was corrupted/outdated)")
 
 
 # EOF
