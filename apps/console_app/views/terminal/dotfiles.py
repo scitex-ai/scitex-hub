@@ -14,7 +14,8 @@ logger = logging.getLogger(__name__)
 def create_dotfiles_repo(dotfiles_dir: Path, username: str):
     """Create ~/.dotfiles as a git repository with default configs"""
     # bashrc
-    (dotfiles_dir / "bashrc").write_text(f'''# SciTeX Cloud - bashrc
+    (dotfiles_dir / "bashrc").write_text(
+        f"""# SciTeX Cloud - bashrc
 # Edit this file and run ./install.sh to apply changes
 
 # Emacs-style editing
@@ -27,6 +28,38 @@ export HISTCONTROL=ignoredups:erasedups
 
 # Prompt: {username}@scitex:~/path $
 PS1='\\[\\033[01;32m\\]{username}@scitex\\[\\033[00m\\]:\\[\\033[01;34m\\]\\w\\[\\033[00m\\] \\$ '
+
+# Disable tmux mouse mode for normal text selection
+tmux set -g mouse off 2>/dev/null
+
+# AI CLI tools (npm global prefix + nvm)
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+export PATH="$HOME/.npm-global/bin:$PATH"
+
+# Auto-install AI CLI tools on first login (one-time setup)
+if ! command -v claude &>/dev/null && ! [ -f "$HOME/.ai-cli-installed" ]; then
+    echo -e "\\033[0;90m[SciTeX] Installing AI CLI tools (one-time setup)...\\033[0m"
+    if ! command -v node &>/dev/null; then
+        curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+        export NVM_DIR="$HOME/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+        nvm install 20 --lts 2>/dev/null
+    fi
+    if command -v npm &>/dev/null; then
+        mkdir -p "$HOME/.npm-global"
+        npm config set prefix "$HOME/.npm-global"
+        npm install -g @anthropic-ai/claude-code @openai/codex @google/gemini-cli @agents-dev/cli 2>/dev/null
+        touch "$HOME/.ai-cli-installed"
+        echo -e "\\033[0;90m[SciTeX] AI CLI tools installed: claude, codex, gemini, agents\\033[0m"
+    fi
+fi
+
+# Sync MCP config to all AI tools on login
+if command -v agents &>/dev/null && [ -d ".agents" ]; then
+    agents sync --quiet 2>/dev/null
+fi
+
 
 # Aliases
 alias ll='ls -alF'
@@ -50,19 +83,23 @@ alias gl='git log --oneline -10'
 if [ -d ".venv" ] && [ -f ".venv/bin/activate" ]; then
     source .venv/bin/activate
 fi
-''')
+"""
+    )
 
     # bash_profile
-    (dotfiles_dir / "bash_profile").write_text('''# SciTeX Cloud - bash_profile
+    (dotfiles_dir / "bash_profile").write_text(
+        """# SciTeX Cloud - bash_profile
 # Sources bashrc for login shells
 
 if [ -f ~/.bashrc ]; then
     . ~/.bashrc
 fi
-''')
+"""
+    )
 
     # vimrc
-    (dotfiles_dir / "vimrc").write_text('''" SciTeX Cloud - vimrc
+    (dotfiles_dir / "vimrc").write_text(
+        """" SciTeX Cloud - vimrc
 " Edit this file to customize vim
 
 syntax on
@@ -84,10 +121,12 @@ set backspace=indent,eol,start
 
 " Color scheme (if available)
 silent! colorscheme desert
-''')
+"""
+    )
 
     # gitconfig
-    (dotfiles_dir / "gitconfig").write_text(f'''# SciTeX Cloud - gitconfig
+    (dotfiles_dir / "gitconfig").write_text(
+        f"""# SciTeX Cloud - gitconfig
 [user]
     name = {username}
     email = {username}@scitex.cloud
@@ -111,18 +150,20 @@ silent! colorscheme desert
 
 [init]
     defaultBranch = main
-''')
+"""
+    )
 
     # tmux.conf
-    (dotfiles_dir / "tmux.conf").write_text('''# SciTeX Cloud - tmux.conf
+    (dotfiles_dir / "tmux.conf").write_text(
+        """# SciTeX Cloud - tmux.conf
 
 # Use Ctrl-a as prefix (like screen)
 # unbind C-b
 # set -g prefix C-a
 # bind C-a send-prefix
 
-# Mouse support
-set -g mouse on
+# Mouse support (off = normal text selection with mouse drag)
+set -g mouse off
 
 # 256 colors
 set -g default-terminal "xterm-256color"
@@ -141,12 +182,14 @@ set -g history-limit 10000
 set -g status-style bg=black,fg=white
 set -g status-left '[#S] '
 set -g status-right '%H:%M %d-%b'
-''')
+"""
+    )
 
     # ipython config
     ipython_dir = dotfiles_dir / "ipython"
     ipython_dir.mkdir(exist_ok=True)
-    (ipython_dir / "ipython_config.py").write_text('''# SciTeX Cloud - IPython configuration
+    (ipython_dir / "ipython_config.py").write_text(
+        """# SciTeX Cloud - IPython configuration
 c = get_config()
 
 # Cleaner prompts
@@ -157,10 +200,12 @@ c.TerminalInteractiveShell.confirm_exit = False
 # Auto-reload modules
 c.InteractiveShellApp.extensions = ['autoreload']
 c.InteractiveShellApp.exec_lines = ['%autoreload 2']
-''')
+"""
+    )
 
     # install.sh
-    (dotfiles_dir / "install.sh").write_text('''#!/bin/bash
+    (dotfiles_dir / "install.sh").write_text(
+        """#!/bin/bash
 # SciTeX Cloud - Dotfiles installer
 # Run this after editing dotfiles to apply changes
 
@@ -180,11 +225,13 @@ mkdir -p "$HOME/.ipython/profile_default"
 ln -sf "$DOTFILES_DIR/ipython/ipython_config.py" "$HOME/.ipython/profile_default/ipython_config.py"
 
 echo "Done! Restart your shell or run: source ~/.bashrc"
-''')
+"""
+    )
     (dotfiles_dir / "install.sh").chmod(0o755)
 
     # README
-    (dotfiles_dir / "README.md").write_text(f'''# {username}'s Dotfiles
+    (dotfiles_dir / "README.md").write_text(
+        f"""# {username}'s Dotfiles
 
 Personal configuration files for SciTeX Cloud.
 
@@ -224,10 +271,12 @@ git clone <this-repo> ~/.dotfiles
 cd ~/.dotfiles
 ./install.sh
 ```
-''')
+"""
+    )
 
     # .gitignore
-    (dotfiles_dir / ".gitignore").write_text('''# OS files
+    (dotfiles_dir / ".gitignore").write_text(
+        """# OS files
 .DS_Store
 Thumbs.db
 
@@ -235,7 +284,8 @@ Thumbs.db
 *~
 *.swp
 *.bak
-''')
+"""
+    )
 
     # Initialize git repo
     try:
@@ -245,10 +295,13 @@ Thumbs.db
             ["git", "commit", "-m", "Initial dotfiles setup"],
             cwd=dotfiles_dir,
             capture_output=True,
-            env={**os.environ, "GIT_AUTHOR_NAME": username,
-                 "GIT_AUTHOR_EMAIL": f"{username}@scitex.cloud",
-                 "GIT_COMMITTER_NAME": username,
-                 "GIT_COMMITTER_EMAIL": f"{username}@scitex.cloud"}
+            env={
+                **os.environ,
+                "GIT_AUTHOR_NAME": username,
+                "GIT_AUTHOR_EMAIL": f"{username}@scitex.cloud",
+                "GIT_COMMITTER_NAME": username,
+                "GIT_COMMITTER_EMAIL": f"{username}@scitex.cloud",
+            },
         )
     except Exception as e:
         logger.warning(f"Git init failed (non-critical): {e}")

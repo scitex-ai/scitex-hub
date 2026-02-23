@@ -87,12 +87,52 @@ export function toggleCopyDropdown(): void {
   console.log("Copy dropdown toggled:", dropdown.style.display);
 }
 
+export function toggleImportExportDropdown(): void {
+  const dropdown = document.getElementById(
+    "import-export-dropdown",
+  ) as HTMLElement | null;
+  if (!dropdown) return;
+
+  const isVisible = dropdown.style.display === "block";
+
+  closeAllDropdowns();
+
+  dropdown.style.display = isVisible ? "none" : "block";
+}
+
+export function showImportModal(source: string): void {
+  closeAllDropdowns();
+  if (
+    source === "zotero" ||
+    source === "connected-papers" ||
+    source === "prism"
+  ) {
+    window.location.href = "/scholar/#library";
+    return;
+  }
+  alert(`Import from ${source} — coming soon.`);
+}
+
+export function handleExport(target: string): void {
+  closeAllDropdowns();
+  if (
+    target === "zotero" ||
+    target === "connected-papers" ||
+    target === "prism"
+  ) {
+    window.location.href = "/scholar/#library";
+    return;
+  }
+  alert(`Export to ${target} — coming soon.`);
+}
+
 export function closeAllDropdowns(): void {
   const dropdowns = [
     "branch-dropdown-menu",
     "add-file-dropdown",
     "code-dropdown",
     "copy-dropdown",
+    "import-export-dropdown",
   ];
   dropdowns.forEach((id) => {
     const dropdown = document.getElementById(id) as HTMLElement | null;

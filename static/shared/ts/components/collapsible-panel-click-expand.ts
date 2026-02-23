@@ -106,7 +106,7 @@ function initPanelInteractions(): void {
     }
   });
 
-  // Double-click on expanded panel header → collapse (only empty space)
+  // Double-click on expanded panel header → collapse
   document.addEventListener("dblclick", (e) => {
     // Skip if a click-to-expand just fired (prevents expand→collapse flash)
     if (Date.now() - lastExpandTime < 500) return;
@@ -115,8 +115,8 @@ function initPanelInteractions(): void {
     const header = target.closest(HEADER_SELECTORS);
     if (!header) return;
 
-    // Only trigger when clicking the header div itself (empty space)
-    if (target !== header) return;
+    // Skip if dblclick landed on interactive elements (buttons, inputs, etc.)
+    if (target.closest(INTERACTIVE_SELECTORS)) return;
 
     const panel = header.closest(PANEL_SELECTORS);
     if (!panel || panel.matches(".collapsed")) return;

@@ -1,0 +1,51 @@
+/* ============================================================
+   Mode Toggle (Chat / Console)
+   ============================================================ */
+
+.scitex-ai-mode-toggle {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+.scitex-ai-mode-btn {
+  background: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  color: var(--text-muted, #8b949e);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  transition:
+    color 0.15s,
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.scitex-ai-mode-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover, rgba(255, 255, 255, 0.08));
+}
+
+.scitex-ai-mode-btn.active {
+  color: var(--text-primary);
+  background: rgba(90, 154, 126, 0.15);
+  border-color: rgba(90, 154, 126, 0.4);
+}
+
+/* ============================================================
+   View Switching (Chat / Console views)
+   ============================================================ */
+
+.scitex-ai-view {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.scitex-ai-view.active {
+  display: flex;
+}

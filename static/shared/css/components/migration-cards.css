@@ -1,0 +1,274 @@
+/**
+ * @component Migration Cards
+ * @description Collapsible import/export cards for migration tools (Zotero, Overleaf, Prism, etc.)
+ * @category Components
+ * @file /static/shared/css/components/migration-cards.css
+ *
+ * @example
+ * <div class="mig-card collapsed">
+ *   <div class="mig-card__header">
+ *     <h6 class="mig-card__title"><i class="fas fa-leaf"></i> Overleaf Import</h6>
+ *     <i class="fas fa-chevron-down mig-card__chevron"></i>
+ *   </div>
+ *   <div class="mig-card__content">...</div>
+ * </div>
+ */
+
+/* Card container */
+.mig-card {
+  border: 1px solid var(--workspace-border-default, #3a3a3a);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+/* Header */
+.mig-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 0.85rem;
+  background: var(--workspace-bg-secondary, #151515);
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid var(--workspace-border-default, #3a3a3a);
+}
+
+.mig-card__header:hover {
+  background: var(--workspace-bg-tertiary, #1a1a1a);
+}
+
+/* Title — uppercase like Zotero cards */
+.mig-card__title {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary, #d4e1e8);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.mig-card__title i {
+  font-size: 0.7rem;
+}
+
+/* Chevron */
+.mig-card__chevron {
+  color: var(--text-muted, #6c8ba0);
+  font-size: 0.65rem;
+  transition: transform 0.2s ease;
+}
+
+/* Content */
+.mig-card__content {
+  padding: 0.85rem;
+  background: var(--workspace-bg-secondary, #151515);
+}
+
+/* Collapsed state */
+.mig-card.collapsed .mig-card__header {
+  border-bottom: none;
+}
+
+.mig-card.collapsed .mig-card__chevron {
+  transform: rotate(-90deg);
+}
+
+.mig-card.collapsed .mig-card__content {
+  display: none;
+}
+
+/* Inner elements */
+.mig-card__label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--text-primary, #d4e1e8);
+  margin-bottom: 0.35rem;
+}
+
+.mig-card__hint {
+  font-size: 0.65rem;
+  color: var(--text-muted, #6c8ba0);
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+}
+
+.mig-card__steps {
+  font-size: 0.7rem;
+  color: var(--text-muted, #6c8ba0);
+  line-height: 1.7;
+  margin: 0 0 0.5rem 0;
+  padding-left: 1.2rem;
+}
+
+.mig-card__steps strong {
+  color: var(--text-primary, #d4e1e8);
+}
+
+.mig-card__btn {
+  display: block;
+  width: 100%;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.75rem;
+  text-align: center;
+  color: var(--text-primary, #d4e1e8);
+  background: var(--workspace-bg-primary, #0d0d0d);
+  border: 1px solid var(--workspace-border-default, #3a3a3a);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-decoration: none;
+}
+
+.mig-card__btn:hover {
+  background: var(--workspace-bg-tertiary, #1a1a1a);
+  border-color: var(--workspace-border-hover, #4a4a4a);
+  color: var(--text-primary, #d4e1e8);
+  text-decoration: none;
+}
+
+.mig-card__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mig-card__btn--primary {
+  border-color: var(--workspace-icon-primary, #059669);
+  color: var(--workspace-icon-primary, #059669);
+}
+
+.mig-card__btn--primary:hover {
+  background: rgba(5, 150, 105, 0.1);
+}
+
+.mig-card__status {
+  font-size: 0.65rem;
+  line-height: 1.4;
+  margin-top: 0.35rem;
+  color: var(--text-muted, #6c8ba0);
+}
+
+/* Service status LED rows */
+.library-service-leds {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.library-led-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.library-led-label {
+  font-size: 0.7rem;
+  color: var(--text-muted, #6c8ba0);
+}
+
+/* =========================================
+   Dropzone — drag-and-drop file upload
+   ========================================= */
+
+.dropzone {
+  border: 2px dashed var(--workspace-border-default, #3a3a3a);
+  border-radius: 6px;
+  padding: 1rem 0.75rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-bottom: 0.5rem;
+}
+
+.dropzone:hover {
+  border-color: var(--workspace-border-hover, #4a4a4a);
+  background: rgba(5, 150, 105, 0.04);
+}
+
+.dropzone.dropzone--dragover {
+  border-color: var(--workspace-icon-primary, #059669);
+  background: rgba(5, 150, 105, 0.08);
+}
+
+.dropzone__icon {
+  display: block;
+  font-size: 1.25rem;
+  color: var(--text-muted, #6c8ba0);
+  margin-bottom: 0.35rem;
+}
+
+.dropzone__icon--file {
+  color: var(--workspace-icon-primary, #059669);
+}
+
+.dropzone__text {
+  font-size: 0.7rem;
+  color: var(--text-muted, #6c8ba0);
+  line-height: 1.5;
+}
+
+.dropzone__text code {
+  font-size: 0.65rem;
+  background: var(--workspace-bg-tertiary, #1c2128);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.dropzone__browse {
+  color: var(--workspace-icon-primary, #059669);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.dropzone__ready {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.dropzone__filename {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--text-primary, #d4e1e8);
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dropzone__clear {
+  background: none;
+  border: none;
+  color: var(--text-muted, #6c8ba0);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.dropzone__clear:hover {
+  color: var(--status-error, #ff6b6b);
+}
+
+/* Light theme */
+[data-theme="light"] .mig-card__header {
+  background: var(--workspace-bg-secondary);
+  border-bottom-color: var(--workspace-border-default);
+}
+[data-theme="light"] .mig-card__header:hover {
+  background: var(--workspace-bg-tertiary);
+}
+[data-theme="light"] .mig-card__content {
+  background: var(--workspace-bg-secondary);
+}
+[data-theme="light"] .mig-card__title {
+  color: var(--text-primary);
+}
+[data-theme="light"] .dropzone__text code {
+  background: var(--workspace-bg-tertiary);
+}

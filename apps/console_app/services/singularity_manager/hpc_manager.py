@@ -14,10 +14,11 @@ Singularity HPC Manager
 SLURM job submission and management for HPC clusters.
 """
 
-import subprocess
 import logging
+import subprocess
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
+
 from django.contrib.auth.models import User
 
 from .exceptions import SingularityError
@@ -45,10 +46,7 @@ class HPCManager:
         self.config = config
 
     def submit_to_hpc(
-        self,
-        user: User,
-        script_path: Path,
-        hpc_config: Optional[Dict[str, Any]] = None
+        self, user: User, script_path: Path, hpc_config: Optional[Dict[str, Any]] = None
     ) -> str:
         """
         Submit job to HPC cluster (e.g., Spartan) via SLURM
@@ -67,10 +65,10 @@ class HPCManager:
         # Default HPC configuration
         if hpc_config is None:
             hpc_config = {
-                'partition': 'compute',
-                'time': '01:00:00',
-                'cpus': 1,
-                'mem': '4G',
+                "partition": "compute",
+                "time": "01:00:00",
+                "cpus": 1,
+                "mem": "4G",
             }
 
         # Prepare directories
@@ -80,10 +78,10 @@ class HPCManager:
         # Create SLURM submission script
         slurm_script = f"""#!/bin/bash
 #SBATCH --job-name=scitex_{user.id}
-#SBATCH --partition={hpc_config['partition']}
-#SBATCH --time={hpc_config['time']}
-#SBATCH --cpus-per-task={hpc_config['cpus']}
-#SBATCH --mem={hpc_config['mem']}
+#SBATCH --partition={hpc_config["partition"]}
+#SBATCH --time={hpc_config["time"]}
+#SBATCH --cpus-per-task={hpc_config["cpus"]}
+#SBATCH --mem={hpc_config["mem"]}
 #SBATCH --output={hpc_logs}/slurm-%j.out
 #SBATCH --error={hpc_logs}/slurm-%j.err
 
@@ -96,7 +94,7 @@ singularity exec \\
     --cleanenv \\
     --bind {hpc_workspace}:/workspace \\
     --pwd /workspace \\
-    /data/projects/scitex/containers/scitex-user-workspace.sif \\
+    /data/projects/scitex/containers/scitex-cloud-shared-v0.1.0.sif \\
     python {script_path}
 """
 
@@ -108,7 +106,7 @@ singularity exec \\
                 capture_output=True,
                 text=True,
                 check=True,
-                timeout=30
+                timeout=30,
             )
 
             # Parse job ID from SLURM output: "Submitted batch job 12345"
@@ -143,43 +141,43 @@ singularity exec \\
                 capture_output=True,
                 text=True,
                 check=True,
-                timeout=10
+                timeout=10,
             )
 
             # Parse output: "RUNNING,00:15:32,node123"
-            parts = result.stdout.strip().split(',')
+            parts = result.stdout.strip().split(",")
 
             if len(parts) >= 3:
                 status, runtime, node = parts[:3]
                 return {
-                    'status': status,
-                    'runtime': runtime,
-                    'node': node,
-                    'found': True,
+                    "status": status,
+                    "runtime": runtime,
+                    "node": node,
+                    "found": True,
                 }
             else:
                 return {
-                    'status': 'UNKNOWN',
-                    'runtime': '',
-                    'node': '',
-                    'found': False,
+                    "status": "UNKNOWN",
+                    "runtime": "",
+                    "node": "",
+                    "found": False,
                 }
 
         except subprocess.CalledProcessError:
             # Job not found or completed
             return {
-                'status': 'NOT_FOUND',
-                'runtime': '',
-                'node': '',
-                'found': False,
+                "status": "NOT_FOUND",
+                "runtime": "",
+                "node": "",
+                "found": False,
             }
 
         except subprocess.TimeoutExpired:
             return {
-                'status': 'TIMEOUT',
-                'runtime': '',
-                'node': '',
-                'found': False,
+                "status": "TIMEOUT",
+                "runtime": "",
+                "node": "",
+                "found": False,
             }
 
 

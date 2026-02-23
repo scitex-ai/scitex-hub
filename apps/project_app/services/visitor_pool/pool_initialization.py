@@ -15,7 +15,7 @@ from apps.project_app.models import Project
 
 logger = logging.getLogger(__name__)
 
-VISITOR_TEMPLATE_ID = "research_minimal"
+VISITOR_TEMPLATE_ID = "scitex_minimal"
 
 
 class PoolInitializer:
@@ -135,10 +135,17 @@ class PoolInitializer:
     def _initialize_project_directory(
         cls, user: User, project: Project, project_slug: str
     ) -> bool:
-        """Initialize project directory via scitex.template.clone_template()."""
+        """Initialize project directory via scitex.template.clone_template().
+
+        Uses scitex_minimal template which creates:
+          {project}/scitex/writer/  (writer workspace)
+          {project}/scitex/scholar/ (scholar workspace)
+        No writer dirs at project root.
+        """
         from apps.project_app.services.project_filesystem import (
             get_project_filesystem_manager,
         )
+
         from .workspace_manager import WorkspaceManager
 
         manager = get_project_filesystem_manager(user)
@@ -154,6 +161,8 @@ class PoolInitializer:
             if not success:
                 return False
 
+            cls._cleanup_project_dev_artifacts(project_path)
+
             project.git_clone_path = str(project_path)
             project.directory_created = True
             project.save(update_fields=["git_clone_path", "directory_created"])
@@ -161,9 +170,8 @@ class PoolInitializer:
             logger.info(
                 f"[VisitorPool] Created project: {project_slug} at {project_path}"
             )
-            WorkspaceManager.initialize_visitor_writer_workspace(
-                project, Path(project_path)
-            )
+            # scitex_minimal already creates scitex/writer/ — just register manuscript
+            WorkspaceManager.ensure_manuscript_record(project, project_path)
         else:
             logger.info(
                 f"[VisitorPool] Project directory already exists: {project_root}"
@@ -172,7 +180,7 @@ class PoolInitializer:
                 project.git_clone_path = str(project_root)
                 project.save(update_fields=["git_clone_path"])
 
-            WorkspaceManager.initialize_visitor_writer_workspace(project, project_root)
+            WorkspaceManager.ensure_manuscript_record(project, project_root)
 
         return True
 
@@ -211,6 +219,7 @@ class PoolInitializer:
                 # Clone template via scitex.template (single source of truth)
                 success = cls._clone_template(project_path)
                 if success:
+                    cls._cleanup_project_dev_artifacts(project_path)
                     reset_count += 1
 
                     project.git_clone_path = str(project_path)
@@ -221,9 +230,7 @@ class PoolInitializer:
 
                     from .workspace_manager import WorkspaceManager
 
-                    WorkspaceManager.initialize_visitor_writer_workspace(
-                        project, project_path
-                    )
+                    WorkspaceManager.ensure_manuscript_record(project, project_path)
                 else:
                     logger.error(
                         f"[VisitorPool] Failed to reset directory for {username}"
@@ -236,6 +243,43 @@ class PoolInitializer:
 
         logger.info(f"[VisitorPool] Reset {reset_count} project directories")
         return reset_count
+
+    @classmethod
+    def _cleanup_project_dev_artifacts(cls, project_path: Path):
+        """Remove development artifacts from project template."""
+        DEV_ARTIFACTS = [
+            ".github",
+            ".readthedocs.yaml",
+            "scripts/containers",
+        ]
+        for name in DEV_ARTIFACTS:
+            path = project_path / name
+            if path.is_dir():
+                shutil.rmtree(path)
+            elif path.is_file():
+                path.unlink()
+
+        # Clean writer dev artifacts inside scitex/writer/
+        writer_dir = project_path / "scitex" / "writer"
+        if writer_dir.exists():
+            WRITER_DEV_ARTIFACTS = [
+                "tests",
+                "src",
+                "docs",
+                "examples",
+                ".github",
+                "pyproject.toml",
+                ".readthedocs.yaml",
+                "CHANGELOG.md",
+                "VERSION",
+                "ai",
+            ]
+            for name in WRITER_DEV_ARTIFACTS:
+                path = writer_dir / name
+                if path.is_dir():
+                    shutil.rmtree(path)
+                elif path.is_file():
+                    path.unlink()
 
     @classmethod
     def _clone_template(cls, project_path: Path) -> bool:
@@ -252,9 +296,9 @@ class PoolInitializer:
                 git_strategy=None,
             )
             if success:
-                logger.info(f"[VisitorPool] Template cloned successfully")
+                logger.info("[VisitorPool] Template cloned successfully")
             else:
-                logger.error(f"[VisitorPool] Template clone returned False")
+                logger.error("[VisitorPool] Template clone returned False")
             return success
 
         except Exception as e:

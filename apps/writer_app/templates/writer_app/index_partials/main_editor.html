@@ -40,14 +40,6 @@
                             </div>
                         </div>
                         <div class="header-right">
-                            <!-- Git Operations (unified: click to commit) -->
-                            <div class="git-operations-container">
-                                <button id="git-status-display" class="btn btn-sm" title="Git: click to commit">
-                                    <i class="fas fa-code-branch"></i>
-                                    <span id="git-branch-name">main</span>
-                                    <span id="git-unpushed-count">↑<span>0</span></span>
-                                </button>
-                            </div>
                             <!-- Word Count -->
                             <div class="word-count-inline" title="Current section word count">
                                 <span id="current-word-count">0</span> words
@@ -163,6 +155,16 @@
                                         <span class="status-lamp-dot" id="fullcompile-status-lamp" data-status="idle"></span>
                                     </div>
                                 </div>
+                                <!-- 6. Download Current PDF Button -->
+                                <button id="download-btn-toolbar"
+                                        class="btn btn-sm btn-outline-success"
+                                        title="Download PDF"
+                                        data-bs-toggle="tooltip"
+                                        data-bs-placement="bottom"
+                                        onclick="handleDownloadCurrentPDF(event)">
+                                    <i class="fas fa-download"></i>
+                                    <span class="visually-hidden">Download PDF</span>
+                                </button>
                                 <!-- 3. Compilation Settings Gear -->
                                 <button id="compilation-settings-btn"
                                         class="btn btn-sm btn-outline-secondary"
@@ -212,16 +214,6 @@
                                         title="PDF Theme: Light (Click to toggle)"
                                         onclick="window.togglePdfColorMode && window.togglePdfColorMode()">
                                     <span class="theme-icon">☀️</span>
-                                </button>
-                                <!-- 6. Download Current PDF Button -->
-                                <button id="download-btn-toolbar"
-                                        class="btn btn-sm btn-outline-secondary"
-                                        title="Download PDF"
-                                        data-bs-toggle="tooltip"
-                                        data-bs-placement="bottom"
-                                        onclick="handleDownloadCurrentPDF(event)">
-                                    <i class="fas fa-download"></i>
-                                    <span class="visually-hidden">Download PDF</span>
                                 </button>
                             </div>
                         </div>

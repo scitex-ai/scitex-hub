@@ -102,6 +102,51 @@
   color: var(--text-primary);
 }
 
+/* Card-level toggle & uninstall buttons */
+.mp-installed-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mp-btn-toggle,
+.mp-btn-uninstall {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background-color: transparent;
+  border: 1px solid var(--workspace-border-default, var(--border-color));
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 0;
+  transition:
+    color 0.15s,
+    border-color 0.15s,
+    background-color 0.15s;
+  font-size: 0.78rem;
+  padding: 0;
+}
+
+.mp-btn-toggle:hover {
+  color: #f6ad55;
+  border-color: #f6ad55;
+  background-color: rgba(246, 173, 85, 0.1);
+}
+
+.mp-btn-uninstall:hover {
+  color: #fc8181;
+  border-color: #fc8181;
+  background-color: rgba(252, 129, 129, 0.1);
+}
+
+.mp-btn-toggle:disabled,
+.mp-btn-uninstall:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* Card-level star button */
 .mp-btn-star {
   display: inline-flex;

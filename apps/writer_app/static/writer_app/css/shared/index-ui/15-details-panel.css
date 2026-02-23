@@ -172,7 +172,7 @@
   align-items: center;
   padding: 4px 0;
   font-size: 12px;
-  border-bottom: 1px solid var(--workspace-border-muted, #2a2a2a);
+  border-bottom: 1px solid var(--workspace-border-subtle, #21262d);
 }
 
 .details-info-row:last-child {
@@ -233,8 +233,8 @@
 
 /* Compilation Log */
 .details-compilation-log {
-  background: #0a0f1a;
-  color: #8a8a8a;
+  background: var(--details-log-bg, #0a0f1a);
+  color: var(--details-log-text, #8a8a8a);
   font-family: "SF Mono", Monaco, "Cascadia Code", monospace;
   font-size: 11px;
   line-height: 1.4;
@@ -247,26 +247,58 @@
 }
 
 .details-compilation-log .terminal-log__error {
-  color: #ff6b6b;
+  color: var(--details-log-error, #ff6b6b);
 }
 
 .details-compilation-log .terminal-log__warning {
-  color: #ffd93d;
+  color: var(--details-log-warning, #ffd93d);
 }
 
 .details-compilation-log .terminal-log__success {
-  color: #6bcb77;
+  color: var(--details-log-success, #6bcb77);
 }
 
-/* Light mode */
+/* Light theme */
 [data-theme="light"] .writer-details {
   background: var(--workspace-bg-primary);
+  border-left-color: var(--workspace-border-default);
 }
 
 [data-theme="light"] .details-header {
   background: var(--workspace-bg-secondary);
+  border-bottom-color: var(--workspace-border-default);
 }
 
 [data-theme="light"] .details-section {
   background: var(--workspace-bg-secondary);
+  border-color: var(--workspace-border-default);
+}
+
+[data-theme="light"] .details-section__header:hover {
+  background: var(--workspace-bg-tertiary);
+}
+
+[data-theme="light"] .details-section__content {
+  border-top-color: var(--workspace-border-default);
+}
+
+[data-theme="light"] .details-info-row {
+  border-bottom-color: var(--workspace-border-subtle);
+}
+
+[data-theme="light"] .details-shortcut kbd {
+  background: var(--workspace-bg-tertiary);
+  border-color: var(--workspace-border-default);
+}
+
+[data-theme="light"] .details-compilation-log {
+  --details-log-bg: #f5f4f2;
+  --details-log-text: #555;
+  --details-log-error: #a63d3d;
+  --details-log-warning: #8a6d2b;
+  --details-log-success: #3a7a4a;
+}
+
+[data-theme="light"] .details-toggle:hover {
+  background: var(--workspace-bg-tertiary);
 }

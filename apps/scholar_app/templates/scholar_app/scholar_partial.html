@@ -32,9 +32,9 @@
 <link rel="stylesheet"
       href="{% static 'scholar_app/css/library/library-table.css' %}" />
 <link rel="stylesheet"
-      href="{% static 'scholar_app/css/library/library-sidebar.css' %}" />
-<link rel="stylesheet"
       href="{% static 'scholar_app/css/library/library-details.css' %}" />
+<link rel="stylesheet"
+      href="{% static 'scholar_app/css/library/library-detail-panel.css' %}" />
 <link href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.css"
       rel="stylesheet" />
 <style>
@@ -234,15 +234,13 @@
 </div>
 <!-- Library Tab -->
 <div id="tab-library" class="scholar-tab-content" data-tab="library">
-    <div class="library-collections-sidebar" id="library-collections-sidebar">
-        <div class="library-sidebar-header">
-            <span class="library-sidebar-title">Collections</span>
-        </div>
-        <div class="library-sidebar-list" id="library-sidebar-list">
-            <!-- JS fills collection items -->
-        </div>
-    </div>
     <div class="library-tab-inner">{% include "scholar_app/library_partials/library_main.html" %}</div>
+    <div class="library-resizer panel-resizer"
+         data-panel-resizer
+         data-target=".library-tab-inner"
+         data-direction="left"
+         data-min-width="200"
+         data-max-width="600"></div>
     <div class="library-details-panel">{% include "scholar_app/library_partials/library_details.html" %}</div>
 </div>
 </div>

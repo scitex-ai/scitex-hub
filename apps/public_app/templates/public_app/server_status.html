@@ -494,7 +494,7 @@
                 </div>
                 <!-- Apptainer/Singularity -->
                 <div class="service-card {{ status_data.apptainer.health_class }} has-tooltip"
-                     data-tooltip="Health Check: Executes 'apptainer --version' command. Returns healthy if command succeeds and returns version string.">
+                     data-tooltip="Health Check: Executes 'apptainer --version' and reads SIF container metadata (version, hash, size, rebuild status).">
                     <div class="service-header">
                         <div class="service-name">
                             <i class="fas fa-box"></i> {{ status_data.apptainer.command|default:"Apptainer"|title }}
@@ -516,7 +516,33 @@
                         </div>
                         {% if status_data.apptainer.version %}
                             <div>
-                                <strong>Version:</strong> {{ status_data.apptainer.version }}
+                                <strong>Runtime:</strong> {{ status_data.apptainer.version }}
+                            </div>
+                        {% endif %}
+                        {% if status_data.apptainer.scitex_version %}
+                            <div>
+                                <strong>SciTeX:</strong> v{{ status_data.apptainer.scitex_version }}
+                            </div>
+                        {% endif %}
+                        {% if status_data.apptainer.sif_version %}
+                            <div>
+                                <strong>Container:</strong> v{{ status_data.apptainer.sif_version }}
+                            </div>
+                        {% endif %}
+                        {% if status_data.apptainer.sif_hash %}
+                            <div>
+                                <strong>Hash:</strong> <code>{{ status_data.apptainer.sif_hash|truncatechars:16 }}</code>
+                            </div>
+                        {% endif %}
+                        {% if status_data.apptainer.sif_size %}
+                            <div>
+                                <strong>Size:</strong> {{ status_data.apptainer.sif_size }}
+                                {% if status_data.apptainer.sif_date %}(built {{ status_data.apptainer.sif_date }}){% endif %}
+                            </div>
+                        {% endif %}
+                        {% if status_data.apptainer.needs_rebuild %}
+                            <div class="warning-message">
+                                <strong>Warning:</strong> .def file changed since last build. Run <code>make apptainer-build</code> to rebuild.
                             </div>
                         {% endif %}
                         {% if status_data.apptainer.error %}

@@ -5,6 +5,37 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.3-alpha] - 2026-02-24
+
+### Fixed
+- **Bashrc corruption**: Replaced fragile incremental patching with corruption detection and full regeneration from canonical template
+- **Subtle install messages**: Changed AI CLI install messages from vivid cyan/green to subtle gray
+
+## [0.10.2-alpha] - 2026-02-24
+
+### Fixed
+- **Visitor project duplicate structure**: Changed template from `research_minimal` to `scitex_minimal` — writer dirs now only exist inside `scitex/writer/`, not duplicated at project root
+- **Removed redundant Writer clone**: Visitor pool no longer clones scitex-writer twice; `scitex_minimal` template handles writer workspace creation
+
+## [0.10.1-alpha] - 2026-02-23
+
+### Fixed
+- **Django startup crash**: Removed invalid `field_name` kwarg from `AlterField` in
+  `llm_app/migrations/0002_remove_default_rate_limits.py` that caused TypeError on startup
+
+## [0.10.0-alpha] - 2026-02-23
+
+### Added
+- **Inline media rendering**: MCP tool results (images, CSV, PDF) rendered inline in AI chat
+  messages. Backend emits `tool_result` SSE events with media metadata; frontend renders
+  `<img>`, CSV table previews, and file download links (`media-renderer.ts`, `media_detect.py`)
+- **Terminal media overlay**: xterm.js console mode intercepts OSC `\x1b]9998;media:` escapes
+  to display floating image/file overlays above the terminal canvas (`console-mode.ts`)
+- **Per-page AI skills registry**: Page-specific AI skill suggestions and LLM usage dashboard
+- **Chat/Console mode switcher**: AI panel supports both chat and embedded terminal modes
+- **Workspace UX improvements**: File tree URL fix, preview panel, header collapse, recent
+  files sort, scholar CSS, writer compile, blob view layout
+
 ## [0.9.6-alpha] - 2026-02-22
 
 ### Added

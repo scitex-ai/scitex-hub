@@ -24,11 +24,14 @@ export interface TreeItem {
   children?: TreeItem[];
   is_symlink?: boolean;
   symlink_target?: string;
+  mtime?: number;
   git_status?: {
     status: string; // M, A, D, ??
     staged: boolean;
   };
 }
+
+export type SortMode = "name" | "mtime";
 
 export interface TreeConfig {
   /** Current workspace mode */

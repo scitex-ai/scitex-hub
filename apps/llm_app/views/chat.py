@@ -59,9 +59,57 @@ def api_tts(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+@login_required
+@require_http_methods(["POST"])
+def api_tts_relay(request):
+    """Relay TTS from container agent to user's browser via channel layer.
+
+    Called by scitex MCP ``audio_speak`` inside Apptainer when it detects
+    it's running in a container context (SCITEX_CONTAINER=1).  Pushes a
+    ``tts_speak`` message to the user's terminal WebSocket group so the
+    browser can call ``/llm/api/tts/`` and play audio through speakers.
+    """
+    import logging
+
+    from channels.layers import get_channel_layer
+
+    logger = logging.getLogger(__name__)
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    text = data.get("text", "").strip()[:4096]
+    if not text:
+        return JsonResponse({"error": "text required"}, status=400)
+
+    username = request.user.username
+    group_name = f"speech_{username}"
+
+    try:
+        import asyncio
+
+        channel_layer = get_channel_layer()
+        loop = asyncio.new_event_loop()
+        loop.run_until_complete(
+            channel_layer.group_send(
+                group_name,
+                {"type": "tts_speak", "text": text},
+            )
+        )
+        loop.close()
+        return JsonResponse({"success": True, "relayed_to": group_name})
+    except Exception as e:
+        logger.error("TTS relay failed: %s", e)
+        return JsonResponse({"error": str(e)}, status=500)
+
+
 def _build_system_prompt(context: dict, user, sync_to_async=None) -> str:
-    """Build base system prompt (sync portion — call before async context injection)."""
-    prompt = (
+    """Build system prompt with skill-aware context injection."""
+    from apps.llm_app.skills import build_system_prompt, get_skill_for_page
+
+    base_prompt = (
         "You are a scientific research assistant integrated into the SciTeX platform. "
         "You have access to tools for statistics, plotting, literature search, "
         "diagram creation, and manuscript writing. Use them when appropriate.\n"
@@ -69,13 +117,17 @@ def _build_system_prompt(context: dict, user, sync_to_async=None) -> str:
         "(project_list_files, project_read_file, project_write_file, project_search_files). "
         "Always pass the exact root_path shown in this prompt."
     )
-    if context.get("page"):
-        prompt += f"\nUser is on page: {context['page']}"
     if context.get("project"):
-        prompt += f"\nCurrent project: {context['project']}"
+        base_prompt += f"\nCurrent project: {context['project']}"
     if context.get("current_file"):
-        prompt += f"\nUser is viewing: {context['current_file']}"
-    return prompt
+        base_prompt += f"\nUser is viewing: {context['current_file']}"
+
+    # Skill-aware enhancement
+    page = context.get("page", "")
+    skill = get_skill_for_page(page) if page else None
+    page_hints = context.get("page_hints", [])
+
+    return build_system_prompt(skill, base_prompt, page_hints or None)
 
 
 async def _inject_project_root(prompt: str, user, project_slug: str) -> str:
@@ -101,6 +153,18 @@ async def _inject_project_root(prompt: str, user, project_slug: str) -> str:
     except Exception:
         pass  # project context is optional
     return prompt
+
+
+def _derive_app_name(context: dict) -> str:
+    """Derive app_name from page context for accurate usage tracking."""
+    from apps.llm_app.skills import get_skill_for_page
+
+    page = context.get("page", "")
+    if page:
+        skill = get_skill_for_page(page)
+        if skill:
+            return f"{skill.app_name}_app"
+    return "llm_app"
 
 
 @transaction.non_atomic_requests
@@ -137,6 +201,9 @@ async def api_chat_stream(request):
         {"role": "user", "content": prompt},
     ]
 
+    # Derive app_name from page context for accurate usage tracking
+    app_name = _derive_app_name(context)
+
     service = await sync_to_async(_ULS)(user=request.user)
     if not service.connection:
         return JsonResponse(
@@ -147,12 +214,41 @@ async def api_chat_stream(request):
             status=400,
         )
 
+    # Resolve project root for media detection in tool results
+    project_slug = context.get("project_slug", "")
+    project_root_str = None
+    username = request.user.username
+    if project_slug:
+        try:
+            from apps.project_app.models import Project
+            from apps.project_app.services.filesystem.paths import (
+                get_project_root_path,
+            )
+
+            project = await sync_to_async(
+                lambda: Project.objects.filter(
+                    owner=request.user, slug=project_slug
+                ).first()
+            )()
+            if project:
+                root = await sync_to_async(get_project_root_path)(request.user, project)
+                if root:
+                    project_root_str = str(root)
+        except Exception:
+            pass
+
     async def sse_generator():
+        # Emit project context so frontend can build blob URLs for media
+        if project_slug and username:
+            yield (
+                f"data: {_json.dumps({'type': 'context', 'username': username, 'slug': project_slug})}\n\n"
+            )
         try:
             async for event in service.complete_with_tools_streaming(
                 messages=messages,
-                app_name="console_app",
+                app_name=app_name,
                 feature="ai_chat_stream",
+                project_root=project_root_str,
             ):
                 yield f"data: {_json.dumps(event)}\n\n"
         except Exception as e:
@@ -196,6 +292,8 @@ async def api_chat(request):
         {"role": "user", "content": prompt},
     ]
 
+    app_name = _derive_app_name(context)
+
     service = await sync_to_async(UserLLMService)(user=request.user)
     if not service.connection:
         return JsonResponse(
@@ -209,7 +307,7 @@ async def api_chat(request):
     try:
         result = await service.complete_with_tools(
             messages=messages,
-            app_name="console_app",
+            app_name=app_name,
             feature="ai_chat",
         )
         return JsonResponse(

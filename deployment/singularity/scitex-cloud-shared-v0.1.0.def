@@ -1,5 +1,5 @@
 # Timestamp: "2025-11-25 20:00:00 (ywatanabe)"
-# File: ./deployment/singularity/scitex-user-workspace.def
+# File: ./deployment/singularity/scitex-cloud-shared-v0.1.0.def
 # ============================================
 # SciTeX User Workspace Container Definition
 # ============================================
@@ -15,7 +15,7 @@ From: python:3.11-slim
     Description User computational workspace for SciTeX Cloud with full SciTeX platform
     Documentation https://github.com/ywatanabe/scitex-cloud
     BuildDate 2025-11-25
-    SciTeX Latest from PyPI with all extras (dl,ml,jupyter,neuro,web,scholar,writer)
+    SciTeX Latest from PyPI with all extras [all]
 
 %post
     echo -e "============================================"
@@ -56,44 +56,49 @@ From: python:3.11-slim
     rm -rf /var/lib/apt/lists/*
 
     echo -e "Installing Python packages..."
-    # Upgrade pip
-    pip install --no-cache-dir --upgrade pip setuptools wheel
+    # Install uv for fast Python package management
+    pip install --no-cache-dir --upgrade pip uv
 
-    # Install Python scientific stack (pinned versions for reproducibility)
-    pip install --no-cache-dir \
-        numpy==1.26.4 \
-        scipy==1.12.0 \
-        pandas==2.2.0 \
-        numba==0.59.0 \
-        matplotlib==3.8.2 \
-        seaborn==0.13.2 \
-        plotly==5.18.0 \
-        scikit-learn==1.4.0 \
-        jupyter==1.0.0 \
-        jupyterlab==4.0.11 \
-        ipython==8.20.0 \
-        ipdb==0.13.13 \
-        requests==2.31.0 \
-        beautifulsoup4==4.12.3 \
-        tqdm==4.66.1 \
-        h5py==3.10.0 \
-        PyYAML==6.0.1 \
-        natsort==8.4.0 \
-        hydra-core==1.3.2 \
-        omegaconf==2.3.0 \
-        black==24.1.1 \
-        flake8==7.0.0 \
-        pytest==8.0.0 \
-        icecream==2.1.3
+    # Install SciTeX ecosystem with all extras
+    # Using uv for faster resolution and installation
+    # --upgrade ensures latest from PyPI (build.sh checks versions for cache busting)
+    echo -e "Installing SciTeX platform (all extras)..."
+    UV_HTTP_TIMEOUT=3600 uv pip install --system --upgrade \
+        'scitex[all]' \
+        'figrecipe[all]' \
+        'scitex-writer[all]' \
+        'scitex-dataset[all]' \
+        'crossref-local[all]' \
+        'openalex-local[all]' \
+        'socialia[all]' \
+        'scitex-linter[all]'
 
-    # Install SciTeX with full extras from PyPI (latest version)
-    echo -e "Installing SciTeX platform (full version, ~2-5 GB)..."
-    pip install --no-cache-dir 'scitex[dl,ml,jupyter,neuro,web,scholar,writer]'
+    # Install additional dev tools not covered by extras
+    uv pip install --system \
+        ipdb \
+        black \
+        flake8 \
+        icecream
 
     # Clear matplotlib font cache so it discovers new fonts
     echo -e "Refreshing matplotlib font cache..."
     python -c "import matplotlib.font_manager; matplotlib.font_manager._rebuild()" 2>/dev/null || true
     rm -rf /root/.cache/matplotlib 2>/dev/null || true
+
+    # Install Node.js 20 (needed for AI coding CLI tools)
+    echo -e "Installing Node.js..."
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+    apt-get install -y --no-install-recommends nodejs
+    rm -rf /var/lib/apt/lists/*
+    npm config set prefix /usr/local
+
+    # Install AI coding CLI tools globally
+    echo -e "Installing AI coding CLI tools (Claude Code, Codex, Gemini CLI, agents)..."
+    npm install -g \
+        @anthropic-ai/claude-code \
+        @openai/codex \
+        @google/gemini-cli \
+        @agents-dev/cli
 
     # Create workspace directory
     echo -e "Setting up workspace..."
@@ -103,6 +108,10 @@ From: python:3.11-slim
     # Create logs directory
     mkdir -p /logs
     chmod 755 /logs
+
+    # Create dev mount directory (for editable repo bind-mounts in dev mode)
+    mkdir -p /opt/dev
+    chmod 755 /opt/dev
 
     echo -e "Build complete!"
 
@@ -116,8 +125,8 @@ From: python:3.11-slim
     export PYTHONDONTWRITEBYTECODE=1
     export PYTHONPATH=/workspace:$PYTHONPATH
 
-    # Path configuration
-    export PATH=/usr/local/bin:$PATH
+    # Path configuration (includes npm global bin for AI CLI tools)
+    export PATH=/usr/local/bin:$HOME/.npm-global/bin:$PATH
 
     # Workspace
     export WORKSPACE=/workspace
@@ -149,6 +158,13 @@ else:
     print('WARNING: Arial font not found, available fonts:', sorted(set(fonts))[:10])
 "
 
+    echo -e "Testing AI CLI tools..."
+    node --version
+    claude --version 2>/dev/null && echo "Claude Code OK" || echo "WARN: claude not installed"
+    codex --version 2>/dev/null && echo "Codex OK" || echo "WARN: codex not installed"
+    gemini --version 2>/dev/null && echo "Gemini CLI OK" || echo "WARN: gemini not installed"
+    agents --version 2>/dev/null && echo "agents CLI OK" || echo "WARN: agents not installed"
+
     echo -e "Testing workspace..."
     ls -la /workspace
 
@@ -164,13 +180,13 @@ else:
 
     USAGE:
         # Execute a Python script
-        singularity exec scitex-user-workspace.sif python script.py
+        singularity exec scitex-cloud-shared-v0.1.0.sif python script.py
 
         # Execute with workspace binding
-        singularity exec --bind /data:/workspace scitex-user-workspace.sif python analysis.py
+        singularity exec --bind /data:/workspace scitex-cloud-shared-v0.1.0.sif python analysis.py
 
         # Interactive shell
-        singularity shell scitex-user-workspace.sif
+        singularity shell scitex-cloud-shared-v0.1.0.sif
 
     FEATURES:
         - Python 3.11 with full scientific stack
@@ -192,10 +208,12 @@ else:
         - Interactive: jupyter, jupyterlab, ipython
         - Utilities: requests, beautifulsoup4, tqdm
         - Development: black, flake8, pytest
-        - SciTeX full platform (dl,ml,jupyter,neuro,web,scholar,writer)
+        - SciTeX full platform [all]
+        - AI CLI tools: claude (Claude Code), codex (OpenAI Codex), gemini (Google Gemini CLI)
+        - agents CLI: unified MCP config syncing across all AI tools
 
     BUILD:
-        sudo singularity build scitex-user-workspace.sif scitex-user-workspace.def
+        sudo singularity build scitex-cloud-shared-v0.1.0.sif scitex-cloud-shared-v0.1.0.def
 
     For more information, visit:
     https://scitex.ai/docs/user-workspace

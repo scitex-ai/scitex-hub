@@ -1,0 +1,68 @@
+/* ============================================================
+   AI Panel: override workspace-sidebar for fixed left-side positioning.
+   workspace-sidebar.css provides: collapsed state, toggle btn visibility,
+   sidebar-title vertical text, foldable green highlight (single source of truth).
+   ============================================================ */
+
+.scitex-ai-panel.workspace-sidebar {
+  position: fixed;
+  top: 64px; /* global-header height */
+  left: 0;
+  height: calc(100vh - 64px);
+  z-index: 900; /* below header (1000) */
+  box-shadow: 4px 0 16px rgba(0, 0, 0, 0.25);
+  overflow: visible; /* allow right-edge drag handle hit area */
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  background: var(--bg-secondary, #161b22) !important;
+  border-right: 1px solid var(--border-default, #30363d) !important;
+  border-bottom: none !important;
+}
+
+/* Keep inner content contained so overflow:visible on panel doesn't leak */
+.scitex-ai-panel .sidebar-header,
+.scitex-ai-panel .sidebar-content {
+  overflow: hidden;
+  max-width: 100%;
+}
+
+/* Collapsed: 40px strip (workspace-sidebar sets min-width: 40px already) */
+.scitex-ai-panel.workspace-sidebar.collapsed {
+  width: 40px;
+  overflow: hidden; /* prevent content from bleeding outside the 40px strip */
+}
+
+/* Expanded: 380px */
+.scitex-ai-panel.workspace-sidebar:not(.collapsed) {
+  width: 380px;
+}
+
+/* sidebar-content: flex column for messages + input (only when expanded) */
+.scitex-ai-panel:not(.collapsed) .sidebar-content {
+  background: var(--bg-secondary, #161b22) !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column;
+  overflow: hidden;
+  flex: 1;
+  border-bottom: none !important;
+}
+
+/* Expanded header: space-between layout for title + actions */
+.scitex-ai-panel:not(.collapsed) .scitex-ai-panel-header {
+  justify-content: space-between;
+}
+
+/* Green highlight on expanded header empty space (foldable state) */
+.scitex-ai-panel:not(.collapsed) .scitex-ai-panel-header.foldable {
+  background: rgba(5, 150, 105, 0.08) !important;
+}
+
+/* Push #main-content when AI panel is present */
+body.scitex-ai-present #main-content {
+  transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-left: 40px;
+}
+
+body.scitex-ai-open #main-content {
+  margin-left: 388px; /* 380px panel + 8px breathing room */
+}

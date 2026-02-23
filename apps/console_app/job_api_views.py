@@ -70,44 +70,51 @@ def api_submit_job(request):
 
         # Get container path from settings
         # Using /opt/scitex to avoid NAS ACL issues with home directories
-        container_path = Path(getattr(
-            settings,
-            'APPTAINER_CONTAINER_PATH',
-            '/opt/scitex/singularity/scitex-user-workspace.sif'
-        ))
+        container_path = Path(
+            getattr(
+                settings,
+                "APPTAINER_CONTAINER_PATH",
+                "/opt/scitex/singularity/scitex-cloud-shared-v0.1.0.sif",
+            )
+        )
 
         # Submit job
         result = get_slurm_manager().submit_job(
             user_id=str(request.user.id),
-            script_path=Path(data.get('script_path')),
+            script_path=Path(data.get("script_path")),
             container_path=container_path,
             workspace=user_workspace,
-            job_name=data.get('job_name', 'scitex_job'),
-            partition=data.get('partition', 'normal'),
-            cpus=data.get('cpus', 1),
-            memory_gb=data.get('memory_gb', 4),
-            time_limit=data.get('time_limit', '01:00:00'),
-            env_vars=data.get('env_vars', {})
+            job_name=data.get("job_name", "scitex_job"),
+            partition=data.get("partition", "normal"),
+            cpus=data.get("cpus", 1),
+            memory_gb=data.get("memory_gb", 4),
+            time_limit=data.get("time_limit", "01:00:00"),
+            env_vars=data.get("env_vars", {}),
         )
 
-        if result['success']:
-            logger.info(f"Job {result['job_id']} submitted for user {request.user.username}")
+        if result["success"]:
+            logger.info(
+                f"Job {result['job_id']} submitted for user {request.user.username}"
+            )
         else:
-            logger.error(f"Job submission failed for user {request.user.username}: {result['message']}")
+            logger.error(
+                f"Job submission failed for user {request.user.username}: {result['message']}"
+            )
 
         return JsonResponse(result)
 
     except json.JSONDecodeError:
-        return JsonResponse({
-            'success': False,
-            'message': 'Invalid JSON in request body'
-        }, status=400)
+        return JsonResponse(
+            {"success": False, "message": "Invalid JSON in request body"}, status=400
+        )
     except Exception as e:
-        logger.error(f"Job submission error for user {request.user.username}: {str(e)}", exc_info=True)
-        return JsonResponse({
-            'success': False,
-            'message': f'Server error: {str(e)}'
-        }, status=500)
+        logger.error(
+            f"Job submission error for user {request.user.username}: {str(e)}",
+            exc_info=True,
+        )
+        return JsonResponse(
+            {"success": False, "message": f"Server error: {str(e)}"}, status=500
+        )
 
 
 @login_required
@@ -133,10 +140,9 @@ def api_job_status(request, job_id):
         return JsonResponse(status)
     except Exception as e:
         logger.error(f"Error getting job {job_id} status: {str(e)}", exc_info=True)
-        return JsonResponse({
-            'success': False,
-            'message': f'Error: {str(e)}'
-        }, status=500)
+        return JsonResponse(
+            {"success": False, "message": f"Error: {str(e)}"}, status=500
+        )
 
 
 @login_required
@@ -156,15 +162,14 @@ def api_cancel_job(request, job_id):
     """
     try:
         result = get_slurm_manager().cancel_job(int(job_id))
-        if result['success']:
+        if result["success"]:
             logger.info(f"Job {job_id} cancelled by user {request.user.username}")
         return JsonResponse(result)
     except Exception as e:
         logger.error(f"Error cancelling job {job_id}: {str(e)}", exc_info=True)
-        return JsonResponse({
-            'success': False,
-            'message': f'Error: {str(e)}'
-        }, status=500)
+        return JsonResponse(
+            {"success": False, "message": f"Error: {str(e)}"}, status=500
+        )
 
 
 @login_required
@@ -183,22 +188,17 @@ def api_job_output(request, job_id):
         }
     """
     try:
-        tail_lines = int(request.GET.get('tail', 100))
+        tail_lines = int(request.GET.get("tail", 100))
         user_workspace = get_user_workspace(request.user)
 
         output = get_slurm_manager().get_job_output(
-            job_id=int(job_id),
-            workspace=user_workspace,
-            tail_lines=tail_lines
+            job_id=int(job_id), workspace=user_workspace, tail_lines=tail_lines
         )
 
         return JsonResponse(output)
     except Exception as e:
         logger.error(f"Error getting job {job_id} output: {str(e)}", exc_info=True)
-        return JsonResponse({
-            'found': False,
-            'message': f'Error: {str(e)}'
-        }, status=500)
+        return JsonResponse({"found": False, "message": f"Error: {str(e)}"}, status=500)
 
 
 @login_required
@@ -222,10 +222,9 @@ def api_queue_status(request):
         return JsonResponse(status)
     except Exception as e:
         logger.error(f"Error getting queue status: {str(e)}", exc_info=True)
-        return JsonResponse({
-            'success': False,
-            'message': f'Error: {str(e)}'
-        }, status=500)
+        return JsonResponse(
+            {"success": False, "message": f"Error: {str(e)}"}, status=500
+        )
 
 
 @login_required
@@ -258,37 +257,42 @@ def api_user_jobs(request):
 
         # Check if SLURM is available
         if not slurm.is_available():
-            return JsonResponse({
-                'success': True,
-                'jobs': [],
-                'running': 0,
-                'pending': 0,
-                'total': 0,
-                'slurm_available': False,
-                'message': 'SLURM is not available on this system'
-            })
+            return JsonResponse(
+                {
+                    "success": True,
+                    "jobs": [],
+                    "running": 0,
+                    "pending": 0,
+                    "total": 0,
+                    "slurm_available": False,
+                    "message": "SLURM is not available on this system",
+                }
+            )
 
         # Get filter parameters
-        state_filter = request.GET.get('state', 'all')
-        user_filter = request.GET.get('user')  # None means all users
+        state_filter = request.GET.get("state", "all")
+        user_filter = request.GET.get("user")  # None means all users
 
         # Get jobs from SLURM
         result = slurm.list_jobs(user=user_filter, state=state_filter)
-        result['slurm_available'] = True
+        result["slurm_available"] = True
 
         return JsonResponse(result)
 
     except Exception as e:
         logger.error(f"Error getting user jobs: {str(e)}", exc_info=True)
-        return JsonResponse({
-            'success': False,
-            'jobs': [],
-            'running': 0,
-            'pending': 0,
-            'total': 0,
-            'slurm_available': False,
-            'message': f'Error: {str(e)}'
-        }, status=500)
+        return JsonResponse(
+            {
+                "success": False,
+                "jobs": [],
+                "running": 0,
+                "pending": 0,
+                "total": 0,
+                "slurm_available": False,
+                "message": f"Error: {str(e)}",
+            },
+            status=500,
+        )
 
 
 def get_user_workspace(user):
@@ -302,11 +306,9 @@ def get_user_workspace(user):
         Path: User workspace directory
     """
     # Check if user has a workspace in settings
-    base_workspace = Path(getattr(
-        settings,
-        'USER_WORKSPACE_BASE',
-        '/tmp/scitex_workspaces'
-    ))
+    base_workspace = Path(
+        getattr(settings, "USER_WORKSPACE_BASE", "/tmp/scitex_workspaces")
+    )
 
     user_workspace = base_workspace / f"user_{user.id}"
     user_workspace.mkdir(parents=True, exist_ok=True)

@@ -23,13 +23,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
 
 # Source SIF location
-SOURCE_SIF="${PROJECT_ROOT}/deployment/singularity/scitex-user-workspace.sif"
+SOURCE_SIF="${PROJECT_ROOT}/deployment/singularity/scitex-cloud-shared-v0.1.0.sif"
 
 # Target locations
 TARGET_BASE="/opt/scitex"
 TARGET_SINGULARITY="${TARGET_BASE}/singularity"
 TARGET_DATA="${TARGET_BASE}/data/users"
-TARGET_SIF="${TARGET_SINGULARITY}/scitex-user-workspace.sif"
+TARGET_SIF="${TARGET_SINGULARITY}/scitex-cloud-shared-v0.1.0.sif"
 
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}SciTeX SLURM Path Setup${NC}"
@@ -78,7 +78,7 @@ chmod -R a+rX "${TARGET_BASE}"
 chmod a+rx "${TARGET_SINGULARITY}"
 chmod a+r "${TARGET_SIF}"
 # Data directory needs write access for users
-chmod 1777 "${TARGET_DATA}"  # Sticky bit like /tmp
+chmod 1777 "${TARGET_DATA}" # Sticky bit like /tmp
 echo -e "  ${GREEN}✓${NC} Permissions set (world-readable, data dir writable)"
 
 # Verify

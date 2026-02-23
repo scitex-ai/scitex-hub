@@ -1,111 +1,68 @@
-{% extends 'global_base.html' %}
+{% extends 'project_app/projects/create_base.html' %}
 
-{% load static %}
-
-{% block title %}Connect Remote Filesystem - SciTeX Cloud{% endblock %}
-{% block extra_css %}
-    <link rel="stylesheet" href="{% static 'project_app/css/project_app.css' %}" />
-    <link rel="stylesheet" href="{% static 'shared/css/common.css' %}" />
-    <link rel="stylesheet" href="{% static 'project_app/css/create_landing.css' %}" />
-{% endblock %}
-{% block content %}
-    <div class="create-form-container">
-        <div class="create-form-header">
-            <a href="{% url 'project_create' %}" class="back-link" title="Back to options">
-                <svg viewBox="0 0 16 16" width="20" height="20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M7.78 12.53a.75.75 0 01-1.06 0L2.47 8.28a.75.75 0 010-1.06l4.25-4.25a.75.75 0 011.06 1.06L4.81 7h7.44a.75.75 0 010 1.5H4.81l2.97 2.97a.75.75 0 010 1.06z">
-                    </path>
+{% block page_title %}Connect Remote Filesystem{% endblock %}
+{% block form_title %}Connect remote filesystem{% endblock %}
+{% block submit_label %}Connect filesystem{% endblock %}
+{% block hidden_fields %}<input type="hidden" name="project_type" value="remote" />{% endblock %}
+{% block form_wrapper %}
+    {% if remote_credentials %}
+        {{ block.super }}
+    {% else %}
+        <div class="create-form-card" style="text-align: center; padding: 3rem 2rem;">
+            <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;">
+                <svg viewBox="0 0 24 24"
+                     width="64"
+                     height="64"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="1.5">
+                    <rect x="3" y="11" width="18" height="11" rx="2" />
+                    <path d="M7 11V7a5 5 0 0110 0v4" />
                 </svg>
-            </a>
-            <h1 class="form-title">Connect remote filesystem</h1>
-        </div>
-        {% if remote_credentials %}
-            <form method="post" class="create-form-card">
-                {% csrf_token %}
-                <input type="hidden" name="project_type" value="remote" />
-                <div class="form-group">
-                    <label class="form-label" for="name">
-                        Project name <span class="required">*</span>
-                    </label>
-                    <input type="text"
-                           name="name"
-                           id="name"
-                           class="form-control"
-                           placeholder="my-remote-project"
-                           value="{{ name|default:'' }}"
-                           required
-                           autofocus />
-                    <p class="help-text">Use lowercase letters, numbers, and hyphens. No spaces.</p>
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="description">
-                        Description <span style="color: var(--color-fg-muted)">(optional)</span>
-                    </label>
-                    <textarea name="description"
-                              id="description"
-                              class="form-control"
-                              placeholder="A brief description of your project...">{{ description|default:'' }}</textarea>
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="remote_credential_id">
-                        Remote credential <span class="required">*</span>
-                    </label>
-                    <select name="remote_credential_id"
-                            id="remote_credential_id"
-                            class="form-control"
-                            required>
-                        <option value="">Select a remote system...</option>
-                        {% for cred in remote_credentials %}
-                            <option value="{{ cred.id }}">{{ cred.name }} ({{ cred.ssh_username }}@{{ cred.ssh_host }})</option>
-                        {% endfor %}
-                    </select>
-                    <p class="help-text">Select which remote system to connect to.</p>
-                </div>
-                <div class="form-group">
-                    <label class="form-label" for="remote_path">
-                        Remote path <span class="required">*</span>
-                    </label>
-                    <input type="text"
-                           name="remote_path"
-                           id="remote_path"
-                           class="form-control"
-                           style="font-family: 'SF Mono', Monaco, monospace"
-                           placeholder="/home/username/projects/my-project"
-                           value="{{ remote_path|default:'' }}"
-                           required />
-                    <p class="help-text">Absolute path on the remote system where your project files are located.</p>
-                </div>
-                <div class="warning-box">
-                    <strong>Note:</strong> Files will be accessed on-demand via SSHFS. No local copy will be stored.
-                    Git operations are not available for remote projects.
-                </div>
-                <div class="form-actions">
-                    <a href="{% url 'project_create' %}" class="btn btn-secondary">Cancel</a>
-                    <button type="submit" class="btn btn-primary">Connect filesystem</button>
-                </div>
-            </form>
-        {% else %}
-            <div class="create-form-card" style="text-align: center; padding: 3rem 2rem;">
-                <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;">
-                    <svg viewBox="0 0 24 24"
-                         width="64"
-                         height="64"
-                         fill="none"
-                         stroke="currentColor"
-                         stroke-width="1.5">
-                        <rect x="3" y="11" width="18" height="11" rx="2" />
-                        <path d="M7 11V7a5 5 0 0110 0v4" />
-                    </svg>
-                </div>
-                <h2 style="margin: 0 0 0.5rem 0;
-                           font-size: 1.25rem;
-                           color: var(--color-fg-default)">No remote credentials yet</h2>
-                <p style="margin: 0 0 1.5rem 0;
-                          color: var(--color-fg-muted);
-                          font-size: 0.875rem">You need to add a remote credential before creating remote projects.</p>
-                <a href="{% url 'accounts_app:ssh_keys' %}#remote-credentials"
-                   class="btn btn-primary">Add Remote Credential</a>
             </div>
-        {% endif %}
+            <h2 style="margin: 0 0 0.5rem 0;
+                       font-size: 1.25rem;
+                       color: var(--color-fg-default)">No remote credentials yet</h2>
+            <p style="margin: 0 0 1.5rem 0; color: var(--color-fg-muted); font-size: 0.875rem">
+                You need to add a remote credential before creating remote projects.
+            </p>
+            <a href="{% url 'accounts_app:ssh_keys' %}#remote-credentials"
+               class="btn btn-primary">Add Remote Credential</a>
+        </div>
+    {% endif %}
+{% endblock %}
+{% block fields_after_description %}
+    <div class="form-group">
+        <label class="form-label" for="remote_credential_id">
+            Remote credential <span class="required">*</span>
+        </label>
+        <select name="remote_credential_id"
+                id="remote_credential_id"
+                class="form-control"
+                required>
+            <option value="">Select a remote system...</option>
+            {% for cred in remote_credentials %}
+                <option value="{{ cred.id }}">{{ cred.name }} ({{ cred.ssh_username }}@{{ cred.ssh_host }})</option>
+            {% endfor %}
+        </select>
+        <p class="help-text">Select which remote system to connect to.</p>
+    </div>
+    <div class="form-group">
+        <label class="form-label" for="remote_path">
+            Remote path <span class="required">*</span>
+        </label>
+        <input type="text"
+               name="remote_path"
+               id="remote_path"
+               class="form-control"
+               style="font-family: 'SF Mono', Monaco, monospace"
+               placeholder="/home/username/projects/my-project"
+               value="{{ remote_path|default:'' }}"
+               required />
+        <p class="help-text">Absolute path on the remote system where your project files are located.</p>
+    </div>
+    <div class="warning-box">
+        <strong>Note:</strong> Files will be accessed on-demand via SSHFS. No local copy will be stored.
+        Git operations are not available for remote projects.
     </div>
 {% endblock %}

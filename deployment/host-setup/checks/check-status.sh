@@ -8,6 +8,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
 
+# shellcheck disable=SC1091
 source "${SCRIPT_DIR}/../scripts/lib/colors.sh" 2>/dev/null || {
     RED='\033[0;31m'
     GREEN='\033[0;32m'
@@ -50,16 +51,11 @@ echo -e "${BLUE}🐳 Running Containers:${NC}"
 CONTAINERS=$(docker ps --format "table {{.Names}}\t{{.Status}}" 2>/dev/null |
     grep -E "scitex-cloud-(dev|staging|prod)-" || echo "")
 if [ -n "$CONTAINERS" ]; then
-    echo "$CONTAINERS" | while read line; do echo "  $line"; done
+    echo "$CONTAINERS" | while read -r line; do echo "  $line"; done
 else
     echo -e "  ${YELLOW}No scitex-cloud containers running${NC}"
 fi
 echo ""
-
-# ============================================
-# Service Health (delegate to script)
-# ============================================
-"${SCRIPT_DIR}/check-services.sh" || true
 
 # ============================================
 # Migration Status
@@ -80,7 +76,7 @@ if command -v sinfo >/dev/null 2>&1; then
     SLURM_STATUS=$(sinfo --noheader 2>&1 || echo "error")
     if [ -n "$SLURM_STATUS" ] && ! echo "$SLURM_STATUS" | grep -q "error"; then
         echo -e "  ${GREEN}✅ SLURM Cluster: OPERATIONAL${NC}"
-        sinfo --noheader 2>/dev/null | while read line; do echo "    $line"; done
+        sinfo --noheader 2>/dev/null | while read -r line; do echo "    $line"; done
     else
         echo -e "  ${RED}❌ SLURM Cluster: NOT RESPONDING${NC}"
         echo -e "  ${YELLOW}💡 To start: make slurm-start${NC}"
@@ -119,45 +115,74 @@ echo ""
 "${PROJECT_ROOT}/scripts/maintenance/check_file_sizes.sh" || true
 
 # ============================================
-# Production SLURM Path Check
+# Apptainer SIF Status (all environments)
 # ============================================
+echo ""
+echo -e "${BLUE}📦 Apptainer Container:${NC}"
+
+# Determine SIF path based on environment
+DEF_FILE="${PROJECT_ROOT}/deployment/singularity/scitex-cloud-shared-v0.1.0.def"
+HASH_FILE="${PROJECT_ROOT}/deployment/singularity/.def-hash"
+
 if echo "$RUNNING" | grep -q "prod"; then
-    echo ""
-    echo -e "${BLUE}🔐 SLURM Paths (/opt/scitex):${NC}"
-
-    # Check if /opt/scitex is set up
-    SIF_PATH="/opt/scitex/singularity/scitex-user-workspace.sif"
+    SIF_PATH="/opt/scitex/singularity/scitex-cloud-shared-v0.1.0.sif"
     DATA_PATH="/opt/scitex/data/users"
-
-    SETUP_OK=true
-
-    # Check SIF file exists and is readable
-    if [ -f "$SIF_PATH" ]; then
-        # Check if scitex user can read it
-        if sudo -u scitex test -r "$SIF_PATH" 2>/dev/null; then
-            echo -e "   ${GREEN}✅ Container: ${SIF_PATH}${NC}"
-        else
-            echo -e "   ${RED}❌ Container exists but not readable by scitex${NC}"
-            SETUP_OK=false
-        fi
-    else
-        echo -e "   ${RED}❌ Container not found: ${SIF_PATH}${NC}"
-        SETUP_OK=false
-    fi
-
-    # Check data directory exists and is writable
-    if [ -d "$DATA_PATH" ]; then
-        echo -e "   ${GREEN}✅ Data dir: ${DATA_PATH}${NC}"
-    else
-        echo -e "   ${RED}❌ Data dir not found: ${DATA_PATH}${NC}"
-        SETUP_OK=false
-    fi
-
-    # Show setup guidance if needed
-    if [ "$SETUP_OK" = false ]; then
-        echo ""
-        echo -e "   ${YELLOW}⚠️  SLURM paths not configured (terminal will fail)${NC}"
-        echo -e "   ${YELLOW}Setup:${NC} ${GREEN}sudo ./deployment/host-setup/scripts/setup-slurm-paths.sh${NC}"
-        echo -e "   Then: ${GREEN}make env=prod restart${NC}"
-    fi
+else
+    # Dev: read from env file or use default
+    SIF_PATH="${PROJECT_ROOT}/deployment/singularity/scitex-cloud-shared-v0.1.0.sif"
+    DATA_PATH="${PROJECT_ROOT}/data/users"
 fi
+
+SIF_OK=true
+
+if [ -f "$SIF_PATH" ]; then
+    SIF_SIZE=$(du -h "$SIF_PATH" | cut -f1)
+    SIF_DATE=$(date -r "$SIF_PATH" "+%Y-%m-%d %H:%M")
+    echo -e "  ${GREEN}✅ SIF: ${SIF_PATH} (${SIF_SIZE}, built ${SIF_DATE})${NC}"
+
+    # Check if .def has changed since last build
+    if [ -f "$DEF_FILE" ] && [ -f "$HASH_FILE" ]; then
+        CURRENT_HASH=$(sha256sum "$DEF_FILE" | awk '{print $1}')
+        STORED_HASH=$(cat "$HASH_FILE" 2>/dev/null || echo "")
+        if [ "$CURRENT_HASH" != "$STORED_HASH" ]; then
+            echo -e "  ${YELLOW}⚠️  .def file changed since last build — rebuild recommended${NC}"
+            echo -e "  ${YELLOW}   Run: make apptainer-build${NC}"
+            SIF_OK=false
+        fi
+    elif [ -f "$DEF_FILE" ] && [ ! -f "$HASH_FILE" ]; then
+        echo -e "  ${YELLOW}⚠️  No build hash found — cannot verify SIF matches .def${NC}"
+        echo -e "  ${YELLOW}   Run: make apptainer-build  (skips if unchanged)${NC}"
+    fi
+
+    # Prod: check scitex user can read it
+    if echo "$RUNNING" | grep -q "prod"; then
+        if ! sudo -u scitex test -r "$SIF_PATH" 2>/dev/null; then
+            echo -e "  ${RED}❌ SIF not readable by scitex user${NC}"
+            SIF_OK=false
+        fi
+    fi
+else
+    echo -e "  ${RED}❌ SIF not found: ${SIF_PATH}${NC}"
+    echo -e "  ${YELLOW}   Build: make apptainer-build${NC}"
+    SIF_OK=false
+fi
+
+# Check data directory
+if [ -d "$DATA_PATH" ]; then
+    echo -e "  ${GREEN}✅ Data dir: ${DATA_PATH}${NC}"
+else
+    echo -e "  ${RED}❌ Data dir not found: ${DATA_PATH}${NC}"
+    SIF_OK=false
+fi
+
+if [ "$SIF_OK" = false ] && echo "$RUNNING" | grep -q "prod"; then
+    echo ""
+    echo -e "  ${YELLOW}⚠️  Terminal may not work — fix issues above${NC}"
+    echo -e "  ${YELLOW}   Setup: sudo ./deployment/host-setup/scripts/setup-slurm-paths.sh${NC}"
+fi
+
+# ============================================
+# Service Health (slow — HTTP checks, runs last)
+# ============================================
+echo ""
+"${SCRIPT_DIR}/check-services.sh" || true

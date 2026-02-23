@@ -4,7 +4,7 @@
  * Supports card/table view modes and keyboard navigation
  */
 
-import { LibraryPaper, UpdatePaperData, ViewMode } from "./types";
+import { LibraryPaper, UpdatePaperData } from "./types";
 import { LibraryAPI } from "./api";
 import { LibraryFilters } from "./filters";
 import { LibraryRenderers } from "./renderers";
@@ -20,13 +20,6 @@ class LibraryManager {
   private activeStatusFilter: string | null = null;
   private searchQuery: string = "";
   private loadingSpinner: SpinnerHandle | null = null;
-
-  // View mode
-  private viewMode: ViewMode = "card";
-
-  // Table sorting
-  private sortColumn: string = "title";
-  private sortAsc: boolean = true;
 
   async initialize(): Promise<void> {
     const loadingEl = document.getElementById("library-loading");
@@ -44,7 +37,6 @@ class LibraryManager {
     this.renderPaperList();
     this.setupEventListeners();
     this.setupImportExport();
-    this.setupViewToggle();
     this.setupKeyboardNav();
   }
 
@@ -75,80 +67,25 @@ class LibraryManager {
   }
 
   private renderPaperList(): void {
-    // Apply table sorting if in table mode
-    if (this.viewMode === "table") {
-      this.sortFilteredPapers();
-      LibraryRenderers.renderPaperTable(
-        this.filteredPapers,
-        this.selectedPaperId,
-        this.searchQuery,
-        (paperId) => this.selectPaper(paperId),
-        (column) => this.handleTableSort(column),
-        this.sortColumn,
-        this.sortAsc,
-      );
-    } else {
-      LibraryRenderers.renderPaperList(
-        this.filteredPapers,
-        this.selectedPaperId,
-        this.searchQuery,
-        (paperId) => this.selectPaper(paperId),
-      );
-    }
-  }
-
-  private handleTableSort(column: string): void {
-    if (this.sortColumn === column) {
-      this.sortAsc = !this.sortAsc;
-    } else {
-      this.sortColumn = column;
-      this.sortAsc = true;
-    }
-    this.renderPaperList();
-  }
-
-  private sortFilteredPapers(): void {
-    const col = this.sortColumn;
-    const asc = this.sortAsc;
-    this.filteredPapers.sort((a, b) => {
-      let cmp = 0;
-      switch (col) {
-        case "title":
-          cmp = (a.title || "").localeCompare(b.title || "");
-          break;
-        case "authors":
-          cmp = (a.authors || "").localeCompare(b.authors || "");
-          break;
-        case "year":
-          cmp = (a.year || 0) - (b.year || 0);
-          break;
-        case "journal":
-          cmp = (a.journal || "").localeCompare(b.journal || "");
-          break;
-        case "reading_status":
-          cmp = (a.reading_status || "").localeCompare(b.reading_status || "");
-          break;
-        case "importance_rating":
-          cmp = (a.importance_rating || 0) - (b.importance_rating || 0);
-          break;
-      }
-      return asc ? cmp : -cmp;
-    });
+    LibraryRenderers.renderPaperList(
+      this.filteredPapers,
+      this.selectedPaperId,
+      this.searchQuery,
+      (paperId) => this.selectPaper(paperId),
+    );
   }
 
   private selectPaper(paperId: string): void {
     this.selectedPaperId = paperId;
 
-    // Update selection in both card and table views
-    document
-      .querySelectorAll(".library-paper-card, .library-table-row")
-      .forEach((el) => {
-        if (el.getAttribute("data-paper-id") === paperId) {
-          el.classList.add("selected");
-        } else {
-          el.classList.remove("selected");
-        }
-      });
+    // Update selection in card view
+    document.querySelectorAll(".library-paper-card").forEach((el) => {
+      if (el.getAttribute("data-paper-id") === paperId) {
+        el.classList.add("selected");
+      } else {
+        el.classList.remove("selected");
+      }
+    });
 
     const paper = this.papers.find((p) => p.id === paperId);
     if (paper) {
@@ -237,7 +174,6 @@ class LibraryManager {
 
       LibraryRenderers.renderEmptyDetailsPanel();
       this.renderStats();
-      this.renderCollectionSidebar();
       this.applyFilters();
       this.renderPaperList();
     } catch (error) {
@@ -283,27 +219,6 @@ class LibraryManager {
       });
       importBtn.addEventListener("click", () => fileInput.click());
     }
-  }
-
-  private setupViewToggle(): void {
-    const tableBtn = document.getElementById("library-view-table-btn");
-    const cardBtn = document.getElementById("library-view-card-btn");
-
-    tableBtn?.addEventListener("click", () => {
-      this.viewMode = "table";
-      tableBtn.classList.add("active");
-      cardBtn?.classList.remove("active");
-      this.applyFilters();
-      this.renderPaperList();
-    });
-
-    cardBtn?.addEventListener("click", () => {
-      this.viewMode = "card";
-      cardBtn.classList.add("active");
-      tableBtn?.classList.remove("active");
-      this.applyFilters();
-      this.renderPaperList();
-    });
   }
 
   private setupKeyboardNav(): void {

@@ -15,7 +15,9 @@ from django.conf import settings
 # Base Apptainer image (shared by all users)
 # For direct Apptainer execution inside Docker container
 BASE_CONTAINER_PATH = getattr(
-    settings, "SINGULARITY_IMAGE_PATH", "/app/singularity/scitex-user-workspace.sif"
+    settings,
+    "SINGULARITY_IMAGE_PATH",
+    "/app/singularity/scitex-cloud-shared-v0.1.0.sif",
 )
 
 # User data directory (inside Docker container)
@@ -49,12 +51,40 @@ SLURM_MEMORY_GB = int(
 SLURM_CONTAINER_PATH = os.environ.get(
     "SCITEX_CLOUD_SLURM_CONTAINER_PATH"
 ) or os.environ.get(
-    "SCITEX_SLURM_CONTAINER_PATH", "/opt/scitex/singularity/scitex-user-workspace.sif"
+    "SCITEX_SLURM_CONTAINER_PATH",
+    "/opt/scitex/singularity/scitex-cloud-shared-v0.1.0.sif",
 )
 SLURM_USER_DATA_ROOT = Path(
     os.environ.get("SCITEX_CLOUD_SLURM_USER_DATA_ROOT")
     or os.environ.get("SCITEX_SLURM_USER_DATA_ROOT", "/opt/scitex/data/users")
 )
+
+# =============================================================================
+# Dev Mode: Editable repo mounts
+# =============================================================================
+# In dev, bind-mount full repos into the container for editable install.
+# Paths are HOST paths (for SLURM --bind), not Docker-internal paths.
+#
+# Comma-separated entries: name:host_path:extras
+# Example: scitex-python:/home/user/proj/scitex-python:all,figrecipe:...
+DEV_REPOS_RAW = os.environ.get("SCITEX_CLOUD_DEV_REPOS", "")
+
+DEV_REPOS: list[dict] = []
+if DEV_REPOS_RAW:
+    for _entry in DEV_REPOS_RAW.split(","):
+        _parts = _entry.strip().split(":")
+        if len(_parts) >= 2:
+            DEV_REPOS.append(
+                {
+                    "name": _parts[0],
+                    "host_path": _parts[1],
+                    "extras": _parts[2] if len(_parts) > 2 else "all",
+                }
+            )
+
+# Legacy vars (kept for backward compat)
+SCITEX_DEV_SRC = os.environ.get("SCITEX_CLOUD_DEV_SCITEX_SRC", "")
+FIGRECIPE_DEV_SRC = os.environ.get("SCITEX_CLOUD_DEV_FIGRECIPE_SRC", "")
 
 
 # EOF

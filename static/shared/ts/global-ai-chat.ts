@@ -7,35 +7,31 @@
 export {}; // Make this a module so declare global augmentation is valid
 
 import { readActiveProjectSlug } from "./components/global-ai-chat/context";
-import { VoiceRecorder } from "./components/global-ai-chat/recorder";
-import { speakText } from "./components/global-ai-chat/speech";
+import { AIPanelConsoleMode } from "./components/global-ai-chat/console-mode";
+import { AIPanelChatMode } from "./components/global-ai-chat/chat-mode";
+import { AIPanelJobsMode } from "./components/global-ai-chat/jobs-mode";
 import { fetchAndPopulateSttModels } from "./components/global-ai-chat/stt-models";
+import { fetchAndPopulateLlmModels } from "./components/global-ai-chat/llm-model-selector";
+import {
+  getAudioMode,
+  initAudioModeSelector,
+} from "./components/global-ai-chat/audio-settings";
+import { fetchMcpStatus } from "./components/global-ai-chat/mcp-status";
 import {
   MODEL_KEY,
   fetchCurrentModel,
   setModelBadge,
 } from "./components/global-ai-chat/model-badge";
-import { appendToolTags } from "./components/global-ai-chat/tool-tags";
-import { runUIActions, UIActionArgs } from "./components/ui-action/index";
-import {
-  StoredMessage,
-  clearMessages,
-  loadMessages,
-  saveMessage,
-} from "./components/global-ai-chat/storage";
-import { execBashCommand } from "./components/global-ai-chat/bash-exec";
-import { loadHistory, pushHistory } from "./components/global-ai-chat/history";
-import { getCsrfToken } from "./utils/csrf";
 
 const PANEL_OPEN_KEY = "scitex_ai_open";
-const SPEAK_KEY = "scitex_ai_speak";
 
 interface AiContext {
   page?: string;
   currentFile?: string;
   project?: string;
   project_slug?: string;
-  [key: string]: string | undefined;
+  page_hints?: string[];
+  [key: string]: string | string[] | undefined;
 }
 
 declare global {
@@ -60,19 +56,19 @@ class GlobalAIChat {
   private speakBtn: HTMLButtonElement | null = null;
   private micBtn: HTMLButtonElement | null = null;
   private sttModelSelect: HTMLSelectElement | null = null;
+  private llmModelSelect: HTMLSelectElement | null = null;
+  private audioModeSelect: HTMLSelectElement | null = null;
+  private mcpBadge: HTMLElement | null = null;
   private modelBadge: HTMLElement | null = null;
 
   private isOpen = false;
-  private busy = false;
-  private autoSpeak = false;
-  private currentAudio: HTMLAudioElement | null = null;
   private context: AiContext = {};
-  private recorder: VoiceRecorder | null = null;
 
-  // C-p / C-n history (readline-style)
-  private history: string[] = [];
-  private historyIdx = -1;
-  private historyDraft = "";
+  // Mode switching (chat / console / jobs)
+  private mode: "chat" | "console" | "jobs" = "chat";
+  private consoleMode: AIPanelConsoleMode | null = null;
+  private chatMode: AIPanelChatMode | null = null;
+  private jobsMode: AIPanelJobsMode | null = null;
 
   init(): void {
     this.fab = document.getElementById("scitex-ai-fab");
@@ -94,21 +90,49 @@ class GlobalAIChat {
     this.sttModelSelect = document.getElementById(
       "scitex-ai-stt-model",
     ) as HTMLSelectElement;
+    this.llmModelSelect = document.getElementById(
+      "scitex-ai-llm-model",
+    ) as HTMLSelectElement;
+    this.audioModeSelect = document.getElementById(
+      "scitex-ai-audio-mode",
+    ) as HTMLSelectElement;
+    this.mcpBadge = document.getElementById("scitex-ai-mcp-badge");
     this.modelBadge = document.getElementById("scitex-ai-model-badge");
 
     if (!this.panel) return;
 
+    // Initialise chat mode (encapsulates messaging logic)
+    const autoSpeak = getAudioMode() !== "off";
     const volBars = Array.from(
       document.querySelectorAll<HTMLElement>(".scitex-ai-vol-bar"),
     );
-    this.recorder = new VoiceRecorder(volBars, this.micBtn);
+    this.chatMode = new AIPanelChatMode();
+    this.chatMode.init(
+      {
+        messagesEl: this.messagesEl,
+        inputEl: this.inputEl,
+        sendBtn: this.sendBtn,
+        speakBtn: this.speakBtn,
+        micBtn: this.micBtn,
+        sttModelSelect: this.sttModelSelect,
+        modelBadge: this.modelBadge,
+        volBars,
+      },
+      this.context,
+      autoSpeak,
+    );
 
     if (this.sttModelSelect)
       fetchAndPopulateSttModels(this.sttModelSelect, this.micBtn);
+    if (this.llmModelSelect)
+      fetchAndPopulateLlmModels(this.llmModelSelect, this.modelBadge);
+    if (this.audioModeSelect)
+      initAudioModeSelector(this.audioModeSelect, this.speakBtn);
+    fetchMcpStatus(this.mcpBadge);
 
     document.body.classList.add("scitex-ai-present");
 
-    // In workspace three-col layout, WPR owns the AI panel toggle; skip here to avoid double-toggle
+    // In workspace three-col layout, WPR owns the AI panel toggle; skip here
     if (!this.panel?.closest(".workspace-three-col")) {
       document
         .getElementById("scitex-ai-toggle")
@@ -124,30 +148,35 @@ class GlobalAIChat {
           settingsPanel.style.display === "none" ? "" : "none";
       });
     }
+
+    this.setupModeToggle();
     this.fab?.addEventListener("click", () => this.toggle());
-    this.clearBtn?.addEventListener("click", () => this.clearConversation());
-    this.sendBtn?.addEventListener("click", () => this.send());
+    this.clearBtn?.addEventListener("click", () =>
+      this.chatMode?.clearConversation(),
+    );
+    this.sendBtn?.addEventListener("click", () => void this.chatMode?.send());
 
-    this.autoSpeak = sessionStorage.getItem(SPEAK_KEY) === "1";
-    if (this.autoSpeak) this.speakBtn?.classList.add("active");
-    this.speakBtn?.addEventListener("click", () => this.toggleSpeak());
-    this.micBtn?.addEventListener("click", () => this.toggleRecording());
-
-    this.history = loadHistory();
+    if (autoSpeak) this.speakBtn?.classList.add("active");
+    this.speakBtn?.addEventListener("click", () =>
+      this.chatMode?.toggleSpeak(),
+    );
+    this.micBtn?.addEventListener("click", () =>
+      this.chatMode?.toggleRecording(),
+    );
 
     this.inputEl?.addEventListener("keydown", (e: KeyboardEvent) => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
-        this.send();
+        void this.chatMode?.send();
         return;
       }
       if (e.ctrlKey && e.key === "p") {
         e.preventDefault();
-        this.navigateHistory(-1);
+        this.chatMode?.navigateHistory(-1);
       }
       if (e.ctrlKey && e.key === "n") {
         e.preventDefault();
-        this.navigateHistory(1);
+        this.chatMode?.navigateHistory(1);
       }
     });
 
@@ -175,8 +204,7 @@ class GlobalAIChat {
     this.context.page = window.location.href;
     const slug = readActiveProjectSlug();
     if (slug) this.context.project_slug = slug;
-
-    this.restoreConversation();
+    this.chatMode?.restoreConversation();
 
     // Sync isOpen with WorkspacePanelResizer-restored panel state
     this.isOpen = !this.panel?.classList.contains("collapsed");
@@ -192,12 +220,76 @@ class GlobalAIChat {
     window.scitexAI = {
       setContext: (ctx) => {
         this.context = { ...this.context, ...ctx };
+        this.chatMode?.setContext(this.context);
       },
       open: () => this.open(),
       close: () => this.close(),
       toggle: () => this.toggle(),
     };
   }
+
+  /* ── Mode Toggle (Chat / Console / Jobs) ───────────────────── */
+
+  private setupModeToggle(): void {
+    document
+      .querySelectorAll<HTMLButtonElement>(".scitex-ai-mode-btn")
+      .forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const m = btn.dataset.mode as "chat" | "console" | "jobs";
+          if (m && m !== this.mode) this.switchMode(m);
+        });
+      });
+    const saved = localStorage.getItem("scitex-ai-mode") as
+      | "chat"
+      | "console"
+      | "jobs"
+      | null;
+    if (saved === "console") this.switchMode("console");
+    else if (saved === "jobs") this.switchMode("jobs");
+  }
+
+  private switchMode(mode: "chat" | "console" | "jobs"): void {
+    this.mode = mode;
+    localStorage.setItem("scitex-ai-mode", mode);
+    document
+      .querySelectorAll<HTMLButtonElement>(".scitex-ai-mode-btn")
+      .forEach((b) => {
+        b.classList.toggle("active", b.dataset.mode === mode);
+      });
+    document
+      .getElementById("scitex-ai-chat-view")
+      ?.classList.toggle("active", mode === "chat");
+    document
+      .getElementById("scitex-ai-console-view")
+      ?.classList.toggle("active", mode === "console");
+    document
+      .getElementById("scitex-ai-jobs-view")
+      ?.classList.toggle("active", mode === "jobs");
+    if (mode === "console") this.initConsoleMode();
+    if (mode === "jobs") this.initJobsMode();
+  }
+
+  private async initConsoleMode(): Promise<void> {
+    const container = document.getElementById("scitex-ai-terminal");
+    const statusEl = document.getElementById("scitex-ai-console-status");
+    if (!container) return;
+    if (!this.consoleMode) this.consoleMode = new AIPanelConsoleMode();
+    await this.consoleMode.init(container, statusEl);
+    setTimeout(() => {
+      this.consoleMode?.fit();
+      this.consoleMode?.focus();
+    }, 50);
+  }
+
+  private initJobsMode(): void {
+    const listEl = document.getElementById("scitex-ai-jobs-list");
+    const summaryEl = document.getElementById("scitex-ai-jobs-summary");
+    if (!listEl || !summaryEl) return;
+    if (!this.jobsMode) this.jobsMode = new AIPanelJobsMode();
+    this.jobsMode.init(listEl, summaryEl);
+  }
+
+  /* ── Panel Open / Close ───────────────────────────────────── */
 
   private toggle(): void {
     this.isOpen ? this.close() : this.open();
@@ -223,283 +315,9 @@ class GlobalAIChat {
     sessionStorage.removeItem(PANEL_OPEN_KEY);
     localStorage.setItem("scitex-ai-panel-collapsed", "true");
   }
-
-  private toggleSpeak(): void {
-    this.autoSpeak = !this.autoSpeak;
-    this.speakBtn?.classList.toggle("active", this.autoSpeak);
-    sessionStorage.setItem(SPEAK_KEY, this.autoSpeak ? "1" : "0");
-    if (!this.autoSpeak) {
-      this.currentAudio?.pause();
-      this.currentAudio = null;
-    }
-  }
-
-  private async speak(text: string): Promise<void> {
-    this.currentAudio?.pause();
-    this.currentAudio = null;
-    this.currentAudio = await speakText(text, getCsrfToken());
-  }
-
-  private toggleRecording(): void {
-    if (!this.recorder) return;
-    if (this.recorder.isRecording) {
-      this.recorder.stop();
-    } else {
-      void this.recorder.start(
-        () => getCsrfToken(),
-        (text) => {
-          if (!this.inputEl) return;
-          const cur = this.inputEl.value.trim();
-          this.inputEl.value = cur ? `${cur} ${text}` : text;
-          this.inputEl.dispatchEvent(new Event("input"));
-          this.inputEl.focus();
-        },
-        () => this.sttModelSelect?.value ?? "",
-      );
-    }
-  }
-
-  private clearConversation(): void {
-    clearMessages();
-    if (this.messagesEl) {
-      this.messagesEl.innerHTML = `
-        <div class="scitex-ai-empty">
-          <i class="fas fa-robot"></i>
-          <span>Ask anything about SciTeX.</span>
-          <span>I can take actions: stats, plots, literature, and your current work.</span>
-        </div>`;
-    }
-  }
-
-  private restoreConversation(): void {
-    const stored = loadMessages();
-    if (stored.length === 0 || !this.messagesEl) return;
-    this.messagesEl.innerHTML = "";
-    for (const msg of stored) {
-      const el = this.createMsgEl(msg.role);
-      el.appendChild(document.createTextNode(msg.text));
-      if (msg.toolsUsed?.length) appendToolTags(el, msg.toolsUsed);
-    }
-  }
-
-  private createMsgEl(role: "user" | "assistant" | "error"): HTMLElement {
-    const el = document.createElement("div");
-    el.className = `scitex-ai-msg ${role}`;
-    this.messagesEl?.appendChild(el);
-    this.messagesEl!.scrollTop = this.messagesEl!.scrollHeight;
-    return el;
-  }
-
-  private navigateHistory(delta: -1 | 1): void {
-    if (!this.inputEl || this.history.length === 0) return;
-    if (this.historyIdx === -1) this.historyDraft = this.inputEl.value;
-    const next = this.historyIdx + delta;
-    if (next < -1 || next >= this.history.length) return;
-    this.historyIdx = next;
-    this.inputEl.value = next === -1 ? this.historyDraft : this.history[next];
-    this.inputEl.dispatchEvent(new Event("input"));
-    const len = this.inputEl.value.length;
-    this.inputEl.setSelectionRange(len, len);
-  }
-
-  private async send(): Promise<void> {
-    if (this.busy || !this.inputEl || !this.messagesEl) return;
-    const prompt = this.inputEl.value.trim();
-    if (!prompt) return;
-
-    this.history = pushHistory(this.history, prompt);
-    this.historyIdx = -1;
-
-    if (prompt.startsWith("!")) {
-      await this.execBash(prompt.slice(1).trim());
-      return;
-    }
-
-    this.currentAudio?.pause();
-    this.currentAudio = null;
-    this.messagesEl.querySelector(".scitex-ai-empty")?.remove();
-    const userEl = this.createMsgEl("user");
-    userEl.textContent = prompt;
-    saveMessage({ role: "user", text: prompt });
-    this.inputEl.value = "";
-    this.inputEl.style.height = "auto";
-
-    const typing = document.createElement("div");
-    typing.className = "scitex-ai-typing";
-    typing.textContent = "Thinking...";
-    this.messagesEl.appendChild(typing);
-    this.busy = true;
-    this.sendBtn!.disabled = true;
-
-    const slug = readActiveProjectSlug();
-    if (slug) this.context.project_slug = slug;
-
-    try {
-      const resp = await fetch("/llm/api/chat/stream/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": getCsrfToken(),
-        },
-        body: JSON.stringify({ prompt, context: this.context }),
-      });
-
-      if (!resp.ok || !resp.body) {
-        typing.remove();
-        const errEl = this.createMsgEl("error");
-        try {
-          errEl.textContent =
-            ((await resp.json()) as { error?: string }).error ??
-            `Request failed: ${resp.status}`;
-        } catch {
-          errEl.textContent = `Request failed: ${resp.status}`;
-        }
-        saveMessage({ role: "error", text: errEl.textContent });
-        return;
-      }
-
-      typing.remove();
-      const msgEl = this.createMsgEl("assistant");
-      let hasText = false;
-      const toolsUsed: string[] = [];
-      const reader = resp.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() ?? "";
-
-        for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          const raw = line.slice(6).trim();
-          if (raw === "[DONE]") break;
-          let event: Record<string, unknown>;
-          try {
-            event = JSON.parse(raw);
-          } catch {
-            continue;
-          }
-
-          if (event.type === "model") {
-            setModelBadge(this.modelBadge, event.name as string);
-          } else if (event.type === "chunk") {
-            if (!hasText) {
-              msgEl.appendChild(document.createTextNode(event.text as string));
-              hasText = true;
-            } else {
-              let last: Text | null = null;
-              for (const node of msgEl.childNodes)
-                if (node.nodeType === Node.TEXT_NODE) last = node as Text;
-              if (last) last.textContent += event.text as string;
-            }
-            this.messagesEl!.scrollTop = this.messagesEl!.scrollHeight;
-          } else if (event.type === "tool_start") {
-            toolsUsed.push(event.name as string);
-            appendToolTags(msgEl, [event.name as string]);
-            hasText = false;
-            if (event.name === "audio_speak" && event.args) {
-              try {
-                const a = JSON.parse(event.args as string) as Record<
-                  string,
-                  unknown
-                >;
-                if (a.text) void this.speak(a.text as string);
-              } catch {
-                /**/
-              }
-            }
-            if (event.name === "ui_action" && event.args) {
-              try {
-                void runUIActions(
-                  JSON.parse(event.args as string) as UIActionArgs,
-                );
-              } catch {
-                /**/
-              }
-            }
-          } else if (event.type === "error") {
-            msgEl.remove();
-            const errEl = this.createMsgEl("error");
-            errEl.textContent = `AI request failed: ${event.error as string}`;
-            saveMessage({ role: "error", text: errEl.textContent });
-          }
-        }
-      }
-
-      if (
-        toolsUsed.includes("project_write_file") &&
-        window.workspaceFilesTree
-      ) {
-        setTimeout(() => {
-          window.workspaceFilesTree?.refresh();
-          const treeEl = document.getElementById("file-tree");
-          if (treeEl) {
-            treeEl.classList.remove("wft-ai-refresh-flash");
-            void treeEl.offsetWidth;
-            treeEl.classList.add("wft-ai-refresh-flash");
-          }
-        }, 300);
-      }
-
-      const msgText = Array.from(msgEl.childNodes)
-        .filter((n) => n.nodeType === Node.TEXT_NODE)
-        .map((n) => n.textContent ?? "")
-        .join("");
-      if (msgText || toolsUsed.length > 0) {
-        saveMessage({
-          role: "assistant",
-          text: msgText,
-          toolsUsed,
-        } as StoredMessage);
-        if (msgText && this.autoSpeak && !toolsUsed.includes("audio_speak"))
-          void this.speak(msgText);
-      }
-    } catch (err) {
-      typing.remove();
-      const errEl = this.createMsgEl("error");
-      errEl.textContent = `Network error: ${err}`;
-      saveMessage({ role: "error", text: errEl.textContent });
-    } finally {
-      this.busy = false;
-      this.sendBtn!.disabled = false;
-    }
-  }
-
-  private async execBash(command: string): Promise<void> {
-    if (!this.messagesEl) return;
-    this.messagesEl.querySelector(".scitex-ai-empty")?.remove();
-    const userEl = this.createMsgEl("user");
-    userEl.textContent = `! ${command}`;
-    saveMessage({ role: "user", text: `! ${command}` });
-    this.inputEl!.value = "";
-    this.inputEl!.style.height = "auto";
-    this.busy = true;
-    this.sendBtn!.disabled = true;
-    try {
-      const { text } = await execBashCommand(
-        command,
-        readActiveProjectSlug(),
-        getCsrfToken(),
-      );
-      const outEl = this.createMsgEl("assistant");
-      outEl.innerHTML = `<pre style="margin:0;white-space:pre-wrap;font-family:monospace">${text}</pre>`;
-      saveMessage({ role: "assistant", text });
-    } catch (err) {
-      this.createMsgEl("error").textContent = `Bash error: ${err}`;
-    } finally {
-      this.busy = false;
-      this.sendBtn!.disabled = false;
-    }
-  }
 }
 
-const globalAI = new GlobalAIChat();
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => globalAI.init());
-} else {
-  globalAI.init();
-}
+const _ai = new GlobalAIChat();
+if (document.readyState === "loading")
+  document.addEventListener("DOMContentLoaded", () => _ai.init());
+else _ai.init();

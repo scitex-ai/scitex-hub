@@ -52,6 +52,7 @@ async def _check_broker():
     if _BROKER_AVAILABLE is None:
         try:
             from apps.console_app.services.terminal_client import is_broker_available
+
             _BROKER_AVAILABLE = await is_broker_available()
         except Exception:
             _BROKER_AVAILABLE = False
@@ -109,6 +110,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
             )
         )
         project_id = query_params.get("project_id")
+        self.tmux_session = query_params.get("tmux_session", "scitex-0")
 
         if not project_id:
             await self.accept()
@@ -117,9 +119,38 @@ class TerminalConsumer(AsyncWebsocketConsumer):
             return
 
         try:
-            self.project = await asyncio.to_thread(
-                Project.objects.select_related("owner").get, id=project_id
-            )
+            # project_id=0 means "home project" (used by AI panel console mode)
+            if project_id == "0":
+                if not self.user.is_authenticated:
+                    await self.accept()
+                    await self.send(
+                        text_data="\x1b[1;31m❌ Authentication required for home terminal\x1b[0m\r\n"
+                    )
+                    await self.close(code=4001)
+                    return
+                self.project = await asyncio.to_thread(
+                    lambda: Project.objects.select_related("owner")
+                    .filter(owner=self.user, is_home=True)
+                    .first()
+                )
+                if not self.project:
+                    # Fall back to first owned project
+                    self.project = await asyncio.to_thread(
+                        lambda: Project.objects.select_related("owner")
+                        .filter(owner=self.user)
+                        .first()
+                    )
+                if not self.project:
+                    await self.accept()
+                    await self.send(
+                        text_data="\x1b[1;31m❌ No projects found. Create a project first.\x1b[0m\r\n"
+                    )
+                    await self.close(code=4002)
+                    return
+            else:
+                self.project = await asyncio.to_thread(
+                    Project.objects.select_related("owner").get, id=project_id
+                )
 
             # Check permissions
             if self.user.is_authenticated:
@@ -149,13 +180,22 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 
         await self.accept()
 
+        # Join speech channel group so TTS relay can push to this browser
+        if self.user.is_authenticated:
+            self.speech_group = f"speech_{self.user.username}"
+            await self.channel_layer.group_add(self.speech_group, self.channel_name)
+        else:
+            self.speech_group = None
+
         # Try broker first, fall back to direct mode
         if await _check_broker():
             logger.info("Using terminal broker for PTY")
             self.use_broker = True
             await self._spawn_via_broker()
         else:
-            logger.warning("Terminal broker unavailable, using direct pty.fork() (deprecated)")
+            logger.warning(
+                "Terminal broker unavailable, using direct pty.fork() (deprecated)"
+            )
             self.use_broker = False
             await self._spawn_direct()
 
@@ -168,14 +208,33 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 
         await ensure_workspace(user_data_dir, username, project_slug)
 
-        container_path = await asyncio.to_thread(
-            select_container, user_data_dir, project_dir
+        # Auto-generate AI tool configs (cheap no-op if exists)
+        await asyncio.to_thread(
+            self._ensure_agents_config, project_dir, self.project.name
         )
+        await asyncio.to_thread(
+            self._ensure_claude_config, user_data_dir, project_dir, self.project.name
+        )
+
+        try:
+            container_path = await asyncio.to_thread(
+                select_container, user_data_dir, project_dir
+            )
+        except Exception as e:
+            from .execution import ContainerNotFoundError
+
+            if isinstance(e, ContainerNotFoundError):
+                await self.send(text_data=f"\x1b[1;31m❌ {e}\x1b[0m\r\n")
+                await self.close(code=4003)
+                return
+            raise
 
         slurm_available, slurm_status = await asyncio.to_thread(check_slurm_status)
         if not slurm_available:
             logger.error(f"SLURM unavailable ({slurm_status})")
-            await self.send(text_data=f"\x1b[1;31m❌ SLURM unavailable: {slurm_status}\x1b[0m\r\n")
+            await self.send(
+                text_data=f"\x1b[1;31m❌ SLURM unavailable: {slurm_status}\x1b[0m\r\n"
+            )
             await self.close(code=4003)
             return
 
@@ -200,6 +259,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
                 project_dir=project_dir,
                 container_path=container_path,
                 project_slug=project_slug,
+                tmux_session=self.tmux_session,
             )
 
             if not session_id:
@@ -209,7 +269,9 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 
         except Exception as e:
             logger.error(f"Broker spawn failed: {e}")
-            await self.send(text_data=f"\x1b[1;31m❌ Failed to start terminal: {e}\x1b[0m\r\n")
+            await self.send(
+                text_data=f"\x1b[1;31m❌ Failed to start terminal: {e}\x1b[0m\r\n"
+            )
             await self.close(code=4003)
 
     async def _spawn_direct(self):
@@ -221,9 +283,26 @@ class TerminalConsumer(AsyncWebsocketConsumer):
 
         await ensure_workspace(user_data_dir, username, project_slug)
 
-        container_path = await asyncio.to_thread(
-            select_container, user_data_dir, project_dir
+        # Auto-generate AI tool configs (cheap no-op if exists)
+        await asyncio.to_thread(
+            self._ensure_agents_config, project_dir, self.project.name
         )
+        await asyncio.to_thread(
+            self._ensure_claude_config, user_data_dir, project_dir, self.project.name
+        )
+
+        try:
+            container_path = await asyncio.to_thread(
+                select_container, user_data_dir, project_dir
+            )
+        except Exception as e:
+            from .execution import ContainerNotFoundError
+
+            if isinstance(e, ContainerNotFoundError):
+                await self.send(text_data=f"\x1b[1;31m❌ {e}\x1b[0m\r\n")
+                await self.close(code=4003)
+                return
+            raise
 
         slurm_available, slurm_status = await asyncio.to_thread(check_slurm_status)
         if not slurm_available:
@@ -249,9 +328,11 @@ class TerminalConsumer(AsyncWebsocketConsumer):
                         project_dir,
                         container_path,
                         project_slug,
+                        tmux_session=self.tmux_session,
                     )
                 except Exception as e:
                     import sys
+
                     sys.stderr.write(
                         f"\x1b[1;31m❌ Failed to start terminal: {e}\x1b[0m\r\n"
                     )
@@ -313,11 +394,63 @@ class TerminalConsumer(AsyncWebsocketConsumer):
             except Exception as e:
                 logger.error(f"PTY resize error: {e}")
 
+    @staticmethod
+    def _ensure_agents_config(project_dir, project_name):
+        """Create .agents/ config if missing (runs in thread)."""
+        from apps.console_app.services.agents_config import ensure_agents_config
+
+        ensure_agents_config(project_dir, project_name=project_name, force=True)
+
+    @staticmethod
+    def _ensure_claude_config(user_data_dir, project_dir, project_name):
+        """Create .mcp.json + skills if missing (runs in thread)."""
+        from apps.console_app.services.agents_config import ensure_claude_config
+
+        ensure_claude_config(user_data_dir, project_dir, project_name=project_name)
+
+    async def tts_speak(self, event):
+        """Forward TTS speech request to browser via WebSocket.
+
+        The browser terminal intercepts messages prefixed with
+        ``\\x1b]9999;speak:`` and plays them via ``/llm/api/tts/``.
+        """
+        import base64
+
+        text = event.get("text", "")
+        if text:
+            b64 = base64.b64encode(text.encode()).decode()
+            await self.send(text_data=f"\x1b]9999;speak:{b64}\x07")
+
+    async def media_display(self, event):
+        """Forward media display request to browser via WebSocket.
+
+        The browser terminal intercepts ``\\x1b]9998;media:`` escapes
+        and renders an overlay image/file preview above the terminal.
+        """
+        import base64
+        import json
+
+        media = event.get("media", {})
+        if media:
+            payload = json.dumps(media)
+            b64 = base64.b64encode(payload.encode()).decode()
+            await self.send(text_data=f"\x1b]9998;media:{b64}\x07")
+
     async def disconnect(self, close_code):
-        """Clean up on disconnect."""
+        """Clean up on disconnect.
+
+        Broker mode: Only disconnect the client socket. The tmux session
+        continues running inside the container so the user can reattach later.
+
+        Direct mode (fallback): Kill the PTY process (no persistence).
+        """
+        # Leave speech channel group
+        if getattr(self, "speech_group", None):
+            await self.channel_layer.group_discard(self.speech_group, self.channel_name)
+
         if self.use_broker and self.broker_client:
-            # Broker mode cleanup
-            await self.broker_client.close()
+            # Broker mode: detach only — tmux session persists for reattach
+            await self.broker_client.disconnect_only()
             self.broker_client = None
         else:
             # Direct mode cleanup

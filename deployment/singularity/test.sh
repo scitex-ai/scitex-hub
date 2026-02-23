@@ -8,7 +8,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SIF_FILE="$SCRIPT_DIR/scitex-user-workspace.sif"
+SIF_FILE="$SCRIPT_DIR/scitex-cloud-shared-v0.1.0.sif"
 
 # Colors
 GREEN='\033[0;32m'
@@ -42,7 +42,7 @@ run_test() {
 
     echo -e -n "Testing $test_name... "
 
-    if eval "$test_cmd" > /dev/null 2>&1; then
+    if eval "$test_cmd" >/dev/null 2>&1; then
         echo -e "${GREEN}✓ PASS${NC}"
         ((TESTS_PASSED++))
         return 0
@@ -111,7 +111,7 @@ fi
 # Test 13: Workspace binding
 echo -e -n "Testing workspace binding... "
 TEST_DIR=$(mktemp -d)
-echo -e "test content" > "$TEST_DIR/test.txt"
+echo -e "test content" >"$TEST_DIR/test.txt"
 RESULT=$(singularity exec --bind "$TEST_DIR:/workspace" $SIF_FILE cat /workspace/test.txt)
 rm -rf "$TEST_DIR"
 if [ "$RESULT" = "test content" ]; then

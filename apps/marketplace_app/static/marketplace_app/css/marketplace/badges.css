@@ -29,6 +29,24 @@
   background-color: rgba(159, 122, 234, 0.1);
 }
 
+.mp-badge-wip {
+  color: #f6ad55;
+  border-color: #f6ad55;
+  background-color: rgba(246, 173, 85, 0.1);
+}
+
+.mp-badge-beta {
+  color: #76e4f7;
+  border-color: #76e4f7;
+  background-color: rgba(118, 228, 247, 0.1);
+}
+
+.mp-badge-deprecated {
+  color: #a0aec0;
+  border-color: #a0aec0;
+  background-color: rgba(160, 174, 192, 0.1);
+}
+
 .mp-badge-sm {
   font-size: 0.62rem;
   padding: 1px 4px;

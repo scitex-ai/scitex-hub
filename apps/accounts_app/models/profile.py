@@ -214,6 +214,13 @@ class UserProfile(models.Model):
         help_text="Linux GID for OS-level process isolation (same as unix_uid)",
     )
 
+    # MCP tool group preferences for Claude Code in Apptainer
+    mcp_preferences = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="MCP tool group toggles: {GROUP_NAME: bool}",
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -264,6 +271,20 @@ class UserProfile(models.Model):
         from apps.project_app.models import Project
 
         return Project.objects.filter(owner=self.user).order_by("-updated_at")
+
+    def get_active_project(self):
+        """Get active project, auto-defaulting to first owned project.
+
+        If last_active_repository is unset, picks the first project and
+        persists the choice so subsequent requests are fast.
+        """
+        if self.last_active_repository_id:
+            return self.last_active_repository
+        first = self.get_user_projects().first()
+        if first:
+            self.last_active_repository = first
+            self.save(update_fields=["last_active_repository"])
+        return first
 
     @property
     def total_collaborations(self):

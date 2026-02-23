@@ -63,9 +63,11 @@ DEBUG = os.getenv("SCITEX_CLOUD_DJANGO_DEBUG", "True").lower() in [
 # ---------------------------------------
 # SciTeX Settings
 # ---------------------------------------
-# Use develp for writer template in development
-SCITEX_WRITER_TEMPLATE_BRANCH = os.getenv("SCITEX_WRITER_TEMPLATE_BRANCH", "develop")
-SCITEX_WRITER_TEMPLATE_TAG = os.getenv("SCITEX_WRITER_TEMPLATE_TAG", None)
+# Use main branch for clean writer template (develop has dev artifacts)
+_wtb = os.getenv("SCITEX_WRITER_TEMPLATE_BRANCH", "main")
+SCITEX_WRITER_TEMPLATE_BRANCH = None if _wtb in ("", "null", "None") else _wtb
+_wtt = os.getenv("SCITEX_WRITER_TEMPLATE_TAG", "")
+SCITEX_WRITER_TEMPLATE_TAG = None if _wtt in ("", "null", "None") else _wtt
 SECRET_KEY = os.getenv("SCITEX_CLOUD_DJANGO_SECRET_KEY")
 ALLOWED_HOSTS = os.getenv(
     "SCITEX_CLOUD_ALLOWED_HOSTS",

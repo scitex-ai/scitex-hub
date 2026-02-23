@@ -14,6 +14,19 @@
                 <h3 class="mp-card-title">{{ mod_item.mp.module_name }}</h3>
                 <div class="mp-card-badges">
                     <span class="mp-category-badge mp-category-{{ mod_item.mp.category }}">{{ mod_item.mp.get_category_display }}</span>
+                    {% if mod_item.mp.status == "wip" %}
+                        <span class="mp-badge mp-badge-wip" title="Work in progress">
+                            <i class="fas fa-wrench" aria-hidden="true"></i> WIP
+                        </span>
+                    {% elif mod_item.mp.status == "beta" %}
+                        <span class="mp-badge mp-badge-beta" title="Beta">
+                            <i class="fas fa-flask" aria-hidden="true"></i> Beta
+                        </span>
+                    {% elif mod_item.mp.status == "deprecated" %}
+                        <span class="mp-badge mp-badge-deprecated" title="Deprecated">
+                            <i class="fas fa-archive" aria-hidden="true"></i> Deprecated
+                        </span>
+                    {% endif %}
                     {% if mod_item.mp.is_builtin %}
                         <span class="mp-badge mp-badge-builtin" title="Built-in module">
                             <i class="fas fa-cube" aria-hidden="true"></i> Built-in
@@ -59,9 +72,25 @@
                        aria-hidden="true"></i>
                 </button>
                 {% if mod_item.is_installed %}
-                    <span class="mp-badge-installed" title="Installed">
-                        <i class="fas fa-check" aria-hidden="true"></i> Installed
-                    </span>
+                    <div class="mp-installed-actions" data-module="{{ mod_item.mp.module_name }}">
+                        <button class="mp-btn-toggle"
+                                data-module="{{ mod_item.mp.module_name }}"
+                                title="Disable this module"
+                                aria-label="Disable {{ mod_item.mp.module_name }}">
+                            <i class="fas fa-pause" aria-hidden="true"></i>
+                        </button>
+                        {% if not mod_item.mp.is_builtin %}
+                            <button class="mp-btn-uninstall"
+                                    data-module="{{ mod_item.mp.module_name }}"
+                                    title="Uninstall this module"
+                                    aria-label="Uninstall {{ mod_item.mp.module_name }}">
+                                <i class="fas fa-trash" aria-hidden="true"></i>
+                            </button>
+                        {% endif %}
+                        <span class="mp-badge-installed" title="Installed">
+                            <i class="fas fa-check" aria-hidden="true"></i> Installed
+                        </span>
+                    </div>
                 {% else %}
                     <button class="mp-btn-install"
                             data-module="{{ mod_item.mp.module_name }}"
@@ -104,6 +133,55 @@
             .catch(function (err) {
                 btn.disabled = false;
                 console.error('Install error:', err);
+            });
+        });
+    });
+
+    document.querySelectorAll('.mp-btn-toggle').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var moduleName = btn.dataset.module;
+            btn.disabled = true;
+            fetch('/marketplace/api/' + moduleName + '/toggle/', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCsrf(), 'Content-Type': 'application/json' }
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                btn.disabled = false;
+                if (data.success) {
+                    location.reload();
+                } else {
+                    console.error('Toggle failed:', data.error);
+                }
+            })
+            .catch(function (err) {
+                btn.disabled = false;
+                console.error('Toggle error:', err);
+            });
+        });
+    });
+
+    document.querySelectorAll('.mp-btn-uninstall').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var moduleName = btn.dataset.module;
+            if (!confirm('Uninstall ' + moduleName + '?')) return;
+            btn.disabled = true;
+            fetch('/marketplace/api/' + moduleName + '/uninstall/', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCsrf(), 'Content-Type': 'application/json' }
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                btn.disabled = false;
+                if (data.success) {
+                    location.reload();
+                } else {
+                    console.error('Uninstall failed:', data.error);
+                }
+            })
+            .catch(function (err) {
+                btn.disabled = false;
+                console.error('Uninstall error:', err);
             });
         });
     });

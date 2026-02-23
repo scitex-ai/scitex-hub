@@ -23,6 +23,7 @@ _CATEGORY_MAP = {
     "tools": "utility",
     "example": "other",
     "marketplace": "utility",
+    "modulemaker": "utility",
 }
 
 # Module descriptions
@@ -36,7 +37,56 @@ _DESCRIPTIONS = {
     "tools": "Collection of standalone research utilities — converters, calculators, and helpers.",
     "example": "Reference implementation for module developers. Copy this to create your own module.",
     "marketplace": "Browse, install, and manage workspace modules.",
+    "modulemaker": "Create, edit, and manage custom workspace modules with @stx.module.",
 }
+
+# Modules under active development
+_WIP_MODULES = {"modulemaker", "example", "clew", "vis"}
+
+
+def ensure_builtin_modules(author_username="ywatanabe"):
+    """Ensure all built-in registry modules have MarketplaceModule records.
+
+    Idempotent: uses update_or_create so safe to call multiple times.
+    Returns (created_count, updated_count).
+    """
+    author = User.objects.filter(username=author_username).first()
+    modules = get_all_modules()
+    created = 0
+    updated = 0
+
+    for mod in modules:
+        defaults = {
+            "author": author,
+            "short_description": _DESCRIPTIONS.get(
+                mod.name, f"{mod.label} workspace module."
+            ),
+            "category": _CATEGORY_MAP.get(mod.name, "other"),
+            "is_builtin": True,
+            "is_verified": True,
+            "visibility": "public",
+            "status": "wip" if mod.name in _WIP_MODULES else "stable",
+        }
+
+        obj, was_created = MarketplaceModule.objects.update_or_create(
+            module_name=mod.name,
+            defaults=defaults,
+        )
+
+        if not obj.versions.exists():
+            ModuleVersion.objects.create(
+                module=obj,
+                version="1.0.0",
+                changelog="Initial built-in release.",
+                is_stable=True,
+            )
+
+        if was_created:
+            created += 1
+        else:
+            updated += 1
+
+    return created, updated
 
 
 class Command(BaseCommand):
@@ -50,56 +100,10 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        author_username = options["author"]
-        author = User.objects.filter(username=author_username).first()
-        if not author:
-            self.stdout.write(
-                self.style.WARNING(
-                    f"Author '{author_username}' not found. "
-                    "Modules will be created without an author."
-                )
-            )
-
-        modules = get_all_modules()
-        created = 0
-        updated = 0
-
-        for mod in modules:
-            defaults = {
-                "author": author,
-                "short_description": _DESCRIPTIONS.get(
-                    mod.name, f"{mod.label} workspace module."
-                ),
-                "category": _CATEGORY_MAP.get(mod.name, "other"),
-                "is_builtin": True,
-                "is_verified": True,
-                "visibility": "public",
-            }
-
-            obj, was_created = MarketplaceModule.objects.update_or_create(
-                module_name=mod.name,
-                defaults=defaults,
-            )
-
-            # Ensure at least one version exists
-            if not obj.versions.exists():
-                ModuleVersion.objects.create(
-                    module=obj,
-                    version="1.0.0",
-                    changelog="Initial built-in release.",
-                    is_stable=True,
-                )
-
-            if was_created:
-                created += 1
-                self.stdout.write(self.style.SUCCESS(f"  Created: {mod.name}"))
-            else:
-                updated += 1
-                self.stdout.write(f"  Updated: {mod.name}")
-
+        created, updated = ensure_builtin_modules(author_username=options["author"])
         self.stdout.write(
             self.style.SUCCESS(
-                f"\nDone. Created {created}, updated {updated} marketplace entries."
+                f"Done. Created {created}, updated {updated} marketplace entries."
             )
         )
 

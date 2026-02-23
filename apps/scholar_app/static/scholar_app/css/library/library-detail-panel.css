@@ -1,0 +1,221 @@
+/* Scholar Library - JS-Rendered Detail Panel Styles
+ * Classes: .library-detail-* (rendered by renderers.ts)
+ * For template-based classes (.library-details-*), see library-details.css
+ */
+
+/* Header */
+.library-detail-header {
+  padding: 12px 14px 8px;
+  border-bottom: 1px solid var(--workspace-border-default);
+  flex-shrink: 0;
+}
+
+.library-detail-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+
+.library-detail-meta {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.library-detail-meta div {
+  margin-bottom: 2px;
+}
+
+/* Body */
+.library-detail-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 14px;
+  min-height: 0;
+}
+
+.library-detail-section {
+  margin-bottom: 12px;
+}
+
+.library-detail-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Abstract — full height, no cap */
+.library-detail-abstract {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  padding: 8px 10px;
+  background-color: var(--workspace-bg-secondary);
+  border: 1px solid var(--workspace-border-default);
+}
+
+/* Dropdowns — visible border */
+.library-status-select,
+.library-importance-select {
+  width: 100%;
+  background-color: var(--workspace-bg-secondary);
+  border: 1px solid var(--workspace-border-default);
+  color: var(--text-primary);
+  padding: 5px 8px;
+  font-size: 0.82rem;
+}
+
+.library-status-select:focus,
+.library-importance-select:focus {
+  outline: none;
+  border-color: var(--workspace-icon-primary);
+}
+
+/* Tags input — visible border */
+.library-tags-input {
+  width: 100%;
+  background-color: var(--workspace-bg-secondary);
+  border: 1px solid var(--workspace-border-default);
+  color: var(--text-primary);
+  padding: 5px 8px;
+  font-size: 0.82rem;
+}
+
+.library-tags-input:focus {
+  outline: none;
+  border-color: var(--workspace-icon-primary);
+}
+
+/* Notes textarea — visible border */
+.library-notes-textarea {
+  width: 100%;
+  min-height: 80px;
+  background-color: var(--workspace-bg-secondary);
+  border: 1px solid var(--workspace-border-default);
+  color: var(--text-primary);
+  padding: 8px 10px;
+  font-size: 0.82rem;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.library-notes-textarea:focus {
+  outline: none;
+  border-color: var(--workspace-icon-primary);
+}
+
+/* BibTeX toggle & viewer */
+.library-detail-btn-inline {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 1px 4px;
+  font-size: 0.72rem;
+}
+
+.library-detail-btn-inline:hover {
+  color: var(--text-primary);
+}
+
+.library-bibtex-viewer {
+  font-size: 0.75rem;
+  font-family: "JetBrains Mono", monospace;
+  background-color: var(--workspace-bg-secondary);
+  border: 1px solid var(--workspace-border-default);
+  color: var(--text-secondary);
+  padding: 8px 10px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+}
+
+/* Save button — modern accent */
+.library-save-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: var(--workspace-icon-primary);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  margin-top: 4px;
+}
+
+.library-save-btn:hover {
+  opacity: 0.85;
+}
+
+.library-save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Bottom actions bar */
+.library-detail-actions {
+  padding: 10px 14px;
+  border-top: 1px solid var(--workspace-border-default);
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.library-detail-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 10px;
+  font-size: 0.78rem;
+  border: 1px solid var(--workspace-border-default);
+  background-color: var(--workspace-bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.library-detail-btn:hover {
+  background-color: var(--workspace-bg-tertiary);
+}
+
+.library-detail-btn.danger {
+  background-color: rgba(245, 101, 101, 0.08);
+  color: #f56565;
+  border-color: rgba(245, 101, 101, 0.3);
+}
+
+.library-detail-btn.danger:hover {
+  background-color: rgba(245, 101, 101, 0.18);
+  border-color: #f56565;
+}
+
+/* Body scrollbar */
+.library-detail-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.library-detail-body::-webkit-scrollbar-track {
+  background: var(--workspace-bg-secondary);
+}
+
+.library-detail-body::-webkit-scrollbar-thumb {
+  background: var(--workspace-border-default);
+}
+
+.library-detail-body::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}

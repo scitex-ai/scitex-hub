@@ -1,0 +1,276 @@
+{% extends 'global_base.html' %}
+
+{% load static %}
+
+{% block title %}AI Usage - Settings - SciTeX Cloud{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'shared/css/layouts/settings-layout.css' %}" />
+    <style>
+        .usage-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .usage-card {
+            background: var(--color-canvas-subtle, #161b22);
+            border: 1px solid var(--color-border-default, #30363d);
+            padding: 16px;
+        }
+
+        .usage-card__label {
+            font-size: 12px;
+            color: var(--color-fg-muted, #8b949e);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .usage-card__value {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--color-fg-default, #e6edf3);
+        }
+
+        .usage-card__value--cost {
+            color: #3fb950;
+        }
+
+        .usage-card__sub {
+            font-size: 11px;
+            color: var(--color-fg-muted, #8b949e);
+            margin-top: 2px;
+        }
+
+        .usage-period-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .usage-period-btn {
+            padding: 6px 14px;
+            font-size: 13px;
+            background: var(--color-canvas-subtle, #161b22);
+            border: 1px solid var(--color-border-default, #30363d);
+            color: var(--color-fg-muted, #8b949e);
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.15s;
+        }
+
+        .usage-period-btn:hover {
+            border-color: var(--color-fg-muted);
+        }
+
+        .usage-period-btn.active {
+            background: var(--color-accent-emphasis, #1f6feb);
+            border-color: var(--color-accent-emphasis, #1f6feb);
+            color: #fff;
+        }
+
+        .usage-chart-section {
+            background: var(--color-canvas-subtle, #161b22);
+            border: 1px solid var(--color-border-default, #30363d);
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .usage-chart-section__title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-fg-default, #e6edf3);
+            margin-bottom: 12px;
+        }
+
+        .usage-chart-section img {
+            width: 100%;
+            height: auto;
+        }
+
+        .usage-app-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .usage-app-table th,
+        .usage-app-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--color-border-default, #30363d);
+        }
+
+        .usage-app-table th {
+            color: var(--color-fg-muted, #8b949e);
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 11px;
+        }
+
+        .usage-app-table td {
+            color: var(--color-fg-default, #e6edf3);
+        }
+
+        .usage-empty {
+            text-align: center;
+            padding: 48px 16px;
+            color: var(--color-fg-muted, #8b949e);
+        }
+
+        .usage-empty i {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            opacity: 0.4;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="settings-page">
+        <div class="settings-layout">
+            <aside class="settings-nav">
+                {% include 'accounts_app/partials/settings_nav.html' with active='ai_usage' %}
+            </aside>
+            <main class="settings-content">
+                <div class="settings-header">
+                    <h1 class="settings-title">AI Usage</h1>
+                    <p class="settings-subtitle">Track your LLM token consumption and estimated costs.</p>
+                </div>
+                {% if not has_connection %}
+                    <div class="usage-empty">
+                        <div>
+                            <i class="fas fa-plug"></i>
+                        </div>
+                        <h3>No AI Provider Connected</h3>
+                        <p>
+                            Connect an AI provider in
+                            <a href="{% url 'accounts_app:ai_providers' %}">Settings &gt; AI Providers</a>
+                            to start tracking usage.
+                        </p>
+                    </div>
+                {% else %}
+                    <!-- Period Selector -->
+                    <div class="usage-period-selector">
+                        <a href="?days=7"  class="usage-period-btn {% if days == 7 %}active{% endif %}">7d</a>
+                        <a href="?days=30" class="usage-period-btn {% if days == 30 %}active{% endif %}">30d</a>
+                        <a href="?days=90" class="usage-period-btn {% if days == 90 %}active{% endif %}">90d</a>
+                    </div>
+                    {% if stats %}
+                        <!-- Summary Cards -->
+                        <div class="usage-cards">
+                            <div class="usage-card">
+                                <div class="usage-card__label">Total Cost</div>
+                                <div class="usage-card__value usage-card__value--cost">${{ stats.total_cost_usd|floatformat:4 }}</div>
+                                <div class="usage-card__sub">{{ stats.provider }}</div>
+                            </div>
+                            <div class="usage-card">
+                                <div class="usage-card__label">Requests</div>
+                                <div class="usage-card__value">{{ stats.total_requests }}</div>
+                                <div class="usage-card__sub">
+                                    {{ stats.successful_requests }} ok /
+                                    {{ stats.failed_requests }} failed
+                                </div>
+                            </div>
+                            <div class="usage-card">
+                                <div class="usage-card__label">Total Tokens</div>
+                                <div class="usage-card__value">{{ stats.token_usage.total }}</div>
+                                <div class="usage-card__sub">
+                                    {{ stats.token_usage.prompt }} prompt /
+                                    {{ stats.token_usage.completion }} completion
+                                </div>
+                            </div>
+                            <div class="usage-card">
+                                <div class="usage-card__label">Today</div>
+                                <div class="usage-card__value">{{ stats.today.requests }}</div>
+                                <div class="usage-card__sub">
+                                    {{ stats.today.tokens }} tokens /
+                                    ${{ stats.today.cost_usd|floatformat:4 }}
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Charts -->
+                        <div class="usage-chart-section">
+                            <div class="usage-chart-section__title">
+                                <i class="fas fa-dollar-sign"></i> Cost Over Time
+                            </div>
+                            <img src="{% url 'llm_app:api_usage_chart' chart_type='cost' %}?days={{ days }}"
+                                 alt="Cost chart"
+                                 loading="lazy" />
+                        </div>
+                        <div class="usage-chart-section">
+                            <div class="usage-chart-section__title">
+                                <i class="fas fa-coins"></i> Token Usage
+                            </div>
+                            <img src="{% url 'llm_app:api_usage_chart' chart_type='tokens' %}?days={{ days }}"
+                                 alt="Tokens chart"
+                                 loading="lazy" />
+                        </div>
+                        <div class="usage-chart-section">
+                            <div class="usage-chart-section__title">
+                                <i class="fas fa-chart-pie"></i> Usage by Model
+                            </div>
+                            <img src="{% url 'llm_app:api_usage_chart' chart_type='model_breakdown' %}?days={{ days }}"
+                                 alt="Model breakdown"
+                                 loading="lazy" />
+                        </div>
+                        <!-- App Breakdown Table -->
+                        {% if stats.by_app %}
+                            <div class="usage-chart-section">
+                                <div class="usage-chart-section__title">
+                                    <i class="fas fa-table"></i> Usage by App
+                                </div>
+                                <table class="usage-app-table">
+                                    <thead>
+                                        <tr>
+                                            <th>App</th>
+                                            <th>Requests</th>
+                                            <th>Tokens</th>
+                                            <th>Cost (USD)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for app_name, data in stats.by_app.items %}
+                                            <tr>
+                                                <td>{{ app_name }}</td>
+                                                <td>{{ data.requests }}</td>
+                                                <td>{{ data.tokens|default:"0" }}</td>
+                                                <td>${{ data.cost|floatformat:4 }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% endif %}
+                        <!-- Rate Limits -->
+                        <div class="usage-chart-section">
+                            <div class="usage-chart-section__title">
+                                <i class="fas fa-tachometer-alt"></i> Rate Limits
+                            </div>
+                            <table class="usage-app-table">
+                                <tbody>
+                                    <tr>
+                                        <td>Daily request limit</td>
+                                        <td>
+                                            {{ stats.today.requests }} /
+                                            {{ stats.rate_limits.daily_request_limit|default:"∞" }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Daily token limit</td>
+                                        <td>
+                                            {{ stats.today.tokens }} /
+                                            {{ stats.rate_limits.daily_token_limit|default:"∞" }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                    {# /if stats #}
+                {% endif %}
+                {# /if has_connection #}
+            </main>
+        </div>
+    </div>
+{% endblock %}

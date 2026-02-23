@@ -37,10 +37,22 @@ urlpatterns = [
     path("api/model/", views.api_current_model, name="api_current_model"),
     # Text-to-speech: returns audio/mpeg bytes for browser playback
     path("api/tts/", views.api_tts, name="api_tts"),
+    # TTS relay: container agent → channel layer → browser speakers
+    path("api/tts/relay/", views.api_tts_relay, name="api_tts_relay"),
     # Bash exec: "!" prefix mode in AI chat
     path("api/bash/", views.api_bash_exec, name="api_bash_exec"),
     # Speech-to-text: accepts audio upload, returns transcribed text via whisper.cpp
     path("api/stt/", views.api_stt, name="api_stt"),
     # List available whisper models on disk
     path("api/stt/models/", views.api_stt_models, name="api_stt_models"),
+    # Skills registry API
+    path("api/skills/", views.api_list_skills, name="api_list_skills"),
+    path("api/skills/<str:app_name>/", views.api_get_skill, name="api_get_skill"),
+    # Usage dashboard
+    path("usage/", views.usage_dashboard, name="usage_dashboard"),
+    path(
+        "api/usage/chart/<str:chart_type>/",
+        views.api_usage_chart,
+        name="api_usage_chart",
+    ),
 ]

@@ -1,0 +1,86 @@
+/* ============================================================
+   AI Toggle Button in Header — hidden: AI panel always visible as left sidebar
+   ============================================================ */
+.header-ai-toggle {
+  display: none !important;
+}
+
+/* Original definition kept below but selector renamed so it doesn't apply */
+._header-ai-toggle-ref {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  color: #a67373;
+  transition:
+    transform 0.15s,
+    opacity 0.15s;
+  animation: ai-btn-breathe 3.5s ease-in-out infinite;
+}
+
+.header-ai-toggle .ai-icon-eye,
+.header-ai-toggle .ai-icon-mouth {
+  fill: #a67373;
+}
+
+@keyframes ai-btn-breathe {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 3px rgba(166, 115, 115, 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 7px rgba(166, 115, 115, 0.8));
+  }
+}
+
+.header-ai-toggle:hover {
+  transform: scale(1.08);
+  opacity: 0.88;
+  animation: none;
+  filter: drop-shadow(0 0 6px rgba(166, 115, 115, 0.7));
+}
+
+.header-ai-toggle.panel-open {
+  color: #994444;
+  animation: none;
+  filter: drop-shadow(0 0 4px rgba(153, 68, 68, 0.6));
+}
+
+[data-theme="dark"] .header-ai-toggle {
+  color: #c08888;
+  animation: ai-btn-breathe-dark 3.5s ease-in-out infinite;
+}
+
+[data-theme="dark"] .header-ai-toggle .ai-icon-eye,
+[data-theme="dark"] .header-ai-toggle .ai-icon-mouth {
+  fill: #c08888;
+}
+
+@keyframes ai-btn-breathe-dark {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 3px rgba(192, 136, 136, 0.5));
+  }
+  50% {
+    filter: drop-shadow(0 0 8px rgba(192, 136, 136, 0.85));
+  }
+}
+
+[data-theme="dark"] .header-ai-toggle:hover {
+  transform: scale(1.08);
+  opacity: 0.88;
+  animation: none;
+  filter: drop-shadow(0 0 7px rgba(192, 136, 136, 0.8));
+}
+
+[data-theme="dark"] .header-ai-toggle.panel-open {
+  color: #a67373;
+  animation: none;
+}

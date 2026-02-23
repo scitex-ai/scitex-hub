@@ -28,6 +28,16 @@
   gap: 0.5rem;
 }
 
+.panel-header .header-left {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.panel-header .header-right {
+  flex-shrink: 0;
+}
+
 .preview-btn-inline {
   background: none;
   border: none;

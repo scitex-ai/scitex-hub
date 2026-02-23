@@ -2,7 +2,7 @@
  * Workspace Files Tree - Orchestrator component for file tree
  */
 
-import type { TreeItem, TreeConfig, WorkspaceMode } from "./types.ts";
+import type { TreeItem, TreeConfig, WorkspaceMode, SortMode } from "./types.ts";
 import { TreeStateManager } from "./TreeState.ts";
 import { TreeFilter } from "./TreeFilter.ts";
 import { TreeRenderer } from "./TreeRenderer.ts";
@@ -61,6 +61,7 @@ export class WorkspaceFilesTree {
   private dataLoader: TreeDataLoader;
   private treeData: TreeItem[] = [];
   private gitSummary: GitSummary = { staged: 0, modified: 0, untracked: 0 };
+  private sortMode: SortMode = "name";
   private isLoading = false;
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   private readonly POLL_INTERVAL_MS = 30_000;
@@ -190,13 +191,11 @@ export class WorkspaceFilesTree {
     if (path === "") return true;
     return TreeUtils.findItem(path, this.treeData)?.type === "directory";
   }
-
   private getParentPath(path: string): string {
     const parts = path.split("/");
     parts.pop();
     return parts.join("/");
   }
-
   async initialize(): Promise<void> {
     this.container = document.getElementById(this.config.containerId);
     if (!this.container)
@@ -259,13 +258,8 @@ export class WorkspaceFilesTree {
 
   private handleFileClick(path: string, event?: MouseEvent): void {
     this.container?.focus();
-    if (event && (event.ctrlKey || event.metaKey || event.shiftKey)) {
-      this.selectionHandler.handleClick(path, event);
-    } else {
-      this.selectionHandler.handleClick(path, event || new MouseEvent("click"));
-    }
+    this.selectionHandler.handleClick(path, event || new MouseEvent("click"));
   }
-
   async loadTree(): Promise<void> {
     if (this.isLoading) return;
     this.isLoading = true;
@@ -294,7 +288,6 @@ export class WorkspaceFilesTree {
       this.isLoading = false;
     }
   }
-
   /** Get/create .wft-content wrapper so search box survives re-renders */
   private contentEl(): HTMLElement {
     let el = this.container!.querySelector(
@@ -314,7 +307,6 @@ export class WorkspaceFilesTree {
     }
     return el;
   }
-
   private render(): void {
     if (!this.container) return;
     const data = this.directoryFilterHandler.isActive()
@@ -345,14 +337,11 @@ export class WorkspaceFilesTree {
     this.selectionHandler.updateAllSelectionClasses();
     this.clipboardHandler.reapplyClasses();
   }
-
   private showError(message: string): void {
     if (!this.container) return;
     this.contentEl().innerHTML = `<div class="wft-error"><i class="fas fa-exclamation-triangle"></i><p>${message}</p></div>`;
   }
-
   private boundKeyboardHandler: ((e: KeyboardEvent) => void) | null = null;
-
   private attachEventListeners(): void {
     if (!this.container) return;
     this.eventHandlers.attachEventListeners(this.container);
@@ -496,7 +485,19 @@ export class WorkspaceFilesTree {
     this.config.showGitStatus = show;
     this.container?.classList.toggle("wft-no-git", !show);
   }
-  /** Replace the file select callback after initialization (used by modules attaching to shared tree). */
+  setSortMode(mode: SortMode): void {
+    this.sortMode = mode;
+    this.renderer.setSortMode(mode);
+    this.rerender();
+  }
+  toggleSortMode(): SortMode {
+    const next: SortMode = this.sortMode === "name" ? "mtime" : "name";
+    this.setSortMode(next);
+    return next;
+  }
+  getSortMode(): SortMode {
+    return this.sortMode;
+  }
   setOnFileSelect(handler: (path: string, item: TreeItem) => void): void {
     this.config.onFileSelect = handler;
   }

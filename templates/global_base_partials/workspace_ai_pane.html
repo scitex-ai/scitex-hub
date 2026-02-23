@@ -30,6 +30,17 @@
                     <i class="fas fa-robot"></i> AI Agent
                     <span id="scitex-ai-model-badge" class="scitex-ai-model-badge"></span>
                 </span>
+                <div class="scitex-ai-mode-toggle">
+                    <button class="scitex-ai-mode-btn active" data-mode="chat" title="AI Chat">
+                        <i class="fas fa-comments"></i>
+                    </button>
+                    <button class="scitex-ai-mode-btn" data-mode="console" title="Console (CLI Agents)">
+                        <i class="fas fa-terminal"></i>
+                    </button>
+                    <button class="scitex-ai-mode-btn" data-mode="jobs" title="SLURM Jobs">
+                        <i class="fas fa-tasks"></i>
+                    </button>
+                </div>
                 <div class="scitex-ai-panel-actions">
                     <button id="scitex-ai-speak" class="scitex-ai-action-btn" title="Toggle auto-speak">
                         <i class="fas fa-volume-up"></i>
@@ -45,39 +56,104 @@
             <div id="scitex-ai-settings-panel"
                  class="scitex-ai-settings-panel"
                  style="display:none">
-                <label class="scitex-ai-settings-label">STT Model</label>
-                <select id="scitex-ai-stt-model"
-                        class="scitex-ai-stt-model"
-                        title="STT model"
-                        style="display:none"></select>
+                <!-- LLM Model -->
+                <div class="ai-settings-row">
+                    <label class="scitex-ai-settings-label">
+                        <i class="fas fa-brain"></i> LLM Model
+                    </label>
+                    <select id="scitex-ai-llm-model" class="ai-settings-select" title="LLM model for chat"></select>
+                </div>
+                <!-- STT Model -->
+                <div class="ai-settings-row">
+                    <label class="scitex-ai-settings-label">
+                        <i class="fas fa-microphone"></i> STT Model
+                    </label>
+                    <select id="scitex-ai-stt-model"
+                            class="ai-settings-select scitex-ai-stt-model"
+                            title="STT model"
+                            style="display:none"></select>
+                </div>
+                <!-- Audio Mode -->
+                <div class="ai-settings-row">
+                    <label class="scitex-ai-settings-label">
+                        <i class="fas fa-volume-up"></i> Auto-speak
+                    </label>
+                    <select id="scitex-ai-audio-mode" class="ai-settings-select" title="Auto-speak mode">
+                        <option value="off">Off</option>
+                        <option value="server">Server TTS</option>
+                        <option value="browser">Browser TTS</option>
+                    </select>
+                </div>
+                <!-- MCP Status -->
+                <div class="ai-settings-row ai-settings-mcp">
+                    <label class="scitex-ai-settings-label">
+                        <i class="fas fa-plug"></i> MCP Tools
+                    </label>
+                    <span id="scitex-ai-mcp-badge" class="ai-mcp-badge" title="MCP tools status">
+                        <i class="fas fa-circle ai-mcp-dot"></i>
+                        <span class="ai-mcp-count">--</span>
+                    </span>
+                </div>
+                <!-- Quick Links -->
+                <div class="ai-settings-links">
+                    <a href="/auth/settings/mcp-tools/" title="MCP tool preferences">
+                        <i class="fas fa-puzzle-piece"></i> MCP Settings
+                    </a>
+                    <a href="/auth/settings/ai-providers/" title="AI provider keys">
+                        <i class="fas fa-key"></i> AI Providers
+                    </a>
+                </div>
             </div>
             <div class="sidebar-content scitex-ai-body">
-                <div id="scitex-ai-messages" class="scitex-ai-messages">
-                    <div class="scitex-ai-empty">
-                        <i class="fas fa-robot"></i>
-                        <span>Ask anything about SciTeX.</span>
-                        <span>I can take actions: stats, plots, literature, and your current work.</span>
+                <!-- Chat mode -->
+                <div id="scitex-ai-chat-view" class="scitex-ai-view active">
+                    <div id="scitex-ai-messages" class="scitex-ai-messages">
+                        <div class="scitex-ai-empty">
+                            <i class="fas fa-robot"></i>
+                            <span>Ask anything about SciTeX.</span>
+                            <span>I can take actions: stats, plots, literature, and your current work.</span>
+                        </div>
+                    </div>
+                    <div class="scitex-ai-input-area">
+                        <textarea id="scitex-ai-input"
+                                  class="scitex-ai-input"
+                                  rows="3"
+                                  placeholder="Ask AI agent... (Enter to send)"
+                                  autocomplete="off"></textarea>
+                        <div class="scitex-ai-vol">
+                            <span class="scitex-ai-vol-bar" hidden></span>
+                            <span class="scitex-ai-vol-bar" hidden></span>
+                            <span class="scitex-ai-vol-bar" hidden></span>
+                            <span class="scitex-ai-vol-bar" hidden></span>
+                            <span class="scitex-ai-vol-bar" hidden></span>
+                        </div>
+                        <button id="scitex-ai-mic" class="scitex-ai-mic" title="Voice input">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <button id="scitex-ai-send" class="scitex-ai-send" title="Send (Enter)">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
                     </div>
                 </div>
-                <div class="scitex-ai-input-area">
-                    <textarea id="scitex-ai-input"
-                              class="scitex-ai-input"
-                              rows="3"
-                              placeholder="Ask AI agent... (Enter to send)"
-                              autocomplete="off"></textarea>
-                    <div class="scitex-ai-vol">
-                        <span class="scitex-ai-vol-bar" hidden></span>
-                        <span class="scitex-ai-vol-bar" hidden></span>
-                        <span class="scitex-ai-vol-bar" hidden></span>
-                        <span class="scitex-ai-vol-bar" hidden></span>
-                        <span class="scitex-ai-vol-bar" hidden></span>
+                <!-- Console mode -->
+                <div id="scitex-ai-console-view" class="scitex-ai-view">
+                    <div id="scitex-ai-terminal" class="scitex-ai-terminal"></div>
+                    <div class="scitex-ai-console-bar">
+                        <span class="scitex-ai-console-status" id="scitex-ai-console-status">
+                            <i class="fas fa-circle"></i> Not connected
+                        </span>
+                        <span class="scitex-ai-console-hint">claude · gemini · codex</span>
                     </div>
-                    <button id="scitex-ai-mic" class="scitex-ai-mic" title="Voice input">
-                        <i class="fas fa-microphone"></i>
-                    </button>
-                    <button id="scitex-ai-send" class="scitex-ai-send" title="Send (Enter)">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
+                </div>
+                <!-- Jobs mode -->
+                <div id="scitex-ai-jobs-view" class="scitex-ai-view">
+                    <div class="scitex-ai-jobs-header">
+                        <span id="scitex-ai-jobs-summary" class="scitex-ai-jobs-summary">Loading...</span>
+                        <button class="scitex-ai-action-btn" id="scitex-ai-jobs-refresh" title="Refresh">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                    <div id="scitex-ai-jobs-list" class="scitex-ai-jobs-list"></div>
                 </div>
             </div>
         </div>

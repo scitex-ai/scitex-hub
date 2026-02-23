@@ -1,0 +1,76 @@
+{% load static %}
+
+<!-- User Module output renderer for workspace tab -->
+<link rel="stylesheet" href="{% static 'modulemaker_app/css/usermod.css' %}" />
+{% if current_project %}
+    <div id="workspace-project-config"
+         style="display: none"
+         data-username="{{ current_project.owner.username }}"
+         data-slug="{{ current_project.slug }}"
+         data-mode="modulemaker"></div>
+{% endif %}
+<div class="usermod-workspace">
+    {% if error and not module %}
+        <div class="usermod-error">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>{{ error }}</span>
+        </div>
+    {% elif module %}
+        <!-- Module header -->
+        <div class="usermod-header">
+            <div class="usermod-title">
+                <i class="fas {{ module.icon }}"></i>
+                <h2>{{ module.label }}</h2>
+                <span class="usermod-version">v{{ module.version }}</span>
+            </div>
+            {% if module.description %}<p class="usermod-description">{{ module.description }}</p>{% endif %}
+            <button class="btn btn-primary usermod-run-btn"
+                    data-slug="{{ module.slug }}"
+                    title="Execute module">
+                <i class="fas fa-play"></i> Run
+            </button>
+        </div>
+        <!-- Error message from last execution -->
+        {% if error %}
+            <div class="usermod-error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>{{ error }}</span>
+            </div>
+        {% endif %}
+        <!-- Output cards -->
+        {% if outputs %}
+            <div class="usermod-outputs">
+                {% for item in outputs %}
+                    <div class="usermod-card usermod-card--{{ item.type }}">
+                        {% if item.type == "figure" %}
+                            <img src="data:image/png;base64,{{ item.data }}"
+                                 alt="{{ item.caption|default:'Module output figure' }}"
+                                 class="usermod-figure" />
+                            {% if item.caption %}<p class="usermod-caption">{{ item.caption }}</p>{% endif %}
+                        {% elif item.type == "table" %}
+                            <div class="usermod-table-wrap">{{ item.html|safe }}</div>
+                        {% elif item.type == "text" %}
+                            <p class="usermod-text">{{ item.content }}</p>
+                        {% elif item.type == "json" %}
+                            <pre class="usermod-json">{{ item.data }}</pre>
+                        {% else %}
+                            <pre class="usermod-raw">{{ item.content|default:item.data }}</pre>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="usermod-empty">
+                <i class="fas fa-flask"></i>
+                <p>
+                    Click <strong>Run</strong> to execute this module.
+                </p>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="usermod-empty">
+            <i class="fas fa-puzzle-piece"></i>
+            <p>No module selected.</p>
+        </div>
+    {% endif %}
+</div>

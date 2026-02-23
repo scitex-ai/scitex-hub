@@ -69,6 +69,8 @@ ssh_keys/
 **/*.log
 **/*.sandbox/*
 **/*.sif
+**/.def-hash
+**/.pypi-versions
 **/build-temp-*
 
 ### Source: /home/ywatanabe/.git-templates/.gitignore-templates/Custom/Django.gitignore ###

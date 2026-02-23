@@ -283,7 +283,7 @@ class UserLLMService:
         start_time = time.time()
         try:
             tools = await load_openai_tools()
-            text, tools_used = await run_tool_loop(
+            text, tools_used, loop_usage = await run_tool_loop(
                 litellm_model=litellm_model,
                 api_key=api_key,
                 messages=messages,
@@ -308,21 +308,29 @@ class UserLLMService:
             raise
 
         response_time_ms = int((time.time() - start_time) * 1000)
+        prompt_tokens = loop_usage.get("prompt_tokens", 0)
+        completion_tokens = loop_usage.get("completion_tokens", 0)
+        total_tokens = loop_usage.get("total_tokens", 0)
+        estimated_cost_usd = loop_usage.get("estimated_cost_usd", 0.0)
         await log_usage(
             app_name=app_name,
             feature=feature,
             model_used=model_to_use,
-            prompt_tokens=0,
-            completion_tokens=0,
-            total_tokens=0,
+            prompt_tokens=prompt_tokens,
+            completion_tokens=completion_tokens,
+            total_tokens=total_tokens,
             response_time_ms=response_time_ms,
-            estimated_cost_usd=0,
+            estimated_cost_usd=estimated_cost_usd,
             success=True,
         )
 
         return {
             "text": text,
             "tools_used": tools_used,
+            "prompt_tokens": prompt_tokens,
+            "completion_tokens": completion_tokens,
+            "total_tokens": total_tokens,
+            "estimated_cost_usd": float(estimated_cost_usd),
             "response_time_ms": response_time_ms,
         }
 
@@ -334,6 +342,7 @@ class UserLLMService:
         model: Optional[str] = None,
         max_tokens: int = 8192,
         temperature: float = 0.3,
+        project_root: str | None = None,
     ):
         """
         Streaming version of complete_with_tools.
@@ -398,20 +407,26 @@ class UserLLMService:
                 tools=tools,
                 max_tokens=max_tokens,
                 temperature=temperature,
+                project_root=project_root,
             ):
                 if event["type"] == "tool_start":
                     tools_used.append(event["name"])
                 if event["type"] == "done":
                     response_time_ms = int((time.time() - start_time) * 1000)
+                    loop_usage = event.get("usage", {})
+                    prompt_tokens = loop_usage.get("prompt_tokens", 0)
+                    completion_tokens = loop_usage.get("completion_tokens", 0)
+                    total_tokens = loop_usage.get("total_tokens", 0)
+                    estimated_cost_usd = loop_usage.get("estimated_cost_usd", 0.0)
                     await log_usage(
                         app_name=app_name,
                         feature=feature,
                         model_used=model_to_use,
-                        prompt_tokens=0,
-                        completion_tokens=0,
-                        total_tokens=0,
+                        prompt_tokens=prompt_tokens,
+                        completion_tokens=completion_tokens,
+                        total_tokens=total_tokens,
                         response_time_ms=response_time_ms,
-                        estimated_cost_usd=0,
+                        estimated_cost_usd=estimated_cost_usd,
                         success=True,
                     )
                     yield {**event, "response_time_ms": response_time_ms}

@@ -1,44 +1,57 @@
 #!/bin/bash
-# Timestamp: "2025-11-25 20:00:00 (ywatanabe)"
 # File: ./deployment/singularity/build.sh
 # ============================================
-# Build SciTeX User Workspace Singularity Container
+# Build SciTeX Apptainer Container (Smart Rebuild)
 # ============================================
+# Uses SHA256 hash of .def file to skip rebuilds when unchanged.
+# Pass --force to rebuild regardless.
+
+# NOTE: Canonical way: scitex container build
+# This script remains for Makefile compatibility.
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DEF_FILE="$SCRIPT_DIR/scitex-user-workspace.def"
-SIF_FILE="$SCRIPT_DIR/scitex-user-workspace.sif"
+DEF_FILE="$SCRIPT_DIR/scitex-cloud-shared-v0.1.0.def"
+SIF_FILE="$SCRIPT_DIR/scitex-cloud-shared-v0.1.0.sif"
+HASH_FILE="$SCRIPT_DIR/.def-hash"
 
 # Colors
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
-NC='\033[0m' # No Color
+CYAN='\033[0;36m'
+NC='\033[0m'
 
-echo -e "${GREEN}============================================${NC}"
-echo -e "${GREEN}Building SciTeX User Workspace Container${NC}"
-echo -e "${GREEN}============================================${NC}"
-echo -e ""
+FORCE=false
+if [ "$1" = "--force" ] || [ "$1" = "-f" ]; then
+    FORCE=true
+fi
+
+# ============================================
+# Pre-flight checks
+# ============================================
 
 # Check if running as root
 if [ "$EUID" -ne 0 ]; then
     echo -e "${RED}Error: This script must be run as root (sudo)${NC}"
-    echo -e "Usage: sudo ./build.sh"
+    echo -e "Usage: sudo $0 [--force]"
     exit 1
 fi
 
-# Check if Singularity is installed
-if ! command -v singularity &> /dev/null; then
-    echo -e "${RED}Error: Singularity is not installed${NC}"
-    echo -e "Install with: sudo apt-get install singularity-container"
+# Check if apptainer is installed (prefer apptainer, fall back to singularity)
+if command -v apptainer &>/dev/null; then
+    CONTAINER_CMD="apptainer"
+elif command -v singularity &>/dev/null; then
+    CONTAINER_CMD="singularity"
+else
+    echo -e "${RED}Error: Neither apptainer nor singularity is installed${NC}"
+    echo -e "Install: sudo apt-get install apptainer"
     exit 1
 fi
 
-# Check Singularity version
-SING_VERSION=$(singularity --version | awk '{print $NF}')
-echo -e "Singularity version: ${GREEN}$SING_VERSION${NC}"
+VERSION=$($CONTAINER_CMD --version 2>&1 | head -1)
+echo -e "${CYAN}Container tool:${NC} $CONTAINER_CMD ($VERSION)"
 
 # Check if definition file exists
 if [ ! -f "$DEF_FILE" ]; then
@@ -46,19 +59,68 @@ if [ ! -f "$DEF_FILE" ]; then
     exit 1
 fi
 
-echo -e "Definition file: ${GREEN}$DEF_FILE${NC}"
+# ============================================
+# Fetch latest PyPI versions (cache-busting key)
+# ============================================
+VERSIONS_FILE="$SCRIPT_DIR/.pypi-versions"
+ECOSYSTEM_PKGS="scitex figrecipe scitex-writer scitex-dataset crossref-local openalex-local socialia scitex-linter"
+
+echo -e "${CYAN}Checking latest PyPI versions...${NC}"
+PYPI_VERSIONS=""
+for pkg in $ECOSYSTEM_PKGS; do
+    ver=$(curl -s --max-time 5 "https://pypi.org/pypi/$pkg/json" 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin)['info']['version'])" 2>/dev/null || echo "unknown")
+    PYPI_VERSIONS="${PYPI_VERSIONS}${pkg}==${ver} "
+    echo -e "  ${pkg}: ${GREEN}${ver}${NC}"
+done
+PYPI_VERSIONS=$(echo "$PYPI_VERSIONS" | xargs) # trim
+
+# ============================================
+# Smart rebuild: hash-based change detection
+# ============================================
+# Hash includes BOTH the def file AND PyPI versions
+CURRENT_HASH=$(echo "$(sha256sum "$DEF_FILE" | awk '{print $1}') ${PYPI_VERSIONS}" | sha256sum | awk '{print $1}')
+
+if [ "$FORCE" = false ] && [ -f "$SIF_FILE" ] && [ -f "$HASH_FILE" ]; then
+    STORED_HASH=$(cat "$HASH_FILE" 2>/dev/null || echo "")
+    if [ "$CURRENT_HASH" = "$STORED_HASH" ]; then
+        SIF_SIZE=$(du -h "$SIF_FILE" | cut -f1)
+        SIF_DATE=$(date -r "$SIF_FILE" "+%Y-%m-%d %H:%M")
+        echo -e "${GREEN}✅ Apptainer SIF is up-to-date${NC}"
+        echo -e "   Image: ${SIF_FILE} (${SIF_SIZE}, built ${SIF_DATE})"
+        echo -e "   Hash:  ${CURRENT_HASH:0:12}..."
+        echo -e "   Use ${YELLOW}--force${NC} to rebuild anyway"
+        exit 0
+    fi
+    echo -e "${YELLOW}⚠️  Versions changed or .def updated — rebuild needed${NC}"
+    echo -e "   Old hash: ${STORED_HASH:0:12}..."
+    echo -e "   New hash: ${CURRENT_HASH:0:12}..."
+elif [ ! -f "$SIF_FILE" ]; then
+    echo -e "${YELLOW}⚠️  No SIF file found — initial build${NC}"
+elif [ "$FORCE" = true ]; then
+    echo -e "${YELLOW}⚠️  Force rebuild requested${NC}"
+fi
+
+# Save versions for reference
+echo "$PYPI_VERSIONS" >"$VERSIONS_FILE"
+
+echo -e ""
+echo -e "${GREEN}============================================${NC}"
+echo -e "${GREEN}Building SciTeX Apptainer Container${NC}"
+echo -e "${GREEN}============================================${NC}"
+echo -e ""
+echo -e "Definition: ${GREEN}$DEF_FILE${NC}"
 
 # Backup existing .sif file if it exists
 if [ -f "$SIF_FILE" ]; then
     BACKUP_FILE="$SIF_FILE.backup.$(date +%Y%m%d_%H%M%S)"
-    echo -e "${YELLOW}Backing up existing image to: $BACKUP_FILE${NC}"
+    echo -e "${YELLOW}Backing up existing image to: $(basename "$BACKUP_FILE")${NC}"
     cp "$SIF_FILE" "$BACKUP_FILE"
 fi
 
-# Check disk space (need at least 2GB free)
+# Check disk space (need at least 6GB free for build)
 FREE_SPACE=$(df -BG "$SCRIPT_DIR" | awk 'NR==2 {print $4}' | sed 's/G//')
-if [ "$FREE_SPACE" -lt 2 ]; then
-    echo -e "${RED}Warning: Low disk space (${FREE_SPACE}GB free, recommend 2GB+)${NC}"
+if [ "$FREE_SPACE" -lt 6 ]; then
+    echo -e "${RED}Warning: Low disk space (${FREE_SPACE}GB free, recommend 6GB+)${NC}"
     read -p "Continue anyway? (y/N) " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -68,17 +130,20 @@ fi
 
 echo -e ""
 echo -e "${GREEN}Starting build...${NC}"
-echo -e "This will take 5-10 minutes depending on network speed."
+echo -e "This may take 15-30 minutes (downloads npm + Python packages)."
 echo -e ""
 
 # Build the container
 START_TIME=$(date +%s)
 
-if singularity build "$SIF_FILE" "$DEF_FILE"; then
+if $CONTAINER_CMD build --force "$SIF_FILE" "$DEF_FILE"; then
     END_TIME=$(date +%s)
     BUILD_TIME=$((END_TIME - START_TIME))
     BUILD_MINUTES=$((BUILD_TIME / 60))
     BUILD_SECONDS=$((BUILD_TIME % 60))
+
+    # Store hash for future change detection
+    echo "$CURRENT_HASH" >"$HASH_FILE"
 
     echo -e ""
     echo -e "${GREEN}============================================${NC}"
@@ -88,11 +153,20 @@ if singularity build "$SIF_FILE" "$DEF_FILE"; then
     echo -e "Image file: ${GREEN}$SIF_FILE${NC}"
     echo -e "Image size: ${GREEN}$(du -h "$SIF_FILE" | cut -f1)${NC}"
     echo -e "Build time: ${GREEN}${BUILD_MINUTES}m ${BUILD_SECONDS}s${NC}"
+    echo -e "Def hash:   ${GREEN}${CURRENT_HASH:0:12}...${NC}"
+    echo -e ""
+    # Auto-freeze: extract pinned versions for reproducibility
+    echo -e "${GREEN}Running freeze to capture installed versions...${NC}"
+    if bash "$SCRIPT_DIR/freeze.sh" "$SIF_FILE"; then
+        echo -e "${GREEN}✅ Version lock files generated${NC}"
+    else
+        echo -e "${YELLOW}⚠️  Freeze failed (non-critical) — run manually: ./freeze.sh${NC}"
+    fi
+
     echo -e ""
     echo -e "${GREEN}Next steps:${NC}"
-    echo -e "1. Test the container: ./test.sh"
-    echo -e "2. Copy to production: sudo cp $SIF_FILE /app/deployment/singularity/"
-    echo -e "3. Update Django settings: SINGULARITY_IMAGE_PATH=/app/deployment/singularity/scitex-user-workspace.sif"
+    echo -e "  Test:    sudo ./test.sh"
+    echo -e "  Restart: make env=dev restart"
     echo -e ""
 else
     echo -e ""

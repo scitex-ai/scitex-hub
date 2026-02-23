@@ -20,6 +20,11 @@
   background: var(--bg-primary, #0d1117);
 }
 
+/* When global header is collapsed (6px), reclaim its space */
+.global-header.collapsed ~ .workspace-three-col {
+  height: calc(100vh - 6px - 44px);
+}
+
 /* ============================================================
    AI Agent pane (leftmost)
    ============================================================ */
@@ -80,6 +85,36 @@
   display: none;
 }
 
+/* Worktree header actions (sort toggle etc.) */
+.ws-worktree-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 2px;
+}
+
+#ws-worktree-sidebar.collapsed .ws-worktree-actions {
+  display: none;
+}
+
+.ws-worktree-actions .sort-toggle {
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  cursor: pointer;
+  color: var(--text-muted, #8b949e);
+  font-size: 0.7rem;
+  border-radius: 3px;
+}
+
+.ws-worktree-actions .sort-toggle:hover {
+  color: var(--text-primary, #c9d1d9);
+  background: var(--bg-tertiary, #21262d);
+}
+
+.ws-worktree-actions .sort-toggle.active {
+  color: var(--accent-color, #58a6ff);
+}
+
 /* Empty state when no project is selected */
 .ws-worktree-empty {
   display: flex;
@@ -96,6 +131,139 @@
 .ws-worktree-empty i {
   font-size: 1.5rem;
   opacity: 0.5;
+}
+
+/* Vertical split: tree area + preview panel */
+.ws-worktree-split {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.ws-worktree-tree-area {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 80px;
+}
+
+/* File preview panel (bottom of worktree) */
+.ws-worktree-preview {
+  border-top: 1px solid var(--border-default, #30363d);
+  max-height: 50%;
+  min-height: 100px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.ws-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  background: var(--bg-tertiary, #21262d);
+  border-bottom: 1px solid var(--border-default, #30363d);
+  flex-shrink: 0;
+}
+
+.ws-preview-title {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-primary, #c9d1d9);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ws-preview-open {
+  color: var(--text-dimmed, #484f58);
+  font-size: 0.65rem;
+  margin-left: auto;
+  text-decoration: none;
+}
+
+.ws-preview-open:hover {
+  color: var(--accent-color, #58a6ff);
+}
+
+.ws-preview-close {
+  display: flex !important;
+  padding: 2px 4px;
+  font-size: 0.65rem;
+}
+
+.ws-preview-content {
+  flex: 1;
+  overflow: auto;
+  padding: 0;
+}
+
+.ws-preview-code {
+  margin: 0;
+  padding: 6px 8px;
+  font-size: 0.7rem;
+  line-height: 1.4;
+  font-family: "JetBrains Mono", monospace;
+  color: var(--text-primary, #c9d1d9);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.ws-preview-image {
+  max-width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+  display: block;
+  margin: 8px auto;
+}
+
+.ws-preview-binary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px;
+  color: var(--text-muted, #8b949e);
+  font-size: 0.75rem;
+}
+
+.ws-preview-binary i {
+  font-size: 1.5rem;
+  opacity: 0.5;
+}
+
+.ws-preview-download {
+  color: var(--accent-color, #58a6ff);
+  text-decoration: none;
+  font-size: 0.7rem;
+}
+
+.ws-preview-download:hover {
+  text-decoration: underline;
+}
+
+.ws-preview-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  color: var(--text-muted, #8b949e);
+}
+
+.ws-preview-error {
+  padding: 12px;
+  color: var(--danger-color, #f85149);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.ws-preview-truncated {
+  padding: 4px 8px;
+  font-size: 0.65rem;
+  color: var(--text-dimmed, #484f58);
+  border-top: 1px solid var(--border-default, #30363d);
+  text-align: center;
 }
 
 /* ============================================================
@@ -140,19 +308,90 @@ body.scitex-ai-open #workspace-three-col #main-content {
 
 /* AI panel settings dropdown */
 .scitex-ai-settings-panel {
-  padding: 0.375rem 0.75rem;
+  padding: 0.5rem 0.75rem;
   border-bottom: 1px solid var(--border-default, #30363d);
   background: var(--bg-secondary, #161b22);
   display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.ai-settings-row {
+  display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.5rem;
-  flex-wrap: wrap;
 }
 
 .scitex-ai-settings-label {
   font-size: 0.7rem;
   color: var(--text-muted, #8b949e);
   white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.scitex-ai-settings-label i {
+  width: 12px;
+  text-align: center;
+  font-size: 0.65rem;
+}
+
+.ai-settings-select {
+  flex: 1;
+  min-width: 0;
+  max-width: 160px;
+  font-size: 0.7rem;
+  padding: 2px 4px;
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 4px;
+  background: var(--bg-primary, #0d1117);
+  color: var(--text-primary, #c9d1d9);
+}
+
+/* MCP badge */
+.ai-mcp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.7rem;
+  color: var(--text-muted, #8b949e);
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: var(--bg-tertiary, #21262d);
+}
+
+.ai-mcp-dot {
+  font-size: 6px;
+}
+
+.ai-mcp-badge.healthy .ai-mcp-dot {
+  color: var(--success-color, #3fb950);
+}
+.ai-mcp-badge.error .ai-mcp-dot {
+  color: var(--danger-color, #f85149);
+}
+
+/* Quick links */
+.ai-settings-links {
+  display: flex;
+  gap: 0.75rem;
+  padding-top: 0.25rem;
+  border-top: 1px solid var(--border-default, #30363d);
+}
+
+.ai-settings-links a {
+  font-size: 0.65rem;
+  color: var(--text-dimmed, #484f58);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.ai-settings-links a:hover {
+  color: var(--accent-color, #58a6ff);
 }
 
 /* ============================================================

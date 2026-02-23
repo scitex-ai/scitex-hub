@@ -202,3 +202,50 @@
   margin: 0 !important;
   padding: 0 !important;
 }
+
+/* ========================================
+ * PDF Context Menu (right-click)
+ * ======================================== */
+
+.pdf-context-menu {
+  display: none;
+  position: fixed;
+  z-index: 10000;
+  min-width: 180px;
+  background: var(--workspace-bg-secondary, #1e1e1e);
+  border: 1px solid var(--workspace-border-default, #3a3a3a);
+  border-radius: 6px;
+  padding: 4px 0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.pdf-context-menu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 14px;
+  border: none;
+  background: none;
+  color: var(--text-primary, #e0e0e0);
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.pdf-context-menu button:hover {
+  background: var(--workspace-bg-tertiary, #2d2d2d);
+}
+
+.pdf-context-menu button i {
+  width: 14px;
+  text-align: center;
+  color: var(--text-muted, #888);
+  font-size: 11px;
+}
+
+[data-theme="light"] .pdf-context-menu {
+  background: var(--workspace-bg-secondary);
+  border-color: var(--workspace-border-default);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
