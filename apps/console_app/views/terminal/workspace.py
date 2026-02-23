@@ -98,28 +98,16 @@ fi
             content += sync_block
         changed = True
 
-    # Patch 3: Dev mode editable install from mounted repos
-    if ".scitex-dev-installed" not in content:
-        dev_block = """
-# Dev mode: editable install from mounted repos (only in dev with bind mounts)
-if [ ! -f /tmp/.scitex-dev-installed ] && [ -d /opt/dev/scitex-python ]; then
-    echo -e "\\033[0;90m[SciTeX] Installing dev packages (editable)...\\033[0m"
-    for repo in /opt/dev/*/; do
-        if [ -f "$repo/pyproject.toml" ]; then
-            pip install -e "$repo[all]" --quiet --no-deps 2>/dev/null || true
-        fi
-    done
-    # Resolve all deps in one pass
-    pip install -e "/opt/dev/scitex-python[all]" --quiet 2>/dev/null || true
-    touch /tmp/.scitex-dev-installed
-    echo -e "\\033[0;32m[SciTeX] Dev packages installed (editable)\\033[0m"
-fi
-"""
-        marker = "# Aliases"
-        if marker in content:
-            content = content.replace(marker, dev_block + marker)
-        else:
-            content += dev_block
+    # Patch 3: Remove old dev install block (too slow at login)
+    if ".scitex-dev-installed" in content:
+        import re
+
+        content = re.sub(
+            r"\n# Dev mode:.*?fi\n",
+            "\n",
+            content,
+            flags=re.DOTALL,
+        )
         changed = True
 
     # Patch 4: scitex version MOTD on login
