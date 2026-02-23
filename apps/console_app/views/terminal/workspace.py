@@ -101,11 +101,11 @@ fi
     # Patch 3: Add tmux mouse off for normal text selection
     if "tmux set -g mouse off" not in content:
         mouse_line = "# Disable tmux mouse mode for normal text selection\ntmux set -g mouse off 2>/dev/null\n"
-        marker = "# Show scitex version"
+        marker = "# AI CLI tools"
         if marker in content:
             content = content.replace(marker, mouse_line + "\n" + marker)
         else:
-            marker = "# AI CLI tools"
+            marker = "# Aliases"
             if marker in content:
                 content = content.replace(marker, mouse_line + "\n" + marker)
         changed = True
@@ -122,38 +122,16 @@ fi
         )
         changed = True
 
-    # Patch 4: scitex version MOTD on login
-    # Fix old format "scitex v${_V}" → "$_V" (was producing "scitex vscitex, version X.Y.Z")
-    if 'echo -e "\\033[0;36m[SciTeX Cloud] scitex v' in content:
-        content = content.replace(
-            'echo -e "\\033[0;36m[SciTeX Cloud] scitex v${_V}\\033[0m"',
-            'echo -e "\\033[0;36m[SciTeX Cloud] $_V\\033[0m"',
+    # Patch 5: Remove version MOTD block (no longer needed)
+    if "# Show scitex version" in content:
+        import re
+
+        content = re.sub(
+            r"\n# Show scitex version.*?fi\n",
+            "\n",
+            content,
+            flags=re.DOTALL,
         )
-        # Also fix the f-string variant from dotfiles.py
-        content = content.replace(
-            'echo -e "\\033[0;36m[SciTeX Cloud] scitex v$_V\\033[0m"',
-            'echo -e "\\033[0;36m[SciTeX Cloud] $_V\\033[0m"',
-        )
-        changed = True
-    elif "[SciTeX Cloud]" not in content:
-        motd_block = """
-# Show scitex version on login
-if command -v scitex &>/dev/null; then
-    _V=$(scitex --version 2>/dev/null | head -1)
-    echo -e "\\033[0;36m[SciTeX Cloud] $_V\\033[0m"
-    unset _V
-fi
-"""
-        # Insert after PS1 line
-        marker = "# AI CLI tools"
-        if marker in content:
-            content = content.replace(marker, motd_block + marker)
-        else:
-            marker = "# Aliases"
-            if marker in content:
-                content = content.replace(marker, motd_block + marker)
-            else:
-                content += motd_block
         changed = True
 
     if changed:
