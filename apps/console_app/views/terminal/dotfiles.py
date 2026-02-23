@@ -29,6 +29,9 @@ export HISTCONTROL=ignoredups:erasedups
 # Prompt: {username}@scitex:~/path $
 PS1='\\[\\033[01;32m\\]{username}@scitex\\[\\033[00m\\]:\\[\\033[01;34m\\]\\w\\[\\033[00m\\] \\$ '
 
+# Disable tmux mouse mode for normal text selection
+tmux set -g mouse off 2>/dev/null
+
 # Show scitex version on login
 if command -v scitex &>/dev/null; then
     _V=$(scitex --version 2>/dev/null | head -1)

@@ -98,7 +98,19 @@ fi
             content += sync_block
         changed = True
 
-    # Patch 3: Remove old dev install block (too slow at login)
+    # Patch 3: Add tmux mouse off for normal text selection
+    if "tmux set -g mouse off" not in content:
+        mouse_line = "# Disable tmux mouse mode for normal text selection\ntmux set -g mouse off 2>/dev/null\n"
+        marker = "# Show scitex version"
+        if marker in content:
+            content = content.replace(marker, mouse_line + "\n" + marker)
+        else:
+            marker = "# AI CLI tools"
+            if marker in content:
+                content = content.replace(marker, mouse_line + "\n" + marker)
+        changed = True
+
+    # Patch 4: Remove old dev install block (too slow at login)
     if ".scitex-dev-installed" in content:
         import re
 
