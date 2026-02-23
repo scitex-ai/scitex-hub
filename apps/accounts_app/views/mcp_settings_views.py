@@ -118,8 +118,11 @@ def _build_groups_context(prefs: dict) -> list[dict]:
 
 
 def _regenerate_claude_config(user):
-    """Regenerate .claude/settings.json with updated MCP preferences."""
-    from apps.console_app.services.agents_config import ensure_claude_config
+    """Regenerate .mcp.json and .agents/agents.json with updated MCP preferences."""
+    from apps.console_app.services.agents_config import (
+        ensure_agents_config,
+        ensure_claude_config,
+    )
     from apps.console_app.views.terminal.config import USER_DATA_ROOT
 
     username = user.username
@@ -133,7 +136,18 @@ def _regenerate_claude_config(user):
         if prefs.get(group, True):
             mcp_env[f"SCITEX_MCP_USE_{group}"] = "1"
 
-    return ensure_claude_config(user_data_dir, mcp_env=mcp_env, force=True)
+    # Regenerate for all projects
+    proj_dir = user_data_dir / "proj"
+    regenerated = False
+    if proj_dir.exists():
+        for project_dir in proj_dir.iterdir():
+            if project_dir.is_dir() and project_dir.name != "dotfiles":
+                ensure_agents_config(project_dir, mcp_env=mcp_env, force=True)
+                ensure_claude_config(
+                    user_data_dir, project_dir, mcp_env=mcp_env, force=True
+                )
+                regenerated = True
+    return regenerated
 
 
 @login_required

@@ -18,21 +18,24 @@ import json
 import logging
 from pathlib import Path
 
-from django.conf import settings
-
 logger = logging.getLogger(__name__)
 
 AGENTS_SCHEMA_VERSION = 3
 
 
-def _get_mcp_url() -> str:
-    """Build the SciTeX MCP HTTP endpoint URL."""
-    base = getattr(settings, "SITE_URL", "http://127.0.0.1:8000")
-    return f"{base}/mcp"
+def _build_agents_json(mcp_env: dict[str, str] | None = None) -> dict:
+    """Build the .agents/agents.json content.
 
+    Uses local stdio transport (``scitex mcp start``) which works inside the
+    Apptainer container without network access or API tokens.
+    """
+    env = {}
+    if mcp_env:
+        env = mcp_env
+    else:
+        for group in DEFAULT_MCP_GROUPS:
+            env[f"SCITEX_MCP_USE_{group}"] = "1"
 
-def _build_agents_json(mcp_url: str) -> dict:
-    """Build the .agents/agents.json content."""
     return {
         "schemaVersion": AGENTS_SCHEMA_VERSION,
         "instructions": {"path": "AGENTS.md"},
@@ -47,12 +50,12 @@ def _build_agents_json(mcp_url: str) -> dict:
         "mcp": {
             "servers": {
                 "scitex": {
-                    "label": "SciTeX Cloud",
+                    "label": "SciTeX Platform",
                     "description": "SciTeX scientific research platform — 145+ MCP tools for plotting, statistics, literature, writing, and more",
-                    "transport": "http",
-                    "url": mcp_url,
-                    "headers": {"Authorization": "Token {{SCITEX_API_TOKEN}}"},
-                    "requiredEnv": ["SCITEX_API_TOKEN"],
+                    "transport": "stdio",
+                    "command": "/usr/local/bin/scitex",
+                    "args": ["mcp", "start"],
+                    "env": env,
                     "enabled": True,
                 }
             }
@@ -61,11 +64,9 @@ def _build_agents_json(mcp_url: str) -> dict:
     }
 
 
-def _build_local_json(api_token: str) -> dict:
-    """Build .agents/local.json with actual secrets."""
-    return {
-        "mcpServers": {"scitex": {"headers": {"Authorization": f"Token {api_token}"}}}
-    }
+def _build_local_json() -> dict:
+    """Build .agents/local.json (placeholder, no secrets needed for stdio)."""
+    return {}
 
 
 def _build_agents_md(project_name: str) -> str:
@@ -83,11 +84,15 @@ def _build_agents_md(project_name: str) -> str:
 
 def ensure_agents_config(
     project_path: str | Path,
-    api_token: str | None = None,
     project_name: str = "SciTeX Project",
+    mcp_env: dict[str, str] | None = None,
+    force: bool = False,
 ) -> bool:
     """
-    Create .agents/ config if missing, pointing to SciTeX MCP server.
+    Create .agents/ config if missing, with local stdio MCP server.
+
+    Args:
+        force: If True, regenerate agents.json even if it exists.
 
     Returns True if files were created, False if already existed.
     """
@@ -95,23 +100,19 @@ def ensure_agents_config(
     agents_dir = project_path / ".agents"
     config_file = agents_dir / "agents.json"
 
-    if config_file.exists():
+    if config_file.exists() and not force:
         return False
-
-    mcp_url = _get_mcp_url()
 
     try:
         agents_dir.mkdir(parents=True, exist_ok=True)
 
-        # agents.json — committable, uses {{PLACEHOLDER}} for secrets
-        config_file.write_text(json.dumps(_build_agents_json(mcp_url), indent=2) + "\n")
+        # agents.json — stdio MCP server config
+        config_file.write_text(json.dumps(_build_agents_json(mcp_env), indent=2) + "\n")
 
-        # local.json — gitignored, contains actual token
-        if api_token:
-            local_file = agents_dir / "local.json"
-            local_file.write_text(
-                json.dumps(_build_local_json(api_token), indent=2) + "\n"
-            )
+        # local.json — needed by agents CLI (even if empty)
+        local_file = agents_dir / "local.json"
+        if not local_file.exists():
+            local_file.write_text(json.dumps(_build_local_json(), indent=2) + "\n")
 
         # AGENTS.md — project description for AI tools
         agents_md = project_path / "AGENTS.md"
@@ -163,20 +164,23 @@ DEFAULT_MCP_GROUPS = [
 ]
 
 
-def _build_claude_settings(mcp_env: dict[str, str] | None = None) -> dict:
-    """Build .claude/settings.json with local stdio MCP server."""
+def _build_mcp_json(mcp_env: dict[str, str] | None = None) -> dict:
+    """Build project-level .mcp.json for Claude Code.
+
+    Claude Code reads MCP servers from ``.mcp.json`` (project-level) or
+    ``~/.claude.json`` (user-level).  We use project-level to keep it clean.
+    """
     env = {}
     if mcp_env:
         env = mcp_env
     else:
-        # All groups enabled by default
         for group in DEFAULT_MCP_GROUPS:
             env[f"SCITEX_MCP_USE_{group}"] = "1"
 
     return {
         "mcpServers": {
             "scitex": {
-                "command": "scitex",
+                "command": "/usr/local/bin/scitex",
                 "args": ["mcp", "start"],
                 "env": env,
             }
@@ -212,41 +216,45 @@ def ensure_claude_config(
     force: bool = False,
 ) -> bool:
     """
-    Create .claude/ config for Claude Code if missing.
+    Create Claude Code config if missing.
 
     Sets up:
-    - ~/.claude/settings.json — MCP server (local stdio scitex)
+    - <project>/.mcp.json — MCP server definition (project-level, clean)
     - ~/.claude/skills/scitex-cloud/SKILL.md — platform skills
-    - <project>/CLAUDE.md — project instructions (if project_path given)
+    - <project>/CLAUDE.md — project instructions
+
+    The .agents/agents.json is the single source of truth for MCP config.
+    ``agents sync`` in bashrc propagates it to all AI tools.
+    The .mcp.json is a direct fallback so Claude Code works immediately.
 
     Args:
-        force: If True, regenerate settings.json even if it exists
-               (used when user changes MCP preferences).
+        force: If True, regenerate even if files exist.
 
     Returns True if files were created/updated, False if already existed.
     """
     user_data_dir = Path(user_data_dir)
-    claude_dir = user_data_dir / ".claude"
-    settings_file = claude_dir / "settings.json"
-
-    if settings_file.exists() and not force:
-        return False
+    created = False
 
     try:
-        # .claude/settings.json — MCP server config
-        claude_dir.mkdir(parents=True, exist_ok=True)
-        settings_file.write_text(
-            json.dumps(_build_claude_settings(mcp_env), indent=2) + "\n"
-        )
+        # ~/.claude/skills/scitex-cloud/SKILL.md — compiled skills
+        claude_dir = user_data_dir / ".claude"
+        skill_file = claude_dir / "skills" / "scitex-cloud" / "SKILL.md"
+        if not skill_file.exists() or force:
+            skill_file.parent.mkdir(parents=True, exist_ok=True)
+            skill_file.write_text(_build_claude_skill())
+            created = True
 
-        # .claude/skills/scitex-cloud/SKILL.md — compiled skills
-        skill_dir = claude_dir / "skills" / "scitex-cloud"
-        skill_dir.mkdir(parents=True, exist_ok=True)
-        (skill_dir / "SKILL.md").write_text(_build_claude_skill())
-
-        # Project-level CLAUDE.md
+        # Project-level .mcp.json — Claude Code reads MCP servers from here
         if project_path:
             project_path = Path(project_path)
+            mcp_json = project_path / ".mcp.json"
+            if not mcp_json.exists() or force:
+                mcp_json.write_text(
+                    json.dumps(_build_mcp_json(mcp_env), indent=2) + "\n"
+                )
+                created = True
+
+            # Project-level CLAUDE.md
             claude_md = project_path / "CLAUDE.md"
             if not claude_md.exists():
                 claude_md.write_text(
@@ -264,12 +272,14 @@ def ensure_claude_config(
                     "Run `/mcp` in Claude Code to see available tools.\n"
                     "Run `/skills` to see SciTeX Cloud capabilities.\n"
                 )
+                created = True
 
-        logger.info("Created .claude/ config at %s", claude_dir)
-        return True
+        if created:
+            logger.info("Created Claude Code config at %s", user_data_dir)
+        return created
 
     except Exception:
-        logger.exception("Failed to create .claude/ config at %s", user_data_dir)
+        logger.exception("Failed to create Claude Code config at %s", user_data_dir)
         return False
 
 

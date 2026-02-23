@@ -396,11 +396,11 @@ class TerminalConsumer(AsyncWebsocketConsumer):
         """Create .agents/ config if missing (runs in thread)."""
         from apps.console_app.services.agents_config import ensure_agents_config
 
-        ensure_agents_config(project_dir, project_name=project_name)
+        ensure_agents_config(project_dir, project_name=project_name, force=True)
 
     @staticmethod
     def _ensure_claude_config(user_data_dir, project_dir, project_name):
-        """Create .claude/ config if missing (runs in thread)."""
+        """Create .mcp.json + skills if missing (runs in thread)."""
         from apps.console_app.services.agents_config import ensure_claude_config
 
         ensure_claude_config(user_data_dir, project_dir, project_name=project_name)
