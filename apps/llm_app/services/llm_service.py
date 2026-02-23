@@ -342,6 +342,7 @@ class UserLLMService:
         model: Optional[str] = None,
         max_tokens: int = 8192,
         temperature: float = 0.3,
+        project_root: str | None = None,
     ):
         """
         Streaming version of complete_with_tools.
@@ -406,6 +407,7 @@ class UserLLMService:
                 tools=tools,
                 max_tokens=max_tokens,
                 temperature=temperature,
+                project_root=project_root,
             ):
                 if event["type"] == "tool_start":
                     tools_used.append(event["name"])

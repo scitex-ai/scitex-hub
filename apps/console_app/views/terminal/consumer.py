@@ -418,6 +418,21 @@ class TerminalConsumer(AsyncWebsocketConsumer):
             b64 = base64.b64encode(text.encode()).decode()
             await self.send(text_data=f"\x1b]9999;speak:{b64}\x07")
 
+    async def media_display(self, event):
+        """Forward media display request to browser via WebSocket.
+
+        The browser terminal intercepts ``\\x1b]9998;media:`` escapes
+        and renders an overlay image/file preview above the terminal.
+        """
+        import base64
+        import json
+
+        media = event.get("media", {})
+        if media:
+            payload = json.dumps(media)
+            b64 = base64.b64encode(payload.encode()).decode()
+            await self.send(text_data=f"\x1b]9998;media:{b64}\x07")
+
     async def disconnect(self, close_code):
         """Clean up on disconnect."""
         # Leave speech channel group

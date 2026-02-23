@@ -138,37 +138,9 @@ export class AIPanelConsoleMode {
 
     this.ws.onmessage = (ev) => {
       const data: string = ev.data;
-      // Intercept TTS speech OSC escape: \x1b]9999;speak:<base64>\x07
-      const speechPrefix = "\x1b]9999;speak:";
-      const idx = data.indexOf(speechPrefix);
-      if (idx !== -1) {
-        // Write any data before the escape to terminal
-        if (idx > 0) this.terminal.write(data.slice(0, idx));
-        // Extract base64 text between prefix and BEL (\x07)
-        const start = idx + speechPrefix.length;
-        const end = data.indexOf("\x07", start);
-        if (end !== -1) {
-          try {
-            const text = atob(data.slice(start, end));
-            const csrf =
-              document.querySelector<HTMLInputElement>(
-                "[name=csrfmiddlewaretoken]",
-              )?.value ??
-              (document.cookie.match(/csrftoken=([^;]+)/)?.[1] || "");
-            speakText(text, csrf);
-          } catch {
-            /* ignore decode errors */
-          }
-          // Write any data after the escape to terminal
-          const after = end + 1;
-          if (after < data.length) this.terminal.write(data.slice(after));
-        } else {
-          // Malformed escape — write everything to terminal
-          this.terminal.write(data);
-        }
-      } else {
-        this.terminal.write(data);
-      }
+      // Intercept OSC escapes before writing to terminal
+      const processed = this.handleOscEscapes(data);
+      if (processed) this.terminal.write(processed);
     };
 
     this.ws.onerror = () => {
@@ -243,6 +215,86 @@ export class AIPanelConsoleMode {
       foreground: get("--terminal-fg", "#c9d1d9"),
       cursor: get("--terminal-cursor", "#58a6ff"),
     };
+  }
+
+  /** Process OSC escape sequences (speech + media), return remaining data to write */
+  private handleOscEscapes(data: string): string | null {
+    let remaining = data;
+    // TTS: \x1b]9999;speak:<base64>\x07
+    remaining = this.extractOsc(remaining, "\x1b]9999;speak:", (b64) => {
+      try {
+        const text = atob(b64);
+        const csrf =
+          document.querySelector<HTMLInputElement>("[name=csrfmiddlewaretoken]")
+            ?.value ??
+          (document.cookie.match(/csrftoken=([^;]+)/)?.[1] || "");
+        speakText(text, csrf);
+      } catch {
+        /* ignore */
+      }
+    });
+    // Media: \x1b]9998;media:<base64-json>\x07
+    remaining = this.extractOsc(remaining, "\x1b]9998;media:", (b64) => {
+      try {
+        const ref = JSON.parse(atob(b64));
+        this.showMediaOverlay(ref);
+      } catch {
+        /* ignore */
+      }
+    });
+    return remaining || null;
+  }
+
+  /** Extract and handle a single OSC escape, return data with escape removed */
+  private extractOsc(
+    data: string,
+    prefix: string,
+    handler: (b64: string) => void,
+  ): string {
+    const idx = data.indexOf(prefix);
+    if (idx === -1) return data;
+    const start = idx + prefix.length;
+    const end = data.indexOf("\x07", start);
+    if (end === -1) return data;
+    handler(data.slice(start, end));
+    return data.slice(0, idx) + data.slice(end + 1);
+  }
+
+  /** Show a floating media overlay above the terminal */
+  private showMediaOverlay(ref: {
+    type: string;
+    path: string;
+    url?: string;
+  }): void {
+    if (!this.container) return;
+    const overlay = document.createElement("div");
+    overlay.className = "scitex-terminal-media-overlay";
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "scitex-terminal-media-close";
+    closeBtn.innerHTML = "&times;";
+    closeBtn.onclick = () => overlay.remove();
+    overlay.appendChild(closeBtn);
+
+    const url = ref.url || ref.path;
+    if (ref.type === "image") {
+      const img = document.createElement("img");
+      img.src = url;
+      img.style.maxWidth = "100%";
+      img.style.maxHeight = "80%";
+      overlay.appendChild(img);
+    } else {
+      const link = document.createElement("a");
+      link.href = url;
+      link.target = "_blank";
+      link.textContent = ref.path.split("/").pop() || ref.path;
+      link.style.color = "var(--color-accent-fg, #58a6ff)";
+      overlay.appendChild(link);
+    }
+
+    this.container.style.position = "relative";
+    this.container.appendChild(overlay);
+    // Auto-dismiss after 15s
+    setTimeout(() => overlay.remove(), 15000);
   }
 
   destroy(): void {

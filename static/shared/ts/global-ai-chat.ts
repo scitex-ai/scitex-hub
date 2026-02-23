@@ -28,6 +28,7 @@ import {
   loadMessages,
   saveMessage,
 } from "./components/global-ai-chat/storage";
+import { renderMedia } from "./components/global-ai-chat/media-renderer";
 import { processStream } from "./components/global-ai-chat/stream-handler";
 import { execBashCommand } from "./components/global-ai-chat/bash-exec";
 import { loadHistory, pushHistory } from "./components/global-ai-chat/history";
@@ -354,10 +355,17 @@ class GlobalAIChat {
     const stored = loadMessages();
     if (stored.length === 0 || !this.messagesEl) return;
     this.messagesEl.innerHTML = "";
+    const slug = readActiveProjectSlug() || "";
+    const user =
+      document.querySelector<HTMLElement>("[data-project-owner]")?.dataset
+        .projectOwner || "";
     for (const msg of stored) {
       const el = this.createMsgEl(msg.role);
       el.appendChild(document.createTextNode(msg.text));
       if (msg.toolsUsed?.length) appendToolTags(el, msg.toolsUsed);
+      if (msg.media?.length && user && slug)
+        for (const ref of msg.media)
+          el.appendChild(renderMedia(ref, user, slug));
     }
   }
 
@@ -498,9 +506,7 @@ class GlobalAIChat {
   }
 }
 
-const globalAI = new GlobalAIChat();
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => globalAI.init());
-} else {
-  globalAI.init();
-}
+const _ai = new GlobalAIChat();
+if (document.readyState === "loading")
+  document.addEventListener("DOMContentLoaded", () => _ai.init());
+else _ai.init();

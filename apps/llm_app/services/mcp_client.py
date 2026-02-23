@@ -256,6 +256,7 @@ async def run_tool_loop_streaming(
     tools: list[dict[str, Any]],
     max_tokens: int = 8192,
     temperature: float = 0.3,
+    project_root: str | None = None,
 ):
     """
     Streaming version of run_tool_loop.
@@ -418,6 +419,15 @@ async def run_tool_loop_streaming(
                 result_text = f"Error executing {tool_name}: {exc}"
 
             yield {"type": "tool_end", "name": tool_name}
+
+            # Emit media references for frontend rendering
+            if project_root:
+                from apps.llm_app.services.media_detect import extract_media_refs
+
+                media = extract_media_refs(result_text, project_root)
+                if media:
+                    yield {"type": "tool_result", "name": tool_name, "media": media}
+
             messages.append(
                 {
                     "role": "tool",

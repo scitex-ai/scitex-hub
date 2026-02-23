@@ -7,6 +7,7 @@ import { setModelBadge } from "./model-badge";
 import { appendToolTags } from "./tool-tags";
 import { StoredMessage, saveMessage } from "./storage";
 import { runUIActions, UIActionArgs } from "../ui-action/index";
+import { renderMedia, MediaRef } from "./media-renderer";
 
 export interface StreamContext {
   messagesEl: HTMLElement;
@@ -23,6 +24,9 @@ export async function processStream(
 ): Promise<void> {
   let hasText = false;
   const toolsUsed: string[] = [];
+  const mediaRefs: MediaRef[] = [];
+  let contextUser = "";
+  let contextSlug = "";
   const reader = resp.body!.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
@@ -80,6 +84,18 @@ export async function processStream(
             /**/
           }
         }
+      } else if (event.type === "context") {
+        contextUser = event.username as string;
+        contextSlug = event.slug as string;
+      } else if (event.type === "tool_result") {
+        const media = event.media as MediaRef[] | undefined;
+        if (media?.length && contextUser && contextSlug) {
+          for (const ref of media) {
+            mediaRefs.push(ref);
+            msgEl.appendChild(renderMedia(ref, contextUser, contextSlug));
+          }
+          ctx.messagesEl.scrollTop = ctx.messagesEl.scrollHeight;
+        }
       } else if (event.type === "error") {
         msgEl.remove();
         const errEl = document.createElement("div");
@@ -109,11 +125,12 @@ export async function processStream(
     .filter((n) => n.nodeType === Node.TEXT_NODE)
     .map((n) => n.textContent ?? "")
     .join("");
-  if (msgText || toolsUsed.length > 0) {
+  if (msgText || toolsUsed.length > 0 || mediaRefs.length > 0) {
     saveMessage({
       role: "assistant",
       text: msgText,
       toolsUsed,
+      media: mediaRefs.length > 0 ? mediaRefs : undefined,
     } as StoredMessage);
     if (msgText && ctx.autoSpeak && !toolsUsed.includes("audio_speak"))
       ctx.speak(msgText);

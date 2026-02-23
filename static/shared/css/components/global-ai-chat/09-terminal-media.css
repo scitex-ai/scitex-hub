@@ -1,0 +1,57 @@
+/* Terminal media overlay (rendered above xterm.js canvas) */
+
+.scitex-terminal-media-overlay {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.5rem;
+  max-width: 80%;
+  max-height: 70%;
+  background: var(--color-canvas-default, #0d1117);
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 6px;
+  padding: 0.5rem;
+  z-index: 100;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  animation: terminal-media-in 0.2s ease-out;
+  overflow: auto;
+}
+
+.scitex-terminal-media-overlay img {
+  display: block;
+  border-radius: 3px;
+}
+
+.scitex-terminal-media-close {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: var(--text-muted, #8b949e);
+  font-size: 1rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  cursor: pointer;
+  z-index: 1;
+}
+.scitex-terminal-media-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+@keyframes terminal-media-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* EOF */

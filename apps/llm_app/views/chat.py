@@ -214,12 +214,41 @@ async def api_chat_stream(request):
             status=400,
         )
 
+    # Resolve project root for media detection in tool results
+    project_slug = context.get("project_slug", "")
+    project_root_str = None
+    username = request.user.username
+    if project_slug:
+        try:
+            from apps.project_app.models import Project
+            from apps.project_app.services.filesystem.paths import (
+                get_project_root_path,
+            )
+
+            project = await sync_to_async(
+                lambda: Project.objects.filter(
+                    owner=request.user, slug=project_slug
+                ).first()
+            )()
+            if project:
+                root = await sync_to_async(get_project_root_path)(request.user, project)
+                if root:
+                    project_root_str = str(root)
+        except Exception:
+            pass
+
     async def sse_generator():
+        # Emit project context so frontend can build blob URLs for media
+        if project_slug and username:
+            yield (
+                f"data: {_json.dumps({'type': 'context', 'username': username, 'slug': project_slug})}\n\n"
+            )
         try:
             async for event in service.complete_with_tools_streaming(
                 messages=messages,
                 app_name=app_name,
                 feature="ai_chat_stream",
+                project_root=project_root_str,
             ):
                 yield f"data: {_json.dumps(event)}\n\n"
         except Exception as e:
