@@ -156,16 +156,33 @@ async def run_tool_loop(
     tools: list[dict[str, Any]],
     max_tokens: int = 8192,
     temperature: float = 0.3,
-) -> tuple[str, list[str]]:
+) -> tuple[str, list[str], dict[str, Any]]:
     """
     Run the LLM + tool-call loop until a text response is produced.
 
     Returns:
-        (final_text, tools_used): The assistant reply and list of tool names called.
+        (final_text, tools_used, usage): The assistant reply, list of tool names
+        called, and accumulated token/cost usage dict with keys:
+        prompt_tokens, completion_tokens, total_tokens, estimated_cost_usd.
     """
     import litellm
 
     tools_used: list[str] = []
+    accumulated_prompt_tokens = 0
+    accumulated_completion_tokens = 0
+    accumulated_cost = 0.0
+
+    def _accumulate_usage(resp) -> None:
+        nonlocal accumulated_prompt_tokens, accumulated_completion_tokens, accumulated_cost
+        if resp.usage:
+            accumulated_prompt_tokens += getattr(resp.usage, "prompt_tokens", 0) or 0
+            accumulated_completion_tokens += (
+                getattr(resp.usage, "completion_tokens", 0) or 0
+            )
+        try:
+            accumulated_cost += litellm.completion_cost(completion_response=resp)
+        except Exception:
+            pass
 
     for _round in range(MAX_TOOL_ROUNDS):
         response = await litellm.acompletion(
@@ -176,12 +193,20 @@ async def run_tool_loop(
             max_tokens=max_tokens,
             temperature=temperature,
         )
+        _accumulate_usage(response)
         choice = response.choices[0]
         assistant_msg = choice.message
 
         # If no tool calls, we have the final text reply
         if not getattr(assistant_msg, "tool_calls", None):
-            return assistant_msg.content or "", tools_used
+            usage = {
+                "prompt_tokens": accumulated_prompt_tokens,
+                "completion_tokens": accumulated_completion_tokens,
+                "total_tokens": accumulated_prompt_tokens
+                + accumulated_completion_tokens,
+                "estimated_cost_usd": accumulated_cost,
+            }
+            return assistant_msg.content or "", tools_used, usage
 
         # Append assistant message with tool_calls to conversation
         messages.append(assistant_msg.model_dump())
@@ -213,7 +238,14 @@ async def run_tool_loop(
         max_tokens=max_tokens,
         temperature=temperature,
     )
-    return response.choices[0].message.content or "", tools_used
+    _accumulate_usage(response)
+    usage = {
+        "prompt_tokens": accumulated_prompt_tokens,
+        "completion_tokens": accumulated_completion_tokens,
+        "total_tokens": accumulated_prompt_tokens + accumulated_completion_tokens,
+        "estimated_cost_usd": accumulated_cost,
+    }
+    return response.choices[0].message.content or "", tools_used, usage
 
 
 async def run_tool_loop_streaming(
@@ -232,11 +264,18 @@ async def run_tool_loop_streaming(
       {"type": "chunk",      "text": "..."}
       {"type": "tool_start", "name": "tool_name"}
       {"type": "tool_end",   "name": "tool_name"}
-      {"type": "done",       "tools_used": [...]}
+      {"type": "done",       "tools_used": [...], "usage": {...}}
+
+    The "done" event's "usage" key contains:
+      prompt_tokens, completion_tokens, total_tokens, estimated_cost_usd
+    accumulated across all rounds.
     """
     import litellm
 
     tools_used: list[str] = []
+    accumulated_prompt_tokens = 0
+    accumulated_completion_tokens = 0
+    accumulated_cost = 0.0
 
     for _round in range(MAX_TOOL_ROUNDS):
         response = await litellm.acompletion(
@@ -247,6 +286,7 @@ async def run_tool_loop_streaming(
             max_tokens=max_tokens,
             temperature=temperature,
             stream=True,
+            stream_options={"include_usage": True},
         )
 
         accumulated_content = ""
@@ -254,6 +294,24 @@ async def run_tool_loop_streaming(
         accumulated_tool_calls: dict[int, dict[str, Any]] = {}
 
         async for chunk in response:
+            # Capture usage from the final chunk (sent when stream_options include_usage=True)
+            if getattr(chunk, "usage", None):
+                accumulated_prompt_tokens += (
+                    getattr(chunk.usage, "prompt_tokens", 0) or 0
+                )
+                accumulated_completion_tokens += (
+                    getattr(chunk.usage, "completion_tokens", 0) or 0
+                )
+                try:
+                    accumulated_cost += litellm.completion_cost(
+                        completion_response=chunk
+                    )
+                except Exception:
+                    pass
+
+            if not chunk.choices:
+                continue
+
             choice = chunk.choices[0]
             delta = choice.delta
 
@@ -282,7 +340,14 @@ async def run_tool_loop_streaming(
                         ] += tc.function.arguments
 
         if not accumulated_tool_calls:
-            yield {"type": "done", "tools_used": tools_used}
+            usage = {
+                "prompt_tokens": accumulated_prompt_tokens,
+                "completion_tokens": accumulated_completion_tokens,
+                "total_tokens": accumulated_prompt_tokens
+                + accumulated_completion_tokens,
+                "estimated_cost_usd": accumulated_cost,
+            }
+            yield {"type": "done", "tools_used": tools_used, "usage": usage}
             return
 
         # Append assistant message with accumulated tool_calls
@@ -369,13 +434,34 @@ async def run_tool_loop_streaming(
         max_tokens=max_tokens,
         temperature=temperature,
         stream=True,
+        stream_options={"include_usage": True},
     )
     async for chunk in response:
+        # Capture usage from the final chunk
+        if getattr(chunk, "usage", None):
+            accumulated_prompt_tokens += getattr(chunk.usage, "prompt_tokens", 0) or 0
+            accumulated_completion_tokens += (
+                getattr(chunk.usage, "completion_tokens", 0) or 0
+            )
+            try:
+                accumulated_cost += litellm.completion_cost(completion_response=chunk)
+            except Exception:
+                pass
+
+        if not chunk.choices:
+            continue
+
         delta = chunk.choices[0].delta
         if getattr(delta, "content", None):
             yield {"type": "chunk", "text": delta.content}
 
-    yield {"type": "done", "tools_used": tools_used}
+    usage = {
+        "prompt_tokens": accumulated_prompt_tokens,
+        "completion_tokens": accumulated_completion_tokens,
+        "total_tokens": accumulated_prompt_tokens + accumulated_completion_tokens,
+        "estimated_cost_usd": accumulated_cost,
+    }
+    yield {"type": "done", "tools_used": tools_used, "usage": usage}
 
 
 # EOF

@@ -1,8 +1,10 @@
 """Usage statistics helper extracted from UserLLMService for file size compliance."""
 
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from django.db import models
+from django.db.models import Count, Sum
+from django.db.models.functions import TruncDay
 from django.utils import timezone
 
 
@@ -65,3 +67,81 @@ def get_usage_stats(connection, llm_connection, days: int = 30) -> Dict[str, Any
             "daily_token_limit": llm_connection.daily_token_limit,
         },
     }
+
+
+def get_usage_time_series(
+    connection, days: int = 30, granularity: str = "day"
+) -> List[Dict]:
+    """Get time series of usage data for charts.
+
+    Args:
+        connection: Active IntegrationConnection instance
+        days: Number of days to look back
+        granularity: Aggregation granularity (currently only "day" supported)
+
+    Returns:
+        List of dicts: [{"date": date, "requests": N, "tokens": N, "cost": float}]
+    """
+    if not connection:
+        return []
+
+    since = timezone.now() - timezone.timedelta(days=days)
+    logs = connection.llm_usage_logs.filter(created_at__gte=since)
+
+    rows = (
+        logs.annotate(date=TruncDay("created_at"))
+        .values("date")
+        .annotate(
+            requests=Count("id"),
+            tokens=Sum("total_tokens"),
+            cost=Sum("estimated_cost_usd"),
+        )
+        .order_by("date")
+    )
+
+    return [
+        {
+            "date": row["date"].date() if row["date"] else None,
+            "requests": row["requests"] or 0,
+            "tokens": row["tokens"] or 0,
+            "cost": float(row["cost"] or 0),
+        }
+        for row in rows
+    ]
+
+
+def get_usage_by_model(connection, days: int = 30) -> List[Dict]:
+    """Get usage breakdown by model.
+
+    Args:
+        connection: Active IntegrationConnection instance
+        days: Number of days to look back
+
+    Returns:
+        List of dicts: [{"model": str, "requests": N, "tokens": N, "cost": float}]
+    """
+    if not connection:
+        return []
+
+    since = timezone.now() - timezone.timedelta(days=days)
+    logs = connection.llm_usage_logs.filter(created_at__gte=since)
+
+    rows = (
+        logs.values("model_used")
+        .annotate(
+            requests=Count("id"),
+            tokens=Sum("total_tokens"),
+            cost=Sum("estimated_cost_usd"),
+        )
+        .order_by("-requests")
+    )
+
+    return [
+        {
+            "model": row["model_used"] or "unknown",
+            "requests": row["requests"] or 0,
+            "tokens": row["tokens"] or 0,
+            "cost": float(row["cost"] or 0),
+        }
+        for row in rows
+    ]

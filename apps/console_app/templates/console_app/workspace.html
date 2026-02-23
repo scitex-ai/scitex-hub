@@ -184,10 +184,12 @@
             </div>
         </div>
     {% else %}
-        <div class="code-workspace">
+        <div class="code-workspace"
+             data-ai-hint="Console workspace: code editor, terminal, file management, job execution">
             <!-- Sidebar removed: unified workspace provides the file tree via ws-worktree-pane -->
             <!-- Center: Editor Area -->
-            <div class="code-editor-area">
+            <div class="code-editor-area"
+                 data-ai-hint="Monaco code editor with multi-language support, file tabs, save/run/commit toolbar">
                 <!-- Unified top bar: file tabs | toolbar actions | shortcuts -->
                 <div class="editor-panel-top">
                     <!-- File Tabs (+ button at end, inside scrollable container) -->
@@ -305,7 +307,8 @@
             <!-- Right: Terminal Panel (Terminal / Jobs) -->
             <div id="code-terminal-panel"
                  class="code-terminal-panel collapsible-panel"
-                 data-hide-title-expanded>
+                 data-hide-title-expanded
+                 data-ai-hint="Terminal panel: PTY terminal via SLURM+Apptainer, job management">
                 <!-- Unified top bar: toggle | terminal tabs | ... | Jobs | shortcuts -->
                 <div class="terminal-panel-top">
                     <button class="terminal-toggle panel-toggle-btn right-panel-toggle"

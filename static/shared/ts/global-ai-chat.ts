@@ -35,7 +35,8 @@ interface AiContext {
   currentFile?: string;
   project?: string;
   project_slug?: string;
-  [key: string]: string | undefined;
+  page_hints?: string[];
+  [key: string]: string | string[] | undefined;
 }
 
 declare global {
@@ -359,6 +360,17 @@ class GlobalAIChat {
     this.inputEl.setSelectionRange(len, len);
   }
 
+  /* ── Page Hints Collection ────────────────────────────────── */
+
+  private collectPageHints(): string[] {
+    const hints: string[] = [];
+    document.querySelectorAll<HTMLElement>("[data-ai-hint]").forEach((el) => {
+      const hint = el.dataset.aiHint;
+      if (hint) hints.push(hint);
+    });
+    return hints;
+  }
+
   /* ── Send / Stream ────────────────────────────────────────── */
 
   private async send(): Promise<void> {
@@ -392,6 +404,7 @@ class GlobalAIChat {
 
     const slug = readActiveProjectSlug();
     if (slug) this.context.project_slug = slug;
+    this.context.page_hints = this.collectPageHints();
 
     try {
       const resp = await fetch("/llm/api/chat/stream/", {

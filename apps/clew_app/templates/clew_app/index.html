@@ -26,10 +26,12 @@
              data-slug="{{ current_project.slug }}"
              data-mode="clew"></div>
     {% endif %}
-    <div class="clew-workspace">
+    <div class="clew-workspace"
+         data-ai-hint="Clew workspace: pipeline DAG editor, verification chain visualization, dependency tracking">
         <!-- Sidebar removed: unified workspace provides the file tree via ws-worktree-pane -->
         <!-- CENTER - DAG VISUALIZATION WORKSPACE -->
-        <main class="clew-main">
+        <main class="clew-main"
+              data-ai-hint="DAG visualization area: displays verification chain as directed acyclic graph">
             <div class="clew-header">
                 <span class="clew-header-title"><i class="fas fa-check-circle"></i> Clew Verification</span>
                 <span class="badge badge-wip">WIP</span>

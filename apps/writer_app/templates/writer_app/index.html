@@ -156,9 +156,13 @@
         </div>
     {% else %}
         <!-- Writer workspace — file tree provided by shared worktree pane in three-column layout -->
-        <div class="writer-workspace">
+        <div class="writer-workspace"
+             data-ai-hint="Writer workspace: LaTeX manuscript editor, PDF preview, figures/tables/citations management">
             <!-- Main content: editor + preview -->
-            <div class="writer-container">{% include "writer_app/index_partials/main_editor.html" %}</div>
+            <div class="writer-container"
+                 data-ai-hint="LaTeX editor with CodeMirror, live PDF preview, section navigation">
+                {% include "writer_app/index_partials/main_editor.html" %}
+            </div>
             <!-- Details resizer (auto-initialized via data attributes) -->
             <div class="panel-resizer"
                  id="details-resizer"

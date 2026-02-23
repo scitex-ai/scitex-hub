@@ -60,8 +60,10 @@ def api_tts(request):
 
 
 def _build_system_prompt(context: dict, user, sync_to_async=None) -> str:
-    """Build base system prompt (sync portion — call before async context injection)."""
-    prompt = (
+    """Build system prompt with skill-aware context injection."""
+    from apps.llm_app.skills import build_system_prompt, get_skill_for_page
+
+    base_prompt = (
         "You are a scientific research assistant integrated into the SciTeX platform. "
         "You have access to tools for statistics, plotting, literature search, "
         "diagram creation, and manuscript writing. Use them when appropriate.\n"
@@ -69,13 +71,17 @@ def _build_system_prompt(context: dict, user, sync_to_async=None) -> str:
         "(project_list_files, project_read_file, project_write_file, project_search_files). "
         "Always pass the exact root_path shown in this prompt."
     )
-    if context.get("page"):
-        prompt += f"\nUser is on page: {context['page']}"
     if context.get("project"):
-        prompt += f"\nCurrent project: {context['project']}"
+        base_prompt += f"\nCurrent project: {context['project']}"
     if context.get("current_file"):
-        prompt += f"\nUser is viewing: {context['current_file']}"
-    return prompt
+        base_prompt += f"\nUser is viewing: {context['current_file']}"
+
+    # Skill-aware enhancement
+    page = context.get("page", "")
+    skill = get_skill_for_page(page) if page else None
+    page_hints = context.get("page_hints", [])
+
+    return build_system_prompt(skill, base_prompt, page_hints or None)
 
 
 async def _inject_project_root(prompt: str, user, project_slug: str) -> str:
@@ -101,6 +107,18 @@ async def _inject_project_root(prompt: str, user, project_slug: str) -> str:
     except Exception:
         pass  # project context is optional
     return prompt
+
+
+def _derive_app_name(context: dict) -> str:
+    """Derive app_name from page context for accurate usage tracking."""
+    from apps.llm_app.skills import get_skill_for_page
+
+    page = context.get("page", "")
+    if page:
+        skill = get_skill_for_page(page)
+        if skill:
+            return f"{skill.app_name}_app"
+    return "llm_app"
 
 
 @transaction.non_atomic_requests
@@ -137,6 +155,9 @@ async def api_chat_stream(request):
         {"role": "user", "content": prompt},
     ]
 
+    # Derive app_name from page context for accurate usage tracking
+    app_name = _derive_app_name(context)
+
     service = await sync_to_async(_ULS)(user=request.user)
     if not service.connection:
         return JsonResponse(
@@ -151,7 +172,7 @@ async def api_chat_stream(request):
         try:
             async for event in service.complete_with_tools_streaming(
                 messages=messages,
-                app_name="console_app",
+                app_name=app_name,
                 feature="ai_chat_stream",
             ):
                 yield f"data: {_json.dumps(event)}\n\n"
@@ -196,6 +217,8 @@ async def api_chat(request):
         {"role": "user", "content": prompt},
     ]
 
+    app_name = _derive_app_name(context)
+
     service = await sync_to_async(UserLLMService)(user=request.user)
     if not service.connection:
         return JsonResponse(
@@ -209,7 +232,7 @@ async def api_chat(request):
     try:
         result = await service.complete_with_tools(
             messages=messages,
-            app_name="console_app",
+            app_name=app_name,
             feature="ai_chat",
         )
         return JsonResponse(

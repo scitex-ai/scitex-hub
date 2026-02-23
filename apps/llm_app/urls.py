@@ -43,4 +43,14 @@ urlpatterns = [
     path("api/stt/", views.api_stt, name="api_stt"),
     # List available whisper models on disk
     path("api/stt/models/", views.api_stt_models, name="api_stt_models"),
+    # Skills registry API
+    path("api/skills/", views.api_list_skills, name="api_list_skills"),
+    path("api/skills/<str:app_name>/", views.api_get_skill, name="api_get_skill"),
+    # Usage dashboard
+    path("usage/", views.usage_dashboard, name="usage_dashboard"),
+    path(
+        "api/usage/chart/<str:chart_type>/",
+        views.api_usage_chart,
+        name="api_usage_chart",
+    ),
 ]

@@ -415,7 +415,8 @@
 {% endblock %}
 {% block content %}
     <!-- Three-panel layout always active for workspace consistency -->
-    <div class="scholar-workspace">
+    <div class="scholar-workspace"
+         data-ai-hint="Scholar workspace: literature search, library management, citation graphs, BibTeX enrichment">
         <!-- Sidebar removed: unified workspace provides the file tree via ws-worktree-pane -->
         <!-- Main content area -->
         <section class="scholar-main">
@@ -439,7 +440,10 @@
             </div>
             <div class="pane-content">
                 <!-- Search Tab Content -->
-                <div id="tab-search" class="scholar-tab-content" data-tab="search">
+                <div id="tab-search"
+                     class="scholar-tab-content"
+                     data-tab="search"
+                     data-ai-hint="Search tab: paper search across CrossRef, OpenAlex, Semantic Scholar">
                     <div class="scholar-search-container">
                         {% include "scholar_app/search_partials/search.html" with show_results=True %}
                     </div>
@@ -457,7 +461,10 @@
             ]' {% endif %}></div>
     </div>
     <!-- BibTeX Tab Content -->
-    <div id="tab-bibtex" class="scholar-tab-content" data-tab="bibtex">
+    <div id="tab-bibtex"
+         class="scholar-tab-content"
+         data-tab="bibtex"
+         data-ai-hint="BibTeX Enrichment tab: upload BibTeX files, enrich metadata with abstracts, DOIs, impact factors">
         {% include "scholar_app/bibtex_partials/enrich.html" %}
         <!-- AI2 Prompt Modal -->
         {% if current_project %}
@@ -465,7 +472,10 @@
         {% endif %}
     </div>
     <!-- Graph Tab Content -->
-    <div id="tab-graph" class="scholar-tab-content" data-tab="graph">
+    <div id="tab-graph"
+         class="scholar-tab-content"
+         data-tab="graph"
+         data-ai-hint="Citation Graph tab: visualize citation networks, bibliographic coupling, co-citation">
         <div class="citation-graph-container">
             <!-- Input Section -->
             <div class="graph-input-section">
@@ -590,7 +600,10 @@
         </div>
     </div>
     <!-- Library Tab Content -->
-    <div id="tab-library" class="scholar-tab-content" data-tab="library">
+    <div id="tab-library"
+         class="scholar-tab-content"
+         data-tab="library"
+         data-ai-hint="Library tab: saved papers collection, import/export BibTeX, paper details">
         <div class="library-tab-inner">{% include "scholar_app/library_partials/library_main.html" %}</div>
         <div class="panel-resizer library-resizer"
              id="library-resizer"
