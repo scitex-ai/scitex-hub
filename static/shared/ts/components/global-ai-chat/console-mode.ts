@@ -123,8 +123,18 @@ export class AIPanelConsoleMode {
     // Listen for theme changes
     this.observeTheme();
 
-    // Clipboard support
+    // Clipboard & selection support
     this.terminal.attachCustomKeyEventHandler((ev: KeyboardEvent) => {
+      // Ctrl+A: select all terminal content
+      if (
+        ev.ctrlKey &&
+        (ev.key === "a" || ev.key === "A") &&
+        ev.type === "keydown"
+      ) {
+        this.terminal.selectAll();
+        return false;
+      }
+      // Ctrl+C: copy selection (if text selected), else send interrupt
       if (ev.ctrlKey && (ev.key === "c" || ev.key === "C")) {
         const sel = this.terminal.getSelection();
         if (sel) {
@@ -133,6 +143,7 @@ export class AIPanelConsoleMode {
         }
         return true;
       }
+      // Ctrl+V: paste from clipboard
       if (ev.ctrlKey && (ev.key === "v" || ev.key === "V")) {
         navigator.clipboard.readText().then((t: string) => {
           if (this.ws?.readyState === WebSocket.OPEN) this.ws.send(t);

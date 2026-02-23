@@ -166,8 +166,8 @@ silent! colorscheme desert
 # set -g prefix C-a
 # bind C-a send-prefix
 
-# Mouse support
-set -g mouse on
+# Mouse support (off = normal text selection with mouse drag)
+set -g mouse off
 
 # 256 colors
 set -g default-terminal "xterm-256color"
