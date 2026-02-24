@@ -35,9 +35,6 @@ async def ensure_workspace(user_data_dir: Path, username: str, project_slug: str
         # Patch existing bashrc with AI CLI tools section if missing
         _patch_bashrc_ai_tools(dotfiles_dir)
 
-        # Enable tmux mouse mode for scroll support (migrates old "mouse off")
-        _patch_tmux_mouse(dotfiles_dir)
-
         logger.info(f"Workspace ready: {user_data_dir}")
 
     await asyncio.to_thread(setup)
@@ -63,7 +60,6 @@ def _patch_bashrc_ai_tools(dotfiles_dir: Path):
     has_all_sections = all(
         marker in content
         for marker in [
-            "tmux set -g mouse on",
             ".ai-cli-installed",
             "agents sync",
             "# Aliases",
@@ -85,30 +81,6 @@ def _patch_bashrc_ai_tools(dotfiles_dir: Path):
         # Regenerate from canonical template
         create_dotfiles_repo(dotfiles_dir, username)
         logger.info(f"Regenerated bashrc for {username} (was corrupted/outdated)")
-
-
-def _patch_tmux_mouse(dotfiles_dir: Path):
-    """Migrate tmux mouse off → on for scroll support in both bashrc and tmux.conf."""
-    for filename in ("bashrc", "tmux.conf"):
-        path = dotfiles_dir / filename
-        if not path.exists():
-            continue
-        content = path.read_text()
-        if "mouse off" in content:
-            content = content.replace("mouse off", "mouse on")
-            # Update comment to match
-            content = content.replace(
-                "Disable tmux mouse mode for normal text selection",
-                "Enable tmux mouse mode for scroll support\n"
-                "# Hold Shift to bypass and do normal text selection",
-            )
-            content = content.replace(
-                "Mouse support (off = normal text selection with mouse drag)",
-                "Mouse support (scroll, click, resize panes)\n"
-                "# Hold Shift to bypass and do normal text selection",
-            )
-            path.write_text(content)
-            logger.info(f"Migrated tmux mouse on in {filename}")
 
 
 # EOF

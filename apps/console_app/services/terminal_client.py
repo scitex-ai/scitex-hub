@@ -68,6 +68,7 @@ class TerminalBrokerClient:
         container_path: str,
         project_slug: str,
         tmux_session: str = "scitex-0",
+        screen_session: str = "",
     ) -> Optional[str]:
         """
         Spawn a new terminal session.
@@ -76,6 +77,9 @@ class TerminalBrokerClient:
         """
         if not self._connected:
             return None
+
+        # Accept either kwarg for backward compatibility; screen_session takes priority
+        resolved_session = screen_session or tmux_session
 
         try:
             await self._send_message(
@@ -86,7 +90,7 @@ class TerminalBrokerClient:
                     "project_dir": str(project_dir),
                     "container_path": container_path,
                     "project_slug": project_slug,
-                    "tmux_session": tmux_session,
+                    "screen_session": resolved_session,
                 }
             )
 
@@ -142,8 +146,8 @@ class TerminalBrokerClient:
     async def disconnect_only(self):
         """Disconnect client socket without killing the terminal session.
 
-        The tmux session continues running inside the container (via SLURM).
-        A future WebSocket connection can reattach to the same tmux session.
+        The screen session continues running inside the container (via SLURM).
+        A future WebSocket connection can reattach to the same screen session.
         """
         if self._reader_task:
             self._reader_task.cancel()

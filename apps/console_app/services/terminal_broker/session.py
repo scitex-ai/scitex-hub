@@ -1,4 +1,4 @@
-"""Terminal session — manages a single PTY inside srun + Apptainer + tmux."""
+"""Terminal session — manages a single PTY inside srun + Apptainer + screen."""
 
 import logging
 import os
@@ -26,7 +26,7 @@ class TerminalSession:
         project_dir: Path,
         container_path: str,
         project_slug: str,
-        tmux_session: str = "scitex-0",
+        screen_session: str = "scitex-0",
     ):
         self.session_id = session_id
         self.username = username
@@ -34,7 +34,7 @@ class TerminalSession:
         self.project_dir = project_dir
         self.container_path = container_path
         self.project_slug = project_slug
-        self.tmux_session = tmux_session
+        self.screen_session = screen_session
         self.pid: Optional[int] = None
         self.fd: Optional[int] = None
         self.client_socket: Optional[socket.socket] = None
@@ -128,10 +128,10 @@ class TerminalSession:
                 "--pwd",
                 f"/home/{self.username}/proj/{self.project_slug}",
                 self.container_path,
-                # tmux session: attach if exists, create if not (-A flag)
+                # screen session: reattach if exists, create if not (-xRR flag)
                 "/bin/bash",
                 "-lc",
-                f"exec tmux new-session -A -s {self.tmux_session}",
+                f"exec screen -xRR {self.screen_session}",
             ]
 
             os.chdir("/tmp")  # Safe directory for srun

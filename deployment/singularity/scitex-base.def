@@ -34,7 +34,7 @@ From: python:3.11-slim
         curl \
         vim \
         nano \
-        tmux \
+        screen \
         htop \
         tree \
         less \

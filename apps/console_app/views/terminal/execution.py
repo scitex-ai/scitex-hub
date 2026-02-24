@@ -133,7 +133,7 @@ def exec_slurm_shell(
     project_dir: Path,
     container_path: str,
     project_slug: str,
-    tmux_session: str = "scitex-0",
+    screen_session: str = "scitex-0",
 ):
     """
     Execute shell via SLURM (REQUIRED for all users).
@@ -174,7 +174,7 @@ def exec_slurm_shell(
         f"--job-name=terminal_{username}",
         # Note: --account not used (SLURM accounting not configured)
         # Container execution (using host paths)
-        # Use 'exec' instead of 'shell' to run tmux for session persistence
+        # Use 'exec' instead of 'shell' to run screen for session persistence
         container_cmd,
         "exec",
         "--containall",
@@ -203,10 +203,10 @@ def exec_slurm_shell(
         "--pwd",
         f"/home/{username}/proj/{project_slug}",
         container_path,  # Use host path to SIF
-        # tmux session: attach if exists, create if not (-A flag)
+        # screen session: reattach if exists, create if not (-R flag)
         "/bin/bash",
         "-lc",
-        f"exec tmux new-session -A -s {tmux_session}",
+        f"exec screen -xRR {screen_session}",
     ]
 
     # Environment for srun process (host-side, before exec into container)
