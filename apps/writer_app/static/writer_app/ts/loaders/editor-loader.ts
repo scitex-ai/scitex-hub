@@ -53,14 +53,17 @@ export class EditorLoader {
   private originalRequire: any = null;
 
   /**
-   * Initialize and load both CodeMirror and Monaco editors
+   * Initialize and load both Monaco and CodeMirror editors.
+   * IMPORTANT: Monaco must load FIRST. If CodeMirror loads first, its UMD
+   * define() calls register "codemirror" in RequireJS's module registry.
+   * Monaco then tries to resolve "codemirror" from its CDN paths → 404.
    */
   async initialize(): Promise<void> {
     console.log("[EditorLoader] Starting editor initialization");
 
     try {
-      await this.loadCodeMirror();
       await this.loadMonaco();
+      await this.loadCodeMirror();
       console.log("[EditorLoader] All editors loaded successfully");
     } catch (error) {
       console.error("[EditorLoader] Failed to load editors:", error);
@@ -69,12 +72,12 @@ export class EditorLoader {
   }
 
   /**
-   * Load CodeMirror scripts without AMD conflicts
+   * Load CodeMirror scripts without AMD conflicts.
+   * Must be called AFTER loadMonaco() so RequireJS is not poisoned.
    */
   private async loadCodeMirror(): Promise<void> {
     console.log("[EditorLoader] Loading CodeMirror...");
 
-    // CodeMirror scripts to load in order
     const scripts = [
       `https://cdnjs.cloudflare.com/ajax/libs/codemirror/${this.CODEMIRROR_VERSION}/codemirror.min.js`,
       `https://cdnjs.cloudflare.com/ajax/libs/codemirror/${this.CODEMIRROR_VERSION}/mode/stex/stex.min.js`,
@@ -85,22 +88,18 @@ export class EditorLoader {
       `https://cdnjs.cloudflare.com/ajax/libs/codemirror/${this.CODEMIRROR_VERSION}/keymap/emacs.min.js`,
     ];
 
-    // Save original AMD globals
+    // Save and disable AMD so CodeMirror UMD modules don't register with RequireJS
     this.originalDefine = window.define;
     this.originalRequire = window.require;
-
-    // Temporarily disable AMD to prevent conflicts
-    // CodeMirror UMD modules detect AMD and try to register, causing conflicts with Monaco's RequireJS
     window.define = undefined;
     window.require = undefined;
 
     try {
-      // Load all CodeMirror scripts sequentially
       await this.loadScriptsSequentially(scripts);
-
+      // Small delay to ensure all script execution completes before restoring AMD
+      await new Promise((resolve) => setTimeout(resolve, 50));
       console.log("[EditorLoader] CodeMirror loaded successfully");
     } finally {
-      // Always restore AMD globals, even if loading fails
       window.define = this.originalDefine;
       window.require = this.originalRequire;
     }
@@ -110,6 +109,16 @@ export class EditorLoader {
    * Load Monaco Editor with fake worker to avoid CORS issues
    */
   private async loadMonaco(): Promise<void> {
+    // If Monaco is already loaded (e.g., by workspace viewer or another component), skip.
+    // Check window.monaco alone — the workspace viewer loads Monaco but doesn't set monacoLoaded.
+    if ((window as any).monaco) {
+      console.log(
+        "[EditorLoader] Monaco already available (loaded by another component), skipping",
+      );
+      window.monacoLoaded = true;
+      return;
+    }
+
     console.log("[EditorLoader] Loading Monaco Editor...");
 
     // Configure Monaco environment with main-thread worker fallback
@@ -120,7 +129,7 @@ export class EditorLoader {
       },
     };
 
-    // Load Monaco loader script
+    // Load Monaco loader script (loadScript deduplicates)
     const loaderUrl = `https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/${this.MONACO_VERSION}/min/vs/loader.min.js`;
     await this.loadScript(loaderUrl);
 
@@ -180,10 +189,17 @@ export class EditorLoader {
   }
 
   /**
-   * Load a single script asynchronously
+   * Load a single script asynchronously (deduplicates already-loaded scripts)
    */
   private loadScript(url: string): Promise<void> {
     return new Promise((resolve, reject) => {
+      // Skip if script already loaded
+      if (document.querySelector(`script[src="${url}"]`)) {
+        console.log("[EditorLoader] Already loaded:", url);
+        resolve();
+        return;
+      }
+
       const script = document.createElement("script");
       script.src = url;
 
