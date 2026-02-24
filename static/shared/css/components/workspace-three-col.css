@@ -305,6 +305,24 @@ body.scitex-ai-open #workspace-three-col #main-content {
   font-style: italic;
 }
 
+.ai-context-download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.65rem;
+  color: var(--text-secondary, #8b949e);
+  background: transparent;
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.ai-context-download-btn:hover {
+  color: var(--color-accent-fg, #58a6ff);
+  border-color: var(--color-accent-fg, #58a6ff);
+}
+
 /* Quick links */
 .ai-settings-links {
   display: flex;

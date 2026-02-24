@@ -3,8 +3,13 @@
  * Uses marked.js (CDN-loaded) + DOMPurify for safe HTML rendering.
  */
 
-declare const marked: { parse: (src: string) => string };
+declare const marked: {
+  parse: (src: string) => string;
+  use: (opts: Record<string, unknown>) => void;
+};
 declare const DOMPurify: { sanitize: (html: string, cfg?: object) => string };
+
+let _markedConfigured = false;
 
 const PURIFY_CONFIG = {
   ALLOWED_TAGS: [
@@ -61,14 +66,41 @@ function isAvailable(): boolean {
   );
 }
 
+/**
+ * Linkify bare URLs in HTML that are not already inside <a> or <code> tags.
+ * Handles http://, https://, and www. prefixed URLs.
+ */
+function linkifyUrls(html: string): string {
+  // Match bare URLs not already inside href="..." or <a>...</a> or <code>
+  // Strategy: split on existing tags, only linkify text nodes
+  const URL_RE = /(?<![=">])\b(https?:\/\/[^\s<>"')\]]+|www\.[^\s<>"')\]]+)/gi;
+
+  return html.replace(
+    /(<[^>]+>)|([^<]+)/g,
+    (_match: string, tag: string, text: string) => {
+      if (tag) return tag; // preserve HTML tags as-is
+      // Linkify bare URLs in text content
+      return text.replace(URL_RE, (url: string) => {
+        const href = url.startsWith("www.") ? `https://${url}` : url;
+        return `<a href="${href}">${url}</a>`;
+      });
+    },
+  );
+}
+
 /** Render markdown text to sanitized HTML string */
 export function renderMarkdown(text: string): string {
   if (!text.trim()) return "";
   if (!isAvailable()) return escapeHtml(text);
 
   try {
+    if (!_markedConfigured) {
+      marked.use({ gfm: true, breaks: true });
+      _markedConfigured = true;
+    }
     const raw = marked.parse(text);
-    const html = DOMPurify.sanitize(raw, PURIFY_CONFIG);
+    const linked = linkifyUrls(raw);
+    const html = DOMPurify.sanitize(linked, PURIFY_CONFIG);
     return html;
   } catch {
     return escapeHtml(text);

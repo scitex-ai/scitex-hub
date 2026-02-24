@@ -289,11 +289,58 @@ class GlobalAIChat {
         html += `</div>`;
       }
 
+      // Download button
+      html += `<div class="ai-source-group ai-source-download">`;
+      html += `<button class="ai-context-download-btn" title="Download full agent context as JSON">`;
+      html += `<i class="fas fa-download"></i> Download Agent Context`;
+      html += `</button></div>`;
+
       container.innerHTML =
         html || '<div class="ai-source-loading">No sources detected</div>';
+
+      // Bind download handler
+      container
+        .querySelector(".ai-context-download-btn")
+        ?.addEventListener("click", () =>
+          this.downloadAgentContext(pageHints, currentPage),
+        );
     } catch (err) {
       container.innerHTML =
         '<div class="ai-source-loading">Failed to load sources</div>';
+    }
+  }
+
+  private async downloadAgentContext(
+    pageHints: string[],
+    page: string,
+  ): Promise<void> {
+    try {
+      const csrf =
+        document.querySelector<HTMLInputElement>("[name=csrfmiddlewaretoken]")
+          ?.value ??
+        (document.cookie.match(/csrftoken=([^;]+)/)?.[1] || "");
+
+      const resp = await fetch("/llm/api/agent-context/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrf,
+        },
+        body: JSON.stringify({ page, page_hints: pageHints }),
+      });
+
+      const data = await resp.json();
+      const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `agent-context-${new Date().toISOString().slice(0, 19).replace(/:/g, "")}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      console.error("[AI] Failed to download agent context");
     }
   }
 

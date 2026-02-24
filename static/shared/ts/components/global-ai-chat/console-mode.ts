@@ -10,16 +10,18 @@ const XTERM_JS_URL = "https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js";
 const XTERM_CSS_URL = "https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css";
 const FIT_ADDON_URL =
   "https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js";
-
 /**
  * Load xterm.js by fetching source text and executing synchronously
  * with AMD globals fully disabled. This eliminates race conditions
  * that occur with script tags (where RequireJS can intercept the UMD module).
  */
-async function loadXtermModules(): Promise<{ Terminal: any; FitAddon: any }> {
+async function loadXtermModules(): Promise<{
+  Terminal: any;
+  FitAddon: any;
+}> {
   const win = window as any;
 
-  // Fetch both scripts as text
+  // Fetch all scripts as text
   const [xtermCode, fitCode] = await Promise.all([
     fetch(XTERM_JS_URL).then((r) => r.text()),
     fetch(FIT_ADDON_URL).then((r) => r.text()),
@@ -32,13 +34,9 @@ async function loadXtermModules(): Promise<{ Terminal: any; FitAddon: any }> {
   win.require = undefined;
 
   try {
-    // Execute scripts synchronously without AMD interference
-
     new Function(xtermCode)();
-
     new Function(fitCode)();
   } finally {
-    // Always restore AMD globals
     win.define = savedDefine;
     win.require = savedRequire;
   }
@@ -150,15 +148,7 @@ export class AIPanelConsoleMode {
 
     // Clipboard & selection support
     this.terminal.attachCustomKeyEventHandler((ev: KeyboardEvent) => {
-      // Ctrl+A: select all terminal content
-      if (
-        ev.ctrlKey &&
-        (ev.key === "a" || ev.key === "A") &&
-        ev.type === "keydown"
-      ) {
-        this.terminal.selectAll();
-        return false;
-      }
+      // Ctrl+A: pass through to terminal (readline: go to beginning of line)
       // Ctrl+C: copy selection (if text selected), else send interrupt
       if (ev.ctrlKey && (ev.key === "c" || ev.key === "C")) {
         const sel = this.terminal.getSelection();
