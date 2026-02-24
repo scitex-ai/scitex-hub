@@ -11,34 +11,41 @@ const XTERM_CSS_URL = "https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css";
 const FIT_ADDON_URL =
   "https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js";
 
-function loadScript(src: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (document.querySelector(`script[src="${src}"]`)) {
-      resolve();
-      return;
-    }
-    // Temporarily hide AMD define() AND require() so Monaco's RequireJS
-    // doesn't intercept xterm.js UMD module (same pattern as Bootstrap loading)
-    const win = window as any;
-    const savedDefine = win.define;
-    const savedRequire = win.require;
-    if (savedDefine?.amd) win.define = undefined;
-    if (savedRequire?.config) win.require = undefined;
+/**
+ * Load xterm.js by fetching source text and executing synchronously
+ * with AMD globals fully disabled. This eliminates race conditions
+ * that occur with script tags (where RequireJS can intercept the UMD module).
+ */
+async function loadXtermModules(): Promise<{ Terminal: any; FitAddon: any }> {
+  const win = window as any;
 
-    const el = document.createElement("script");
-    el.src = src;
-    el.onload = () => {
-      if (savedDefine?.amd) win.define = savedDefine;
-      if (savedRequire?.config) win.require = savedRequire;
-      resolve();
-    };
-    el.onerror = () => {
-      if (savedDefine?.amd) win.define = savedDefine;
-      if (savedRequire?.config) win.require = savedRequire;
-      reject(new Error(`Failed to load ${src}`));
-    };
-    document.head.appendChild(el);
-  });
+  // Fetch both scripts as text
+  const [xtermCode, fitCode] = await Promise.all([
+    fetch(XTERM_JS_URL).then((r) => r.text()),
+    fetch(FIT_ADDON_URL).then((r) => r.text()),
+  ]);
+
+  // Save and fully disable AMD globals (synchronous — no race conditions)
+  const savedDefine = win.define;
+  const savedRequire = win.require;
+  win.define = undefined;
+  win.require = undefined;
+
+  try {
+    // Execute scripts synchronously without AMD interference
+
+    new Function(xtermCode)();
+
+    new Function(fitCode)();
+  } finally {
+    // Always restore AMD globals
+    win.define = savedDefine;
+    win.require = savedRequire;
+  }
+
+  const Terminal = win.Terminal?.Terminal || win.Terminal;
+  const FitAddon = win.FitAddon?.FitAddon || win.FitAddon;
+  return { Terminal, FitAddon };
 }
 
 function loadCSS(href: string): void {
@@ -55,7 +62,6 @@ export class AIPanelConsoleMode {
   private ws: WebSocket | null = null;
   private container: HTMLElement | null = null;
   private statusEl: HTMLElement | null = null;
-  private loaded = false;
   private connected = false;
   private resizeObserver: ResizeObserver | null = null;
   private resizeTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -68,22 +74,25 @@ export class AIPanelConsoleMode {
     this.container = container;
     this.statusEl = statusEl;
 
-    if (!this.loaded) {
-      loadCSS(XTERM_CSS_URL);
-      await loadScript(XTERM_JS_URL);
-      await loadScript(FIT_ADDON_URL);
-      this.loaded = true;
-    }
-
     if (this.terminal) return; // already initialized
 
-    const xterm = (window as any).Terminal;
-    const Terminal = typeof xterm === "function" ? xterm : xterm?.Terminal;
+    loadCSS(XTERM_CSS_URL);
+
+    let Terminal: any;
+    let FitAddon: any;
+    try {
+      const modules = await loadXtermModules();
+      Terminal = modules.Terminal;
+      FitAddon = modules.FitAddon;
+    } catch (err) {
+      console.error("[AIPanelConsole] Failed to load xterm.js:", err);
+      return;
+    }
+
     if (!Terminal) {
       console.error("[AIPanelConsole] xterm.js Terminal class not available");
       return;
     }
-    const FitAddon = (window as any).FitAddon?.FitAddon;
 
     this.terminal = new Terminal({
       cursorBlink: true,
