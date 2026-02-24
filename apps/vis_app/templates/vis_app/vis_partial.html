@@ -70,10 +70,10 @@
                  the unified workspace provides its own left file tree sidebar -->
             <!-- CENTER WORKSPACE -->
             <div class="vis-workspace">
-                <!-- figrecipe Editor (shown when recipe file opened) -->
+                <!-- figrecipe Editor (iframe) -->
                 <iframe id="figrecipe-frame"
-                        src=""
-                        style="display:none;
+                        src="{% if figrecipe_embedded %}/vis-react/figrecipe/?mode=embedded{% endif %}"
+                        style="{% if figrecipe_embedded %}display:block;{% else %}display:none;{% endif %}
                                width:100%;
                                height:100%;
                                border:none;
@@ -83,8 +83,8 @@
                                background:var(--bg-primary)"
                         allow="clipboard-read; clipboard-write">
                 </iframe>
-                <!-- Split View: Data Table + Canvas (original editor) -->
-                <div class="workspace-split-view">
+                <!-- Split View: Data Table + Canvas (hidden in figrecipe embedded mode) -->
+                <div class="workspace-split-view" {% if figrecipe_embedded %}style="display:none"{% endif %}>
                     <!-- Left: Data Table -->
                     <div class="split-pane split-pane-left collapsible-panel"
                          id="data-pane"
@@ -348,7 +348,7 @@
                          data-toggle-btn="canvas-pane-toggle"></div>
                 </div>
             </div>
-            <!-- Properties Resizer (auto-initialized via data attributes) -->
+            <!-- Properties Resizer (hidden in figrecipe embedded mode — figrecipe has its own) -->
             <div class="panel-resizer"
                  id="workspace-resizer"
                  data-panel-resizer
@@ -359,9 +359,11 @@
                  data-default-width="320"
                  data-storage-key="properties-width"
                  data-collapse-key="vis-properties-collapsed"
-                 data-toggle-btn="properties-toggle"></div>
-            <!-- RIGHT DETAILS PANEL -->
-            <div class="vis-properties collapsible-panel" id="vis-properties">
+                 data-toggle-btn="properties-toggle"
+                 {% if figrecipe_embedded %}style="display:none"{% endif %}></div>
+            <!-- RIGHT DETAILS PANEL (hidden in figrecipe embedded mode) -->
+            <div class="vis-properties collapsible-panel" id="vis-properties"
+                 {% if figrecipe_embedded %}style="display:none"{% endif %}>
                 <div class="properties-header">
                     <button class="properties-toggle-btn panel-toggle-btn right-panel-toggle"
                             id="properties-toggle"
@@ -508,22 +510,33 @@
     </div>
     {% include "vis_app/includes/modals.html" %}
     {% include "vis_app/includes/shortcuts-modal.html" %}
-    <!-- figrecipe integration: open recipe files in embedded editor (readyState pattern) -->
+    <!-- figrecipe integration: open recipe files in embedded editor -->
     <script>
     (function() {
       var RECIPE_EXTS = ['.yaml', '.yml'];
       var frame = document.getElementById('figrecipe-frame');
       var splitView = document.querySelector('.workspace-split-view');
+      var isEmbedded = {{ figrecipe_embedded|yesno:"true,false" }};
 
       function openInFigrecipe(recipePath) {
-        if (!frame || !splitView) return;
-        frame.src = '/vis/figrecipe/?recipe=' + encodeURIComponent(recipePath);
-        frame.style.display = 'block';
-        splitView.style.display = 'none';
+        if (!frame) return;
+        if (isEmbedded) {
+          // In embedded mode, send postMessage to figrecipe iframe
+          frame.contentWindow.postMessage({
+            type: 'figrecipe:switchFile',
+            path: recipePath
+          }, '*');
+        } else {
+          // In overlay mode, toggle iframe visibility
+          if (!splitView) return;
+          frame.src = '/vis/figrecipe/?recipe=' + encodeURIComponent(recipePath);
+          frame.style.display = 'block';
+          splitView.style.display = 'none';
+        }
       }
 
       function closeFigrecipe() {
-        if (!frame || !splitView) return;
+        if (!frame || !splitView || isEmbedded) return;
         frame.src = '';
         frame.style.display = 'none';
         splitView.style.display = '';
