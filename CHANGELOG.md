@@ -5,6 +5,19 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.6-alpha] - 2026-02-25
+
+### Fixed
+- **Writer section selector invisible**: Dropdown clipped by `overflow:hidden` on `.header-left` and `.collapsible-panel` ancestors — switched to `position:fixed` with JS-calculated coordinates
+- **Writer section selector first-click**: Used `getComputedStyle()` instead of `style.display` to correctly detect CSS-hidden state
+- **Terminal scroll**: Enabled tmux mouse mode for scroll support in AI pane
+
+### Added
+- **AI chat clickable error**: "No AI provider" error now links to Settings > AI Providers
+- **Daily cost limit**: USD-based daily spending cap for LLM providers (model + settings UI + enforcement)
+- **Docker cache busting**: BUILD_ID from git HEAD for CSS/JS versioning in production
+- **Agent context**: Enriched SKILL.md and CLAUDE.md with web app structure for visitor agents
+
 ## [0.10.5-alpha] - 2026-02-24
 
 ### Fixed
