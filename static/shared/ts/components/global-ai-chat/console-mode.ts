@@ -17,10 +17,26 @@ function loadScript(src: string): Promise<void> {
       resolve();
       return;
     }
+    // Temporarily hide AMD define() AND require() so Monaco's RequireJS
+    // doesn't intercept xterm.js UMD module (same pattern as Bootstrap loading)
+    const win = window as any;
+    const savedDefine = win.define;
+    const savedRequire = win.require;
+    if (savedDefine?.amd) win.define = undefined;
+    if (savedRequire?.config) win.require = undefined;
+
     const el = document.createElement("script");
     el.src = src;
-    el.onload = () => resolve();
-    el.onerror = () => reject(new Error(`Failed to load ${src}`));
+    el.onload = () => {
+      if (savedDefine?.amd) win.define = savedDefine;
+      if (savedRequire?.config) win.require = savedRequire;
+      resolve();
+    };
+    el.onerror = () => {
+      if (savedDefine?.amd) win.define = savedDefine;
+      if (savedRequire?.config) win.require = savedRequire;
+      reject(new Error(`Failed to load ${src}`));
+    };
     document.head.appendChild(el);
   });
 }
@@ -202,24 +218,36 @@ export class AIPanelConsoleMode {
   ): void {
     if (!this.statusEl) return;
     this.statusEl.classList.remove("connected");
-    const icon = this.statusEl.querySelector("i");
+
+    // Ensure icon and text nodes exist
+    let icon = this.statusEl.querySelector("i");
+    if (!icon) {
+      icon = document.createElement("i");
+      this.statusEl.prepend(icon);
+    }
+    let textNode = this.statusEl.lastChild;
+    if (!textNode || textNode === icon) {
+      textNode = document.createTextNode("");
+      this.statusEl.appendChild(textNode);
+    }
+
     switch (state) {
       case "connecting":
-        if (icon) icon.className = "fas fa-circle-notch fa-spin";
-        this.statusEl.lastChild!.textContent = " Connecting...";
+        icon.className = "fas fa-circle-notch fa-spin";
+        textNode.textContent = " Connecting...";
         break;
       case "connected":
         this.statusEl.classList.add("connected");
-        if (icon) icon.className = "fas fa-circle";
-        this.statusEl.lastChild!.textContent = " Connected";
+        icon.className = "fas fa-circle";
+        textNode.textContent = " Connected";
         break;
       case "disconnected":
-        if (icon) icon.className = "fas fa-circle";
-        this.statusEl.lastChild!.textContent = " Disconnected";
+        icon.className = "fas fa-circle";
+        textNode.textContent = " Disconnected";
         break;
       case "error":
-        if (icon) icon.className = "fas fa-exclamation-circle";
-        this.statusEl.lastChild!.textContent = " Connection failed";
+        icon.className = "fas fa-exclamation-circle";
+        textNode.textContent = " Connection failed";
         break;
     }
   }

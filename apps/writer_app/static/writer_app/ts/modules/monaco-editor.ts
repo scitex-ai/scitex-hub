@@ -127,7 +127,8 @@ export class EnhancedEditor {
           element.parentElement?.replaceChild(editorContainer, element);
         } else {
           // Show the dedicated container and hide the textarea
-          editorContainer.style.display = "";
+          // Must set explicit display value to override CSS `display: none` rule
+          editorContainer.style.display = "flex";
           textareaElement.style.display = "none";
         }
 
