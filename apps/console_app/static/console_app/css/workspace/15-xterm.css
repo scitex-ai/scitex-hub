@@ -7,6 +7,29 @@
 /* XTerm.js viewport - the actual terminal rendering area */
 .terminal-body .xterm-viewport {
   /* Padding on parent .xterm creates margin effect for viewport content */
+  overflow-y: scroll !important;
+}
+
+/* XTerm.js scrollbar — visible, draggable, dark-themed */
+.xterm .xterm-viewport::-webkit-scrollbar {
+  width: 8px;
+}
+
+.xterm .xterm-viewport::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.xterm .xterm-viewport::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+.xterm .xterm-viewport::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.xterm .xterm-viewport::-webkit-scrollbar-thumb:active {
+  background: rgba(255, 255, 255, 0.4);
 }
 
 .terminal-line {
