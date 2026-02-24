@@ -212,13 +212,26 @@ export class AIPanelChatMode {
         typing.remove();
         const errEl = this.createMsgEl("error");
         try {
-          errEl.textContent =
-            ((await resp.json()) as { error?: string }).error ??
-            `Request failed: ${resp.status}`;
+          const data = (await resp.json()) as {
+            error?: string;
+            settings_url?: string;
+          };
+          const msg = data.error ?? `Request failed: ${resp.status}`;
+          if (data.settings_url) {
+            errEl.textContent = msg + " ";
+            const link = document.createElement("a");
+            link.href = data.settings_url;
+            link.textContent = "Go to Settings > AI Providers";
+            link.style.color = "inherit";
+            link.style.textDecoration = "underline";
+            errEl.appendChild(link);
+          } else {
+            errEl.textContent = msg;
+          }
         } catch {
           errEl.textContent = `Request failed: ${resp.status}`;
         }
-        saveMessage({ role: "error", text: errEl.textContent });
+        saveMessage({ role: "error", text: errEl.textContent ?? "" });
         return;
       }
 

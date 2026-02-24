@@ -65,6 +65,7 @@ def get_usage_stats(connection, llm_connection, days: int = 30) -> Dict[str, Any
         "rate_limits": {
             "daily_request_limit": llm_connection.daily_request_limit,
             "daily_token_limit": llm_connection.daily_token_limit,
+            "daily_cost_limit_usd": llm_connection.daily_cost_limit_usd,
         },
     }
 

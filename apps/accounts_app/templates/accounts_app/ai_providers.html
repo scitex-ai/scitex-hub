@@ -99,6 +99,26 @@
                                     &middot;
                                     <strong>Cost:</strong> ${{ p.estimated_cost_usd|floatformat:4 }}
                                 </div>
+                                <div class="provider-limits">
+                                    <form method="POST" class="limits-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="update_limits" />
+                                        <input type="hidden" name="provider_id" value="{{ p.id }}" />
+                                        <label>
+                                            <strong>Daily cost limit (USD):</strong>
+                                            <input type="number"
+                                                   name="daily_cost_limit_usd"
+                                                   class="form-control form-control-sm"
+                                                   value="{{ p.daily_cost_limit_usd|default_if_none:'' }}"
+                                                   placeholder="No limit"
+                                                   step="0.01"
+                                                   min="0"
+                                                   style="width: 120px;
+                                                          display: inline-block" />
+                                        </label>
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary">Save</button>
+                                    </form>
+                                </div>
                                 <div class="provider-actions">
                                     <button type="button"
                                             class="btn btn-sm btn-outline-primary test-provider-btn"
