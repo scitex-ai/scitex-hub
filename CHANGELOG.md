@@ -5,6 +5,19 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.5-alpha] - 2026-02-24
+
+### Fixed
+- **PDF viewer "Failed to load"**: Applied fetch+eval pattern to PDF.js (same as xterm.js fix) to bypass Monaco's RequireJS AMD conflict
+- **File URL encoding**: Encode path segments individually instead of entire path, preserving slashes for Django URL routing
+- **Scholar PDF opens new window**: Removed custom `window.open` handler; use shared workspace-viewer (single source of truth)
+- **Viewer event scope**: Listen for file-select on `document` instead of `#ws-worktree-tree`, catching events from all tree containers
+- **Writer "Invalid section ID" for PDFs**: Early return for non-tex/bib files in FileTreeSetup
+
+### Added
+- Supported formats tooltip in viewer header (hover info icon)
+- Test file fixtures for all viewer formats (14 files for E2E testing)
+
 ## [0.10.4-alpha] - 2026-02-24
 
 ### Fixed
