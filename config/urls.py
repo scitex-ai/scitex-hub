@@ -124,6 +124,7 @@ urlpatterns = [
     path("scholar/", include(("apps.scholar_app.urls", "scholar_app"))),
     path("console/", include(("apps.console_app.urls", "console_app"))),
     path("vis/", include(("apps.vis_app.urls", "vis"))),
+    path("vis-react/", include(("apps.vis_app.urls.vis_react", "vis_react"))),
     path("writer/", include(("apps.writer_app.urls", "writer_app"))),
     path("workspace/", include(("apps.workspace_app.urls", "workspace_app"))),
     path("example/", include(("apps.example_app.urls", "example_app"))),

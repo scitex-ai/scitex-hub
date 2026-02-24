@@ -57,6 +57,7 @@ export class PTYTerminal {
       fontFamily: "'JetBrains Mono', 'Monaco', 'Menlo', monospace",
       theme: this.getThemeFromCSS(),
       allowProposedApi: true,
+      scrollback: 10000,
     });
 
     this.term.open(containerEl);

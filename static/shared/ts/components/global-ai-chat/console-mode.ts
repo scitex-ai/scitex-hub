@@ -97,6 +97,7 @@ export class AIPanelConsoleMode {
       fontSize: 13,
       fontFamily: "'JetBrains Mono', 'Monaco', 'Menlo', monospace",
       theme: this.getTheme(),
+      scrollback: 10000,
     });
 
     this.terminal.open(container);

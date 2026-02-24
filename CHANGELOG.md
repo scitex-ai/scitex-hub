@@ -5,6 +5,13 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.7-alpha] - 2026-02-25
+
+### Added
+- **Terminal scrollbar**: Visible 8px dark-themed scrollbar for xterm.js terminals (PTY + AI pane)
+- **Terminal scrollback**: Increased xterm.js scrollback buffer from 1000 to 10000 lines
+- **Vis figrecipe route**: Added `/vis-react/` route for embedded figrecipe mode
+
 ## [0.10.6-alpha] - 2026-02-25
 
 ### Fixed

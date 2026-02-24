@@ -3,43 +3,53 @@ Scientific Figure Editor - Views Package
 """
 
 import logging
-from django.shortcuts import render, get_object_or_404, redirect
+
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
-from django.contrib import messages
 
-from ..models import ScientificFigure, JournalPreset
 from apps.project_app.services.project_utils import get_current_project
+
+from ..models import JournalPreset, ScientificFigure
 
 logger = logging.getLogger(__name__)
 
 
-def figure_editor(request):
+def figure_editor(request, figrecipe_embedded=False):
     """Main figure editor view - Vis (VisPlot-inspired)
 
     If visitor pool is exhausted, redirect to visitor-pool-full page.
+    When figrecipe_embedded=True (from /vis-react/), the template shows
+    figrecipe's iframe as the primary workspace instead of split-view.
     """
     # Check if user is not authenticated (visitor allocation may have failed)
     if not request.user.is_authenticated:
         # Check if this is a browser request (has typical browser User-Agent)
-        user_agent = request.META.get('HTTP_USER_AGENT', '')
+        user_agent = request.META.get("HTTP_USER_AGENT", "")
         is_browser = any(
             browser in user_agent
-            for browser in ['Mozilla', 'Chrome', 'Safari', 'Firefox', 'Edge', 'Opera']
+            for browser in ["Mozilla", "Chrome", "Safari", "Firefox", "Edge", "Opera"]
         )
 
         if is_browser:
             # Browser request but not authenticated - visitor pool likely exhausted
-            logger.info("[Vis] Browser request not authenticated - redirecting to visitor-pool-full")
-            return redirect('public_app:visitor_pool_full')
+            logger.info(
+                "[Vis] Browser request not authenticated - redirecting to visitor-pool-full"
+            )
+            return redirect("public_app:visitor_pool_full")
 
         # Non-browser request - return empty page
-        return render(request, "vis_app/editor.html", {
-            "is_visitor": True,
-            "figures": [],
-            "journal_presets": JournalPreset.objects.filter(is_active=True),
-        })
+        return render(
+            request,
+            "vis_app/editor.html",
+            {
+                "is_visitor": True,
+                "figures": [],
+                "journal_presets": JournalPreset.objects.filter(is_active=True),
+            },
+        )
 
     context = {
         "is_visitor": False,
@@ -48,7 +58,9 @@ def figure_editor(request):
     }
 
     # Get user's figures
-    figures = ScientificFigure.objects.filter(owner=request.user).order_by("-updated_at")
+    figures = ScientificFigure.objects.filter(owner=request.user).order_by(
+        "-updated_at"
+    )
     context["figures"] = figures
 
     # Mark as demo if visitor
@@ -62,11 +74,19 @@ def figure_editor(request):
     if current_project:
         context["current_project"] = current_project
         context["project"] = current_project
-        logger.info(f"[Vis] User {request.user.username} viewing project: {current_project.slug}")
+        logger.info(
+            f"[Vis] User {request.user.username} viewing project: {current_project.slug}"
+        )
     else:
         context["needs_project_creation"] = True
 
     context["journal_presets"] = JournalPreset.objects.filter(is_active=True)
+    context["figrecipe_embedded"] = figrecipe_embedded
+
+    # /vis-react/ isn't in the workspace module registry, so force the
+    # three-column workspace layout (AI pane, Files, Editor) to render.
+    if figrecipe_embedded:
+        context["is_workspace_page"] = True
 
     return render(request, "vis_app/editor.html", context)
 
@@ -75,7 +95,9 @@ def figure_editor(request):
 def figure_editor_legacy(request):
     """Legacy canvas-based figure editor (deprecated)"""
     # Get user's figures
-    figures = ScientificFigure.objects.filter(owner=request.user).order_by("-updated_at")
+    figures = ScientificFigure.objects.filter(owner=request.user).order_by(
+        "-updated_at"
+    )
 
     context = {
         "figures": figures,
@@ -110,7 +132,9 @@ def figure_detail(request, figure_id):
 
     context = {
         "figure": figure,
-        "figures": ScientificFigure.objects.filter(owner=request.user).order_by("-updated_at"),
+        "figures": ScientificFigure.objects.filter(owner=request.user).order_by(
+            "-updated_at"
+        ),
         "journal_presets": JournalPreset.objects.filter(is_active=True),
         "current_project": current_project,
     }
@@ -140,7 +164,11 @@ def gallery_page(request):
     Users can generate gallery into their project or view examples.
     """
     from apps.project_app.services.project_utils import get_current_project
-    from ..services.gallery_generator import get_gallery_contents, list_gallery_categories
+
+    from ..services.gallery_generator import (
+        get_gallery_contents,
+        list_gallery_categories,
+    )
 
     context = {
         "module_name": "Vis Gallery",
