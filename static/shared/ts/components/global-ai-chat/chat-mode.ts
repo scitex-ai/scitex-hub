@@ -138,6 +138,14 @@ export class AIPanelChatMode {
       const hint = el.dataset.aiHint;
       if (hint) hints.push(hint);
     });
+
+    // Include dynamic viewer state (currently open file)
+    const viewerSidebar = document.getElementById("ws-viewer-sidebar");
+    const activeFile = viewerSidebar?.dataset.aiViewerActive;
+    if (activeFile) {
+      hints.push(`Currently open in editor: ${activeFile}`);
+    }
+
     return hints;
   }
 

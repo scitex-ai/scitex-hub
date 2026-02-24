@@ -5,7 +5,8 @@
     <div class="ws-viewer-pane" id="ws-viewer-pane">
         <div class="workspace-sidebar collapsed"
              id="ws-viewer-sidebar"
-             data-ai-hint="You can open project files in the viewer pane using ui_action with action='open-file' and path='relative/file/path'. Example: ui_action(steps=[{action:'open-file', path:'src/main.py'}])">
+             data-ai-hint="General Editor Pane: shared file viewer across all modules (Writer, Scholar, Console, etc.). Supports text (.py .js .ts .html .css .json .md .yaml .sh .tex .bib .txt), images (.png .jpg .gif .webp .svg), PDF (.pdf), tables (.csv .tsv), diagrams (.mmd .mermaid), audio (.mp3 .wav .ogg .flac), video (.mp4 .webm .avi .mov). Open files via ui_action(steps=[{action:'open-file', path:'relative/path'}]). CONTEXT.md is a persistent scratch buffer for AI-user shared notes — use writeScratch(content) or appendScratch(content) via window.workspaceViewer. The currently open file path is tracked in data-ai-viewer-active on this element."
+             data-ai-viewer-active="">
             <div id="ws-viewer-resizer"
                  class="panel-resizer"
                  data-panel-resizer

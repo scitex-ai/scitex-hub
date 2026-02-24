@@ -102,6 +102,7 @@ export class WorkspaceViewer {
     const tabInfo: TabInfo = { path: filePath, title, fileType };
     this.tabManager.openTab(tabInfo);
     await this.renderFile(filePath);
+    this.updateActiveFileHint(filePath, fileType);
   }
 
   closeFile(filePath: string): void {
@@ -166,6 +167,7 @@ export class WorkspaceViewer {
 
   private async handleTabSwitch(path: string): Promise<void> {
     await this.renderFile(path);
+    this.updateActiveFileHint(path, detectFileType(path));
   }
 
   private handleTabClose(path: string): void {
@@ -173,6 +175,17 @@ export class WorkspaceViewer {
       this.monacoContainer.style.display = "none";
       this.mediaContainer.style.display = "none";
       if (this.previewContainer) this.previewContainer.style.display = "none";
+      this.updateActiveFileHint("", "text");
+    }
+  }
+
+  /** Update data-ai-viewer-active so AI agents know the current file. */
+  private updateActiveFileHint(filePath: string, fileType: string): void {
+    const sidebar = document.getElementById("ws-viewer-sidebar");
+    if (sidebar) {
+      sidebar.dataset.aiViewerActive = filePath
+        ? `${filePath} (${fileType})`
+        : "";
     }
   }
 
