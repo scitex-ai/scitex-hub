@@ -49,7 +49,9 @@
              class="{% if is_workspace_page and user.is_authenticated %}workspace-three-col{% endif %}">
             {% if is_workspace_page and user.is_authenticated %}
                 {% include 'global_base_partials/workspace_ai_pane.html' %}
-                {% include 'global_base_partials/workspace_worktree_pane.html' %}
+                {% block workspace_worktree_pane %}
+                    {% include 'global_base_partials/workspace_worktree_pane.html' %}
+                {% endblock %}
                 {% include 'global_base_partials/workspace_viewer_pane.html' %}
             {% endif %}
             <main id="main-content"
