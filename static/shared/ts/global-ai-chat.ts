@@ -122,8 +122,9 @@ class GlobalAIChat {
     const settingsPanel = document.getElementById("scitex-ai-settings-panel");
     if (settingsBtn && settingsPanel) {
       settingsBtn.addEventListener("click", () => {
-        settingsPanel.style.display =
-          settingsPanel.style.display === "none" ? "" : "none";
+        const wasHidden = settingsPanel.style.display === "none";
+        settingsPanel.style.display = wasHidden ? "" : "none";
+        if (wasHidden) this.populateAgentSources();
       });
     }
 
@@ -210,6 +211,90 @@ class GlobalAIChat {
       e.preventDefault();
       this.switchMode(this.mode === "chat" ? "console" : "chat");
     });
+  }
+
+  /* ── Agent Sources ────────────────────────────────────────── */
+
+  private async populateAgentSources(): Promise<void> {
+    const container = document.getElementById("ai-agent-sources-content");
+    if (!container) return;
+
+    try {
+      // Fetch skills, hints, and current page context in parallel
+      const [skillsResp, pageHints] = await Promise.all([
+        fetch("/llm/api/skills/").then((r) => r.json()),
+        Promise.resolve(this.chatMode?.collectPageHints() ?? []),
+      ]);
+
+      const skills = skillsResp.skills || {};
+      const currentPage = window.location.pathname;
+
+      let html = "";
+
+      // Active skill for current page
+      const activeSkill = Object.values(skills).find((s: any) =>
+        s.page_patterns?.some(
+          (p: string) =>
+            currentPage.includes(p) ||
+            currentPage.startsWith(p.replace(/\/$/, "")),
+        ),
+      ) as any;
+
+      if (activeSkill) {
+        html += `<div class="ai-source-group">`;
+        html += `<div class="ai-source-group-title"><i class="fas fa-star ai-source-active"></i> Active Skill</div>`;
+        html += `<div class="ai-source-item"><i class="fas fa-check-circle ai-source-active"></i> ${activeSkill.display_name}</div>`;
+        if (activeSkill.capabilities) {
+          for (const cap of activeSkill.capabilities) {
+            html += `<div class="ai-source-item"><i class="fas fa-chevron-right"></i> ${cap}</div>`;
+          }
+        }
+        if (activeSkill.tool_prefixes?.length) {
+          html += `<div class="ai-source-item"><i class="fas fa-tools"></i> Tools: ${activeSkill.tool_prefixes.join(", ")}</div>`;
+        }
+        html += `</div>`;
+      }
+
+      // Page hints
+      if (pageHints.length > 0) {
+        html += `<div class="ai-source-group">`;
+        html += `<div class="ai-source-group-title"><i class="fas fa-lightbulb"></i> Page Hints (${pageHints.length})</div>`;
+        for (const hint of pageHints) {
+          const short = hint.length > 80 ? hint.slice(0, 77) + "..." : hint;
+          html += `<div class="ai-source-item" title="${hint.replace(/"/g, "&quot;")}"><i class="fas fa-info-circle"></i> ${short}</div>`;
+        }
+        html += `</div>`;
+      }
+
+      // All registered skills
+      const skillNames = Object.keys(skills);
+      if (skillNames.length > 0) {
+        html += `<div class="ai-source-group">`;
+        html += `<div class="ai-source-group-title"><i class="fas fa-book"></i> All Skills (${skillNames.length})</div>`;
+        for (const name of skillNames) {
+          const s = skills[name];
+          const isActive = activeSkill?.app_name === name;
+          const icon = isActive ? "check-circle ai-source-active" : "circle";
+          html += `<div class="ai-source-item"><i class="fas fa-${icon}"></i> ${s.display_name}</div>`;
+        }
+        html += `</div>`;
+      }
+
+      // MCP tools info
+      const mcpCount = document.querySelector(".ai-mcp-count")?.textContent;
+      if (mcpCount && mcpCount !== "--") {
+        html += `<div class="ai-source-group">`;
+        html += `<div class="ai-source-group-title"><i class="fas fa-plug"></i> MCP Tools</div>`;
+        html += `<div class="ai-source-item"><i class="fas fa-wrench"></i> ${mcpCount} tools available</div>`;
+        html += `</div>`;
+      }
+
+      container.innerHTML =
+        html || '<div class="ai-source-loading">No sources detected</div>';
+    } catch (err) {
+      container.innerHTML =
+        '<div class="ai-source-loading">Failed to load sources</div>';
+    }
   }
 
   /* ── Mode Toggle (Chat / Console / Jobs) ───────────────────── */

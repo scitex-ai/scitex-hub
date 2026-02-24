@@ -254,6 +254,57 @@ body.scitex-ai-open #workspace-three-col #main-content {
   color: var(--danger-color, #f85149);
 }
 
+/* Agent sources section */
+.ai-settings-section {
+  padding-top: 0.25rem;
+  border-top: 1px solid var(--border-default, #30363d);
+}
+
+.ai-agent-sources {
+  font-size: 0.7rem;
+  color: var(--text-secondary, #8b949e);
+  max-height: 200px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.ai-source-group {
+  margin-bottom: 0.375rem;
+}
+
+.ai-source-group-title {
+  font-weight: 600;
+  color: var(--text-primary, #d4e1e8);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.125rem;
+}
+
+.ai-source-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 1px 0;
+  font-size: 0.65rem;
+}
+
+.ai-source-item i {
+  width: 12px;
+  text-align: center;
+  opacity: 0.6;
+}
+
+.ai-source-item .ai-source-active {
+  color: var(--success-color, #3fb950);
+}
+
+.ai-source-loading {
+  color: var(--text-muted, #484f58);
+  font-size: 0.65rem;
+  font-style: italic;
+}
+
 /* Quick links */
 .ai-settings-links {
   display: flex;
