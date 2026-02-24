@@ -53,7 +53,8 @@ export async function populateSectionDropdownDirect(
   if (!toggleBtn.dataset.listenerAttached) {
     toggleBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      const isVisible = dropdownContainer.style.display !== "none";
+      const computed = window.getComputedStyle(dropdownContainer).display;
+      const isVisible = computed !== "none";
       dropdownContainer.style.display = isVisible ? "none" : "flex";
     });
 
@@ -150,11 +151,17 @@ export async function populateSectionDropdownDirect(
       let selectedIndex = 0;
 
       if (savedSectionId) {
-        const savedIndex = sections.findIndex((s: any) => s.id === savedSectionId);
+        const savedIndex = sections.findIndex(
+          (s: any) => s.id === savedSectionId,
+        );
         if (savedIndex >= 0) {
           selectedSection = sections[savedIndex];
           selectedIndex = savedIndex;
-          console.log("[Writer] Restored saved section for", docType + ":", savedSectionId);
+          console.log(
+            "[Writer] Restored saved section for",
+            docType + ":",
+            savedSectionId,
+          );
         }
       }
 
@@ -207,7 +214,10 @@ export function syncDropdownsFromPath(path: string): void {
   let doctype: string | null = null;
   if (path.includes("01_manuscript") || path.includes("/manuscript/")) {
     doctype = "manuscript";
-  } else if (path.includes("02_supplementary") || path.includes("/supplementary/")) {
+  } else if (
+    path.includes("02_supplementary") ||
+    path.includes("/supplementary/")
+  ) {
     doctype = "supplementary";
   } else if (path.includes("03_revision") || path.includes("/revision/")) {
     doctype = "revision";
@@ -224,11 +234,18 @@ export function syncDropdownsFromPath(path: string): void {
     sectionName = fileName.replace(".tex", "").replace(/^\d+_/, "");
   }
 
-  console.log("[SectionDropdown] Extracted doctype:", doctype, "section:", sectionName);
+  console.log(
+    "[SectionDropdown] Extracted doctype:",
+    doctype,
+    "section:",
+    sectionName,
+  );
 
   // Update doctype dropdown
   if (doctype) {
-    const doctypeSelector = document.getElementById("doctype-selector") as HTMLSelectElement;
+    const doctypeSelector = document.getElementById(
+      "doctype-selector",
+    ) as HTMLSelectElement;
     if (doctypeSelector && doctypeSelector.value !== doctype) {
       doctypeSelector.value = doctype;
       console.log("[SectionDropdown] Updated doctype selector to:", doctype);
@@ -241,7 +258,9 @@ export function syncDropdownsFromPath(path: string): void {
 
   if (sectionId) {
     // Update section dropdown visually
-    const dropdownContainer = document.getElementById("section-selector-dropdown");
+    const dropdownContainer = document.getElementById(
+      "section-selector-dropdown",
+    );
     const selectorText = document.getElementById("section-selector-text");
 
     if (dropdownContainer && selectorText) {
@@ -254,21 +273,31 @@ export function syncDropdownsFromPath(path: string): void {
 
         if (itemSectionId === sectionId) {
           // Mark this as active
-          sectionItems.forEach(si => si.classList.remove("active"));
+          sectionItems.forEach((si) => si.classList.remove("active"));
           item.classList.add("active");
 
           // Update display text
-          const itemName = item.querySelector(".section-item-name")?.textContent || sectionName;
+          const itemName =
+            item.querySelector(".section-item-name")?.textContent ||
+            sectionName;
           const pageNum = index + 1;
           selectorText.textContent = `${pageNum}. ${itemName}`;
 
           found = true;
-          console.log("[SectionDropdown] Selected section item:", sectionId, "index:", index);
+          console.log(
+            "[SectionDropdown] Selected section item:",
+            sectionId,
+            "index:",
+            index,
+          );
         }
       });
 
       if (!found) {
-        console.log("[SectionDropdown] Section not found in dropdown:", sectionId);
+        console.log(
+          "[SectionDropdown] Section not found in dropdown:",
+          sectionId,
+        );
         // Still update the text to show the file being edited
         if (sectionName) {
           selectorText.textContent = sectionName.replace(/_/g, " ");
