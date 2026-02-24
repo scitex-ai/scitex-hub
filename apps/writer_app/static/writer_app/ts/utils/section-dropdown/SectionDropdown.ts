@@ -55,7 +55,17 @@ export async function populateSectionDropdownDirect(
       e.stopPropagation();
       const computed = window.getComputedStyle(dropdownContainer).display;
       const isVisible = computed !== "none";
-      dropdownContainer.style.display = isVisible ? "none" : "flex";
+      if (isVisible) {
+        dropdownContainer.style.display = "none";
+      } else {
+        // Use position:fixed to escape overflow:hidden on .header-left and .collapsible-panel
+        const rect = toggleBtn.getBoundingClientRect();
+        dropdownContainer.style.position = "fixed";
+        dropdownContainer.style.top = `${rect.bottom + 4}px`;
+        dropdownContainer.style.left = `${rect.left}px`;
+        dropdownContainer.style.width = `${Math.max(rect.width, 240)}px`;
+        dropdownContainer.style.display = "flex";
+      }
     });
 
     // Close dropdown when clicking outside
