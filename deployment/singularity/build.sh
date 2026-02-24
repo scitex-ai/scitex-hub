@@ -32,10 +32,16 @@ fi
 # Pre-flight checks
 # ============================================
 
-# Check if running as root
-if [ "$EUID" -ne 0 ]; then
-    echo -e "${RED}Error: This script must be run as root (sudo)${NC}"
-    echo -e "Usage: sudo $0 [--force]"
+# Determine build mode: fakeroot (preferred) or root
+BUILD_MODE=""
+if [ "$EUID" -eq 0 ]; then
+    BUILD_MODE="root"
+elif command -v apptainer &>/dev/null && apptainer build --help 2>&1 | grep -q fakeroot; then
+    BUILD_MODE="fakeroot"
+else
+    echo -e "${RED}Error: Must run as root or have fakeroot support${NC}"
+    echo -e "Usage: $0 [--force]  (with fakeroot)"
+    echo -e "   or: sudo $0 [--force]"
     exit 1
 fi
 
@@ -109,6 +115,7 @@ echo -e "${GREEN}Building SciTeX Apptainer Container${NC}"
 echo -e "${GREEN}============================================${NC}"
 echo -e ""
 echo -e "Definition: ${GREEN}$DEF_FILE${NC}"
+echo -e "Build mode: ${GREEN}$BUILD_MODE${NC}"
 
 # Backup existing .sif file if it exists
 if [ -f "$SIF_FILE" ]; then
@@ -136,7 +143,12 @@ echo -e ""
 # Build the container
 START_TIME=$(date +%s)
 
-if $CONTAINER_CMD build --force "$SIF_FILE" "$DEF_FILE"; then
+FAKEROOT_FLAG=""
+if [ "$BUILD_MODE" = "fakeroot" ]; then
+    FAKEROOT_FLAG="--fakeroot"
+fi
+
+if $CONTAINER_CMD build --force $FAKEROOT_FLAG "$SIF_FILE" "$DEF_FILE"; then
     END_TIME=$(date +%s)
     BUILD_TIME=$((END_TIME - START_TIME))
     BUILD_MINUTES=$((BUILD_TIME / 60))

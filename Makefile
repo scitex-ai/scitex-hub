@@ -275,7 +275,7 @@ help-commands:
 	@echo -e "$(CYAN)┌─────────────────────────────────────────────────────────┐$(NC)"
 	@echo -e "$(CYAN)│ apptainer-build $(NC)- Rebuild user terminal SIF image"
 	@echo -e "$(CYAN)├─────────────────────────────────────────────────────────┤$(NC)"
-	@echo -e "$(CYAN)│$(NC) Command: $(YELLOW)sudo deployment/singularity/build.sh$(NC)"
+	@echo -e "$(CYAN)│$(NC) Command: $(YELLOW)deployment/singularity/build.sh$(NC) (uses fakeroot)"
 	@echo -e "$(CYAN)│$(NC) Use for: Update Python/npm packages in user terminal"
 	@echo -e "$(CYAN)│$(NC) $(GREEN)Smart: skips rebuild if .def file unchanged$(NC)"
 	@echo -e "$(CYAN)│$(NC) $(YELLOW)Separate from Docker — different lifecycle$(NC)"
@@ -570,11 +570,11 @@ build-no-cache:
 
 apptainer-build:
 	@echo -e "$(CYAN)📦 Apptainer SIF build (smart — skips if .def unchanged)$(NC)"
-	@sudo deployment/singularity/build.sh
+	@deployment/singularity/build.sh
 
 apptainer-upgrade: ## Rebuild Apptainer SIF with latest scitex (force)
 	@echo -e "$(CYAN)📦 Force-rebuilding Apptainer SIF with latest packages...$(NC)"
-	@sudo deployment/singularity/build.sh --force
+	@deployment/singularity/build.sh --force
 
 apptainer-freeze:
 	@echo -e "$(CYAN)📦 Extracting pinned versions from SIF...$(NC)"
