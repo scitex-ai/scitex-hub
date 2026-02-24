@@ -94,7 +94,7 @@ singularity exec \\
     --cleanenv \\
     --bind {hpc_workspace}:/workspace \\
     --pwd /workspace \\
-    /data/projects/scitex/containers/scitex-cloud-shared-v0.1.0.sif \\
+    /data/projects/scitex/containers/current.sif \\
     python {script_path}
 """
 

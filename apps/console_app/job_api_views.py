@@ -74,7 +74,7 @@ def api_submit_job(request):
             getattr(
                 settings,
                 "APPTAINER_CONTAINER_PATH",
-                "/opt/scitex/singularity/scitex-cloud-shared-v0.1.0.sif",
+                "/opt/scitex/singularity/current.sif",
             )
         )
 

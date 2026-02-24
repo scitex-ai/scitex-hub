@@ -24,8 +24,8 @@ logger = logging.getLogger("scitex")
 
 # Container file paths (relative to project root)
 _SINGULARITY_DIR = "deployment/singularity"
-_DEF_FILENAME = "scitex-cloud-shared-v0.1.0.def"
-_SIF_FILENAME = "scitex-cloud-shared-v0.1.0.sif"
+_DEF_FILENAME = "scitex-final.def"
+_SIF_FILENAME = "current.sif"
 _HASH_FILENAME = ".def-hash"
 
 

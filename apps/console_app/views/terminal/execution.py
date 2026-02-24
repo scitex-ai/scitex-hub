@@ -116,7 +116,7 @@ def select_container(user_data_dir: Path, project_dir: Path) -> str:
             f"Base container NOT FOUND: checked {BASE_CONTAINER_PATH} (Docker) "
             f"and {SLURM_CONTAINER_PATH} (host) — "
             f"build with: sudo apptainer build "
-            f"deployment/singularity/scitex-cloud-shared-v0.1.0.def"
+            f"deployment/singularity/scitex-final.def"
         )
         raise ContainerNotFoundError(
             f"Apptainer SIF not found at {SLURM_CONTAINER_PATH}. "
