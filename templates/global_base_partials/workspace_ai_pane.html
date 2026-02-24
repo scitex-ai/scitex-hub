@@ -1,7 +1,9 @@
 {% load static %}
 
 {% if user.is_authenticated %}
-    <div class="ws-ai-pane" id="ws-ai-pane">
+    <div class="ws-ai-pane"
+         id="ws-ai-pane"
+         data-ai-hint="AI chat renders Markdown (code blocks, tables, lists). MCP tool outputs (images, CSV, plots) display inline. Use stx-show <file> in terminal to display media.">
         <div id="scitex-ai-panel"
              class="scitex-ai-panel workspace-sidebar collapsed"
              aria-hidden="true">

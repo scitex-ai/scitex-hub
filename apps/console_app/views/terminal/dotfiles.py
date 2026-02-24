@@ -61,6 +61,24 @@ if command -v agents &>/dev/null && [ -d ".agents" ]; then
 fi
 
 
+# SciTeX terminal media display (renders images/plots in browser overlay)
+stx-show() {{
+    local file="$1"
+    if [ -z "$file" ]; then echo "Usage: stx-show <file>"; return 1; fi
+    if [ ! -f "$file" ]; then echo "File not found: $file"; return 1; fi
+    local abs_path
+    abs_path="$(realpath "$file")"
+    local ext="${{file##*.}}"
+    local type="file"
+    case ".$ext" in
+        .png|.jpg|.jpeg|.gif|.svg|.webp|.bmp) type="image" ;;
+        .pdf) type="pdf" ;;
+        .csv|.tsv) type="csv" ;;
+    esac
+    local json='{{"type":"'"$type"'","path":"'"$abs_path"'","url":"'"$abs_path"'"}}'
+    printf '\\033]9998;media:%s\\007' "$(echo -n "$json" | base64 -w0)"
+}}
+
 # Aliases
 alias ll='ls -alF'
 alias la='ls -A'
