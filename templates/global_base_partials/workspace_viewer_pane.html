@@ -1,4 +1,7 @@
 {% if user.is_authenticated %}
+    <!-- Monaco Editor CSS (editor JS loaded by monaco-loader.ts) -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/editor/editor.main.min.css" />
     <div class="ws-viewer-pane" id="ws-viewer-pane">
         <div class="workspace-sidebar collapsed"
              id="ws-viewer-sidebar"
@@ -22,15 +25,21 @@
                 <button class="panel-toggle-btn" id="ws-viewer-toggle" title="Toggle viewer">
                     <i class="fas fa-chevron-right"></i>
                 </button>
-                <span class="sidebar-title">VIEWER</span>
-                <span class="sidebar-title-full"><i class="fas fa-eye"></i> Viewer</span>
+                <span class="sidebar-title">EDITOR</span>
+                <span class="sidebar-title-full"><i class="fas fa-pencil-alt"></i> Editor</span>
                 <div class="sidebar-header-actions ws-viewer-header-actions">
                     <div id="ws-viewer-tabs" class="ws-viewer-tabs"></div>
-                    <div id="ws-viewer-mode-toggle" class="ws-viewer-mode-toggle" style="display:none">
-                        <button class="ws-viewer-mode-btn active" data-mode="edit" title="Edit">Edit</button>
-                        <button class="ws-viewer-mode-btn" data-mode="preview" title="Preview">Preview</button>
-                        <button class="ws-viewer-mode-btn" data-mode="split" title="Split">Split</button>
-                    </div>
+                    <button id="ws-viewer-mode-toggle"
+                            class="ws-viewer-mode-toggle-btn"
+                            style="display:none"
+                            title="Toggle Edit/Preview (double-click)">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="ws-viewer-shortcuts-btn"
+                            title="Keyboard shortcuts (Alt+/)"
+                            onclick="window.toggleShortcutsModal && window.toggleShortcutsModal()">
+                        <i class="fas fa-keyboard"></i>
+                    </button>
                 </div>
             </div>
             <div class="sidebar-content ws-viewer-body">

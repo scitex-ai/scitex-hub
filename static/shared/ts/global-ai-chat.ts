@@ -7,8 +7,8 @@
 export {}; // Make this a module so declare global augmentation is valid
 
 import { readActiveProjectSlug } from "./components/global-ai-chat/context";
-import { AIPanelConsoleMode } from "./components/global-ai-chat/console-mode";
 import { AIPanelChatMode } from "./components/global-ai-chat/chat-mode";
+import { AIPanelConsoleMode } from "./components/global-ai-chat/console-mode";
 import { AIPanelJobsMode } from "./components/global-ai-chat/jobs-mode";
 import { fetchAndPopulateSttModels } from "./components/global-ai-chat/stt-models";
 import { fetchAndPopulateLlmModels } from "./components/global-ai-chat/llm-model-selector";
@@ -59,8 +59,8 @@ class GlobalAIChat {
 
   // Mode switching (chat / console / jobs)
   private mode: "chat" | "console" | "jobs" = "chat";
-  private consoleMode: AIPanelConsoleMode | null = null;
   private chatMode: AIPanelChatMode | null = null;
+  private consoleMode: AIPanelConsoleMode | null = null;
   private jobsMode: AIPanelJobsMode | null = null;
 
   init(): void {
@@ -128,6 +128,7 @@ class GlobalAIChat {
     }
 
     this.setupModeToggle();
+    this.setupHeaderDblClick();
     this.fab?.addEventListener("click", () => this.toggle());
     this.sendBtn?.addEventListener("click", () => void this.chatMode?.send());
     this.micBtn?.addEventListener("click", () =>
@@ -198,6 +199,19 @@ class GlobalAIChat {
     };
   }
 
+  /* ── Header Double-Click → Toggle Chat / Console ────────── */
+
+  private setupHeaderDblClick(): void {
+    const header = document.getElementById("scitex-ai-panel-header");
+    if (!header) return;
+    header.addEventListener("dblclick", (e: MouseEvent) => {
+      // Ignore clicks on buttons inside the header
+      if ((e.target as HTMLElement).closest("button")) return;
+      e.preventDefault();
+      this.switchMode(this.mode === "chat" ? "console" : "chat");
+    });
+  }
+
   /* ── Mode Toggle (Chat / Console / Jobs) ───────────────────── */
 
   private setupModeToggle(): void {
@@ -239,16 +253,12 @@ class GlobalAIChat {
     if (mode === "jobs") this.initJobsMode();
   }
 
-  private async initConsoleMode(): Promise<void> {
-    const container = document.getElementById("scitex-ai-terminal");
+  private initConsoleMode(): void {
+    const containerEl = document.getElementById("scitex-ai-console-terminal");
     const statusEl = document.getElementById("scitex-ai-console-status");
-    if (!container) return;
+    if (!containerEl) return;
     if (!this.consoleMode) this.consoleMode = new AIPanelConsoleMode();
-    await this.consoleMode.init(container, statusEl);
-    setTimeout(() => {
-      this.consoleMode?.fit();
-      this.consoleMode?.focus();
-    }, 50);
+    void this.consoleMode.init(containerEl, statusEl);
   }
 
   private initJobsMode(): void {

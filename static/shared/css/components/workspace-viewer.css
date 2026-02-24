@@ -50,6 +50,22 @@
 }
 
 /* ============================================================
+   Viewer header — left-aligned tabs
+   ============================================================ */
+
+#ws-viewer-sidebar:not(.collapsed) .sidebar-header {
+  justify-content: flex-start;
+  gap: 0;
+}
+
+.ws-viewer-header-actions {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+/* ============================================================
    Tab bar (inside header)
    ============================================================ */
 
@@ -158,16 +174,43 @@
 }
 
 /* ============================================================
+   Keyboard shortcuts button
+   ============================================================ */
+
+.ws-viewer-shortcuts-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--text-muted, #8b949e);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px;
+  margin-left: 4px;
+  flex-shrink: 0;
+  opacity: 0.6;
+  transition: opacity 0.15s ease;
+}
+
+.ws-viewer-shortcuts-btn:hover {
+  opacity: 1;
+  color: var(--text-primary, #d4e1e8);
+}
+
+/* ============================================================
    Scratch tab — always first, non-closeable, distinct style
    ============================================================ */
 
-.ws-viewer-tab[data-path="*scratch*"] {
+.ws-viewer-tab[data-path="scitex/CONTEXT.md"] {
   font-style: italic;
-  border-left: 2px solid var(--accent-primary, #3b82f6);
 }
 
-.ws-viewer-tab[data-path="*scratch*"] .ws-viewer-tab-name::before {
-  content: "\270E ";
+.ws-viewer-tab-pin {
+  font-size: 0.65rem;
+  opacity: 0.4;
+  color: var(--text-muted, #8b949e);
+  transform: rotate(45deg);
 }
 
 /* ============================================================

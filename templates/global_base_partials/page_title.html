@@ -1,12 +1,16 @@
 {# Central page title generator - enforces consistency across all pages #}
 {% if "/scholar/" in request.path %}
-    Scholar{% if current_project %} - {{ current_project.slug }}{% endif %}
-{% elif "/console/" in request.path %}
-    Console{% if current_project %} - {{ current_project.slug }}{% endif %}
+    Scholar
+    {% if current_project %}- {{ current_project.slug }}{% endif %}
 {% elif "/vis/" in request.path %}
-    Visualizer{% if current_project %} - {{ current_project.slug }}{% endif %}
+    Visualizer
+    {% if current_project %}- {{ current_project.slug }}{% endif %}
 {% elif "/writer/" in request.path %}
-    Writer{% if current_project %} - {{ current_project.slug }}{% endif %}
+    Writer
+    {% if current_project %}- {{ current_project.slug }}{% endif %}
+{% elif "/console/" in request.path %}
+    Console
+    {% if current_project %}- {{ current_project.slug }}{% endif %}
 {% elif "/tools/" in request.path %}
     Tools
 {% elif "/explore/" in request.path %}
@@ -18,10 +22,18 @@
     {{ profile_user.username }}
 {% elif "/browse/" in request.path %}
     {# Project repository browsing #}
-    {% if project %}Files - {{ project.slug }}{% else %}SciTeX{% endif %}
+    {% if project %}
+        Files - {{ project.slug }}
+    {% else %}
+        SciTeX
+    {% endif %}
 {% elif "/tree/" in request.path %}
     {# Project repository tree view #}
-    {% if project %}Files - {{ project.slug }}{% else %}SciTeX{% endif %}
+    {% if project %}
+        Files - {{ project.slug }}
+    {% else %}
+        SciTeX
+    {% endif %}
 {% elif project %}
     {# Generic project page #}
     {{ project.slug }}

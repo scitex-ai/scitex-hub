@@ -33,7 +33,7 @@
                     <button class="scitex-ai-mode-btn active" data-mode="chat" title="AI Chat">
                         <i class="fas fa-comments"></i>
                     </button>
-                    <button class="scitex-ai-mode-btn" data-mode="console" title="Console (CLI Agents)">
+                    <button class="scitex-ai-mode-btn" data-mode="console" title="Terminal">
                         <i class="fas fa-terminal"></i>
                     </button>
                     <button class="scitex-ai-mode-btn" data-mode="jobs" title="SLURM Jobs">
@@ -42,6 +42,11 @@
                     </button>
                 </div>
                 <div class="scitex-ai-panel-actions">
+                    <button class="scitex-ai-action-btn"
+                            title="Keyboard Shortcuts"
+                            onclick="window.showShortcutsModal()">
+                        <i class="fas fa-keyboard"></i>
+                    </button>
                     <button id="scitex-ai-settings-btn" class="scitex-ai-action-btn" title="Settings">
                         <i class="fas fa-cog"></i>
                     </button>
@@ -112,15 +117,10 @@
                         </button>
                     </div>
                 </div>
-                <!-- Console mode -->
+                <!-- Console/Terminal mode -->
                 <div id="scitex-ai-console-view" class="scitex-ai-view">
-                    <div id="scitex-ai-terminal" class="scitex-ai-terminal"></div>
-                    <div class="scitex-ai-console-bar">
-                        <span class="scitex-ai-console-status" id="scitex-ai-console-status">
-                            <i class="fas fa-circle"></i> Not connected
-                        </span>
-                        <span class="scitex-ai-console-hint">claude · gemini · codex</span>
-                    </div>
+                    <div id="scitex-ai-console-terminal" class="scitex-ai-console-terminal"></div>
+                    <span id="scitex-ai-console-status" class="scitex-ai-console-status"></span>
                 </div>
                 <!-- Jobs mode -->
                 <div id="scitex-ai-jobs-view" class="scitex-ai-view">

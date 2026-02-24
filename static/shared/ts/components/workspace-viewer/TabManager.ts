@@ -13,8 +13,8 @@
 
 import type { TabInfo } from "./types.ts";
 
-/** Special path identifier for the scratch buffer (not a real file). */
-export const SCRATCH_PATH = "*scratch*";
+/** Path for the context buffer — matches the on-disk file. */
+export const SCRATCH_PATH = "scitex/CONTEXT.md";
 
 interface TabManagerConfig {
   container: HTMLElement;
@@ -139,8 +139,14 @@ export class TabManager {
     nameSpan.textContent = info.title || path.split("/").pop() || path;
     tab.appendChild(nameSpan);
 
-    // Scratch tab has no close button
-    if (path !== SCRATCH_PATH) {
+    if (path === SCRATCH_PATH) {
+      // Pinned icon — CONTEXT.md cannot be closed
+      const pinIcon = document.createElement("span");
+      pinIcon.className = "ws-viewer-tab-pin";
+      pinIcon.innerHTML = '<i class="fas fa-thumbtack"></i>';
+      pinIcon.title = "Pinned";
+      tab.appendChild(pinIcon);
+    } else {
       const closeBtn = document.createElement("span");
       closeBtn.className = "ws-viewer-tab-close";
       closeBtn.innerHTML = "&times;";

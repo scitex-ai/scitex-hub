@@ -10,12 +10,13 @@
  */
 
 import { MarkdownPreviewPanel } from "./MarkdownPreview.ts";
+import { loadMonaco } from "./monaco-loader.ts";
 import { ScratchBuffer } from "./ScratchBuffer.ts";
 import { SCRATCH_PATH, TabManager } from "./TabManager.ts";
 import { ViewerRouter } from "./ViewerRouter.ts";
 import { detectFileType, LANGUAGE_MAP, type TabInfo } from "./types.ts";
 
-type ViewMode = "edit" | "preview" | "split";
+type ViewMode = "edit" | "preview";
 
 export interface WorkspaceViewerConfig {
   tabsContainer: HTMLElement;
@@ -38,6 +39,7 @@ export class WorkspaceViewer {
   private modeToggle: HTMLElement | null;
   private viewMode: ViewMode = "edit";
   private projectId: string = "";
+  private tabsContainer: HTMLElement;
   private monacoEditor: any = null;
   private getFileUrl: (
     filePath: string,
@@ -46,6 +48,7 @@ export class WorkspaceViewer {
   ) => string;
 
   constructor(config: WorkspaceViewerConfig) {
+    this.tabsContainer = config.tabsContainer;
     this.monacoContainer = config.monacoContainer;
     this.mediaContainer = config.mediaContainer;
     this.previewContainer = config.previewContainer ?? null;
@@ -69,11 +72,12 @@ export class WorkspaceViewer {
 
     // Restore saved view mode
     const savedMode = localStorage.getItem("ws-viewer-mode") as ViewMode | null;
-    if (savedMode && ["edit", "preview", "split"].includes(savedMode)) {
+    if (savedMode && ["edit", "preview"].includes(savedMode)) {
       this.viewMode = savedMode;
     }
 
     this.initModeToggle();
+    this.initDoubleClickToggle();
     this.router = new ViewerRouter();
 
     this.tabManager = new TabManager({
@@ -154,7 +158,7 @@ export class WorkspaceViewer {
   private initScratchTab(): void {
     const tabInfo: TabInfo = {
       path: SCRATCH_PATH,
-      title: "*scratch*",
+      title: "CONTEXT.md",
       fileType: "text",
     };
     this.tabManager.openTab(tabInfo);
@@ -249,14 +253,16 @@ export class WorkspaceViewer {
   private async showScratchBuffer(): Promise<void> {
     this.mediaContainer.style.display = "none";
 
+    // Pre-load Monaco in background for when user switches to edit
     const monaco = (window as any).monaco;
     if (monaco || (await this.tryLazyLoadMonaco())) {
       await this.loadScratchIntoMonaco(this.scratch.content);
-    } else {
-      this.monacoContainer.style.display = "block";
-      this.showFallbackPre(this.scratch.content);
     }
-    this.applyScratchViewMode();
+
+    // Default to preview (supports inline images); edit via double-click
+    this.viewMode = "preview";
+    this.updateToggleIcon();
+    this.applyViewMode();
   }
 
   private async loadScratchIntoMonaco(content: string): Promise<void> {
@@ -298,31 +304,96 @@ export class WorkspaceViewer {
 
   // --- View mode toggle ---
 
+  /** Double-click (left or right) toggles edit/preview for markdown files. */
+  private initDoubleClickToggle(): void {
+    const toggleIfMarkdown = () => {
+      const active = this.tabManager.getActiveTab();
+      if (!active) return;
+      if (active === SCRATCH_PATH || active.endsWith(".md")) {
+        this.setViewMode(this.viewMode === "edit" ? "preview" : "edit");
+      }
+    };
+
+    // Right-double-click on content areas (Monaco / preview)
+    let lastRightClick = 0;
+    const handleRightDblClick = (e: MouseEvent) => {
+      const now = Date.now();
+      if (now - lastRightClick < 400) {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleIfMarkdown();
+        lastRightClick = 0;
+      } else {
+        lastRightClick = now;
+      }
+    };
+    this.monacoContainer.addEventListener(
+      "contextmenu",
+      handleRightDblClick,
+      true,
+    );
+    if (this.previewContainer) {
+      this.previewContainer.addEventListener(
+        "contextmenu",
+        handleRightDblClick,
+        true,
+      );
+    }
+
+    // Left-double-click on tabs (event delegation)
+    this.tabsContainer.addEventListener("dblclick", (e: MouseEvent) => {
+      const tab = (e.target as HTMLElement).closest(".ws-viewer-tab");
+      if (!tab) return;
+      e.preventDefault();
+      toggleIfMarkdown();
+    });
+
+    // Right-double-click on tabs
+    let lastTabRightClick = 0;
+    this.tabsContainer.addEventListener("contextmenu", (e: MouseEvent) => {
+      const tab = (e.target as HTMLElement).closest(".ws-viewer-tab");
+      if (!tab) return;
+      const now = Date.now();
+      if (now - lastTabRightClick < 400) {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleIfMarkdown();
+        lastTabRightClick = 0;
+      } else {
+        lastTabRightClick = now;
+      }
+    });
+  }
+
   private initModeToggle(): void {
     if (!this.modeToggle) return;
-    const buttons = this.modeToggle.querySelectorAll<HTMLButtonElement>(
-      ".ws-viewer-mode-btn",
-    );
-    buttons.forEach((btn) => {
-      btn.classList.toggle("active", btn.dataset.mode === this.viewMode);
-      btn.addEventListener("click", () => {
-        const mode = btn.dataset.mode as ViewMode;
-        if (mode) this.setViewMode(mode);
-      });
+    this.updateToggleIcon();
+    this.modeToggle.addEventListener("click", () => {
+      this.setViewMode(this.viewMode === "edit" ? "preview" : "edit");
     });
   }
 
   private setViewMode(mode: ViewMode): void {
     this.viewMode = mode;
     localStorage.setItem("ws-viewer-mode", mode);
-    if (this.modeToggle) {
-      this.modeToggle
-        .querySelectorAll<HTMLButtonElement>(".ws-viewer-mode-btn")
-        .forEach((b) => b.classList.toggle("active", b.dataset.mode === mode));
+    this.updateToggleIcon();
+    const active = this.tabManager.getActiveTab();
+    if (active && (active === SCRATCH_PATH || active.endsWith(".md"))) {
+      this.applyViewMode();
     }
-    if (this.tabManager.getActiveTab() === SCRATCH_PATH) {
-      this.applyScratchViewMode();
+  }
+
+  private updateToggleIcon(): void {
+    if (!this.modeToggle) return;
+    const icon = this.modeToggle.querySelector("i");
+    if (icon) {
+      icon.className =
+        this.viewMode === "edit" ? "fas fa-eye" : "fas fa-pencil-alt";
     }
+    this.modeToggle.title =
+      this.viewMode === "edit"
+        ? "Switch to Preview (double-click)"
+        : "Switch to Edit (double-click)";
   }
 
   private showModeToggle(show: boolean): void {
@@ -330,31 +401,19 @@ export class WorkspaceViewer {
       this.modeToggle.style.display = show ? "inline-flex" : "none";
   }
 
-  private applyScratchViewMode(): void {
+  private applyViewMode(): void {
     const hasPreview = !!this.previewContainer && !!this.previewPanel;
-    switch (this.viewMode) {
-      case "edit":
-        this.monacoContainer.style.display = "block";
-        this.monacoContainer.style.width = "100%";
-        if (this.previewContainer) this.previewContainer.style.display = "none";
-        break;
-      case "preview":
-        this.monacoContainer.style.display = "none";
-        if (hasPreview) {
-          this.previewContainer!.style.display = "block";
-          this.previewContainer!.style.width = "100%";
-          this.previewPanel!.render(this.scratch.content);
-        }
-        break;
-      case "split":
-        this.monacoContainer.style.display = "block";
-        this.monacoContainer.style.width = "50%";
-        if (hasPreview) {
-          this.previewContainer!.style.display = "block";
-          this.previewContainer!.style.width = "50%";
-          this.previewPanel!.render(this.scratch.content);
-        }
-        break;
+    if (this.viewMode === "edit") {
+      this.monacoContainer.style.display = "block";
+      this.monacoContainer.style.width = "100%";
+      if (this.previewContainer) this.previewContainer.style.display = "none";
+    } else {
+      this.monacoContainer.style.display = "none";
+      if (hasPreview) {
+        this.previewContainer!.style.display = "block";
+        this.previewContainer!.style.width = "100%";
+        this.previewPanel!.render(this.scratch.content);
+      }
     }
     if (this.monacoEditor && this.monacoContainer.style.display !== "none") {
       this.monacoEditor.layout();
@@ -399,29 +458,7 @@ export class WorkspaceViewer {
   }
 
   private async tryLazyLoadMonaco(): Promise<boolean> {
-    try {
-      await new Promise<void>((resolve, reject) => {
-        if ((window as any).monaco) {
-          resolve();
-          return;
-        }
-        const timeout = setTimeout(
-          () => reject(new Error("Monaco timeout")),
-          3000,
-        );
-        window.addEventListener(
-          "monaco-ready",
-          () => {
-            clearTimeout(timeout);
-            resolve();
-          },
-          { once: true },
-        );
-      });
-      return !!(window as any).monaco;
-    } catch {
-      return false;
-    }
+    return loadMonaco();
   }
 
   private showFallbackPre(content: string): void {

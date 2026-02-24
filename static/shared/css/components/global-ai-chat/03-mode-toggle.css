@@ -66,3 +66,27 @@
 .scitex-ai-view.active {
   display: flex;
 }
+
+/* ============================================================
+   Console/Terminal container — fill available height
+   ============================================================ */
+
+.scitex-ai-console-terminal {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.scitex-ai-console-status {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  font-size: 11px;
+  color: var(--text-muted, #8b949e);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.scitex-ai-console-status.connected {
+  color: var(--workspace-icon-primary, #5a9a7e);
+}

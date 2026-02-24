@@ -9,11 +9,9 @@
  */
 
 import { SCRATCH_PATH } from "./TabManager.ts";
-
-const SCRATCH_FILE = "scitex/scratch.md";
 const SCRATCH_SAVE_DEBOUNCE_MS = 1000;
 const SCRATCH_STORAGE_KEY = "ws-scratch-content";
-const DEFAULT_CONTENT = "# Scratch\n\nShared workspace between you and AI.\n";
+const DEFAULT_CONTENT = "# CONTEXT\n\nShared workspace between you and AI.\n";
 
 export class ScratchBuffer {
   content: string;
@@ -62,7 +60,7 @@ export class ScratchBuffer {
   async loadFromServer(): Promise<string | null> {
     if (!this.projectId) return null;
     try {
-      const url = this.getFileUrl(SCRATCH_FILE, true, false);
+      const url = this.getFileUrl(SCRATCH_PATH, true, false);
       const response = await fetch(url);
       if (!response.ok) return null;
       const content = await response.text();
@@ -92,7 +90,7 @@ export class ScratchBuffer {
           },
           body: JSON.stringify({
             project_id: this.projectId,
-            path: SCRATCH_FILE,
+            path: SCRATCH_PATH,
             content: this.content,
           }),
         });
