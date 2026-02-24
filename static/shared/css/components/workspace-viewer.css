@@ -260,6 +260,52 @@
 }
 
 /* ============================================================
+   Formats info button + tooltip
+   ============================================================ */
+
+.ws-viewer-formats-info-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--text-muted, #8b949e);
+  font-size: 13px;
+  cursor: help;
+  padding: 4px;
+  margin-left: 4px;
+  flex-shrink: 0;
+  opacity: 0.6;
+  transition: opacity 0.15s ease;
+  position: relative;
+}
+
+.ws-viewer-formats-info-btn:hover {
+  opacity: 1;
+  color: var(--text-primary, #d4e1e8);
+}
+
+.ws-viewer-formats-info-btn[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 1000;
+  padding: 8px 12px;
+  background: var(--bg-secondary, #161b22);
+  color: var(--text-primary, #d4e1e8);
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 6px;
+  font-size: 11px;
+  font-family: "JetBrains Mono", monospace;
+  white-space: pre-line;
+  line-height: 1.6;
+  min-width: 280px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+
+/* ============================================================
    Responsive: hide on narrow viewports
    ============================================================ */
 

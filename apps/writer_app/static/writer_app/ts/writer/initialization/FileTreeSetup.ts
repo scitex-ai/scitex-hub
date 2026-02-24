@@ -134,6 +134,13 @@ export class FileTreeSetup {
     const fileName = path.split("/").pop() || "";
     console.log("[FileTreeSetup] File selected from tree:", path, fileName);
 
+    // Only process .tex and .bib files in the Writer editor.
+    // All other formats (PDF, images, etc.) are handled by the shared
+    // workspace viewer via its document-level file-select listener.
+    if (!path.endsWith(".tex") && !path.endsWith(".bib")) {
+      return;
+    }
+
     if (path.endsWith(".tex")) {
       const treeSync = getWriterTreeSync();
       if (treeSync) {
