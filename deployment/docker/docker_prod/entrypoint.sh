@@ -15,6 +15,12 @@ source /app/deployment/docker/common/lib/slurm.src
 echo -e "🏭 Production Environment"
 
 # ============================================
+# Set BUILD_ID for CSS/JS cache busting
+# ============================================
+BUILD_ID=$(git -C /app rev-parse --short HEAD 2>/dev/null || date +%s)
+export BUILD_ID
+
+# ============================================
 # Sync SLURM UID with Host (Required for Terminal)
 # ============================================
 sync_slurm_uid || echo_warning "SLURM UID sync skipped - terminal may have issues"
