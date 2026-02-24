@@ -46,6 +46,23 @@ From: python:3.11-slim
         parallel \
         && rm -rf /var/lib/apt/lists/*
 
+    # Install LaTeX runtime (for scitex-writer manuscript compilation)
+    echo -e "Installing LaTeX packages..."
+    apt-get update
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        texlive-latex-base \
+        texlive-latex-extra \
+        texlive-latex-recommended \
+        texlive-fonts-recommended \
+        texlive-fonts-extra \
+        texlive-bibtex-extra \
+        texlive-science \
+        texlive-pictures \
+        texlive-plain-generic \
+        latexdiff \
+        latexmk \
+        && rm -rf /var/lib/apt/lists/*
+
     # Install Microsoft core fonts (Arial, Times New Roman, etc.) for scientific figures
     echo -e "Installing Microsoft core fonts..."
     sed -i 's/main/main contrib/g' /etc/apt/sources.list.d/debian.sources 2>/dev/null || \
@@ -158,6 +175,11 @@ if 'Arial' in fonts:
 else:
     print('WARNING: Arial font not found, available fonts:', sorted(set(fonts))[:10])
 "
+
+    echo -e "Testing LaTeX installation..."
+    pdflatex --version | head -1
+    bibtex --version | head -1
+    latexmk --version | head -1
 
     echo -e "Testing AI CLI tools..."
     node --version
