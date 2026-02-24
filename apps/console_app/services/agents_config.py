@@ -70,15 +70,32 @@ def _build_local_json() -> dict:
 
 
 def _build_agents_md(project_name: str) -> str:
-    """Build a minimal AGENTS.md for the project."""
+    """Build AGENTS.md with platform context for AI coding tools."""
     return (
         f"# {project_name}\n\n"
         "SciTeX Cloud project with access to 145+ MCP tools.\n\n"
-        "## Available Tools\n\n"
+        "## Platform\n\n"
+        "You are running inside an Apptainer container on SciTeX Cloud — a browser-based\n"
+        "scientific research platform. The web app has modules at these URL prefixes:\n\n"
+        "- `/hub/` — Project dashboard and activity feed\n"
+        "- `/scholar/` — Literature search (CrossRef/OpenAlex), bibliography, citation graphs\n"
+        "- `/console/` — File browser, terminal, code execution\n"
+        "- `/writer/` — LaTeX manuscript editor with live preview\n"
+        "- `/workspace/` — Unified 3-column layout (AI | worktree | module)\n"
+        "- `/vis/` — Data visualization and figure management\n"
+        "- `/clew/` — Pipeline DAG editor and execution\n\n"
+        "## MCP Tools\n\n"
+        "The `scitex` MCP server provides tools for:\n"
+        "- **PLT**: plotting, figure composition, cropping\n"
+        "- **STATS**: 23 statistical tests with effect sizes and power analysis\n"
+        "- **SCHOLAR**: paper search, PDF download, BibTeX enrichment\n"
+        "- **WRITER**: LaTeX compilation, figures, tables, bibliography\n"
+        "- **CLEW**: pipeline creation, chaining, execution\n"
+        "- **INTROSPECT**: Python API inspection (signatures, source, docstrings)\n"
+        "- **DIAGRAM**: Mermaid/Graphviz diagram creation\n"
+        "- **TEMPLATE**: project template cloning\n\n"
         "Run `agents sync` to push this config to your AI coding tool.\n"
-        "The SciTeX MCP server provides: plotting (plt), statistics (stats),\n"
-        "literature search (scholar/crossref/openalex), manuscript writing (writer),\n"
-        "dataset access, and more.\n"
+        "Run `/mcp` in Claude Code to list all available tools.\n"
     )
 
 
@@ -189,23 +206,20 @@ def _build_mcp_json(mcp_env: dict[str, str] | None = None) -> dict:
 
 
 def _build_claude_skill() -> str:
-    """Build Claude Code skill from the registered app skills."""
-    try:
-        from apps.llm_app.skills.export import export_claude_skill
+    """Build Claude Code skill from the registered app skills.
 
-        return export_claude_skill()
-    except Exception:
-        logger.exception("Failed to export Claude skill from registry")
-        # Fallback: minimal skill
-        return (
-            "---\n"
-            "name: scitex-cloud\n"
-            "description: SciTeX Cloud research platform with MCP tools\n"
-            "---\n\n"
-            "# SciTeX Cloud\n\n"
-            "Use `import scitex as stx` for scientific research.\n"
-            "MCP tools available: plt, stats, scholar, writer, clew, audio, diagram.\n"
+    Raises on failure — no silent fallback to a minimal stub.
+    """
+    from apps.llm_app.skills.export import export_claude_skill
+
+    skill = export_claude_skill()
+    if not skill or len(skill) < 200:
+        logger.warning(
+            "export_claude_skill() returned unexpectedly short content (%d chars). "
+            "Skills may not be registered yet. Check apps/*/skill.py.",
+            len(skill) if skill else 0,
         )
+    return skill
 
 
 def ensure_claude_config(
@@ -259,7 +273,19 @@ def ensure_claude_config(
             if not claude_md.exists():
                 claude_md.write_text(
                     f"# {project_name}\n\n"
-                    "SciTeX Cloud project. The `scitex` MCP server is connected.\n\n"
+                    "## Platform\n\n"
+                    "You are on **SciTeX Cloud** — a browser-based scientific research platform.\n"
+                    "This project runs inside an Apptainer container with Python 3.11 and the\n"
+                    "`scitex` package pre-installed. The MCP server is connected.\n\n"
+                    "## Web App Modules\n\n"
+                    "The platform URL structure:\n"
+                    "- `/hub/` — Project dashboard\n"
+                    "- `/scholar/` — Literature search & bibliography\n"
+                    "- `/console/` — File browser & terminal\n"
+                    "- `/writer/` — LaTeX manuscript editor\n"
+                    "- `/workspace/` — Unified 3-column layout\n"
+                    "- `/vis/` — Data visualization\n"
+                    "- `/clew/` — Pipeline DAG editor\n\n"
                     "## Usage\n\n"
                     "```python\n"
                     "import scitex as stx\n\n"
@@ -269,8 +295,9 @@ def ensure_claude_config(
                     "    return 0\n"
                     "```\n\n"
                     "## MCP Tools\n\n"
-                    "Run `/mcp` in Claude Code to see available tools.\n"
-                    "Run `/skills` to see SciTeX Cloud capabilities.\n"
+                    "145+ tools available. Run `/mcp` in Claude Code to list them.\n"
+                    "Run `/skills` to see full SciTeX Cloud capabilities.\n"
+                    "`stx-show <file>` in terminal displays images/plots in the browser.\n"
                 )
                 created = True
 

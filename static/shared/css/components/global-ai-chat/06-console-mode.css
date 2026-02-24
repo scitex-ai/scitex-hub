@@ -2,6 +2,11 @@
    Console Terminal Container
    ============================================================ */
 
+/* Console view must not scroll — xterm handles its own scrollback */
+#scitex-ai-console-view {
+  overflow: hidden !important;
+}
+
 .scitex-ai-terminal {
   flex: 1;
   overflow: hidden;

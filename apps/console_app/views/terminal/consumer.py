@@ -406,7 +406,9 @@ class TerminalConsumer(AsyncWebsocketConsumer):
         """Create .mcp.json + skills if missing (runs in thread)."""
         from apps.console_app.services.agents_config import ensure_claude_config
 
-        ensure_claude_config(user_data_dir, project_dir, project_name=project_name)
+        ensure_claude_config(
+            user_data_dir, project_dir, project_name=project_name, force=True
+        )
 
     async def tts_speak(self, event):
         """Forward TTS speech request to browser via WebSocket.
