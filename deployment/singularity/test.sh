@@ -8,7 +8,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SIF_FILE="$SCRIPT_DIR/scitex-cloud-shared-v0.1.0.sif"
+SIF_FILE="${1:-$SCRIPT_DIR/current.sif}"
 
 # Colors
 GREEN='\033[0;32m'
@@ -88,7 +88,7 @@ run_test "No home mount (--no-home)" "singularity exec --no-home $SIF_FILE pytho
 
 # Test 11: Simple computation
 echo -e -n "Testing simple computation... "
-RESULT=$(singularity exec $SIF_FILE python -c 'print(2 + 2)')
+RESULT=$(singularity exec "$SIF_FILE" python -c 'print(2 + 2)')
 if [ "$RESULT" = "4" ]; then
     echo -e "${GREEN}✓ PASS${NC}"
     ((TESTS_PASSED++))
@@ -99,7 +99,7 @@ fi
 
 # Test 12: NumPy computation
 echo -e -n "Testing NumPy computation... "
-RESULT=$(singularity exec $SIF_FILE python -c 'import numpy as np; print(int(np.sum([1,2,3])))')
+RESULT=$(singularity exec "$SIF_FILE" python -c 'import numpy as np; print(int(np.sum([1,2,3])))')
 if [ "$RESULT" = "6" ]; then
     echo -e "${GREEN}✓ PASS${NC}"
     ((TESTS_PASSED++))
@@ -112,7 +112,7 @@ fi
 echo -e -n "Testing workspace binding... "
 TEST_DIR=$(mktemp -d)
 echo -e "test content" >"$TEST_DIR/test.txt"
-RESULT=$(singularity exec --bind "$TEST_DIR:/workspace" $SIF_FILE cat /workspace/test.txt)
+RESULT=$(singularity exec --bind "$TEST_DIR:/workspace" "$SIF_FILE" cat /workspace/test.txt)
 rm -rf "$TEST_DIR"
 if [ "$RESULT" = "test content" ]; then
     echo -e "${GREEN}✓ PASS${NC}"
@@ -124,7 +124,7 @@ fi
 
 # Test 14: UID preservation
 echo -e -n "Testing UID preservation... "
-CONTAINER_UID=$(singularity exec $SIF_FILE id -u)
+CONTAINER_UID=$(singularity exec "$SIF_FILE" id -u)
 HOST_UID=$(id -u)
 if [ "$CONTAINER_UID" = "$HOST_UID" ]; then
     echo -e "${GREEN}✓ PASS (UID: $HOST_UID)${NC}"
@@ -139,14 +139,14 @@ echo -e "${GREEN}============================================${NC}"
 echo -e "${GREEN}Test Results${NC}"
 echo -e "${GREEN}============================================${NC}"
 echo -e "Tests passed: ${GREEN}$TESTS_PASSED${NC}"
-if [ $TESTS_FAILED -gt 0 ]; then
+if [ "$TESTS_FAILED" -gt 0 ]; then
     echo -e "Tests failed: ${RED}$TESTS_FAILED${NC}"
 else
     echo -e "Tests failed: ${GREEN}$TESTS_FAILED${NC}"
 fi
 echo -e ""
 
-if [ $TESTS_FAILED -eq 0 ]; then
+if [ "$TESTS_FAILED" -eq 0 ]; then
     echo -e "${GREEN}All tests passed! Container is ready to use.${NC}"
     echo -e ""
     echo -e "${GREEN}Next steps:${NC}"

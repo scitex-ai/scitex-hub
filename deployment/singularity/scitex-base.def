@@ -1,0 +1,146 @@
+# File: ./deployment/singularity/scitex-base.def
+# ============================================
+# SciTeX Base Container Definition (Stage 1)
+# ============================================
+# Heavy, stable packages: OS deps, fonts, Node.js, ML stack, AI CLI tools.
+# Rebuilt rarely (~monthly). Stage 2 (scitex-final.def) bootstraps from this.
+
+Bootstrap: docker
+From: python:3.11-slim
+
+%labels
+    Author SciTeX Cloud Team
+    Description Base layer with system deps, ML stack, and AI CLI tools
+    Documentation https://github.com/ywatanabe/scitex-cloud
+    BaseVersion BASE_VERSION_PLACEHOLDER
+    BuildDate BUILD_DATE_PLACEHOLDER
+    BuildHost BUILD_HOST_PLACEHOLDER
+    PythonVersion 3.11
+
+%post
+    echo "============================================"
+    echo "Building SciTeX Base Container (Stage 1)"
+    echo "============================================"
+
+    # Update package lists
+    apt-get update
+
+    # Install system dependencies
+    echo "Installing system dependencies..."
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        git \
+        wget \
+        curl \
+        vim \
+        nano \
+        tmux \
+        htop \
+        tree \
+        less \
+        zip \
+        unzip \
+        bzip2 \
+        ca-certificates \
+        fontconfig \
+        parallel \
+        locales \
+        && rm -rf /var/lib/apt/lists/*
+
+    # Generate locale
+    sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
+
+    # Install Microsoft core fonts (Arial, Times New Roman, etc.)
+    echo "Installing Microsoft core fonts..."
+    sed -i 's/main/main contrib/g' /etc/apt/sources.list.d/debian.sources 2>/dev/null || \
+        sed -i 's/main$/main contrib/' /etc/apt/sources.list
+    apt-get update
+    echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ttf-mscorefonts-installer
+    fc-cache -fv
+    rm -rf /var/lib/apt/lists/*
+
+    # Install uv for fast Python package management
+    echo "Installing Python tooling..."
+    pip install --no-cache-dir --upgrade pip uv
+
+    # Install heavy ML/scientific packages with pinned versions for cache stability
+    echo "Installing pinned ML/scientific stack..."
+    UV_HTTP_TIMEOUT=3600 uv pip install --system \
+        'numpy>=2.0' \
+        'scipy>=1.14' \
+        'pandas>=2.2' \
+        'matplotlib>=3.9' \
+        'seaborn>=0.13' \
+        'plotly>=5.22' \
+        'scikit-learn>=1.5' \
+        'torch>=2.4' \
+        'transformers>=4.40' \
+        'jupyter' \
+        'jupyterlab' \
+        'ipython' \
+        'pytest'
+
+    # Install additional dev tools
+    uv pip install --system \
+        ipdb \
+        black \
+        flake8 \
+        icecream
+
+    # Clear matplotlib font cache so it discovers new fonts
+    echo "Refreshing matplotlib font cache..."
+    python -c "import matplotlib.font_manager; matplotlib.font_manager._rebuild()" 2>/dev/null || true
+    rm -rf /root/.cache/matplotlib 2>/dev/null || true
+
+    # Install Node.js 20 (needed for AI coding CLI tools)
+    echo "Installing Node.js..."
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+    apt-get install -y --no-install-recommends nodejs
+    rm -rf /var/lib/apt/lists/*
+    npm config set prefix /usr/local
+
+    # Install AI coding CLI tools globally
+    echo "Installing AI coding CLI tools..."
+    npm install -g \
+        @anthropic-ai/claude-code \
+        @openai/codex \
+        @google/gemini-cli \
+        @agents-dev/cli
+
+    # Create standard directories
+    mkdir -p /workspace /logs /opt/dev
+    chmod 755 /workspace /logs /opt/dev
+
+    echo "Base build complete!"
+
+%environment
+    export LC_ALL=en_US.UTF-8
+    export LANG=en_US.UTF-8
+    export PYTHONUNBUFFERED=1
+    export PYTHONDONTWRITEBYTECODE=1
+    export PYTHONPATH=/workspace:$PYTHONPATH
+    export PATH=/usr/local/bin:$HOME/.npm-global/bin:$PATH
+    export WORKSPACE=/workspace
+
+%runscript
+    exec python "$@"
+
+%startscript
+    echo "SciTeX Base Container started"
+    exec /bin/bash
+
+%test
+    echo "Testing base installation..."
+    python --version
+    python -c "import numpy, pandas, matplotlib, scipy, sklearn, torch; print('ML stack OK')"
+    python -c "
+import matplotlib.font_manager as fm
+fonts = [f.name for f in fm.fontManager.ttflist]
+print('Arial font:', 'OK' if 'Arial' in fonts else 'MISSING')
+"
+    node --version
+    claude --version 2>/dev/null && echo "Claude Code OK" || echo "WARN: claude not installed"
+    echo "Base tests passed!"
+
+# EOF

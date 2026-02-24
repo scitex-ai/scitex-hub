@@ -16,7 +16,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SIF_FILE="${1:-$SCRIPT_DIR/scitex-cloud-shared-v0.1.0.sif}"
+SIF_FILE="${1:-$SCRIPT_DIR/current.sif}"
 LOCK_FILE="$SCRIPT_DIR/requirements-lock.txt"
 
 # Colors

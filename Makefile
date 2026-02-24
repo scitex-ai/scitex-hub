@@ -110,6 +110,7 @@ SHELL := /bin/bash
 	visitor-reset-workspaces-dry \
 	visitor-cleanup \
 	apptainer-build \
+	apptainer-build-base \
 	apptainer-upgrade \
 	apptainer-freeze
 
@@ -180,7 +181,7 @@ ifdef ENV
 else
   # ENV not specified - only allow non-operational commands
   ifneq ($(MAKECMDGOALS),)
-    ifneq ($(filter-out help help-commands help-all status validate-docker stop-all force-stop-all format format-python format-web format-shell lint lint-web check-file-sizes check-assets check-host ensure-executable slurm-start slurm-stop slurm-restart slurm-status slurm-fix slurm-resume slurm-reset crossref-status crossref-check crossref-rebuild-check crossref-next-steps crossref-create-title-index crossref-create-author-index info regenerate-gallery sync-tests sync-tests-move sync-ts-tests sync-ts-tests-move setup-vitest test-ts test-ts-watch test-ts-ui test-ts-coverage setup-pytest setup-testing test-unit test-db test-api test-ui test-ui-headed test-python test-all test-status apptainer-build,$(MAKECMDGOALS)),)
+    ifneq ($(filter-out help help-commands help-all status validate-docker stop-all force-stop-all format format-python format-web format-shell lint lint-web check-file-sizes check-assets check-host ensure-executable slurm-start slurm-stop slurm-restart slurm-status slurm-fix slurm-resume slurm-reset crossref-status crossref-check crossref-rebuild-check crossref-next-steps crossref-create-title-index crossref-create-author-index info regenerate-gallery sync-tests sync-tests-move sync-ts-tests sync-ts-tests-move setup-vitest test-ts test-ts-watch test-ts-ui test-ts-coverage setup-pytest setup-testing test-unit test-db test-api test-ui test-ui-headed test-python test-all test-status apptainer-build apptainer-build-base apptainer-upgrade apptainer-freeze,$(MAKECMDGOALS)),)
       $(error ❌ ENV not specified! Use: make ENV=<dev|staging|prod> <command>)
     endif
   endif
@@ -454,7 +455,7 @@ start:
 		echo -e "$(GREEN)✓ Host requirements OK$(NC)"; \
 		echo ""; \
 		echo -e "$(CYAN)Checking SLURM paths (/opt/scitex)...$(NC)"; \
-		if [ -f "/opt/scitex/singularity/scitex-cloud-shared-v0.1.0.sif" ]; then \
+		if [ -f "/opt/scitex/singularity/current.sif" ]; then \
 			echo -e "$(GREEN)✓ SLURM paths configured$(NC)"; \
 		else \
 			echo -e "$(YELLOW)⚠️  SLURM paths not configured (terminal will fail)$(NC)"; \
@@ -571,6 +572,10 @@ build-no-cache:
 apptainer-build:
 	@echo -e "$(CYAN)📦 Apptainer SIF build (smart — skips if .def unchanged)$(NC)"
 	@deployment/singularity/build.sh
+
+apptainer-build-base: ## Rebuild only the base layer (OS/system packages)
+	@echo -e "$(CYAN)📦 Rebuilding Apptainer base layer...$(NC)"
+	@deployment/singularity/build.sh --base
 
 apptainer-upgrade: ## Rebuild Apptainer SIF with latest scitex (force)
 	@echo -e "$(CYAN)📦 Force-rebuilding Apptainer SIF with latest packages...$(NC)"

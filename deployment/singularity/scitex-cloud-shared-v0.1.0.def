@@ -43,6 +43,7 @@ From: python:3.11-slim
         bzip2 \
         ca-certificates \
         fontconfig \
+        parallel \
         && rm -rf /var/lib/apt/lists/*
 
     # Install Microsoft core fonts (Arial, Times New Roman, etc.) for scientific figures

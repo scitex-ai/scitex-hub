@@ -37,9 +37,10 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
 COPY pyproject.toml README.md ./
 COPY src/ ./src/
 
-# Install Python dependencies from pyproject.toml
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system ".[django,test]" && \
+# Install scitex-cloud and its Django dependencies
+# Pin version explicitly — changing this busts Docker layer cache.
+ARG SCITEX_CLOUD_VERSION=0.10.7-alpha
+RUN uv pip install --system --no-cache ".[django,test]" && \
     uv pip install --system daphne==4.1.2 psycopg2-binary
 
 # Install Playwright browsers (before scitex for better cache efficiency)

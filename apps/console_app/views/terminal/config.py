@@ -17,7 +17,7 @@ from django.conf import settings
 BASE_CONTAINER_PATH = getattr(
     settings,
     "SINGULARITY_IMAGE_PATH",
-    "/app/singularity/scitex-cloud-shared-v0.1.0.sif",
+    "/app/singularity/current.sif",
 )
 
 # User data directory (inside Docker container)
@@ -52,7 +52,7 @@ SLURM_CONTAINER_PATH = os.environ.get(
     "SCITEX_CLOUD_SLURM_CONTAINER_PATH"
 ) or os.environ.get(
     "SCITEX_SLURM_CONTAINER_PATH",
-    "/opt/scitex/singularity/scitex-cloud-shared-v0.1.0.sif",
+    "/opt/scitex/singularity/current.sif",
 )
 SLURM_USER_DATA_ROOT = Path(
     os.environ.get("SCITEX_CLOUD_SLURM_USER_DATA_ROOT")

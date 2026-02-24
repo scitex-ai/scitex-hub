@@ -1,0 +1,76 @@
+# File: ./deployment/singularity/scitex-final.def
+# ============================================
+# SciTeX Final Container Definition (Stage 2)
+# ============================================
+# Lightweight: installs only the SciTeX ecosystem on top of the base image.
+# Rebuild takes 2-5 minutes instead of 20-30.
+# Base image path is injected by build.sh via sed before build.
+
+Bootstrap: localimage
+From: ./scitex-base-v1.sif
+
+%labels
+    Author SciTeX Cloud Team
+    Description SciTeX ecosystem packages (built on base image)
+    Documentation https://github.com/ywatanabe/scitex-cloud
+    # These are placeholder values — build.sh injects actual values via sed:
+    ScitexVersion SCITEX_VERSION_PLACEHOLDER
+    BaseVersion BASE_VERSION_PLACEHOLDER
+    BuildDate BUILD_DATE_PLACEHOLDER
+    BuildHost BUILD_HOST_PLACEHOLDER
+    BuildMode BUILD_MODE_PLACEHOLDER
+
+%post
+    echo "============================================"
+    echo "Building SciTeX Final Container (Stage 2)"
+    echo "============================================"
+
+    # Install SciTeX ecosystem with all extras
+    echo "Installing SciTeX platform (all extras)..."
+    UV_HTTP_TIMEOUT=3600 uv pip install --system --upgrade \
+        'scitex[all]' \
+        'figrecipe[all]' \
+        'scitex-writer[all]' \
+        'scitex-dataset[all]' \
+        'crossref-local[all]' \
+        'openalex-local[all]' \
+        'socialia[all]' \
+        'scitex-linter[all]'
+
+    # Refresh matplotlib font cache
+    python -c "import matplotlib.font_manager; matplotlib.font_manager._rebuild()" 2>/dev/null || true
+    rm -rf /root/.cache/matplotlib 2>/dev/null || true
+
+    echo "Final build complete!"
+
+%test
+    echo "Testing SciTeX installation..."
+    python --version
+    python -c "import scitex; print(f'scitex {scitex.__version__}')"
+    python -c "import numpy, pandas, matplotlib; print('Core packages OK')"
+    scitex --version
+    echo "All tests passed!"
+
+%help
+    ========================================
+    SciTeX User Workspace Container
+    ========================================
+
+    Two-stage build: base (ML stack) + final (SciTeX ecosystem).
+    Use current.sif symlink for the active version.
+
+    USAGE:
+        apptainer exec current.sif python script.py
+        apptainer shell current.sif
+
+    BUILD:
+        ./build.sh --base          # Rebuild base (rare, ~25 min)
+        ./build.sh                  # Rebuild final (fast, ~3 min)
+        ./build.sh --force          # Force rebuild final
+
+    MANAGE:
+        scitex container list       # Show versions
+        scitex container switch X   # Switch active version
+        scitex container rollback   # Revert to previous
+
+# EOF
