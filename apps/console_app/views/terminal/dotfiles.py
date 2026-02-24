@@ -29,8 +29,9 @@ export HISTCONTROL=ignoredups:erasedups
 # Prompt: {username}@scitex:~/path $
 PS1='\\[\\033[01;32m\\]{username}@scitex\\[\\033[00m\\]:\\[\\033[01;34m\\]\\w\\[\\033[00m\\] \\$ '
 
-# Disable tmux mouse mode for normal text selection
-tmux set -g mouse off 2>/dev/null
+# Enable tmux mouse mode for scroll support
+# Hold Shift to bypass and do normal text selection
+tmux set -g mouse on 2>/dev/null
 
 # AI CLI tools (npm global prefix + nvm)
 export NVM_DIR="$HOME/.nvm"
@@ -180,8 +181,9 @@ silent! colorscheme desert
 # set -g prefix C-a
 # bind C-a send-prefix
 
-# Mouse support (off = normal text selection with mouse drag)
-set -g mouse off
+# Mouse support (scroll, click, resize panes)
+# Hold Shift to bypass and do normal text selection
+set -g mouse on
 
 # 256 colors
 set -g default-terminal "xterm-256color"
