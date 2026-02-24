@@ -9,7 +9,7 @@ services:
   django:
     build:
       context: ../../..
-      dockerfile: deployment/docker/docker_prod/Dockerfile
+      dockerfile: deployment/docker/docker_prod/Dockerfile.prod
       cache_from:
         - scitex-cloud-prod-django:latest
       args:
