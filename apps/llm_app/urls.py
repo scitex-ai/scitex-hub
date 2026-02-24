@@ -48,6 +48,8 @@ urlpatterns = [
     # Skills registry API
     path("api/skills/", views.api_list_skills, name="api_list_skills"),
     path("api/skills/<str:app_name>/", views.api_get_skill, name="api_get_skill"),
+    # Agent context: full snapshot of what AI agents receive (downloadable)
+    path("api/agent-context/", views.api_agent_context, name="api_agent_context"),
     # Usage dashboard
     path("usage/", views.usage_dashboard, name="usage_dashboard"),
     path(

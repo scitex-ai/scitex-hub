@@ -1,15 +1,20 @@
 /**
  * TabManager - Simplified tab manager for the shared workspace viewer.
  *
+ * Features:
+ * - Permanent *scratch* tab (always first, non-closeable, non-draggable)
+ * - localStorage persistence, drag-and-drop reorder, tab switching
+ *
  * Differences from console_app FileTabManager:
- * - No scratch buffer support
  * - No FileCreationHelper dependency
  * - No ModalManager dependency
  * - No inline rename
- * Keeps: localStorage persistence, drag-and-drop reorder, tab switching.
  */
 
 import type { TabInfo } from "./types.ts";
+
+/** Path for the context buffer — matches the on-disk file. */
+export const SCRATCH_PATH = "scitex/CONTEXT.md";
 
 interface TabManagerConfig {
   container: HTMLElement;
@@ -44,6 +49,7 @@ export class TabManager {
 
   /** Remove a tab and switch to an adjacent one if needed. */
   closeTab(path: string): void {
+    if (path === SCRATCH_PATH) return; // scratch tab cannot be closed
     if (!this.tabs.has(path)) return;
 
     const keys = Array.from(this.tabs.keys());
@@ -86,6 +92,16 @@ export class TabManager {
       const tab = this.createTabElement(path, info);
       this.container.appendChild(tab);
     });
+
+    // "+" button to open a file from the worktree
+    const addBtn = document.createElement("button");
+    addBtn.className = "ws-viewer-tab-add";
+    addBtn.innerHTML = "+";
+    addBtn.title = "Open file";
+    addBtn.addEventListener("click", () => {
+      document.dispatchEvent(new CustomEvent("workspace-file-pick"));
+    });
+    this.container.appendChild(addBtn);
   }
 
   saveState(): void {
@@ -123,15 +139,24 @@ export class TabManager {
     nameSpan.textContent = info.title || path.split("/").pop() || path;
     tab.appendChild(nameSpan);
 
-    const closeBtn = document.createElement("span");
-    closeBtn.className = "ws-viewer-tab-close";
-    closeBtn.innerHTML = "&times;";
-    closeBtn.title = "Close";
-    closeBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      this.closeTab(path);
-    });
-    tab.appendChild(closeBtn);
+    if (path === SCRATCH_PATH) {
+      // Pinned icon — CONTEXT.md cannot be closed
+      const pinIcon = document.createElement("span");
+      pinIcon.className = "ws-viewer-tab-pin";
+      pinIcon.innerHTML = '<i class="fas fa-thumbtack"></i>';
+      pinIcon.title = "Pinned";
+      tab.appendChild(pinIcon);
+    } else {
+      const closeBtn = document.createElement("span");
+      closeBtn.className = "ws-viewer-tab-close";
+      closeBtn.innerHTML = "&times;";
+      closeBtn.title = "Close";
+      closeBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        this.closeTab(path);
+      });
+      tab.appendChild(closeBtn);
+    }
 
     tab.addEventListener("click", () => this.switchTab(path));
 
@@ -141,6 +166,10 @@ export class TabManager {
   }
 
   private setupDragDrop(tab: HTMLElement, path: string): void {
+    if (path === SCRATCH_PATH) {
+      tab.draggable = false;
+      return;
+    }
     tab.draggable = true;
 
     tab.addEventListener("dragstart", (e) => {
@@ -179,13 +208,27 @@ export class TabManager {
   }
 
   private reorderTabs(draggedPath: string, targetPath: string): void {
+    // Never move the scratch tab, and never drop before it
+    if (draggedPath === SCRATCH_PATH) return;
+    if (targetPath === SCRATCH_PATH) return;
+
     const entries = Array.from(this.tabs.entries());
     const fromIdx = entries.findIndex(([p]) => p === draggedPath);
     const toIdx = entries.findIndex(([p]) => p === targetPath);
     if (fromIdx === -1 || toIdx === -1) return;
 
     const [dragged] = entries.splice(fromIdx, 1);
-    const insertIdx = fromIdx < toIdx ? toIdx - 1 : toIdx;
+    let insertIdx = fromIdx < toIdx ? toIdx - 1 : toIdx;
+
+    // Ensure nothing is placed before index 0 (scratch)
+    if (
+      entries.length > 0 &&
+      entries[0][0] === SCRATCH_PATH &&
+      insertIdx === 0
+    ) {
+      insertIdx = 1;
+    }
+
     entries.splice(insertIdx, 0, dragged);
 
     this.tabs.clear();

@@ -116,22 +116,34 @@ export class PdfViewer implements Viewer {
     }
   }
 
-  private ensurePdfJs(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if ((window as any).pdfjsLib) {
-        resolve();
-        return;
-      }
-      const script = document.createElement("script");
-      script.src = PDFJS_CDN;
-      script.onload = () => {
-        const lib = (window as any).pdfjsLib;
-        if (lib) lib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
-        resolve();
-      };
-      script.onerror = reject;
-      document.head.appendChild(script);
-    });
+  /**
+   * Load PDF.js via fetch+eval to avoid AMD/RequireJS conflict with Monaco.
+   * Monaco's RequireJS intercepts <script> tag UMD modules, so we fetch
+   * the script as text, temporarily disable AMD globals, execute it, then restore.
+   */
+  private async ensurePdfJs(): Promise<void> {
+    if ((window as any).pdfjsLib) return;
+
+    const resp = await fetch(PDFJS_CDN);
+    if (!resp.ok) throw new Error(`Failed to fetch PDF.js: ${resp.status}`);
+    const code = await resp.text();
+
+    // Save and disable AMD globals so PDF.js sets window.pdfjsLib directly
+    const savedDefine = (window as any).define;
+    const savedRequire = (window as any).require;
+    (window as any).define = undefined;
+    (window as any).require = undefined;
+
+    try {
+      new Function(code)();
+    } finally {
+      // Restore AMD globals for Monaco
+      (window as any).define = savedDefine;
+      (window as any).require = savedRequire;
+    }
+
+    const lib = (window as any).pdfjsLib;
+    if (lib) lib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
   }
 
   private async renderPage(pageNum: number, scale: number): Promise<void> {

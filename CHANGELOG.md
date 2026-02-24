@@ -5,6 +5,32 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.5-alpha] - 2026-02-24
+
+### Fixed
+- **PDF viewer "Failed to load"**: Applied fetch+eval pattern to PDF.js (same as xterm.js fix) to bypass Monaco's RequireJS AMD conflict
+- **File URL encoding**: Encode path segments individually instead of entire path, preserving slashes for Django URL routing
+- **Scholar PDF opens new window**: Removed custom `window.open` handler; use shared workspace-viewer (single source of truth)
+- **Viewer event scope**: Listen for file-select on `document` instead of `#ws-worktree-tree`, catching events from all tree containers
+- **Writer "Invalid section ID" for PDFs**: Early return for non-tex/bib files in FileTreeSetup
+
+### Added
+- Supported formats tooltip in viewer header (hover info icon)
+- Test file fixtures for all viewer formats (14 files for E2E testing)
+
+## [0.10.4-alpha] - 2026-02-24
+
+### Fixed
+- **xterm.js terminal not loading**: Replaced script-tag loading with fetch+eval approach to bypass RequireJS intercepting xterm.js UMD module — eliminates race conditions
+- **Monaco editor invisible**: Changed `display: ""` to `display: "flex"` to override CSS `display: none` rule
+- **Editor AMD conflicts**: Monaco loads first, then CodeMirror with AMD disabled; detect `window.monaco` alone
+
+### Changed
+- **Viewer tabs restyled**: Scholar-style horizontal tabs with bottom-border accent
+- **AI panel mode toggle**: Added CSS for chat/console/agents mode switching
+- **Scratch buffer**: Improved with Monaco loader integration
+- **Console module removed from registry**: Terminal now lives in AI Agent panel
+
 ## [0.10.3-alpha] - 2026-02-24
 
 ### Fixed

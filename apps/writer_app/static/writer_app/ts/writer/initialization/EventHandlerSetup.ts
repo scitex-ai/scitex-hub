@@ -213,7 +213,12 @@ export class EventHandlerSetup {
       });
 
       // Setup debounced auto-full-compilation on editor changes
-      if (this.editor && this.editor.editor) {
+      // Guard: onDidChangeModelContent is Monaco-only; CodeMirror uses .on("change")
+      if (
+        this.editor &&
+        this.editor.editor &&
+        typeof this.editor.editor.onDidChangeModelContent === "function"
+      ) {
         this.editor.editor.onDidChangeModelContent(() => {
           if (!autoFullCompileCheckbox.checked) return;
 

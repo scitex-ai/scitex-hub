@@ -8,6 +8,11 @@ import { appendToolTags } from "./tool-tags";
 import { StoredMessage, saveMessage } from "./storage";
 import { runUIActions, UIActionArgs } from "../ui-action/index";
 import { renderMedia, MediaRef } from "./media-renderer";
+import {
+  renderMarkdown,
+  highlightCodeBlocks,
+  fixExternalLinks,
+} from "./markdown-render";
 
 export interface StreamContext {
   messagesEl: HTMLElement;
@@ -16,13 +21,29 @@ export interface StreamContext {
   autoSpeak: boolean;
 }
 
+const RENDER_DEBOUNCE_MS = 150;
+
+/** Flush accumulated text buffer as rendered markdown into a container */
+function flushTextBuffer(
+  textBuf: string,
+  msgEl: HTMLElement,
+): HTMLElement | null {
+  if (!textBuf.trim()) return null;
+  const wrapper = document.createElement("div");
+  wrapper.className = "ai-md-segment";
+  wrapper.innerHTML = renderMarkdown(textBuf);
+  highlightCodeBlocks(wrapper);
+  fixExternalLinks(wrapper);
+  msgEl.appendChild(wrapper);
+  return wrapper;
+}
+
 /** Process SSE stream and render assistant response */
 export async function processStream(
   resp: Response,
   msgEl: HTMLElement,
   ctx: StreamContext,
 ): Promise<void> {
-  let hasText = false;
   const toolsUsed: string[] = [];
   const mediaRefs: MediaRef[] = [];
   let contextUser = "";
@@ -30,6 +51,41 @@ export async function processStream(
   const reader = resp.body!.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
+
+  // Text accumulator for markdown rendering
+  let textBuf = "";
+  let previewEl: HTMLElement | null = null;
+  let renderTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /** Debounced live preview of accumulated text */
+  function schedulePreview(): void {
+    if (renderTimer) clearTimeout(renderTimer);
+    renderTimer = setTimeout(() => {
+      if (!textBuf.trim()) return;
+      if (!previewEl) {
+        previewEl = document.createElement("div");
+        previewEl.className = "ai-md-segment ai-md-streaming";
+        msgEl.appendChild(previewEl);
+      }
+      previewEl.innerHTML = renderMarkdown(textBuf);
+      ctx.messagesEl.scrollTop = ctx.messagesEl.scrollHeight;
+    }, RENDER_DEBOUNCE_MS);
+  }
+
+  /** Finalize the current text segment: replace preview with final render */
+  function finalizeTextSegment(): void {
+    if (renderTimer) clearTimeout(renderTimer);
+    renderTimer = null;
+    if (previewEl) {
+      previewEl.remove();
+      previewEl = null;
+    }
+    flushTextBuffer(textBuf, msgEl);
+    textBuf = "";
+  }
+
+  // Track raw text for storage
+  let fullText = "";
 
   while (true) {
     const { value, done } = await reader.read();
@@ -52,20 +108,15 @@ export async function processStream(
       if (event.type === "model") {
         setModelBadge(ctx.modelBadge, event.name as string);
       } else if (event.type === "chunk") {
-        if (!hasText) {
-          msgEl.appendChild(document.createTextNode(event.text as string));
-          hasText = true;
-        } else {
-          let last: Text | null = null;
-          for (const node of msgEl.childNodes)
-            if (node.nodeType === Node.TEXT_NODE) last = node as Text;
-          if (last) last.textContent += event.text as string;
-        }
-        ctx.messagesEl.scrollTop = ctx.messagesEl.scrollHeight;
+        const chunk = event.text as string;
+        textBuf += chunk;
+        fullText += chunk;
+        schedulePreview();
       } else if (event.type === "tool_start") {
+        // Flush text before tool tag
+        finalizeTextSegment();
         toolsUsed.push(event.name as string);
         appendToolTags(msgEl, [event.name as string]);
-        hasText = false;
         if (event.name === "audio_speak" && event.args) {
           try {
             const a = JSON.parse(event.args as string) as Record<
@@ -97,6 +148,7 @@ export async function processStream(
           ctx.messagesEl.scrollTop = ctx.messagesEl.scrollHeight;
         }
       } else if (event.type === "error") {
+        finalizeTextSegment();
         msgEl.remove();
         const errEl = document.createElement("div");
         errEl.className = "scitex-ai-msg error";
@@ -106,6 +158,9 @@ export async function processStream(
       }
     }
   }
+
+  // Flush any remaining text
+  finalizeTextSegment();
 
   // Refresh file tree if AI wrote files
   if (toolsUsed.includes("project_write_file") && window.workspaceFilesTree) {
@@ -121,18 +176,14 @@ export async function processStream(
   }
 
   // Save and optionally speak
-  const msgText = Array.from(msgEl.childNodes)
-    .filter((n) => n.nodeType === Node.TEXT_NODE)
-    .map((n) => n.textContent ?? "")
-    .join("");
-  if (msgText || toolsUsed.length > 0 || mediaRefs.length > 0) {
+  if (fullText || toolsUsed.length > 0 || mediaRefs.length > 0) {
     saveMessage({
       role: "assistant",
-      text: msgText,
+      text: fullText,
       toolsUsed,
       media: mediaRefs.length > 0 ? mediaRefs : undefined,
     } as StoredMessage);
-    if (msgText && ctx.autoSpeak && !toolsUsed.includes("audio_speak"))
-      ctx.speak(msgText);
+    if (fullText && ctx.autoSpeak && !toolsUsed.includes("audio_speak"))
+      ctx.speak(fullText);
   }
 }

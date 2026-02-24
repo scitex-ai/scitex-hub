@@ -115,7 +115,14 @@ def _build_system_prompt(context: dict, user, sync_to_async=None) -> str:
         "diagram creation, and manuscript writing. Use them when appropriate.\n"
         "When working with project files use the project_* tools "
         "(project_list_files, project_read_file, project_write_file, project_search_files). "
-        "Always pass the exact root_path shown in this prompt."
+        "Always pass the exact root_path shown in this prompt.\n\n"
+        "## Media Rendering\n"
+        "When MCP tools create files (plt_plot, project_write_file, etc.), "
+        "images and plots are automatically rendered inline in this chat. "
+        "Supported: .png, .jpg, .svg, .gif (inline images), .csv/.tsv (interactive tables), "
+        ".pdf (file links), .mmd (diagram links). "
+        "Your response text is rendered as Markdown — use code blocks, headers, lists, "
+        "and tables for clear formatting."
     )
     if context.get("project"):
         base_prompt += f"\nCurrent project: {context['project']}"

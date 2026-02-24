@@ -52,7 +52,8 @@ export function getFileUrl(
   if (raw) {
     params.set("raw", "true");
   }
-  return `${apiEndpoint}${encodeURIComponent(filePath)}?${params.toString()}`;
+  const encodedPath = filePath.split("/").map(encodeURIComponent).join("/");
+  return `${apiEndpoint}${encodedPath}?${params.toString()}`;
 }
 
 /**

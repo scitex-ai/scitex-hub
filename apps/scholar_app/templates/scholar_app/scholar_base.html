@@ -364,19 +364,11 @@
         <!-- Standardized project config for shared tree init -->
         <div id="workspace-project-config"
              style="display: none"
+             data-project-id="{{ current_project.id }}"
              data-username="{{ current_project.owner.username }}"
              data-slug="{{ current_project.slug }}"
              data-mode="scholar"></div>
-        <script>
-          window.scitexOnFileSelect = function(path) {
-            if (path.endsWith('.pdf')) {
-              var config = document.getElementById('workspace-project-config');
-              var u = config ? config.dataset.username : '';
-              var s = config ? config.dataset.slug : '';
-              window.open('/' + u + '/' + s + '/files/' + path, '_blank');
-            }
-          };
-        </script>
+        <!-- File viewing handled by shared workspace-viewer (document-level file-select listener) -->
         {% tree_preseed_script current_project %}
         {% vite_script 'shared/workspace-tree-init' %}
         {% vite_script 'scholar_app/scholar-workspace-init' %}

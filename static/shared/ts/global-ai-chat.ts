@@ -7,8 +7,8 @@
 export {}; // Make this a module so declare global augmentation is valid
 
 import { readActiveProjectSlug } from "./components/global-ai-chat/context";
-import { AIPanelConsoleMode } from "./components/global-ai-chat/console-mode";
 import { AIPanelChatMode } from "./components/global-ai-chat/chat-mode";
+import { AIPanelConsoleMode } from "./components/global-ai-chat/console-mode";
 import { AIPanelJobsMode } from "./components/global-ai-chat/jobs-mode";
 import { fetchAndPopulateSttModels } from "./components/global-ai-chat/stt-models";
 import { fetchAndPopulateLlmModels } from "./components/global-ai-chat/llm-model-selector";
@@ -59,8 +59,8 @@ class GlobalAIChat {
 
   // Mode switching (chat / console / jobs)
   private mode: "chat" | "console" | "jobs" = "chat";
-  private consoleMode: AIPanelConsoleMode | null = null;
   private chatMode: AIPanelChatMode | null = null;
+  private consoleMode: AIPanelConsoleMode | null = null;
   private jobsMode: AIPanelJobsMode | null = null;
 
   init(): void {
@@ -122,12 +122,14 @@ class GlobalAIChat {
     const settingsPanel = document.getElementById("scitex-ai-settings-panel");
     if (settingsBtn && settingsPanel) {
       settingsBtn.addEventListener("click", () => {
-        settingsPanel.style.display =
-          settingsPanel.style.display === "none" ? "" : "none";
+        const wasHidden = settingsPanel.style.display === "none";
+        settingsPanel.style.display = wasHidden ? "" : "none";
+        if (wasHidden) this.populateAgentSources();
       });
     }
 
     this.setupModeToggle();
+    this.setupHeaderDblClick();
     this.fab?.addEventListener("click", () => this.toggle());
     this.sendBtn?.addEventListener("click", () => void this.chatMode?.send());
     this.micBtn?.addEventListener("click", () =>
@@ -198,6 +200,150 @@ class GlobalAIChat {
     };
   }
 
+  /* ── Header Double-Click → Toggle Chat / Console ────────── */
+
+  private setupHeaderDblClick(): void {
+    const header = document.getElementById("scitex-ai-panel-header");
+    if (!header) return;
+    header.addEventListener("dblclick", (e: MouseEvent) => {
+      // Ignore clicks on buttons inside the header
+      if ((e.target as HTMLElement).closest("button")) return;
+      e.preventDefault();
+      this.switchMode(this.mode === "chat" ? "console" : "chat");
+    });
+  }
+
+  /* ── Agent Sources ────────────────────────────────────────── */
+
+  private async populateAgentSources(): Promise<void> {
+    const container = document.getElementById("ai-agent-sources-content");
+    if (!container) return;
+
+    try {
+      // Fetch skills, hints, and current page context in parallel
+      const [skillsResp, pageHints] = await Promise.all([
+        fetch("/llm/api/skills/").then((r) => r.json()),
+        Promise.resolve(this.chatMode?.collectPageHints() ?? []),
+      ]);
+
+      const skills = skillsResp.skills || {};
+      const currentPage = window.location.pathname;
+
+      let html = "";
+
+      // Active skill for current page
+      const activeSkill = Object.values(skills).find((s: any) =>
+        s.page_patterns?.some(
+          (p: string) =>
+            currentPage.includes(p) ||
+            currentPage.startsWith(p.replace(/\/$/, "")),
+        ),
+      ) as any;
+
+      if (activeSkill) {
+        html += `<div class="ai-source-group">`;
+        html += `<div class="ai-source-group-title"><i class="fas fa-star ai-source-active"></i> Active Skill</div>`;
+        html += `<div class="ai-source-item"><i class="fas fa-check-circle ai-source-active"></i> ${activeSkill.display_name}</div>`;
+        if (activeSkill.capabilities) {
+          for (const cap of activeSkill.capabilities) {
+            html += `<div class="ai-source-item"><i class="fas fa-chevron-right"></i> ${cap}</div>`;
+          }
+        }
+        if (activeSkill.tool_prefixes?.length) {
+          html += `<div class="ai-source-item"><i class="fas fa-tools"></i> Tools: ${activeSkill.tool_prefixes.join(", ")}</div>`;
+        }
+        html += `</div>`;
+      }
+
+      // Page hints
+      if (pageHints.length > 0) {
+        html += `<div class="ai-source-group">`;
+        html += `<div class="ai-source-group-title"><i class="fas fa-lightbulb"></i> Page Hints (${pageHints.length})</div>`;
+        for (const hint of pageHints) {
+          const short = hint.length > 80 ? hint.slice(0, 77) + "..." : hint;
+          html += `<div class="ai-source-item" title="${hint.replace(/"/g, "&quot;")}"><i class="fas fa-info-circle"></i> ${short}</div>`;
+        }
+        html += `</div>`;
+      }
+
+      // All registered skills
+      const skillNames = Object.keys(skills);
+      if (skillNames.length > 0) {
+        html += `<div class="ai-source-group">`;
+        html += `<div class="ai-source-group-title"><i class="fas fa-book"></i> All Skills (${skillNames.length})</div>`;
+        for (const name of skillNames) {
+          const s = skills[name];
+          const isActive = activeSkill?.app_name === name;
+          const icon = isActive ? "check-circle ai-source-active" : "circle";
+          html += `<div class="ai-source-item"><i class="fas fa-${icon}"></i> ${s.display_name}</div>`;
+        }
+        html += `</div>`;
+      }
+
+      // MCP tools info
+      const mcpCount = document.querySelector(".ai-mcp-count")?.textContent;
+      if (mcpCount && mcpCount !== "--") {
+        html += `<div class="ai-source-group">`;
+        html += `<div class="ai-source-group-title"><i class="fas fa-plug"></i> MCP Tools</div>`;
+        html += `<div class="ai-source-item"><i class="fas fa-wrench"></i> ${mcpCount} tools available</div>`;
+        html += `</div>`;
+      }
+
+      // Download button
+      html += `<div class="ai-source-group ai-source-download">`;
+      html += `<button class="ai-context-download-btn" title="Download full agent context as JSON">`;
+      html += `<i class="fas fa-download"></i> Download Agent Context`;
+      html += `</button></div>`;
+
+      container.innerHTML =
+        html || '<div class="ai-source-loading">No sources detected</div>';
+
+      // Bind download handler
+      container
+        .querySelector(".ai-context-download-btn")
+        ?.addEventListener("click", () =>
+          this.downloadAgentContext(pageHints, currentPage),
+        );
+    } catch (err) {
+      container.innerHTML =
+        '<div class="ai-source-loading">Failed to load sources</div>';
+    }
+  }
+
+  private async downloadAgentContext(
+    pageHints: string[],
+    page: string,
+  ): Promise<void> {
+    try {
+      const csrf =
+        document.querySelector<HTMLInputElement>("[name=csrfmiddlewaretoken]")
+          ?.value ??
+        (document.cookie.match(/csrftoken=([^;]+)/)?.[1] || "");
+
+      const resp = await fetch("/llm/api/agent-context/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrf,
+        },
+        body: JSON.stringify({ page, page_hints: pageHints }),
+      });
+
+      const data = await resp.json();
+      const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `agent-context-${new Date().toISOString().slice(0, 19).replace(/:/g, "")}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      console.error("[AI] Failed to download agent context");
+    }
+  }
+
   /* ── Mode Toggle (Chat / Console / Jobs) ───────────────────── */
 
   private setupModeToggle(): void {
@@ -239,16 +385,12 @@ class GlobalAIChat {
     if (mode === "jobs") this.initJobsMode();
   }
 
-  private async initConsoleMode(): Promise<void> {
-    const container = document.getElementById("scitex-ai-terminal");
+  private initConsoleMode(): void {
+    const containerEl = document.getElementById("scitex-ai-console-terminal");
     const statusEl = document.getElementById("scitex-ai-console-status");
-    if (!container) return;
+    if (!containerEl) return;
     if (!this.consoleMode) this.consoleMode = new AIPanelConsoleMode();
-    await this.consoleMode.init(container, statusEl);
-    setTimeout(() => {
-      this.consoleMode?.fit();
-      this.consoleMode?.focus();
-    }, 50);
+    void this.consoleMode.init(containerEl, statusEl);
   }
 
   private initJobsMode(): void {

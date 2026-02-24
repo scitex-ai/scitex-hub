@@ -111,16 +111,26 @@ export class EnhancedEditor {
         // Setup themes + observer (identical to Console)
         setupMonacoTheme(monaco);
 
-        // Get initial value before replacing element
+        // Get initial value from textarea
         const textareaElement = element as HTMLTextAreaElement;
         const initialValue = textareaElement.value || "";
 
-        // Create editor container
-        const editorContainer = document.createElement("div");
-        editorContainer.id = `${config.elementId}-monaco`;
-        editorContainer.style.cssText =
-          "width: 100%; height: 100%; border: none;";
-        element.parentElement?.replaceChild(editorContainer, element);
+        // Use the dedicated writer-monaco-editor container (hidden by default in CSS)
+        // This avoids creating orphaned elements and ensures proper flex layout
+        let editorContainer = document.getElementById("writer-monaco-editor");
+        if (!editorContainer) {
+          // Fallback: create container and replace textarea
+          editorContainer = document.createElement("div");
+          editorContainer.id = `${config.elementId}-monaco`;
+          editorContainer.style.cssText =
+            "width: 100%; height: 100%; border: none; flex: 1; min-height: 0;";
+          element.parentElement?.replaceChild(editorContainer, element);
+        } else {
+          // Show the dedicated container and hide the textarea
+          // Must set explicit display value to override CSS `display: none` rule
+          editorContainer.style.display = "flex";
+          textareaElement.style.display = "none";
+        }
 
         // Create Monaco editor
         this.monacoEditor = createMonacoEditor(

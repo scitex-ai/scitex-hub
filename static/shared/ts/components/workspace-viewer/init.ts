@@ -40,10 +40,17 @@ function initWorkspaceViewer(): void {
 
   if (!tabsContainer || !monacoContainer || !mediaContainer) return;
 
+  const previewContainer =
+    document.getElementById("ws-viewer-preview") ?? undefined;
+  const modeToggle =
+    document.getElementById("ws-viewer-mode-toggle") ?? undefined;
+
   const viewer = new WorkspaceViewer({
     tabsContainer,
     monacoContainer,
     mediaContainer,
+    previewContainer,
+    modeToggle,
     storageKey: "ws-viewer",
   });
 
@@ -52,16 +59,17 @@ function initWorkspaceViewer(): void {
 
   window.workspaceViewer = viewer;
 
-  // Listen for file-select events from the worktree pane
-  const worktreeTree = document.getElementById("ws-worktree-tree");
-  if (worktreeTree) {
-    worktreeTree.addEventListener("file-select", ((e: CustomEvent) => {
-      const path = e.detail?.path;
-      if (path) {
-        openFileInViewer(viewer, path, emptyState);
-      }
-    }) as EventListener);
-  }
+  // Hide empty state — scratch tab is always open
+  if (emptyState) emptyState.style.display = "none";
+
+  // Listen for file-select events from ANY tree container (worktree pane or module tree).
+  // The event has bubbles: true, so listening on document catches them all.
+  document.addEventListener("file-select", ((e: CustomEvent) => {
+    const path = e.detail?.path;
+    if (path) {
+      openFileInViewer(viewer, path, emptyState);
+    }
+  }) as EventListener);
 
   // Also support double-click to open (more intentional action)
   document.addEventListener("workspace-file-open", ((e: CustomEvent) => {

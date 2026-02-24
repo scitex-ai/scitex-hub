@@ -10,19 +10,40 @@ const XTERM_JS_URL = "https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js";
 const XTERM_CSS_URL = "https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css";
 const FIT_ADDON_URL =
   "https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js";
+/**
+ * Load xterm.js by fetching source text and executing synchronously
+ * with AMD globals fully disabled. This eliminates race conditions
+ * that occur with script tags (where RequireJS can intercept the UMD module).
+ */
+async function loadXtermModules(): Promise<{
+  Terminal: any;
+  FitAddon: any;
+}> {
+  const win = window as any;
 
-function loadScript(src: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (document.querySelector(`script[src="${src}"]`)) {
-      resolve();
-      return;
-    }
-    const el = document.createElement("script");
-    el.src = src;
-    el.onload = () => resolve();
-    el.onerror = () => reject(new Error(`Failed to load ${src}`));
-    document.head.appendChild(el);
-  });
+  // Fetch all scripts as text
+  const [xtermCode, fitCode] = await Promise.all([
+    fetch(XTERM_JS_URL).then((r) => r.text()),
+    fetch(FIT_ADDON_URL).then((r) => r.text()),
+  ]);
+
+  // Save and fully disable AMD globals (synchronous — no race conditions)
+  const savedDefine = win.define;
+  const savedRequire = win.require;
+  win.define = undefined;
+  win.require = undefined;
+
+  try {
+    new Function(xtermCode)();
+    new Function(fitCode)();
+  } finally {
+    win.define = savedDefine;
+    win.require = savedRequire;
+  }
+
+  const Terminal = win.Terminal?.Terminal || win.Terminal;
+  const FitAddon = win.FitAddon?.FitAddon || win.FitAddon;
+  return { Terminal, FitAddon };
 }
 
 function loadCSS(href: string): void {
@@ -39,7 +60,6 @@ export class AIPanelConsoleMode {
   private ws: WebSocket | null = null;
   private container: HTMLElement | null = null;
   private statusEl: HTMLElement | null = null;
-  private loaded = false;
   private connected = false;
   private resizeObserver: ResizeObserver | null = null;
   private resizeTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -52,22 +72,25 @@ export class AIPanelConsoleMode {
     this.container = container;
     this.statusEl = statusEl;
 
-    if (!this.loaded) {
-      loadCSS(XTERM_CSS_URL);
-      await loadScript(XTERM_JS_URL);
-      await loadScript(FIT_ADDON_URL);
-      this.loaded = true;
-    }
-
     if (this.terminal) return; // already initialized
 
-    const xterm = (window as any).Terminal;
-    const Terminal = typeof xterm === "function" ? xterm : xterm?.Terminal;
+    loadCSS(XTERM_CSS_URL);
+
+    let Terminal: any;
+    let FitAddon: any;
+    try {
+      const modules = await loadXtermModules();
+      Terminal = modules.Terminal;
+      FitAddon = modules.FitAddon;
+    } catch (err) {
+      console.error("[AIPanelConsole] Failed to load xterm.js:", err);
+      return;
+    }
+
     if (!Terminal) {
       console.error("[AIPanelConsole] xterm.js Terminal class not available");
       return;
     }
-    const FitAddon = (window as any).FitAddon?.FitAddon;
 
     this.terminal = new Terminal({
       cursorBlink: true,
@@ -125,15 +148,7 @@ export class AIPanelConsoleMode {
 
     // Clipboard & selection support
     this.terminal.attachCustomKeyEventHandler((ev: KeyboardEvent) => {
-      // Ctrl+A: select all terminal content
-      if (
-        ev.ctrlKey &&
-        (ev.key === "a" || ev.key === "A") &&
-        ev.type === "keydown"
-      ) {
-        this.terminal.selectAll();
-        return false;
-      }
+      // Ctrl+A: pass through to terminal (readline: go to beginning of line)
       // Ctrl+C: copy selection (if text selected), else send interrupt
       if (ev.ctrlKey && (ev.key === "c" || ev.key === "C")) {
         const sel = this.terminal.getSelection();
@@ -202,24 +217,36 @@ export class AIPanelConsoleMode {
   ): void {
     if (!this.statusEl) return;
     this.statusEl.classList.remove("connected");
-    const icon = this.statusEl.querySelector("i");
+
+    // Ensure icon and text nodes exist
+    let icon = this.statusEl.querySelector("i");
+    if (!icon) {
+      icon = document.createElement("i");
+      this.statusEl.prepend(icon);
+    }
+    let textNode = this.statusEl.lastChild;
+    if (!textNode || textNode === icon) {
+      textNode = document.createTextNode("");
+      this.statusEl.appendChild(textNode);
+    }
+
     switch (state) {
       case "connecting":
-        if (icon) icon.className = "fas fa-circle-notch fa-spin";
-        this.statusEl.lastChild!.textContent = " Connecting...";
+        icon.className = "fas fa-circle-notch fa-spin";
+        textNode.textContent = " Connecting...";
         break;
       case "connected":
         this.statusEl.classList.add("connected");
-        if (icon) icon.className = "fas fa-circle";
-        this.statusEl.lastChild!.textContent = " Connected";
+        icon.className = "fas fa-circle";
+        textNode.textContent = " Connected";
         break;
       case "disconnected":
-        if (icon) icon.className = "fas fa-circle";
-        this.statusEl.lastChild!.textContent = " Disconnected";
+        icon.className = "fas fa-circle";
+        textNode.textContent = " Disconnected";
         break;
       case "error":
-        if (icon) icon.className = "fas fa-exclamation-circle";
-        this.statusEl.lastChild!.textContent = " Connection failed";
+        icon.className = "fas fa-exclamation-circle";
+        textNode.textContent = " Connection failed";
         break;
     }
   }

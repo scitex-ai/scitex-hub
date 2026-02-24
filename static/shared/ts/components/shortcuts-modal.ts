@@ -38,6 +38,7 @@ const CONTEXT_SECTIONS: Record<AppContext, ShortcutSection[]> = {
         { keys: "Alt+S", description: "Scholar" },
         { keys: "Alt+V", description: "Visualizer" },
         { keys: "Alt+W", description: "Writer" },
+        { keys: "Alt+A", description: "AI Panel" },
         { keys: "Alt+Z", description: "Zen Mode" },
       ],
     },
@@ -46,6 +47,22 @@ const CONTEXT_SECTIONS: Record<AppContext, ShortcutSection[]> = {
       shortcuts: [
         { keys: "Ctrl+P", description: "Previous entry" },
         { keys: "Ctrl+N", description: "Next entry" },
+      ],
+    },
+    {
+      title: "AI Panel",
+      shortcuts: [
+        { keys: "Alt+A", description: "Toggle AI panel" },
+        { keys: "Dbl-Click", description: "Toggle Chat / Terminal" },
+      ],
+    },
+    {
+      title: "Terminal (Right-Click)",
+      shortcuts: [
+        { keys: "Right \u00d71", description: "Send 1 + Enter (0.5s delay)" },
+        { keys: "Right \u00d72", description: "Send 2 + Enter (0.5s delay)" },
+        { keys: "Right \u00d73", description: "Send 3 + Enter (0.5s delay)" },
+        { keys: "Right \u00d74", description: "Send 4 + Enter (0.5s delay)" },
       ],
     },
   ],

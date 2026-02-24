@@ -1,0 +1,123 @@
+/* Markdown rendering inside AI chat assistant messages */
+
+.scitex-ai-msg.assistant p {
+  margin: 0.25rem 0;
+}
+.scitex-ai-msg.assistant p:first-child {
+  margin-top: 0;
+}
+.scitex-ai-msg.assistant p:last-child {
+  margin-bottom: 0;
+}
+
+/* Inline code */
+.scitex-ai-msg.assistant code {
+  background: rgba(255, 255, 255, 0.06);
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+  font-size: 0.85em;
+  font-family: "JetBrains Mono", "Monaco", "Menlo", monospace;
+}
+
+/* Code blocks */
+.scitex-ai-msg.assistant pre {
+  background: var(--bg-primary, #0d1117);
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 4px;
+  padding: 0.5rem 0.6rem;
+  margin: 0.4rem 0;
+  overflow-x: auto;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+.scitex-ai-msg.assistant pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+}
+
+/* Headings */
+.scitex-ai-msg.assistant h1,
+.scitex-ai-msg.assistant h2,
+.scitex-ai-msg.assistant h3,
+.scitex-ai-msg.assistant h4 {
+  margin: 0.5rem 0 0.25rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.scitex-ai-msg.assistant h1 {
+  font-size: 1rem;
+}
+.scitex-ai-msg.assistant h2 {
+  font-size: 0.92rem;
+}
+.scitex-ai-msg.assistant h3 {
+  font-size: 0.85rem;
+}
+.scitex-ai-msg.assistant h4 {
+  font-size: 0.8rem;
+}
+
+/* Lists */
+.scitex-ai-msg.assistant ul,
+.scitex-ai-msg.assistant ol {
+  margin: 0.25rem 0;
+  padding-left: 1.25rem;
+}
+.scitex-ai-msg.assistant li {
+  margin-bottom: 0.15rem;
+}
+
+/* Links */
+.scitex-ai-msg.assistant a {
+  color: var(--color-accent-fg, #58a6ff);
+  text-decoration: none;
+}
+.scitex-ai-msg.assistant a:hover {
+  text-decoration: underline;
+}
+
+/* Blockquotes */
+.scitex-ai-msg.assistant blockquote {
+  border-left: 3px solid var(--border-default, #30363d);
+  margin: 0.25rem 0;
+  padding: 0.15rem 0.5rem;
+  color: var(--text-muted, #8b949e);
+}
+
+/* Tables */
+.scitex-ai-msg.assistant table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  margin: 0.35rem 0;
+}
+.scitex-ai-msg.assistant th,
+.scitex-ai-msg.assistant td {
+  border: 1px solid var(--border-default, #30363d);
+  padding: 0.2rem 0.4rem;
+  text-align: left;
+}
+.scitex-ai-msg.assistant th {
+  background: rgba(255, 255, 255, 0.04);
+  font-weight: 600;
+}
+
+/* Images (from markdown or media refs) */
+.scitex-ai-msg.assistant img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  margin: 0.25rem 0;
+  cursor: pointer;
+}
+
+/* Horizontal rule */
+.scitex-ai-msg.assistant hr {
+  border: none;
+  border-top: 1px solid var(--border-default, #30363d);
+  margin: 0.5rem 0;
+}
+
+/* EOF */

@@ -98,7 +98,10 @@ export async function waitForMonaco(
   console.log("[Writer] Waiting for Monaco to load...");
 
   while (Date.now() - startTime < maxWaitMs) {
-    if ((window as any).monacoLoaded && (window as any).monaco) {
+    // Check window.monaco alone — workspace viewer loads Monaco but doesn't set monacoLoaded
+    if ((window as any).monaco) {
+      // Ensure flag is set for other consumers
+      (window as any).monacoLoaded = true;
       console.log("[Writer] Monaco loaded successfully");
       return true;
     }

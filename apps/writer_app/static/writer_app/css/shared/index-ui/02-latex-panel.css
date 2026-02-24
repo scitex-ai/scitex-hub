@@ -119,12 +119,13 @@
 }
 
 /* Monaco Editor Container for Writer */
-/* IMPORTANT: Do NOT set background here - let Monaco use its native vs-dark/vs theme background */
+/* Hidden by default - Monaco initialization shows it and populates it via JS */
+/* Previously had flex: 1 which stole half the panel space even when empty */
 .writer-monaco-editor {
+  display: none;
   flex: 1;
   min-height: 0;
   width: 100%;
-  height: 100%;
   padding: 8px 0;
   /* background intentionally not set - Monaco handles it */
 }

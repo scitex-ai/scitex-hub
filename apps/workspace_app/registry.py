@@ -187,18 +187,6 @@ _BUILTIN_MODULES: list[ModuleConfig] = [
         hidden_patterns=["__pycache__", "node_modules", ".git", ".venv"],
     ),
     ModuleConfig(
-        name="console",
-        label="Console",
-        app_name="console_app",
-        icon_fa="fa-terminal",
-        partial_template="console_app/console_partial.html",
-        body_class="code-workspace",
-        track_module="code",
-        keyboard_shortcut="C",
-        order=40,
-        hidden_patterns=["__pycache__", ".pyc", "node_modules", ".git/objects"],
-    ),
-    ModuleConfig(
         name="clew",
         label="Clew",
         app_name="clew_app",

@@ -11,6 +11,11 @@ import { speakText } from "./speech";
 import { appendToolTags } from "./tool-tags";
 import { clearMessages, loadMessages, saveMessage } from "./storage";
 import { renderMedia } from "./media-renderer";
+import {
+  renderMarkdown,
+  highlightCodeBlocks,
+  fixExternalLinks,
+} from "./markdown-render";
 import { processStream } from "./stream-handler";
 import { execBashCommand } from "./bash-exec";
 import { loadHistory, pushHistory } from "./history";
@@ -100,7 +105,16 @@ export class AIPanelChatMode {
         .projectOwner || "";
     for (const msg of stored) {
       const el = this.createMsgEl(msg.role);
-      el.appendChild(document.createTextNode(msg.text));
+      if (msg.role === "assistant" && msg.text) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "ai-md-segment";
+        wrapper.innerHTML = renderMarkdown(msg.text);
+        highlightCodeBlocks(wrapper);
+        fixExternalLinks(wrapper);
+        el.appendChild(wrapper);
+      } else {
+        el.appendChild(document.createTextNode(msg.text));
+      }
       if (msg.toolsUsed?.length) appendToolTags(el, msg.toolsUsed);
       if (msg.media?.length && user && slug)
         for (const ref of msg.media)
@@ -138,6 +152,14 @@ export class AIPanelChatMode {
       const hint = el.dataset.aiHint;
       if (hint) hints.push(hint);
     });
+
+    // Include dynamic viewer state (currently open file)
+    const viewerSidebar = document.getElementById("ws-viewer-sidebar");
+    const activeFile = viewerSidebar?.dataset.aiViewerActive;
+    if (activeFile) {
+      hints.push(`Currently open in editor: ${activeFile}`);
+    }
+
     return hints;
   }
 

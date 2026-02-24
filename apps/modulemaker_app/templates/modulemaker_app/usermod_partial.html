@@ -5,6 +5,7 @@
 {% if current_project %}
     <div id="workspace-project-config"
          style="display: none"
+         data-project-id="{{ current_project.id }}"
          data-username="{{ current_project.owner.username }}"
          data-slug="{{ current_project.slug }}"
          data-mode="modulemaker"></div>

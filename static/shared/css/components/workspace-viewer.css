@@ -50,6 +50,22 @@
 }
 
 /* ============================================================
+   Viewer header — left-aligned tabs
+   ============================================================ */
+
+#ws-viewer-sidebar:not(.collapsed) .sidebar-header {
+  justify-content: flex-start;
+  gap: 0;
+}
+
+.ws-viewer-header-actions {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+/* ============================================================
    Tab bar (inside header)
    ============================================================ */
 
@@ -71,27 +87,31 @@
 .ws-viewer-tab {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  font-size: 0.7rem;
-  color: var(--text-muted, #8b949e);
+  gap: 8px;
+  padding: 6px 12px;
   background: transparent;
   border: none;
-  border-radius: 3px;
+  border-bottom: 2px solid transparent;
+  border-radius: 6px 6px 0 0;
+  color: var(--text-secondary, #6c8ba0);
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
+  transition: all 0.2s ease;
   white-space: nowrap;
-  max-width: 140px;
-  transition: all 0.15s ease;
+  max-width: 180px;
 }
 
 .ws-viewer-tab:hover {
-  color: var(--text-primary, #c9d1d9);
-  background: var(--bg-tertiary, #21262d);
+  background: var(--bg-tertiary, #1a1a1a);
+  color: var(--text-primary, #d4e1e8);
 }
 
 .ws-viewer-tab.active {
-  color: var(--text-primary, #c9d1d9);
-  background: var(--bg-tertiary, #21262d);
+  color: var(--text-primary, #d4e1e8);
+  font-weight: 600;
+  border-bottom: 2px solid var(--accent-primary, #3b82f6);
+  background: transparent;
 }
 
 .ws-viewer-tab-name {
@@ -100,17 +120,16 @@
 }
 
 .ws-viewer-tab-close {
-  font-size: 0.65rem;
-  opacity: 0;
+  font-size: 0.75rem;
+  opacity: 0.5;
   padding: 0 2px;
   line-height: 1;
   color: var(--text-muted, #8b949e);
   cursor: pointer;
-  transition: opacity 0.1s;
+  transition: opacity 0.15s;
 }
 
-.ws-viewer-tab:hover .ws-viewer-tab-close,
-.ws-viewer-tab.active .ws-viewer-tab-close {
+.ws-viewer-tab:hover .ws-viewer-tab-close {
   opacity: 1;
 }
 
@@ -128,6 +147,73 @@
 }
 
 /* ============================================================
+   Add tab (+) button
+   ============================================================ */
+
+.ws-viewer-tab-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 4px;
+  color: var(--text-muted, #8b949e);
+  font-size: 14px;
+  cursor: pointer;
+  margin-left: 4px;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.ws-viewer-tab-add:hover {
+  background: var(--bg-tertiary, #1a1a1a);
+  color: var(--text-primary, #d4e1e8);
+  border-color: var(--accent-primary, #3b82f6);
+}
+
+/* ============================================================
+   Keyboard shortcuts button
+   ============================================================ */
+
+.ws-viewer-shortcuts-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--text-muted, #8b949e);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px;
+  margin-left: 4px;
+  flex-shrink: 0;
+  opacity: 0.6;
+  transition: opacity 0.15s ease;
+}
+
+.ws-viewer-shortcuts-btn:hover {
+  opacity: 1;
+  color: var(--text-primary, #d4e1e8);
+}
+
+/* ============================================================
+   Scratch tab — always first, non-closeable, distinct style
+   ============================================================ */
+
+.ws-viewer-tab[data-path="scitex/CONTEXT.md"] {
+  font-style: italic;
+}
+
+.ws-viewer-tab-pin {
+  font-size: 0.65rem;
+  opacity: 0.4;
+  color: var(--text-muted, #8b949e);
+  transform: rotate(45deg);
+}
+
+/* ============================================================
    Viewer content area
    ============================================================ */
 
@@ -142,6 +228,7 @@
   flex: 1;
   position: relative;
   overflow: hidden;
+  display: flex;
 }
 
 .ws-viewer-monaco {
@@ -170,6 +257,52 @@
 .ws-viewer-empty i {
   font-size: 1.5rem;
   opacity: 0.5;
+}
+
+/* ============================================================
+   Formats info button + tooltip
+   ============================================================ */
+
+.ws-viewer-formats-info-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--text-muted, #8b949e);
+  font-size: 13px;
+  cursor: help;
+  padding: 4px;
+  margin-left: 4px;
+  flex-shrink: 0;
+  opacity: 0.6;
+  transition: opacity 0.15s ease;
+  position: relative;
+}
+
+.ws-viewer-formats-info-btn:hover {
+  opacity: 1;
+  color: var(--text-primary, #d4e1e8);
+}
+
+.ws-viewer-formats-info-btn[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 1000;
+  padding: 8px 12px;
+  background: var(--bg-secondary, #161b22);
+  color: var(--text-primary, #d4e1e8);
+  border: 1px solid var(--border-default, #30363d);
+  border-radius: 6px;
+  font-size: 11px;
+  font-family: "JetBrains Mono", monospace;
+  white-space: pre-line;
+  line-height: 1.6;
+  min-width: 280px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
 }
 
 /* ============================================================
