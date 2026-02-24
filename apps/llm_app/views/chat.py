@@ -216,7 +216,8 @@ async def api_chat_stream(request):
         return JsonResponse(
             {
                 "success": False,
-                "error": "No AI provider configured. Go to Settings > AI Providers to add one.",
+                "error": "No AI provider configured.",
+                "settings_url": "/accounts/settings/ai-providers/",
             },
             status=400,
         )
@@ -306,7 +307,8 @@ async def api_chat(request):
         return JsonResponse(
             {
                 "success": False,
-                "error": "No AI provider configured. Go to Settings > AI Providers to add one.",
+                "error": "No AI provider configured.",
+                "settings_url": "/accounts/settings/ai-providers/",
             },
             status=400,
         )

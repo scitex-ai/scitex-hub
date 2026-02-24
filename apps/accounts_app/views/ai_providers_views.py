@@ -1,5 +1,7 @@
 """AI Providers settings page - manage LLM API key connections."""
 
+from decimal import Decimal, InvalidOperation
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
@@ -59,6 +61,28 @@ def _handle_create(request):
     )
 
 
+def _handle_update_limits(request):
+    """Handle updating rate limits for an LLM provider."""
+    provider_id = request.POST.get("provider_id")
+    try:
+        conn = IntegrationConnection.objects.get(
+            id=provider_id,
+            user=request.user,
+            service__in=tuple(ALL_LLM_SERVICE_IDS),
+        )
+        llm = conn.llm_connection
+        cost_str = request.POST.get("daily_cost_limit_usd", "").strip()
+        try:
+            llm.daily_cost_limit_usd = Decimal(cost_str) if cost_str else None
+        except InvalidOperation:
+            messages.error(request, "Invalid cost value.")
+            return
+        llm.save(update_fields=["daily_cost_limit_usd"])
+        messages.success(request, "Rate limits updated.")
+    except IntegrationConnection.DoesNotExist:
+        messages.error(request, "Provider not found.")
+
+
 def _handle_delete(request):
     """Handle deleting an LLM provider connection."""
     provider_id = request.POST.get("provider_id")
@@ -82,6 +106,8 @@ def ai_providers(request):
         action = request.POST.get("action")
         if action == "create":
             _handle_create(request)
+        elif action == "update_limits":
+            _handle_update_limits(request)
         elif action == "delete":
             _handle_delete(request)
         return redirect("accounts_app:ai_providers")
@@ -107,6 +133,7 @@ def ai_providers(request):
             "total_requests": 0,
             "total_tokens_used": 0,
             "estimated_cost_usd": 0,
+            "daily_cost_limit_usd": None,
         }
         if hasattr(conn, "llm_connection"):
             llm = conn.llm_connection
@@ -116,6 +143,7 @@ def ai_providers(request):
                     "total_requests": llm.total_requests,
                     "total_tokens_used": llm.total_tokens_used,
                     "estimated_cost_usd": llm.estimated_cost_usd,
+                    "daily_cost_limit_usd": llm.daily_cost_limit_usd,
                 }
             )
         providers.append(data)

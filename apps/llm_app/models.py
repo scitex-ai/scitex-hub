@@ -43,6 +43,14 @@ class LLMConnection(models.Model):
         default=None,
         help_text="Maximum tokens per day (empty = unlimited)",
     )
+    daily_cost_limit_usd = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        default=None,
+        help_text="Maximum cost in USD per day (empty = unlimited)",
+    )
 
     # Cost tracking
     estimated_cost_usd = models.DecimalField(
@@ -100,6 +108,10 @@ class LLMConnection(models.Model):
         if self.daily_token_limit is not None:
             if daily_usage["tokens"] >= self.daily_token_limit:
                 return False, "Daily token limit reached"
+
+        if self.daily_cost_limit_usd is not None:
+            if daily_usage["cost_usd"] >= float(self.daily_cost_limit_usd):
+                return False, "Daily cost limit reached"
 
         return True, None
 
