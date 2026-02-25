@@ -114,7 +114,11 @@ SHELL := /bin/bash
 	apptainer-upgrade \
 	apptainer-freeze \
 	apptainer-sandbox \
-	apptainer-sandbox-maintain
+	apptainer-sandbox-maintain \
+	apptainer-sandbox-list \
+	apptainer-sandbox-rollback \
+	apptainer-sandbox-cleanup \
+	apptainer-purge-sifs
 
 .DEFAULT_GOAL := help
 
@@ -310,8 +314,12 @@ help-all:
 	@echo -e "  ENV=<env> rebuild            Full Docker rebuild (for code changes)"
 	@echo -e "  ENV=<env> rebuild-no-cache   Docker rebuild without cache"
 	@echo -e "  apptainer-build              Build Apptainer SIF (smart, skips if unchanged)"
-	@echo -e "  apptainer-sandbox            Convert SIF to sandbox directory"
+	@echo -e "  apptainer-sandbox            Build versioned sandbox from .def"
 	@echo -e "  apptainer-sandbox-maintain   Open writable shell in sandbox (admin)"
+	@echo -e "  apptainer-sandbox-list       List versioned sandboxes"
+	@echo -e "  apptainer-sandbox-rollback   Roll back to previous sandbox"
+	@echo -e "  apptainer-sandbox-cleanup    Remove old sandboxes (keep 5)"
+	@echo -e "  apptainer-purge-sifs         Remove all SIF files"
 	@echo -e "  ENV=<env> setup              Full setup (build + migrate)"
 	@echo -e ""
 	@echo -e "$(CYAN)🐍 Django:$(NC)"
@@ -589,13 +597,23 @@ apptainer-freeze:
 	@echo -e "$(CYAN)📦 Extracting pinned versions from SIF...$(NC)"
 	@deployment/singularity/freeze.sh
 
-apptainer-sandbox: ## Convert current SIF to writable sandbox directory
-	@echo -e "$(CYAN)📦 Building Apptainer sandbox from current SIF...$(NC)"
+apptainer-sandbox: ## Build versioned sandbox from .def (timestamped)
 	@deployment/singularity/build.sh --sandbox
 
 apptainer-sandbox-maintain: ## Open writable shell in sandbox (admin only)
-	@echo -e "$(CYAN)📦 Opening writable sandbox shell (admin maintenance)...$(NC)"
 	@apptainer exec --writable --fakeroot deployment/singularity/current-sandbox /bin/bash
+
+apptainer-sandbox-list: ## List versioned sandboxes
+	@scitex-container sandbox list -d deployment/singularity
+
+apptainer-sandbox-rollback: ## Roll back to previous sandbox version
+	@scitex-container sandbox rollback -d deployment/singularity
+
+apptainer-sandbox-cleanup: ## Remove old sandboxes (keep 5)
+	@scitex-container sandbox cleanup --keep 5 -d deployment/singularity
+
+apptainer-purge-sifs: ## Remove all SIF files (sandbox is the runtime format)
+	@scitex-container sandbox purge-sifs -d deployment/singularity
 
 rebuild: validate-docker
 	@./scripts/deploy/rebuild.sh $(ENV)

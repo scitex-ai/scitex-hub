@@ -24,7 +24,6 @@ set -euo pipefail
 # Configuration
 CONTAINERS_DIR="${SCITEX_CONTAINERS_DIR:-/opt/scitex/singularity}"
 KEEP_VERSIONS="${SCITEX_KEEP_VERSIONS:-5}"
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # Colors
 RED='\033[0;31m'
@@ -98,18 +97,41 @@ cmd_verify() {
     scitex-container verify
 }
 
-cmd_sandbox() {
+cmd_sandbox_list() {
     check_cli
-    log "Converting active SIF to sandbox at $CONTAINERS_DIR..."
-    scitex-container sandbox create -d "$CONTAINERS_DIR"
+    scitex-container sandbox list -d "$CONTAINERS_DIR"
+}
+
+cmd_sandbox_switch() {
+    local version="${1:?Usage: manage-containers.sh sandbox-switch VERSION}"
+    check_cli
+    log "Switching sandbox to $version..."
+    scitex-container sandbox switch "$version" -d "$CONTAINERS_DIR"
+}
+
+cmd_sandbox_rollback() {
+    check_cli
+    log "Rolling back to previous sandbox..."
+    scitex-container sandbox rollback -d "$CONTAINERS_DIR"
+}
+
+cmd_sandbox_cleanup() {
+    check_cli
+    log "Cleaning up old sandboxes (keeping last $KEEP_VERSIONS)..."
+    scitex-container sandbox cleanup --keep "$KEEP_VERSIONS" -d "$CONTAINERS_DIR"
+}
+
+cmd_purge_sifs() {
+    check_cli
+    log "Removing all SIF files from $CONTAINERS_DIR..."
+    scitex-container sandbox purge-sifs -d "$CONTAINERS_DIR"
 }
 
 cmd_rotate() {
-    # Intended for cron: cleanup old + verify active
+    # Intended for cron: cleanup old sandboxes
     check_cli
-    log "Running rotation (cleanup + verify)..."
-    cmd_cleanup
-    cmd_verify
+    log "Running rotation (cleanup sandboxes)..."
+    cmd_sandbox_cleanup
     log "Rotation complete."
 }
 
@@ -118,35 +140,45 @@ cmd_help() {
     echo ""
     echo "Usage: $(basename "$0") <command> [args]"
     echo ""
-    echo "Commands:"
+    echo "Sandbox commands (primary):"
+    echo "  sandbox-list         List versioned sandboxes"
+    echo "  sandbox-switch VER   Switch active sandbox to VER (timestamp)"
+    echo "  sandbox-rollback     Revert to the previous sandbox"
+    echo "  sandbox-cleanup      Remove old sandboxes (keep $KEEP_VERSIONS)"
+    echo "  purge-sifs           Remove all SIF files"
+    echo ""
+    echo "SIF commands (legacy):"
+    echo "  list              List SIF versions"
+    echo "  switch VERSION    Switch active SIF"
+    echo "  rollback          Revert to previous SIF"
+    echo "  cleanup           Remove old SIFs"
+    echo "  build [NAME]      Build new SIF from .def"
+    echo "  deploy            Deploy active SIF to production"
+    echo "  verify            Verify SIF integrity"
+    echo ""
+    echo "Other:"
     echo "  status            Show current container state"
-    echo "  list              List all available versions"
-    echo "  switch VERSION    Switch active container to VERSION"
-    echo "  rollback          Revert to the previous version"
-    echo "  cleanup           Remove old versions (keep $KEEP_VERSIONS)"
-    echo "  build [NAME]      Build new SIF from .def file"
-    echo "  sandbox           Convert active SIF to sandbox directory"
-    echo "  deploy            Deploy active SIF to production path"
-    echo "  verify            Verify active SIF integrity"
-    echo "  rotate            Cleanup + verify (for cron jobs)"
+    echo "  rotate            Cleanup sandboxes (for cron)"
     echo ""
     echo "Environment:"
     echo "  SCITEX_CONTAINERS_DIR  Container directory (default: /opt/scitex/singularity)"
     echo "  SCITEX_KEEP_VERSIONS   Versions to keep (default: 5)"
     echo ""
-    echo "Cron example (weekly rotation):"
-    echo "  0 3 * * 0 $SCRIPT_DIR/manage-containers.sh rotate >> /var/log/scitex-container-rotate.log 2>&1"
 }
 
 # Dispatch
 case "${1:-help}" in
 status) cmd_status ;;
+sandbox-list) cmd_sandbox_list ;;
+sandbox-switch) cmd_sandbox_switch "${2:-}" ;;
+sandbox-rollback) cmd_sandbox_rollback ;;
+sandbox-cleanup) cmd_sandbox_cleanup ;;
+purge-sifs) cmd_purge_sifs ;;
 list) cmd_list ;;
 switch) cmd_switch "${2:-}" ;;
 rollback) cmd_rollback ;;
 cleanup) cmd_cleanup ;;
 build) cmd_build "${2:-scitex-final}" ;;
-sandbox) cmd_sandbox ;;
 deploy) cmd_deploy ;;
 verify) cmd_verify ;;
 rotate) cmd_rotate ;;

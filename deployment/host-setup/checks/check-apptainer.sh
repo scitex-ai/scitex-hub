@@ -47,9 +47,16 @@ fi
 CONTAINER_OK=true
 
 # Check sandbox directory first (preferred mode)
-if [ -d "$CONTAINER_PATH" ]; then
+if [ -L "$CONTAINER_PATH" ] && [ -d "$CONTAINER_PATH" ]; then
+    ACTIVE_TARGET=$(readlink "$CONTAINER_PATH")
     SANDBOX_DATE=$(date -r "$CONTAINER_PATH" "+%Y-%m-%d %H:%M" 2>/dev/null || echo "unknown")
-    echo "  [OK] Sandbox: ${CONTAINER_PATH} (modified ${SANDBOX_DATE})"
+    echo "  [OK] Sandbox: ${ACTIVE_TARGET} (modified ${SANDBOX_DATE})"
+
+    # Count available sandboxes for rollback
+    SANDBOX_COUNT=$(find "$SINGULARITY_DIR" -maxdepth 1 -type d -name 'sandbox-*' 2>/dev/null | wc -l)
+    if [ "$SANDBOX_COUNT" -gt 1 ]; then
+        echo "  [OK] Rollback: ${SANDBOX_COUNT} sandboxes available"
+    fi
 
     # Check if .def has changed since last build
     if [ -f "$DEF_FILE" ] && [ -f "$HASH_FILE" ]; then
@@ -68,28 +75,18 @@ if [ -d "$CONTAINER_PATH" ]; then
             CONTAINER_OK=false
         fi
     fi
+elif [ -d "$CONTAINER_PATH" ]; then
+    # Non-symlink sandbox (unversioned legacy)
+    SANDBOX_DATE=$(date -r "$CONTAINER_PATH" "+%Y-%m-%d %H:%M" 2>/dev/null || echo "unknown")
+    echo -e "  ${YELLOW}[WARN] Unversioned sandbox: ${CONTAINER_PATH} (modified ${SANDBOX_DATE})${NC}"
+    echo -e "    Rebuild with: make apptainer-sandbox --force"
 elif [ -f "$SIF_PATH" ]; then
-    # Fallback: check for SIF file
-    SIF_SIZE=$(du -h "$SIF_PATH" | cut -f1)
-    SIF_DATE=$(date -r "$SIF_PATH" "+%Y-%m-%d %H:%M")
-    echo -e "  ${YELLOW}[WARN] Using SIF (not sandbox): ${SIF_PATH} (${SIF_SIZE}, built ${SIF_DATE})${NC}"
+    SIF_DATE=$(date -r "$SIF_PATH" "+%Y-%m-%d %H:%M" 2>/dev/null || echo "unknown")
+    echo -e "  ${YELLOW}[WARN] Using SIF (not sandbox): ${SIF_PATH} (built ${SIF_DATE})${NC}"
     echo -e "    Convert: make apptainer-sandbox"
-
-    # Check if .def has changed since last build
-    if [ -f "$DEF_FILE" ] && [ -f "$HASH_FILE" ]; then
-        CURRENT_HASH=$(sha256sum "$DEF_FILE" | awk '{print $1}')
-        STORED_HASH=$(cat "$HASH_FILE" 2>/dev/null || echo "")
-        if [ "$CURRENT_HASH" != "$STORED_HASH" ]; then
-            echo -e "  ${YELLOW}[WARN] .def changed since build -- rebuild recommended${NC}"
-            echo -e "    Run: make apptainer-build"
-        fi
-    elif [ -f "$DEF_FILE" ] && [ ! -f "$HASH_FILE" ]; then
-        echo -e "  ${YELLOW}[WARN] No build hash -- cannot verify SIF matches .def${NC}"
-        echo -e "    Run: make apptainer-build  (skips if unchanged)"
-    fi
 else
     echo -e "  ${RED}[FAIL] No container found (sandbox or SIF)${NC}"
-    echo -e "    Build: make apptainer-build && make apptainer-sandbox"
+    echo -e "    Build: make apptainer-sandbox"
     CONTAINER_OK=false
 fi
 

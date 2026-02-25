@@ -1,37 +1,38 @@
 #!/bin/bash
 # File: ./deployment/singularity/build-scripts/build_sandbox.sh
 # ============================================
-# Sandbox build: def → sandbox (always)
+# Sandbox build: def → sandbox (timestamped + versioned)
 # ============================================
 # Sourced by build.sh -- do not run directly.
 # Expects all variables and functions from common.sh.
 #
 # Usage: ./build.sh --sandbox [--force]
 #
-# Flow: def → sandbox (the only build path)
+# Flow: def → sandbox-YYYYMMDD_HHMMSS/ → current-sandbox symlink
+# Keeps up to 5 sandboxes for rollback (configurable via SCITEX_KEEP_SANDBOXES)
 # SIF is only produced when explicitly requested (./build.sh without --sandbox)
+
+KEEP_SANDBOXES="${SCITEX_KEEP_SANDBOXES:-5}"
 
 run_sandbox_build() {
     local force="$1"
 
-    local sandbox_dir="$SCRIPT_DIR/current-sandbox"
+    local timestamp
+    timestamp=$(date +%Y%m%d_%H%M%S)
+    local sandbox_dir="$SCRIPT_DIR/sandbox-${timestamp}"
+    local symlink_path="$SCRIPT_DIR/current-sandbox"
 
     # ----------------------------------------
-    # Check if sandbox already exists
+    # Check if --force: skip if active sandbox is recent (< 5 min)
     # ----------------------------------------
-    if [ -d "$sandbox_dir" ]; then
-        if [ "$force" = "true" ]; then
-            echo -e "${YELLOW}Sandbox already exists -- removing (--force passed): $sandbox_dir${NC}"
-            rm -rf "$sandbox_dir"
-        else
-            echo -e "${YELLOW}Sandbox already exists: $sandbox_dir${NC}"
-            echo -e ""
-            echo -e "Use ${CYAN}--force${NC} to rebuild it:"
-            echo -e "  ./build.sh --sandbox --force"
-            echo -e ""
-            _print_sandbox_usage "$sandbox_dir"
-            exit 0
-        fi
+    if [ "$force" != "true" ] && [ -L "$symlink_path" ] && [ -d "$symlink_path" ]; then
+        echo -e "${YELLOW}Active sandbox exists: $(readlink "$symlink_path")${NC}"
+        echo -e ""
+        echo -e "Use ${CYAN}--force${NC} to build a new version:"
+        echo -e "  ./build.sh --sandbox --force"
+        echo -e ""
+        _print_sandbox_usage "$symlink_path"
+        exit 0
     fi
 
     # ----------------------------------------
@@ -96,6 +97,9 @@ run_sandbox_build() {
         elapsed_minutes=$(((end_time - start_time) / 60))
         elapsed_seconds=$(((end_time - start_time) % 60))
 
+        # Atomic symlink update
+        _update_symlink "$sandbox_dir"
+
         echo -e ""
         echo -e "${GREEN}============================================${NC}"
         echo -e "${GREEN}Sandbox created successfully!${NC}"
@@ -103,16 +107,58 @@ run_sandbox_build() {
         echo -e ""
 
         echo -e "Sandbox:    ${GREEN}$sandbox_dir${NC}"
+        echo -e "Symlink:    ${GREEN}current-sandbox -> $(basename "$sandbox_dir")${NC}"
         echo -e "Build time: ${GREEN}${elapsed_minutes}m ${elapsed_seconds}s${NC}"
         echo -e ""
 
-        _print_sandbox_usage "$sandbox_dir"
+        # Cleanup old sandboxes
+        _cleanup_old_sandboxes
+
+        _print_sandbox_usage "$symlink_path"
     else
         echo -e ""
         echo -e "${RED}Sandbox build failed!${NC}"
         echo -e "Check the error messages above for details."
+        # Clean up failed build directory
+        [ -d "$sandbox_dir" ] && rm -rf "$sandbox_dir"
         exit 1
     fi
+}
+
+_update_symlink() {
+    local target_dir="$1"
+    local target_name
+    target_name=$(basename "$target_dir")
+    local symlink_path="$SCRIPT_DIR/current-sandbox"
+    local tmp_link="$SCRIPT_DIR/.current-sandbox.tmp.$$"
+
+    ln -sfn "$target_name" "$tmp_link"
+    mv -Tf "$tmp_link" "$symlink_path"
+}
+
+_cleanup_old_sandboxes() {
+    local count=0
+    local active_target=""
+
+    if [ -L "$SCRIPT_DIR/current-sandbox" ]; then
+        active_target=$(readlink "$SCRIPT_DIR/current-sandbox")
+    fi
+
+    # List sandbox-* dirs sorted by modification time (newest first)
+    while IFS= read -r dir; do
+        dir_name=$(basename "$dir")
+
+        # Never remove active sandbox
+        if [ "$dir_name" = "$active_target" ]; then
+            continue
+        fi
+
+        count=$((count + 1))
+        if [ "$count" -gt "$KEEP_SANDBOXES" ]; then
+            echo -e "${YELLOW}Removing old sandbox: $dir_name${NC}"
+            rm -rf "$dir"
+        fi
+    done < <(find "$SCRIPT_DIR" -maxdepth 1 -type d -name 'sandbox-*' -printf '%T@ %p\n' | sort -rn | cut -d' ' -f2-)
 }
 
 _print_sandbox_usage() {
@@ -125,10 +171,10 @@ _print_sandbox_usage() {
     echo -e ""
     echo -e "  make apptainer-sandbox-maintain  (shortcut)"
     echo -e ""
-    echo -e "${CYAN}-- Convert sandbox to SIF (for distribution) --${NC}"
-    echo -e "When done with modifications, convert to immutable SIF:"
-    echo -e ""
-    echo -e "  $CONTAINER_CMD build --fakeroot new.sif \"${sandbox_dir}\""
+    echo -e "${CYAN}-- Sandbox versioning --${NC}"
+    echo -e "  make apptainer-sandbox-list      List all sandboxes"
+    echo -e "  make apptainer-sandbox-rollback   Roll back to previous"
+    echo -e "  make apptainer-sandbox-cleanup    Remove old sandboxes"
     echo -e ""
 }
 
