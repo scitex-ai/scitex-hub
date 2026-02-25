@@ -17,6 +17,10 @@ set -euo pipefail
 # shellcheck disable=SC1091
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
+# Override SCRIPT_DIR: common.sh uses BASH_SOURCE[1] which points to
+# build-scripts/ when sourced directly. Sandbox lives in the parent dir.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
 # ============================================
 # Package name -> directory name mapping
 # (only needed when pip package name != repo directory)
