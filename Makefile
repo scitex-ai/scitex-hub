@@ -511,8 +511,8 @@ restart: validate
 	@docker exec scitex-cloud-$(ENV)-django-1 sh -c 'rm -f /app/logs/*.log /app/logs/*.log.[0-9]*' 2>/dev/null || true
 	@rm -f ./logs/*.log ./logs/*.log.[0-9]* 2>/dev/null || true
 
-	@RUNNING=$$(docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-cloud-(dev|staging|prod)-' | sed 's/scitex-cloud-//' | sed 's/-//' | sort -u); \
-	if [ "$$RUNNING" != "$(ENV)" ]; then \
+	@RUNNING=$$(docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-cloud-(dev|staging|prod)-' | sed 's/scitex-cloud-//' | sed 's/-//' | sort -u | tr '\n' ' ' | xargs); \
+	if ! echo " $$RUNNING " | grep -q " $(ENV) "; then \
 		echo -e "$(RED)❌ $(ENV) is not running ($$RUNNING is active)$(NC)"; \
 		echo -e "$(YELLOW)   Options:$(NC)"; \
 		echo -e "$(YELLOW)   • make ENV=$(ENV) start          # Start $(ENV) (stops $$RUNNING)$(NC)"; \
@@ -529,8 +529,8 @@ reload: validate
 	@docker exec scitex-cloud-$(ENV)-django-1 sh -c 'rm -f /app/logs/*.log /app/logs/*.log.[0-9]*' 2>/dev/null || true
 	@rm -f ./logs/*.log ./logs/*.log.[0-9]* 2>/dev/null || true
 
-	@RUNNING=$$(docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-cloud-(dev|staging|prod)-' | sed 's/scitex-cloud-//' | sed 's/-//' | sort -u); \
-	if [ "$$RUNNING" != "$(ENV)" ]; then \
+	@RUNNING=$$(docker ps --format '{{.Names}}' 2>/dev/null | grep -oE 'scitex-cloud-(dev|staging|prod)-' | sed 's/scitex-cloud-//' | sed 's/-//' | sort -u | tr '\n' ' ' | xargs); \
+	if ! echo " $$RUNNING " | grep -q " $(ENV) "; then \
 		echo -e "$(RED)❌ $(ENV) is not running ($$RUNNING is active)$(NC)"; \
 		echo -e "$(YELLOW)   Options:$(NC)"; \
 		echo -e "$(YELLOW)   • make ENV=$(ENV) start          # Start $(ENV) (stops $$RUNNING)$(NC)"; \
