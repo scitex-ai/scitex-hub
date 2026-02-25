@@ -867,3 +867,4 @@ viewed.md
 # Generated plot/diagram artifacts
 example_plot.yaml
 scripts/assets/workflow_out/
+deployment/singularity/
