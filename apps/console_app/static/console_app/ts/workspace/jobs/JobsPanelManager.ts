@@ -159,12 +159,8 @@ export class JobsPanelManager {
       for (const id of ["jobs-badge", "ai-jobs-badge"]) {
         const el = document.getElementById(id);
         if (!el) continue;
-        if (activeJobs > 0) {
-          el.textContent = String(activeJobs);
-          el.style.display = "inline-flex";
-        } else {
-          el.style.display = "none";
-        }
+        el.textContent = String(activeJobs);
+        el.style.display = "inline-flex";
       }
       this.lastJobCount = activeJobs;
     } catch (error) {

@@ -6,10 +6,11 @@ Gets project from header dropdown (like Scholar/Writer).
 """
 
 import logging
-from django.shortcuts import render, redirect
-from django.http import HttpResponse
-from apps.project_app.services import get_current_project
+
+from django.shortcuts import redirect, render
+
 from apps.project_app.models import Project
+from apps.project_app.services import get_current_project
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,7 @@ def code_workspace(request):
     """
     context = {
         "is_visitor": not request.user.is_authenticated,
+        "is_workspace_page": True,
         "module_name": "Code",
         "module_icon": "fa-code",
     }
@@ -33,16 +35,18 @@ def code_workspace(request):
     # Check if user is not authenticated (visitor allocation may have failed)
     if not request.user.is_authenticated:
         # Check if this is a browser request (has typical browser User-Agent)
-        user_agent = request.META.get('HTTP_USER_AGENT', '')
+        user_agent = request.META.get("HTTP_USER_AGENT", "")
         is_browser = any(
             browser in user_agent
-            for browser in ['Mozilla', 'Chrome', 'Safari', 'Firefox', 'Edge', 'Opera']
+            for browser in ["Mozilla", "Chrome", "Safari", "Firefox", "Edge", "Opera"]
         )
 
         if is_browser:
             # Browser request but not authenticated - visitor pool likely exhausted
-            logger.info("[Code] Browser request not authenticated - redirecting to visitor-pool-full")
-            return redirect('public_app:visitor_pool_full')
+            logger.info(
+                "[Code] Browser request not authenticated - redirecting to visitor-pool-full"
+            )
+            return redirect("public_app:visitor_pool_full")
 
         # Non-browser request (API, bot, etc.) - just return the page
         return render(request, "console_app/workspace.html", context)
