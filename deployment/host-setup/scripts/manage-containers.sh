@@ -98,6 +98,12 @@ cmd_verify() {
     scitex-container verify
 }
 
+cmd_sandbox() {
+    check_cli
+    log "Converting active SIF to sandbox at $CONTAINERS_DIR..."
+    scitex-container sandbox create -d "$CONTAINERS_DIR"
+}
+
 cmd_rotate() {
     # Intended for cron: cleanup old + verify active
     check_cli
@@ -119,6 +125,7 @@ cmd_help() {
     echo "  rollback          Revert to the previous version"
     echo "  cleanup           Remove old versions (keep $KEEP_VERSIONS)"
     echo "  build [NAME]      Build new SIF from .def file"
+    echo "  sandbox           Convert active SIF to sandbox directory"
     echo "  deploy            Deploy active SIF to production path"
     echo "  verify            Verify active SIF integrity"
     echo "  rotate            Cleanup + verify (for cron jobs)"
@@ -139,6 +146,7 @@ switch) cmd_switch "${2:-}" ;;
 rollback) cmd_rollback ;;
 cleanup) cmd_cleanup ;;
 build) cmd_build "${2:-scitex-final}" ;;
+sandbox) cmd_sandbox ;;
 deploy) cmd_deploy ;;
 verify) cmd_verify ;;
 rotate) cmd_rotate ;;

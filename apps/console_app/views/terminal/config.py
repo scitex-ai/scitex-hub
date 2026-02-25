@@ -17,7 +17,7 @@ from django.conf import settings
 BASE_CONTAINER_PATH = getattr(
     settings,
     "SINGULARITY_IMAGE_PATH",
-    "/app/singularity/current.sif",
+    "/app/singularity/current-sandbox",
 )
 
 # User data directory (inside Docker container)
@@ -52,7 +52,7 @@ SLURM_CONTAINER_PATH = os.environ.get(
     "SCITEX_CLOUD_SLURM_CONTAINER_PATH"
 ) or os.environ.get(
     "SCITEX_SLURM_CONTAINER_PATH",
-    "/opt/scitex/singularity/current.sif",
+    "/opt/scitex/singularity/current-sandbox",
 )
 SLURM_USER_DATA_ROOT = Path(
     os.environ.get("SCITEX_CLOUD_SLURM_USER_DATA_ROOT")
@@ -85,6 +85,29 @@ if DEV_REPOS_RAW:
 # Legacy vars (kept for backward compat)
 SCITEX_DEV_SRC = os.environ.get("SCITEX_CLOUD_DEV_SCITEX_SRC", "")
 FIGRECIPE_DEV_SRC = os.environ.get("SCITEX_CLOUD_DEV_FIGRECIPE_SRC", "")
+
+
+# =============================================================================
+# Host Package Bind Mounts (shared between Apptainer and Docker)
+# =============================================================================
+# Generic host mounts: host_path:container_path:mode (comma-separated)
+HOST_MOUNTS_RAW = os.environ.get("SCITEX_CLOUD_HOST_MOUNTS", "")
+
+HOST_MOUNTS: list[dict] = []
+if HOST_MOUNTS_RAW:
+    for _entry in HOST_MOUNTS_RAW.split(","):
+        _parts = _entry.strip().split(":")
+        if len(_parts) >= 2:
+            HOST_MOUNTS.append(
+                {
+                    "host_path": _parts[0],
+                    "container_path": _parts[1],
+                    "mode": _parts[2] if len(_parts) > 2 else "ro",
+                }
+            )
+
+# Texlive prefix shortcut (e.g., "/usr" → auto-mounts /usr/share/texlive, /usr/bin/pdflatex, etc.)
+HOST_TEXLIVE_PREFIX = os.environ.get("SCITEX_CLOUD_HOST_TEXLIVE_PREFIX", "")
 
 
 # EOF

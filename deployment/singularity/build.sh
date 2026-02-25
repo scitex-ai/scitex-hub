@@ -42,18 +42,21 @@ source "$SELF_DIR/build-scripts/build_legacy.sh"
 FORCE=false
 BUILD_BASE=false
 BUILD_LEGACY=false
+BUILD_SANDBOX=false
 
 for arg in "$@"; do
     case "$arg" in
     --force | -f) FORCE=true ;;
     --base) BUILD_BASE=true ;;
     --legacy) BUILD_LEGACY=true ;;
+    --sandbox) BUILD_SANDBOX=true ;;
     --help | -h)
         echo "Usage: $0 [OPTIONS]"
         echo ""
         echo "Options:"
         echo "  (default)   Build final container from scitex-final.def"
         echo "  --base      Build base container from scitex-base.def"
+        echo "  --sandbox   Convert current SIF to writable sandbox directory"
         echo "  --legacy    Build legacy monolithic container"
         echo "  --force,-f  Force rebuild even if hash unchanged"
         echo "  --help,-h   Show this help"
@@ -72,7 +75,11 @@ done
 # ============================================
 run_preflight
 
-if [ "$BUILD_LEGACY" = true ]; then
+if [ "$BUILD_SANDBOX" = true ]; then
+    # shellcheck source=build-scripts/build_sandbox.sh
+    source "$SELF_DIR/build-scripts/build_sandbox.sh"
+    run_sandbox_build "$FORCE"
+elif [ "$BUILD_LEGACY" = true ]; then
     run_legacy_build "$FORCE"
 elif [ "$BUILD_BASE" = true ]; then
     run_base_build "$FORCE"

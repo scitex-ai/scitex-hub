@@ -68,15 +68,10 @@ def api_submit_job(request):
         # Get user workspace
         user_workspace = get_user_workspace(request.user)
 
-        # Get container path from settings
-        # Using /opt/scitex to avoid NAS ACL issues with home directories
-        container_path = Path(
-            getattr(
-                settings,
-                "APPTAINER_CONTAINER_PATH",
-                "/opt/scitex/singularity/current.sif",
-            )
-        )
+        # Get container path from terminal config (respects env vars)
+        from apps.console_app.views.terminal.config import SLURM_CONTAINER_PATH
+
+        container_path = Path(SLURM_CONTAINER_PATH)
 
         # Submit job
         result = get_slurm_manager().submit_job(

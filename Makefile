@@ -112,7 +112,9 @@ SHELL := /bin/bash
 	apptainer-build \
 	apptainer-build-base \
 	apptainer-upgrade \
-	apptainer-freeze
+	apptainer-freeze \
+	apptainer-sandbox \
+	apptainer-sandbox-maintain
 
 .DEFAULT_GOAL := help
 
@@ -308,6 +310,8 @@ help-all:
 	@echo -e "  ENV=<env> rebuild            Full Docker rebuild (for code changes)"
 	@echo -e "  ENV=<env> rebuild-no-cache   Docker rebuild without cache"
 	@echo -e "  apptainer-build              Build Apptainer SIF (smart, skips if unchanged)"
+	@echo -e "  apptainer-sandbox            Convert SIF to sandbox directory"
+	@echo -e "  apptainer-sandbox-maintain   Open writable shell in sandbox (admin)"
 	@echo -e "  ENV=<env> setup              Full setup (build + migrate)"
 	@echo -e ""
 	@echo -e "$(CYAN)🐍 Django:$(NC)"
@@ -455,7 +459,7 @@ start:
 		echo -e "$(GREEN)✓ Host requirements OK$(NC)"; \
 		echo ""; \
 		echo -e "$(CYAN)Checking SLURM paths (/opt/scitex)...$(NC)"; \
-		if [ -f "/opt/scitex/singularity/current.sif" ]; then \
+		if [ -d "/opt/scitex/singularity/current-sandbox" ] || [ -f "/opt/scitex/singularity/current.sif" ]; then \
 			echo -e "$(GREEN)✓ SLURM paths configured$(NC)"; \
 		else \
 			echo -e "$(YELLOW)⚠️  SLURM paths not configured (terminal will fail)$(NC)"; \
@@ -584,6 +588,14 @@ apptainer-upgrade: ## Rebuild Apptainer SIF with latest scitex (force)
 apptainer-freeze:
 	@echo -e "$(CYAN)📦 Extracting pinned versions from SIF...$(NC)"
 	@deployment/singularity/freeze.sh
+
+apptainer-sandbox: ## Convert current SIF to writable sandbox directory
+	@echo -e "$(CYAN)📦 Building Apptainer sandbox from current SIF...$(NC)"
+	@deployment/singularity/build.sh --sandbox
+
+apptainer-sandbox-maintain: ## Open writable shell in sandbox (admin only)
+	@echo -e "$(CYAN)📦 Opening writable sandbox shell (admin maintenance)...$(NC)"
+	@apptainer exec --writable --fakeroot deployment/singularity/current-sandbox /bin/bash
 
 rebuild: validate-docker
 	@./scripts/deploy/rebuild.sh $(ENV)
