@@ -93,7 +93,7 @@ from .tools import (
 )
 
 # Utility views
-from .utils import demo, donation_success, error_502_demo, send_donation_confirmation
+from .utils import demo, donation_success, send_donation_confirmation
 
 __all__ = [
     # Landing
@@ -166,7 +166,6 @@ __all__ = [
     "tool_view_image",
     "tool_view_plot",
     # Utils
-    "error_502_demo",
     "demo",
     "donation_success",
     "send_donation_confirmation",
