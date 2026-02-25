@@ -115,7 +115,7 @@ else
 fi
 
 # Pending migrations check
-MIGRATIONS_OK=$(docker exec "$CONTAINER" python manage.py showmigrations --plan 2>/dev/null | grep -c '^\[ \]' || echo "0")
+MIGRATIONS_OK=$(docker exec "$CONTAINER" python manage.py showmigrations --plan 2>/dev/null | grep -c '^\[ \]' 2>/dev/null) || MIGRATIONS_OK=0
 if [ "$MIGRATIONS_OK" = "0" ]; then
     echo -e "  [OK] Migrations: all applied"
 else
