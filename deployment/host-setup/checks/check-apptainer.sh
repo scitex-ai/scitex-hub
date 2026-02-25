@@ -27,7 +27,7 @@ RUNNING=$(docker ps --format '{{.Names}}' 2>/dev/null |
     sed 's/-//' |
     sort -u |
     tr '\n' ' ' |
-    xargs || echo "")
+    xargs) || RUNNING=""
 
 DEF_FILE="${PROJECT_ROOT}/deployment/singularity/scitex-cloud-shared-v0.1.0.def"
 HASH_FILE="${PROJECT_ROOT}/deployment/singularity/.def-hash"

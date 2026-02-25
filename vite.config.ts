@@ -65,6 +65,11 @@ export default defineConfig({
     watch: {
       usePolling: true,
       interval: 3000,
+      ignored: [
+        "**/deployment/singularity/**",
+        "**/singularity/**",
+        "**/node_modules/**",
+      ],
     },
     fs: {
       allow: ["."],

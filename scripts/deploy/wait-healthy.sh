@@ -30,12 +30,16 @@ get_status() {
 
 count_healthy() {
     local statuses="$1"
-    echo "$statuses" | grep -c "(healthy)" 2>/dev/null || echo 0
+    local n
+    n=$(echo "$statuses" | grep -c "(healthy)" 2>/dev/null) || true
+    echo "${n:-0}"
 }
 
 count_total() {
     local statuses="$1"
-    echo "$statuses" | grep -c . 2>/dev/null || echo 0
+    local n
+    n=$(echo "$statuses" | grep -c . 2>/dev/null) || true
+    echo "${n:-0}"
 }
 
 all_healthy() {
