@@ -146,13 +146,16 @@ async with Client(
         <i class="fas fa-tools"></i> Available Tools
     </h2>
     <p>
-        {{ mcp_tools|length }} categories. Click tool rows to expand parameters &amp; return types.
-        Call <code>client.list_tools()</code> for the live list.
+        <strong>{{ mcp_tool_count|default:"200+" }} tools</strong> across {{ mcp_tools|length }} categories.
+        Click tool rows to expand parameters &amp; return types.
+        Call <code>client.list_tools()</code> for the live list, or fetch
+        <code><a href="/api/mcp/tools/">/api/mcp/tools/</a></code> for the full JSON catalog.
     </p>
     {% for category in mcp_tools %}
         <h4>
             <i class="fas {{ category.icon }}"></i>
             {{ category.category }} — <code>{{ category.prefix }}</code>
+            <span style="font-size: 0.8em; color: var(--text-muted, #888);">({{ category.count }} tools)</span>
         </h4>
         <table class="api-table">
             <thead>

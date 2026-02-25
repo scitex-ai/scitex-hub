@@ -4,6 +4,7 @@
 # File: /home/ywatanabe/proj/scitex-cloud/apps/public_app/views/utils.py
 # ----------------------------------------
 from __future__ import annotations
+
 import os
 
 __FILE__ = "./apps/public_app/views/utils.py"
@@ -29,6 +30,18 @@ logger = logging.getLogger("scitex")
 def demo(request):
     """Demo page."""
     return render(request, "public_app/demo.html")
+
+
+def error_502_demo(request):
+    """Render the 502 error page for preview (dev only)."""
+    from pathlib import Path
+
+    from django.http import HttpResponse
+
+    html_path = (
+        Path(settings.BASE_DIR) / "deployment/docker/common/nginx/error-pages/502.html"
+    )
+    return HttpResponse(html_path.read_text(), content_type="text/html")
 
 
 def donation_success(request, donation_id):

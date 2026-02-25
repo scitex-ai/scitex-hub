@@ -238,6 +238,8 @@ urlpatterns = [
         views.tool_convert_docx_to_latex,
         name="tool_convert_docx_to_latex",
     ),
+    # Error page demos (dev only)
+    path("502-demo/", views.error_502_demo, name="error_502_demo"),
     # API endpoints
     path(
         "api/mcp/tools/",

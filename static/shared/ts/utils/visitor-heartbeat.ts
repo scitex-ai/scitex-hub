@@ -21,12 +21,12 @@ class VisitorHeartbeat {
 
   constructor() {
     // Don't run on visitor-expired page (prevents redirect loop)
-    if (window.location.pathname.includes('visitor-expired')) {
+    if (window.location.pathname.includes("visitor-expired")) {
       return;
     }
 
     // Only run for visitor users
-    const isVisitor = document.body.dataset.userType === 'visitor';
+    const isVisitor = document.body.dataset.userType === "visitor";
     if (!isVisitor) {
       return;
     }
@@ -36,9 +36,11 @@ class VisitorHeartbeat {
   }
 
   private setupActivityListeners(): void {
-    const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
-    events.forEach(event => {
-      document.addEventListener(event, () => this.onActivity(), { passive: true });
+    const events = ["mousemove", "keydown", "click", "scroll", "touchstart"];
+    events.forEach((event) => {
+      document.addEventListener(event, () => this.onActivity(), {
+        passive: true,
+      });
     });
   }
 
@@ -46,7 +48,7 @@ class VisitorHeartbeat {
     this.lastActivity = Date.now();
     if (this.isIdle) {
       this.isIdle = false;
-      console.log('[Heartbeat] User became active');
+      console.log("[Heartbeat] User became active");
       this.sendHeartbeat(); // Immediate heartbeat when becoming active
     }
   }
@@ -62,7 +64,7 @@ class VisitorHeartbeat {
       if (idleTime > IDLE_THRESHOLD_MS) {
         if (!this.isIdle) {
           this.isIdle = true;
-          console.log('[Heartbeat] User became idle');
+          console.log("[Heartbeat] User became idle");
         }
         // Skip heartbeat when idle to allow resource release
         return;
@@ -74,44 +76,65 @@ class VisitorHeartbeat {
 
   private async sendHeartbeat(): Promise<void> {
     try {
-      const response = await fetch('/api/visitor/heartbeat/', {
-        method: 'GET',
-        credentials: 'same-origin',
+      const response = await fetch("/api/visitor/heartbeat/", {
+        method: "GET",
+        credentials: "same-origin",
       });
 
       if (response.ok) {
         const data: HeartbeatResponse = await response.json();
-        console.log(`[Heartbeat] Session active, ${Math.floor(data.remaining_seconds / 60)} min remaining`);
+        console.log(
+          `[Heartbeat] Session active, ${Math.floor(data.remaining_seconds / 60)} min remaining`,
+        );
 
         // Warn user when session is about to expire (5 min warning)
         if (data.remaining_seconds <= 300 && data.remaining_seconds > 240) {
           this.showSessionWarning(data.remaining_seconds);
         }
-      } else if (response.status === 404 || response.status === 401 || response.status === 403) {
+      } else if (
+        response.status === 404 ||
+        response.status === 401 ||
+        response.status === 403
+      ) {
         // Session expired - redirect to expired page (not reload to prevent infinite loop)
-        console.log('[Heartbeat] Session expired, redirecting to visitor-expired');
+        console.log(
+          "[Heartbeat] Session expired, redirecting to visitor-expired",
+        );
         this.destroy(); // Stop heartbeat before redirect
-        window.location.replace('/visitor-expired/');
+        window.location.replace("/visitor-expired/");
       }
     } catch (error) {
-      console.warn('[Heartbeat] Error:', error);
+      console.warn("[Heartbeat] Error:", error);
     }
   }
 
   private showSessionWarning(remainingSeconds: number): void {
     const minutes = Math.ceil(remainingSeconds / 60);
     // Check if warning already shown
-    if (document.querySelector('.session-warning-toast')) {
+    if (document.querySelector(".session-warning-toast")) {
       return;
     }
 
-    const toast = document.createElement('div');
-    toast.className = 'session-warning-toast alert alert-warning position-fixed';
-    toast.style.cssText = 'bottom: 20px; right: 20px; z-index: 9999; max-width: 350px;';
+    const toast = document.createElement("div");
+    toast.className = "session-warning-toast position-fixed";
+    toast.style.cssText = [
+      "bottom: 20px",
+      "right: 20px",
+      "z-index: 9999",
+      "max-width: 350px",
+      "padding: 14px 18px",
+      "border-radius: 8px",
+      "background: var(--bg-secondary, #1e1e2e)",
+      "color: var(--text-primary, #e0e0e0)",
+      "border: 1px solid var(--warning-color, #d4a87a)",
+      "box-shadow: 0 4px 12px rgba(0,0,0,0.3)",
+      "font-size: 13px",
+      "line-height: 1.5",
+    ].join("; ");
     toast.innerHTML = `
-      <strong>Session Expiring</strong><br>
+      <strong style="color: var(--warning-color, #d4a87a);">Session Expiring</strong><br>
       Your visitor session will expire in ${minutes} minutes.
-      <a href="/signup/" class="alert-link">Create an account</a> for unlimited access.
+      <a href="/signup/" style="color: var(--accent-primary, #4a9eff);">Create an account</a> for unlimited access.
     `;
 
     document.body.appendChild(toast);
@@ -129,8 +152,8 @@ class VisitorHeartbeat {
 }
 
 // Initialize on DOM ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => new VisitorHeartbeat());
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => new VisitorHeartbeat());
 } else {
   new VisitorHeartbeat();
 }
