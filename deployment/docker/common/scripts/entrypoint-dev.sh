@@ -58,7 +58,6 @@ try_scitex_installation_in_editable_mode() {
                 echo -e "${GREEN}✅ Scitex already installed in editable mode${NC}"
             else
                 echo_info "Installing scitex (editable mode)..."
-
                 uv pip install -e "/scitex-python[all]" --link-mode=copy >/dev/null
             fi
             verify_scitex_package
