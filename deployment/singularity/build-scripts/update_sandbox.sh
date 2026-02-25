@@ -76,7 +76,10 @@ done
 # ============================================
 # Setup
 # ============================================
-run_preflight
+# Only need container detection (not build mode — we use --fakeroot directly)
+setup_tmp
+detect_container_cmd
+FAKEROOT_FLAG="--fakeroot"
 
 SANDBOX_DIR="$SCRIPT_DIR/current-sandbox"
 PROJ_ROOT="${SCITEX_PROJ_ROOT:-$HOME/proj}"
