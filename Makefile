@@ -520,7 +520,7 @@ restart: validate
 	fi
 	@echo -e "$(CYAN)🔄 Restarting $(ENV) environment...$(NC)"
 	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) restart
-	@echo -e "$(GREEN)✅ $(ENV) restarted$(NC)"
+	@./scripts/deploy/wait-healthy.sh $(ENV) 120
 
 reload: validate
 	@# Clear logs - use docker exec for root-owned files (includes rotated logs like *.log.1)
