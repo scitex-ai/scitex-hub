@@ -96,6 +96,13 @@ else
 fi
 
 echo -e "${CYAN}Project root:${NC} ${GREEN}$PROJ_ROOT${NC}"
+
+# Ensure bind mount destination exists inside sandbox
+# (--writable mode can't auto-create it)
+SANDBOX_REAL="$SANDBOX_DIR"
+[ -L "$SANDBOX_DIR" ] && SANDBOX_REAL=$(readlink -f "$SANDBOX_DIR")
+mkdir -p "${SANDBOX_REAL}${PROJ_ROOT}"
+
 echo ""
 
 # ============================================
