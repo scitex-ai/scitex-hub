@@ -48,9 +48,10 @@
             <div class="vis-workspace">
                 <!-- figrecipe Editor (shown when recipe file opened) -->
                 <iframe id="figrecipe-frame"
-                        src=""
-                        style="display:none;
-                               width:100%;
+                        src="{% if figrecipe_embedded %}/vis-react/figrecipe/?mode=embedded{% endif %}"
+                        style="{% if figrecipe_embedded %}display:block;
+                               {% else %}display:none;
+                               {% endif %} width:100%;
                                height:100%;
                                border:none;
                                position:absolute;
@@ -60,7 +61,8 @@
                         allow="clipboard-read; clipboard-write">
                 </iframe>
                 <!-- Split View: Data Table + Canvas (original editor) -->
-                <div class="workspace-split-view">
+                <div class="workspace-split-view"
+                     {% if figrecipe_embedded %}style="display:none"{% endif %}>
                     <!-- Left: Data Table -->
                     <div class="split-pane split-pane-left collapsible-panel"
                          id="data-pane"
@@ -326,6 +328,7 @@
             </div>
             <!-- Properties Resizer (auto-initialized via data attributes) -->
             <div class="panel-resizer"
+                 {% if figrecipe_embedded %}style="display:none"{% endif %}
                  id="workspace-resizer"
                  data-panel-resizer
                  data-storage-prefix="scitex-vis-"
@@ -337,7 +340,9 @@
                  data-collapse-key="vis-properties-collapsed"
                  data-toggle-btn="properties-toggle"></div>
             <!-- RIGHT DETAILS PANEL -->
-            <div class="vis-properties collapsible-panel" id="vis-properties">
+            <div class="vis-properties collapsible-panel"
+                 id="vis-properties"
+                 {% if figrecipe_embedded %}style="display:none"{% endif %}>
                 <div class="properties-header">
                     <button class="properties-toggle-btn panel-toggle-btn right-panel-toggle"
                             id="properties-toggle"
@@ -502,37 +507,57 @@
       var RECIPE_EXTS = ['.yaml', '.yml'];
       var frame = document.getElementById('figrecipe-frame');
       var splitView = document.querySelector('.workspace-split-view');
+      var isEmbedded = {{ figrecipe_embedded|yesno:"true,false" }};
 
-      function openInFigrecipe(recipePath) {
-        if (!frame || !splitView) return;
-        frame.src = '/vis/figrecipe/?recipe=' + encodeURIComponent(recipePath);
-        frame.style.display = 'block';
-        splitView.style.display = 'none';
-      }
-
-      function closeFigrecipe() {
-        if (!frame || !splitView) return;
-        frame.src = '';
-        frame.style.display = 'none';
-        splitView.style.display = '';
-      }
-
-      // Expose globally for sidebar file click handler
-      window.openInFigrecipe = openInFigrecipe;
-      window.closeFigrecipe = closeFigrecipe;
-
-      // Hook into file tree clicks
-      document.addEventListener('click', function(e) {
-        var link = e.target.closest('[data-file-path]');
-        if (!link) return;
-        var path = link.getAttribute('data-file-path') || '';
-        var ext = path.substring(path.lastIndexOf('.')).toLowerCase();
-        if (RECIPE_EXTS.indexOf(ext) !== -1) {
-          e.preventDefault();
-          e.stopPropagation();
-          openInFigrecipe(path);
+      if (isEmbedded) {
+        // Embedded mode: iframe is already visible with src set by template.
+        // File tree clicks send postMessage to figrecipe iframe.
+        document.addEventListener('click', function(e) {
+          var link = e.target.closest('[data-file-path]');
+          if (!link) return;
+          var path = link.getAttribute('data-file-path') || '';
+          var ext = path.substring(path.lastIndexOf('.')).toLowerCase();
+          if (RECIPE_EXTS.indexOf(ext) !== -1) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (frame && frame.contentWindow) {
+              frame.contentWindow.postMessage(
+                { type: 'figrecipe:switchFile', path: path }, '*'
+              );
+            }
+          }
+        });
+      } else {
+        // Standalone mode: toggle iframe on/off for recipe files.
+        function openInFigrecipe(recipePath) {
+          if (!frame || !splitView) return;
+          frame.src = '/vis/figrecipe/?recipe=' + encodeURIComponent(recipePath);
+          frame.style.display = 'block';
+          splitView.style.display = 'none';
         }
-      });
+
+        function closeFigrecipe() {
+          if (!frame || !splitView) return;
+          frame.src = '';
+          frame.style.display = 'none';
+          splitView.style.display = '';
+        }
+
+        window.openInFigrecipe = openInFigrecipe;
+        window.closeFigrecipe = closeFigrecipe;
+
+        document.addEventListener('click', function(e) {
+          var link = e.target.closest('[data-file-path]');
+          if (!link) return;
+          var path = link.getAttribute('data-file-path') || '';
+          var ext = path.substring(path.lastIndexOf('.')).toLowerCase();
+          if (RECIPE_EXTS.indexOf(ext) !== -1) {
+            e.preventDefault();
+            e.stopPropagation();
+            openInFigrecipe(path);
+          }
+        });
+      }
     })();
     </script>
 {% endblock %}
