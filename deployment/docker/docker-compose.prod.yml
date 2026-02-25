@@ -55,6 +55,8 @@ services:
       - scitex_config_volume:/app/.scitex
       # scitex-code for citation_graph module (until published to PyPI)
       - /home/ywatanabe/proj/scitex-code/src/scitex/scholar/citation_graph:/usr/local/lib/python3.11/site-packages/scitex/scholar/citation_graph:ro
+      # scitex-container (host-mounted, not on PyPI)
+      - /home/ywatanabe/proj/scitex-container/src/scitex_container:/usr/local/lib/python3.11/site-packages/scitex_container:ro
       # User workspace
       - ${SCITEX_SLURM_USER_DATA_ROOT:-/opt/scitex/data/users}:/app/data/users
       # Singularity container
@@ -153,6 +155,8 @@ services:
       - /var/log/slurm:/var/log/slurm
       - /etc/passwd:/host/etc/passwd:ro
       - /home/ywatanabe/proj/scitex-code/src/scitex/scholar/citation_graph:/usr/local/lib/python3.11/site-packages/scitex/scholar/citation_graph:ro
+      # scitex-container (host-mounted, not on PyPI)
+      - /home/ywatanabe/proj/scitex-container/src/scitex_container:/usr/local/lib/python3.11/site-packages/scitex_container:ro
     env_file:
       - ./envs/.env.prod
     environment:

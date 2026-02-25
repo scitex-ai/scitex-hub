@@ -45,6 +45,8 @@ services:
       # Local databases (read-only)
       - ${CROSSREF_LOCAL_DB:-/home/ywatanabe/proj/crossref-local/data/crossref.db}:/data/crossref/crossref.db:ro
       - ${OPENALEX_LOCAL_DB:-/home/ywatanabe/proj/openalex-local/data/openalex.db}:/data/openalex/openalex.db:ro
+      # scitex-container (host-mounted, not on PyPI)
+      - /home/ywatanabe/proj/scitex-container/src/scitex_container:/usr/local/lib/python3.11/site-packages/scitex_container:ro
       # TypeScript output
       - /app/.jsbuild
     ports:
@@ -120,6 +122,8 @@ services:
       # Local databases (read-only)
       - ${CROSSREF_LOCAL_DB:-/home/ywatanabe/proj/crossref-local/data/crossref.db}:/data/crossref/crossref.db:ro
       - ${OPENALEX_LOCAL_DB:-/home/ywatanabe/proj/openalex-local/data/openalex.db}:/data/openalex/openalex.db:ro
+      # scitex-container (host-mounted, not on PyPI)
+      - /home/ywatanabe/proj/scitex-container/src/scitex_container:/usr/local/lib/python3.11/site-packages/scitex_container:ro
     env_file:
       - ./envs/.env.staging
     environment:

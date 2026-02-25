@@ -61,7 +61,7 @@ django = [
     # Container management
     "docker>=7.1",
     "paramiko>=3.4",
-    "scitex-container>=0.1.1",
+    # scitex-container: provided via Docker host-mount (not on PyPI)
     # System monitoring
     "psutil>=5.9",
     # Utilities
