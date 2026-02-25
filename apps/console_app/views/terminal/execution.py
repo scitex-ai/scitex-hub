@@ -19,10 +19,7 @@ from pathlib import Path
 
 from .config import (
     SLURM_CONTAINER_PATH,
-    SLURM_CPUS,
-    SLURM_MEMORY_GB,
     SLURM_PARTITION,
-    SLURM_TIME_LIMIT,
     SLURM_USER_DATA_ROOT,
 )
 
@@ -89,15 +86,15 @@ def select_container(user_data_dir: Path, project_dir: Path) -> str:
     Raises ContainerNotFoundError if no valid SIF exists.
     SECURITY: Never returns a path to a non-existent container.
     """
-    # Project-specific container
+    # Project-specific container (SIF file or sandbox directory)
     project_sif = project_dir / ".singularity" / "custom.sif"
-    if project_sif.exists():
+    if project_sif.is_file() or project_sif.is_dir():
         logger.debug(f"Using project container: {project_sif}")
         return str(project_sif)
 
-    # User default container
+    # User default container (SIF file or sandbox directory)
     user_sif = user_data_dir / ".singularity" / "default.sif"
-    if user_sif.exists():
+    if user_sif.is_file() or user_sif.is_dir():
         logger.debug(f"Using user container: {user_sif}")
         return str(user_sif)
 
@@ -111,15 +108,17 @@ def select_container(user_data_dir: Path, project_dir: Path) -> str:
     docker_sif = Path(BASE_CONTAINER_PATH)
     host_sif = Path(SLURM_CONTAINER_PATH)
 
-    if not docker_sif.exists() and not host_sif.exists():
+    docker_exists = docker_sif.is_file() or docker_sif.is_dir()
+    host_exists = host_sif.is_file() or host_sif.is_dir()
+    if not docker_exists and not host_exists:
         logger.error(
             f"Base container NOT FOUND: checked {BASE_CONTAINER_PATH} (Docker) "
             f"and {SLURM_CONTAINER_PATH} (host) — "
-            f"build with: sudo apptainer build "
-            f"deployment/singularity/scitex-final.def"
+            f"build SIF with: sudo apptainer build deployment/singularity/scitex-final.def "
+            f"or sandbox with: sudo apptainer build --sandbox deployment/singularity/scitex-final.def"
         )
         raise ContainerNotFoundError(
-            f"Apptainer SIF not found at {SLURM_CONTAINER_PATH}. "
+            f"Apptainer container (SIF or sandbox) not found at {SLURM_CONTAINER_PATH}. "
             f"Terminal cannot start without container isolation."
         )
 
@@ -140,74 +139,21 @@ def exec_slurm_shell(
 
     SECURITY: This is the ONLY way to spawn terminals. No fallbacks allowed.
     """
-    # Container command on SLURM compute nodes
-    container_cmd = "apptainer"
-
     # Convert Docker paths to host paths for SLURM
     # SLURM jobs run on compute nodes, not inside Docker
     host_user_dir = SLURM_USER_DATA_ROOT / username
     host_project_dir = host_user_dir / "proj" / project_slug
 
-    # Dev mode: mount full repos for editable install
-    # Repos are mounted to /opt/dev/{name} and pip install -e runs on first login (via bashrc)
-    from .config import DEV_REPOS
+    from ._command_builder import build_srun_cmd
 
-    dev_bind_args = []
-    # Note: we skip is_dir() because these are HOST paths (for SLURM),
-    # not visible from inside the Django Docker container.
-    for repo in DEV_REPOS:
-        dev_bind_args += [
-            "--bind",
-            f"{repo['host_path']}:/opt/dev/{repo['name']}:ro",
-        ]
-        logger.debug(f"Dev mode: mounting {repo['name']} from {repo['host_path']}")
-
-    # Build srun command with host paths
-    cmd = [
-        "srun",
-        "--pty",
-        "--chdir=/tmp",  # Explicit host cwd (prevents /app warning)
-        f"--partition={SLURM_PARTITION}",
-        f"--time={SLURM_TIME_LIMIT}",
-        f"--cpus-per-task={SLURM_CPUS}",
-        f"--mem={SLURM_MEMORY_GB}G",
-        f"--job-name=terminal_{username}",
-        # Note: --account not used (SLURM accounting not configured)
-        # Container execution (using host paths)
-        # Use 'exec' instead of 'shell' to run screen for session persistence
-        container_cmd,
-        "exec",
-        "--containall",
-        "--cleanenv",
-        "--writable-tmpfs",
-        "--hostname",
-        "scitex-cloud",
-        # Pass env vars through --cleanenv (Apptainer strips inherited vars)
-        "--env",
-        "TERM=xterm-256color",
-        "--env",
-        "SCITEX_CLOUD=true",
-        "--env",
-        f"SCITEX_PROJECT={project_slug}",
-        "--env",
-        f"SCITEX_USER={username}",
-        "--env",
-        f"USER={username}",
-        "--env",
-        f"LOGNAME={username}",
-        "--home",
-        f"{host_user_dir}:/home/{username}",
-        "--bind",
-        f"{host_project_dir}:/home/{username}/proj/{project_slug}:rw",
-        *dev_bind_args,
-        "--pwd",
-        f"/home/{username}/proj/{project_slug}",
-        container_path,  # Use host path to SIF
-        # screen session: reattach if exists, create if not (-R flag)
-        "/bin/bash",
-        "-lc",
-        f"exec screen -xRR {screen_session}",
-    ]
+    cmd = build_srun_cmd(
+        container_path=container_path,
+        username=username,
+        host_user_dir=host_user_dir,
+        host_project_dir=host_project_dir,
+        project_slug=project_slug,
+        screen_session=screen_session,
+    )
 
     # Environment for srun process (host-side, before exec into container)
     env = {

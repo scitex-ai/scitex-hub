@@ -71,68 +71,28 @@ class TerminalSession:
                 except (ValueError, OSError):
                     pass
 
-            from apps.console_app.views.terminal.config import (
-                DEV_REPOS,
-                SLURM_CPUS,
-                SLURM_MEMORY_GB,
-                SLURM_PARTITION,
-                SLURM_TIME_LIMIT,
-                SLURM_USER_DATA_ROOT,
-            )
+            from apps.console_app.views.terminal._command_builder import build_srun_cmd
+            from apps.console_app.views.terminal.config import SLURM_USER_DATA_ROOT
 
             # Convert Docker paths to host paths for SLURM
             host_user_dir = SLURM_USER_DATA_ROOT / self.username
             host_project_dir = host_user_dir / "proj" / self.project_slug
 
-            # Dev mode: mount full repos for editable install
-            dev_bind_args = []
-            for repo in DEV_REPOS:
-                dev_bind_args += [
-                    "--bind",
-                    f"{repo['host_path']}:/opt/dev/{repo['name']}:ro",
-                ]
-                logger.info(
-                    f"Dev mode: mounting {repo['name']} from {repo['host_path']}"
-                )
+            cmd = build_srun_cmd(
+                container_path=self.container_path,
+                username=self.username,
+                host_user_dir=host_user_dir,
+                host_project_dir=host_project_dir,
+                project_slug=self.project_slug,
+                screen_session=self.screen_session,
+            )
 
-            # Build environment
             env = os.environ.copy()
             env["HOME"] = f"/home/{self.username}"
             env["USER"] = self.username
             env["LOGNAME"] = self.username
             env["TERM"] = "xterm-256color"
             env["SHELL"] = "/bin/bash"
-
-            # Build srun command (using HOST paths, not Docker paths)
-            cmd = [
-                "srun",
-                f"--partition={SLURM_PARTITION}",
-                f"--cpus-per-task={SLURM_CPUS}",
-                f"--mem={SLURM_MEMORY_GB}G",
-                f"--time={SLURM_TIME_LIMIT}",
-                f"--job-name=terminal_{self.username}",
-                "--chdir=/tmp",
-                "--pty",
-                "apptainer",
-                "exec",
-                "--containall",
-                "--cleanenv",
-                "--writable-tmpfs",
-                "--hostname",
-                "scitex-cloud",
-                "--home",
-                f"{host_user_dir}:/home/{self.username}",
-                "--bind",
-                f"{host_project_dir}:/home/{self.username}/proj/{self.project_slug}:rw",
-                *dev_bind_args,
-                "--pwd",
-                f"/home/{self.username}/proj/{self.project_slug}",
-                self.container_path,
-                # screen session: reattach if exists, create if not (-xRR flag)
-                "/bin/bash",
-                "-lc",
-                f"exec screen -xRR {self.screen_session}",
-            ]
 
             os.chdir("/tmp")  # Safe directory for srun
             os.execvpe("srun", cmd, env)
