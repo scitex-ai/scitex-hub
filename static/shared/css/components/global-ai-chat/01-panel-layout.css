@@ -48,11 +48,14 @@
   border-bottom: none !important;
 }
 
-/* Settings panel: shrinkable, scrollable, contained */
-.scitex-ai-panel .scitex-ai-settings-panel {
-  flex-shrink: 0;
-  max-height: 40%;
+/* Config view: fill available space, scrollable */
+.scitex-ai-panel .scitex-ai-config-content {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
   overflow-y: auto;
+  flex: 1;
 }
 
 /* Expanded header: space-between layout for title + actions */

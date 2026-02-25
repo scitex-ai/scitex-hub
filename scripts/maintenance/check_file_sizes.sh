@@ -6,7 +6,7 @@
 ORIG_DIR="$(pwd)"
 THIS_DIR="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"
 LOG_PATH="$THIS_DIR/.$(basename $0).log"
-echo > "$LOG_PATH"
+echo >"$LOG_PATH"
 
 GIT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
 
@@ -63,8 +63,8 @@ count_large_files() {
             ! -path "*/migrations/*" \
             ! -name "*.d.ts" \
             $exclude_pattern \
-            -exec wc -l {} + 2>/dev/null | \
-            awk -v threshold=$threshold '$1 > threshold && $2 != "total"' | \
+            -exec wc -l {} + 2>/dev/null |
+            awk -v threshold=$threshold '$1 > threshold && $2 != "total"' |
             wc -l
     else
         find apps/ static/ templates/ -name "*.$extension" \
@@ -75,8 +75,8 @@ count_large_files() {
             ! -path "*/.legacy/*" \
             ! -path "*/migrations/*" \
             ! -name "*.d.ts" \
-            -exec wc -l {} + 2>/dev/null | \
-            awk -v threshold=$threshold '$1 > threshold && $2 != "total"' | \
+            -exec wc -l {} + 2>/dev/null |
+            awk -v threshold=$threshold '$1 > threshold && $2 != "total"' |
             wc -l
     fi
 }
@@ -93,9 +93,9 @@ get_worst_offender() {
         ! -path "*/.legacy/*" \
         ! -path "*/migrations/*" \
         ! -name "*.d.ts" \
-        -exec wc -l {} + 2>/dev/null | \
-        grep -v "total" | \
-        sort -rn | \
+        -exec wc -l {} + 2>/dev/null |
+        grep -v "total" |
+        sort -rn |
         head -1
 }
 
@@ -112,8 +112,8 @@ count_by_severity() {
         ! -path "*/.legacy/*" \
         ! -path "*/migrations/*" \
         ! -name "*.d.ts" \
-        -exec wc -l {} + 2>/dev/null | \
-        awk -v min=$min_lines '$1 > min && $2 != "total"' | \
+        -exec wc -l {} + 2>/dev/null |
+        awk -v min=$min_lines '$1 > min && $2 != "total"' |
         wc -l
 }
 
@@ -131,13 +131,13 @@ check_files() {
         [ $total -eq 0 ] && exit 0 || exit 1
     fi
 
-    # Always show if there are violations
+    # Show header and status
+    echo "📐 File Sizes:"
+
     if [ $total -gt 0 ]; then
-        echo ""
-        echo -e "${YELLOW}⚠️  File Size Warning: $total files exceed thresholds${NC}"
-        echo -e "${CYAN}   Thresholds: TS=${THRESHOLD_TS}, PY=${THRESHOLD_PY}, CSS=${THRESHOLD_CSS}, HTML=${THRESHOLD_HTML}${NC}"
-        echo -e "${CYAN}   See: GITIGNORED/RULES/06_FILE_SIZE_LIMITS.md${NC}"
-        echo ""
+        echo -e "  ${YELLOW}[WARN] $total files exceed thresholds${NC}"
+        echo -e "    Thresholds: TS=${THRESHOLD_TS}, PY=${THRESHOLD_PY}, CSS=${THRESHOLD_CSS}, HTML=${THRESHOLD_HTML}"
+        echo -e "    See: GITIGNORED/RULES/06_FILE_SIZE_LIMITS.md"
 
         # Show counts by type
         [ $ts_count -gt 0 ] && {
@@ -145,15 +145,13 @@ check_files() {
             ts_lines=$(echo "$worst_ts" | awk '{print $1}')
             ts_file=$(echo "$worst_ts" | awk '{print $2}')
             ts_multiplier=$((ts_lines / THRESHOLD_TS))
-
-            # Count critical files (>2048 lines = 8x threshold for TS)
             ts_critical=$(count_by_severity "ts" 2048)
 
-            echo -e "${YELLOW}   TypeScript: $ts_count files (>${THRESHOLD_TS} lines)${NC}"
+            echo -e "  ${YELLOW}[WARN] TypeScript: $ts_count files (>${THRESHOLD_TS} lines)${NC}"
             if [ $ts_critical -gt 0 ]; then
-                echo -e "${RED}     🔥 $ts_critical CRITICAL (>2048 lines)${NC}"
+                echo -e "  ${RED}[FAIL] $ts_critical CRITICAL (>2048 lines)${NC}"
             fi
-            echo -e "${CYAN}     Worst: ${ts_file##*/} (${ts_lines} lines, ${ts_multiplier}x threshold)${NC}"
+            echo -e "    Worst: ${ts_file##*/} (${ts_lines} lines, ${ts_multiplier}x threshold)"
         }
 
         [ $py_count -gt 0 ] && {
@@ -161,15 +159,13 @@ check_files() {
             py_lines=$(echo "$worst_py" | awk '{print $1}')
             py_file=$(echo "$worst_py" | awk '{print $2}')
             py_multiplier=$((py_lines / THRESHOLD_PY))
-
-            # Count critical files (>2048 lines = 8x threshold for PY)
             py_critical=$(count_by_severity "py" 2048)
 
-            echo -e "${YELLOW}   Python: $py_count files (>${THRESHOLD_PY} lines)${NC}"
+            echo -e "  ${YELLOW}[WARN] Python: $py_count files (>${THRESHOLD_PY} lines)${NC}"
             if [ $py_critical -gt 0 ]; then
-                echo -e "${RED}     🔥 $py_critical CRITICAL (>2048 lines)${NC}"
+                echo -e "  ${RED}[FAIL] $py_critical CRITICAL (>2048 lines)${NC}"
             fi
-            echo -e "${CYAN}     Worst: ${py_file##*/} (${py_lines} lines, ${py_multiplier}x threshold)${NC}"
+            echo -e "    Worst: ${py_file##*/} (${py_lines} lines, ${py_multiplier}x threshold)"
         }
 
         [ $css_count -gt 0 ] && {
@@ -177,8 +173,8 @@ check_files() {
             css_lines=$(echo "$worst_css" | awk '{print $1}')
             css_file=$(echo "$worst_css" | awk '{print $2}')
             css_multiplier=$((css_lines / THRESHOLD_CSS))
-            echo -e "${YELLOW}   CSS: $css_count files (>${THRESHOLD_CSS} lines)${NC}"
-            echo -e "${CYAN}     Worst: ${css_file##*/} (${css_lines} lines, ${css_multiplier}x threshold)${NC}"
+            echo -e "  ${YELLOW}[WARN] CSS: $css_count files (>${THRESHOLD_CSS} lines)${NC}"
+            echo -e "    Worst: ${css_file##*/} (${css_lines} lines, ${css_multiplier}x threshold)"
         }
 
         [ $html_count -gt 0 ] && {
@@ -186,17 +182,15 @@ check_files() {
             html_lines=$(echo "$worst_html" | awk '{print $1}')
             html_file=$(echo "$worst_html" | awk '{print $2}')
             html_multiplier=$((html_lines / THRESHOLD_HTML))
-            echo -e "${YELLOW}   HTML: $html_count files (>${THRESHOLD_HTML} lines)${NC}"
-            echo -e "${CYAN}     Worst: ${html_file##*/} (${html_lines} lines, ${html_multiplier}x threshold)${NC}"
+            echo -e "  ${YELLOW}[WARN] HTML: $html_count files (>${THRESHOLD_HTML} lines)${NC}"
+            echo -e "    Worst: ${html_file##*/} (${html_lines} lines, ${html_multiplier}x threshold)"
         }
 
-        echo ""
-        echo -e "${CYAN}💡 To see full list: ./scripts/maintenance/check_file_sizes.sh --verbose${NC}"
-        echo ""
+        echo -e "    Full list: ./scripts/maintenance/check_file_sizes.sh --verbose"
     else
+        echo "  [OK] All files within thresholds"
+        echo ""
         if [ "$MODE" = "--verbose" ]; then
-            echo ""
-            echo -e "${GREEN}✅ All files within thresholds!${NC}"
             echo ""
         fi
     fi
@@ -215,10 +209,10 @@ check_files() {
                 ! -path "*/legacy/*" \
                 ! -path "*/.legacy/*" \
                 ! -name "*.d.ts" \
-                -exec wc -l {} + 2>/dev/null | \
-                awk -v threshold=$THRESHOLD_TS '$1 > threshold && $2 != "total"' | \
-                sort -rn | \
-                head -20 | \
+                -exec wc -l {} + 2>/dev/null |
+                awk -v threshold=$THRESHOLD_TS '$1 > threshold && $2 != "total"' |
+                sort -rn |
+                head -20 |
                 awk '{printf "  %5d lines: %s\n", $1, $2}'
             echo ""
         fi
@@ -231,10 +225,10 @@ check_files() {
                 ! -path "*/legacy/*" \
                 ! -path "*/.legacy/*" \
                 ! -path "*/migrations/*" \
-                -exec wc -l {} + 2>/dev/null | \
-                awk -v threshold=$THRESHOLD_PY '$1 > threshold && $2 != "total"' | \
-                sort -rn | \
-                head -20 | \
+                -exec wc -l {} + 2>/dev/null |
+                awk -v threshold=$THRESHOLD_PY '$1 > threshold && $2 != "total"' |
+                sort -rn |
+                head -20 |
                 awk '{printf "  %5d lines: %s\n", $1, $2}'
             echo ""
         fi
@@ -246,10 +240,10 @@ check_files() {
                 ! -path "*/.old/*" \
                 ! -path "*/legacy/*" \
                 ! -path "*/.legacy/*" \
-                -exec wc -l {} + 2>/dev/null | \
-                awk -v threshold=$THRESHOLD_CSS '$1 > threshold && $2 != "total"' | \
-                sort -rn | \
-                head -20 | \
+                -exec wc -l {} + 2>/dev/null |
+                awk -v threshold=$THRESHOLD_CSS '$1 > threshold && $2 != "total"' |
+                sort -rn |
+                head -20 |
                 awk '{printf "  %5d lines: %s\n", $1, $2}'
             echo ""
         fi
@@ -260,10 +254,10 @@ check_files() {
                 ! -path "*/.old/*" \
                 ! -path "*/legacy/*" \
                 ! -path "*/.legacy/*" \
-                -exec wc -l {} + 2>/dev/null | \
-                awk -v threshold=$THRESHOLD_HTML '$1 > threshold && $2 != "total"' | \
-                sort -rn | \
-                head -20 | \
+                -exec wc -l {} + 2>/dev/null |
+                awk -v threshold=$THRESHOLD_HTML '$1 > threshold && $2 != "total"' |
+                sort -rn |
+                head -20 |
                 awk '{printf "  %5d lines: %s\n", $1, $2}'
             echo ""
         fi

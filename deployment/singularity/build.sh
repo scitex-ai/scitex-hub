@@ -1,9 +1,14 @@
 #!/bin/bash
+# shellcheck disable=SC1091  # Sourced files use runtime paths; see shellcheck source= hints
 # File: ./deployment/singularity/build.sh
 # ============================================
-# Build SciTeX Apptainer Container (Smart Rebuild)
+# Build SciTeX Apptainer Container (Two-Stage Versioned Build)
 # ============================================
-# Uses SHA256 hash of .def file to skip rebuilds when unchanged.
+# Stage 1 (--base):   scitex-base.def  -> scitex-base-v{N}.sif   (~25 min, rare)
+# Stage 2 (default):  scitex-final.def -> scitex-v{VER}.sif      (~3 min, frequent)
+# Legacy  (--legacy): monolithic .def  -> .sif                    (migration)
+#
+# Uses SHA256 hash of .def + versions to skip rebuilds when unchanged.
 # Pass --force to rebuild regardless.
 
 # NOTE: Canonical way: scitex container build
@@ -11,168 +16,75 @@
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DEF_FILE="$SCRIPT_DIR/scitex-cloud-shared-v0.1.0.def"
-SIF_FILE="$SCRIPT_DIR/scitex-cloud-shared-v0.1.0.sif"
-HASH_FILE="$SCRIPT_DIR/.def-hash"
+# ============================================
+# Source modular components
+# ============================================
+SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Colors
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-CYAN='\033[0;36m'
-NC='\033[0m'
+# shellcheck source=build-scripts/common.sh
+source "$SELF_DIR/build-scripts/common.sh"
+# shellcheck source=build-scripts/hash_check.sh
+source "$SELF_DIR/build-scripts/hash_check.sh"
+# shellcheck source=build-scripts/pypi_versions.sh
+source "$SELF_DIR/build-scripts/pypi_versions.sh"
+# shellcheck source=build-scripts/versions_json.sh
+source "$SELF_DIR/build-scripts/versions_json.sh"
+# shellcheck source=build-scripts/build_base.sh
+source "$SELF_DIR/build-scripts/build_base.sh"
+# shellcheck source=build-scripts/build_final.sh
+source "$SELF_DIR/build-scripts/build_final.sh"
+# shellcheck source=build-scripts/build_legacy.sh
+source "$SELF_DIR/build-scripts/build_legacy.sh"
 
+# ============================================
+# Parse arguments
+# ============================================
 FORCE=false
-if [ "$1" = "--force" ] || [ "$1" = "-f" ]; then
-    FORCE=true
-fi
+BUILD_BASE=false
+BUILD_LEGACY=false
+BUILD_SANDBOX=false
 
-# ============================================
-# Pre-flight checks
-# ============================================
-
-# Check if running as root
-if [ "$EUID" -ne 0 ]; then
-    echo -e "${RED}Error: This script must be run as root (sudo)${NC}"
-    echo -e "Usage: sudo $0 [--force]"
-    exit 1
-fi
-
-# Check if apptainer is installed (prefer apptainer, fall back to singularity)
-if command -v apptainer &>/dev/null; then
-    CONTAINER_CMD="apptainer"
-elif command -v singularity &>/dev/null; then
-    CONTAINER_CMD="singularity"
-else
-    echo -e "${RED}Error: Neither apptainer nor singularity is installed${NC}"
-    echo -e "Install: sudo apt-get install apptainer"
-    exit 1
-fi
-
-VERSION=$($CONTAINER_CMD --version 2>&1 | head -1)
-echo -e "${CYAN}Container tool:${NC} $CONTAINER_CMD ($VERSION)"
-
-# Check if definition file exists
-if [ ! -f "$DEF_FILE" ]; then
-    echo -e "${RED}Error: Definition file not found: $DEF_FILE${NC}"
-    exit 1
-fi
-
-# ============================================
-# Fetch latest PyPI versions (cache-busting key)
-# ============================================
-VERSIONS_FILE="$SCRIPT_DIR/.pypi-versions"
-ECOSYSTEM_PKGS="scitex figrecipe scitex-writer scitex-dataset crossref-local openalex-local socialia scitex-linter"
-
-echo -e "${CYAN}Checking latest PyPI versions...${NC}"
-PYPI_VERSIONS=""
-for pkg in $ECOSYSTEM_PKGS; do
-    ver=$(curl -s --max-time 5 "https://pypi.org/pypi/$pkg/json" 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin)['info']['version'])" 2>/dev/null || echo "unknown")
-    PYPI_VERSIONS="${PYPI_VERSIONS}${pkg}==${ver} "
-    echo -e "  ${pkg}: ${GREEN}${ver}${NC}"
-done
-PYPI_VERSIONS=$(echo "$PYPI_VERSIONS" | xargs) # trim
-
-# ============================================
-# Smart rebuild: hash-based change detection
-# ============================================
-# Hash includes BOTH the def file AND PyPI versions
-CURRENT_HASH=$(echo "$(sha256sum "$DEF_FILE" | awk '{print $1}') ${PYPI_VERSIONS}" | sha256sum | awk '{print $1}')
-
-if [ "$FORCE" = false ] && [ -f "$SIF_FILE" ] && [ -f "$HASH_FILE" ]; then
-    STORED_HASH=$(cat "$HASH_FILE" 2>/dev/null || echo "")
-    if [ "$CURRENT_HASH" = "$STORED_HASH" ]; then
-        SIF_SIZE=$(du -h "$SIF_FILE" | cut -f1)
-        SIF_DATE=$(date -r "$SIF_FILE" "+%Y-%m-%d %H:%M")
-        echo -e "${GREEN}✅ Apptainer SIF is up-to-date${NC}"
-        echo -e "   Image: ${SIF_FILE} (${SIF_SIZE}, built ${SIF_DATE})"
-        echo -e "   Hash:  ${CURRENT_HASH:0:12}..."
-        echo -e "   Use ${YELLOW}--force${NC} to rebuild anyway"
+for arg in "$@"; do
+    case "$arg" in
+    --force | -f) FORCE=true ;;
+    --base) BUILD_BASE=true ;;
+    --legacy) BUILD_LEGACY=true ;;
+    --sandbox) BUILD_SANDBOX=true ;;
+    --help | -h)
+        echo "Usage: $0 [OPTIONS]"
+        echo ""
+        echo "Options:"
+        echo "  (default)   Build final container from scitex-final.def"
+        echo "  --base      Build base container from scitex-base.def"
+        echo "  --sandbox   Convert current SIF to writable sandbox directory"
+        echo "  --legacy    Build legacy monolithic container"
+        echo "  --force,-f  Force rebuild even if hash unchanged"
+        echo "  --help,-h   Show this help"
         exit 0
-    fi
-    echo -e "${YELLOW}⚠️  Versions changed or .def updated — rebuild needed${NC}"
-    echo -e "   Old hash: ${STORED_HASH:0:12}..."
-    echo -e "   New hash: ${CURRENT_HASH:0:12}..."
-elif [ ! -f "$SIF_FILE" ]; then
-    echo -e "${YELLOW}⚠️  No SIF file found — initial build${NC}"
-elif [ "$FORCE" = true ]; then
-    echo -e "${YELLOW}⚠️  Force rebuild requested${NC}"
-fi
-
-# Save versions for reference
-echo "$PYPI_VERSIONS" >"$VERSIONS_FILE"
-
-echo -e ""
-echo -e "${GREEN}============================================${NC}"
-echo -e "${GREEN}Building SciTeX Apptainer Container${NC}"
-echo -e "${GREEN}============================================${NC}"
-echo -e ""
-echo -e "Definition: ${GREEN}$DEF_FILE${NC}"
-
-# Backup existing .sif file if it exists
-if [ -f "$SIF_FILE" ]; then
-    BACKUP_FILE="$SIF_FILE.backup.$(date +%Y%m%d_%H%M%S)"
-    echo -e "${YELLOW}Backing up existing image to: $(basename "$BACKUP_FILE")${NC}"
-    cp "$SIF_FILE" "$BACKUP_FILE"
-fi
-
-# Check disk space (need at least 6GB free for build)
-FREE_SPACE=$(df -BG "$SCRIPT_DIR" | awk 'NR==2 {print $4}' | sed 's/G//')
-if [ "$FREE_SPACE" -lt 6 ]; then
-    echo -e "${RED}Warning: Low disk space (${FREE_SPACE}GB free, recommend 6GB+)${NC}"
-    read -p "Continue anyway? (y/N) " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        ;;
+    *)
+        echo -e "${RED}Unknown option: $arg${NC}"
+        echo "Run $0 --help for usage."
         exit 1
-    fi
-fi
+        ;;
+    esac
+done
 
-echo -e ""
-echo -e "${GREEN}Starting build...${NC}"
-echo -e "This may take 15-30 minutes (downloads npm + Python packages)."
-echo -e ""
+# ============================================
+# Preflight and dispatch
+# ============================================
+run_preflight
 
-# Build the container
-START_TIME=$(date +%s)
-
-if $CONTAINER_CMD build --force "$SIF_FILE" "$DEF_FILE"; then
-    END_TIME=$(date +%s)
-    BUILD_TIME=$((END_TIME - START_TIME))
-    BUILD_MINUTES=$((BUILD_TIME / 60))
-    BUILD_SECONDS=$((BUILD_TIME % 60))
-
-    # Store hash for future change detection
-    echo "$CURRENT_HASH" >"$HASH_FILE"
-
-    echo -e ""
-    echo -e "${GREEN}============================================${NC}"
-    echo -e "${GREEN}Build completed successfully!${NC}"
-    echo -e "${GREEN}============================================${NC}"
-    echo -e ""
-    echo -e "Image file: ${GREEN}$SIF_FILE${NC}"
-    echo -e "Image size: ${GREEN}$(du -h "$SIF_FILE" | cut -f1)${NC}"
-    echo -e "Build time: ${GREEN}${BUILD_MINUTES}m ${BUILD_SECONDS}s${NC}"
-    echo -e "Def hash:   ${GREEN}${CURRENT_HASH:0:12}...${NC}"
-    echo -e ""
-    # Auto-freeze: extract pinned versions for reproducibility
-    echo -e "${GREEN}Running freeze to capture installed versions...${NC}"
-    if bash "$SCRIPT_DIR/freeze.sh" "$SIF_FILE"; then
-        echo -e "${GREEN}✅ Version lock files generated${NC}"
-    else
-        echo -e "${YELLOW}⚠️  Freeze failed (non-critical) — run manually: ./freeze.sh${NC}"
-    fi
-
-    echo -e ""
-    echo -e "${GREEN}Next steps:${NC}"
-    echo -e "  Test:    sudo ./test.sh"
-    echo -e "  Restart: make env=dev restart"
-    echo -e ""
+if [ "$BUILD_SANDBOX" = true ]; then
+    # shellcheck source=build-scripts/build_sandbox.sh
+    source "$SELF_DIR/build-scripts/build_sandbox.sh"
+    run_sandbox_build "$FORCE"
+elif [ "$BUILD_LEGACY" = true ]; then
+    run_legacy_build "$FORCE"
+elif [ "$BUILD_BASE" = true ]; then
+    run_base_build "$FORCE"
 else
-    echo -e ""
-    echo -e "${RED}Build failed!${NC}"
-    echo -e "Check the error messages above for details."
-    exit 1
+    run_final_build "$FORCE"
 fi
 
 # EOF

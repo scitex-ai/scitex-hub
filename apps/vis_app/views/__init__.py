@@ -48,6 +48,7 @@ def figure_editor(request, figrecipe_embedded=False):
                 "is_visitor": True,
                 "figures": [],
                 "journal_presets": JournalPreset.objects.filter(is_active=True),
+                "figrecipe_embedded": figrecipe_embedded,
             },
         )
 
@@ -83,10 +84,9 @@ def figure_editor(request, figrecipe_embedded=False):
     context["journal_presets"] = JournalPreset.objects.filter(is_active=True)
     context["figrecipe_embedded"] = figrecipe_embedded
 
-    # /vis-react/ isn't in the workspace module registry, so force the
-    # three-column workspace layout (AI pane, Files, Editor) to render.
-    if figrecipe_embedded:
-        context["is_workspace_page"] = True
+    # Ensure workspace layout renders (AI pane, Files pane, Editor pane)
+    # Vis is in the registry, but /vis-react/ isn't — force for both.
+    context["is_workspace_page"] = True
 
     return render(request, "vis_app/editor.html", context)
 

@@ -1,7 +1,7 @@
 from django.urls import path
 from django.views.generic import RedirectView
 
-from . import default_workspace_views, job_api_views, views, workspace_views
+from . import default_workspace_views, job_api_views, views
 from . import workspace_api as workspace_api_views
 from .views import api as api_views
 from .views import service_api_lifecycle, service_api_list
@@ -15,8 +15,8 @@ urlpatterns = [
         default_workspace_views.user_default_workspace,
         name="user_default_workspace",
     ),
-    # Main workspace - simple file editor (replaces redirect)
-    path("", workspace_views.code_workspace, name="index"),
+    # Console has no standalone page — redirect to Writer
+    path("", RedirectView.as_view(url="/writer/", permanent=False), name="index"),
     # Workspace API endpoints (file-content redirects to shared workspace_api app)
     path(
         "api/file-content/<path:file_path>",

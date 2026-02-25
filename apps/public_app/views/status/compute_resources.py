@@ -24,8 +24,9 @@ logger = logging.getLogger("scitex")
 
 # Container file paths (relative to project root)
 _SINGULARITY_DIR = "deployment/singularity"
-_DEF_FILENAME = "scitex-cloud-shared-v0.1.0.def"
-_SIF_FILENAME = "scitex-cloud-shared-v0.1.0.sif"
+_DEF_FILENAME = "scitex-final.def"
+_SANDBOX_DIRNAME = "current-sandbox"
+_SIF_FILENAME = "current.sif"
 _HASH_FILENAME = ".def-hash"
 
 
@@ -138,7 +139,10 @@ def check_slurm_status(status_data):
 
 
 def _get_sif_metadata():
-    """Read SIF container metadata: version, hash, size, date, rebuild status."""
+    """Read container metadata: version, hash, size, date, rebuild status.
+
+    Checks for sandbox directory first, then falls back to SIF file.
+    """
     import hashlib
     from datetime import datetime, timezone
     from pathlib import Path
@@ -148,10 +152,22 @@ def _get_sif_metadata():
     base = Path(settings.BASE_DIR)
     sing_dir = base / _SINGULARITY_DIR
     def_path = sing_dir / _DEF_FILENAME
+    sandbox_path = sing_dir / _SANDBOX_DIRNAME
     sif_path = sing_dir / _SIF_FILENAME
     hash_path = sing_dir / _HASH_FILENAME
 
     meta = {}
+
+    # Detect container type (sandbox preferred over SIF)
+    if sandbox_path.is_dir():
+        container_path = sandbox_path
+        meta["container_type"] = "sandbox"
+    elif sif_path.is_file():
+        container_path = sif_path
+        meta["container_type"] = "sif"
+    else:
+        container_path = None
+        meta["container_type"] = "missing"
 
     # Read container version from .def labels
     try:
@@ -184,17 +200,25 @@ def _get_sif_metadata():
         current_hash != stored_hash if current_hash and stored_hash else None
     )
 
-    # SIF file size and modification date
-    try:
-        stat = sif_path.stat()
-        size_mb = stat.st_size / (1024 * 1024)
-        if size_mb >= 1024:
-            meta["sif_size"] = f"{size_mb / 1024:.1f} GB"
-        else:
-            meta["sif_size"] = f"{size_mb:.0f} MB"
-        mtime = datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc)
-        meta["sif_date"] = mtime.strftime("%Y-%m-%d %H:%M UTC")
-    except OSError:
+    # Container size and modification date
+    if container_path and container_path.exists():
+        try:
+            stat = container_path.stat()
+            if container_path.is_dir():
+                # For sandbox, use du-style size estimation
+                meta["sif_size"] = "sandbox"
+            else:
+                size_mb = stat.st_size / (1024 * 1024)
+                if size_mb >= 1024:
+                    meta["sif_size"] = f"{size_mb / 1024:.1f} GB"
+                else:
+                    meta["sif_size"] = f"{size_mb:.0f} MB"
+            mtime = datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc)
+            meta["sif_date"] = mtime.strftime("%Y-%m-%d %H:%M UTC")
+        except OSError:
+            meta["sif_size"] = ""
+            meta["sif_date"] = ""
+    else:
         meta["sif_size"] = ""
         meta["sif_date"] = ""
 

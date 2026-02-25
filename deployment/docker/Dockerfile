@@ -44,6 +44,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     htop \
     vim \
     nano \
+    screen \
     # Database (rarely change)
     libpq-dev \
     # LaTeX suite (large, rarely change - install early for caching)

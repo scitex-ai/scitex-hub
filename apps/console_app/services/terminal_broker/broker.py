@@ -1,7 +1,7 @@
 """Terminal broker server — manages PTY sessions outside Daphne's asyncio loop.
 
 Sessions persist across client disconnects. Reconnecting clients with
-the same (username, tmux_session) reattach to the existing PTY fd.
+the same (username, screen_session) reattach to the existing PTY fd.
 """
 
 import base64
@@ -30,7 +30,7 @@ class TerminalBroker:
     def __init__(self, socket_path: str = SOCKET_PATH):
         self.socket_path = socket_path
         self.sessions: Dict[str, TerminalSession] = {}
-        # Index: (username, tmux_session) → session_id for reattach
+        # Index: (username, screen_session) → session_id for reattach
         self.session_index: Dict[tuple, str] = {}
         self.server_socket: Optional[socket.socket] = None
         self.running = False
@@ -74,7 +74,7 @@ class TerminalBroker:
     def _handle_client(self, client: socket.socket):
         """Handle a client connection.
 
-        On disconnect, the tmux session persists for future reattach.
+        On disconnect, the screen session persists for future reattach.
         """
         session_id = None
         try:
@@ -109,7 +109,7 @@ class TerminalBroker:
         except Exception as e:
             logger.debug(f"Client handler error: {e}")
         finally:
-            # Detach only — tmux session persists for reattach
+            # Detach only — screen session persists for reattach
             if session_id:
                 with self.lock:
                     session = self.sessions.get(session_id)
@@ -144,8 +144,8 @@ class TerminalBroker:
     def _handle_spawn(self, msg: dict, client: socket.socket) -> dict:
         """Handle spawn request. Reattaches to existing session if available."""
         username = msg["username"]
-        tmux_session = msg.get("tmux_session", "scitex-0")
-        key = (username, tmux_session)
+        screen_session = msg.get("screen_session", "scitex-0")
+        key = (username, screen_session)
 
         # Check for existing session to reattach
         with self.lock:
@@ -171,7 +171,7 @@ class TerminalBroker:
 
                 existing.start_reader(reattach_cb)
 
-                # Force tmux to redraw screen by sending SIGWINCH
+                # Force screen to redraw by sending SIGWINCH
                 if existing.pid and existing.pid > 0:
                     try:
                         os.kill(existing.pid, signal.SIGWINCH)
@@ -190,7 +190,7 @@ class TerminalBroker:
                 project_dir=Path(msg["project_dir"]),
                 container_path=msg["container_path"],
                 project_slug=msg["project_slug"],
-                tmux_session=tmux_session,
+                screen_session=screen_session,
             )
             session.client_socket = client
 

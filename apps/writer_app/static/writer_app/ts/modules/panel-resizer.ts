@@ -9,6 +9,9 @@ console.log(
 
 import { statePersistence } from "./state-persistence";
 
+/** Shared collapse threshold — panel collapses when width drops to this (px) */
+const COLLAPSE_WIDTH = 40;
+
 export class PanelResizer {
   private resizer: HTMLElement | null;
   private leftPanel: HTMLElement | null;
@@ -111,6 +114,73 @@ export class PanelResizer {
   }
 
   /**
+   * Smart-collapse a panel during drag
+   */
+  private smartCollapse(target: "editor" | "preview"): void {
+    if (!this.leftPanel || !this.rightPanel || !this.resizer) return;
+
+    const collapseTarget =
+      target === "editor" ? this.leftPanel : this.rightPanel;
+    const expandTarget = target === "editor" ? this.rightPanel : this.leftPanel;
+
+    collapseTarget.classList.add("collapsed");
+    collapseTarget.classList.remove("expanded");
+    expandTarget.classList.add("expanded");
+    expandTarget.classList.remove("collapsed");
+
+    // Clear inline flex so CSS classes take effect
+    collapseTarget.style.flex = "";
+    collapseTarget.style.width = "";
+    collapseTarget.style.flexShrink = "";
+    collapseTarget.style.flexGrow = "";
+    expandTarget.style.flex = "";
+    expandTarget.style.width = "";
+    expandTarget.style.flexShrink = "";
+    expandTarget.style.flexGrow = "";
+
+    // Hide resizer when collapsed
+    this.resizer.style.display = "none";
+
+    // Persist state
+    const STORAGE_KEY_EDITOR = "scitex-writer-editor-expanded";
+    const STORAGE_KEY_PREVIEW = "scitex-writer-preview-expanded";
+    localStorage.setItem(STORAGE_KEY_EDITOR, String(target === "preview"));
+    localStorage.setItem(STORAGE_KEY_PREVIEW, String(target === "editor"));
+
+    // Update toggle button icons
+    const editorToggle = document.getElementById("editor-toggle-btn");
+    const previewToggle = document.getElementById("preview-toggle-btn");
+    if (editorToggle) {
+      editorToggle.title =
+        target === "editor"
+          ? "Expand editor"
+          : "Collapse editor (Ctrl+Shift+E)";
+    }
+    if (previewToggle) {
+      previewToggle.title =
+        target === "preview"
+          ? "Expand preview"
+          : "Collapse preview (Ctrl+Shift+P)";
+    }
+
+    // Stop resizing
+    this.isResizing = false;
+    document.body.style.cursor = "";
+    this.resizer.classList.remove("active");
+
+    // Re-fit PDF after collapse
+    setTimeout(() => {
+      const pdfViewer = (window as any).pdfViewerInstance;
+      if (pdfViewer && typeof pdfViewer.fitWidth === "function") {
+        pdfViewer.fitWidth();
+      }
+      window.dispatchEvent(new Event("resize"));
+    }, 350);
+
+    console.log(`[PanelResizer] Smart-collapsed ${target} panel`);
+  }
+
+  /**
    * Handle mouse move during resize
    */
   private handleMouseMove(e: MouseEvent): void {
@@ -126,42 +196,26 @@ export class PanelResizer {
     const deltaX = e.clientX - this.startX;
     const containerWidth = this.container.getBoundingClientRect().width;
     const newLeftWidth = this.startLeftWidth + deltaX;
+    const newRightWidth = containerWidth - newLeftWidth;
 
-    console.log(
-      "[PanelResizer] Mouse move - deltaX:",
-      deltaX,
-      "newLeftWidth:",
-      newLeftWidth,
-    );
-
-    // Minimum width for each panel (200px)
-    const minWidth = 200;
-    const maxLeftWidth = containerWidth - minWidth;
-
-    if (newLeftWidth >= minWidth && newLeftWidth <= maxLeftWidth) {
-      const leftPercent = (newLeftWidth / containerWidth) * 100;
-      const rightPercent = 100 - leftPercent;
-
-      console.log(
-        "[PanelResizer] Setting widths - left:",
-        leftPercent.toFixed(1) + "%",
-        "right:",
-        rightPercent.toFixed(1) + "%",
-      );
-
-      this.leftPanel.style.flex = `0 0 ${leftPercent}%`;
-      this.rightPanel.style.flex = `0 0 ${rightPercent}%`;
-
-      // Save preference to unified state persistence
-      statePersistence.savePanelWidth(leftPercent);
-    } else {
-      console.log(
-        "[PanelResizer] Width out of bounds - minWidth:",
-        minWidth,
-        "maxLeftWidth:",
-        maxLeftWidth,
-      );
+    // Smart collapse: auto-collapse when dragged below threshold
+    if (newLeftWidth < COLLAPSE_WIDTH) {
+      this.smartCollapse("editor");
+      return;
     }
+    if (newRightWidth < COLLAPSE_WIDTH) {
+      this.smartCollapse("preview");
+      return;
+    }
+
+    const leftPercent = (newLeftWidth / containerWidth) * 100;
+    const rightPercent = 100 - leftPercent;
+
+    this.leftPanel.style.flex = `0 0 ${leftPercent}%`;
+    this.rightPanel.style.flex = `0 0 ${rightPercent}%`;
+
+    // Save preference to unified state persistence
+    statePersistence.savePanelWidth(leftPercent);
   }
 
   /**

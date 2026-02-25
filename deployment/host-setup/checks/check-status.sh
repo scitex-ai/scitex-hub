@@ -1,14 +1,15 @@
 #!/bin/bash
-# Master Status Check Script
-# Orchestrates all status checks for make status
-# This is the single reliable source for admin's short-term memory
+# Master Status Check — Async Orchestrator
+# Runs all sections in parallel; each prints as an atomic chunk.
+# This is the single reliable source for admin's short-term memory.
 
-set -euo pipefail
+set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
 
 # shellcheck disable=SC1091
+# shellcheck disable=SC2034
 source "${SCRIPT_DIR}/../scripts/lib/colors.sh" 2>/dev/null || {
     RED='\033[0;31m'
     GREEN='\033[0;32m'
@@ -17,172 +18,69 @@ source "${SCRIPT_DIR}/../scripts/lib/colors.sh" 2>/dev/null || {
     NC='\033[0m'
 }
 
-# ============================================
-# Environment Status
-# ============================================
-echo -e "${BLUE}📊 Environment Status:${NC}"
-RUNNING=$(docker ps --format '{{.Names}}' 2>/dev/null |
-    grep -oE 'scitex-cloud-(dev|staging|prod)-' |
-    sed 's/scitex-cloud-//' |
-    sed 's/-//' |
-    sort -u |
-    tr '\n' ' ' |
-    xargs || echo "")
+# ── Temp dir for atomic section output ─────────────────────
+TMPDIR_STATUS=$(mktemp -d)
+trap 'rm -rf "$TMPDIR_STATUS"' EXIT
 
-if [ -n "$RUNNING" ]; then
-    echo -e "  ${BLUE}Active environment:${NC} $RUNNING"
-else
-    echo -e "  ${YELLOW}⚠️  No active environment${NC}"
-fi
+# Run a section: capture output to temp file, then print atomically
+run_section() {
+    local name="$1"
+    shift
+    "$@" >"${TMPDIR_STATUS}/${name}" 2>&1 || true
+    cat "${TMPDIR_STATUS}/${name}"
+    echo ""
+}
 
-# ============================================
-# Rebuild Detection
-# ============================================
-REBUILD_PID=$(pgrep -f "docker buildx bake\|docker build\|docker-compose.*build\|docker compose.*build" 2>/dev/null | head -1 || true)
-if [ -n "$REBUILD_PID" ]; then
-    echo -e "  ${YELLOW}🔄 Rebuild in progress (PID: $REBUILD_PID) — containers will restart when done${NC}"
-fi
-echo ""
+# ── Inline section: Environment + Docker ───────────────────
+check_environment() {
+    local running
+    running=$(docker ps --format '{{.Names}}' 2>/dev/null |
+        grep -oE 'scitex-cloud-(dev|staging|prod)-' |
+        sed 's/scitex-cloud-//' | sed 's/-//' |
+        sort -u | tr '\n' ' ' | xargs || echo "")
 
-# ============================================
-# Running Containers
-# ============================================
-echo -e "${BLUE}🐳 Running Containers:${NC}"
-CONTAINERS=$(docker ps --format "table {{.Names}}\t{{.Status}}" 2>/dev/null |
-    grep -E "scitex-cloud-(dev|staging|prod)-" || echo "")
-if [ -n "$CONTAINERS" ]; then
-    echo "$CONTAINERS" | while read -r line; do echo "  $line"; done
-else
-    echo -e "  ${YELLOW}No scitex-cloud containers running${NC}"
-fi
-echo ""
-
-# ============================================
-# Migration Status
-# ============================================
-"${SCRIPT_DIR}/check-migrations.sh" || true
-
-# ============================================
-# Visitor Pool Status
-# ============================================
-"${SCRIPT_DIR}/check-visitor-pool.sh" || true
-echo ""
-
-# ============================================
-# SLURM Status
-# ============================================
-echo -e "${BLUE}🖥️  SLURM Status:${NC}"
-if command -v sinfo >/dev/null 2>&1; then
-    SLURM_STATUS=$(sinfo --noheader 2>&1 || echo "error")
-    if [ -n "$SLURM_STATUS" ] && ! echo "$SLURM_STATUS" | grep -q "error"; then
-        echo -e "  ${GREEN}✅ SLURM Cluster: OPERATIONAL${NC}"
-        sinfo --noheader 2>/dev/null | while read -r line; do echo "    $line"; done
+    echo "📊 Environment:"
+    if [ -n "$running" ]; then
+        echo "  [OK] Active: $running"
     else
-        echo -e "  ${RED}❌ SLURM Cluster: NOT RESPONDING${NC}"
-        echo -e "  ${YELLOW}💡 To start: make slurm-start${NC}"
+        echo -e "  ${YELLOW}[WARN] No active environment${NC}"
     fi
-else
-    echo -e "  ${YELLOW}⚠️  SLURM not installed${NC}"
-fi
-echo ""
 
-# ============================================
-# Host Requirements (delegate to scripts)
-# ============================================
-echo -e "${BLUE}🔍 Checking host requirements...${NC}"
-echo ""
-"${SCRIPT_DIR}/check-users.sh" || true
-echo ""
-"${SCRIPT_DIR}/check-slurm.sh" || true
-echo ""
+    # Rebuild detection
+    local rebuild_pid
+    rebuild_pid=$(pgrep -f "docker buildx bake\|docker build\|docker-compose.*build\|docker compose.*build" 2>/dev/null | head -1 || true)
+    if [ -n "$rebuild_pid" ]; then
+        echo -e "  ${YELLOW}[WARN] Rebuild in progress (PID: $rebuild_pid)${NC}"
+    fi
+}
 
-# ============================================
-# Terminal Functionality
-# ============================================
-echo -e "${BLUE}🖥️  Terminal Functionality:${NC}"
-"${SCRIPT_DIR}/check-terminal-ready.sh" || true
+check_docker() {
+    local containers
+    containers=$(docker ps --format "table {{.Names}}\t{{.Status}}" 2>/dev/null |
+        grep -E "scitex-cloud-(dev|staging|prod)-" || echo "")
 
-# ============================================
-# Timestamp
-# ============================================
+    echo "🐳 Docker:"
+    if [ -n "$containers" ]; then
+        echo "$containers" | while read -r line; do echo "  $line"; done
+    else
+        echo -e "  ${YELLOW}[WARN] No containers running${NC}"
+    fi
+}
+
+# ── Launch all sections in parallel ────────────────────────
+run_section "01-env" check_environment &
+run_section "02-docker" check_docker &
+run_section "03-migrations" "${SCRIPT_DIR}/check-migrations.sh" &
+run_section "04-visitors" "${SCRIPT_DIR}/check-visitor-pool.sh" &
+run_section "05-slurm" "${SCRIPT_DIR}/check-slurm.sh" &
+run_section "06-host" "${SCRIPT_DIR}/check-users.sh" &
+run_section "07-terminal" "${SCRIPT_DIR}/check-terminal-ready.sh" &
+run_section "08-filesizes" "${PROJECT_ROOT}/scripts/maintenance/check_file_sizes.sh" &
+run_section "09-apptainer" "${SCRIPT_DIR}/check-apptainer.sh" &
+run_section "10-services" "${SCRIPT_DIR}/check-services.sh" &
+
+wait
+
+# ── Timestamp ──────────────────────────────────────────────
 echo ""
 date
-echo ""
-
-# ============================================
-# File Size Warnings
-# ============================================
-"${PROJECT_ROOT}/scripts/maintenance/check_file_sizes.sh" || true
-
-# ============================================
-# Apptainer SIF Status (all environments)
-# ============================================
-echo ""
-echo -e "${BLUE}📦 Apptainer Container:${NC}"
-
-# Determine SIF path based on environment
-DEF_FILE="${PROJECT_ROOT}/deployment/singularity/scitex-cloud-shared-v0.1.0.def"
-HASH_FILE="${PROJECT_ROOT}/deployment/singularity/.def-hash"
-
-if echo "$RUNNING" | grep -q "prod"; then
-    SIF_PATH="/opt/scitex/singularity/scitex-cloud-shared-v0.1.0.sif"
-    DATA_PATH="/opt/scitex/data/users"
-else
-    # Dev: read from env file or use default
-    SIF_PATH="${PROJECT_ROOT}/deployment/singularity/scitex-cloud-shared-v0.1.0.sif"
-    DATA_PATH="${PROJECT_ROOT}/data/users"
-fi
-
-SIF_OK=true
-
-if [ -f "$SIF_PATH" ]; then
-    SIF_SIZE=$(du -h "$SIF_PATH" | cut -f1)
-    SIF_DATE=$(date -r "$SIF_PATH" "+%Y-%m-%d %H:%M")
-    echo -e "  ${GREEN}✅ SIF: ${SIF_PATH} (${SIF_SIZE}, built ${SIF_DATE})${NC}"
-
-    # Check if .def has changed since last build
-    if [ -f "$DEF_FILE" ] && [ -f "$HASH_FILE" ]; then
-        CURRENT_HASH=$(sha256sum "$DEF_FILE" | awk '{print $1}')
-        STORED_HASH=$(cat "$HASH_FILE" 2>/dev/null || echo "")
-        if [ "$CURRENT_HASH" != "$STORED_HASH" ]; then
-            echo -e "  ${YELLOW}⚠️  .def file changed since last build — rebuild recommended${NC}"
-            echo -e "  ${YELLOW}   Run: make apptainer-build${NC}"
-            SIF_OK=false
-        fi
-    elif [ -f "$DEF_FILE" ] && [ ! -f "$HASH_FILE" ]; then
-        echo -e "  ${YELLOW}⚠️  No build hash found — cannot verify SIF matches .def${NC}"
-        echo -e "  ${YELLOW}   Run: make apptainer-build  (skips if unchanged)${NC}"
-    fi
-
-    # Prod: check scitex user can read it
-    if echo "$RUNNING" | grep -q "prod"; then
-        if ! sudo -u scitex test -r "$SIF_PATH" 2>/dev/null; then
-            echo -e "  ${RED}❌ SIF not readable by scitex user${NC}"
-            SIF_OK=false
-        fi
-    fi
-else
-    echo -e "  ${RED}❌ SIF not found: ${SIF_PATH}${NC}"
-    echo -e "  ${YELLOW}   Build: make apptainer-build${NC}"
-    SIF_OK=false
-fi
-
-# Check data directory
-if [ -d "$DATA_PATH" ]; then
-    echo -e "  ${GREEN}✅ Data dir: ${DATA_PATH}${NC}"
-else
-    echo -e "  ${RED}❌ Data dir not found: ${DATA_PATH}${NC}"
-    SIF_OK=false
-fi
-
-if [ "$SIF_OK" = false ] && echo "$RUNNING" | grep -q "prod"; then
-    echo ""
-    echo -e "  ${YELLOW}⚠️  Terminal may not work — fix issues above${NC}"
-    echo -e "  ${YELLOW}   Setup: sudo ./deployment/host-setup/scripts/setup-slurm-paths.sh${NC}"
-fi
-
-# ============================================
-# Service Health (slow — HTTP checks, runs last)
-# ============================================
-echo ""
-"${SCRIPT_DIR}/check-services.sh" || true

@@ -41,7 +41,7 @@ class UserContainerManager:
     """
 
     # Configuration
-    IMAGE_NAME = "scitex-cloud-shared-v0.1.0:latest"
+    IMAGE_NAME = "scitex-user-workspace:latest"
     NETWORK_NAME = "scitex-cloud-dev_scitex-dev"  # Same network as web/db containers
 
     # Resource limits

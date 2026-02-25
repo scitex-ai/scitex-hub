@@ -110,8 +110,15 @@ SHELL := /bin/bash
 	visitor-reset-workspaces-dry \
 	visitor-cleanup \
 	apptainer-build \
+	apptainer-build-base \
 	apptainer-upgrade \
-	apptainer-freeze
+	apptainer-freeze \
+	apptainer-sandbox \
+	apptainer-sandbox-maintain \
+	apptainer-sandbox-list \
+	apptainer-sandbox-rollback \
+	apptainer-sandbox-cleanup \
+	apptainer-purge-sifs
 
 .DEFAULT_GOAL := help
 
@@ -180,7 +187,7 @@ ifdef ENV
 else
   # ENV not specified - only allow non-operational commands
   ifneq ($(MAKECMDGOALS),)
-    ifneq ($(filter-out help help-commands help-all status validate-docker stop-all force-stop-all format format-python format-web format-shell lint lint-web check-file-sizes check-assets check-host ensure-executable slurm-start slurm-stop slurm-restart slurm-status slurm-fix slurm-resume slurm-reset crossref-status crossref-check crossref-rebuild-check crossref-next-steps crossref-create-title-index crossref-create-author-index info regenerate-gallery sync-tests sync-tests-move sync-ts-tests sync-ts-tests-move setup-vitest test-ts test-ts-watch test-ts-ui test-ts-coverage setup-pytest setup-testing test-unit test-db test-api test-ui test-ui-headed test-python test-all test-status apptainer-build,$(MAKECMDGOALS)),)
+    ifneq ($(filter-out help help-commands help-all status validate-docker stop-all force-stop-all format format-python format-web format-shell lint lint-web check-file-sizes check-assets check-host ensure-executable slurm-start slurm-stop slurm-restart slurm-status slurm-fix slurm-resume slurm-reset crossref-status crossref-check crossref-rebuild-check crossref-next-steps crossref-create-title-index crossref-create-author-index info regenerate-gallery sync-tests sync-tests-move sync-ts-tests sync-ts-tests-move setup-vitest test-ts test-ts-watch test-ts-ui test-ts-coverage setup-pytest setup-testing test-unit test-db test-api test-ui test-ui-headed test-python test-all test-status apptainer-build apptainer-build-base apptainer-upgrade apptainer-freeze,$(MAKECMDGOALS)),)
       $(error ❌ ENV not specified! Use: make ENV=<dev|staging|prod> <command>)
     endif
   endif
@@ -275,7 +282,7 @@ help-commands:
 	@echo -e "$(CYAN)┌─────────────────────────────────────────────────────────┐$(NC)"
 	@echo -e "$(CYAN)│ apptainer-build $(NC)- Rebuild user terminal SIF image"
 	@echo -e "$(CYAN)├─────────────────────────────────────────────────────────┤$(NC)"
-	@echo -e "$(CYAN)│$(NC) Command: $(YELLOW)sudo deployment/singularity/build.sh$(NC)"
+	@echo -e "$(CYAN)│$(NC) Command: $(YELLOW)deployment/singularity/build.sh$(NC) (uses fakeroot)"
 	@echo -e "$(CYAN)│$(NC) Use for: Update Python/npm packages in user terminal"
 	@echo -e "$(CYAN)│$(NC) $(GREEN)Smart: skips rebuild if .def file unchanged$(NC)"
 	@echo -e "$(CYAN)│$(NC) $(YELLOW)Separate from Docker — different lifecycle$(NC)"
@@ -307,6 +314,12 @@ help-all:
 	@echo -e "  ENV=<env> rebuild            Full Docker rebuild (for code changes)"
 	@echo -e "  ENV=<env> rebuild-no-cache   Docker rebuild without cache"
 	@echo -e "  apptainer-build              Build Apptainer SIF (smart, skips if unchanged)"
+	@echo -e "  apptainer-sandbox            Build versioned sandbox from .def"
+	@echo -e "  apptainer-sandbox-maintain   Open writable shell in sandbox (admin)"
+	@echo -e "  apptainer-sandbox-list       List versioned sandboxes"
+	@echo -e "  apptainer-sandbox-rollback   Roll back to previous sandbox"
+	@echo -e "  apptainer-sandbox-cleanup    Remove old sandboxes (keep 5)"
+	@echo -e "  apptainer-purge-sifs         Remove all SIF files"
 	@echo -e "  ENV=<env> setup              Full setup (build + migrate)"
 	@echo -e ""
 	@echo -e "$(CYAN)🐍 Django:$(NC)"
@@ -454,7 +467,7 @@ start:
 		echo -e "$(GREEN)✓ Host requirements OK$(NC)"; \
 		echo ""; \
 		echo -e "$(CYAN)Checking SLURM paths (/opt/scitex)...$(NC)"; \
-		if [ -f "/opt/scitex/singularity/scitex-cloud-shared-v0.1.0.sif" ]; then \
+		if [ -d "/opt/scitex/singularity/current-sandbox" ] || [ -f "/opt/scitex/singularity/current.sif" ]; then \
 			echo -e "$(GREEN)✓ SLURM paths configured$(NC)"; \
 		else \
 			echo -e "$(YELLOW)⚠️  SLURM paths not configured (terminal will fail)$(NC)"; \
@@ -507,7 +520,7 @@ restart: validate
 	fi
 	@echo -e "$(CYAN)🔄 Restarting $(ENV) environment...$(NC)"
 	@cd $(DOCKER_DIR) && $(COMPOSE_CMD) restart
-	@echo -e "$(GREEN)✅ $(ENV) restarted$(NC)"
+	@./scripts/deploy/wait-healthy.sh $(ENV) 120
 
 reload: validate
 	@# Clear logs - use docker exec for root-owned files (includes rotated logs like *.log.1)
@@ -570,15 +583,37 @@ build-no-cache:
 
 apptainer-build:
 	@echo -e "$(CYAN)📦 Apptainer SIF build (smart — skips if .def unchanged)$(NC)"
-	@sudo deployment/singularity/build.sh
+	@deployment/singularity/build.sh
+
+apptainer-build-base: ## Rebuild only the base layer (OS/system packages)
+	@echo -e "$(CYAN)📦 Rebuilding Apptainer base layer...$(NC)"
+	@deployment/singularity/build.sh --base
 
 apptainer-upgrade: ## Rebuild Apptainer SIF with latest scitex (force)
 	@echo -e "$(CYAN)📦 Force-rebuilding Apptainer SIF with latest packages...$(NC)"
-	@sudo deployment/singularity/build.sh --force
+	@deployment/singularity/build.sh --force
 
 apptainer-freeze:
 	@echo -e "$(CYAN)📦 Extracting pinned versions from SIF...$(NC)"
 	@deployment/singularity/freeze.sh
+
+apptainer-sandbox: ## Build versioned sandbox from .def (timestamped)
+	@deployment/singularity/build.sh --sandbox
+
+apptainer-sandbox-maintain: ## Open writable shell in sandbox (admin only)
+	@apptainer exec --writable --fakeroot deployment/singularity/current-sandbox /bin/bash
+
+apptainer-sandbox-list: ## List versioned sandboxes
+	@scitex-container sandbox list -d deployment/singularity
+
+apptainer-sandbox-rollback: ## Roll back to previous sandbox version
+	@scitex-container sandbox rollback -d deployment/singularity
+
+apptainer-sandbox-cleanup: ## Remove old sandboxes (keep 5)
+	@scitex-container sandbox cleanup --keep 5 -d deployment/singularity
+
+apptainer-purge-sifs: ## Remove all SIF files (sandbox is the runtime format)
+	@scitex-container sandbox purge-sifs -d deployment/singularity
 
 rebuild: validate-docker
 	@./scripts/deploy/rebuild.sh $(ENV)

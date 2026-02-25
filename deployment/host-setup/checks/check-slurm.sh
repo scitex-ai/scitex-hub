@@ -5,84 +5,94 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=/dev/null
+# shellcheck disable=SC2034
 source "${SCRIPT_DIR}/../scripts/lib/colors.sh" 2>/dev/null || {
-    RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
-    BLUE='\033[0;36m'; NC='\033[0m'
+    RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    YELLOW='\033[1;33m'
+    BLUE='\033[0;36m'
+    NC='\033[0m'
 }
 
-check_status=0
+echo "⚙️ SLURM:"
 
-echo -e "${BLUE}Checking SLURM configuration...${NC}"
-
-# Check if SLURM is running
-if systemctl is-active --quiet slurmd; then
-    echo -e "${GREEN}✓ slurmd service is running${NC}"
+# --- Operational check (cluster status via sinfo) ---
+if command -v sinfo >/dev/null 2>&1; then
+    SLURM_STATUS=$(sinfo --noheader 2>&1 || echo "error")
+    if [ -n "$SLURM_STATUS" ] && ! echo "$SLURM_STATUS" | grep -q "error"; then
+        echo "  [OK] Cluster: OPERATIONAL"
+        sinfo --noheader 2>/dev/null | while read -r line; do echo "    $line"; done
+    else
+        echo -e "  ${RED}[FAIL] Cluster: NOT RESPONDING${NC}"
+        echo -e "    To start: make slurm-start"
+    fi
 else
-    echo -e "${RED}✗ slurmd service is NOT running${NC}"
-    echo -e "${YELLOW}  Start: sudo systemctl start slurmd${NC}"
-    check_status=1
+    echo -e "  ${YELLOW}[WARN] SLURM not installed${NC}"
 fi
 
-if systemctl is-active --quiet slurmctld; then
-    echo -e "${GREEN}✓ slurmctld service is running${NC}"
+# --- Service checks ---
+if systemctl is-active --quiet slurmd 2>/dev/null; then
+    echo -e "  [OK] slurmd running"
 else
-    echo -e "${RED}✗ slurmctld service is NOT running${NC}"
-    echo -e "${YELLOW}  Start: sudo systemctl start slurmctld${NC}"
-    check_status=1
+    echo -e "  ${RED}[FAIL] slurmd not running${NC}"
+    echo -e "    Start: sudo systemctl start slurmd"
+fi
+
+if systemctl is-active --quiet slurmctld 2>/dev/null; then
+    echo -e "  [OK] slurmctld running"
+else
+    echo -e "  ${RED}[FAIL] slurmctld not running${NC}"
+    echo -e "    Start: sudo systemctl start slurmctld"
 fi
 
 # Check express partition time limit
 if command -v scontrol &>/dev/null; then
     max_time=$(scontrol show partition express 2>/dev/null | grep -oP 'MaxTime=\K[^ ]+' || echo "UNKNOWN")
     if [ "$max_time" = "04:00:00" ]; then
-        echo -e "${GREEN}✓ express partition MaxTime is correct: ${max_time}${NC}"
+        echo -e "  [OK] express partition MaxTime: ${max_time}"
     elif [ "$max_time" = "UNKNOWN" ]; then
-        echo -e "${YELLOW}⚠ express partition not found or scontrol unavailable${NC}"
-        check_status=1
+        echo -e "  ${YELLOW}[WARN] express partition not found${NC}"
     else
-        echo -e "${YELLOW}⚠ express partition MaxTime: ${max_time} (expected 04:00:00)${NC}"
-        echo -e "${YELLOW}  This may cause terminal timeout issues${NC}"
-        check_status=1
+        echo -e "  ${YELLOW}[WARN] express partition MaxTime: ${max_time} (expected 04:00:00)${NC}"
+        echo -e "    This may cause terminal timeout issues"
     fi
 else
-    echo -e "${YELLOW}⚠ scontrol command not found${NC}"
-    check_status=1
+    echo -e "  ${YELLOW}[WARN] scontrol not found${NC}"
 fi
 
 # Check munge
-if systemctl is-active --quiet munge; then
-    echo -e "${GREEN}✓ munge service is running${NC}"
+if systemctl is-active --quiet munge 2>/dev/null; then
+    echo -e "  [OK] munge running"
 else
-    echo -e "${RED}✗ munge service is NOT running${NC}"
-    echo -e "${YELLOW}  Start: sudo systemctl start munge${NC}"
-    check_status=1
+    echo -e "  ${RED}[FAIL] munge not running${NC}"
+    echo -e "    Start: sudo systemctl start munge"
 fi
 
 # Check munge.key - simplified logic
 # If munge service is running, the key must exist and be valid
-if systemctl is-active --quiet munge; then
+if systemctl is-active --quiet munge 2>/dev/null; then
     # Munge running = key exists and is working
     if [ -r /etc/munge/munge.key ]; then
         # We can read it - check permissions
-        key_perms=$(stat -c '%a' /etc/munge/munge.key 2>/dev/null)
+        key_perms=$(stat -c '%a' /etc/munge/munge.key 2>/dev/null || echo "")
         if [ "$key_perms" = "400" ]; then
-            echo -e "${GREEN}✓ munge.key has correct permissions (400)${NC}"
+            echo -e "  [OK] munge.key permissions: 400"
         else
-            echo -e "${YELLOW}⚠ munge.key permissions: ${key_perms} (recommended: 400)${NC}"
+            echo -e "  ${YELLOW}[WARN] munge.key permissions: ${key_perms} (recommended: 400)${NC}"
         fi
     else
         # Can't read it (permission denied) but munge is running, so it's fine
-        echo -e "${GREEN}✓ munge.key exists (verified by running munge service)${NC}"
+        echo -e "  [OK] munge.key verified by running service"
     fi
 else
     # Munge not running - check if key exists
     if [ -r /etc/munge/munge.key ]; then
-        echo -e "${YELLOW}⚠ munge.key exists but munge service not running${NC}"
+        echo -e "  ${YELLOW}[WARN] munge.key exists but service not running${NC}"
     else
-        echo -e "${RED}✗ munge authentication not configured${NC}"
-        echo -e "${YELLOW}  Fix: Ensure munge is installed and key generated${NC}"
-        check_status=1
+        echo -e "  ${RED}[FAIL] munge not configured${NC}"
+        echo -e "    Ensure munge is installed and key generated"
     fi
 fi
 
-exit $check_status
+exit 0

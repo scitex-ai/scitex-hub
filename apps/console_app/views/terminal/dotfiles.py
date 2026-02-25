@@ -29,10 +29,6 @@ export HISTCONTROL=ignoredups:erasedups
 # Prompt: {username}@scitex:~/path $
 PS1='\\[\\033[01;32m\\]{username}@scitex\\[\\033[00m\\]:\\[\\033[01;34m\\]\\w\\[\\033[00m\\] \\$ '
 
-# Enable tmux mouse mode for scroll support
-# Hold Shift to bypass and do normal text selection
-tmux set -g mouse on 2>/dev/null
-
 # AI CLI tools (npm global prefix + nvm)
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
@@ -172,36 +168,27 @@ silent! colorscheme desert
 """
     )
 
-    # tmux.conf
-    (dotfiles_dir / "tmux.conf").write_text(
-        """# SciTeX Cloud - tmux.conf
+    # screenrc
+    (dotfiles_dir / "screenrc").write_text(
+        """# SciTeX Cloud - screenrc
 
-# Use Ctrl-a as prefix (like screen)
-# unbind C-b
-# set -g prefix C-a
-# bind C-a send-prefix
+# Use Ctrl-J as prefix (escape key)
+escape ^Jj
 
-# Mouse support (scroll, click, resize panes)
-# Hold Shift to bypass and do normal text selection
-set -g mouse on
+# Status bar: show time and window list
+hardstatus alwayslastline "[%02c] %-w%{=b bw}%n %t%{-}%+w"
 
-# 256 colors
-set -g default-terminal "xterm-256color"
+# Detach on hangup instead of terminating
+autodetach on
 
-# Start window numbering at 1
-set -g base-index 1
-setw -g pane-base-index 1
+# Suppress startup message
+startup_message off
 
-# Faster escape time
-set -sg escape-time 10
+# Large scrollback buffer
+defscrollback 10000000
 
-# History limit
-set -g history-limit 10000
-
-# Status bar
-set -g status-style bg=black,fg=white
-set -g status-left '[#S] '
-set -g status-right '%H:%M %d-%b'
+# UTF-8 support
+defencoding utf-8
 """
     )
 
@@ -238,7 +225,7 @@ ln -sf "$DOTFILES_DIR/bashrc" "$HOME/.bashrc"
 ln -sf "$DOTFILES_DIR/bash_profile" "$HOME/.bash_profile"
 ln -sf "$DOTFILES_DIR/vimrc" "$HOME/.vimrc"
 ln -sf "$DOTFILES_DIR/gitconfig" "$HOME/.gitconfig"
-ln -sf "$DOTFILES_DIR/tmux.conf" "$HOME/.tmux.conf"
+ln -sf "$DOTFILES_DIR/screenrc" "$HOME/.screenrc"
 
 # IPython
 mkdir -p "$HOME/.ipython/profile_default"
@@ -272,7 +259,7 @@ source ~/.bashrc
 | `bash_profile` | Login shell (sources bashrc) |
 | `vimrc` | Vim editor settings |
 | `gitconfig` | Git configuration |
-| `tmux.conf` | Tmux terminal multiplexer |
+| `screenrc` | GNU Screen terminal multiplexer |
 | `ipython/` | IPython configuration |
 
 ## Customization
@@ -334,7 +321,7 @@ def create_dotfiles_symlinks(user_data_dir: Path, dotfiles_dir: Path):
         ".bash_profile": "bash_profile",
         ".vimrc": "vimrc",
         ".gitconfig": "gitconfig",
-        ".tmux.conf": "tmux.conf",
+        ".screenrc": "screenrc",
     }
 
     for target, source in symlinks.items():

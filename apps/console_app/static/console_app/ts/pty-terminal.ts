@@ -15,6 +15,7 @@ export class PTYTerminal {
   private imageContainer: HTMLElement | null = null;
   private readyPromise: Promise<void>;
   private readyResolve!: () => void;
+  private spinnerTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor(
     containerEl: HTMLElement,
@@ -117,7 +118,6 @@ export class PTYTerminal {
         const key = event.key.toLowerCase();
         const navigationRoutes: Record<string, string> = {
           s: "/scholar/",
-          c: "/console/",
           v: "/vis/",
           w: "/writer/",
         };
@@ -222,15 +222,38 @@ export class PTYTerminal {
     this.readyResolve();
   }
 
+  private startSpinner(): void {
+    const frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+    let i = 0;
+    // Show initial frame
+    this.term.write(`\x1b[0;36m${frames[0]} Connecting...\x1b[0m`);
+    this.spinnerTimer = setInterval(() => {
+      i = (i + 1) % frames.length;
+      // Move to start of line, clear, redraw
+      this.term.write(`\r\x1b[0;36m${frames[i]} Connecting...\x1b[0m`);
+    }, 80);
+  }
+
+  private stopSpinner(): void {
+    if (this.spinnerTimer) {
+      clearInterval(this.spinnerTimer);
+      this.spinnerTimer = null;
+      // Clear the spinner line
+      this.term.write("\r\x1b[2K");
+    }
+  }
+
   private connect(): void {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsUrl = `${protocol}//${window.location.host}/ws/console/terminal/?project_id=${this.projectId}&tmux_session=${this.tmuxSession}`;
 
     console.log("[PTY] Connecting to:", wsUrl);
+    this.startSpinner();
 
     this.ws = new WebSocket(wsUrl);
 
     this.ws.onopen = () => {
+      this.stopSpinner();
       console.log("[PTY] WebSocket connected");
       this.sendResize();
     };
@@ -241,6 +264,7 @@ export class PTYTerminal {
     };
 
     this.ws.onerror = (error) => {
+      this.stopSpinner();
       console.error("[PTY] WebSocket error:", error);
       this.term.write("\r\n\x1b[1;31m❌ Terminal connection error\x1b[0m\r\n");
       this.term.write(
@@ -249,6 +273,7 @@ export class PTYTerminal {
     };
 
     this.ws.onclose = (event: CloseEvent) => {
+      this.stopSpinner();
       console.log("[PTY] WebSocket closed:", event.code, event.reason);
 
       // Provide detailed close reason based on code
@@ -415,5 +440,36 @@ export class PTYTerminal {
     if (this.term) {
       this.term.focus();
     }
+  }
+
+  /**
+   * Copy the full terminal buffer contents to the clipboard
+   */
+  public copyBuffer(): void {
+    if (!this.term) {
+      console.warn("[PTY] Cannot copy buffer - terminal not initialized");
+      return;
+    }
+
+    const buffer = this.term.buffer.active;
+    let text = "";
+    for (let i = 0; i < buffer.length; i++) {
+      const line = buffer.getLine(i);
+      if (line) {
+        text += line.translateToString(true) + "\n";
+      }
+    }
+
+    // Trim trailing blank lines
+    text = text.trimEnd() + "\n";
+
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        console.log("[PTY] Terminal buffer copied to clipboard");
+      })
+      .catch((err) => {
+        console.error("[PTY] Failed to copy terminal buffer:", err);
+      });
   }
 }

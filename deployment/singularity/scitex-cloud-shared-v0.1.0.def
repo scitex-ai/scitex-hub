@@ -34,7 +34,7 @@ From: python:3.11-slim
         curl \
         vim \
         nano \
-        tmux \
+        screen \
         htop \
         tree \
         less \
@@ -43,6 +43,7 @@ From: python:3.11-slim
         bzip2 \
         ca-certificates \
         fontconfig \
+        parallel \
         && rm -rf /var/lib/apt/lists/*
 
     # Install Microsoft core fonts (Arial, Times New Roman, etc.) for scientific figures
@@ -100,6 +101,10 @@ From: python:3.11-slim
         @google/gemini-cli \
         @agents-dev/cli
 
+    # Shell prompt: current-dir $
+    echo "PS1='\\W \$ '" >> /root/.bashrc
+    echo "PS1='\\W \$ '" >> /etc/skel/.bashrc
+
     # Create workspace directory
     echo -e "Setting up workspace..."
     mkdir -p /workspace
@@ -130,6 +135,9 @@ From: python:3.11-slim
 
     # Workspace
     export WORKSPACE=/workspace
+
+    # Shell prompt: override with SCITEX_CLOUD_APPTAINER_PS1 env var
+    export PS1="${SCITEX_CLOUD_APPTAINER_PS1:-\\W \$ }"
 
 %runscript
     # Default: run Python script

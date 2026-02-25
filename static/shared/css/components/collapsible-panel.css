@@ -37,7 +37,7 @@
   display: none;
 }
 
-/* Collapsed header: full height, centered, vertical layout
+/* Collapsed header: full height, center-aligned, vertical layout
    Uses !important to override app-specific rules (e.g. writer's
    height: 50px !important, max-height: 50px) */
 .collapsible-panel.collapsed .panel-header {
@@ -426,8 +426,7 @@
   padding: 4px;
 }
 
-/* Sidebar title: centered vertical text when collapsed.
-   No flex:1 — let parent's justify-content:center align the group. */
+/* Sidebar title: top-aligned vertical text when collapsed. */
 .collapsed .sidebar-header .sidebar-title {
   display: flex;
   justify-content: center;

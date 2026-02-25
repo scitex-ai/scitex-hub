@@ -110,7 +110,9 @@ class TerminalConsumer(AsyncWebsocketConsumer):
             )
         )
         project_id = query_params.get("project_id")
-        self.tmux_session = query_params.get("tmux_session", "scitex-0")
+        self.screen_session = query_params.get(
+            "session", query_params.get("tmux_session", "scitex-0")
+        )
 
         if not project_id:
             await self.accept()
@@ -259,7 +261,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
                 project_dir=project_dir,
                 container_path=container_path,
                 project_slug=project_slug,
-                tmux_session=self.tmux_session,
+                tmux_session=self.screen_session,
             )
 
             if not session_id:
@@ -328,7 +330,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
                         project_dir,
                         container_path,
                         project_slug,
-                        tmux_session=self.tmux_session,
+                        screen_session=self.screen_session,
                     )
                 except Exception as e:
                     import sys
@@ -441,7 +443,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
     async def disconnect(self, close_code):
         """Clean up on disconnect.
 
-        Broker mode: Only disconnect the client socket. The tmux session
+        Broker mode: Only disconnect the client socket. The screen session
         continues running inside the container so the user can reattach later.
 
         Direct mode (fallback): Kill the PTY process (no persistence).
@@ -451,7 +453,7 @@ class TerminalConsumer(AsyncWebsocketConsumer):
             await self.channel_layer.group_discard(self.speech_group, self.channel_name)
 
         if self.use_broker and self.broker_client:
-            # Broker mode: detach only — tmux session persists for reattach
+            # Broker mode: detach only — screen session persists for reattach
             await self.broker_client.disconnect_only()
             self.broker_client = None
         else:
