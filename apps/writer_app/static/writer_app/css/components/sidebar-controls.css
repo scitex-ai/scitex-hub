@@ -38,20 +38,22 @@
 }
 
 .sidebar-header-compact .custom-section-selector {
-  flex: 1;
+  flex: 0 1 auto;
   min-width: 0;
   position: relative;
 }
 
-/* Section selector wrapper for proper dropdown positioning */
+/* Section selector wrapper for proper dropdown positioning.
+   flex: 0 1 auto keeps it content-sized so empty header area
+   remains clickable for panel collapse (foldable). */
 .section-selector-wrapper {
-  flex: 1;
+  flex: 0 1 auto;
   min-width: 0;
   position: relative;
 }
 
 .sidebar-header-compact .section-selector-btn {
-  width: 100%;
+  width: auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -96,9 +98,10 @@
   white-space: nowrap;
 }
 
-/* Section Selector Button */
+/* Section Selector Button — width: auto so it fits the longest entry,
+   leaving empty header space clickable for panel collapse. */
 .section-selector-btn {
-  width: 100%;
+  width: auto;
   text-align: left;
   padding: 0.25rem 0.5rem;
   display: flex;
