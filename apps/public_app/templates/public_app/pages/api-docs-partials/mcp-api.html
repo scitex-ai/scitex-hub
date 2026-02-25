@@ -1,4 +1,42 @@
 <style>
+    /* Anchor offset for sticky headers */
+    #mcp-overview span[id],
+    #mcp-connect span[id],
+    #mcp-auth span[id],
+    #mcp-tools span[id],
+    span#overview,
+    span#connect,
+    span#authentication,
+    span#auth,
+    span#available-tools,
+    span#tools {
+        scroll-margin-top: 80px;
+    }
+
+    section[id] {
+        scroll-margin-top: 80px;
+    }
+
+    /* Linkable section headers */
+    .api-section h2 .anchor-link {
+        opacity: 0;
+        margin-left: 0.3em;
+        font-size: 0.7em;
+        color: var(--text-muted, #888);
+        text-decoration: none;
+        transition: opacity 0.15s;
+        vertical-align: middle;
+    }
+
+    .api-section h2:hover .anchor-link {
+        opacity: 0.6;
+    }
+
+    .api-section h2 .anchor-link:hover {
+        opacity: 1;
+        color: var(--accent-primary, #6ba89a);
+    }
+
     #mcp-tools .api-table th:first-child,
     #mcp-tools .api-table td:first-child {
         width: 240px;
@@ -37,9 +75,11 @@
     }
 </style>
 <!-- MCP Overview -->
+<span id="overview"></span>
 <section id="mcp-overview" class="api-section">
     <h2>
         <i class="fas fa-robot"></i> MCP Server Overview
+        <a href="#overview" class="anchor-link" title="Link to this section">#</a>
     </h2>
     <p>
         SciTeX exposes a <strong>Model Context Protocol (MCP)</strong> server at
@@ -57,9 +97,11 @@
     </div>
 </section>
 <!-- Connect a Client -->
+<span id="connect"></span>
 <section id="mcp-connect" class="api-section">
     <h2>
         <i class="fas fa-plug"></i> Connect a Client
+        <a href="#connect" class="anchor-link" title="Link to this section">#</a>
     </h2>
     <p>
         Add the following to your MCP client configuration and replace <code>YOUR_API_KEY</code>:
@@ -100,9 +142,11 @@ async with Client(
     </div>
 </section>
 <!-- Authentication -->
+<span id="authentication"></span><span id="auth"></span>
 <section id="mcp-auth" class="api-section">
     <h2>
         <i class="fas fa-lock"></i> Authentication
+        <a href="#authentication" class="anchor-link" title="Link to this section">#</a>
     </h2>
     <p>
         All requests to <code>/mcp</code> require a Bearer token in the <code>Authorization</code> header.
@@ -141,9 +185,11 @@ async with Client(
     </div>
 </section>
 <!-- Available Tools (generated from mcp_tools context) -->
+<span id="available-tools"></span><span id="tools"></span>
 <section id="mcp-tools" class="api-section">
     <h2>
         <i class="fas fa-tools"></i> Available Tools
+        <a href="#available-tools" class="anchor-link" title="Link to this section">#</a>
     </h2>
     <p>
         <strong>{{ mcp_tool_count|default:"200+" }} tools</strong> across {{ mcp_tools|length }} categories.
@@ -152,6 +198,7 @@ async with Client(
         <code><a href="/api/mcp/tools/">/api/mcp/tools/</a></code> for the full JSON catalog.
     </p>
     {% for category in mcp_tools %}
+        <span id="{{ category.prefix|cut:'_*' }}"></span>
         <h4>
             <i class="fas {{ category.icon }}"></i>
             {{ category.category }} — <code>{{ category.prefix }}</code>
