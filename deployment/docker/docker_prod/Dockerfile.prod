@@ -2,64 +2,56 @@
 # ============================================
 # SciTeX Cloud - Production Image
 # ============================================
-# Multi-stage build optimized for size, security, and cache efficiency
+#
+# Cache Strategy Overview
+# -----------------------
+# Docker layers are cached top-down: if layer N changes, layers N+1, N+2... are
+# all invalidated. So we order by change frequency: rare changes first.
+#
+#   Stage 1: slurm-builder    — SLURM from source    (changes: ~never)
+#   Stage 2: apptainer-builder — Apptainer binary     (changes: ~never)
+#   Stage 3: tool-builder     — yq, small binaries    (changes: ~never)
+#   Stage 4: node-builder     — mermaid-cli           (changes: rarely)
+#   Stage 5: python-builder   — Python deps (scitex core only):
+#            Layer A: scitex[all]==2.19.7       (changes: on scitex release, ~monthly)
+#   Stage 6: runtime          — Final image, includes:
+#            Layer B: scitex-cloud==0.10.10-alpha (installed after app COPY, ~30s)
+#
+# Why split Layer A and B across stages?
+#   If both were in python-builder, COPY pyproject.toml + src/ would
+#   invalidate Layer A's cache on every deploy. By installing scitex-cloud
+#   in the runtime stage (after COPY . .), python-builder stays fully cached.
+#
+# Why separate stages for SLURM/Apptainer?
+# Previously these were inside python-builder. That meant bumping the scitex
+# version pin would invalidate SLURM/Apptainer builds too (~10 min wasted).
+# As separate stages, they build in parallel and cache independently.
+#
+# Multi-stage builds: each FROM starts a fresh cache chain. The final runtime
+# stage cherry-picks artifacts from each builder via COPY --from=.
 
 # ============================================
-# Stage 1: Python Dependencies Builder
+# Stage 1: SLURM Client (from source)
 # ============================================
-FROM python:3.11-slim AS python-builder
+# Why build from source: SLURM client version MUST match the host's SLURM
+# daemon version exactly, otherwise munge authentication fails.
+# This stage almost never changes (only on cluster SLURM upgrades).
 
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PIP_NO_CACHE_DIR=1 \
-    UV_SYSTEM_PYTHON=1 \
-    UV_HTTP_TIMEOUT=600
+FROM python:3.11-slim AS slurm-builder
 
-WORKDIR /build
-
-# Install build dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    libpq-dev \
-    git \
-    curl \
-    # SLURM build dependencies
-    libmunge-dev \
-    libmunge2 \
-    munge \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install uv (pinned to 0.4.0 - older version without project detection requirement)
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
-    mv /root/.local/bin/uv /usr/local/bin/uv
-
-# ============================================
-# Layer 1: scitex[all] (FIRST - pulls heavy deps, rarely changes)
-# ============================================
-# Installs PyTorch, CUDA, scipy, scikit-learn, etc. (~15 min cold, 0s cached).
-# This layer stays cached unless you bump the scitex version pin below.
-# When scitex-cloud version bumps, this layer is untouched.
-RUN uv pip install --system --no-cache "scitex[all]==2.19.5"
-
-# Install Playwright browsers (stable, cached separately)
-RUN --mount=type=cache,target=/root/.cache/ms-playwright \
-    python -m playwright install chromium && \
-    python -m playwright install-deps
-
-# ============================================
-# SLURM Client (build from source to match host)
-# ============================================
-# MUST match host SLURM version exactly for munge auth
 ARG SLURM_VERSION=24.05.5
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libmunge-dev \
-    libhwloc-dev \
-    libhttp-parser-dev \
-    libjson-c-dev \
-    liblz4-dev \
-    libyaml-dev \
+        build-essential \
+        curl \
+        libmunge-dev \
+        libhwloc-dev \
+        libhttp-parser-dev \
+        libjson-c-dev \
+        liblz4-dev \
+        libyaml-dev \
     && rm -rf /var/lib/apt/lists/* \
+    # Download and build SLURM
     && curl -L -o /tmp/slurm-${SLURM_VERSION}.tar.bz2 \
         "https://download.schedmd.com/slurm/slurm-${SLURM_VERSION}.tar.bz2" \
     && cd /tmp && tar xjf slurm-${SLURM_VERSION}.tar.bz2 \
@@ -67,15 +59,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && ./configure --prefix=/usr --sysconfdir=/etc/slurm \
     && make -j$(nproc) \
     && make install \
-    && cd / && rm -rf /tmp/slurm-* \
-    && useradd -r -s /bin/false slurm
+    && cd / && rm -rf /tmp/slurm-*
 
 # ============================================
-# Apptainer/Singularity (for status checks)
+# Stage 2: Apptainer/Singularity
 # ============================================
-# NAS uses Debian Bookworm which has libfuse3-3 natively (no compatibility package needed)
-RUN APPTAINER_VERSION=1.3.4 && \
-    apt-get update && apt-get install -y --no-install-recommends \
+# Used for container job submission on the NAS/HPC cluster.
+# Pre-built .deb — fast to install, rarely changes.
+
+FROM python:3.11-slim AS apptainer-builder
+
+ARG APPTAINER_VERSION=1.3.4
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        curl \
         uidmap \
         squashfs-tools \
         fuse2fs \
@@ -86,46 +83,101 @@ RUN APPTAINER_VERSION=1.3.4 && \
         "https://github.com/apptainer/apptainer/releases/download/v${APPTAINER_VERSION}/apptainer_${APPTAINER_VERSION}_amd64.deb" \
     && dpkg -i /tmp/apptainer.deb \
     && rm /tmp/apptainer.deb \
-    && rm -rf /var/lib/apt/lists/* \
-    && apptainer --version
+    && rm -rf /var/lib/apt/lists/*
 
 # ============================================
-# Layer 2: scitex-cloud Django app (LAST - changes most often)
+# Stage 3: System Tools (yq, etc.)
 # ============================================
-# Heavy deps already satisfied from scitex[all] above.
-# Version bumps only rebuild this layer (~30s) instead of everything (~15 min).
-COPY pyproject.toml README.md ./
-COPY src/ ./src/
-RUN uv pip install --system --no-cache ".[django,test]" && \
-    uv pip install --system daphne==4.1.2 psycopg2-binary
+# Tiny stage — downloads static binaries. Effectively never invalidated.
 
-# ============================================
-# Stage 2: Node.js Tools Builder
-# ============================================
-FROM node:20-slim AS node-builder
-
-# Install Mermaid CLI
-RUN npm install -g @mermaid-js/mermaid-cli
-
-# ============================================
-# Stage 3: System Tools Builder
-# ============================================
 FROM alpine:latest AS tool-builder
 
-# Install yq (YAML parser)
 RUN YQ_VERSION=v4.44.3 && \
-    YQ_BINARY=yq_linux_amd64 && \
-    wget https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/${YQ_BINARY} -O /usr/local/bin/yq && \
+    wget https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64 \
+        -O /usr/local/bin/yq && \
     chmod +x /usr/local/bin/yq
 
 # ============================================
-# Stage 4: Runtime (Final Minimal Image)
+# Stage 4: Node.js Tools
 # ============================================
+# Mermaid CLI for diagram rendering. Changes rarely.
+
+FROM node:20-slim AS node-builder
+
+RUN npm install -g @mermaid-js/mermaid-cli
+
+# ============================================
+# Stage 5: Python Dependencies (scitex core only)
+# ============================================
+# Two-layer install strategy across builder + runtime:
+#
+#   Layer A (here, python-builder):
+#     scitex[all]==2.19.7 — PyTorch, CUDA, scipy, scikit-learn (~15 min cold)
+#     Pinned from PyPI. Only rebuilds when you bump the version string.
+#     This entire stage is cached as long as the pin doesn't change.
+#
+#   Layer B (in runtime stage, near the end):
+#     scitex-cloud==0.10.10-alpha — Django app, installed AFTER app code COPY.
+#     Heavy deps already in site-packages from Layer A, so uv only installs
+#     the delta (Django, daphne, test tools). ~30s.
+#
+# Why not install scitex-cloud here in the builder?
+#   Because COPY pyproject.toml + src/ would invalidate this stage on every
+#   deploy, defeating the purpose of caching scitex[all]. By deferring
+#   scitex-cloud to the runtime stage, this builder stays fully cached.
+#
+# Why not local/editable install for scitex core?
+#   `COPY . && pip install -e .` would invalidate the layer on every code
+#   change, forcing PyTorch reinstall (~15 min). Pin from PyPI, publish
+#   when ready, bump the string. Trade-off: manual version bump.
+#
+# Why uv instead of pip?
+#   10-50x faster resolution and install. On Layer B rebuilds the difference
+#   is minutes (pip) vs seconds (uv).
+
+FROM python:3.11-slim AS python-builder
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    UV_SYSTEM_PYTHON=1 \
+    UV_HTTP_TIMEOUT=600
+
+WORKDIR /build
+
+# Build tools for compiling C extensions (psycopg2, etc.)
+# These are NOT copied to runtime — only the compiled .so files survive
+# via the site-packages copy.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+        libpq-dev \
+        git \
+        curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
+    mv /root/.local/bin/uv /usr/local/bin/uv
+
+# --- Layer A: Heavy scientific Python stack (changes ~monthly) ---
+# Changing this version string is the ONLY thing that invalidates this layer.
+RUN uv pip install --system --no-cache "scitex[all]==2.19.7"
+
+# Playwright browsers (cached separately via BuildKit cache mount)
+RUN --mount=type=cache,target=/root/.cache/ms-playwright \
+    python -m playwright install chromium && \
+    python -m playwright install-deps
+
+# ============================================
+# Stage 6: Runtime (Final Image)
+# ============================================
+# Cherry-picks from all builder stages. Only runtime deps, no compilers.
+
 FROM python:3.11-slim AS runtime
 
 LABEL maintainer="ywatanabe@scitex.ai"
 LABEL description="SciTeX Cloud - NAS"
-LABEL version="0.1.0-alpha"
+LABEL version="0.10.10-alpha"
 
 ARG BUILD_ID="1.0.0"
 
@@ -138,26 +190,31 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-# Install runtime dependencies
+# --------------------------------------------
+# Runtime system packages
+# --------------------------------------------
+# These are runtime-only (no -dev packages, no compilers).
+# Grouped by purpose for readability. This layer is large (~1GB with texlive)
+# but changes rarely — only when adding/removing system dependencies.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    # Init system for proper zombie reaping
+    # --- Process management ---
     tini \
-    # Core runtime
+    # --- Core utilities ---
     curl \
     netcat-openbsd \
     jq \
     git \
     gosu \
-    # Docker client (for status checks and workspace management)
+    # --- Container management ---
     docker.io \
-    # Apptainer runtime dependencies (for fakeroot/user namespaces)
     uidmap \
     fuse-overlayfs \
-    # Munge for SLURM auth
+    # --- SLURM runtime ---
     munge \
-    # Database runtime library (not dev package)
+    # --- PostgreSQL client library (runtime only, not libpq-dev) ---
     libpq5 \
-    # LaTeX runtime
+    # --- LaTeX toolchain ---
+    # Full scientific LaTeX: base + extras + fonts + bibtex + science packages
     texlive-latex-base \
     texlive-latex-extra \
     texlive-latex-recommended \
@@ -167,18 +224,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     texlive-science \
     texlive-pictures \
     texlive-plain-generic \
-    # bibtex is included in texlive-bibtex-extra
     latexdiff \
     latexmk \
     ghostscript \
     poppler-utils \
-    # Image processing runtime
+    # --- Image processing ---
     imagemagick \
-    # Browser runtime (Chromium for Mermaid/Playwright)
+    # --- Browser (Chromium for Mermaid/Playwright rendering) ---
     chromium \
     fonts-liberation \
     fontconfig \
-    # Playwright runtime libraries (minimal set) - NAS compatible (no t64 suffix)
+    # --- Playwright shared libraries (minimal set for headless Chromium) ---
     libglib2.0-0 \
     libnspr4 \
     libnss3 \
@@ -201,94 +257,119 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libasound2 \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Microsoft core fonts (Arial, Times New Roman, etc.) for scientific figures
+# Microsoft core fonts (Arial, Times New Roman) for publication-quality figures
 RUN sed -i 's/main/main contrib/g' /etc/apt/sources.list.d/debian.sources 2>/dev/null || \
         sed -i 's/main$/main contrib/' /etc/apt/sources.list && \
     apt-get update && \
-    echo -e "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections && \
+    echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ttf-mscorefonts-installer && \
     fc-cache -fv && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy Python packages from builder (avoids rebuilding)
+# --------------------------------------------
+# Copy artifacts from builder stages
+# --------------------------------------------
+
+# Python packages + binaries (from python-builder)
 COPY --from=python-builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 COPY --from=python-builder /usr/local/bin /usr/local/bin
-# Copy Playwright cache if it exists (use wildcard to avoid failure if missing)
 COPY --from=python-builder /root/.cache/ms-playwright* /root/.cache/
 
-# Copy SLURM binaries and libraries from builder
-# Note: SLURM binaries start with 's' (sinfo, squeue, sbatch, srun, etc.)
-COPY --from=python-builder /usr/bin/sinfo /usr/bin/sinfo
-COPY --from=python-builder /usr/bin/squeue /usr/bin/squeue
-COPY --from=python-builder /usr/bin/sbatch /usr/bin/sbatch
-COPY --from=python-builder /usr/bin/scancel /usr/bin/scancel
-COPY --from=python-builder /usr/bin/srun /usr/bin/srun
-COPY --from=python-builder /usr/bin/sacct /usr/bin/sacct
-COPY --from=python-builder /usr/bin/scontrol /usr/bin/scontrol
-# Copy SLURM libraries (libslurm.so, etc.)
-COPY --from=python-builder /usr/lib/libslurm* /usr/lib/
-COPY --from=python-builder /usr/lib/libpmi* /usr/lib/
-# Copy SLURM plugin directory (must preserve directory structure for PluginDir)
-COPY --from=python-builder /usr/lib/slurm /usr/lib/slurm
-# Create /etc/slurm directory (config mounted from host at runtime)
+# SLURM client binaries + libraries (from slurm-builder)
+COPY --from=slurm-builder /usr/bin/sinfo /usr/bin/sinfo
+COPY --from=slurm-builder /usr/bin/squeue /usr/bin/squeue
+COPY --from=slurm-builder /usr/bin/sbatch /usr/bin/sbatch
+COPY --from=slurm-builder /usr/bin/scancel /usr/bin/scancel
+COPY --from=slurm-builder /usr/bin/srun /usr/bin/srun
+COPY --from=slurm-builder /usr/bin/sacct /usr/bin/sacct
+COPY --from=slurm-builder /usr/bin/scontrol /usr/bin/scontrol
+COPY --from=slurm-builder /usr/lib/libslurm* /usr/lib/
+COPY --from=slurm-builder /usr/lib/libpmi* /usr/lib/
+COPY --from=slurm-builder /usr/lib/slurm /usr/lib/slurm
 RUN mkdir -p /etc/slurm
 
-# Copy Apptainer from builder (binaries, libraries, and config)
-COPY --from=python-builder /usr/bin/apptainer /usr/bin/apptainer
-COPY --from=python-builder /usr/bin/singularity /usr/bin/singularity
-COPY --from=python-builder /usr/libexec/apptainer /usr/libexec/apptainer
-COPY --from=python-builder /etc/apptainer /etc/apptainer
-# Create Apptainer runtime directories
+# Apptainer (from apptainer-builder)
+COPY --from=apptainer-builder /usr/bin/apptainer /usr/bin/apptainer
+COPY --from=apptainer-builder /usr/bin/singularity /usr/bin/singularity
+COPY --from=apptainer-builder /usr/libexec/apptainer /usr/libexec/apptainer
+COPY --from=apptainer-builder /etc/apptainer /etc/apptainer
 RUN mkdir -p /var/lib/apptainer/mnt/session && chmod 755 /var/lib/apptainer
 
-# Install Node.js and npm properly (needed for TypeScript build)
+# Node.js + mermaid-cli (runtime needs node for Vite build + mermaid rendering)
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y --no-install-recommends nodejs && \
     npm install -g @mermaid-js/mermaid-cli && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy yq from tool-builder
+# yq (from tool-builder)
 COPY --from=tool-builder /usr/local/bin/yq /usr/local/bin/yq
 
-# Configure ImageMagick (PDF policy) - check if file exists first
+# --------------------------------------------
+# ImageMagick PDF policy (allow read/write for LaTeX → PDF → PNG pipeline)
+# --------------------------------------------
 RUN if [ -f /etc/ImageMagick-6/policy.xml ]; then \
-        sed -i 's/<policy domain="coder" rights="none" pattern="PDF" \/>/<policy domain="coder" rights="read|write" pattern="PDF" \/>/g' /etc/ImageMagick-6/policy.xml || true; \
+        sed -i 's/<policy domain="coder" rights="none" pattern="PDF" \/>/<policy domain="coder" rights="read|write" pattern="PDF" \/>/g' \
+            /etc/ImageMagick-6/policy.xml || true; \
     fi
 
-# Create non-root user and directories
+# --------------------------------------------
+# User setup
+# --------------------------------------------
 RUN useradd -m -u 1000 scitex && \
-    # Create slurm system user (for SLURM commands)
     useradd -r -s /bin/false slurm && \
-    # Change docker group GID from 103 to 121 (to match host docker socket)
+    # Match host docker socket GID
     groupmod -g 121 docker && \
-    # Add scitex to docker group for Docker socket access
     usermod -aG docker scitex && \
     mkdir -p /app/staticfiles /app/media /app/logs /app/run /app/.cache/containers && \
     chown -R scitex:scitex /app && \
-    # Setup subuid/subgid for apptainer fakeroot (required for newuidmap/newgidmap)
-    echo -e "scitex:100000:65536" >> /etc/subuid && \
-    echo -e "scitex:100000:65536" >> /etc/subgid
+    # Apptainer fakeroot requires subuid/subgid mappings
+    echo "scitex:100000:65536" >> /etc/subuid && \
+    echo "scitex:100000:65536" >> /etc/subgid
 
-# Copy package.json first for npm caching (changes less often than code)
+# --------------------------------------------
+# Application code (ordered by change frequency)
+# --------------------------------------------
+
+# --- Pinned Python extras (rarely change, cache-friendly) ---
+# These are fixed-version PyPI packages with no dependency on app source code.
+# Placed before COPY . . so they stay cached across deploys.
+COPY --from=python-builder /usr/local/bin/uv /usr/local/bin/uv
+RUN uv pip install --system --no-cache daphne==4.1.2 psycopg2-binary
+
+# package.json first — npm install is cached unless deps change
 COPY --chown=scitex:scitex package.json ./
-
-# Install npm dependencies at build time (cached layer)
 RUN --mount=type=cache,target=/root/.npm \
     npm install && \
     touch node_modules/.install-timestamp
 
-# Copy application code (last - changes most frequently)
+# Application source (changes every deploy — MUST be last COPY)
 COPY --chown=scitex:scitex . .
 
-# Note: Vite build runs at runtime because static_volume mount hides build-time files
-# npm install is cached above, vite build is fast (~10s)
+# --- Layer B: scitex-cloud install (changes every deploy) ---
+# This is the second half of the two-layer strategy. scitex[all] is already
+# in site-packages (copied from python-builder). uv sees those satisfied
+# constraints and only installs the delta: Django, test tools, etc.
+# ~30s because heavy deps are already present.
+#
+# Note: We use psycopg2-binary (pre-built wheel) so no compiler needed here.
+# If you add a dependency that requires C compilation, either:
+#   (a) use the -binary variant, or
+#   (b) add build-essential to runtime apt-get (increases image size), or
+#   (c) pre-build the wheel in python-builder and copy it over.
+RUN uv pip install --system --no-cache ".[django,test]"
 
-# Copy production entrypoint scripts
+# Note: Vite build runs at runtime (not here) because Docker volume mounts
+# for static_volume would shadow build-time output. npm deps are cached
+# above, so `vite build` at startup is fast (~10s).
+
+# Entrypoint scripts
 COPY deployment/docker/common/scripts/root-init.sh /root-init.sh
 COPY deployment/docker/common/scripts/entrypoint-prod.sh /entrypoint.sh
 RUN chmod +x /root-init.sh /entrypoint.sh
 
-# Verify critical tools as scitex user (fail fast)
+# --------------------------------------------
+# Smoke test (fail the build early if critical tools are broken)
+# --------------------------------------------
 USER scitex
 RUN pdflatex --version && \
     bibtex --version && \
@@ -296,24 +377,25 @@ RUN pdflatex --version && \
     convert --version && \
     yq --version && \
     python --version && \
-    echo -e "✅ Production image verified"
+    echo "✅ Production image verified"
 
-# Switch back to root for runtime initialization (root-init.sh will drop to scitex)
+# Back to root — root-init.sh handles UID fixup then drops to scitex
 USER root
 
 # ============================================
 # Runtime Configuration
 # ============================================
-
 HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:8000/ || exit 1
 
 EXPOSE 8000
 
-# Root-level initialization (fixes SLURM UID, munge group, then drops to scitex user)
-# tini as PID 1 ensures proper zombie process reaping
+# tini as PID 1: ensures proper signal forwarding and zombie reaping
+# root-init.sh: fixes SLURM UID mapping, munge group, then drops to scitex
+# entrypoint.sh: runs migrations, collectstatic, vite build, starts server
 ENTRYPOINT ["/usr/bin/tini", "--", "/root-init.sh", "/entrypoint.sh"]
-# Use Daphne (ASGI) for WebSocket support (PTY terminal, collaborative editing)
+
+# Daphne (ASGI): required for WebSocket support (PTY terminal, collaborative editing)
 CMD ["daphne", \
      "-b", "0.0.0.0", \
      "-p", "8000", \
