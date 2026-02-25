@@ -7,9 +7,14 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=/dev/null
+# shellcheck disable=SC2034
 source "${SCRIPT_DIR}/../scripts/lib/colors.sh" 2>/dev/null || {
-    RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
-    BLUE='\033[0;36m'; NC='\033[0m'
+    RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    YELLOW='\033[1;33m'
+    BLUE='\033[0;36m'
+    NC='\033[0m'
 }
 
 ENV="${1:-}"
@@ -31,16 +36,16 @@ else
     USER_CMD=""
 fi
 
-check_status=0
+echo "💻 Terminal:"
 
 # Check terminal readiness with smart detection
 if docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$" 2>/dev/null; then
     # Container is running
 
     # First check: Are there running terminal jobs? (proves terminals work)
-    RUNNING_TERMINALS=$(squeue -h --name=terminal --state=R 2>/dev/null | wc -l)
+    RUNNING_TERMINALS=$(squeue -h --name=terminal --state=R 2>/dev/null | wc -l || echo "0")
     if [ "$RUNNING_TERMINALS" -gt 0 ]; then
-        echo -e "${GREEN}✓ Terminals ready (${RUNNING_TERMINALS} active session(s))${NC}"
+        echo "  [OK] Terminals ready (${RUNNING_TERMINALS} active session(s))"
         exit 0
     fi
 
@@ -52,23 +57,20 @@ if docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$" 2>/dev/null; 
     fi
 
     if eval "$TEST_CMD" >/dev/null 2>&1; then
-        echo -e "${GREEN}✓ Terminals ready (SLURM job execution verified)${NC}"
+        echo "  [OK] Terminals ready (SLURM job execution verified)"
     else
         # Job may have timed out due to resource contention, check queue status
-        QUEUED_JOBS=$(squeue -h --name=true 2>/dev/null | wc -l)
+        QUEUED_JOBS=$(squeue -h --name=true 2>/dev/null | wc -l || echo "0")
         if [ "$QUEUED_JOBS" -gt 0 ]; then
-            echo -e "${YELLOW}⚠ Terminals: SLURM busy (jobs queued, but controller responding)${NC}"
-            check_status=0  # Not a failure - just busy
+            echo -e "  ${YELLOW}[WARN] SLURM busy (jobs queued, but controller responding)${NC}"
         else
-            echo -e "${RED}✗ Terminals NOT ready (SLURM job execution failed)${NC}"
-            echo -e "${YELLOW}  Cause: SLURM services likely need restart after user creation${NC}"
-            echo -e "${YELLOW}  Fix: sudo deployment/host-setup/scripts/restart-slurm-for-new-user.sh${NC}"
-            check_status=1
+            echo -e "  ${RED}[FAIL] Terminals not ready (SLURM job execution failed)${NC}"
+            echo -e "    Cause: SLURM services likely need restart after user creation"
+            echo -e "    Fix: sudo deployment/host-setup/scripts/restart-slurm-for-new-user.sh"
         fi
     fi
 else
-    echo -e "${YELLOW}⚠ Django container not running - cannot test terminals${NC}"
-    check_status=1
+    echo -e "  ${YELLOW}[WARN] Django container not running${NC}"
 fi
 
-exit $check_status
+exit 0

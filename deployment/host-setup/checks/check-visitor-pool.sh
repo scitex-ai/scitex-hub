@@ -6,18 +6,23 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# shellcheck source=/dev/null
+# shellcheck disable=SC2034
 source "${SCRIPT_DIR}/../scripts/lib/colors.sh" 2>/dev/null || {
-    RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
-    BLUE='\033[0;36m'; NC='\033[0m'
+    RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    YELLOW='\033[1;33m'
+    BLUE='\033[0;36m'
+    NC='\033[0m'
 }
 
-echo -e "${BLUE}👥 Visitor Pool Status:${NC}"
+echo "👥 Visitors:"
 
 # Find running django container
 CONTAINER=$(docker ps --format '{{.Names}}' 2>/dev/null | grep -E 'scitex-cloud-(dev|prod)-django' | head -1 || echo "")
 
 if [ -z "$CONTAINER" ]; then
-    echo -e "  ${YELLOW}⚠️  No Django container running${NC}"
+    echo -e "  ${YELLOW}[WARN] No Django container running${NC}"
     exit 0
 fi
 
@@ -29,7 +34,7 @@ from apps.project_app.models import Project, VisitorAllocation
 from django.utils import timezone
 
 # Get pool size from settings
-pool_size = getattr(settings, 'VISITOR_POOL_SIZE', 16)
+pool_size = int(os.environ.get('SCITEX_CLOUD_VISITOR_POOL_SIZE', getattr(settings, 'SCITEX_CLOUD_VISITOR_POOL_SIZE', 4)))
 
 # Check visitor users
 missing_users = []
@@ -62,24 +67,21 @@ print(f'EXPIRED:{expired}')
 if echo "$RESULT" | grep -q "^OK"; then
     POOL_STATUS=$(echo "$RESULT" | grep "^POOL:" | cut -d: -f2)
     EXPIRED=$(echo "$RESULT" | grep "^EXPIRED:" | cut -d: -f2)
-    echo -e "  ${GREEN}✅ Pool healthy: $POOL_STATUS slots free${NC}"
+    echo "  [OK] Pool healthy: $POOL_STATUS slots free"
     if [ "$EXPIRED" != "0" ]; then
-        echo -e "  ${YELLOW}⚠️  $EXPIRED expired allocations (run: reset_visitor_pool --free-expired)${NC}"
+        echo -e "  ${YELLOW}[WARN] $EXPIRED expired allocations (run: reset_visitor_pool --free-expired)${NC}"
     fi
 elif echo "$RESULT" | grep -q "^MISSING_USERS:"; then
     COUNT=$(echo "$RESULT" | grep "^MISSING_USERS:" | cut -d: -f2)
-    echo -e "  ${RED}❌ Missing $COUNT visitor users${NC}"
-    echo -e "  ${YELLOW}💡 Fix options:${NC}"
-    echo -e "  ${YELLOW}   1. Create pool: docker exec $CONTAINER python manage.py create_visitor_pool${NC}"
-    echo -e "  ${YELLOW}   2. Full reset:  make ENV=dev fresh-start${NC}"
+    echo -e "  ${RED}[FAIL] Missing $COUNT visitor users${NC}"
+    echo -e "    Fix: docker exec $CONTAINER python manage.py create_visitor_pool"
+    echo -e "    Alt: make ENV=dev fresh-start"
 elif echo "$RESULT" | grep -q "^MISSING_PROJECTS:"; then
     COUNT=$(echo "$RESULT" | grep "^MISSING_PROJECTS:" | cut -d: -f2)
-    echo -e "  ${RED}❌ Missing $COUNT visitor projects${NC}"
-    echo -e "  ${YELLOW}💡 Fix: docker exec $CONTAINER python manage.py create_visitor_pool${NC}"
+    echo -e "  ${RED}[FAIL] Missing $COUNT visitor projects${NC}"
+    echo -e "    Fix: docker exec $CONTAINER python manage.py create_visitor_pool"
 else
-    echo -e "  ${RED}❌ Could not check visitor pool${NC}"
-    echo -e "  ${YELLOW}💡 Fix options:${NC}"
-    echo -e "  ${YELLOW}   1. Create pool: docker exec $CONTAINER python manage.py create_visitor_pool${NC}"
-    echo -e "  ${YELLOW}   2. Reset pool:  docker exec $CONTAINER python manage.py reset_visitor_pool${NC}"
-    echo -e "  ${YELLOW}   3. Full reset:  make ENV=dev fresh-start${NC}"
+    echo -e "  ${RED}[FAIL] Could not check visitor pool${NC}"
+    echo -e "    Fix: docker exec $CONTAINER python manage.py create_visitor_pool"
+    echo -e "    Alt: docker exec $CONTAINER python manage.py reset_visitor_pool"
 fi
