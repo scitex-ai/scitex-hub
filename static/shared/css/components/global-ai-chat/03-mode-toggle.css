@@ -1,38 +1,39 @@
 /* ============================================================
-   Mode Toggle (Chat / Console)
+   Mode Toggle — Tab bar (Chat / Console / Jobs)
    ============================================================ */
 
 .scitex-ai-mode-toggle {
   display: flex;
-  gap: 2px;
-  margin-left: auto;
-  margin-right: 6px;
+  gap: 0;
+  margin-left: 0;
+  margin-right: auto;
   flex-shrink: 0;
+  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
 }
 
 .scitex-ai-mode-btn {
   background: none;
-  border: 1px solid transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
   cursor: pointer;
   color: var(--text-muted, #8b949e);
-  padding: 0.2rem 0.4rem;
-  border-radius: 4px;
-  font-size: 0.8rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0;
+  font-size: 0.75rem;
   transition:
     color 0.15s,
-    background 0.15s,
     border-color 0.15s;
+  white-space: nowrap;
 }
 
 .scitex-ai-mode-btn:hover {
   color: var(--text-primary);
-  background: var(--bg-hover, rgba(255, 255, 255, 0.08));
 }
 
 .scitex-ai-mode-btn.active {
   color: var(--text-primary);
-  background: rgba(90, 154, 126, 0.15);
-  border-color: rgba(90, 154, 126, 0.4);
+  background: none;
+  border-bottom-color: var(--workspace-icon-primary, #5a9a7e);
 }
 
 /* Job count badge on mode buttons */

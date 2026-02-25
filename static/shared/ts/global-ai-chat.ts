@@ -58,7 +58,7 @@ class GlobalAIChat {
   private context: AiContext = {};
 
   // Mode switching (chat / console / jobs)
-  private mode: "chat" | "console" | "jobs" = "chat";
+  private mode: "chat" | "console" | "jobs" | "config" = "chat";
   private chatMode: AIPanelChatMode | null = null;
   private consoleMode: AIPanelConsoleMode | null = null;
   private jobsMode: AIPanelJobsMode | null = null;
@@ -117,19 +117,9 @@ class GlobalAIChat {
         ?.addEventListener("click", () => this.toggle());
     }
 
-    // Gear button toggles settings panel
-    const settingsBtn = document.getElementById("scitex-ai-settings-btn");
-    const settingsPanel = document.getElementById("scitex-ai-settings-panel");
-    if (settingsBtn && settingsPanel) {
-      settingsBtn.addEventListener("click", () => {
-        const wasHidden = settingsPanel.style.display === "none";
-        settingsPanel.style.display = wasHidden ? "" : "none";
-        if (wasHidden) this.populateAgentSources();
-      });
-    }
-
     this.setupModeToggle();
     this.setupHeaderDblClick();
+    this.startJobsBadgePoller();
     this.fab?.addEventListener("click", () => this.toggle());
     this.sendBtn?.addEventListener("click", () => void this.chatMode?.send());
     this.micBtn?.addEventListener("click", () =>
@@ -351,7 +341,7 @@ class GlobalAIChat {
       .querySelectorAll<HTMLButtonElement>(".scitex-ai-mode-btn")
       .forEach((btn) => {
         btn.addEventListener("click", () => {
-          const m = btn.dataset.mode as "chat" | "console" | "jobs";
+          const m = btn.dataset.mode as "chat" | "console" | "jobs" | "config";
           if (m && m !== this.mode) this.switchMode(m);
         });
       });
@@ -359,12 +349,14 @@ class GlobalAIChat {
       | "chat"
       | "console"
       | "jobs"
+      | "config"
       | null;
     if (saved === "console") this.switchMode("console");
     else if (saved === "jobs") this.switchMode("jobs");
+    else if (saved === "config") this.switchMode("config");
   }
 
-  private switchMode(mode: "chat" | "console" | "jobs"): void {
+  private switchMode(mode: "chat" | "console" | "jobs" | "config"): void {
     this.mode = mode;
     localStorage.setItem("scitex-ai-mode", mode);
     document
@@ -372,17 +364,14 @@ class GlobalAIChat {
       .forEach((b) => {
         b.classList.toggle("active", b.dataset.mode === mode);
       });
-    document
-      .getElementById("scitex-ai-chat-view")
-      ?.classList.toggle("active", mode === "chat");
-    document
-      .getElementById("scitex-ai-console-view")
-      ?.classList.toggle("active", mode === "console");
-    document
-      .getElementById("scitex-ai-jobs-view")
-      ?.classList.toggle("active", mode === "jobs");
+    for (const v of ["chat", "console", "jobs", "config"]) {
+      document
+        .getElementById(`scitex-ai-${v}-view`)
+        ?.classList.toggle("active", v === mode);
+    }
     if (mode === "console") this.initConsoleMode();
     if (mode === "jobs") this.initJobsMode();
+    if (mode === "config") this.populateAgentSources();
   }
 
   private initConsoleMode(): void {
@@ -399,6 +388,27 @@ class GlobalAIChat {
     if (!listEl || !summaryEl) return;
     if (!this.jobsMode) this.jobsMode = new AIPanelJobsMode();
     this.jobsMode.init(listEl, summaryEl);
+  }
+
+  /* ── Jobs Badge Poller (runs on ALL pages) ───────────────── */
+
+  private startJobsBadgePoller(): void {
+    const update = async () => {
+      try {
+        const resp = await fetch("/console/api/jobs/");
+        if (!resp.ok) return;
+        const data = await resp.json();
+        const n = (data.running || 0) + (data.pending || 0);
+        for (const id of ["ai-jobs-badge", "jobs-badge"]) {
+          const el = document.getElementById(id);
+          if (el) el.textContent = String(n);
+        }
+      } catch {
+        /* silent */
+      }
+    };
+    void update();
+    setInterval(() => void update(), 10_000);
   }
 
   /* ── Panel Open / Close ───────────────────────────────────── */
