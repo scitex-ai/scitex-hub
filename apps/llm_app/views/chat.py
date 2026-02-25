@@ -15,6 +15,21 @@ def api_current_model(request):
     """Return the model name that will be used for the next chat request."""
     service = UserLLMService(request.user)
     if not service.connection or not service.llm_connection:
+        # Fall back to campaign mode if available
+        from apps.llm_app.services.campaign_service import (
+            get_campaign_config,
+            is_campaign_enabled,
+        )
+
+        if is_campaign_enabled():
+            config = get_campaign_config()
+            return JsonResponse(
+                {
+                    "success": True,
+                    "model": f"anthropic/{config['model']}",
+                    "campaign": True,
+                }
+            )
         return JsonResponse({"success": False, "model": None})
     model = litellm_model_string(
         service.connection.service, service.llm_connection.default_model
@@ -212,15 +227,33 @@ async def api_chat_stream(request):
     app_name = _derive_app_name(context)
 
     service = await sync_to_async(_ULS)(user=request.user)
+    use_campaign = False
     if not service.connection:
-        return JsonResponse(
-            {
-                "success": False,
-                "error": "No AI provider configured.",
-                "settings_url": "/accounts/settings/ai-providers/",
-            },
-            status=400,
+        # Check campaign mode before returning error
+        from apps.llm_app.services.campaign_service import (
+            check_campaign_rate_limit,
+            increment_campaign_usage,
+            is_campaign_enabled,
         )
+
+        if not is_campaign_enabled():
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "No AI provider configured.",
+                    "settings_url": "/accounts/settings/ai-providers/",
+                },
+                status=400,
+            )
+        allowed, remaining, err_msg = await sync_to_async(check_campaign_rate_limit)(
+            request
+        )
+        if not allowed:
+            return JsonResponse(
+                {"success": False, "error": err_msg, "campaign": True},
+                status=429,
+            )
+        use_campaign = True
 
     # Resolve project root for media detection in tool results
     project_slug = context.get("project_slug", "")
@@ -252,13 +285,27 @@ async def api_chat_stream(request):
                 f"data: {_json.dumps({'type': 'context', 'username': username, 'slug': project_slug})}\n\n"
             )
         try:
-            async for event in service.complete_with_tools_streaming(
-                messages=messages,
-                app_name=app_name,
-                feature="ai_chat_stream",
-                project_root=project_root_str,
-            ):
-                yield f"data: {_json.dumps(event)}\n\n"
+            if use_campaign:
+                from apps.llm_app.services.campaign_service import (
+                    campaign_complete_streaming,
+                )
+
+                resp = await campaign_complete_streaming(messages)
+                full_text = ""
+                async for chunk in resp:
+                    delta = chunk.choices[0].delta
+                    if delta.content:
+                        full_text += delta.content
+                        yield f"data: {_json.dumps({'type': 'chunk', 'text': delta.content})}\n\n"
+                await sync_to_async(increment_campaign_usage)(request)
+            else:
+                async for event in service.complete_with_tools_streaming(
+                    messages=messages,
+                    app_name=app_name,
+                    feature="ai_chat_stream",
+                    project_root=project_root_str,
+                ):
+                    yield f"data: {_json.dumps(event)}\n\n"
         except Exception as e:
             yield f"data: {_json.dumps({'type': 'error', 'error': str(e)})}\n\n"
         yield "data: [DONE]\n\n"
@@ -304,14 +351,58 @@ async def api_chat(request):
 
     service = await sync_to_async(UserLLMService)(user=request.user)
     if not service.connection:
-        return JsonResponse(
-            {
-                "success": False,
-                "error": "No AI provider configured.",
-                "settings_url": "/accounts/settings/ai-providers/",
-            },
-            status=400,
+        # Check campaign mode before returning error
+        from apps.llm_app.services.campaign_service import (
+            campaign_complete_streaming,
+            check_campaign_rate_limit,
+            increment_campaign_usage,
+            is_campaign_enabled,
         )
+
+        if not is_campaign_enabled():
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "No AI provider configured.",
+                    "settings_url": "/accounts/settings/ai-providers/",
+                },
+                status=400,
+            )
+        allowed, remaining, err_msg = await sync_to_async(check_campaign_rate_limit)(
+            request
+        )
+        if not allowed:
+            return JsonResponse(
+                {"success": False, "error": err_msg, "campaign": True},
+                status=429,
+            )
+
+        try:
+            import time
+
+            t0 = time.monotonic()
+            resp = await campaign_complete_streaming(messages)
+            full_text = ""
+            async for chunk in resp:
+                delta = chunk.choices[0].delta
+                if delta.content:
+                    full_text += delta.content
+            elapsed = int((time.monotonic() - t0) * 1000)
+            await sync_to_async(increment_campaign_usage)(request)
+            return JsonResponse(
+                {
+                    "success": True,
+                    "text": full_text,
+                    "tools_used": [],
+                    "response_time_ms": elapsed,
+                    "campaign": True,
+                }
+            )
+        except Exception as e:
+            return JsonResponse(
+                {"success": False, "error": f"Campaign chat failed: {e}"},
+                status=500,
+            )
 
     try:
         result = await service.complete_with_tools(

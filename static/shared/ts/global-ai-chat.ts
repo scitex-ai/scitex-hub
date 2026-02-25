@@ -177,7 +177,7 @@ class GlobalAIChat {
 
     const savedModel = sessionStorage.getItem(MODEL_KEY);
     if (savedModel) setModelBadge(this.modelBadge, savedModel);
-    fetchCurrentModel((m) => setModelBadge(this.modelBadge, m));
+    fetchCurrentModel((m, c) => setModelBadge(this.modelBadge, m, c));
 
     window.scitexAI = {
       setContext: (ctx) => {
