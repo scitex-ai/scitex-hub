@@ -5,6 +5,22 @@ All notable changes to SciTeX Cloud will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.8-alpha] - 2026-02-25
+
+### Added
+- **Domino collapse propagation**: Workspace panel resizers cascade collapse through adjacent panels like dominoes
+- **Writer smart collapse**: Editor/preview split panels auto-collapse when dragged below 40px threshold
+- **AI panel tabs**: Redesigned AI panel with Chat/Console/Jobs/Config tab navigation
+- **Terminal spinner**: Connecting animation during WebSocket handshake
+- **Terminal buffer copy**: Copy full terminal buffer contents to clipboard
+- **Console ToolbarManager**: Extracted toolbar logic from workspace index for cleaner separation
+- **Figrecipe embedded mode**: Vis editor supports embedded figrecipe iframe from recipe files
+
+### Changed
+- Writer panel labels: Editor → Editor (Writer), Preview → Preview+
+- Section selector capped to content width for clickable collapse area
+- Collapsed panel labels center-aligned across all workspace panes
+
 ## [0.10.7-alpha] - 2026-02-25
 
 ### Added
