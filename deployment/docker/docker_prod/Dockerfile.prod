@@ -12,8 +12,9 @@
 #   Stage 2: apptainer-builder — Apptainer binary     (changes: ~never)
 #   Stage 3: tool-builder     — yq, small binaries    (changes: ~never)
 #   Stage 4: node-builder     — mermaid-cli           (changes: rarely)
-#   Stage 5: python-builder   — Python deps (scitex core only):
-#            Layer A: scitex[all]==2.19.7       (changes: on scitex release, ~monthly)
+#   Stage 5: python-builder   — Python deps (scitex core):
+#            Layer 0: scitex[all]==2.17.0      (anchor — NEVER changes, caches PyTorch)
+#            Layer A: scitex[all]==2.19.5      (latest — bump freely, ~30s rebuild)
 #   Stage 6: runtime          — Final image, includes:
 #            Layer B: scitex-cloud==0.10.10-alpha (installed after app COPY, ~30s)
 #
@@ -109,31 +110,34 @@ RUN npm install -g @mermaid-js/mermaid-cli
 # ============================================
 # Stage 5: Python Dependencies (scitex core only)
 # ============================================
-# Two-layer install strategy across builder + runtime:
+# Three-layer install strategy across builder + runtime:
 #
-#   Layer A (here, python-builder):
-#     scitex[all]==2.19.7 — PyTorch, CUDA, scipy, scikit-learn (~15 min cold)
-#     Pinned from PyPI. Only rebuilds when you bump the version string.
-#     This entire stage is cached as long as the pin doesn't change.
+#   Layer 0 (here, python-builder — "anchor"):
+#     scitex[all]==2.17.0 — installs PyTorch, CUDA, scipy, scikit-learn.
+#     This version is pinned to an old stable release and NEVER changes.
+#     Purpose: cache the ~2GB heavy dependency tree permanently. (~15 min cold)
 #
-#   Layer B (in runtime stage, near the end):
-#     scitex-cloud==0.10.10-alpha — Django app, installed AFTER app code COPY.
-#     Heavy deps already in site-packages from Layer A, so uv only installs
-#     the delta (Django, daphne, test tools). ~30s.
+#   Layer A (here, python-builder — "update"):
+#     scitex[all]==2.19.5 — overwrites scitex core to the latest version.
+#     PyTorch etc. are already installed from Layer 0 and version-compatible,
+#     so uv skips them and only updates scitex itself. (~30s)
+#     You bump this pin freely on every publish — Layer 0 stays cached.
 #
-# Why not install scitex-cloud here in the builder?
-#   Because COPY pyproject.toml + src/ would invalidate this stage on every
-#   deploy, defeating the purpose of caching scitex[all]. By deferring
-#   scitex-cloud to the runtime stage, this builder stays fully cached.
+#   Layer B (in runtime stage, after COPY . .):
+#     scitex-cloud — Django app installed from local source.
+#     Heavy deps already in site-packages from Layer 0+A. (~30s)
 #
-# Why not local/editable install for scitex core?
-#   `COPY . && pip install -e .` would invalidate the layer on every code
-#   change, forcing PyTorch reinstall (~15 min). Pin from PyPI, publish
-#   when ready, bump the string. Trade-off: manual version bump.
+# Why Layer 0 + Layer A instead of just Layer A?
+#   scitex is published frequently (daily). If only Layer A existed,
+#   bumping the version string would invalidate the layer and re-download
+#   PyTorch every time (~15 min). With the anchor layer, PyTorch is cached
+#   permanently. Layer A only pays for the scitex core delta.
+#
+#   When to update Layer 0: only when scitex changes its PyTorch/scipy
+#   version requirements (rare, maybe once or twice a year).
 #
 # Why uv instead of pip?
-#   10-50x faster resolution and install. On Layer B rebuilds the difference
-#   is minutes (pip) vs seconds (uv).
+#   10-50x faster resolution and install. Critical for Layer A/B rebuilds.
 
 FROM python:3.11-slim AS python-builder
 
@@ -159,9 +163,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
     mv /root/.local/bin/uv /usr/local/bin/uv
 
-# --- Layer A: Heavy scientific Python stack (changes ~monthly) ---
-# Changing this version string is the ONLY thing that invalidates this layer.
-RUN uv pip install --system --no-cache "scitex[all]==2.19.7"
+# --- Layer 0: Anchor — heavy deps cache (NEVER change this version) ---
+# This installs PyTorch, scipy, scikit-learn, etc. as transitive deps.
+# The version is intentionally old and frozen. Only update when scitex
+# changes its major dependency versions (e.g., PyTorch 2.x → 3.x).
+RUN uv pip install --system --no-cache "scitex[all]==2.17.0"
+
+# --- Layer A: Latest scitex (bump freely on every publish) ---
+# PyTorch etc. are already satisfied from Layer 0. uv skips them and
+# only downloads/installs the scitex package itself. (~30s)
+# No --no-cache here: we want uv to recognize existing packages.
+RUN uv pip install --system "scitex[all]==2.19.5"
 
 # Playwright browsers (cached separately via BuildKit cache mount)
 RUN --mount=type=cache,target=/root/.cache/ms-playwright \
